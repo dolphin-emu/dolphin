@@ -67,7 +67,7 @@ public:
 		return result;
 	}
 private:
-	u8 *buffer;
+	u8* buffer;
 	int offset;
 };
 
@@ -122,6 +122,6 @@ public:
 		offset += sizeof(T);
 	}
 private:
-	u8 *buffer;
+	u8* buffer;
 	int offset;
 };

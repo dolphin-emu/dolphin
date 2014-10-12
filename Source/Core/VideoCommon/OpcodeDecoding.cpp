@@ -54,7 +54,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		u8 *end = g_video_buffer_read_ptr + size;
+		u8* end = g_video_buffer_read_ptr + size;
 		cycles = OpcodeDecoder_Run(end);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
@@ -79,7 +79,7 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 	{
 		g_video_buffer_pp_read_ptr = startAddress;
 
-		u8 *end = startAddress + size;
+		u8* end = startAddress + size;
 		OpcodeDecoder_Preprocess(end);
 	}
 
@@ -132,7 +132,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 template <bool is_preprocess, u8** bufp>
 static u32 Decode(u8* end)
 {
-	u8 *opcodeStart = *bufp;
+	u8* opcodeStart = *bufp;
 	if (*bufp == end)
 		return 0;
 
@@ -318,7 +318,7 @@ u32 OpcodeDecoder_Run(u8* end)
 	return totalCycles;
 }
 
-void OpcodeDecoder_Preprocess(u8 *end)
+void OpcodeDecoder_Preprocess(u8* end)
 {
 	while (true)
 	{

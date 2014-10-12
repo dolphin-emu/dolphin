@@ -59,7 +59,7 @@ namespace EfbInterface
 		}
 	}
 
-	static void SetPixelColorOnly(u32 offset, u8 *rgb)
+	static void SetPixelColorOnly(u32 offset, u8* rgb)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -99,7 +99,7 @@ namespace EfbInterface
 		}
 	}
 
-	static void SetPixelAlphaColor(u32 offset, u8 *color)
+	static void SetPixelAlphaColor(u32 offset, u8* color)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -140,7 +140,7 @@ namespace EfbInterface
 		}
 	}
 
-	static void GetPixelColor(u32 offset, u8 *color)
+	static void GetPixelColor(u32 offset, u8* color)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -230,7 +230,7 @@ namespace EfbInterface
 		return depth;
 	}
 
-	static u32 GetSourceFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
+	static u32 GetSourceFactor(u8* srcClr, u8* dstClr, BlendMode::BlendFactor mode)
 	{
 		switch (mode)
 		{
@@ -271,7 +271,7 @@ namespace EfbInterface
 		return 0;
 	}
 
-	static u32 GetDestinationFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
+	static u32 GetDestinationFactor(u8* srcClr, u8* dstClr, BlendMode::BlendFactor mode)
 	{
 		switch (mode)
 		{
@@ -312,7 +312,7 @@ namespace EfbInterface
 		return 0;
 	}
 
-	static void BlendColor(u8 *srcClr, u8 *dstClr)
+	static void BlendColor(u8* srcClr, u8* dstClr)
 	{
 		u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.srcfactor);
 		u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dstfactor);
@@ -389,7 +389,7 @@ namespace EfbInterface
 		}
 	}
 
-	static void SubtractBlend(u8 *srcClr, u8 *dstClr)
+	static void SubtractBlend(u8* srcClr, u8* dstClr)
 	{
 		for (int i = 0; i < 4; i++)
 		{
@@ -398,12 +398,12 @@ namespace EfbInterface
 		}
 	}
 
-	void BlendTev(u16 x, u16 y, u8 *color)
+	void BlendTev(u16 x, u16 y, u8* color)
 	{
 		u32 dstClr;
 		u32 offset = GetColorOffset(x, y);
 
-		u8 *dstClrPtr = (u8*)&dstClr;
+		u8* dstClrPtr = (u8*)&dstClr;
 
 		GetPixelColor(offset, dstClrPtr);
 
@@ -445,7 +445,7 @@ namespace EfbInterface
 		PixelEngine::bbox[3] = std::max(y, PixelEngine::bbox[3]);
 	}
 
-	void SetColor(u16 x, u16 y, u8 *color)
+	void SetColor(u16 x, u16 y, u8* color)
 	{
 		u32 offset = GetColorOffset(x, y);
 		if (bpmem.blendmode.colorupdate)
@@ -467,7 +467,7 @@ namespace EfbInterface
 			SetPixelDepth(GetDepthOffset(x, y), depth);
 	}
 
-	void GetColor(u16 x, u16 y, u8 *color)
+	void GetColor(u16 x, u16 y, u8* color)
 	{
 		u32 offset = GetColorOffset(x, y);
 		GetPixelColor(offset, color);
@@ -492,7 +492,7 @@ namespace EfbInterface
 		return GetPixelDepth(offset);
 	}
 
-	u8 *GetPixelPointer(u16 x, u16 y, bool depth)
+	u8* GetPixelPointer(u16 x, u16 y, bool depth)
 	{
 		if (depth)
 			return &efb[GetDepthOffset(x, y)];

@@ -30,7 +30,7 @@ private:
 		STRUCTUR_SIZE = 0x2BC
 	};
 
-	u8 *m_pData;
+	u8* m_pData;
 
 	size_t m_size;
 

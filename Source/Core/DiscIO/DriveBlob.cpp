@@ -30,7 +30,7 @@ DriveReader::DriveReader(const std::string& drive)
 		// Do a test read to make sure everything is OK, since it seems you can get
 		// handles to empty drives.
 		DWORD not_used;
-		u8 *buffer = new u8[m_blocksize];
+		u8* buffer = new u8[m_blocksize];
 		if (!ReadFile(m_disc_handle, buffer, m_blocksize, (LPDWORD)&not_used, nullptr))
 		{
 			delete [] buffer;

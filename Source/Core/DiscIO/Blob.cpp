@@ -41,7 +41,7 @@ SectorReader::~SectorReader()
 	}
 }
 
-const u8 *SectorReader::GetBlockData(u64 block_num)
+const u8* SectorReader::GetBlockData(u64 block_num)
 {
 	// TODO : Expand usage of the cache to more than one block :P
 	if (m_cache_tags[0] == block_num)
@@ -105,11 +105,11 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 	return true;
 }
 
-bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)
+bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr)
 {
 	for (u64 i = 0; i < num_blocks; i++)
 	{
-		const u8 *data = GetBlockData(block_num + i);
+		const u8* data = GetBlockData(block_num + i);
 		if (!data)
 			return false;
 		memcpy(out_ptr + i * m_blocksize, data, m_blocksize);

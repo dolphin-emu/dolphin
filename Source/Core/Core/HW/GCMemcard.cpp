@@ -9,7 +9,7 @@
 #include "Common/ColorUtil.h"
 #include "Core/HW/GCMemcard.h"
 
-static void ByteSwap(u8 *valueA, u8 *valueB)
+static void ByteSwap(u8* valueA, u8* valueB)
 {
 	u8 tmp = *valueA;
 	*valueA = *valueB;
@@ -1068,7 +1068,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 	return true;
 }
 
-u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
+u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
 {
 	if (!m_valid || index >= DIRLEN)
 		return 0;
@@ -1205,7 +1205,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 	return frames;
 }
 
-bool GCMemcard::Format(u8 *card_data, bool ascii, u16 SizeMb)
+bool GCMemcard::Format(u8* card_data, bool ascii, u16 SizeMb)
 {
 	if (!card_data)
 		return false;

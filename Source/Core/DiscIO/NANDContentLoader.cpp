@@ -129,7 +129,7 @@ private:
 	u8 m_TMDView[TMD_VIEW_SIZE];
 	u8 m_TMDHeader[TMD_HEADER_SIZE];
 	u32 m_TIKSize;
-	u8 *m_TIK;
+	u8* m_TIK;
 	u8 m_Country;
 
 	std::vector<SNANDContent> m_Content;
@@ -522,7 +522,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	return TitleID;
 }
 
-bool Add_Ticket(u64 TitleID, const u8 *p_tik, u32 tikSize)
+bool Add_Ticket(u64 TitleID, const u8* p_tik, u32 tikSize)
 {
 	std::string TicketFileName = Common::GetTicketFileName(TitleID);
 	File::CreateFullPath(TicketFileName);

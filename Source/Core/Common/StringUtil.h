@@ -34,7 +34,7 @@ inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 }
 
 // Good
-std::string ArrayToString(const u8 *data, u32 size, int line_len = 20, bool spaces = true);
+std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
 
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);

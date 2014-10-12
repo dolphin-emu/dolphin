@@ -214,7 +214,7 @@ template <typename T>
 void PrintObject(const T &Obj)
 {
 	std::stringstream ss;
-	u8 *o = (u8 *)&Obj;
+	u8* o = (u8 *)&Obj;
 
 	// If this miscompiles, adjust the size of
 	// ZeldaVoicePB to 0x180 bytes (0xc0 shorts).
@@ -275,7 +275,7 @@ void ZeldaUCode::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	// u32 frac = NumberOfSamples & 0xF;
 	// NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
 
-	const u8 *source;
+	const u8* source;
 	u32 ram_mask = 1024 * 1024 * 16 - 1;
 	if (IsDMAVersion())
 	{
@@ -462,7 +462,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 	// ACC1 is the read size
 
 	const u32 ram_mask = 0x1FFFFFF;
-	const u8 *source = Memory::GetPointer(0x80000000);
+	const u8* source = Memory::GetPointer(0x80000000);
 	const u16 *src = (u16 *)(source + (ACC0 & ram_mask));
 
 	for (u32 i = 0; i < (ACC1 >> 16); i++)

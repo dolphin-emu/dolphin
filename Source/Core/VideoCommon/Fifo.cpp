@@ -231,7 +231,7 @@ static void ReadDataFromFifo(u8* _uData)
 static void ReadDataFromFifoOnCPU(u8* _uData)
 {
 	size_t len = 32;
-	u8 *write_ptr = s_video_buffer_write_ptr;
+	u8* write_ptr = s_video_buffer_write_ptr;
 	if (len > (size_t)(s_video_buffer + FIFO_SIZE - write_ptr))
 	{
 		// We can't wrap around while the GPU is working on the data.
@@ -313,7 +313,7 @@ void RunGpuLoop()
 				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin)
 				{
 					u32 readPtr = fifo.CPReadPointer;
-					u8 *uData = Memory::GetPointer(readPtr);
+					u8* uData = Memory::GetPointer(readPtr);
 
 					if (readPtr == fifo.CPEnd)
 						readPtr = fifo.CPBase;
@@ -392,7 +392,7 @@ void RunGpu()
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 	{
-		u8 *uData = Memory::GetPointer(fifo.CPReadPointer);
+		u8* uData = Memory::GetPointer(fifo.CPReadPointer);
 
 		if (g_use_deterministic_gpu_thread)
 		{

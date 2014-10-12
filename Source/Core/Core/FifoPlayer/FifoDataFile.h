@@ -27,13 +27,13 @@ struct MemoryUpdate
 	u32 fifoPosition;
 	u32 address;
 	u32 size;
-	u8 *data;
+	u8* data;
 	Type type;
 };
 
 struct FifoFrameInfo
 {
-	u8 *fifoData;
+	u8* fifoData;
 	u32 fifoDataSize;
 
 	u32 fifoStart;

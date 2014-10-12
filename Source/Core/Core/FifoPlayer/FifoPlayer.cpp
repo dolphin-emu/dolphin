@@ -226,7 +226,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo 
 
 void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32 &nextMemUpdate, const FifoFrameInfo &frame, const AnalyzedFrameInfo &info)
 {
-	u8 *data = frame.fifoData;
+	u8* data = frame.fifoData;
 
 	while (nextMemUpdate < frame.memoryUpdates.size() && dataStart < dataEnd)
 	{
@@ -271,7 +271,7 @@ void FifoPlayer::WriteAllMemoryUpdates()
 
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
-	u8 *mem = nullptr;
+	u8* mem = nullptr;
 
 	if (memUpdate.address & 0x10000000)
 		mem = &Memory::m_pEXRAM[memUpdate.address & Memory::EXRAM_MASK];
@@ -281,7 +281,7 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 	memcpy(mem, memUpdate.data, memUpdate.size);
 }
 
-void FifoPlayer::WriteFifo(u8 *data, u32 start, u32 end)
+void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
 {
 	u32 written = start;
 	u32 lastBurstEnd = end - 1;

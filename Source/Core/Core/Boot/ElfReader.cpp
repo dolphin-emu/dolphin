@@ -131,8 +131,8 @@ bool ElfReader::LoadInto(u32 vaddr)
 			segmentVAddr[i] = baseAddress + p->p_vaddr;
 			u32 writeAddr = segmentVAddr[i];
 
-			const u8 *src = GetSegmentPtr(i);
-			u8 *dst = Memory::GetPointer(writeAddr);
+			const u8* src = GetSegmentPtr(i);
+			u8* dst = Memory::GetPointer(writeAddr);
 			u32 srcSize = p->p_filesz;
 			u32 dstSize = p->p_memsz;
 			u32 *s = (u32*)src;

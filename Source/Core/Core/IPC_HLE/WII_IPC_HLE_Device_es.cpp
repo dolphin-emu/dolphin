@@ -632,7 +632,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			const DiscIO::INANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-			const u8 *Ticket = Loader.GetTIK();
+			const u8* Ticket = Loader.GetTIK();
 			if (Ticket)
 			{
 				u32 viewCnt = Loader.GetTIKSize() / DiscIO::INANDContentLoader::TICKET_SIZE;
@@ -1022,10 +1022,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	case IOCTL_ES_SIGN:
 		{
 			WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
-			u8 *ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
-			u8 *data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
+			u8* ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+			u8* data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
 			u32 data_size = Buffer.InBuffer[0].m_Size;
-			u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+			u8* sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 
 			EcWii &ec = EcWii::GetInstance();
 			get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(), ec.getNgId());

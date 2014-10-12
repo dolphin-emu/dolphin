@@ -204,7 +204,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		u8 addressLO = address & 0xFFFF;
 		address &= 0xFEFFFF;
 		u16 size = Common::swap16(rd->size);
-		u8 *const block = new u8[size];
+		u8* const block = new u8[size];
 		void *region_ptr = nullptr;
 
 		dataRep.push(((data[2]>>1)<<16) + ((data[3])<<8) + addressLO);
@@ -1054,7 +1054,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 	}
 
 	ReadRequest rr;
-	u8 *const block = new u8[size];
+	u8* const block = new u8[size];
 
 	switch (rd->space)
 	{

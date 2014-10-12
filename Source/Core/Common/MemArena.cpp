@@ -171,7 +171,7 @@ u8* MemArena::Find4GBBase()
 		continue; \
 
 
-static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+static bool Memory_TryBase(u8* base, const MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	// OK, we know where to find free space. Now grab it!
 	// We just mimic the popular BAT setup.
@@ -230,7 +230,7 @@ bail:
 	return false;
 }
 
-u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+u8* MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	u32 total_mem = 0;
 
@@ -245,7 +245,7 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 
 	// Now, create views in high memory where there's plenty of space.
 #if _ARCH_64
-	u8 *base = MemArena::Find4GBBase();
+	u8* base = MemArena::Find4GBBase();
 	// This really shouldn't fail - in 64-bit, there will always be enough
 	// address space.
 	if (!Memory_TryBase(base, views, num_views, flags, arena))
@@ -256,7 +256,7 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	}
 #else
 	// Linux32 is fine with the x64 method, although limited to 32-bit with no automirrors.
-	u8 *base = MemArena::Find4GBBase();
+	u8* base = MemArena::Find4GBBase();
 	if (!Memory_TryBase(base, views, num_views, flags, arena))
 	{
 		PanicAlert("MemoryMap_Setup: Failed finding a memory base.");

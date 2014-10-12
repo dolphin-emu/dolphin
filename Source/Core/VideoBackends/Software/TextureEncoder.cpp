@@ -13,7 +13,7 @@
 namespace TextureEncoder
 {
 
-static inline void RGBA_to_RGBA8(const u8 *src, u8* r, u8* g, u8* b, u8* a)
+static inline void RGBA_to_RGBA8(const u8* src, u8* r, u8* g, u8* b, u8* a)
 {
 	u32 srcColor = *(u32*)src;
 	*a = Convert6To8(srcColor & 0x3f);
@@ -22,7 +22,7 @@ static inline void RGBA_to_RGBA8(const u8 *src, u8* r, u8* g, u8* b, u8* a)
 	*r = Convert6To8((srcColor >> 18)& 0x3f);
 }
 
-static inline void RGBA_to_RGB8(const u8 *src, u8* r, u8* g, u8* b)
+static inline void RGBA_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
 {
 	u32 srcColor = *(u32*)src;
 	*b = Convert6To8((srcColor >> 6) & 0x3f);
@@ -155,7 +155,7 @@ static inline void BoxfilterRGB_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
 	*b = b16 >> 2;
 }
 
-static inline void BoxfilterRGB_to_x8(u8 *src, u8* x8, int comp)
+static inline void BoxfilterRGB_to_x8(u8* src, u8* x8, int comp)
 {
 	u16 x16 = 0;
 
@@ -253,13 +253,13 @@ static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32*
 			dstBlockStart += writeStride;					\
 		}													\
 
-static void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
+static void EncodeRGBA6(u8* dst, u8* src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
 	u8 r, g, b, a;
 	u32 readStride = 3;
-	u8 *dstBlockStart = dst;
+	u8* dstBlockStart = dst;
 
 	switch (format)
 	{
@@ -490,13 +490,13 @@ static void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 }
 
 
-static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
+static void EncodeRGBA6halfscale(u8* dst, u8* src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
 	u8 r, g, b, a;
 	u32 readStride = 6;
-	u8 *dstBlockStart = dst;
+	u8* dstBlockStart = dst;
 
 	switch (format)
 	{
@@ -725,12 +725,12 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-static void EncodeRGB8(u8 *dst, u8 *src, u32 format)
+static void EncodeRGB8(u8* dst, u8* src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
 	u32 readStride = 3;
-	u8 *dstBlockStart = dst;
+	u8* dstBlockStart = dst;
 
 	switch (format)
 	{
@@ -939,13 +939,13 @@ static void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
+static void EncodeRGB8halfscale(u8* dst, u8* src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
 	u8 r, g, b;
 	u32 readStride = 6;
-	u8 *dstBlockStart = dst;
+	u8* dstBlockStart = dst;
 
 	switch (format)
 	{
@@ -1170,12 +1170,12 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-static void EncodeZ24(u8 *dst, u8 *src, u32 format)
+static void EncodeZ24(u8* dst, u8* src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
 	u32 readStride = 3;
-	u8 *dstBlockStart = dst;
+	u8* dstBlockStart = dst;
 
 	switch (format)
 	{
@@ -1274,13 +1274,13 @@ static void EncodeZ24(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
+static void EncodeZ24halfscale(u8* dst, u8* src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
 	u32 readStride = 6;
 	u8 r, g, b;
-	u8 *dstBlockStart = dst;
+	u8* dstBlockStart = dst;
 
 	switch (format)
 	{
@@ -1384,7 +1384,7 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-void Encode(u8 *dest_ptr)
+void Encode(u8* dest_ptr)
 {
 	auto pixelformat = bpmem.zcontrol.pixel_format;
 	bool bFromZBuffer = pixelformat == PEControl::Z24;
@@ -1405,7 +1405,7 @@ void Encode(u8 *dest_ptr)
 		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
 			format |= _GX_TF_CTF;
 
-	u8 *src = EfbInterface::GetPixelPointer(bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bFromZBuffer);
+	u8* src = EfbInterface::GetPixelPointer(bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bFromZBuffer);
 
 	if (bpmem.triggerEFBCopy.half_scale)
 	{

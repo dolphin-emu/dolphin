@@ -221,7 +221,7 @@ static void ReadFifo()
 	if (canRead && !atBreakpoint)
 	{
 		// read from fifo
-		u8 *ptr = Memory::GetPointer(cpreg.readptr);
+		u8* ptr = Memory::GetPointer(cpreg.readptr);
 		int bytesRead = 0;
 
 		do

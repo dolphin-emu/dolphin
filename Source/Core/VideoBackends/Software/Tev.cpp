@@ -139,7 +139,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
 	{
 	case 0: // Color0
 		{
-			u8 *color = Color[0];
+			u8* color = Color[0];
 			RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
 			RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
 			swaptable++;
@@ -149,7 +149,7 @@ void Tev::SetRasColor(int colorChan, int swaptable)
 		break;
 	case 1: // Color1
 		{
-			u8 *color = Color[1];
+			u8* color = Color[1];
 			RasColor[RED_C] = color[bpmem.tevksel[swaptable].swap1];
 			RasColor[GRN_C] = color[bpmem.tevksel[swaptable].swap2];
 			swaptable++;
@@ -391,7 +391,7 @@ static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
 void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 {
 	TevStageIndirect &indirect = bpmem.tevind[stageNum];
-	u8 *indmap = IndirectTex[indirect.bt];
+	u8* indmap = IndirectTex[indirect.bt];
 
 	s32 indcoord[3];
 

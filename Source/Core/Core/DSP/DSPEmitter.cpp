@@ -204,7 +204,7 @@ void DSPEmitter::Compile(u16 start_addr)
 	startAddr = start_addr;
 	unresolvedJumps[start_addr].clear();
 
-	const u8 *entryPoint = AlignCode16();
+	const u8* entryPoint = AlignCode16();
 
 	/*
 	// Check for other exceptions
@@ -372,9 +372,9 @@ void DSPEmitter::Compile(u16 start_addr)
 	JMP(returnDispatcher, true);
 }
 
-const u8 *DSPEmitter::CompileStub()
+const u8* DSPEmitter::CompileStub()
 {
-	const u8 *entryPoint = AlignCode16();
+	const u8* entryPoint = AlignCode16();
 	ABI_CallFunction((void *)&CompileCurrent);
 	XOR(32, R(EAX), R(EAX)); // Return 0 cycles executed
 	JMP(returnDispatcher);
@@ -388,7 +388,7 @@ void DSPEmitter::CompileDispatcher()
 	u32 registers_used = ABI_ALL_CALLEE_SAVED & 0xffff;
 	ABI_PushRegistersAndAdjustStack(registers_used, 8);
 
-	const u8 *dispatcherLoop = GetCodePtr();
+	const u8* dispatcherLoop = GetCodePtr();
 
 	FixupBranch exceptionExit;
 	if (DSPHost::OnThread())

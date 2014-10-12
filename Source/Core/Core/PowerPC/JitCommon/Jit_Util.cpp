@@ -69,9 +69,9 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 		MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
 }
 
-u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend)
+u8* EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend)
 {
-	u8 *result;
+	u8* result;
 	OpArg memOperand;
 	if (opAddress.IsSimpleReg())
 	{
@@ -305,7 +305,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 #endif
 	    )
 	{
-		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
+		u8* mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 
 		registersInUseAtLoc[mov] = registersInUse;
 	}
@@ -430,7 +430,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	}
 }
 
-u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
+u8* EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
 	u8* result = GetWritableCodePtr();
 	OpArg dest = MComplex(RMEM, reg_addr, SCALE_1, offset);

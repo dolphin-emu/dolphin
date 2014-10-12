@@ -59,7 +59,7 @@ public:
 	JitBlockCache *GetBlockCache() override { return &blocks; }
 
 	void ClearCache() override;
-	const u8 *GetDispatcher()
+	const u8* GetDispatcher()
 	{
 		return asm_routines.dispatcher;  // asm_routines.dispatcher
 	}

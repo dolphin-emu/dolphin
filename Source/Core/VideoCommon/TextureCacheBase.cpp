@@ -27,7 +27,7 @@ enum
 
 TextureCache *g_texture_cache;
 
-GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
+GC_ALIGNED16(u8* TextureCache::temp) = nullptr;
 unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;

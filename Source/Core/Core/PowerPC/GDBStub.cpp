@@ -76,7 +76,7 @@ static u8 nibble2hex(u8 n)
 		return 'A' + n - 0xa;
 }
 
-static void mem2hex(u8 *dst, u8 *src, u32 len)
+static void mem2hex(u8* dst, u8* src, u32 len)
 {
 	u8 tmp;
 
@@ -87,7 +87,7 @@ static void mem2hex(u8 *dst, u8 *src, u32 len)
 	}
 }
 
-static void hex2mem(u8 *dst, u8 *src, u32 len)
+static void hex2mem(u8* dst, u8* src, u32 len)
 {
 	while (len-- > 0) {
 		*dst++ = (hex2char(*src) << 4) | hex2char(*(src+1));
@@ -113,7 +113,7 @@ static u8 gdb_read_byte()
 static u8 gdb_calc_chksum()
 {
 	u32 len = cmd_len;
-	u8 *ptr = cmd_bfr;
+	u8* ptr = cmd_bfr;
 	u8 c = 0;
 
 	while (len-- > 0)
@@ -311,7 +311,7 @@ static void gdb_reply(const char* reply)
 {
 	u8 chk;
 	u32 left;
-	u8 *ptr;
+	u8* ptr;
 	int n;
 
 	if (!gdb_active())
@@ -380,21 +380,21 @@ static void gdb_handle_signal()
 	gdb_reply(bfr);
 }
 
-static void wbe32hex(u8 *p, u32 v)
+static void wbe32hex(u8* p, u32 v)
 {
 	u32 i;
 	for (i = 0; i < 8; i++)
 		p[i] =  nibble2hex(v >> (28 - 4*i));
 }
 
-static void wbe64hex(u8 *p, u64 v)
+static void wbe64hex(u8* p, u64 v)
 {
 	u32 i;
 	for (i = 0; i < 16; i++)
 		p[i] =  nibble2hex(v >> (60 - 4*i));
 }
 
-static u32 re32hex(u8 *p)
+static u32 re32hex(u8* p)
 {
 	u32 i;
 	u32 res = 0;
@@ -405,7 +405,7 @@ static u32 re32hex(u8 *p)
 	return res;
 }
 
-static u64 re64hex(u8 *p)
+static u64 re64hex(u8* p)
 {
 	u32 i;
 	u64 res = 0;
@@ -472,7 +472,7 @@ static void gdb_read_register()
 static void gdb_read_registers()
 {
 	static u8 bfr[GDB_BFR_MAX - 4];
-	u8 * bufptr = bfr;
+	u8*  bufptr = bfr;
 	u32 i;
 
 	memset(bfr, 0, sizeof bfr);
@@ -508,7 +508,7 @@ static void gdb_read_registers()
 static void gdb_write_registers()
 {
 	u32 i;
-	u8 * bufptr = cmd_bfr;
+	u8*  bufptr = cmd_bfr;
 
 	for (i = 0; i < 32; i++)
 	{
@@ -523,7 +523,7 @@ static void gdb_write_register()
 {
 	u32 id;
 
-	u8 * bufptr = cmd_bfr + 3;
+	u8*  bufptr = cmd_bfr + 3;
 
 	id = hex2char(cmd_bfr[1]);
 	if (cmd_bfr[2] != '=')
@@ -591,7 +591,7 @@ static void gdb_read_mem()
 
 	if (len*2 > sizeof reply)
 		gdb_reply("E01");
-	u8 * data = Memory::GetPointer(addr);
+	u8*  data = Memory::GetPointer(addr);
 	if (!data)
 		return gdb_reply("E0");
 	mem2hex(reply, data, len);
@@ -615,7 +615,7 @@ static void gdb_write_mem()
 		len = (len << 4) | hex2char(cmd_bfr[i++]);
 	DEBUG_LOG(GDB_STUB, "gdb: write memory: %08x bytes to %08x\n", len, addr);
 
-	u8 * dst = Memory::GetPointer(addr);
+	u8*  dst = Memory::GetPointer(addr);
 	if (!dst)
 		return gdb_reply("E00");
 	hex2mem(dst, cmd_bfr + i + 1, len);

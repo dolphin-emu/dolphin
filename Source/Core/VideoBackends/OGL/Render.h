@@ -67,7 +67,7 @@ public:
 
 	void RenderText(const std::string& text, int left, int top, u32 color) override;
 	void DrawDebugInfo();
-	void FlipImageData(u8 *data, int w, int h, int pixel_width = 3);
+	void FlipImageData(u8* data, int w, int h, int pixel_width = 3);
 
 	u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
 

@@ -74,17 +74,17 @@ enum NormalSSEOps
 };
 
 
-void XEmitter::SetCodePtr(u8 *ptr)
+void XEmitter::SetCodePtr(u8* ptr)
 {
 	code = ptr;
 }
 
-const u8 *XEmitter::GetCodePtr() const
+const u8* XEmitter::GetCodePtr() const
 {
 	return code;
 }
 
-u8 *XEmitter::GetWritableCodePtr()
+u8* XEmitter::GetWritableCodePtr()
 {
 	return code;
 }
@@ -95,7 +95,7 @@ void XEmitter::ReserveCodeSpace(int bytes)
 		*code++ = 0xCC;
 }
 
-const u8 *XEmitter::AlignCode4()
+const u8* XEmitter::AlignCode4()
 {
 	int c = int((u64)code & 3);
 	if (c)
@@ -103,7 +103,7 @@ const u8 *XEmitter::AlignCode4()
 	return code;
 }
 
-const u8 *XEmitter::AlignCode16()
+const u8* XEmitter::AlignCode16()
 {
 	int c = int((u64)code & 15);
 	if (c)
@@ -111,7 +111,7 @@ const u8 *XEmitter::AlignCode16()
 	return code;
 }
 
-const u8 *XEmitter::AlignCodePage()
+const u8* XEmitter::AlignCodePage()
 {
 	int c = int((u64)code & 4095);
 	if (c)
@@ -337,7 +337,7 @@ void XEmitter::Rex(int w, int r, int x, int b)
 		Write8(rx);
 }
 
-void XEmitter::JMP(const u8 *addr, bool force5Bytes)
+void XEmitter::JMP(const u8* addr, bool force5Bytes)
 {
 	u64 fn = (u64)addr;
 	if (!force5Bytes)

@@ -265,7 +265,7 @@ extern void CopyPreprocessCPStateFromMain();
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
 
-extern u8 *cached_arraybases[16];
+extern u8* cached_arraybases[16];
 
 // Might move this into its own file later.
 void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);

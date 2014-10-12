@@ -129,7 +129,7 @@ namespace PowerPC
 			else
 				t = way_from_plru[plru[set]];
 			// load
-			u8 *p = Memory::GetPointer(addr & ~0x1f);
+			u8* p = Memory::GetPointer(addr & ~0x1f);
 			memcpy(data[set][t], p, 32);
 			if (valid[set] & (1 << t))
 			{

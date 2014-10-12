@@ -405,7 +405,7 @@ public:
 		}
 
 		// Get data
-		u8 *ptr = nullptr;
+		u8* ptr = nullptr;
 		PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 		_class.DoState(p);
 		size_t const sz = (size_t)ptr;

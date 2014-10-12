@@ -30,9 +30,9 @@ public:
 	// needs to be virtual for DX11's dtor
 	virtual ~VertexManager();
 
-	static u8 *s_pCurBufferPointer;
-	static u8 *s_pBaseBufferPointer;
-	static u8 *s_pEndBufferPointer;
+	static u8* s_pCurBufferPointer;
+	static u8* s_pBaseBufferPointer;
+	static u8* s_pEndBufferPointer;
 
 	static u32 GetRemainingSize();
 	static void PrepareForAdditionalData(int primitive, u32 count, u32 stride);

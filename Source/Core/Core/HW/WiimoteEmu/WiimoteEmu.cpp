@@ -663,7 +663,7 @@ void Wiimote::Update()
 				const Report& rpt = g_wiimotes[m_index]->ProcessReadQueue();
 				if (!rpt.empty())
 				{
-					const u8 *real_data = rpt.data();
+					const u8* real_data = rpt.data();
 					switch (real_data[1])
 					{
 						// use data reports

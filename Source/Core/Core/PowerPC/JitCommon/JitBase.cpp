@@ -27,7 +27,7 @@ u32 Helper_Mask(u8 mb, u8 me)
 		);
 }
 
-void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b)
+void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8* normalEntry, JitBlock *b)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -40,7 +40,7 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 	x64disasm.set_syntax_intel();
 
 	u64 disasmPtr = (u64)normalEntry;
-	const u8 *end = normalEntry + b->codeSize;
+	const u8* end = normalEntry + b->codeSize;
 
 	while ((u8*)disasmPtr < end)
 	{

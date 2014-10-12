@@ -134,4 +134,4 @@ void Jit(u32 em_address);
 
 // Merged routines that should be moved somewhere better
 u32 Helper_Mask(u8 mb, u8 me);
-void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b);
+void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8* normalEntry, JitBlock *b);

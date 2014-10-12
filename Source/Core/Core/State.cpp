@@ -302,7 +302,7 @@ void SaveAs(const std::string& filename, bool wait)
 	bool wasUnpaused = Core::PauseAndLock(true);
 
 	// Measure the size of the buffer.
-	u8 *ptr = nullptr;
+	u8* ptr = nullptr;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
 	const size_t buffer_size = reinterpret_cast<size_t>(ptr);
@@ -453,7 +453,7 @@ void LoadAs(const std::string& filename)
 
 		if (!buffer.empty())
 		{
-			u8 *ptr = &buffer[0];
+			u8* ptr = &buffer[0];
 			PointerWrap p(&ptr, PointerWrap::MODE_READ);
 			DoState(p);
 			loaded = true;
@@ -505,7 +505,7 @@ void VerifyAt(const std::string& filename)
 
 	if (!buffer.empty())
 	{
-		u8 *ptr = &buffer[0];
+		u8* ptr = &buffer[0];
 		PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
 		DoState(p);
 

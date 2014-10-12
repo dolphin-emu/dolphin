@@ -243,7 +243,7 @@ inline u32 PtrOffset(void* ptr, void* base)
 
 struct FixupBranch
 {
-	u8 *ptr;
+	u8* ptr;
 	int type; //0 = 8bit 1 = 32bit
 };
 
@@ -265,7 +265,7 @@ class XEmitter
 {
 	friend struct OpArg;  // for Write8 etc
 private:
-	u8 *code;
+	u8* code;
 	bool flags_locked;
 
 	void CheckFlags();
@@ -299,19 +299,19 @@ protected:
 
 public:
 	XEmitter() { code = nullptr; flags_locked = false; }
-	XEmitter(u8 *code_ptr) { code = code_ptr; flags_locked = false; }
+	XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
 
 	void WriteModRM(int mod, int rm, int reg);
 	void WriteSIB(int scale, int index, int base);
 
-	void SetCodePtr(u8 *ptr);
+	void SetCodePtr(u8* ptr);
 	void ReserveCodeSpace(int bytes);
-	const u8 *AlignCode4();
-	const u8 *AlignCode16();
-	const u8 *AlignCodePage();
-	const u8 *GetCodePtr() const;
-	u8 *GetWritableCodePtr();
+	const u8* AlignCode4();
+	const u8* AlignCode16();
+	const u8* AlignCodePage();
+	const u8* GetCodePtr() const;
+	u8* GetWritableCodePtr();
 
 	void LockFlags() { flags_locked = true; }
 	void UnlockFlags() { flags_locked = false; }
@@ -355,7 +355,7 @@ public:
 	void UD2();
 	FixupBranch J(bool force5bytes = false);
 
-	void JMP(const u8 * addr, bool force5Bytes = false);
+	void JMP(const u8*  addr, bool force5Bytes = false);
 	void JMPptr(const OpArg &arg);
 	void JMPself(); //infinite loop!
 #ifdef CALL

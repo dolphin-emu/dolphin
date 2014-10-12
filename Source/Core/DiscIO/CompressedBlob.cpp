@@ -79,7 +79,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 	return 0;
 }
 
-void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
+void CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 {
 	bool uncompressed = false;
 	u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);

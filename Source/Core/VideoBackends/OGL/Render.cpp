@@ -1875,7 +1875,7 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
+void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
 {
 	// Flip image upside down. Damn OpenGL.
 	for (int y = 0; y < h / 2; ++y)
@@ -1897,7 +1897,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = new u8[W * 4 * H];
+	u8* data = new u8[W * 4 * H];
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);

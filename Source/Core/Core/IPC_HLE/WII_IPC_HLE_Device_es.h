@@ -29,7 +29,7 @@ public:
 	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
 
 	virtual bool IOCtlV(u32 _CommandAddress) override;
-	static u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
+	static u32 ES_DIVerify(u8* _pTMD, u32 _sz);
 
 	// This should only be cleared on power reset
 	static std::string m_ContentFile;
@@ -134,7 +134,7 @@ private:
 	u64 m_TitleID;
 	u32 m_AccessIdentID;
 
-	static u8 *keyTable[11];
+	static u8* keyTable[11];
 
 	u64 GetCurrentTitleID() const;
 

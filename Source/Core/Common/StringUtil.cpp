@@ -120,7 +120,7 @@ std::string StringFromFormat(const char* format, ...)
 }
 
 // For Debugging. Read out an u8 array.
-std::string ArrayToString(const u8 *data, u32 size, int line_len, bool spaces)
+std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
 {
 	std::ostringstream oss;
 	oss << std::setfill('0') << std::hex;

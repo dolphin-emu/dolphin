@@ -63,7 +63,7 @@ static void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
 	u32 width = ti0.width + 1;
 	u32 height = ti0.height + 1;
 
-	u8 *data = new u8[width * height * 4];
+	u8* data = new u8[width * height * 4];
 
 	GetTextureRGBA(data, texmap, mip, width, height);
 
@@ -72,7 +72,7 @@ static void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
 
 }
 
-void GetTextureRGBA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height)
+void GetTextureRGBA(u8* dst, u32 texmap, s32 mip, u32 width, u32 height)
 {
 	for (u32 y = 0; y < height; y++)
 	{
@@ -134,8 +134,8 @@ void DumpActiveTextures()
 
 static void DumpEfb(const std::string& filename)
 {
-	u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
-	u8 *writePtr = data;
+	u8* data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
+	u8* writePtr = data;
 	u8 sample[4];
 
 	for (int y = 0; y < EFB_HEIGHT; y++)
@@ -162,12 +162,12 @@ static void DumpColorTexture(const std::string& filename, u32 width, u32 height)
 	TextureToPng(SWRenderer::GetCurrentColorTexture(), width * 4, filename, width, height, true);
 }
 
-void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char* name)
+void DrawObjectBuffer(s16 x, s16 y, u8* color, int bufferBase, int subBuffer, const char* name)
 {
 	int buffer = bufferBase + subBuffer;
 
 	u32 offset = (x + y * EFB_WIDTH) * 4;
-	u8 *dst = (u8*)&ObjectBuffer[buffer][offset];
+	u8* dst = (u8*)&ObjectBuffer[buffer][offset];
 	*(dst++) = color[2];
 	*(dst++) = color[1];
 	*(dst++) = color[0];
@@ -178,9 +178,9 @@ void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, co
 	BufferBase[buffer] = bufferBase;
 }
 
-void DrawTempBuffer(u8 *color, int buffer)
+void DrawTempBuffer(u8* color, int buffer)
 {
-	u8 *dst = (u8*)&TempBuffer[buffer];
+	u8* dst = (u8*)&TempBuffer[buffer];
 	*(dst++) = color[2];
 	*(dst++) = color[1];
 	*(dst++) = color[0];

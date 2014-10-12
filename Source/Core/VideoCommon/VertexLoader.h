@@ -136,7 +136,7 @@ private:
 	int m_numPipelineStages;
 #endif
 
-	const u8 *m_compiledCode;
+	const u8* m_compiledCode;
 
 	int m_numLoadedVertices;
 

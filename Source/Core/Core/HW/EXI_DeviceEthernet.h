@@ -283,7 +283,7 @@ public:
 		return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
 	}
 
-	inline u8 *ptr_from_page_ptr(int const index) const
+	inline u8* ptr_from_page_ptr(int const index) const
 	{
 		return &mBbaMem[page_ptr(index) << 8];
 	}
@@ -293,28 +293,28 @@ public:
 	const char* GetRegisterName() const;
 	void MXHardReset();
 	void MXCommandHandler(u32 data, u32 size);
-	void DirectFIFOWrite(u8 *data, u32 size);
+	void DirectFIFOWrite(u8* data, u32 size);
 	void SendFromDirectFIFO();
 	void SendFromPacketBuffer();
 	void SendComplete();
-	u8 HashIndex(u8 *dest_eth_addr);
+	u8 HashIndex(u8* dest_eth_addr);
 	bool RecvMACFilter();
 	void inc_rwp();
 	bool RecvHandlePacket();
 
-	u8 *tx_fifo;
-	u8 *mBbaMem;
+	u8* tx_fifo;
+	u8* mBbaMem;
 
 	// TAP interface
 	bool Activate();
 	void Deactivate();
 	bool IsActivated();
-	bool SendFrame(u8 *frame, u32 size);
+	bool SendFrame(u8* frame, u32 size);
 	bool RecvInit();
 	bool RecvStart();
 	void RecvStop();
 
-	u8 *mRecvBuffer;
+	u8* mRecvBuffer;
 	u32 mRecvBufferLength;
 
 #if defined(_WIN32)

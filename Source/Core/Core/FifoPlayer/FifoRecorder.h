@@ -23,7 +23,7 @@ public:
 	// Called from video thread
 
 	// Must write one full GP command at a time
-	void WriteGPCommand(u8 *data, u32 size);
+	void WriteGPCommand(u8* data, u32 size);
 
 	void WriteMemory(u32 address, u32 size, MemoryUpdate::Type type);
 
@@ -58,7 +58,7 @@ private:
 	bool m_FrameEnded;
 	FifoFrameInfo m_CurrentFrame;
 	std::vector<u8> m_FifoData;
-	u8 *m_Ram;
-	u8 *m_ExRam;
+	u8* m_Ram;
+	u8* m_ExRam;
 	FifoRecordAnalyzer m_RecordAnalyzer;
 };

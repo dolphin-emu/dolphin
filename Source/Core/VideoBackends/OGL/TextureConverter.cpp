@@ -305,7 +305,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 
 	SHADER& texconv_shader = GetOrCreateEncodingShader(format);
 
-	u8 *dest_ptr = Memory::GetPointer(address);
+	u8* dest_ptr = Memory::GetPointer(address);
 
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;

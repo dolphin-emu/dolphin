@@ -207,7 +207,7 @@ void SetDefaultContentFile(const std::string& _rFilename)
 	}
 }
 
-void ES_DIVerify(u8 *_pTMD, u32 _sz)
+void ES_DIVerify(u8* _pTMD, u32 _sz)
 {
 	CWII_IPC_HLE_Device_es::ES_DIVerify(_pTMD, _sz);
 }

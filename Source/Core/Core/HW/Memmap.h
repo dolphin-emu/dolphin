@@ -26,14 +26,14 @@ namespace Memory
 
 // In 64-bit, this might point to "high memory" (above the 32-bit limit),
 // so be sure to load it into a 64-bit register.
-extern u8 *base;
+extern u8* base;
 
 // These are guaranteed to point to "low memory" addresses (sub-32-bit).
-extern u8 *m_pRAM;
-extern u8 *m_pEXRAM;
-extern u8 *m_pL1Cache;
-extern u8 *m_pVirtualFakeVMEM;
-extern u8 *m_pFakeVMEM;
+extern u8* m_pRAM;
+extern u8* m_pEXRAM;
+extern u8* m_pL1Cache;
+extern u8* m_pVirtualFakeVMEM;
+extern u8* m_pFakeVMEM;
 extern bool bFakeVMEM;
 
 enum
@@ -120,8 +120,8 @@ void Write_F64(const double _Data, const u32 _Address);
 
 std::string GetString(u32 em_address);
 
-void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t size);
-void ReadBigEData(u8 *_pDest, const u32 _Address, const u32 size);
+void WriteBigEData(const u8* _pData, const u32 _Address, const size_t size);
+void ReadBigEData(u8* _pDest, const u32 _Address, const u32 size);
 u8* GetPointer(const u32 _Address);
 void DMA_LCToMemory(const u32 _iMemAddr, const u32 _iCacheAddr, const u32 _iNumBlocks);
 void DMA_MemoryToLC(const u32 _iCacheAddr, const u32 _iMemAddr, const u32 _iNumBlocks);

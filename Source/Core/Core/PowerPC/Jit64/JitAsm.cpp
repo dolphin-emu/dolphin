@@ -215,7 +215,7 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	// TODO: use this.
 	// Even in x86, the param values will be in the right registers.
 	/*
-	const u8 *fastMemWrite8 = AlignCode16();
+	const u8* fastMemWrite8 = AlignCode16();
 	CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
 	FixupBranch skip_fast_write = J_CC(CC_NE, false);
 	MOV(32, RSCRATCH, M(&m_gatherPipeCount));

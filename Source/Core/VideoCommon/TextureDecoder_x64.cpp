@@ -103,7 +103,7 @@ static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut
 	}
 }
 
-static inline void DecodeBytes_C4_RGB5A3(u32 *dst, const u8 *src, const u8* tlut_)
+static inline void DecodeBytes_C4_RGB5A3(u32 *dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
 	for (int x = 0; x < 4; x++)
@@ -133,7 +133,7 @@ static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut
 	}
 }
 
-static inline void DecodeBytes_C8_RGB5A3(u32 *dst, const u8 *src, const u8* tlut_)
+static inline void DecodeBytes_C8_RGB5A3(u32 *dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
 	for (int x = 0; x < 8; x++)
@@ -173,7 +173,7 @@ static inline void DecodeBytes_C14X2_RGB5A3(u32 *dst, const u16 *src, const u8* 
 	}
 }
 
-static inline void DecodeBytes_IA4(u32 *dst, const u8 *src)
+static inline void DecodeBytes_IA4(u32 *dst, const u8* src)
 {
 	for (int x = 0; x < 8; x++)
 	{
@@ -258,7 +258,7 @@ static inline void SetOpenMPThreadCount(int width, int height)
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
+PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 

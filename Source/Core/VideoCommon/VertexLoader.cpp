@@ -48,7 +48,7 @@ float tcScale[8];
 // bbox variables
 // bbox must read vertex position, so convert it to this buffer
 static float s_bbox_vertex_buffer[3];
-static u8 *s_bbox_pCurBufferPointer_orig;
+static u8* s_bbox_pCurBufferPointer_orig;
 static int s_bbox_primitive;
 static struct Point
 {
@@ -588,7 +588,7 @@ void VertexLoader::CompileVertexTranslator()
 	MOV(64, R(RBX), R(ABI_PARAM1));
 
 	// Start loop here
-	const u8 *loop_start = GetCodePtr();
+	const u8* loop_start = GetCodePtr();
 
 	// Reset component counters if present in vertex format only.
 	if (m_VtxDesc.Tex0Coord || m_VtxDesc.Tex1Coord || m_VtxDesc.Tex2Coord || m_VtxDesc.Tex3Coord ||

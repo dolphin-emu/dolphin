@@ -53,7 +53,7 @@ void NGCADPCM::InitFilter()
 	histr2 = 0;
 }
 
-void NGCADPCM::DecodeBlock(s16 *pcm, const u8 *adpcm)
+void NGCADPCM::DecodeBlock(s16 *pcm, const u8* adpcm)
 {
 	for (int i = 0; i < SAMPLES_PER_BLOCK; i++)
 	{

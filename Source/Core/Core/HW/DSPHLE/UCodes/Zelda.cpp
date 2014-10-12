@@ -74,7 +74,7 @@ ZeldaUCode::~ZeldaUCode()
 	delete [] m_right_buffer;
 }
 
-u8 *ZeldaUCode::GetARAMPointer(u32 address)
+u8* ZeldaUCode::GetARAMPointer(u32 address)
 {
 	if (IsDMAVersion())
 		return Memory::GetPointer(m_dma_base_addr) + address;

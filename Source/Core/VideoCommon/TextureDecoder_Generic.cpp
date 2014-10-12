@@ -69,7 +69,7 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TlutFormat tlutfmt)
 	}
 }
 
-static inline void DecodeBytes_C4(u32 *dst, const u8 *src, const u8* tlut_, TlutFormat tlutfmt)
+static inline void DecodeBytes_C4(u32 *dst, const u8* src, const u8* tlut_, TlutFormat tlutfmt)
 {
 	const u16* tlut = (u16*) tlut_;
 	for (int x = 0; x < 4; x++)
@@ -80,7 +80,7 @@ static inline void DecodeBytes_C4(u32 *dst, const u8 *src, const u8* tlut_, Tlut
 	}
 }
 
-static inline void DecodeBytes_C8(u32 *dst, const u8 *src, const u8* tlut_, TlutFormat tlutfmt)
+static inline void DecodeBytes_C8(u32 *dst, const u8* src, const u8* tlut_, TlutFormat tlutfmt)
 {
 	const u16* tlut = (u16*) tlut_;
 	for (int x = 0; x < 8; x++)
@@ -100,7 +100,7 @@ static inline void DecodeBytes_C14X2(u32 *dst, const u16 *src, const u8* tlut_, 
 	}
 }
 
-static inline void DecodeBytes_IA4(u32 *dst, const u8 *src)
+static inline void DecodeBytes_IA4(u32 *dst, const u8* src)
 {
 	for (int x = 0; x < 8; x++)
 	{
@@ -202,7 +202,7 @@ static void DecodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
+PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
 	const int Wsteps4 = (width + 3) / 4;
 	const int Wsteps8 = (width + 7) / 8;
@@ -239,7 +239,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0; iy < 4; ++iy, src += 8)
 					{
 						u32 *  newdst = dst + (y + iy)*width+x;
-						const u8 *  newsrc = src;
+						const u8*   newsrc = src;
 						u8 srcval;
 
 						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);

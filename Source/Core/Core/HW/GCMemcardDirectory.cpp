@@ -193,7 +193,7 @@ GCMemcardDirectory::~GCMemcardDirectory()
 	FlushToFile();
 }
 
-s32 GCMemcardDirectory::Read(u32 address, s32 length, u8 *destaddress)
+s32 GCMemcardDirectory::Read(u32 address, s32 length, u8* destaddress)
 {
 
 	s32 block = address / BLOCK_SIZE;
@@ -251,7 +251,7 @@ s32 GCMemcardDirectory::Read(u32 address, s32 length, u8 *destaddress)
 	return length + extra;
 }
 
-s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8 *srcaddress)
+s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8* srcaddress)
 {
 	if (length != 0x80)
 		INFO_LOG(EXPANSIONINTERFACE, "WRITING TO %x, len %x", destaddress, length);
@@ -453,7 +453,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
 	return -1;
 }
 
-s32 GCMemcardDirectory::DirectoryWrite(u32 destaddress, u32 length, u8 *srcaddress)
+s32 GCMemcardDirectory::DirectoryWrite(u32 destaddress, u32 length, u8* srcaddress)
 {
 	u32 block = destaddress / BLOCK_SIZE;
 	u32 offset = destaddress % BLOCK_SIZE;

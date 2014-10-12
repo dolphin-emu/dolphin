@@ -21,7 +21,7 @@ namespace HwRasterizer
 	static float efbHalfHeight;
 	static bool hasTexture;
 
-	static u8 *temp;
+	static u8* temp;
 
 	// Programs
 	static GLuint colProg, texProg, clearProg;

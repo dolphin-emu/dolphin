@@ -25,7 +25,7 @@ public:
 	void ReleaseView(void *view, size_t size);
 
 	// This only finds 1 GB in 32-bit
-	static u8 *Find4GBBase();
+	static u8* Find4GBBase();
 private:
 
 #ifdef _WIN32
@@ -52,5 +52,5 @@ struct MemoryView
 
 // Uses a memory arena to set up an emulator-friendly memory map according to
 // a passed-in list of MemoryView structures.
-u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
+u8* MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
 void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena);

@@ -153,7 +153,7 @@ using namespace Gen;
 		return num_blocks - 1;
 	}
 
-	void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr)
+	void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* code_ptr)
 	{
 		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];

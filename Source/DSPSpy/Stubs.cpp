@@ -51,14 +51,14 @@ bool DSPHost_OnThread()
 // Well, it's just RAM right? :)
 u8 DSPHost_ReadHostMemory(u32 address)
 {
-	u8 *ptr = (u8*)address;
+	u8* ptr = (u8*)address;
 	return *ptr;
 }
 
 void DSPHost_WriteHostMemory(u8 value, u32 addr) {}
 
 
-void DSPHost_CodeLoaded(const u8 *code, int size)
+void DSPHost_CodeLoaded(const u8* code, int size)
 {
 }
 

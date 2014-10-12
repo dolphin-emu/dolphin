@@ -32,8 +32,8 @@
 
 struct JitBlock
 {
-	const u8 *checkedEntry;
-	const u8 *normalEntry;
+	const u8* checkedEntry;
+	const u8* normalEntry;
 
 	u32 originalAddress;
 	u32 codeSize;
@@ -44,7 +44,7 @@ struct JitBlock
 
 	struct LinkData
 	{
-		u8 *exitPtrs;    // to be able to rewrite the exit jum
+		u8* exitPtrs;    // to be able to rewrite the exit jum
 		u32 exitAddress;
 		bool linkStatus; // is it already linked?
 	};
@@ -135,7 +135,7 @@ public:
 	}
 
 	int AllocateBlock(u32 em_address);
-	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
+	void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
 
 	void Clear();
 	void Init();
@@ -148,9 +148,9 @@ public:
 	JitBlock *GetBlock(int block_num);
 	int GetNumBlocks() const;
 	const u8 **GetCodePointers();
-	u8 *iCache;
-	u8 *iCacheEx;
-	u8 *iCacheVMEM;
+	u8* iCache;
+	u8* iCacheEx;
+	u8* iCacheVMEM;
 
 	u32* GetICachePtr(u32 addr);
 

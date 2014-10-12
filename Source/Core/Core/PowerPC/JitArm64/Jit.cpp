@@ -206,7 +206,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
-	const u8 *start = GetCodePtr();
+	const u8* start = GetCodePtr();
 	b->checkedEntry = start;
 	b->runCount = 0;
 
@@ -223,7 +223,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		SetJumpTarget(bail);
 	}
 
-	const u8 *normalEntry = GetCodePtr();
+	const u8* normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 
 	gpr.Start(js.gpa);

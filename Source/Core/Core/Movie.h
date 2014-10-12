@@ -157,7 +157,7 @@ void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(GCPadStatus* PadStatus, int controllerID);
-void RecordWiimote(int wiimote, u8 *data, u8 size);
+void RecordWiimote(int wiimote, u8* data, u8 size);
 
 bool PlayInput(const std::string& filename);
 void LoadInput(const std::string& filename);

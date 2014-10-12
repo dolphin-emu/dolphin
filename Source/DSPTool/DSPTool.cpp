@@ -15,7 +15,7 @@ void DSPHost::WriteHostMemory(u8 value, u32 addr) {}
 void DSPHost::OSD_AddMessage(const std::string& str, u32 ms) {}
 bool DSPHost::OnThread() { return false; }
 bool DSPHost::IsWiiHost() { return false; }
-void DSPHost::CodeLoaded(const u8 *ptr, int size) {}
+void DSPHost::CodeLoaded(const u8* ptr, int size) {}
 void DSPHost::InterruptRequest() {}
 void DSPHost::UpdateDebugger() {}
 

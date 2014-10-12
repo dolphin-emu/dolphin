@@ -670,7 +670,7 @@ void WriteARAM(u8 value, u32 _uAddress)
 	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
 
-u8 *GetARAMPtr()
+u8* GetARAMPtr()
 {
 	return g_ARAM.ptr;
 }

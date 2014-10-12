@@ -23,7 +23,7 @@ static GLint attr_pos = -1, attr_tex = -1;
 static GLint uni_tex = -1;
 static GLuint program;
 
-static u8 *s_xfbColorTexture[2];
+static u8* s_xfbColorTexture[2];
 static int s_currentColorTexture = 0;
 
 static volatile bool s_bScreenshot;
@@ -177,7 +177,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 	}
 
 	u32 offset = 0;
-	u8 *TexturePointer = GetNextColorTexture();
+	u8* TexturePointer = GetNextColorTexture();
 
 	for (u16 y = 0; y < fbHeight; y++)
 	{
@@ -218,7 +218,7 @@ void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 	Core::Callback_VideoCopiedToXFB(true); // FIXME: should this function be called FrameRendered?
 }
 
-void SWRenderer::DrawTexture(u8 *texture, int width, int height)
+void SWRenderer::DrawTexture(u8* texture, int width, int height)
 {
 	// FIXME: This should add black bars when the game has set the VI to render less than the full xfb.
 

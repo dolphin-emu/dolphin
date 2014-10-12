@@ -68,7 +68,7 @@ void FifoRecorder::StopRecording()
 	m_RequestedRecordingEnd = true;
 }
 
-void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
+void FifoRecorder::WriteGPCommand(u8* data, u32 size)
 {
 	if (!m_SkipNextData)
 	{
@@ -108,8 +108,8 @@ void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
 
 void FifoRecorder::WriteMemory(u32 address, u32 size, MemoryUpdate::Type type)
 {
-	u8 *curData;
-	u8 *newData;
+	u8* curData;
+	u8* newData;
 	if (address & 0x10000000)
 	{
 		curData = &m_ExRam[address & Memory::EXRAM_MASK];

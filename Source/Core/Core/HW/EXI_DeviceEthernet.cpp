@@ -365,7 +365,7 @@ write_to_register:
 	}
 }
 
-void CEXIETHERNET::DirectFIFOWrite(u8 *data, u32 size)
+void CEXIETHERNET::DirectFIFOWrite(u8* data, u32 size)
 {
 	// In direct mode, the hardware handles creating the state required by the
 	// GMAC instead of finagling with packet descriptors and such
@@ -406,7 +406,7 @@ void CEXIETHERNET::SendComplete()
 	mBbaMem[BBA_LTPS] = 0;
 }
 
-inline u8 CEXIETHERNET::HashIndex(u8 *dest_eth_addr)
+inline u8 CEXIETHERNET::HashIndex(u8* dest_eth_addr)
 {
 	// Calculate CRC
 	u32 crc = 0xffffffff;
@@ -473,9 +473,9 @@ inline void CEXIETHERNET::inc_rwp()
 // Be very careful about calling into the logger and other slow things
 bool CEXIETHERNET::RecvHandlePacket()
 {
-	u8 *write_ptr;
-	u8 *end_ptr;
-	u8 *read_ptr;
+	u8* write_ptr;
+	u8* end_ptr;
+	u8* read_ptr;
 	Descriptor *descriptor;
 	u32 status = 0;
 	u16 rwp_initial = page_ptr(BBA_RWP);

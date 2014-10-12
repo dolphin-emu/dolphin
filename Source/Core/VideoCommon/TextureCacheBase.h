@@ -111,7 +111,7 @@ public:
 protected:
 	TextureCache();
 
-	static  GC_ALIGNED16(u8 *temp);
+	static  GC_ALIGNED16(u8* temp);
 	static unsigned int temp_size;
 
 private:

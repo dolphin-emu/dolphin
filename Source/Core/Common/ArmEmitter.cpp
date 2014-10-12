@@ -302,19 +302,19 @@ void ARMXEmitter::QuickCallFunction(ARMReg reg, void *func)
 	}
 }
 
-void ARMXEmitter::SetCodePtr(u8 *ptr)
+void ARMXEmitter::SetCodePtr(u8* ptr)
 {
 	code = ptr;
 	startcode = code;
 	lastCacheFlushEnd = ptr;
 }
 
-const u8 *ARMXEmitter::GetCodePtr() const
+const u8* ARMXEmitter::GetCodePtr() const
 {
 	return code;
 }
 
-u8 *ARMXEmitter::GetWritableCodePtr()
+u8* ARMXEmitter::GetWritableCodePtr()
 {
 	return code;
 }
@@ -325,13 +325,13 @@ void ARMXEmitter::ReserveCodeSpace(u32 bytes)
 		Write32(0xE1200070); //bkpt 0
 }
 
-const u8 *ARMXEmitter::AlignCode16()
+const u8* ARMXEmitter::AlignCode16()
 {
 	ReserveCodeSpace((-(s32)code) & 15);
 	return code;
 }
 
-const u8 *ARMXEmitter::AlignCodePage()
+const u8* ARMXEmitter::AlignCodePage()
 {
 	ReserveCodeSpace((-(s32)code) & 4095);
 	return code;
@@ -343,7 +343,7 @@ void ARMXEmitter::FlushIcache()
 	lastCacheFlushEnd = code;
 }
 
-void ARMXEmitter::FlushIcacheSection(u8 *start, u8 *end)
+void ARMXEmitter::FlushIcacheSection(u8* start, u8* end)
 {
 #ifdef __SYMBIAN32__
 	User::IMB_Range(start, end);

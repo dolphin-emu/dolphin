@@ -262,7 +262,7 @@ private:
 
 	void ExecuteList();
 
-	u8 *GetARAMPointer(u32 address);
+	u8* GetARAMPointer(u32 address);
 
 	// AFC decoder
 	static void AFCdecodebuffer(const s16 *coef, const char* input, signed short *out, short *histp, short *hist2p, int type);

@@ -746,7 +746,7 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 	s_totalBytes = s_currentByte;
 }
 
-void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
+void CheckWiimoteStatus(int wiimote, u8* data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
 {
 	u8 size = rptf.size;
 	SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
@@ -755,7 +755,7 @@ void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures&
 		RecordWiimote(wiimote, data, size);
 }
 
-void RecordWiimote(int wiimote, u8 *data, u8 size)
+void RecordWiimote(int wiimote, u8* data, u8 size)
 {
 	if (!IsRecordingInput() || !IsUsingWiimote(wiimote))
 		return;
@@ -1113,7 +1113,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 	CheckInputEnd();
 }
 
-bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
+bool PlayWiimote(int wiimote, u8* data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
 {
 	if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == nullptr)
 		return false;

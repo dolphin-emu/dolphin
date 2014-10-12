@@ -292,7 +292,7 @@ inline Operand2 Mem(void *ptr) { return Operand2((u32)ptr, TYPE_IMM); }
 
 struct FixupBranch
 {
-	u8 *ptr;
+	u8* ptr;
 	u32 condition; // Remembers our codition at the time
 	int type; //0 = B 1 = BL
 };
@@ -326,8 +326,8 @@ class ARMXEmitter
 	friend struct OpArg;  // for Write8 etc
 	friend class NEONXEmitter;
 private:
-	u8 *code, *startcode;
-	u8 *lastCacheFlushEnd;
+	u8* code, *startcode;
+	u8* lastCacheFlushEnd;
 	u32 condition;
 	std::vector<LiteralPool> currentLitPool;
 
@@ -351,7 +351,7 @@ public:
 	ARMXEmitter() : code(0), startcode(0), lastCacheFlushEnd(0) {
 		condition = CC_AL << 28;
 	}
-	ARMXEmitter(u8 *code_ptr) {
+	ARMXEmitter(u8* code_ptr) {
 		code = code_ptr;
 		lastCacheFlushEnd = code_ptr;
 		startcode = code_ptr;
@@ -359,14 +359,14 @@ public:
 	}
 	virtual ~ARMXEmitter() {}
 
-	void SetCodePtr(u8 *ptr);
+	void SetCodePtr(u8* ptr);
 	void ReserveCodeSpace(u32 bytes);
-	const u8 *AlignCode16();
-	const u8 *AlignCodePage();
-	const u8 *GetCodePtr() const;
+	const u8* AlignCode16();
+	const u8* AlignCodePage();
+	const u8* GetCodePtr() const;
 	void FlushIcache();
-	void FlushIcacheSection(u8 *start, u8 *end);
-	u8 *GetWritableCodePtr();
+	void FlushIcacheSection(u8* start, u8* end);
+	u8* GetWritableCodePtr();
 
 	void FlushLitPool();
 	void AddNewLit(u32 val);

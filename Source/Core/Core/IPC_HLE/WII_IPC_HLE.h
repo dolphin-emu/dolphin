@@ -42,7 +42,7 @@ void DoState(PointerWrap &p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);
-void ES_DIVerify(u8 *_pTMD, u32 _sz);
+void ES_DIVerify(u8* _pTMD, u32 _sz);
 
 void SDIO_EventNotify();
 

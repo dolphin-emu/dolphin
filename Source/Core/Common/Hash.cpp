@@ -10,7 +10,7 @@
 #include <nmmintrin.h>
 #endif
 
-static u64 (*ptrHashFunction)(const u8 *src, int len, u32 samples) = &GetMurmurHash3;
+static u64 (*ptrHashFunction)(const u8* src, int len, u32 samples) = &GetMurmurHash3;
 
 // uint32_t
 // WARNING - may read one more byte!
@@ -151,9 +151,9 @@ inline u64 fmix64(u64 k)
 	return k;
 }
 
-u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
+u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 {
-	const u8 * data = (const u8*)src;
+	const u8*  data = (const u8*)src;
 	const int nblocks = len / 16;
 	u32 Step = (len / 8);
 	if (samples == 0) samples = std::max(Step, 1u);
@@ -183,7 +183,7 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 	//----------
 	// tail
 
-	const u8 * tail = (const u8*)(data + nblocks*16);
+	const u8*  tail = (const u8*)(data + nblocks*16);
 
 	u64 k1 = 0;
 	u64 k2 = 0;
@@ -227,7 +227,7 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 
 
 // CRC32 hash using the SSE4.2 instruction
-u64 GetCRC32(const u8 *src, int len, u32 samples)
+u64 GetCRC32(const u8* src, int len, u32 samples)
 {
 #if _M_SSE >= 0x402
 	u64 h = len;
@@ -243,7 +243,7 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 		data += Step;
 	}
 
-	const u8 *data2 = (const u8*)end;
+	const u8* data2 = (const u8*)end;
 	return _mm_crc32_u64(h, u64(data2[0]));
 #else
 	return 0;
@@ -258,7 +258,7 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
  * changed, make sure this one is still used when the legacy parameter is
  * true.
  */
-u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
+u64 GetHashHiresTexture(const u8* src, int len, u32 samples)
 {
 	const u64 m = 0xc6a4a7935bd1e995;
 	u64 h = len * m;
@@ -280,7 +280,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 		h *= m;
 	}
 
-	const u8 * data2 = (const u8*)end;
+	const u8*  data2 = (const u8*)end;
 
 	switch (len & 7)
 	{
@@ -302,7 +302,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 }
 #else
 // CRC32 hash using the SSE4.2 instruction
-u64 GetCRC32(const u8 *src, int len, u32 samples)
+u64 GetCRC32(const u8* src, int len, u32 samples)
 {
 #if _M_SSE >= 0x402
 	u32 h = len;
@@ -318,7 +318,7 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 		data += Step;
 	}
 
-	const u8 *data2 = (const u8*)end;
+	const u8* data2 = (const u8*)end;
 	return (u64)_mm_crc32_u32(h, u32(data2[0]));
 #else
 	return 0;
@@ -377,7 +377,7 @@ inline void bmix32(u32 & h1, u32 & h2, u32 & k1, u32 & k2, u32 & c1, u32 & c2)
 
 u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 {
-	const u8 * data = (const u8*)src;
+	const u8*  data = (const u8*)src;
 	u32 out[2];
 	const int nblocks = len / 8;
 	u32 Step = (len / 4);
@@ -407,7 +407,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 	//----------
 	// tail
 
-	const u8 * tail = (const u8*)(data + nblocks*8);
+	const u8*  tail = (const u8*)(data + nblocks*8);
 
 	u32 k1 = 0;
 	u32 k2 = 0;
@@ -449,7 +449,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
  * 64-bit version. Until someone can make a new version of the 32-bit one that
  * makes identical hashes, this is just a c/p of the 64-bit one.
  */
-u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
+u64 GetHashHiresTexture(const u8* src, int len, u32 samples)
 {
 	const u64 m = 0xc6a4a7935bd1e995ULL;
 	u64 h = len * m;
@@ -471,7 +471,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 		h *= m;
 	}
 
-	const u8 * data2 = (const u8*)end;
+	const u8*  data2 = (const u8*)end;
 
 	switch (len & 7)
 	{
@@ -493,7 +493,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 }
 #endif
 
-u64 GetHash64(const u8 *src, int len, u32 samples)
+u64 GetHash64(const u8* src, int len, u32 samples)
 {
 	return ptrHashFunction(src, len, samples);
 }

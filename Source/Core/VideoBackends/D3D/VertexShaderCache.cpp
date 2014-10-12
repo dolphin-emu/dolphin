@@ -60,7 +60,7 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 class VertexShaderCacheInserter : public LinearDiskCacheReader<VertexShaderUid, u8>
 {
 public:
-	void Read(const VertexShaderUid &key, const u8 *value, u32 value_size)
+	void Read(const VertexShaderUid &key, const u8* value, u32 value_size)
 	{
 		D3DBlob* blob = new D3DBlob(value_size, value);
 		VertexShaderCache::InsertByteCode(key, blob);

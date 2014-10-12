@@ -71,7 +71,7 @@ void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, c
 // NG_priv is the device-unique private key to use
 // NG_id is the device-unique id to use
 // if NG_priv is nullptr or NG_id is 0, it will use builtin defaults
-void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u32 data_size, const u8 *NG_priv, u32 NG_id)
+void get_ap_sig_and_cert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 data_size, const u8* NG_priv, u32 NG_id)
 {
 	u8 hash[20];
 	u8 ap_priv[30];
@@ -104,7 +104,7 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	generate_ecdsa(sig_out, sig_out + 30, ap_priv, hash);
 }
 
-void make_blanksig_ec_cert(u8 *cert_out, const char* signer, const char* name, const u8 *private_key, u32 key_id)
+void make_blanksig_ec_cert(u8* cert_out, const char* signer, const char* name, const u8* private_key, u32 key_id)
 {
 	memset(cert_out, 0, 0x180);
 	*(u32*)cert_out = Common::swap32(0x10002);

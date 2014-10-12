@@ -11,7 +11,7 @@
 
 using namespace Gen;
 
-static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress)
+static void BackPatchError(const std::string &text, u8* codePtr, u32 emAddress)
 {
 	u64 code_addr = (u64)codePtr;
 	disassembler disasm;
@@ -86,7 +86,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		else
 			bswapNopCount = 2;
 
-		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
+		const u8* trampoline = trampolines.GetReadTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
 		int padding = info.instructionSize + bswapNopCount - BACKPATCH_SIZE;
 		if (padding > 0)
@@ -107,7 +107,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 		u32 pc = it->second;
 
-		u8 *start;
+		u8* start;
 		if (info.byteSwap || info.hasImmediate)
 		{
 			// The instruction is a MOVBE but it failed so the value is still in little-endian byte order.
@@ -139,7 +139,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			start = codePtr - bswapSize;
 		}
 		XEmitter emitter(start);
-		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
+		const u8* trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
 		emitter.CALL((void *)trampoline);
 		ptrdiff_t padding = (codePtr - emitter.GetCodePtr()) + info.instructionSize;
 		if (padding > 0)

@@ -446,8 +446,8 @@ void ProgramShaderCache::Shutdown()
 				continue;
 			}
 
-			u8 *data = new u8[binary_size+sizeof(GLenum)];
-			u8 *binary = data + sizeof(GLenum);
+			u8* data = new u8[binary_size+sizeof(GLenum)];
+			u8* binary = data + sizeof(GLenum);
 			GLenum *prog_format = (GLenum*)data;
 			glGetProgramBinary(entry.second.shader.glprogid, binary_size, nullptr, prog_format, binary);
 
@@ -528,7 +528,7 @@ void ProgramShaderCache::CreateHeader()
 
 void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value, u32 value_size)
 {
-	const u8 *binary = value+sizeof(GLenum);
+	const u8* binary = value+sizeof(GLenum);
 	GLenum *prog_format = (GLenum*)value;
 	GLint binary_size = value_size-sizeof(GLenum);
 

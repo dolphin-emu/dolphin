@@ -143,7 +143,7 @@ static const u32 table7[0x40] = {
 };
 
 
-static void generateseeds(u32 *seeds, const u8 *seedtable, u8 doreverse)
+static void generateseeds(u32 *seeds, const u8* seedtable, u8 doreverse)
 {
 	u32 tmp3;
 	u8 array0[0x38],array1[0x38],array2[0x08];

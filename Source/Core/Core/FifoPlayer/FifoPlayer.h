@@ -68,7 +68,7 @@ private:
 
 	// writes a range of data to the fifo
 	// start and end must be relative to frame's fifo data so elapsed cycles are figured correctly
-	void WriteFifo(u8 *data, u32 start, u32 end);
+	void WriteFifo(u8* data, u32 start, u32 end);
 
 	void SetupFifo();
 

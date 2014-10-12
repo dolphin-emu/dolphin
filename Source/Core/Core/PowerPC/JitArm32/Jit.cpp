@@ -329,7 +329,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
-	const u8 *start = GetCodePtr();
+	const u8* start = GetCodePtr();
 	b->checkedEntry = start;
 	b->runCount = 0;
 
@@ -344,7 +344,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		SetCC();
 	}
 
-	const u8 *normalEntry = GetCodePtr();
+	const u8* normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 
 	if (ImHereDebug)

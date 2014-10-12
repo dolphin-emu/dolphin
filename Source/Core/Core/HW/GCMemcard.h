@@ -70,8 +70,8 @@ public:
 	{
 	}
 	virtual ~MemoryCardBase() {}
-	virtual s32 Read(u32 address, s32 length, u8 *destaddress) = 0;
-	virtual s32 Write(u32 destaddress, s32 length, u8 *srcaddress) = 0;
+	virtual s32 Read(u32 address, s32 length, u8* destaddress) = 0;
+	virtual s32 Write(u32 destaddress, s32 length, u8* srcaddress) = 0;
 	virtual void ClearBlock(u32 address) = 0;
 	virtual void ClearAll() = 0;
 	virtual void DoState(PointerWrap &p) = 0;
@@ -345,7 +345,7 @@ public:
 	bool IsAsciiEncoding() const;
 	bool Save();
 	bool Format(bool ascii = true, u16 SizeMb = MemCard2043Mb);
-	static bool Format(u8 *card_data, bool ascii = true, u16 SizeMb = MemCard2043Mb);
+	static bool Format(u8* card_data, bool ascii = true, u16 SizeMb = MemCard2043Mb);
 	static s32 FZEROGX_MakeSaveGameValid(Header &cardheader, DEntry &direntry, std::vector<GCMBlock> &FileBuffer);
 	static s32 PSO_MakeSaveGameValid(Header &cardheader, DEntry &direntry, std::vector<GCMBlock> &FileBuffer);
 
@@ -409,5 +409,5 @@ public:
 	bool ReadBannerRGBA8(u8 index, u32* buffer) const;
 
 	// reads the animation frames
-	u32 ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const;
+	u32 ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const;
 };

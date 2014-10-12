@@ -34,7 +34,7 @@ private:
 	bool AlsaInit();
 	void AlsaShutdown();
 
-	u8 *mix_buffer;
+	u8* mix_buffer;
 	std::thread thread;
 	// 0 = continue
 	// 1 = shutdown

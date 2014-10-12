@@ -20,7 +20,7 @@ struct CmdData
 {
 	u32 size;
 	u32 offset;
-	u8 *ptr;
+	u8* ptr;
 };
 
 FifoPlaybackAnalyzer::FifoPlaybackAnalyzer()
@@ -152,9 +152,9 @@ void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrame
 	frameInfo.memoryUpdates.push_back(memUpdate);
 }
 
-u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
+u32 FifoPlaybackAnalyzer::DecodeCommand(u8* data)
 {
-	u8 *dataStart = data;
+	u8* dataStart = data;
 
 	int cmd = ReadFifo8(data);
 

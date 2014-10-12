@@ -62,7 +62,7 @@ const std::string SettingsHandler::GetValue(const std::string& key)
 
 void SettingsHandler::Decrypt()
 {
-	const u8 *str = m_buffer;
+	const u8* str = m_buffer;
 	while (*str != 0)
 	{
 		if (m_position >= SETTINGS_SIZE)

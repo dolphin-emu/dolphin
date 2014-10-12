@@ -545,7 +545,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
-	const u8 *start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
+	const u8* start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
 	b->runCount = 0;
 
@@ -555,7 +555,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	JMP(asm_routines.doTiming, true);  // downcount hit zero - go doTiming.
 	SetJumpTarget(skip);
 
-	const u8 *normalEntry = GetCodePtr();
+	const u8* normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 
 	if (ImHereDebug)

@@ -45,7 +45,7 @@ namespace EfbCopy
 			else
 			{
 				// Ask SWRenderer for the next color texture
-				u8 *colorTexture = SWRenderer::GetNextColorTexture();
+				u8* colorTexture = SWRenderer::GetNextColorTexture();
 
 				EfbInterface::BypassXFB(colorTexture, fbWidth, fbHeight, sourceRc, Gamma);
 
@@ -68,7 +68,7 @@ namespace EfbCopy
 	{
 		if (!g_SWVideoConfig.bHwRasterizer)
 		{
-			u8 *dest_ptr = Memory::GetPointer(bpmem.copyTexDest << 5);
+			u8* dest_ptr = Memory::GetPointer(bpmem.copyTexDest << 5);
 
 			TextureEncoder::Encode(dest_ptr);
 		}

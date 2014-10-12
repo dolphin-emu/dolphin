@@ -45,15 +45,15 @@ public:
 	virtual ~SectorReader();
 
 	// A pointer returned by GetBlockData is invalidated as soon as GetBlockData, Read, or ReadMultipleAlignedBlocks is called again.
-	const u8 *GetBlockData(u64 block_num);
-	virtual bool Read(u64 offset, u64 size, u8 *out_ptr) override;
+	const u8* GetBlockData(u64 block_num);
+	virtual bool Read(u64 offset, u64 size, u8* out_ptr) override;
 	friend class DriveReader;
 
 protected:
 	void SetSectorSize(int blocksize);
-	virtual void GetBlock(u64 block_num, u8 *out) = 0;
+	virtual void GetBlock(u64 block_num, u8* out) = 0;
 	// This one is uncached. The default implementation is to simply call GetBlockData multiple times and memcpy.
-	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr);
+	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr);
 
 private:
 	enum { CACHE_SIZE = 32 };

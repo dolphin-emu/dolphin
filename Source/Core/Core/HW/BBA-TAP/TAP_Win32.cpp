@@ -243,7 +243,7 @@ bool CEXIETHERNET::IsActivated()
 	return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
+bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
 {
 	DEBUG_LOG(SP1, "SendFrame %x\n%s",
 		size, ArrayToString(frame, size, 0x10).c_str());

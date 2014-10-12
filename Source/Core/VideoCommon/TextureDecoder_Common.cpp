@@ -175,7 +175,7 @@ static const char* texfmt[] = {
 	"CZ16L",   "0x3D",    "0x3E",    "0x3F",
 };
 
-static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat, PC_TexFormat pc_texformat)
+static void TexDecoder_DrawOverlay(u8* dst, int width, int height, int texformat, PC_TexFormat pc_texformat)
 {
 	int w = std::min(width, 40);
 	int h = std::min(height, 10);
@@ -246,7 +246,7 @@ static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat
 	}
 }
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
+PC_TexFormat TexDecoder_Decode(u8* dst, const u8* src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
 	PC_TexFormat pc_texformat = _TexDecoder_DecodeImpl((u32*)dst, src, width, height, texformat, tlut, tlutfmt);
 
@@ -320,7 +320,7 @@ static inline u32 MakeRGBA(int r, int g, int b, int a)
 	return (a<<24)|(b<<16)|(g<<8)|r;
 }
 
-void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, const u8* tlut_, TlutFormat tlutfmt)
+void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth, int texformat, const u8* tlut_, TlutFormat tlutfmt)
 {
 	/* General formula for computing texture offset
 	//
@@ -579,7 +579,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 	}
 }
 
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* src_gb, int s, int t, int imageWidth)
+void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t, int imageWidth)
 {
 	u16 sBlk = s >> 2;
 	u16 tBlk = t >> 2;
@@ -601,7 +601,7 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* sr
 	dst[2] = val_addr_gb[1]; // B
 }
 
-PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height)
+PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width, int height)
 {
 	// TODO for someone who cares: Make this less slow!
 	for (int y = 0; y < height; ++y)

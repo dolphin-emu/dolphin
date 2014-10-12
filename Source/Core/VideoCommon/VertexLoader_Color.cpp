@@ -58,12 +58,12 @@ __forceinline void _SetCol565(u16 val)
 	_SetCol(col | AMASK);
 }
 
-__forceinline u32 _Read24(const u8 *addr)
+__forceinline u32 _Read24(const u8* addr)
 {
 	return (*(const u32 *)addr) | AMASK;
 }
 
-__forceinline u32 _Read32(const u8 *addr)
+__forceinline u32 _Read32(const u8* addr)
 {
 	return *(const u32 *)addr;
 }
@@ -125,7 +125,7 @@ template <typename I>
 void Color_ReadIndex_24b_888()
 {
 	auto const Index = DataRead<I>();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
+	const u8* iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 
@@ -133,7 +133,7 @@ template <typename I>
 void Color_ReadIndex_32b_888x()
 {
 	auto const Index = DataRead<I>();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
+	const u8* iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 
@@ -158,7 +158,7 @@ template <typename I>
 void Color_ReadIndex_32b_8888()
 {
 	auto const Index = DataRead<I>();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
+	const u8* iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read32(iAddress));
 }
 

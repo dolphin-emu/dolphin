@@ -16,7 +16,7 @@
 #define MAX_BLOCKS         0x10000
 
 typedef u32 (*DSPCompiledCode)();
-typedef const u8 *Block;
+typedef const u8* Block;
 
 class DSPEmitter : public Gen::X64CodeBlock
 {
@@ -242,10 +242,10 @@ public:
 	void msub(const UDSPInstruction opc);
 
 	// CALL this to start the dispatcher
-	const u8 *enterDispatcher;
-	const u8 *reenterDispatcher;
-	const u8 *stubEntryPoint;
-	const u8 *returnDispatcher;
+	const u8* enterDispatcher;
+	const u8* reenterDispatcher;
+	const u8* stubEntryPoint;
+	const u8* returnDispatcher;
 	u16 compilePC;
 	u16 startAddr;
 	Block *blockLinks;

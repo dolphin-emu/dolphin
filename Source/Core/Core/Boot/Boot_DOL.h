@@ -46,8 +46,8 @@ private:
 	};
 	SDolHeader m_dolheader;
 
-	u8 *data_section[DOL_NUM_DATA];
-	u8 *text_section[DOL_NUM_TEXT];
+	u8* data_section[DOL_NUM_DATA];
+	u8* text_section[DOL_NUM_TEXT];
 
 	bool m_isWii;
 

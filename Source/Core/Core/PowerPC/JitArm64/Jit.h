@@ -31,9 +31,9 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return nullptr; }
+	const u8* BackPatch(u8* codePtr, u32 em_address, void *ctx) { return nullptr; }
 
-	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+	bool IsInCodeSpace(u8* ptr) { return IsInSpace(ptr); }
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
 
