@@ -270,6 +270,8 @@ private:
 	void OnRecordReadOnly(wxCommandEvent& event);
 	void OnTASInput(wxCommandEvent& event);
 	void OnTogglePauseMovie(wxCommandEvent& event);
+	void OnToggleDumpFrames(wxCommandEvent& event);
+	void OnToggleDumpAudio(wxCommandEvent& event);
 	void OnShowLag(wxCommandEvent& event);
 	void OnShowFrameCount(wxCommandEvent& event);
 	void OnChangeDisc(wxCommandEvent& event);
