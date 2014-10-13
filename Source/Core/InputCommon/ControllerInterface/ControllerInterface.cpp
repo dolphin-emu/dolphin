@@ -41,25 +41,27 @@ ControllerInterface g_controller_interface;
 //
 // Detect devices and inputs outputs / will make refresh function later
 //
-void ControllerInterface::Initialize()
+void ControllerInterface::Initialize(void* const hwnd)
 {
 	if (m_is_init)
 		return;
 
+	m_hwnd = hwnd;
+
 #ifdef CIFACE_USE_DINPUT
-	ciface::DInput::Init(m_devices, (HWND)m_hwnd);
+	ciface::DInput::Init(m_devices, (HWND)hwnd);
 #endif
 #ifdef CIFACE_USE_XINPUT
 	ciface::XInput::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_XLIB
-	ciface::Xlib::Init(m_devices, m_hwnd);
+	ciface::Xlib::Init(m_devices, hwnd);
 	#ifdef CIFACE_USE_X11_XINPUT2
-	ciface::XInput2::Init(m_devices, m_hwnd);
+	ciface::XInput2::Init(m_devices, hwnd);
 	#endif
 #endif
 #ifdef CIFACE_USE_OSX
-	ciface::OSX::Init(m_devices, m_hwnd);
+	ciface::OSX::Init(m_devices, hwnd);
 #endif
 #ifdef CIFACE_USE_SDL
 	ciface::SDL::Init(m_devices);
@@ -69,6 +71,15 @@ void ControllerInterface::Initialize()
 #endif
 
 	m_is_init = true;
+}
+
+void ControllerInterface::Reinitialize()
+{
+	if (!m_is_init)
+		return;
+
+	Shutdown();
+	Initialize(m_hwnd);
 }
 
 //
@@ -117,16 +128,6 @@ void ControllerInterface::Shutdown()
 #endif
 
 	m_is_init = false;
-}
-
-//
-// SetHwnd
-//
-// Sets the hwnd used for some crap when initializing, use before calling Init
-//
-void ControllerInterface::SetHwnd( void* const hwnd )
-{
-	m_hwnd = hwnd;
 }
 
 //

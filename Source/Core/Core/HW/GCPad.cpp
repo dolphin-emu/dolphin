@@ -40,8 +40,7 @@ void Initialize(void* const hwnd)
 	for (unsigned int i=0; i<4; ++i)
 		s_config.controllers.push_back(new GCPad(i));
 
-	g_controller_interface.SetHwnd(hwnd);
-	g_controller_interface.Initialize();
+	g_controller_interface.Initialize(hwnd);
 
 	// load the saved controller config
 	s_config.LoadConfig(true);
