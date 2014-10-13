@@ -569,15 +569,18 @@ void TASInputDlg::GetValues(GCPadStatus* PadStatus)
 
 void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 {
-	wxTextCtrl* text;
+	wxTextCtrl* text = nullptr;
 
 	for (unsigned int i = 0; i < 10; ++i)
 	{
 		if (Controls[i] != nullptr && event.GetId() == Controls[i]->Slider_ID)
 			text = Controls[i]->Text;
 	}
+
 	int value = ((wxSlider*) event.GetEventObject())->GetValue();
-	text->SetValue(std::to_string(value));
+
+	if (text)
+		text->SetValue(std::to_string(value));
 }
 
 void TASInputDlg::UpdateFromText(wxCommandEvent& event)
@@ -723,20 +726,29 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 
 void TASInputDlg::SetTurbo(wxMouseEvent& event)
 {
-	Button* button;
+	Button* button = nullptr;
+
 	for (unsigned int i = 0; i < 14; ++i)
 	{
 		if (Buttons[i] != nullptr && event.GetId() == Buttons[i]->ID)
 			button = Buttons[i];
 	}
+
 	if (event.LeftDown())
 	{
-		button->TurboOn = false;
+		if (button)
+			button->TurboOn = false;
+
 		event.Skip(true);
 		return;
 	}
-	button->Checkbox->SetValue(true);
-	button->TurboOn = !button->TurboOn;
+
+	if (button)
+	{
+		button->Checkbox->SetValue(true);
+		button->TurboOn = !button->TurboOn;
+	}
+
 	event.Skip(true);
 }
 
