@@ -195,7 +195,7 @@ private:
 
 	// Misc
 	wxCheckBox* WiiScreenSaver;
-	wxCheckBox* WiiEuRGB60;
+	wxCheckBox* WiiPAL60;
 	wxChoice* WiiAspectRatio;
 	wxChoice* WiiSystemLang;
 
