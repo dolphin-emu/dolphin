@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/CPMemory.h"
@@ -51,6 +52,10 @@ static void DoState(PointerWrap &p)
 
 	VertexManager::DoState(p);
 	p.DoMarker("VertexManager");
+
+	BoundingBox::DoState(p);
+	p.DoMarker("BoundingBox");
+
 
 	// TODO: search for more data that should be saved and add it here
 }
