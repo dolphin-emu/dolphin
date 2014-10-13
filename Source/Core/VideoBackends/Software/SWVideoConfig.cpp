@@ -54,6 +54,7 @@ void SWVideoConfig::Load(const char* ini_file)
 	IniFile::Section* utility = iniFile.GetOrCreateSection("Utility");
 	utility->Get("DumpTexture", &bDumpTextures, false);
 	utility->Get("DumpObjects", &bDumpObjects, false);
+	utility->Get("DumpFrames", &bDumpFrames, false);
 	utility->Get("DumpTevStages", &bDumpTevStages, false);
 	utility->Get("DumpTevTexFetches", &bDumpTevTextureFetches, false);
 
@@ -83,6 +84,7 @@ void SWVideoConfig::Save(const char* ini_file)
 	IniFile::Section* utility = iniFile.GetOrCreateSection("Utility");
 	utility->Set("DumpTexture", bDumpTextures);
 	utility->Set("DumpObjects", bDumpObjects);
+	utility->Set("DumpFrames", bDumpFrames);
 	utility->Set("DumpTevStages", bDumpTevStages);
 	utility->Set("DumpTevTexFetches", bDumpTevTextureFetches);
 
