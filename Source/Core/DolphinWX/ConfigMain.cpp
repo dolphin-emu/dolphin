@@ -62,12 +62,13 @@ struct CPUCore
 };
 const CPUCore CPUCores[] = {
 	{0, wxTRANSLATE("Interpreter (VERY slow)")},
-#ifdef _M_ARM
-	{3, wxTRANSLATE("Arm JIT (experimental)")},
-	{4, wxTRANSLATE("Arm JITIL (experimental)")},
-#else
+#ifdef _M_X86_64
 	{1, wxTRANSLATE("JIT Recompiler (recommended)")},
 	{2, wxTRANSLATE("JITIL Recompiler (slower, experimental)")},
+#elif defined(_M_ARM_32)
+	{3, wxTRANSLATE("Arm JIT (experimental)")},
+#elif defined(_M_ARM_64)
+	{4, wxTRANSLATE("Arm64 JIT (experimental)")},
 #endif
 };
 
