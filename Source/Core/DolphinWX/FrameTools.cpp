@@ -82,8 +82,6 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#include "VideoBackends/Software/SWVideoConfig.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -729,8 +727,7 @@ void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnToggleDumpFrames(wxCommandEvent& WXUNUSED(event))
 {
-	g_Config.bDumpFrames = !g_Config.bDumpFrames;
-	g_SWVideoConfig.bDumpFrames = !g_SWVideoConfig.bDumpFrames;
+	g_ActiveConfig.bDumpFrames = !g_ActiveConfig.bDumpFrames;
 }
 
 void CFrame::OnToggleDumpAudio(wxCommandEvent& WXUNUSED(event))
