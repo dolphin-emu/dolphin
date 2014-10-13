@@ -71,10 +71,21 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 	// TODO consider using static max size instead of new
 	s16 *samples = new s16[sd->length * 2];
 
-	unsigned int sample_rate_dividend;
-	u8 volume_divisor;
+	// Initially assume 4-bit PCM.
+	// Following details from http://wiibrew.org/wiki/Wiimote#Speaker
+	unsigned int sample_rate_dividend = 6000000;
+	u8 volume_divisor = 0x40;
 
-	if (m_reg_speaker.format == 0x40)
+	if (m_reg_speaker.format == 0x00)
+	{
+		// 4 bit Yamaha ADPCM (same as dreamcast)
+		for (int i = 0; i < sd->length; ++i)
+		{
+			samples[i * 2 + 0] = adpcm_yamaha_expand_nibble(m_adpcm_state, (sd->data[i] >> 4) & 0xf);
+			samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(m_adpcm_state, sd->data[i] & 0xf);
+		}
+	}
+	else if (m_reg_speaker.format == 0x40)
 	{
 		// 8 bit PCM
 		for (int i = 0; i < sd->length; ++i)
@@ -85,19 +96,6 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 		// Following details from http://wiibrew.org/wiki/Wiimote#Speaker
 		sample_rate_dividend = 12000000;
 		volume_divisor = 0xff;
-	}
-	else if (m_reg_speaker.format == 0x00)
-	{
-		// 4 bit Yamaha ADPCM (same as dreamcast)
-		for (int i = 0; i < sd->length; ++i)
-		{
-			samples[i * 2] = adpcm_yamaha_expand_nibble(m_adpcm_state, (sd->data[i] >> 4) & 0xf);
-			samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(m_adpcm_state, sd->data[i] & 0xf);
-		}
-
-		// Following details from http://wiibrew.org/wiki/Wiimote#Speaker
-		sample_rate_dividend = 6000000;
-		volume_divisor = 0x40;
 	}
 
 	// Speaker Pan
