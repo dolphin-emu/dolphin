@@ -31,7 +31,6 @@ struct SWVideoConfig : NonCopyable
 
 	bool bDumpTextures;
 	bool bDumpObjects;
-	bool bDumpFrames;
 
 	// Debug only
 	bool bDumpTevStages;

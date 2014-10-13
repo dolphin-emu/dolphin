@@ -220,7 +220,7 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Check(IDM_RECORDREADONLY, true);
 	movieMenu->AppendSeparator();
 	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump frames"));
-	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, g_ActiveConfig.bDumpFrames);
+	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, SConfig::GetInstance().m_DumpFrames);
 	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump audio"));
 	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
 	menubar->Append(movieMenu, _("&Movie"));
@@ -729,8 +729,8 @@ void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnToggleDumpFrames(wxCommandEvent& WXUNUSED(event))
 {
-	g_Config.bDumpFrames = !g_Config.bDumpFrames;
-	g_SWVideoConfig.bDumpFrames = !g_SWVideoConfig.bDumpFrames;
+	SConfig::GetInstance().m_DumpFrames = !SConfig::GetInstance().m_DumpFrames;
+	SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnToggleDumpAudio(wxCommandEvent& WXUNUSED(event))
