@@ -15,7 +15,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 {
 	const s16 *pCoefTable = (const s16 *)&g_dsp.ifx_regs[DSP_COEF_A1_0];
 
-	if (((_rSamplePos)& 15) == 0)
+	if ((_rSamplePos & 15) == 0)
 	{
 		g_dsp.ifx_regs[DSP_PRED_SCALE] = DSPHost::ReadHostMemory((_rSamplePos & ~15) >> 1);
 		_rSamplePos += 2;
@@ -122,10 +122,10 @@ u16 dsp_read_accelerator()
 	switch (g_dsp.ifx_regs[DSP_FORMAT])
 	{
 		case 0x00:  // ADPCM audio
-			if ((Address & 15) == 0)
-				step_size_bytes = 2;
-			else
+			if ((EndAddress & 15) == 0)
 				step_size_bytes = 1;
+			else
+				step_size_bytes = 2;
 			val = ADPCM_Step(Address);
 			break;
 		case 0x0A:  // 16-bit PCM audio
@@ -139,12 +139,12 @@ u16 dsp_read_accelerator()
 			val = DSPHost::ReadHostMemory(Address) << 8;
 			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 			g_dsp.ifx_regs[DSP_YN1] = val;
-			step_size_bytes = 1;
+			step_size_bytes = 2;
 			Address++;
 			break;
 		default:
 			ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
-			step_size_bytes = 1;
+			step_size_bytes = 2;
 			Address++;
 			val = 0;
 			break;

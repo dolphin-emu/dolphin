@@ -163,13 +163,14 @@ u16 AcceleratorGetSample()
 			if ((*acc_cur_addr & 15) == 0)
 			{
 				acc_pb->adpcm.pred_scale = DSP::ReadARAM((*acc_cur_addr & ~15) >> 1);
-				step_size_bytes = 2;
 				*acc_cur_addr += 2;
 			}
-			else
-			{
+
+			if ((acc_end_addr & 15) == 0)
 				step_size_bytes = 1;
-			}
+			else
+				step_size_bytes = 2;
+
 			int scale = 1 << (acc_pb->adpcm.pred_scale & 0xF);
 			int coef_idx = (acc_pb->adpcm.pred_scale >> 4) & 0x7;
 
@@ -205,7 +206,7 @@ u16 AcceleratorGetSample()
 			ret = DSP::ReadARAM(*acc_cur_addr) << 8;
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = ret;
-			step_size_bytes = 1;
+			step_size_bytes = 2;
 			*acc_cur_addr += 1;
 			break;
 
