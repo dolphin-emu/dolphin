@@ -65,7 +65,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DumpTextures", &bDumpTextures, 0);
 	settings->Get("HiresTextures", &bHiresTextures, 0);
 	settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
-	settings->Get("DumpFrames", &bDumpFrames, 0);
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
 	settings->Get("AnaglyphStereo", &bAnaglyphStereo, false);
@@ -234,7 +233,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DumpTextures", bDumpTextures);
 	settings->Set("HiresTextures", bHiresTextures);
 	settings->Set("DumpEFBTarget", bDumpEFBTarget);
-	settings->Set("DumpFrames", bDumpFrames);
 	settings->Set("FreeLook", bFreeLook);
 	settings->Set("UseFFV1", bUseFFV1);
 	settings->Set("AnaglyphStereo", bAnaglyphStereo);
