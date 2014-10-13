@@ -409,7 +409,6 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
 {
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
 	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
-	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 
 	if (coreData)
 	{
@@ -427,16 +426,6 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
 		SetSliderValue(&yCont, dt->y);
 		SetSliderValue(&zCont, dt->z, 154);
 	}
-
-	// I don't think this can be made to work in a sane manner.
-	//if (irData)
-	//{
-	//	u16 x = 1023 - (irData[0] | ((irData[2] >> 4 & 0x3) << 8));
-	//	u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
-
-	//	SetStickValue(&MainStick.xCont.SetByKeyboard, &MainStick.xCont.value, MainStick.xCont.Text, x, 561);
-	//	SetStickValue(&MainStick.yCont.SetByKeyboard, &MainStick.yCont.value, MainStick.yCont.Text, y, 486);
-	//}
 }
 
 void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
@@ -451,7 +440,6 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
 	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
 	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
-	u8 size = rptf.size;
 
 	if (coreData)
 		SetWiiButtons((wm_core*)coreData);
@@ -484,42 +472,42 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
 		if (mode == 1)
 		{
 			memset(irData, 0xFF, sizeof(wm_ir_basic) * 2);
-			wm_ir_basic* data = (wm_ir_basic*)irData;
+			wm_ir_basic* basic_data = (wm_ir_basic*)irData;
 			for (unsigned int i = 0; i < 2; ++i)
 			{
 				if (x[i*2] < 1024 && y < 768)
 				{
-					data[i].x1 = static_cast<u8>(x[i*2]);
-					data[i].x1hi = x[i*2] >> 8;
+					basic_data[i].x1 = static_cast<u8>(x[i*2]);
+					basic_data[i].x1hi = x[i*2] >> 8;
 
-					data[i].y1 = static_cast<u8>(y);
-					data[i].y1hi = y >> 8;
+					basic_data[i].y1 = static_cast<u8>(y);
+					basic_data[i].y1hi = y >> 8;
 				}
 				if (x[i*2+1] < 1024 && y < 768)
 				{
-					data[i].x2 = static_cast<u8>(x[i*2+1]);
-					data[i].x2hi = x[i*2+1] >> 8;
+					basic_data[i].x2 = static_cast<u8>(x[i*2+1]);
+					basic_data[i].x2hi = x[i*2+1] >> 8;
 
-					data[i].y2 = static_cast<u8>(y);
-					data[i].y2hi = y >> 8;
+					basic_data[i].y2 = static_cast<u8>(y);
+					basic_data[i].y2hi = y >> 8;
 				}
 			}
 		}
 		else
 		{
 			memset(data, 0xFF, sizeof(wm_ir_extended) * 4);
-			wm_ir_extended* const data = (wm_ir_extended*)irData;
+			wm_ir_extended* const extended_data = (wm_ir_extended*)irData;
 			for (unsigned int i = 0; i < 4; ++i)
 			{
 				if (x[i] < 1024 && y < 768)
 				{
-					data[i].x = static_cast<u8>(x[i]);
-					data[i].xhi = x[i] >> 8;
+					extended_data[i].x = static_cast<u8>(x[i]);
+					extended_data[i].xhi = x[i] >> 8;
 
-					data[i].y = static_cast<u8>(y);
-					data[i].yhi = y >> 8;
+					extended_data[i].y = static_cast<u8>(y);
+					extended_data[i].yhi = y >> 8;
 
-					data[i].size = 10;
+					extended_data[i].size = 10;
 				}
 			}
 		}
@@ -693,9 +681,9 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 	stick->xCont.value = ptM.x * stick->xCont.range / 127;
 	stick->yCont.value = ptM.y * stick->yCont.range / 127;
 
-	if ((unsigned)stick->yCont.value > stick->yCont.range)
+	if ((unsigned int)stick->yCont.value > stick->yCont.range)
 		stick->yCont.value = stick->yCont.range;
-	if ((unsigned)stick->xCont.value > stick->xCont.range)
+	if ((unsigned int)stick->xCont.value > stick->xCont.range)
 		stick->xCont.value = stick->xCont.range;
 
 	if (!isWii)
@@ -703,13 +691,8 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 	else
 		stick->xCont.value = stick->xCont.range - (u16)stick->xCont.value;
 
-	stick->xCont.value = (unsigned)stick->xCont.value > stick->xCont.range ? stick->xCont.range : stick->xCont.value;
-	stick->yCont.value = (unsigned)stick->yCont.value > stick->yCont.range ? stick->yCont.range : stick->yCont.value;
-	stick->xCont.value = (unsigned)stick->xCont.value < 0 ? 0 : stick->xCont.value;
-	stick->yCont.value = (unsigned)stick->yCont.value < 0 ? 0 : stick->yCont.value;
-
-	int x = (u8)((double)stick->xCont.value / (double)stick->xCont.range * 255.0);
-	int y = (u8)((double)stick->yCont.value / (double)stick->yCont.range * 255.0);
+	stick->xCont.value = (unsigned int)stick->xCont.value > stick->xCont.range ? stick->xCont.range : stick->xCont.value;
+	stick->yCont.value = (unsigned int)stick->yCont.value > stick->yCont.range ? stick->yCont.range : stick->yCont.value;
 
 	stick->bitmap->SetBitmap(CreateStickBitmap(ptM.x*2, ptM.y*2));
 
