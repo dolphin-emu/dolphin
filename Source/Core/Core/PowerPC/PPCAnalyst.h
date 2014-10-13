@@ -45,6 +45,9 @@ struct CodeOp //16B
 	// which registers are still needed after this instruction in this block
 	u32 gprInUse;
 	u32 fprInUse;
+	// we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
+	// an XMM only to move it again to a GPR afterwards.
+	u32 fprInXmm;
 };
 
 struct BlockStats
@@ -81,16 +84,16 @@ struct BlockRegStats
 	inline void SetInputRegister(int reg, short opindex)
 	{
 		if (firstRead[reg] == -1)
-			firstRead[reg] = (short)(opindex);
-		lastRead[reg] = (short)(opindex);
+			firstRead[reg] = opindex;
+		lastRead[reg] = opindex;
 		numReads[reg]++;
 	}
 
 	inline void SetOutputRegister(int reg, short opindex)
 	{
 		if (firstWrite[reg] == -1)
-			firstWrite[reg] = (short)(opindex);
-		lastWrite[reg] = (short)(opindex);
+			firstWrite[reg] = opindex;
+		lastWrite[reg] = opindex;
 		numWrites[reg]++;
 	}
 

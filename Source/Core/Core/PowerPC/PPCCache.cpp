@@ -95,7 +95,7 @@ namespace PowerPC
 					lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
 			}
 		valid[set] = 0;
-		JitInterface::InvalidateICache(addr & ~0x1f, 32);
+		JitInterface::InvalidateICache(addr & ~0x1f, 32, false);
 	}
 
 	u32 InstructionCache::ReadInstruction(u32 addr)

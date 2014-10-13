@@ -14,65 +14,27 @@ static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x0000000
 static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
-void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS)
+void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg),
+                      void (XEmitter::*sseOp)(X64Reg, OpArg), UGeckoInstruction inst, bool roundRHS)
 {
 	fpr.Lock(d, a, b);
+	fpr.BindToRegister(d, d == a || d == b || !single);
 	if (roundRHS)
 	{
 		if (d == a)
 		{
-			fpr.BindToRegister(d, true);
-			MOVSD(XMM0, fpr.R(b));
-			Force25BitPrecision(XMM0, XMM1);
-			(this->*op)(fpr.RX(d), R(XMM0));
+			Force25BitPrecision(XMM0, fpr.R(b), XMM1);
+			(this->*sseOp)(fpr.RX(d), R(XMM0));
 		}
 		else
 		{
-			fpr.BindToRegister(d, d == b);
-			if (d != b)
-				MOVSD(fpr.RX(d), fpr.R(b));
-			Force25BitPrecision(fpr.RX(d), XMM0);
-			(this->*op)(fpr.RX(d), fpr.R(a));
-		}
-	}
-	else if (d == a)
-	{
-		fpr.BindToRegister(d, true);
-		if (!single)
-		{
-			fpr.BindToRegister(b, true, false);
-		}
-		(this->*op)(fpr.RX(d), fpr.R(b));
-	}
-	else if (d == b)
-	{
-		if (reversible)
-		{
-			fpr.BindToRegister(d, true);
-			if (!single)
-			{
-				fpr.BindToRegister(a, true, false);
-			}
-			(this->*op)(fpr.RX(d), fpr.R(a));
-		}
-		else
-		{
-			MOVSD(XMM0, fpr.R(b));
-			fpr.BindToRegister(d, !single);
-			MOVSD(fpr.RX(d), fpr.R(a));
-			(this->*op)(fpr.RX(d), Gen::R(XMM0));
+			Force25BitPrecision(fpr.RX(d), fpr.R(b), XMM0);
+			(this->*sseOp)(fpr.RX(d), fpr.R(a));
 		}
 	}
 	else
 	{
-		// Sources different from d, can use rather quick solution
-		fpr.BindToRegister(d, !single);
-		if (!single)
-		{
-			fpr.BindToRegister(b, true, false);
-		}
-		MOVSD(fpr.RX(d), fpr.R(a));
-		(this->*op)(fpr.RX(d), fpr.R(b));
+		avx_op(avxOp, sseOp, fpr.RX(d), fpr.R(a), fpr.R(b), false, reversible);
 	}
 	if (single)
 	{
@@ -104,10 +66,10 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 	bool single = inst.OPCD == 59;
 	switch (inst.SUBOP5)
 	{
-	case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::DIVSD, inst); break; //div
-	case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::SUBSD, inst); break; //sub
-	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true, single, &XEmitter::ADDSD, inst); break; //add
-	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, single, &XEmitter::MULSD, inst, single); break; //mul
+	case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::VDIVSD, &XEmitter::DIVSD, inst); break; //div
+	case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::VSUBSD, &XEmitter::SUBSD, inst); break; //sub
+	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true, single, &XEmitter::VADDSD, &XEmitter::ADDSD, inst); break; //add
+	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, single, &XEmitter::VMULSD, &XEmitter::MULSD, inst, single); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
 	}
@@ -128,21 +90,58 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
 	fpr.Lock(a, b, c, d);
 
-	// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
-	if (inst.SUBOP5 == 30) //nmsub
+	// While we don't know if any games are actually affected (replays seem to work with all the usual
+	// suspects for desyncing), netplay and other applications need absolute perfect determinism, so
+	// be extra careful and don't use FMA, even if in theory it might be okay.
+	// Note that FMA isn't necessarily less correct (it may actually be closer to correct) compared
+	// to what the Gekko does here; in deterministic mode, the important thing is multiple Dolphin
+	// instances on different computers giving identical results.
+	if (cpu_info.bFMA && !Core::g_want_determinism)
 	{
-		MOVSD(XMM1, fpr.R(c));
 		if (single_precision)
-			Force25BitPrecision(XMM1, XMM0);
+			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
+		else
+			MOVSD(XMM0, fpr.R(c));
+		// Statistics suggests b is a lot less likely to be unbound in practice, so
+		// if we have to pick one of a or b to bind, let's make it b.
+		fpr.BindToRegister(b, true, false);
+		switch (inst.SUBOP5)
+		{
+		case 28: //msub
+			VFMSUB132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		case 29: //madd
+			VFMADD132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+			// PowerPC and x86 define NMADD/NMSUB differently
+			// x86: D = -A*C (+/-) B
+			// PPC: D = -(A*C (+/-) B)
+			// so we have to swap them; the ADD/SUB here isn't a typo.
+		case 30: //nmsub
+			VFNMADD132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		case 31: //nmadd
+			VFNMSUB132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		}
+	}
+	else if (inst.SUBOP5 == 30) //nmsub
+	{
+		// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
+		if (single_precision)
+			Force25BitPrecision(XMM1, fpr.R(c), XMM0);
+		else
+			MOVSD(XMM1, fpr.R(c));
 		MULSD(XMM1, fpr.R(a));
 		MOVSD(XMM0, fpr.R(b));
 		SUBSD(XMM0, R(XMM1));
 	}
 	else
 	{
-		MOVSD(XMM0, fpr.R(c));
 		if (single_precision)
-			Force25BitPrecision(XMM0, XMM1);
+			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
+		else
+			MOVSD(XMM0, fpr.R(c));
 		MULSD(XMM0, fpr.R(a));
 		if (inst.SUBOP5 == 28) //msub
 			SUBSD(XMM0, fpr.R(b));
@@ -151,6 +150,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 		if (inst.SUBOP5 == 31) //nmadd
 			PXOR(XMM0, M((void*)&psSignBits));
 	}
+
 	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
 	//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.

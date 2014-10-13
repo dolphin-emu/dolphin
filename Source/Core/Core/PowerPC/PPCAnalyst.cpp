@@ -802,6 +802,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	bool wantsCA = true;
 	u32 fregInUse = 0;
 	u32 regInUse = 0;
+	u32 fregInXmm = 0;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
 		bool opWantsCR0  = code[i].wantsCR0;
@@ -822,6 +823,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		wantsCA   &= !code[i].outputCA   || opWantsCA;
 		code[i].gprInUse = regInUse;
 		code[i].fprInUse = fregInUse;
+		code[i].fprInXmm = fregInXmm;
 		// TODO: if there's no possible endblocks or exceptions in between, tell the regcache
 		// we can throw away a register if it's going to be overwritten later.
 		for (int j = 0; j < 3; j++)
@@ -829,7 +831,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 				regInUse |= 1 << code[i].regsIn[j];
 		for (int j = 0; j < 4; j++)
 			if (code[i].fregsIn[j] >= 0)
+			{
 				fregInUse |= 1 << code[i].fregsIn[j];
+				if (strncmp(code[i].opinfo->opname, "stfd", 4))
+					fregInXmm |= 1 << code[i].fregsIn[j];
+			}
 		// For now, we need to count output registers as "used" though; otherwise the flush
 		// will result in a redundant store (e.g. store to regcache, then store again to
 		// the same location later).
@@ -837,7 +843,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			if (code[i].regsOut[j] >= 0)
 				regInUse |= 1 << code[i].regsOut[j];
 		if (code[i].fregOut >= 0)
+		{
 			fregInUse |= 1 << code[i].fregOut;
+			if (strncmp(code[i].opinfo->opname, "stfd", 4))
+				fregInXmm |= 1 << code[i].fregOut;
+		}
 	}
 	return address;
 }

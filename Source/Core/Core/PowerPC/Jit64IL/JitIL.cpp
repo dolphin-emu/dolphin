@@ -244,23 +244,12 @@ namespace JitILProfiler
 void JitIL::Init()
 {
 	jo.optimizeStack = true;
-
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	jo.enableBlocklink = true;
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
+		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
-	}
-	else
-	{
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking)
-		{
-			jo.enableBlocklink = false;
-		}
-		else
-		{
-			// Speed boost, but not 100% safe
-			jo.enableBlocklink = !SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-		}
 	}
 
 	jo.fpAccurateFcmp = false;

@@ -21,10 +21,6 @@ set(SRCS BPMemLoader.cpp
 	   SWVideoConfig.cpp
 	   XFMemLoader.cpp)
 
-if(wxWidgets_FOUND)
-	set(SRCS ${SRCS} VideoConfigDialog.cpp)
-endif(wxWidgets_FOUND)
-
 set(LIBS	videocommon
 			SOIL
 			common

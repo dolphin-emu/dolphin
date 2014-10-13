@@ -30,14 +30,15 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void Fifo_UpdateWantDeterminism(bool want);
 
 // Used for diagnostics.
-enum SyncGPUReason {
-    SYNC_GPU_NONE,
-    SYNC_GPU_OTHER,
-    SYNC_GPU_WRAPAROUND,
-    SYNC_GPU_EFB_POKE,
-    SYNC_GPU_PERFQUERY,
-    SYNC_GPU_SWAP,
-    SYNC_GPU_AUX_SPACE,
+enum SyncGPUReason
+{
+	SYNC_GPU_NONE,
+	SYNC_GPU_OTHER,
+	SYNC_GPU_WRAPAROUND,
+	SYNC_GPU_EFB_POKE,
+	SYNC_GPU_PERFQUERY,
+	SYNC_GPU_SWAP,
+	SYNC_GPU_AUX_SPACE,
 };
 // In g_use_deterministic_gpu_thread mode, waits for the GPU to be done with pending work.
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr = true);

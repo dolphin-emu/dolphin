@@ -122,8 +122,6 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 	m_dma_mixer.Mix(samples, num_samples, consider_framelimit);
 	m_streaming_mixer.Mix(samples, num_samples, consider_framelimit);
 	m_wiimote_speaker_mixer.Mix(samples, num_samples, consider_framelimit);
-	if (m_logAudio)
-		g_wave_writer.AddStereoSamples(samples, num_samples);
 	return num_samples;
 }
 
@@ -161,11 +159,15 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 {
 	m_dma_mixer.PushSamples(samples, num_samples);
+	if (m_log_dsp_audio)
+		g_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples);
 }
 
 void CMixer::PushStreamingSamples(const short *samples, unsigned int num_samples)
 {
 	m_streaming_mixer.PushSamples(samples, num_samples);
+	if (m_log_dtk_audio)
+		g_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples);
 }
 
 void CMixer::PushWiimoteSpeakerSamples(const short *samples, unsigned int num_samples, unsigned int sample_rate)

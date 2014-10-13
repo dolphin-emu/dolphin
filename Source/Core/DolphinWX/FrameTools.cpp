@@ -82,6 +82,8 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoBackends/Software/SWVideoConfig.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -213,7 +215,14 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
 	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
 	movieMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
+	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show frame counter"));
+	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
 	movieMenu->Check(IDM_RECORDREADONLY, true);
+	movieMenu->AppendSeparator();
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump frames"));
+	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, g_ActiveConfig.bDumpFrames);
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump audio"));
+	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
 	menubar->Append(movieMenu, _("&Movie"));
 
 	// Options menu
@@ -488,7 +497,7 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 
 		case HK_LOAD_STATE_SLOT_SELECTED:
-			Label = _("load state from selected slot");
+			Label = _("Load state from selected slot");
 			break;
 
 		case HK_SELECT_STATE_SLOT_1:
@@ -511,8 +520,8 @@ wxString CFrame::GetMenuLabel(int Id)
 
 	hotkeymodifier &= wxMOD_CONTROL | wxMOD_ALT | wxMOD_SHIFT;
 
-	Modifier = InputCommon::WXKeymodToString(hotkeymodifier);
-	Hotkey = InputCommon::WXKeyToString(hotkey);
+	Modifier = WxUtils::WXKeymodToString(hotkeymodifier);
+	Hotkey = WxUtils::WXKeyToString(hotkey);
 	if (Modifier.Len() + Hotkey.Len() > 0)
 		Label += '\t';
 
@@ -622,14 +631,14 @@ void CFrame::BootGame(const std::string& filename)
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
 		else if (!StartUp.m_strDefaultGCM.empty() &&
-		         wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+		         File::Exists(StartUp.m_strDefaultGCM))
 		{
 			bootfile = StartUp.m_strDefaultGCM;
 		}
 		else
 		{
 			if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			    wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			    File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				bootfile = SConfig::GetInstance().m_LastFilename;
 			}
@@ -697,10 +706,17 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 
 	for (int i = 0; i < 4; ++i)
 	{
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+		if (SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_NONE && SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_GC_GBA)
 		{
+			g_TASInputDlg[i]->CreateGCLayout();
 			g_TASInputDlg[i]->Show(true);
 			g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
+		}
+		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
+		{
+			g_TASInputDlg[i+4]->CreateWiiLayout();
+			g_TASInputDlg[i+4]->Show(true);
+			g_TASInputDlg[i+4]->SetTitle("TAS Input - Wiimote " + number[i]);
 		}
 	}
 }
@@ -711,9 +727,26 @@ void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 	SConfig::GetInstance().SaveSettings();
 }
 
+void CFrame::OnToggleDumpFrames(wxCommandEvent& WXUNUSED(event))
+{
+	g_Config.bDumpFrames = !g_Config.bDumpFrames;
+	g_SWVideoConfig.bDumpFrames = !g_SWVideoConfig.bDumpFrames;
+}
+
+void CFrame::OnToggleDumpAudio(wxCommandEvent& WXUNUSED(event))
+{
+	SConfig::GetInstance().m_DumpAudio = !SConfig::GetInstance().m_DumpAudio;
+}
+
 void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_ShowLag = !SConfig::GetInstance().m_ShowLag;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowFrameCount(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_ShowFrameCount = !SConfig::GetInstance().m_ShowFrameCount;
 	SConfig::GetInstance().SaveSettings();
 }
 
@@ -1096,7 +1129,7 @@ void CFrame::DoStop()
 
 			// If exclusive fullscreen is not enabled then we can pause the emulation
 			// before we've exited fullscreen. If not then we need to exit fullscreen first.
-			if (!RendererIsFullscreen() || g_Config.BorderlessFullscreenEnabled() ||
+			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
 				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			{
 				Core::SetState(Core::CORE_PAUSE);
@@ -1403,7 +1436,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path).c_str());
+		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path));
 	}
 }
 
@@ -1767,7 +1800,7 @@ void CFrame::UpdateGUI()
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			         wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			         File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);

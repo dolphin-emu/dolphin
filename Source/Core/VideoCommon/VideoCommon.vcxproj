@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -36,6 +36,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="AVIDump.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="BPFunctions.cpp" />
     <ClCompile Include="BPMemory.cpp" />
     <ClCompile Include="BPStructs.cpp" />
@@ -80,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AVIDump.h" />
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BPFunctions.h" />
     <ClInclude Include="BPMemory.h" />
     <ClInclude Include="BPStructs.h" />

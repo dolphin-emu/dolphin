@@ -43,6 +43,8 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeCreator.h"
 
+#include "UICommon/UICommon.h"
+
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -360,21 +362,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
 	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
 
-	LogManager::Init();
-	SConfig::Init();
-	VideoBackend::PopulateList();
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
-	WiimoteReal::LoadSettings();
+	UICommon::Init();
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 			updateMainFrameEvent.Wait();
 
-	WiimoteReal::Shutdown();
-	VideoBackend::ClearList();
-	SConfig::Shutdown();
-	LogManager::Shutdown();
+	UICommon::Shutdown();
 	ANativeWindow_release(surf);
 }
 

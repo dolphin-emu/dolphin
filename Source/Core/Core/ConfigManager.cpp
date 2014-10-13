@@ -172,6 +172,7 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	// General
 	general->Set("LastFilename", m_LastFilename);
 	general->Set("ShowLag", m_ShowLag);
+	general->Set("ShowFrameCount", m_ShowFrameCount);
 
 	// ISO folders
 	// Clear removed folders
@@ -379,6 +380,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
 	general->Get("LastFilename", &m_LastFilename);
 	general->Get("ShowLag", &m_ShowLag, false);
+	general->Get("ShowFrameCount", &m_ShowFrameCount, false);
 #ifdef USE_GDBSTUB
 	general->Get("GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
 #endif

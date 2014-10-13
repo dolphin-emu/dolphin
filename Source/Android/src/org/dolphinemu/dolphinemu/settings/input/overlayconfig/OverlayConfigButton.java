@@ -156,7 +156,7 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 				SharedPreferences.Editor editor = sharedPrefs.edit();
 				editor.putFloat(buttonId+"-X", getX());
 				editor.putFloat(buttonId+"-Y", getY());
-				editor.commit();
+				editor.apply();
 				return true;
 			}
 		}

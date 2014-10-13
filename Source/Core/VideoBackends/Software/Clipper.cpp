@@ -113,10 +113,9 @@ namespace Clipper
 		return cmask;
 	}
 
-	static inline void AddInterpolatedVertex(float t, int out, int in, int& numVertices)
+	static inline void AddInterpolatedVertex(float t, int out, int in, int* numVertices)
 	{
-		Vertices[numVertices]->Lerp(t, Vertices[out], Vertices[in]);
-		numVertices++;
+		Vertices[(*numVertices)++]->Lerp(t, Vertices[out], Vertices[in]);
 	}
 
 	#define DIFFERENT_SIGNS(x,y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
@@ -142,10 +141,10 @@ namespace Clipper
 				if (DIFFERENT_SIGNS(dp, dpPrev)) {						\
 					if (dp < 0) {										\
 						float t = dp / (dp - dpPrev);					\
-						AddInterpolatedVertex(t, idx, idxPrev, numVertices);		\
+						AddInterpolatedVertex(t, idx, idxPrev, &numVertices);		\
 					} else {											\
 						float t = dpPrev / (dpPrev - dp);				\
-						AddInterpolatedVertex(t, idxPrev, idx, numVertices);		\
+						AddInterpolatedVertex(t, idxPrev, idx, &numVertices);		\
 					}													\
 					outlist[outcount++] = numVertices - 1;				\
 				}														\
@@ -187,7 +186,7 @@ namespace Clipper
 		}														\
 	}
 
-	static void ClipTriangle(int *indices, int &numIndices)
+	static void ClipTriangle(int *indices, int* numIndices)
 	{
 		int mask = 0;
 
@@ -229,9 +228,9 @@ namespace Clipper
 				indices[2] = inlist[2];
 				for (int j = 3; j < n; ++j)
 				{
-					indices[numIndices++] = inlist[0];
-					indices[numIndices++] = inlist[j - 1];
-					indices[numIndices++] = inlist[j];
+					indices[(*numIndices)++] = inlist[0];
+					indices[(*numIndices)++] = inlist[j - 1];
+					indices[(*numIndices)++] = inlist[j];
 				}
 			}
 		}
@@ -276,13 +275,13 @@ namespace Clipper
 		if (clip_mask[0])
 		{
 			indices[0] = numVertices;
-			AddInterpolatedVertex(t0, 0, 1, numVertices);
+			AddInterpolatedVertex(t0, 0, 1, &numVertices);
 		}
 
 		if (clip_mask[1])
 		{
 			indices[1] = numVertices;
-			AddInterpolatedVertex(t1, 1, 0, numVertices);
+			AddInterpolatedVertex(t1, 1, 0, &numVertices);
 		}
 	}
 
@@ -315,7 +314,7 @@ namespace Clipper
 			Vertices[2] = v2;
 		}
 
-		ClipTriangle(indices, numIndices);
+		ClipTriangle(indices, &numIndices);
 
 		for (int i = 0; i+3 <= numIndices; i+=3)
 		{

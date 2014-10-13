@@ -159,7 +159,7 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 		// CALLs, but we can't yet.  Fake the downcount so we're forced to the
 		// dispatcher (no block linking), and clear the cache so we're sent to
 		// Jit.  Yeah, it's kind of gross.
-		GetBlockCache()->InvalidateICache(0, 0xffffffff);
+		GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
 		CoreTiming::ForceExceptionCheck(0);
 		m_clear_cache_asap = true;
 
@@ -175,8 +175,8 @@ void Jit64::Init()
 {
 	jo.optimizeStack = true;
 	jo.enableBlocklink = true;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking ||
-		 SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;
@@ -223,6 +223,7 @@ void Jit64::ClearCache()
 	trampolines.ClearCodeSpace();
 	farcode.ClearCodeSpace();
 	ClearCodeSpace();
+	m_clear_cache_asap = false;
 }
 
 void Jit64::Shutdown()
@@ -613,7 +614,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_inst_bp = false;
 			if (Profiler::g_ProfileBlocks)
 			{
-				// CAUTION!!! push on stack regs you use, do your stuff, then pop
 				PROFILER_VPUSH;
 				// get end tic
 				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
@@ -725,6 +725,26 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 				WriteExit(ops[i].address);
 				SetJumpTarget(noBreakpoint);
+			}
+
+			// If we have an input register that is going to be used again, load it pre-emptively,
+			// even if the instruction doesn't strictly need it in a register, to avoid redundant
+			// loads later. Of course, don't do this if we're already out of registers.
+			// As a bit of a heuristic, make sure we have at least one register left over for the
+			// output, which needs to be bound in the actual instruction compilation.
+			// TODO: make this smarter in the case that we're actually register-starved, i.e.
+			// prioritize the more important registers.
+			for (int k = 0; k < 3 && gpr.NumFreeRegisters() >= 2; k++)
+			{
+				int reg = ops[i].regsIn[k];
+				if (reg >= 0 && (ops[i].gprInUse & (1 << reg)) && !gpr.R(reg).IsImm())
+					gpr.BindToRegister(reg, true, false);
+			}
+			for (int k = 0; k < 4 && fpr.NumFreeRegisters() >= 2; k++)
+			{
+				int reg = ops[i].fregsIn[k];
+				if (reg >= 0 && (ops[i].fprInXmm & (1 << reg)))
+					fpr.BindToRegister(reg, true, false);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);

@@ -409,8 +409,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleU8 = AlignCode4();  // Used by MKWii
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_255));
@@ -420,8 +419,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleS8 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MAXSS(XMM0, M((void *)&m_m128));
 	MINSS(XMM0, M((void *)&m_127));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
@@ -430,8 +428,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleU16 = AlignCode4();  // Used by MKWii
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_65535));
@@ -441,8 +438,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	const u8* storeSingleS16 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MAXSS(XMM0, M((void *)&m_m32768));
 	MINSS(XMM0, M((void *)&m_32767));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
@@ -543,8 +539,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0); // RSCRATCH_EXTRA = 0x000000xx
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M((void*)m_one));
 	RET();
 
@@ -583,8 +578,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0, true);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M((void*)m_one));
 	RET();
 
@@ -618,8 +612,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, false);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M((void*)m_one));
 	RET();
 
@@ -652,8 +645,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, true);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
 	SHR(32, R(RSCRATCH2), Imm8(5));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	MULSS(XMM0, R(XMM1));
+	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M((void*)m_one));
 	RET();
 
