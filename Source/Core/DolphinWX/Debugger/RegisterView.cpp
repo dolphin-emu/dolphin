@@ -24,7 +24,7 @@ class wxWindow;
 // F-zero 80005e60 wtf??
 
 static const char *special_reg_names[] = {
-	"PC", "LR", "CTR", "CR", "FPSCR", "MSR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause",
+	"PC", "LR", "CTR", "CR", "FPSCR", "MSR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause", "DSISR", "DAR", "PT hashmask"
 };
 
 static u32 GetSpecialRegValue(int reg)
@@ -42,6 +42,9 @@ static u32 GetSpecialRegValue(int reg)
 	case 8: return PowerPC::ppcState.Exceptions;
 	case 9: return ProcessorInterface::GetMask();
 	case 10: return ProcessorInterface::GetCause();
+	case 11: return PowerPC::ppcState.spr[SPR_DSISR];
+	case 12: return PowerPC::ppcState.spr[SPR_DAR];
+	case 13: return (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
 	default: return 0;
 	}
 }
@@ -57,6 +60,58 @@ wxString CRegTable::GetValue(int row, int col)
 		case 2: return StrToWxStr(GekkoDisassembler::GetFPRName(row));
 		case 3: return wxString::Format("%016llx", riPS0(row));
 		case 4: return wxString::Format("%016llx", riPS1(row));
+		case 5:
+		{
+			if (row < 4)
+			{
+				return wxString::Format("DBAT%01d", row);
+			}
+			if (row < 8)
+			{
+				return wxString::Format("IBAT%01d", row - 4);
+			}
+			if (row < 12)
+			{
+				return wxString::Format("DBAT%01d", row - 4);
+			}
+			if (row < 16)
+			{
+				return wxString::Format("IBAT%01d", row - 8);
+			}
+		}
+		case 6:
+		{
+			if (row < 4)
+			{
+				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT0U + row * 2] << 32 | PowerPC::ppcState.spr[SPR_DBAT0L + row * 2]);
+			}
+			if (row < 8)
+			{
+				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT0U + (row - 4) * 2] << 32 | PowerPC::ppcState.spr[SPR_IBAT0L + (row - 4) * 2]);
+			}
+			if (row < 12)
+			{
+				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT4U + (row - 12) * 2] << 32 | PowerPC::ppcState.spr[SPR_DBAT4L + (row - 12) * 2]);
+			}
+			if (row < 16)
+			{
+				return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT4U + (row - 16) * 2] << 32 | PowerPC::ppcState.spr[SPR_IBAT4L + (row - 16) * 2]);
+			}
+		}
+		case 7:
+		{
+			if (row < 16)
+			{
+				return wxString::Format("SR%02d", row);
+			}
+		}
+		case 8:
+		{
+			if (row < 16)
+			{
+				return wxString::Format("%08x", PowerPC::ppcState.sr[row]);
+			}
+		}
 		default: return wxEmptyString;
 		}
 	}
@@ -91,6 +146,9 @@ static void SetSpecialRegValue(int reg, u32 value)
 	// Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system aware?
 	// case 9: return ProcessorInterface::GetMask();
 	// case 10: return ProcessorInterface::GetCause();
+	case 11: PowerPC::ppcState.spr[SPR_DSISR] = value; break;
+	case 12: PowerPC::ppcState.spr[SPR_DAR] = value; break;
+	//case 13: (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
 	default: return;
 	}
 }
