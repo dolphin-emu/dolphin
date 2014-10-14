@@ -43,8 +43,7 @@ namespace Memory
 // LOCAL SETTINGS
 // ----------------
 
-/* Enable the Translation Lookaside Buffer functions. TLBHack = 1 in Dolphin.ini or a
-   <GameID>.ini file will set this to true */
+// Enable the Translation Lookaside Buffer functions.
 bool bFakeVMEM = false;
 static bool bMMU = false;
 // ==============
@@ -143,8 +142,8 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
 	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	bFakeVMEM = !bMMU;
 
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;

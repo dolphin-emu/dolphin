@@ -294,8 +294,9 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	int b = inst.RB;
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-		mem_mask |= Memory::ADDR_MASK_MEM1;
+
+	// The following masks the region used by the GC/Wii virtual memory lib
+	mem_mask |= Memory::ADDR_MASK_MEM1;
 
 	MOV(32, R(RSCRATCH), gpr.R(b));
 	if (a)

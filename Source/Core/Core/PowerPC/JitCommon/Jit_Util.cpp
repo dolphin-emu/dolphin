@@ -312,10 +312,9 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	else
 	{
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-		{
-			mem_mask |= Memory::ADDR_MASK_MEM1;
-		}
+
+		// The following masks the region used by the GC/Wii virtual memory lib
+		mem_mask |= Memory::ADDR_MASK_MEM1;
 
 #ifdef ENABLE_MEM_CHECK
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
@@ -517,10 +516,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-	{
-		mem_mask |= Memory::ADDR_MASK_MEM1;
-	}
+	// The following masks the region used by the GC/Wii virtual memory lib
+	mem_mask |= Memory::ADDR_MASK_MEM1;
 
 #ifdef ENABLE_MEM_CHECK
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
