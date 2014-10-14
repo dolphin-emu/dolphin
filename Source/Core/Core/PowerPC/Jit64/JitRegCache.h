@@ -20,7 +20,6 @@ struct PPCCachedReg
 	Gen::OpArg location;
 	bool away;  // value not in source register
 	bool locked;
-	u32 last_used_quantum;
 };
 
 struct X64CachedReg
@@ -44,9 +43,12 @@ protected:
 
 	virtual const int *GetAllocationOrder(size_t& count) = 0;
 
+	virtual u32 GetRegUtilization() = 0;
+	virtual u32 CountRegsIn(size_t preg, u32 lookahead) = 0;
+
 	Gen::XEmitter *emit;
 
-	u32 cur_use_quantum;
+	float ScoreRegister(Gen::X64Reg xreg);
 
 public:
 	RegCache();
@@ -134,6 +136,8 @@ public:
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	const int* GetAllocationOrder(size_t& count) override;
 	void SetImmediate32(size_t preg, u32 immValue);
+	u32 GetRegUtilization();
+	u32 CountRegsIn(size_t preg, u32 lookahead);
 };
 
 
@@ -144,4 +148,6 @@ public:
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	const int* GetAllocationOrder(size_t& count) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
+	u32 GetRegUtilization();
+	u32 CountRegsIn(size_t preg, u32 lookahead);
 };

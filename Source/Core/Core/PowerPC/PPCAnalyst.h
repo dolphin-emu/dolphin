@@ -43,8 +43,10 @@ struct CodeOp //16B
 	bool canEndBlock;
 	bool skip;  // followed BL-s for example
 	// which registers are still needed after this instruction in this block
-	u32 gprInUse;
 	u32 fprInUse;
+	u32 gprInUse;
+	// just because a register is in use doesn't mean we actually need or want it in an x86 register.
+	u32 gprInReg;
 	// we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
 	// an XMM only to move it again to a GPR afterwards.
 	u32 fprInXmm;

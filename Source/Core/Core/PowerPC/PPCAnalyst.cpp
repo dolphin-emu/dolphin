@@ -796,57 +796,56 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Scan for flag dependencies; assume the next block (or any branch that can leave the block)
 	// wants flags, to be safe.
-	bool wantsCR0 = true;
-	bool wantsCR1 = true;
-	bool wantsFPRF = true;
-	bool wantsCA = true;
-	u32 fregInUse = 0;
-	u32 regInUse = 0;
-	u32 fregInXmm = 0;
+	bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
+	u32 fprInUse = 0, gprInUse = 0, gprInReg = 0, fprInXmm = 0;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
-		bool opWantsCR0  = code[i].wantsCR0;
-		bool opWantsCR1  = code[i].wantsCR1;
+		bool opWantsCR0 = code[i].wantsCR0;
+		bool opWantsCR1 = code[i].wantsCR1;
 		bool opWantsFPRF = code[i].wantsFPRF;
-		bool opWantsCA   = code[i].wantsCA;
-		code[i].wantsCR0  = wantsCR0  || code[i].canEndBlock;
-		code[i].wantsCR1  = wantsCR1  || code[i].canEndBlock;
+		bool opWantsCA = code[i].wantsCA;
+		code[i].wantsCR0 = wantsCR0 || code[i].canEndBlock;
+		code[i].wantsCR1 = wantsCR1 || code[i].canEndBlock;
 		code[i].wantsFPRF = wantsFPRF || code[i].canEndBlock;
-		code[i].wantsCA   = wantsCA   || code[i].canEndBlock;
-		wantsCR0  |= opWantsCR0  || code[i].canEndBlock;
-		wantsCR1  |= opWantsCR1  || code[i].canEndBlock;
+		code[i].wantsCA = wantsCA || code[i].canEndBlock;
+		wantsCR0 |= opWantsCR0 || code[i].canEndBlock;
+		wantsCR1 |= opWantsCR1 || code[i].canEndBlock;
 		wantsFPRF |= opWantsFPRF || code[i].canEndBlock;
-		wantsCA   |= opWantsCA   || code[i].canEndBlock;
-		wantsCR0  &= !code[i].outputCR0  || opWantsCR0;
-		wantsCR1  &= !code[i].outputCR1  || opWantsCR1;
+		wantsCA |= opWantsCA || code[i].canEndBlock;
+		wantsCR0 &= !code[i].outputCR0 || opWantsCR0;
+		wantsCR1 &= !code[i].outputCR1 || opWantsCR1;
 		wantsFPRF &= !code[i].outputFPRF || opWantsFPRF;
-		wantsCA   &= !code[i].outputCA   || opWantsCA;
-		code[i].gprInUse = regInUse;
-		code[i].fprInUse = fregInUse;
-		code[i].fprInXmm = fregInXmm;
+		wantsCA &= !code[i].outputCA || opWantsCA;
+		code[i].gprInUse = gprInUse;
+		code[i].fprInUse = fprInUse;
+		code[i].gprInReg = gprInReg;
+		code[i].fprInXmm = fprInXmm;
 		// TODO: if there's no possible endblocks or exceptions in between, tell the regcache
 		// we can throw away a register if it's going to be overwritten later.
 		for (int j = 0; j < 3; j++)
 			if (code[i].regsIn[j] >= 0)
-				regInUse |= 1 << code[i].regsIn[j];
+			{
+				gprInUse |= 1 << code[i].regsIn[j];
+				gprInReg |= 1 << code[i].regsIn[j];
+			}
 		for (int j = 0; j < 4; j++)
 			if (code[i].fregsIn[j] >= 0)
 			{
-				fregInUse |= 1 << code[i].fregsIn[j];
+				fprInUse |= 1 << code[i].fregsIn[j];
 				if (strncmp(code[i].opinfo->opname, "stfd", 4))
-					fregInXmm |= 1 << code[i].fregsIn[j];
+					fprInXmm |= 1 << code[i].fregsIn[j];
 			}
 		// For now, we need to count output registers as "used" though; otherwise the flush
 		// will result in a redundant store (e.g. store to regcache, then store again to
 		// the same location later).
 		for (int j = 0; j < 2; j++)
 			if (code[i].regsOut[j] >= 0)
-				regInUse |= 1 << code[i].regsOut[j];
+				gprInUse |= 1 << code[i].regsOut[j];
 		if (code[i].fregOut >= 0)
 		{
-			fregInUse |= 1 << code[i].fregOut;
+			fprInUse |= 1 << code[i].fregOut;
 			if (strncmp(code[i].opinfo->opname, "stfd", 4))
-				fregInXmm |= 1 << code[i].fregOut;
+				fprInXmm |= 1 << code[i].fregOut;
 		}
 	}
 	return address;
