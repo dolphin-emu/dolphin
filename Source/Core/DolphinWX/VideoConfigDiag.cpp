@@ -124,6 +124,7 @@ static wxString temp_desc = wxTRANSLATE("Game specific VR option, in metres or d
 static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
 static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
 static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
+static wxString player_desc = wxTRANSLATE("During split-screen games, which player is wearing the Oculus Rift?\nPlayer 1 is top left, player 2 is top right, player 3 is bottom left, player 4 is bottom right.\nThe player in the Rift will only see their player's view.\n\nIf unsure, say Player 1.");
 static wxString lowpersistence_desc = wxTRANSLATE("Use low persistence on DK2 to reduce motion blur when turning your head.\n\nIf unsure, leave this checked.");
 static wxString dynamicpred_desc = wxTRANSLATE("\"Adjust prediction dynamically based on internally measured latency.\"\n\nIf unsure, leave this checked.");
 static wxString orientation_desc = wxTRANSLATE("Use orientation tracking.\n\nLeave this checked.");
@@ -669,6 +670,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_lean);
 		}
+		// VR Player
+		{
+			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
+
+			szr_vr->Add(new wxStaticText(page_vr, -1, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc),
+				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+			szr_vr->Add(choice_vr, 1, 0, 0);
+			choice_vr->Select(vconfig.iVRPlayer);
+		}
+
 		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Dynamic prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));

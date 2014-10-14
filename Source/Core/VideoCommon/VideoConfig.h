@@ -141,6 +141,7 @@ struct VideoConfig final
 	bool bSRGB;
 	bool bOverdrive;
 	bool bHqDistortion;
+	int iVRPlayer;
 
 	// VR
 	float fUnitsPerMetre;

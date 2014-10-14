@@ -62,6 +62,7 @@ VideoConfig::VideoConfig()
 	bSRGB = false;
 	bOverdrive = false;
 	bHqDistortion = false;
+	iVRPlayer = 0;
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
@@ -149,6 +150,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	vr->Get("sRGB", &bSRGB, false);
 	vr->Get("Overdrive", &bOverdrive, false);
 	vr->Get("HQDistortion", &bHqDistortion, false);
+	vr->Get("Player", &iVRPlayer, 0);
 
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -423,6 +425,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	vr->Set("sRGB", bSRGB);
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
+	vr->Set("Player", iVRPlayer);
 	iniFile.Save(ini_file);
 }
 

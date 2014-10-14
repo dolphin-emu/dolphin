@@ -91,9 +91,12 @@ enum SplitScreenType {
 	SS_CUSTOM
 };
 enum SplitScreenType g_splitscreen_type = SS_FULLSCREEN, g_old_splitscreen_type = SS_FULLSCREEN;
+bool g_is_skybox = false;
 
 const char *GetViewportTypeName(ViewportType v)
 {
+	if (g_is_skybox)
+		return "Skybox";
 	switch (v)
 	{
 	case VIEW_FULLSCREEN:
@@ -319,14 +322,20 @@ void SetViewportType(Viewport &v)
 	{
 		g_viewport_type = VIEW_HUD_ELEMENT;
 	}
-	if (g_viewport_type == VIEW_FULLSCREEN || g_viewport_type == VIEW_LETTERBOXED)
+	if (g_viewport_type == VIEW_FULLSCREEN || g_viewport_type == VIEW_LETTERBOXED || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4))
 	{
 		// check if it is a skybox
 		float znear = (v.farZ - v.zRange) / 16777216.0f;
 		float zfar = v.farZ / 16777216.0f;
 		
-		if (znear >= 0.94 && zfar >= 0.999)
-			g_viewport_type = VIEW_SKYBOX;
+		if (znear >= 0.99f && zfar >= 0.999f)
+			g_is_skybox = true;
+		else
+			g_is_skybox = false;
+	}
+	else
+	{
+		g_is_skybox = false;
 	}
 }
 
@@ -882,8 +891,8 @@ void VertexShaderManager::SetProjectionConstants()
 			&fScaleHack, &fWidthHack, &fHeightHack, &fUpHack, &fRightHack);
 	}
 
-	// VR: only draw player 1 TODO: fix offscreen to render to a separate texture in VR 
-	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_2 && g_viewport_type <= VIEW_PLAYER_4)));
+	// VR: in split-screen, only draw VR player TODO: fix offscreen to render to a separate texture in VR 
+	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4 && g_ActiveConfig.iVRPlayer!=g_viewport_type-VIEW_PLAYER_1)));
 	// flash selected layer for debugging
 	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
 
@@ -1234,7 +1243,7 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 
 		Matrix44 walk_matrix, look_matrix;
-		if (bStuckToHead || g_viewport_type == VIEW_SKYBOX)
+		if (bStuckToHead || g_is_skybox)
 		{
 			Matrix44::LoadIdentity(walk_matrix);
 		}
@@ -1370,7 +1379,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
 #ifdef HAVE_OCULUSSDK
-		if (g_has_rift && (!bTelescopeHUD) && g_viewport_type != VIEW_SKYBOX)
+		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
 		{
 			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
 			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
