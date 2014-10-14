@@ -114,7 +114,7 @@ u32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead)
 			if (jit->js.op[i].regsIn[j] >= 0)
 				regsUsed |= 1 << jit->js.op[i].regsIn[j];
 		for (int j = 0; j < 3; j++)
-			if (jit->js.op[i].regsIn[j] == preg)
+			if ((size_t)jit->js.op[i].regsIn[j] == preg)
 				return regsUsed;
 	}
 	return regsUsed;
@@ -129,7 +129,7 @@ u32 FPURegCache::CountRegsIn(size_t preg, u32 lookahead)
 			if (jit->js.op[i].fregsIn[j] >= 0)
 				regsUsed |= 1 << jit->js.op[i].fregsIn[j];
 		for (int j = 0; j < 4; j++)
-			if (jit->js.op[i].fregsIn[j] == preg)
+			if ((size_t)jit->js.op[i].fregsIn[j] == preg)
 				return regsUsed;
 	}
 	return regsUsed;
@@ -153,7 +153,6 @@ float RegCache::ScoreRegister(X64Reg xr)
 	// writing it back to the register file isn't quite as bad.
 	if (GetRegUtilization() & (1 << preg))
 	{
-		u32 regsUsed = 0;
 		// Don't look too far ahead; we don't want to have quadratic compilation times for
 		// enormous block sizes!
 		// This actually improves register allocation a tiny bit; I'm not sure why.
