@@ -41,3 +41,5 @@ public:
 	static bool m_layer_on_top;
 	static bool dirty;
 };
+
+extern EFBRectangle g_final_screen_region;

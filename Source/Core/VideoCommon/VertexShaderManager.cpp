@@ -65,6 +65,59 @@ float vr_widest_3d_HFOV = 0;
 float vr_widest_3d_VFOV = 0;
 float vr_widest_3d_zNear = 0;
 float vr_widest_3d_zFar = 0;
+EFBRectangle g_final_screen_region = EFBRectangle(0, 0, 640, 528);
+enum ViewportType {
+	VIEW_FULLSCREEN = 0,
+	VIEW_LETTERBOXED,
+	VIEW_HUD_ELEMENT,
+	VIEW_SKYBOX,
+	VIEW_PLAYER_1,
+	VIEW_PLAYER_2,
+	VIEW_PLAYER_3,
+	VIEW_PLAYER_4,
+	VIEW_OFFSCREEN,
+};
+enum ViewportType g_viewport_type = VIEW_FULLSCREEN, g_old_viewport_type = VIEW_FULLSCREEN;
+enum SplitScreenType {
+	SS_FULLSCREEN = 0,
+	SS_2_PLAYER_SIDE_BY_SIDE,
+	SS_2_PLAYER_OVER_UNDER,
+	SS_QUADRANTS,
+	SS_3_PLAYER_TOP,
+	SS_3_PLAYER_LEFT,
+	SS_3_PLAYER_RIGHT,
+	SS_3_PLAYER_BOTTOM,
+	SS_3_PLAYER_COLUMNS,
+	SS_CUSTOM
+};
+enum SplitScreenType g_splitscreen_type = SS_FULLSCREEN, g_old_splitscreen_type = SS_FULLSCREEN;
+
+const char *GetViewportTypeName(ViewportType v)
+{
+	switch (v)
+	{
+	case VIEW_FULLSCREEN:
+		return "Fullscreen";
+	case VIEW_LETTERBOXED:
+		return "Letterboxed";
+	case VIEW_HUD_ELEMENT:
+		return "HUD element";
+	case VIEW_OFFSCREEN:
+		return "Offscreen";
+	case VIEW_PLAYER_1:
+		return "Player 1";
+	case VIEW_PLAYER_2:
+		return "Player 2";
+	case VIEW_PLAYER_3:
+		return "Player 3";
+	case VIEW_PLAYER_4:
+		return "Player 4";
+	case VIEW_SKYBOX:
+		return "Skybox";
+	default:
+		return "Error";
+	}
+}
 
 #pragma optimize("", off)
 
@@ -87,8 +140,201 @@ void ClearDebugProj() { //VR
 	NewMetroidFrame();
 }
 
-void DoLogViewport(int j, Viewport &v) { //VR
-	NOTICE_LOG(VR, "  Viewport %d: (%g,%g) %gx%g; near=%g, far=%g", j, v.xOrig - v.wd - 342, v.yOrig + v.ht - 342, 2 * v.wd, -2 * v.ht, (v.farZ - v.zRange) / 16777216.0f, v.farZ / 16777216.0f);
+void SetViewportType(Viewport &v)
+{
+	// VR
+	g_old_viewport_type = g_viewport_type;
+	float left, top, width, height;
+	left = v.xOrig - v.wd - 342;
+	top = v.yOrig + v.ht - 342;
+	width  =  2 * v.wd;
+	height = -2 * v.ht;
+	float screen_width = (float)g_final_screen_region.GetWidth();
+	float screen_height = (float)g_final_screen_region.GetHeight();
+	float min_screen_width = 0.90f * screen_width;
+	float min_screen_height = 0.90f * screen_height;
+	float max_top = screen_height - min_screen_height;
+	float max_left = screen_width - min_screen_width;
+
+	if (width >= min_screen_width)
+	{
+		if (left <= max_left)
+		{
+			if (height >= min_screen_height)
+			{
+				if (top <= max_top)
+				{
+					if (width == screen_width && height == screen_height)
+						g_viewport_type = VIEW_FULLSCREEN;
+					else
+						g_viewport_type = VIEW_LETTERBOXED;
+				}
+				else
+				{
+					g_viewport_type = VIEW_OFFSCREEN;
+				}
+			}
+			else if (height >= min_screen_height / 2 && height <= screen_height / 2)
+			{
+				if (top <= max_top)
+				{
+					// 2 Player Split Screen, top half
+					g_viewport_type = VIEW_PLAYER_1;
+					if (g_splitscreen_type != SS_3_PLAYER_TOP)
+						g_splitscreen_type = SS_2_PLAYER_SIDE_BY_SIDE;
+				}
+				else if (top >= height && top <= height + max_top)
+				{
+					// 2 Player Split Screen, bottom half
+					if (g_splitscreen_type != SS_3_PLAYER_BOTTOM)
+					{
+						g_splitscreen_type = SS_2_PLAYER_OVER_UNDER;
+						g_viewport_type = VIEW_PLAYER_2;
+					}
+					else
+					{
+						// 3 Player Split Screen, bottom half
+						g_viewport_type = VIEW_PLAYER_3;
+					}
+				}
+				else
+				{
+					// band across middle of screen
+					g_viewport_type = VIEW_HUD_ELEMENT;
+				}
+			}
+			else
+			{
+				// band across middle of screen
+				g_viewport_type = VIEW_HUD_ELEMENT;
+			}
+		}
+		else
+		{
+			g_viewport_type = VIEW_OFFSCREEN;
+		}
+	}
+	else if (height >= min_screen_height)
+	{
+		if (top <= max_top)
+		{
+			if (width >= min_screen_width / 2)
+			{
+				if (left <= max_left)
+				{
+					// 2 Player Split Screen, left half
+					g_viewport_type = VIEW_PLAYER_1;
+					if (g_splitscreen_type != SS_3_PLAYER_LEFT)
+						g_splitscreen_type = SS_2_PLAYER_SIDE_BY_SIDE;
+				}
+				else if (left >= width)
+				{
+					if (g_splitscreen_type != SS_3_PLAYER_RIGHT)
+					{
+						// 2 Player Split Screen, right half
+						g_viewport_type = VIEW_PLAYER_2;
+						g_splitscreen_type = SS_2_PLAYER_SIDE_BY_SIDE;
+					}
+					else
+					{
+						// 3 Player Split Screen, right half
+						g_viewport_type = VIEW_PLAYER_3;
+					}
+				}
+				else
+				{
+					// column down middle of screen
+					g_viewport_type = VIEW_HUD_ELEMENT;
+				}
+			}
+			else
+			{
+				// column down middle of screen
+				g_viewport_type = VIEW_HUD_ELEMENT;
+			}
+		}
+		else
+		{
+			g_viewport_type = VIEW_OFFSCREEN;
+		}
+	}
+	// Quadrants
+	else if (width >= (min_screen_width / 2) && height >= (min_screen_height / 2)
+	          && width <= (screen_width / 2) && height <= (screen_height / 2))
+	{
+		// top left
+		if (left <= max_left && top <= max_top)
+		{
+			g_viewport_type = VIEW_PLAYER_1;
+			if (g_splitscreen_type != SS_3_PLAYER_RIGHT && g_splitscreen_type != SS_3_PLAYER_BOTTOM)
+			{
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		// top right
+		else if (left >= width && top <= max_top)
+		{
+			g_viewport_type = VIEW_PLAYER_2;
+			if (g_splitscreen_type != SS_3_PLAYER_LEFT && g_splitscreen_type != SS_3_PLAYER_BOTTOM)
+			{
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		// bottom left
+		else if (left <= max_left && top >= height)
+		{
+			if (g_splitscreen_type == SS_3_PLAYER_RIGHT || g_splitscreen_type == SS_3_PLAYER_TOP)
+			{
+				g_viewport_type = VIEW_PLAYER_2;
+			}
+			else
+			{
+				g_viewport_type = VIEW_PLAYER_3;
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		// bottom right
+		else if (left >= width && top >= height)
+		{
+			if (g_splitscreen_type == SS_3_PLAYER_LEFT || g_splitscreen_type == SS_3_PLAYER_TOP)
+			{
+				g_viewport_type = VIEW_PLAYER_3;
+			}
+			else
+			{
+				g_viewport_type = VIEW_PLAYER_4;
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		else
+		{
+			g_viewport_type = VIEW_HUD_ELEMENT;
+		}
+	}
+	else if (left >= g_final_screen_region.right || top >= g_final_screen_region.bottom || left+width <= g_final_screen_region.left || top+height <= g_final_screen_region.top)
+	{
+		g_viewport_type = VIEW_OFFSCREEN;
+	}
+	else
+	{
+		g_viewport_type = VIEW_HUD_ELEMENT;
+	}
+	if (g_viewport_type == VIEW_FULLSCREEN || g_viewport_type == VIEW_LETTERBOXED)
+	{
+		// check if it is a skybox
+		float znear = (v.farZ - v.zRange) / 16777216.0f;
+		float zfar = v.farZ / 16777216.0f;
+		
+		if (znear >= 0.94 && zfar >= 0.999)
+			g_viewport_type = VIEW_SKYBOX;
+	}
+}
+
+void DoLogViewport(int j, Viewport &v)
+{
+	//VR
+	NOTICE_LOG(VR, "  Viewport %d: %s (%g,%g) %gx%g; near=%g (%g), far=%g (%g)", j, GetViewportTypeName(g_viewport_type), v.xOrig - v.wd - 342, v.yOrig + v.ht - 342, 2 * v.wd, -2 * v.ht, (v.farZ - v.zRange) / 16777216.0f, v.farZ - v.zRange, v.farZ / 16777216.0f, v.farZ);
+	NOTICE_LOG(VR, "      copyTexSrc (%d,%d) %dx%d", g_final_screen_region.left, g_final_screen_region.top, g_final_screen_region.GetWidth(), g_final_screen_region.GetHeight());
 }
 
 void DoLogProj(int j, float p[], const char *s) { //VR
@@ -375,6 +621,10 @@ void VertexShaderManager::Init()
 	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
 	for (int i = 0; i < 4; ++i)
 		g_fProjectionMatrix[i*5] = 1.0f;
+	g_viewport_type = VIEW_FULLSCREEN;
+	g_old_viewport_type = VIEW_FULLSCREEN;
+	g_splitscreen_type = SS_FULLSCREEN;
+	g_old_splitscreen_type = SS_FULLSCREEN;
 }
 
 void VertexShaderManager::Shutdown()
@@ -576,6 +826,7 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
+		SetViewportType(xfmem.viewport);
 		LogViewport(xfmem.viewport);
 		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
 		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
@@ -593,12 +844,14 @@ void VertexShaderManager::SetConstants()
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
+		if (g_viewport_type != g_old_viewport_type)
+			SetProjectionConstants();
 
 		// Update projection if the viewport isn't 1:1 useable
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			bProjectionChanged = true;
+			SetProjectionConstants();
 		}
 	}
 
@@ -629,6 +882,9 @@ void VertexShaderManager::SetProjectionConstants()
 			&fScaleHack, &fWidthHack, &fHeightHack, &fUpHack, &fRightHack);
 	}
 
+	// VR: only draw player 1 TODO: fix offscreen to render to a separate texture in VR 
+	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_2 && g_viewport_type <= VIEW_PLAYER_4)));
+	// flash selected layer for debugging
 	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
 
 	// Split WidthHack and HeightHack into left and right versions for telescopes
@@ -978,7 +1234,7 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 
 		Matrix44 walk_matrix, look_matrix;
-		if (bStuckToHead)
+		if (bStuckToHead || g_viewport_type == VIEW_SKYBOX)
 		{
 			Matrix44::LoadIdentity(walk_matrix);
 		}
@@ -1004,15 +1260,15 @@ void VertexShaderManager::SetProjectionConstants()
 				pos[i] += s_fViewTranslationVector[i] * UnitsPerMetre;
 			if (!bNoForward)
 				pos[2] += g_ActiveConfig.fCameraForward * UnitsPerMetre;
-			static int x = 0;
-			x++;
+			//static int x = 0;
+			//x++;
 			Matrix44::Translate(walk_matrix, pos);
-			if (x>100)
-			{
-				x = 0;
-				//			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
-				INFO_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
-			}
+			//if (x>100)
+			//{
+			//	x = 0;
+			//	//			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+			//	INFO_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+			//}
 		}
 
 		if (xfmem.projection.type == GX_PERSPECTIVE)
@@ -1114,7 +1370,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
 #ifdef HAVE_OCULUSSDK
-		if (g_has_rift && !bTelescopeHUD)
+		if (g_has_rift && (!bTelescopeHUD) && g_viewport_type != VIEW_SKYBOX)
 		{
 			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
 			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
