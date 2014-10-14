@@ -1172,10 +1172,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_UP)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_DOWN)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_LEFT)) {
 			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
