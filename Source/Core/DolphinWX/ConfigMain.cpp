@@ -878,32 +878,36 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 // Core settings
 void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
+	SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	switch (event.GetId())
 	{
 	// Core - Basic
 	case ID_CPUTHREAD:
 		if (Core::IsRunning())
 			return;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
+		startup_params.bCPUThread = CPUThread->IsChecked();
 		break;
 	case ID_IDLESKIP:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = SkipIdle->IsChecked();
+		startup_params.bSkipIdle = SkipIdle->IsChecked();
 		break;
 	case ID_ENABLECHEATS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
+		startup_params.bEnableCheats = EnableCheats->IsChecked();
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
 		break;
 	// Core - Advanced
 	case ID_CPUENGINE:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUCores[CPUEngine->GetSelection()].CPUid;
+		startup_params.iCPUCore = CPUCores[CPUEngine->GetSelection()].CPUid;
 		if (main_frame->g_pCodeWindow)
-			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
+		{
+			bool using_interp = (startup_params.iCPUCore == SCoreStartupParameter::CORE_INTERPRETER);
+			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, using_interp);
+		}
 		break;
 	case ID_NTSCJ:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ = _NTSCJ->IsChecked();
+		startup_params.bForceNTSCJ = _NTSCJ->IsChecked();
 		break;
 	}
 }

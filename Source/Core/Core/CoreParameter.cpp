@@ -65,7 +65,7 @@ void SCoreStartupParameter::LoadDefaults()
 	iGDBPort = -1;
 	#endif
 
-	iCPUCore = 1;
+	iCPUCore = CORE_JIT64;
 	bCPUThread = false;
 	bSkipIdle = false;
 	bRunCompareServer = false;
