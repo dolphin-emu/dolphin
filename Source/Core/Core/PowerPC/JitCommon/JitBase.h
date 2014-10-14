@@ -74,6 +74,7 @@ protected:
 		u32 blockStart;
 		UGeckoInstruction next_inst;  // for easy peephole opt.
 		int instructionNumber;
+		int instructionsLeft;
 		int downcountAmount;
 		u32 numLoadStoreInst;
 		u32 numFloatingPointInst;

@@ -50,7 +50,7 @@ void SamplerCache::SetSamplerState(int stage, const TexMode0& tm0, const TexMode
 	}
 }
 
-auto SamplerCache::GetEntry(const Params& params) -> Value&
+SamplerCache::Value& SamplerCache::GetEntry(const Params& params)
 {
 	auto& val = m_cache[params];
 	if (!val.sampler_id)

@@ -11,7 +11,7 @@
 using namespace Gen;
 using namespace PowerPC;
 
-RegCache::RegCache() : emit(nullptr), cur_use_quantum(0)
+RegCache::RegCache() : emit(nullptr)
 {
 }
 
@@ -29,7 +29,6 @@ void RegCache::Start()
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
 		regs[i].locked = false;
-		regs[i].last_used_quantum = 0;
 	}
 
 	// todo: sort to find the most popular regs
@@ -96,6 +95,82 @@ void RegCache::UnlockAllX()
 		xreg.locked = false;
 }
 
+u32 GPRRegCache::GetRegUtilization()
+{
+	return jit->js.op->gprInReg;
+}
+
+u32 FPURegCache::GetRegUtilization()
+{
+	return jit->js.op->gprInReg;
+}
+
+u32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead)
+{
+	u32 regsUsed = 0;
+	for (u32 i = 1; i < lookahead; i++)
+	{
+		for (int j = 0; j < 3; j++)
+			if (jit->js.op[i].regsIn[j] >= 0)
+				regsUsed |= 1 << jit->js.op[i].regsIn[j];
+		for (int j = 0; j < 3; j++)
+			if (jit->js.op[i].regsIn[j] == preg)
+				return regsUsed;
+	}
+	return regsUsed;
+}
+
+u32 FPURegCache::CountRegsIn(size_t preg, u32 lookahead)
+{
+	u32 regsUsed = 0;
+	for (u32 i = 1; i < lookahead; i++)
+	{
+		for (int j = 0; j < 4; j++)
+			if (jit->js.op[i].fregsIn[j] >= 0)
+				regsUsed |= 1 << jit->js.op[i].fregsIn[j];
+		for (int j = 0; j < 4; j++)
+			if (jit->js.op[i].fregsIn[j] == preg)
+				return regsUsed;
+	}
+	return regsUsed;
+}
+
+// Estimate roughly how bad it would be to de-allocate this register. Higher score
+// means more bad.
+float RegCache::ScoreRegister(X64Reg xr)
+{
+	size_t preg = xregs[xr].ppcReg;
+	float score = 0;
+
+	// If it's not dirty, we don't need a store to write it back to the register file, so
+	// bias a bit against dirty registers. Testing shows that a bias of 2 seems roughly
+	// right: 3 causes too many extra clobbers, while 1 saves very few clobbers relative
+	// to the number of extra stores it causes.
+	if (xregs[xr].dirty)
+		score += 2;
+
+	// If the register isn't actually needed in a physical register for a later instruction,
+	// writing it back to the register file isn't quite as bad.
+	if (GetRegUtilization() & (1 << preg))
+	{
+		u32 regsUsed = 0;
+		// Don't look too far ahead; we don't want to have quadratic compilation times for
+		// enormous block sizes!
+		// This actually improves register allocation a tiny bit; I'm not sure why.
+		u32 lookahead = std::min(jit->js.instructionsLeft, 64);
+		// Count how many other registers are going to be used before we need this one again.
+		u32 regs_in = CountRegsIn(preg, lookahead);
+		u32 regs_in_count = 0;
+		for (int i = 0; i < 32; i++)
+			regs_in_count += !!(regs_in & (1 << i));
+		// Totally ad-hoc heuristic to bias based on how many other registers we'll need
+		// before this one gets used again.
+		score += 1 + 2 * (5 - log2f(1 + (float)regs_in_count));
+	}
+
+	return score;
+}
+
 X64Reg RegCache::GetFreeXReg()
 {
 	size_t aCount;
@@ -108,45 +183,31 @@ X64Reg RegCache::GetFreeXReg()
 			return (X64Reg)xr;
 		}
 	}
-	// Okay, not found :( Force grab one!
 
-	// First, see if we have any registers that are only going to be used for a float store.
-	// These go through GPRs, so the cost of tossing them back into memory is lower than anything else.
+	// Okay, not found; run the register allocator heuristic and figure out which register we should
+	// clobber.
+	float min_score = std::numeric_limits<float>::max();
+	X64Reg best_xreg = INVALID_REG;
+	size_t best_preg = 0;
 	for (size_t i = 0; i < aCount; i++)
 	{
-		X64Reg xr = (X64Reg)aOrder[i];
-		if (xregs[xr].locked)
+		X64Reg xreg = (X64Reg)aOrder[i];
+		size_t preg = xregs[xreg].ppcReg;
+		if (xregs[xreg].locked || regs[preg].locked)
 			continue;
-		size_t preg = xregs[xr].ppcReg;
-		if (!regs[preg].locked && !(jit->js.op->fprInXmm & (1 << preg)))
+		float score = ScoreRegister(xreg);
+		if (score < min_score)
 		{
-			StoreFromRegister(preg);
-			return xr;
+			min_score = score;
+			best_xreg = xreg;
+			best_preg = preg;
 		}
 	}
 
-	//TODO - add a pass to grab xregs whose ppcreg is not used in the next 3 instructions
-	u32 last_used = 0xFFFFFFFF;
-	X64Reg last_used_xr = INVALID_REG;
-	size_t last_used_preg = 0;
-	for (size_t i = 0; i < aCount; i++)
+	if (best_xreg != INVALID_REG)
 	{
-		X64Reg xr = (X64Reg)aOrder[i];
-		if (xregs[xr].locked)
-			continue;
-		size_t preg = xregs[xr].ppcReg;
-		if (!regs[preg].locked && regs[preg].last_used_quantum < last_used)
-		{
-			last_used = regs[preg].last_used_quantum;
-			last_used_xr = xr;
-			last_used_preg = preg;
-		}
-	}
-
-	if (last_used_xr != INVALID_REG)
-	{
-		StoreFromRegister(last_used_preg);
-		return last_used_xr;
+		StoreFromRegister(best_preg);
+		return best_xreg;
 	}
 
 	//Still no dice? Die!
@@ -197,7 +258,6 @@ void RegCache::DiscardRegContentsIfCached(size_t preg)
 		xregs[xr].ppcReg = INVALID_REG;
 		regs[preg].away = false;
 		regs[preg].location = GetDefaultLocation(preg);
-		regs[preg].last_used_quantum = 0;
 	}
 }
 
@@ -279,7 +339,6 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
 		}
 		regs[i].away = true;
 		regs[i].location = ::Gen::R(xr);
-		regs[i].last_used_quantum = ++cur_use_quantum;
 	}
 	else
 	{
@@ -322,7 +381,6 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
 		{
 			regs[i].location = newLoc;
 			regs[i].away = false;
-			regs[i].last_used_quantum = 0;
 		}
 	}
 }
@@ -378,8 +436,6 @@ void RegCache::Flush(FlushMode mode)
 			}
 		}
 	}
-
-	cur_use_quantum = 0;
 }
 
 int RegCache::NumFreeRegisters()

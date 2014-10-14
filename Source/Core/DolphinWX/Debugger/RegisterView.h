@@ -34,7 +34,7 @@ class CRegTable : public wxGridTableBase
 {
 	enum
 	{
-		NUM_SPECIALS = 11,
+		NUM_SPECIALS = 14,
 	};
 
 public:
@@ -48,7 +48,7 @@ public:
 		memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
 	}
 
-	int GetNumberCols() override { return 5; }
+	int GetNumberCols() override { return 9; }
 	int GetNumberRows() override { return 32 + NUM_SPECIALS; }
 	bool IsEmptyCell(int row, int col) override { return row > 31 && col > 2; }
 	wxString GetValue(int row, int col) override;

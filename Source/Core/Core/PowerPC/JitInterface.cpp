@@ -46,8 +46,8 @@ namespace JitInterface
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
-		bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
 		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+		bFakeVMEM = !bMMU;
 
 		CPUCoreBase *ptr = nullptr;
 		switch (core)

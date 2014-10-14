@@ -395,21 +395,21 @@ void VRThread()
 // See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
-	const SCoreStartupParameter& _CoreParameter =
+	const SCoreStartupParameter& core_parameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
 	DisplayMessage(cpu_info.brand_string, 8000);
 	DisplayMessage(cpu_info.Summarize(), 8000);
-	DisplayMessage(_CoreParameter.m_strFilename, 3000);
+	DisplayMessage(core_parameter.m_strFilename, 3000);
 
 	Movie::Init();
 
 	HW::Init();
 
 	// Initialize backend, and optionally VR thread for asynchronous timewarp rendering
-	if (_CoreParameter.bAsynchronousTimewarp && g_video_backend->Video_CanDoAsync())
+	if (core_parameter.bAsynchronousTimewarp && g_video_backend->Video_CanDoAsync())
 	{
 		if (!g_video_backend->Initialize(nullptr))
 		{
@@ -450,7 +450,7 @@ void EmuThread()
 
 	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
-	if (!DSP::GetDSPEmulator()->Initialize(_CoreParameter.bWii, _CoreParameter.bDSPThread))
+	if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
 	{
 		HW::Shutdown();
 		g_video_backend->Shutdown();
@@ -461,7 +461,7 @@ void EmuThread()
 
 	Pad::Initialize(s_window_handle);
 	// Load and Init Wiimotes - only if we are booting in wii mode
-	if (_CoreParameter.bWii)
+	if (core_parameter.bWii)
 	{
 		Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
 
@@ -478,7 +478,7 @@ void EmuThread()
 	s_hardware_initialized = true;
 
 	// Boot to pause or not
-	Core::SetState(_CoreParameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
+	Core::SetState(core_parameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
@@ -486,11 +486,15 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
-					_CoreParameter.bRunCompareClient))
+	if (core_parameter.iCPUCore != SCoreStartupParameter::CORE_INTERPRETER
+	    && (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
+	{
 		PowerPC::SetMode(PowerPC::MODE_JIT);
+	}
 	else
+	{
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+	}
 
 	// Update the window again because all stuff is initialized
 	Host_UpdateDisasmDialog();
@@ -498,7 +502,7 @@ void EmuThread()
 
 	// Determine the cpu thread function
 	void (*cpuThreadFunc)(void);
-	if (_CoreParameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
+	if (core_parameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
 		cpuThreadFunc = FifoPlayerThread;
 	else
 		cpuThreadFunc = CpuThread;
@@ -511,7 +515,7 @@ void EmuThread()
 	}
 
 	// ENTER THE VIDEO THREAD LOOP
-	if (_CoreParameter.bCPUThread)
+	if (core_parameter.bCPUThread)
 	{
 		// This thread, after creating the EmuWindow, spawns a CPU
 		// thread, and then takes over and becomes the video thread
@@ -573,7 +577,7 @@ void EmuThread()
 		s_vr_thread_ready.Wait();
 	}
 
-	if (_CoreParameter.bCPUThread)
+	if (core_parameter.bCPUThread)
 	{
 		g_video_backend->Video_Cleanup();
 	}
@@ -609,7 +613,7 @@ void EmuThread()
 	g_video_backend->Video_ClearMessages();
 
 	// Reload sysconf file in order to see changes committed during emulation
-	if (_CoreParameter.bWii)
+	if (core_parameter.bWii)
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Video Thread]\t\t---- Shutdown complete ----");
