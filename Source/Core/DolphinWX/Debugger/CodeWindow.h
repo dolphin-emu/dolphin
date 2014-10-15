@@ -126,6 +126,7 @@ private:
 	// Debugger functions
 	void SingleStep();
 	void StepOver();
+	void StepOut();
 	void ToggleBreakpoint();
 
 	void UpdateLists();

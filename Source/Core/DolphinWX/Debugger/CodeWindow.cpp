@@ -180,6 +180,10 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 			StepOver();
 			break;
 
+		case IDM_STEPOUT:
+			StepOut();
+			break;
+
 		case IDM_TOGGLE_BREAKPOINT:
 			ToggleBreakpoint();
 			break;
@@ -320,6 +324,21 @@ void CCodeWindow::StepOver()
 	}
 }
 
+void CCodeWindow::StepOut()
+{
+	if (CCPU::IsStepping())
+	{
+		PowerPC::breakpoints.Add(LR, true);
+		CCPU::EnableStepping(false);
+		JumpToAddress(PC);
+		Update();
+
+		UpdateButtonStates();
+		// Update all toolbars in the aui manager
+		Parent->UpdateGUI();
+	}
+}
+
 void CCodeWindow::ToggleBreakpoint()
 {
 	if (CCPU::IsStepping())
@@ -443,6 +462,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& core_startup_parameter
 
 	pDebugMenu->Append(IDM_STEP, _("Step &Into\tF11"));
 	pDebugMenu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
+	pDebugMenu->Append(IDM_STEPOUT, _("Step O&ut\tSHIFT+F11"));
 	pDebugMenu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
 	pDebugMenu->AppendSeparator();
 
@@ -607,6 +627,7 @@ void CCodeWindow::InitBitmaps()
 	// load original size 48x48
 	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
 	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_StepOut] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
@@ -624,6 +645,7 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->SetToolBitmapSize(wxSize(w, h));
 	WxUtils::AddToolbarButton(toolBar, IDM_STEP,     _("Step"),      m_Bitmaps[Toolbar_Step],     _("Step into the next instruction"));
 	WxUtils::AddToolbarButton(toolBar, IDM_STEPOVER, _("Step Over"), m_Bitmaps[Toolbar_StepOver], _("Step over the next instruction"));
+	WxUtils::AddToolbarButton(toolBar, IDM_STEPOUT,  _("Step Out"),  m_Bitmaps[Toolbar_StepOut],  _("Step out of the current function"));
 	WxUtils::AddToolbarButton(toolBar, IDM_SKIP,     _("Skip"),      m_Bitmaps[Toolbar_Skip],     _("Skips the next instruction completely"));
 	toolBar->AddSeparator();
 	WxUtils::AddToolbarButton(toolBar, IDM_GOTOPC,   _("Show PC"),   m_Bitmaps[Toolbar_GotoPC],   _("Go to the current instruction"));
@@ -660,6 +682,7 @@ void CCodeWindow::UpdateButtonStates()
 	if (!Initialized)
 	{
 		ToolBar->EnableTool(IDM_STEPOVER, false);
+		ToolBar->EnableTool(IDM_STEPOUT, false);
 		ToolBar->EnableTool(IDM_SKIP, false);
 	}
 	else
@@ -667,11 +690,13 @@ void CCodeWindow::UpdateButtonStates()
 		if (!Stepping)
 		{
 			ToolBar->EnableTool(IDM_STEPOVER, false);
+			ToolBar->EnableTool(IDM_STEPOUT, false);
 			ToolBar->EnableTool(IDM_SKIP, false);
 		}
 		else
 		{
 			ToolBar->EnableTool(IDM_STEPOVER, true);
+			ToolBar->EnableTool(IDM_STEPOUT, true);
 			ToolBar->EnableTool(IDM_SKIP, true);
 		}
 	}

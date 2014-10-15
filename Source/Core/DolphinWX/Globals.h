@@ -14,6 +14,7 @@ enum
 {
 	Toolbar_Step,
 	Toolbar_StepOver,
+	Toolbar_StepOut,
 	Toolbar_Skip,
 	Toolbar_GotoPC,
 	Toolbar_SetPC,
@@ -230,6 +231,7 @@ enum
 	ID_TOOLBAR_DEBUG,
 	IDM_STEP,
 	IDM_STEPOVER,
+	IDM_STEPOUT,
 	IDM_TOGGLE_BREAKPOINT,
 	IDM_SKIP,
 	IDM_SETPC,
