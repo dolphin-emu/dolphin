@@ -393,6 +393,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	BAT->SetToolTip(_("Enables Block Address Translation, needed for a few games. Requires MMU. (ON = Compatible, OFF = Fast)"));
 	DCBZOFF = new wxCheckBox(m_GameConfig, ID_DCBZOFF, _("Skip DCBZ clearing"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DCBZ"));
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
+	FPRF = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable FPRF"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "FPRF"));
+	FPRF->SetToolTip(_("Enables Floating Point Result Flag calculation, needed for a few games. (ON = Compatible, OFF = Fast)"));
 	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("VBeam Speed Hack"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "VBeam"));
 	VBeam->SetToolTip(_("Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF = Compatible)"));
 	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronize GPU thread"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "SyncGPU"));
@@ -424,6 +426,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(BAT, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(FPRF, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(VBeam, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SyncGPU, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
@@ -1007,6 +1010,7 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "MMU", MMU);
 	SetCheckboxValueFromGameini("Core", "BAT", BAT);
 	SetCheckboxValueFromGameini("Core", "DCBZ", DCBZOFF);
+	SetCheckboxValueFromGameini("Core", "FPRF", FPRF);
 	SetCheckboxValueFromGameini("Core", "VBeam", VBeam);
 	SetCheckboxValueFromGameini("Core", "SyncGPU", SyncGPU);
 	SetCheckboxValueFromGameini("Core", "FastDiscSpeed", FastDiscSpeed);
@@ -1081,6 +1085,7 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "MMU", MMU);
 	SaveGameIniValueFrom3StateCheckbox("Core", "BAT", BAT);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DCBZ", DCBZOFF);
+	SaveGameIniValueFrom3StateCheckbox("Core", "FPRF", FPRF);
 	SaveGameIniValueFrom3StateCheckbox("Core", "VBeam", VBeam);
 	SaveGameIniValueFrom3StateCheckbox("Core", "SyncGPU", SyncGPU);
 	SaveGameIniValueFrom3StateCheckbox("Core", "FastDiscSpeed", FastDiscSpeed);
