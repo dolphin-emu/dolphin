@@ -152,7 +152,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 			PXOR(XMM0, M((void*)&psSignBits));
 	}
 
-	fpr.BindToRegister(d, false);
+	fpr.BindToRegister(d, !single);
 	//YES it is necessary to dupe the result :(
 	//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.
 	if (single)
@@ -177,7 +177,7 @@ void Jit64::fsign(UGeckoInstruction inst)
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, true, true);
+	fpr.BindToRegister(d);
 
 	if (d != b)
 		MOVSD(fpr.RX(d), fpr.R(b));
@@ -231,7 +231,7 @@ void Jit64::fselx(UGeckoInstruction inst)
 		PANDN(XMM1, fpr.R(c));
 		POR(XMM1, R(XMM0));
 	}
-	fpr.BindToRegister(d, true);
+	fpr.BindToRegister(d);
 	MOVSD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
 }
@@ -384,7 +384,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 	int d = inst.RD;
 	int b = inst.RB;
 	fpr.Lock(d, b);
-	fpr.BindToRegister(d, d == b);
+	fpr.BindToRegister(d);
 
 	// Intel uses 0x80000000 as a generic error code while PowerPC uses clamping:
 	//
@@ -443,7 +443,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, d == b);
+	fpr.BindToRegister(d);
 	MOVAPD(XMM0, fpr.R(b));
 	CALL((void *)asm_routines.frsqrte);
 	MOVSD(fpr.R(d), XMM0);
@@ -462,7 +462,7 @@ void Jit64::fresx(UGeckoInstruction inst)
 
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, d == b);
+	fpr.BindToRegister(d);
 	MOVAPD(XMM0, fpr.R(b));
 	CALL((void *)asm_routines.fres);
 	MOVSD(fpr.R(d), XMM0);
