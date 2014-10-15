@@ -21,7 +21,6 @@ SWVideoConfig::SWVideoConfig()
 
 	bDumpTextures = false;
 	bDumpObjects = false;
-	bDumpFrames = false;
 
 	bZComploc = true;
 	bZFreeze = true;

@@ -27,7 +27,7 @@ public:
 	// Submit video data to be drawn. This will change the current state of the
 	// TV. xfbAddr points to YUYV data stored in GameCube/Wii RAM, but the XFB
 	// may be virtualized when rendering so the RAM may not actually be read.
-	void Submit(u32 xfbAddr, u32 width, u32 height);
+	void Submit(u32 xfbAddr, u32 stride, u32 width, u32 height);
 
 	// Render the current state of the TV.
 	void Render();

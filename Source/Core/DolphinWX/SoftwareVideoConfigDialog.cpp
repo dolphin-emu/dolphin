@@ -102,7 +102,6 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 
 	szr_utility->Add(new SettingCheckBox(page_general, _("Dump Textures"), "", vconfig.bDumpTextures));
 	szr_utility->Add(new SettingCheckBox(page_general, _("Dump Objects"), "", vconfig.bDumpObjects));
-	szr_utility->Add(new SettingCheckBox(page_general, _("Dump Frames"), "", vconfig.bDumpFrames));
 
 	// - debug only
 	wxStaticBoxSizer* const group_debug_only_utility = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Debug Only"));

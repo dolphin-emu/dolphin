@@ -89,6 +89,7 @@ struct SConfig : NonCopyable
 	bool m_ShowFrameCount;
 	std::string m_strMovieAuthor;
 	unsigned int m_FrameSkip;
+	bool m_DumpFrames;
 
 	// DSP settings
 	bool m_DSPEnableJIT;
