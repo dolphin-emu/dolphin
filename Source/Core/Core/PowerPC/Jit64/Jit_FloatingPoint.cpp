@@ -86,8 +86,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	int b = inst.FB;
 	int c = inst.FC;
 	int d = inst.FD;
-	bool single_precision = inst.OPCD == 59;
-	bool round_input = single_precision && !jit->js.op->fprIsSingle[c];
+	bool single = inst.OPCD == 59;
+	bool round_input = single && !jit->js.op->fprIsSingle[c];
 
 	fpr.Lock(a, b, c, d);
 
@@ -99,7 +99,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	// instances on different computers giving identical results.
 	if (cpu_info.bFMA && !Core::g_want_determinism)
 	{
-		if (single_precision && round_input)
+		if (single && round_input)
 			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
 		else
 			MOVAPD(XMM0, fpr.R(c));
@@ -129,17 +129,17 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	else if (inst.SUBOP5 == 30) //nmsub
 	{
 		// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
-		if (single_precision && round_input)
+		if (single && round_input)
 			Force25BitPrecision(XMM1, fpr.R(c), XMM0);
 		else
 			MOVAPD(XMM1, fpr.R(c));
 		MULSD(XMM1, fpr.R(a));
-		MOVSD(XMM0, fpr.R(b));
+		MOVAPD(XMM0, fpr.R(b));
 		SUBSD(XMM0, R(XMM1));
 	}
 	else
 	{
-		if (single_precision && round_input)
+		if (single && round_input)
 			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
 		else
 			MOVAPD(XMM0, fpr.R(c));
@@ -155,7 +155,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
 	//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.
-	if (single_precision)
+	if (single)
 	{
 		ForceSinglePrecisionS(XMM0);
 		MOVDDUP(fpr.RX(d), R(XMM0));
@@ -213,7 +213,7 @@ void Jit64::fselx(UGeckoInstruction inst)
 	int c = inst.FC;
 
 	fpr.Lock(a, b, c, d);
-	MOVSD(XMM1, fpr.R(a));
+	MOVAPD(XMM1, fpr.R(a));
 	PXOR(XMM0, R(XMM0));
 	// This condition is very tricky; there's only one right way to handle both the case of
 	// negative/positive zero and NaN properly.
@@ -221,12 +221,12 @@ void Jit64::fselx(UGeckoInstruction inst)
 	CMPSD(XMM0, R(XMM1), NLE);
 	if (cpu_info.bSSE4_1)
 	{
-		MOVSD(XMM1, fpr.R(c));
+		MOVAPD(XMM1, fpr.R(c));
 		BLENDVPD(XMM1, fpr.R(b));
 	}
 	else
 	{
-		MOVSD(XMM1, R(XMM0));
+		MOVAPD(XMM1, R(XMM0));
 		PAND(XMM0, fpr.R(b));
 		PANDN(XMM1, fpr.R(c));
 		POR(XMM1, R(XMM0));
@@ -444,7 +444,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, d == b);
-	MOVSD(XMM0, fpr.R(b));
+	MOVAPD(XMM0, fpr.R(b));
 	CALL((void *)asm_routines.frsqrte);
 	MOVSD(fpr.R(d), XMM0);
 	SetFPRFIfNeeded(inst, fpr.RX(d));
@@ -463,7 +463,7 @@ void Jit64::fresx(UGeckoInstruction inst)
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, d == b);
-	MOVSD(XMM0, fpr.R(b));
+	MOVAPD(XMM0, fpr.R(b));
 	CALL((void *)asm_routines.fres);
 	MOVSD(fpr.R(d), XMM0);
 	SetFPRFIfNeeded(inst, fpr.RX(d));
