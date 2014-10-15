@@ -200,7 +200,6 @@ Renderer::Renderer(void *&window_handle)
 
 	SetupDeviceObjects();
 
-
 	// Setup GX pipeline state
 	gx_state.blend.blend_enable = false;
 	gx_state.blend.write_mask = D3D11_COLOR_WRITE_ENABLE_ALL;
@@ -211,9 +210,15 @@ Renderer::Renderer(void *&window_handle)
 
 	for (unsigned int k = 0;k < 8;k++)
 	{
-		float border[4] = {0.f, 0.f, 0.f, 0.f};
 		gx_state.sampler[k].packed = 0;
 	}
+
+	gx_state.zmode.testenable = false;
+	gx_state.zmode.updateenable = false;
+	gx_state.zmode.func = ZMode::NEVER;
+
+	gx_state.raster.cull_mode = D3D11_CULL_NONE;
+	gx_state.raster.wireframe = false;
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
