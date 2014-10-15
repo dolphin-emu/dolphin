@@ -71,8 +71,6 @@ private:
 	wxCheckBox *VBeam, *SyncGPU, *FastDiscSpeed, *BlockMerging, *DSPHLE;
 	// Wii
 	wxCheckBox *EnableWideScreen;
-	// Video
-	wxCheckBox *UseBBox;
 
 	wxArrayString arrayStringFor_EmuState;
 	wxChoice *EmuState;
