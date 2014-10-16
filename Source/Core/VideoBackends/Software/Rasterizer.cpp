@@ -437,6 +437,8 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 		// Loop through blocks
 		for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
 		{
+			bool lineDrawn = false;
+
 			for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
 			{
 				// Corners of block
@@ -456,22 +458,31 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 				bool b10 = C2 + DX23 * y0 - DY23 * x1 > 0;
 				bool b01 = C2 + DX23 * y1 - DY23 * x0 > 0;
 				bool b11 = C2 + DX23 * y1 - DY23 * x1 > 0;
-				int b = (b00 << 0) | (b10 << 1) | (b01 << 2) | (b11 << 3);
+				a |= (b00 << 4) | (b10 << 5) | (b01 << 6) | (b11 << 7);
 
 				bool c00 = C3 + DX31 * y0 - DY31 * x0 > 0;
 				bool c10 = C3 + DX31 * y0 - DY31 * x1 > 0;
 				bool c01 = C3 + DX31 * y1 - DY31 * x0 > 0;
 				bool c11 = C3 + DX31 * y1 - DY31 * x1 > 0;
-				int c = (c00 << 0) | (c10 << 1) | (c01 << 2) | (c11 << 3);
+				a |= (c00 << 8) | (c10 << 9) | (c01 << 10) | (c11 << 11);
 
 				// Skip block when outside an edge
-				if (a == 0x0 || b == 0x0 || c == 0x0)
-					continue;
+				// Skip line when all blocks have been been drawn for this line
+				if (a == 0)
+				{
+					if (lineDrawn)
+						break;
+					else
+						continue;
+				}
+
+				// We are drawing on this line
+				lineDrawn = true;
 
 				BuildBlock(x, y);
 
 				// Accept whole block when totally covered
-				if (a == 0xF && b == 0xF && c == 0xF)
+				if (a == 0xFFF)
 				{
 					for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
 					{
