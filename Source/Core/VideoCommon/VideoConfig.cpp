@@ -195,7 +195,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "PH_SZFar", iPhackvalue[2]);
 	CHECK_SETTING("Video", "PH_ZNear", sPhackvalue[0]);
 	CHECK_SETTING("Video", "PH_ZFar", sPhackvalue[1]);
-	CHECK_SETTING("Video", "UseBBox", bUseBBox);
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
 	if (gfx_override_exists)
