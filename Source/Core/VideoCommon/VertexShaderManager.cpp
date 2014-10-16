@@ -835,6 +835,7 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
+		// VR, Check whether it is a skybox, fullscreen, letterboxed, splitscreen multiplayer, hud element, or offscreen
 		SetViewportType(xfmem.viewport);
 		LogViewport(xfmem.viewport);
 		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
@@ -853,14 +854,16 @@ void VertexShaderManager::SetConstants()
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
-		if (g_viewport_type != g_old_viewport_type)
+		// VR adjust the projection matrix for the new kind of viewport
+		if (g_viewport_type != g_old_viewport_type && !bProjectionChanged)
 			SetProjectionConstants();
 
 		// Update projection if the viewport isn't 1:1 useable
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			SetProjectionConstants();
+			if (!bProjectionChanged)
+				SetProjectionConstants();
 		}
 	}
 
@@ -1052,7 +1055,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float zfar, znear, zNear3D, hfov, vfov;
 
 		// Real 3D scene
-		if (xfmem.projection.type == GX_PERSPECTIVE)
+		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
 			zfar = p[5] / p[4];
 			znear = (1 + p[5]) / p[4];
@@ -1067,6 +1070,7 @@ void VertexShaderManager::SetProjectionConstants()
 			// znear *= 0.3f;
 		}
 		// 2D layer we will turn into a 3D scene
+		// or 3D HUD element that we will treat like a part of the 2D HUD 
 		else
 		{
 			if (vr_widest_3d_HFOV > 0) {
@@ -1086,6 +1090,7 @@ void VertexShaderManager::SetProjectionConstants()
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 9.0f / 16.0f); // 2D screen is meant to be 16:9 aspect ratio
 				else
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 3.0f / 4.0f); //  2D screen is meant to be 4:3 aspect ratio, make it the same width but taller
+				// TODO: fix aspect ratio in virtual console games
 				if (debug_newScene)
 					ERROR_LOG(VR, "Only 2D Projecting: %g x %g, n=%fm f=%fm", hfov, vfov, znear, zfar);
 			}
@@ -1108,7 +1113,12 @@ void VertexShaderManager::SetProjectionConstants()
 			g_fProjectionMatrix[10] = -znear / (zfar - znear);
 			g_fProjectionMatrix[11] = -zfar*znear / (zfar - znear);
 			if (debug_newScene)
-				WARN_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+			{
+				if (xfmem.projection.type == GX_PERSPECTIVE)
+					WARN_LOG(VR, "3D HUD: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+				else
+					WARN_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+			}
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
@@ -1280,14 +1290,14 @@ void VertexShaderManager::SetProjectionConstants()
 			//}
 		}
 
-		if (xfmem.projection.type == GX_PERSPECTIVE)
+		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
 			if (debug_newScene)
 				INFO_LOG(VR, "3D: do normally");
 			Matrix44::Multiply(rotation_matrix, walk_matrix, look_matrix);
 		}
 		else
-		if (xfmem.projection.type != GX_PERSPECTIVE)
+		if (xfmem.projection.type != GX_PERSPECTIVE || g_viewport_type == VIEW_HUD_ELEMENT || g_viewport_type == VIEW_OFFSCREEN)
 		{
 			if (debug_newScene)
 				INFO_LOG(VR, "2D: hacky test");
@@ -1324,47 +1334,67 @@ void VertexShaderManager::SetProjectionConstants()
 				AimDistance = g_ActiveConfig.fAimDistance * UnitsPerMetre;
 				if (AimDistance <= 0)
 					AimDistance = HudDistance;
+				// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
+				// Note: the HUD won't line up exactly (except at AimDistance) if CameraForward is non-zero 
+				//float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
+				//float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
 				HudWidth = 2.0f * tanf(DEGREES_TO_RADIANS(hfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
 				HudHeight = 2.0f * tanf(DEGREES_TO_RADIANS(vfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
 			}
 
-
-
-			// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
-			// Note: the HUD won't line up exactly (except at AimDistance) if CameraForward is non-zero 
-			//float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
-			//float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
-
-			float left2D = -(rawProjection[1] + 1) / rawProjection[0];
-			float right2D = left2D + 2 / rawProjection[0];
-			float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
-			float top2D = bottom2D + 2 / rawProjection[2];
-			float zFar2D = rawProjection[5] / rawProjection[4];
-			float zNear2D = (1 + rawProjection[4] * zFar2D) / rawProjection[4];
-
 			float scale[3]; // width, height, and depth of box in game units divided by 2D width, height, and depth 
 			float position[3]; // position of front of box relative to the camera, in game units 
-			if (rawProjection[0] == 0 || right2D == left2D) {
-				scale[0] = 0;
+
+			// 3D HUD elements (may be part of 2D screen or HUD)
+			if (xfmem.projection.type == GX_PERSPECTIVE)
+			{
+				float left2D = -(rawProjection[1] + 1) / rawProjection[0];
+				float right2D = left2D + 2 / rawProjection[0];
+				float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
+				float top2D = bottom2D + 2 / rawProjection[2];
+				float zFar2D, zNear2D;
+				zFar2D = rawProjection[5] / rawProjection[4];
+				zNear2D = zFar2D*rawProjection[4] / (rawProjection[4] - 1);
+
 			}
-			else {
-				scale[0] = HudWidth / (right2D - left2D);
+			// 2D layer, or 2D viewport (may be part of 2D screen or HUD)
+			else
+			{
+				float left2D = -(rawProjection[1] + 1) / rawProjection[0];
+				float right2D = left2D + 2 / rawProjection[0];
+				float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
+				float top2D = bottom2D + 2 / rawProjection[2];
+				float zFar2D, zNear2D;
+				zFar2D = rawProjection[5] / rawProjection[4];
+				zNear2D = (1 + rawProjection[4] * zFar2D) / rawProjection[4];
+
+				// for 2D, work out the fraction of the HUD we should fill, and multiply the scale by that
+				// also work out what fraction of the height we should shift it up, and what fraction of the width we should shift it left
+				// only multiply by the extra scale after adjusting the position?
+
+				if (rawProjection[0] == 0 || right2D == left2D) {
+					scale[0] = 0;
+				}
+				else {
+					scale[0] = HudWidth / (right2D - left2D);
+				}
+				if (rawProjection[2] == 0 || top2D == bottom2D) {
+					scale[1] = 0;
+				}
+				else {
+					scale[1] = HudHeight / (top2D - bottom2D); // note that positive means up in 3D
+				}
+				if (rawProjection[4] == 0 || zFar2D == zNear2D) {
+					scale[2] = 0; // The 2D layer was flat, so we make it flat instead of a box to avoid dividing by zero
+				}
+				else {
+					scale[2] = HudThickness / (zFar2D - zNear2D); // Scale 2D z values into 3D game units so it is the right thickness
+				}
+				position[0] = scale[0] * (-(right2D + left2D) / 2.0f); // shift it left into the centre of the view
+				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + HudUp; // shift it up into the centre of the view;
+				position[2] = -HudDistance - CameraForward;
 			}
-			if (rawProjection[2] == 0 || top2D == bottom2D) {
-				scale[1] = 0;
-			}
-			else {
-				scale[1] = HudHeight / (top2D - bottom2D); // note that positive means up in 3D
-			}
-			if (rawProjection[4] == 0 || zFar2D == zNear2D) {
-				scale[2] = 0; // The 2D layer was flat, so we make it flat instead of a box to avoid dividing by zero
-			}
-			else {
-				scale[2] = HudThickness / (zFar2D - zNear2D); // Scale 2D z values into 3D game units so it is the right thickness
-			}
-			position[0] = scale[0] * (-(right2D + left2D) / 2.0f); // shift it left into the centre of the view
-			position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + HudUp; // shift it up into the centre of the view;
-			position[2] = -HudDistance -CameraForward;
+
 			Matrix44 scale_matrix, position_matrix, box_matrix, temp_matrix;
 			Matrix44::Scale(scale_matrix, scale);
 			Matrix44::Translate(position_matrix, position);
