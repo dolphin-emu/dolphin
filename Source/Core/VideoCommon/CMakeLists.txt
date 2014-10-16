@@ -38,7 +38,8 @@ set(SRCS	BoundingBox.cpp
 			VideoConfig.cpp
 			VideoState.cpp
 			XFMemory.cpp
-			XFStructs.cpp)
+			XFStructs.cpp
+			GeometryShaderGen.cpp)
 set(LIBS core png)
 
 if(_M_X86)

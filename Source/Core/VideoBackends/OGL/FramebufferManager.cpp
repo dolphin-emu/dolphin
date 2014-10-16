@@ -73,7 +73,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_efbDepth = glObj[1];
 	m_efbColorSwap = glObj[2];
 
-	m_EFBLayers = 1;
+	m_EFBLayers = (g_ActiveConfig.bStereo) ? 2 : 1;
 
 	// OpenGL MSAA textures are a different kind of texture type and must be allocated
 	// with a different function, so we create them separately.

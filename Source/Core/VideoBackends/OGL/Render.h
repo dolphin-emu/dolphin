@@ -30,6 +30,7 @@ struct VideoConfig
 	GLSL_VERSION eSupportedGLSLVersion;
 	bool bSupportOGL31;
 	bool bSupportViewportFloat;
+	bool bSupportGSInvocation;
 
 	const char* gl_vendor;
 	const char* gl_renderer;

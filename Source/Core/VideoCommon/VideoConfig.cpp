@@ -66,9 +66,9 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
-	settings->Get("AnaglyphStereo", &bAnaglyphStereo, false);
-	settings->Get("AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
-	settings->Get("AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
+	settings->Get("Stereo", &bStereo, false);
+	settings->Get("StereoSeparation", &iStereoSeparation, 200);
+	settings->Get("StereoFocalAngle", &iStereoFocalAngle, 0);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
 	settings->Get("MSAA", &iMultisampleMode, 0);
@@ -140,9 +140,9 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
 	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
-	CHECK_SETTING("Video_Settings", "AnaglyphStereo", bAnaglyphStereo);
-	CHECK_SETTING("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
-	CHECK_SETTING("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
+	CHECK_SETTING("Video_Settings", "Stereo", bStereo);
+	CHECK_SETTING("Video_Settings", "StereoSeparation", iStereoSeparation);
+	CHECK_SETTING("Video_Settings", "StereoFocalAngle", iStereoFocalAngle);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
@@ -230,9 +230,9 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DumpEFBTarget", bDumpEFBTarget);
 	settings->Set("FreeLook", bFreeLook);
 	settings->Set("UseFFV1", bUseFFV1);
-	settings->Set("AnaglyphStereo", bAnaglyphStereo);
-	settings->Set("AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
-	settings->Set("AnaglyphFocalAngle", iAnaglyphFocalAngle);
+	settings->Set("Stereo", bStereo);
+	settings->Set("StereoSeparation", iStereoSeparation);
+	settings->Set("StereoFocalAngle", iStereoFocalAngle);
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
 	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);

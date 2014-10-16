@@ -36,6 +36,7 @@ ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
 SHADERUID ProgramShaderCache::last_uid;
 UidChecker<PixelShaderUid,PixelShaderCode> ProgramShaderCache::pixel_uid_checker;
 UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_checker;
+UidChecker<GeometryShaderUid,ShaderCode> ProgramShaderCache::geometry_uid_checker;
 
 static char s_glsl_header[1024] = "";
 
@@ -196,13 +197,17 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 
 	VertexShaderCode vcode;
 	PixelShaderCode pcode;
+	ShaderCode gcode;
 	GenerateVertexShaderCode(vcode, components, API_OPENGL);
 	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
+	if (g_ActiveConfig.bStereo)
+		GenerateGeometryShaderCode(gcode, components, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
 		newentry.shader.strvprog = vcode.GetBuffer();
 		newentry.shader.strpprog = pcode.GetBuffer();
+		newentry.shader.strgprog = gcode.GetBuffer();
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -214,10 +219,16 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 
 		filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 		SaveData(filename, pcode.GetBuffer());
+
+		if (g_ActiveConfig.bStereo)
+		{
+			filename = StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+			SaveData(filename, gcode.GetBuffer());
+		}
 	}
 #endif
 
-	if (!CompileShader(newentry.shader, vcode.GetBuffer(), pcode.GetBuffer()))
+	if (!CompileShader(newentry.shader, vcode.GetBuffer(), pcode.GetBuffer(), gcode.GetBuffer()))
 	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return nullptr;
@@ -231,15 +242,21 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 	return &last_entry->shader;
 }
 
-bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const char* pcode)
+bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const char* pcode, const char* gcode)
 {
 	GLuint vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
 	GLuint psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
+
+	// Optional geometry shader
+	GLuint gsid = 0;
+	if (gcode)
+		gsid = CompileSingleShader(GL_GEOMETRY_SHADER, gcode);
 
 	if (!vsid || !psid)
 	{
 		glDeleteShader(vsid);
 		glDeleteShader(psid);
+		glDeleteShader(gsid);
 		return false;
 	}
 
@@ -247,6 +264,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 
 	glAttachShader(pid, vsid);
 	glAttachShader(pid, psid);
+	glAttachShader(pid, gsid);
 
 	if (g_ogl_config.bSupportsGLSLCache)
 		glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
@@ -258,6 +276,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 	// original shaders aren't needed any more
 	glDeleteShader(vsid);
 	glDeleteShader(psid);
+	glDeleteShader(gsid);
 
 	GLint linkStatus;
 	glGetProgramiv(pid, GL_LINK_STATUS, &linkStatus);
@@ -273,7 +292,10 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 		std::string filename = StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
 		std::ofstream file;
 		OpenFStream(file, filename, std::ios_base::out);
-		file << s_glsl_header << vcode << s_glsl_header << pcode << infoLog;
+		file << s_glsl_header << vcode << s_glsl_header << pcode;
+		if (gcode)
+			file << s_glsl_header << gcode;
+		file << infoLog;
 		file.close();
 
 		if (linkStatus != GL_TRUE)
@@ -324,11 +346,11 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 		GLsizei charsWritten;
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-		ERROR_LOG(VIDEO, "%s Shader info log:\n%s", type==GL_VERTEX_SHADER ? "VS" : "PS", infoLog);
+		ERROR_LOG(VIDEO, "%s Shader info log:\n%s", type==GL_VERTEX_SHADER ? "VS" : type==GL_FRAGMENT_SHADER ? "PS" : "GS", infoLog);
 
 		std::string filename = StringFromFormat("%sbad_%s_%04i.txt",
 			File::GetUserPath(D_DUMP_IDX).c_str(),
-			type==GL_VERTEX_SHADER ? "vs" : "ps",
+			type==GL_VERTEX_SHADER ? "vs" : type==GL_FRAGMENT_SHADER ? "ps" : "gs",
 			num_failures++);
 		std::ofstream file;
 		OpenFStream(file, filename, std::ios_base::out);
@@ -338,7 +360,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 		if (compileStatus != GL_TRUE)
 		{
 			PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-				type == GL_VERTEX_SHADER ? "vertex" : "pixel",
+				type == GL_VERTEX_SHADER ? "vertex" : type==GL_FRAGMENT_SHADER ? "pixel" : "geometry",
 				filename.c_str(),
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
@@ -365,6 +387,8 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 {
 	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
 	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
+	if (g_ActiveConfig.bStereo)
+		GetGeometryShaderUid(uid->guid, components, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
@@ -375,6 +399,10 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 		VertexShaderCode vcode;
 		GenerateVertexShaderCode(vcode, components, API_OPENGL);
 		vertex_uid_checker.AddToIndexAndCheck(vcode, uid->vuid, "Vertex", "v");
+
+		ShaderCode gcode;
+		GenerateGeometryShaderCode(gcode, components, API_OPENGL);
+		geometry_uid_checker.AddToIndexAndCheck(gcode, uid->guid, "Geometry", "g");
 	}
 }
 
@@ -486,6 +514,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // sample shading
 		"%s\n" // Sampler binding
 		"%s\n" // storage buffer
+		"%s\n" // shader5
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -518,6 +547,7 @@ void ProgramShaderCache::CreateHeader()
 		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
+		, (g_ogl_config.bSupportGSInvocation) ? "#extension GL_ARB_gpu_shader5 : enable" : ""
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""
