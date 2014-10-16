@@ -742,6 +742,15 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
+		// HUD 3D Forward
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHud3DCloser,
+				wxGetTranslation(temp_desc), 0.0f, 1.0f, 0.5f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD 3D Items Closer:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
 		// Camera forward
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraForward,

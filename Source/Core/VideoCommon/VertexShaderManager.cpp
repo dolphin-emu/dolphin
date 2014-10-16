@@ -1380,10 +1380,12 @@ void VertexShaderManager::SetProjectionConstants()
 				float top2D = bottom2D + 2 / rawProjection[2];
 				float zFar2D = rawProjection[5] / rawProjection[4];
 				float zNear2D = zFar2D*rawProjection[4] / (rawProjection[4] - 1);
-				left2D *= zFar2D;
-				right2D *= zFar2D;
-				bottom2D *= zFar2D;
-				top2D *= zFar2D;
+				float zObj = zNear2D + (zFar2D-zNear2D) * g_ActiveConfig.fHud3DCloser;
+
+				left2D *= zObj;
+				right2D *= zObj;
+				bottom2D *= zObj;
+				top2D *= zObj;
 
 				// Scale the width and height to fit the HUD in metres
 				if (rawProjection[0] == 0 || right2D == left2D) {
@@ -1410,9 +1412,9 @@ void VertexShaderManager::SetProjectionConstants()
 				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + viewport_offset[1] * HudHeight + HudUp; // shift it up into the centre of the view;
 				// Shift it from the old near clipping plane to the HUD distance, and shift the camera forward
 				if (vr_widest_3d_HFOV <= 0)
-					position[2] = scale[2] * zFar2D - HudDistance;
+					position[2] = scale[2] * zObj - HudDistance;
 				else
-					position[2] = scale[2] * zFar2D -HudDistance - CameraForward;
+					position[2] = scale[2] * zObj - HudDistance - CameraForward;
 
 
 

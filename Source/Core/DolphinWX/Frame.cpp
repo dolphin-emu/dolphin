@@ -1247,6 +1247,22 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				g_Config.fHudThickness -= 0.1f;
 			NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
 		}
+		else if (g_has_rift && IsVRSettingsKey(event, VR_HUD_3D_CLOSER)) {
+			// Make HUD 3D elements 5% closer (and smaller)
+			if (g_Config.fHud3DCloser >= 0.95f)
+				g_Config.fHud3DCloser = 1;
+			else
+				g_Config.fHud3DCloser += 0.05f;
+			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
+		}
+		else if (g_has_rift && IsVRSettingsKey(event, VR_HUD_3D_FURTHER)) {
+			// Make HUD 3D elements 5% further (and smaller)
+			if (g_Config.fHud3DCloser <= 0.05f)
+				g_Config.fHud3DCloser = 0;
+			else
+				g_Config.fHud3DCloser -= 0.05f;
+			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
+		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_2D_SCREEN_LARGER)) {
 			// Make everything 20% smaller (and closer)
 			g_Config.fScreenHeight *= 1.05f;

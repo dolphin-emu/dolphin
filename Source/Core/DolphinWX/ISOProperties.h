@@ -99,6 +99,7 @@ private:
 	wxSpinCtrlDouble* UnitsPerMetre;
 	wxSpinCtrlDouble* HudDistance;
 	wxSpinCtrlDouble* HudThickness;
+	wxSpinCtrlDouble* Hud3DCloser;
 	wxSpinCtrlDouble* CameraForward;
 	wxSpinCtrlDouble* CameraPitch;
 	wxSpinCtrlDouble* AimDistance;
@@ -146,6 +147,7 @@ private:
 		ID_UNITS_PER_METRE,
 		ID_HUD_DISTANCE,
 		ID_HUD_THICKNESS,
+		ID_HUD_3D_CLOSER,
 		ID_CAMERA_FORWARD,
 		ID_CAMERA_PITCH,
 		ID_AIM_DISTANCE,

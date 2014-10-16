@@ -146,6 +146,7 @@ struct VideoConfig final
 	float fUnitsPerMetre;
 	float fHudThickness;
 	float fHudDistance;
+	float fHud3DCloser;
 	float fCameraForward;
 	float fCameraPitch;
 	float fAimDistance;

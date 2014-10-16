@@ -144,6 +144,8 @@ static const struct
 		{ "VRHUDBackward",              46, 4 /* wxMOD_SHIFT */ },
 		{ "VRHUDThicker",               93, 4 /* wxMOD_SHIFT */ },
 		{ "VRHUDThinner",               91, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUD3DCloser",               0, 0 /* wxMOD_NONE */ },
+		{ "VRHUD3DFurther",              0, 0 /* wxMOD_NONE */ },
 
 		{ "VR2DScreenLarger",           44, 4 /* wxMOD_SHIFT */ },
 		{ "VR2DScreenSmaller",          77, 4 /* wxMOD_SHIFT */ },

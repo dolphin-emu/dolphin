@@ -68,6 +68,7 @@ VideoConfig::VideoConfig()
 	// in metres
 	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
 	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
+	fHud3DCloser = DEFAULT_VR_HUD_3D_CLOSER;
 	fAimDistance = DEFAULT_VR_AIM_DISTANCE;
 	fScreenDistance = DEFAULT_VR_SCREEN_DISTANCE;
 	fScreenHeight = DEFAULT_VR_SCREEN_HEIGHT;
@@ -257,6 +258,7 @@ void VideoConfig::GameIniLoad()
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
 	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
+	fHud3DCloser = DEFAULT_VR_HUD_3D_CLOSER;
 	fCameraForward = DEFAULT_VR_CAMERA_FORWARD;
 	fCameraPitch = DEFAULT_VR_CAMERA_PITCH;
 	fAimDistance = DEFAULT_VR_AIM_DISTANCE;
@@ -279,6 +281,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
+	CHECK_SETTING("VR", "Hud3DCloser", fHud3DCloser);
 	CHECK_SETTING("VR", "CameraForward", fCameraForward);
 	CHECK_SETTING("VR", "CameraPitch", fCameraPitch);
 	CHECK_SETTING("VR", "AimDistance", fAimDistance);
@@ -332,6 +335,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
+	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, DEFAULT_VR_CAMERA_FORWARD);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)fAimDistance, DEFAULT_VR_AIM_DISTANCE);
@@ -439,6 +443,7 @@ bool VideoConfig::VRSettingsModified()
 	return fUnitsPerMetre != g_SavedConfig.fUnitsPerMetre
 		|| fHudThickness != g_SavedConfig.fHudThickness
 		|| fHudDistance != g_SavedConfig.fHudDistance
+		|| fHud3DCloser != g_SavedConfig.fHud3DCloser
 		|| fCameraForward != g_SavedConfig.fCameraForward
 		|| fCameraPitch != g_SavedConfig.fCameraPitch
 		|| fAimDistance != g_SavedConfig.fAimDistance

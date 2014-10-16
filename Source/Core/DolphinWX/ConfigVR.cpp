@@ -94,6 +94,8 @@ void CConfigVR::CreateGUIControls()
 		_("HUD Backward"),
 		_("HUD Thicker"),
 		_("HUD Thinner"),
+		_("HUD 3D Items Closer"),
+		_("HUD 3D Items Further"),
 
 		_("2D Screen Larger"),
 		_("2D Screen Smaller"),

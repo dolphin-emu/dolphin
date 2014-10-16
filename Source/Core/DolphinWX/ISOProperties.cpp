@@ -419,6 +419,11 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s3DGrid->Add(HudThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD 3D Closer:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	Hud3DCloser = new wxSpinCtrlDouble(m_VR, ID_HUD_3D_CLOSER, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, DEFAULT_VR_HUD_3D_CLOSER, 0.1);
+	s3DGrid->Add(Hud3DCloser, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("0=back, 1=front")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera forward:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	CameraForward = new wxSpinCtrlDouble(m_VR, ID_CAMERA_FORWARD, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, DEFAULT_VR_CAMERA_FORWARD, 0.1);
 	s3DGrid->Add(CameraForward, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
@@ -1180,6 +1185,12 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.GetIfExists("VR", "HudThickness", &fTemp))
 		HudThickness->SetValue(fTemp);
 
+	fTemp = DEFAULT_VR_HUD_3D_CLOSER;
+	if (GameIniDefault.GetIfExists("VR", "Hud3DCloser", &fTemp))
+		Hud3DCloser->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "Hud3DCloser", &fTemp))
+		Hud3DCloser->SetValue(fTemp);
+
 	fTemp = DEFAULT_VR_CAMERA_FORWARD;
 	if (GameIniDefault.GetIfExists("VR", "CameraForward", &fTemp))
 		CameraForward->SetValue(fTemp);
@@ -1317,6 +1328,7 @@ bool CISOProperties::SaveGameConfig()
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)UnitsPerMetre->GetValue(), DEFAULT_VR_UNITS_PER_METRE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)HudDistance->GetValue(), DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)HudThickness->GetValue(), DEFAULT_VR_HUD_THICKNESS);
+	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)Hud3DCloser->GetValue(), DEFAULT_VR_HUD_3D_CLOSER);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)CameraForward->GetValue(), DEFAULT_VR_CAMERA_FORWARD);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)CameraPitch->GetValue(), DEFAULT_VR_CAMERA_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)AimDistance->GetValue(), DEFAULT_VR_AIM_DISTANCE);
