@@ -114,8 +114,8 @@ public:
 
 	ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
 
-	void SetHwnd(void* const hwnd);
-	void Initialize();
+	void Initialize(void* const hwnd);
+	void Reinitialize();
 	void Shutdown();
 	bool IsInit() const { return m_is_init; }
 
