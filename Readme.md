@@ -104,7 +104,7 @@ These folders are installed read-only and should not be changed:
 * `Wii`: default Wii NAND contents
 
 ## User folder structure
-A number of user writeable directories are created for caching purposes or for
+A number of user writable directories are created for caching purposes or for
 allowing the user to edit their contents. On OS X and Linux these folders are
 stored in `~/Library/Application Support/Dolphin/` and `~/.dolphin-emu`
 respectively. On Windows the user directory is stored in the `My Documents`
