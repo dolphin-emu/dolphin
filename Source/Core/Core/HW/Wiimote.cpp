@@ -44,9 +44,7 @@ void Initialize(void* const hwnd, bool wait)
 	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
 		s_config.controllers.push_back(new WiimoteEmu::Wiimote(i));
 
-
-	g_controller_interface.SetHwnd(hwnd);
-	g_controller_interface.Initialize();
+	g_controller_interface.Initialize(hwnd);
 
 	s_config.LoadConfig(false);
 
