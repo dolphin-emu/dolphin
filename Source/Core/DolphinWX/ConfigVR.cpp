@@ -260,8 +260,7 @@ void CConfigVR::RefreshDevices(wxCommandEvent&)
 	//std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 
 	// refresh devices
-	g_controller_interface.Shutdown();
-	g_controller_interface.Initialize();
+	g_controller_interface.Reinitialize();
 
 	// update all control references
 	//UpdateControlReferences();
