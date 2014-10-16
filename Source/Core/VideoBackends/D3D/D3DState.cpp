@@ -172,6 +172,14 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
 ID3D11BlendState* StateCache::Get(BlendState state)
 {
+	if (!state.blend_enable)
+	{
+		state.src_blend = D3D11_BLEND_ONE;
+		state.dst_blend = D3D11_BLEND_ZERO;
+		state.blend_op = D3D11_BLEND_OP_ADD;
+		state.use_dst_alpha = false;
+	}
+
 	auto it = m_blend.find(state.packed);
 
 	if (it != m_blend.end())
