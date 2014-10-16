@@ -1069,6 +1069,18 @@ void VertexShaderManager::SetProjectionConstants()
 			// needed for Animal Crossing on GameCube
 			// znear *= 0.3f;
 		}
+		// 3D HUD element that we will scale and adjust to fit a viewport of the HUD
+		else if (xfmem.projection.type == GX_PERSPECTIVE && (g_viewport_type == VIEW_HUD_ELEMENT || g_viewport_type == VIEW_OFFSCREEN))
+		{
+			zfar = p[5] / p[4];
+			znear = (1 + p[5]) / p[4];
+			float zn2 = p[5] / (p[4] - 1);
+			float zf2 = p[5] / (p[4] + 1);
+			hfov = 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f;
+			vfov = 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f;
+			if (debug_newScene)
+				INFO_LOG(VR, "3D HUD Element: hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
+		}
 		// 2D layer we will turn into a 3D scene
 		// or 3D HUD element that we will treat like a part of the 2D HUD 
 		else
@@ -1348,13 +1360,48 @@ void VertexShaderManager::SetProjectionConstants()
 			// 3D HUD elements (may be part of 2D screen or HUD)
 			if (xfmem.projection.type == GX_PERSPECTIVE)
 			{
+				// these are the edges of the near clipping plane in game coordinates
 				float left2D = -(rawProjection[1] + 1) / rawProjection[0];
 				float right2D = left2D + 2 / rawProjection[0];
 				float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
 				float top2D = bottom2D + 2 / rawProjection[2];
-				float zFar2D, zNear2D;
-				zFar2D = rawProjection[5] / rawProjection[4];
-				zNear2D = zFar2D*rawProjection[4] / (rawProjection[4] - 1);
+				float zFar2D = rawProjection[5] / rawProjection[4];
+				float zNear2D = zFar2D*rawProjection[4] / (rawProjection[4] - 1);
+				left2D *= zNear2D;
+				right2D *= zNear2D;
+				bottom2D *= zNear2D;
+				top2D *= zNear2D;
+
+				// Scale the width and height to fit the HUD in metres
+				if (rawProjection[0] == 0 || right2D == left2D) {
+					scale[0] = 0;
+				}
+				else {
+					scale[0] = HudWidth / (right2D - left2D);
+				}
+				if (rawProjection[2] == 0 || top2D == bottom2D) {
+					scale[1] = 0;
+				}
+				else {
+					scale[1] = HudHeight / (top2D - bottom2D); // note that positive means up in 3D
+				}
+				// Keep depth the same scale as width, so it looks like a real object
+				if (rawProjection[4] == 0 || zFar2D == zNear2D) {
+					scale[2] = scale[0];
+				}
+				else {
+					scale[2] = scale[0];
+				}
+				// Adjust the position for off-axis projection matrices, and shifting the 2D screen
+				position[0] = scale[0] * (-(right2D + left2D) / 2.0f); // shift it left into the centre of the view
+				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + HudUp; // shift it up into the centre of the view;
+				// Shift it from the old near clipping plane to the HUD distance, and shift the camera forward
+				if (vr_widest_3d_HFOV <= 0)
+					position[2] = scale[2] * zNear2D - HudDistance;
+				else
+					position[2] = scale[2] * zNear2D -HudDistance - CameraForward;
+
+
 
 			}
 			// 2D layer, or 2D viewport (may be part of 2D screen or HUD)
@@ -1392,7 +1439,11 @@ void VertexShaderManager::SetProjectionConstants()
 				}
 				position[0] = scale[0] * (-(right2D + left2D) / 2.0f); // shift it left into the centre of the view
 				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + HudUp; // shift it up into the centre of the view;
-				position[2] = -HudDistance - CameraForward;
+				// Shift it from the zero plane to the HUD distance, and shift the camera forward
+				if (vr_widest_3d_HFOV <= 0)
+					position[2] = -HudDistance;
+				else
+					position[2] = -HudDistance - CameraForward;
 			}
 
 			Matrix44 scale_matrix, position_matrix, box_matrix, temp_matrix;
