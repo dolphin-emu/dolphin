@@ -1150,10 +1150,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			static float debugSpeed = 1.0f;
 			switch (event.GetKeyCode())
 			{
-			case '9':
+			case '(':
 				debugSpeed /= 2.0f;
 				break;
-			case '0':
+			case ')':
 				debugSpeed *= 2.0f;
 				break;
 			case 'W':
@@ -1176,6 +1176,9 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				break;
 			case 'R':
 				VertexShaderManager::ResetView();
+				break;
+			case 'F':
+				debugSpeed = 1.0f;
 				break;
 			default:
 				break;
