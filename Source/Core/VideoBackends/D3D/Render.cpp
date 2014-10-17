@@ -551,33 +551,6 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
-void SetSrcBlend(D3D11_BLEND val)
-{
-	// Colors should blend against SRC_ALPHA
-	if (val == D3D11_BLEND_SRC1_ALPHA)
-		val = D3D11_BLEND_SRC_ALPHA;
-	else if (val == D3D11_BLEND_INV_SRC1_ALPHA)
-		val = D3D11_BLEND_INV_SRC_ALPHA;
-
-	gx_state.blend.src_blend = val;
-}
-
-void SetDestBlend(D3D11_BLEND val)
-{
-	// Colors should blend against SRC_ALPHA
-	if (val == D3D11_BLEND_SRC1_ALPHA)
-		val = D3D11_BLEND_SRC_ALPHA;
-	else if (val == D3D11_BLEND_INV_SRC1_ALPHA)
-		val = D3D11_BLEND_INV_SRC_ALPHA;
-
-	gx_state.blend.dst_blend = val;
-}
-
-void SetBlendOp(D3D11_BLEND_OP val)
-{
-	gx_state.blend.blend_op = val;
-}
-
 void Renderer::SetBlendMode(bool forceUpdate)
 {
 	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
@@ -612,18 +585,18 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	if (bpmem.blendmode.subtract)
 	{
 		gx_state.blend.blend_enable = true;
-		SetBlendOp(D3D11_BLEND_OP_REV_SUBTRACT);
-		SetSrcBlend(D3D11_BLEND_ONE);
-		SetDestBlend(D3D11_BLEND_ONE);
+		gx_state.blend.blend_op = D3D11_BLEND_OP_REV_SUBTRACT;
+		gx_state.blend.src_blend = D3D11_BLEND_ONE;
+		gx_state.blend.dst_blend = D3D11_BLEND_ONE;
 	}
 	else
 	{
 		gx_state.blend.blend_enable = (u32)bpmem.blendmode.blendenable;
 		if (bpmem.blendmode.blendenable)
 		{
-			SetBlendOp(D3D11_BLEND_OP_ADD);
-			SetSrcBlend(d3dSrcFactors[bpmem.blendmode.srcfactor]);
-			SetDestBlend(d3dDestFactors[bpmem.blendmode.dstfactor]);
+			gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
+			gx_state.blend.src_blend = d3dSrcFactors[bpmem.blendmode.srcfactor];
+			gx_state.blend.dst_blend = d3dDestFactors[bpmem.blendmode.dstfactor];
 		}
 	}
 }
@@ -1181,9 +1154,9 @@ void Renderer::SetLogicOpMode()
 	if (bpmem.blendmode.logicopenable)
 	{
 		gx_state.blend.blend_enable = true;
-		SetBlendOp(d3dLogicOps[bpmem.blendmode.logicmode]);
-		SetSrcBlend(d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
-		SetDestBlend(d3dLogicOpDestFactors[bpmem.blendmode.logicmode]);
+		gx_state.blend.blend_op = d3dLogicOps[bpmem.blendmode.logicmode];
+		gx_state.blend.src_blend = d3dLogicOpSrcFactors[bpmem.blendmode.logicmode];
+		gx_state.blend.dst_blend = d3dLogicOpDestFactors[bpmem.blendmode.logicmode];
 	}
 	else
 	{
