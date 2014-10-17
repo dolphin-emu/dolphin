@@ -221,8 +221,6 @@ void Jit64::ClearCache()
 {
 	blocks.Clear();
 	trampolines.ClearCodeSpace();
-	jit->js.pcAtLoc.clear();
-	jit->js.registersInUseAtLoc.clear();
 	farcode.ClearCodeSpace();
 	ClearCodeSpace();
 	m_clear_cache_asap = false;
