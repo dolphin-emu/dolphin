@@ -921,7 +921,7 @@ union AlphaTest
 		PASS = 2,
 	};
 
-	inline TEST_RESULT TestResult() const
+	__forceinline TEST_RESULT TestResult() const
 	{
 		switch (logic)
 		{
