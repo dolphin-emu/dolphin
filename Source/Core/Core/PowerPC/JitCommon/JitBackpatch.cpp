@@ -65,21 +65,14 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		return false;
 	}
 
-	auto pc_it = jit->js.pcAtLoc.find(codePtr);
-	if (pc_it == jit->js.pcAtLoc.end())
+	auto it = registersInUseAtLoc.find(codePtr);
+	if (it == registersInUseAtLoc.end())
 	{
-		PanicAlert("BackPatch: no pc entry for address %p", codePtr);
-		return nullptr;
-	}
-	u32 pc = pc_it->second;
-
-	auto reguse_it = jit->js.registersInUseAtLoc.find(pc);
-	if (reguse_it == jit->js.registersInUseAtLoc.end())
-	{
-		PanicAlert("BackPatch: no register use entry for PC %x", pc);
+		PanicAlert("BackPatch: no register use entry for address %p", codePtr);
 		return false;
 	}
-	u32 registersInUse = reguse_it->second;
+
+	u32 registersInUse = it->second;
 
 	if (!info.isMemoryWrite)
 	{
@@ -104,7 +97,16 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 	}
 	else
 	{
-		// TODO: special case FIFO writes
+		// TODO: special case FIFO writes. Also, support 32-bit mode.
+		it = pcAtLoc.find(codePtr);
+		if (it == pcAtLoc.end())
+		{
+			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
+			return nullptr;
+		}
+
+		u32 pc = it->second;
+
 		u8 *start;
 		if (info.byteSwap || info.hasImmediate)
 		{
