@@ -230,21 +230,31 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 u64 GetCRC32(const u8 *src, int len, u32 samples)
 {
 #if _M_SSE >= 0x402
-	u64 h = len;
+	u64 h[4] = { len, 0, 0, 0 };
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
 	if (samples == 0) samples = std::max(Step, 1u);
 	Step = Step / samples;
 	if (Step < 1) Step = 1;
-	while (data < end)
+	while (data < end - Step * 3)
 	{
-		h = _mm_crc32_u64(h, data[0]);
-		data += Step;
+		h[0] = _mm_crc32_u64(h[0], data[Step * 0]);
+		h[1] = _mm_crc32_u64(h[1], data[Step * 1]);
+		h[2] = _mm_crc32_u64(h[2], data[Step * 2]);
+		h[3] = _mm_crc32_u64(h[3], data[Step * 3]);
+		data += Step * 4;
 	}
+	if (data < end - Step * 0)
+		h[0] = _mm_crc32_u64(h[0], data[Step * 0]);
+	if (data < end - Step * 1)
+		h[1] = _mm_crc32_u64(h[1], data[Step * 1]);
+	if (data < end - Step * 2)
+		h[2] = _mm_crc32_u64(h[2], data[Step * 2]);
 
 	const u8 *data2 = (const u8*)end;
-	return _mm_crc32_u64(h, u64(data2[0]));
+	// FIXME: is there a better way to combine these partial hashes?
+	return _mm_crc32_u64(h[0] + h[1] + h[2] + h[3], u64(data2[0]));
 #else
 	return 0;
 #endif
