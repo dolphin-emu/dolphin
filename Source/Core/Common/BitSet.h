@@ -39,11 +39,14 @@ static inline int LeastSignificantSetBit(u32 val) { return __builtin_ctz(val); }
 static inline int LeastSignificantSetBit(u64 val) { return __builtin_ctzll(val); }
 #endif
 
+// namespace avoids conflict with OS X Carbon; don't use BitSet<T> directly
+namespace BS
+{
 
 // Similar to std::bitset, this is a class which encapsulates a bitset, i.e.
 // using the set bits of an integer to represent a set of integers.  Like that
 // class, it acts like an array of bools:
-//     BitSet32 bs; // use BitSet{32,64} instead of the template directly
+//     BitSet32 bs;
 //     bs[1] = true;
 // but also like the underlying integer ([0] = least significant bit):
 //     BitSet32 bs2 = ...;
@@ -126,6 +129,11 @@ public:
 			m_val |= (IntTy)1 << bit;
 	}
 
+	static BitSet AllTrue(size_t count)
+	{
+		return BitSet(count == sizeof(IntTy)*8 ? ~(IntTy)0 : (((IntTy)1 << count) - 1));
+	}
+
 	Ref operator[](size_t bit) { return Ref(this, (IntTy)1 << bit); }
 	const Ref operator[](size_t bit) const { return (*const_cast<BitSet*>(this))[bit]; }
 	bool operator==(BitSet other) const { return m_val == other.m_val; }
@@ -152,5 +160,7 @@ public:
 	IntTy m_val;
 };
 
-typedef BitSet<u32> BitSet32;
-typedef BitSet<u64> BitSet64;
+}
+
+typedef BS::BitSet<u32> BitSet32;
+typedef BS::BitSet<u64> BitSet64;
