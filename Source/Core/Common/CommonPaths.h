@@ -4,7 +4,7 @@
 
 #pragma once
 
-// Directory seperators, do we need this?
+// Directory separators, do we need this?
 #define DIR_SEP "/"
 #define DIR_SEP_CHR '/'
 
