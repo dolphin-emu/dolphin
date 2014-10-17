@@ -1554,7 +1554,7 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
 	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
 }
 
-// Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
+// Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
