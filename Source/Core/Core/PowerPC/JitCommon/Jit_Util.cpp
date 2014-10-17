@@ -299,8 +299,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
-	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM)) &&
-		jit->js.registersInUseAtLoc.find(jit->js.compilerPC) == jit->js.registersInUseAtLoc.end()
+	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
 #ifdef ENABLE_MEM_CHECK
 	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
 #endif
@@ -308,8 +307,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 
-		jit->js.pcAtLoc[mov] = jit->js.compilerPC;
-		jit->js.registersInUseAtLoc[jit->js.compilerPC] = registersInUse;
+		registersInUseAtLoc[mov] = registersInUse;
 	}
 	else
 	{
@@ -484,8 +482,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
-		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP)) &&
-		jit->js.registersInUseAtLoc.find(jit->js.compilerPC) == jit->js.registersInUseAtLoc.end()
+		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
 #ifdef ENABLE_MEM_CHECK
 	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
 #endif
@@ -499,8 +496,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 			NOP(padding);
 		}
 
-		jit->js.pcAtLoc[mov] = jit->js.compilerPC;
-		jit->js.registersInUseAtLoc[jit->js.compilerPC] = registersInUse;
+		registersInUseAtLoc[mov] = registersInUse;
+		pcAtLoc[mov] = jit->js.compilerPC;
 		return;
 	}
 

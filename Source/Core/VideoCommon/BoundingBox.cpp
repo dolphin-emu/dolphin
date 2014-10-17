@@ -23,11 +23,11 @@ u8 texMtxIdx[8];
 
 
 // Internal vars
-SetupUnit vtxUnit;
-VAT myVat;
-u8 * bufferPos;
-TVtxDesc vertexDesc;
-PortableVertexDeclaration vertexDecl;
+static SetupUnit vtxUnit;
+static VAT myVat;
+static u8 * bufferPos;
+static TVtxDesc vertexDesc;
+static PortableVertexDeclaration vertexDecl;
 
 // Gets the pointer to the current buffer position
 void LOADERDECL SetVertexBufferPosition()
