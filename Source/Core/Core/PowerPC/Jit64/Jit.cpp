@@ -736,29 +736,28 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// output, which needs to be bound in the actual instruction compilation.
 			// TODO: make this smarter in the case that we're actually register-starved, i.e.
 			// prioritize the more important registers.
-			for (int k = 0; k < 3 && gpr.NumFreeRegisters() >= 2; k++)
+			for (int reg : ops[i].regsIn)
 			{
-				int reg = ops[i].regsIn[k];
-				if (reg >= 0 && (ops[i].gprInReg & (1 << reg)) && !gpr.R(reg).IsImm())
+				if (gpr.NumFreeRegisters() < 2)
+					break;
+				if (ops[i].gprInReg[reg] && !gpr.R(reg).IsImm())
 					gpr.BindToRegister(reg, true, false);
 			}
-			for (int k = 0; k < 4 && fpr.NumFreeRegisters() >= 2; k++)
+			for (int reg : ops[i].regsOut)
 			{
-				int reg = ops[i].fregsIn[k];
-				if (reg >= 0 && (ops[i].fprInXmm & (1 << reg)))
-					fpr.BindToRegister(reg, true, false);
+				if (fpr.NumFreeRegisters() < 2)
+					break;
+				if (ops[i].fprInXmm[reg])
+					gpr.BindToRegister(reg, true, false);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
 			// If we have a register that will never be used again, flush it.
-			for (int j = 0; j < 32; j++)
-			{
-				if (!(ops[i].gprInUse & (1 << j)))
-					gpr.StoreFromRegister(j);
-				if (!(ops[i].fprInUse & (1 << j)))
-					fpr.StoreFromRegister(j);
-			}
+			for (int j : ~ops[i].gprInUse)
+				gpr.StoreFromRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreFromRegister(j);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
