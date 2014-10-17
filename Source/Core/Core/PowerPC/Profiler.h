@@ -23,7 +23,7 @@
 	MOV(64, M(pdt), R(RSCRATCH));
 
 #define PROFILER_VPUSH \
-	u32 registersInUse = CallerSavedRegistersInUse(); \
+	BitSet32 registersInUse = CallerSavedRegistersInUse(); \
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
 #define PROFILER_VPOP \

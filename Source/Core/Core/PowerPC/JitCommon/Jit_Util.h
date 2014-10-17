@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 
+#include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
 
@@ -76,7 +77,7 @@ public:
 	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
 	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
 
-	Gen::FixupBranch CheckIfSafeAddress(Gen::OpArg reg_value, Gen::X64Reg reg_addr, u32 registers_in_use, u32 mem_mask);
+	Gen::FixupBranch CheckIfSafeAddress(Gen::OpArg reg_value, Gen::X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask);
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset, bool signExtend = false);
 	// these return the address of the MOV, for backpatching
@@ -89,7 +90,7 @@ public:
 
 	// Generate a load/write from the MMIO handler for a given address. Only
 	// call for known addresses in MMIO range (MMIO::IsMMIOAddress).
-	void MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value, u32 registers_in_use, u32 address, int access_size, bool sign_extend);
+	void MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value, BitSet32 registers_in_use, u32 address, int access_size, bool sign_extend);
 
 	enum SafeLoadStoreFlags
 	{
@@ -99,12 +100,12 @@ public:
 		SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8
 	};
 
-	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags = 0);
+	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags = 0);
 	// Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
 	// reg_value if the load fails and js.memcheck is enabled.
 	// Works with immediate inputs and simple registers only.
-	void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0);
-	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0)
+	void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, BitSet32 registersInUse, int flags = 0);
+	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, BitSet32 registersInUse, int flags = 0)
 	{
 		SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
 	}
@@ -115,7 +116,7 @@ public:
 		return swap && !cpu_info.bMOVBE && accessSize > 8;
 	}
 
-	void SafeWriteF32ToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, s32 offset, u32 registersInUse, int flags = 0);
+	void SafeWriteF32ToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, s32 offset, BitSet32 registersInUse, int flags = 0);
 
 	void WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap = false);
 	void JitGetAndClearCAOV(bool oe);
@@ -137,6 +138,6 @@ public:
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 	void SetFPRF(Gen::X64Reg xmm);
 protected:
-	std::unordered_map<u8 *, u32> registersInUseAtLoc;
+	std::unordered_map<u8 *, BitSet32> registersInUseAtLoc;
 	std::unordered_map<u8 *, u32> pcAtLoc;
 };

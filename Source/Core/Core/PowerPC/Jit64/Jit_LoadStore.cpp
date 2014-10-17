@@ -130,7 +130,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		TEST(32, gpr.R(d), gpr.R(d));
 		FixupBranch noIdle = J_CC(CC_NZ);
 
-		u32 registersInUse = CallerSavedRegistersInUse();
+		BitSet32 registersInUse = CallerSavedRegistersInUse();
 		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
 		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
@@ -242,11 +242,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, js.memcheck, true);
-	u32 registersInUse = CallerSavedRegistersInUse();
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	if (update && storeAddress)
 	{
 		// We need to save the (usually scratch) address register for the update.
-		registersInUse |= (1 << RSCRATCH2);
+		registersInUse[RSCRATCH2] = true;
 	}
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
@@ -310,7 +310,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	SwitchToFarCode();
 	SetJumpTarget(slow);
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
-	u32 registersInUse = CallerSavedRegistersInUse();
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, RSCRATCH);
 	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -399,7 +399,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				// Helps external systems know which instruction triggered the write
 				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 
-				u32 registersInUse = CallerSavedRegistersInUse();
+				BitSet32 registersInUse = CallerSavedRegistersInUse();
 				ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 				switch (accessSize)
 				{
@@ -551,7 +551,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 		ADD(32, R(RSCRATCH2), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | (1 << RSCRATCH_EXTRA), false);
+		SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | BitSet32 { RSCRATCH_EXTRA }, false);
 		gpr.BindToRegister(i, false, true);
 		MOV(32, gpr.R(i), R(RSCRATCH));
 	}

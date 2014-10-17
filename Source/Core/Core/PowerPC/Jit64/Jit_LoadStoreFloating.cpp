@@ -65,9 +65,9 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 			offset = (s16)inst.SIMM_16;
 	}
 
-	u32 registersInUse = CallerSavedRegistersInUse();
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	if (update && js.memcheck)
-		registersInUse |= (1 << RSCRATCH2);
+		registersInUse[RSCRATCH2] = true;
 	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
 	fpr.Lock(d);
 	fpr.BindToRegister(d, js.memcheck || !single);

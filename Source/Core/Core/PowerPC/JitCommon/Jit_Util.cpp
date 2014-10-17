@@ -137,7 +137,7 @@ template <typename T>
 class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 {
 public:
-	MMIOReadCodeGenerator(Gen::X64CodeBlock* code, u32 registers_in_use,
+	MMIOReadCodeGenerator(Gen::X64CodeBlock* code, BitSet32 registers_in_use,
 	                      Gen::X64Reg dst_reg, u32 address, bool sign_extend)
 		: m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg),
 		  m_address(address), m_sign_extend(sign_extend)
@@ -214,14 +214,14 @@ private:
 	}
 
 	Gen::X64CodeBlock* m_code;
-	u32 m_registers_in_use;
+	BitSet32 m_registers_in_use;
 	Gen::X64Reg m_dst_reg;
 	u32 m_address;
 	bool m_sign_extend;
 };
 
 void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
-                                 u32 registers_in_use, u32 address,
+                                 BitSet32 registers_in_use, u32 address,
                                  int access_size, bool sign_extend)
 {
 	switch (access_size)
@@ -250,17 +250,17 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 	}
 }
 
-FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, u32 registers_in_use, u32 mem_mask)
+FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask)
 {
-	registers_in_use |= (1 << reg_addr);
+	registers_in_use[reg_addr] = true;
 	if (reg_value.IsSimpleReg())
-		registers_in_use |= (1 << reg_value.GetSimpleReg());
+		registers_in_use[reg_value.GetSimpleReg()] = true;
 
 	// Get ourselves a free register; try to pick one that doesn't involve pushing, if we can.
 	X64Reg scratch = RSCRATCH;
-	if (!(registers_in_use & (1 << RSCRATCH)))
+	if (!registers_in_use[RSCRATCH])
 		scratch = RSCRATCH;
-	else if (!(registers_in_use & (1 << RSCRATCH_EXTRA)))
+	else if (!registers_in_use[RSCRATCH_EXTRA])
 		scratch = RSCRATCH_EXTRA;
 	else
 		scratch = reg_addr;
@@ -290,11 +290,11 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, u
 	}
 }
 
-void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags)
+void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
 	if (!jit->js.memcheck)
 	{
-		registersInUse &= ~(1 << reg_value);
+		registersInUse[reg_value] = false;
 	}
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
@@ -468,7 +468,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	return result;
 }
 
-void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags)
+void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, BitSet32 registersInUse, int flags)
 {
 	// set the correct immediate format
 	if (reg_value.IsImm())
@@ -580,7 +580,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 }
 
 // Destroys the same as SafeWrite plus RSCRATCH.  TODO: see if we can avoid temporaries here
-void EmuCodeBlock::SafeWriteF32ToReg(X64Reg xmm_value, X64Reg reg_addr, s32 offset, u32 registersInUse, int flags)
+void EmuCodeBlock::SafeWriteF32ToReg(X64Reg xmm_value, X64Reg reg_addr, s32 offset, BitSet32 registersInUse, int flags)
 {
 	// TODO: PSHUFB might be faster if fastmem supported MOVSS.
 	MOVD_xmm(R(RSCRATCH), xmm_value);
