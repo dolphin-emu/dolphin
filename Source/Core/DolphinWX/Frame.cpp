@@ -188,19 +188,23 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 
 bool CRenderFrame::ShowFullScreen(bool show, long style)
 {
-	if (show)
+#if defined WIN32
+	if (show && !g_Config.bBorderlessFullscreen)
 	{
 		// OpenGL requires the pop-up style to activate exclusive mode.
 		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
 	}
+#endif
 
 	bool result = wxTopLevelWindow::ShowFullScreen(show, style);
 
+#if defined WIN32
 	if (!show)
 	{
 		// Restore the default style.
 		SetWindowStyle((GetWindowStyle() & ~wxPOPUP_WINDOW) | wxDEFAULT_FRAME_STYLE);
 	}
+#endif
 
 	return result;
 }
@@ -234,6 +238,8 @@ EVT_MENU(IDM_SHOWLAG, CFrame::OnShowLag)
 EVT_MENU(IDM_SHOWFRAMECOUNT, CFrame::OnShowFrameCount)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
+EVT_MENU(IDM_TOGGLE_DUMPFRAMES, CFrame::OnToggleDumpFrames)
+EVT_MENU(IDM_TOGGLE_DUMPAUDIO, CFrame::OnToggleDumpAudio)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
 EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
@@ -400,12 +406,11 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow->Hide();
 	m_LogWindow->Disable();
 
-	g_TASInputDlg[0] = new TASInputDlg(this);
-	g_TASInputDlg[1] = new TASInputDlg(this);
-	g_TASInputDlg[2] = new TASInputDlg(this);
-	g_TASInputDlg[3] = new TASInputDlg(this);
+	for (int i = 0; i < 8; ++i)
+		g_TASInputDlg[i] = new TASInputDlg(this);
 
-	Movie::SetInputManip(TASManipFunction);
+	Movie::SetGCInputManip(GCTASManipFunction);
+	Movie::SetWiiInputManip(WiiTASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
 	Core::SetOnStoppedCallback(OnStoppedCallback);
@@ -983,15 +988,21 @@ void OnStoppedCallback()
 	}
 }
 
-void TASManipFunction(GCPadStatus* PadStatus, int controllerID)
+void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)
 {
 	if (main_frame)
-		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus, controllerID);
+		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus);
+}
+
+void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID)
+{
+	if (main_frame)
+		main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf);
 }
 
 bool TASInputHasFocus()
 {
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 8; ++i)
 	{
 		if (main_frame->g_TASInputDlg[i]->TASHasFocus())
 			return true;
@@ -1161,10 +1172,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_UP)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_DOWN)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_LEFT)) {
 			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
@@ -1235,6 +1246,22 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			else
 				g_Config.fHudThickness -= 0.1f;
 			NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
+		}
+		else if (g_has_rift && IsVRSettingsKey(event, VR_HUD_3D_CLOSER)) {
+			// Make HUD 3D elements 5% closer (and smaller)
+			if (g_Config.fHud3DCloser >= 0.95f)
+				g_Config.fHud3DCloser = 1;
+			else
+				g_Config.fHud3DCloser += 0.05f;
+			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
+		}
+		else if (g_has_rift && IsVRSettingsKey(event, VR_HUD_3D_FURTHER)) {
+			// Make HUD 3D elements 5% further (and smaller)
+			if (g_Config.fHud3DCloser <= 0.05f)
+				g_Config.fHud3DCloser = 0;
+			else
+				g_Config.fHud3DCloser -= 0.05f;
+			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_2D_SCREEN_LARGER)) {
 			// Make everything 20% smaller (and closer)
@@ -1576,7 +1603,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-	if (!g_Config.BorderlessFullscreenEnabled() &&
+	if (g_Config.ExclusiveFullscreenEnabled() &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 		Core::GetState() == Core::CORE_PAUSE)
 	{
@@ -1603,7 +1630,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (g_Config.BorderlessFullscreenEnabled() ||
+	else if (!g_Config.ExclusiveFullscreenEnabled() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
@@ -1660,7 +1687,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = (g_Config.BorderlessFullscreenEnabled() ||
+	g_Config.bFullscreen = (!g_Config.ExclusiveFullscreenEnabled() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
 }
 

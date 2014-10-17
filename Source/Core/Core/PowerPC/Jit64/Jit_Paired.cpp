@@ -305,50 +305,77 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	int b = inst.FB;
 	int c = inst.FC;
 	int d = inst.FD;
+	bool fma = cpu_info.bFMA && !Core::g_want_determinism;
 	fpr.Lock(a,b,c,d);
 
-	switch (inst.SUBOP5)
+	if (fma)
+		fpr.BindToRegister(b, true, false);
+
+	if (inst.SUBOP5 == 14)
 	{
-	case 14: //madds0
 		MOVDDUP(XMM0, fpr.R(c));
 		Force25BitPrecision(XMM0, R(XMM0), XMM1);
-		MULPD(XMM0, fpr.R(a));
-		ADDPD(XMM0, fpr.R(b));
-		break;
-	case 15: //madds1
+	}
+	else if (inst.SUBOP5 == 15)
+	{
 		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, fpr.R(c), fpr.R(c), 3);
 		Force25BitPrecision(XMM0, R(XMM0), XMM1);
-		MULPD(XMM0, fpr.R(a));
-		ADDPD(XMM0, fpr.R(b));
-		break;
-	case 28: //msub
-		Force25BitPrecision(XMM0, fpr.R(c), XMM1);
-		MULPD(XMM0, fpr.R(a));
-		SUBPD(XMM0, fpr.R(b));
-		break;
-	case 29: //madd
-		Force25BitPrecision(XMM0, fpr.R(c), XMM1);
-		MULPD(XMM0, fpr.R(a));
-		ADDPD(XMM0, fpr.R(b));
-		break;
-	case 30: //nmsub
-		Force25BitPrecision(XMM0, fpr.R(c), XMM1);
-		MULPD(XMM0, fpr.R(a));
-		SUBPD(XMM0, fpr.R(b));
-		PXOR(XMM0, M((void*)&psSignBits));
-		break;
-	case 31: //nmadd
-		Force25BitPrecision(XMM0, fpr.R(c), XMM1);
-		MULPD(XMM0, fpr.R(a));
-		ADDPD(XMM0, fpr.R(b));
-		PXOR(XMM0, M((void*)&psSignBits));
-		break;
-	default:
-		_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");
-		//FallBackToInterpreter(inst);
-		//fpr.UnlockAll();
-		return;
 	}
+	else
+	{
+		Force25BitPrecision(XMM0, fpr.R(c), XMM1);
+	}
+
+	if (fma)
+	{
+		switch (inst.SUBOP5)
+		{
+		case 14: //madds0
+		case 15: //madds1
+		case 29: //madd
+			VFMADD132PD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		case 28: //msub
+			VFMSUB132PD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		case 30: //nmsub
+			VFNMADD132PD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		case 31: //nmadd
+			VFNMSUB132PD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		}
+	}
+	else
+	{
+		switch (inst.SUBOP5)
+		{
+		case 14: //madds0
+		case 15: //madds1
+		case 29: //madd
+			MULPD(XMM0, fpr.R(a));
+			ADDPD(XMM0, fpr.R(b));
+			break;
+		case 28: //msub
+			MULPD(XMM0, fpr.R(a));
+			SUBPD(XMM0, fpr.R(b));
+			break;
+		case 30: //nmsub
+			MULPD(XMM0, fpr.R(a));
+			SUBPD(XMM0, fpr.R(b));
+			PXOR(XMM0, M((void*)&psSignBits));
+			break;
+		case 31: //nmadd
+			MULPD(XMM0, fpr.R(a));
+			ADDPD(XMM0, fpr.R(b));
+			PXOR(XMM0, M((void*)&psSignBits));
+			break;
+		default:
+			_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");
+			return;
+		}
+	}
+
 	fpr.BindToRegister(d, false);
 	ForceSinglePrecisionP(fpr.RX(d), XMM0);
 	SetFPRFIfNeeded(inst, fpr.RX(d));

@@ -175,8 +175,8 @@ void Jit64::Init()
 {
 	jo.optimizeStack = true;
 	jo.enableBlocklink = true;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking ||
-		 SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;
@@ -221,6 +221,8 @@ void Jit64::ClearCache()
 {
 	blocks.Clear();
 	trampolines.ClearCodeSpace();
+	jit->js.pcAtLoc.clear();
+	jit->js.registersInUseAtLoc.clear();
 	farcode.ClearCodeSpace();
 	ClearCodeSpace();
 	m_clear_cache_asap = false;
@@ -603,6 +605,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
 		js.instructionNumber = i;
+		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
 
@@ -737,7 +740,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			for (int k = 0; k < 3 && gpr.NumFreeRegisters() >= 2; k++)
 			{
 				int reg = ops[i].regsIn[k];
-				if (reg >= 0 && (ops[i].gprInUse & (1 << reg)) && !gpr.R(reg).IsImm())
+				if (reg >= 0 && (ops[i].gprInReg & (1 << reg)) && !gpr.R(reg).IsImm())
 					gpr.BindToRegister(reg, true, false);
 			}
 			for (int k = 0; k < 4 && fpr.NumFreeRegisters() >= 2; k++)

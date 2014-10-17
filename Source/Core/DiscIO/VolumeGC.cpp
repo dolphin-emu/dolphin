@@ -161,7 +161,7 @@ bool CVolumeGC::IsDiscTwo() const
 	return discTwo;
 }
 
-auto CVolumeGC::GetStringDecoder(ECountry country) -> StringDecoder
+CVolumeGC::StringDecoder CVolumeGC::GetStringDecoder(ECountry country)
 {
 	return (COUNTRY_JAPAN == country || COUNTRY_TAIWAN == country) ?
 		SHIFTJISToUTF8 : CP1252ToUTF8;

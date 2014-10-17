@@ -384,7 +384,7 @@ void CCodeWindow::UpdateCallstack()
 }
 
 // Create CPU Mode menus
-void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenu(const SCoreStartupParameter& core_startup_parameter, wxMenuBar *pMenuBar)
 {
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
@@ -394,10 +394,10 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps."),
 		wxITEM_CHECK);
-	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
+	interpreter->Check(core_startup_parameter.iCPUCore == SCoreStartupParameter::CORE_INTERPRETER);
 	pCoreMenu->AppendSeparator();
 
-	pCoreMenu->Append(IDM_JITBLOCKLINKING, _("&JIT Block Linking off"),
+	pCoreMenu->Append(IDM_JITNOBLOCKLINKING, _("&JIT Block Linking off"),
 		_("Provide safer execution by not linking the JIT blocks."),
 		wxITEM_CHECK);
 
@@ -596,9 +596,9 @@ bool CCodeWindow::JITNoBlockCache()
 	return GetMenuBar()->IsChecked(IDM_JITNOBLOCKCACHE);
 }
 
-bool CCodeWindow::JITBlockLinking()
+bool CCodeWindow::JITNoBlockLinking()
 {
-	return GetMenuBar()->IsChecked(IDM_JITBLOCKLINKING);
+	return GetMenuBar()->IsChecked(IDM_JITNOBLOCKLINKING);
 }
 
 // Toolbar

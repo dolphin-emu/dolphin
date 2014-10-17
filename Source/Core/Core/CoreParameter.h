@@ -118,6 +118,8 @@ enum VRFreelook
 	VR_HUD_BACKWARD,
 	VR_HUD_THICKER,
 	VR_HUD_THINNER,
+	VR_HUD_3D_CLOSER,
+	VR_HUD_3D_FURTHER,
 
 	VR_2D_SCREEN_LARGER,
 	VR_2D_SCREEN_SMALLER,
@@ -154,14 +156,18 @@ struct SCoreStartupParameter
 	bool bAutomaticStart;
 	bool bBootToPause;
 
-	// 0 = Interpreter
-	// 1 = Jit
-	// 2 = JitIL
-	// 3 = JIT ARM
+	enum
+	{
+		CORE_INTERPRETER,
+		CORE_JIT64,
+		CORE_JITIL64,
+		CORE_JITARM,
+		CORE_JITARM64
+	};
 	int iCPUCore;
 
 	// JIT (shared between JIT and JITIL)
-	bool bJITNoBlockCache, bJITBlockLinking;
+	bool bJITNoBlockCache, bJITNoBlockLinking;
 	bool bJITOff;
 	bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
 	bool bJITLoadStoreFloatingOff;
@@ -196,7 +202,6 @@ struct SCoreStartupParameter
 
 	bool bMMU;
 	bool bDCBZOFF;
-	bool bTLBHack;
 	int iBBDumpPort;
 	bool bVBeamSpeedHack;
 	bool bSyncGPU;

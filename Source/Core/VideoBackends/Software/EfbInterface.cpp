@@ -437,12 +437,6 @@ namespace EfbInterface
 		{
 			SetPixelAlphaOnly(offset, dstClrPtr[ALP_C]);
 		}
-
-		// branchless bounding box update
-		PixelEngine::bbox[0] = std::min(x, PixelEngine::bbox[0]);
-		PixelEngine::bbox[1] = std::max(x, PixelEngine::bbox[1]);
-		PixelEngine::bbox[2] = std::min(y, PixelEngine::bbox[2]);
-		PixelEngine::bbox[3] = std::max(y, PixelEngine::bbox[3]);
 	}
 
 	void SetColor(u16 x, u16 y, u8 *color)

@@ -176,8 +176,11 @@ void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFe
 std::string GetInputDisplay();
 
 // Done this way to avoid mixing of core and gui code
-typedef void(*ManipFunction)(GCPadStatus*, int);
+typedef void(*GCManipFunction)(GCPadStatus*, int);
+typedef void(*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int);
 
-void SetInputManip(ManipFunction);
-void CallInputManip(GCPadStatus* PadStatus, int controllerID);
+void SetGCInputManip(GCManipFunction);
+void SetWiiInputManip(WiiManipFunction);
+void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
+void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID);
 }

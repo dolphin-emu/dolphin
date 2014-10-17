@@ -19,6 +19,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
@@ -36,6 +37,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -97,7 +99,7 @@ Renderer::~Renderer()
 	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
 #if defined _WIN32 || defined HAVE_LIBAV
-	if (g_ActiveConfig.bDumpFrames && bLastFrameDumped && bAVIDumping)
+	if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
 		AVIDump::Stop();
 #else
 	if (pFrameDump.IsOpen())
@@ -516,6 +518,7 @@ void Renderer::RecordVideoMemory()
 
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
+	g_final_screen_region = rc;
 	// TODO: merge more generic parts into VideoCommon
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
 

@@ -65,6 +65,62 @@ float vr_widest_3d_HFOV = 0;
 float vr_widest_3d_VFOV = 0;
 float vr_widest_3d_zNear = 0;
 float vr_widest_3d_zFar = 0;
+EFBRectangle g_final_screen_region = EFBRectangle(0, 0, 640, 528);
+enum ViewportType {
+	VIEW_FULLSCREEN = 0,
+	VIEW_LETTERBOXED,
+	VIEW_HUD_ELEMENT,
+	VIEW_SKYBOX,
+	VIEW_PLAYER_1,
+	VIEW_PLAYER_2,
+	VIEW_PLAYER_3,
+	VIEW_PLAYER_4,
+	VIEW_OFFSCREEN,
+};
+enum ViewportType g_viewport_type = VIEW_FULLSCREEN, g_old_viewport_type = VIEW_FULLSCREEN;
+enum SplitScreenType {
+	SS_FULLSCREEN = 0,
+	SS_2_PLAYER_SIDE_BY_SIDE,
+	SS_2_PLAYER_OVER_UNDER,
+	SS_QUADRANTS,
+	SS_3_PLAYER_TOP,
+	SS_3_PLAYER_LEFT,
+	SS_3_PLAYER_RIGHT,
+	SS_3_PLAYER_BOTTOM,
+	SS_3_PLAYER_COLUMNS,
+	SS_CUSTOM
+};
+enum SplitScreenType g_splitscreen_type = SS_FULLSCREEN, g_old_splitscreen_type = SS_FULLSCREEN;
+bool g_is_skybox = false;
+
+const char *GetViewportTypeName(ViewportType v)
+{
+	if (g_is_skybox)
+		return "Skybox";
+	switch (v)
+	{
+	case VIEW_FULLSCREEN:
+		return "Fullscreen";
+	case VIEW_LETTERBOXED:
+		return "Letterboxed";
+	case VIEW_HUD_ELEMENT:
+		return "HUD element";
+	case VIEW_OFFSCREEN:
+		return "Offscreen";
+	case VIEW_PLAYER_1:
+		return "Player 1";
+	case VIEW_PLAYER_2:
+		return "Player 2";
+	case VIEW_PLAYER_3:
+		return "Player 3";
+	case VIEW_PLAYER_4:
+		return "Player 4";
+	case VIEW_SKYBOX:
+		return "Skybox";
+	default:
+		return "Error";
+	}
+}
 
 #pragma optimize("", off)
 
@@ -87,8 +143,207 @@ void ClearDebugProj() { //VR
 	NewMetroidFrame();
 }
 
-void DoLogViewport(int j, Viewport &v) { //VR
-	NOTICE_LOG(VR, "  Viewport %d: (%g,%g) %gx%g; near=%g, far=%g", j, v.xOrig - v.wd - 342, v.yOrig + v.ht - 342, 2 * v.wd, -2 * v.ht, (v.farZ - v.zRange) / 16777216.0f, v.farZ / 16777216.0f);
+void SetViewportType(Viewport &v)
+{
+	// VR
+	g_old_viewport_type = g_viewport_type;
+	float left, top, width, height;
+	left = v.xOrig - v.wd - 342;
+	top = v.yOrig + v.ht - 342;
+	width  =  2 * v.wd;
+	height = -2 * v.ht;
+	float screen_width = (float)g_final_screen_region.GetWidth();
+	float screen_height = (float)g_final_screen_region.GetHeight();
+	float min_screen_width = 0.90f * screen_width;
+	float min_screen_height = 0.90f * screen_height;
+	float max_top = screen_height - min_screen_height;
+	float max_left = screen_width - min_screen_width;
+
+	if (width >= min_screen_width)
+	{
+		if (left <= max_left)
+		{
+			if (height >= min_screen_height)
+			{
+				if (top <= max_top)
+				{
+					if (width == screen_width && height == screen_height)
+						g_viewport_type = VIEW_FULLSCREEN;
+					else
+						g_viewport_type = VIEW_LETTERBOXED;
+				}
+				else
+				{
+					g_viewport_type = VIEW_OFFSCREEN;
+				}
+			}
+			else if (height >= min_screen_height / 2 && height <= screen_height / 2)
+			{
+				if (top <= max_top)
+				{
+					// 2 Player Split Screen, top half
+					g_viewport_type = VIEW_PLAYER_1;
+					if (g_splitscreen_type != SS_3_PLAYER_TOP)
+						g_splitscreen_type = SS_2_PLAYER_SIDE_BY_SIDE;
+				}
+				else if (top >= height && top <= height + max_top)
+				{
+					// 2 Player Split Screen, bottom half
+					if (g_splitscreen_type != SS_3_PLAYER_BOTTOM)
+					{
+						g_splitscreen_type = SS_2_PLAYER_OVER_UNDER;
+						g_viewport_type = VIEW_PLAYER_2;
+					}
+					else
+					{
+						// 3 Player Split Screen, bottom half
+						g_viewport_type = VIEW_PLAYER_3;
+					}
+				}
+				else
+				{
+					// band across middle of screen
+					g_viewport_type = VIEW_HUD_ELEMENT;
+				}
+			}
+			else
+			{
+				// band across middle of screen
+				g_viewport_type = VIEW_HUD_ELEMENT;
+			}
+		}
+		else
+		{
+			g_viewport_type = VIEW_OFFSCREEN;
+		}
+	}
+	else if (height >= min_screen_height)
+	{
+		if (top <= max_top)
+		{
+			if (width >= min_screen_width / 2)
+			{
+				if (left <= max_left)
+				{
+					// 2 Player Split Screen, left half
+					g_viewport_type = VIEW_PLAYER_1;
+					if (g_splitscreen_type != SS_3_PLAYER_LEFT)
+						g_splitscreen_type = SS_2_PLAYER_SIDE_BY_SIDE;
+				}
+				else if (left >= width)
+				{
+					if (g_splitscreen_type != SS_3_PLAYER_RIGHT)
+					{
+						// 2 Player Split Screen, right half
+						g_viewport_type = VIEW_PLAYER_2;
+						g_splitscreen_type = SS_2_PLAYER_SIDE_BY_SIDE;
+					}
+					else
+					{
+						// 3 Player Split Screen, right half
+						g_viewport_type = VIEW_PLAYER_3;
+					}
+				}
+				else
+				{
+					// column down middle of screen
+					g_viewport_type = VIEW_HUD_ELEMENT;
+				}
+			}
+			else
+			{
+				// column down middle of screen
+				g_viewport_type = VIEW_HUD_ELEMENT;
+			}
+		}
+		else
+		{
+			g_viewport_type = VIEW_OFFSCREEN;
+		}
+	}
+	// Quadrants
+	else if (width >= (min_screen_width / 2) && height >= (min_screen_height / 2)
+	          && width <= (screen_width / 2) && height <= (screen_height / 2))
+	{
+		// top left
+		if (left <= max_left && top <= max_top)
+		{
+			g_viewport_type = VIEW_PLAYER_1;
+			if (g_splitscreen_type != SS_3_PLAYER_RIGHT && g_splitscreen_type != SS_3_PLAYER_BOTTOM)
+			{
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		// top right
+		else if (left >= width && top <= max_top)
+		{
+			g_viewport_type = VIEW_PLAYER_2;
+			if (g_splitscreen_type != SS_3_PLAYER_LEFT && g_splitscreen_type != SS_3_PLAYER_BOTTOM)
+			{
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		// bottom left
+		else if (left <= max_left && top >= height)
+		{
+			if (g_splitscreen_type == SS_3_PLAYER_RIGHT || g_splitscreen_type == SS_3_PLAYER_TOP)
+			{
+				g_viewport_type = VIEW_PLAYER_2;
+			}
+			else
+			{
+				g_viewport_type = VIEW_PLAYER_3;
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		// bottom right
+		else if (left >= width && top >= height)
+		{
+			if (g_splitscreen_type == SS_3_PLAYER_LEFT || g_splitscreen_type == SS_3_PLAYER_TOP)
+			{
+				g_viewport_type = VIEW_PLAYER_3;
+			}
+			else
+			{
+				g_viewport_type = VIEW_PLAYER_4;
+				g_splitscreen_type = SS_QUADRANTS;
+			}
+		}
+		else
+		{
+			g_viewport_type = VIEW_HUD_ELEMENT;
+		}
+	}
+	else if (left >= g_final_screen_region.right || top >= g_final_screen_region.bottom || left+width <= g_final_screen_region.left || top+height <= g_final_screen_region.top)
+	{
+		g_viewport_type = VIEW_OFFSCREEN;
+	}
+	else
+	{
+		g_viewport_type = VIEW_HUD_ELEMENT;
+	}
+	if (g_viewport_type == VIEW_FULLSCREEN || g_viewport_type == VIEW_LETTERBOXED || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4))
+	{
+		// check if it is a skybox
+		float znear = (v.farZ - v.zRange) / 16777216.0f;
+		float zfar = v.farZ / 16777216.0f;
+		
+		if (znear >= 0.99f && zfar >= 0.999f)
+			g_is_skybox = true;
+		else
+			g_is_skybox = false;
+	}
+	else
+	{
+		g_is_skybox = false;
+	}
+}
+
+void DoLogViewport(int j, Viewport &v)
+{
+	//VR
+	NOTICE_LOG(VR, "  Viewport %d: %s (%g,%g) %gx%g; near=%g (%g), far=%g (%g)", j, GetViewportTypeName(g_viewport_type), v.xOrig - v.wd - 342, v.yOrig + v.ht - 342, 2 * v.wd, -2 * v.ht, (v.farZ - v.zRange) / 16777216.0f, v.farZ - v.zRange, v.farZ / 16777216.0f, v.farZ);
+	NOTICE_LOG(VR, "      copyTexSrc (%d,%d) %dx%d", g_final_screen_region.left, g_final_screen_region.top, g_final_screen_region.GetWidth(), g_final_screen_region.GetHeight());
 }
 
 void DoLogProj(int j, float p[], const char *s) { //VR
@@ -375,6 +630,10 @@ void VertexShaderManager::Init()
 	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
 	for (int i = 0; i < 4; ++i)
 		g_fProjectionMatrix[i*5] = 1.0f;
+	g_viewport_type = VIEW_FULLSCREEN;
+	g_old_viewport_type = VIEW_FULLSCREEN;
+	g_splitscreen_type = SS_FULLSCREEN;
+	g_old_splitscreen_type = SS_FULLSCREEN;
 }
 
 void VertexShaderManager::Shutdown()
@@ -576,6 +835,8 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
+		// VR, Check whether it is a skybox, fullscreen, letterboxed, splitscreen multiplayer, hud element, or offscreen
+		SetViewportType(xfmem.viewport);
 		LogViewport(xfmem.viewport);
 		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
 		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
@@ -593,12 +854,16 @@ void VertexShaderManager::SetConstants()
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
+		// VR adjust the projection matrix for the new kind of viewport
+		if (g_viewport_type != g_old_viewport_type && !bProjectionChanged)
+			SetProjectionConstants();
 
 		// Update projection if the viewport isn't 1:1 useable
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			bProjectionChanged = true;
+			if (!bProjectionChanged)
+				SetProjectionConstants();
 		}
 	}
 
@@ -629,6 +894,9 @@ void VertexShaderManager::SetProjectionConstants()
 			&fScaleHack, &fWidthHack, &fHeightHack, &fUpHack, &fRightHack);
 	}
 
+	// VR: in split-screen, only draw VR player TODO: fix offscreen to render to a separate texture in VR 
+	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4 && g_ActiveConfig.iVRPlayer!=g_viewport_type-VIEW_PLAYER_1)));
+	// flash selected layer for debugging
 	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
 
 	// Split WidthHack and HeightHack into left and right versions for telescopes
@@ -787,7 +1055,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float zfar, znear, zNear3D, hfov, vfov;
 
 		// Real 3D scene
-		if (xfmem.projection.type == GX_PERSPECTIVE)
+		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
 			zfar = p[5] / p[4];
 			znear = (1 + p[5]) / p[4];
@@ -802,6 +1070,7 @@ void VertexShaderManager::SetProjectionConstants()
 			// znear *= 0.3f;
 		}
 		// 2D layer we will turn into a 3D scene
+		// or 3D HUD element that we will treat like a part of the 2D HUD 
 		else
 		{
 			if (vr_widest_3d_HFOV > 0) {
@@ -821,6 +1090,7 @@ void VertexShaderManager::SetProjectionConstants()
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 9.0f / 16.0f); // 2D screen is meant to be 16:9 aspect ratio
 				else
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 3.0f / 4.0f); //  2D screen is meant to be 4:3 aspect ratio, make it the same width but taller
+				// TODO: fix aspect ratio in virtual console games
 				if (debug_newScene)
 					ERROR_LOG(VR, "Only 2D Projecting: %g x %g, n=%fm f=%fm", hfov, vfov, znear, zfar);
 			}
@@ -843,7 +1113,12 @@ void VertexShaderManager::SetProjectionConstants()
 			g_fProjectionMatrix[10] = -znear / (zfar - znear);
 			g_fProjectionMatrix[11] = -zfar*znear / (zfar - znear);
 			if (debug_newScene)
-				WARN_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+			{
+				if (xfmem.projection.type == GX_PERSPECTIVE)
+					WARN_LOG(VR, "3D HUD: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+				else
+					WARN_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+			}
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
@@ -978,7 +1253,7 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 
 		Matrix44 walk_matrix, look_matrix;
-		if (bStuckToHead)
+		if (bStuckToHead || g_is_skybox)
 		{
 			Matrix44::LoadIdentity(walk_matrix);
 		}
@@ -1004,25 +1279,25 @@ void VertexShaderManager::SetProjectionConstants()
 				pos[i] += s_fViewTranslationVector[i] * UnitsPerMetre;
 			if (!bNoForward)
 				pos[2] += g_ActiveConfig.fCameraForward * UnitsPerMetre;
-			static int x = 0;
-			x++;
+			//static int x = 0;
+			//x++;
 			Matrix44::Translate(walk_matrix, pos);
-			if (x>100)
-			{
-				x = 0;
-				//			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
-				INFO_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
-			}
+			//if (x>100)
+			//{
+			//	x = 0;
+			//	//			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+			//	INFO_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+			//}
 		}
 
-		if (xfmem.projection.type == GX_PERSPECTIVE)
+		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
 			if (debug_newScene)
 				INFO_LOG(VR, "3D: do normally");
 			Matrix44::Multiply(rotation_matrix, walk_matrix, look_matrix);
 		}
 		else
-		if (xfmem.projection.type != GX_PERSPECTIVE)
+		if (xfmem.projection.type != GX_PERSPECTIVE || g_viewport_type == VIEW_HUD_ELEMENT || g_viewport_type == VIEW_OFFSCREEN)
 		{
 			if (debug_newScene)
 				INFO_LOG(VR, "2D: hacky test");
@@ -1059,47 +1334,133 @@ void VertexShaderManager::SetProjectionConstants()
 				AimDistance = g_ActiveConfig.fAimDistance * UnitsPerMetre;
 				if (AimDistance <= 0)
 					AimDistance = HudDistance;
+				// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
+				// Note: the HUD won't line up exactly (except at AimDistance) if CameraForward is non-zero 
+				//float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
+				//float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
 				HudWidth = 2.0f * tanf(DEGREES_TO_RADIANS(hfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
 				HudHeight = 2.0f * tanf(DEGREES_TO_RADIANS(vfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
 			}
 
-
-
-			// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
-			// Note: the HUD won't line up exactly (except at AimDistance) if CameraForward is non-zero 
-			//float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
-			//float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
-
-			float left2D = -(rawProjection[1] + 1) / rawProjection[0];
-			float right2D = left2D + 2 / rawProjection[0];
-			float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
-			float top2D = bottom2D + 2 / rawProjection[2];
-			float zFar2D = rawProjection[5] / rawProjection[4];
-			float zNear2D = (1 + rawProjection[4] * zFar2D) / rawProjection[4];
-
 			float scale[3]; // width, height, and depth of box in game units divided by 2D width, height, and depth 
 			float position[3]; // position of front of box relative to the camera, in game units 
-			if (rawProjection[0] == 0 || right2D == left2D) {
-				scale[0] = 0;
+
+			float viewport_scale[2];
+			float viewport_offset[2]; // offset as a fraction of the viewport's width
+			if (g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
+			{
+				viewport_scale[0] = 1.0f;
+				viewport_scale[1] = 1.0f;
+				viewport_offset[0] = 0.0f;
+				viewport_offset[1] = 0.0f;
 			}
-			else {
-				scale[0] = HudWidth / (right2D - left2D);
+			else
+			{
+				Viewport &v = xfmem.viewport;
+				float left, top, width, height;
+				left = v.xOrig - v.wd - 342;
+				top = v.yOrig + v.ht - 342;
+				width = 2 * v.wd;
+				height = -2 * v.ht;
+				float screen_width = (float)g_final_screen_region.GetWidth();
+				float screen_height = (float)g_final_screen_region.GetHeight();
+				viewport_scale[0] = width / screen_width;
+				viewport_scale[1] = height / screen_height;
+				viewport_offset[0] = ((left + (width / 2)) - (0 + (screen_width / 2))) / screen_width;
+				viewport_offset[1] = -((top + (height / 2)) - (0 + (screen_height / 2))) / screen_height;
 			}
-			if (rawProjection[2] == 0 || top2D == bottom2D) {
-				scale[1] = 0;
+
+			// 3D HUD elements (may be part of 2D screen or HUD)
+			if (xfmem.projection.type == GX_PERSPECTIVE)
+			{
+				// these are the edges of the near clipping plane in game coordinates
+				float left2D = -(rawProjection[1] + 1) / rawProjection[0];
+				float right2D = left2D + 2 / rawProjection[0];
+				float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
+				float top2D = bottom2D + 2 / rawProjection[2];
+				float zFar2D = rawProjection[5] / rawProjection[4];
+				float zNear2D = zFar2D*rawProjection[4] / (rawProjection[4] - 1);
+				float zObj = zNear2D + (zFar2D-zNear2D) * g_ActiveConfig.fHud3DCloser;
+
+				left2D *= zObj;
+				right2D *= zObj;
+				bottom2D *= zObj;
+				top2D *= zObj;
+
+				// Scale the width and height to fit the HUD in metres
+				if (rawProjection[0] == 0 || right2D == left2D) {
+					scale[0] = 0;
+				}
+				else {
+					scale[0] = viewport_scale[0] * HudWidth / (right2D - left2D);
+				}
+				if (rawProjection[2] == 0 || top2D == bottom2D) {
+					scale[1] = 0;
+				}
+				else {
+					scale[1] = viewport_scale[1] * HudHeight / (top2D - bottom2D); // note that positive means up in 3D
+				}
+				// Keep depth the same scale as width, so it looks like a real object
+				if (rawProjection[4] == 0 || zFar2D == zNear2D) {
+					scale[2] = scale[0];
+				}
+				else {
+					scale[2] = scale[0];
+				}
+				// Adjust the position for off-axis projection matrices, and shifting the 2D screen
+				position[0] = scale[0] * (-(right2D + left2D) / 2.0f) + viewport_offset[0] * HudWidth; // shift it right into the centre of the view
+				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + viewport_offset[1] * HudHeight + HudUp; // shift it up into the centre of the view;
+				// Shift it from the old near clipping plane to the HUD distance, and shift the camera forward
+				if (vr_widest_3d_HFOV <= 0)
+					position[2] = scale[2] * zObj - HudDistance;
+				else
+					position[2] = scale[2] * zObj - HudDistance - CameraForward;
+
+
+
 			}
-			else {
-				scale[1] = HudHeight / (top2D - bottom2D); // note that positive means up in 3D
+			// 2D layer, or 2D viewport (may be part of 2D screen or HUD)
+			else
+			{
+				float left2D = -(rawProjection[1] + 1) / rawProjection[0];
+				float right2D = left2D + 2 / rawProjection[0];
+				float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
+				float top2D = bottom2D + 2 / rawProjection[2];
+				float zFar2D, zNear2D;
+				zFar2D = rawProjection[5] / rawProjection[4];
+				zNear2D = (1 + rawProjection[4] * zFar2D) / rawProjection[4];
+
+				// for 2D, work out the fraction of the HUD we should fill, and multiply the scale by that
+				// also work out what fraction of the height we should shift it up, and what fraction of the width we should shift it left
+				// only multiply by the extra scale after adjusting the position?
+
+				if (rawProjection[0] == 0 || right2D == left2D) {
+					scale[0] = 0;
+				}
+				else {
+					scale[0] = viewport_scale[0] * HudWidth / (right2D - left2D);
+				}
+				if (rawProjection[2] == 0 || top2D == bottom2D) {
+					scale[1] = 0;
+				}
+				else {
+					scale[1] = viewport_scale[1] * HudHeight / (top2D - bottom2D); // note that positive means up in 3D
+				}
+				if (rawProjection[4] == 0 || zFar2D == zNear2D) {
+					scale[2] = 0; // The 2D layer was flat, so we make it flat instead of a box to avoid dividing by zero
+				}
+				else {
+					scale[2] = HudThickness / (zFar2D - zNear2D); // Scale 2D z values into 3D game units so it is the right thickness
+				}
+				position[0] = scale[0] * (-(right2D + left2D) / 2.0f) + viewport_offset[0] * HudWidth; // shift it right into the centre of the view
+				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + viewport_offset[1] * HudHeight + HudUp; // shift it up into the centre of the view;
+				// Shift it from the zero plane to the HUD distance, and shift the camera forward
+				if (vr_widest_3d_HFOV <= 0)
+					position[2] = -HudDistance;
+				else
+					position[2] = -HudDistance - CameraForward;
 			}
-			if (rawProjection[4] == 0 || zFar2D == zNear2D) {
-				scale[2] = 0; // The 2D layer was flat, so we make it flat instead of a box to avoid dividing by zero
-			}
-			else {
-				scale[2] = HudThickness / (zFar2D - zNear2D); // Scale 2D z values into 3D game units so it is the right thickness
-			}
-			position[0] = scale[0] * (-(right2D + left2D) / 2.0f); // shift it left into the centre of the view
-			position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + HudUp; // shift it up into the centre of the view;
-			position[2] = -HudDistance -CameraForward;
+
 			Matrix44 scale_matrix, position_matrix, box_matrix, temp_matrix;
 			Matrix44::Scale(scale_matrix, scale);
 			Matrix44::Translate(position_matrix, position);
@@ -1114,7 +1475,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
 #ifdef HAVE_OCULUSSDK
-		if (g_has_rift && !bTelescopeHUD)
+		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
 		{
 			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
 			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;

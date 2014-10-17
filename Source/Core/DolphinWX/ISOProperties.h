@@ -68,7 +68,7 @@ private:
 	DECLARE_EVENT_TABLE();
 
 	// Core
-	wxCheckBox *CPUThread, *SkipIdle, *MMU, *DCBZOFF, *TLBHack;
+	wxCheckBox *CPUThread, *SkipIdle, *MMU, *DCBZOFF;
 	wxCheckBox *VBeam, *SyncGPU, *FastDiscSpeed, *BlockMerging, *DSPHLE;
 	// Wii
 	wxCheckBox *EnableWideScreen;
@@ -99,6 +99,7 @@ private:
 	wxSpinCtrlDouble* UnitsPerMetre;
 	wxSpinCtrlDouble* HudDistance;
 	wxSpinCtrlDouble* HudThickness;
+	wxSpinCtrlDouble* Hud3DCloser;
 	wxSpinCtrlDouble* CameraForward;
 	wxSpinCtrlDouble* CameraPitch;
 	wxSpinCtrlDouble* AimDistance;
@@ -146,6 +147,7 @@ private:
 		ID_UNITS_PER_METRE,
 		ID_HUD_DISTANCE,
 		ID_HUD_THICKNESS,
+		ID_HUD_3D_CLOSER,
 		ID_CAMERA_FORWARD,
 		ID_CAMERA_PITCH,
 		ID_AIM_DISTANCE,
@@ -165,7 +167,6 @@ private:
 		ID_IDLESKIP,
 		ID_MMU,
 		ID_DCBZOFF,
-		ID_TLBHACK,
 		ID_VBEAM,
 		ID_SYNCGPU,
 		ID_DISCSPEED,

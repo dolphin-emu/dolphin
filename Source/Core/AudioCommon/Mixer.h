@@ -26,7 +26,8 @@ public:
 		, m_streaming_mixer(this, 48000)
 		, m_wiimote_speaker_mixer(this, 3000)
 		, m_sampleRate(BackendSampleRate)
-		, m_logAudio(0)
+		, m_log_dtk_audio(0)
+		, m_log_dsp_audio(0)
 		, m_speed(0)
 	{
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
@@ -48,32 +49,61 @@ public:
 	void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
 	void SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume);
 
-	virtual void StartLogAudio(const std::string& filename)
+	virtual void StartLogDTKAudio(const std::string& filename)
 	{
-		if (! m_logAudio)
+		if (!m_log_dtk_audio)
 		{
-			m_logAudio = true;
-			g_wave_writer.Start(filename, GetSampleRate());
-			g_wave_writer.SetSkipSilence(false);
-			NOTICE_LOG(DSPHLE, "Starting Audio logging");
+			m_log_dtk_audio = true;
+			g_wave_writer_dtk.Start(filename, 48000);
+			g_wave_writer_dtk.SetSkipSilence(false);
+			NOTICE_LOG(DSPHLE, "Starting DTK Audio logging");
 		}
 		else
 		{
-			WARN_LOG(DSPHLE, "Audio logging has already been started");
+			WARN_LOG(DSPHLE, "DTK Audio logging has already been started");
 		}
 	}
 
-	virtual void StopLogAudio()
+	virtual void StopLogDTKAudio()
 	{
-		if (m_logAudio)
+		if (m_log_dtk_audio)
 		{
-			m_logAudio = false;
-			g_wave_writer.Stop();
-			NOTICE_LOG(DSPHLE, "Stopping Audio logging");
+			m_log_dtk_audio = false;
+			g_wave_writer_dtk.Stop();
+			NOTICE_LOG(DSPHLE, "Stopping DTK Audio logging");
 		}
 		else
 		{
-			WARN_LOG(DSPHLE, "Audio logging has already been stopped");
+			WARN_LOG(DSPHLE, "DTK Audio logging has already been stopped");
+		}
+	}
+
+	virtual void StartLogDSPAudio(const std::string& filename)
+	{
+		if (!m_log_dsp_audio)
+		{
+			m_log_dsp_audio = true;
+			g_wave_writer_dsp.Start(filename, 32000);
+			g_wave_writer_dsp.SetSkipSilence(false);
+			NOTICE_LOG(DSPHLE, "Starting DSP Audio logging");
+		}
+		else
+		{
+			WARN_LOG(DSPHLE, "DSP Audio logging has already been started");
+		}
+	}
+
+	virtual void StopLogDSPAudio()
+	{
+		if (m_log_dsp_audio)
+		{
+			m_log_dsp_audio = false;
+			g_wave_writer_dsp.Stop();
+			NOTICE_LOG(DSPHLE, "Stopping DSP Audio logging");
+		}
+		else
+		{
+			WARN_LOG(DSPHLE, "DSP Audio logging has already been stopped");
 		}
 	}
 
@@ -118,9 +148,11 @@ protected:
 	MixerFifo m_wiimote_speaker_mixer;
 	unsigned int m_sampleRate;
 
-	WaveFileWriter g_wave_writer;
+	WaveFileWriter g_wave_writer_dtk;
+	WaveFileWriter g_wave_writer_dsp;
 
-	bool m_logAudio;
+	bool m_log_dtk_audio;
+	bool m_log_dsp_audio;
 
 	std::mutex m_csMixing;
 

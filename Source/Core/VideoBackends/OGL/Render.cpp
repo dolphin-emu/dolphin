@@ -769,9 +769,9 @@ void Renderer::DrawDebugInfo()
 			debug_info += " - ";
 		if (SConfig::GetInstance().m_ShowFrameCount)
 		{
-			debug_info += StringFromFormat("Frame: %lu", Movie::g_currentFrame);
+			debug_info += StringFromFormat("Frame: %llu", (unsigned long long) Movie::g_currentFrame);
 			if (Movie::IsPlayingInput())
-				debug_info += StringFromFormat(" / %lu", Movie::g_totalFrames);
+				debug_info += StringFromFormat(" / %llu", (unsigned long long) Movie::g_totalFrames);
 		}
 
 		debug_info += "\n";
@@ -1466,10 +1466,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
-		if (g_ActiveConfig.bDumpFrames && !data.empty())
-		{
-			AVIDump::AddFrame(&data[0], w, h);
-		}
+	if (SConfig::GetInstance().m_DumpFrames && !data.empty())
+	{
+		AVIDump::AddFrame(&data[0], w, h);
+	}
 #endif
 }
 
@@ -1529,7 +1529,7 @@ void Renderer::AsyncTimewarpDraw()
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 #if defined _WIN32 || defined HAVE_LIBAV
-		if (g_ActiveConfig.bDumpFrames)
+		if (SConfig::GetInstance().m_DumpFrames)
 		{
 			TargetRectangle flipped_trc = GetTargetRectangle();
 			if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
@@ -1894,7 +1894,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 #if defined _WIN32 || defined HAVE_LIBAV
-		if (g_ActiveConfig.bDumpFrames)
+		if (SConfig::GetInstance().m_DumpFrames)
 		{
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
@@ -1955,7 +1955,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			bLastFrameDumped = false;
 		}
 #else
-		if (g_ActiveConfig.bDumpFrames)
+		if (SConfig::GetInstance().m_DumpFrames)
 		{
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 			std::string movie_file_name;

@@ -299,7 +299,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
-	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
+	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM)) &&
+		jit->js.registersInUseAtLoc.find(jit->js.compilerPC) == jit->js.registersInUseAtLoc.end()
 #ifdef ENABLE_MEM_CHECK
 	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
 #endif
@@ -307,15 +308,15 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 
-		registersInUseAtLoc[mov] = registersInUse;
+		jit->js.pcAtLoc[mov] = jit->js.compilerPC;
+		jit->js.registersInUseAtLoc[jit->js.compilerPC] = registersInUse;
 	}
 	else
 	{
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-		{
-			mem_mask |= Memory::ADDR_MASK_MEM1;
-		}
+
+		// The following masks the region used by the GC/Wii virtual memory lib
+		mem_mask |= Memory::ADDR_MASK_MEM1;
 
 #ifdef ENABLE_MEM_CHECK
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
@@ -483,7 +484,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
-		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
+		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP)) &&
+		jit->js.registersInUseAtLoc.find(jit->js.compilerPC) == jit->js.registersInUseAtLoc.end()
 #ifdef ENABLE_MEM_CHECK
 	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
 #endif
@@ -497,8 +499,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 			NOP(padding);
 		}
 
-		registersInUseAtLoc[mov] = registersInUse;
-		pcAtLoc[mov] = jit->js.compilerPC;
+		jit->js.pcAtLoc[mov] = jit->js.compilerPC;
+		jit->js.registersInUseAtLoc[jit->js.compilerPC] = registersInUse;
 		return;
 	}
 
@@ -517,10 +519,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-	{
-		mem_mask |= Memory::ADDR_MASK_MEM1;
-	}
+	// The following masks the region used by the GC/Wii virtual memory lib
+	mem_mask |= Memory::ADDR_MASK_MEM1;
 
 #ifdef ENABLE_MEM_CHECK
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)

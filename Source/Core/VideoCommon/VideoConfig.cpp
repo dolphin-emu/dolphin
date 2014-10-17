@@ -62,11 +62,13 @@ VideoConfig::VideoConfig()
 	bSRGB = false;
 	bOverdrive = false;
 	bHqDistortion = false;
+	iVRPlayer = 0;
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
 	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
 	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
+	fHud3DCloser = DEFAULT_VR_HUD_3D_CLOSER;
 	fAimDistance = DEFAULT_VR_AIM_DISTANCE;
 	fScreenDistance = DEFAULT_VR_SCREEN_DISTANCE;
 	fScreenHeight = DEFAULT_VR_SCREEN_HEIGHT;
@@ -101,7 +103,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DumpTextures", &bDumpTextures, 0);
 	settings->Get("HiresTextures", &bHiresTextures, 0);
 	settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
-	settings->Get("DumpFrames", &bDumpFrames, 0);
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
 	settings->Get("AnaglyphStereo", &bAnaglyphStereo, false);
@@ -150,6 +151,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	vr->Get("sRGB", &bSRGB, false);
 	vr->Get("Overdrive", &bOverdrive, false);
 	vr->Get("HQDistortion", &bHqDistortion, false);
+	vr->Get("Player", &iVRPlayer, 0);
 
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -256,6 +258,7 @@ void VideoConfig::GameIniLoad()
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
 	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
+	fHud3DCloser = DEFAULT_VR_HUD_3D_CLOSER;
 	fCameraForward = DEFAULT_VR_CAMERA_FORWARD;
 	fCameraPitch = DEFAULT_VR_CAMERA_PITCH;
 	fAimDistance = DEFAULT_VR_AIM_DISTANCE;
@@ -278,6 +281,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
+	CHECK_SETTING("VR", "Hud3DCloser", fHud3DCloser);
 	CHECK_SETTING("VR", "CameraForward", fCameraForward);
 	CHECK_SETTING("VR", "CameraPitch", fCameraPitch);
 	CHECK_SETTING("VR", "AimDistance", fAimDistance);
@@ -331,6 +335,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
+	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, DEFAULT_VR_CAMERA_FORWARD);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)fAimDistance, DEFAULT_VR_AIM_DISTANCE);
@@ -349,7 +354,6 @@ void VideoConfig::VerifyValidity()
 	// TODO: Check iMaxAnisotropy value
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
-	if (!backend_info.bSupportsExclusiveFullscreen) bBorderlessFullscreen = false;
 }
 
 void VideoConfig::Save(const std::string& ini_file)
@@ -376,7 +380,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DumpTextures", bDumpTextures);
 	settings->Set("HiresTextures", bHiresTextures);
 	settings->Set("DumpEFBTarget", bDumpEFBTarget);
-	settings->Set("DumpFrames", bDumpFrames);
 	settings->Set("FreeLook", bFreeLook);
 	settings->Set("UseFFV1", bUseFFV1);
 	settings->Set("AnaglyphStereo", bAnaglyphStereo);
@@ -426,6 +429,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	vr->Set("sRGB", bSRGB);
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
+	vr->Set("Player", iVRPlayer);
 	iniFile.Save(ini_file);
 }
 
@@ -439,6 +443,7 @@ bool VideoConfig::VRSettingsModified()
 	return fUnitsPerMetre != g_SavedConfig.fUnitsPerMetre
 		|| fHudThickness != g_SavedConfig.fHudThickness
 		|| fHudDistance != g_SavedConfig.fHudDistance
+		|| fHud3DCloser != g_SavedConfig.fHud3DCloser
 		|| fCameraForward != g_SavedConfig.fCameraForward
 		|| fCameraPitch != g_SavedConfig.fCameraPitch
 		|| fAimDistance != g_SavedConfig.fAimDistance

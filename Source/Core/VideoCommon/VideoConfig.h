@@ -96,7 +96,6 @@ struct VideoConfig final
 	bool bDumpTextures;
 	bool bHiresTextures;
 	bool bDumpEFBTarget;
-	bool bDumpFrames;
 	bool bUseFFV1;
 	bool bFreeLook;
 	bool bAnaglyphStereo;
@@ -141,11 +140,13 @@ struct VideoConfig final
 	bool bSRGB;
 	bool bOverdrive;
 	bool bHqDistortion;
+	int iVRPlayer;
 
 	// VR
 	float fUnitsPerMetre;
 	float fHudThickness;
 	float fHudDistance;
+	float fHud3DCloser;
 	float fCameraForward;
 	float fCameraPitch;
 	float fAimDistance;
@@ -195,7 +196,7 @@ struct VideoConfig final
 	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
 	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
 	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
-	bool BorderlessFullscreenEnabled() const { return !backend_info.bSupportsExclusiveFullscreen || bBorderlessFullscreen; }
+	bool ExclusiveFullscreenEnabled() const { return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen; }
 };
 
 extern VideoConfig g_Config;

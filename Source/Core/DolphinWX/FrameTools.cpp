@@ -83,6 +83,8 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoBackends/Software/SWVideoConfig.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
@@ -218,6 +220,11 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show frame counter"));
 	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
 	movieMenu->Check(IDM_RECORDREADONLY, true);
+	movieMenu->AppendSeparator();
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump frames"));
+	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, SConfig::GetInstance().m_DumpFrames);
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump audio"));
+	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
 	menubar->Append(movieMenu, _("&Movie"));
 
 	// Options menu
@@ -493,7 +500,7 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 
 		case HK_LOAD_STATE_SLOT_SELECTED:
-			Label = _("load state from selected slot");
+			Label = _("Load state from selected slot");
 			break;
 
 		case HK_SELECT_STATE_SLOT_1:
@@ -647,14 +654,14 @@ void CFrame::BootGame(const std::string& filename)
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
 		else if (!StartUp.m_strDefaultGCM.empty() &&
-		         wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+		         File::Exists(StartUp.m_strDefaultGCM))
 		{
 			bootfile = StartUp.m_strDefaultGCM;
 		}
 		else
 		{
 			if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			    wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			    File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				bootfile = SConfig::GetInstance().m_LastFilename;
 			}
@@ -722,10 +729,17 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 
 	for (int i = 0; i < 4; ++i)
 	{
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+		if (SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_NONE && SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_GC_GBA)
 		{
+			g_TASInputDlg[i]->CreateGCLayout();
 			g_TASInputDlg[i]->Show(true);
 			g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
+		}
+		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
+		{
+			g_TASInputDlg[i+4]->CreateWiiLayout();
+			g_TASInputDlg[i+4]->Show(true);
+			g_TASInputDlg[i+4]->SetTitle("TAS Input - Wiimote " + number[i]);
 		}
 	}
 }
@@ -734,6 +748,17 @@ void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_PauseMovie = !SConfig::GetInstance().m_PauseMovie;
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnToggleDumpFrames(wxCommandEvent& WXUNUSED(event))
+{
+	SConfig::GetInstance().m_DumpFrames = !SConfig::GetInstance().m_DumpFrames;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnToggleDumpAudio(wxCommandEvent& WXUNUSED(event))
+{
+	SConfig::GetInstance().m_DumpAudio = !SConfig::GetInstance().m_DumpAudio;
 }
 
 void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
@@ -1145,7 +1170,7 @@ void CFrame::DoStop()
 
 			// If exclusive fullscreen is not enabled then we can pause the emulation
 			// before we've exited fullscreen. If not then we need to exit fullscreen first.
-			if (!RendererIsFullscreen() || g_Config.BorderlessFullscreenEnabled() ||
+			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
 				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			{
 				Core::SetState(Core::CORE_PAUSE);
@@ -1175,12 +1200,12 @@ void CFrame::DoStop()
 				this,
 				_("Do you want to save these VR settings for this game?")
 				+ wxString::Format("\n3D: %5.2f units per metre,"
-					"\nHUD %5.1fm away, %5.1fm thick, aim distance %5.1fm"
+					"\nHUD %5.1fm away, %5.1fm thick, 3D HUD %5.2f closer, aim distance %5.1fm"
 					"\nCamera %5.1fm forward, %5.0f degrees up."
 					"\n\n2D: Screen is %5.1fm high, %5.1fm away, %5.1fm thick, %5.1fm up"
 					"\n2D Camera %5.0f degrees up.",
 					g_Config.fUnitsPerMetre, 
-					g_Config.fHudDistance, g_Config.fHudThickness, g_Config.fAimDistance, 
+					g_Config.fHudDistance, g_Config.fHudThickness, g_Config.fHud3DCloser, g_Config.fAimDistance, 
 					g_Config.fCameraForward, g_Config.fCameraPitch,
 					g_Config.fScreenHeight, g_Config.fScreenDistance, g_Config.fScreenThickness, g_Config.fScreenUp,
 					g_Config.fScreenPitch),
@@ -1872,7 +1897,7 @@ void CFrame::UpdateGUI()
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			         wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			         File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
