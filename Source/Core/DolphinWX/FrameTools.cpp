@@ -1512,10 +1512,10 @@ void CFrame::UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem)
 	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
 	if (SysMenu_Loader.IsValid())
 	{
-		int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
-		char sysmenuRegion = SysMenu_Loader.GetCountryChar();
+		int sys_menu_version = SysMenu_Loader.GetTitleVersion();
+		char sys_menu_region = SysMenu_Loader.GetCountryChar();
 		WiiMenuItem->Enable();
-		WiiMenuItem->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+		WiiMenuItem->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sys_menu_version, sys_menu_region));
 	}
 	else
 	{
