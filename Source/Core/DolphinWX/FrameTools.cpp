@@ -62,7 +62,6 @@
 #include "DiscIO/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
-#include "DolphinWX/CheatsWindow.h"
 #include "DolphinWX/ConfigMain.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/Frame.h"
@@ -78,6 +77,7 @@
 #include "DolphinWX/WiimoteConfigDiag.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
