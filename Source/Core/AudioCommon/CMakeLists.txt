@@ -11,11 +11,6 @@ if(ANDROID)
 	set(LIBS ${LIBS} OpenSLES)
 endif(ANDROID)
 
-if(ALSA_FOUND)
-	set(SRCS ${SRCS} AlsaSoundStream.cpp)
-	set(LIBS ${LIBS} ${ALSA_LIBRARIES})
-endif(ALSA_FOUND)
-
 if(AO_FOUND)
 	set(SRCS ${SRCS} AOSoundStream.cpp)
 	set(LIBS ${LIBS} ${AO_LIBRARIES})

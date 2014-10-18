@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 
-#include "AudioCommon/AlsaSoundStream.h"
 #include "AudioCommon/AOSoundStream.h"
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/CoreAudioSoundStream.h"
@@ -47,8 +46,6 @@ namespace AudioCommon
 		}
 		else if (backend == BACKEND_AOSOUND     && AOSound::isValid())
 			g_sound_stream = new AOSound(mixer);
-		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
-			g_sound_stream = new AlsaSound(mixer);
 		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid())
 			g_sound_stream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
@@ -109,8 +106,6 @@ namespace AudioCommon
 			backends.push_back(BACKEND_XAUDIO2);
 		if (AOSound::isValid())
 			backends.push_back(BACKEND_AOSOUND);
-		if (AlsaSound::isValid())
-			backends.push_back(BACKEND_ALSA);
 		if (CoreAudioSound::isValid())
 			backends.push_back(BACKEND_COREAUDIO);
 		if (PulseAudio::isValid())

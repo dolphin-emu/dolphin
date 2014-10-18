@@ -49,7 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aldlist.h" />
-    <ClInclude Include="AlsaSoundStream.h" />
     <ClInclude Include="AOSoundStream.h" />
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="CoreAudioSoundStream.h" />

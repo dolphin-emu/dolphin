@@ -55,9 +55,6 @@
     <ClInclude Include="CoreAudioSoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
-    <ClInclude Include="AlsaSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

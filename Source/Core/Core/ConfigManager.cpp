@@ -563,9 +563,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
-#if defined __linux__ && HAVE_ALSA
-	dsp->Get("Backend", &sBackend, BACKEND_ALSA);
-#elif defined __APPLE__
+#if defined __APPLE__
 	dsp->Get("Backend", &sBackend, BACKEND_COREAUDIO);
 #elif defined _WIN32
 	dsp->Get("Backend", &sBackend, BACKEND_XAUDIO2);
