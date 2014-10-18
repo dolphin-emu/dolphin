@@ -575,13 +575,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	{
 		MOV(64, R(RSCRATCH), Imm64((u64)&b->runCount));
 		ADD(32, MatR(RSCRATCH), Imm8(1));
-#ifdef _WIN32
 		b->ticCounter = 0;
 		b->ticStart = 0;
 		b->ticStop = 0;
-#else
-//TODO
-#endif
 		// get start tic
 		PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStart);
 	}
@@ -625,7 +621,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				// get end tic
 				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
 				// tic counter += (end tic - start tic)
-				PROFILER_ADD_DIFF_LARGE_INTEGER(&b->ticCounter, &b->ticStop, &b->ticStart);
+				PROFILER_UPDATE_TIME(b);
 				PROFILER_VPOP;
 			}
 		}

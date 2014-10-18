@@ -51,13 +51,11 @@ struct JitBlock
 	};
 	std::vector<LinkData> linkData;
 
-#ifdef _WIN32
 	// we don't really need to save start and stop
 	// TODO (mb2): ticStart and ticStop -> "local var" mean "in block" ... low priority ;)
 	u64 ticStart;   // for profiling - time.
 	u64 ticStop;    // for profiling - time.
 	u64 ticCounter; // for profiling - time.
-#endif
 
 #ifdef USE_VTUNE
 	char blockName[32];
