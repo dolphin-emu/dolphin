@@ -19,65 +19,38 @@ namespace OGL
 
 static char s_vertex_shader[] =
 	"out vec2 uv0;\n"
+	"uniform vec4 src_rect;\n"
 	"void main(void) {\n"
 	"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
 	"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-	"	uv0 = rawpos;\n"
+	"	uv0 = rawpos * src_rect.zw + src_rect.xy;\n"
 	"}\n";
 
 OpenGLPostProcessing::OpenGLPostProcessing()
 {
-	m_enable = false;
-	m_width = 0;
-	m_height = 0;
-
-	glGenFramebuffers(1, &m_fbo);
-	glGenTextures(1, &m_texture);
-	glBindTexture(GL_TEXTURE_2D, m_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); // disable mipmaps
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture, 0);
-	FramebufferManager::SetFramebuffer(0);
-
 	CreateHeader();
+	m_initialized = false;
 }
 
 OpenGLPostProcessing::~OpenGLPostProcessing()
 {
 	m_shader.Destroy();
-
-	glDeleteFramebuffers(1, &m_fbo);
-	glDeleteTextures(1, &m_texture);
 }
 
-void OpenGLPostProcessing::BindTargetFramebuffer()
+void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle dst,
+                                           int src_texture, int src_width, int src_height)
 {
-	if (m_enable)
-	{
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-		// Clear the buffer so there isn't any remaining garbage from the previous post processing shader frame
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-	else
-	{
-		// Bind to default framebuffer if we aren't post processing
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	}
-}
-
-void OpenGLPostProcessing::BlitToScreen()
-{
-	if (!m_enable) return;
+	ApplyShader();
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glViewport(0, 0, m_width, m_height);
+
+	glViewport(dst.left, dst.bottom, dst.GetWidth(), dst.GetHeight());
 
 	m_shader.Bind();
 
-	glUniform4f(m_uniform_resolution, (float)m_width, (float)m_height, 1.0f/(float)m_width, 1.0f/(float)m_height);
+	glUniform4f(m_uniform_resolution, (float)src_width, (float)src_height, 1.0f / (float)src_width, 1.0f / (float)src_height);
+	glUniform4f(m_uniform_src_rect, src.left / (float) src_width, src.bottom / (float) src_height,
+		    src.GetWidth() / (float) src_width, src.GetHeight() / (float) src_height);
 	glUniform1ui(m_uniform_time, (GLuint)m_timer.GetTimeElapsed());
 
 	if (m_config.IsDirty())
@@ -151,45 +124,27 @@ void OpenGLPostProcessing::BlitToScreen()
 	}
 
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_2D, m_texture);
+	glBindTexture(GL_TEXTURE_2D, src_texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-}
-
-void OpenGLPostProcessing::Update(u32 width, u32 height)
-{
-	ApplyShader();
-
-	if (m_enable && (width != m_width || height != m_height))
-	{
-		m_width = width;
-		m_height = height;
-
-		// alloc texture for framebuffer
-		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(GL_TEXTURE_2D, m_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	}
 }
 
 void OpenGLPostProcessing::ApplyShader()
 {
 	// shader didn't changed
-	if (m_config.GetShader() == g_ActiveConfig.sPostProcessingShader)
+	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader)
 		return;
 
-	m_enable = false;
 	m_shader.Destroy();
 	m_uniform_bindings.clear();
 
-	// shader disabled
-	if (g_ActiveConfig.sPostProcessingShader == "")
-		return;
-
-	// so need to compile shader
-	std::string code = m_config.LoadShader();
+	// load shader from disk
+	std::string default_shader = "void main() { SetOutput(Sample()); }";
+	std::string code = "";
+	if (g_ActiveConfig.sPostProcessingShader != "")
+		code = m_config.LoadShader();
 
 	if (code == "")
-		return;
+		code = default_shader;
 
 	code = LoadShaderOptions(code);
 
@@ -197,21 +152,22 @@ void OpenGLPostProcessing::ApplyShader()
 	if (!ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code.c_str()))
 	{
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
-		return;
+
+		code = LoadShaderOptions(default_shader);
+		ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code.c_str());
 	}
 
 	// read uniform locations
 	m_uniform_resolution = glGetUniformLocation(m_shader.glprogid, "resolution");
 	m_uniform_time = glGetUniformLocation(m_shader.glprogid, "time");
+	m_uniform_src_rect = glGetUniformLocation(m_shader.glprogid, "src_rect");
 
 	for (const auto& it : m_config.GetOptions())
 	{
 		std::string glsl_name = "option_" + it.first;
 		m_uniform_bindings[it.first] = glGetUniformLocation(m_shader.glprogid, glsl_name.c_str());
 	}
-
-	// successful
-	m_enable = true;
+	m_initialized = true;
 }
 
 void OpenGLPostProcessing::CreateHeader()

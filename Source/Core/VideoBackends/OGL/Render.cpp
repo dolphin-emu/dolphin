@@ -1395,7 +1395,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	ResetAPIState();
 
-	m_post_processor->Update(s_backbuffer_width, s_backbuffer_height);
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
@@ -1412,29 +1411,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	GL_REPORT_ERRORD();
 
 	// Copy the framebuffer to screen.
-
-	const XFBSourceBase* xfbSource = nullptr;
+	const XFBSource* xfbSource = nullptr;
 
 	if (g_ActiveConfig.bUseXFB)
 	{
-		// Render to the real/postprocessing buffer now.
-		m_post_processor->BindTargetFramebuffer();
-
 		// draw each xfb source
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
-
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
-			xfbSource = xfbSourceList[i];
+			xfbSource = (const XFBSource*) xfbSourceList[i];
 
-			MathUtil::Rectangle<float> drawRc;
+			TargetRectangle drawRc;
 
 			if (g_ActiveConfig.bUseRealXFB)
 			{
-				drawRc.top      = static_cast<float>(flipped_trc.top);
-				drawRc.bottom   = static_cast<float>(flipped_trc.bottom);
-				drawRc.left     = static_cast<float>(flipped_trc.left);
-				drawRc.right    = static_cast<float>(flipped_trc.right);
+				drawRc = flipped_trc;
 			}
 			else
 			{
@@ -1443,17 +1433,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				int xfbWidth = xfbSource->srcWidth;
 				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
-				MathUtil::Rectangle<u32> rect_u32;
-
-				rect_u32.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / fbHeight;
-				rect_u32.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / fbHeight;
-				rect_u32.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbStride)/2;
-				rect_u32.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbStride)/2;
-
-				drawRc.top      = static_cast<float>(rect_u32.top);
-				drawRc.bottom   = static_cast<float>(rect_u32.bottom);
-				drawRc.left     = static_cast<float>(rect_u32.left);
-				drawRc.right    = static_cast<float>(rect_u32.right);
+				drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / fbHeight;
+				drawRc.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / fbHeight;
+				drawRc.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbStride) / 2;
+				drawRc.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbStride) / 2;
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
@@ -1467,7 +1450,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
-			MathUtil::Rectangle<int> sourceRc;
+			TargetRectangle sourceRc;
 			sourceRc.left = xfbSource->sourceRc.left;
 			sourceRc.right = xfbSource->sourceRc.right;
 			sourceRc.top = xfbSource->sourceRc.top;
@@ -1475,7 +1458,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			xfbSource->Draw(sourceRc, drawRc);
+			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
 	}
 	else
@@ -1483,21 +1466,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		FramebufferManager::ResolveAndGetRenderTarget(rc);
+		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
 
-		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
-		m_post_processor->BindTargetFramebuffer();
-
-		// always the non-msaa fbo
-		GLuint fb = s_MSAASamples>1?FramebufferManager::GetResolvedFramebuffer():FramebufferManager::GetEFBFramebuffer();
-
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, fb);
-		glBlitFramebuffer(targetRc.left, targetRc.bottom, targetRc.right, targetRc.top,
-			flipped_trc.left, flipped_trc.bottom, flipped_trc.right, flipped_trc.top,
-			GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
 	}
-
-	m_post_processor->BlitToScreen();
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 

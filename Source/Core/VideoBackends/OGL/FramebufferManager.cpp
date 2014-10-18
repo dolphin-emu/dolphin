@@ -385,19 +385,6 @@ XFBSource::~XFBSource()
 	glDeleteTextures(1, &texture);
 }
 
-
-void XFBSource::Draw(const MathUtil::Rectangle<int> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc) const
-{
-	// Texture map xfbSource->texture onto the main buffer
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-	glBlitFramebuffer(sourcerc.left, sourcerc.bottom, sourcerc.right, sourcerc.top,
-		(int)drawrc.left, (int)drawrc.bottom, (int)drawrc.right, (int)drawrc.top,
-		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-	GL_REPORT_ERRORD();
-}
-
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
 	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, texture);
