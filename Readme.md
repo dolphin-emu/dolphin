@@ -128,7 +128,7 @@ List of user folders:
 * `Config`: configuration files
 * `Dump`: anything dumped from dolphin
 * `GameConfig`: additional settings to be applied per-game
-* `GC`: memory cards
+* `GC`: memory cards and system BIOS
 * `Load`: custom textures
 * `Logs`: logs, if enabled
 * `ScreenShots`: screenshots taken via Dolphin
