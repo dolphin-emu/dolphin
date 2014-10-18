@@ -13,7 +13,9 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/ConfigManager.h" // for EuRGB60
 #include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/VideoConfig.h"
@@ -26,10 +28,6 @@
 #include <cstring>
 #include <vfw.h>
 #include <winerror.h>
-
-#include "Core/ConfigManager.h" // for EuRGB60
-#include "Core/CoreTiming.h"
-#include "Core/HW/SystemTimers.h"
 
 static HWND s_emu_wnd;
 static LONG s_byte_buffer;
@@ -177,6 +175,40 @@ void AVIDump::Stop()
 	NOTICE_LOG(VIDEO, "Stop");
 }
 
+void AVIDump::StoreFrame(const void* data)
+{
+	if (s_bitmap.biSizeImage > s_stored_frame_size)
+	{
+		void* temp_stored_frame = realloc(s_stored_frame, s_bitmap.biSizeImage);
+		if (temp_stored_frame)
+		{
+			s_stored_frame = temp_stored_frame;
+		}
+		else
+		{
+			free(s_stored_frame);
+			PanicAlert("Something has gone seriously wrong.\n"
+				"Stopping video recording.\n"
+				"Your video will likely be broken.");
+			Stop();
+		}
+		s_stored_frame_size = s_bitmap.biSizeImage;
+		memset(s_stored_frame, 0, s_bitmap.biSizeImage);
+	}
+	if (s_stored_frame)
+	{
+		if (data)
+			memcpy(s_stored_frame, data, s_bitmap.biSizeImage);
+		else // pitch black frame
+			memset(s_stored_frame, 0, s_bitmap.biSizeImage);
+	}
+}
+
+void* AVIDump::GetFrame()
+{
+	return s_stored_frame;
+}
+
 void AVIDump::AddFrame(const u8* data, int w, int h)
 {
 	static bool shown_error = false;
@@ -301,10 +333,6 @@ static int s_height;
 static int s_size;
 static int s_frame_rate;
 static u64 s_last_frame;
-// the CFR dump design doesn't let you dump until you know the NEXT timecode.
-// so we have to save a frame and always be behind
-static void* s_stored_frame = nullptr;
-static u64 s_stored_frame_size = 0;
 bool b_start_dumping = false;
 
 static void InitAVCodec()
@@ -333,7 +361,6 @@ bool AVIDump::Start(int w, int h)
 	bool success = CreateFile();
 	if (!success)
 		CloseFile();
-	StoreFrame(nullptr);
 	return success;
 }
 
@@ -418,7 +445,6 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	{
 		delta = CoreTiming::GetTicks() - s_last_frame;
 	}
-	bool b_frame_dumped = false;
 	// try really hard to place one copy of frame in stream (otherwise it's dropped)
 	if (delta > (s64)one_cfr * 3 / 10) // place if 3/10th of a frame space
 	{
@@ -431,7 +457,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		delta -= one_cfr;
 		nplay++;
 	}
-	avpicture_fill((AVPicture*)s_src_frame, GetFrame(), AV_PIX_FMT_BGR24, width, height);
+	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
 
 	// Convert image from BGR24 to desired pixel format, and scale to initial
 	// width and height
@@ -467,7 +493,6 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	}
 	if (error)
 		ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
-	StoreFrame(data);
 	s_last_frame = CoreTiming::GetTicks();
 }
 
@@ -520,36 +545,3 @@ void AVIDump::DoState()
 	s_last_frame = CoreTiming::GetTicks();
 }
 
-void AVIDump::StoreFrame(const void* data)
-{
-	if (s_bitmap.biSizeImage > s_stored_frame_size)
-	{
-		void* temp_stored_frame = realloc(s_stored_frame, s_bitmap.biSizeImage);
-		if (temp_stored_frame)
-		{
-			s_stored_frame = temp_stored_frame;
-		}
-		else
-		{
-			free(s_stored_frame);
-			PanicAlert("Something has gone seriously wrong.\n"
-				"Stopping video recording.\n"
-				"Your video will likely be broken.");
-			Stop();
-		}
-		s_stored_frame_size = s_bitmap.biSizeImage;
-		memset(s_stored_frame, 0, s_bitmap.biSizeImage);
-	}
-	if (s_stored_frame)
-	{
-		if (data)
-			memcpy(s_stored_frame, data, s_bitmap.biSizeImage);
-		else // pitch black frame
-			memset(s_stored_frame, 0, s_bitmap.biSizeImage);
-	}
-}
-
-void* AVIDump::GetFrame()
-{
-	return s_stored_frame;
-}
