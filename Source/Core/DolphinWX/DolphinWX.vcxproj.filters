@@ -16,9 +16,6 @@
     <Filter Include="GUI\Video">
       <UniqueIdentifier>{80626e3b-e13b-41c3-bd63-4ef1faf92924}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GUI\Saves">
-      <UniqueIdentifier>{7dc222d2-f1f0-44af-b4eb-76f6ca6cc29f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Misc">
       <UniqueIdentifier>{4352dc64-398e-4a96-ba4a-824dffa2004c}</UniqueIdentifier>
     </Filter>
@@ -289,8 +286,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Installer\Dolphin.ico">
-      <Filter>Resources</Filter>
-    </Image>
+    <Image Include="$(CoreDir)..\..\Installer\Dolphin.ico" />
   </ItemGroup>
 </Project>
