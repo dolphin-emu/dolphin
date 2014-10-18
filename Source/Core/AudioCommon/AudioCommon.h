@@ -21,4 +21,6 @@ namespace AudioCommon
 	void UpdateSoundStream();
 	void ClearAudioBuffer(bool mute);
 	void SendAIBuffer(short* samples, unsigned int num_samples);
+	void StartAudioDump();
+	void StopAudioDump();
 }
