@@ -60,35 +60,35 @@ class TASInputDlg : public wxDialog
 		void GetIRData(u8* const data, u8 mode, bool use_accel);
 
 	private:
-        const int ID_C_STICK = 1001;
-        const int ID_MAIN_STICK = 1002;
-        int eleID = 1003;
+		const int ID_C_STICK = 1001;
+		const int ID_MAIN_STICK = 1002;
+		int m_eleID = 1003;
 
 		struct Control
 		{
-			wxTextCtrl* Text;
-			wxSlider* Slider;
+			wxTextCtrl* text;
+			wxSlider* slider;
 			int value = -1;
-			int Text_ID;
-			int Slider_ID;
+			int text_id;
+			int slider_id;
 			u32 range;
-			u32 defaultValue = 128;
-			bool SetByKeyboard = false;
+			u32 default_value = 128;
+			bool set_by_keyboard = false;
 		};
 
 		struct Button
 		{
-			wxCheckBox* Checkbox;
-			bool SetByKeyboard = false;
-			bool TurboOn = false;
-			int ID;
+			wxCheckBox* checkbox;
+			bool set_by_keyboard = false;
+			bool turbo_on = false;
+			int id;
 		};
 
 		struct Stick
 		{
 			wxStaticBitmap* bitmap;
-			Control xCont;
-			Control yCont;
+			Control x_cont;
+			Control y_cont;
 		};
 
 		void SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center = 128);
@@ -99,19 +99,21 @@ class TASInputDlg : public wxDialog
 		Button CreateButton(const std::string& name);
 		Control CreateControl(long style, int width, int height, u32 range = 255);
 
-		Control lCont, rCont, xCont, yCont, zCont;
-		Button A, B, X, Y, Z, L, R, C, START, PLUS, MINUS, ONE, TWO, HOME, dpad_up, dpad_down, dpad_left, dpad_right;
-		Stick MainStick, CStick;
+		Control m_l_cont, m_r_cont, m_x_cont, m_y_cont, m_z_cont;
+		Button m_a, m_b, m_x, m_y, m_z, m_l, m_r, m_c;
+		Button m_start, m_plus, m_minus, m_one, m_two, m_home;
+		Button m_dpad_up, m_dpad_down, m_dpad_left, m_dpad_right;
+		Stick m_main_stick, m_c_stick;
 
-		Button* Buttons[14];
-		Control* Controls[10];
-		static const int GCPadButtonsBitmask[12];
-		static const int WiiButtonsBitmask[13];
+		Button* m_buttons[14];
+		Control* m_controls[10];
+		static const int m_gc_pad_buttons_bitmask[12];
+		static const int m_wii_buttons_bitmask[13];
 
-		bool hasLayout = false;
-		bool isWii = false;
+		bool m_has_layout = false;
+		bool m_is_wii = false;
 
-		wxGridSizer* const buttons_dpad = new wxGridSizer(3);
+		wxGridSizer* const m_buttons_dpad = new wxGridSizer(3);
 
 		DECLARE_EVENT_TABLE();
 };
