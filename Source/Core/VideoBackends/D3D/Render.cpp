@@ -1003,8 +1003,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	ID3D11SamplerState* samplerstate[8];
 	for (unsigned int stage = 0; stage < 8; stage++)
 	{
-		SamplerState state = gx_state.sampler[stage];
-		state.max_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+		gx_state.sampler[stage].max_anisotropy = g_ActiveConfig.iMaxAnisotropy;
 		samplerstate[stage] = gx_state_cache.Get(gx_state.sampler[stage]);
 	}
 	D3D::context->PSSetSamplers(0, 8, samplerstate);
