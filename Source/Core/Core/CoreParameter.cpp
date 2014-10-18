@@ -323,12 +323,12 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 	m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
 	if (!bWii)
 	{
-		m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + Region + DIR_SEP GC_IPL;
-		if (!File::Exists(m_strBootROM))
-			m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
-
 		if (!bHLE_BS2)
 		{
+			m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + Region + DIR_SEP GC_IPL;
+			if (!File::Exists(m_strBootROM))
+				m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
+
 			if (!File::Exists(m_strBootROM))
 			{
 				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_strBootROM.c_str());
