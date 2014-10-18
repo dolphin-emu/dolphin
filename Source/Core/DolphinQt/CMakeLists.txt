@@ -6,12 +6,15 @@ set(CMAKE_AUTOMOC ON)
 set(SRCS
 	AboutDialog.cpp
 	AboutDialog.h
+	ConfigDialog.cpp
+	ConfigDialog.h
 	Main.cpp
 	MainWindow.cpp
 	MainWindow.h)
 
 set(UIS
 	AboutDialog.ui
+	ConfigDialog.ui
 	MainWindow.ui)
 
 set(LIBS common)

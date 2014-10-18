@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DConfigDialog</class>
+ <widget class="QDialog" name="DConfigDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>440</width>
+    <height>534</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>440</width>
+    <height>534</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Dolphin Configuration</string>
+  </property>
+  <layout class="QVBoxLayout" name="boxLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <!-- Have an individual .ui file per tab? -->
+     <widget class="QWidget" name="generalTab">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="interfaceTab">
+      <attribute name="title">
+       <string>Interface</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="audioTab">
+      <attribute name="title">
+       <string>Audio</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="gamecubeTab">
+      <attribute name="title">
+       <string>GameCube</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="wiiTab">
+      <attribute name="title">
+       <string>Wii</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="pathsTab">
+      <attribute name="title">
+       <string>Paths</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources />
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>DConfigDialog</receiver>
+   <slot>accept()</slot>
+  </connection>
+ </connections>
+</ui>

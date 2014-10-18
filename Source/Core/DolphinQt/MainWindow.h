@@ -22,6 +22,9 @@ public:
 
 private slots:
 
+	// Options menu
+	void on_actConfig_triggered();
+
 	// Help menu
 	void on_actWebsite_triggered();
 	void on_actOnlineDocs_triggered();

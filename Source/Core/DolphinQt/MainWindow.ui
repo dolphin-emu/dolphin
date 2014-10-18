@@ -49,6 +49,7 @@
     <property name="title">
      <string>Optio&amp;ns</string>
     </property>
+    <addaction name="actConfig"/>
    </widget>
    <widget class="QMenu" name="mnuTools">
     <property name="title">
@@ -89,6 +90,11 @@
     <bool>false</bool>
    </attribute>
   </widget>
+  <action name="actConfig">
+   <property name="text">
+    <string>&amp;Configure...</string>
+   </property>
+  </action>
   <action name="actWebsite">
    <property name="text">
     <string>&amp;Website</string>
