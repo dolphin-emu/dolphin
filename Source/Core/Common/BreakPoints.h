@@ -67,6 +67,7 @@ public:
 	// Remove Breakpoint
 	void Remove(u32 _iAddress);
 	void Clear();
+	void ClearAllTemporary();
 
 	void DeleteByAddress(u32 _Address);
 

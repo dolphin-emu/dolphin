@@ -113,6 +113,19 @@ void BreakPoints::Clear()
 	m_BreakPoints.clear();
 }
 
+void BreakPoints::ClearAllTemporary()
+{
+	for (const TBreakPoint& bp : m_BreakPoints)
+	{
+		if (bp.bTemporary)
+		{
+			if (jit)
+				jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
+			Remove(bp.iAddress);
+		}
+	}
+}
+
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
 	TMemChecksStr mcs;

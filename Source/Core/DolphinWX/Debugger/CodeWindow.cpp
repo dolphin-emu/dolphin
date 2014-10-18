@@ -37,6 +37,7 @@
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -292,6 +293,7 @@ void CCodeWindow::SingleStep()
 {
 	if (CCPU::IsStepping())
 	{
+		PowerPC::breakpoints.ClearAllTemporary();
 		JitInterface::InvalidateICache(PC, 4, true);
 		CCPU::StepOpcode(&sync_event);
 		wxThread::Sleep(20);
@@ -305,6 +307,7 @@ void CCodeWindow::StepOver()
 {
 	if (CCPU::IsStepping())
 	{
+		PowerPC::breakpoints.ClearAllTemporary();
 		UGeckoInstruction inst = Memory::Read_Instruction(PC);
 		if (inst.LK)
 		{
@@ -328,8 +331,39 @@ void CCodeWindow::StepOut()
 {
 	if (CCPU::IsStepping())
 	{
-		PowerPC::breakpoints.Add(LR, true);
-		CCPU::EnableStepping(false);
+		PowerPC::breakpoints.ClearAllTemporary();
+
+		// Keep stepping until the next blr or timeout after one second
+		u64 timeout = SystemTimers::GetTicksPerSecond();
+		u64 steps = 0;
+		PowerPC::CoreMode oldMode = PowerPC::GetMode();
+		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+		UGeckoInstruction inst = Memory::Read_Instruction(PC);
+		GekkoOPInfo *opinfo = GetOpInfo(inst);
+		while (inst.hex != 0x4e800020 && steps < timeout) // check for blr
+		{
+			if (inst.LK)
+			{
+				// Step over branches
+				u32 next_pc = PC + 4;
+				while (PC != next_pc && steps < timeout)
+				{
+					PowerPC::SingleStep();
+					++steps;
+				}
+			}
+			else
+			{
+				PowerPC::SingleStep();
+				++steps;
+			}
+			inst = Memory::Read_Instruction(PC);
+			opinfo = GetOpInfo(inst);
+		}
+
+		PowerPC::SingleStep();
+		PowerPC::SetMode(oldMode);
+
 		JumpToAddress(PC);
 		Update();
 

@@ -161,6 +161,9 @@ void Init(int cpu_core)
 	state = CPU_STEPPING;
 
 	ppcState.iCache.Init();
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		breakpoints.ClearAllTemporary();
 }
 
 void Shutdown()
