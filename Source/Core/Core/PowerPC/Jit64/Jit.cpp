@@ -508,6 +508,63 @@ void Jit64::Jit(u32 em_address)
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
 }
 
+enum
+{
+	UNIT_SRU,
+	UNIT_INT,
+	UNIT_FPU,
+	UNIT_LSU,
+	UNIT_OTHER // not a real unit, but we don't really emulate branch cycle counts
+};
+
+static int GetUnitFromOpInfo(GekkoOPInfo* op)
+{
+	switch (op->type)
+	{
+	case OPTYPE_INTEGER:
+		return UNIT_INT;
+	case OPTYPE_CR:
+	case OPTYPE_SPR:
+	case OPTYPE_SYSTEM:
+		return UNIT_SRU;
+	case OPTYPE_SYSTEMFP:
+	case OPTYPE_PS:
+	case OPTYPE_DOUBLEFP:
+	case OPTYPE_SINGLEFP:
+		return UNIT_FPU;
+	case OPTYPE_LOAD:
+	case OPTYPE_STORE:
+	case OPTYPE_LOADFP:
+	case OPTYPE_STOREFP:
+	case OPTYPE_LOADPS:
+	case OPTYPE_STOREPS:
+	case OPTYPE_DCACHE:
+	case OPTYPE_ICACHE:
+		return UNIT_LSU;
+	}
+	return UNIT_OTHER;
+}
+
+static bool CanDualIssueWith(PPCAnalyst::CodeOp* a, PPCAnalyst::CodeOp* b)
+{
+	// Our "dual issue" is skipping the cycle cost of the second instruction in a pair if it can be executed
+	// at the same time as the first one.
+	// Simple approximation: if the second instruction isn't single-cycle, they probably can't be dual-issued.
+	if (b->opinfo->numCycles != 1)
+		return false;
+	if (a->fregOut >= 0 && b->fregsIn[a->fregOut])
+		return false;
+	if (a->regsOut & b->regsIn)
+		return false;
+	int u1 = GetUnitFromOpInfo(a->opinfo);
+	int u2 = GetUnitFromOpInfo(b->opinfo);
+	if (u1 == UNIT_OTHER || u2 == UNIT_OTHER)
+		return false;
+	if (u1 == UNIT_INT && u2 == UNIT_INT)
+		return true;
+	return u1 != u2;
+}
+
 const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
 	int blockSize = code_buf->GetSize();
@@ -598,6 +655,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
 	js.compilerPC = nextPC;
+	js.dualIssue = false;
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -606,7 +664,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionNumber = i;
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
-		js.downcountAmount += opinfo->numCycles;
+		if (!js.dualIssue)
+			js.downcountAmount += opinfo->numCycles;
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
@@ -631,6 +690,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_compilerPC = ops[i + 1].address;
 			js.next_op = &ops[i + 1];
 			js.next_inst_bp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i + 1].address);
+			if (js.dualIssue)
+				js.dualIssue = false;
+			else if (CanDualIssueWith(js.op, js.next_op))
+				js.dualIssue = true;
 		}
 
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
