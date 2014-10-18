@@ -58,7 +58,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
 	settings->Get("ShowFPS", &bShowFPS, false);
 	settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
-	settings->Get("ShowInputDisplay", &bShowInputDisplay, false);
 	settings->Get("OverlayStats", &bOverlayStats, false);
 	settings->Get("OverlayProjStats", &bOverlayProjStats, false);
 	settings->Get("ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
@@ -226,7 +225,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	settings->Set("ShowFPS", bShowFPS);
 	settings->Set("LogRenderTimeToFile", bLogRenderTimeToFile);
-	settings->Set("ShowInputDisplay", bShowInputDisplay);
 	settings->Set("OverlayStats", bOverlayStats);
 	settings->Set("OverlayProjStats", bOverlayProjStats);
 	settings->Set("DumpTextures", bDumpTextures);
