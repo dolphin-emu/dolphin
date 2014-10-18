@@ -11,6 +11,9 @@
 
 #include "MainWindow.h"
 
+#include "DolphinQt/Utils/Utils.h"
+#include "UICommon/UICommon.h"
+
 static bool IsOsSupported()
 {
 #ifdef Q_OS_OSX
@@ -25,11 +28,11 @@ static bool IsOsSupported()
 static QString LowestSupportedOsVersion()
 {
 #ifdef Q_OS_OSX
-	return QStringLiteral("Mac OS X 10.7");
+	return SL("Mac OS X 10.7");
 #elif defined(Q_OS_WIN)
-	return QStringLiteral("Windows Vista SP2");
+	return SL("Windows Vista SP2");
 #else
-	return QStringLiteral("Unknown");
+	return SL("Unknown");
 #endif
 }
 
@@ -37,6 +40,9 @@ int main(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
 	// TODO: Add command line options
+
+	UICommon::CreateDirectories();
+	UICommon::Init();
 
 	if (!IsOsSupported())
 	{
@@ -50,5 +56,7 @@ int main(int argc, char* argv[])
 	DMainWindow w;
 	w.show();
 
-	return app.exec();
+	int retcode = app.exec();
+	UICommon::Shutdown();
+	return retcode;
 }

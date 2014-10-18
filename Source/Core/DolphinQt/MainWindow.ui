@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>998</width>
-    <height>598</height>
+    <width>996</width>
+    <height>596</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,8 +15,8 @@
   </property>
   <property name="iconSize">
    <size>
-    <width>64</width>
-    <height>64</height>
+    <width>32</width>
+    <height>32</height>
    </size>
   </property>
   <property name="toolButtonStyle">
@@ -31,14 +31,15 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>998</width>
-     <height>24</height>
+     <width>996</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuFile">
     <property name="title">
      <string>Fi&amp;le</string>
     </property>
+    <addaction name="actOpen"/>
    </widget>
    <widget class="QMenu" name="mnuEmulation">
     <property name="title">
@@ -70,8 +71,14 @@
     <addaction name="separator"/>
     <addaction name="actAbout"/>
    </widget>
+   <widget class="QMenu" name="mnuMovie">
+    <property name="title">
+     <string>Movie</string>
+    </property>
+   </widget>
    <addaction name="mnuFile"/>
    <addaction name="mnuEmulation"/>
+   <addaction name="mnuMovie"/>
    <addaction name="mnuOptions"/>
    <addaction name="mnuTools"/>
    <addaction name="mnuView"/>
@@ -88,6 +95,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actOpen"/>
   </widget>
   <action name="actWebsite">
    <property name="text">
@@ -107,6 +115,14 @@
   <action name="actAbout">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="toolTip">
+    <string>Open file...</string>
    </property>
   </action>
  </widget>
