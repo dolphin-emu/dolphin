@@ -226,7 +226,7 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 			return false;
 		}
 		// Write the 256 byte setting.txt to memory.
-		Memory::WriteBigEData(gen.GetData(), 0x3800, SettingsHandler::SETTINGS_SIZE);
+		Memory::CopyToEmu(0x3800, gen.GetData(), SettingsHandler::SETTINGS_SIZE);
 	}
 
 	INFO_LOG(BOOT, "Setup Wii Memory...");

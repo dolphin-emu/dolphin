@@ -215,9 +215,14 @@ u32 Read_Instruction(const u32 em_address)
 	return inst.hex;
 }
 
-void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t _iSize)
+void CopyFromEmu(void* data, u32 address, size_t size)
 {
-	memcpy(GetPointer(_Address), _pData, _iSize);
+	memcpy(data, GetPointer(address), size);
+}
+
+void CopyToEmu(u32 address, const void* data, size_t size)
+{
+	memcpy(GetPointer(address), data, size);
 }
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
@@ -284,12 +289,6 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
 			Write_U8(Temp, _CacheAddr + i);
 		}
 	}
-}
-
-void ReadBigEData(u8 *data, const u32 em_address, const u32 size)
-{
-	u8 *src = GetPointer(em_address);
-	memcpy(data, src, size);
 }
 
 std::string GetString(u32 em_address)
