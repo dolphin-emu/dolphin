@@ -154,7 +154,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 					if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
 					{
 						_var <<= 8;
-						_var = m_pEXRAM[tlb_addr & EXRAM_MASK];
+						_var |= m_pEXRAM[tlb_addr & EXRAM_MASK];
 					}
 					else
 					{
