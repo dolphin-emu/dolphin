@@ -1017,19 +1017,29 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 		else
 			gpr.SetImmediate32(d, (u32)((gpr.R(a).offset * gpr.R(b).offset) >> 32));
 	}
-	else
+	else if (sign)
 	{
 		gpr.Lock(a, b, d);
 		// no register choice
 		gpr.FlushLockX(EDX, EAX);
-		gpr.BindToRegister(d, (d == a || d == b), true);
+		gpr.BindToRegister(d, d == a || d == b, true);
 		MOV(32, R(EAX), gpr.R(a));
 		gpr.KillImmediate(b, true, false);
-		if (sign)
-			IMUL(32, gpr.R(b));
-		else
-			MUL(32, gpr.R(b));
+		IMUL(32, gpr.R(b));
 		MOV(32, gpr.R(d), R(EDX));
+	}
+	else
+	{
+		// Not faster for signed because we'd need two movsx.
+		gpr.Lock(a, b, d);
+		// We need to bind everything to registers since the top 32 bits need to be zero.
+		int src = d == b ? a : b;
+		gpr.BindToRegister(d, d == a || d == b, true);
+		gpr.BindToRegister(src, true, false);
+		if (d != a && d != b)
+			MOV(32, gpr.R(d), gpr.R(a));
+		IMUL(64, gpr.RX(d), gpr.R(src));
+		SHR(64, gpr.R(d), Imm8(32));
 	}
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
