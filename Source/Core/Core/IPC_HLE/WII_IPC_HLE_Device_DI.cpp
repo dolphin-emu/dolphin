@@ -118,7 +118,7 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 			// Read TMD to the buffer
 			VolumeHandler::RAWReadToPtr(pTMD, TMDOffset, TMDsz);
 
-			memcpy(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address), pTMD, TMDsz);
+			Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, pTMD, TMDsz);
 			WII_IPC_HLE_Interface::ES_DIVerify(pTMD, TMDsz);
 
 			ReturnValue = 1;

@@ -668,7 +668,8 @@ void ExecuteCommand()
 						else if ((iDVDOffset == 0x1f900000) || (iDVDOffset == 0x1f900020))
 						{
 							ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD COMM AREA (1f900020)");
-							memcpy(Memory::GetPointer(m_DIMAR.Address), media_buffer + iDVDOffset - 0x1f900000, m_DILENGTH.Length);
+							u8* source = media_buffer + iDVDOffset - 0x1f900000;
+							Memory::CopyToEmu(m_DIMAR.Address, source, m_DILENGTH.Length);
 							for (u32 i = 0; i < m_DILENGTH.Length; i += 4)
 								ERROR_LOG(DVDINTERFACE, "GC-AM: %08x", Memory::Read_U32(m_DIMAR.Address + i));
 							break;
@@ -827,7 +828,7 @@ void ExecuteCommand()
 			else
 			{
 				u32 addr = m_DIMAR.Address;
-				memcpy(media_buffer + offset, Memory::GetPointer(addr), len);
+				Memory::CopyFromEmu(media_buffer + offset, addr, len);
 				while (len >= 4)
 				{
 					ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08x: %08x", iDVDOffset, Memory::Read_U32(addr));

@@ -123,7 +123,7 @@ private:
 
 		inline void FillBuffer(const void* src, const size_t size) const
 		{
-			memcpy(Memory::GetPointer(m_buffer), src, size);
+			Memory::CopyToEmu(m_buffer, (u8*)src, size);
 		}
 
 		inline void SetRetVal(const u32 retval) const
