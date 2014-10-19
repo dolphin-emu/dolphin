@@ -478,18 +478,19 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	AVPacket pkt;
 	PreparePacket(&pkt);
 	int got_packet;
-	int error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+	int error;
 	while (nplay--)
 	{
-		while (!error && got_packet)
-		{
-			// Write the compressed frame in the media file.
-			av_interleaved_write_frame(s_format_context, &pkt);
+		error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+	}
+	while (!error && got_packet)
+	{
+		// Write the compressed frame in the media file.
+		av_interleaved_write_frame(s_format_context, &pkt);
 
-			// Handle delayed frames.
-			PreparePacket(&pkt);
-			error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
-		}
+		// Handle delayed frames.
+		PreparePacket(&pkt);
+		error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
 	}
 	if (error)
 		ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
