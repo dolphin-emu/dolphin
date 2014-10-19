@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <QButtonGroup>
 #include <QDialog>
 
 // Predefinitions
@@ -25,4 +26,6 @@ private slots:
 
 private:
 	std::unique_ptr<Ui::DConfigDialog> ui;
+
+	QButtonGroup *CPUEngineButtonGroup;
 };
