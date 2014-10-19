@@ -291,18 +291,18 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
 	}
 }
 
-std::string GetString(u32 em_address)
+std::string GetString(u32 em_address, size_t size)
 {
-	std::string str;
-	char c;
-
-	while ((c = Read_U8(em_address)) != '\0')
+	const char* ptr = reinterpret_cast<const char*>(GetPointer(em_address));
+	if (size == 0) // Null terminated string.
 	{
-		str += c;
-		em_address++;
+		return std::string(ptr);
 	}
-
-	return str;
+	else // Fixed size string, potentially null terminated or null padded.
+	{
+		size_t length = strnlen(ptr, size);
+		return std::string(ptr, length);
+	}
 }
 
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
@@ -357,7 +357,6 @@ u8 *GetPointer(const u32 _Address)
 
 	return nullptr;
 }
-
 
 bool IsRAMAddress(const u32 addr, bool allow_locked_cache, bool allow_fake_vmem)
 {

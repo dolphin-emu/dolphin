@@ -118,7 +118,7 @@ void Write_U64_Swap(const u64 _Data, const u32 _Address);
 // Useful helper functions, used by ARM JIT
 void Write_F64(const double _Data, const u32 _Address);
 
-std::string GetString(u32 em_address);
+std::string GetString(u32 em_address, size_t size = 0);
 
 u8* GetPointer(const u32 _Address);
 void DMA_LCToMemory(const u32 _iMemAddr, const u32 _iCacheAddr, const u32 _iNumBlocks);
