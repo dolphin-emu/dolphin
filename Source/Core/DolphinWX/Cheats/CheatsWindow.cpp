@@ -67,10 +67,8 @@ wxCheatsWindow::~wxCheatsWindow()
 
 void wxCheatsWindow::Init_ChildControls()
 {
-	wxPanel* const panel = new wxPanel(this);
-
 	// Main Notebook
-	m_notebook_main = new wxNotebook(panel, wxID_ANY);
+	m_notebook_main = new wxNotebook(this, wxID_ANY);
 
 	// --- Tabs ---
 	// Cheats List Tab
@@ -130,9 +128,9 @@ void wxCheatsWindow::Init_ChildControls()
 	m_notebook_main->AddPage(m_tab_log, _("Logging"));
 
 	// Button Strip
-	m_button_apply = new wxButton(panel, wxID_APPLY, _("Apply"));
+	m_button_apply = new wxButton(this, wxID_APPLY, _("Apply"));
 	m_button_apply->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this);
-	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"));
+	wxButton* const button_cancel = new wxButton(this, wxID_CANCEL, _("Cancel"));
 	button_cancel->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonClose_Press, this);
 
 	Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnEvent_Close, this);
@@ -145,11 +143,7 @@ void wxCheatsWindow::Init_ChildControls()
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_notebook_main, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxRIGHT | wxBOTTOM | wxALIGN_RIGHT, 5);
-	panel->SetSizerAndFit(sMain);
-
-	wxBoxSizer* const frame_szr = new wxBoxSizer(wxVERTICAL);
-	frame_szr->Add(panel, 1, wxEXPAND);
-	SetSizerAndFit(frame_szr);
+	SetSizerAndFit(sMain);
 }
 
 void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED (event))
