@@ -150,7 +150,7 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
 	uintptr_t stack = (uintptr_t)m_stack, diff = access_address - stack;
 	// In the trap region?
-	if (stack && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
+	if (m_enable_blr_optimization && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
 	{
 		WARN_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
 		m_enable_blr_optimization = false;
