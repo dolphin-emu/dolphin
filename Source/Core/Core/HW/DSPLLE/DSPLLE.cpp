@@ -105,7 +105,9 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 		else
 		{
 			ppcEvent.Set();
-			dspEvent.Wait();
+			
+			// Only wait for the cpu thread when necessary. This fixes a possible desync issue
+			if (dsp_lle->m_cycle_count == 0) dspEvent.Wait();
 		}
 	}
 }
