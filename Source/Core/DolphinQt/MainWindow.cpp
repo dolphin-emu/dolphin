@@ -6,6 +6,7 @@
 #include <QUrl>
 
 #include "AboutDialog.h"
+#include "ConfigDialog.h"
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "Common/StdMakeUnique.h"
@@ -19,6 +20,12 @@ DMainWindow::DMainWindow(QWidget* p)
 
 DMainWindow::~DMainWindow()
 {
+}
+
+void DMainWindow::on_actConfig_triggered()
+{
+	DConfigDialog dlg;
+	dlg.exec();
 }
 
 void DMainWindow::on_actWebsite_triggered()

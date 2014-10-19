@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DConfigDialog</class>
+ <widget class="QDialog" name="DConfigDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>440</width>
+    <height>534</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>440</width>
+    <height>534</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Dolphin Configuration</string>
+  </property>
+  <layout class="QVBoxLayout" name="boxLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+
+     <!-- General tab -->
+     <!-- Have an individual .ui file per tab? -->
+     <widget class="QWidget" name="generalTab">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="generalBoxLayout">
+
+       <!-- Basic Settings groupbox -->
+       <item>
+        <widget class="QGroupBox" name="basicSettingsGroupBox">
+         <property name="title">
+          <string>Basic Settings</string>
+         </property>
+         <layout class="QVBoxLayout" name="basicSettingsBoxLayout">
+          <property name="alignment">
+           <enum>Qt::AlignTop</enum>
+          </property>
+
+          <!-- Enable Dual Core checkbox -->
+          <item>
+           <widget class="QCheckBox" name="enableDualCoreCheckBox">
+            <property name="text">
+             <string>Enable Dual Core (speedup)</string>
+            </property>
+           </widget>
+          </item>
+
+          <!-- Enable Idle Skipping checkbox -->
+          <item>
+           <widget class="QCheckBox" name="enableIdleSkippingCheckBox">
+            <property name="text">
+             <string>Enable Idle Skipping (speedup)</string>
+            </property>
+           </widget>
+          </item>
+
+          <!-- Enable Cheats checkbox -->
+          <item>
+           <widget class="QCheckBox" name="enableCheatsCheckBox">
+            <property name="text">
+             <string>Enable Cheats</string>
+            </property>
+           </widget>
+          </item>
+
+          <!-- Todo: Framelimit combobox -->
+
+         </layout>
+        </widget>
+       </item>
+
+       <!-- Advanced Settings groupbox -->
+       <item>
+        <widget class="QGroupBox" name="advancedSettingsGroupBox">
+         <property name="title">
+          <string>Advanced Settings</string>
+         </property>
+         <layout class="QVBoxLayout" name="advancedSettingsBoxLayout">
+          <property name="alignment">
+           <enum>Qt::AlignTop</enum>
+          </property>
+
+          <!-- CPU Emulator Engine groupbox -->
+          <item>
+           <widget class="QGroupBox" name="cpuEngineGroupBox">
+            <property name="title">
+             <string>CPU Emulator Engine</string>
+            </property>
+            <layout class="QVBoxLayout" name="cpuEngineBoxLayout">
+
+             <!-- Interpreter radio button -->
+             <item>
+              <widget class="QRadioButton" name="cpuEngineInterpreterRadioButton">
+               <property name="text">
+                <string>Interpreter (VERY slow)</string>
+               </property>
+              </widget>
+             </item>
+
+             <!-- JIT radio button -->
+             <item>
+              <widget class="QRadioButton" name="cpuEngineJitRadioButton">
+               <property name="text">
+                <string>JIT Recompiler (recommended)</string>
+               </property>
+              </widget>
+             </item>
+
+             <!-- JITIL radio button -->
+             <item>
+              <widget class="QRadioButton" name="cpuEngineJitilRadioButton">
+               <property name="text">
+                <string>JITIL Recompiler (slower, experimental)</string>
+               </property>
+              </widget>
+             </item>
+
+            </layout>
+           </widget>
+          </item>
+
+          <!-- Force Console as NTSC-J checkbox -->
+          <item>
+           <widget class="QCheckBox" name="forceNtscJCheckBox">
+            <property name="text">
+             <string>Force Console as NTSC-J</string>
+            </property>
+           </widget>
+          </item>
+
+         </layout>
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+
+     <!-- Interface tab -->
+     <widget class="QWidget" name="interfaceTab">
+      <attribute name="title">
+       <string>Interface</string>
+      </attribute>
+     </widget>
+
+     <!-- Audio tab -->
+     <widget class="QWidget" name="audioTab">
+      <attribute name="title">
+       <string>Audio</string>
+      </attribute>
+     </widget>
+
+     <!-- GameCube tab -->
+     <widget class="QWidget" name="gamecubeTab">
+      <attribute name="title">
+       <string>GameCube</string>
+      </attribute>
+     </widget>
+
+     <!-- Wii tab -->
+     <widget class="QWidget" name="wiiTab">
+      <attribute name="title">
+       <string>Wii</string>
+      </attribute>
+     </widget>
+
+     <!-- Paths tab -->
+     <widget class="QWidget" name="pathsTab">
+      <attribute name="title">
+       <string>Paths</string>
+      </attribute>
+     </widget>
+
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources />
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>DConfigDialog</receiver>
+   <slot>accept()</slot>
+  </connection>
+ </connections>
+</ui>
