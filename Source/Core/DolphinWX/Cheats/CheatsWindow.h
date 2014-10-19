@@ -93,6 +93,7 @@ private:
 	// Cheats List
 	void OnEvent_CheatsList_ItemSelected(wxCommandEvent& event);
 	void OnEvent_CheatsList_ItemToggled(wxCommandEvent& event);
+	void OnEvent_CheatsList_Update(wxCommandEvent& event);
 
 	// Apply Changes Button
 	void OnEvent_ApplyChanges_Press(wxCommandEvent& event);

@@ -17,6 +17,9 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 
+// Fired when an ActionReplay code is created.
+wxDEFINE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
+
 CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	: wxDialog(parent, -1, _("Create AR Code"))
 	, m_code_address(address)
@@ -94,6 +97,9 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	isoprops.ActionReplayList_Load(); // loads the new arcodes
 	//ActionReplay::UpdateActiveList();
 	}
+
+	// Propagate back to the parent frame to update the cheat list.
+	GetEventHandler()->AddPendingEvent(wxCommandEvent(UPDATE_CHEAT_LIST_EVENT));
 
 	Close();
 }

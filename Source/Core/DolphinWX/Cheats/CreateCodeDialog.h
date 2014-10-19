@@ -5,13 +5,15 @@
 #pragma once
 
 #include <wx/dialog.h>
+#include <wx/event.h>
 
 #include "Common/CommonTypes.h"
 
 class wxCheckBox;
-class wxCommandEvent;
 class wxTextCtrl;
 class wxWindow;
+
+wxDECLARE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
 
 class CreateCodeDialog final : public wxDialog
 {

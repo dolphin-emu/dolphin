@@ -134,6 +134,7 @@ void wxCheatsWindow::Init_ChildControls()
 	button_cancel->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonClose_Press, this);
 
 	Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnEvent_Close, this);
+	Bind(UPDATE_CHEAT_LIST_EVENT, &wxCheatsWindow::OnEvent_CheatsList_Update, this);
 
 	wxStdDialogButtonSizer* const sButtons = new wxStdDialogButtonSizer();
 	sButtons->AddButton(m_button_apply);
@@ -241,6 +242,11 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 			ActionReplay::SetARCode_IsActive(m_checklistbox_cheats_list->IsChecked(index), code_index.index);
 		}
 	}
+}
+
+void wxCheatsWindow::OnEvent_CheatsList_Update(wxCommandEvent& event)
+{
+	Load_ARCodes();
 }
 
 void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
