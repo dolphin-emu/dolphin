@@ -36,8 +36,6 @@ namespace Gecko
 
 class wxCheatsWindow final : public wxDialog
 {
-	friend class CreateCodeDialog;
-
 public:
 	wxCheatsWindow(wxWindow* const parent);
 	~wxCheatsWindow();
