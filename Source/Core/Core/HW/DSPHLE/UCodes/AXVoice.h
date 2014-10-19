@@ -430,6 +430,7 @@ void MixAdd(int* out, const s16* input, u32 count, u16* pvol, s16* dpop, bool ra
 		s64 sample = input[i];
 		sample *= volume;
 		sample >>= 15;
+		sample = MathUtil::Clamp((s32)sample, -32767, 32767);	// -32768 ?
 
 		out[i] += (s16)sample;
 		volume += volume_delta;
@@ -462,7 +463,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 	// Apply a global volume ramp using the volume envelope parameters.
 	for (u32 i = 0; i < count; ++i)
 	{
-		samples[i] = ((s32)samples[i] * pb.vol_env.cur_volume) >> 15;
+		samples[i] = MathUtil::Clamp(((s32)samples[i] * pb.vol_env.cur_volume) >> 15, -32767, 32767);	// -32768 ?
 		pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
 	}
 
