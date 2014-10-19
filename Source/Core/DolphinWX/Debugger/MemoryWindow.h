@@ -22,54 +22,52 @@ class wxListBox;
 class wxTextCtrl;
 class wxWindow;
 
-class CMemoryWindow
-	: public wxPanel
+class CMemoryWindow : public wxPanel
 {
-	public:
+public:
+	CMemoryWindow(wxWindow* parent,
+	              wxWindowID id = wxID_ANY,
+	              const wxPoint& pos = wxDefaultPosition,
+	              const wxSize& size = wxDefaultSize,
+	              long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
+	              const wxString& name = _("Memory"));
 
-		CMemoryWindow(wxWindow* parent,
-					  wxWindowID id = wxID_ANY,
-					  const wxPoint& pos = wxDefaultPosition,
-					  const wxSize& size = wxDefaultSize,
-					  long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
-					  const wxString& name = _("Memory"));
+	wxCheckBox* chk8;
+	wxCheckBox* chk16;
+	wxCheckBox* chk32;
+	wxButton*   btnSearch;
+	wxCheckBox* chkAscii;
+	wxCheckBox* chkHex;
+	void Save(IniFile& _IniFile) const;
+	void Load(IniFile& _IniFile);
 
-		wxCheckBox* chk8;
-		wxCheckBox* chk16;
-		wxCheckBox* chk32;
-		wxButton*   btnSearch;
-		wxCheckBox* chkAscii;
-		wxCheckBox* chkHex;
-		void Save(IniFile& _IniFile) const;
-		void Load(IniFile& _IniFile);
+	void Update() override;
+	void NotifyMapLoaded();
 
-		void Update() override;
-		void NotifyMapLoaded();
+	void JumpToAddress(u32 _Address);
 
-		void JumpToAddress(u32 _Address);
+private:
+	DECLARE_EVENT_TABLE()
 
-	private:
-		DECLARE_EVENT_TABLE()
+	CMemoryView* memview;
+	wxListBox* symbols;
 
-		CMemoryView* memview;
-		wxListBox* symbols;
+	wxButton* buttonGo;
+	wxTextCtrl* addrbox;
+	wxTextCtrl* valbox;
 
-		wxButton* buttonGo;
-		wxTextCtrl* addrbox;
-		wxTextCtrl* valbox;
-
-		void U8(wxCommandEvent& event);
-		void U16(wxCommandEvent& event);
-		void U32(wxCommandEvent& event);
-		void onSearch(wxCommandEvent& event);
-		void onAscii(wxCommandEvent& event);
-		void onHex(wxCommandEvent& event);
-		void OnSymbolListChange(wxCommandEvent& event);
-		void OnCallstackListChange(wxCommandEvent& event);
-		void OnAddrBoxChange(wxCommandEvent& event);
-		void OnHostMessage(wxCommandEvent& event);
-		void SetMemoryValue(wxCommandEvent& event);
-		void OnDumpMemory(wxCommandEvent& event);
-		void OnDumpMem2(wxCommandEvent& event);
-		void OnDumpFakeVMEM(wxCommandEvent& event);
+	void U8(wxCommandEvent& event);
+	void U16(wxCommandEvent& event);
+	void U32(wxCommandEvent& event);
+	void onSearch(wxCommandEvent& event);
+	void onAscii(wxCommandEvent& event);
+	void onHex(wxCommandEvent& event);
+	void OnSymbolListChange(wxCommandEvent& event);
+	void OnCallstackListChange(wxCommandEvent& event);
+	void OnAddrBoxChange(wxCommandEvent& event);
+	void OnHostMessage(wxCommandEvent& event);
+	void SetMemoryValue(wxCommandEvent& event);
+	void OnDumpMemory(wxCommandEvent& event);
+	void OnDumpMem2(wxCommandEvent& event);
+	void OnDumpFakeVMEM(wxCommandEvent& event);
 };
