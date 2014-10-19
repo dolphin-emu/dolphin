@@ -458,7 +458,6 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		nplay++;
 	}
 	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
-
 	// Convert image from BGR24 to desired pixel format, and scale to initial
 	// width and height
 	if ((s_sws_context = sws_getCachedContext(s_sws_context,
@@ -482,18 +481,22 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	while (nplay--)
 	{
 		error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
-	}
-	while (!error && got_packet)
-	{
-		// Write the compressed frame in the media file.
-		av_interleaved_write_frame(s_format_context, &pkt);
 
-		// Handle delayed frames.
-		PreparePacket(&pkt);
-		error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
+		while (!error && got_packet)
+		{
+			// Write the compressed frame in the media file.
+			av_interleaved_write_frame(s_format_context, &pkt);
+
+			// Handle delayed frames.
+			PreparePacket(&pkt);
+			error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
+		}
+		if (error)
+		{
+			ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
+		}
 	}
-	if (error)
-		ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
+
 	s_last_frame = CoreTiming::GetTicks();
 }
 
@@ -545,4 +548,3 @@ void AVIDump::DoState()
 {
 	s_last_frame = CoreTiming::GetTicks();
 }
-
