@@ -95,7 +95,7 @@ class TASInputDlg : public wxDialog
 		void SetButtonValue(Button* button, bool CurrentState);
 		void SetSliderValue(Control* control, int CurrentValue, int defaultValue = 128);
 		Stick CreateStick(int id_stick);
-		wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, std::string title);
+		wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, const wxString& title);
 		Button CreateButton(const std::string& name);
 		Control CreateControl(long style, int width, int height, u32 range = 255);
 

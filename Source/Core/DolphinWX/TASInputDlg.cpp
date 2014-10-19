@@ -102,7 +102,7 @@ void TASInputDlg::CreateWiiLayout()
 	m_controls[8] = &m_z_cont;
 
 	m_main_stick = CreateStick(ID_MAIN_STICK);
-	wxStaticBoxSizer* const main_stick = CreateStickLayout(&m_main_stick, "IR");
+	wxStaticBoxSizer* const main_stick = CreateStickLayout(&m_main_stick, _("IR"));
 	m_main_stick.x_cont.default_value = 512;
 	m_main_stick.y_cont.default_value = 384;
 
@@ -189,10 +189,10 @@ void TASInputDlg::CreateGCLayout()
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
 	m_main_stick = CreateStick(ID_MAIN_STICK);
-	wxStaticBoxSizer* const main_box = CreateStickLayout(&m_main_stick, "Main Stick");
+	wxStaticBoxSizer* const main_box = CreateStickLayout(&m_main_stick, _("Main Stick"));
 
 	m_c_stick = CreateStick(ID_C_STICK);
-	wxStaticBoxSizer* const c_box = CreateStickLayout(&m_c_stick, "C Stick");
+	wxStaticBoxSizer* const c_box = CreateStickLayout(&m_c_stick, _("C Stick"));
 
 	wxStaticBoxSizer* const shoulder_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
 	m_l_cont = CreateControl(wxSL_VERTICAL | wxSL_INVERSE, -1, 100);
@@ -281,9 +281,9 @@ TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick)
 	return tempStick;
 }
 
-wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, std::string title)
+wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, const wxString& title)
 {
-	wxStaticBoxSizer* const temp_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _(title));
+	wxStaticBoxSizer* const temp_box = new wxStaticBoxSizer(wxHORIZONTAL, this, title);
 	wxBoxSizer* const temp_xslider_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const temp_yslider_box = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* const temp_stick_box = new wxBoxSizer(wxVERTICAL);
