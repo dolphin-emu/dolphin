@@ -45,6 +45,8 @@ set(GUI_SRCS
 	Debugger/MemoryWindow.cpp
 	Debugger/RegisterView.cpp
 	Debugger/RegisterWindow.cpp
+	Debugger/WatchView.cpp
+	Debugger/WatchWindow.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
 	FrameAui.cpp

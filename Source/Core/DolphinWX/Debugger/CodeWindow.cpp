@@ -52,6 +52,7 @@
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 extern "C"  // Bitmaps
 {
@@ -93,6 +94,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	: wxPanel(parent, id, position, size, style, name)
 	, Parent(parent)
 	, m_RegisterWindow(nullptr)
+	, m_WatchWindow(nullptr)
 	, m_BreakpointWindow(nullptr)
 	, m_MemoryWindow(nullptr)
 	, m_JitWindow(nullptr)
@@ -152,6 +154,7 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 			Update();
 			if (codeview) codeview->Center(PC);
 			if (m_RegisterWindow) m_RegisterWindow->NotifyUpdate();
+			if (m_WatchWindow) m_WatchWindow->NotifyUpdate();
 			break;
 
 		case IDM_UPDATEBREAKPOINTS:

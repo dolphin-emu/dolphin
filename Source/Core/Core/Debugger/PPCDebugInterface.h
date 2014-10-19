@@ -22,6 +22,7 @@ public:
 	virtual void SetBreakpoint(unsigned int address) override;
 	virtual void ClearBreakpoint(unsigned int address) override;
 	virtual void ClearAllBreakpoints() override;
+	virtual void AddWatch(unsigned int address) override;
 	virtual void ToggleBreakpoint(unsigned int address) override;
 	virtual void ClearAllMemChecks() override;
 	virtual bool IsMemCheck(unsigned int address) override;

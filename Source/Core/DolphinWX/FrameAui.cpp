@@ -179,6 +179,9 @@ void CFrame::OnToggleWindow(wxCommandEvent& event)
 		case IDM_REGISTERWINDOW:
 			g_pCodeWindow->ToggleRegisterWindow(bShow);
 			break;
+		case IDM_WATCHWINDOW:
+			g_pCodeWindow->ToggleWatchWindow(bShow);
+			break;
 		case IDM_BREAKPOINTWINDOW:
 			g_pCodeWindow->ToggleBreakPointWindow(bShow);
 			break;
@@ -208,6 +211,7 @@ void CFrame::ClosePages()
 	{
 		g_pCodeWindow->ToggleCodeWindow(false);
 		g_pCodeWindow->ToggleRegisterWindow(false);
+		g_pCodeWindow->ToggleWatchWindow(false);
 		g_pCodeWindow->ToggleBreakPointWindow(false);
 		g_pCodeWindow->ToggleMemoryWindow(false);
 		g_pCodeWindow->ToggleJitWindow(false);
@@ -247,6 +251,8 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 		ToggleLogConfigWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_REGISTERWINDOW)
 		g_pCodeWindow->ToggleRegisterWindow(false);
+	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_WATCHWINDOW)
+		g_pCodeWindow->ToggleWatchWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_BREAKPOINTWINDOW)
 		g_pCodeWindow->ToggleBreakPointWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_JITWINDOW)

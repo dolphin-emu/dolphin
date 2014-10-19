@@ -35,6 +35,7 @@ static volatile CPUState state = CPU_POWERDOWN;
 Interpreter * const interpreter = Interpreter::getInstance();
 static CoreMode mode;
 
+Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;

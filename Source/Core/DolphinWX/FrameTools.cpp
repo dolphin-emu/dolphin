@@ -285,6 +285,7 @@ wxMenuBar* CFrame::CreateMenu()
 
 		const wxString MenuText[] = {
 			wxTRANSLATE("&Registers"),
+			wxTRANSLATE("&Watch"),
 			wxTRANSLATE("&Breakpoints"),
 			wxTRANSLATE("&Memory"),
 			wxTRANSLATE("&JIT"),

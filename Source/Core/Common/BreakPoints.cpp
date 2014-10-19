@@ -217,3 +217,86 @@ void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bo
 			debug_interface->BreakNow();
 	}
 }
+
+
+bool Watches::IsAddressWatch(u32 _iAddress)
+{
+	for (const TWatch& bp : m_Watches)
+		if (bp.iAddress == _iAddress)
+			return true;
+
+	return false;
+}
+
+Watches::TWatchesStr Watches::GetStrings() const
+{
+	TWatchesStr bps;
+	for (const TWatch& bp : m_Watches)
+	{
+		std::stringstream ss;
+		ss << std::hex << bp.iAddress << " " << (bp.bOn ? "n" : "");
+		bps.push_back(ss.str());
+	}
+
+	return bps;
+}
+
+void Watches::AddFromStrings(const TWatchesStr& bpstrs)
+{
+	for (const std::string& bpstr : bpstrs)
+	{
+		TWatch bp;
+		std::stringstream ss;
+		ss << std::hex << bpstr;
+		ss >> bp.iAddress;
+		bp.bOn = bpstr.find("n") != bpstr.npos;
+		Add(bp);
+	}
+}
+
+void Watches::Add(const TWatch& bp)
+{
+	if (!IsAddressWatch(bp.iAddress))
+	{
+		m_Watches.push_back(bp);
+	}
+}
+
+void Watches::Add(u32 em_address)
+{
+	if (!IsAddressWatch(em_address)) // only add new addresses
+	{
+		TWatch pt; // breakpoint settings
+		pt.bOn = true;
+		pt.iAddress = em_address;
+
+		m_Watches.push_back(pt);
+	}
+}
+
+void Watches::Update(int count, u32 em_address)
+{
+	m_Watches.at(count).iAddress = em_address;
+}
+
+void Watches::UpdateName(int count, std::string name)
+{
+	m_Watches.at(count).name = name;
+}
+
+void Watches::Remove(u32 em_address)
+{
+	for (auto i = m_Watches.begin(); i != m_Watches.end(); ++i)
+	{
+		if (i->iAddress == em_address)
+		{
+			m_Watches.erase(i);
+			return;
+		}
+	}
+}
+
+void Watches::Clear()
+{
+	m_Watches.clear();
+}

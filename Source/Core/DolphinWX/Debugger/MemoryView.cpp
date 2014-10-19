@@ -38,6 +38,7 @@ enum
 	IDM_COPYCODE,
 	IDM_RUNTOHERE,
 	IDM_DYNARECRESULTS,
+	IDM_WATCHADDRESS,
 	IDM_TOGGLEMEMORY,
 	IDM_VIEWASFP,
 	IDM_VIEWASASCII,
@@ -180,6 +181,11 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 			break;
 #endif
 
+		case IDM_WATCHADDRESS:
+			debugger->AddWatch(selection);
+			Refresh();
+			break;
+
 		case IDM_TOGGLEMEMORY:
 			memory ^= 1;
 			Refresh();
@@ -215,6 +221,7 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 	menu->Append(IDM_COPYADDRESS, _("Copy &address"));
 	menu->Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
+	menu->Append(IDM_WATCHADDRESS, _("Add to &watch"));
 	menu->Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
 
 	wxMenu* viewAsSubMenu = new wxMenu;
