@@ -17,7 +17,7 @@ class DMainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	explicit DMainWindow(QWidget* p = nullptr);
+	explicit DMainWindow(QWidget* parent_widget = nullptr);
 	~DMainWindow();
 
 private slots:
