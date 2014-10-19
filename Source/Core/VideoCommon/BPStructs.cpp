@@ -270,16 +270,16 @@ static void BPWritten(const BPCmd& bp)
 			u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
 			u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
 
-			u8 *ptr = nullptr;
+			u32 addr = 0;
 
 			// TODO - figure out a cleaner way.
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				ptr = Memory::GetPointer(bpmem.tmem_config.tlut_src << 5);
+				addr = bpmem.tmem_config.tlut_src << 5;
 			else
-				ptr = Memory::GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
+				addr = (bpmem.tmem_config.tlut_src & 0xFFFFF) << 5;
 
-			if (ptr)
-				memcpy(texMem + tlutTMemAddr, ptr, tlutXferCount);
+			if (addr)
+				Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
 			else
 				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
 
@@ -453,7 +453,7 @@ static void BPWritten(const BPCmd& bp)
 			// NOTE: libogc's implementation of GX_PreloadEntireTexture seems flawed, so it's not necessarily a good reference for RE'ing this feature.
 
 			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
-			u8* src_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5); // TODO: Should we add mask here on GC?
+			u32 src_addr = tmem_cfg.preload_addr << 5; // TODO: Should we add mask here on GC?
 			u32 size = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
 			u32 tmem_addr_even = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
 
@@ -462,7 +462,7 @@ static void BPWritten(const BPCmd& bp)
 				if (tmem_addr_even + size > TMEM_SIZE)
 					size = TMEM_SIZE - tmem_addr_even;
 
-				memcpy(texMem + tmem_addr_even, src_ptr, size);
+				Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, size);
 			}
 			else // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
 			{
@@ -475,11 +475,11 @@ static void BPWritten(const BPCmd& bp)
 					    tmem_addr_odd  + TMEM_LINE_SIZE > TMEM_SIZE)
 						return;
 
-					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);
-					memcpy(texMem + tmem_addr_odd, src_ptr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+					Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, TMEM_LINE_SIZE);
+					Memory::CopyFromEmu(texMem + tmem_addr_odd, src_addr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
 					tmem_addr_even += TMEM_LINE_SIZE;
 					tmem_addr_odd += TMEM_LINE_SIZE;
-					src_ptr += TMEM_LINE_SIZE * 2;
+					src_addr += TMEM_LINE_SIZE * 2;
 				}
 			}
 		}
