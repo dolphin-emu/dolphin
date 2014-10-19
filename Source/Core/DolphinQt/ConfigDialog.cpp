@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ConfigDialog.h"
+#include "DolphinQt/ConfigDialog.h"
 #include "ui_ConfigDialog.h"
 #include "Common/Common.h"
 #include "Common/StdMakeUnique.h"
