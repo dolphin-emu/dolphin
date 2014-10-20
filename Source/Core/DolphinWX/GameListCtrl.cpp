@@ -877,7 +877,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 
 			// First we have to decide a starting value when we append it
 			if (selected_iso->GetFileName() == SConfig::GetInstance().
-				m_LocalCoreStartupParameter.m_strDefaultGCM)
+				m_LocalCoreStartupParameter.m_strDefaultISO)
 				popupMenu->FindItem(IDM_SETDEFAULTISO)->Check();
 
 			popupMenu->AppendSeparator();
@@ -992,14 +992,14 @@ void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
 	if (event.IsChecked())
 	{
 		// Write the new default value and save it the ini file
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM =
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO =
 			iso->GetFileName();
 		SConfig::GetInstance().SaveSettings();
 	}
 	else
 	{
 		// Otherwise blank the value and save it
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = "";
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = "";
 		SConfig::GetInstance().SaveSettings();
 	}
 }

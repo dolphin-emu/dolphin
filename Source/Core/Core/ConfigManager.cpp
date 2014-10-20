@@ -178,19 +178,19 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	// Clear removed folders
 	int oldPaths;
 	int numPaths = (int)m_ISOFolder.size();
-	general->Get("GCMPathes", &oldPaths, 0);
+	general->Get("ISOPaths", &oldPaths, 0);
 	for (int i = numPaths; i < oldPaths; i++)
 	{
-		ini.DeleteKey("General", StringFromFormat("GCMPath%i", i));
+		ini.DeleteKey("General", StringFromFormat("ISOPath%i", i));
 	}
 
-	general->Set("GCMPathes", numPaths);
+	general->Set("ISOPaths", numPaths);
 	for (int i = 0; i < numPaths; i++)
 	{
-		general->Set(StringFromFormat("GCMPath%i", i), m_ISOFolder[i]);
+		general->Set(StringFromFormat("ISOPath%i", i), m_ISOFolder[i]);
 	}
 
-	general->Set("RecursiveGCMPaths", m_RecursiveISOFolder);
+	general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
 	general->Set("NANDRootPath", m_NANDPath);
 	general->Set("WirelessMac", m_WirelessMac);
 
@@ -292,7 +292,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("DSPThread", m_LocalCoreStartupParameter.bDSPThread);
 	core->Set("DSPHLE", m_LocalCoreStartupParameter.bDSPHLE);
 	core->Set("SkipIdle", m_LocalCoreStartupParameter.bSkipIdle);
-	core->Set("DefaultGCM", m_LocalCoreStartupParameter.m_strDefaultGCM);
+	core->Set("DefaultISO", m_LocalCoreStartupParameter.m_strDefaultISO);
 	core->Set("DVDRoot", m_LocalCoreStartupParameter.m_strDVDRoot);
 	core->Set("Apploader", m_LocalCoreStartupParameter.m_strApploader);
 	core->Set("EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
@@ -388,19 +388,19 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 #endif
 
 	m_ISOFolder.clear();
-	int numGCMPaths;
+	int numISOPaths;
 
-	if (general->Get("GCMPathes", &numGCMPaths, 0))
+	if (general->Get("ISOPaths", &numISOPaths, 0))
 	{
-		for (int i = 0; i < numGCMPaths; i++)
+		for (int i = 0; i < numISOPaths; i++)
 		{
 			std::string tmpPath;
-			general->Get(StringFromFormat("GCMPath%i", i), &tmpPath, "");
+			general->Get(StringFromFormat("ISOPath%i", i), &tmpPath, "");
 			m_ISOFolder.push_back(std::move(tmpPath));
 		}
 	}
 
-	general->Get("RecursiveGCMPaths", &m_RecursiveISOFolder, false);
+	general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
 
 	general->Get("NANDRootPath", &m_NANDPath);
 	m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
@@ -512,7 +512,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.bDSPHLE,       true);
 	core->Get("CPUThread",         &m_LocalCoreStartupParameter.bCPUThread,    true);
 	core->Get("SkipIdle",          &m_LocalCoreStartupParameter.bSkipIdle,     true);
-	core->Get("DefaultGCM",        &m_LocalCoreStartupParameter.m_strDefaultGCM);
+	core->Get("DefaultISO",        &m_LocalCoreStartupParameter.m_strDefaultISO);
 	core->Get("DVDRoot",           &m_LocalCoreStartupParameter.m_strDVDRoot);
 	core->Get("Apploader",         &m_LocalCoreStartupParameter.m_strApploader);
 	core->Get("EnableCheats",      &m_LocalCoreStartupParameter.bEnableCheats, false);

@@ -635,10 +635,10 @@ void CFrame::BootGame(const std::string& filename)
 			if (m_GameListCtrl->GetSelectedISO()->IsValid())
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
-		else if (!StartUp.m_strDefaultGCM.empty() &&
-		         File::Exists(StartUp.m_strDefaultGCM))
+		else if (!StartUp.m_strDefaultISO.empty() &&
+		         File::Exists(StartUp.m_strDefaultISO))
 		{
-			bootfile = StartUp.m_strDefaultGCM;
+			bootfile = StartUp.m_strDefaultISO;
 		}
 		else
 		{
@@ -1801,7 +1801,7 @@ void CFrame::UpdateGUI()
 		if (m_GameListCtrl->IsEnabled())
 		{
 			// Prepare to load Default ISO, enable play button
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty())
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO.empty())
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
