@@ -357,12 +357,12 @@ public:
 
 	void WriteToMem(const u32 address)
 	{
-		Memory::WriteBigEData((const u8*)&config, address, sizeof(config));
+		Memory::CopyToEmu(address, &config, sizeof(config));
 	}
 
 	void ReadFromMem(const u32 address)
 	{
-		Memory::ReadBigEData((u8*)&config, address, sizeof(config));
+		Memory::CopyFromEmu(&config, address, sizeof(config));
 	}
 
 	void ReadConfig()
