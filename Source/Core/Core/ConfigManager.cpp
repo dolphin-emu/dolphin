@@ -328,6 +328,7 @@ void SConfig::SaveMovieSettings(IniFile& ini)
 	movie->Set("PauseMovie", m_PauseMovie);
 	movie->Set("Author", m_strMovieAuthor);
 	movie->Set("DumpFrames", m_DumpFrames);
+	movie->Set("ShowInputDisplay", m_ShowInputDisplay);
 }
 
 void SConfig::SaveDSPSettings(IniFile& ini)
@@ -555,6 +556,7 @@ void SConfig::LoadMovieSettings(IniFile& ini)
 	movie->Get("PauseMovie", &m_PauseMovie, false);
 	movie->Get("Author", &m_strMovieAuthor, "");
 	movie->Get("DumpFrames", &m_DumpFrames, false);
+	movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
 }
 
 void SConfig::LoadDSPSettings(IniFile& ini)

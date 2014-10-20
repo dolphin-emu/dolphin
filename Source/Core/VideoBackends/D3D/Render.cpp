@@ -861,7 +861,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
 	}
 
-	if (g_ActiveConfig.bShowInputDisplay)
+	if (SConfig::GetInstance().m_ShowInputDisplay)
 	{
 		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Movie::GetInputDisplay());
 	}

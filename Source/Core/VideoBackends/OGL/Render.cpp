@@ -730,7 +730,7 @@ void Renderer::DrawDebugInfo()
 	if (SConfig::GetInstance().m_ShowLag)
 		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 
-	if (g_ActiveConfig.bShowInputDisplay)
+	if (SConfig::GetInstance().m_ShowInputDisplay)
 		debug_info += Movie::GetInputDisplay();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)

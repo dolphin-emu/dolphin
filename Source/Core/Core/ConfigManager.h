@@ -90,6 +90,7 @@ struct SConfig : NonCopyable
 	std::string m_strMovieAuthor;
 	unsigned int m_FrameSkip;
 	bool m_DumpFrames;
+	bool m_ShowInputDisplay;
 
 	// DSP settings
 	bool m_DSPEnableJIT;
