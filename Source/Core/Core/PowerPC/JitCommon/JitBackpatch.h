@@ -36,7 +36,7 @@
 	#else
 		#error No context definition for OS
 	#endif
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 	#include <mach/mach.h>
 	#include <mach/message.h>
 	#if _M_X86_64
@@ -61,6 +61,26 @@
 	#else
 		#error No context definition for OS
 	#endif
+#elif defined(__APPLE__)
+	#include <signal.h>
+	typedef _STRUCT_MCONTEXT64 SContext;
+	#define CTX_RAX __ss.__rax
+	#define CTX_RBX __ss.__rbx
+	#define CTX_RCX __ss.__rcx
+	#define CTX_RDX __ss.__rdx
+	#define CTX_RDI __ss.__rdi
+	#define CTX_RSI __ss.__rsi
+	#define CTX_RBP __ss.__rbp
+	#define CTX_RSP __ss.__rsp
+	#define CTX_R8  __ss.__r8
+	#define CTX_R9  __ss.__r9
+	#define CTX_R10 __ss.__r10
+	#define CTX_R11 __ss.__r11
+	#define CTX_R12 __ss.__r12
+	#define CTX_R13 __ss.__r13
+	#define CTX_R14 __ss.__r14
+	#define CTX_R15 __ss.__r15
+	#define CTX_RIP __ss.__rip
 #elif defined(__linux__)
 	#include <signal.h>
 	#if _M_X86_64
