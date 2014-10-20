@@ -415,21 +415,6 @@ bool AVIDump::CreateFile()
 	return true;
 }
 
-static void PreparePacket(AVPacket* pkt)
-{
-	av_init_packet(pkt);
-	pkt->data = nullptr;
-	pkt->size = 0;
-	if (s_stream->codec->coded_frame->pts != AV_NOPTS_VALUE)
-	{
-		pkt->pts = av_rescale_q(s_stream->codec->coded_frame->pts,
-		                        s_stream->codec->time_base, s_stream->time_base);
-	}
-	if (s_stream->codec->coded_frame->key_frame)
-		pkt->flags |= AV_PKT_FLAG_KEY;
-	pkt->stream_index = s_stream->index;
-}
-
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
 	// no timecodes, instead dump each frame as many/few times as needed to keep sync
@@ -458,6 +443,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		nplay++;
 	}
 	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
+
 	// Convert image from BGR24 to desired pixel format, and scale to initial
 	// width and height
 	if ((s_sws_context = sws_getCachedContext(s_sws_context,
@@ -473,23 +459,20 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	s_scaled_frame->width = s_width;
 	s_scaled_frame->height = s_height;
 
-	// Encode and write the image.
-	AVPacket pkt;
-	PreparePacket(&pkt);
-	int got_packet;
-	int error;
 	while (nplay--)
 	{
-		error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
-
-		while (!error && got_packet)
+		// Encode and write the image.
+		AVPacket pkt;
+		pkt.data = nullptr;
+		pkt.size = 0;
+		int got_packet;
+		av_init_packet(&pkt);
+		int error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+		if (!error && got_packet)
 		{
+			pkt.stream_index = s_stream->index;
 			// Write the compressed frame in the media file.
 			av_interleaved_write_frame(s_format_context, &pkt);
-
-			// Handle delayed frames.
-			PreparePacket(&pkt);
-			error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
 		}
 		if (error)
 		{
