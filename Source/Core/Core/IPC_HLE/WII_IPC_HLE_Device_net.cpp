@@ -919,21 +919,23 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SO_INETATON:
 	{
-		struct hostent* remoteHost = gethostbyname((char*)Memory::GetPointer(BufferIn));
+		std::string hostname = Memory::GetString(BufferIn);
+		struct hostent* remoteHost = gethostbyname(hostname.c_str());
 
 		Memory::Write_U32(Common::swap32(*(u32*)remoteHost->h_addr_list[0]), BufferOut);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETATON = %d "
 			"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X",remoteHost->h_addr_list[0] == nullptr ? -1 : 0,
-			(char*)Memory::GetPointer(BufferIn), BufferIn, BufferInSize, BufferOut, BufferOutSize, Common::swap32(*(u32*)remoteHost->h_addr_list[0]));
+			hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize, Common::swap32(*(u32*)remoteHost->h_addr_list[0]));
 		ReturnValue = remoteHost->h_addr_list[0] == nullptr ? 0 : 1;
 		break;
 	}
 
 	case IOCTL_SO_INETPTON:
 	{
+		std::string address = Memory::GetString(BufferIn);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETPTON "
-			"(Translating: %s)", Memory::GetPointer(BufferIn));
-		ReturnValue = inet_pton((char*)Memory::GetPointer(BufferIn), Memory::GetPointer(BufferOut+4));
+			"(Translating: %s)", address.c_str());
+		ReturnValue = inet_pton(address.c_str(), Memory::GetPointer(BufferOut+4));
 		break;
 	}
 
@@ -1033,11 +1035,12 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SO_GETHOSTBYNAME:
 		{
-			hostent* remoteHost = gethostbyname((char*)Memory::GetPointer(BufferIn));
+			std::string hostname = Memory::GetString(BufferIn);
+			hostent* remoteHost = gethostbyname(hostname.c_str());
 
 			INFO_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTBYNAME "
 				"Address: %s, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				(char*)Memory::GetPointer(BufferIn), BufferIn, BufferInSize, BufferOut, BufferOutSize);
+				hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 			if (remoteHost)
 			{
@@ -1332,13 +1335,23 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			hints.ai_next      = nullptr;
 		}
 
-		char* pNodeName = nullptr;
+		// getaddrinfo allows a null pointer for the nodeName or serviceName strings
+		// So we have to do a bit of juggling here.
+		std::string nodeNameStr;
+		const char* pNodeName = nullptr;
 		if (BufferInSize > 0)
-			pNodeName = (char*)Memory::GetPointer(_BufferIn);
+		{
+			nodeNameStr = Memory::GetString(_BufferIn, BufferInSize);
+			pNodeName = nodeNameStr.c_str();
+		}
 
-		char* pServiceName = nullptr;
+		std::string serviceNameStr;
+		const char* pServiceName = nullptr;
 		if (BufferInSize2 > 0)
-			pServiceName = (char*)Memory::GetPointer(_BufferIn2);
+		{
+			serviceNameStr = Memory::GetString(_BufferIn2, BufferInSize2);
+			pServiceName = serviceNameStr.c_str();
+		}
 
 		int ret = getaddrinfo(pNodeName, pServiceName, BufferInSize3 ? &hints : nullptr, &result);
 		u32 addr = _BufferOut;
@@ -1389,7 +1402,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		INFO_LOG(WII_IPC_NET, "IOCTLV_SO_GETADDRINFO "
 			"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
-		INFO_LOG(WII_IPC_NET, "IOCTLV_SO_GETADDRINFO: %s", Memory::GetPointer(_BufferIn));
+		INFO_LOG(WII_IPC_NET, "IOCTLV_SO_GETADDRINFO: %s", Memory::GetString(_BufferIn).c_str());
 		ReturnValue = ret;
 		break;
 	}

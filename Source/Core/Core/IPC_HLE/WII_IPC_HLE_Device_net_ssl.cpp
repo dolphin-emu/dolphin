@@ -135,7 +135,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 	case IOCTLV_NET_SSL_NEW:
 	{
 		int verifyOption = Memory::Read_U32(BufferOut);
-		const char * hostname = (const char*) Memory::GetPointer(BufferOut2);
+		std::string hostname = Memory::GetString(BufferOut2, BufferOutSize2);
 
 		int freeSSL = this->getSSLFreeID();
 		if (freeSSL)
@@ -176,7 +176,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			ssl_set_authmode(&ssl->ctx, SSL_VERIFY_NONE);
 			ssl_set_renegotiation(&ssl->ctx, SSL_RENEGOTIATION_ENABLED);
 
-			memcpy(ssl->hostname, hostname, std::min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
+			memcpy(ssl->hostname, hostname.c_str(), std::min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
 			ssl->hostname[NET_SSL_MAX_HOSTNAME_LEN-1] = '\0';
 			ssl_set_hostname(&ssl->ctx, ssl->hostname);
 
@@ -193,7 +193,7 @@ _SSL_NEW_ERROR:
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			verifyOption, hostname,
+			verifyOption, hostname.c_str(),
 			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
 			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
@@ -436,7 +436,7 @@ _SSL_NEW_ERROR:
 			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
 			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
-		INFO_LOG(WII_IPC_SSL, "%s", Memory::GetPointer(BufferOut2));
+		INFO_LOG(WII_IPC_SSL, "%s", Memory::GetString(BufferOut2).c_str());
 		break;
 	}
 	case IOCTLV_NET_SSL_READ:
