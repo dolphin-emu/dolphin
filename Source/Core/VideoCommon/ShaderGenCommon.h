@@ -30,7 +30,8 @@ public:
 	 * Can be used like printf.
 	 * @note In the ShaderCode implementation, this does indeed write the parameter string to an internal buffer. However, you're free to do whatever you like with the parameter.
 	 */
-	void Write(const char* fmt, ...) {}
+	template<typename... Args>
+	void Write(const char*, Args...) {}
 
 	/*
 	 * Returns a read pointer to the internal buffer.
