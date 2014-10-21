@@ -7,6 +7,14 @@
 #include <disasm.h>        // Bochs
 #include <sstream>
 
+#if defined(HAS_LLVM)
+// PowerPC.h defines PC.
+// This conflicts with a function that has an argument named PC
+#undef PC
+#include <llvm-c/Disassembler.h>
+#include <llvm-c/Target.h>
+#endif
+
 #include <wx/button.h>
 #include <wx/chartype.h>
 #include <wx/defs.h>
@@ -32,6 +40,68 @@
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/JitWindow.h"
+
+#if defined(HAS_LLVM)
+// This class declaration should be in the header
+// Due to the conflict with the PC define and the function with PC as an argument
+// it has to be in this file instead.
+// Once that conflict is resolved this can be moved to the header
+class HostDisassemblerLLVM : public HostDisassembler
+{
+public:
+	HostDisassemblerLLVM(const std::string host_disasm);
+	~HostDisassemblerLLVM()
+	{
+		if (m_can_disasm)
+			LLVMDisasmDispose(m_llvm_context);
+	}
+
+private:
+	bool m_can_disasm;
+	LLVMDisasmContextRef m_llvm_context;
+
+	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
+};
+
+HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string host_disasm)
+	: m_can_disasm(false)
+{
+	LLVMInitializeAllTargetInfos();
+	LLVMInitializeAllTargetMCs();
+	LLVMInitializeAllDisassemblers();
+
+	m_llvm_context = LLVMCreateDisasm(host_disasm.c_str(), nullptr, 0, 0, nullptr);
+
+	// Couldn't create llvm context
+	if (!m_llvm_context)
+		return;
+	LLVMSetDisasmOptions(m_llvm_context,
+		LLVMDisassembler_Option_AsmPrinterVariant |
+		LLVMDisassembler_Option_PrintLatency);
+
+	m_can_disasm = true;
+}
+
+std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32 *host_instructions_count)
+{
+	if (!m_can_disasm)
+		return "(No LLVM context)";
+
+	u64 disasmPtr = (u64)code_start;
+	const u8 *end = code_start + code_size;
+
+	std::ostringstream x86_disasm;
+	while ((u8*)disasmPtr < end)
+	{
+		char inst_disasm[256];
+		disasmPtr += LLVMDisasmInstruction(m_llvm_context, (u8*)disasmPtr, (u64)(end - disasmPtr), (u64)disasmPtr, inst_disasm, 256);
+		x86_disasm << inst_disasm << std::endl;
+		(*host_instructions_count)++;
+	}
+
+	return x86_disasm.str();
+}
+#endif
 
 std::string HostDisassembler::DisassembleBlock(u32* address, u32* host_instructions_count, u32* code_size)
 {
@@ -143,8 +213,14 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerSplit->Fit(this);
 	sizerBig->Fit(this);
 
-#ifdef _M_X86
+#if defined(_M_X86) && defined(HAS_LLVM)
+	m_disassembler.reset(new HostDisassemblerLLVM("x86_64-none-unknown"));
+#elif defined(_M_X86)
 	m_disassembler.reset(new HostDisassemblerX86());
+#elif defined(_M_ARM_64) && defined(HAS_LLVM)
+	m_disassembler.reset(new HostDisassemblerLLVM("aarch64-none-unknown"));
+#elif defined(_M_ARM_32) && defined(HAS_LLVM)
+	m_disassembler.reset(new HostDisassemblerLLVM("armv7-none-unknown"));
 #else
 	m_disassembler.reset(new HostDisassembler());
 #endif
