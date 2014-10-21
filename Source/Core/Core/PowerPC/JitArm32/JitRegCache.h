@@ -110,6 +110,10 @@ private:
 
 	u32 GetLeastUsedRegister(bool increment);
 	bool FindFreeRegister(u32 &regindex);
+
+	// Private function can kill immediates
+	ArmGen::ARMReg BindToRegister(u32 preg, bool doLoad, bool kill_imm);
+
 protected:
 	ArmGen::ARMXEmitter *emit;
 
@@ -127,5 +131,8 @@ public:
 	bool IsImm(u32 preg) { return regs[preg].GetType() == REG_IMM; }
 	u32 GetImm(u32 preg) { return regs[preg].GetImm(); }
 	void SetImmediate(u32 preg, u32 imm);
-	ArmGen::ARMReg BindToRegister(u32 preg);
+
+	// Public function doesn't kill immediates
+	// In reality when you call R(u32) it'll bind an immediate there
+	void BindToRegister(u32 preg, bool doLoad = true);
 };
