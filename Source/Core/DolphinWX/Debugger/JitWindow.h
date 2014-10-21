@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <disasm.h>        // Bochs
+#include <memory>
 #include <vector>
+
 #include <wx/defs.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
@@ -30,6 +33,26 @@ public:
 	void Update() override;
 };
 
+class HostDisassembler
+{
+public:
+	std::string DisassembleBlock(u32* address, u32* host_instructions_count, u32* code_size);
+
+private:
+	virtual std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) { return ""; }
+};
+
+class HostDisassemblerX86 : public HostDisassembler
+{
+public:
+	HostDisassemblerX86();
+
+private:
+	disassembler m_disasm;
+
+	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
+};
+
 class CJitWindow : public wxPanel
 {
 public:
@@ -48,6 +71,7 @@ private:
 	void Compare(u32 em_address);
 
 	JitBlockList* block_list;
+	std::unique_ptr<HostDisassembler> m_disassembler;
 	wxButton* button_refresh;
 	wxTextCtrl* ppc_box;
 	wxTextCtrl* x86_box;
