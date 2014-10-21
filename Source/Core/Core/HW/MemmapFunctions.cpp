@@ -944,12 +944,14 @@ u32 TranslateAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 	// Check MSR[DR] bit before translating data addresses
 	//if (((_Flag == FLAG_READ) || (_Flag == FLAG_WRITE)) && !(MSR & (1 << (31 - 27)))) return _Address;
 
-	// Technically we should do this, but no known games, even heavy MMU ones, use any custom BATs whatsoever,
-	// so it's a waste of time and should never succeed (given the default BATs are already handled in
-	// ReadFromHardware/WriteToHardware).
-	//u32 tlb_addr = TranslateBlockAddress(_Address, _Flag);
-	//if (!tlb_addr)
-	//	return tlb_addr;
+	// Technically we should do this, but almost no games, even heavy MMU ones, use any custom BATs whatsoever,
+	// so only do it where it's really needed.
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bBAT)
+	{
+		u32 tlb_addr = TranslateBlockAddress(_Address, _Flag);
+		if (tlb_addr)
+			return tlb_addr;
+	}
 	return TranslatePageAddress(_Address, _Flag);
 }
 } // namespace
