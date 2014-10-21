@@ -106,6 +106,18 @@ void JitArmAsmRoutineManager::Generate()
 		// IMPORTANT - We jump on negative, not carry!!!
 		FixupBranch bail = B_CC(CC_MI);
 
+		FixupBranch dbg_exit;
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		{
+			MOVI2R(R0, (u32)PowerPC::GetStatePtr());
+			LDR(R0, R0);
+			TST(R0, PowerPC::CPU_STEPPING);
+			FixupBranch not_stepping = B_CC(CC_EQ);
+			// XXX: Check for breakpoints
+			dbg_exit = B();
+			SetJumpTarget(not_stepping);
+		}
+
 		SetJumpTarget(skipToRealDispatcher);
 		dispatcherNoCheck = GetCodePtr();
 
@@ -163,6 +175,8 @@ void JitArmAsmRoutineManager::Generate()
 	B(dispatcher);
 
 	SetJumpTarget(Exit);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		SetJumpTarget(dbg_exit);
 
 	ADD(_SP, _SP, 4);
 
