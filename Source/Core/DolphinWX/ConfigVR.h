@@ -60,8 +60,9 @@ private:
 	//int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed, g_Modkey;
 	int g_Pressed, g_Modkey;
 
-	void SaveButtonMapping(int Id, int Key, int Modkey);
-	void SetButtonText(int id, const wxString &keystr, const wxString &modkeystr = wxString());
+	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
+	void SaveXinputMapping(int Id, bool KBM, std::string XinputMapping);
+	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XinputMapipng = wxString());
 	void DoGetButtons(int id);
 	void EndGetButtons();
 	

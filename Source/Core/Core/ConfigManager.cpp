@@ -123,42 +123,44 @@ static const struct
 static const struct
 {
 	const char* IniText;
+	const bool  KBM;
 	const int   DefaultKey;
 	const int   DefaultModifier;
+	const std::string XinputMapping;
 } g_VRData[] = {
-		{ "FreeLookReset",              82, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookForward",            87, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookBackward",           83, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookLeft",               65, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookRight",              68, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookUp",                 69, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookDown",               81, 4 /* wxMOD_SHIFT */ },
-		{ "VRPermanentCameraForward",   80, 4 /* wxMOD_SHIFT */ },
-		{ "VRPermanentCameraBackward",  59, 4 /* wxMOD_SHIFT */ },
-		{ "VRLargerScale",              61, 4 /* wxMOD_SHIFT */ },
-		{ "VRSmallerScale",	            45, 4 /* wxMOD_SHIFT */ },
-		{ "VRCameraTiltUp",             79, 4 /* wxMOD_SHIFT */ },
-		{ "VRCameraTiltDown",           76, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookReset",              true, 82, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookForward",            true, 87, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookBackward",           true, 83, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookLeft",               true, 65, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookRight",              true, 68, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookUp",                 true, 69, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookDown",               true, 81, 4 /* wxMOD_SHIFT */ },
+		{ "VRPermanentCameraForward",   true, 80, 4 /* wxMOD_SHIFT */ },
+		{ "VRPermanentCameraBackward",  true, 59, 4 /* wxMOD_SHIFT */ },
+		{ "VRLargerScale",              true, 61, 4 /* wxMOD_SHIFT */ },
+		{ "VRSmallerScale",	            true, 45, 4 /* wxMOD_SHIFT */ },
+		{ "VRCameraTiltUp",             true, 79, 4 /* wxMOD_SHIFT */ },
+		{ "VRCameraTiltDown",           true, 76, 4 /* wxMOD_SHIFT */ },
 
-		{ "VRHUDForward",               47, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUDBackward",              46, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUDThicker",               93, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUDThinner",               91, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUD3DCloser",               0, 0 /* wxMOD_NONE */ },
-		{ "VRHUD3DFurther",              0, 0 /* wxMOD_NONE */ },
+		{ "VRHUDForward",               true, 47, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUDBackward",              true, 46, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUDThicker",               true, 93, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUDThinner",               true, 91, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUD3DCloser",              true,  0, 0 /* wxMOD_NONE */ },
+		{ "VRHUD3DFurther",             true,  0, 0 /* wxMOD_NONE */ },
 
-		{ "VR2DScreenLarger",           44, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DScreenSmaller",          77, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraForward",          74, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraBackward",         85, 4 /* wxMOD_SHIFT */ },
-		//{ "VR2DScreenLeft",             0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
-		//{ "VR2DScreenRight",            0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
-		{ "VR2DCameraUp",               72, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraDown",             89, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraTiltUp",           73, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraTiltDown",         75, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DScreenThicker",          84, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DScreenThinner",          71, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenLarger",           true, 44, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenSmaller",          true, 77, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraForward",          true, 74, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraBackward",         true, 85, 4 /* wxMOD_SHIFT */ },
+		//{ "VR2DScreenLeft",             true, 0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
+		//{ "VR2DScreenRight",            true, 0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
+		{ "VR2DCameraUp",               true, 72, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraDown",             true, 89, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraTiltUp",           true, 73, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraTiltDown",         true, 75, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenThicker",          true, 84, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenThinner",          true, 71, 4 /* wxMOD_SHIFT */ },
 
 };
 
@@ -285,6 +287,10 @@ void SConfig::SaveVRSettings(IniFile& ini)
 		vrsettings->Set(g_VRData[i].IniText, m_LocalCoreStartupParameter.iVRSettings[i]);
 		vrsettings->Set(std::string(g_VRData[i].IniText) + "Modifier",
 			m_LocalCoreStartupParameter.iVRSettingsModifier[i]);
+		vrsettings->Set(std::string(g_VRData[i].IniText) + "KBM",
+			m_LocalCoreStartupParameter.iVRSettingsKBM[i]);
+		vrsettings->Set(std::string(g_VRData[i].IniText) + "XinputMapping",
+			m_LocalCoreStartupParameter.iVRSettingsXinputMapping[i]);
 	}
 }
 
@@ -516,6 +522,10 @@ void SConfig::LoadVRSettings(IniFile& ini)
 			&m_LocalCoreStartupParameter.iVRSettings[i], g_VRData[i].DefaultKey);
 		vrsettings->Get(std::string(g_VRData[i].IniText) + "Modifier",
 			&m_LocalCoreStartupParameter.iVRSettingsModifier[i], g_VRData[i].DefaultModifier);
+		vrsettings->Get(std::string(g_VRData[i].IniText) + "KBM",
+			&m_LocalCoreStartupParameter.iVRSettingsKBM[i], g_VRData[i].KBM);
+		vrsettings->Get(std::string(g_VRData[i].IniText) + "XinputMapping",
+			&m_LocalCoreStartupParameter.iVRSettingsXinputMapping[i], g_VRData[i].XinputMapping);
 	}
 }
 

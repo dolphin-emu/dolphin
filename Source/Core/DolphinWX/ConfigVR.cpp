@@ -155,10 +155,11 @@ void CConfigVR::CreateGUIControls()
 
 			m_Button_VRSettings[i]->SetFont(m_SmallFont);
 			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key.\nAssign space to clear."));
-			SetButtonText(i,
-
-			WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
-			WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]));
+			SetButtonText(i, 
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[i],
+				WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
+				WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXinputMapping[i].c_str());
 
 			//m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_BUTTON, &CConfigVR::DetectControl, this);
@@ -307,8 +308,8 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 		// Use the space key to set a blank key
 		if (g_Pressed == WXK_SPACE)
 		{
-			SaveButtonMapping(ClickedButton->GetId(), -1, 0);
-			SetButtonText(ClickedButton->GetId(), wxString());
+			SaveButtonMapping(ClickedButton->GetId(), true, -1, 0);
+			SetButtonText(ClickedButton->GetId(), true, wxString());
 		}
 		// Cancel and restore the old label if escape is hit.
 		else if (g_Pressed == WXK_ESCAPE){
@@ -331,32 +332,46 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 				// Found a button that already has this binding. Unbind it.
 				if (tentativeHotkey == existingHotkey)
 				{
-					SaveButtonMapping(btn->GetId(), -1, 0);
-					SetButtonText(btn->GetId(), wxString());
+					SaveButtonMapping(btn->GetId(), true, -1, 0); //TO DO: Should this set to true? Probably should be an if statement before this...
+					SetButtonText(btn->GetId(), true, wxString());
 				}
 			}
 
 			// Proceed to apply the binding to the selected button.
 			SetButtonText(ClickedButton->GetId(),
+				true,
 				WxUtils::WXKeyToString(g_Pressed),
 				WxUtils::WXKeymodToString(g_Modkey));
-			SaveButtonMapping(ClickedButton->GetId(), g_Pressed, g_Modkey);
+			SaveButtonMapping(ClickedButton->GetId(), true, g_Pressed, g_Modkey);
 		}
 		EndGetButtons();
 	}
 }
 
 // Update the textbox for the buttons
-void CConfigVR::SetButtonText(int id, const wxString &keystr, const wxString &modkeystr)
+void CConfigVR::SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr, const wxString &XinputMapping)
 {
-	m_Button_VRSettings[id]->SetLabel(modkeystr + keystr);
+	if (KBM == true){
+		m_Button_VRSettings[id]->SetLabel(modkeystr + keystr);
+	}
+	else {
+		m_Button_VRSettings[id]->SetLabel(XinputMapping);
+	}
 }
 
 // Save keyboard key mapping
-void CConfigVR::SaveButtonMapping(int Id, int Key, int Modkey)
+void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 {
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id] = KBM;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] = Key;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
+}
+
+void CConfigVR::SaveXinputMapping(int Id, bool KBM, std::string Key)
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id] = KBM;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXinputMapping[Id] = Key;
+	//SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
 }
 
 void CConfigVR::EndGetButtons()
@@ -456,6 +471,7 @@ bool CConfigVR::DetectButton(wxButton* button, wxCommandEvent& event)
 				wxString expr;
 				GetExpressionForControl(expr, control_name);
 				button->SetLabel(expr);
+				SaveXinputMapping(button->GetId(), false, std::string(expr.mb_str()));
 				//button->control_reference->expression = expr;
 				//g_controller_interface.UpdateReference(button->control_reference, default_device);
 				success = true;
