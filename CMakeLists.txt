@@ -3,7 +3,6 @@
 #
 cmake_minimum_required(VERSION 2.8.8)
 
-option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
