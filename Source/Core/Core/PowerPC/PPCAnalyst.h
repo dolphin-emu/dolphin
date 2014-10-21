@@ -156,7 +156,8 @@ private:
 	enum ReorderType
 	{
 		REORDER_CARRY,
-		REORDER_CMP
+		REORDER_CMP,
+		REORDER_CROR
 	};
 
 	void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
