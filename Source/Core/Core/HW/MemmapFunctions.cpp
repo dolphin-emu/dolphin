@@ -122,7 +122,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 		// fake VMEM
 		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
 	}
-	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	else
 	{
 		// MMU
 		// Handle loads that cross page boundaries (ewwww)
@@ -145,7 +145,10 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 				{
 					if (flag == FLAG_READ)
 					{
-						GenerateDSIException(addr, false);
+						if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+							PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", em_address, PC);
+						else
+							GenerateDSIException(addr, false);
 						break;
 					}
 				}
@@ -171,7 +174,10 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 			{
 				if (flag == FLAG_READ)
 				{
-					GenerateDSIException(em_address, false);
+					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+						PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", em_address, PC);
+					else
+						GenerateDSIException(em_address, false);
 				}
 			}
 			else
@@ -186,10 +192,6 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 				}
 			}
 		}
-	}
-	else
-	{
-		PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", em_address, PC);
 	}
 }
 
@@ -260,7 +262,7 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		// fake VMEM
 		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
 	}
-	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	else
 	{
 		// MMU
 		// Handle stores that cross page boundaries (ewwww)
@@ -276,7 +278,10 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 				{
 					if (flag == FLAG_WRITE)
 					{
-						GenerateDSIException(addr, true);
+						if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+							PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", em_address, PC);
+						else
+							GenerateDSIException(addr, true);
 						break;
 					}
 				}
@@ -302,7 +307,10 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 			{
 				if (flag == FLAG_WRITE)
 				{
-					GenerateDSIException(em_address, true);
+					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+						PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", em_address, PC);
+					else
+						GenerateDSIException(em_address, true);
 				}
 			}
 			else
@@ -317,10 +325,6 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 				}
 			}
 		}
-	}
-	else
-	{
-		PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", em_address, PC);
 	}
 }
 // =====================
