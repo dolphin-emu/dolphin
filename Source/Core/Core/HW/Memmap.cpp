@@ -143,7 +143,11 @@ void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+#ifndef _ARCH_32
+	// The fake VMEM hack's address space is above the memory space that we allocate on 32bit targets
+	// Disable it entirely on 32bit targets.
 	bFakeVMEM = !bMMU;
+#endif
 
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
