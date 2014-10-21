@@ -143,8 +143,9 @@ void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+#ifndef _ARCH_32 // bFakeVMEM breaks memory alloc
 	bFakeVMEM = !bMMU;
-
+#endif
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
