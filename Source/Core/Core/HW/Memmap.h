@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
 // Enable memory checks in the Debug/DebugFast builds, but NOT in release

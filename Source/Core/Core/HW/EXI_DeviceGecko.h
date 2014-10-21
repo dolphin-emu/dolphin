@@ -11,6 +11,8 @@
 
 #include "Common/Thread.h"
 
+#include "Core/HW/EXI_Device.h"
+
 class GeckoSockServer
 	: public sf::SocketTCP
 {

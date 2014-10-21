@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
 
 void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig);
 void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u32 data_size, const u8 *NG_priv, u32 NG_id);

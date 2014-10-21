@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Core/HW/SI_Device.h"
+
 #include "SFML/Network.hpp"
 
 // GameBoy Advance "Link Cable"

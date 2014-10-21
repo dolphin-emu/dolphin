@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <string>
+
+#include "Common/CommonTypes.h"
+
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation
 // core isn't used, for example in an asm/disasm tool, then most of these

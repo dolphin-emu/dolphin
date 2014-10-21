@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 namespace OGL
 {
 

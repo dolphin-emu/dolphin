@@ -9,6 +9,7 @@
 #endif
 
 #include "Common/Thread.h"
+#include "Core/HW/EXI_Device.h"
 
 // Network Control Register A
 enum NCRA

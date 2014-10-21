@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+
 class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
 {
 public:

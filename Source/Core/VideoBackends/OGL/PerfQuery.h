@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+
+#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace OGL

@@ -6,6 +6,7 @@
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/SetupUnit.h"
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVertexLoader.h"

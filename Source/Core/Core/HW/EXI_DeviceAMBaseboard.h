@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Core/HW/EXI_Device.h"
+
 class CEXIAMBaseboard : public IEXIDevice
 {
 public:
