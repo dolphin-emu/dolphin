@@ -122,7 +122,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 		// fake VMEM
 		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
 	}
-	else
+	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// MMU
 		// Handle loads that cross page boundaries (ewwww)
@@ -187,6 +187,10 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 			}
 		}
 	}
+	else
+	{
+		PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", em_address, PC);
+	}
 }
 
 
@@ -238,9 +242,9 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		*(T*)&m_pRAM[em_address & RAM_MASK] = bswap(data);
 		return;
 	}
-	else if (((em_address & 0xF0000000) == 0x90000000) ||
+	else if (m_pEXRAM && (((em_address & 0xF0000000) == 0x90000000) ||
 		((em_address & 0xF0000000) == 0xD0000000) ||
-		((em_address & 0xF0000000) == 0x10000000))
+		((em_address & 0xF0000000) == 0x10000000)))
 	{
 		*(T*)&m_pEXRAM[em_address & EXRAM_MASK] = bswap(data);
 		return;
@@ -256,7 +260,7 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		// fake VMEM
 		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
 	}
-	else
+	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// MMU
 		// Handle stores that cross page boundaries (ewwww)
@@ -313,6 +317,10 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 				}
 			}
 		}
+	}
+	else
+	{
+		PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", em_address, PC);
 	}
 }
 // =====================
