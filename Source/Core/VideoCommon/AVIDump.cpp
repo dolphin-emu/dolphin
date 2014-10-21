@@ -13,7 +13,9 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/ConfigManager.h" // for EuRGB60
 #include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/VideoConfig.h"
@@ -26,10 +28,6 @@
 #include <cstring>
 #include <vfw.h>
 #include <winerror.h>
-
-#include "Core/ConfigManager.h" // for EuRGB60
-#include "Core/CoreTiming.h"
-#include "Core/HW/SystemTimers.h"
 
 static HWND s_emu_wnd;
 static LONG s_byte_buffer;
@@ -333,6 +331,7 @@ static SwsContext* s_sws_context = nullptr;
 static int s_width;
 static int s_height;
 static int s_size;
+static int s_frame_rate;
 static u64 s_last_frame;
 bool b_start_dumping = false;
 
@@ -352,6 +351,11 @@ bool AVIDump::Start(int w, int h)
 	s_height = h;
 
 	s_last_frame = CoreTiming::GetTicks();
+
+	if (SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"))
+		s_frame_rate = 60; // always 60, for either pal60 or ntsc
+	else
+		s_frame_rate = VideoInterface::TargetRefreshRate; // 50 or 60, depending on region
 
 	InitAVCodec();
 	bool success = CreateFile();
@@ -381,7 +385,7 @@ bool AVIDump::CreateFile()
 	s_stream->codec->bit_rate = 400000;
 	s_stream->codec->width = s_width;
 	s_stream->codec->height = s_height;
-	s_stream->codec->time_base = (AVRational){1, static_cast<int>(VideoInterface::TargetRefreshRate)};
+	s_stream->codec->time_base = (AVRational){1, s_frame_rate};
 	s_stream->codec->gop_size = 12;
 	s_stream->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
@@ -411,23 +415,33 @@ bool AVIDump::CreateFile()
 	return true;
 }
 
-static void PreparePacket(AVPacket* pkt)
-{
-	av_init_packet(pkt);
-	pkt->data = nullptr;
-	pkt->size = 0;
-	if (s_stream->codec->coded_frame->pts != AV_NOPTS_VALUE)
-	{
-		pkt->pts = av_rescale_q(s_stream->codec->coded_frame->pts,
-		                        s_stream->codec->time_base, s_stream->time_base);
-	}
-	if (s_stream->codec->coded_frame->key_frame)
-		pkt->flags |= AV_PKT_FLAG_KEY;
-	pkt->stream_index = s_stream->index;
-}
-
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
+	// no timecodes, instead dump each frame as many/few times as needed to keep sync
+	u64 one_cfr = SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
+	int nplay = 0;
+	s64 delta;
+	if (!b_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	{
+		delta = CoreTiming::GetTicks();
+		b_start_dumping = true;
+	}
+	else
+	{
+		delta = CoreTiming::GetTicks() - s_last_frame;
+	}
+	// try really hard to place one copy of frame in stream (otherwise it's dropped)
+	if (delta > (s64)one_cfr * 3 / 10) // place if 3/10th of a frame space
+	{
+		delta -= one_cfr;
+		nplay++;
+	}
+	// try not nearly so hard to place additional copies of the frame
+	while (delta > (s64)one_cfr * 8 / 10) // place if 8/10th of a frame space
+	{
+		delta -= one_cfr;
+		nplay++;
+	}
 	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
 
 	// Convert image from BGR24 to desired pixel format, and scale to initial
@@ -445,27 +459,34 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	s_scaled_frame->width = s_width;
 	s_scaled_frame->height = s_height;
 
-	// Encode and write the image.
-	AVPacket pkt;
-	PreparePacket(&pkt);
-	int got_packet;
-	int error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
-	while (!error && got_packet)
+	while (nplay--)
 	{
-		// Write the compressed frame in the media file.
-		av_interleaved_write_frame(s_format_context, &pkt);
-
-		// Handle delayed frames.
-		PreparePacket(&pkt);
-		error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
+		// Encode and write the image.
+		AVPacket pkt;
+		pkt.data = nullptr;
+		pkt.size = 0;
+		int got_packet;
+		av_init_packet(&pkt);
+		int error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+		if (!error && got_packet)
+		{
+			pkt.stream_index = s_stream->index;
+			// Write the compressed frame in the media file.
+			av_interleaved_write_frame(s_format_context, &pkt);
+		}
+		if (error)
+		{
+			ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
+		}
 	}
-	if (error)
-		ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
+
+	s_last_frame = CoreTiming::GetTicks();
 }
 
 void AVIDump::Stop()
 {
 	av_write_trailer(s_format_context);
+	b_start_dumping = false;
 	CloseFile();
 	NOTICE_LOG(VIDEO, "Stopping frame dump");
 }
