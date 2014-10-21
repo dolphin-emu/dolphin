@@ -32,7 +32,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false),
   bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bEnableFPRF(false),
+  bFPRF(false),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
@@ -73,7 +73,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPHLE = true;
 	bDSPThread = true;
 	bFastmem = true;
-	bEnableFPRF = false;
+	bFPRF = false;
 	bBAT = false;
 	bMMU = false;
 	bDCBZOFF = false;

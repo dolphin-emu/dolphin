@@ -141,7 +141,7 @@ struct SCoreStartupParameter
 	bool bJITILOutputIR;
 
 	bool bFastmem;
-	bool bEnableFPRF;
+	bool bFPRF;
 
 	bool bCPUThread;
 	bool bDSPThread;
