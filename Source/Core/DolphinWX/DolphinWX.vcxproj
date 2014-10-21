@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -50,7 +50,10 @@
   <ItemGroup>
     <ClCompile Include="AboutDolphin.cpp" />
     <ClCompile Include="ARCodeAddEdit.cpp" />
-    <ClCompile Include="CheatsWindow.cpp" />
+    <ClCompile Include="Cheats\CheatSearchTab.cpp" />
+    <ClCompile Include="Cheats\CheatsWindow.cpp" />
+    <ClCompile Include="Cheats\CreateCodeDialog.cpp" />
+    <ClCompile Include="Cheats\GeckoCodeDiag.cpp" />
     <ClCompile Include="ConfigMain.cpp" />
     <ClCompile Include="Debugger\BreakpointDlg.cpp" />
     <ClCompile Include="Debugger\BreakpointView.cpp" />
@@ -73,7 +76,6 @@
     <ClCompile Include="FrameAui.cpp" />
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
-    <ClCompile Include="GeckoCodeDiag.cpp" />
     <ClCompile Include="GLInterface\GLInterface.cpp" />
     <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="HotkeyDlg.cpp" />
@@ -102,8 +104,11 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="AboutDolphin.h" />
     <ClInclude Include="ARCodeAddEdit.h" />
-    <ClInclude Include="CheatsWindow.h" />
     <ClInclude Include="ConfigMain.h" />
+    <ClInclude Include="Cheats\CheatSearchTab.h" />
+    <ClInclude Include="Cheats\CheatsWindow.h" />
+    <ClInclude Include="Cheats\CreateCodeDialog.h" />
+    <ClInclude Include="Cheats\GeckoCodeDiag.h" />
     <ClInclude Include="Debugger\BreakpointDlg.h" />
     <ClInclude Include="Debugger\BreakpointView.h" />
     <ClInclude Include="Debugger\BreakpointWindow.h" />
@@ -122,7 +127,6 @@
     <ClInclude Include="FifoPlayerDlg.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
-    <ClInclude Include="GeckoCodeDiag.h" />
     <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HotkeyDlg.h" />
@@ -189,7 +193,7 @@
     <ProjectReference Include="$(CoreDir)InputCommon\InputCommon.vcxproj">
       <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
     </ProjectReference>
-	<ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
+    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
       <Project>{604C8368-F34A-4D55-82C8-CC92A0C13254}</Project>
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">

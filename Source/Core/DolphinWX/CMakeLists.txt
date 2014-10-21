@@ -24,8 +24,11 @@ endif()
 set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
-	CheatsWindow.cpp
 	ConfigMain.cpp
+	Cheats/CheatSearchTab.cpp
+	Cheats/CheatsWindow.cpp
+	Cheats/CreateCodeDialog.cpp
+	Cheats/GeckoCodeDiag.cpp
 	Debugger/BreakpointDlg.cpp
 	Debugger/BreakpointView.cpp
 	Debugger/BreakpointWindow.cpp
@@ -47,7 +50,6 @@ set(GUI_SRCS
 	FrameAui.cpp
 	FrameTools.cpp
 	GameListCtrl.cpp
-	GeckoCodeDiag.cpp
 	HotkeyDlg.cpp
 	ISOFile.cpp
 	ISOProperties.cpp

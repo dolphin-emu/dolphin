@@ -27,8 +27,8 @@
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
-#include "DolphinWX/GeckoCodeDiag.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Cheats/GeckoCodeDiag.h"
 
 class IniFile;
 
