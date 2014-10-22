@@ -1505,7 +1505,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+			if (g_ActiveConfig.bStereo)
+			{
+				TargetRectangle leftRc = drawRc, rightRc = drawRc;
+				int width = drawRc.right - drawRc.left;
+				leftRc.right -= width / 2;
+				rightRc.left += width / 2;
+
+				m_post_processor->BlitFromTexture(sourceRc, leftRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
+				m_post_processor->BlitFromTexture(sourceRc, rightRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
+			}
+			else
+			{
+				m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
+			}
 		}
 	}
 	else
@@ -1515,7 +1528,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
 
-		m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+		if (g_ActiveConfig.bStereo)
+		{
+			TargetRectangle leftRc = flipped_trc, rightRc = flipped_trc;
+			int width = flipped_trc.right - flipped_trc.left;
+			leftRc.right -= width / 2;
+			rightRc.left += width / 2;
+
+			m_post_processor->BlitFromTexture(targetRc, leftRc, tex, s_target_width, s_target_height, 0);
+			m_post_processor->BlitFromTexture(targetRc, rightRc, tex, s_target_width, s_target_height, 1);
+		}
+		else
+		{
+			m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+		}
 	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
