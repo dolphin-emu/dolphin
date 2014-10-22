@@ -282,6 +282,7 @@ if(APPLE)
 	find_library(QUICKTIME_LIBRARY QuickTime)
 	find_library(WEBKIT_LIBRARY WebKit)
 	find_library(FORCEFEEDBACK ForceFeedback)
+	find_library(OPENGL_LIBRARY OpenGL)
 endif()
 
 if(WIN32)
