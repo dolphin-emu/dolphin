@@ -90,11 +90,14 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 elseif(USE_X11)
 	if (NOT USE_EGL)
 		set(SRCS ${SRCS} GLInterface/GLX.cpp)
-		# GLX has a hard dependency on libGL.
-		# Make sure to link to it if using GLX.
-		set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 	endif()
 	set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
+endif()
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" OR (USE_X11 AND NOT USE_EGL))
+	# GLX has a hard dependency on libGL since that's where the glX* function exports are
+	# OS X depends on the OpenGL framework since that's where the CGL function exports are
+	set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 endif()
 
 set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
