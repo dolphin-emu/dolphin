@@ -100,14 +100,14 @@ void AppendListToString(std::string *dest)
 
 void MarkAllDirty()
 {
-	g_main_cp_state.attr_dirty = 0xff;
-	g_preprocess_cp_state.attr_dirty = 0xff;
+	g_main_cp_state.attr_dirty = BitSet32::AllTrue(8);
+	g_preprocess_cp_state.attr_dirty = BitSet32::AllTrue(8);
 }
 
 static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 {
 	VertexLoader* loader;
-	if ((state->attr_dirty >> vtx_attr_group) & 1)
+	if (state->attr_dirty[vtx_attr_group])
 	{
 		VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
 		std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
@@ -123,7 +123,7 @@ static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 			INCSTAT(stats.numVertexLoaders);
 		}
 		state->vertex_loaders[vtx_attr_group] = loader;
-		state->attr_dirty &= ~(1 << vtx_attr_group);
+		state->attr_dirty[vtx_attr_group] = false;
 	} else {
 		loader = state->vertex_loaders[vtx_attr_group];
 	}
@@ -200,31 +200,31 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 	case 0x50:
 		state->vtx_desc.Hex &= ~0x1FFFF;  // keep the Upper bits
 		state->vtx_desc.Hex |= value;
-		state->attr_dirty = 0xFF;
+		state->attr_dirty = BitSet32::AllTrue(8);
 		break;
 
 	case 0x60:
 		state->vtx_desc.Hex &= 0x1FFFF;  // keep the lower 17Bits
 		state->vtx_desc.Hex |= (u64)value << 17;
-		state->attr_dirty = 0xFF;
+		state->attr_dirty = BitSet32::AllTrue(8);
 		break;
 
 	case 0x70:
 		_assert_((sub_cmd & 0x0F) < 8);
 		state->vtx_attr[sub_cmd & 7].g0.Hex = value;
-		state->attr_dirty |= 1 << (sub_cmd & 7);
+		state->attr_dirty[sub_cmd & 7] = true;
 		break;
 
 	case 0x80:
 		_assert_((sub_cmd & 0x0F) < 8);
 		state->vtx_attr[sub_cmd & 7].g1.Hex = value;
-		state->attr_dirty |= 1 << (sub_cmd & 7);
+		state->attr_dirty[sub_cmd & 7] = true;
 		break;
 
 	case 0x90:
 		_assert_((sub_cmd & 0x0F) < 8);
 		state->vtx_attr[sub_cmd & 7].g2.Hex = value;
-		state->attr_dirty |= 1 << (sub_cmd & 7);
+		state->attr_dirty[sub_cmd & 7] = true;
 		break;
 
 	// Pointers to vertex arrays in GC RAM
