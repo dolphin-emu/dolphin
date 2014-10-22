@@ -475,7 +475,7 @@ void VertexShaderManager::SetConstants()
 			g_fProjectionMatrix[13] = 0.0f;
 
 			g_fProjectionMatrix[14] = 0.0f;
-			g_fProjectionMatrix[15] = 1.0f;
+			g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON; // hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
 
 			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
