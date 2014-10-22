@@ -12,6 +12,7 @@ class wxChoice;
 class wxCommandEvent;
 class wxEvent;
 class wxListBox;
+class wxRadioBox;
 class wxStaticText;
 class wxTextCtrl;
 class wxWindow;
@@ -42,13 +43,7 @@ private:
 	wxButton* m_btn_init_scan;
 	wxButton* m_btn_next_scan;
 
-	struct
-	{
-		wxRadioButton* rad_8;
-		wxRadioButton* rad_16;
-		wxRadioButton* rad_32;
-
-	} m_size_radiobtn;
+	wxRadioBox* m_data_sizes;
 
 	struct
 	{
