@@ -88,8 +88,13 @@ if(WIN32)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS ${SRCS} GLInterface/AGL.cpp)
 elseif(USE_X11)
-	set(SRCS ${SRCS} GLInterface/GLX.cpp
-		GLInterface/X11_Util.cpp)
+	if (NOT USE_EGL)
+		set(SRCS ${SRCS} GLInterface/GLX.cpp)
+		# GLX has a hard dependency on libGL.
+		# Make sure to link to it if using GLX.
+		set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
+	endif()
+	set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
 endif()
 
 set(SRCS ${SRCS} GLInterface/GLInterface.cpp)

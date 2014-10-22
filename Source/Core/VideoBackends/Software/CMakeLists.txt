@@ -25,7 +25,6 @@ set(LIBS	videocommon
 			SOIL
 			common
 			${X11_LIBRARIES}
-			${OPENGL_LIBRARIES}
 			${wxWidgets_LIBRARIES})
 
 add_dolphin_library(videosoftware "${SRCS}" "${LIBS}")
