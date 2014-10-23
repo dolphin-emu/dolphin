@@ -197,7 +197,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		u8 * buffer = (u8*)malloc(wLength + LIBUSB_CONTROL_SETUP_SIZE);
 		libusb_fill_control_setup(buffer, bmRequestType, bRequest, wValue, wIndex, wLength);
-		memcpy(buffer + LIBUSB_CONTROL_SETUP_SIZE, Memory::GetPointer(data), wLength);
+		Memory::CopyFromEmu(buffer + LIBUSB_CONTROL_SETUP_SIZE, data, wLength);
 		libusb_fill_control_transfer(transfer, dev_handle, buffer, handleUsbUpdates, (void*)(size_t)_CommandAddress, /* no timeout */ 0);
 		libusb_submit_transfer(transfer);
 

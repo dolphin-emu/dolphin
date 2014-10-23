@@ -952,8 +952,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			Memory::Read_U8(BufferIn + 8 + 3)
 			);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETNTOP %s", ip_s);
-		memset(Memory::GetPointer(BufferOut), 0, BufferOutSize);
-		memcpy(Memory::GetPointer(BufferOut), ip_s, strlen(ip_s));
+		Memory::Memset(BufferOut, 0, BufferOutSize);
+		Memory::CopyToEmu(BufferOut, (u8*)ip_s, strlen(ip_s));
 		break;
 	}
 
@@ -1449,7 +1449,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		s32 icmp_length = sizeof(data);
 
 		if (BufferInSize2 == sizeof(data))
-			memcpy(data, Memory::GetPointer(_BufferIn2), BufferInSize2);
+			Memory::CopyFromEmu(data, _BufferIn2, BufferInSize2);
 		else
 		{
 			// TODO sequence number is incremented either statically, by

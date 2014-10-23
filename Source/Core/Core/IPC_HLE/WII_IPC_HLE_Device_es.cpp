@@ -666,11 +666,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					// shouldn't matter at all.  Just fill out some fields just
 					// to be on the safe side.
 					u32 Address = Buffer.PayloadBuffer[0].m_Address;
-					memset(Memory::GetPointer(Address), 0, 0xD8);
+					Memory::Memset(Address, 0, 0xD8);
 					Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0)); // title ID
 					Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0)); // unnnown
 					Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0)); // access mask
-					memset(Memory::GetPointer(Address + 4 + (0x222 - 0x1d0)), 0xff, 0x20); // content permissions
+					Memory::Memset(Address + 4 + (0x222 - 0x1d0), 0xff, 0x20); // content permissions
 				}
 				else
 				{
