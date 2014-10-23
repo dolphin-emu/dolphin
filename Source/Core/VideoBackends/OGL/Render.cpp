@@ -490,6 +490,7 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
 			g_Config.backend_info.bSupportsBindingLayout = true;
+			g_Config.backend_info.bSupportsEarlyZ = true;
 		}
 	}
 	else
