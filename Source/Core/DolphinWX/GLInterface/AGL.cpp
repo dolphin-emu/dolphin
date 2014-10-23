@@ -71,8 +71,7 @@ bool cInterfaceAGL::MakeCurrent()
 
 bool cInterfaceAGL::ClearCurrent()
 {
-	// not tested at all
-	//clearCurrentContext();
+	[NSOpenGLContext clearCurrentContext];
 	return true;
 }
 
