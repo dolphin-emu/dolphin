@@ -466,6 +466,8 @@ static void BPWritten(const BPCmd& bp)
 			}
 			else // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
 			{
+				u8* src_ptr = Memory::GetPointer(src_addr);
+
 				// AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for everything
 				u32 tmem_addr_odd = tmem_cfg.preload_tmem_odd * TMEM_LINE_SIZE;
 
@@ -475,11 +477,12 @@ static void BPWritten(const BPCmd& bp)
 					    tmem_addr_odd  + TMEM_LINE_SIZE > TMEM_SIZE)
 						return;
 
-					Memory::CopyFromEmu(texMem + tmem_addr_even, src_addr, TMEM_LINE_SIZE);
-					Memory::CopyFromEmu(texMem + tmem_addr_odd, src_addr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+					// TODO: This isn't very optimised, does a whole lot of small memcpys
+					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);
+					memcpy(texMem + tmem_addr_odd, src_ptr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
 					tmem_addr_even += TMEM_LINE_SIZE;
 					tmem_addr_odd += TMEM_LINE_SIZE;
-					src_addr += TMEM_LINE_SIZE * 2;
+					src_ptr += TMEM_LINE_SIZE * 2;
 				}
 			}
 		}
