@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 #ifdef _WIN32
 
 #define PROFILER_QUERY_PERFORMANCE_COUNTER(pt) \

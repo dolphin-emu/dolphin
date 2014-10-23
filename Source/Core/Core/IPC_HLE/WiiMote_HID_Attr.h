@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #if 0
 struct SAttrib
 {

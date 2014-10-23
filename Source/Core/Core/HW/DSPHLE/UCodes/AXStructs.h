@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 struct PBMixer
 {
 	u16 left;

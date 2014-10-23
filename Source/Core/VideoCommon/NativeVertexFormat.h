@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <functional> // for hash
+
+#include "Common/Common.h"
 #include "Common/Hash.h"
 
 // m_components

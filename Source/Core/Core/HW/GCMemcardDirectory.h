@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Core/HW/GCMemcard.h"
+#include "DiscIO/Volume.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 //#define _WRITE_MC_HEADER 1

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/Common.h"
 #include "VideoCommon/VertexManagerBase.h"
 
 extern u8* g_video_buffer_read_ptr;

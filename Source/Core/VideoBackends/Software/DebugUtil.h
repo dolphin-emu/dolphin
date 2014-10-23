@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/Common.h"
+
 namespace DebugUtil
 {
 	void Init();

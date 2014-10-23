@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "Common/CommonTypes.h"
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"

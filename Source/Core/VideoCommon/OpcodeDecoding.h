@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 #define GX_NOP                      0x00
 
 #define GX_LOAD_BP_REG              0x61

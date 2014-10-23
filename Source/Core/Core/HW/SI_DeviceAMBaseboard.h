@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Core/HW/SI_Device.h"
+
 // triforce (GC-AM) baseboard
 class CSIDevice_AMBaseboard : public ISIDevice
 {

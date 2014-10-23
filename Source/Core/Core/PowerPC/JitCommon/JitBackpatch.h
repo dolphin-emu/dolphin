@@ -37,6 +37,10 @@
 		#error No context definition for OS
 	#endif
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
+	// for modules:
+	#define _XOPEN_SOURCE
+	#include <ucontext.h>
+
 	#include <mach/mach.h>
 	#include <mach/message.h>
 	#if _M_X86_64

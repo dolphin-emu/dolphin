@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 #include "VideoBackends/OGL/GLExtensions/ARB_blend_func_extended.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_buffer_storage.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_debug_output.h"
