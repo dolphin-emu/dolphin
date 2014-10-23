@@ -30,8 +30,6 @@ public:
 
 
 private:
-	DECLARE_EVENT_TABLE();
-
 	enum
 	{
 		ID_GPR = 1002

@@ -16,10 +16,6 @@
 
 class wxWindow;
 
-BEGIN_EVENT_TABLE(CRegisterWindow, wxPanel)
-END_EVENT_TABLE()
-
-
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
 		const wxPoint& position, const wxSize& size,
 		long style, const wxString& name)
