@@ -772,7 +772,14 @@ void JitArm::cmp (UGeckoInstruction inst)
 		return;
 	}
 
-	FALLBACK_IF(true);
+	ARMReg rA = gpr.GetReg();
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+
+	SUB(rA, RA, RB);
+	ComputeRC(rA, crf);
+
+	gpr.Unlock(rA);
 }
 void JitArm::cmpi(UGeckoInstruction inst)
 {
@@ -785,8 +792,21 @@ void JitArm::cmpi(UGeckoInstruction inst)
 		ComputeRC((s32)gpr.GetImm(a) - inst.SIMM_16, crf);
 		return;
 	}
+	ARMReg rA = gpr.GetReg();
+	ARMReg RA = gpr.R(a);
 
-	FALLBACK_IF(true);
+	if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 256)
+	{
+		SUB(rA, RA, inst.SIMM_16);
+	}
+	else
+	{
+		MOVI2R(rA, inst.SIMM_16);
+		SUB(rA, RA, rA);
+	}
+	ComputeRC(rA, crf);
+
+	gpr.Unlock(rA);
 }
 
 void JitArm::negx(UGeckoInstruction inst)
