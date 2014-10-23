@@ -25,10 +25,13 @@
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 enum
 {
@@ -162,6 +165,10 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 {
+	CFrame* main_frame = (CFrame*)(GetParent()->GetParent()->GetParent());
+	CCodeWindow* code_window = main_frame->g_pCodeWindow;
+	CWatchWindow* watch_window = code_window->m_WatchWindow;
+
 #if wxUSE_CLIPBOARD
 	wxTheClipboard->Open();
 #endif
@@ -183,6 +190,8 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_WATCHADDRESS:
 			debugger->AddWatch(selection);
+			if (watch_window)
+				watch_window->NotifyUpdate();
 			Refresh();
 			break;
 

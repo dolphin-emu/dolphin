@@ -6,6 +6,7 @@
 #include <wx/colour.h>
 #include <wx/defs.h>
 #include <wx/grid.h>
+#include <wx/menu.h>
 #include <wx/string.h>
 #include <wx/windowid.h>
 
@@ -15,13 +16,24 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/MemoryWindow.h"
 #include "DolphinWX/Debugger/RegisterView.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 class wxWindow;
 
 // F-zero 80005e60 wtf??
+
+enum
+{
+	IDM_WATCHADDRESS,
+	IDM_VIEWMEMORY,
+};
 
 static const char *special_reg_names[] = {
 	"PC", "LR", "CTR", "CR", "FPSCR", "MSR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause", "DSISR", "DAR", "PT hashmask"
@@ -49,7 +61,7 @@ static u32 GetSpecialRegValue(int reg)
 	}
 }
 
-wxString CRegTable::GetValue(int row, int col)
+static wxString GetValueByRowCol(int row, int col)
 {
 	if (row < 32)
 	{
@@ -128,6 +140,11 @@ wxString CRegTable::GetValue(int row, int col)
 		}
 	}
 	return wxEmptyString;
+}
+
+wxString CRegTable::GetValue(int row, int col)
+{
+	return GetValueByRowCol(row, col);
 }
 
 static void SetSpecialRegValue(int reg, u32 value)
@@ -245,4 +262,43 @@ void CRegisterView::Update()
 {
 	ForceRefresh();
 	((CRegTable *)GetTable())->UpdateCachedRegs();
+}
+
+void CRegisterView::OnMouseDownR(wxGridEvent& event)
+{
+	// popup menu
+	int row = event.GetRow();
+	int col = event.GetCol();
+
+	wxString strNewVal = GetValueByRowCol(row, col);
+	TryParse("0x" + WxStrToStr(strNewVal), &addr);
+
+	wxMenu* menu = new wxMenu;
+	menu->Append(IDM_WATCHADDRESS, _("Add to &watch"));
+	menu->Append(IDM_VIEWMEMORY, _("View &memory"));
+	PopupMenu(menu);
+}
+
+void CRegisterView::OnPopupMenu(wxCommandEvent& event)
+{
+	CFrame* main_frame = (CFrame*)(GetParent()->GetParent());
+	CCodeWindow* code_window = main_frame->g_pCodeWindow;
+	CWatchWindow* watch_window = code_window->m_WatchWindow;
+	CMemoryWindow* memory_window = code_window->m_MemoryWindow;
+
+	switch (event.GetId())
+	{
+	case IDM_WATCHADDRESS:
+		PowerPC::watches.Add(addr);
+		if (watch_window)
+			watch_window->NotifyUpdate();
+		Refresh();
+		break;
+	case IDM_VIEWMEMORY:
+		if (memory_window)
+			memory_window->JumpToAddress(addr);
+		Refresh();
+		break;
+	}
+	event.Skip();
 }

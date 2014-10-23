@@ -30,14 +30,13 @@ class wxWindow;
 // Interrupt Mask (PI)
 // Interrupt Cause(PI)
 
+#define NUM_SPECIALS 14
+
 class CRegTable : public wxGridTableBase
 {
-	enum
-	{
-		NUM_SPECIALS = 14,
-	};
 
 public:
+
 	CRegTable()
 	{
 		memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
@@ -72,4 +71,9 @@ class CRegisterView : public wxGrid
 public:
 	CRegisterView(wxWindow* parent, wxWindowID id);
 	void Update() override;
+	void OnMouseDownR(wxGridEvent& event);
+	void OnPopupMenu(wxCommandEvent& event);
+
+private:
+	u32 addr = 0;
 };
