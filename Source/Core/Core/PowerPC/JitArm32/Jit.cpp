@@ -307,8 +307,12 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
+				blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
@@ -444,7 +448,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			POP(4, R0, R1, R2, R3);
 		}
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		if (Profiler::g_ProfileBlocks)
 		{
 			// Add run count
 			static const u64 One = 1;
