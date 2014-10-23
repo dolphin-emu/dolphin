@@ -143,7 +143,7 @@ bool ArmRegCache::FindFreeRegister(u32 &regindex)
 ARMReg ArmRegCache::R(u32 preg)
 {
 	if (regs[preg].GetType() == REG_IMM)
-		return BindToRegister(preg);
+		return BindToRegister(preg, true, true);
 
 	u32 lastRegIndex = GetLeastUsedRegister(true);
 
@@ -181,31 +181,76 @@ ARMReg ArmRegCache::R(u32 preg)
 	return ArmCRegs[lastRegIndex].Reg;
 }
 
-ARMReg ArmRegCache::BindToRegister(u32 preg)
+void ArmRegCache::BindToRegister(u32 preg, bool doLoad)
 {
-	_assert_msg_(DYNA_REC, regs[preg].GetType() == REG_IMM, "Can't BindToRegister with a REG");
+	BindToRegister(preg, doLoad, false);
+}
+
+ARMReg ArmRegCache::BindToRegister(u32 preg, bool doLoad, bool kill_imm)
+{
 	u32 lastRegIndex = GetLeastUsedRegister(false);
 	u32 freeRegIndex;
-	if (FindFreeRegister(freeRegIndex))
+	bool found_free = FindFreeRegister(freeRegIndex);
+	if (regs[preg].GetType() == REG_IMM)
 	{
-		emit->MOVI2R(ArmCRegs[freeRegIndex].Reg, regs[preg].GetImm());
-		ArmCRegs[freeRegIndex].PPCReg = preg;
-		ArmCRegs[freeRegIndex].LastLoad = 0;
-		regs[preg].LoadToReg(freeRegIndex);
-		return ArmCRegs[freeRegIndex].Reg;
+		if (!kill_imm)
+			return INVALID_REG;
+		if (found_free)
+		{
+			if (doLoad)
+				emit->MOVI2R(ArmCRegs[freeRegIndex].Reg, regs[preg].GetImm());
+			ArmCRegs[freeRegIndex].PPCReg = preg;
+			ArmCRegs[freeRegIndex].LastLoad = 0;
+			regs[preg].LoadToReg(freeRegIndex);
+			return ArmCRegs[freeRegIndex].Reg;
+		}
+		else
+		{
+			emit->STR(ArmCRegs[lastRegIndex].Reg, R9, PPCSTATE_OFF(gpr) + ArmCRegs[lastRegIndex].PPCReg * 4);
+			if (doLoad)
+				emit->MOVI2R(ArmCRegs[lastRegIndex].Reg, regs[preg].GetImm());
+
+			regs[ArmCRegs[lastRegIndex].PPCReg].Flush();
+
+			ArmCRegs[lastRegIndex].PPCReg = preg;
+			ArmCRegs[lastRegIndex].LastLoad = 0;
+
+			regs[preg].LoadToReg(lastRegIndex);
+			return ArmCRegs[lastRegIndex].Reg;
+		}
+	}
+	else if (regs[preg].GetType() == REG_NOTLOADED)
+	{
+		if (found_free)
+		{
+			if (doLoad)
+				emit->LDR(ArmCRegs[freeRegIndex].Reg, R9, PPCSTATE_OFF(gpr) + preg * 4);
+
+			ArmCRegs[freeRegIndex].PPCReg = preg;
+			ArmCRegs[freeRegIndex].LastLoad = 0;
+			regs[preg].LoadToReg(freeRegIndex);
+			return ArmCRegs[freeRegIndex].Reg;
+		}
+		else
+		{
+			emit->STR(ArmCRegs[lastRegIndex].Reg, R9, PPCSTATE_OFF(gpr) + ArmCRegs[lastRegIndex].PPCReg * 4);
+
+			if (doLoad)
+				emit->LDR(ArmCRegs[lastRegIndex].Reg, R9, PPCSTATE_OFF(gpr) + preg * 4);
+
+			regs[ArmCRegs[lastRegIndex].PPCReg].Flush();
+
+			ArmCRegs[lastRegIndex].PPCReg = preg;
+			ArmCRegs[lastRegIndex].LastLoad = 0;
+
+			regs[preg].LoadToReg(lastRegIndex);
+			return ArmCRegs[lastRegIndex].Reg;
+		}
 	}
 	else
 	{
-		emit->STR(ArmCRegs[lastRegIndex].Reg, R9, PPCSTATE_OFF(gpr) + ArmCRegs[lastRegIndex].PPCReg * 4);
-		emit->MOVI2R(ArmCRegs[lastRegIndex].Reg, regs[preg].GetImm());
-
-		regs[ArmCRegs[lastRegIndex].PPCReg].Flush();
-
-		ArmCRegs[lastRegIndex].PPCReg = preg;
-		ArmCRegs[lastRegIndex].LastLoad = 0;
-
-		regs[preg].LoadToReg(lastRegIndex);
-		return ArmCRegs[lastRegIndex].Reg;
+		u8 a = regs[preg].GetRegIndex();
+		return ArmCRegs[a].Reg;
 	}
 }
 
@@ -230,7 +275,7 @@ void ArmRegCache::Flush(FlushMode mode)
 			if (mode == FLUSH_ALL)
 			{
 				// This changes the type over to a REG_REG and gets caught below.
-				BindToRegister(a);
+				BindToRegister(a, true, true);
 			}
 			else
 			{
