@@ -14,6 +14,9 @@ namespace BoundingBox
 // Determines if bounding box is active
 extern bool active;
 
+// Number of consecutive times that bbox regs can be cleared and not used before being disabled
+extern int tolerance;
+
 // Bounding box current coordinates
 extern u16 coords[4];
 

@@ -233,6 +233,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
 			MMIO::ComplexRead<u16>([i](u32) {
 				BoundingBox::active = false;
+				BoundingBox::tolerance = 3;
 				return BoundingBox::coords[i];
 			}),
 			MMIO::InvalidWrite<u16>()
