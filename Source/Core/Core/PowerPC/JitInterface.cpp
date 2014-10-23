@@ -134,31 +134,32 @@ namespace JitInterface
 	void WriteProfileResults(const std::string& filename)
 	{
 		// Can't really do this with no jit core available
-		#if _M_X86
+		if (!jit)
+			return;
 
 		std::vector<BlockStat> stats;
 		stats.reserve(jit->GetBlockCache()->GetNumBlocks());
 		u64 cost_sum = 0;
-	#ifdef _WIN32
+		#ifdef _WIN32
 		u64 timecost_sum = 0;
 		u64 countsPerSec;
 		QueryPerformanceFrequency((LARGE_INTEGER *)&countsPerSec);
-	#endif
+		#endif
 		for (int i = 0; i < jit->GetBlockCache()->GetNumBlocks(); i++)
 		{
 			const JitBlock *block = jit->GetBlockCache()->GetBlock(i);
 			// Rough heuristic.  Mem instructions should cost more.
 			u64 cost = block->originalSize * (block->runCount / 4);
-	#ifdef _WIN32
+			#ifdef _WIN32
 			u64 timecost = block->ticCounter;
-	#endif
+			#endif
 			// Todo: tweak.
 			if (block->runCount >= 1)
 				stats.push_back(BlockStat(i, cost));
 			cost_sum += cost;
-	#ifdef _WIN32
+			#ifdef _WIN32
 			timecost_sum += timecost;
-	#endif
+			#endif
 		}
 
 		sort(stats.begin(), stats.end());
@@ -176,19 +177,18 @@ namespace JitInterface
 			{
 				std::string name = g_symbolDB.GetDescription(block->originalAddress);
 				double percent = 100.0 * (double)stat.cost / (double)cost_sum;
-	#ifdef _WIN32
+				#ifdef _WIN32
 				double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
 				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.2lf\t%llf\t%lf\t%i\n",
 						block->originalAddress, name.c_str(), stat.cost,
 						block->ticCounter, percent, timePercent,
 						(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
-	#else
+				#else
 				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t???\t%.2lf\t???\t???\t%i\n",
 						block->originalAddress, name.c_str(), stat.cost,  percent, block->codeSize);
-	#endif
+				#endif
 			}
 		}
-		#endif
 	}
 	bool HandleFault(uintptr_t access_address, SContext* ctx)
 	{
