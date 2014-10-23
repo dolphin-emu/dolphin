@@ -19,7 +19,7 @@ void InitInterface();
 GLuint OpenGL_CompileProgram(const char *vertexShader, const char *fragmentShader);
 
 // Error reporting - use the convenient macros.
-GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);
+GLenum OpenGL_ReportGLError(const char *function, const char *file, int line);
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
