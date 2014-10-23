@@ -253,7 +253,7 @@ void JitArm::arith(UGeckoInstruction inst)
 				Imm[0] = gpr.GetImm(s);
 			}
 			isImm[1] = true;
-			Imm[1] = inst.UIMM << (shiftedImm ? 16 : 0);
+			Imm[1] = inst.UIMM;
 		break;
 		case 27: // xoris
 			shiftedImm = true;
@@ -354,7 +354,7 @@ void JitArm::arith(UGeckoInstruction inst)
 			break;
 			case 24:
 			case 25:
-				gpr.SetImmediate(a, Or(Imm[0], Imm[1]));
+				gpr.SetImmediate(a, Or(Imm[0], Imm[1] << (shiftedImm ? 16 : 0)));
 				dest = a;
 			break;
 			case 26:
@@ -459,12 +459,20 @@ void JitArm::arith(UGeckoInstruction inst)
 		case 13:
 		{
 			gpr.BindToRegister(d, d == a);
-			ARMReg rA = gpr.GetReg();
 			RD = gpr.R(d);
 			RA = gpr.R(a);
-			MOVI2R(rA, Imm[1]);
-			ADDS(RD, RA, rA);
-			gpr.Unlock(rA);
+
+			if (Imm[1] < 256)
+			{
+				ADDS(RD, RA, Imm[1]);
+			}
+			else
+			{
+				ARMReg rA = gpr.GetReg();
+				MOVI2R(rA, Imm[1]);
+				ADDS(RD, RA, rA);
+				gpr.Unlock(rA);
+			}
 		}
 		break;
 		case 14:
@@ -472,12 +480,20 @@ void JitArm::arith(UGeckoInstruction inst)
 			if (!isImm[0])
 			{
 				gpr.BindToRegister(d, d == a);
-				ARMReg rA = gpr.GetReg();
 				RD = gpr.R(d);
 				RA = gpr.R(a);
-				MOVI2R(rA, Imm[1]);
-				ADD(RD, RA, rA);
-				gpr.Unlock(rA);
+
+				if (Imm[1] < 256)
+				{
+					ADD(RD, RA, Imm[1]);
+				}
+				else
+				{
+					ARMReg rA = gpr.GetReg();
+					MOVI2R(rA, Imm[1]);
+					ADD(RD, RA, rA);
+					gpr.Unlock(rA);
+				}
 			}
 			else
 			{
@@ -489,12 +505,22 @@ void JitArm::arith(UGeckoInstruction inst)
 		{
 			dest = a;
 			gpr.BindToRegister(a, s == a);
-			ARMReg rA = gpr.GetReg();
 			RS = gpr.R(s);
 			RA = gpr.R(a);
-			MOVI2R(rA, Imm[1]);
-			ORR(RA, RS, rA);
-			gpr.Unlock(rA);
+
+			if (Imm[1] < 256)
+			{
+				// Rotation of encoding 8 is the same as << 16
+				Operand2 imm(Imm[1], shiftedImm ? 8 : 0);
+				ORR(RA, RS, imm);
+			}
+			else
+			{
+				ARMReg rA = gpr.GetReg();
+				MOVI2R(rA, Imm[1] << (shiftedImm ? 16 : 0));
+				ORR(RA, RS, rA);
+				gpr.Unlock(rA);
+			}
 		}
 		break;
 		case 26:
