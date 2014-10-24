@@ -16,6 +16,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/WatchView.h"
@@ -44,7 +45,7 @@ CWatchToolbar(CWatchWindow* parent, const wxWindowID id)
 	m_Bitmaps[Toolbar_File] = wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(16, 16));
 
 	AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_File]);
-	Bind(wxEVT_TOOL, &CWatchWindow::LoadAll, parent, ID_LOAD);
+	Bind(wxEVT_TOOL, &CWatchWindow::Event_LoadAll, parent, ID_LOAD);
 
 	AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_File]);
 	Bind(wxEVT_TOOL, &CWatchWindow::Event_SaveAll, parent, ID_SAVE);
@@ -87,6 +88,11 @@ CWatchWindow::CWatchWindow(wxWindow* parent, wxWindowID id,
 	m_mgr.Update();
 }
 
+CWatchWindow::~CWatchWindow()
+{
+	m_mgr.UnInit();
+}
+
 void CWatchWindow::NotifyUpdate()
 {
 	if (m_GPRGridView != nullptr)
@@ -101,25 +107,29 @@ void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 void CWatchWindow::SaveAll()
 {
 	IniFile ini;
-	if (ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
-	{
-		ini.SetLines("Watches", PowerPC::watches.GetStrings());
-		ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-	}
+	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false);
+	ini.SetLines("Watches", PowerPC::watches.GetStrings());
+	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 }
 
-void CWatchWindow::LoadAll(wxCommandEvent& WXUNUSED(event))
+void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
+{
+	LoadAll();
+}
+
+void CWatchWindow::LoadAll()
 {
 	IniFile ini;
 	Watches::TWatchesStr watches;
 
-	if (!ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
+	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false))
 	{
 		return;
 	}
 
 	if (ini.GetLines("Watches", &watches, false))
 	{
+		PowerPC::watches.Clear();
 		PowerPC::watches.AddFromStrings(watches);
 	}
 

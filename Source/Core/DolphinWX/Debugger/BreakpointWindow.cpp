@@ -19,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxUtils.h"
@@ -66,7 +67,7 @@ public:
 		}
 
 		AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Delete]);
-		Bind(wxEVT_TOOL, &CBreakPointWindow::LoadAll, parent, ID_LOAD);
+		Bind(wxEVT_TOOL, &CBreakPointWindow::Event_LoadAll, parent, ID_LOAD);
 
 		AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_Delete]);
 		Bind(wxEVT_TOOL, &CBreakPointWindow::Event_SaveAll, parent, ID_SAVE);
@@ -180,32 +181,38 @@ void CBreakPointWindow::SaveAll()
 {
 	// simply dump all to bp/mc files in a way we can read again
 	IniFile ini;
-	if (ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
-	{
-		ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
-		ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
-		ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-	}
+	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false);
+	ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
+	ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
+	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 }
 
-void CBreakPointWindow::LoadAll(wxCommandEvent& WXUNUSED(event))
+void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
+{
+	LoadAll();
+	return;
+}
+
+void CBreakPointWindow::LoadAll()
 {
 	IniFile ini;
 	BreakPoints::TBreakPointsStr newbps;
 	MemChecks::TMemChecksStr newmcs;
 
-	if (!ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
+	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false))
 	{
 		return;
 	}
 
 	if (ini.GetLines("BreakPoints", &newbps, false))
 	{
+		PowerPC::breakpoints.Clear();
 		PowerPC::breakpoints.AddFromStrings(newbps);
 	}
 
 	if (ini.GetLines("MemoryChecks", &newmcs, false))
 	{
+		PowerPC::memchecks.Clear();
 		PowerPC::memchecks.AddFromStrings(newmcs);
 	}
 

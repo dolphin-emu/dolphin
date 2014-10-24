@@ -78,7 +78,9 @@
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -656,7 +658,19 @@ void CFrame::BootGame(const std::string& filename)
 		}
 	}
 	if (!bootfile.empty())
+	{
 		StartGame(bootfile);
+		if (UseDebugger)
+		{
+			if (g_pCodeWindow)
+			{
+				if (g_pCodeWindow->m_WatchWindow)
+					g_pCodeWindow->m_WatchWindow->LoadAll();
+				if (g_pCodeWindow->m_BreakpointWindow)
+					g_pCodeWindow->m_BreakpointWindow->LoadAll();
+			}
+		}
+	}
 }
 
 // Open file to boot
@@ -1160,6 +1174,25 @@ void CFrame::DoStop()
 				Core::SetState(state);
 				m_confirmStop = false;
 				return;
+			}
+		}
+
+		if (UseDebugger)
+		{
+			if (g_pCodeWindow)
+			{
+				if (g_pCodeWindow->m_WatchWindow)
+				{
+					g_pCodeWindow->m_WatchWindow->SaveAll();
+					PowerPC::watches.Clear();
+				}
+				if (g_pCodeWindow->m_BreakpointWindow)
+				{
+					g_pCodeWindow->m_BreakpointWindow->SaveAll();
+					PowerPC::breakpoints.Clear();
+					PowerPC::memchecks.Clear();
+					g_pCodeWindow->m_BreakpointWindow->NotifyUpdate();
+				}
 			}
 		}
 

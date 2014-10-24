@@ -26,11 +26,13 @@ public:
 			const wxSize& size = wxDefaultSize,
 			long style = wxTAB_TRAVERSAL | wxNO_BORDER,
 			const wxString& name = _("Watch"));
+	~CWatchWindow();
 
 	void NotifyUpdate();
 	void Event_SaveAll(wxCommandEvent& WXUNUSED(event));
 	void SaveAll();
-	void LoadAll(wxCommandEvent& WXUNUSED(event));
+	void Event_LoadAll(wxCommandEvent& WXUNUSED(event));
+	void LoadAll();
 
 private:
 	DECLARE_EVENT_TABLE();
