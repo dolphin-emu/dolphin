@@ -91,8 +91,6 @@ std::vector<std::string> cdio_get_devices()
 	next_media = IOIteratorNext( media_iterator );
 	if (next_media != 0)
 	{
-		char psz_buf[0x32];
-		size_t dev_path_length;
 		CFTypeRef str_bsd_path;
 
 		do
@@ -107,22 +105,20 @@ std::vector<std::string> cdio_get_devices()
 				continue;
 			}
 
-			// Below, by appending 'r' to the BSD node name, we indicate
-			// a raw disk. Raw disks receive I/O requests directly and
-			// don't go through a buffer cache.
-			snprintf( psz_buf, sizeof(psz_buf), "%s%c", _PATH_DEV, 'r' );
-			dev_path_length = strlen( psz_buf );
-
-			if (CFStringGetCString( (CFStringRef)str_bsd_path,
-				(char*)&psz_buf + dev_path_length,
-				sizeof(psz_buf) - dev_path_length,
-				kCFStringEncodingASCII))
+			if (CFGetTypeID(str_bsd_path) == CFStringGetTypeID())
 			{
-				if (psz_buf != nullptr)
+				size_t buf_size = CFStringGetLength((CFStringRef)str_bsd_path) * 4 + 1;
+				char* buf = new char[buf_size];
+
+				if (CFStringGetCString((CFStringRef)str_bsd_path, buf, buf_size, kCFStringEncodingUTF8))
 				{
-					std::string str = psz_buf;
-					drives.push_back(str);
+					// Below, by appending 'r' to the BSD node name, we indicate
+					// a raw disk. Raw disks receive I/O requests directly and
+					// don't go through a buffer cache.
+					drives.push_back(std::string(_PATH_DEV "r") + buf);
 				}
+
+				delete[] buf;
 			}
 			CFRelease( str_bsd_path );
 			IOObjectRelease( next_media );

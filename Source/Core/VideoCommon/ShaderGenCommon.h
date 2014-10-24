@@ -56,7 +56,7 @@ public:
 	 * @warning since most child classes use the default implementation you shouldn't access this directly without adding precautions against nullptr access (e.g. via adding a dummy structure, cf. the vertex/pixel shader generators)
 	 */
 	template<class uid_data>
-	uid_data& GetUidData() { return *(uid_data*)nullptr; }
+	uid_data* GetUidData() { return nullptr; }
 };
 
 /**
@@ -91,10 +91,10 @@ public:
 		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) < 0;
 	}
 
-	template<class T>
-	inline T& GetUidData() { return data; }
+	template<class uid_data2>
+	uid_data2* GetUidData() { return &data; }
+	const uid_data* GetUidData() const { return &data; }
 
-	const uid_data& GetUidData() const { return data; }
 	size_t GetUidDataSize() const { return sizeof(values); }
 
 private:
@@ -192,7 +192,7 @@ public:
 				file << "\n\nShader uid:\n";
 				for (unsigned int i = 0; i < new_uid.GetUidDataSize(); ++i)
 				{
-					u32 value = ((u32*)&new_uid.GetUidData())[i];
+					u32 value = ((u32*)new_uid.GetUidData())[i];
 					if ((i % 4) == 0)
 					{
 						auto last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
