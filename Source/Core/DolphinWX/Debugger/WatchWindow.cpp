@@ -17,6 +17,8 @@
 class wxWindow;
 
 BEGIN_EVENT_TABLE(CWatchWindow, wxPanel)
+EVT_GRID_CELL_RIGHT_CLICK(CWatchView::OnMouseDownR)
+EVT_MENU(-1, CWatchView::OnPopupMenu)
 END_EVENT_TABLE()
 
 

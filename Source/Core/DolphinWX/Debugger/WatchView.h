@@ -19,7 +19,6 @@ class CWatchTable : public wxGridTableBase
 {
 	enum
 	{
-		NUM_SPECIALS = 1,
 		MAX_SPECIALS = 256,
 	};
 
@@ -47,4 +46,10 @@ class CWatchView : public wxGrid
 public:
 	CWatchView(wxWindow* parent, wxWindowID id);
 	void Update() override;
+	void OnMouseDownR(wxGridEvent& event);
+	void OnPopupMenu(wxCommandEvent& event);
+
+private:
+	u32 m_selectedAddress = 0;
+	u32 m_selectedRow = 0;
 };

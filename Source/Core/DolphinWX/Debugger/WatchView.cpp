@@ -6,17 +6,30 @@
 #include <wx/colour.h>
 #include <wx/defs.h>
 #include <wx/grid.h>
+#include <wx/menu.h>
 #include <wx/string.h>
 #include <wx/windowid.h>
 
 #include "Common/GekkoDisassembler.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/MemoryWindow.h"
+#include "DolphinWX/Debugger/RegisterView.h"
 #include "DolphinWX/Debugger/WatchView.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 class wxWindow;
+
+enum
+{
+	IDM_DELETEWATCH,
+	IDM_VIEWMEMORY,
+};
+
 
 static std::string GetWatchName(int count)
 {
@@ -53,7 +66,7 @@ static void SetWatchValue(int count, u32 value)
 	Memory::WriteUnchecked_U32(value, GetWatchAddr(count));
 }
 
-wxString CWatchTable::GetValue(int row, int col)
+static wxString GetValueByRowCol(int row, int col)
 {
 	if (row == 0)
 	{
@@ -91,6 +104,11 @@ wxString CWatchTable::GetValue(int row, int col)
 		}
 	}
 	return wxEmptyString;
+}
+
+wxString CWatchTable::GetValue(int row, int col)
+{
+	return GetValueByRowCol(row, col);
 }
 
 void CWatchTable::SetValue(int row, int col, const wxString& strNewVal)
@@ -209,4 +227,51 @@ void CWatchView::Update()
 		ForceRefresh();
 		((CWatchTable *)GetTable())->UpdateWatch();
 	}
+}
+
+void CWatchView::OnMouseDownR(wxGridEvent& event)
+{
+	// popup menu
+	int row = event.GetRow();
+	int col = event.GetCol();
+
+	if (col == 1 || col == 2)
+	{
+		wxString strNewVal = GetValueByRowCol(row, col);
+		TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
+		m_selectedRow = row;
+
+		wxMenu* menu = new wxMenu;
+		menu->Append(IDM_DELETEWATCH, _("&Delete watch"));
+		menu->Append(IDM_VIEWMEMORY, _("View &memory"));
+		PopupMenu(menu);
+	}
+}
+
+void CWatchView::OnPopupMenu(wxCommandEvent& event)
+{
+	CFrame* main_frame = (CFrame*)(GetParent()->GetParent());
+	CCodeWindow* code_window = main_frame->g_pCodeWindow;
+	CWatchWindow* watch_window = code_window->m_WatchWindow;
+	CMemoryWindow* memory_window = code_window->m_MemoryWindow;
+
+	wxString strNewVal;
+
+	switch (event.GetId())
+	{
+	case IDM_DELETEWATCH:
+		strNewVal = GetValueByRowCol(m_selectedRow, 1);
+		TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
+		PowerPC::watches.Remove(m_selectedAddress);
+		if (watch_window)
+			watch_window->NotifyUpdate();
+		Refresh();
+		break;
+	case IDM_VIEWMEMORY:
+		if (memory_window)
+			memory_window->JumpToAddress(m_selectedAddress);
+		Refresh();
+		break;
+	}
+	event.Skip();
 }

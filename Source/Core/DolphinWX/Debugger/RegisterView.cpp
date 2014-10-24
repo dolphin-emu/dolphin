@@ -271,7 +271,7 @@ void CRegisterView::OnMouseDownR(wxGridEvent& event)
 	int col = event.GetCol();
 
 	wxString strNewVal = GetValueByRowCol(row, col);
-	TryParse("0x" + WxStrToStr(strNewVal), &addr);
+	TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
 
 	wxMenu* menu = new wxMenu;
 	menu->Append(IDM_WATCHADDRESS, _("Add to &watch"));
@@ -289,14 +289,14 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_WATCHADDRESS:
-		PowerPC::watches.Add(addr);
+		PowerPC::watches.Add(m_selectedAddress);
 		if (watch_window)
 			watch_window->NotifyUpdate();
 		Refresh();
 		break;
 	case IDM_VIEWMEMORY:
 		if (memory_window)
-			memory_window->JumpToAddress(addr);
+			memory_window->JumpToAddress(m_selectedAddress);
 		Refresh();
 		break;
 	}

@@ -75,5 +75,5 @@ public:
 	void OnPopupMenu(wxCommandEvent& event);
 
 private:
-	u32 addr = 0;
+	u32 m_selectedAddress = 0;
 };
