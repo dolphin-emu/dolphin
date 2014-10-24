@@ -11,6 +11,7 @@
 #include <wx/string.h>
 #include <wx/translation.h>
 #include <wx/windowid.h>
+#include <wx/aui/framemanager.h>
 
 class CWatchView;
 class wxWindow;
@@ -27,10 +28,14 @@ public:
 			const wxString& name = _("Watch"));
 
 	void NotifyUpdate();
-
+	void Event_SaveAll(wxCommandEvent& WXUNUSED(event));
+	void SaveAll();
+	void LoadAll(wxCommandEvent& WXUNUSED(event));
 
 private:
 	DECLARE_EVENT_TABLE();
+
+	wxAuiManager m_mgr;
 
 	enum
 	{

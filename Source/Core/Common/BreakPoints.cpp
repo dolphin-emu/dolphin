@@ -234,7 +234,7 @@ Watches::TWatchesStr Watches::GetStrings() const
 	for (const TWatch& bp : m_Watches)
 	{
 		std::stringstream ss;
-		ss << std::hex << bp.iAddress << " " << (bp.bOn ? "n" : "");
+		ss << std::hex << bp.iAddress << " " << bp.name;
 		bps.push_back(ss.str());
 	}
 
@@ -249,7 +249,7 @@ void Watches::AddFromStrings(const TWatchesStr& bpstrs)
 		std::stringstream ss;
 		ss << std::hex << bpstr;
 		ss >> bp.iAddress;
-		bp.bOn = bpstr.find("n") != bpstr.npos;
+		ss >> bp.name;
 		Add(bp);
 	}
 }

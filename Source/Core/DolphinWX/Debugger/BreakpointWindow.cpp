@@ -45,9 +45,9 @@ public:
 	{
 		SetToolBitmapSize(wxSize(24, 24));
 
-		m_Bitmaps[Toolbar_Delete] = wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(24, 24));
-		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_breakpoint_png).ConvertToImage().Rescale(24, 24));
-		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(24, 24));
+		m_Bitmaps[Toolbar_Delete] = wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(16, 16));
+		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_breakpoint_png).ConvertToImage().Rescale(16, 16));
+		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(16, 16));
 
 		AddTool(ID_DELETE, _("Delete"), m_Bitmaps[Toolbar_Delete]);
 		Bind(wxEVT_TOOL, &CBreakPointWindow::OnDelete, parent, ID_DELETE);
@@ -112,7 +112,7 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 	m_BreakPointListView = new CBreakPointView(this, wxID_ANY);
 
 	m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
-	              LeftDockable(false).RightDockable(false).BottomDockable(false).Floatable(false));
+	              LeftDockable(true).RightDockable(true).BottomDockable(false).Floatable(false));
 	m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
 	m_mgr.Update();
 }
