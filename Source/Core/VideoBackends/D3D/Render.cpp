@@ -487,8 +487,8 @@ void Renderer::SetViewport()
 
 	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-										0.f,  // (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-										1.f); //  xfmem.viewport.farZ / 16777216.0f;
+		(xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f,
+		xfmem.viewport.farZ / 16777216.0f);
 	D3D::context->RSSetViewports(1, &vp);
 }
 
