@@ -174,13 +174,8 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 void Jit64::Init()
 {
 	jo.optimizeStack = true;
-	jo.enableBlocklink = true;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-	{
-		// TODO: support block linking with MMU
-		jo.enableBlocklink = false;
-	}
+	EnableBlockLink();
+
 	jo.fpAccurateFcmp = SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
@@ -521,11 +516,19 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
+		// We can link blocks as long as we are not single stepping and there are no breakpoints here
+		EnableBlockLink();
+
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
 		{
 			if (GetState() == CPU_STEPPING)
+			{
 				blockSize = 1;
+
+				// Do not link this block to other blocks While single stepping
+				jo.enableBlocklink = false;
+			}
 			Trace();
 		}
 	}
@@ -715,6 +718,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
+				// Turn off block linking if there are breakpoints so that the Step Over command does not link this block.
+				jo.enableBlocklink = false;
+
 				gpr.Flush();
 				fpr.Flush();
 
@@ -855,4 +861,15 @@ u32 Jit64::CallerSavedRegistersInUse()
 			result |= (1 << (16 + i));
 	}
 	return result & ABI_ALL_CALLER_SAVED;
+}
+
+void Jit64::EnableBlockLink()
+{
+	jo.enableBlocklink = true;
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	{
+		// TODO: support block linking with MMU
+		jo.enableBlocklink = false;
+	}
 }

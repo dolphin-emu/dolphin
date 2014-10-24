@@ -64,6 +64,9 @@ public:
 	~Jit64() {}
 
 	void Init() override;
+
+	void EnableBlockLink();
+
 	void Shutdown() override;
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;

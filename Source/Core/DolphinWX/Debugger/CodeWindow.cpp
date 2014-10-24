@@ -310,10 +310,10 @@ void CCodeWindow::StepOver()
 {
 	if (CCPU::IsStepping())
 	{
-		PowerPC::breakpoints.ClearAllTemporary();
 		UGeckoInstruction inst = Memory::Read_Instruction(PC);
 		if (inst.LK)
 		{
+			PowerPC::breakpoints.ClearAllTemporary();
 			PowerPC::breakpoints.Add(PC + 4, true);
 			CCPU::EnableStepping(false);
 			JumpToAddress(PC);
