@@ -2,11 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <array>
 #include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/event.h>
 #include <wx/listbox.h>
 #include <wx/panel.h>
+#include <wx/radiobox.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -39,17 +41,9 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	m_btn_next_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::FilterCheatSearchResults, this);
 	m_btn_next_scan->Disable();
 
-	// data size radio buttons
-	m_size_radiobtn.rad_8 = new wxRadioButton(this, -1, _("8 bit"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	m_size_radiobtn.rad_16 = new wxRadioButton(this, -1, _("16 bit"));
-	m_size_radiobtn.rad_32 = new wxRadioButton(this, -1, _("32 bit"));
-	m_size_radiobtn.rad_8->SetValue(true);
-
-	// data sizes groupbox
-	wxStaticBoxSizer* const sizer_cheat_new_search = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Data Size"));
-	sizer_cheat_new_search->Add(m_size_radiobtn.rad_8, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
-	sizer_cheat_new_search->Add(m_size_radiobtn.rad_16, 0, wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
-	sizer_cheat_new_search->Add(m_size_radiobtn.rad_32, 0, wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
+	// data sizes radiobox
+	std::array<wxString, 3> data_size_names = { _("8-bit"), _("16-bit"), _("32-bit") };
+	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
 	// result controls
 	m_lbox_search_results = new wxListBox(this, -1);
@@ -112,7 +106,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// right sizer
 	wxBoxSizer* const sizer_right = new wxBoxSizer(wxVERTICAL);
-	sizer_right->Add(sizer_cheat_new_search, 0, wxBOTTOM, 5);
+	sizer_right->Add(m_data_sizes, 0,  wxEXPAND | wxBOTTOM, 5);
 	sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxBOTTOM, 5);
 	sizer_right->AddStretchSpacer(1);
 	sizer_right->Add(boxButtons, 0, wxTOP | wxEXPAND, 5);
@@ -135,10 +129,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 	}
 
 	// Determine the user-selected data size for this search.
-	m_search_type_size =
-	    m_size_radiobtn.rad_8->GetValue() +
-	    (m_size_radiobtn.rad_16->GetValue() << 1) +
-	    (m_size_radiobtn.rad_32->GetValue() << 2);
+	m_search_type_size = (1 << m_data_sizes->GetSelection());
 
 	// Set up the search results efficiently to prevent automatic re-allocations.
 	m_search_results.clear();
