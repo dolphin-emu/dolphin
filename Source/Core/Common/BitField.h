@@ -69,7 +69,7 @@
  *     u32 hex;
  *
  *     BitField<0,7,u32> first_seven_bits;     // unsigned
- *     BitField<7,8,32> next_eight_bits;       // unsigned
+ *     BitField<7,8,u32> next_eight_bits;      // unsigned
  *     BitField<3,15,s32> some_signed_fields;  // signed
  * };
  *
