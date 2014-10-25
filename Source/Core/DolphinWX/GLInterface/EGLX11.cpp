@@ -23,6 +23,16 @@ EGLNativeWindowType cInterfaceEGLX11::InitializePlatform(EGLNativeWindowType hos
 	int nVisuals;
 	vi = XGetVisualInfo(dpy, VisualIDMask, &visTemplate, &nVisuals);
 
+	XWindowAttributes attribs;
+	if (!XGetWindowAttributes(dpy, (Window)host_window, &attribs))
+	{
+		ERROR_LOG(VIDEO, "Window attribute retrieval failed");
+		return 0;
+	}
+
+	s_backbuffer_width  = attribs.width;
+	s_backbuffer_height = attribs.height;
+
 	return (EGLNativeWindowType) XWindow.CreateXWindow((Window) host_window, vi);
 }
 
