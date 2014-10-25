@@ -446,7 +446,7 @@ void CheckExternalExceptions()
 	u32 exceptions = ppcState.Exceptions;
 
 	// EXTERNAL INTERRUPT
-	if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
+	if (exceptions && (MSR & 0x0008000))  // Handling is delayed until MSR.EE=1.
 	{
 		if (exceptions & EXCEPTION_EXTERNAL_INT)
 		{
