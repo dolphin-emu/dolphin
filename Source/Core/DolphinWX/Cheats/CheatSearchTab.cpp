@@ -42,7 +42,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	m_btn_next_scan->Disable();
 
 	// data sizes radiobox
-	std::array<wxString, 3> data_size_names = { _("8-bit"), _("16-bit"), _("32-bit") };
+	std::array<wxString, 3> data_size_names = {{ _("8-bit"), _("16-bit"), _("32-bit") }};
 	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
 	// result controls
