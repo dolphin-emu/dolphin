@@ -17,13 +17,10 @@
 class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
-class wxChoice;
 class wxCloseEvent;
 class wxCommandEvent;
-class wxEvent;
 class wxListBox;
 class wxNotebook;
-class wxRadioButton;
 class wxStaticBox;
 class wxStaticText;
 class wxTextCtrl;

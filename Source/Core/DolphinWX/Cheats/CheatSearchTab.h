@@ -13,6 +13,7 @@ class wxCommandEvent;
 class wxEvent;
 class wxListBox;
 class wxRadioBox;
+class wxRadioButton;
 class wxStaticText;
 class wxTextCtrl;
 class wxWindow;
