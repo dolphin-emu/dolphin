@@ -461,7 +461,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 #define MY_STRUCT_OFFSET(str,elem) ((u32)((u64)&(str).elem-(u64)&(str)))
 	bool enable_pl = g_ActiveConfig.bEnablePixelLighting;
-	uid_data->num_values = (enable_pl) ? sizeof(uid_data) : MY_STRUCT_OFFSET(*uid_data,stagehash[numStages]);
+	uid_data->num_values = (enable_pl) ? sizeof(*uid_data) : MY_STRUCT_OFFSET(*uid_data,stagehash[numStages]);
 
 
 	if (numStages)
