@@ -1027,9 +1027,6 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 
 void Renderer::RestoreState()
 {
-	ID3D11ShaderResourceView* shader_resources[8] = { nullptr };
-	D3D::context->PSSetShaderResources(0, 8, shader_resources);
-
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();

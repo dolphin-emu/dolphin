@@ -35,7 +35,7 @@ void VertexManager::CreateDeviceObjects()
 
 	m_vertexDrawOffset = 0;
 	m_indexDrawOffset = 0;
-	
+
 	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
 	{
 		m_buffers[i] = nullptr;
