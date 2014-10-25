@@ -37,7 +37,7 @@ private:
 	u32 m_currentBuffer;
 	u32 m_bufferCursor;
 
-	enum { MAX_BUFFER_COUNT = 1 };
+	enum { MAX_BUFFER_COUNT = 2 };
 	ID3D11Buffer* m_buffers[MAX_BUFFER_COUNT];
 
 	LineGeometryShader m_lineShader;
