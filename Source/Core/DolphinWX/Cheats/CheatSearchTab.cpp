@@ -26,7 +26,7 @@
 
 namespace
 {
-	const int MAX_CHEAT_SEARCH_RESULTS_DISPLAY = 1024;
+	const unsigned int MAX_CHEAT_SEARCH_RESULTS_DISPLAY = 1024;
 }
 
 CheatSearchTab::CheatSearchTab(wxWindow* const parent)
