@@ -62,7 +62,7 @@ u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset
 	if (_Size > 0)
 	{
 		u8* pTmpBuffer = new u8[_Size];
-		_dbg_assert_msg_(BOOT, pTmpBuffer!=nullptr, "WiiWAD: Cant allocate memory for WAD entry");
+		_dbg_assert_msg_(BOOT, pTmpBuffer!=nullptr, "WiiWAD: Can't allocate memory for WAD entry");
 
 		if (!_rReader.Read(_Offset, _Size, pTmpBuffer))
 		{

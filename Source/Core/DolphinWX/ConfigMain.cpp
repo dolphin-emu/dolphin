@@ -1082,7 +1082,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 			if (!memorycard.IsValid())
 			{
 				WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n" \
-				            "is not a valid gamecube memory card file"), filename.c_str()));
+				            "is not a valid GameCube memory card file"), filename.c_str()));
 				return;
 			}
 		}

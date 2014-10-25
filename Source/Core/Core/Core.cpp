@@ -582,15 +582,15 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	if (doLock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
 		return true;
 
-	// first pause or unpause the cpu
+	// first pause or unpause the CPU
 	bool wasUnpaused = CCPU::PauseAndLock(doLock, unpauseOnUnlock);
 	ExpansionInterface::PauseAndLock(doLock, unpauseOnUnlock);
 
-	// audio has to come after cpu, because cpu thread can wait for audio thread (m_throttle).
+	// audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
 	AudioCommon::PauseAndLock(doLock, unpauseOnUnlock);
 	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
 
-	// video has to come after cpu, because cpu thread can wait for video thread (s_efbAccessRequested).
+	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
 	g_video_backend->PauseAndLock(doLock, unpauseOnUnlock);
 	return wasUnpaused;
 }

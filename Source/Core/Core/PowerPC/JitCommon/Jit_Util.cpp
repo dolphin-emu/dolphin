@@ -265,7 +265,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, B
 	else
 		scratch = reg_addr;
 
-	// On Gamecube games with MMU, do a little bit of extra work to make sure we're not accessing the
+	// On GameCube games with MMU, do a little bit of extra work to make sure we're not accessing the
 	// 0x81800000 to 0x83FFFFFF range.
 	// It's okay to take a shortcut and not check this range on non-MMU games, since we're already
 	// assuming they'll never do an invalid memory access.

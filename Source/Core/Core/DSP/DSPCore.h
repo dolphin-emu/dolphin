@@ -182,7 +182,7 @@
 #define EXP_4           4 // 0x0008
 #define EXP_ACCOV       5 // 0x000a accelerator address overflow
 #define EXP_6           6 // 0x000c
-#define EXP_INT         7 // 0x000e external int (message from cpu)
+#define EXP_INT         7 // 0x000e external int (message from CPU)
 
 struct DSP_Regs
 {

@@ -34,8 +34,8 @@ void EnableCompression(bool compression);
 bool ReadHeader(const std::string& filename, StateHeader& header);
 
 // These don't happen instantly - they get scheduled as events.
-// ...But only if we're not in the main cpu thread.
-//    If we're in the main cpu thread then they run immediately instead
+// ...But only if we're not in the main CPU thread.
+//    If we're in the main CPU thread then they run immediately instead
 //    because some things (like Lua) need them to run immediately.
 // Slots from 0-99.
 void Save(int slot, bool wait = false);

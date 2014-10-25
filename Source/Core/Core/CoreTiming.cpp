@@ -253,7 +253,7 @@ static void AddEventToQueue(Event* ne)
 	}
 }
 
-// This must be run ONLY from within the cpu thread
+// This must be run ONLY from within the CPU thread
 // cyclesIntoFuture may be VERY inaccurate if called from anything else
 // than Advance
 void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
