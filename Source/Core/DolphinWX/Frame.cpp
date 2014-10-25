@@ -847,31 +847,36 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	// 2. Boot the default or last loaded iso.
 	// 3. Call BrowseForDirectory if the gamelist is empty
 	if (!m_GameListCtrl->GetISO(0) &&
-		!((SConfig::GetInstance().m_ListGC &&
-		SConfig::GetInstance().m_ListWii &&
+		!((SConfig::GetInstance().m_ListWii &&
+		SConfig::GetInstance().m_ListGC &&
 		SConfig::GetInstance().m_ListWad) &&
 		(SConfig::GetInstance().m_ListJap &&
-		SConfig::GetInstance().m_ListUsa  &&
 		SConfig::GetInstance().m_ListPal  &&
+		SConfig::GetInstance().m_ListUsa  &&
 		SConfig::GetInstance().m_ListFrance &&
 		SConfig::GetInstance().m_ListItaly &&
 		SConfig::GetInstance().m_ListKorea &&
 		SConfig::GetInstance().m_ListTaiwan &&
 		SConfig::GetInstance().m_ListUnknown)))
 	{
-		SConfig::GetInstance().m_ListGC      = SConfig::GetInstance().m_ListWii =
-		SConfig::GetInstance().m_ListWad     = SConfig::GetInstance().m_ListJap =
-		SConfig::GetInstance().m_ListUsa     = SConfig::GetInstance().m_ListPal =
-		SConfig::GetInstance().m_ListFrance  = SConfig::GetInstance().m_ListItaly =
-		SConfig::GetInstance().m_ListKorea   = SConfig::GetInstance().m_ListTaiwan =
+		SConfig::GetInstance().m_ListWii =
+		SConfig::GetInstance().m_ListGC =
+		SConfig::GetInstance().m_ListWad =
+		SConfig::GetInstance().m_ListJap =
+		SConfig::GetInstance().m_ListPal =
+		SConfig::GetInstance().m_ListUsa =
+		SConfig::GetInstance().m_ListFrance =
+		SConfig::GetInstance().m_ListItaly =
+		SConfig::GetInstance().m_ListKorea =
+		SConfig::GetInstance().m_ListTaiwan =
 		SConfig::GetInstance().m_ListUnknown = true;
 
-		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTWII)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTWAD)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTJAP)->Check(true);
-		GetMenuBar()->FindItem(IDM_LISTUSA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTPAL)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTUSA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTFRANCE)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTITALY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTKOREA)->Check(true);

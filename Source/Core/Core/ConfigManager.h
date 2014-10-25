@@ -56,18 +56,18 @@ struct SConfig : NonCopyable
 	bool m_InterfaceLogConfigWindow;
 	bool m_InterfaceExtendedFPSInfo;
 
-	bool m_ListDrives;
-	bool m_ListWad;
 	bool m_ListWii;
 	bool m_ListGC;
+	bool m_ListWad;
+	bool m_ListJap;
 	bool m_ListPal;
 	bool m_ListUsa;
-	bool m_ListJap;
 	bool m_ListFrance;
 	bool m_ListItaly;
 	bool m_ListKorea;
 	bool m_ListTaiwan;
 	bool m_ListUnknown;
+	bool m_ListDrives;
 	int m_ListSort;
 	int m_ListSort2;
 
