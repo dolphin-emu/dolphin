@@ -14,7 +14,7 @@ struct XFBSourceBase
 	virtual ~XFBSourceBase() {}
 
 	virtual void Draw(const MathUtil::Rectangle<int> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc) const = 0;
+		const MathUtil::Rectangle<float> &drawrc) const {};
 
 	virtual void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) = 0;
 

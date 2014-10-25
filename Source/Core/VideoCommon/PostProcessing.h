@@ -11,6 +11,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+#include "VideoCommon/VideoCommon.h"
+
 class PostProcessingShaderConfiguration
 {
 public:
@@ -88,15 +90,11 @@ public:
 	PostProcessingShaderConfiguration* GetConfig() { return &m_config; }
 
 	// Should be implemented by the backends for backend specific code
-	virtual void BindTargetFramebuffer() = 0;
-	virtual void BlitToScreen() = 0;
-	virtual void Update(u32 width, u32 height) = 0;
+	virtual void BlitFromTexture(TargetRectangle src, TargetRectangle dst,
+	                             int src_texture, int src_width, int src_height) = 0;
 	virtual void ApplyShader() = 0;
 
 protected:
-	bool m_enable;
-	u32 m_width;
-	u32 m_height;
 	// Timer for determining our time value
 	Common::Timer m_timer;
 
