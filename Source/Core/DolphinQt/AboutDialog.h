@@ -17,12 +17,9 @@ class DAboutDialog : public QDialog
 	Q_OBJECT
 
 public:
-	explicit DAboutDialog(QWidget* p = nullptr);
+	explicit DAboutDialog(QWidget* parent_widget = nullptr);
 	~DAboutDialog();
 
-private slots:
-	void on_label_linkActivated(const QString& link);
-
 private:
-	std::unique_ptr<Ui::DAboutDialog> ui;
+	std::unique_ptr<Ui::DAboutDialog> m_ui;
 };

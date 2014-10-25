@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>996</width>
-    <height>596</height>
+    <width>992</width>
+    <height>592</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,8 +31,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>996</width>
-     <height>21</height>
+     <width>992</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuFile">
@@ -69,6 +69,7 @@
     <addaction name="actOnlineDocs"/>
     <addaction name="actGitHub"/>
     <addaction name="separator"/>
+    <addaction name="actSystemInfo"/>
     <addaction name="actAbout"/>
    </widget>
    <widget class="QMenu" name="mnuMovie">
@@ -87,7 +88,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolbar">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Toolbar</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -119,10 +120,18 @@
   </action>
   <action name="actOpen">
    <property name="text">
-    <string>Open</string>
+    <string>&amp;Open</string>
    </property>
    <property name="toolTip">
     <string>Open file...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actSystemInfo">
+   <property name="text">
+    <string>&amp;System Information</string>
    </property>
   </action>
  </widget>

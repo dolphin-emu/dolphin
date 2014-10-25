@@ -7,21 +7,35 @@ set(CMAKE_AUTOMOC ON)
 set(SRCS
 	AboutDialog.cpp
 	AboutDialog.h
+	Host.cpp
 	Main.cpp
 	MainWindow.cpp
 	MainWindow.h
-	Host.cpp
+	SystemInfo.cpp
 	Utils/Resources.cpp
 	Utils/Utils.cpp
-	VideoInterface/VideoInterface.cpp)
+	VideoInterface/VideoInterface.cpp
+	)
 
 set(UIS
 	AboutDialog.ui
-	MainWindow.ui)
+	MainWindow.ui
+	SystemInfo.ui
+	)
 
 set(LIBS core uicommon)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# Link against OS X system frameworks.
+	list(APPEND LIBS
+		${APPKIT_LIBRARY}
+		${AU_LIBRARY}
+		${COREAUDIO_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOK_LIBRARY}
+		${FORCEFEEDBACK}
+		)
 	set(DOLPHINQT_BINARY DolphinQt)
 else()
 	set(DOLPHINQT_BINARY dolphin-emu-qt)
