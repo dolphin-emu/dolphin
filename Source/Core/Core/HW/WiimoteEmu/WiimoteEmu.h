@@ -67,7 +67,7 @@ struct ExtensionReg
 	u8 constant_id[6];
 };
 
-void FillRawAccelFromGForceData(wm_accel& raw_accel,
+void FillRawAccelFromGForceData(wm_full_accel& raw_accel,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel);
 
@@ -130,8 +130,8 @@ protected:
 	void HandleExtensionSwap();
 	void UpdateButtonsStatus();
 
-	void GetCoreData(u8* const data);
-	void GetAccelData(u8* const data);
+	void GetButtonData(u8* const data);
+	void GetAccelData(u8* const data, const ReportFeatures& rptf);
 	void GetIRData(u8* const data, bool use_accel);
 	void GetExtData(u8* const data);
 

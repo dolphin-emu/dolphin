@@ -597,28 +597,28 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 
 	if (coreData)
 	{
-		wm_core buttons = *(wm_core*)coreData;
-		if (buttons & WiimoteEmu::Wiimote::PAD_LEFT)
+		wm_buttons buttons = *(wm_buttons*)coreData;
+		if(buttons.left)
 			s_InputDisplay[controllerID].append(" LEFT");
-		if (buttons & WiimoteEmu::Wiimote::PAD_RIGHT)
+		if(buttons.right)
 			s_InputDisplay[controllerID].append(" RIGHT");
-		if (buttons & WiimoteEmu::Wiimote::PAD_DOWN)
+		if(buttons.down)
 			s_InputDisplay[controllerID].append(" DOWN");
-		if (buttons & WiimoteEmu::Wiimote::PAD_UP)
+		if(buttons.up)
 			s_InputDisplay[controllerID].append(" UP");
-		if (buttons & WiimoteEmu::Wiimote::BUTTON_A)
+		if(buttons.a)
 			s_InputDisplay[controllerID].append(" A");
-		if (buttons & WiimoteEmu::Wiimote::BUTTON_B)
+		if(buttons.b)
 			s_InputDisplay[controllerID].append(" B");
-		if (buttons & WiimoteEmu::Wiimote::BUTTON_PLUS)
+		if(buttons.plus)
 			s_InputDisplay[controllerID].append(" +");
-		if (buttons & WiimoteEmu::Wiimote::BUTTON_MINUS)
+		if(buttons.minus)
 			s_InputDisplay[controllerID].append(" -");
-		if (buttons & WiimoteEmu::Wiimote::BUTTON_ONE)
+		if(buttons.one)
 			s_InputDisplay[controllerID].append(" 1");
-		if (buttons & WiimoteEmu::Wiimote::BUTTON_TWO)
+		if(buttons.two)
 			s_InputDisplay[controllerID].append(" 2");
-		if (buttons & WiimoteEmu::Wiimote::BUTTON_HOME)
+		if(buttons.home)
 			s_InputDisplay[controllerID].append(" HOME");
 	}
 
@@ -640,16 +640,16 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 	// Nunchuck
 	if (extData && ext == 1)
 	{
-		wm_extension nunchuck;
-		memcpy(&nunchuck, extData, sizeof(wm_extension));
-		WiimoteDecrypt(&key, (u8*)&nunchuck, 0, sizeof(wm_extension));
-		nunchuck.bt = nunchuck.bt ^ 0xFF;
+		wm_nc nunchuck;
+		memcpy(&nunchuck, extData, sizeof(wm_nc));
+		WiimoteDecrypt(&key, (u8*)&nunchuck, 0, sizeof(wm_nc));
+		nunchuck.bt.hex = nunchuck.bt.hex ^ 0xFF;
 
 		std::string accel = StringFromFormat(" N-ACC:%d,%d,%d", nunchuck.ax, nunchuck.ay, nunchuck.az);
 
-		if (nunchuck.bt & WiimoteEmu::Nunchuk::BUTTON_C)
+		if (nunchuck.bt.c)
 			s_InputDisplay[controllerID].append(" C");
-		if (nunchuck.bt & WiimoteEmu::Nunchuk::BUTTON_Z)
+		if (nunchuck.bt.z)
 			s_InputDisplay[controllerID].append(" Z");
 		s_InputDisplay[controllerID].append(accel);
 		s_InputDisplay[controllerID].append(Analog2DToString(nunchuck.jx, nunchuck.jy, " ANA"));
@@ -661,38 +661,38 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 		wm_classic_extension cc;
 		memcpy(&cc, extData, sizeof(wm_classic_extension));
 		WiimoteDecrypt(&key, (u8*)&cc, 0, sizeof(wm_classic_extension));
-		cc.bt = cc.bt ^ 0xFFFF;
+		cc.bt.hex = cc.bt.hex ^ 0xFFFF;
 
-		if (cc.bt & WiimoteEmu::Classic::PAD_LEFT)
+		if (cc.bt.regular_data.dpad_left)
 			s_InputDisplay[controllerID].append(" LEFT");
-		if (cc.bt & WiimoteEmu::Classic::PAD_RIGHT)
+		if (cc.bt.dpad_right)
 			s_InputDisplay[controllerID].append(" RIGHT");
-		if (cc.bt & WiimoteEmu::Classic::PAD_DOWN)
+		if (cc.bt.dpad_down)
 			s_InputDisplay[controllerID].append(" DOWN");
-		if (cc.bt & WiimoteEmu::Classic::PAD_UP)
+		if (cc.bt.regular_data.dpad_up)
 			s_InputDisplay[controllerID].append(" UP");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_A)
+		if (cc.bt.a)
 			s_InputDisplay[controllerID].append(" A");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_B)
+		if (cc.bt.b)
 			s_InputDisplay[controllerID].append(" B");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_X)
+		if (cc.bt.x)
 			s_InputDisplay[controllerID].append(" X");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_Y)
+		if (cc.bt.y)
 			s_InputDisplay[controllerID].append(" Y");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_ZL)
+		if (cc.bt.zl)
 			s_InputDisplay[controllerID].append(" ZL");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_ZR)
+		if (cc.bt.zr)
 			s_InputDisplay[controllerID].append(" ZR");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_PLUS)
+		if (cc.bt.plus)
 			s_InputDisplay[controllerID].append(" +");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_MINUS)
+		if (cc.bt.minus)
 			s_InputDisplay[controllerID].append(" -");
-		if (cc.bt & WiimoteEmu::Classic::BUTTON_HOME)
+		if (cc.bt.home)
 			s_InputDisplay[controllerID].append(" HOME");
 
 		s_InputDisplay[controllerID].append(Analog1DToString(cc.lt1 | (cc.lt2 << 3), " L", 31));
 		s_InputDisplay[controllerID].append(Analog1DToString(cc.rt, " R", 31));
-		s_InputDisplay[controllerID].append(Analog2DToString(cc.lx, cc.ly, " ANA", 63));
+		s_InputDisplay[controllerID].append(Analog2DToString(cc.regular_data.lx, cc.regular_data.ly, " ANA", 63));
 		s_InputDisplay[controllerID].append(Analog2DToString(cc.rx1 | (cc.rx2 << 1) | (cc.rx3 << 3), cc.ry, " R-ANA", 31));
 	}
 

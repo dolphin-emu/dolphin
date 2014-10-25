@@ -62,8 +62,8 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
 
 void Nunchuk::GetState(u8* const data)
 {
-	wm_extension* const ncdata = (wm_extension*)data;
-	ncdata->bt = 0;
+	wm_nc* const ncdata = (wm_nc*)data;
+	ncdata->bt.hex = 0;
 
 	// stick
 	double state[2];
@@ -107,12 +107,21 @@ void Nunchuk::GetState(u8* const data)
 	// shake
 	EmulateShake(&accel, m_shake, m_shake_step);
 	// buttons
-	m_buttons->GetState(&ncdata->bt, nunchuk_button_bitmasks);
+	m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks);
 
 	// flip the button bits :/
-	ncdata->bt ^= 0x03;
+	*(u8*)&ncdata->bt ^= 0x03;
 
-	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, *(accel_cal*)&reg.calibration, accel);
+	wm_full_accel tmpAccel;
+
+	FillRawAccelFromGForceData(tmpAccel, *(accel_cal*)&reg.calibration, accel);
+
+	ncdata->ax = tmpAccel.x >> 2;
+	ncdata->ay = tmpAccel.y >> 2;
+	ncdata->az = tmpAccel.z >> 2;
+	ncdata->passthrough_data.acc_x_lsb = tmpAccel.x & 0x3;
+	ncdata->passthrough_data.acc_y_lsb = tmpAccel.y & 0x3;
+	ncdata->passthrough_data.acc_z_lsb = tmpAccel.z & 0x3;
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
