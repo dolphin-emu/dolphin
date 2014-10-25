@@ -16,6 +16,7 @@
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
@@ -275,6 +276,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		);
 	}
 
+	ShaderCode code;
+	char buf[16384];
+	code.SetBuffer(buf);
+	GenerateVSOutputStructForGS(code, ApiType);
+	out.Write(code.GetBuffer());
+
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
 
@@ -325,22 +332,27 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// As a workaround, we interpolate at the centroid of the coveraged pixel, which
 		// is always inside the primitive.
 		// Without MSAA, this flag is defined to have no effect.
-		out.Write("centroid in float4 colors_02;\n");
-		out.Write("centroid in float4 colors_12;\n");
+		out.Write("centroid in VS_OUTPUT o;\n");
+
+		out.Write("void main()\n{\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
-			out.Write("centroid in float3 uv%d;\n", i);
+			out.Write("\tfloat3 uv%d = o.tex%d;\n", i, i);
 		}
-		out.Write("centroid in float4 clipPos;\n");
+		out.Write("\tfloat4 clipPos = o.clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
-			out.Write("centroid in float4 Normal;\n");
+			out.Write("\tfloat4 Normal = o.Normal;\n");
 		}
 
-		out.Write("void main()\n{\n");
+		// On Mali, global variables must be initialized as constants.
+		// This is why we initialize these variables locally instead.
+		out.Write("\tfloat4 colors_0 = o.colors_0;\n");
+		out.Write("\tfloat4 colors_1 = o.colors_1;\n");
+
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}
 	else // D3D
@@ -369,14 +381,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "\tint3 tevcoord=int3(0, 0, 0);\n"
 	          "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
 	          "\tint4 tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,0);\n\n"); // tev combiner inputs
-
-	if (ApiType == API_OPENGL)
-	{
-		// On Mali, global variables must be initialized as constants.
-		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 colors_0 = colors_02;\n");
-		out.Write("\tfloat4 colors_1 = colors_12;\n");
-	}
 
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{

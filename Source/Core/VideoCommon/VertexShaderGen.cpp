@@ -131,22 +131,16 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
-		// Let's set up attributes
-		for (size_t i = 0; i < 8; ++i)
-		{
-			if (i < xfmem.numTexGen.numTexGens)
-			{
-				out.Write("centroid out  float3 uv%d;\n", i);
-			}
-		}
-		out.Write("centroid out   float4 clipPos;\n");
-		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("centroid out   float4 Normal;\n");
 
-		out.Write("centroid out   float4 colors_02;\n");
-		out.Write("centroid out   float4 colors_12;\n");
+		if (g_ActiveConfig.bStereo)
+			out.Write("centroid out VS_OUTPUT v;\n");
+		else
+			out.Write("centroid out VS_OUTPUT o;\n");
 
 		out.Write("void main()\n{\n");
+
+		if (g_ActiveConfig.bStereo)
+			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
 	{
@@ -172,8 +166,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (components & VB_HAS_POSMTXIDX)
 			out.Write("  int posmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
+
+		out.Write("VS_OUTPUT o;\n");
 	}
-	out.Write("VS_OUTPUT o;\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
@@ -431,27 +426,16 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	if (api_type == API_OPENGL)
 	{
-		// Bit ugly here
-		// TODO: Make pretty
-		// Will look better when we bind uniforms in GLSL 1.3
-		// clipPos/w needs to be done in pixel shader, not here
+		if (g_ActiveConfig.bStereo)
+			out.Write("v = o;\n");
 
-		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-			out.Write(" uv%d.xyz =  o.tex%d;\n", i, i);
-		out.Write("  clipPos = o.clipPos;\n");
-
-		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("  Normal = o.Normal;\n");
-
-		out.Write("colors_02 = o.colors_0;\n");
-		out.Write("colors_12 = o.colors_1;\n");
 		out.Write("gl_Position = o.pos;\n");
-		out.Write("}\n");
 	}
 	else // D3D
 	{
-		out.Write("return o;\n}\n");
+		out.Write("return o;\n");
 	}
+	out.Write("}\n");
 
 	if (is_writing_shadercode)
 	{

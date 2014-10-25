@@ -73,12 +73,12 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	GenerateVSOutputStructForGS(code, ApiType);
 	out.Write(code.GetBuffer());
 
-	out.Write("in VS_OUTPUT vertices[];\n");
-	out.Write("out VS_OUTPUT frag;\n");
+	out.Write("centroid in VS_OUTPUT v[];\n");
+	out.Write("centroid out VS_OUTPUT o;\n");
 
 	out.Write("void main()\n{\n");
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
-	out.Write("\t\tfrag = vertices[i];\n");
+	out.Write("\t\to = v[i];\n");
 	out.Write("\t\tgl_Position = gl_in[i].gl_Position;\n");
 	out.Write("\t\tgl_Layer = gl_InvocationID;\n");
 	out.Write("\t\tEmitVertex();\n");
