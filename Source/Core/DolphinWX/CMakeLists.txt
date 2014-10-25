@@ -202,8 +202,8 @@ elseif(wxWidgets_FOUND)
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
 				fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
-				file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
-					DESTINATION ${BUNDLE_PATH}/Contents/Resources
+				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
+					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
 					)
 				")
 			add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
