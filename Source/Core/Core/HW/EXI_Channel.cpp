@@ -12,9 +12,12 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#define EXI_READ      0
-#define EXI_WRITE     1
-#define EXI_READWRITE 2
+enum
+{
+	EXI_READ,
+	EXI_WRITE,
+	EXI_READWRITE
+};
 
 CEXIChannel::CEXIChannel(u32 ChannelId) :
 	m_DMAMemoryAddress(0),
