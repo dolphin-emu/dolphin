@@ -126,7 +126,7 @@ static const struct
 	const bool  KBM;
 	const int   DefaultKey;
 	const int   DefaultModifier;
-	const std::string XinputMapping;
+	const std::string XInputMapping;
 } g_VRData[] = {
 		{ "FreeLookReset",              true, 82, 4 /* wxMOD_SHIFT */ },
 		{ "FreeLookForward",            true, 87, 4 /* wxMOD_SHIFT */ },
@@ -289,8 +289,8 @@ void SConfig::SaveVRSettings(IniFile& ini)
 			m_LocalCoreStartupParameter.iVRSettingsModifier[i]);
 		vrsettings->Set(std::string(g_VRData[i].IniText) + "KBM",
 			m_LocalCoreStartupParameter.iVRSettingsKBM[i]);
-		vrsettings->Set(std::string(g_VRData[i].IniText) + "XinputMapping",
-			m_LocalCoreStartupParameter.iVRSettingsXinputMapping[i]);
+		vrsettings->Set(std::string(g_VRData[i].IniText) + "XInputMapping",
+			m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]);
 	}
 }
 
@@ -524,8 +524,8 @@ void SConfig::LoadVRSettings(IniFile& ini)
 			&m_LocalCoreStartupParameter.iVRSettingsModifier[i], g_VRData[i].DefaultModifier);
 		vrsettings->Get(std::string(g_VRData[i].IniText) + "KBM",
 			&m_LocalCoreStartupParameter.iVRSettingsKBM[i], g_VRData[i].KBM);
-		vrsettings->Get(std::string(g_VRData[i].IniText) + "XinputMapping",
-			&m_LocalCoreStartupParameter.iVRSettingsXinputMapping[i], g_VRData[i].XinputMapping);
+		vrsettings->Get(std::string(g_VRData[i].IniText) + "XInputMapping",
+			&m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i], g_VRData[i].XInputMapping);
 	}
 }
 

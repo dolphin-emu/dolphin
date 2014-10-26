@@ -31,6 +31,7 @@ private:
 		std::string GetName() const;
 		Button(u8 index, const WORD& buttons) : m_index(index), m_buttons(buttons) {}
 		ControlState GetState() const;
+		u16 GetStates() const;
 	private:
 		const WORD& m_buttons;
 		u8 m_index;
