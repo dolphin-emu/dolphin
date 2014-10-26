@@ -65,12 +65,14 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/resources/Flag_Australia.xpm"
 #include "DolphinWX/resources/Flag_Europe.xpm"
 #include "DolphinWX/resources/Flag_France.xpm"
 #include "DolphinWX/resources/Flag_Germany.xpm"
 #include "DolphinWX/resources/Flag_Italy.xpm"
 #include "DolphinWX/resources/Flag_Japan.xpm"
 #include "DolphinWX/resources/Flag_Korea.xpm"
+#include "DolphinWX/resources/Flag_Russia.xpm"
 #include "DolphinWX/resources/Flag_SDK.xpm"
 #include "DolphinWX/resources/Flag_Taiwan.xpm"
 #include "DolphinWX/resources/Flag_Unknown.xpm"
@@ -227,16 +229,18 @@ void CGameListCtrl::InitBitmaps()
 	SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
 
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE]  = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY] = m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]  = m_imageListSmall->Add(wxBitmap(Flag_France_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA]     = m_imageListSmall->Add(wxBitmap(Flag_USA_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN]   = m_imageListSmall->Add(wxBitmap(Flag_Japan_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]   = m_imageListSmall->Add(wxBitmap(Flag_Korea_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]   = m_imageListSmall->Add(wxBitmap(Flag_Italy_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]  = m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK]     = m_imageListSmall->Add(wxBitmap(Flag_SDK_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] = m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE]    = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY]   = m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]    = m_imageListSmall->Add(wxBitmap(Flag_France_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA]       = m_imageListSmall->Add(wxBitmap(Flag_USA_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN]     = m_imageListSmall->Add(wxBitmap(Flag_Japan_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]     = m_imageListSmall->Add(wxBitmap(Flag_Korea_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]     = m_imageListSmall->Add(wxBitmap(Flag_Italy_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]    = m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_RUSSIA]    = m_imageListSmall->Add(wxBitmap(Flag_Russia_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_AUSTRALIA] = m_imageListSmall->Add(wxBitmap(Flag_Australia_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK]       = m_imageListSmall->Add(wxBitmap(Flag_SDK_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]   = m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm));
 
 	m_PlatformImageIndex.resize(3);
 	m_PlatformImageIndex[0] = m_imageListSmall->Add(wxBitmap(Platform_Gamecube_xpm));
