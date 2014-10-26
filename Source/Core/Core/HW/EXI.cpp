@@ -117,7 +117,6 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 
 void UpdateInterrupts()
 {
-    //    UpdateInterruptsCallback(0, 0);
     CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 }
 
