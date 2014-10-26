@@ -357,7 +357,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 		glDeleteShader(result);
 		return 0;
 	}
-	(void)GL_REPORT_ERROR();
+
 	return result;
 }
 

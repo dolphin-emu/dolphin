@@ -135,7 +135,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_resolvedColorTexture, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_resolvedDepthTexture, 0);
-		GL_REPORT_FBO_ERROR();
 	}
 
 	// Create XFB framebuffer; targets will be created elsewhere.
@@ -146,7 +145,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
-	GL_REPORT_FBO_ERROR();
 
 	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
@@ -400,7 +398,6 @@ void XFBSource::CopyEFB(float Gamma)
 
 	// Bind texture.
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-	GL_REPORT_FBO_ERROR();
 
 	glBlitFramebuffer(
 		0, 0, texWidth, texHeight,
