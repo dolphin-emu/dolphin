@@ -171,8 +171,7 @@ void VertexLoader::CompileVertexTranslator()
 #endif
 
 	// Get the pointer to this vertex's buffer data for the bounding box
-	if (g_ActiveConfig.bUseBBox)
-		WriteCall(BoundingBox::SetVertexBufferPosition);
+	WriteCall(BoundingBox::SetVertexBufferPosition);
 
 	// Colors
 	const u64 col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
@@ -382,8 +381,7 @@ void VertexLoader::CompileVertexTranslator()
 	}
 
 	// Update the bounding box
-	if (g_ActiveConfig.bUseBBox)
-		WriteCall(BoundingBox::Update);
+	WriteCall(BoundingBox::Update);
 
 	if (m_VtxDesc.PosMatIdx)
 	{

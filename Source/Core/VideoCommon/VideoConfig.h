@@ -116,7 +116,6 @@ struct VideoConfig final
 	int iPhackvalue[3];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
-	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bFastDepthCalc;
 	int iLog; // CONF_ bits

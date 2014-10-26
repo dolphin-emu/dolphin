@@ -177,7 +177,7 @@ namespace DriverDetails
 		// Bug: Intel's Window driver broke buffer_storage with GL_ELEMENT_ARRAY_BUFFER
 		// Affected devices: Intel (Windows)
 		// Started Version: 15.36.3.64.3907 (10.18.10.3907)
-		// Ended Version: -1
+		// Ended Version: 15.36.7.64.3960 (10.18.10.3960)
 		// Intel implemented buffer_storage in their GL 4.3 driver.
 		// It works for all the buffer types we use except GL_ELEMENT_ARRAY_BUFFER.
 		// Causes complete blackscreen issues.

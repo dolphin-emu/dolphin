@@ -511,10 +511,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Wii Console
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Wii", "Widescreen"));
 
-	// Video
-	UseBBox = new wxCheckBox(m_GameConfig, ID_USE_BBOX, _("Enable Bounding Box Calculation"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video", "UseBBox"));
-	UseBBox->SetToolTip(_("If checked, the bounding box registers will be updated. Used by the Paper Mario games."));
-
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const EmuStateText = new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
 #if 0
@@ -549,14 +545,10 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	}
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
 
-	wxStaticBoxSizer * const sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
-	sbVideoOverrides->Add(UseBBox, 0, wxLEFT, 5);
-
 	wxStaticBoxSizer * const sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
-	sbGameConfig->Add(sbVideoOverrides, 0, wxEXPAND);
 	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
 	sEmuState->Add(EmuState, 0, wxEXPAND);
@@ -1127,7 +1119,6 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "BlockMerging", BlockMerging);
 	SetCheckboxValueFromGameini("Core", "DSPHLE", DSPHLE);
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
-	SetCheckboxValueFromGameini("Video", "UseBBox", UseBBox);
 
 	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
 
@@ -1297,7 +1288,6 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "BlockMerging", BlockMerging);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
 	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
-	SaveGameIniValueFrom3StateCheckbox("Video", "UseBBox", UseBBox);
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \

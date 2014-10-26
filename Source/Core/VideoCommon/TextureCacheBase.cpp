@@ -31,6 +31,7 @@ GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
 unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
+// The Wii doesn't really have render targets, it only renders to EFB then copies. These are actually for EFB copies:
 TextureCache::RenderTargetPool TextureCache::render_target_pool;
 
 TextureCache::BackupConfig TextureCache::backup_config;
