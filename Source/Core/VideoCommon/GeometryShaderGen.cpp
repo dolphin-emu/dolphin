@@ -77,12 +77,15 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("centroid in VS_OUTPUT v[];\n");
 	out.Write("centroid out VS_OUTPUT o;\n");
 
+	out.Write("flat out int eye;\n");
+
 	out.Write("void main()\n{\n");
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");
-	out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 3], v[i].rawpos)); \n");
+	out.Write("\t\teye = gl_InvocationID;\n");
+	out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[eye * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 3], v[i].rawpos)); \n");
 	out.Write("\t\tgl_Position = o.pos;\n");
-	out.Write("\t\tgl_Layer = gl_InvocationID;\n");
+	out.Write("\t\tgl_Layer = eye;\n");
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");
 	out.Write("\tEndPrimitive();\n");

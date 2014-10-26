@@ -335,6 +335,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Without MSAA, this flag is defined to have no effect.
 		out.Write("centroid in VS_OUTPUT o;\n");
 
+		if (g_ActiveConfig.bStereo)
+			out.Write("flat in int eye;\n");
+
 		out.Write("void main()\n{\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
@@ -936,7 +939,7 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	if (ApiType == API_D3D)
 		out.Write("iround(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, 0.0))).%s;\n", texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.bStereo ? "eye" : "0.0", texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
