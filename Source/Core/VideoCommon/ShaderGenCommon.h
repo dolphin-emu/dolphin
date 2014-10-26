@@ -239,3 +239,4 @@ private:
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
 #define I_DEPTHPARAMS           "cDepth" // farZ, zRange
+#define I_STEREOPROJECTION      "csproj"

@@ -52,6 +52,9 @@ static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 	if (g_ActiveConfig.bEnablePixelLighting)
 		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
 
+	if (g_ActiveConfig.bStereo)
+		DefineVSOutputStructMember(object, api_type, "float4", "rawpos", -1, "POSITION");
+
 	object.Write("};\n");
 }
 
@@ -99,6 +102,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		"\tfloat4 " I_NORMALMATRICES"[32];\n"
 		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
 		"\tfloat4 " I_DEPTHPARAMS";\n"
+		"\tfloat4 " I_STEREOPROJECTION"[8];\n"
 		"};\n");
 
 	GenerateVSOutputStruct(out, api_type);
@@ -214,6 +218,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 
 	out.Write("o.pos = float4(dot(" I_PROJECTION"[0], pos), dot(" I_PROJECTION"[1], pos), dot(" I_PROJECTION"[2], pos), dot(" I_PROJECTION"[3], pos));\n");
+
+	if (g_ActiveConfig.bStereo)
+		out.Write("o.rawpos = pos;\n");
 
 	out.Write("int4 lacc;\n"
 			"float3 ldir, h;\n"

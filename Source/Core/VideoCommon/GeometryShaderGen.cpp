@@ -51,7 +51,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("%s", s_lighting_struct);
 
 	// uniforms
-	/*if (ApiType == API_OPENGL)
+	if (ApiType == API_OPENGL)
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
 	else
 		out.Write("cbuffer VSBlock {\n");
@@ -65,7 +65,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 		"\tfloat4 " I_NORMALMATRICES"[32];\n"
 		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
 		"\tfloat4 " I_DEPTHPARAMS";\n"
-		"};\n");*/
+		"\tfloat4 " I_STEREOPROJECTION"[8];\n"
+		"};\n");
 
 	ShaderCode code;
 	char buf[16384];
@@ -79,7 +80,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("void main()\n{\n");
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");
-	out.Write("\t\tgl_Position = gl_in[i].gl_Position;\n");
+	out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[gl_InvocationID * 4 + 3], v[i].rawpos)); \n");
+	out.Write("\t\tgl_Position = o.pos;\n");
 	out.Write("\t\tgl_Layer = gl_InvocationID;\n");
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");

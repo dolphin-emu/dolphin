@@ -264,6 +264,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			"\tfloat4 " I_NORMALMATRICES"[32];\n"
 			"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
 			"\tfloat4 " I_DEPTHPARAMS";\n"
+			"\tfloat4 " I_STEREOPROJECTION"[8];\n"
 			"};\n");
 	}
 

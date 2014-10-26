@@ -67,8 +67,8 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
 	settings->Get("Stereo", &bStereo, false);
-	settings->Get("StereoSeparation", &iStereoSeparation, 200);
-	settings->Get("StereoFocalAngle", &iStereoFocalAngle, 0);
+	settings->Get("StereoSeparation", &iStereoSeparation, 65);
+	settings->Get("StereoFocalLength", &iStereoFocalLength, 100);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
 	settings->Get("MSAA", &iMultisampleMode, 0);
@@ -142,7 +142,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
 	CHECK_SETTING("Video_Settings", "Stereo", bStereo);
 	CHECK_SETTING("Video_Settings", "StereoSeparation", iStereoSeparation);
-	CHECK_SETTING("Video_Settings", "StereoFocalAngle", iStereoFocalAngle);
+	CHECK_SETTING("Video_Settings", "StereoFocalLength", iStereoFocalLength);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
@@ -232,7 +232,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("UseFFV1", bUseFFV1);
 	settings->Set("Stereo", bStereo);
 	settings->Set("StereoSeparation", iStereoSeparation);
-	settings->Set("StereoFocalAngle", iStereoFocalAngle);
+	settings->Set("StereoFocalLength", iStereoFocalLength);
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
 	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);

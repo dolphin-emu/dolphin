@@ -512,6 +512,30 @@ void VertexShaderManager::SetConstants()
 			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
 			memcpy(constants.projection, correctedMtx.data, 4*16);
 		}
+
+		if (g_ActiveConfig.bStereo && xfmem.projection.type == GX_PERSPECTIVE)
+		{
+			Matrix44 projMtx;
+			Matrix44::Set(projMtx, g_fProjectionMatrix);
+
+			Matrix44 leftShearMtx, rightShearMtx;
+			Matrix44::Shear(leftShearMtx, g_ActiveConfig.iStereoSeparation / (200.0f * g_ActiveConfig.iStereoFocalLength));
+			Matrix44::Shear(rightShearMtx, -g_ActiveConfig.iStereoSeparation / (200.0f * g_ActiveConfig.iStereoFocalLength));
+
+			Matrix44 leftProjMtx, rightProjMtx, leftCorrectedMtx, rightCorrectedMtx;
+			Matrix44::Multiply(projMtx, leftShearMtx, leftProjMtx);
+			Matrix44::Multiply(s_viewportCorrection, leftProjMtx, leftCorrectedMtx);
+			Matrix44::Multiply(projMtx, rightShearMtx, rightProjMtx);
+			Matrix44::Multiply(s_viewportCorrection, rightProjMtx, rightCorrectedMtx);
+			memcpy(constants.stereoprojection, leftCorrectedMtx.data, 4*16);
+			memcpy(constants.stereoprojection + 4, rightCorrectedMtx.data, 4*16);
+		}
+		else
+		{
+			memcpy(constants.stereoprojection, constants.projection, 4 * 16);
+			memcpy(constants.stereoprojection + 4, constants.projection, 4 * 16);
+		}
+
 		dirty = true;
 	}
 }

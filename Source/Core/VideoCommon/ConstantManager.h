@@ -43,5 +43,6 @@ struct VertexShaderConstants
 	float4 normalmatrices[32];
 	float4 posttransformmatrices[64];
 	float4 depthparams;
+	float4 stereoprojection[8];
 };
 

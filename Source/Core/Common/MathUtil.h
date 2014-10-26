@@ -232,6 +232,7 @@ public:
 	static void Set(Matrix44 &mtx, const float mtxArray[16]);
 
 	static void Translate(Matrix44 &mtx, const float vec[3]);
+	static void Shear(Matrix44 &mtx, const float a, const float b = 0);
 
 	static void Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result);
 
