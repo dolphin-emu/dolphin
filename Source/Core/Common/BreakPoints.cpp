@@ -280,7 +280,7 @@ void Watches::Update(int count, u32 em_address)
 	m_Watches.at(count).iAddress = em_address;
 }
 
-void Watches::UpdateName(int count, std::string name)
+void Watches::UpdateName(int count, const std::string name)
 {
 	m_Watches.at(count).name = name;
 }

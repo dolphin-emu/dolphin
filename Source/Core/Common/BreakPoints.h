@@ -125,7 +125,7 @@ public:
 	void Add(const TWatch& bp);
 
 	void Update(int count, u32 em_address);
-	void UpdateName(int count, std::string name);
+	void UpdateName(int count, const std::string name);
 
 	// Remove Breakpoint
 	void Remove(u32 _iAddress);

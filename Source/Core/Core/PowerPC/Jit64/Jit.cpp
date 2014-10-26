@@ -867,7 +867,7 @@ void Jit64::EnableBlockLink()
 {
 	jo.enableBlocklink = true;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	    SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;

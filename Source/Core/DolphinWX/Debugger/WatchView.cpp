@@ -58,9 +58,17 @@ static void UpdateWatchAddr(int count, u32 value)
 	PowerPC::watches.Update(count - 1, value);
 }
 
-static void SetWatchName(int count, std::string value)
+static void SetWatchName(int count, const std::string value)
 {
-	PowerPC::watches.UpdateName(count - 1, value);
+	if ((count - 1) < PowerPC::watches.GetWatches().size())
+	{
+		PowerPC::watches.UpdateName(count - 1, value);
+	}
+	else
+	{
+		PowerPC::watches.Add(0);
+		PowerPC::watches.UpdateName(PowerPC::watches.GetWatches().size() - 1, value);
+	}
 }
 
 static void SetWatchValue(int count, u32 value)
@@ -97,7 +105,7 @@ static wxString GetValueByRowCol(int row, int col)
 			{
 				u32 addr = GetWatchAddr(row);
 				if (Memory::IsRAMAddress(addr))
-					return  Memory::GetString(addr, 32).c_str();
+					return Memory::GetString(addr, 32).c_str();
 				else
 					return wxEmptyString;
 			}
@@ -161,9 +169,9 @@ void CWatchTable::UpdateWatch()
 	}
 }
 
-wxGridCellAttr *CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
+wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 {
-	wxGridCellAttr *attr = new wxGridCellAttr();
+	wxGridCellAttr* attr = new wxGridCellAttr();
 
 	attr->SetBackgroundColour(*wxWHITE);
 	attr->SetFont(DebuggerFont);
@@ -191,10 +199,8 @@ wxGridCellAttr *CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 	else
 	{
 		bool red = false;
-		switch (col)
-		{
-		case 1: red = m_CachedWatchHasChanged[row]; break;
-		}
+		if (col == 1)
+			red = m_CachedWatchHasChanged[row];
 
 		attr->SetTextColour(red ? *wxRED : *wxBLACK);
 
@@ -208,7 +214,7 @@ wxGridCellAttr *CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 	return attr;
 }
 
-CWatchView::CWatchView(wxWindow *parent, wxWindowID id)
+CWatchView::CWatchView(wxWindow* parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
 	SetTable(new CWatchTable(), false);
@@ -269,11 +275,13 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
 	{
 	case IDM_DELETEWATCH:
 		strNewVal = GetValueByRowCol(m_selectedRow, 1);
-		TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
-		PowerPC::watches.Remove(m_selectedAddress);
-		if (watch_window)
-			watch_window->NotifyUpdate();
-		Refresh();
+		if (TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress))
+		{
+			PowerPC::watches.Remove(m_selectedAddress);
+			if (watch_window)
+				watch_window->NotifyUpdate();
+			Refresh();
+		}
 		break;
 	case IDM_ADDMEMCHECK:
 		MemCheck.StartAddress = m_selectedAddress;

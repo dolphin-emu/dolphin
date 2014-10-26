@@ -30,8 +30,8 @@ public:
 	int GetNumberCols() override { return 5; }
 	int GetNumberRows() override { return MAX_SPECIALS; }
 	wxString GetValue(int row, int col) override;
-	void SetValue(int row, int col, const wxString &) override;
-	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
+	void SetValue(int row, int col, const wxString&) override;
+	wxGridCellAttr* GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
 	void UpdateWatch();
 
 private:

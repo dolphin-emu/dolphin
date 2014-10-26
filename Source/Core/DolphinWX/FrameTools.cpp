@@ -661,15 +661,12 @@ void CFrame::BootGame(const std::string& filename)
 	if (!bootfile.empty())
 	{
 		StartGame(bootfile);
-		if (UseDebugger)
+		if (UseDebugger && g_pCodeWindow)
 		{
-			if (g_pCodeWindow)
-			{
-				if (g_pCodeWindow->m_WatchWindow)
-					g_pCodeWindow->m_WatchWindow->LoadAll();
-				if (g_pCodeWindow->m_BreakpointWindow)
-					g_pCodeWindow->m_BreakpointWindow->LoadAll();
-			}
+			if (g_pCodeWindow->m_WatchWindow)
+				g_pCodeWindow->m_WatchWindow->LoadAll();
+			if (g_pCodeWindow->m_BreakpointWindow)
+				g_pCodeWindow->m_BreakpointWindow->LoadAll();
 		}
 	}
 }
@@ -1178,25 +1175,22 @@ void CFrame::DoStop()
 			}
 		}
 
-		if (UseDebugger)
+		if (UseDebugger && g_pCodeWindow)
 		{
-			if (g_pCodeWindow)
+			if (g_pCodeWindow->m_WatchWindow)
 			{
-				if (g_pCodeWindow->m_WatchWindow)
-				{
-					g_pCodeWindow->m_WatchWindow->SaveAll();
-					PowerPC::watches.Clear();
-				}
-				if (g_pCodeWindow->m_BreakpointWindow)
-				{
-					g_pCodeWindow->m_BreakpointWindow->SaveAll();
-					PowerPC::breakpoints.Clear();
-					PowerPC::memchecks.Clear();
-					g_pCodeWindow->m_BreakpointWindow->NotifyUpdate();
-				}
-				g_symbolDB.Clear();
-				Host_NotifyMapLoaded();
+				g_pCodeWindow->m_WatchWindow->SaveAll();
+				PowerPC::watches.Clear();
 			}
+			if (g_pCodeWindow->m_BreakpointWindow)
+			{
+				g_pCodeWindow->m_BreakpointWindow->SaveAll();
+				PowerPC::breakpoints.Clear();
+				PowerPC::memchecks.Clear();
+				g_pCodeWindow->m_BreakpointWindow->NotifyUpdate();
+			}
+			g_symbolDB.Clear();
+			Host_NotifyMapLoaded();
 		}
 
 		// TODO: Show the author/description dialog here
