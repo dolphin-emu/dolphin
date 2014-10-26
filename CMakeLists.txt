@@ -405,6 +405,16 @@ if(NOT ANDROID)
 		message("OpenAL NOT found, disabling OpenAL sound backend")
 	endif(OPENAL_FOUND)
 
+	include(FindLLVM OPTIONAL)
+	if (LLVM_FOUND)
+		add_definitions(-DHAS_LLVM=1)
+		set(HAS_LLVM 1)
+
+		include_directories(${LLVM_INCLUDE_DIRS})
+
+		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+	endif()
+
 	set(USE_X11 0)
 
 	if(UNIX AND NOT APPLE)
