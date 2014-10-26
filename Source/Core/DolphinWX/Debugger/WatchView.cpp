@@ -15,6 +15,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
@@ -27,6 +28,7 @@ class wxWindow;
 enum
 {
 	IDM_DELETEWATCH,
+	IDM_ADDMEMCHECK,
 	IDM_VIEWMEMORY,
 };
 
@@ -196,7 +198,7 @@ wxGridCellAttr *CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 
 		attr->SetTextColour(red ? *wxRED : *wxBLACK);
 
-		if (row > (int)(PowerPC::watches.GetWatches().size() + 1))
+		if (row > (int)(PowerPC::watches.GetWatches().size() + 1) || (PowerPC::GetState() == PowerPC::CPU_POWERDOWN))
 		{
 			attr->SetReadOnly(true);
 			attr->SetBackgroundColour(*wxLIGHT_GREY);
@@ -213,11 +215,6 @@ CWatchView::CWatchView(wxWindow *parent, wxWindowID id)
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
-
-	if (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
-	{
-		AutoSizeColumns();
-	}
 }
 
 void CWatchView::Update()
@@ -235,17 +232,26 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 	int row = event.GetRow();
 	int col = event.GetCol();
 
+	m_selectedRow = row;
+
 	if (col == 1 || col == 2)
 	{
 		wxString strNewVal = GetValueByRowCol(row, col);
 		TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
-		m_selectedRow = row;
-
-		wxMenu* menu = new wxMenu;
-		menu->Append(IDM_DELETEWATCH, _("&Delete watch"));
-		menu->Append(IDM_VIEWMEMORY, _("View &memory"));
-		PopupMenu(menu);
 	}
+
+	wxMenu* menu = new wxMenu;
+	if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1))
+		menu->Append(IDM_DELETEWATCH, _("&Delete watch"));
+
+	if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1) && (col == 1 || col == 2))
+	{
+#ifdef ENABLE_MEM_CHECK
+		menu->Append(IDM_ADDMEMCHECK, _("Add memory &breakpoint"));
+#endif
+		menu->Append(IDM_VIEWMEMORY, _("View &memory"));
+	}
+	PopupMenu(menu);
 }
 
 void CWatchView::OnPopupMenu(wxCommandEvent& event)
@@ -254,8 +260,10 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
 	CCodeWindow* code_window = main_frame->g_pCodeWindow;
 	CWatchWindow* watch_window = code_window->m_WatchWindow;
 	CMemoryWindow* memory_window = code_window->m_MemoryWindow;
+	CBreakPointWindow* breakpoint_window = code_window->m_BreakpointWindow;
 
 	wxString strNewVal;
+	TMemCheck MemCheck;
 
 	switch (event.GetId())
 	{
@@ -265,6 +273,20 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
 		PowerPC::watches.Remove(m_selectedAddress);
 		if (watch_window)
 			watch_window->NotifyUpdate();
+		Refresh();
+		break;
+	case IDM_ADDMEMCHECK:
+		MemCheck.StartAddress = m_selectedAddress;
+		MemCheck.EndAddress = m_selectedAddress;
+		MemCheck.bRange = m_selectedAddress != m_selectedAddress;
+		MemCheck.OnRead = true;
+		MemCheck.OnWrite = true;
+		MemCheck.Log = true;
+		MemCheck.Break = true;
+		PowerPC::memchecks.Add(MemCheck);
+
+		if (breakpoint_window)
+			breakpoint_window->NotifyUpdate();
 		Refresh();
 		break;
 	case IDM_VIEWMEMORY:

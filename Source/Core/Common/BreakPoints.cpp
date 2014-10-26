@@ -249,7 +249,8 @@ void Watches::AddFromStrings(const TWatchesStr& bpstrs)
 		std::stringstream ss;
 		ss << std::hex << bpstr;
 		ss >> bp.iAddress;
-		ss >> bp.name;
+		ss >> std::ws;
+		getline(ss, bp.name);
 		Add(bp);
 	}
 }
