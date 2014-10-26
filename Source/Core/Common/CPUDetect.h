@@ -20,8 +20,8 @@ struct CPUInfo
 {
 	CPUVendor vendor;
 
-	char cpu_string[0x21];
-	char brand_string[0x41];
+	char cpu_string[0x41];
+	char brand_string[0x21];
 	bool OS64bit;
 	bool CPU64bit;
 	bool Mode64bit;

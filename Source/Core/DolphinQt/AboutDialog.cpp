@@ -5,29 +5,27 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-#include "AboutDialog.h"
 #include "ui_AboutDialog.h"
+
 #include "Common/Common.h"
 #include "Common/StdMakeUnique.h"
 
-DAboutDialog::DAboutDialog(QWidget* p)
-	: QDialog(p)
+#include "DolphinQt/AboutDialog.h"
+#include "DolphinQt/Utils/Utils.h"
+
+DAboutDialog::DAboutDialog(QWidget* parent_widget)
+	: QDialog(parent_widget)
 {
-	ui = std::make_unique<Ui::DAboutDialog>();
-	ui->setupUi(this);
-	ui->label->setText(ui->label->text().arg(QLatin1String(scm_desc_str),
-	                                         QStringLiteral("2014"),
-	                                         QLatin1String(scm_branch_str),
-	                                         QLatin1String(scm_rev_git_str),
-	                                         QStringLiteral(__DATE__),
-	                                         QStringLiteral(__TIME__)));
+	setWindowModality(Qt::WindowModal);
+	setAttribute(Qt::WA_DeleteOnClose);
+
+	m_ui = std::make_unique<Ui::DAboutDialog>();
+	m_ui->setupUi(this);
+	m_ui->label->setText(m_ui->label->text().arg(SC(scm_desc_str),
+	    SL("2014"), SC(scm_branch_str), SC(scm_rev_git_str),
+	    SL(__DATE__), SL(__TIME__)));
 }
 
 DAboutDialog::~DAboutDialog()
 {
-}
-
-void DAboutDialog::on_label_linkActivated(const QString &link)
-{
-    QDesktopServices::openUrl(QUrl(link));
 }

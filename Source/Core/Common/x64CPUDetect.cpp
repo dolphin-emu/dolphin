@@ -102,25 +102,25 @@ void CPUInfo::Detect()
 	// Assume CPU supports the CPUID instruction. Those that don't can barely
 	// boot modern OS:es anyway.
 	int cpu_id[4];
-	memset(cpu_string, 0, sizeof(cpu_string));
+	memset(brand_string, 0, sizeof(brand_string));
 
 	// Detect CPU's CPUID capabilities, and grab cpu string
 	__cpuid(cpu_id, 0x00000000);
 	u32 max_std_fn = cpu_id[0];  // EAX
-	*((int *)cpu_string) = cpu_id[1];
-	*((int *)(cpu_string + 4)) = cpu_id[3];
-	*((int *)(cpu_string + 8)) = cpu_id[2];
+	*((int *)brand_string) = cpu_id[1];
+	*((int *)(brand_string + 4)) = cpu_id[3];
+	*((int *)(brand_string + 8)) = cpu_id[2];
 	__cpuid(cpu_id, 0x80000000);
 	u32 max_ex_fn = cpu_id[0];
-	if (!strcmp(cpu_string, "GenuineIntel"))
+	if (!strcmp(brand_string, "GenuineIntel"))
 		vendor = VENDOR_INTEL;
-	else if (!strcmp(cpu_string, "AuthenticAMD"))
+	else if (!strcmp(brand_string, "AuthenticAMD"))
 		vendor = VENDOR_AMD;
 	else
 		vendor = VENDOR_OTHER;
 
 	// Set reasonable default brand string even if brand string not available.
-	strcpy(brand_string, cpu_string);
+	strcpy(cpu_string, brand_string);
 
 	// Detect family and other misc stuff.
 	bool ht = false;
@@ -178,13 +178,13 @@ void CPUInfo::Detect()
 
 	if (max_ex_fn >= 0x80000004)
 	{
-		// Extract brand string
+		// Extract CPU model string
 		__cpuid(cpu_id, 0x80000002);
-		memcpy(brand_string, cpu_id, sizeof(cpu_id));
+		memcpy(cpu_string, cpu_id, sizeof(cpu_id));
 		__cpuid(cpu_id, 0x80000003);
-		memcpy(brand_string + 16, cpu_id, sizeof(cpu_id));
+		memcpy(cpu_string + 16, cpu_id, sizeof(cpu_id));
 		__cpuid(cpu_id, 0x80000004);
-		memcpy(brand_string + 32, cpu_id, sizeof(cpu_id));
+		memcpy(cpu_string + 32, cpu_id, sizeof(cpu_id));
 	}
 	if (max_ex_fn >= 0x80000001)
 	{
@@ -229,6 +229,10 @@ void CPUInfo::Detect()
 std::string CPUInfo::Summarize()
 {
 	std::string sum(cpu_string);
+	sum += " (";
+	sum += brand_string;
+	sum += ")";
+
 	if (bSSE) sum += ", SSE";
 	if (bSSE2)
 	{

@@ -14,10 +14,12 @@
     <ClCompile Include="Utils\Utils.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="SystemInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="MainWindow.h" />
+    <QtMoc Include="SystemInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />

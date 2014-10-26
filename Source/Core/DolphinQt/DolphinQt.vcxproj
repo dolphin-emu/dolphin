@@ -61,11 +61,14 @@
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="MainWindow.h" />
+    <QtMoc Include="SystemInfo.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
+	<ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
+    <ClCompile Include="SystemInfo.cpp" />
     <ClCompile Include="Utils\Resources.cpp" />
     <ClCompile Include="Utils\Utils.cpp" />
     <ClCompile Include="VideoInterface\VideoInterface.cpp" />
