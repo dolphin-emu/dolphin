@@ -71,6 +71,11 @@ public:
 				return 0.0;
 		}
 
+		virtual u16 GetStates() const
+		{
+			return NULL;
+		}
+
 		Input* ToInput() override { return this; }
 	};
 

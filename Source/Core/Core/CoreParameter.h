@@ -222,6 +222,9 @@ struct SCoreStartupParameter
 	// VR Settings
 	int iVRSettings[NUM_VR_OPTIONS];
 	int iVRSettingsModifier[NUM_VR_OPTIONS];
+	bool iVRSettingsKBM[NUM_VR_OPTIONS];
+	std::string iVRSettingsXInputMapping[NUM_VR_OPTIONS];
+	bool bHotkeysXInput = true;
 
 	// Display settings
 	std::string strFullscreenResolution;

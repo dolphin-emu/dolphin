@@ -159,6 +159,9 @@
     <ClCompile Include="ConfigVR.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="HotkeysXInput.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GLInterface\WGL.h" />
@@ -283,6 +286,9 @@
       <Filter>GUI\Video</Filter>
     </ClInclude>
     <ClInclude Include="ConfigVR.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="HotkeysXInput.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>

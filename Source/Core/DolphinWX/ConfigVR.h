@@ -11,7 +11,6 @@
 #include <wx/timer.h>
 
 #include "Common/CommonTypes.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "DolphinWX/InputConfigDiag.h"
 
 class InputConfig;
@@ -57,13 +56,16 @@ private:
 	//void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
 	void OnButtonClick(wxCommandEvent& event);
 	void OnKeyDown(wxKeyEvent& event);
+	void OnKeyDownXInput(wxKeyEvent& event);
 	//int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed, g_Modkey;
 	int g_Pressed, g_Modkey;
 
-	void SaveButtonMapping(int Id, int Key, int Modkey);
-	void SetButtonText(int id, const wxString &keystr, const wxString &modkeystr = wxString());
+	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
+	void SaveXInputMapping(int Id, bool KBM, std::string XInputMapping);
+	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapipng = wxString());
 	void DoGetButtons(int id);
 	void EndGetButtons();
+	void EndGetButtonsXInput();
 	
 	void ConfigControl(wxEvent& event);
 

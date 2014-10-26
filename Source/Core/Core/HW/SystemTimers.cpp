@@ -61,6 +61,8 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinWX/HotkeysXInput.h"
+
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -73,6 +75,7 @@ static u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, st
 static int et_Dec;
 static int et_VI;
 static int et_SI;
+static int et_HotkeysXInput;
 static int et_CP;
 static int et_AudioDMA;
 static int et_DSP;
@@ -136,6 +139,12 @@ static void SICallback(u64 userdata, int cyclesLate)
 {
 	SerialInterface::UpdateDevices();
 	CoreTiming::ScheduleEvent(SerialInterface::GetTicksToNextSIPoll() - cyclesLate, et_SI);
+}
+
+static void HotkeysXInputCallback(u64 userdata, int cyclesLate)
+{
+	HotkeysXInput::Update();
+	CoreTiming::ScheduleEvent((SerialInterface::GetTicksToNextSIPoll()*15) - cyclesLate, et_HotkeysXInput);
 }
 
 static void CPCallback(u64 userdata, int cyclesLate)
@@ -251,6 +260,9 @@ void Init()
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput) //Currently used only for VR Hotkeys
+		et_HotkeysXInput = CoreTiming::RegisterEvent("HotkeysXInputCallback", HotkeysXInputCallback);
+	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
 		et_CP = CoreTiming::RegisterEvent("CPCallback", CPCallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
@@ -262,6 +274,8 @@ void Init()
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(0, et_DSP);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput)
+		CoreTiming::ScheduleEvent((VideoInterface::GetTicksPerFrame()*15), et_HotkeysXInput); //Only poll every 15 frames to avoid unnecassary CPU usage.
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)

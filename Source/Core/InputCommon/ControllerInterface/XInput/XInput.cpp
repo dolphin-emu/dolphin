@@ -272,5 +272,10 @@ void Device::Motor::SetState(ControlState state)
 	m_motor = (WORD)(state * m_range);
 }
 
+u16 Device::Button::GetStates() const
+{
+	return (u16) m_buttons;
+}
+
 }
 }
