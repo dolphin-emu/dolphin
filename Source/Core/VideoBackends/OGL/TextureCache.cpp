@@ -222,9 +222,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
 
-	int layers = 1;
-
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, layers, 0, gl_format, gl_type, nullptr);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, FramebufferManager::GetEFBLayers(), 0, gl_format, gl_type, nullptr);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);
@@ -322,11 +320,11 @@ TextureCache::TextureCache()
 	const char *pColorMatrixProg =
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[7];\n"
-		"in vec2 uv0;\n"
+		"in vec3 f_uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture(samp9, vec3(uv0, 0.0));\n"
+		"	vec4 texcol = texture(samp9, f_uv0);\n"
 		"	texcol = round(texcol * colmat[5]) * colmat[6];\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
@@ -334,11 +332,11 @@ TextureCache::TextureCache()
 	const char *pDepthMatrixProg =
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[5];\n"
-		"in vec2 uv0;\n"
+		"in vec3 f_uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture(samp9, vec3(uv0, 0.0));\n"
+		"	vec4 texcol = texture(samp9, f_uv0);\n"
 
 		// 255.99998474121 = 16777215/16777216*256
 		"	float workspace = texcol.x * 255.99998474121;\n"
@@ -365,18 +363,38 @@ TextureCache::TextureCache()
 		"}\n";
 
 	const char *VProgram =
-		"out vec2 uv0;\n"
+		"out vec2 v_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy);\n"
+		"	v_uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
-	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, VProgram, pColorMatrixProg);
-	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, VProgram, pDepthMatrixProg);
+	const char *GProgram =
+		"layout(triangles) in;\n"
+		"layout(triangle_strip, max_vertices = 3) out;\n"
+		"in vec2 v_uv0[];\n"
+		"out vec3 f_uv0;\n"
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
+		"void main()\n"
+		"{\n"
+		"	int layers = textureSize(samp9, 0).z;\n"
+		"	for (int layer = 0; layer < layers; ++layer) {\n"
+		"		for (int i = 0; i < gl_in.length(); ++i) {\n"
+		"			f_uv0 = vec3(v_uv0[i], layer);\n"
+		"			gl_Position = gl_in[i].gl_Position;\n"
+		"			gl_Layer = layer;\n"
+		"			EmitVertex();\n"
+		"		}\n"
+		"		EndPrimitive();\n"
+		"	}\n"
+		"}\n";
+
+	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, VProgram, pColorMatrixProg, GProgram);
+	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, VProgram, pDepthMatrixProg, GProgram);
 
 	s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
 	s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
