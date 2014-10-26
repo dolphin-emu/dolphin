@@ -114,9 +114,9 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 }
 
 
-GLuint OpenGL_ReportGLError(const char *function, const char *file, int line)
+GLenum OpenGL_ReportGLError(const char *function, const char *file, int line)
 {
-	GLint err = glGetError();
+	GLenum err = glGetError();
 	if (err != GL_NO_ERROR)
 	{
 		ERROR_LOG(VIDEO, "%s:%d: (%s) OpenGL error 0x%x\n",
@@ -127,7 +127,7 @@ GLuint OpenGL_ReportGLError(const char *function, const char *file, int line)
 
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 {
-	unsigned int fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	GLenum fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (fbo_status != GL_FRAMEBUFFER_COMPLETE)
 	{
 		const char *error = "unknown error";
