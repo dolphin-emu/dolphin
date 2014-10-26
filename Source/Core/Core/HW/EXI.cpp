@@ -20,6 +20,7 @@ namespace ExpansionInterface
 {
 
 static int changeDevice;
+static int updateInterrupts;
 
 static CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
 void Init()
@@ -43,6 +44,7 @@ void Init()
 	g_Channels[2]->AddDevice(EXIDEVICE_AD16,                            0);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
+    updateInterrupts = CoreTiming::RegisterEvent("EXIUpdateInterrupts", UpdateInterruptsCallback);
 }
 
 void Shutdown()
@@ -115,17 +117,23 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 
 void UpdateInterrupts()
 {
-	// Interrupts are mapped a bit strangely:
-	// Channel 0 Device 0 generates interrupt on channel 0
-	// Channel 0 Device 2 generates interrupt on channel 2
-	// Channel 1 Device 0 generates interrupt on channel 1
-	g_Channels[2]->SetEXIINT(g_Channels[0]->GetDevice(4)->IsInterruptSet());
+    //    UpdateInterruptsCallback(0, 0);
+    CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
+}
 
-	bool causeInt = false;
-	for (auto& channel : g_Channels)
-		causeInt |= channel->IsCausingInterrupt();
+void UpdateInterruptsCallback(u64 userdata, int cyclesLate)
+{
+    // Interrupts are mapped a bit strangely:
+    // Channel 0 Device 0 generates interrupt on channel 0
+    // Channel 0 Device 2 generates interrupt on channel 2
+    // Channel 1 Device 0 generates interrupt on channel 1
+    g_Channels[2]->SetEXIINT(g_Channels[0]->GetDevice(4)->IsInterruptSet());
 
-	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
+    bool causeInt = false;
+    for (auto& channel : g_Channels)
+        causeInt |= channel->IsCausingInterrupt();
+
+    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }
 
 } // end of namespace ExpansionInterface

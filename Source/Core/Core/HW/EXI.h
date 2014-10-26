@@ -27,6 +27,7 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
+void UpdateInterruptsCallback(u64 userdata, int cyclesLate);
 void UpdateInterrupts();
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);
