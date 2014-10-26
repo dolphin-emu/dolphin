@@ -413,6 +413,13 @@ union RAS1_IREF
 
 union TexMode0
 {
+	enum TextureFilter : u32
+	{
+		TEXF_NONE = 0,
+		TEXF_POINT = 1,
+		TEXF_LINEAR = 2
+	};
+
 	struct
 	{
 		u32 wrap_s     : 2;

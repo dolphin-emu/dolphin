@@ -4,8 +4,8 @@
 
 #include "Common/StringUtil.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DTexture.h"
-#include "VideoBackends/D3D/GfxState.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11

@@ -24,7 +24,7 @@
     <ClCompile Include="D3DUtil.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="GfxState.cpp">
+    <ClCompile Include="D3DState.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
     <ClCompile Include="FramebufferManager.cpp">
@@ -84,7 +84,7 @@
     <ClInclude Include="D3DUtil.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="GfxState.h">
+    <ClInclude Include="D3DState.h">
       <Filter>D3D</Filter>
     </ClInclude>
     <ClInclude Include="FramebufferManager.h">
