@@ -89,6 +89,42 @@ void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 	MOV(64, PPCSTATE(cr_val[field]), R(RSCRATCH2));
 }
 
+void Jit64::ClearCRFieldBit(int field, int bit)
+{
+	MOV(64, R(RSCRATCH2), PPCSTATE(cr_val[field]));
+
+	if (bit != CR_GT_BIT)
+	{
+		TEST(64, R(RSCRATCH2), R(RSCRATCH2));
+		FixupBranch dont_clear_gt = J_CC(CC_NZ);
+		BTS(64, R(RSCRATCH2), Imm8(63));
+		SetJumpTarget(dont_clear_gt);
+	}
+
+	switch (bit)
+	{
+	case CR_SO_BIT:  // set bit 61 to input
+		BTR(64, R(RSCRATCH2), Imm8(61));
+		break;
+
+	case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+		SHR(64, R(RSCRATCH2), Imm8(32));
+		SHL(64, R(RSCRATCH2), Imm8(32));
+		break;
+
+	case CR_GT_BIT:  // set bit 63 to !input
+		BTR(64, R(RSCRATCH2), Imm8(63));
+		break;
+
+	case CR_LT_BIT:  // set bit 62 to input
+		BTR(64, R(RSCRATCH2), Imm8(62));
+		break;
+	}
+
+	BTS(64, R(RSCRATCH2), Imm8(32));
+	MOV(64, PPCSTATE(cr_val[field]), R(RSCRATCH2));
+}
+
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
 	switch (bit)
@@ -475,6 +511,13 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 	_dbg_assert_msg_(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
+
+	// Special case: crclr
+	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
+	{
+		ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+		return;
+	}
 
 	// TODO(delroth): Potential optimizations could be applied here. For
 	// instance, if the two CR bits being loaded are the same, two loads are
