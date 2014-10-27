@@ -65,6 +65,8 @@ public:
 
 	void Init() override;
 
+	void EnableOptimization();
+
 	void EnableBlockLink();
 
 	void Shutdown() override;

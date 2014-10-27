@@ -190,7 +190,7 @@ void Jit64::Init()
 
 	// BLR optimization has the same consequences as block linking, as well as
 	// depending on the fault handler to be safe in the event of excessive BL.
-	m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem;
+	m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging;
 	m_clear_cache_asap = false;
 
 	m_stack = nullptr;
@@ -207,9 +207,7 @@ void Jit64::Init()
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
-	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
-	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
-	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+	EnableOptimization();
 }
 
 void Jit64::ClearCache()
@@ -518,6 +516,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	{
 		// We can link blocks as long as we are not single stepping and there are no breakpoints here
 		EnableBlockLink();
+		EnableOptimization();
 
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
@@ -528,6 +527,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 				// Do not link this block to other blocks While single stepping
 				jo.enableBlocklink = false;
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
 			}
 			Trace();
 		}
@@ -872,4 +874,11 @@ void Jit64::EnableBlockLink()
 		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;
 	}
+}
+
+void Jit64::EnableOptimization()
+{
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
 }
