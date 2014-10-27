@@ -8,7 +8,8 @@
 #include <QMainWindow>
 
 // Predefinitions
-namespace Ui {
+namespace Ui
+{
 class DMainWindow;
 }
 
