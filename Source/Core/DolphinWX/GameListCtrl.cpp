@@ -40,6 +40,7 @@
 #include <wx/windowid.h>
 
 #include "Common/CDUtils.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -437,7 +438,49 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		SelectedLanguage = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	}
 
-	std::string const name = rISOFile.GetName(SelectedLanguage);
+	std::string name = rISOFile.GetName(SelectedLanguage);
+
+	std::ifstream titlestxt;
+	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
+
+	if (titlestxt.is_open() && rISOFile.GetUniqueID().size() > 3)
+	{
+		while (!titlestxt.eof())
+		{
+			std::string line;
+
+			if (!std::getline(titlestxt, line) && titlestxt.eof())
+					break;
+
+			if (line.substr(0,rISOFile.GetUniqueID().size()) == rISOFile.GetUniqueID())
+			{
+				name = line.substr(rISOFile.GetUniqueID().size() + 3);
+				break;
+			}
+
+		}
+		titlestxt.close();
+	}
+
+	std::string GameIni[3];
+	GameIni[0] = File::GetUserPath(D_GAMESETTINGS_IDX) + rISOFile.GetUniqueID() + ".ini";
+	GameIni[1] = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + rISOFile.GetUniqueID() + std::to_string(rISOFile.GetRevision()) + ".ini";
+	GameIni[2] = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + rISOFile.GetUniqueID() + ".ini";
+	std::string title;
+	IniFile gameini;
+	for (int i = 0; i < 3; ++i)
+	{
+		if (File::Exists(GameIni[i]))
+		{
+			gameini.Load(GameIni[i]);
+			if (gameini.GetIfExists("EmuState", "Title", &title))
+			{
+				name = title;
+				break;
+			}
+		}
+	}
+
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
 	// We show the company string on GameCube only

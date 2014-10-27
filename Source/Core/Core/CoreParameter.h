@@ -181,7 +181,7 @@ struct SCoreStartupParameter
 	bool bJITILOutputIR;
 
 	bool bFastmem;
-	bool bEnableFPRF;
+	bool bFPRF;
 
 	bool bCPUThread;
 	bool bDSPThread;
@@ -200,6 +200,7 @@ struct SCoreStartupParameter
 	bool bRunCompareServer;
 	bool bRunCompareClient;
 
+	bool bBAT;
 	bool bMMU;
 	bool bDCBZOFF;
 	int iBBDumpPort;

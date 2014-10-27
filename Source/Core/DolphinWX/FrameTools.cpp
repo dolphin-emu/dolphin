@@ -62,7 +62,6 @@
 #include "DiscIO/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
-#include "DolphinWX/CheatsWindow.h"
 #include "DolphinWX/ConfigMain.h"
 #include "DolphinWX/ConfigVR.h"
 #include "DolphinWX/FifoPlayerDlg.h"
@@ -79,6 +78,7 @@
 #include "DolphinWX/WiimoteConfigDiag.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -220,6 +220,8 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show frame counter"));
 	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
 	movieMenu->Check(IDM_RECORDREADONLY, true);
+	movieMenu->AppendCheckItem(IDM_SHOWINPUTDISPLAY, _("Show input display"));
+	movieMenu->Check(IDM_SHOWINPUTDISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
 	movieMenu->AppendSeparator();
 	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump frames"));
 	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, SConfig::GetInstance().m_DumpFrames);
@@ -773,6 +775,12 @@ void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnShowFrameCount(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_ShowFrameCount = !SConfig::GetInstance().m_ShowFrameCount;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowInputDisplay(wxCommandEvent& WXUNUSED(event))
+{
+	SConfig::GetInstance().m_ShowInputDisplay = !SConfig::GetInstance().m_ShowInputDisplay;
 	SConfig::GetInstance().SaveSettings();
 }
 

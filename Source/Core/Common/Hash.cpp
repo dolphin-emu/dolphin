@@ -254,7 +254,8 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 
 	const u8 *data2 = (const u8*)end;
 	// FIXME: is there a better way to combine these partial hashes?
-	return _mm_crc32_u64(h[0] + h[1] + h[2] + h[3], u64(data2[0]));
+	h[0] = _mm_crc32_u64(h[0], u64(data2[0]));
+	return h[0] + (h[1] << 10) + (h[2] << 21) + (h[3] << 32);
 #else
 	return 0;
 #endif

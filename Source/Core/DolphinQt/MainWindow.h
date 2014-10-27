@@ -17,7 +17,7 @@ class DMainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	explicit DMainWindow(QWidget* p = nullptr);
+	explicit DMainWindow(QWidget* parent_widget = nullptr);
 	~DMainWindow();
 
 private slots:
@@ -26,8 +26,9 @@ private slots:
 	void on_actWebsite_triggered();
 	void on_actOnlineDocs_triggered();
 	void on_actGitHub_triggered();
+	void on_actSystemInfo_triggered();
 	void on_actAbout_triggered();
 
 private:
-	std::unique_ptr<Ui::DMainWindow> ui;
+	std::unique_ptr<Ui::DMainWindow> m_ui;
 };

@@ -24,9 +24,12 @@ endif()
 set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
-	CheatsWindow.cpp
 	ConfigMain.cpp
 	ConfigVR.cpp
+	Cheats/CheatSearchTab.cpp
+	Cheats/CheatsWindow.cpp
+	Cheats/CreateCodeDialog.cpp
+	Cheats/GeckoCodeDiag.cpp
 	Debugger/BreakpointDlg.cpp
 	Debugger/BreakpointView.cpp
 	Debugger/BreakpointWindow.cpp
@@ -48,7 +51,6 @@ set(GUI_SRCS
 	FrameAui.cpp
 	FrameTools.cpp
 	GameListCtrl.cpp
-	GeckoCodeDiag.cpp
 	HotkeyDlg.cpp
 	HotkeysXInput.cpp
 	ISOFile.cpp
@@ -88,8 +90,13 @@ if(WIN32)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS ${SRCS} GLInterface/AGL.cpp)
 elseif(USE_X11)
-	set(SRCS ${SRCS} GLInterface/GLX.cpp
-		GLInterface/X11_Util.cpp)
+	if (NOT USE_EGL)
+		set(SRCS ${SRCS} GLInterface/GLX.cpp)
+		# GLX has a hard dependency on libGL.
+		# Make sure to link to it if using GLX.
+		set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
+	endif()
+	set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
 endif()
 
 set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
@@ -173,7 +180,7 @@ if(ANDROID)
 	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
 elseif(wxWidgets_FOUND)
 	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
-	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
+	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS} ${LLVM_LIBRARIES})
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
@@ -197,8 +204,8 @@ elseif(wxWidgets_FOUND)
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
 				fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
-				file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
-					DESTINATION ${BUNDLE_PATH}/Contents/Resources
+				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
+					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
 					)
 				")
 			add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD

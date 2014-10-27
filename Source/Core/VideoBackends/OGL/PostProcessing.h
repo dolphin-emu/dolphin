@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoCommon.h"
@@ -21,16 +22,15 @@ public:
 	OpenGLPostProcessing();
 	~OpenGLPostProcessing();
 
-	void BindTargetFramebuffer() override;
-	void BlitToScreen() override;
-	void Update(u32 width, u32 height) override;
+	void BlitFromTexture(TargetRectangle src, TargetRectangle dst,
+	                     int src_texture, int src_width, int src_height) override;
 	void ApplyShader() override;
 
 private:
-	GLuint m_fbo;
-	GLuint m_texture;
+	bool m_initialized;
 	SHADER m_shader;
 	GLuint m_uniform_resolution;
+	GLuint m_uniform_src_rect;
 	GLuint m_uniform_time;
 	std::string m_glsl_header;
 

@@ -134,7 +134,7 @@ List of user folders:
 
 * `Cache`: used to cache the ISO list
 * `Config`: configuration files
-* `Dump`: anything dumped from dolphin
+* `Dump`: anything dumped from Dolphin
 * `GameConfig`: additional settings to be applied per-game
 * `GC`: memory cards and system BIOS
 * `Load`: custom textures

@@ -12,7 +12,7 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21));
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	FALLBACK_IF(inst.SUBOP5 == 25 && SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF);
+	FALLBACK_IF(inst.SUBOP5 == 25 && SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	switch (inst.SUBOP5)
@@ -49,7 +49,7 @@ void JitILBase::fmaddXX(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	FALLBACK_IF(inst.SUBOP5 == 29 && SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF);
+	FALLBACK_IF(inst.SUBOP5 == 29 && SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));

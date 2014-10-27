@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <string>
+
+#include "Common/CommonTypes.h"
+
 class IWII_IPC_HLE_Device;
 class PointerWrap;
 

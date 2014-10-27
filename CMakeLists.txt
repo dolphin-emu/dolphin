@@ -3,7 +3,6 @@
 #
 cmake_minimum_required(VERSION 2.8.8)
 
-option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
@@ -283,6 +282,7 @@ if(APPLE)
 	find_library(QUICKTIME_LIBRARY QuickTime)
 	find_library(WEBKIT_LIBRARY WebKit)
 	find_library(FORCEFEEDBACK ForceFeedback)
+	find_library(OPENGL_LIBRARY OpenGL)
 endif()
 
 if(WIN32)
@@ -404,6 +404,17 @@ if(NOT ANDROID)
 		add_definitions(-DHAVE_OPENAL=0)
 		message("OpenAL NOT found, disabling OpenAL sound backend")
 	endif(OPENAL_FOUND)
+
+	include(FindLLVM OPTIONAL)
+	if (LLVM_FOUND)
+		add_definitions(-DHAS_LLVM=1)
+		set(HAS_LLVM 1)
+
+		include_directories(${LLVM_INCLUDE_DIRS})
+		add_definitions(${LLVM_DEFINITIONS})
+
+		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+	endif()
 
 	set(USE_X11 0)
 

@@ -825,7 +825,8 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 		paths[D_SHADERS_IDX]        = paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
 		paths[D_STATESAVES_IDX]     = paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
 		paths[D_SCREENSHOTS_IDX]    = paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-		paths[D_HIRESTEXTURES_IDX]  = paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+		paths[D_LOAD_IDX]           = paths[D_USER_IDX] + LOAD_DIR DIR_SEP;
+		paths[D_HIRESTEXTURES_IDX]  = paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
 		paths[D_DUMP_IDX]           = paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
 		paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
 		paths[D_DUMPAUDIO_IDX]      = paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
@@ -922,6 +923,10 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 		case D_LOGS_IDX:
 			paths[D_MAILLOGS_IDX]       = paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
 			paths[F_MAINLOG_IDX]        = paths[D_LOGS_IDX] + MAIN_LOG;
+			break;
+
+		case D_LOAD_IDX:
+			paths[D_HIRESTEXTURES_IDX]  = paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
 		}
 
 		paths[D_WIIUSER_IDX]    = paths[D_WIIROOT_IDX] + DIR_SEP;

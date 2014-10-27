@@ -409,7 +409,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 
 		u8 address[MAC_ADDRESS_SIZE];
 		GetMacAddress(address);
-		Memory::WriteBigEData(address, CommandBuffer.PayloadBuffer.at(1).m_Address, sizeof(address));
+		Memory::CopyToEmu(CommandBuffer.PayloadBuffer.at(1).m_Address, address, sizeof(address));
 		break;
 
 	default:
@@ -756,7 +756,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 
 		Memory::Write_U32(optlen, BufferOut + 0xC);
-		Memory::WriteBigEData((u8*) optval, BufferOut + 0x10, optlen);
+		Memory::CopyToEmu(BufferOut + 0x10, optval, optlen);
 
 		if (optname == SO_ERROR)
 		{
@@ -775,7 +775,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 optname = Memory::Read_U32(BufferIn + 8);
 		u32 optlen = Memory::Read_U32(BufferIn + 0xc);
 		u8 optval[20];
-		Memory::ReadBigEData(optval, BufferIn + 0x10, optlen);
+		optlen = std::min(optlen, (u32)sizeof(optval));
+		Memory::CopyFromEmu(optval, BufferIn + 0x10, optlen);
 
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_SETSOCKOPT(%08x, %08x, %08x, %08x) "
 			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)"
@@ -830,7 +831,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 		Memory::Write_U8(BufferOutSize, BufferOut);
 		Memory::Write_U8(sa.sa_family & 0xFF, BufferOut + 1);
-		Memory::WriteBigEData((u8*)&sa.sa_data, BufferOut + 2, BufferOutSize - 2);
+		Memory::CopyToEmu(BufferOut + 2, &sa.sa_data, BufferOutSize - 2);
 		ReturnValue = ret;
 		break;
 	}
@@ -846,7 +847,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 		Memory::Write_U8(BufferOutSize, BufferOut);
 		Memory::Write_U8(AF_INET, BufferOut + 1);
-		Memory::WriteBigEData((u8*)&sa.sa_data, BufferOut + 2, BufferOutSize - 2);
+		Memory::CopyToEmu(BufferOut + 2, &sa.sa_data, BufferOutSize - 2);
 
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_GETPEERNAME(%x)", fd);
 
@@ -918,21 +919,23 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SO_INETATON:
 	{
-		struct hostent* remoteHost = gethostbyname((char*)Memory::GetPointer(BufferIn));
+		std::string hostname = Memory::GetString(BufferIn);
+		struct hostent* remoteHost = gethostbyname(hostname.c_str());
 
 		Memory::Write_U32(Common::swap32(*(u32*)remoteHost->h_addr_list[0]), BufferOut);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETATON = %d "
 			"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X",remoteHost->h_addr_list[0] == nullptr ? -1 : 0,
-			(char*)Memory::GetPointer(BufferIn), BufferIn, BufferInSize, BufferOut, BufferOutSize, Common::swap32(*(u32*)remoteHost->h_addr_list[0]));
+			hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize, Common::swap32(*(u32*)remoteHost->h_addr_list[0]));
 		ReturnValue = remoteHost->h_addr_list[0] == nullptr ? 0 : 1;
 		break;
 	}
 
 	case IOCTL_SO_INETPTON:
 	{
+		std::string address = Memory::GetString(BufferIn);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETPTON "
-			"(Translating: %s)", Memory::GetPointer(BufferIn));
-		ReturnValue = inet_pton((char*)Memory::GetPointer(BufferIn), Memory::GetPointer(BufferOut+4));
+			"(Translating: %s)", address.c_str());
+		ReturnValue = inet_pton(address.c_str(), Memory::GetPointer(BufferOut+4));
 		break;
 	}
 
@@ -949,8 +952,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			Memory::Read_U8(BufferIn + 8 + 3)
 			);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETNTOP %s", ip_s);
-		memset(Memory::GetPointer(BufferOut), 0, BufferOutSize);
-		memcpy(Memory::GetPointer(BufferOut), ip_s, strlen(ip_s));
+		Memory::Memset(BufferOut, 0, BufferOutSize);
+		Memory::CopyToEmu(BufferOut, (u8*)ip_s, strlen(ip_s));
 		break;
 	}
 
@@ -1032,11 +1035,12 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SO_GETHOSTBYNAME:
 		{
-			hostent* remoteHost = gethostbyname((char*)Memory::GetPointer(BufferIn));
+			std::string hostname = Memory::GetString(BufferIn);
+			hostent* remoteHost = gethostbyname(hostname.c_str());
 
 			INFO_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTBYNAME "
 				"Address: %s, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				(char*)Memory::GetPointer(BufferIn), BufferIn, BufferInSize, BufferOut, BufferOutSize);
+				hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 			if (remoteHost)
 			{
@@ -1056,7 +1060,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				u32 wii_addr = BufferOut + 4 * 3 + 2 * 2;
 
 				u32 name_length = (u32)strlen(remoteHost->h_name) + 1;
-				Memory::WriteBigEData((const u8*)remoteHost->h_name, wii_addr, name_length);
+				Memory::CopyToEmu(wii_addr, remoteHost->h_name, name_length);
 				Memory::Write_U32(wii_addr, BufferOut);
 				wii_addr += (name_length + 4) & ~3;
 
@@ -1274,7 +1278,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		case 0x1004: // mac address
 			u8 address[MAC_ADDRESS_SIZE];
 			GetMacAddress(address);
-			Memory::WriteBigEData(address, _BufferOut, sizeof(address));
+			Memory::CopyToEmu(_BufferOut, address, sizeof(address));
 			break;
 
 		case 0x1005: // link state
@@ -1331,13 +1335,23 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			hints.ai_next      = nullptr;
 		}
 
-		char* pNodeName = nullptr;
+		// getaddrinfo allows a null pointer for the nodeName or serviceName strings
+		// So we have to do a bit of juggling here.
+		std::string nodeNameStr;
+		const char* pNodeName = nullptr;
 		if (BufferInSize > 0)
-			pNodeName = (char*)Memory::GetPointer(_BufferIn);
+		{
+			nodeNameStr = Memory::GetString(_BufferIn, BufferInSize);
+			pNodeName = nodeNameStr.c_str();
+		}
 
-		char* pServiceName = nullptr;
+		std::string serviceNameStr;
+		const char* pServiceName = nullptr;
 		if (BufferInSize2 > 0)
-			pServiceName = (char*)Memory::GetPointer(_BufferIn2);
+		{
+			serviceNameStr = Memory::GetString(_BufferIn2, BufferInSize2);
+			pServiceName = serviceNameStr.c_str();
+		}
 
 		int ret = getaddrinfo(pNodeName, pServiceName, BufferInSize3 ? &hints : nullptr, &result);
 		u32 addr = _BufferOut;
@@ -1358,7 +1372,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 				{
 					Memory::Write_U32(sockoffset, addr + 0x18);
 					Memory::Write_U16(((result->ai_addr->sa_family & 0xFF) << 8) | (result->ai_addrlen & 0xFF), sockoffset);
-					Memory::WriteBigEData((u8*)result->ai_addr->sa_data, sockoffset + 0x2, sizeof(result->ai_addr->sa_data));
+					Memory::CopyToEmu(sockoffset + 0x2, result->ai_addr->sa_data, sizeof(result->ai_addr->sa_data));
 					sockoffset += 0x1C;
 				}
 				else
@@ -1388,7 +1402,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		INFO_LOG(WII_IPC_NET, "IOCTLV_SO_GETADDRINFO "
 			"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
-		INFO_LOG(WII_IPC_NET, "IOCTLV_SO_GETADDRINFO: %s", Memory::GetPointer(_BufferIn));
+		INFO_LOG(WII_IPC_NET, "IOCTLV_SO_GETADDRINFO: %s", Memory::GetString(_BufferIn).c_str());
 		ReturnValue = ret;
 		break;
 	}
@@ -1435,7 +1449,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		s32 icmp_length = sizeof(data);
 
 		if (BufferInSize2 == sizeof(data))
-			memcpy(data, Memory::GetPointer(_BufferIn2), BufferInSize2);
+			Memory::CopyFromEmu(data, _BufferIn2, BufferInSize2);
 		else
 		{
 			// TODO sequence number is incremented either statically, by

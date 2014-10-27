@@ -51,8 +51,6 @@ private:
 
 	void DoDownCount();
 
-	void PrintDebug(UGeckoInstruction inst, u32 level);
-
 	void Helper_UpdateCR1(ArmGen::ARMReg fpscr, ArmGen::ARMReg temp);
 
 	void SetFPException(ArmGen::ARMReg Reg, u32 Exception);

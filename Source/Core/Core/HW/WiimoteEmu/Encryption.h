@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 // The key structure to use with WiimoteGenerateKey()
 struct wiimote_key
 {

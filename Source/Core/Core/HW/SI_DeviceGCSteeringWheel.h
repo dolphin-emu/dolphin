@@ -88,7 +88,7 @@ public:
 	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
 
 	// Send and Receive pad input from network
-	static bool NetPlay_GetInput(u8 numPAD, GCPadStatus status, u32 *PADStatus);
+	static bool NetPlay_GetInput(u8 numPAD, GCPadStatus* status);
 	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
 	// Return true on new data

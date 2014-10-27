@@ -143,7 +143,11 @@ void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+#ifndef _ARCH_32
+	// The fake VMEM hack's address space is above the memory space that we allocate on 32bit targets
+	// Disable it entirely on 32bit targets.
 	bFakeVMEM = !bMMU;
+#endif
 
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
@@ -215,9 +219,14 @@ u32 Read_Instruction(const u32 em_address)
 	return inst.hex;
 }
 
-void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t _iSize)
+void CopyFromEmu(void* data, u32 address, size_t size)
 {
-	memcpy(GetPointer(_Address), _pData, _iSize);
+	memcpy(data, GetPointer(address), size);
+}
+
+void CopyToEmu(u32 address, const void* data, size_t size)
+{
+	memcpy(GetPointer(address), data, size);
 }
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
@@ -286,24 +295,18 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
 	}
 }
 
-void ReadBigEData(u8 *data, const u32 em_address, const u32 size)
+std::string GetString(u32 em_address, size_t size)
 {
-	u8 *src = GetPointer(em_address);
-	memcpy(data, src, size);
-}
-
-std::string GetString(u32 em_address)
-{
-	std::string str;
-	char c;
-
-	while ((c = Read_U8(em_address)) != '\0')
+	const char* ptr = reinterpret_cast<const char*>(GetPointer(em_address));
+	if (size == 0) // Null terminated string.
 	{
-		str += c;
-		em_address++;
+		return std::string(ptr);
 	}
-
-	return str;
+	else // Fixed size string, potentially null terminated or null padded.
+	{
+		size_t length = strnlen(ptr, size);
+		return std::string(ptr, length);
+	}
 }
 
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
@@ -358,7 +361,6 @@ u8 *GetPointer(const u32 _Address)
 
 	return nullptr;
 }
-
 
 bool IsRAMAddress(const u32 addr, bool allow_locked_cache, bool allow_fake_vmem)
 {

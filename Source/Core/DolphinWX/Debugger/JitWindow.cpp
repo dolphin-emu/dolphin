@@ -5,6 +5,16 @@
 #include <cstdio>
 #include <cstring>
 #include <disasm.h>        // Bochs
+#include <sstream>
+
+#if defined(HAS_LLVM)
+// PowerPC.h defines PC.
+// This conflicts with a function that has an argument named PC
+#undef PC
+#include <llvm-c/Disassembler.h>
+#include <llvm-c/Target.h>
+#endif
+
 #include <wx/button.h>
 #include <wx/chartype.h>
 #include <wx/defs.h>
@@ -30,6 +40,135 @@
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/JitWindow.h"
+
+#if defined(HAS_LLVM)
+// This class declaration should be in the header
+// Due to the conflict with the PC define and the function with PC as an argument
+// it has to be in this file instead.
+// Once that conflict is resolved this can be moved to the header
+class HostDisassemblerLLVM : public HostDisassembler
+{
+public:
+	HostDisassemblerLLVM(const std::string host_disasm);
+	~HostDisassemblerLLVM()
+	{
+		if (m_can_disasm)
+			LLVMDisasmDispose(m_llvm_context);
+	}
+
+private:
+	bool m_can_disasm;
+	LLVMDisasmContextRef m_llvm_context;
+
+	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
+};
+
+HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string host_disasm)
+	: m_can_disasm(false)
+{
+	LLVMInitializeAllTargetInfos();
+	LLVMInitializeAllTargetMCs();
+	LLVMInitializeAllDisassemblers();
+
+	m_llvm_context = LLVMCreateDisasm(host_disasm.c_str(), nullptr, 0, 0, nullptr);
+
+	// Couldn't create llvm context
+	if (!m_llvm_context)
+		return;
+	LLVMSetDisasmOptions(m_llvm_context,
+		LLVMDisassembler_Option_AsmPrinterVariant |
+		LLVMDisassembler_Option_PrintLatency);
+
+	m_can_disasm = true;
+}
+
+std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32 *host_instructions_count)
+{
+	if (!m_can_disasm)
+		return "(No LLVM context)";
+
+	u64 disasmPtr = (u64)code_start;
+	const u8 *end = code_start + code_size;
+
+	std::ostringstream x86_disasm;
+	while ((u8*)disasmPtr < end)
+	{
+		char inst_disasm[256];
+		disasmPtr += LLVMDisasmInstruction(m_llvm_context, (u8*)disasmPtr, (u64)(end - disasmPtr), (u64)disasmPtr, inst_disasm, 256);
+		x86_disasm << inst_disasm << std::endl;
+		(*host_instructions_count)++;
+	}
+
+	return x86_disasm.str();
+}
+#endif
+
+std::string HostDisassembler::DisassembleBlock(u32* address, u32* host_instructions_count, u32* code_size)
+{
+	if (!jit)
+	{
+		*host_instructions_count = 0;
+		*code_size = 0;
+		return "(No JIT active)";
+	}
+
+	int block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address);
+	if (block_num < 0)
+	{
+		for (int i = 0; i < 500; i++)
+		{
+			block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address - 4 * i);
+			if (block_num >= 0)
+				break;
+		}
+
+		if (block_num >= 0)
+		{
+			JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
+			if (!(block->originalAddress <= *address &&
+			    block->originalSize + block->originalAddress >= *address))
+				block_num = -1;
+		}
+
+		// Do not merge this "if" with the above - block_num changes inside it.
+		if (block_num < 0)
+		{
+			host_instructions_count = 0;
+			code_size = 0;
+			return "(No translation)";
+		}
+	}
+
+	JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
+
+	const u8* code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
+
+	*code_size = block->codeSize;
+	*address = block->originalAddress;
+	return DisassembleHostBlock(code, block->codeSize, host_instructions_count);
+}
+
+HostDisassemblerX86::HostDisassemblerX86()
+{
+	m_disasm.set_syntax_intel();
+}
+
+std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count)
+{
+	u64 disasmPtr = (u64)code_start;
+	const u8* end = code_start + code_size;
+
+	std::ostringstream x86_disasm;
+	while ((u8*)disasmPtr < end)
+	{
+		char inst_disasm[256];
+		disasmPtr += m_disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, inst_disasm);
+		x86_disasm << inst_disasm << std::endl;
+		(*host_instructions_count)++;
+	}
+
+	return x86_disasm.str();
+}
 
 enum
 {
@@ -73,6 +212,18 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	sizerSplit->Fit(this);
 	sizerBig->Fit(this);
+
+#if defined(_M_X86) && defined(HAS_LLVM)
+	m_disassembler.reset(new HostDisassemblerLLVM("x86_64-none-unknown"));
+#elif defined(_M_X86)
+	m_disassembler.reset(new HostDisassemblerX86());
+#elif defined(_M_ARM_64) && defined(HAS_LLVM)
+	m_disassembler.reset(new HostDisassemblerLLVM("aarch64-none-unknown"));
+#elif defined(_M_ARM_32) && defined(HAS_LLVM)
+	m_disassembler.reset(new HostDisassemblerLLVM("armv7-none-unknown"));
+#else
+	m_disassembler.reset(new HostDisassembler());
+#endif
 }
 
 void CJitWindow::OnRefresh(wxCommandEvent& /*event*/)
@@ -89,62 +240,16 @@ void CJitWindow::ViewAddr(u32 em_address)
 
 void CJitWindow::Compare(u32 em_address)
 {
-	u8 *xDis = new u8[1<<18];
-	memset(xDis, 0, 1<<18);
+	// Get host side code disassembly
+	u32 host_instructions_count = 0;
+	u32 host_code_size = 0;
+	std::string host_instructions_disasm;
+	host_instructions_disasm = m_disassembler->DisassembleBlock(&em_address, &host_instructions_count, &host_code_size);
 
-	disassembler x64disasm;
-	x64disasm.set_syntax_intel();
-
-	int block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(em_address);
-	if (block_num < 0)
-	{
-		for (int i = 0; i < 500; i++)
-		{
-			block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(em_address - 4 * i);
-			if (block_num >= 0)
-				break;
-		}
-
-		if (block_num >= 0)
-		{
-			JitBlock *block = jit->GetBlockCache()->GetBlock(block_num);
-			if (!(block->originalAddress <= em_address &&
-						block->originalSize + block->originalAddress >= em_address))
-				block_num = -1;
-		}
-
-		// Do not merge this "if" with the above - block_num changes inside it.
-		if (block_num < 0)
-		{
-			ppc_box->SetValue(_(StringFromFormat("(non-code address: %08x)", em_address)));
-			x86_box->SetValue(_("(no translation)"));
-			delete[] xDis;
-			return;
-		}
-	}
-	JitBlock *block = jit->GetBlockCache()->GetBlock(block_num);
-
-	// 800031f0
-	// == Fill in x86 box
-
-	const u8 *code = (const u8 *)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
-	u64 disasmPtr = (u64)code;
-	const u8 *end = code + block->codeSize;
-	char *sptr = (char*)xDis;
-
-	int num_x86_instructions = 0;
-	while ((u8*)disasmPtr < end)
-	{
-		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-		sptr += strlen(sptr);
-		*sptr++ = 13;
-		*sptr++ = 10;
-		num_x86_instructions++;
-	}
-	x86_box->SetValue(StrToWxStr((char*)xDis));
+	x86_box->SetValue(host_instructions_disasm);
 
 	// == Fill in ppc box
-	u32 ppc_addr = block->originalAddress;
+	u32 ppc_addr = em_address;
 	PPCAnalyst::CodeBuffer code_buffer(32000);
 	PPCAnalyst::BlockStats st;
 	PPCAnalyst::BlockRegStats gpa;
@@ -157,42 +262,45 @@ void CJitWindow::Compare(u32 em_address)
 	code_block.m_gpa = &gpa;
 	code_block.m_fpa = &fpa;
 
-	if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, block->codeSize) != 0xFFFFFFFF)
+	if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, 32000) != 0xFFFFFFFF)
 	{
-		sptr = (char*)xDis;
+		std::ostringstream ppc_disasm;
 		for (u32 i = 0; i < code_block.m_num_instructions; i++)
 		{
 			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];
-			std::string temp = GekkoDisassembler::Disassemble(op.inst.hex, op.address);
-			sptr += sprintf(sptr, "%08x %s\n", op.address, temp.c_str());
+			std::string opcode = GekkoDisassembler::Disassemble(op.inst.hex, op.address);
+			ppc_disasm << std::setfill('0') << std::setw(8) << std::hex << op.address;
+			ppc_disasm << " " << opcode << std::endl;
 		}
 
 		// Add stats to the end of the ppc box since it's generally the shortest.
-		sptr += sprintf(sptr, "\n");
+		ppc_disasm << std::dec << std::endl;
 
 		// Add some generic analysis
 		if (st.isFirstBlockOfFunction)
-			sptr += sprintf(sptr, "(first block of function)\n");
+			ppc_disasm << "(first block of function)" << std::endl;
 		if (st.isLastBlockOfFunction)
-			sptr += sprintf(sptr, "(last block of function)\n");
+			ppc_disasm << "(last block of function)" << std::endl;
 
-		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
+		ppc_disasm << st.numCycles << " estimated cycles" << std::endl;
 
-		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				code_block.m_num_instructions, num_x86_instructions, 100 * num_x86_instructions / code_block.m_num_instructions - 100);
-		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				code_block.m_num_instructions * 4, block->codeSize, 100 * block->codeSize / (4 * code_block.m_num_instructions) - 100);
+		ppc_disasm << "Num instr: PPC: " << code_block.m_num_instructions
+		           << " x86: " << host_instructions_count
+		           << " (blowup: " << 100 * host_instructions_count / code_block.m_num_instructions - 100
+		           << "%)" << std::endl;
 
-		ppc_box->SetValue(StrToWxStr((char*)xDis));
+		ppc_disasm << "Num bytes: PPC: " << code_block.m_num_instructions * 4
+		           << " x86: " << host_code_size
+		           << " (blowup: " << 100 * host_code_size / (4 * code_block.m_num_instructions) - 100
+		           << "%)" << std::endl;
+
+		ppc_box->SetValue(ppc_disasm.str());
 	}
 	else
 	{
-		ppc_box->SetValue(StrToWxStr(StringFromFormat(
-						"(non-code address: %08x)", em_address)));
+		ppc_box->SetValue(StringFromFormat("(non-code address: %08x)", em_address));
 		x86_box->SetValue("---");
 	}
-
-	delete[] xDis;
 }
 
 void CJitWindow::Update()

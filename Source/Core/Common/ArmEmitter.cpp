@@ -370,7 +370,7 @@ void ARMXEmitter::NOP(int count)
 {
 	for (int i = 0; i < count; i++)
 	{
-		Write32(condition | 0x01A00000);
+		Write32(condition | 0x0320F000);
 	}
 }
 
@@ -395,7 +395,7 @@ FixupBranch ARMXEmitter::B()
 	branch.ptr = code;
 	branch.condition = condition;
 	//We'll write NOP here for now.
-	Write32(condition | 0x01A00000);
+	Write32(condition | 0x0320F000);
 	return branch;
 }
 FixupBranch ARMXEmitter::BL()
@@ -405,7 +405,7 @@ FixupBranch ARMXEmitter::BL()
 	branch.ptr = code;
 	branch.condition = condition;
 	//We'll write NOP here for now.
-	Write32(condition | 0x01A00000);
+	Write32(condition | 0x0320F000);
 	return branch;
 }
 
@@ -416,7 +416,7 @@ FixupBranch ARMXEmitter::B_CC(CCFlags Cond)
 	branch.ptr = code;
 	branch.condition = Cond << 28;
 	//We'll write NOP here for now.
-	Write32(condition | 0x01A00000);
+	Write32(condition | 0x0320F000);
 	return branch;
 }
 void ARMXEmitter::B_CC(CCFlags Cond, const void *fnptr)
@@ -434,7 +434,7 @@ FixupBranch ARMXEmitter::BL_CC(CCFlags Cond)
 	branch.ptr = code;
 	branch.condition = Cond << 28;
 	//We'll write NOP here for now.
-	Write32(condition | 0x01A00000);
+	Write32(condition | 0x0320F000);
 	return branch;
 }
 void ARMXEmitter::SetJumpTarget(FixupBranch const &branch)

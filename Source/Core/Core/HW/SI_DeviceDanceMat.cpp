@@ -112,17 +112,11 @@ bool CSIDevice_DanceMat::GetData(u32& _Hi, u32& _Low)
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 	Movie::CallGCInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 
-	u32 netValues[2];
-	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues))
-	{
-		_Hi  = netValues[0]; // first 4 bytes
-		_Low = netValues[1]; // last  4 bytes
-		return true;
-	}
-
 	Movie::SetPolledDevice();
-
-	if (Movie::IsPlayingInput())
+	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, &PadStatus))
+	{
+	}
+	else if (Movie::IsPlayingInput())
 	{
 		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
 		Movie::InputUpdate();

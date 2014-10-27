@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/Common.h"
 #include "Common/Hash.h"
 
 enum

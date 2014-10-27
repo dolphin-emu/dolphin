@@ -132,6 +132,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 	{
 	case SPR_XER:
 	{
+		gpr.BindToRegister(inst.RD, false);
 		ARMReg RD = gpr.R(inst.RD);
 		ARMReg tmp = gpr.GetReg();
 		LDRH(RD, R9, PPCSTATE_OFF(xer_stringctrl));
@@ -150,6 +151,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 	case SPR_TU:
 		FALLBACK_IF(true);
 	default:
+		gpr.BindToRegister(inst.RD, false);
 		ARMReg RD = gpr.R(inst.RD);
 		LDR(RD, R9, PPCSTATE_OFF(spr) + iIndex * 4);
 		break;
@@ -169,6 +171,7 @@ void JitArm::mfsr(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 
+	gpr.BindToRegister(inst.RD, false);
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(sr[inst.SR]));
 }
 
@@ -191,6 +194,7 @@ void JitArm::mfmsr(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 
+	gpr.BindToRegister(inst.RD, false);
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
 }
 
