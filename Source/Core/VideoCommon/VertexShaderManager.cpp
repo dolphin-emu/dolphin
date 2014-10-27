@@ -122,7 +122,7 @@ const char *GetViewportTypeName(ViewportType v)
 	}
 }
 
-#pragma optimize("", off)
+//#pragma optimize("", off)
 
 void ClearDebugProj() { //VR
 	debug_newScene = debug_nextScene;
@@ -486,7 +486,7 @@ void LogViewport(Viewport &v) { //VR
 	}
 	debug_viewportNum++;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 
 struct ProjectionHack
@@ -875,7 +875,7 @@ void VertexShaderManager::SetConstants()
 	}
 }
 
-#pragma optimize("", off)
+//#pragma optimize("", off)
 
 void VertexShaderManager::SetProjectionConstants()
 {
@@ -1579,7 +1579,7 @@ void VertexShaderManager::SetProjectionConstants()
 	}
 	dirty = true;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)
