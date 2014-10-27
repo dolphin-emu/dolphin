@@ -570,10 +570,10 @@ void JitArm::arith(UGeckoInstruction inst)
 					ANDS(RA, RS, RB);
 				break;
 				case 40: // subfx
-					gpr.BindToRegister(d, d == s || d == b);
+					gpr.BindToRegister(d, d == b || d == a);
 					RD = gpr.R(d);
-					RA = gpr.R(a);
 					RB = gpr.R(b);
+					RA = gpr.R(a);
 					SUBS(RD, RB, RA);
 				break;
 				case 60:
@@ -654,7 +654,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
-					LSRS(RA,  RS, RB);
+					LSRS(RA, RS, RB);
 				break;
 				case 792:
 					dest = a;
@@ -662,7 +662,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
-					ASRS(RA,  RS, RB);
+					ASRS(RA, RS, RB);
 				break;
 				case 10: // addcx
 				case 266:
@@ -841,8 +841,8 @@ void JitArm::negx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	gpr.BindToRegister(inst.RD, inst.RD == inst.RA);
-	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RD = gpr.R(inst.RD);
+	ARMReg RA = gpr.R(inst.RA);
 
 	RSB(RD, RA, 0);
 	if (inst.Rc)
@@ -860,7 +860,6 @@ void JitArm::rlwimix(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
-	gpr.BindToRegister(inst.RA, inst.RA == inst.RS);
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RS = gpr.R(inst.RS);
 	ARMReg rA = gpr.GetReg();
@@ -883,7 +882,6 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
-	gpr.BindToRegister(inst.RA, inst.RA == inst.RS);
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RS = gpr.R(inst.RS);
 	ARMReg rA = gpr.GetReg();
@@ -904,7 +902,6 @@ void JitArm::rlwnmx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
-	gpr.BindToRegister(inst.RA, inst.RA == inst.RS || inst.RA == inst.RB);
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RS = gpr.R(inst.RS);
 	ARMReg RB = gpr.R(inst.RB);
