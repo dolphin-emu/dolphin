@@ -5346,11 +5346,11 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Filen du valde (%s) finns inte"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:627
-msgid "The name can not be empty"
+msgid "The name cannot be empty"
 msgstr "Namnet kan inte vara tomt"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:619
-msgid "The name can not contain the character ','"
+msgid "The name cannot contain the character ','"
 msgstr "Namnet kan inte innehålla tecknet ','"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:152
