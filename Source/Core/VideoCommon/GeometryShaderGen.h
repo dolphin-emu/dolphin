@@ -13,7 +13,6 @@ struct geometry_shader_uid_data
 {
 	u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
 
-	u32 components : 23;
 	u32 stereo : 1;
 };
 

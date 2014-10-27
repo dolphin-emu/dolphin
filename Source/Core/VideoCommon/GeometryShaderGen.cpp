@@ -44,6 +44,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	if (ApiType == API_OPENGL)
 	{
 		// Insert layout parameters
+		uid_data->stereo = g_ActiveConfig.bStereo;
 		out.Write("layout(triangles, invocations = %d) in;\n", g_ActiveConfig.bStereo ? 2 : 1);
 		out.Write("layout(triangle_strip, max_vertices = 3) out;\n");
 	}
@@ -83,7 +84,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");
 	out.Write("\t\teye = gl_InvocationID;\n");
-	out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[eye * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 3], v[i].rawpos)); \n");
+	if (g_ActiveConfig.bStereo)
+		out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[eye * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 3], v[i].rawpos)); \n");
 	out.Write("\t\tgl_Position = o.pos;\n");
 	out.Write("\t\tgl_Layer = eye;\n");
 	out.Write("\t\tEmitVertex();\n");
