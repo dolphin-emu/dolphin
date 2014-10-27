@@ -24,3 +24,5 @@ CMakeLists.txt.user
 .tx
 # Ignore kdevelop files/dirs
 *.kdev4
+# Ignore IDEA/Clion files/dirs
+/.idea/
