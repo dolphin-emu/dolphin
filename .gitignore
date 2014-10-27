@@ -24,6 +24,8 @@ CMakeLists.txt.user
 .tx
 # Ignore kdevelop files/dirs
 *.kdev4
+# Ignore IDEA/Clion files/dirs
+/.idea/
 # Ignore Oculus Rift SDK if present
 LibOVR
 # Ignore installer exe file
