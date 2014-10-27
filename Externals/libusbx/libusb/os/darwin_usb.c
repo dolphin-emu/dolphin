@@ -97,7 +97,7 @@ static const char *darwin_error_str (int result) {
   case kIOReturnOverrun:
     return "data overrun";
   case kIOReturnCannotWire:
-    return "physical memory can not be wired down";
+    return "physical memory cannot be wired down";
   case kIOReturnNoResources:
     return "out of resources";
   case kIOUSBHighSpeedSplitError:
