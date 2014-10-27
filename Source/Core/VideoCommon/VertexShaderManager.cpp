@@ -1477,12 +1477,12 @@ void VertexShaderManager::SetProjectionConstants()
 #ifdef HAVE_OCULUSSDK
 		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
 		{
-			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
-			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
-			posLeft[2] = g_eye_render_desc[0].ViewAdjust.z * UnitsPerMetre;
-			posRight[0] = g_eye_render_desc[1].ViewAdjust.x * UnitsPerMetre;
-			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
-			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
+			posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x * UnitsPerMetre;
+			posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y * UnitsPerMetre;
+			posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z * UnitsPerMetre;
+			posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x * UnitsPerMetre;
+			posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y * UnitsPerMetre;
+			posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z * UnitsPerMetre;
 		}
 #endif
 		Matrix44::Translate(eye_pos_matrix_left, posLeft);
