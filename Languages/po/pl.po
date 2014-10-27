@@ -5320,11 +5320,11 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Plik, który wybrałeś (%s) nie istnieje"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:627
-msgid "The name can not be empty"
+msgid "The name cannot be empty"
 msgstr "Nazwa nie może być pusta"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:619
-msgid "The name can not contain the character ','"
+msgid "The name cannot contain the character ','"
 msgstr "Nazwa nie może zawierać znaku ','"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:152
