@@ -153,7 +153,18 @@ void Jit64::ComputeRC(const Gen::OpArg & arg, bool needs_test, bool needs_sext)
 		else
 		{
 			if (needs_test)
+			{
 				TEST(32, arg, arg);
+			}
+			else
+			{
+				// If an operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd be
+				// better to flush it here so that we don't have to flush it on both sides of the branch.
+				// We don't want to do this if a test is needed though, because it would interrupt macro-op
+				// fusion.
+				for (int j : js.op->gprInUse)
+					gpr.StoreFromRegister(j);
+			}
 			DoMergedBranchCondition();
 		}
 	}
