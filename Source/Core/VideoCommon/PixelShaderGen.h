@@ -119,6 +119,8 @@ struct pixel_shader_uid_data
 
 	// TODO: I think we're fine without an enablePixelLighting field, should probably double check, though..
 	LightingUidData lighting;
+
+	u32 stereo : 1;
 };
 #pragma pack()
 

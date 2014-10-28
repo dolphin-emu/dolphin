@@ -56,6 +56,8 @@ struct vertex_shader_uid_data
 	} postMtxInfo[8];
 
 	LightingUidData lighting;
+
+	u32 stereo : 1;
 };
 #pragma pack()
 

@@ -335,6 +335,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Without MSAA, this flag is defined to have no effect.
 		out.Write("centroid in VS_OUTPUT o;\n");
 
+		uid_data->stereo = g_ActiveConfig.bStereo;
 		if (g_ActiveConfig.bStereo)
 			out.Write("flat in int eye;\n");
 
