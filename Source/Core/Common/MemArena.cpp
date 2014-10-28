@@ -214,10 +214,11 @@ static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32
 		{
 			*views[i].out_ptr = (u8*)arena->CreateView(
 				position, views[i].size, base + (views[i].virtual_address & 0x3FFFFFFF));
-			if (!*views[i].out_ptr)
-				goto bail;
 		}
 #endif
+		if (!*views[i].out_ptr)
+			goto bail;
+
 		last_position = position;
 		position += views[i].size;
 	}
