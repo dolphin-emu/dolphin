@@ -411,7 +411,6 @@ if(NOT ANDROID)
 		set(HAS_LLVM 1)
 
 		include_directories(${LLVM_INCLUDE_DIRS})
-		add_definitions(${LLVM_DEFINITIONS})
 
 		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 	endif()
