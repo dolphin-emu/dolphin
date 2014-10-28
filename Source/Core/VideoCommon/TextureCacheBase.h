@@ -39,6 +39,7 @@ public:
 		enum TexCacheEntryType type;
 
 		unsigned int num_mipmaps;
+		unsigned int num_layers;
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
 

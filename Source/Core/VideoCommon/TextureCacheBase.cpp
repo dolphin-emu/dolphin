@@ -444,14 +444,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_NORMAL &&
+		if (((entry->type == TCET_NORMAL &&
 		     width == entry->virtual_width &&
 		     height == entry->virtual_height &&
 		     full_format == entry->format &&
 		     entry->num_mipmaps > maxlevel) ||
 		    (entry->type == TCET_EC_DYNAMIC &&
 		     entry->native_width == width &&
-		     entry->native_height == height))
+		     entry->native_height == height)) &&
+			 entry->num_layers == 1)
 		{
 			// reuse the texture
 		}
@@ -519,6 +520,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		// But that will currently make the above "existing entry" tests fail as "texLevels" is not calculated until after.
 		// Currently, we might try to reuse a texture which appears to have more levels than actual, maybe..
 		entry->num_mipmaps = maxlevel + 1;
+		entry->num_layers = 1;
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);

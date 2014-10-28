@@ -222,7 +222,9 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
 
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, FramebufferManager::GetEFBLayers(), 0, gl_format, gl_type, nullptr);
+	entry->num_layers = FramebufferManager::GetEFBLayers();
+
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, entry->num_layers, 0, gl_format, gl_type, nullptr);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);
