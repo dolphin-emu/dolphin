@@ -118,7 +118,7 @@ public:
 	TWatchesStr GetStrings() const;
 	void AddFromStrings(const TWatchesStr& bps);
 
-	const bool IsAddressWatch(u32 _iAddress);
+	bool IsAddressWatch(u32 _iAddress) const;
 
 	// Add BreakPoint
 	void Add(u32 em_address);

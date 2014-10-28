@@ -219,7 +219,7 @@ void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bo
 }
 
 
-const bool Watches::IsAddressWatch(u32 _iAddress)
+bool Watches::IsAddressWatch(u32 _iAddress) const
 {
 	for (const TWatch& bp : m_Watches)
 		if (bp.iAddress == _iAddress)
