@@ -548,7 +548,7 @@ void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
 					}
 					else if (dlg.GetValue().Find(",") != -1)
 					{
-						wxMessageBox(_("The name can not contain the character ','"),
+						wxMessageBox(_("The name cannot contain the character ','"),
 								_("Notice"), wxOK, this);
 						wxString Str = dlg.GetValue();
 						Str.Replace(",", "", true);
@@ -556,7 +556,7 @@ void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
 					}
 					else if (dlg.GetValue().IsSameAs(""))
 					{
-						wxMessageBox(_("The name can not be empty"),
+						wxMessageBox(_("The name cannot be empty"),
 								_("Notice"), wxOK, this);
 						dlg.SetValue(DefaultValue);
 					}
