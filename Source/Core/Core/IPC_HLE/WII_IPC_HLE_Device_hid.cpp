@@ -197,7 +197,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		u8 * buffer = (u8*)malloc(wLength + LIBUSB_CONTROL_SETUP_SIZE);
 		libusb_fill_control_setup(buffer, bmRequestType, bRequest, wValue, wIndex, wLength);
-		memcpy(buffer + LIBUSB_CONTROL_SETUP_SIZE, Memory::GetPointer(data), wLength);
+		Memory::CopyFromEmu(buffer + LIBUSB_CONTROL_SETUP_SIZE, data, wLength);
 		libusb_fill_control_transfer(transfer, dev_handle, buffer, handleUsbUpdates, (void*)(size_t)_CommandAddress, /* no timeout */ 0);
 		libusb_submit_transfer(transfer);
 
@@ -388,7 +388,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 		WiiHIDDeviceDescriptor wii_device;
 		ConvertDeviceToWii(&wii_device, &desc);
-		Memory::WriteBigEData((const u8*)&wii_device, OffsetBuffer, Align(wii_device.bLength, 4));
+		Memory::CopyToEmu(OffsetBuffer, &wii_device, Align(wii_device.bLength, 4));
 		OffsetBuffer += Align(wii_device.bLength, 4);
 		bool deviceValid = true;
 		bool isHID = false;
@@ -402,7 +402,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			{
 				WiiHIDConfigDescriptor wii_config;
 				ConvertConfigToWii(&wii_config, config);
-				Memory::WriteBigEData((const u8*)&wii_config, OffsetBuffer, Align(wii_config.bLength, 4));
+				Memory::CopyToEmu(OffsetBuffer, &wii_config, Align(wii_config.bLength, 4));
 				OffsetBuffer += Align(wii_config.bLength, 4);
 
 				for (ic = 0; ic < config->bNumInterfaces; ic++)
@@ -418,7 +418,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 						WiiHIDInterfaceDescriptor wii_interface;
 						ConvertInterfaceToWii(&wii_interface, interface);
-						Memory::WriteBigEData((const u8*)&wii_interface, OffsetBuffer, Align(wii_interface.bLength, 4));
+						Memory::CopyToEmu(OffsetBuffer, &wii_interface, Align(wii_interface.bLength, 4));
 						OffsetBuffer += Align(wii_interface.bLength, 4);
 
 						for (e = 0; e < interface->bNumEndpoints; e++)
@@ -427,7 +427,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 							WiiHIDEndpointDescriptor wii_endpoint;
 							ConvertEndpointToWii(&wii_endpoint, endpoint);
-							Memory::WriteBigEData((const u8*)&wii_endpoint, OffsetBuffer, Align(wii_endpoint.bLength, 4));
+							Memory::CopyToEmu(OffsetBuffer, &wii_endpoint, Align(wii_endpoint.bLength, 4));
 							OffsetBuffer += Align(wii_endpoint.bLength, 4);
 
 						} //endpoints

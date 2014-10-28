@@ -4,6 +4,9 @@
     <Filter Include="GUI">
       <UniqueIdentifier>{0c0288ac-1168-4534-b3d3-051b9981f842}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\Cheats">
+      <UniqueIdentifier>{20acf084-7e31-4b1e-beec-b99bac38a681}</UniqueIdentifier>
+    </Filter>
     <Filter Include="GUI\Debugger">
       <UniqueIdentifier>{ef70fd67-8f30-467a-8af0-ea0d48837f04}</UniqueIdentifier>
     </Filter>
@@ -15,9 +18,6 @@
     </Filter>
     <Filter Include="GUI\Video">
       <UniqueIdentifier>{80626e3b-e13b-41c3-bd63-4ef1faf92924}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI\Saves">
-      <UniqueIdentifier>{7dc222d2-f1f0-44af-b4eb-76f6ca6cc29f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Misc">
       <UniqueIdentifier>{4352dc64-398e-4a96-ba4a-824dffa2004c}</UniqueIdentifier>
@@ -33,6 +33,18 @@
     <ClCompile Include="MainNoGUI.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
+    <ClCompile Include="Cheats\CheatsWindow.cpp">
+      <Filter>GUI\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheats\CreateCodeDialog.cpp">
+      <Filter>GUI\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheats\CheatSearchTab.cpp">
+      <Filter>GUI\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheats\GeckoCodeDiag.cpp">
+      <Filter>GUI\Cheats</Filter>
+    </ClCompile>
     <ClCompile Include="Debugger\BreakpointDlg.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
@@ -105,9 +117,6 @@
     <ClCompile Include="ARCodeAddEdit.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="CheatsWindow.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigMain.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -124,9 +133,6 @@
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="GameListCtrl.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GeckoCodeDiag.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="HotkeyDlg.cpp">
@@ -165,6 +171,18 @@
     <ClInclude Include="Main.h" />
     <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
+    <ClInclude Include="Cheats\CheatSearchTab.h">
+      <Filter>GUI\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheats\CheatsWindow.h">
+      <Filter>GUI\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheats\CreateCodeDialog.h">
+      <Filter>GUI\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheats\GeckoCodeDiag.h">
+      <Filter>GUI\Cheats</Filter>
+    </ClInclude>
     <ClInclude Include="Debugger\BreakpointDlg.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
@@ -234,9 +252,6 @@
     <ClInclude Include="ARCodeAddEdit.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="CheatsWindow.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigMain.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -247,9 +262,6 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="GameListCtrl.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GeckoCodeDiag.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="Globals.h">

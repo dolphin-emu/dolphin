@@ -6,57 +6,39 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>375</width>
-    <height>534</height>
+    <width>504</width>
+    <height>458</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>375</width>
-    <height>0</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>375</width>
-    <height>16777215</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>About Dolphin</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
     <widget class="QLabel" name="label">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
      <property name="text">
       <string>&lt;big&gt;&lt;b&gt;Dolphin&lt;/b&gt;&lt;/big&gt; %1&lt;br&gt;
 © 2003-%2 Dolphin Team&lt;br&gt;
 Branch: %3&lt;br&gt;
 Revision: %4&lt;br&gt;
 Compiled: %5 @ %6&lt;br&gt;
-Dolphin is a GameCube/Wii emulator, which was originally written by F|RES and ector. Today Dolphin is an open source project with many contributors, too many to list. If interested, just go check out &lt;a href=&quot;https://github.com/dolphin-emu/dolphin&quot;&gt;the project page&lt;/a&gt;.&lt;br&gt;
+Dolphin is a GameCube/Wii emulator, which was originally written by&lt;br&gt;F|RES and ector. Today Dolphin is an open source project with many&lt;br&gt; contributors, too many to list. If interested, just go check out &lt;a href=&quot;https://github.com/dolphin-emu/dolphin&quot;&gt;the project&lt;br&gt;page&lt;/a&gt;.&lt;br&gt;
 &lt;br&gt;
-Special thanks to Bushing, Costis, CrowTRobo, Marcan, Segher, Titanik, or9, and Hotquik for their reverse engineering and docs/demos.&lt;br&gt;
+Special thanks to Bushing, Costis, CrowTRobo, Marcan, Segher, Titanik,&lt;br&gt;or9, and Hotquik for their reverse engineering and docs/demos.&lt;br&gt;
 &lt;br&gt;
-Big thanks to Gilles Mouchard whose Microlib PPC emulator gave our development a kickstart.&lt;br&gt;
+Big thanks to Gilles Mouchard whose Microlib PPC emulator gave our&lt;br&gt; development a kickstart.&lt;br&gt;
 &lt;br&gt;
-Thanks to Frank Wille for his PowerPC disassembler, which or9 and we modified to include Gekko specifics.&lt;br&gt;
+Thanks to Frank Wille for his PowerPC disassembler, which or9 and we&lt;br&gt; modified to include Gekko specifics.&lt;br&gt;
 &lt;br&gt;
 Thanks to hcs/destop for their GC ADPCM decoder.&lt;br&gt;
 &lt;br&gt;
-We are not affiliated with Nintendo in any way. GameCube and Wii are trademarks of Nintendo. This emulator should not be used to play games you do not legally own.</string>
+We are not affiliated with Nintendo in any way. GameCube and Wii are&lt;br&gt; trademarks of Nintendo. This emulator should not be used to play games&lt;br&gt;you do not legally own.</string>
      </property>
      <property name="textFormat">
       <enum>Qt::RichText</enum>
@@ -64,12 +46,12 @@ We are not affiliated with Nintendo in any way. GameCube and Wii are trademarks 
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
      </property>
-     <property name="wordWrap">
+     <property name="openExternalLinks">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>

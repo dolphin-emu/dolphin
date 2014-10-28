@@ -17,10 +17,12 @@ Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.2 runtime installe
 Set the Rift Display Mode to "Extend Desktop to the HMD", or it won't work!
 Dolphin performs best if it is the only monitor connected to the desktop, but that
 also makes the menus more difficult to use.
-Plug the Rift in, turn it on, and make sure the service is running, before launching
-Dolphin.
+Plug the Rift in, turn it on, and make sure the service is running and not paused,
+and if using DK1 make sure legacy DK1 support is turned off (this is not a legacy application),
+before launching Dolphin.
 
-Only Direct3D and OpenGL renderers will work. In Graphics, turn off Render To Main Window.
+Only Direct3D and OpenGL renderers will work. But Direct3D still has graphical glitches.
+In Graphics, turn off Render To Main Window.
 In the Graphics options Enhancements tab set the internal resolution to a multiple
 of the native. 1x Native is much too blurry, I use 2.5x Native for my DK1.
 Lower resoultions are faster but blurrier.
@@ -388,7 +390,7 @@ List of user folders:
 * `Config`: configuration files
 * `Dump`: anything dumped from dolphin
 * `GameConfig`: additional settings to be applied per-game
-* `GC`: memory cards
+* `GC`: memory cards and system BIOS
 * `Load`: custom textures
 * `Logs`: logs, if enabled
 * `ScreenShots`: screenshots taken via Dolphin

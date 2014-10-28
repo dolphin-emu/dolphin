@@ -90,7 +90,7 @@ static bool InstallCodeHandler()
 	}
 
 	// Install code handler
-	Memory::WriteBigEData((const u8*)data.data(), INSTALLER_BASE_ADDRESS, data.length());
+	Memory::CopyToEmu(INSTALLER_BASE_ADDRESS, data.data(), data.length());
 
 	// Patch the code handler to the system starting up
 	for (unsigned int h = 0; h < data.length(); h += 4)

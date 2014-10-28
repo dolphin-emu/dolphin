@@ -4,6 +4,7 @@
 
 #pragma once
 #include "Common/StdMakeUnique.h"
+#include "Core/HW/EXI_Device.h"
 
 class MemoryCardBase;
 class CEXIMemoryCard : public IEXIDevice

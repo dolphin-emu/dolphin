@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
 
 // super fast breakpoints for a limited range.
 // To be used interchangeably with the BreakPoints class.

@@ -184,8 +184,8 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 	// Run the descrambler over the encrypted section containing BS1/BS2
 	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);
 
-	Memory::WriteBigEData((const u8*)data.data() + 0x100, 0x81200000, 0x700);
-	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, 0x1AFE00);
+	Memory::CopyToEmu(0x81200000, data.data() + 0x100, 0x700);
+	Memory::CopyToEmu(0x81300000, data.data() + 0x820, 0x1AFE00);
 	PC = 0x81200000;
 	return true;
 }
@@ -428,8 +428,7 @@ bool CBoot::BootUp()
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
 		HLE::Patch(0x80001800, "HBReload");
-		const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
-		Memory::WriteBigEData(stubstr, 0x80001804, 8);
+		Memory::CopyToEmu(0x80001804, "STUBHAXX", 8);
 	}
 
 	// Not part of the binary itself, but either we or Gecko OS might insert

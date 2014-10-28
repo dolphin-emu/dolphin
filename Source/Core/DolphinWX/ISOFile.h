@@ -7,11 +7,12 @@
 #include <string>
 #include <vector>
 
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
 #include "DiscIO/Volume.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/image.h>
+#include <wx/bitmap.h>
 #endif
 
 class PointerWrap;

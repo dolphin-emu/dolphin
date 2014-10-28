@@ -45,7 +45,6 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 	// which for this code example would indicate a programming error
 	_assert_msg_(AUDIO, SL_RESULT_SUCCESS == result, "Couldn't enqueue audio stream.");
 
-
 	curBuffer ^= 1; // Switch buffer
 	// Render to the fresh buffer
 	g_mixer->Mix(reinterpret_cast<short *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
@@ -70,7 +69,7 @@ bool OpenSLESStream::Start()
 	SLDataFormat_PCM format_pcm = {
 		SL_DATAFORMAT_PCM,
 		2,
-		SL_SAMPLINGRATE_44_1,
+		m_mixer->GetSampleRate() * 1000,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_PCMSAMPLEFORMAT_FIXED_16,
 		SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
@@ -101,17 +100,14 @@ bool OpenSLESStream::Start()
 	result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
 	assert(SL_RESULT_SUCCESS == result);
 
-	// Render and enqueue a first buffer. (or should we just play the buffer empty?)
-	curBuffer = 0;
-
-	result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[curBuffer], sizeof(buffer[curBuffer]));
-	if (SL_RESULT_SUCCESS != result)
-	{
-		return false;
-	}
-
+	// Render and enqueue a first buffer.
 	curBuffer ^= 1;
 	g_mixer = m_mixer;
+
+	result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[0], sizeof(buffer[0]));
+	if (SL_RESULT_SUCCESS != result)
+		return false;
+
 	return true;
 }
 

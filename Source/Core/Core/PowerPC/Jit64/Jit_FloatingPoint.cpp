@@ -52,8 +52,8 @@ void Jit64::SetFPRFIfNeeded(UGeckoInstruction inst, X64Reg xmm)
 {
 	// As far as we know, the games that use this flag only need FPRF for fmul and fmadd, but
 	// FPRF is fast enough in JIT that we might as well just enable it for every float instruction
-	// if the enableFPRF flag is set.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF && js.op->wantsFPRF)
+	// if the FPRF flag is set.
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF && js.op->wantsFPRF)
 		SetFPRF(xmm);
 }
 
@@ -271,7 +271,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-	bool fprf = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF && js.op->wantsFPRF;
+	bool fprf = SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF && js.op->wantsFPRF;
 	//bool ordered = !!(inst.SUBOP10 & 32);
 	int a = inst.FA;
 	int b = inst.FB;

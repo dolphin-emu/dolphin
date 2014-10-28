@@ -255,33 +255,6 @@ void JitArm::Trace()
 		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
-void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
-{
-	if (level > 0)
-		WARN_LOG(DYNA_REC, "Start: %08x OP '%s' Info", (u32)GetCodePtr(),  PPCTables::GetInstructionName(inst));
-	if (level > 1)
-	{
-		GekkoOPInfo* Info = GetOpInfo(inst.hex);
-		WARN_LOG(DYNA_REC, "\tOuts");
-		if (Info->flags & FL_OUT_A)
-			WARN_LOG(DYNA_REC, "\t-OUT_A: %x", inst.RA);
-		if (Info->flags & FL_OUT_D)
-			WARN_LOG(DYNA_REC, "\t-OUT_D: %x", inst.RD);
-		WARN_LOG(DYNA_REC, "\tIns");
-		// A, AO, B, C, S
-		if (Info->flags & FL_IN_A)
-			WARN_LOG(DYNA_REC, "\t-IN_A: %x", inst.RA);
-		if (Info->flags & FL_IN_A0)
-			WARN_LOG(DYNA_REC, "\t-IN_A0: %x", inst.RA);
-		if (Info->flags & FL_IN_B)
-			WARN_LOG(DYNA_REC, "\t-IN_B: %x", inst.RB);
-		if (Info->flags & FL_IN_C)
-			WARN_LOG(DYNA_REC, "\t-IN_C: %x", inst.RC);
-		if (Info->flags & FL_IN_S)
-			WARN_LOG(DYNA_REC, "\t-IN_S: %x", inst.RS);
-	}
-}
-
 void JitArm::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
@@ -307,8 +280,12 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
+				blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
@@ -399,11 +376,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	js.skipnext = false;
 	js.compilerPC = nextPC;
 
-	const int DEBUG_OUTPUT = 0;
-
-	if (DEBUG_OUTPUT)
-		WARN_LOG(DYNA_REC, "-------0x%08x-------", em_address);
-
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -444,7 +416,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			POP(4, R0, R1, R2, R3);
 		}
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		if (Profiler::g_ProfileBlocks)
 		{
 			// Add run count
 			static const u64 One = 1;
@@ -466,7 +438,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 
 		if (!ops[i].skip)
 		{
-				PrintDebug(ops[i].inst, DEBUG_OUTPUT);
 				if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 				{
 					// Don't do this yet

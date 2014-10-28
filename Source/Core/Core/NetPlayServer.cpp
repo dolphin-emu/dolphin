@@ -7,6 +7,7 @@
 
 #include "Common/StringUtil.h"
 #include "Core/NetPlayServer.h"
+#include "InputCommon/GCPadStatus.h"
 
 NetPlayServer::~NetPlayServer()
 {
@@ -394,8 +395,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 				break;
 
 			PadMapping map = 0;
-			int hi, lo;
-			packet >> map >> hi >> lo;
+			GCPadStatus pad;
+			packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight;
 
 			// If the data is not from the correct player,
 			// then disconnect them.
@@ -405,7 +406,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			// Relay to clients
 			sf::Packet spac;
 			spac << (MessageId)NP_MSG_PAD_DATA;
-			spac << map << hi << lo;
+			spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 			SendToClients(spac, player.pid);

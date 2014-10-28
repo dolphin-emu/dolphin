@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
 class VertexLoader_Normal
 {

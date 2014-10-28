@@ -6,6 +6,8 @@
 
 #include <map>
 #include <string>
+
+#include "Common/Common.h"
 #include "Core/IPC_HLE/hci.h"
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;

@@ -5,12 +5,9 @@
 #include <cstdio>
 #include <vector>
 
-#ifdef __APPLE__
-#include "Common/Thread.h"
-#endif
-
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Thread.h"
 #include "Common/x64Analyzer.h"
 
 #include "Core/MemTools.h"
@@ -92,7 +89,7 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler() {}
 
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 
 void CheckKR(const char* name, kern_return_t kr)
 {
@@ -216,7 +213,7 @@ void UninstallExceptionHandler() {}
 
 static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
-	if (sig != SIGSEGV)
+	if (sig != SIGSEGV && sig != SIGBUS)
 	{
 		// We are not interested in other signals - handle it as usual.
 		return;
@@ -233,10 +230,19 @@ static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
 	// assume it's not a write
-	if (!JitInterface::HandleFault(bad_address, ctx))
+	if (!JitInterface::HandleFault(bad_address,
+#ifdef __APPLE__
+		*ctx
+#else
+		ctx
+#endif
+	))
 	{
 		// retry and crash
 		signal(SIGSEGV, SIG_DFL);
+#ifdef __APPLE__
+		signal(SIGBUS, SIG_DFL);
+#endif
 	}
 }
 
@@ -254,6 +260,9 @@ void InstallExceptionHandler()
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, nullptr);
+#ifdef __APPLE__
+	sigaction(SIGBUS, &sa, nullptr);
+#endif
 }
 
 void UninstallExceptionHandler()

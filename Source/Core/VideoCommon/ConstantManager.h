@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 // all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
 typedef float float4[4];
 typedef u32 uint4[4];

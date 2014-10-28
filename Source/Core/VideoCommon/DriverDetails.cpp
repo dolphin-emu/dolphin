@@ -40,7 +40,7 @@ namespace DriverDetails
 	// This is a list of all known bugs for each vendor
 	// We use this to check if the device and driver has a issue
 	static BugInfo m_known_bugs[] = {
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_NODYNUBOACCESS,      14.0, -1.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_NODYNUBOACCESS,      14.0, 94.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_BROKENCENTROID,      14.0, 46.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_BROKENINFOLOG,       -1.0, 46.0, true},
 		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_ANNIHILATEDUBOS,     41.0, 46.0, true},

@@ -305,3 +305,4 @@ void LogConfigWindow::OnLogCheck(wxCommandEvent& event)
 	int i = event.GetInt();
 	ToggleLog(i, m_checks->IsChecked(i));
 }
+

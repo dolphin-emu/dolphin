@@ -17,7 +17,7 @@
 static Common::replace_v replacements;
 
 // This is used by several of the FileIO and /dev/fs functions
-std::string HLE_IPC_BuildFilename(std::string path_wii, int _size)
+std::string HLE_IPC_BuildFilename(std::string path_wii)
 {
 	std::string path_full = File::GetUserPath(D_WIIROOT_IDX);
 
@@ -103,7 +103,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		"Read and Write"
 	};
 
-	m_filepath = HLE_IPC_BuildFilename(m_Name, 64);
+	m_filepath = HLE_IPC_BuildFilename(m_Name);
 
 	// The file must exist before we can open it
 	// It should be created by ISFS_CreateFile, not here
@@ -333,5 +333,5 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 	p.Do(m_Mode);
 	p.Do(m_SeekPos);
 
-	m_filepath = HLE_IPC_BuildFilename(m_Name, 64);
+	m_filepath = HLE_IPC_BuildFilename(m_Name);
 }

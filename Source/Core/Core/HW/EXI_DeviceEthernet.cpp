@@ -192,7 +192,7 @@ void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
 	DEBUG_LOG(SP1, "DMA read: %08x %x", addr, size);
 
-	memcpy(Memory::GetPointer(addr), &mBbaMem[transfer.address], size);
+	Memory::CopyToEmu(addr, &mBbaMem[transfer.address], size);
 
 	transfer.address += size;
 }

@@ -8,6 +8,7 @@
 #include <cinttypes>
 
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 enum FlushMode
 {

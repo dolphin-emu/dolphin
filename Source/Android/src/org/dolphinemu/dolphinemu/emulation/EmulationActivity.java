@@ -313,6 +313,10 @@ public final class EmulationActivity extends Activity
 			return super.dispatchGenericMotionEvent(event);
 		}
 
+		// Don't attempt to do anything if we are disconnecting a device.
+		if (event.getActionMasked() == MotionEvent.ACTION_CANCEL)
+			return true;
+
 		InputDevice input = event.getDevice();
 		List<InputDevice.MotionRange> motions = input.getMotionRanges();
 

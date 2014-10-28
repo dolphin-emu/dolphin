@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
 class NativeVertexFormat;

@@ -32,14 +32,15 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false),
   bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bEnableFPRF(false),
+  bFPRF(false),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
   bMergeBlocks(false), bEnableMemcardSaving(true),
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bDCBZOFF(false), iBBDumpPort(0), bVBeamSpeedHack(false),
+  bBAT(false), bMMU(false), bDCBZOFF(false),
+  iBBDumpPort(0), bVBeamSpeedHack(false),
   bSyncGPU(false), bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false),
   bConfirmStop(false), bHideCursor(false),
@@ -73,7 +74,8 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPHLE = true;
 	bDSPThread = true;
 	bFastmem = true;
-	bEnableFPRF = false;
+	bFPRF = false;
+	bBAT = false;
 	bMMU = false;
 	bDCBZOFF = false;
 	iBBDumpPort = -1;
@@ -325,12 +327,12 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 	m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
 	if (!bWii)
 	{
-		m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + Region + DIR_SEP GC_IPL;
-		if (!File::Exists(m_strBootROM))
-			m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
-
 		if (!bHLE_BS2)
 		{
+			m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + Region + DIR_SEP GC_IPL;
+			if (!File::Exists(m_strBootROM))
+				m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
+
 			if (!File::Exists(m_strBootROM))
 			{
 				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_strBootROM.c_str());

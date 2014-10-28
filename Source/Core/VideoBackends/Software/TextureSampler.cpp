@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/CommonFuncs.h"
+#include "Common/Common.h"
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/TextureSampler.h"

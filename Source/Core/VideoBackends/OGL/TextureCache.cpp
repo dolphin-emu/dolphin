@@ -53,10 +53,10 @@ bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtua
 		return false;
 	int width = std::max(virtual_width >> level, 1);
 	int height = std::max(virtual_height >> level, 1);
-	u8* data = new u8[width * height * 4];
+	std::vector<u8> data(width * height * 4);
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(textarget, tex);
-	glGetTexImage(textarget, level, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glGetTexImage(textarget, level, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
 	glBindTexture(textarget, 0);
 	TextureCache::SetStage();
 
@@ -64,12 +64,10 @@ bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtua
 	if (GL_NO_ERROR != err)
 	{
 		PanicAlert("Can't save texture, GL Error: %d", err);
-		delete[] data;
 		return false;
 	}
-	bool success = TextureToPng(data, width * 4, filename, width, height, true);
-	delete[] data;
-	return success;
+
+	return TextureToPng(data.data(), width * 4, filename, width, height, true);
 }
 
 TextureCache::TCacheEntry::~TCacheEntry()

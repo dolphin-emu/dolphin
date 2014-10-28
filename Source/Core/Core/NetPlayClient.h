@@ -19,16 +19,6 @@
 
 #include "InputCommon/GCPadStatus.h"
 
-class NetPad
-{
-public:
-	NetPad();
-	NetPad(const GCPadStatus* const);
-
-	u32 nHi;
-	u32 nLo;
-};
-
 class NetPlayUI
 {
 public:
@@ -76,7 +66,7 @@ public:
 
 	// Send and receive pads values
 	bool WiimoteUpdate(int _number, u8* data, const u8 size);
-	bool GetNetPads(const u8 pad_nb, const GCPadStatus* const, NetPad* const netvalues);
+	bool GetNetPads(const u8 pad_nb, GCPadStatus* pad_status);
 
 	u8 LocalPadToInGamePad(u8 localPad);
 	u8 InGamePadToLocalPad(u8 localPad);
@@ -93,8 +83,8 @@ protected:
 		std::recursive_mutex players, send;
 	} m_crit;
 
-	Common::FifoQueue<NetPad>     m_pad_buffer[4];
-	Common::FifoQueue<NetWiimote> m_wiimote_buffer[4];
+	Common::FifoQueue<GCPadStatus> m_pad_buffer[4];
+	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];
 
 	NetPlayUI*    m_dialog;
 	sf::SocketTCP m_socket;
@@ -118,7 +108,7 @@ protected:
 
 private:
 	void UpdateDevices();
-	void SendPadState(const PadMapping in_game_pad, const NetPad& np);
+	void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
 	void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
 	unsigned int OnData(sf::Packet& packet);
 

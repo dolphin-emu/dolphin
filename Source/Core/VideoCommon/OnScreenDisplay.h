@@ -7,6 +7,8 @@
 #include <functional>
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 namespace OSD
 {
 // On-screen message display
