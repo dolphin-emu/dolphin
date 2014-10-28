@@ -90,7 +90,7 @@ static u32 EFB_Read(const u32 addr)
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
 template <typename T>
-inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_address, Memory::XCheckTLBFlag flag)
+inline void ReadFromHardware(T &_var, const u32 em_address, Memory::XCheckTLBFlag flag)
 {
 	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
 	if ((em_address & 0xC8000000) == 0xC8000000)
@@ -197,7 +197,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 
 
 template <typename T>
-inline void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory::XCheckTLBFlag flag)
+inline void WriteToHardware(u32 em_address, const T data, Memory::XCheckTLBFlag flag)
 {
 	// First, let's check for FIFO writes, since they are probably the most common
 	// reason we end up in this function:
@@ -368,7 +368,7 @@ u32 Read_Opcode(u32 _Address)
 u8 Read_U8(const u32 _Address)
 {
 	u8 _var = 0;
-	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_READ);
+	ReadFromHardware<u8>(_var, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -383,7 +383,7 @@ u8 Read_U8(const u32 _Address)
 u16 Read_U16(const u32 _Address)
 {
 	u16 _var = 0;
-	ReadFromHardware<u16>(_var, _Address, _Address, FLAG_READ);
+	ReadFromHardware<u16>(_var, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -398,7 +398,7 @@ u16 Read_U16(const u32 _Address)
 u32 Read_U32(const u32 _Address)
 {
 	u32 _var = 0;
-	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_READ);
+	ReadFromHardware<u32>(_var, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -413,7 +413,7 @@ u32 Read_U32(const u32 _Address)
 u64 Read_U64(const u32 _Address)
 {
 	u64 _var = 0;
-	ReadFromHardware<u64>(_var, _Address, _Address, FLAG_READ);
+	ReadFromHardware<u64>(_var, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -469,7 +469,7 @@ void Write_U8(const u8 _Data, const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,1,PC);
 	}
 #endif
-	WriteToHardware<u8>(_Address, _Data, _Address, FLAG_WRITE);
+	WriteToHardware<u8>(_Address, _Data, FLAG_WRITE);
 }
 
 
@@ -484,7 +484,7 @@ void Write_U16(const u16 _Data, const u32 _Address)
 	}
 #endif
 
-	WriteToHardware<u16>(_Address, _Data, _Address, FLAG_WRITE);
+	WriteToHardware<u16>(_Address, _Data, FLAG_WRITE);
 }
 void Write_U16_Swap(const u16 _Data, const u32 _Address)
 {
@@ -502,7 +502,7 @@ void Write_U32(const u32 _Data, const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,4,PC);
 	}
 #endif
-	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
+	WriteToHardware<u32>(_Address, _Data, FLAG_WRITE);
 }
 void Write_U32_Swap(const u32 _Data, const u32 _Address)
 {
@@ -520,7 +520,7 @@ void Write_U64(const u64 _Data, const u32 _Address)
 	}
 #endif
 
-	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
+	WriteToHardware<u64>(_Address, _Data, FLAG_WRITE);
 }
 void Write_U64_Swap(const u64 _Data, const u32 _Address)
 {
@@ -540,7 +540,7 @@ void Write_F64(const double _Data, const u32 _Address)
 u8 ReadUnchecked_U8(const u32 _Address)
 {
 	u8 _var = 0;
-	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
+	ReadFromHardware<u8>(_var, _Address, FLAG_NO_EXCEPTION);
 	return _var;
 }
 
@@ -548,19 +548,19 @@ u8 ReadUnchecked_U8(const u32 _Address)
 u32 ReadUnchecked_U32(const u32 _Address)
 {
 	u32 _var = 0;
-	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
+	ReadFromHardware<u32>(_var, _Address, FLAG_NO_EXCEPTION);
 	return _var;
 }
 
 void WriteUnchecked_U8(const u8 _iValue, const u32 _Address)
 {
-	WriteToHardware<u8>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
+	WriteToHardware<u8>(_Address, _iValue, FLAG_NO_EXCEPTION);
 }
 
 
 void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 {
-	WriteToHardware<u32>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
+	WriteToHardware<u32>(_Address, _iValue, FLAG_NO_EXCEPTION);
 }
 
 // *********************************************************************************
