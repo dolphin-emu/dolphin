@@ -1557,6 +1557,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (!bLastFrameDumped)
 			{
 				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
+				File::CreateFullPath(movie_file_name);
 				pFrameDump.Open(movie_file_name, "wb");
 				if (!pFrameDump)
 				{
