@@ -79,7 +79,7 @@ static u8* m_pPhysicalEXRAM;        // wii only
 static u8* m_pVirtualCachedEXRAM;   // wii only
 static u8* m_pVirtualUncachedEXRAM; // wii only
 static u8* m_pVirtualL1Cache;
-u8* m_pVirtualFakeVMEM;
+static u8* m_pVirtualFakeVMEM;
 
 // MMIO mapping object.
 MMIO::Mapping* mmio_mapping;
