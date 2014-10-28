@@ -60,13 +60,6 @@ bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtua
 	glBindTexture(textarget, 0);
 	TextureCache::SetStage();
 
-	const GLenum err = GL_REPORT_ERROR();
-	if (GL_NO_ERROR != err)
-	{
-		PanicAlert("Can't save texture, GL Error: %d", err);
-		return false;
-	}
-
 	return TextureToPng(data.data(), width * 4, filename, width, height, true);
 }
 
@@ -91,7 +84,6 @@ TextureCache::TCacheEntry::~TCacheEntry()
 TextureCache::TCacheEntry::TCacheEntry()
 {
 	glGenTextures(1, &texture);
-	GL_REPORT_ERRORD();
 
 	framebuffer = 0;
 }
@@ -214,7 +206,6 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 			//width, height, 0, expanded_width * expanded_height/2, temp);
 	}
 	TextureCache::SetStage();
-	GL_REPORT_ERRORD();
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
@@ -223,7 +214,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 	TCacheEntry *const entry = new TCacheEntry;
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D, entry->texture);
-	GL_REPORT_ERRORD();
 
 	const GLenum
 		gl_format = GL_RGBA,
@@ -238,11 +228,8 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 	glGenFramebuffers(1, &entry->framebuffer);
 	FramebufferManager::SetFramebuffer(entry->framebuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, entry->texture, 0);
-	GL_REPORT_FBO_ERROR();
 
 	SetStage();
-
-	GL_REPORT_ERRORD();
 
 	return entry;
 }
@@ -259,13 +246,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
 		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
-	GL_REPORT_ERRORD();
-
 	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		FramebufferManager::SetFramebuffer(framebuffer);
-
-		GL_REPORT_ERRORD();
 
 		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_2D, read_texture);
@@ -293,11 +276,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
 		glUniform4f(uniform_location, static_cast<float>(R.left), static_cast<float>(R.top),
 			static_cast<float>(R.right), static_cast<float>(R.bottom));
-		GL_REPORT_ERRORD();
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-		GL_REPORT_ERRORD();
 	}
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
@@ -324,8 +304,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	}
 
 	FramebufferManager::SetFramebuffer(0);
-
-	GL_REPORT_ERRORD();
 
 	if (g_ActiveConfig.bDumpEFBTarget)
 	{

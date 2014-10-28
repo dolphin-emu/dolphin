@@ -203,7 +203,6 @@ void VideoBackend::Video_Prepare()
 	g_texture_cache = new TextureCache();
 	g_sampler_cache = new SamplerCache();
 	Renderer::Init();
-	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
 

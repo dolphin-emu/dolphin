@@ -63,14 +63,11 @@ void VertexManager::CreateDeviceObjects()
 
 void VertexManager::DestroyDeviceObjects()
 {
-	GL_REPORT_ERRORD();
 	glBindBuffer(GL_ARRAY_BUFFER, 0 );
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
-	GL_REPORT_ERROR();
 
 	delete s_vertexBuffer;
 	delete s_indexBuffer;
-	GL_REPORT_ERROR();
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
@@ -140,7 +137,6 @@ void VertexManager::vFlush(bool useDstAlpha)
 	}
 
 	PrepareDrawBuffers(stride);
-	GL_REPORT_ERRORD();
 
 	// Makes sure we can actually do Dual source blending
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
@@ -161,7 +157,6 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	// setup the pointers
 	nativeVertexFmt->SetupVertexPointers();
-	GL_REPORT_ERRORD();
 
 	Draw(stride);
 
@@ -214,8 +209,6 @@ void VertexManager::vFlush(bool useDstAlpha)
 	g_Config.iSaveTargetId++;
 
 	ClearEFBCache();
-
-	GL_REPORT_ERRORD();
 }
 
 

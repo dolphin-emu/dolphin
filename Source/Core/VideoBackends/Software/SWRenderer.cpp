@@ -103,7 +103,6 @@ void SWRenderer::Prepare()
 		s_pfont = new RasterFont();
 		glEnable(GL_TEXTURE_2D);
 	}
-	GL_REPORT_ERRORD();
 }
 
 void SWRenderer::SetScreenshot(const char *_szFilename)
@@ -271,7 +270,6 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glDisableVertexAttribArray(attr_tex);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	GL_REPORT_ERRORD();
 }
 
 void SWRenderer::SwapBuffer()
@@ -288,6 +286,4 @@ void SWRenderer::SwapBuffer()
 	swstats.ResetFrame();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	GL_REPORT_ERRORD();
 }
