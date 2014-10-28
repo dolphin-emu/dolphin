@@ -63,23 +63,10 @@ static MemArena g_arena;
 static bool m_IsInitialized = false; // Save the Init(), Shutdown() state
 // END STATE_TO_SAVE
 
-// 64-bit: Pointers to low-mem (sub-0x10000000) mirror
-// 32-bit: Same as the corresponding physical/virtual pointers.
 u8* m_pRAM;
 u8* m_pL1Cache;
 u8* m_pEXRAM;
 u8* m_pFakeVMEM;
-
-// 64-bit: Pointers to high-mem mirrors
-// 32-bit: Same as above
-static u8* m_pPhysicalRAM;
-static u8* m_pVirtualCachedRAM;
-static u8* m_pVirtualUncachedRAM;
-static u8* m_pPhysicalEXRAM;        // wii only
-static u8* m_pVirtualCachedEXRAM;   // wii only
-static u8* m_pVirtualUncachedEXRAM; // wii only
-static u8* m_pVirtualL1Cache;
-static u8* m_pVirtualFakeVMEM;
 
 // MMIO mapping object.
 MMIO::Mapping* mmio_mapping;
@@ -116,19 +103,16 @@ bool IsInitialized()
 
 
 // We don't declare the IO region in here since its handled by other means.
-static const MemoryView views[] =
+static MemoryView views[] =
 {
-	{&m_pRAM,      &m_pPhysicalRAM,          0x00000000, RAM_SIZE, 0},
-	{nullptr,      &m_pVirtualCachedRAM,     0x80000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
-	{nullptr,      &m_pVirtualUncachedRAM,   0xC0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
-
-	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
-
-	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
-
-	{&m_pEXRAM,    &m_pPhysicalEXRAM,        0x10000000, EXRAM_SIZE, MV_WII_ONLY},
-	{nullptr,      &m_pVirtualCachedEXRAM,   0x90000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
-	{nullptr,      &m_pVirtualUncachedEXRAM, 0xD0000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{&m_pRAM,      0x00000000, RAM_SIZE,      0},
+	{nullptr,      0x80000000, RAM_SIZE,      MV_MIRROR_PREVIOUS},
+	{nullptr,      0xC0000000, RAM_SIZE,      MV_MIRROR_PREVIOUS},
+	{&m_pL1Cache,  0xE0000000, L1_CACHE_SIZE, 0},
+	{&m_pFakeVMEM, 0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
+	{&m_pEXRAM,    0x10000000, EXRAM_SIZE,    MV_WII_ONLY},
+	{nullptr,      0x90000000, EXRAM_SIZE,    MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{nullptr,      0xD0000000, EXRAM_SIZE,    MV_WII_ONLY | MV_MIRROR_PREVIOUS},
 };
 static const int num_views = sizeof(views) / sizeof(MemoryView);
 
@@ -154,19 +138,18 @@ void Init()
 	else
 		InitMMIO(mmio_mapping);
 
-	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p (mirrors at 0 @ %p, 0x80000000 @ %p , 0xC0000000 @ %p)",
-		m_pRAM, m_pPhysicalRAM, m_pVirtualCachedRAM, m_pVirtualUncachedRAM);
+	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
 	m_IsInitialized = true;
 }
 
 void DoState(PointerWrap &p)
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
-	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
+	p.DoArray(m_pRAM, RAM_SIZE);
+	p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
 	if (bFakeVMEM)
-		p.DoArray(m_pVirtualFakeVMEM, FAKEVMEM_SIZE);
+		p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
 	p.DoMarker("Memory FakeVMEM");
 	if (wii)
 		p.DoArray(m_pEXRAM, EXRAM_SIZE);
@@ -328,7 +311,7 @@ u8* GetPointer(const u32 _Address)
 	case 0x0:
 	case 0x8:
 		if ((_Address & 0xfffffff) < REALRAM_SIZE)
-			return m_pPhysicalRAM + (_Address & RAM_MASK);
+			return m_pRAM + (_Address & RAM_MASK);
 	case 0xc:
 		switch (_Address >> 24)
 		{
@@ -341,7 +324,7 @@ u8* GetPointer(const u32 _Address)
 
 		default:
 			if ((_Address & 0xfffffff) < REALRAM_SIZE)
-				return m_pPhysicalRAM + (_Address & RAM_MASK);
+				return m_pRAM + (_Address & RAM_MASK);
 		}
 
 	case 0x1:
@@ -350,7 +333,7 @@ u8* GetPointer(const u32 _Address)
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			if ((_Address & 0xfffffff) < EXRAM_SIZE)
-				return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
+				return m_pEXRAM + (_Address & EXRAM_MASK);
 		}
 		else
 			break;
@@ -363,7 +346,7 @@ u8* GetPointer(const u32 _Address)
 
 	default:
 		if (bFakeVMEM)
-			return m_pVirtualFakeVMEM + (_Address & FAKEVMEM_MASK);
+			return m_pFakeVMEM + (_Address & FAKEVMEM_MASK);
 	}
 
 	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", _Address, PC, LR);

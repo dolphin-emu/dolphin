@@ -170,8 +170,7 @@ u8* MemArena::Find4GBBase()
 	if (!(a_flags & MV_FAKE_VMEM) && (b_flags & MV_FAKE_VMEM)) \
 		continue; \
 
-
-static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	// OK, we know where to find free space. Now grab it!
 	// We just mimic the popular BAT setup.
@@ -181,45 +180,38 @@ static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32
 	// Zero all the pointers to be sure.
 	for (int i = 0; i < num_views; i++)
 	{
-		if (views[i].out_ptr_low)
-			*views[i].out_ptr_low = nullptr;
-		if (views[i].out_ptr)
-			*views[i].out_ptr = nullptr;
+		views[i].mapped_ptr = nullptr;
 	}
 
 	int i;
 	for (i = 0; i < num_views; i++)
 	{
 		SKIP(flags, views[i].flags);
+
 		if (views[i].flags & MV_MIRROR_PREVIOUS)
-		{
 			position = last_position;
-		}
-		else
-		{
-			*(views[i].out_ptr_low) = (u8*)arena->CreateView(position, views[i].size);
-			if (!*views[i].out_ptr_low)
-				goto bail;
-		}
+
 #if _ARCH_64
-		*views[i].out_ptr = (u8*)arena->CreateView(
+		views[i].mapped_ptr = arena->CreateView(
 			position, views[i].size, base + views[i].virtual_address);
 #else
 		if (views[i].flags & MV_MIRROR_PREVIOUS)
 		{
 			// No need to create multiple identical views.
-			*views[i].out_ptr = *views[i - 1].out_ptr;
+			views[i].mapped_ptr = views[i - 1].mapped_ptr;
 		}
 		else
 		{
-			*views[i].out_ptr = (u8*)arena->CreateView(
+			views[i].mapped_ptr = arena->CreateView(
 				position, views[i].size, base + (views[i].virtual_address & 0x3FFFFFFF));
 		}
 #endif
-		if (!*views[i].out_ptr)
+		if (!views[i].mapped_ptr)
 			goto bail;
 
-		last_position = position;
+		if (views[i].out_ptr)
+			*views[i].out_ptr = (u8*) views[i].mapped_ptr;
+
 		position += views[i].size;
 	}
 
@@ -231,7 +223,7 @@ bail:
 	return false;
 }
 
-u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	u32 total_mem = 0;
 
@@ -258,21 +250,17 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	return base;
 }
 
-void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+void MemoryMap_Shutdown(MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	std::set<void*> freeset;
 	for (int i = 0; i < num_views; i++)
 	{
-		const MemoryView* view = &views[i];
-		u8** outptrs[2] = {view->out_ptr_low, view->out_ptr};
-		for (auto outptr : outptrs)
+		MemoryView* view = &views[i];
+		if (view->mapped_ptr && *(u8*)view->mapped_ptr && !freeset.count(view->mapped_ptr))
 		{
-			if (outptr && *outptr && !freeset.count(*outptr))
-			{
-				arena->ReleaseView(*outptr, view->size);
-				freeset.insert(*outptr);
-				*outptr = nullptr;
-			}
+			arena->ReleaseView(view->mapped_ptr, view->size);
+			freeset.insert(view->mapped_ptr);
+			view->mapped_ptr = nullptr;
 		}
 	}
 }
