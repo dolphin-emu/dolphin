@@ -237,22 +237,18 @@ namespace JitInterface
 		return inst;
 	}
 
-	void CompileExceptionCheck(int type)
+	void CompileExceptionCheck(ExceptionType type)
 	{
 		if (!jit)
 			return;
 
-		std::unordered_set<u32> *exception_addresses;
+		std::unordered_set<u32>* exception_addresses = nullptr;
 
 		switch (type)
 		{
-		case EXCEPTIONS_FIFO_WRITE:
-		{
+		case ExceptionType::EXCEPTIONS_FIFO_WRITE:
 			exception_addresses = &jit->js.fifoWriteAddresses;
 			break;
-		}
-		default:
-			ERROR_LOG(POWERPC, "Unknown exception check type");
 		}
 
 		if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
