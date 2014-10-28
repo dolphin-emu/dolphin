@@ -48,6 +48,8 @@ struct MemoryView
 	u32 size;
 	u32 flags;
 	void* mapped_ptr;
+	void* view_ptr;
+	u32 shm_position;
 };
 
 // Uses a memory arena to set up an emulator-friendly memory map according to

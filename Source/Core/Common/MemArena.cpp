@@ -174,45 +174,56 @@ static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags
 {
 	// OK, we know where to find free space. Now grab it!
 	// We just mimic the popular BAT setup.
-	u32 position = 0;
-	u32 last_position = 0;
+	u32 shm_position = 0;
 
 	// Zero all the pointers to be sure.
 	for (int i = 0; i < num_views; i++)
 	{
 		views[i].mapped_ptr = nullptr;
+
+		if (!(views[i].flags & MV_MIRROR_PREVIOUS) && i > 0)
+			shm_position += views[i - 1].size;
+
+		views[i].shm_position = shm_position;
 	}
 
 	int i;
 	for (i = 0; i < num_views; i++)
 	{
-		SKIP(flags, views[i].flags);
+		MemoryView* view = &views[i];
+		void* view_base;
+		bool use_sw_mirror;
 
-		if (views[i].flags & MV_MIRROR_PREVIOUS)
-			position = last_position;
+		SKIP(flags, view->flags);
 
 #if _ARCH_64
-		views[i].mapped_ptr = arena->CreateView(
-			position, views[i].size, base + views[i].virtual_address);
+		// On 64-bit, we map the same file position multiple times, so we
+		// don't need the software fallback for the mirrors.
+		view_base = base + view->virtual_address;
+		use_sw_mirror = false;
 #else
-		if (views[i].flags & MV_MIRROR_PREVIOUS)
+		// On 32-bit, we don't have the actual address space to store all
+		// the mirrors, so we just map the fallbacks somewhere in our address
+		// space and use the software fallbacks for mirroring.
+		view_base = base + (view->virtual_address & 0x3FFFFFFF);
+		use_sw_mirror = true;
+#endif
+
+		if (use_sw_mirror && (view->flags & MV_MIRROR_PREVIOUS))
 		{
-			// No need to create multiple identical views.
-			views[i].mapped_ptr = views[i - 1].mapped_ptr;
+			view->view_ptr = views[i - 1].view_ptr;
 		}
 		else
 		{
-			views[i].mapped_ptr = arena->CreateView(
-				position, views[i].size, base + (views[i].virtual_address & 0x3FFFFFFF));
+			view->mapped_ptr = arena->CreateView(view->shm_position, view->size, view_base);
+			view->view_ptr = view->mapped_ptr;
 		}
-#endif
-		if (!views[i].mapped_ptr)
+
+		if (!view->view_ptr)
 			goto bail;
 
-		if (views[i].out_ptr)
-			*views[i].out_ptr = (u8*) views[i].mapped_ptr;
-
-		position += views[i].size;
+		if (view->out_ptr)
+			*(view->out_ptr) = (u8*) view->view_ptr;
 	}
 
 	return true;
