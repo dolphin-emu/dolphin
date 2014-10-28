@@ -39,6 +39,7 @@ static QString LowestSupportedOsVersion()
 int main(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
+	app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 	// TODO: Add command line options
 
 	UICommon::CreateDirectories();
