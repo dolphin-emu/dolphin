@@ -561,7 +561,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		std::string SCore = "", SAcc = "", SIR = "", SExt = "", SExtID = "";
 
-		wm_core* core = (wm_core*)sr->data;
+		wm_buttons* core = (wm_buttons*)sr->data;
 		accel_cal* calib = (accel_cal*)&wm->m_eeprom[0x16];
 		wm_accel* accel = (wm_accel*)&data[4];
 

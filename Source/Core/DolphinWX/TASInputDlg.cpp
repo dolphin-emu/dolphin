@@ -379,7 +379,7 @@ void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 	}
 }
 
-void TASInputDlg::SetWiiButtons(wm_core* butt)
+void TASInputDlg::SetWiiButtons(u16* butt)
 {
 	for (unsigned int i = 0; i < 14; ++i)
 	{
@@ -416,7 +416,7 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
 		for (unsigned int i = 0; i < 14; ++i)
 		{
 			if (m_buttons[i] != nullptr)
-				SetButtonValue(m_buttons[i], (*(wm_core*)coreData & m_wii_buttons_bitmask[i]) != 0);
+				SetButtonValue(m_buttons[i], (((wm_buttons*)coreData)->hex & m_wii_buttons_bitmask[i]) != 0);
 		}
 	}
 	if (accelData)
@@ -451,7 +451,7 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
 	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 
 	if (coreData)
-		SetWiiButtons((wm_core*)coreData);
+		SetWiiButtons(&((wm_buttons*)coreData)->hex);
 
 	if (accelData)
 	{
