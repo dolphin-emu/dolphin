@@ -60,7 +60,7 @@ void DSystemInfo::UpdateSystemInfo()
 	m_ui->txtSysInfo->setPlainText(sysinfo);
 }
 
-QString DSystemInfo::GetOS()
+QString DSystemInfo::GetOS() const
 {
 	QString ret;
 	/* DON'T REORDER WITHOUT READING Qt DOCS! */
