@@ -377,7 +377,7 @@ TextureCache::TextureCache()
 
 	const char *GProgram =
 		"layout(triangles) in;\n"
-		"layout(triangle_strip, max_vertices = 3) out;\n"
+		"layout(triangle_strip, max_vertices = 6) out;\n"
 		"in vec2 v_uv0[];\n"
 		"out vec3 f_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
