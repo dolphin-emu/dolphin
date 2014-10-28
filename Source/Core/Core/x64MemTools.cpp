@@ -91,7 +91,7 @@ void UninstallExceptionHandler() {}
 
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 
-void CheckKR(const char* name, kern_return_t kr)
+static void CheckKR(const char* name, kern_return_t kr)
 {
 	if (kr)
 	{
@@ -99,7 +99,7 @@ void CheckKR(const char* name, kern_return_t kr)
 	}
 }
 
-void ExceptionThread(mach_port_t port)
+static void ExceptionThread(mach_port_t port)
 {
 	Common::SetCurrentThreadName("Mach exception thread");
 	#pragma pack(4)

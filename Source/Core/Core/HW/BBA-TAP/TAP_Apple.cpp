@@ -61,7 +61,7 @@ bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
 	}
 }
 
-void ReadThreadHandler(CEXIETHERNET* self)
+static void ReadThreadHandler(CEXIETHERNET* self)
 {
 	while (true)
 	{
