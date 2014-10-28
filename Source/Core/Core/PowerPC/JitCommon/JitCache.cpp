@@ -9,6 +9,14 @@
 // performance hit, it's not enabled by default, but it's useful for
 // locating performance issues.
 
+#include <cinttypes>
+
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 #include "disasm.h"
 
 #include "Common/CommonTypes.h"
@@ -50,6 +58,15 @@ using namespace Gen;
 #if defined USE_OPROFILE && USE_OPROFILE
 		agent = op_open_agent();
 #endif
+
+		const char* perf_dir = getenv("DOLPHIN_PERF_DIR");
+		if (perf_dir && perf_dir[0])
+		{
+			std::string filename = StringFromFormat("%s/perf-%d.map",
+			  perf_dir, getpid());
+			m_perf_map_file.open(filename, std::ios::trunc);
+		}
+
 		iCache.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheEx.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheVMEM.fill(JIT_ICACHE_INVALID_BYTE);
@@ -69,6 +86,9 @@ using namespace Gen;
 #ifdef USE_VTUNE
 		iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, nullptr);
 #endif
+
+		if (m_perf_map_file.is_open())
+			m_perf_map_file.close();
 	}
 
 	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -179,6 +199,13 @@ using namespace Gen;
 		jmethod.method_name = b.blockName;
 		iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
 #endif
+
+		if (m_perf_map_file.is_open())
+		{
+			m_perf_map_file << StringFromFormat(
+			  "%" PRIx64 " %x EmuCode_%x\n",
+			  (u64)blockCodePointers[block_num], b.codeSize, b.originalAddress);
+		}
 	}
 
 	const u8 **JitBaseBlockCache::GetCodePointers()

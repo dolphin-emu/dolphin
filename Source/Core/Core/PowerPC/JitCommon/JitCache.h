@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <fstream>
 #include <map>
 #include <memory>
 #include <vector>
@@ -118,6 +119,8 @@ class JitBaseBlockCache
 	ValidBlockBitSet valid_block;
 
 	bool m_initialized;
+
+	std::ofstream m_perf_map_file;
 
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 	void LinkBlockExits(int i);
