@@ -45,8 +45,13 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	std::array<wxString, 3> data_size_names = {{ _("8-bit"), _("16-bit"), _("32-bit") }};
 	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
-	// result controls
+	// Listbox for search results (shown in monospace font).
 	m_lbox_search_results = new wxListBox(this, -1);
+	wxFont list_font = m_lbox_search_results->GetFont();
+	list_font.SetFamily(wxFONTFAMILY_TELETYPE);
+	m_lbox_search_results->SetFont(list_font);
+
+	// Result count
 	m_label_results_count = new wxStaticText(this, -1, _("Count:"));
 
 	// create AR code button
@@ -286,7 +291,7 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 			// #elseif BIG_ENDIAN
 			// need to do some stuff in here (for 8 and 16bit) for bigendian
 			// #endif
-			std::string rowfmt = StringFromFormat("0x%%08x    0x%%0%ux    %%u/%%i", m_search_type_size*2);
+			std::string rowfmt = StringFromFormat("0x%%08X    0x%%0%uX    %%u/%%i", m_search_type_size*2);
 
 			m_lbox_search_results->Append(
 				wxString::Format(rowfmt.c_str(), result.address, display_value, display_value, display_value));
