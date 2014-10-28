@@ -35,6 +35,7 @@ static volatile CPUState state = CPU_POWERDOWN;
 Interpreter * const interpreter = Interpreter::getInstance();
 static CoreMode mode;
 
+Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
@@ -161,6 +162,9 @@ void Init(int cpu_core)
 	state = CPU_STEPPING;
 
 	ppcState.iCache.Init();
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		breakpoints.ClearAllTemporary();
 }
 
 void Shutdown()

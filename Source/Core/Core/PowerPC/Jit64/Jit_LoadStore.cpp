@@ -98,9 +98,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	if (accessSize == 8 && js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 954 &&
 	    js.next_inst.RS == inst.RD && js.next_inst.RA == inst.RD && !js.next_inst.Rc)
 	{
-		js.downcountAmount++;
-		js.skipnext = true;
-		signExtend = true;
+		if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
+		{
+			js.downcountAmount++;
+			js.skipnext = true;
+			signExtend = true;
+		}
 	}
 
 	// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
@@ -109,6 +112,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 	// ... maybe the throttle one already do that :p
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+	    PowerPC::GetState() != PowerPC::CPU_STEPPING &&
 	    inst.OPCD == 32 &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
 	    (Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||

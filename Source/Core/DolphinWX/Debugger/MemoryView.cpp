@@ -25,10 +25,13 @@
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 enum
 {
@@ -38,6 +41,7 @@ enum
 	IDM_COPYCODE,
 	IDM_RUNTOHERE,
 	IDM_DYNARECRESULTS,
+	IDM_WATCHADDRESS,
 	IDM_TOGGLEMEMORY,
 	IDM_VIEWASFP,
 	IDM_VIEWASASCII,
@@ -161,6 +165,10 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 {
+	CFrame* main_frame = (CFrame*)(GetParent()->GetParent()->GetParent());
+	CCodeWindow* code_window = main_frame->g_pCodeWindow;
+	CWatchWindow* watch_window = code_window->m_WatchWindow;
+
 #if wxUSE_CLIPBOARD
 	wxTheClipboard->Open();
 #endif
@@ -179,6 +187,13 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 			}
 			break;
 #endif
+
+		case IDM_WATCHADDRESS:
+			debugger->AddWatch(selection);
+			if (watch_window)
+				watch_window->NotifyUpdate();
+			Refresh();
+			break;
 
 		case IDM_TOGGLEMEMORY:
 			memory ^= 1;
@@ -215,6 +230,7 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 	menu->Append(IDM_COPYADDRESS, _("Copy &address"));
 	menu->Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
+	menu->Append(IDM_WATCHADDRESS, _("Add to &watch"));
 	menu->Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
 
 	wxMenu* viewAsSubMenu = new wxMenu;

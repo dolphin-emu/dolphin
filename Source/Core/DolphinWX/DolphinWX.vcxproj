@@ -71,6 +71,8 @@
     <ClCompile Include="Debugger\MemoryWindow.cpp" />
     <ClCompile Include="Debugger\RegisterView.cpp" />
     <ClCompile Include="Debugger\RegisterWindow.cpp" />
+    <ClCompile Include="Debugger\WatchView.cpp" />
+    <ClCompile Include="Debugger\WatchWindow.cpp" />
     <ClCompile Include="FifoPlayerDlg.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="FrameAui.cpp" />
@@ -124,6 +126,8 @@
     <ClInclude Include="Debugger\MemoryWindow.h" />
     <ClInclude Include="Debugger\RegisterView.h" />
     <ClInclude Include="Debugger\RegisterWindow.h" />
+    <ClInclude Include="Debugger\WatchView.h" />
+    <ClInclude Include="Debugger\WatchWindow.h" />
     <ClInclude Include="FifoPlayerDlg.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />

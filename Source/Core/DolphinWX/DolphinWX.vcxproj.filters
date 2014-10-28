@@ -90,6 +90,12 @@
     <ClCompile Include="Debugger\RegisterWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="Debugger\WatchView.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger\WatchWindow.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
     <ClCompile Include="InputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
@@ -220,6 +226,12 @@
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\RegisterWindow.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\WatchView.h">
+      <Filter>GUI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\WatchWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
     <ClInclude Include="InputConfigDiag.h">

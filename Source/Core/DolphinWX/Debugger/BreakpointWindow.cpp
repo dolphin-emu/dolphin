@@ -19,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxUtils.h"
@@ -45,9 +46,9 @@ public:
 	{
 		SetToolBitmapSize(wxSize(24, 24));
 
-		m_Bitmaps[Toolbar_Delete] = wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(24, 24));
-		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_breakpoint_png).ConvertToImage().Rescale(24, 24));
-		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(24, 24));
+		m_Bitmaps[Toolbar_Delete] = wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(16, 16));
+		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_breakpoint_png).ConvertToImage().Rescale(16, 16));
+		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(16, 16));
 
 		AddTool(ID_DELETE, _("Delete"), m_Bitmaps[Toolbar_Delete]);
 		Bind(wxEVT_TOOL, &CBreakPointWindow::OnDelete, parent, ID_DELETE);
@@ -66,7 +67,7 @@ public:
 		}
 
 		AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Delete]);
-		Bind(wxEVT_TOOL, &CBreakPointWindow::LoadAll, parent, ID_LOAD);
+		Bind(wxEVT_TOOL, &CBreakPointWindow::Event_LoadAll, parent, ID_LOAD);
 
 		AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_Delete]);
 		Bind(wxEVT_TOOL, &CBreakPointWindow::Event_SaveAll, parent, ID_SAVE);
@@ -112,7 +113,7 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 	m_BreakPointListView = new CBreakPointView(this, wxID_ANY);
 
 	m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
-	              LeftDockable(false).RightDockable(false).BottomDockable(false).Floatable(false));
+	              LeftDockable(true).RightDockable(true).BottomDockable(false).Floatable(false));
 	m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
 	m_mgr.Update();
 }
@@ -180,32 +181,38 @@ void CBreakPointWindow::SaveAll()
 {
 	// simply dump all to bp/mc files in a way we can read again
 	IniFile ini;
-	if (ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
-	{
-		ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
-		ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
-		ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-	}
+	ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false);
+	ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
+	ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
+	ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 }
 
-void CBreakPointWindow::LoadAll(wxCommandEvent& WXUNUSED(event))
+void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
+{
+	LoadAll();
+	return;
+}
+
+void CBreakPointWindow::LoadAll()
 {
 	IniFile ini;
 	BreakPoints::TBreakPointsStr newbps;
 	MemChecks::TMemChecksStr newmcs;
 
-	if (!ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
+	if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", false))
 	{
 		return;
 	}
 
 	if (ini.GetLines("BreakPoints", &newbps, false))
 	{
+		PowerPC::breakpoints.Clear();
 		PowerPC::breakpoints.AddFromStrings(newbps);
 	}
 
 	if (ini.GetLines("MemoryChecks", &newmcs, false))
 	{
+		PowerPC::memchecks.Clear();
 		PowerPC::memchecks.AddFromStrings(newmcs);
 	}
 
