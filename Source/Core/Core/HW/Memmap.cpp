@@ -65,23 +65,21 @@ static bool m_IsInitialized = false; // Save the Init(), Shutdown() state
 
 // 64-bit: Pointers to low-mem (sub-0x10000000) mirror
 // 32-bit: Same as the corresponding physical/virtual pointers.
-u8 *m_pRAM;
-u8 *m_pL1Cache;
-u8 *m_pEXRAM;
-u8 *m_pFakeVMEM;
-//u8 *m_pEFB;
+u8* m_pRAM;
+u8* m_pL1Cache;
+u8* m_pEXRAM;
+u8* m_pFakeVMEM;
 
 // 64-bit: Pointers to high-mem mirrors
 // 32-bit: Same as above
-static u8 *m_pPhysicalRAM;
-static u8 *m_pVirtualCachedRAM;
-static u8 *m_pVirtualUncachedRAM;
-static u8 *m_pPhysicalEXRAM;        // wii only
-static u8 *m_pVirtualCachedEXRAM;   // wii only
-static u8 *m_pVirtualUncachedEXRAM; // wii only
-//u8 *m_pVirtualEFB;
-static u8 *m_pVirtualL1Cache;
-u8 *m_pVirtualFakeVMEM;
+static u8* m_pPhysicalRAM;
+static u8* m_pVirtualCachedRAM;
+static u8* m_pVirtualUncachedRAM;
+static u8* m_pPhysicalEXRAM;        // wii only
+static u8* m_pVirtualCachedEXRAM;   // wii only
+static u8* m_pVirtualUncachedEXRAM; // wii only
+static u8* m_pVirtualL1Cache;
+u8* m_pVirtualFakeVMEM;
 
 // MMIO mapping object.
 MMIO::Mapping* mmio_mapping;
@@ -126,9 +124,7 @@ static const MemoryView views[] =
 
 //  Don't map any memory for the EFB. We want all access to this area to go
 //  through the hardware access handlers.
-#if _ARCH_32
-// {&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
-#endif
+
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
 
 	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
@@ -170,7 +166,6 @@ void DoState(PointerWrap &p)
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
-	//p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
 	if (bFakeVMEM)
@@ -231,7 +226,7 @@ void CopyToEmu(u32 address, const void* data, size_t size)
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 {
-	u8 *ptr = GetPointer(_Address);
+	u8* ptr = GetPointer(_Address);
 	if (ptr != nullptr)
 	{
 		memset(ptr,_iValue,_iLength);
@@ -245,7 +240,7 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 
 void ClearCacheLine(const u32 _Address)
 {
-	u8 *ptr = GetPointer(_Address);
+	u8* ptr = GetPointer(_Address);
 	if (ptr != nullptr)
 	{
 		memset(ptr, 0, 32);
@@ -259,8 +254,8 @@ void ClearCacheLine(const u32 _Address)
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
 {
-	const u8 *src = m_pL1Cache + (_CacheAddr & 0x3FFFF);
-	u8 *dst = GetPointer(_MemAddr);
+	const u8* src = m_pL1Cache + (_CacheAddr & 0x3FFFF);
+	u8* dst = GetPointer(_MemAddr);
 
 	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
@@ -278,8 +273,8 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
 
 void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
 {
-	const u8 *src = GetPointer(_MemAddr);
-	u8 *dst = m_pL1Cache + (_CacheAddr & 0x3FFFF);
+	const u8* src = GetPointer(_MemAddr);
+	u8* dst = m_pL1Cache + (_CacheAddr & 0x3FFFF);
 
 	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
@@ -312,7 +307,7 @@ std::string GetString(u32 em_address, size_t size)
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
 // programs don't have problems directly addressing any part of memory.
 // TODO re-think with respect to other BAT setups...
-u8 *GetPointer(const u32 _Address)
+u8* GetPointer(const u32 _Address)
 {
 	switch (_Address >> 28)
 	{
