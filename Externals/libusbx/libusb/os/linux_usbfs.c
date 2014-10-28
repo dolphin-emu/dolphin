@@ -972,7 +972,7 @@ static int linux_get_parent_info(struct libusb_device *dev, const char *sysfs_di
 	        dev->port_number = atoi(tmp + 1);
 		*tmp = '\0';
 	} else {
-		usbi_warn(ctx, "Can not parse sysfs_dir: %s, no parent info",
+		usbi_warn(ctx, "Cannot parse sysfs_dir: %s, no parent info",
 			  parent_sysfs_dir);
 		free (parent_sysfs_dir);
 		return LIBUSB_SUCCESS;

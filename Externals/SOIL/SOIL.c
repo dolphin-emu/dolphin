@@ -1856,7 +1856,7 @@ unsigned int SOIL_direct_load_DDS(
 	if( NULL == f )
 	{
 		/*	the file doesn't seem to exist (or be open-able)	*/
-		result_string_pointer = "Can not find DDS file";
+		result_string_pointer = "Cannot find DDS file";
 		return 0;
 	}
 	fseek( f, 0, SEEK_END );

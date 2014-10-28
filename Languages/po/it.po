@@ -5367,11 +5367,11 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Il file specificato (%s) non esiste"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:627
-msgid "The name can not be empty"
+msgid "The name cannot be empty"
 msgstr "il nome non può essere vuoto"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:619
-msgid "The name can not contain the character ','"
+msgid "The name cannot contain the character ','"
 msgstr "Il nome non può contenere il carattere ','"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:152

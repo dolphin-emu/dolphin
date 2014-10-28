@@ -4968,11 +4968,11 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Указанный файл (%s) не существует"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:627
-msgid "The name can not be empty"
+msgid "The name cannot be empty"
 msgstr "Имя не может быть пустым"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:619
-msgid "The name can not contain the character ','"
+msgid "The name cannot contain the character ','"
 msgstr "Имя не может содержать знак ','"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:152

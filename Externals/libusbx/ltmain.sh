@@ -2079,7 +2079,7 @@ func_mode_compile ()
       case $arg in
       -shared)
 	test "$build_libtool_libs" != yes && \
-	  func_fatal_configuration "can not build a shared library"
+	  func_fatal_configuration "cannot build a shared library"
 	build_old_libs=no
 	continue
 	;;
@@ -5170,7 +5170,7 @@ func_mode_link ()
       case $arg in
       -shared)
 	test "$build_libtool_libs" != yes && \
-	  func_fatal_configuration "can not build a shared library"
+	  func_fatal_configuration "cannot build a shared library"
 	build_old_libs=no
 	break
 	;;
@@ -6959,7 +6959,7 @@ func_mode_link ()
 	    # Just print a warning and add the library to dependency_libs so
 	    # that the program can be linked against the static library.
 	    echo
-	    $ECHO "*** Warning: This system can not link to static lib archive $lib."
+	    $ECHO "*** Warning: This system cannot link to static lib archive $lib."
 	    echo "*** I have the capability to make that library automatically link in when"
 	    echo "*** you link to this library.  But I can only do this if you have a"
 	    echo "*** shared version of the library, which you do not appear to have."

@@ -5316,11 +5316,11 @@ msgid "The file you specified (%s) does not exist"
 msgstr "指定したファイル (%s) は存在しません"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:627
-msgid "The name can not be empty"
+msgid "The name cannot be empty"
 msgstr "空の名前は使用できません"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:619
-msgid "The name can not contain the character ','"
+msgid "The name cannot contain the character ','"
 msgstr "',' を含む名前は使用できません"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:152

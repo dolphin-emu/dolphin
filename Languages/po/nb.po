@@ -5384,11 +5384,11 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Filen du spesifiserte (%s) eksisterer ikke"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:627
-msgid "The name can not be empty"
+msgid "The name cannot be empty"
 msgstr "Navnet kan ikke være blankt"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:619
-msgid "The name can not contain the character ','"
+msgid "The name cannot contain the character ','"
 msgstr "Navnet kan ikke inneholde tegnet ','"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:152

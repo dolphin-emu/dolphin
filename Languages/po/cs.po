@@ -5321,11 +5321,11 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Zadaný soubor (%s) neexistuje"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:627
-msgid "The name can not be empty"
+msgid "The name cannot be empty"
 msgstr "Jméno nemůže být prázdné"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:619
-msgid "The name can not contain the character ','"
+msgid "The name cannot contain the character ','"
 msgstr "Jméno nemůže obsahovat znak ','"
 
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:152
