@@ -69,7 +69,6 @@ u8* m_pRAM;
 u8* m_pL1Cache;
 u8* m_pEXRAM;
 u8* m_pFakeVMEM;
-//u8* m_pEFB;
 
 // 64-bit: Pointers to high-mem mirrors
 // 32-bit: Same as above
@@ -79,7 +78,6 @@ static u8* m_pVirtualUncachedRAM;
 static u8* m_pPhysicalEXRAM;        // wii only
 static u8* m_pVirtualCachedEXRAM;   // wii only
 static u8* m_pVirtualUncachedEXRAM; // wii only
-//u8* m_pVirtualEFB;
 static u8* m_pVirtualL1Cache;
 u8* m_pVirtualFakeVMEM;
 
@@ -126,9 +124,7 @@ static const MemoryView views[] =
 
 //  Don't map any memory for the EFB. We want all access to this area to go
 //  through the hardware access handlers.
-#if _ARCH_32
-// {&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
-#endif
+
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
 
 	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
@@ -170,7 +166,6 @@ void DoState(PointerWrap &p)
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
-	//p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
 	if (bFakeVMEM)
