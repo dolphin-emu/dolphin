@@ -10,5 +10,7 @@ namespace HotkeysXInput
 {
 
 	void Update();
+	void OnXInputPoll(u32* XInput_State); // XInput
+	bool IsVRSettingsXInput(u32* XInput_State, int Id);
 
 }

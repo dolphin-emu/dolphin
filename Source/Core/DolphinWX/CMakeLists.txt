@@ -50,7 +50,6 @@ set(GUI_SRCS
 	GameListCtrl.cpp
 	GeckoCodeDiag.cpp
 	HotkeyDlg.cpp
-	HotkeysXInput.cpp
 	ISOFile.cpp
 	ISOProperties.cpp
 	InputConfigDiag.cpp

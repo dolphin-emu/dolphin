@@ -108,7 +108,6 @@
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
-    <ClCompile Include="HotkeysXInput.cpp" />
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
     <ClCompile Include="PostProcessingConfigDiag.cpp" />
@@ -118,7 +117,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigVR.h" />
-    <ClInclude Include="HotkeysXInput.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="AboutDolphin.h" />
     <ClInclude Include="ARCodeAddEdit.h" />

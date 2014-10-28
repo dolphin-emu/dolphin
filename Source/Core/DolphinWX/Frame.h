@@ -126,7 +126,6 @@ public:
 	void PopulateSavedPerspectives();
 	static void ConnectWiimote(int wm_idx, bool connect);
 	void UpdateTitle(const std::string &str);
-	static void OnXInputPoll(u32* XInput_State); // XInput
 
 	const CGameListCtrl *GetGameListCtrl() const;
 	virtual wxMenuBar* GetMenuBar() const override;
