@@ -18,6 +18,7 @@ struct InstructionInfo
 	bool hasImmediate;
 	bool isMemoryWrite;
 	bool byteSwap;
+	bool isXmm;
 	u64 immediate;
 	s32 displacement;
 
