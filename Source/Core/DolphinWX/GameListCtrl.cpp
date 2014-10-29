@@ -1280,6 +1280,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 		1000,
 		this,
 		wxPD_APP_MODAL |
+		wxPD_AUTO_HIDE |
 		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
 		wxPD_SMOOTH
 		);
