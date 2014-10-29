@@ -61,7 +61,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DolphinWX/HotkeysXInput.h"
+#include "InputCommon/HotkeysXInput.h"
 
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/VideoBackendBase.h"

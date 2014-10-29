@@ -52,7 +52,6 @@ set(GUI_SRCS
 	FrameTools.cpp
 	GameListCtrl.cpp
 	HotkeyDlg.cpp
-	HotkeysXInput.cpp
 	ISOFile.cpp
 	ISOProperties.cpp
 	InputConfigDiag.cpp

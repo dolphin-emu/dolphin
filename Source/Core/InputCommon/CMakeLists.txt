@@ -1,5 +1,6 @@
 set(SRCS	ControllerEmu.cpp
 			InputConfig.cpp
+			HotkeysXInput.cpp
 			ControllerInterface/Sixense/RazerHydra.cpp
 			ControllerInterface/ControllerInterface.cpp
 			ControllerInterface/Device.cpp

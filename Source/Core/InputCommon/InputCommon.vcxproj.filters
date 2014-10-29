@@ -53,6 +53,7 @@
     <ClCompile Include="ControllerInterface\Sixense\RazerHydra.cpp">
       <Filter>ControllerInterface\Sixense</Filter>
     </ClCompile>
+    <ClCompile Include="HotkeysXInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu.h" />
@@ -94,6 +95,7 @@
     <ClInclude Include="ControllerInterface\Sixense\RazerHydra.h">
       <Filter>ControllerInterface\Sixense</Filter>
     </ClInclude>
+    <ClInclude Include="HotkeysXInput.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
