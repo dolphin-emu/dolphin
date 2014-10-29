@@ -45,8 +45,11 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	{
 		// Insert layout parameters
 		uid_data->stereo = g_ActiveConfig.bStereo;
-		out.Write("layout(triangles, invocations = %d) in;\n", g_ActiveConfig.bStereo ? 2 : 1);
-		out.Write("layout(triangle_strip, max_vertices = 3) out;\n");
+		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
+			out.Write("layout(triangles, invocations = %d) in;\n", g_ActiveConfig.bStereo ? 2 : 1);
+		else
+			out.Write("layout(triangles) in;\n");
+		out.Write("layout(triangle_strip, max_vertices = %d) out;\n", g_ActiveConfig.backend_info.bSupportsGSInstancing ? 3 : 6);
 	}
 
 	out.Write("%s", s_lighting_struct);
@@ -67,9 +70,12 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("flat out int eye;\n");
 
 	out.Write("void main()\n{\n");
+	if (!g_ActiveConfig.backend_info.bSupportsGSInstancing)
+		out.Write("\tfor (eye = 0; eye < %d; ++eye) {\n", g_ActiveConfig.bStereo ? 2 : 1);
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");
-	out.Write("\t\teye = gl_InvocationID;\n");
+	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
+		out.Write("\t\teye = gl_InvocationID;\n");
 	if (g_ActiveConfig.bStereo)
 		out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[eye * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 3], v[i].rawpos)); \n");
 	out.Write("\t\tgl_Position = o.pos;\n");
@@ -77,6 +83,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");
 	out.Write("\tEndPrimitive();\n");
+	if (!g_ActiveConfig.backend_info.bSupportsGSInstancing)
+		out.Write("\t}\n");
 	out.Write("}\n");
 
 	if (is_writing_shadercode)
