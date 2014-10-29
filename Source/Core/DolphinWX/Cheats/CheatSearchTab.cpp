@@ -126,7 +126,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
-	const u8* const memptr = Memory::GetPointer(0);
+	const u8* const memptr = Memory::m_pRAM;
 	if (memptr == nullptr)
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
@@ -158,7 +158,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
-	const u8* const memptr = Memory::GetPointer(0);
+	const u8* const memptr = Memory::m_pRAM;
 	if (memptr == nullptr)
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
