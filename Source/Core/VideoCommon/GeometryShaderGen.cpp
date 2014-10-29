@@ -69,11 +69,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 		"\tfloat4 " I_STEREOPROJECTION"[8];\n"
 		"};\n");
 
-	ShaderCode code;
-	char buf[16384];
-	code.SetBuffer(buf);
-	GenerateVSOutputStructForGS(code, ApiType);
-	out.Write(code.GetBuffer());
+	GenerateVSOutputStruct(out, ApiType);
 
 	out.Write("centroid in VS_OUTPUT v[];\n");
 	out.Write("centroid out VS_OUTPUT o;\n");

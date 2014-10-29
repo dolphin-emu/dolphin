@@ -277,11 +277,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		);
 	}
 
-	ShaderCode code;
-	char buf[16384];
-	code.SetBuffer(buf);
-	GenerateVSOutputStructForGS(code, ApiType);
-	out.Write(code.GetBuffer());
+	GenerateVSOutputStruct(out, ApiType);
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);

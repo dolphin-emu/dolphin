@@ -467,7 +467,12 @@ void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE
 	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
 }
 
-void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type)
+void GenerateVSOutputStruct(ShaderCode& object, API_TYPE api_type)
 {
 	GenerateVSOutputStruct<ShaderCode>(object, api_type);
+}
+
+void GenerateVSOutputStruct(ShaderGeneratorInterface& object, API_TYPE api_type)
+{
+	// Ignore unknown types
 }
