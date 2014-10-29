@@ -158,7 +158,6 @@ void VertexManager::Draw(u32 stride)
 		if (m_lineShader.SetShader(components, lineWidth,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 			D3D::stateman->Apply();
@@ -167,7 +166,6 @@ void VertexManager::Draw(u32 stride)
 			INCSTAT(stats.thisFrame.numDrawCalls);
 
 			D3D::stateman->setGeometryShader(nullptr);
-			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
 	else //if (current_primitive_type == PRIMITIVE_POINTS)
@@ -185,8 +183,6 @@ void VertexManager::Draw(u32 stride)
 		if (m_pointShader.SetShader(components, pointSize,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
-			
 			D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 			D3D::stateman->Apply();
@@ -195,7 +191,6 @@ void VertexManager::Draw(u32 stride)
 			INCSTAT(stats.thisFrame.numDrawCalls);
 
 			D3D::stateman->setGeometryShader(nullptr);
-			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
 }

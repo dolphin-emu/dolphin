@@ -33,10 +33,10 @@ template<typename T> AutoState<T>::~AutoState()
 	state = nullptr;
 }
 
-StateManager::StateManager() 
+StateManager::StateManager()
 	: m_currentBlendState(nullptr)
 	, m_currentDepthState(nullptr)
-	, m_currentRasterizerState(nullptr) 
+	, m_currentRasterizerState(nullptr)
 	, m_dirtyFlags(~0u)
 {
 	memset(&m_pending, 0, sizeof(m_pending));
@@ -97,7 +97,7 @@ void StateManager::Apply()
 
 	if (m_dirtyFlags & dirtyConstants)
 	{
-		if (m_current.pixelConstants[0] != m_pending.pixelConstants[0] || 
+		if (m_current.pixelConstants[0] != m_pending.pixelConstants[0] ||
 			m_current.pixelConstants[1] != m_pending.pixelConstants[1])
 		{
 			D3D::context->PSSetConstantBuffers(0, m_pending.pixelConstants[1] ? 2 : 1, m_pending.pixelConstants);

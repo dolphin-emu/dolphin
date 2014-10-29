@@ -300,7 +300,7 @@ private:
 		ID3D11VertexShader* vertexShader;
 		ID3D11GeometryShader* geometryShader;
 	};
-	
+
 	Resources m_pending;
 	Resources m_current;
 };
