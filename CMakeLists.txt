@@ -11,6 +11,9 @@ option(ENABLE_QT "Enable Qt (use the experimental Qt interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
+if(APPLE)
+	option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
+endif()
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
@@ -219,10 +222,18 @@ if(ENABLE_LTO)
 endif()
 
 if(APPLE)
-	# Ignore MacPorts and Fink and any other locally installed packages that
-	# might prevent building a distributable binary.
-	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
-	set(ENV{PATH} /usr/bin:/bin:/usr/sbin:/sbin)
+	if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
+		# Hack up the path to prioritize the path to built-in OS libraries to
+		# increase the chance of not depending on a bunch of copies of them
+		# installed by MacPorts, Fink, Homebrew, etc, and ending up copying
+		# them into the bundle.  Since we optionally depend on libraries which
+		# are not part of OS X (ffmpeg, libusb, etc.), however, don't remove
+		# the default path entirely as was done in a previous version of this
+		# file.  This is still kinda evil, since it defeats the user's path
+		# settings...
+		# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
+		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
+	endif()
 
 	# Some of our code contains Objective C constructs.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c -stdlib=libc++")
