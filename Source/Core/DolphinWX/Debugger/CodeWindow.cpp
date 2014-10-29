@@ -342,7 +342,6 @@ void CCodeWindow::StepOut()
 		PowerPC::CoreMode oldMode = PowerPC::GetMode();
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 		UGeckoInstruction inst = Memory::Read_Instruction(PC);
-		GekkoOPInfo* opinfo = GetOpInfo(inst);
 		while (inst.hex != 0x4e800020 && steps < timeout) // check for blr
 		{
 			if (inst.LK)
@@ -361,7 +360,6 @@ void CCodeWindow::StepOut()
 				++steps;
 			}
 			inst = Memory::Read_Instruction(PC);
-			opinfo = GetOpInfo(inst);
 		}
 
 		PowerPC::SingleStep();

@@ -60,7 +60,7 @@ static void UpdateWatchAddr(int count, u32 value)
 
 static void SetWatchName(int count, const std::string value)
 {
-	if ((count - 1) < PowerPC::watches.GetWatches().size())
+	if ((count - 1) < (int)PowerPC::watches.GetWatches().size())
 	{
 		PowerPC::watches.UpdateName(count - 1, value);
 	}
@@ -91,7 +91,7 @@ static wxString GetValueByRowCol(int row, int col)
 		default: return wxEmptyString;
 		}
 	}
-	else if (row <= PowerPC::watches.GetWatches().size())
+	else if (row <= (int)PowerPC::watches.GetWatches().size())
 	{
 		if (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		{
