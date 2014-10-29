@@ -141,8 +141,12 @@ inline u64 _rotr64(u64 x, unsigned int shift)
 			_configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
 
 			// Set all locale categories
+			// FIXME: newlocale() always returns empty categories.
 			for (int i = LC_MIN; i <= LC_MAX; i++)
 				setlocale(i, new_locale->locinfo->lc_category[i].locale);
+
+			// Set the locale conventions
+			*(localeconv()) = *(new_locale->locinfo->lconv);
 		}
 
 		return old_locale;
