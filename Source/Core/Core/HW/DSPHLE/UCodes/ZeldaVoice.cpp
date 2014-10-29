@@ -438,7 +438,7 @@ void ZeldaUCode::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	Decoder21_ReadAudio(PB, _RealSize, _Buffer);
 }
 
-void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
+void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16* _Buffer)
 {
 	// 0af6
 	if (!size)
@@ -461,9 +461,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 	// ACC0 is the address
 	// ACC1 is the read size
 
-	const u32 ram_mask = 0x1FFFFFF;
-	const u8 *source = Memory::GetPointer(0x80000000);
-	const u16 *src = (u16 *)(source + (ACC0 & ram_mask));
+	const u16* src = (u16*) Memory::GetPointer(ACC0 & Memory::RAM_MASK);
 
 	for (u32 i = 0; i < (ACC1 >> 16); i++)
 	{
