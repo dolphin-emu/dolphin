@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexManager.h"
@@ -127,17 +128,19 @@ void VertexManager::Draw(u32 stride)
 	u32 components = VertexLoaderManager::GetCurrentVertexFormat()->m_components;
 	u32 indices = IndexGenerator::GetIndexLen();
 
-	u32 zero = 0;
-	D3D::context->IASetVertexBuffers(0, 1, &m_buffers[m_currentBuffer], &stride, &zero);
-	D3D::context->IASetIndexBuffer(m_buffers[m_currentBuffer], DXGI_FORMAT_R16_UINT, 0);
+	D3D::stateman->setVertexBuffer(m_buffers[m_currentBuffer], stride, 0);
+	D3D::stateman->setIndexBuffer(m_buffers[m_currentBuffer]);
 
 	u32 baseVertex = m_vertexDrawOffset / stride;
 	u32 startIndex = m_indexDrawOffset / sizeof(u16);
 
 	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
-		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+		D3D::stateman->Apply();
 		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
+
 		INCSTAT(stats.thisFrame.numDrawCalls);
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
@@ -156,11 +159,14 @@ void VertexManager::Draw(u32 stride)
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
-			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+			D3D::stateman->Apply();
 			D3D::context->DrawIndexed(indices, startIndex, baseVertex);
+
 			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			D3D::context->GSSetShader(nullptr, nullptr, 0);
+			D3D::stateman->setGeometryShader(nullptr);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
@@ -180,11 +186,15 @@ void VertexManager::Draw(u32 stride)
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
-			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+			
+			D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+			D3D::stateman->Apply();
 			D3D::context->DrawIndexed(indices, startIndex, baseVertex);
+
 			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			D3D::context->GSSetShader(nullptr, nullptr, 0);
+			D3D::stateman->setGeometryShader(nullptr);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}

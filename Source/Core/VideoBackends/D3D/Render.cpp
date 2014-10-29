@@ -356,7 +356,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
-		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
+		D3D::stateman->setPixelConstants(0, access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), nullptr);
 		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
@@ -1006,15 +1006,12 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	gx_state.raster.wireframe = g_ActiveConfig.bWireFrame;
 	D3D::stateman->PushRasterizerState(gx_state_cache.Get(gx_state.raster));
 
-	ID3D11SamplerState* samplerstate[8];
 	for (unsigned int stage = 0; stage < 8; stage++)
 	{
+		// TODO: cache SamplerState directly, not d3d object
 		gx_state.sampler[stage].max_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-		samplerstate[stage] = gx_state_cache.Get(gx_state.sampler[stage]);
+		D3D::stateman->setSampler(stage, gx_state_cache.Get(gx_state.sampler[stage]));
 	}
-	D3D::context->PSSetSamplers(0, 8, samplerstate);
-
-	D3D::stateman->Apply();
 
 	if (bUseDstAlpha)
 	{
@@ -1023,12 +1020,14 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		SetLogicOpMode();
 	}
 
-	ID3D11Buffer* const_buffers[2] = {PixelShaderCache::GetConstantBuffer(), VertexShaderCache::GetConstantBuffer()};
-	D3D::context->PSSetConstantBuffers(0, 1 + g_ActiveConfig.bEnablePixelLighting, const_buffers);
-	D3D::context->VSSetConstantBuffers(0, 1, const_buffers+1);
+	ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
+	ID3D11Buffer* pixelConstants = PixelShaderCache::GetConstantBuffer();
 
-	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), nullptr, 0);
-	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), nullptr, 0);
+	D3D::stateman->setPixelConstants(pixelConstants, g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
+	D3D::stateman->setVertexConstants(vertexConstants);
+
+	D3D::stateman->setPixelShader(PixelShaderCache::GetActiveShader());
+	D3D::stateman->setVertexShader(VertexShaderCache::GetActiveShader());
 }
 
 void Renderer::RestoreState()
@@ -1045,8 +1044,6 @@ void Renderer::ApplyCullDisable()
 
 	ID3D11RasterizerState* raststate = gx_state_cache.Get(rast);
 	D3D::stateman->PushRasterizerState(raststate);
-
-	D3D::stateman->Apply();
 }
 
 void Renderer::RestoreCull()

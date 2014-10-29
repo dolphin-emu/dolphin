@@ -4,10 +4,11 @@
 
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
-#include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/PSTextureEncoder.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/TextureEncoder.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
@@ -29,7 +30,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
+	D3D::stateman->setTexture(stage, texture->GetSRV());
 }
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
@@ -143,7 +144,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 		}
-		D3D::context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
+		D3D::stateman->setPixelConstants(efbcopycbuf[cbufid]);
 
 		const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		// TODO: try targetSource.asRECT();

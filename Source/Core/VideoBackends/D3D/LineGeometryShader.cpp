@@ -6,6 +6,7 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/LineGeometryShader.h"
 #include "VideoCommon/VertexShaderGen.h"
 
@@ -223,8 +224,8 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 			DEBUG_LOG(VIDEO, "Line params: width %f, texOffset %f, vpWidth %f, vpHeight %f",
 				lineWidth, texOffset, vpWidth, vpHeight);
 
-			D3D::context->GSSetShader(shaderIt->second, nullptr, 0);
-			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
+			D3D::stateman->setGeometryShader(shaderIt->second);
+			D3D::stateman->setGeometryConstants(m_paramsBuffer);
 
 			return true;
 		}
