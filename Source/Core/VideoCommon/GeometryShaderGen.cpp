@@ -67,19 +67,19 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("centroid in VS_OUTPUT v[];\n");
 	out.Write("centroid out VS_OUTPUT o;\n");
 
-	out.Write("flat out int eye;\n");
+	out.Write("flat out int layer;\n");
 
 	out.Write("void main()\n{\n");
 	if (!g_ActiveConfig.backend_info.bSupportsGSInstancing)
-		out.Write("\tfor (eye = 0; eye < %d; ++eye) {\n", g_ActiveConfig.bStereo ? 2 : 1);
+		out.Write("\tfor (layer = 0; layer < %d; ++layer) {\n", g_ActiveConfig.bStereo ? 2 : 1);
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
-		out.Write("\t\teye = gl_InvocationID;\n");
+		out.Write("\t\tlayer = gl_InvocationID;\n");
 	if (g_ActiveConfig.bStereo)
-		out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[eye * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[eye * 4 + 3], v[i].rawpos)); \n");
+		out.Write("\t\to.pos = float4(dot(" I_STEREOPROJECTION"[layer * 4 + 0], v[i].rawpos), dot(" I_STEREOPROJECTION"[layer * 4 + 1], v[i].rawpos), dot(" I_STEREOPROJECTION"[layer * 4 + 2], v[i].rawpos), dot(" I_STEREOPROJECTION"[layer * 4 + 3], v[i].rawpos)); \n");
 	out.Write("\t\tgl_Position = o.pos;\n");
-	out.Write("\t\tgl_Layer = eye;\n");
+	out.Write("\t\tgl_Layer = layer;\n");
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");
 	out.Write("\tEndPrimitive();\n");

@@ -323,7 +323,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		uid_data->stereo = g_ActiveConfig.bStereo;
 		if (g_ActiveConfig.bStereo)
-			out.Write("flat in int eye;\n");
+			out.Write("flat in int layer;\n");
 
 		out.Write("void main()\n{\n");
 
@@ -926,7 +926,7 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	if (ApiType == API_D3D)
 		out.Write("iround(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.bStereo ? "eye" : "0.0", texswap);
+		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.bStereo ? "layer" : "0.0", texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
