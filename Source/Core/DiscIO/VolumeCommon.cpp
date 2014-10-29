@@ -30,8 +30,10 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		case 'M': // Japanese import to PAL regions
 		case 'S': // Spanish-speaking regions
 		case 'P':
-		case 'U': // Australia
 			return IVolume::COUNTRY_EUROPE;
+
+		case 'U': // Australia
+			return IVolume::COUNTRY_AUSTRALIA;
 
 		case 'F':
 			return IVolume::COUNTRY_FRANCE;
