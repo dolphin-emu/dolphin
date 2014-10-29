@@ -364,7 +364,7 @@ TextureCache::TextureCache()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
-	const char *VProgram =
+	const char *VProgram = (g_ActiveConfig.bStereo) ?
 		"out vec2 v_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
@@ -373,9 +373,19 @@ TextureCache::TextureCache()
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
 		"	v_uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+		"}\n" :
+		"out vec3 f_uv0;\n"
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
+		"uniform vec4 copy_position;\n" // left, top, right, bottom
+		"void main()\n"
+		"{\n"
+		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+		"	f_uv0.xy = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy);\n"
+		"	f_uv0.z = 0;\n"
+		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
-	const char *GProgram =
+	const char *GProgram = (g_ActiveConfig.bStereo) ?
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = 6) out;\n"
 		"in vec2 v_uv0[];\n"
@@ -393,7 +403,7 @@ TextureCache::TextureCache()
 		"		}\n"
 		"		EndPrimitive();\n"
 		"	}\n"
-		"}\n";
+		"}\n" : nullptr;
 
 	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, VProgram, pColorMatrixProg, GProgram);
 	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, VProgram, pDepthMatrixProg, GProgram);
