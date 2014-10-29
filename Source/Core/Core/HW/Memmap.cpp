@@ -214,13 +214,30 @@ u32 Read_Instruction(const u32 em_address)
 	return inst.hex;
 }
 
+static inline bool ValidCopyRange(u32 address, size_t size)
+{
+	return (GetPointer(address) != nullptr &&
+	        GetPointer(address + u32(size)) != nullptr &&
+	        size < EXRAM_SIZE); // Make sure we don't have a range spanning seperate 2 banks
+}
+
 void CopyFromEmu(void* data, u32 address, size_t size)
 {
+	if (!ValidCopyRange(address, size))
+	{
+		PanicAlert("Invalid range in CopyFromEmu. %lx bytes from 0x%08x", size, address);
+		return;
+	}
 	memcpy(data, GetPointer(address), size);
 }
 
 void CopyToEmu(u32 address, const void* data, size_t size)
 {
+	if (!ValidCopyRange(address, size))
+	{
+		PanicAlert("Invalid range in CopyToEmu. %lx bytes to 0x%08x", size, address);
+		return;
+	}
 	memcpy(GetPointer(address), data, size);
 }
 
