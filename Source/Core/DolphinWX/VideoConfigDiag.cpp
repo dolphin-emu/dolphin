@@ -434,7 +434,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
-	szr_enh->Add(CreateCheckBox(page_enh, _("Stereo 3D"), wxGetTranslation(stereo_3d_desc), vconfig.bStereo));
+	
+	if (vconfig.backend_info.bSupportsStereoscopy)
+		szr_enh->Add(CreateCheckBox(page_enh, _("Stereo 3D"), wxGetTranslation(stereo_3d_desc), vconfig.bStereo));
 
 	wxStaticBoxSizer* const group_enh = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
 	group_enh->Add(szr_enh, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
