@@ -141,7 +141,7 @@ void VertexLoader::CompileVertexTranslator()
 
 	m_compiledCode = GetCodePtr();
 	// We only use RAX (caller saved) and RBX (callee saved).
-	ABI_PushRegistersAndAdjustStack(1 << RBX, 8);
+	ABI_PushRegistersAndAdjustStack({RBX}, 8);
 
 	// save count
 	MOV(64, R(RBX), R(ABI_PARAM1));
@@ -402,7 +402,7 @@ void VertexLoader::CompileVertexTranslator()
 	SUB(64, R(RBX), Imm8(1));
 
 	J_CC(CC_NZ, loop_start);
-	ABI_PopRegistersAndAdjustStack(1 << RBX, 8);
+	ABI_PopRegistersAndAdjustStack({RBX}, 8);
 	RET();
 #endif
 }

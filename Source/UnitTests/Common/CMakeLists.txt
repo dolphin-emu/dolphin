@@ -1,4 +1,5 @@
 add_dolphin_test(BitFieldTest BitFieldTest.cpp)
+add_dolphin_test(BitSetTest BitSetTest.cpp)
 add_dolphin_test(CommonFuncsTest CommonFuncsTest.cpp)
 add_dolphin_test(EventTest EventTest.cpp)
 add_dolphin_test(FifoQueueTest FifoQueueTest.cpp)

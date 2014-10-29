@@ -241,9 +241,9 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
 	}
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
-	ABI_PushRegistersAndAdjustStack(0, 0);
+	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionC((void*)instr, inst.hex);
-	ABI_PopRegistersAndAdjustStack(0, 0);
+	ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
 void Jit64::unknown_instruction(UGeckoInstruction inst)
@@ -260,9 +260,9 @@ void Jit64::HLEFunction(UGeckoInstruction _inst)
 {
 	gpr.Flush();
 	fpr.Flush();
-	ABI_PushRegistersAndAdjustStack(0, 0);
+	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
-	ABI_PopRegistersAndAdjustStack(0, 0);
+	ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
 void Jit64::DoNothing(UGeckoInstruction _inst)
@@ -300,18 +300,18 @@ bool Jit64::Cleanup()
 
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
-		ABI_PushRegistersAndAdjustStack(0, 0);
+		ABI_PushRegistersAndAdjustStack({}, 0);
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
-		ABI_PopRegistersAndAdjustStack(0, 0);
+		ABI_PopRegistersAndAdjustStack({}, 0);
 		did_something = true;
 	}
 
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
 	if (MMCR0.Hex || MMCR1.Hex)
 	{
-		ABI_PushRegistersAndAdjustStack(0, 0);
+		ABI_PushRegistersAndAdjustStack({}, 0);
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
-		ABI_PopRegistersAndAdjustStack(0, 0);
+		ABI_PopRegistersAndAdjustStack({}, 0);
 		did_something = true;
 	}
 
@@ -426,9 +426,9 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
 	MOV(32, PPCSTATE(pc), R(RSCRATCH));
 	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	Cleanup();
-	ABI_PushRegistersAndAdjustStack(0, 0);
+	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	ABI_PopRegistersAndAdjustStack(0, 0);
+	ABI_PopRegistersAndAdjustStack({}, 0);
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -438,9 +438,9 @@ void Jit64::WriteExceptionExit()
 	Cleanup();
 	MOV(32, R(RSCRATCH), PPCSTATE(pc));
 	MOV(32, PPCSTATE(npc), R(RSCRATCH));
-	ABI_PushRegistersAndAdjustStack(0, 0);
+	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	ABI_PopRegistersAndAdjustStack(0, 0);
+	ABI_PopRegistersAndAdjustStack({}, 0);
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -450,9 +450,9 @@ void Jit64::WriteExternalExceptionExit()
 	Cleanup();
 	MOV(32, R(RSCRATCH), PPCSTATE(pc));
 	MOV(32, PPCSTATE(npc), R(RSCRATCH));
-	ABI_PushRegistersAndAdjustStack(0, 0);
+	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-	ABI_PopRegistersAndAdjustStack(0, 0);
+	ABI_PopRegistersAndAdjustStack({}, 0);
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -565,9 +565,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (ImHereDebug)
 	{
-		ABI_PushRegistersAndAdjustStack(0, 0);
+		ABI_PushRegistersAndAdjustStack({}, 0);
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
-		ABI_PopRegistersAndAdjustStack(0, 0);
+		ABI_PopRegistersAndAdjustStack({}, 0);
 	}
 
 	// Conditionally add profiling code.
@@ -642,7 +642,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			js.fifoBytesThisBlock -= 32;
 			MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-			u32 registersInUse = CallerSavedRegistersInUse();
+			BitSet32 registersInUse = CallerSavedRegistersInUse();
 			ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
 			ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -727,9 +727,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				fpr.Flush();
 
 				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				ABI_PushRegistersAndAdjustStack(0, 0);
+				ABI_PushRegistersAndAdjustStack({}, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
-				ABI_PopRegistersAndAdjustStack(0, 0);
+				ABI_PopRegistersAndAdjustStack({}, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 
@@ -744,29 +744,28 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// output, which needs to be bound in the actual instruction compilation.
 			// TODO: make this smarter in the case that we're actually register-starved, i.e.
 			// prioritize the more important registers.
-			for (int k = 0; k < 3 && gpr.NumFreeRegisters() >= 2; k++)
+			for (int reg : ops[i].regsIn)
 			{
-				int reg = ops[i].regsIn[k];
-				if (reg >= 0 && (ops[i].gprInReg & (1 << reg)) && !gpr.R(reg).IsImm())
+				if (gpr.NumFreeRegisters() < 2)
+					break;
+				if (ops[i].gprInReg[reg] && !gpr.R(reg).IsImm())
 					gpr.BindToRegister(reg, true, false);
 			}
-			for (int k = 0; k < 4 && fpr.NumFreeRegisters() >= 2; k++)
+			for (int reg : ops[i].regsOut)
 			{
-				int reg = ops[i].fregsIn[k];
-				if (reg >= 0 && (ops[i].fprInXmm & (1 << reg)))
-					fpr.BindToRegister(reg, true, false);
+				if (fpr.NumFreeRegisters() < 2)
+					break;
+				if (ops[i].fprInXmm[reg])
+					gpr.BindToRegister(reg, true, false);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
 			// If we have a register that will never be used again, flush it.
-			for (int j = 0; j < 32; j++)
-			{
-				if (!(ops[i].gprInUse & (1 << j)))
-					gpr.StoreFromRegister(j);
-				if (!(ops[i].fprInUse & (1 << j)))
-					fpr.StoreFromRegister(j);
-			}
+			for (int j : ~ops[i].gprInUse)
+				gpr.StoreFromRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreFromRegister(j);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
@@ -852,15 +851,15 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	return normalEntry;
 }
 
-u32 Jit64::CallerSavedRegistersInUse()
+BitSet32 Jit64::CallerSavedRegistersInUse()
 {
-	u32 result = 0;
+	BitSet32 result;
 	for (int i = 0; i < NUMXREGS; i++)
 	{
 		if (!gpr.IsFreeX(i))
-			result |= (1 << i);
+			result[i] = true;
 		if (!fpr.IsFreeX(i))
-			result |= (1 << (16 + i));
+			result[16 + i] = true;
 	}
 	return result & ABI_ALL_CALLER_SAVED;
 }

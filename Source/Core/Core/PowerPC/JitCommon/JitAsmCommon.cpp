@@ -10,14 +10,11 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define QUANTIZED_REGS_TO_SAVE \
-	(ABI_ALL_CALLER_SAVED & ~(\
-		(1 << RSCRATCH) | \
-		(1 << RSCRATCH2) | \
-		(1 << RSCRATCH_EXTRA)| \
-		(1 << (XMM0+16)) | \
-		(1 << (XMM1+16))))
+	(ABI_ALL_CALLER_SAVED & ~BitSet32 { \
+		RSCRATCH, RSCRATCH2, RSCRATCH_EXTRA, XMM0+16, XMM1+16 \
+	})
 
-#define QUANTIZED_REGS_TO_SAVE_LOAD (QUANTIZED_REGS_TO_SAVE | (1 << RSCRATCH2))
+#define QUANTIZED_REGS_TO_SAVE_LOAD (QUANTIZED_REGS_TO_SAVE | BitSet32 { RSCRATCH2 })
 
 using namespace Gen;
 

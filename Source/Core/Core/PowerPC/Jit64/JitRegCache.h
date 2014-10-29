@@ -44,8 +44,8 @@ protected:
 
 	virtual const int *GetAllocationOrder(size_t& count) = 0;
 
-	virtual u32 GetRegUtilization() = 0;
-	virtual u32 CountRegsIn(size_t preg, u32 lookahead) = 0;
+	virtual BitSet32 GetRegUtilization() = 0;
+	virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) = 0;
 
 	Gen::XEmitter *emit;
 
@@ -137,8 +137,8 @@ public:
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	const int* GetAllocationOrder(size_t& count) override;
 	void SetImmediate32(size_t preg, u32 immValue);
-	u32 GetRegUtilization();
-	u32 CountRegsIn(size_t preg, u32 lookahead);
+	BitSet32 GetRegUtilization() override;
+	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
 };
 
 
@@ -149,6 +149,6 @@ public:
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	const int* GetAllocationOrder(size_t& count) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
-	u32 GetRegUtilization();
-	u32 CountRegsIn(size_t preg, u32 lookahead);
+	BitSet32 GetRegUtilization() override;
+	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
 };

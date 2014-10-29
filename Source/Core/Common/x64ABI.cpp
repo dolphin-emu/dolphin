@@ -10,31 +10,23 @@ using namespace Gen;
 
 // Shared code between Win64 and Unix64
 
-void XEmitter::ABI_CalculateFrameSize(u32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp)
+void XEmitter::ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp)
 {
 	size_t shadow = 0;
 #if defined(_WIN32)
 	shadow = 0x20;
 #endif
 
-	int count = 0;
-	for (int r = 0; r < 16; r++)
-	{
-		if (mask & (1 << r))
-			count++;
-	}
+	int count = (mask & ABI_ALL_GPRS).Count();
 	rsp_alignment -= count * 8;
 	size_t subtraction = 0;
-	if (mask & 0xffff0000)
+	int fpr_count = (mask & ABI_ALL_FPRS).Count();
+	if (fpr_count)
 	{
 		// If we have any XMMs to save, we must align the stack here.
 		subtraction = rsp_alignment & 0xf;
 	}
-	for (int x = 0; x < 16; x++)
-	{
-		if (mask & (1 << (16 + x)))
-			subtraction += 16;
-	}
+	subtraction += 16 * fpr_count;
 	size_t xmm_base_subtraction = subtraction;
 	subtraction += needed_frame_size;
 	subtraction += shadow;
@@ -47,44 +39,35 @@ void XEmitter::ABI_CalculateFrameSize(u32 mask, size_t rsp_alignment, size_t nee
 	*xmm_offsetp = subtraction - xmm_base_subtraction;
 }
 
-size_t XEmitter::ABI_PushRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size)
+size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size)
 {
 	size_t shadow, subtraction, xmm_offset;
 	ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction, &xmm_offset);
 
-	for (int r = 0; r < 16; r++)
-	{
-		if (mask & (1 << r))
-			PUSH((X64Reg) r);
-	}
+	for (int r : mask & ABI_ALL_GPRS)
+		PUSH((X64Reg) r);
 
 	if (subtraction)
 		SUB(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));
 
-	for (int x = 0; x < 16; x++)
+	for (int x : mask & ABI_ALL_FPRS)
 	{
-		if (mask & (1 << (16 + x)))
-		{
-			MOVAPD(MDisp(RSP, (int)xmm_offset), (X64Reg) x);
-			xmm_offset += 16;
-		}
+		MOVAPD(MDisp(RSP, (int)xmm_offset), (X64Reg) (x - 16));
+		xmm_offset += 16;
 	}
 
 	return shadow;
 }
 
-void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size)
+void XEmitter::ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size)
 {
 	size_t shadow, subtraction, xmm_offset;
 	ABI_CalculateFrameSize(mask, rsp_alignment, needed_frame_size, &shadow, &subtraction, &xmm_offset);
 
-	for (int x = 0; x < 16; x++)
+	for (int x : mask & ABI_ALL_FPRS)
 	{
-		if (mask & (1 << (16 + x)))
-		{
-			MOVAPD((X64Reg) x, MDisp(RSP, (int)xmm_offset));
-			xmm_offset += 16;
-		}
+		MOVAPD((X64Reg) (x - 16), MDisp(RSP, (int)xmm_offset));
+		xmm_offset += 16;
 	}
 
 	if (subtraction)
@@ -92,10 +75,8 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, si
 
 	for (int r = 15; r >= 0; r--)
 	{
-		if (mask & (1 << r))
-		{
+		if (mask[r])
 			POP((X64Reg) r);
-		}
 	}
 }
 

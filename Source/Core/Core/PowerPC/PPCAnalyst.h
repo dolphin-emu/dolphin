@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/PPCTables.h"
 
@@ -26,10 +27,10 @@ struct CodeOp //16B
 	u32 address;
 	u32 branchTo; //if 0, not a branch
 	int branchToIndex; //index of target block
-	s8 regsOut[2];
-	s8 regsIn[3];
+	BitSet32 regsOut;
+	BitSet32 regsIn;
+	BitSet32 fregsIn;
 	s8 fregOut;
-	s8 fregsIn[4];
 	bool isBranchTarget;
 	bool wantsCR0;
 	bool wantsCR1;
@@ -43,13 +44,13 @@ struct CodeOp //16B
 	bool canEndBlock;
 	bool skip;  // followed BL-s for example
 	// which registers are still needed after this instruction in this block
-	u32 fprInUse;
-	u32 gprInUse;
+	BitSet32 fprInUse;
+	BitSet32 gprInUse;
 	// just because a register is in use doesn't mean we actually need or want it in an x86 register.
-	u32 gprInReg;
+	BitSet32 gprInReg;
 	// we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
 	// an XMM only to move it again to a GPR afterwards.
-	u32 fprInXmm;
+	BitSet32 fprInXmm;
 };
 
 struct BlockStats

@@ -95,42 +95,38 @@ void RegCache::UnlockAllX()
 		xreg.locked = false;
 }
 
-u32 GPRRegCache::GetRegUtilization()
+BitSet32 GPRRegCache::GetRegUtilization()
 {
 	return jit->js.op->gprInReg;
 }
 
-u32 FPURegCache::GetRegUtilization()
+BitSet32 FPURegCache::GetRegUtilization()
 {
 	return jit->js.op->gprInReg;
 }
 
-u32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead)
+BitSet32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead)
 {
-	u32 regsUsed = 0;
+	BitSet32 regsUsed;
 	for (u32 i = 1; i < lookahead; i++)
 	{
-		for (int j = 0; j < 3; j++)
-			if (jit->js.op[i].regsIn[j] >= 0)
-				regsUsed |= 1 << jit->js.op[i].regsIn[j];
-		for (int j = 0; j < 3; j++)
-			if ((size_t)jit->js.op[i].regsIn[j] == preg)
-				return regsUsed;
+		BitSet32 regsIn = jit->js.op[i].regsIn;
+		regsUsed |= regsIn;
+		if (regsIn[preg])
+			return regsUsed;
 	}
 	return regsUsed;
 }
 
-u32 FPURegCache::CountRegsIn(size_t preg, u32 lookahead)
+BitSet32 FPURegCache::CountRegsIn(size_t preg, u32 lookahead)
 {
-	u32 regsUsed = 0;
+	BitSet32 regsUsed;
 	for (u32 i = 1; i < lookahead; i++)
 	{
-		for (int j = 0; j < 4; j++)
-			if (jit->js.op[i].fregsIn[j] >= 0)
-				regsUsed |= 1 << jit->js.op[i].fregsIn[j];
-		for (int j = 0; j < 4; j++)
-			if ((size_t)jit->js.op[i].fregsIn[j] == preg)
-				return regsUsed;
+		BitSet32 regsIn = jit->js.op[i].fregsIn;
+		regsUsed |= regsIn;
+		if (regsIn[preg])
+			return regsUsed;
 	}
 	return regsUsed;
 }
@@ -151,17 +147,14 @@ float RegCache::ScoreRegister(X64Reg xr)
 
 	// If the register isn't actually needed in a physical register for a later instruction,
 	// writing it back to the register file isn't quite as bad.
-	if (GetRegUtilization() & (1 << preg))
+	if (GetRegUtilization()[preg])
 	{
 		// Don't look too far ahead; we don't want to have quadratic compilation times for
 		// enormous block sizes!
 		// This actually improves register allocation a tiny bit; I'm not sure why.
 		u32 lookahead = std::min(jit->js.instructionsLeft, 64);
 		// Count how many other registers are going to be used before we need this one again.
-		u32 regs_in = CountRegsIn(preg, lookahead);
-		u32 regs_in_count = 0;
-		for (int i = 0; i < 32; i++)
-			regs_in_count += !!(regs_in & (1 << i));
+		u32 regs_in_count = CountRegsIn(preg, lookahead).Count();
 		// Totally ad-hoc heuristic to bias based on how many other registers we'll need
 		// before this one gets used again.
 		score += 1 + 2 * (5 - log2f(1 + (float)regs_in_count));
