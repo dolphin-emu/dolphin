@@ -80,7 +80,6 @@ private:
 		ID_FRAMELIMIT,
 
 		ID_CPUENGINE,
-		ID_DSPTHREAD,
 
 		ID_NTSCJ,
 
@@ -149,7 +148,6 @@ private:
 
 	// Advanced
 	wxRadioBox* CPUEngine;
-	wxCheckBox* DSPThread;
 	wxCheckBox* _NTSCJ;
 
 
