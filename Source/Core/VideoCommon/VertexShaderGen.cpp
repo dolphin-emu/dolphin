@@ -92,18 +92,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
 	else
 		out.Write("cbuffer VSBlock {\n");
-	out.Write(
-		"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
-		"\tfloat4 " I_PROJECTION"[4];\n"
-		"\tint4 " I_MATERIALS"[4];\n"
-		"\tLight " I_LIGHTS"[8];\n"
-		"\tfloat4 " I_TEXMATRICES"[24];\n"
-		"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_NORMALMATRICES"[32];\n"
-		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_DEPTHPARAMS";\n"
-		"\tfloat4 " I_STEREOPROJECTION"[8];\n"
-		"};\n");
+	out.Write(s_shader_uniforms);
+	out.Write("};\n");
 
 	GenerateVSOutputStruct(out, api_type);
 

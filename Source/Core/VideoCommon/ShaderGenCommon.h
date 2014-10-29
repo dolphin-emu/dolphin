@@ -240,3 +240,15 @@ private:
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
 #define I_DEPTHPARAMS           "cDepth" // farZ, zRange
 #define I_STEREOPROJECTION      "csproj"
+
+static const char s_shader_uniforms[] =
+	"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
+	"\tfloat4 " I_PROJECTION"[4];\n"
+	"\tint4 " I_MATERIALS"[4];\n"
+	"\tLight " I_LIGHTS"[8];\n"
+	"\tfloat4 " I_TEXMATRICES"[24];\n"
+	"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
+	"\tfloat4 " I_NORMALMATRICES"[32];\n"
+	"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
+	"\tfloat4 " I_DEPTHPARAMS";\n"
+	"\tfloat4 " I_STEREOPROJECTION"[8];\n";

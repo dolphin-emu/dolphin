@@ -254,18 +254,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("cbuffer VSBlock : register(b1) {\n");
 		}
-		out.Write(
-			"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
-			"\tfloat4 " I_PROJECTION"[4];\n"
-			"\tint4 " I_MATERIALS"[4];\n"
-			"\tLight " I_LIGHTS"[8];\n"
-			"\tfloat4 " I_TEXMATRICES"[24];\n"
-			"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
-			"\tfloat4 " I_NORMALMATRICES"[32];\n"
-			"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-			"\tfloat4 " I_DEPTHPARAMS";\n"
-			"\tfloat4 " I_STEREOPROJECTION"[8];\n"
-			"};\n");
+		out.Write(s_shader_uniforms);
+		out.Write("};\n");
 	}
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox)
