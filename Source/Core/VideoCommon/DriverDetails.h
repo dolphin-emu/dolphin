@@ -170,6 +170,14 @@ namespace DriverDetails
 		// It works for all the buffer types we use except GL_ELEMENT_ARRAY_BUFFER.
 		// Causes complete blackscreen issues.
 		BUG_INTELBROKENBUFFERSTORAGE,
+		// Bug: Qualcomm has broken attributeless rendering
+		// Affected devices: Adreno
+		// Started Version: -1
+		// Ended Version: v66 (07-09-2014 dev version), v95 shipping
+		// Qualcomm has had attributeless rendering broken forever
+		// This was fixed in a v66 development version, the first shipping driver version with the release was v95.
+		// To be safe, make v95 the minimum version to work around this issue
+		BUG_BROKENATTRIBUTELESS,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
