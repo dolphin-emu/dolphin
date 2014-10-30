@@ -15,24 +15,22 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 {
 	switch (CountryCode)
 	{
-		// Region free - fall through to European defaults for now
+		// Region free - Uses European flag as placeholder
 		case 'A':
-
+			return IVolume::COUNTRY_INTERNATIONAL;
 
 		// PAL
-		case 'D': // German
+		case 'D':
 			return IVolume::COUNTRY_GERMANY;
 
 		case 'X': // Used by a couple PAL games
-		case 'Y': // German, french
-
+		case 'Y': // German, French
 		case 'L': // Japanese import to PAL regions
 		case 'M': // Japanese import to PAL regions
-		case 'S': // Spanish-speaking regions
 		case 'P':
 			return IVolume::COUNTRY_EUROPE;
 
-		case 'U': // Australia
+		case 'U':
 			return IVolume::COUNTRY_AUSTRALIA;
 
 		case 'F':
@@ -41,8 +39,14 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		case 'I':
 			return IVolume::COUNTRY_ITALY;
 
+		case 'H':
+			return IVolume::COUNTRY_NETHERLANDS;
+
 		case 'R':
 			return IVolume::COUNTRY_RUSSIA;
+
+		case 'S':
+			return IVolume::COUNTRY_SPAIN;
 
 		// NTSC
 		case 'E':
@@ -54,8 +58,8 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 			return IVolume::COUNTRY_JAPAN;
 
 		case 'K':
-		case 'T': // Korea with English language
 		case 'Q': // Korea with Japanese language
+		case 'T': // Korea with English language
 			return IVolume::COUNTRY_KOREA;
 
 		case 'O':

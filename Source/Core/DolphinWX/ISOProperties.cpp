@@ -196,17 +196,32 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	m_GameID->SetValue(StrToWxStr(OpenISO->GetUniqueID()));
 	switch (OpenISO->GetCountry())
 	{
+	case DiscIO::IVolume::COUNTRY_AUSTRALIA:
+		m_Country->SetValue(_("AUSTRALIA"));
+		break;
 	case DiscIO::IVolume::COUNTRY_EUROPE:
 		m_Country->SetValue(_("EUROPE"));
 		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(_("FRANCE"));
 		break;
+	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
+		m_Country->SetValue(_("INTERNATIONAL"));
+		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(_("ITALY"));
 		break;
+	case DiscIO::IVolume::COUNTRY_GERMANY:
+		m_Country->SetValue(_("GERMANY"));
+		break;
+	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
+		m_Country->SetValue(_("NETHERLANDS"));
+		break;
 	case DiscIO::IVolume::COUNTRY_RUSSIA:
 		m_Country->SetValue(_("RUSSIA"));
+		break;
+	case DiscIO::IVolume::COUNTRY_SPAIN:
+		m_Country->SetValue(_("SPAIN"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(_("USA"));
@@ -241,6 +256,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	case DiscIO::IVolume::COUNTRY_SDK:
 		m_Country->SetValue(_("No Country (SDK)"));
 		break;
+	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:
 		m_Country->SetValue(_("UNKNOWN"));
 		break;

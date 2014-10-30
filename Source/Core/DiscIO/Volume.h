@@ -34,20 +34,24 @@ public:
 	virtual bool CheckIntegrity() const { return false; }
 	virtual bool IsDiscTwo() const { return false; }
 
+	// Increment CACHE_REVISION if values are changed (ISOFile.cpp)
 	enum ECountry
 	{
 		COUNTRY_EUROPE = 0,
-		COUNTRY_FRANCE,
-		COUNTRY_RUSSIA,
-		COUNTRY_USA,
 		COUNTRY_JAPAN,
-		COUNTRY_KOREA,
+		COUNTRY_USA,
+		COUNTRY_AUSTRALIA,
+		COUNTRY_FRANCE,
+		COUNTRY_GERMANY,
+		COUNTRY_INTERNATIONAL,
 		COUNTRY_ITALY,
+		COUNTRY_KOREA,
+		COUNTRY_NETHERLANDS,
+		COUNTRY_RUSSIA,
+		COUNTRY_SPAIN,
 		COUNTRY_TAIWAN,
 		COUNTRY_SDK,
 		COUNTRY_UNKNOWN,
-		COUNTRY_GERMANY,
-		COUNTRY_AUSTRALIA,
 		NUMBER_OF_COUNTRIES
 	};
 

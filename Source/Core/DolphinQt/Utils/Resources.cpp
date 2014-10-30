@@ -21,15 +21,21 @@ void Resources::Init()
 	QString dir = QString::fromStdString(File::GetSysDirectory() + "Resources/");
 
 	m_regions.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
-	m_regions[DiscIO::IVolume::COUNTRY_EUROPE].load(dir + SL("Flag_Europe.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_FRANCE].load(dir + SL("Flag_France.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(dir + SL("Flag_Unknown.png")); // TODO
-	m_regions[DiscIO::IVolume::COUNTRY_USA].load(dir + SL("Flag_USA.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_JAPAN].load(dir + SL("Flag_Japan.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(dir + SL("Flag_Korea.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_EUROPE].load(dir + SL("Flag_Europe.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_USA].load(dir + SL("Flag_USA.png"));
+
+	m_regions[DiscIO::IVolume::COUNTRY_AUSTRALIA].load(dir + SL("Flag_Australia.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_FRANCE].load(dir + SL("Flag_France.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_GERMANY].load(dir + SL("Flag_Germany.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_INTERNATIONAL].load(dir + SL("Flag_Europe.png")); // Uses European flag as a placeholder
 	m_regions[DiscIO::IVolume::COUNTRY_ITALY].load(dir + SL("Flag_Italy.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(dir + SL("Flag_Taiwan.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(dir + SL("Flag_Korea.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_NETHERLANDS].load(dir + SL("Flag_Netherlands.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(dir + SL("Flag_Russia.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_SDK].load(dir + SL("Flag_SDK.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(dir + SL("Flag_Spain.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(dir + SL("Flag_Taiwan.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(dir + SL("Flag_Unknown.png"));
 
 	m_platforms.resize(3);
