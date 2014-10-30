@@ -625,7 +625,8 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 	if (accelData)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
-		std::string accel = StringFromFormat(" ACC:%d,%d,%d", dt->x, dt->y, dt->z);
+		std::string accel = StringFromFormat(" ACC:%d,%d,%d",
+			dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1);
 		s_InputDisplay[controllerID].append(accel);
 	}
 
@@ -645,7 +646,8 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 		WiimoteDecrypt(&key, (u8*)&nunchuck, 0, sizeof(wm_nc));
 		nunchuck.bt.hex = nunchuck.bt.hex ^ 0xFF;
 
-		std::string accel = StringFromFormat(" N-ACC:%d,%d,%d", nunchuck.ax, nunchuck.ay, nunchuck.az);
+		std::string accel = StringFromFormat(" N-ACC:%d,%d,%d", nunchuck.ax << 2 | nunchuck.passthrough_data.acc_x_lsb,
+			nunchuck.ay << 2 | nunchuck.passthrough_data.acc_y_lsb << 1, nunchuck.az << 2 | nunchuck.passthrough_data.acc_z_lsb << 1);
 
 		if (nunchuck.bt.c)
 			s_InputDisplay[controllerID].append(" C");

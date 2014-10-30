@@ -67,10 +67,6 @@ struct ExtensionReg
 	u8 constant_id[6];
 };
 
-void FillRawAccelFromGForceData(wm_full_accel& raw_accel,
-	const accel_cal& calib,
-	const WiimoteEmu::AccelData& accel);
-
 void EmulateShake(AccelData* const accel_data
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step);
