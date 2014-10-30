@@ -9,9 +9,9 @@
 #endif
 
 #include "VideoCommon/GeometryShaderGen.h"
-#include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoConfig.h"
 
 static char text[16384];
 
@@ -77,8 +77,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 		out.Write("\tfor (layer = 0; layer < %d; ++layer) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
 	out.Write("\tgl_Layer = layer;\n");
-	out.Write("\tvec4 stereoproj = "I_PROJECTION"[0];\n");
-	out.Write("\tstereoproj[2] += "I_STEREOOFFSET"[layer] * stereoproj[0];\n");
+	out.Write("\tvec4 stereoproj = " I_PROJECTION"[0];\n");
+	out.Write("\tstereoproj[2] += " I_STEREOOFFSET"[layer] * stereoproj[0];\n");
 
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");

@@ -7,9 +7,9 @@
 #include "Common/LinearDiskCache.h"
 #include "Core/ConfigManager.h"
 #include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/VertexShaderGen.h"
-#include "VideoCommon/GeometryShaderGen.h"
 
 namespace OGL
 {
