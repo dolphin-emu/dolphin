@@ -38,7 +38,7 @@ struct vertex_shader_uid_data
 	u32 numColorChans        : 2;
 	u32 dualTexTrans_enabled : 1;
 	u32 pixel_lighting       : 1;
-	u32 pad0                 : 1;
+	u32 stereo               : 1;
 
 	u32 texMtxInfo_n_projection : 16; // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
 	struct {
@@ -56,8 +56,6 @@ struct vertex_shader_uid_data
 	} postMtxInfo[8];
 
 	LightingUidData lighting;
-
-	u32 stereo : 1;
 };
 #pragma pack()
 
