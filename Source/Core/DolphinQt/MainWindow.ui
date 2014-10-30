@@ -25,36 +25,188 @@
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>true</bool>
   </property>
-  <widget class="QStackedWidget" name="wgtCentral"/>
+  <widget class="QWidget" name="wgtCentral">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QTreeWidget" name="wgtGamesList">
+      <property name="rootIsDecorated">
+       <bool>false</bool>
+      </property>
+      <property name="uniformRowHeights">
+       <bool>true</bool>
+      </property>
+      <property name="itemsExpandable">
+       <bool>false</bool>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="allColumnsShowFocus">
+       <bool>true</bool>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+      <column>
+       <property name="text">
+        <string/>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Banner</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Game ID</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Title</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Notes</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>State</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>992</width>
-     <height>24</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuFile">
     <property name="title">
-     <string>Fi&amp;le</string>
+     <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="mnuBootDvd">
+     <property name="title">
+      <string>&amp;Boot from DVD Drive...</string>
+     </property>
+    </widget>
     <addaction name="actOpen"/>
+    <addaction name="actChangeDisc"/>
+    <addaction name="mnuBootDvd"/>
+    <addaction name="separator"/>
+    <addaction name="actRefreshList"/>
+    <addaction name="separator"/>
+    <addaction name="actBrowseForIsos"/>
+    <addaction name="separator"/>
+    <addaction name="actQuit"/>
    </widget>
    <widget class="QMenu" name="mnuEmulation">
     <property name="title">
-     <string>E&amp;mulation</string>
+     <string>&amp;Emulation</string>
     </property>
+    <widget class="QMenu" name="mnuFrameSkip">
+     <property name="title">
+      <string>Frame S&amp;kipping</string>
+     </property>
+     <addaction name="actFrameSkip0"/>
+     <addaction name="actFrameSkip1"/>
+     <addaction name="actFrameSkip2"/>
+     <addaction name="actFrameSkip3"/>
+     <addaction name="actFrameSkip4"/>
+     <addaction name="actFrameSkip5"/>
+     <addaction name="actFrameSkip6"/>
+     <addaction name="actFrameSkip7"/>
+     <addaction name="actFrameSkip8"/>
+     <addaction name="actFrameSkip9"/>
+    </widget>
+    <widget class="QMenu" name="mnuStateSlot">
+     <property name="title">
+      <string>Select State Slot</string>
+     </property>
+     <addaction name="actStateSlot1"/>
+     <addaction name="actStateSlot2"/>
+     <addaction name="actStateSlot3"/>
+     <addaction name="actStateSlot4"/>
+     <addaction name="actStateSlot5"/>
+     <addaction name="actStateSlot6"/>
+     <addaction name="actStateSlot7"/>
+     <addaction name="actStateSlot8"/>
+     <addaction name="actStateSlot9"/>
+     <addaction name="actStateSlot10"/>
+    </widget>
+    <addaction name="actPlay"/>
+    <addaction name="actPause"/>
+    <addaction name="actStop"/>
+    <addaction name="actReset"/>
+    <addaction name="separator"/>
+    <addaction name="actFullscreen"/>
+    <addaction name="actFrameAdvance"/>
+    <addaction name="mnuFrameSkip"/>
+    <addaction name="separator"/>
+    <addaction name="actScreenshot"/>
+    <addaction name="separator"/>
+    <addaction name="action_Load_State"/>
+    <addaction name="actionSa_ve_State"/>
+    <addaction name="mnuStateSlot"/>
    </widget>
    <widget class="QMenu" name="mnuOptions">
     <property name="title">
-     <string>Optio&amp;ns</string>
+     <string>&amp;Options</string>
     </property>
+    <addaction name="actConfigure"/>
+    <addaction name="separator"/>
+    <addaction name="actGraphicsSettings"/>
+    <addaction name="actDspSettings"/>
+    <addaction name="actGamecubePadSettings"/>
+    <addaction name="actWiimoteSettings"/>
+    <addaction name="actHotkeySettings"/>
    </widget>
    <widget class="QMenu" name="mnuTools">
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
+    <widget class="QMenu" name="mnuConnectWiimotes">
+     <property name="title">
+      <string>&amp;Connect Wiimotes</string>
+     </property>
+     <addaction name="actConnectWiimote1"/>
+     <addaction name="actConnectWiimote2"/>
+     <addaction name="actConnectWiimote3"/>
+     <addaction name="actConnectWiimote4"/>
+     <addaction name="separator"/>
+     <addaction name="actConnectBalanceBoard"/>
+    </widget>
+    <addaction name="actMemcardManager"/>
+    <addaction name="actImportWiiSaves"/>
+    <addaction name="actExportWiiSaves"/>
+    <addaction name="actCheatsManager"/>
+    <addaction name="actStartNetplay"/>
+    <addaction name="actInstallWad"/>
+    <addaction name="actLoadWiiSystemMenu"/>
+    <addaction name="actFifoPlayer"/>
+    <addaction name="separator"/>
+    <addaction name="mnuConnectWiimotes"/>
    </widget>
    <widget class="QMenu" name="mnuView">
     <property name="title">
@@ -63,7 +215,7 @@
    </widget>
    <widget class="QMenu" name="mnuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actWebsite"/>
     <addaction name="actOnlineDocs"/>
@@ -74,7 +226,7 @@
    </widget>
    <widget class="QMenu" name="mnuMovie">
     <property name="title">
-     <string>Movie</string>
+     <string>&amp;Movie</string>
     </property>
    </widget>
    <addaction name="mnuFile"/>
@@ -90,6 +242,9 @@
    <property name="windowTitle">
     <string>Toolbar</string>
    </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -97,41 +252,492 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actOpen"/>
+   <addaction name="actRefreshList"/>
+   <addaction name="actBrowseForIsos"/>
+   <addaction name="separator"/>
+   <addaction name="actPlay"/>
+   <addaction name="actPause"/>
+   <addaction name="actStop"/>
+   <addaction name="actFullscreen"/>
+   <addaction name="actScreenshot"/>
+   <addaction name="separator"/>
+   <addaction name="actConfigure"/>
+   <addaction name="actGraphicsSettings"/>
+   <addaction name="actDspSettings"/>
+   <addaction name="actGamecubePadSettings"/>
+   <addaction name="actWiimoteSettings"/>
   </widget>
   <action name="actWebsite">
+   <property name="icon">
+    <iconset theme="go-home"/>
+   </property>
    <property name="text">
     <string>&amp;Website</string>
    </property>
   </action>
   <action name="actOnlineDocs">
+   <property name="icon">
+    <iconset theme="help-contents"/>
+   </property>
    <property name="text">
-    <string>&amp;Online Documentation</string>
+    <string>Online &amp;Documentation</string>
    </property>
   </action>
   <action name="actGitHub">
+   <property name="icon">
+    <iconset theme="repository"/>
+   </property>
    <property name="text">
-    <string>&amp;Dolphin at GitHub</string>
+    <string>Dolphin at &amp;GitHub</string>
    </property>
   </action>
   <action name="actAbout">
+   <property name="icon">
+    <iconset theme="help-about"/>
+   </property>
    <property name="text">
     <string>&amp;About</string>
    </property>
   </action>
   <action name="actOpen">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
    <property name="text">
-    <string>&amp;Open</string>
+    <string>&amp;Open...</string>
    </property>
    <property name="toolTip">
     <string>Open file...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actSystemInfo">
    <property name="text">
     <string>&amp;System Information</string>
+   </property>
+  </action>
+  <action name="actChangeDisc">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="media-eject"/>
+   </property>
+   <property name="text">
+    <string>Change &amp;Disc...</string>
+   </property>
+  </action>
+  <action name="actRefreshList">
+   <property name="icon">
+    <iconset theme="view-refresh"/>
+   </property>
+   <property name="text">
+    <string>&amp;Refresh List</string>
+   </property>
+   <property name="iconText">
+    <string>Refresh</string>
+   </property>
+  </action>
+  <action name="actBrowseForIsos">
+   <property name="icon">
+    <iconset theme="edit-find"/>
+   </property>
+   <property name="text">
+    <string>B&amp;rowse for ISO's...</string>
+   </property>
+   <property name="iconText">
+    <string>Browse</string>
+   </property>
+  </action>
+  <action name="actQuit">
+   <property name="icon">
+    <iconset theme="application-exit"/>
+   </property>
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+  </action>
+  <action name="actPlay">
+   <property name="icon">
+    <iconset theme="media-playback-start"/>
+   </property>
+   <property name="text">
+    <string>&amp;Play</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="actStop">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="media-playback-stop"/>
+   </property>
+   <property name="text">
+    <string>&amp;Stop</string>
+   </property>
+  </action>
+  <action name="actReset">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Reset</string>
+   </property>
+  </action>
+  <action name="actFullscreen">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="view-fullscreen"/>
+   </property>
+   <property name="text">
+    <string>&amp;Fullscreen</string>
+   </property>
+  </action>
+  <action name="actFrameAdvance">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Frame &amp;Advance</string>
+   </property>
+  </action>
+  <action name="actScreenshot">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="camera-photo"/>
+   </property>
+   <property name="text">
+    <string>Take Screenshot</string>
+   </property>
+   <property name="iconText">
+    <string>Screenshot</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+  </action>
+  <action name="action_Load_State">
+   <property name="text">
+    <string>&amp;Load State</string>
+   </property>
+  </action>
+  <action name="actionSa_ve_State">
+   <property name="text">
+    <string>Sa&amp;ve State</string>
+   </property>
+  </action>
+  <action name="actFrameSkip0">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;0</string>
+   </property>
+  </action>
+  <action name="actFrameSkip1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;1</string>
+   </property>
+  </action>
+  <action name="actFrameSkip2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;2</string>
+   </property>
+  </action>
+  <action name="actFrameSkip3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;3</string>
+   </property>
+  </action>
+  <action name="actFrameSkip4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;4</string>
+   </property>
+  </action>
+  <action name="actFrameSkip5">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;5</string>
+   </property>
+  </action>
+  <action name="actFrameSkip6">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;6</string>
+   </property>
+  </action>
+  <action name="actFrameSkip7">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;7</string>
+   </property>
+  </action>
+  <action name="actFrameSkip8">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;8</string>
+   </property>
+  </action>
+  <action name="actFrameSkip9">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;9</string>
+   </property>
+  </action>
+  <action name="actStateSlot1">
+   <property name="text">
+    <string>Select Slot &amp;1</string>
+   </property>
+  </action>
+  <action name="actStateSlot2">
+   <property name="text">
+    <string>Select Slot &amp;2</string>
+   </property>
+  </action>
+  <action name="actStateSlot3">
+   <property name="text">
+    <string>Select Slot &amp;3</string>
+   </property>
+  </action>
+  <action name="actStateSlot4">
+   <property name="text">
+    <string>Select Slot &amp;4</string>
+   </property>
+  </action>
+  <action name="actStateSlot5">
+   <property name="text">
+    <string>Select Slot &amp;5</string>
+   </property>
+  </action>
+  <action name="actStateSlot6">
+   <property name="text">
+    <string>Select Slot &amp;6</string>
+   </property>
+  </action>
+  <action name="actStateSlot7">
+   <property name="text">
+    <string>Select Slot &amp;7</string>
+   </property>
+  </action>
+  <action name="actStateSlot8">
+   <property name="text">
+    <string>Select Slot &amp;8</string>
+   </property>
+  </action>
+  <action name="actStateSlot9">
+   <property name="text">
+    <string>Select Slot &amp;9</string>
+   </property>
+  </action>
+  <action name="actStateSlot10">
+   <property name="text">
+    <string>Select Slot 1&amp;0</string>
+   </property>
+  </action>
+  <action name="actPause">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="media-playback-pause"/>
+   </property>
+   <property name="text">
+    <string>&amp;Pause</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="actConfigure">
+   <property name="icon">
+    <iconset theme="configure"/>
+   </property>
+   <property name="text">
+    <string>&amp;Configure...</string>
+   </property>
+  </action>
+  <action name="actGraphicsSettings">
+   <property name="icon">
+    <iconset theme="video-display"/>
+   </property>
+   <property name="text">
+    <string>&amp;Graphics Settings...</string>
+   </property>
+   <property name="iconText">
+    <string>Graphics</string>
+   </property>
+  </action>
+  <action name="actDspSettings">
+   <property name="icon">
+    <iconset theme="speaker"/>
+   </property>
+   <property name="text">
+    <string>&amp;DSP Settings...</string>
+   </property>
+   <property name="iconText">
+    <string>DSP</string>
+   </property>
+  </action>
+  <action name="actGamecubePadSettings">
+   <property name="text">
+    <string>GameCube &amp;Pad Settings...</string>
+   </property>
+   <property name="iconText">
+    <string>GC Pad</string>
+   </property>
+  </action>
+  <action name="actWiimoteSettings">
+   <property name="text">
+    <string>&amp;Wiimote Settings...</string>
+   </property>
+   <property name="iconText">
+    <string>Wiimote</string>
+   </property>
+  </action>
+  <action name="actHotkeySettings">
+   <property name="text">
+    <string>&amp;Hotkey Settings...</string>
+   </property>
+  </action>
+  <action name="actMemcardManager">
+   <property name="text">
+    <string>&amp;Memory Card Manager (GC)...</string>
+   </property>
+  </action>
+  <action name="actImportWiiSaves">
+   <property name="text">
+    <string>&amp;Import Wii Save</string>
+   </property>
+  </action>
+  <action name="actExportWiiSaves">
+   <property name="text">
+    <string>&amp;Export All Wii Saves</string>
+   </property>
+  </action>
+  <action name="actCheatsManager">
+   <property name="text">
+    <string>&amp;Cheats Manager...</string>
+   </property>
+  </action>
+  <action name="actStartNetplay">
+   <property name="text">
+    <string>Start &amp;Netplay</string>
+   </property>
+  </action>
+  <action name="actInstallWad">
+   <property name="text">
+    <string>Install &amp;WAD</string>
+   </property>
+  </action>
+  <action name="actLoadWiiSystemMenu">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Load Wii System &amp;Menu</string>
+   </property>
+  </action>
+  <action name="actFifoPlayer">
+   <property name="text">
+    <string>&amp;Fifo Player...</string>
+   </property>
+  </action>
+  <action name="actConnectWiimote1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect Wiimote &amp;1</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F5</string>
+   </property>
+  </action>
+  <action name="actConnectWiimote2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect Wiimote &amp;2</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F6</string>
+   </property>
+  </action>
+  <action name="actConnectWiimote3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect Wiimote &amp;3</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F7</string>
+   </property>
+  </action>
+  <action name="actConnectWiimote4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect Wiimote &amp;4</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F8</string>
+   </property>
+  </action>
+  <action name="actConnectBalanceBoard">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect &amp;Balance Board</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F9</string>
    </property>
   </action>
  </widget>
