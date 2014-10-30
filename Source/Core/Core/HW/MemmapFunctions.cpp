@@ -811,7 +811,9 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 	u32 VSID = SR_VSID(sr);                  // 24 bit
 	u32 api = EA_API(_Address);              //  6 bit (part of page_index)
 
-	u8* pRAM = GetPointer(0);
+	// Direct access to the fastmem Arena
+	// FIXME: is this the best idea for clean code?
+	u8* pRAM = Memory::base;
 
 	// hash function no 1 "xor" .360
 	u32 hash1 = (VSID ^ page_index);

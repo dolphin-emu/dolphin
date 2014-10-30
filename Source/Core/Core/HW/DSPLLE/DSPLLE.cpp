@@ -168,7 +168,7 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 	if (!DSPCore_Init(opts))
 		return false;
 
-	g_dsp.cpu_ram = Memory::GetPointer(0);
+	g_dsp.cpu_ram = Memory::m_pRAM;
 	DSPCore_Reset();
 
 	m_bIsRunning = true;
