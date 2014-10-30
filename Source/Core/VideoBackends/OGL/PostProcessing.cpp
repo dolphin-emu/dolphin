@@ -36,7 +36,8 @@ static char s_vertex_shader[] =
 	"	uv0 = rawpos * src_rect.zw + src_rect.xy;\n"
 	"}\n";
 
-OpenGLPostProcessing::OpenGLPostProcessing() : m_initialized(false)
+OpenGLPostProcessing::OpenGLPostProcessing()
+	: m_initialized(false)
 {
 	CreateHeader();
 

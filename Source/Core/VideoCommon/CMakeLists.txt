@@ -9,6 +9,7 @@ set(SRCS	BoundingBox.cpp
 			Fifo.cpp
 			FPSCounter.cpp
 			FramebufferManagerBase.cpp
+			GeometryShaderGen.cpp
 			HiresTextures.cpp
 			ImageWrite.cpp
 			IndexGenerator.cpp
@@ -38,8 +39,7 @@ set(SRCS	BoundingBox.cpp
 			VideoConfig.cpp
 			VideoState.cpp
 			XFMemory.cpp
-			XFStructs.cpp
-			GeometryShaderGen.cpp)
+			XFStructs.cpp)
 set(LIBS core png)
 
 if(_M_X86)

@@ -125,11 +125,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
-
-		if (g_ActiveConfig.bStereo)
-			out.Write("centroid out VS_OUTPUT v;\n");
-		else
-			out.Write("centroid out VS_OUTPUT o;\n");
+		out.Write("centroid out VS_OUTPUT %s;\n", (g_ActiveConfig.bStereo) ? "v" : "o");
 
 		out.Write("void main()\n{\n");
 

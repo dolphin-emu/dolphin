@@ -70,23 +70,30 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("flat out int layer;\n");
 
 	out.Write("void main()\n{\n");
+
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\tlayer = gl_InvocationID;\n");
 	else
 		out.Write("\tfor (layer = 0; layer < %d; ++layer) {\n", g_ActiveConfig.bStereo ? 2 : 1);
+
 	out.Write("\tgl_Layer = layer;\n");
 	out.Write("\tvec4 stereoproj = "I_PROJECTION"[0];\n");
 	out.Write("\tstereoproj[2] += "I_STEREOOFFSET"[layer] * stereoproj[0];\n");
+
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");
+
 	if (g_ActiveConfig.bStereo)
 		out.Write("\t\to.pos = float4(dot(stereoproj, v[i].rawpos), dot(" I_PROJECTION"[1], v[i].rawpos), dot(" I_PROJECTION"[2], v[i].rawpos), dot(" I_PROJECTION"[3], v[i].rawpos)); \n");
+
 	out.Write("\t\tgl_Position = o.pos;\n");
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");
 	out.Write("\tEndPrimitive();\n");
+
 	if (!g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\t}\n");
+
 	out.Write("}\n");
 
 	if (is_writing_shadercode)

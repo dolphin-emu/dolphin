@@ -452,7 +452,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		    (entry->type == TCET_EC_DYNAMIC &&
 		     entry->native_width == width &&
 		     entry->native_height == height)) &&
-			 entry->num_layers == 1)
+		     entry->num_layers == 1)
 		{
 			// reuse the texture
 		}
