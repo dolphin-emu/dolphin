@@ -16,6 +16,8 @@
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
+#include "InputCommon/HotkeysXInput.h"
+
 BEGIN_EVENT_TABLE(CConfigVR, wxDialog)
 
 //EVT_COMMAND_RANGE(0, NUM_VR_OPTIONS - 1, wxEVT_BUTTON, CConfigVR::OnButtonClick)
@@ -154,15 +156,16 @@ void CConfigVR::CreateGUIControls()
 			m_Button_VRSettings[i] = new wxButton(Page, i, wxEmptyString, wxDefaultPosition, size);
 
 			m_Button_VRSettings[i]->SetFont(m_SmallFont);
-			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key.\nAssign space to clear."));
+			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key (Assign space to clear).\nMiddle click to clear"));
 			SetButtonText(i, 
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[i],
 				WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
 				WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i].c_str());
+				HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]));
 
 			//m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_BUTTON, &CConfigVR::DetectControl, this);
+			m_Button_VRSettings[i]->Bind(wxEVT_MIDDLE_DOWN, &CConfigVR::ClearControl, this);
 
 			wxBoxSizer *sVRKey = new wxBoxSizer(wxHORIZONTAL);
 			sVRKey->Add(stHotkeys, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
@@ -309,7 +312,7 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 		if (g_Pressed == WXK_SPACE)
 		{
 			SaveButtonMapping(ClickedButton->GetId(), true, -1, 0);
-			SaveXInputMapping(ClickedButton->GetId(), true, "");
+			SaveXInputBinary(ClickedButton->GetId(), true, 0);
 			SetButtonText(ClickedButton->GetId(), true, wxString());
 		}
 		// Cancel and restore the old label if escape is hit.
@@ -360,7 +363,7 @@ void CConfigVR::OnKeyDownXInput(wxKeyEvent& event)
 		if (g_Pressed == WXK_SPACE)
 		{
 			SaveButtonMapping(ClickedButton->GetId(), false, -1, 0);
-			SaveXInputMapping(ClickedButton->GetId(), false, "");
+			SaveXInputBinary(ClickedButton->GetId(), false, 0);
 			SetButtonText(ClickedButton->GetId(), false, wxString());
 		}
 		// Cancel and restore the old label if escape is hit.
@@ -391,11 +394,10 @@ void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
 }
 
-void CConfigVR::SaveXInputMapping(int Id, bool KBM, std::string Key)
+void CConfigVR::SaveXInputBinary(int Id, bool KBM, u32 Key)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id] = KBM;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[Id] = Key;
-	//SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
 }
 
 void CConfigVR::EndGetButtons()
@@ -446,6 +448,16 @@ void CConfigVR::DetectControl(wxCommandEvent& event)
 		}
 #endif
 	}
+}
+
+void CConfigVR::ClearControl(wxEvent& event)
+{
+
+	ClickedButton = (wxButton *)event.GetEventObject();
+	SaveButtonMapping(ClickedButton->GetId(), true, -1, 0);
+	SaveXInputBinary(ClickedButton->GetId(), true, 0);
+	SetButtonText(ClickedButton->GetId(), true, wxString());
+   
 }
 
 inline bool IsAlphabetic(wxString &str)
@@ -513,9 +525,8 @@ bool CConfigVR::DetectButton(wxButton* button, wxCommandEvent& event)
 				wxString expr;
 				GetExpressionForControl(expr, control_name);
 				button->SetLabel(expr);
-				SaveXInputMapping(button->GetId(), false, std::string(expr.mb_str()));
-				//button->control_reference->expression = expr;
-				//g_controller_interface.UpdateReference(button->control_reference, default_device);
+				u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
+				SaveXInputBinary(button->GetId(), false, xinput_binary);
 				success = true;
 			}
 			else {

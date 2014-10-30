@@ -52,6 +52,7 @@ private:
 	void RefreshDevices(wxCommandEvent&);
 
 	void DetectControl(wxCommandEvent& event);
+	void ClearControl(wxEvent& event);
 	bool DetectButton(wxButton* button, wxCommandEvent& event);
 	//void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
 	void OnButtonClick(wxCommandEvent& event);
@@ -61,8 +62,8 @@ private:
 	int g_Pressed, g_Modkey;
 
 	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
-	void SaveXInputMapping(int Id, bool KBM, std::string XInputMapping);
-	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapipng = wxString());
+	void SaveXInputBinary(int Id, bool KBM, u32 Key);
+	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapping = wxString());
 	void DoGetButtons(int id);
 	void EndGetButtons();
 	void EndGetButtonsXInput();
