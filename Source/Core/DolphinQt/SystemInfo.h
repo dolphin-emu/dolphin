@@ -27,5 +27,5 @@ private:
 	std::unique_ptr<Ui::DSystemInfo> m_ui;
 
 	void UpdateSystemInfo();
-	QString GetOS();
+	QString GetOS() const;
 };

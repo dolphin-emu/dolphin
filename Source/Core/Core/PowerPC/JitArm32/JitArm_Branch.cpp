@@ -20,7 +20,6 @@ using namespace ArmGen;
 void JitArm::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush();
 	fpr.Flush();
@@ -39,7 +38,6 @@ void JitArm::sc(UGeckoInstruction inst)
 void JitArm::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush();
 	fpr.Flush();
@@ -86,7 +84,6 @@ void JitArm::rfi(UGeckoInstruction inst)
 void JitArm::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
 	if (inst.LK)
@@ -133,7 +130,6 @@ void JitArm::bx(UGeckoInstruction inst)
 void JitArm::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
 	// USES_CR
 
 	ARMReg rA = gpr.GetReg();
@@ -193,7 +189,6 @@ void JitArm::bcx(UGeckoInstruction inst)
 void JitArm::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
 
 	// bcctrx doesn't decrement and/or test CTR
 	_dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
@@ -259,7 +254,6 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 void JitArm::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();

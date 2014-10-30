@@ -250,6 +250,7 @@ ARMReg ArmRegCache::BindToRegister(u32 preg, bool doLoad, bool kill_imm)
 	else
 	{
 		u8 a = regs[preg].GetRegIndex();
+		ArmCRegs[a].LastLoad = 0;
 		return ArmCRegs[a].Reg;
 	}
 }

@@ -30,7 +30,6 @@ static std::string GetCPUString()
 		if (line.find(marker) != std::string::npos)
 		{
 			cpu_string = line.substr(marker.length());
-			cpu_string.pop_back(); // Drop the new-line character
 			break;
 		}
 	}
