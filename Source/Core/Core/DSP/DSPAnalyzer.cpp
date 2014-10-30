@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <array>
+
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPMemoryMap.h"
@@ -10,7 +12,7 @@
 namespace DSPAnalyzer {
 
 // Holds data about all instructions in RAM.
-u8 code_flags[ISPACE];
+std::array<u8, ISPACE> code_flags;
 
 // Good candidates for idle skipping is mail wait loops. If we're time slicing
 // between the main CPU and the DSP, if the DSP runs into one of these, it might
@@ -62,7 +64,7 @@ const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 
 static void Reset()
 {
-	memset(code_flags, 0, sizeof(code_flags));
+	code_flags.fill(0);
 }
 
 static void AnalyzeRange(int start_addr, int end_addr)
