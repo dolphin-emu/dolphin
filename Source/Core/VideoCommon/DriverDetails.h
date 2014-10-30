@@ -162,15 +162,6 @@ namespace DriverDetails
 		// TODO: some windows AMD driver/gpu combination seems also affected
 		//       but as they all support pinned memory, it doesn't matter
 		BUG_BROKENUNSYNCMAPPING,
-		// Bug: Adreno now rotates the framebuffer on blit a full 180 degrees
-		// Affected devices: Adreno
-		// Started Version: v53 (dev drivers)
-		// Ended Version: v66 (07-14-2014 dev drivers)
-		// Qualcomm is a super pro company that has recently updated their development drivers
-		// These drivers are available to the Nexus 5 and report as v53
-		// Qualcomm in their infinite wisdom thought it was a good idea to rotate the framebuffer 180 degrees on glBlit
-		// This bug allows us to work around that rotation by rotating it the right way around again.
-		BUG_ROTATEDFRAMEBUFFER,
 		// Bug: Intel's Window driver broke buffer_storage with GL_ELEMENT_ARRAY_BUFFER
 		// Affected devices: Intel (Windows)
 		// Started Version: 15.36.3.64.3907 (10.18.10.3907)
@@ -179,6 +170,14 @@ namespace DriverDetails
 		// It works for all the buffer types we use except GL_ELEMENT_ARRAY_BUFFER.
 		// Causes complete blackscreen issues.
 		BUG_INTELBROKENBUFFERSTORAGE,
+		// Bug: Qualcomm has broken attributeless rendering
+		// Affected devices: Adreno
+		// Started Version: -1
+		// Ended Version: v66 (07-09-2014 dev version), v95 shipping
+		// Qualcomm has had attributeless rendering broken forever
+		// This was fixed in a v66 development version, the first shipping driver version with the release was v95.
+		// To be safe, make v95 the minimum version to work around this issue
+		BUG_BROKENATTRIBUTELESS,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
