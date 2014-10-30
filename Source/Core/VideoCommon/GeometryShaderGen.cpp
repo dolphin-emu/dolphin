@@ -41,12 +41,12 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	out.Write("//Geometry Shader for 3D stereoscopy\n");
 
-	uid_data->stereo = g_ActiveConfig.bStereo;
+	uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 	if (ApiType == API_OPENGL)
 	{
 		// Insert layout parameters
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
-			out.Write("layout(triangles, invocations = %d) in;\n", g_ActiveConfig.bStereo ? 2 : 1);
+			out.Write("layout(triangles, invocations = %d) in;\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 		else
 			out.Write("layout(triangles) in;\n");
 		out.Write("layout(triangle_strip, max_vertices = %d) out;\n", g_ActiveConfig.backend_info.bSupportsGSInstancing ? 3 : 6);
@@ -74,7 +74,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\tlayer = gl_InvocationID;\n");
 	else
-		out.Write("\tfor (layer = 0; layer < %d; ++layer) {\n", g_ActiveConfig.bStereo ? 2 : 1);
+		out.Write("\tfor (layer = 0; layer < %d; ++layer) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
 	out.Write("\tgl_Layer = layer;\n");
 	out.Write("\tvec4 stereoproj = "I_PROJECTION"[0];\n");
@@ -83,7 +83,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
 	out.Write("\t\to = v[i];\n");
 
-	if (g_ActiveConfig.bStereo)
+	if (g_ActiveConfig.iStereoMode > 0)
 		out.Write("\t\to.pos = float4(dot(stereoproj, v[i].rawpos), dot(" I_PROJECTION"[1], v[i].rawpos), dot(" I_PROJECTION"[2], v[i].rawpos), dot(" I_PROJECTION"[3], v[i].rawpos)); \n");
 
 	out.Write("\t\tgl_Position = o.pos;\n");

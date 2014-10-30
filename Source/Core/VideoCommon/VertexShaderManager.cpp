@@ -513,7 +513,7 @@ void VertexShaderManager::SetConstants()
 			memcpy(constants.projection, correctedMtx.data, 4*16);
 		}
 
-		if (g_ActiveConfig.bStereo && xfmem.projection.type == GX_PERSPECTIVE)
+		if (g_ActiveConfig.iStereoMode > 0 && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			float offset = g_ActiveConfig.iStereoSeparation / (200.0f * g_ActiveConfig.iStereoFocalLength);
 			constants.stereooffset[0] = offset;

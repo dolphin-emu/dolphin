@@ -66,7 +66,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
-	settings->Get("Stereo", &bStereo, false);
+	settings->Get("StereoMode", &iStereoMode, 0);
 	settings->Get("StereoSeparation", &iStereoSeparation, 65);
 	settings->Get("StereoFocalLength", &iStereoFocalLength, 100);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
@@ -140,7 +140,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
 	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
-	CHECK_SETTING("Video_Settings", "Stereo", bStereo);
+	CHECK_SETTING("Video_Settings", "StereoMode", iStereoMode);
 	CHECK_SETTING("Video_Settings", "StereoSeparation", iStereoSeparation);
 	CHECK_SETTING("Video_Settings", "StereoFocalLength", iStereoFocalLength);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
@@ -203,7 +203,7 @@ void VideoConfig::VerifyValidity()
 	// TODO: Check iMaxAnisotropy value
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
-	if (!backend_info.bSupportsStereoscopy) bStereo = false;
+	if (!backend_info.bSupportsStereoscopy) iStereoMode = 0;
 }
 
 void VideoConfig::Save(const std::string& ini_file)
@@ -231,7 +231,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DumpEFBTarget", bDumpEFBTarget);
 	settings->Set("FreeLook", bFreeLook);
 	settings->Set("UseFFV1", bUseFFV1);
-	settings->Set("Stereo", bStereo);
+	settings->Set("StereoMode", iStereoMode);
 	settings->Set("StereoSeparation", iStereoSeparation);
 	settings->Set("StereoFocalLength", iStereoFocalLength);
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);

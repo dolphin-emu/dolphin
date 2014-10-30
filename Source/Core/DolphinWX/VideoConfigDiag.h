@@ -165,6 +165,20 @@ protected:
 		ev.Skip();
 	}
 
+	void Event_StereoSep(wxCommandEvent &ev)
+	{
+		vconfig.iStereoSeparation = ev.GetInt();
+
+		ev.Skip();
+	}
+
+	void Event_StereoFoc(wxCommandEvent &ev)
+	{
+		vconfig.iStereoFocalLength = ev.GetInt();
+
+		ev.Skip();
+	}
+
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 

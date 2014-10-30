@@ -599,7 +599,7 @@ Renderer::Renderer()
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 	ApplySSAASettings();
-	s_LastStereo = g_ActiveConfig.bStereo;
+	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
 
 	// Decide framebuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
@@ -1514,7 +1514,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			if (g_ActiveConfig.bStereo)
+			if (g_ActiveConfig.iStereoMode == 1)
 			{
 				TargetRectangle leftRc = drawRc, rightRc = drawRc;
 				int width = drawRc.right - drawRc.left;
@@ -1537,7 +1537,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
 
-		if (g_ActiveConfig.bStereo)
+		if (g_ActiveConfig.iStereoMode == 1)
 		{
 			TargetRectangle leftRc = flipped_trc, rightRc = flipped_trc;
 			int width = flipped_trc.right - flipped_trc.left;
@@ -1699,16 +1699,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	}
 
-	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode) || (s_LastStereo != g_ActiveConfig.bStereo))
+	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode) || (s_LastStereo != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode || s_LastStereo != g_ActiveConfig.bStereo)
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode || s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 			ApplySSAASettings();
-			s_LastStereo = g_ActiveConfig.bStereo;
+			s_LastStereo = g_ActiveConfig.iStereoMode > 0;
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,

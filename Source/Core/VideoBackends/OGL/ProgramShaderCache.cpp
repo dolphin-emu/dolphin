@@ -200,7 +200,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 	ShaderCode gcode;
 	GenerateVertexShaderCode(vcode, components, API_OPENGL);
 	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
-	if (g_ActiveConfig.bStereo)
+	if (g_ActiveConfig.iStereoMode > 0)
 		GenerateGeometryShaderCode(gcode, components, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)

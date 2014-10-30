@@ -150,6 +150,8 @@ static wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect afte
 static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 static wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
 static wxString stereo_3d_desc = wxTRANSLATE("Side-by-side stereoscopic 3D.");
+static wxString stereo_separation_desc = wxTRANSLATE("Control the Interpupillary distance.");
+static wxString stereo_focal_desc = wxTRANSLATE("Control the distance at which objects appear to be at screen depth.");
 
 
 #if !defined(__APPLE__)
@@ -434,14 +436,39 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
-	
-	if (vconfig.backend_info.bSupportsStereoscopy)
-		szr_enh->Add(CreateCheckBox(page_enh, _("Stereo 3D"), wxGetTranslation(stereo_3d_desc), vconfig.bStereo));
 
 	wxStaticBoxSizer* const group_enh = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
 	group_enh->Add(szr_enh, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	szr_enh_main->Add(group_enh, 0, wxEXPAND | wxALL, 5);
 
+	// - stereoscopy
+
+	if (vconfig.backend_info.bSupportsStereoscopy)
+	{
+		wxGridSizer* const szr_stereo = new wxGridSizer(2, 5, 5);
+
+		const wxString stereo_choices[] = { "Off", "Side-by-Side" };
+		szr_stereo->Add(new wxStaticText(page_enh, -1, _("Stereo 3D Mode:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+		szr_stereo->Add(CreateChoice(page_enh, vconfig.iStereoMode, wxGetTranslation(stereo_3d_desc), 2, stereo_choices));
+
+		wxSlider* const sep_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoSeparation, 30, 90, wxDefaultPosition, wxDefaultSize, wxSL_VALUE_LABEL);
+		sep_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoSep, this);
+		RegisterControl(sep_slider, wxGetTranslation(stereo_separation_desc));
+
+		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Interpupillary distance:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+		szr_stereo->Add(sep_slider, 1, wxEXPAND | wxRIGHT);
+
+		wxSlider* const foc_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoFocalLength, 10, 200, wxDefaultPosition, wxDefaultSize, wxSL_VALUE_LABEL);
+		foc_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoFoc, this);
+		RegisterControl(foc_slider, wxGetTranslation(stereo_focal_desc));
+
+		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Focal Length:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+		szr_stereo->Add(foc_slider, 1, wxEXPAND | wxRIGHT);
+
+		wxStaticBoxSizer* const group_stereo = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Stereoscopy"));
+		group_stereo->Add(szr_stereo, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_enh_main->Add(group_stereo, 0, wxEXPAND | wxALL, 5);
+	}
 
 	szr_enh_main->AddStretchSpacer();
 	CreateDescriptionArea(page_enh, szr_enh_main);

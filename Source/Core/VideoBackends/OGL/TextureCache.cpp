@@ -364,7 +364,7 @@ TextureCache::TextureCache()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
-	const char *VProgram = (g_ActiveConfig.bStereo) ?
+	const char *VProgram = (g_ActiveConfig.iStereoMode > 0) ?
 		"out vec2 v_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
@@ -385,7 +385,7 @@ TextureCache::TextureCache()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
-	const char *GProgram = (g_ActiveConfig.bStereo) ?
+	const char *GProgram = (g_ActiveConfig.iStereoMode > 0) ?
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = 6) out;\n"
 		"in vec2 v_uv0[];\n"

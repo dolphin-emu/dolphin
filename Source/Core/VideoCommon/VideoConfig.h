@@ -71,6 +71,9 @@ struct VideoConfig final
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
+	int iStereoMode;
+	int iStereoSeparation;
+	int iStereoFocalLength;
 
 	// Information
 	bool bShowFPS;
@@ -92,9 +95,6 @@ struct VideoConfig final
 	bool bDumpEFBTarget;
 	bool bUseFFV1;
 	bool bFreeLook;
-	bool bStereo;
-	int iStereoSeparation;
-	int iStereoFocalLength;
 	bool bBorderlessFullscreen;
 
 	// Hacks
