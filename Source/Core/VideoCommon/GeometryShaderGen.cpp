@@ -41,10 +41,10 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	out.Write("//Geometry Shader for 3D stereoscopy\n");
 
+	uid_data->stereo = g_ActiveConfig.bStereo;
 	if (ApiType == API_OPENGL)
 	{
 		// Insert layout parameters
-		uid_data->stereo = g_ActiveConfig.bStereo;
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 			out.Write("layout(triangles, invocations = %d) in;\n", g_ActiveConfig.bStereo ? 2 : 1);
 		else

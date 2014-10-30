@@ -220,7 +220,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 		filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 		SaveData(filename, pcode.GetBuffer());
 
-		if (g_ActiveConfig.bStereo)
+		if (gcode.GetBuffer() != nullptr)
 		{
 			filename = StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 			SaveData(filename, gcode.GetBuffer());
@@ -387,8 +387,7 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 {
 	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
 	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
-	if (g_ActiveConfig.bStereo)
-		GetGeometryShaderUid(uid->guid, components, API_OPENGL);
+	GetGeometryShaderUid(uid->guid, components, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
