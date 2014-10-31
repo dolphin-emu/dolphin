@@ -44,6 +44,12 @@ enum EFBScale
 	SCALE_4X,
 };
 
+enum StereoMode
+{
+	STEREO_OFF = 0,
+	STEREO_SBS
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
