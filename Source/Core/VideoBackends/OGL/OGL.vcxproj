@@ -98,9 +98,6 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(ExternalsDir)wxWidgets3\build\msw\wx_base.vcxproj">
-      <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
       <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>

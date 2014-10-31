@@ -24,10 +24,6 @@ if(USE_EGL)
 		EGL)
 endif()
 
-if(wxWidgets_FOUND)
-	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})
-endif(wxWidgets_FOUND)
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
 	${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
 	set(LIBS	${LIBS} usbhid)
