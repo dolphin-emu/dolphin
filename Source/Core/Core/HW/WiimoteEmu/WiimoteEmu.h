@@ -120,6 +120,8 @@ public:
 
 	void LoadDefaults(const ControllerInterface& ciface) override;
 
+	int CurrentExtension() const { return m_extension->active_extension; }
+
 protected:
 	bool Step();
 	void HidOutputReport(const wm_report* const sr, const bool send_ack = true);

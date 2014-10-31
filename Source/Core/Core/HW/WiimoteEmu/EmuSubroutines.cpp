@@ -600,7 +600,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		if (data[1] == WM_REPORT_CORE_ACCEL_EXT16)
 		{
-			wm_extension *nc = (wm_extension*)&data[7];
+			wm_nc *nc = (wm_nc*)&data[7];
 
 			SExt = StringFromFormat(
 				"%02x %02x | %02x %02x %02x | %02x"

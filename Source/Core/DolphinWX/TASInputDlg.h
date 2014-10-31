@@ -43,18 +43,18 @@ class TASInputDlg : public wxDialog
 		void OnRightClickSlider(wxMouseEvent& event);
 		void ResetValues();
 		void GetValues(GCPadStatus* PadStatus);
-		void GetValues(u8* data, WiimoteEmu::ReportFeatures rptf);
+		void GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
 		void SetTurbo(wxMouseEvent& event);
 		void SetTurboFalse(wxMouseEvent& event);
-		void SetTurboState(wxCheckBox* CheckBox, bool* TurboOn);
+		void SetTurboState(wxCheckBox* CheckBox, bool* turbo_on);
 		void ButtonTurbo();
 		void GetKeyBoardInput(GCPadStatus* PadStatus);
-		void GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf);
+		void GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
 		bool TextBoxHasFocus();
 		void SetLandRTriggers();
 		bool TASHasFocus();
 		void CreateGCLayout();
-		void CreateWiiLayout();
+		void CreateWiiLayout(int num);
 		wxBitmap CreateStickBitmap(int x, int y);
 		void SetWiiButtons(u16* butt);
 		void GetIRData(u8* const data, u8 mode, bool use_accel);
@@ -74,6 +74,7 @@ class TASInputDlg : public wxDialog
 			u32 range;
 			u32 default_value = 128;
 			bool set_by_keyboard = false;
+			bool reverse = false;
 		};
 
 		struct Button
@@ -93,13 +94,15 @@ class TASInputDlg : public wxDialog
 
 		void SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center = 128);
 		void SetButtonValue(Button* button, bool CurrentState);
-		void SetSliderValue(Control* control, int CurrentValue, int defaultValue = 128);
-		Stick CreateStick(int id_stick);
+		void SetSliderValue(Control* control, int CurrentValue, int default_value = 128);
+		void CreateBaseLayout();
+		Stick CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX, bool reverseY);
 		wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, const wxString& title);
+		wxStaticBoxSizer* CreateAccelLayout(Control* x, Control* y, Control* z, const wxString& title);
 		Button CreateButton(const std::string& name);
-		Control CreateControl(long style, int width, int height, u32 range = 255);
+		Control CreateControl(long style, int width, int height, bool reverse = false, u32 range = 255, u32 default_value = 128);
 
-		Control m_l_cont, m_r_cont, m_x_cont, m_y_cont, m_z_cont;
+		Control m_l_cont, m_r_cont, m_x_cont, m_y_cont, m_z_cont, m_nx_cont, m_ny_cont, m_nz_cont;
 		Button m_a, m_b, m_x, m_y, m_z, m_l, m_r, m_c;
 		Button m_start, m_plus, m_minus, m_one, m_two, m_home;
 		Button m_dpad_up, m_dpad_down, m_dpad_left, m_dpad_right;
@@ -109,9 +112,14 @@ class TASInputDlg : public wxDialog
 		Control* m_controls[10];
 		static const int m_gc_pad_buttons_bitmask[12];
 		static const int m_wii_buttons_bitmask[13];
+		u8 m_ext = 0;
+		wxBoxSizer* m_main_szr;
+		wxBoxSizer* m_wiimote_szr;
+		wxBoxSizer* m_ext_szr;
+		wxStaticBoxSizer* m_main_stick_szr;
+		wxStaticBoxSizer* m_c_stick_szr;
 
 		bool m_has_layout = false;
-		bool m_is_wii = false;
 
 		wxGridSizer* const m_buttons_dpad = new wxGridSizer(3);
 };

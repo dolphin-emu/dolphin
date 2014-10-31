@@ -110,7 +110,7 @@ void Nunchuk::GetState(u8* const data)
 	m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks);
 
 	// flip the button bits :/
-	*(u8*)&ncdata->bt ^= 0x03;
+	ncdata->bt.hex ^= 0x03;
 
 	accel_cal& calib = *(accel_cal*)&reg.calibration;
 

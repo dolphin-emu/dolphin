@@ -731,7 +731,7 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 
 		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
 		{
-			g_TASInputDlg[i+4]->CreateWiiLayout();
+			g_TASInputDlg[i+4]->CreateWiiLayout(i);
 			g_TASInputDlg[i+4]->Show(true);
 			g_TASInputDlg[i+4]->SetTitle(wxString::Format(_("TAS Input - Wiimote %d"), i + 1));
 		}
