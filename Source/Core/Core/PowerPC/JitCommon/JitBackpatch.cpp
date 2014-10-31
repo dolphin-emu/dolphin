@@ -6,7 +6,6 @@
 
 #include "disasm.h"
 
-#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 using namespace Gen;
