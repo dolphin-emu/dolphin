@@ -338,7 +338,7 @@ TextureCache::TextureCache()
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture(samp9, f_uv0);\n"
+		"	vec4 texcol = texture(samp9, vec3(f_uv0.xy, 0));\n"
 
 		// 255.99998474121 = 16777215/16777216*256
 		"	float workspace = texcol.x * 255.99998474121;\n"
