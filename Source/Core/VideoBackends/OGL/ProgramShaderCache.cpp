@@ -264,7 +264,8 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 
 	glAttachShader(pid, vsid);
 	glAttachShader(pid, psid);
-	glAttachShader(pid, gsid);
+	if (gsid)
+		glAttachShader(pid, gsid);
 
 	if (g_ogl_config.bSupportsGLSLCache)
 		glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
