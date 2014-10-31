@@ -152,6 +152,7 @@ static wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation 
 static wxString stereo_3d_desc = wxTRANSLATE("Side-by-side stereoscopic 3D.");
 static wxString stereo_separation_desc = wxTRANSLATE("Control the Interpupillary distance.");
 static wxString stereo_focal_desc = wxTRANSLATE("Control the distance at which objects appear to be at screen depth.");
+static wxString stereo_swap_desc = wxTRANSLATE("Swap the left and right eye.\n\nIf unsure, leave this unchecked.");
 
 
 #if !defined(__APPLE__)
@@ -469,6 +470,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Focal Length:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(foc_slider, 1, wxEXPAND | wxRIGHT);
+
+		szr_stereo->Add(CreateCheckBox(page_enh, _("Swap eyes"), wxGetTranslation(stereo_swap_desc), vconfig.bStereoSwapEyes));
 
 		wxStaticBoxSizer* const group_stereo = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Stereoscopy"));
 		group_stereo->Add(szr_stereo, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

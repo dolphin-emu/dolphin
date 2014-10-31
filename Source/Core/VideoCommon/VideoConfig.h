@@ -81,6 +81,7 @@ struct VideoConfig final
 	int iStereoMode;
 	int iStereoSeparation;
 	int iStereoFocalLength;
+	bool bStereoSwapEyes;
 
 	// Information
 	bool bShowFPS;
