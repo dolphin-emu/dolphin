@@ -63,11 +63,6 @@ struct wm_accel
 	u8 x, y, z;
 };
 
-struct wm_full_accel
-{
-	u16 x, y, z;
-};
-
 // Four bytes for two objects. Filled with 0xFF if empty
 struct wm_ir_basic
 {

@@ -79,15 +79,6 @@ static const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-void FillRawAccelFromGForceData(wm_full_accel& raw_accel,
-	const accel_cal& calib,
-	const WiimoteEmu::AccelData& accel)
-{
-	raw_accel.x = (u16)trim(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	raw_accel.y = (u16)trim(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	raw_accel.z = (u16)trim(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
-}
-
 void EmulateShake(AccelData* const accel
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step )
@@ -398,27 +389,32 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 	const bool is_sideways = m_options->settings[1]->value != 0;
 	const bool is_upright = m_options->settings[2]->value != 0;
 
-	// ----TILT----
 	EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
-
-	// ----SWING----
-	// ----SHAKE----
 	EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
 	EmulateShake(&m_accel, m_shake, m_shake_step);
 
-	wm_full_accel tmpAccel;
-
-	FillRawAccelFromGForceData(tmpAccel, *(accel_cal*)&m_eeprom[0x16], m_accel);
-
 	wm_accel& accel = *(wm_accel*)(data + rptf.accel);
 	wm_buttons& core = *(wm_buttons*)(data + rptf.core);
+	accel_cal& calib = *(accel_cal*)&m_eeprom[0x16];
 
-	accel.x = tmpAccel.x >> 2;
-	accel.y = tmpAccel.y >> 1;
-	accel.z = tmpAccel.z >> 1;
-	core.acc_x_lsb = tmpAccel.x & 0x3;
-	core.acc_y_lsb = tmpAccel.y & 0x1;
-	core.acc_z_lsb = tmpAccel.z & 0x1;
+	u16 x = (u16)(m_accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
+	u16 y = (u16)(m_accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
+	u16 z = (u16)(m_accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+
+	if (x > 1024)
+		x = 1024;
+	if (y > 1024)
+		y = 1024;
+	if (z > 1024)
+		z = 1024;
+
+	accel.x = x & 0xFF;
+	accel.y = y & 0xFF;
+	accel.z = z & 0xFF;
+
+	core.acc_x_lsb = x >> 8 & 0x3;
+	core.acc_y_lsb = y >> 8 & 0x1;
+	core.acc_z_lsb = z >> 8 & 0x1;
 }
 #define kCutoffFreq 5.0
 inline void LowPassFilter(double & var, double newval, double period)

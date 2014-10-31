@@ -112,10 +112,10 @@ void TASInputDlg::CreateWiiLayout()
 	wxStaticBoxSizer* const yBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Y"));
 	wxStaticBoxSizer* const zBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Z"));
 
-	m_x_cont = CreateControl(wxSL_VERTICAL, -1, 100);
-	m_y_cont = CreateControl(wxSL_VERTICAL, -1, 100);
-	m_z_cont = CreateControl(wxSL_VERTICAL, -1, 100);
-	m_z_cont.default_value = 154;
+	m_x_cont = CreateControl(wxSL_VERTICAL, -1, 100, 1023);
+	m_y_cont = CreateControl(wxSL_VERTICAL, -1, 100, 1023);
+	m_z_cont = CreateControl(wxSL_VERTICAL, -1, 100, 1023);
+	m_z_cont.default_value = 616;
 	xBox->Add(m_x_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
 	xBox->Add(m_x_cont.text, 0, wxALIGN_CENTER_VERTICAL);
 	yBox->Add(m_y_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
@@ -423,9 +423,9 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
 
-		SetSliderValue(&m_x_cont, dt->x);
-		SetSliderValue(&m_y_cont, dt->y);
-		SetSliderValue(&m_z_cont, dt->z, 154);
+		SetSliderValue(&m_x_cont, dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb);
+		SetSliderValue(&m_y_cont, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb);
+		SetSliderValue(&m_z_cont, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb, 616);
 	}
 
 	// I don't think this can be made to work in a sane manner.
@@ -455,10 +455,14 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
 
 	if (accelData)
 	{
-		wm_accel* dt = (wm_accel*)accelData;
-		dt->x = m_x_cont.value;
-		dt->y = m_y_cont.value;
-		dt->z = m_z_cont.value;
+		wm_accel& dt = *(wm_accel*)accelData;
+		wm_buttons& but = *(wm_buttons*)coreData;
+		dt.x = m_x_cont.value >> 2;
+		dt.y = m_y_cont.value >> 2;
+		dt.z = m_z_cont.value >> 2;
+		but.acc_x_lsb = m_x_cont.value & 0x3;
+		but.acc_y_lsb = m_y_cont.value >> 1 & 0x1;
+		but.acc_z_lsb = m_z_cont.value >> 1 & 0x1;
 	}
 	if (irData)
 	{
