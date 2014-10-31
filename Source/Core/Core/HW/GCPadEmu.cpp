@@ -8,7 +8,7 @@
 // TODO: Move to header file when VS supports constexpr.
 const ControlState GCPad::DEFAULT_PAD_STICK_RADIUS = 1.0;
 
-const u16 button_bitmasks[] =
+static const u16 button_bitmasks[] =
 {
 	PAD_BUTTON_A,
 	PAD_BUTTON_B,
@@ -19,18 +19,18 @@ const u16 button_bitmasks[] =
 	0 // MIC HAX
 };
 
-const u16 trigger_bitmasks[] =
+static const u16 trigger_bitmasks[] =
 {
 	PAD_TRIGGER_L,
 	PAD_TRIGGER_R,
 };
 
-const u16 dpad_bitmasks[] =
+static const u16 dpad_bitmasks[] =
 {
 	PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT
 };
 
-const char* const named_buttons[] =
+static const char* const named_buttons[] =
 {
 	"A",
 	"B",
@@ -41,7 +41,7 @@ const char* const named_buttons[] =
 	"Mic"
 };
 
-const char* const named_triggers[] =
+static const char* const named_triggers[] =
 {
 	// i18n:  Left
 	_trans("L"),
