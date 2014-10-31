@@ -1514,19 +1514,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			if (g_ActiveConfig.iStereoMode == STEREO_SBS)
+			if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
 			{
-				// Resize target to half its original size
-				int width = drawRc.GetWidth();
-				drawRc.left += width / 4;
-				drawRc.right -= width / 4;
-
-				// Create two target rectangle offset to the sides of the backbuffer
-				TargetRectangle leftRc = drawRc, rightRc = drawRc;
-				leftRc.left -= s_backbuffer_width / 4;
-				leftRc.right -= s_backbuffer_width / 4;
-				rightRc.left += s_backbuffer_width / 4;
-				rightRc.right += s_backbuffer_width / 4;
+				TargetRectangle leftRc, rightRc;
+				ConvertStereoRectangle(flipped_trc, leftRc, rightRc);
 
 				m_post_processor->BlitFromTexture(sourceRc, leftRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
 				m_post_processor->BlitFromTexture(sourceRc, rightRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
@@ -1544,19 +1535,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
 
-		if (g_ActiveConfig.iStereoMode == STEREO_SBS)
+		if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
 		{
-			// Resize target to half its original size
-			int width = flipped_trc.GetWidth();
-			flipped_trc.left += width / 4;
-			flipped_trc.right -= width / 4;
-
-			// Create two target rectangle offset to the sides of the backbuffer
-			TargetRectangle leftRc = flipped_trc, rightRc = flipped_trc;
-			leftRc.left -= s_backbuffer_width / 4;
-			leftRc.right -= s_backbuffer_width / 4;
-			rightRc.left += s_backbuffer_width / 4;
-			rightRc.right += s_backbuffer_width / 4;
+			TargetRectangle leftRc, rightRc;
+			ConvertStereoRectangle(flipped_trc, leftRc, rightRc);
 
 			m_post_processor->BlitFromTexture(targetRc, leftRc, tex, s_target_width, s_target_height, 0);
 			m_post_processor->BlitFromTexture(targetRc, rightRc, tex, s_target_width, s_target_height, 1);

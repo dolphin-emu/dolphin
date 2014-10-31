@@ -240,6 +240,42 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	return false;
 }
 
+void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc, TargetRectangle& rightRc)
+{
+	// Resize target to half its original size
+	TargetRectangle drawRc = rc;
+	if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+	{
+		// The height may be negative due to flipped rectangles
+		int height = rc.bottom - rc.top;
+		drawRc.top += height / 4;
+		drawRc.bottom -= height / 4;
+	}
+	else
+	{
+		int width = rc.right - rc.left;
+		drawRc.left += width / 4;
+		drawRc.right -= width / 4;
+	}
+
+	// Create two target rectangle offset to the sides of the backbuffer
+	leftRc = drawRc, rightRc = drawRc;
+	if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+	{
+		leftRc.top -= s_backbuffer_height / 4;
+		leftRc.bottom -= s_backbuffer_height / 4;
+		rightRc.top += s_backbuffer_height / 4;
+		rightRc.bottom += s_backbuffer_height / 4;
+	}
+	else
+	{
+		leftRc.left -= s_backbuffer_width / 4;
+		leftRc.right -= s_backbuffer_width / 4;
+		rightRc.left += s_backbuffer_width / 4;
+		rightRc.right += s_backbuffer_width / 4;
+	}
+}
+
 void Renderer::SetScreenshot(const std::string& filename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);

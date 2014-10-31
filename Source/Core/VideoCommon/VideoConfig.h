@@ -48,6 +48,7 @@ enum StereoMode
 {
 	STEREO_OFF = 0,
 	STEREO_SBS,
+	STEREO_TAB,
 	STEREO_ANAGLYPH
 };
 
