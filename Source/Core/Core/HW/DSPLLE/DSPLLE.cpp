@@ -17,6 +17,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
@@ -30,7 +32,6 @@
 #include "Core/HW/DSPLLE/DSPLLE.h"
 #include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
-
 
 DSPLLE::DSPLLE()
 {
@@ -314,12 +315,15 @@ void DSPLLE::DSP_Update(int cycles)
 		soundStream->Update();
 	}
 */
-	if (requestDisableThread)
+	if (m_bDSPThread)
 	{
-		DSP_StopSoundStream();
-		m_bDSPThread = false;
-		requestDisableThread = false;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = false;
+		if (requestDisableThread || NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+		{
+			DSP_StopSoundStream();
+			m_bDSPThread = false;
+			requestDisableThread = false;
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = false;
+		}
 	}
 
 	// If we're not on a thread, run cycles here.
