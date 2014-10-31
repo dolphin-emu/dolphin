@@ -1516,10 +1516,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			if (g_ActiveConfig.iStereoMode == 1)
 			{
+				// Resize target to half its original size
+				int width = drawRc.GetWidth();
+				drawRc.left += width / 4;
+				drawRc.right -= width / 4;
+
+				// Create two target rectangle offset to the sides of the backbuffer
 				TargetRectangle leftRc = drawRc, rightRc = drawRc;
-				int width = drawRc.right - drawRc.left;
-				leftRc.right -= width / 2;
-				rightRc.left += width / 2;
+				leftRc.left -= s_backbuffer_width / 4;
+				leftRc.right -= s_backbuffer_width / 4;
+				rightRc.left += s_backbuffer_width / 4;
+				rightRc.right += s_backbuffer_width / 4;
 
 				m_post_processor->BlitFromTexture(sourceRc, leftRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
 				m_post_processor->BlitFromTexture(sourceRc, rightRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
@@ -1539,10 +1546,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		if (g_ActiveConfig.iStereoMode == 1)
 		{
+			// Resize target to half its original size
+			int width = flipped_trc.GetWidth();
+			flipped_trc.left += width / 4;
+			flipped_trc.right -= width / 4;
+
+			// Create two target rectangle offset to the sides of the backbuffer
 			TargetRectangle leftRc = flipped_trc, rightRc = flipped_trc;
-			int width = flipped_trc.right - flipped_trc.left;
-			leftRc.right -= width / 2;
-			rightRc.left += width / 2;
+			leftRc.left -= s_backbuffer_width / 4;
+			leftRc.right -= s_backbuffer_width / 4;
+			rightRc.left += s_backbuffer_width / 4;
+			rightRc.right += s_backbuffer_width / 4;
 
 			m_post_processor->BlitFromTexture(targetRc, leftRc, tex, s_target_width, s_target_height, 0);
 			m_post_processor->BlitFromTexture(targetRc, rightRc, tex, s_target_width, s_target_height, 1);
