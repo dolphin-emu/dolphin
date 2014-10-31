@@ -13,7 +13,7 @@
 const int NO_INDEX = -1;
 static const char *MC_HDR = "MC_SYSTEM_AREA";
 
-int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly)
+int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly)
 {
 	File::IOFile gcifile(fileName, "rb");
 	if (gcifile)
@@ -131,7 +131,7 @@ int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry 
 	return NO_INDEX;
 }
 
-GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 sizeMb, bool ascii, DiscIO::IVolume::ECountry card_region, int gameId)
+GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb, bool ascii, DiscIO::IVolume::ECountry card_region, int gameId)
 : MemoryCardBase(slot, sizeMb)
 , m_GameId(gameId)
 , m_LastBlock(-1)
@@ -652,7 +652,7 @@ void GCIFile::DoState(PointerWrap &p)
 	p.Do(m_used_blocks);
 }
 
-void MigrateFromMemcardFile(std::string strDirectoryName, int card_index)
+void MigrateFromMemcardFile(const std::string& strDirectoryName, int card_index)
 {
 	File::CreateFullPath(strDirectoryName);
 	std::string ini_memcard =
