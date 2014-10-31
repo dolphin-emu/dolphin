@@ -166,10 +166,13 @@ void OpenGLPostProcessing::ApplyShader()
 	m_shader.Destroy();
 	m_uniform_bindings.clear();
 
-	// load shader from disk
-	std::string default_shader = "void main() { SetOutput(Sample()); }\n";
+	// load shader code
 	std::string code = "";
-	if (g_ActiveConfig.sPostProcessingShader != "")
+	std::string default_shader = "void main() { SetOutput(Sample()); }\n";
+
+	if (g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH)
+		code = "void main() { SetOutput(float4(SampleLayer(1).r, SampleLayer(0).gba)); }\n";
+	else if (g_ActiveConfig.sPostProcessingShader != "")
 		code = m_config.LoadShader();
 
 	if (code == "")
@@ -253,7 +256,12 @@ void OpenGLPostProcessing::CreateHeader()
 			"\treturn texture(samp9, float3(location, layer));\n"
 		"}\n"
 
-		"#define SampleOffset(offset) textureOffset(samp9, uv0, offset)\n"
+		"float4 SampleLayer(int layer)\n"
+		"{\n"
+			"\treturn texture(samp9, float3(uv0, layer));\n"
+		"}\n"
+
+		"#define SampleOffset(offset) textureOffset(samp9, float3(uv0, layer), offset)\n"
 
 		"float4 SampleFontLocation(float2 location)\n"
 		"{\n"

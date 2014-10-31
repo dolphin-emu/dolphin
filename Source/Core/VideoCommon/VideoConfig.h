@@ -47,7 +47,8 @@ enum EFBScale
 enum StereoMode
 {
 	STEREO_OFF = 0,
-	STEREO_SBS
+	STEREO_SBS,
+	STEREO_ANAGLYPH
 };
 
 // NEVER inherit from this class.

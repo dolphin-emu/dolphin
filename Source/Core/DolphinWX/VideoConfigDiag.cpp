@@ -399,7 +399,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	if (vconfig.backend_info.PPShaders.size())
 	{
 		wxFlexGridSizer* const szr_pp = new wxFlexGridSizer(3, 5, 5);
-		wxChoice *const choice_ppshader = new wxChoice(page_enh, -1);
+		choice_ppshader = new wxChoice(page_enh, -1);
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
 		choice_ppshader->AppendString(_("(off)"));
 
@@ -428,6 +428,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_pp->Add(button_config_pp);
 		szr_enh->Add(szr_pp);
 	}
+	else
+	{
+		choice_ppshader = nullptr;
+		button_config_pp = nullptr;
+	}
 
 	// Scaled copy, PL, Bilinear filter
 	szr_enh->Add(CreateCheckBox(page_enh, _("Scaled EFB Copy"), wxGetTranslation(scaled_efb_copy_desc), vconfig.bCopyEFBScaled));
@@ -447,9 +452,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		wxGridSizer* const szr_stereo = new wxGridSizer(2, 5, 5);
 
-		const wxString stereo_choices[] = { "Off", "Side-by-Side" };
+		const wxString stereo_choices[] = { "Off", "Side-by-Side", "Anaglyph" };
 		szr_stereo->Add(new wxStaticText(page_enh, -1, _("Stereo 3D Mode:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_stereo->Add(CreateChoice(page_enh, vconfig.iStereoMode, wxGetTranslation(stereo_3d_desc), 2, stereo_choices));
+		szr_stereo->Add(CreateChoice(page_enh, vconfig.iStereoMode, wxGetTranslation(stereo_3d_desc), 3, stereo_choices));
 
 		wxSlider* const sep_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoSeparation, 30, 90, wxDefaultPosition, wxDefaultSize, wxSL_VALUE_LABEL);
 		sep_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoSep, this);
