@@ -162,7 +162,9 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 {
 	m_bWii = bWii;
-	m_bDSPThread = bDSPThread;
+	m_bDSPThread = true;
+	if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || Core::g_want_determinism || !bDSPThread)
+		m_bDSPThread = false;
 	requestDisableThread = false;
 
 	DSPInitOptions opts;
@@ -317,7 +319,7 @@ void DSPLLE::DSP_Update(int cycles)
 */
 	if (m_bDSPThread)
 	{
-		if (requestDisableThread || NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+		if (requestDisableThread || NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || Core::g_want_determinism)
 		{
 			DSP_StopSoundStream();
 			m_bDSPThread = false;
