@@ -34,7 +34,7 @@ void CBoot::RunFunction(u32 _iAddr)
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC()
+bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 {
 	INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -84,7 +84,7 @@ bool CBoot::EmulatedBS2_GC()
 	u32 iAppLoaderOffset = 0x2440;
 	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10, false);
 	u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14, false) + VolumeHandler::Read32(iAppLoaderOffset + 0x18, false);
-	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
+	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1) || skipAppLoader)
 	{
 		INFO_LOG(BOOT, "GC BS2: Not running apploader!");
 		return false;
