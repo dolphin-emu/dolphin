@@ -65,7 +65,7 @@ bool CBoot::Boot_ELF(const std::string& filename)
 
 	// Load ELF into GameCube Memory
 	ElfReader reader(elf.get());
-	reader.LoadInto(0x80000000);
+	reader.LoadIntoMemory();
 
 	if (!reader.LoadSymbols())
 	{
