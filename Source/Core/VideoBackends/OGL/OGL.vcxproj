@@ -37,6 +37,8 @@
   <ItemGroup>
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="GLExtensions\GLExtensions.cpp" />
+    <ClCompile Include="GLInterface\GLInterface.cpp" />
+    <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="GLUtil.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NativeVertexFormat.cpp" />
@@ -80,6 +82,7 @@
     <ClInclude Include="GLExtensions\gl_common.h" />
     <ClInclude Include="GLExtensions\KHR_debug.h" />
     <ClInclude Include="GLExtensions\NV_primitive_restart.h" />
+    <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="GLUtil.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="PerfQuery.h" />

@@ -8,10 +8,6 @@ set(LIBS	core
 			${GTK2_LIBRARIES})
 
 if(NOT ANDROID)
-	if(USE_X11)
-		set(LIBS  ${LIBS} ${XRANDR_LIBRARIES})
-	endif()
-
 	link_directories(${CMAKE_PREFIX_PATH}/lib)
 else()
 	set(LIBS ${LIBS} png iconv)
@@ -76,31 +72,6 @@ set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
 
-if(USE_EGL)
-	set(SRCS ${SRCS} GLInterface/EGL.cpp)
-	if(ANDROID)
-		set(SRCS ${SRCS} GLInterface/EGLAndroid.cpp)
-	elseif(USE_X11)
-		set(SRCS ${SRCS} GLInterface/EGLX11.cpp)
-	endif()
-endif()
-
-if(WIN32)
-	set(SRCS ${SRCS} GLInterface/WGL.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set(SRCS ${SRCS} GLInterface/AGL.cpp)
-elseif(USE_X11)
-	if (NOT USE_EGL)
-		set(SRCS ${SRCS} GLInterface/GLX.cpp)
-		# GLX has a hard dependency on libGL.
-		# Make sure to link to it if using GLX.
-		set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
-	endif()
-	set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
-endif()
-
-set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
-
 set(NOGUI_SRCS MainNoGUI.cpp)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -125,8 +96,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	list(APPEND SRCS ${RESOURCES})
 	set_source_files_properties(${RESOURCES} PROPERTIES
 		MACOSX_PACKAGE_LOCATION Resources)
-elseif(USE_X11)
-	set(SRCS ${SRCS} X11Utils.cpp)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
@@ -156,7 +125,7 @@ endif()
 if(ANDROID)
 	set(DOLPHIN_EXE main)
 	add_library(${DOLPHIN_EXE} SHARED ${SRCS} ${ANDROID_SRCS})
-	target_link_libraries(${DOLPHIN_EXE} 
+	target_link_libraries(${DOLPHIN_EXE}
 	log
 	android
 	"-Wl,--no-warn-mismatch"

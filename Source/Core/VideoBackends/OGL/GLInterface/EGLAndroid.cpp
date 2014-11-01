@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/Host.h"
-#include "DolphinWX/GLInterface/EGLAndroid.h"
+#include "VideoBackends/OGL/GLInterface/EGLAndroid.h"
 
 EGLDisplay cInterfaceEGLAndroid::OpenDisplay()
 {

@@ -18,7 +18,7 @@
 
 #include "Common/CommonTypes.h"
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include "DolphinWX/X11Utils.h"
+#include "VideoBackends/OGL/GLInterface/X11Utils.h"
 #endif
 
 class wxBoxSizer;

@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DolphinWX/GLInterface/EGL.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
+#include "VideoBackends/OGL/GLInterface/EGL.h"
 #include "VideoCommon/RenderBase.h"
 
 // Show the current FPS

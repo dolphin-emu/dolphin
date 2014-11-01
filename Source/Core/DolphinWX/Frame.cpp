@@ -72,6 +72,23 @@ extern "C" {
 
 int g_saveSlot = 1;
 
+#if defined(HAVE_X11) && HAVE_X11
+// X11Utils nastiness that's only used here
+namespace X11Utils {
+
+Window XWindowFromHandle(void *Handle)
+{
+	return GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(Handle)));
+}
+
+Display *XDisplayFromHandle(void *Handle)
+{
+	return GDK_WINDOW_XDISPLAY(gtk_widget_get_window(GTK_WIDGET(Handle)));
+}
+
+}
+#endif
+
 CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
 		const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)

@@ -129,7 +129,7 @@ void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "DolphinWX/X11Utils.h"
+#include "VideoBackends/OGL/GLInterface/X11Utils.h"
 
 class PlatformX11 : public Platform
 {
