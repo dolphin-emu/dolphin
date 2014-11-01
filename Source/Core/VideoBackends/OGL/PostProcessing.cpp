@@ -171,7 +171,7 @@ void OpenGLPostProcessing::ApplyShader()
 	std::string default_shader = "void main() { SetOutput(Sample()); }\n";
 
 	if (g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH)
-		code = "void main() { SetOutput(float4(SampleLayer(1).r, SampleLayer(0).gba)); }\n";
+		code = "void main() { SetOutput(float4(pow(0.7 * SampleLayer(0).g + 0.3 * SampleLayer(0).b, 1.5), SampleLayer(1).gba)); }\n";
 	else if (g_ActiveConfig.sPostProcessingShader != "")
 		code = m_config.LoadShader();
 
