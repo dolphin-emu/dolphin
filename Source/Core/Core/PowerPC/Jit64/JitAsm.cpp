@@ -83,7 +83,6 @@ void Jit64AsmRoutineManager::Generate()
 
 			dispatcherNoCheck = GetCodePtr();
 			MOV(32, R(RSCRATCH), PPCSTATE(pc));
-			dispatcherPcInRSCRATCH = GetCodePtr();
 
 			u32 mask = 0;
 			FixupBranch no_mem;
