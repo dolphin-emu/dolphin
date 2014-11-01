@@ -49,7 +49,7 @@ static int AshmemCreateFileMapping(const char *name, size_t size)
 }
 #endif
 
-void MemArena::GrabLowMemSpace(size_t size)
+void MemArena::GrabSHMSegment(size_t size)
 {
 #ifdef _WIN32
 	hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, (DWORD)(size), nullptr);
@@ -82,7 +82,7 @@ void MemArena::GrabLowMemSpace(size_t size)
 }
 
 
-void MemArena::ReleaseSpace()
+void MemArena::ReleaseSHMSegment()
 {
 #ifdef _WIN32
 	CloseHandle(hMemoryMapping);
@@ -244,8 +244,8 @@ u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena
 		if ((views[i].flags & MV_MIRROR_PREVIOUS) == 0)
 			total_mem += views[i].size;
 	}
-	// Grab some pagefile backed memory out of the void ...
-	arena->GrabLowMemSpace(total_mem);
+
+	arena->GrabSHMSegment(total_mem);
 
 	// Now, create views in high memory where there's plenty of space.
 	u8 *base = MemArena::Find4GBBase();

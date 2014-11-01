@@ -19,8 +19,8 @@
 class MemArena
 {
 public:
-	void GrabLowMemSpace(size_t size);
-	void ReleaseSpace();
+	void GrabSHMSegment(size_t size);
+	void ReleaseSHMSegment();
 	void *CreateView(s64 offset, size_t size, void *base = nullptr);
 	void ReleaseView(void *view, size_t size);
 

@@ -163,7 +163,7 @@ void Shutdown()
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
-	g_arena.ReleaseSpace();
+	g_arena.ReleaseSHMSegment();
 	base = nullptr;
 	delete mmio_mapping;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
