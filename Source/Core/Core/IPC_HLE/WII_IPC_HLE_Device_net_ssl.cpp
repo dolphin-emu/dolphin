@@ -135,7 +135,10 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 	case IOCTLV_NET_SSL_NEW:
 	{
 		int verifyOption = Memory::Read_U32(BufferOut);
-		std::string hostname = Memory::GetString(BufferOut2, BufferOutSize2);
+
+		// Correctly truncate the hostname if it's too long.
+		int hostnameLength = std::min(int(BufferOutSize2), NET_SSL_MAX_HOSTNAME_LEN-1);
+		std::string hostname = Memory::GetString(BufferOut2, hostnameLength);
 
 		int freeSSL = this->getSSLFreeID();
 		if (freeSSL)
@@ -176,8 +179,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			ssl_set_authmode(&ssl->ctx, SSL_VERIFY_NONE);
 			ssl_set_renegotiation(&ssl->ctx, SSL_RENEGOTIATION_ENABLED);
 
-			memcpy(ssl->hostname, hostname.c_str(), std::min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
-			ssl->hostname[NET_SSL_MAX_HOSTNAME_LEN-1] = '\0';
+			memcpy(ssl->hostname, hostname.c_str(), hostname.size());
 			ssl_set_hostname(&ssl->ctx, ssl->hostname);
 
 			ssl->active = true;
