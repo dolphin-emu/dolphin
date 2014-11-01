@@ -207,7 +207,7 @@ void* PopFifoAuxBuffer(size_t size)
 }
 
 // Description: RunGpuLoop() sends data through this function.
-static void ReadDataFromFifo(u8* _uData)
+static void ReadDataFromFifo(u32 readPtr)
 {
 	size_t len = 32;
 	if (len > (size_t)(s_video_buffer + FIFO_SIZE - s_video_buffer_write_ptr))
@@ -223,12 +223,12 @@ static void ReadDataFromFifo(u8* _uData)
 		g_video_buffer_read_ptr = s_video_buffer;
 	}
 	// Copy new video instructions to s_video_buffer for future use in rendering the new picture
-	memcpy(s_video_buffer_write_ptr, _uData, len);
+	Memory::CopyFromEmu(s_video_buffer_write_ptr, readPtr, len);
 	s_video_buffer_write_ptr += len;
 }
 
 // The deterministic_gpu_thread version.
-static void ReadDataFromFifoOnCPU(u8* _uData)
+static void ReadDataFromFifoOnCPU(u32 readPtr)
 {
 	size_t len = 32;
 	u8 *write_ptr = s_video_buffer_write_ptr;
@@ -250,7 +250,7 @@ static void ReadDataFromFifoOnCPU(u8* _uData)
 			return;
 		}
 	}
-	memcpy(write_ptr, _uData, len);
+	Memory::CopyFromEmu(s_video_buffer_write_ptr, readPtr, len);
 	OpcodeDecoder_Preprocess(write_ptr + len);
 	// This would have to be locked if the GPU thread didn't spin.
 	s_video_buffer_write_ptr = write_ptr + len;
@@ -313,7 +313,7 @@ void RunGpuLoop()
 				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin)
 				{
 					u32 readPtr = fifo.CPReadPointer;
-					u8 *uData = Memory::GetPointer(readPtr);
+					ReadDataFromFifo(readPtr);
 
 					if (readPtr == fifo.CPEnd)
 						readPtr = fifo.CPBase;
@@ -323,10 +323,8 @@ void RunGpuLoop()
 					_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
 						"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
-					ReadDataFromFifo(uData);
 
 					u8* write_ptr = s_video_buffer_write_ptr;
-
 					cyclesExecuted = OpcodeDecoder_Run(write_ptr);
 
 
@@ -392,17 +390,15 @@ void RunGpu()
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 	{
-		u8 *uData = Memory::GetPointer(fifo.CPReadPointer);
-
 		if (g_use_deterministic_gpu_thread)
 		{
-			ReadDataFromFifoOnCPU(uData);
+			ReadDataFromFifoOnCPU(fifo.CPReadPointer);
 		}
 		else
 		{
 			FPURoundMode::SaveSIMDState();
 			FPURoundMode::LoadDefaultSIMDState();
-			ReadDataFromFifo(uData);
+			ReadDataFromFifo(fifo.CPReadPointer);
 			OpcodeDecoder_Run(s_video_buffer_write_ptr);
 			FPURoundMode::LoadSIMDState();
 		}
