@@ -512,9 +512,9 @@ include_directories(Externals/Bochs_disasm)
 include(FindOculusSDK OPTIONAL)
 if(OCULUSSDK_FOUND)
 	message("Using Oculus SDK")
-    include_directories(${OCULUSSDK_INCLUDE_DIR})
-    include_directories(${OCULUSSDK_SRC_DIR})
-    add_definitions( -DHAVE_OCULUSSDK=1)
+	include_directories(${OCULUSSDK_INCLUDE_DIR})
+	include_directories(${OCULUSSDK_SRC_DIR})
+	add_definitions( -DHAVE_OCULUSSDK=1)
 endif(OCULUSSDK_FOUND)
 
 # If zlib has already been found on a previous run of cmake don't check again
