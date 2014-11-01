@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/FileUtil.h"
+#include "Common/StdMakeUnique.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/ElfReader.h"
@@ -14,12 +15,12 @@ bool CBoot::IsElfWii(const std::string& filename)
 	/* We already check if filename existed before we called this function, so
 	   there is no need for another check, just read the file right away */
 
-	const u64 filesize = File::GetSize(filename);
-	std::vector<u8> mem((size_t)filesize);
+	size_t filesize = File::GetSize(filename);
+	auto elf = std::make_unique<u8 []>(filesize);
 
 	{
 	File::IOFile f(filename, "rb");
-	f.ReadBytes(mem.data(), (size_t)filesize);
+	f.ReadBytes(elf.get(), filesize);
 	}
 
 	// Use the same method as the DOL loader uses: search for mfspr from HID4,
@@ -30,7 +31,7 @@ bool CBoot::IsElfWii(const std::string& filename)
 
 	u32 HID4_pattern = 0x7c13fba6;
 	u32 HID4_mask = 0xfc1fffff;
-	ElfReader reader(mem.data());
+	ElfReader reader(elf.get());
 
 	for (int i = 0; i < reader.GetNumSections(); ++i)
 	{
@@ -53,16 +54,19 @@ bool CBoot::IsElfWii(const std::string& filename)
 
 bool CBoot::Boot_ELF(const std::string& filename)
 {
-	const u64 filesize = File::GetSize(filename);
-	std::vector<u8> mem((size_t)filesize);
+	// Read ELF from file
+	size_t filesize = File::GetSize(filename);
+	auto elf = std::make_unique<u8 []>(filesize);
 
 	{
 	File::IOFile f(filename, "rb");
-	f.ReadBytes(mem.data(), (size_t)filesize);
+	f.ReadBytes(elf.get(), filesize);
 	}
 
-	ElfReader reader(mem.data());
+	// Load ELF into GameCube Memory
+	ElfReader reader(elf.get());
 	reader.LoadInto(0x80000000);
+
 	if (!reader.LoadSymbols())
 	{
 		if (LoadMapFromFilename())
