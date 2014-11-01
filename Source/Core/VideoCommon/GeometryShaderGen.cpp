@@ -86,6 +86,16 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	if (g_ActiveConfig.iStereoMode > 0)
 		out.Write("\t\to.pos = float4(dot(stereoproj, v[i].rawpos), dot(" I_PROJECTION"[1], v[i].rawpos), dot(" I_PROJECTION"[2], v[i].rawpos), dot(" I_PROJECTION"[3], v[i].rawpos)); \n");
 
+	if (ApiType == API_D3D)
+	{
+		out.Write("\t\to.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
+	}
+	else // OGL
+	{
+		out.Write("\t\to.pos.z = o.pos.w + o.pos.z * 2.0;\n");
+	}
+
+	out.Write("\t\to.pos.xy = o.pos.xy - " I_DEPTHPARAMS".zw;\n");
 	out.Write("\t\tgl_Position = o.pos;\n");
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");
