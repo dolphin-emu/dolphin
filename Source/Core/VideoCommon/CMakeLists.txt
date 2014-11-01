@@ -38,8 +38,11 @@ set(SRCS	BoundingBox.cpp
 			VideoConfig.cpp
 			VideoState.cpp
 			XFMemory.cpp
-			XFStructs.cpp)
-set(LIBS core png)
+			XFStructs.cpp
+            VR.cpp
+            MetroidVR.cpp)
+
+set(LIBS core png OculusVR)
 
 if(_M_X86)
 	set(SRCS ${SRCS}	TextureDecoder_x64.cpp)

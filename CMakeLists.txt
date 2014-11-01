@@ -509,6 +509,10 @@ include_directories(Source/Core)
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
+include_directories(Externals/LibOVR/Src)
+include_directories(Externals/LibOVR/Include)
+set(HAVE_OCULUSSDK TRUE)
+
 # If zlib has already been found on a previous run of cmake don't check again
 # as the check seems to take a long time.
 if(NOT ZLIB_FOUND)
