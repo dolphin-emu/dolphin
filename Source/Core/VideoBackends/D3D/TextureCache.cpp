@@ -192,7 +192,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 {
 	return new TCacheEntry(D3DTexture2D::Create(scaled_tex_w, scaled_tex_h,
 		(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
-		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM));
+		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, FramebufferManager::GetEFBSlices()));
 }
 
 TextureCache::TextureCache()
