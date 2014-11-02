@@ -222,7 +222,7 @@ struct SCoreStartupParameter
 	std::string m_strFilename;
 	std::string m_strBootROM;
 	std::string m_strSRAM;
-	std::string m_strDefaultGCM;
+	std::string m_strDefaultISO;
 	std::string m_strDVDRoot;
 	std::string m_strApploader;
 	std::string m_strUniqueID;

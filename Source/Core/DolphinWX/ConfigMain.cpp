@@ -501,7 +501,7 @@ void CConfigMain::InitializeGUIValues()
 
 	// Paths
 	RecursiveISOPath->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
-	DefaultISO->SetPath(StrToWxStr(startup_params.m_strDefaultGCM));
+	DefaultISO->SetPath(StrToWxStr(startup_params.m_strDefaultISO));
 	DVDRoot->SetPath(StrToWxStr(startup_params.m_strDVDRoot));
 	ApploaderPath->SetPath(StrToWxStr(startup_params.m_strApploader));
 	NANDRoot->SetPath(StrToWxStr(SConfig::GetInstance().m_NANDPath));
@@ -1284,7 +1284,7 @@ void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = WxStrToStr(DefaultISO->GetPath());
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = WxStrToStr(DefaultISO->GetPath());
 }
 
 void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
