@@ -443,7 +443,7 @@ void Host_SysMessage(const char *fmt, ...)
 	vsprintf(msg, fmt, list);
 	va_end(list);
 
-	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
+	if (msg[strlen(msg) - 1] == '\n') msg[strlen(msg) - 1] = 0;
 	//wxMessageBox(StrToWxStr(msg));
 	PanicAlert("%s", msg);
 }
