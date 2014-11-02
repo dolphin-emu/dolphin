@@ -15,11 +15,15 @@ if(WIN32)
 				ControllerInterface/XInput/XInput.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation)
+	FIND_LIBRARY(CARBON_LIBRARY Carbon)
+	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
 	set(SRCS	${SRCS}
 				ControllerInterface/OSX/OSX.mm
 				ControllerInterface/OSX/OSXKeyboard.mm
 				ControllerInterface/OSX/OSXJoystick.mm
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
+	set(LIBS ${LIBS} ${COREFOUNDATION_LIBRARY} ${CARBON_LIBRARY} ${COCOA_LIBRARY})
 elseif(X11_FOUND)
 	set(SRCS	${SRCS}
 				ControllerInterface/Xlib/Xlib.cpp)

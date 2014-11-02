@@ -50,10 +50,6 @@ if(NOT ${CL} STREQUAL CL-NOTFOUND)
 	list(APPEND LIBS ${CL})
 endif()
 
-if(wxWidgets_FOUND AND WIN32)
-	set(SRCS ${SRCS} EmuWindow.cpp)
-endif()
-
 if(LIBAV_FOUND OR WIN32)
 	set(SRCS ${SRCS} AVIDump.cpp)
 endif()
