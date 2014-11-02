@@ -139,7 +139,7 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 	const EQuantizeType ldType = gqr.ld_type;
 	const unsigned int ldScale = gqr.ld_scale;
 	const u32 EA = _inst.RA ?
-		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
+		(rGPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
 	if (ldType == QUANTIZE_U8  || ldType == QUANTIZE_S8)
@@ -175,7 +175,7 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType ldType = gqr.ld_type;
 	const unsigned int ldScale = gqr.ld_scale;
-	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
+	const u32 EA = rGPR[_inst.RA] + _inst.SIMM_12;
 
 	int c = 4;
 	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
@@ -204,7 +204,7 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 		rPS0(_inst.RS) = ps0;
 		rPS1(_inst.RS) = 1.0f;
 	}
-	m_GPR[_inst.RA] = EA;
+	rGPR[_inst.RA] = EA;
 }
 
 void Interpreter::psq_st(UGeckoInstruction _inst)
@@ -213,7 +213,7 @@ void Interpreter::psq_st(UGeckoInstruction _inst)
 	const EQuantizeType stType = gqr.st_type;
 	const unsigned int stScale = gqr.st_scale;
 	const u32 EA = _inst.RA ?
-		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
+		(rGPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
 	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
@@ -237,7 +237,7 @@ void Interpreter::psq_stu(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType stType = gqr.st_type;
 	const unsigned int stScale = gqr.st_scale;
-	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
+	const u32 EA = rGPR[_inst.RA] + _inst.SIMM_12;
 
 	int c = 4;
 	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
@@ -258,7 +258,7 @@ void Interpreter::psq_stu(UGeckoInstruction _inst)
 	{
 		return;
 	}
-	m_GPR[_inst.RA] = EA;
+	rGPR[_inst.RA] = EA;
 }
 
 void Interpreter::psq_lx(UGeckoInstruction _inst)
@@ -266,7 +266,7 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType ldType = gqr.ld_type;
 	const unsigned int ldScale = gqr.ld_scale;
-	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
+	const u32 EA = _inst.RA ? (rGPR[_inst.RA] + rGPR[_inst.RB]) : rGPR[_inst.RB];
 
 	int c = 4;
 	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
@@ -307,7 +307,7 @@ void Interpreter::psq_stx(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType stType = gqr.st_type;
 	const unsigned int stScale = gqr.st_scale;
-	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
+	const u32 EA = _inst.RA ? (rGPR[_inst.RA] + rGPR[_inst.RB]) : rGPR[_inst.RB];
 
 	int c = 4;
 	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
@@ -331,7 +331,7 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType ldType = gqr.ld_type;
 	const unsigned int ldScale = gqr.ld_scale;
-	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
+	const u32 EA = rGPR[_inst.RA] + rGPR[_inst.RB];
 
 	int c = 4;
 	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
@@ -360,7 +360,7 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 		rPS0(_inst.RS) = ps0;
 		rPS1(_inst.RS) = 1.0f;
 	}
-	m_GPR[_inst.RA] = EA;
+	rGPR[_inst.RA] = EA;
 }
 
 void Interpreter::psq_stux(UGeckoInstruction _inst)
@@ -368,7 +368,7 @@ void Interpreter::psq_stux(UGeckoInstruction _inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
 	const EQuantizeType stType = gqr.st_type;
 	const unsigned int stScale = gqr.st_scale;
-	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
+	const u32 EA = rGPR[_inst.RA] + rGPR[_inst.RB];
 
 	int c = 4;
 	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
@@ -389,6 +389,6 @@ void Interpreter::psq_stux(UGeckoInstruction _inst)
 	{
 		return;
 	}
-	m_GPR[_inst.RA] = EA;
+	rGPR[_inst.RA] = EA;
 
 }  // namespace=======
