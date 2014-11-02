@@ -114,6 +114,4 @@ class TASInputDlg : public wxDialog
 		bool m_is_wii = false;
 
 		wxGridSizer* const m_buttons_dpad = new wxGridSizer(3);
-
-		DECLARE_EVENT_TABLE();
 };
