@@ -66,7 +66,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 
 	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
 	{
-		*(SMessageData*)Memory::GetPointer(BufferOut) = m_MessageQueue.front();
+		Memory::CopyToEmu(BufferOut, &m_MessageQueue.front(), sizeof(SMessageData));
 		m_MessageQueue.pop();
 	}
 
