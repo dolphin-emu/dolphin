@@ -393,7 +393,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			//INFO_LOG(CONSOLE, "Extension ID: %s", ArrayToString(rdr->data, rdr->size+1).c_str());
 		}
 
-		// Nunchuck calibration
+		// Nunchuk calibration
 		if (data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
 			// log
@@ -403,9 +403,9 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			//if(((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) {
 			//    WiimoteDecrypt(&wm->m_ext_key, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
 
-			//if (wm->m_extension->name == "NUNCHUCK")
+			//if (wm->m_extension->name == "NUNCHUK")
 			//{
-				// INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
+				// INFO_LOG(CONSOLE, "\nGame got the Nunchuk calibration:\n");
 				// INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
 				// INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 1]);
 				// INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 2]);
@@ -447,18 +447,18 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 					//memcpy((u8*)&wm->m_reg_ext.calibration, &data[7], 0x10);
 					//memcpy((u8*)&wm->m_reg_ext.unknown3, &data[7], 0x10);
 				}
-				// Save the default values that should work with Wireless Nunchucks
+				// Save the default values that should work with Wireless Nunchuks
 				else
 				{
 					//WiimoteEmu::SetDefaultExtensionRegistry();
 				}
 				//WiimoteEmu::UpdateEeprom();
 			}
-			// third party Nunchuck
+			// third party Nunchuk
 			else if (data[7] == 0xff)
 			{
-				//memcpy(wm->m_reg_ext + 0x20, WiimoteEmu::wireless_nunchuck_calibration, sizeof(WiimoteEmu::wireless_nunchuck_calibration));
-				//memcpy(wm->m_reg_ext + 0x30, WiimoteEmu::wireless_nunchuck_calibration, sizeof(WiimoteEmu::wireless_nunchuck_calibration));
+				//memcpy(wm->m_reg_ext + 0x20, WiimoteEmu::wireless_nunchuk_calibration, sizeof(WiimoteEmu::wireless_nunchuk_calibration));
+				//memcpy(wm->m_reg_ext + 0x30, WiimoteEmu::wireless_nunchuk_calibration, sizeof(WiimoteEmu::wireless_nunchuk_calibration));
 			}
 
 			// print encrypted data

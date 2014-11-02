@@ -7,11 +7,11 @@
 namespace WiimoteEmu
 {
 
-static const u8 nunchuck_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
-/* Default calibration for the nunchuck. It should be written to 0x20 - 0x3f of the
+static const u8 nunchuk_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
+/* Default calibration for the nunchuk. It should be written to 0x20 - 0x3f of the
    extension register. 0x80 is the neutral x and y accelerators and 0xb3 is the
    neutral z accelerometer that is adjusted for gravity. */
-static const u8 nunchuck_calibration[] =
+static const u8 nunchuk_calibration[] =
 {
 	0x80, 0x80, 0x80, 0x00, // accelerometer x, y, z neutral
 	0xb3, 0xb3, 0xb3, 0x00, //  x, y, z g-force values
@@ -52,9 +52,9 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
 
 	// set up register
 	// calibration
-	memcpy(&calibration, nunchuck_calibration, sizeof(nunchuck_calibration));
+	memcpy(&calibration, nunchuk_calibration, sizeof(nunchuk_calibration));
 	// id
-	memcpy(&id, nunchuck_id, sizeof(nunchuck_id));
+	memcpy(&id, nunchuk_id, sizeof(nunchuk_id));
 
 	// this should get set to 0 on disconnect, but it isn't, o well
 	memset(m_shake_step, 0, sizeof(m_shake_step));

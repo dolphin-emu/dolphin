@@ -581,7 +581,7 @@ void Wiimote::GetExtData(u8* const data)
 	{
 		switch (m_reg_motion_plus.ext_identifier[0x4])
 		{
-		// nunchuck pass-through mode
+		// nunchuk pass-through mode
 		// Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
 		// Bit 0 of byte 4 is moved to bit 7 of byte 5
 		// Bit 3 of byte 5 is moved to bit 4 of byte 5, overwriting it
