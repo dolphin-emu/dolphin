@@ -146,11 +146,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	for (int i = 0; i < 0x1000; i += 4)
 	{
 		mmio->Register(base | i,
-			MMIO::ReadToLarger<u16>(mmio, base | i, 0),
+			MMIO::ReadToLarger<u16>(mmio, base | i, 16),
 			MMIO::InvalidWrite<u16>()
 		);
 		mmio->Register(base | (i + 2),
-			MMIO::ReadToLarger<u16>(mmio, base | i, 16),
+			MMIO::ReadToLarger<u16>(mmio, base | i, 0),
 			MMIO::InvalidWrite<u16>()
 		);
 	}
