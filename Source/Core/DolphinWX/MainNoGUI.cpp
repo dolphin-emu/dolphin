@@ -55,10 +55,10 @@ void Host_Message(int Id)
 	}
 }
 
-void* windowHandle;
+static void* s_window_handle;
 void* Host_GetRenderHandle()
 {
-	return windowHandle;
+	return s_window_handle;
 }
 
 void Host_UpdateTitle(const std::string& title)
@@ -157,7 +157,7 @@ class PlatformX11 : public Platform
 		XSetWMProtocols(dpy, win, wmProtocols, 1);
 		XMapRaised(dpy, win);
 		XFlush(dpy);
-		windowHandle = (void *) win;
+		s_window_handle = (void*) win;
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
