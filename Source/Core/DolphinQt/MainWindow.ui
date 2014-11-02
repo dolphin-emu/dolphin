@@ -25,14 +25,14 @@
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>true</bool>
   </property>
-  <widget class="QStackedWidget" name="wgtCentral"/>
+  <widget class="QStackedWidget" name="centralWidget"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>992</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuFile">
@@ -97,6 +97,9 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actOpen"/>
+   <addaction name="separator"/>
+   <addaction name="actPlay"/>
+   <addaction name="actStop"/>
   </widget>
   <action name="actWebsite">
    <property name="text">
@@ -132,6 +135,16 @@
   <action name="actSystemInfo">
    <property name="text">
     <string>&amp;System Information</string>
+   </property>
+  </action>
+  <action name="actPlay">
+   <property name="text">
+    <string>Play</string>
+   </property>
+  </action>
+  <action name="actStop">
+   <property name="text">
+    <string>Stop</string>
    </property>
   </action>
  </widget>

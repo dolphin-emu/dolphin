@@ -48,6 +48,9 @@
       <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <!--QRC and UI files are handled automatically-->
   <ItemGroup>
@@ -62,16 +65,18 @@
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="SystemInfo.h" />
+    <QtMoc Include="VideoInterface\RenderWidget.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
-	<ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
     <ClCompile Include="SystemInfo.cpp" />
     <ClCompile Include="Utils\Resources.cpp" />
     <ClCompile Include="Utils\Utils.cpp" />
-    <ClCompile Include="VideoInterface\VideoInterface.cpp" />
+    <ClCompile Include="VideoInterface\RenderWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutDialog.cpp" />
@@ -152,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="Utils\Resources.h" />
     <ClInclude Include="Utils\Utils.h" />
+    <ClInclude Include="VideoInterface\RenderWidget.h" />
   </ItemGroup>
   <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(I_AM_BUILDACUS)'==''">
