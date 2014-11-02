@@ -1845,17 +1845,15 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = new u8[W * 4 * H];
+	std::unique_ptr<u8[]> data(new u8[W * 4 * H]);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 
 	// Turn image upside down
-	FlipImageData(data, W, H, 4);
-	bool success = TextureToPng(data, W*4, filename, W, H, false);
-	delete[] data;
+	FlipImageData(data.get(), W, H, 4);
 
-	return success;
+	return TextureToPng(data.get(), W * 4, filename, W, H, false);
 
 }
 
