@@ -27,8 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GLInterface\GLInterface.cpp" />
-    <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainNoGUI.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
@@ -170,7 +168,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />

@@ -5,16 +5,16 @@
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 
 #ifdef ANDROID
-#include "DolphinWX/GLInterface/EGLAndroid.h"
+#include "VideoBackends/OGL/GLInterface/EGLAndroid.h"
 #elif defined(__APPLE__)
-#include "DolphinWX/GLInterface/AGL.h"
+#include "VideoBackends/OGL/GLInterface/AGL.h"
 #elif defined(_WIN32)
-#include "DolphinWX/GLInterface/WGL.h"
+#include "VideoBackends/OGL/GLInterface/WGL.h"
 #elif HAVE_X11
 #if defined(USE_EGL) && USE_EGL
-#include "DolphinWX/GLInterface/EGLX11.h"
+#include "VideoBackends/OGL/GLInterface/EGLX11.h"
 #else
-#include "DolphinWX/GLInterface/GLX.h"
+#include "VideoBackends/OGL/GLInterface/GLX.h"
 #endif
 #else
 #error Platform doesnt have a GLInterface

@@ -6,8 +6,8 @@
 
 #include <X11/Xlib.h>
 
-#include "DolphinWX/GLInterface/EGL.h"
-#include "DolphinWX/GLInterface/X11_Util.h"
+#include "VideoBackends/OGL/GLInterface/EGL.h"
+#include "VideoBackends/OGL/GLInterface/X11_Util.h"
 
 class cInterfaceEGLX11 : public cInterfaceEGL
 {

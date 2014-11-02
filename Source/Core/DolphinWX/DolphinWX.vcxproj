@@ -78,8 +78,6 @@
     <ClCompile Include="FrameAui.cpp" />
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
-    <ClCompile Include="GLInterface\GLInterface.cpp" />
-    <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="HotkeyDlg.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
     <ClCompile Include="InputConfigDiagBitmaps.cpp" />
@@ -131,7 +129,6 @@
     <ClInclude Include="FifoPlayerDlg.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
-    <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HotkeyDlg.h" />
     <ClInclude Include="InputConfigDiag.h" />
