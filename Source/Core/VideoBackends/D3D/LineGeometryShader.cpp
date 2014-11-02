@@ -173,7 +173,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 		static char buffer[16384];
 		ShaderCode code;
 		code.SetBuffer(buffer);
-		GenerateVSOutputStruct(code, API_D3D);
+		GenerateVSOutputStruct<ShaderCode>(code, API_D3D);
 		code.Write("\n%s", LINE_GS_COMMON);
 
 		std::stringstream numTexCoordsStream;

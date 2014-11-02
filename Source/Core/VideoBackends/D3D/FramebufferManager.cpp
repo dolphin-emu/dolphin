@@ -57,7 +57,7 @@ FramebufferManager::FramebufferManager()
 	D3D11_TEXTURE2D_DESC texdesc;
 	HRESULT hr;
 
-	m_efb.slices = 1;
+	m_efb.slices = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
 
 	// EFB color texture - primary render target
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);

@@ -52,14 +52,25 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
-	GenerateVSOutputStruct(out, ApiType);
+	GenerateVSOutputStruct<T>(out, ApiType);
+	GenerateGSOutputStruct<T>(out, ApiType);
 
-	out.Write("centroid in VS_OUTPUT o[3];\n");
-	out.Write("centroid out VS_OUTPUT f;\n");
+	if (ApiType == API_OPENGL)
+	{
+		out.Write("centroid in VS_OUTPUT o[3];\n");
+		out.Write("centroid out GS_OUTPUT gs;\n");
 
-	out.Write("flat out int layer;\n");
+		out.Write("void main()\n{\n");
+	}
+	else // D3D
+	{
+		out.Write("[maxvertexcount(6)]\n");
+		out.Write("void main(triangle VS_OUTPUT o[3], inout TriangleStream<GS_OUTPUT> Output)\n{\n");
 
-	out.Write("void main()\n{\n");
+		out.Write("\tGS_OUTPUT gs;\n");
+	}
+
+	out.Write("\tVS_OUTPUT f;\n");
 
 	// If the GPU supports invocation we don't need a for loop and can simply use the
 	// invocation identifier to determine which layer we're rendering.
@@ -70,7 +81,10 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	out.Write("\tfor (int i = 0; i < 3; ++i) {\n");
 	out.Write("\t\tgs.layer = l;\n");
-	out.Write("\t\tgl_Layer = l;\n");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\t\tgl_Layer = l;\n");
+
 	out.Write("\t\tf = o[i];\n");
 	out.Write("\t\tfloat4 pos = o[i].pos;\n");
 
@@ -88,10 +102,23 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	}
 
 	out.Write("\t\tf.pos.x = pos.x;\n");
-	out.Write("\t\tgl_Position = pos;\n");
-	out.Write("\t\tEmitVertex();\n");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\t\tgl_Position = pos;\n");
+
+	out.Write("\t\tgs.vs = f;\n");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\t\tEmitVertex();\n");
+	else
+		out.Write("\t\tOutput.Append(gs);\n");
+
 	out.Write("\t}\n");
-	out.Write("\tEndPrimitive();\n");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\tEndPrimitive();\n");
+	else
+		out.Write("\t\tOutput.RestartStrip();\n");
 
 	if (!g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\t}\n");
