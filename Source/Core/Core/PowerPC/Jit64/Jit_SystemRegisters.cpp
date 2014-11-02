@@ -204,48 +204,44 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// no register choice
 
 		gpr.FlushLockX(RDX, RAX);
-		u32 offset = js.downcountAmount / SystemTimers::TIMER_RATIO;
 
 		// An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
 		// cost of calling out to C for this is actually significant.
 		MOV(64, R(RAX), M(&CoreTiming::globalTimer));
 		SUB(64, R(RAX), M(&CoreTiming::fakeTBStartTicks));
+		// The timer can change within a long block, so add in any difference
+		if (js.downcountAmount)
+			ADD(64, R(RAX), Imm32(js.downcountAmount));
 		// a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
 		MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
 		MUL(64, R(RDX));
 		MOV(64, R(RAX), M(&CoreTiming::fakeTBStartValue));
 		SHR(64, R(RDX), Imm8(3));
-		// The timer can change within a long block, so add in any difference
-		if (offset > 0)
-			LEA(64, RAX, MComplex(RAX, RDX, SCALE_1, offset));
-		else
-			ADD(64, R(RAX), R(RDX));
+		ADD(64, R(RAX), R(RDX));
 		MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
 
 		// Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
 		// if we can.
 		u32 nextIndex = (js.next_inst.SPRU << 5) | (js.next_inst.SPRL & 0x1F);
 		// Be careful; the actual opcode is for mftb (371), not mfspr (339)
-		if (js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL))
+		int n = js.next_inst.RD;
+		if (js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) &&
+			PowerPC::GetState() != PowerPC::CPU_STEPPING && n != d)
 		{
-			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
-			{
-				int n = js.next_inst.RD;
-				js.downcountAmount++;
-				js.skipnext = true;
-				gpr.Lock(d, n);
-				gpr.BindToRegister(d, false);
-				gpr.BindToRegister(n, false);
-				if (iIndex == SPR_TL)
-					MOV(32, gpr.R(d), R(RAX));
-				if (nextIndex == SPR_TL)
-					MOV(32, gpr.R(n), R(RAX));
-				SHR(64, R(RAX), Imm8(32));
-				if (iIndex == SPR_TU)
-					MOV(32, gpr.R(d), R(RAX));
-				if (nextIndex == SPR_TU)
-					MOV(32, gpr.R(n), R(RAX));
-			}
+			js.downcountAmount++;
+			js.skipnext = true;
+			gpr.Lock(d, n);
+			gpr.BindToRegister(d, false);
+			gpr.BindToRegister(n, false);
+			if (iIndex == SPR_TL)
+				MOV(32, gpr.R(d), R(RAX));
+			if (nextIndex == SPR_TL)
+				MOV(32, gpr.R(n), R(RAX));
+			SHR(64, R(RAX), Imm8(32));
+			if (iIndex == SPR_TU)
+				MOV(32, gpr.R(d), R(RAX));
+			if (nextIndex == SPR_TU)
+				MOV(32, gpr.R(n), R(RAX));
 		}
 		else
 		{
