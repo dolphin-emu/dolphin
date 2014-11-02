@@ -104,7 +104,7 @@ bool ElfReader::LoadIntoMemory()
 
 	if (bRelocate)
 	{
-		PanicAlert("Error: Dolphin doesn't know to load a relocatable elf.");
+		PanicAlert("Error: Dolphin doesn't know how to load a relocatable elf.");
 		return false;
 	}
 

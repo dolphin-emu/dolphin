@@ -349,7 +349,8 @@ bool CBoot::BootUp()
 			EmulatedBS2_GC(true);
 
 		Load_FST(_StartupPara.bWii);
-		Boot_ELF(_StartupPara.m_strFilename);
+		if(!Boot_ELF(_StartupPara.m_strFilename))
+			return false;
 
 		UpdateDebugger_MapLoaded();
 		Dolphin_Debugger::AddAutoBreakpoints();
