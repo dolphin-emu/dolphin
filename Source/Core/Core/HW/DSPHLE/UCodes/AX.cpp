@@ -403,8 +403,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 			m_samples_auxB_surround
 		}};
 
-		if (!ReadPB(pb_addr, pb))
-			break;
+		ReadPB(pb_addr, pb);
 
 		u32 updates_addr = HILO_TO_32(pb.updates.data);
 		u16* updates = (u16*)HLEMemory_Get_Pointer(updates_addr);
