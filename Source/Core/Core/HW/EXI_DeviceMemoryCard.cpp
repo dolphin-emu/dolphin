@@ -263,6 +263,7 @@ void CEXIMemoryCard::CmdDone()
 	status &= ~MC_STATUS_BUSY;
 
 	m_bInterruptSet = 1;
+	ExpansionInterface::UpdateInterrupts();
 }
 
 void CEXIMemoryCard::TransferComplete()

@@ -4,6 +4,7 @@
 
 #include "Core/Core.h"
 
+#include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAMBaseboard.h"
 
@@ -87,6 +88,7 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 				m_have_irq = true;
 			else if (m_command[0] == 0x82)
 				m_have_irq = false;
+			ExpansionInterface::UpdateInterrupts();
 		}
 		else if (m_position > 4)
 		{
