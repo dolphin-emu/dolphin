@@ -28,11 +28,6 @@
 #include "DolphinWX/TASInputDlg.h"
 #include "InputCommon/GCPadStatus.h"
 
-
-BEGIN_EVENT_TABLE(TASInputDlg, wxDialog)
-EVT_CLOSE(TASInputDlg::OnCloseWindow)
-END_EVENT_TABLE()
-
 TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
@@ -65,6 +60,8 @@ TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
 	m_buttons_dpad->AddSpacer(20);
 	m_buttons_dpad->Add(m_dpad_down.checkbox, false);
 	m_buttons_dpad->AddSpacer(20);
+
+	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
 }
 
 const int TASInputDlg::m_gc_pad_buttons_bitmask[12] = {
@@ -129,7 +126,7 @@ void TASInputDlg::CreateWiiLayout()
 	for (unsigned int i = 0; i < 10; ++i)
 	{
 		if (m_controls[i] != nullptr)
-			m_controls[i]->slider->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnRightClickSlider), nullptr, this);
+			m_controls[i]->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
 	}
 
 	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
@@ -208,7 +205,7 @@ void TASInputDlg::CreateGCLayout()
 	for (unsigned int i = 0; i < 10; ++i)
 	{
 		if (m_controls[i] != nullptr)
-			m_controls[i]->slider->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnRightClickSlider), nullptr, this);
+			m_controls[i]->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
 	}
 
 	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
@@ -261,11 +258,11 @@ TASInputDlg::Control TASInputDlg::CreateControl(long style, int width, int heigh
 	tempCont.range = range;
 	tempCont.slider = new wxSlider(this, m_eleID++, range/2+1, 0, range, wxDefaultPosition, wxDefaultSize, style);
 	tempCont.slider->SetMinSize(wxSize(width, height));
-	tempCont.slider->Connect(wxEVT_SLIDER, wxCommandEventHandler(TASInputDlg::UpdateFromSliders), nullptr, this);
+	tempCont.slider->Bind(wxEVT_SLIDER, &TASInputDlg::UpdateFromSliders, this);
 	tempCont.text = new wxTextCtrl(this, m_eleID++, std::to_string(range/2+1), wxDefaultPosition, wxSize(40, 20));
 	tempCont.text->SetMaxLength(range > 999 ? 4 : 3);
 	tempCont.text_id = m_eleID - 1;
-	tempCont.text->Connect(wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(TASInputDlg::UpdateFromText), nullptr, this);
+	tempCont.text->Bind(wxEVT_TEXT, &TASInputDlg::UpdateFromText, this);
 	tempCont.slider_id = m_eleID - 2;
 	return tempCont;
 }
@@ -274,9 +271,9 @@ TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick)
 {
 	Stick tempStick;
 	tempStick.bitmap = new wxStaticBitmap(this, id_stick, CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	tempStick.bitmap->Connect(wxEVT_MOTION, wxMouseEventHandler(TASInputDlg::OnMouseDownL), nullptr, this);
-	tempStick.bitmap->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::OnMouseDownL), nullptr, this);
-	tempStick.bitmap->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpR), nullptr, this);
+	tempStick.bitmap->Bind(wxEVT_MOTION, &TASInputDlg::OnMouseDownL, this);
+	tempStick.bitmap->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
+	tempStick.bitmap->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
 	tempStick.x_cont = CreateControl(wxSL_HORIZONTAL | (m_is_wii ? wxSL_INVERSE : 0), 120, -1, m_is_wii ? 1024 : 255);
 	tempStick.y_cont = CreateControl(wxSL_VERTICAL | (m_is_wii ? 0 : wxSL_INVERSE), -1, 120, m_is_wii ? 768 : 255);
 	return tempStick;
@@ -304,8 +301,8 @@ TASInputDlg::Button TASInputDlg::CreateButton(const std::string& name)
 {
 	Button temp;
 	wxCheckBox* checkbox = new wxCheckBox(this, m_eleID++, name, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxCheckBoxNameStr);
-	checkbox->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), nullptr, this);
-	checkbox->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), nullptr, this);
+	checkbox->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	checkbox->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurbo, this);
 	temp.checkbox = checkbox;
 	temp.id = m_eleID - 1;
 	return temp;
