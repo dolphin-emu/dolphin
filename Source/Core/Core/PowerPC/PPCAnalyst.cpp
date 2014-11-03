@@ -406,6 +406,11 @@ static bool isCarryOp(const CodeOp& a)
 	return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) && a.opinfo->type == OPTYPE_INTEGER;
 }
 
+static bool isCror(const CodeOp& a)
+{
+	return a.inst.OPCD == 19 && a.inst.SUBOP10 == 449;
+}
+
 void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type)
 {
 	// Bubbling an instruction sometimes reveals another opportunity to bubble an instruction, so do
@@ -426,7 +431,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 			CodeOp &b = code[i + increment];
 			// Reorder integer compares, rlwinm., and carry-affecting ops
 			// (if we add more merged branch instructions, add them here!)
-			if ((type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
+			if ((type == REORDER_CROR && isCror(a)) || (type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
 			{
 				// once we're next to a carry instruction, don't move away!
 				if (type == REORDER_CARRY && i != start)
@@ -454,6 +459,10 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 
 void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 {
+	// Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
+	// picky about this, but cror seems to almost solely be used for this purpose in real code.
+	// Additionally, the other boolean ops seem to almost never be used.
+	ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
 	// For carry, bubble instructions *towards* each other; one direction often isn't enough
 	// to get pairs like addc/adde next to each other.
 	if (HasOption(OPTION_CARRY_MERGE))

@@ -153,7 +153,18 @@ void Jit64::ComputeRC(const Gen::OpArg & arg, bool needs_test, bool needs_sext)
 		else
 		{
 			if (needs_test)
+			{
 				TEST(32, arg, arg);
+			}
+			else
+			{
+				// If an operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd be
+				// better to flush it here so that we don't have to flush it on both sides of the branch.
+				// We don't want to do this if a test is needed though, because it would interrupt macro-op
+				// fusion.
+				for (int j : js.op->gprInUse)
+					gpr.StoreFromRegister(j);
+			}
 			DoMergedBranchCondition();
 		}
 	}
@@ -355,7 +366,8 @@ void Jit64::DoMergedBranch()
 	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 	{
 		MOV(32, R(RSCRATCH), M(&LR));
-		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		if (!m_enable_blr_optimization)
+			AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 		if (js.next_inst.LK)
 			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 		WriteBLRExit();
@@ -544,7 +556,16 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			MOV(64, PPCSTATE(cr_val[crf]), R(input));
 			// Place the comparison next to the branch for macro-op fusion
 			if (merge_branch)
-				TEST(64, R(input), R(input));
+			{
+				// We only need to do a 32-bit compare, since the flags set will be the same as a sign-extended
+				// result.
+				// We should also test against gpr.R(a) if it's bound, since that's one less cycle of latency
+				// (the CPU doesn't have to wait for the movsxd to finish to resolve the branch).
+				if (gpr.R(a).IsSimpleReg())
+					TEST(32, gpr.R(a), gpr.R(a));
+				else
+					TEST(32, R(input), R(input));
+			}
 		}
 		else
 		{
@@ -1007,19 +1028,29 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 		else
 			gpr.SetImmediate32(d, (u32)((gpr.R(a).offset * gpr.R(b).offset) >> 32));
 	}
-	else
+	else if (sign)
 	{
 		gpr.Lock(a, b, d);
 		// no register choice
 		gpr.FlushLockX(EDX, EAX);
-		gpr.BindToRegister(d, (d == a || d == b), true);
+		gpr.BindToRegister(d, d == a || d == b, true);
 		MOV(32, R(EAX), gpr.R(a));
 		gpr.KillImmediate(b, true, false);
-		if (sign)
-			IMUL(32, gpr.R(b));
-		else
-			MUL(32, gpr.R(b));
+		IMUL(32, gpr.R(b));
 		MOV(32, gpr.R(d), R(EDX));
+	}
+	else
+	{
+		// Not faster for signed because we'd need two movsx.
+		gpr.Lock(a, b, d);
+		// We need to bind everything to registers since the top 32 bits need to be zero.
+		int src = d == b ? a : b;
+		gpr.BindToRegister(d, d == a || d == b, true);
+		gpr.BindToRegister(src, true, false);
+		if (d != a && d != b)
+			MOV(32, gpr.R(d), gpr.R(a));
+		IMUL(64, gpr.RX(d), gpr.R(src));
+		SHR(64, gpr.R(d), Imm8(32));
 	}
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));

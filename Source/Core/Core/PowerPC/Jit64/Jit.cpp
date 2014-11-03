@@ -414,10 +414,10 @@ void Jit64::WriteBLRExit()
 	bool disturbed = Cleanup();
 	if (disturbed)
 		MOV(32, R(RSCRATCH), PPCSTATE(pc));
+	MOV(32, R(RSCRATCH2), Imm32(js.downcountAmount));
 	CMP(64, R(RSCRATCH), MDisp(RSP, 8));
-	MOV(32, R(RSCRATCH), Imm32(js.downcountAmount));
 	J_CC(CC_NE, asm_routines.dispatcherMispredictedBLR);
-	SUB(32, PPCSTATE(downcount), R(RSCRATCH));
+	SUB(32, PPCSTATE(downcount), R(RSCRATCH2));
 	RET();
 }
 

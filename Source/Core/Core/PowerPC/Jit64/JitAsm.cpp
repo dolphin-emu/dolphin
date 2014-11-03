@@ -48,17 +48,18 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_PopRegistersAndAdjustStack({}, 0);
 		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
 		dispatcherMispredictedBLR = GetCodePtr();
+		AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
 		#if 0 // debug mispredicts
 		MOV(32, R(ABI_PARAM1), MDisp(RSP, 8)); // guessed_pc
-		ABI_PushRegistersAndAdjustStack(1 << RSCRATCH, 0);
+		ABI_PushRegistersAndAdjustStack(1 << RSCRATCH2, 0);
 		CALL(reinterpret_cast<void *>(&ReportMispredict));
-		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH, 0);
+		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH2, 0);
 		#endif
 
 		ResetStack();
 
-		SUB(32, PPCSTATE(downcount), R(RSCRATCH));
+		SUB(32, PPCSTATE(downcount), R(RSCRATCH2));
 
 		dispatcher = GetCodePtr();
 			// The result of slice decrementation should be in flags if somebody jumped here
