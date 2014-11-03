@@ -102,6 +102,9 @@ public:
 		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) = 0;
 	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) = 0;
 
+	virtual void CompileShaders() = 0; // currently only implemented by OGL
+	virtual void DeleteShaders() = 0; // currently only implemented by OGL
+
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
 		int format, unsigned int tlutaddr, int tlutfmt, bool use_mipmaps, unsigned int maxlevel, bool from_tmem);
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
@@ -141,6 +144,7 @@ private:
 		bool s_texfmt_overlay_center;
 		bool s_hires_textures;
 		bool s_copy_cache_enable;
+		bool s_stereo_3d;
 	} backup_config;
 };
 

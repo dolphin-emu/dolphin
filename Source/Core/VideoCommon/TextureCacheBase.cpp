@@ -115,6 +115,12 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		{
 			g_texture_cache->ClearRenderTargets();
 		}
+
+		if ((config.iStereoMode > 0) != backup_config.s_stereo_3d)
+		{
+			g_texture_cache->DeleteShaders();
+			g_texture_cache->CompileShaders();
+		}
 	}
 
 	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
@@ -126,6 +132,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
 	backup_config.s_hires_textures = config.bHiresTextures;
 	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
+	backup_config.s_stereo_3d = config.iStereoMode > 0;
 }
 
 void TextureCache::Cleanup()

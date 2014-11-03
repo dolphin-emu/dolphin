@@ -319,6 +319,32 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 TextureCache::TextureCache()
 {
+	CompileShaders();
+
+	s_ActiveTexture = -1;
+	for (auto& gtex : s_Textures)
+		gtex = -1;
+}
+
+
+TextureCache::~TextureCache()
+{
+	DeleteShaders();
+}
+
+void TextureCache::DisableStage(unsigned int stage)
+{
+}
+
+void TextureCache::SetStage()
+{
+	// -1 is the initial value as we don't know which texture should be bound
+	if (s_ActiveTexture != (u32)-1)
+		glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
+}
+
+void TextureCache::CompileShaders()
+{
 	const char *pColorMatrixProg =
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[7];\n"
@@ -414,28 +440,12 @@ TextureCache::TextureCache()
 
 	s_ColorCopyPositionUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "copy_position");
 	s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
-
-	s_ActiveTexture = -1;
-	for (auto& gtex : s_Textures)
-		gtex = -1;
 }
 
-
-TextureCache::~TextureCache()
+void TextureCache::DeleteShaders()
 {
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
-}
-
-void TextureCache::DisableStage(unsigned int stage)
-{
-}
-
-void TextureCache::SetStage ()
-{
-	// -1 is the initial value as we don't know which texture should be bound
-	if (s_ActiveTexture != (u32)-1)
-		glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 
 }
