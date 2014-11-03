@@ -582,7 +582,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -1514,18 +1514,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
-			{
-				TargetRectangle leftRc, rightRc;
-				ConvertStereoRectangle(flipped_trc, leftRc, rightRc);
-
-				m_post_processor->BlitFromTexture(sourceRc, leftRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
-				m_post_processor->BlitFromTexture(sourceRc, rightRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
-			}
-			else
-			{
-				m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
-			}
+			// TODO: Virtual XFB stereoscopic 3D support.
+			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
 		}
 	}
 	else
