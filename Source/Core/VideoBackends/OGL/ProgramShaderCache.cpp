@@ -252,7 +252,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 	if (gcode)
 		gsid = CompileSingleShader(GL_GEOMETRY_SHADER, gcode);
 
-	if (!vsid || !psid)
+	if (!vsid || !psid || (gcode && !gsid))
 	{
 		glDeleteShader(vsid);
 		glDeleteShader(psid);
