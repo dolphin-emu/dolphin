@@ -49,7 +49,7 @@ static int AshmemCreateFileMapping(const char *name, size_t size)
 }
 #endif
 
-void MemArena::GrabLowMemSpace(size_t size)
+void MemArena::GrabSHMSegment(size_t size)
 {
 #ifdef _WIN32
 	hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, (DWORD)(size), nullptr);
@@ -82,7 +82,7 @@ void MemArena::GrabLowMemSpace(size_t size)
 }
 
 
-void MemArena::ReleaseSpace()
+void MemArena::ReleaseSHMSegment()
 {
 #ifdef _WIN32
 	CloseHandle(hMemoryMapping);
@@ -170,56 +170,60 @@ u8* MemArena::Find4GBBase()
 	if (!(a_flags & MV_FAKE_VMEM) && (b_flags & MV_FAKE_VMEM)) \
 		continue; \
 
-
-static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	// OK, we know where to find free space. Now grab it!
 	// We just mimic the popular BAT setup.
-	u32 position = 0;
-	u32 last_position = 0;
+	u32 shm_position = 0;
 
 	// Zero all the pointers to be sure.
 	for (int i = 0; i < num_views; i++)
 	{
-		if (views[i].out_ptr_low)
-			*views[i].out_ptr_low = nullptr;
-		if (views[i].out_ptr)
-			*views[i].out_ptr = nullptr;
+		views[i].mapped_ptr = nullptr;
+
+		if (!(views[i].flags & MV_MIRROR_PREVIOUS) && i > 0)
+			shm_position += views[i - 1].size;
+
+		views[i].shm_position = shm_position;
 	}
 
 	int i;
 	for (i = 0; i < num_views; i++)
 	{
-		SKIP(flags, views[i].flags);
-		if (views[i].flags & MV_MIRROR_PREVIOUS)
-		{
-			position = last_position;
-		}
-		else
-		{
-			*(views[i].out_ptr_low) = (u8*)arena->CreateView(position, views[i].size);
-			if (!*views[i].out_ptr_low)
-				goto bail;
-		}
+		MemoryView* view = &views[i];
+		void* view_base;
+		bool use_sw_mirror;
+
+		SKIP(flags, view->flags);
+
 #if _ARCH_64
-		*views[i].out_ptr = (u8*)arena->CreateView(
-			position, views[i].size, base + views[i].virtual_address);
+		// On 64-bit, we map the same file position multiple times, so we
+		// don't need the software fallback for the mirrors.
+		view_base = base + view->virtual_address;
+		use_sw_mirror = false;
 #else
-		if (views[i].flags & MV_MIRROR_PREVIOUS)
+		// On 32-bit, we don't have the actual address space to store all
+		// the mirrors, so we just map the fallbacks somewhere in our address
+		// space and use the software fallbacks for mirroring.
+		view_base = base + (view->virtual_address & 0x3FFFFFFF);
+		use_sw_mirror = true;
+#endif
+
+		if (use_sw_mirror && (view->flags & MV_MIRROR_PREVIOUS))
 		{
-			// No need to create multiple identical views.
-			*views[i].out_ptr = *views[i - 1].out_ptr;
+			view->view_ptr = views[i - 1].view_ptr;
 		}
 		else
 		{
-			*views[i].out_ptr = (u8*)arena->CreateView(
-				position, views[i].size, base + (views[i].virtual_address & 0x3FFFFFFF));
-			if (!*views[i].out_ptr)
-				goto bail;
+			view->mapped_ptr = arena->CreateView(view->shm_position, view->size, view_base);
+			view->view_ptr = view->mapped_ptr;
 		}
-#endif
-		last_position = position;
-		position += views[i].size;
+
+		if (!view->view_ptr)
+			goto bail;
+
+		if (view->out_ptr)
+			*(view->out_ptr) = (u8*) view->view_ptr;
 	}
 
 	return true;
@@ -230,7 +234,7 @@ bail:
 	return false;
 }
 
-u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	u32 total_mem = 0;
 
@@ -240,11 +244,10 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 		if ((views[i].flags & MV_MIRROR_PREVIOUS) == 0)
 			total_mem += views[i].size;
 	}
-	// Grab some pagefile backed memory out of the void ...
-	arena->GrabLowMemSpace(total_mem);
+
+	arena->GrabSHMSegment(total_mem);
 
 	// Now, create views in high memory where there's plenty of space.
-#if _ARCH_64
 	u8 *base = MemArena::Find4GBBase();
 	// This really shouldn't fail - in 64-bit, there will always be enough
 	// address space.
@@ -254,35 +257,21 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 		exit(0);
 		return nullptr;
 	}
-#else
-	// Linux32 is fine with the x64 method, although limited to 32-bit with no automirrors.
-	u8 *base = MemArena::Find4GBBase();
-	if (!Memory_TryBase(base, views, num_views, flags, arena))
-	{
-		PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
-		exit(0);
-		return 0;
-	}
-#endif
 
 	return base;
 }
 
-void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+void MemoryMap_Shutdown(MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	std::set<void*> freeset;
 	for (int i = 0; i < num_views; i++)
 	{
-		const MemoryView* view = &views[i];
-		u8** outptrs[2] = {view->out_ptr_low, view->out_ptr};
-		for (auto outptr : outptrs)
+		MemoryView* view = &views[i];
+		if (view->mapped_ptr && *(u8*)view->mapped_ptr && !freeset.count(view->mapped_ptr))
 		{
-			if (outptr && *outptr && !freeset.count(*outptr))
-			{
-				arena->ReleaseView(*outptr, view->size);
-				freeset.insert(*outptr);
-				*outptr = nullptr;
-			}
+			arena->ReleaseView(view->mapped_ptr, view->size);
+			freeset.insert(view->mapped_ptr);
+			view->mapped_ptr = nullptr;
 		}
 	}
 }

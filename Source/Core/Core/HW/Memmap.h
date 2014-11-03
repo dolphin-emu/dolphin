@@ -33,7 +33,6 @@ extern u8* base;
 extern u8* m_pRAM;
 extern u8* m_pEXRAM;
 extern u8* m_pL1Cache;
-extern u8* m_pVirtualFakeVMEM;
 extern u8* m_pFakeVMEM;
 extern bool bFakeVMEM;
 
@@ -48,11 +47,9 @@ enum
 	RAM_MASK      = RAM_SIZE - 1,
 	FAKEVMEM_SIZE = 0x02000000,
 	FAKEVMEM_MASK = FAKEVMEM_SIZE - 1,
-	L1_CACHE_SIZE = 0x40000,
+	L1_CACHE_SIZE = 0x00040000,
 	L1_CACHE_MASK = L1_CACHE_SIZE - 1,
-	EFB_SIZE      = 0x200000,
-	EFB_MASK      = EFB_SIZE - 1,
-	IO_SIZE       = 0x10000,
+	IO_SIZE       = 0x00010000,
 	EXRAM_SIZE    = 0x04000000,
 	EXRAM_MASK    = EXRAM_SIZE - 1,
 
