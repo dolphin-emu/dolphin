@@ -461,7 +461,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 				name = line.substr(rISOFile.GetUniqueID().size() + 3);
 				break;
 			}
-
 		}
 		titlestxt.close();
 	}
@@ -1330,7 +1329,6 @@ void CGameListCtrl::AutomaticColumnWidth()
 	}
 	else if (GetColumnCount() > 0)
 	{
-
 		int resizable = rc.GetWidth() - (
 			GetColumnWidth(COLUMN_PLATFORM)
 			+ GetColumnWidth(COLUMN_BANNER)
