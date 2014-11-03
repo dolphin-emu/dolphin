@@ -442,7 +442,7 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
 {
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
 	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
-	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
+	//u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 	u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
 
 	if (coreData)
@@ -493,7 +493,6 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
 	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 	u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
-	u8 size = rptf.size;
 
 	if (coreData)
 		SetWiiButtons(&((wm_buttons*)coreData)->hex);
@@ -530,42 +529,42 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 		if (mode == 1)
 		{
 			memset(irData, 0xFF, sizeof(wm_ir_basic) * 2);
-			wm_ir_basic* data = (wm_ir_basic*)irData;
+			wm_ir_basic* ir_data = (wm_ir_basic*)irData;
 			for (unsigned int i = 0; i < 2; ++i)
 			{
 				if (x[i*2] < 1024 && y < 768)
 				{
-					data[i].x1 = static_cast<u8>(x[i*2]);
-					data[i].x1hi = x[i*2] >> 8;
+					ir_data[i].x1 = static_cast<u8>(x[i*2]);
+					ir_data[i].x1hi = x[i*2] >> 8;
 
-					data[i].y1 = static_cast<u8>(y);
-					data[i].y1hi = y >> 8;
+					ir_data[i].y1 = static_cast<u8>(y);
+					ir_data[i].y1hi = y >> 8;
 				}
 				if (x[i*2+1] < 1024 && y < 768)
 				{
-					data[i].x2 = static_cast<u8>(x[i*2+1]);
-					data[i].x2hi = x[i*2+1] >> 8;
+					ir_data[i].x2 = static_cast<u8>(x[i*2+1]);
+					ir_data[i].x2hi = x[i*2+1] >> 8;
 
-					data[i].y2 = static_cast<u8>(y);
-					data[i].y2hi = y >> 8;
+					ir_data[i].y2 = static_cast<u8>(y);
+					ir_data[i].y2hi = y >> 8;
 				}
 			}
 		}
 		else
 		{
 			memset(data, 0xFF, sizeof(wm_ir_extended) * 4);
-			wm_ir_extended* const data = (wm_ir_extended*)irData;
+			wm_ir_extended* const ir_data = (wm_ir_extended*)irData;
 			for (unsigned int i = 0; i < 4; ++i)
 			{
 				if (x[i] < 1024 && y < 768)
 				{
-					data[i].x = static_cast<u8>(x[i]);
-					data[i].xhi = x[i] >> 8;
+					ir_data[i].x = static_cast<u8>(x[i]);
+					ir_data[i].xhi = x[i] >> 8;
 
-					data[i].y = static_cast<u8>(y);
-					data[i].yhi = y >> 8;
+					ir_data[i].y = static_cast<u8>(y);
+					ir_data[i].yhi = y >> 8;
 
-					data[i].size = 10;
+					ir_data[i].size = 10;
 				}
 			}
 		}
@@ -798,9 +797,6 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 
 	stick->x_cont.value = (unsigned int)stick->x_cont.value > stick->x_cont.range ? stick->x_cont.range : stick->x_cont.value;
 	stick->y_cont.value = (unsigned int)stick->y_cont.value > stick->y_cont.range ? stick->y_cont.range : stick->y_cont.value;
-
-	int x = (u8)((double)stick->x_cont.value / (double)stick->x_cont.range * 255.0);
-	int y = (u8)((double)stick->y_cont.value / (double)stick->y_cont.range * 255.0);
 
 	stick->bitmap->SetBitmap(CreateStickBitmap(ptM.x*2, ptM.y*2));
 
