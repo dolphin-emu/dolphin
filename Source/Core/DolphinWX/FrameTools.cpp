@@ -214,19 +214,19 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	movieMenu->Append(IDM_TASINPUT, _("TAS Input"));
 	movieMenu->AppendSeparator();
-	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
+	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at End of Movie"));
 	movieMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
-	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
+	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show Lag Counter"));
 	movieMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
-	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show frame counter"));
+	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show Frame Counter"));
 	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
 	movieMenu->Check(IDM_RECORDREADONLY, true);
-	movieMenu->AppendCheckItem(IDM_SHOWINPUTDISPLAY, _("Show input display"));
+	movieMenu->AppendCheckItem(IDM_SHOWINPUTDISPLAY, _("Show Input Display"));
 	movieMenu->Check(IDM_SHOWINPUTDISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
 	movieMenu->AppendSeparator();
-	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump frames"));
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump Frames"));
 	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, SConfig::GetInstance().m_DumpFrames);
-	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump audio"));
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump Audio"));
 	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
 	menubar->Append(movieMenu, _("&Movie"));
 
@@ -354,7 +354,7 @@ wxMenuBar* CFrame::CreateMenu()
 	columnsMenu->Check(IDM_SHOW_ID, SConfig::GetInstance().m_showIDColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
 	columnsMenu->Check(IDM_SHOW_REGION, SConfig::GetInstance().m_showRegionColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_SIZE, _("File size"));
+	columnsMenu->AppendCheckItem(IDM_SHOW_SIZE, _("File Size"));
 	columnsMenu->Check(IDM_SHOW_SIZE, SConfig::GetInstance().m_showSizeColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
 	columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
@@ -428,7 +428,7 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = _("Export Recording...");
 			break;
 		case HK_READ_ONLY_MODE:
-			Label = _("&Read-only mode");
+			Label = _("&Read-Only Mode");
 			break;
 
 		case HK_FULLSCREEN:
