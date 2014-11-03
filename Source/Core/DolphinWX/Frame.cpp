@@ -1003,10 +1003,12 @@ void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)
 		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus);
 }
 
-void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID)
+void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
 {
 	if (main_frame)
-		main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf);
+	{
+		main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf, ext, key);
+	}
 }
 
 bool TASInputHasFocus()

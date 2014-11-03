@@ -638,23 +638,23 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 		s_InputDisplay[controllerID].append(ir);
 	}
 
-	// Nunchuck
+	// Nunchuk
 	if (extData && ext == 1)
 	{
-		wm_nc nunchuck;
-		memcpy(&nunchuck, extData, sizeof(wm_nc));
-		WiimoteDecrypt(&key, (u8*)&nunchuck, 0, sizeof(wm_nc));
-		nunchuck.bt.hex = nunchuck.bt.hex ^ 0xFF;
+		wm_nc nunchuk;
+		memcpy(&nunchuk, extData, sizeof(wm_nc));
+		WiimoteDecrypt(&key, (u8*)&nunchuk, 0, sizeof(wm_nc));
+		nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
-		std::string accel = StringFromFormat(" N-ACC:%d,%d,%d", nunchuck.ax << 2 | nunchuck.passthrough_data.acc_x_lsb,
-			nunchuck.ay << 2 | nunchuck.passthrough_data.acc_y_lsb << 1, nunchuck.az << 2 | nunchuck.passthrough_data.acc_z_lsb << 1);
+		std::string accel = StringFromFormat(" N-ACC:%d,%d,%d",
+			(nunchuk.ax << 2) | nunchuk.bt.acc_x_lsb, (nunchuk.ay << 2) | nunchuk.bt.acc_y_lsb, (nunchuk.az << 2) | nunchuk.bt.acc_z_lsb);
 
-		if (nunchuck.bt.c)
+		if (nunchuk.bt.c)
 			s_InputDisplay[controllerID].append(" C");
-		if (nunchuck.bt.z)
+		if (nunchuk.bt.z)
 			s_InputDisplay[controllerID].append(" Z");
 		s_InputDisplay[controllerID].append(accel);
-		s_InputDisplay[controllerID].append(Analog2DToString(nunchuck.jx, nunchuck.jy, " ANA"));
+		s_InputDisplay[controllerID].append(Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA"));
 	}
 
 	// Classic controller
@@ -750,11 +750,10 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 
 void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
 {
-	u8 size = rptf.size;
 	SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
 
 	if (IsRecordingInput())
-		RecordWiimote(wiimote, data, size);
+		RecordWiimote(wiimote, data, rptf.size);
 }
 
 void RecordWiimote(int wiimote, u8 *data, u8 size)
@@ -1151,8 +1150,6 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 	memcpy(data, &(tmpInput[s_currentByte]), size);
 	s_currentByte += size;
 
-	SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
-
 	g_currentInputCount++;
 
 	CheckInputEnd();
@@ -1262,10 +1259,10 @@ void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 	if (gcmfunc)
 		(*gcmfunc)(PadStatus, controllerID);
 }
-void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID)
+void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
 {
 	if (wiimfunc)
-		(*wiimfunc)(data, rptf, controllerID);
+		(*wiimfunc)(data, rptf, controllerID, ext, key);
 }
 
 void SetGraphicsConfig()

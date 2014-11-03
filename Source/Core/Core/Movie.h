@@ -163,7 +163,7 @@ bool PlayInput(const std::string& filename);
 void LoadInput(const std::string& filename);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const struct wiimote_key key);
+bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap &p);
@@ -171,16 +171,16 @@ void CheckMD5();
 void GetMD5();
 void Shutdown();
 void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const struct wiimote_key key);
+void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key);
 
 std::string GetInputDisplay();
 
 // Done this way to avoid mixing of core and gui code
 typedef void(*GCManipFunction)(GCPadStatus*, int);
-typedef void(*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int);
+typedef void(*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key);
 
 void SetGCInputManip(GCManipFunction);
 void SetWiiInputManip(WiiManipFunction);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
-void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID);
+void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
 }

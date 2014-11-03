@@ -24,25 +24,37 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/Movie.h"
-#include "Core/HW/WiimoteEmu/MatrixMath.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "DolphinWX/TASInputDlg.h"
 #include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
+
 
 TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	m_buttons[0] = &m_a;
-	m_buttons[1] = &m_b;
-	m_buttons[2] = &m_dpad_down;
-	m_buttons[3] = &m_dpad_up;
-	m_buttons[4] = &m_dpad_left;
-	m_buttons[5] = &m_dpad_right;
-	m_buttons[13] = nullptr;
+	CreateBaseLayout();
+}
 
+void TASInputDlg::CreateBaseLayout()
+{
+	for (unsigned int i = 0; i < 10; ++i)
+		m_controls[i] = nullptr;
+	for (unsigned int i = 0; i < 14; ++i)
+		m_buttons[i] = nullptr;
+
+	m_buttons[0] = &m_dpad_down;
+	m_buttons[1] = &m_dpad_up;
+	m_buttons[2] = &m_dpad_left;
+	m_buttons[3] = &m_dpad_right;
+	m_buttons[4] = &m_a;
+	m_buttons[5] = &m_b;
 	m_controls[0] = &m_main_stick.x_cont;
 	m_controls[1] = &m_main_stick.y_cont;
-	m_controls[9] = nullptr;
 
 	m_a = CreateButton("A");
 	m_b = CreateButton("B");
@@ -65,63 +77,90 @@ TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
 }
 
 const int TASInputDlg::m_gc_pad_buttons_bitmask[12] = {
-	PAD_BUTTON_A, PAD_BUTTON_B, PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT,PAD_BUTTON_RIGHT,
+	PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT,PAD_BUTTON_RIGHT, PAD_BUTTON_A, PAD_BUTTON_B,
 	PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_TRIGGER_L, PAD_TRIGGER_R, PAD_BUTTON_START
 };
 
 const int TASInputDlg::m_wii_buttons_bitmask[13] = {
-	WiimoteEmu::Wiimote::BUTTON_A, WiimoteEmu::Wiimote::BUTTON_B, WiimoteEmu::Wiimote::PAD_DOWN,
-	WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_LEFT, WiimoteEmu::Wiimote::PAD_RIGHT,
+	WiimoteEmu::Wiimote::PAD_DOWN, WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_LEFT,
+	WiimoteEmu::Wiimote::PAD_RIGHT, WiimoteEmu::Wiimote::BUTTON_A, WiimoteEmu::Wiimote::BUTTON_B,
 	WiimoteEmu::Wiimote::BUTTON_ONE, WiimoteEmu::Wiimote::BUTTON_TWO, WiimoteEmu::Wiimote::BUTTON_PLUS,
-	WiimoteEmu::Wiimote::BUTTON_MINUS, WiimoteEmu::Wiimote::BUTTON_HOME
+	WiimoteEmu::Wiimote::BUTTON_MINUS, WiimoteEmu::Wiimote::BUTTON_HOME,
 };
 
-void TASInputDlg::CreateWiiLayout()
+void TASInputDlg::CreateWiiLayout(int num)
 {
 	if (m_has_layout)
 		return;
-	m_is_wii = true;
-	m_has_layout = true;
 
 	m_buttons[6] = &m_one;
 	m_buttons[7] = &m_two;
 	m_buttons[8] = &m_plus;
 	m_buttons[9] = &m_minus;
 	m_buttons[10] = &m_home;
-	m_buttons[11] = nullptr; //&C;
-	m_buttons[12] = nullptr; //&Z;
 
-	m_controls[2] = nullptr;
-	m_controls[3] = nullptr;
-	m_controls[4] = nullptr;
-	m_controls[5] = nullptr;
-	m_controls[6] = &m_x_cont;
-	m_controls[7] = &m_y_cont;
-	m_controls[8] = &m_z_cont;
+	m_controls[4] = &m_x_cont;
+	m_controls[5] = &m_y_cont;
+	m_controls[6] = &m_z_cont;
 
-	m_main_stick = CreateStick(ID_MAIN_STICK);
-	wxStaticBoxSizer* const main_stick = CreateStickLayout(&m_main_stick, _("IR"));
-	m_main_stick.x_cont.default_value = 512;
-	m_main_stick.y_cont.default_value = 384;
+	m_main_stick = CreateStick(ID_MAIN_STICK, 1024, 768, 512, 384, true, false);
+	m_main_stick_szr = CreateStickLayout(&m_main_stick, _("IR"));
 
-	wxStaticBoxSizer* const axisBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Orientation"));
-	wxStaticBoxSizer* const xBox = new wxStaticBoxSizer(wxVERTICAL, this, _("X"));
-	wxStaticBoxSizer* const yBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Y"));
-	wxStaticBoxSizer* const zBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Z"));
+	m_x_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 1023, 512);
+	m_y_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 1023, 512);
+	m_z_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 1023, 616);
+	wxStaticBoxSizer* const axisBox = CreateAccelLayout(&m_x_cont, &m_y_cont, &m_z_cont, _("Orientation"));
 
-	m_x_cont = CreateControl(wxSL_VERTICAL, -1, 100, 1023);
-	m_y_cont = CreateControl(wxSL_VERTICAL, -1, 100, 1023);
-	m_z_cont = CreateControl(wxSL_VERTICAL, -1, 100, 1023);
-	m_z_cont.default_value = 616;
-	xBox->Add(m_x_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
-	xBox->Add(m_x_cont.text, 0, wxALIGN_CENTER_VERTICAL);
-	yBox->Add(m_y_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
-	yBox->Add(m_y_cont.text, 0, wxALIGN_CENTER_VERTICAL);
-	zBox->Add(m_z_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
-	zBox->Add(m_z_cont.text, 0, wxALIGN_CENTER_VERTICAL);
-	axisBox->Add(xBox);
-	axisBox->Add(yBox);
-	axisBox->Add(zBox);
+	wxStaticBoxSizer* const m_buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
+	wxGridSizer* const m_buttons_grid = new wxGridSizer(4);
+
+	m_plus = CreateButton("+");
+	m_minus = CreateButton("-");
+	m_one = CreateButton("1");
+	m_two = CreateButton("2");
+	m_home = CreateButton("Home");
+
+	m_main_szr = new wxBoxSizer(wxVERTICAL);
+	m_wiimote_szr = new wxBoxSizer(wxHORIZONTAL);
+	m_ext_szr = new wxBoxSizer(wxHORIZONTAL);
+
+	if (Core::IsRunning())
+	{
+		m_ext = ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers[num])->CurrentExtension();
+	}
+	else
+	{
+		IniFile ini;
+		ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
+		std::string extension;
+		ini.GetIfExists("Wiimote" + std::to_string(num+1), "Extension", &extension);
+
+		if (extension == "Nunchuk")
+			m_ext = 1;
+		if (extension == "Classic Controller")
+			m_ext = 2;
+	}
+
+	m_buttons[11] = &m_c;
+	m_buttons[12] = &m_z;
+	m_controls[2] = &m_c_stick.x_cont;
+	m_controls[3] = &m_c_stick.y_cont;
+	m_controls[7] = &m_nx_cont;
+	m_controls[8] = &m_ny_cont;
+	m_controls[9] = &m_nz_cont;
+
+	m_c_stick = CreateStick(ID_C_STICK, 255, 255, 128, 128, false, true);
+	m_c_stick_szr = CreateStickLayout(&m_c_stick, _("Nunchuk stick"));
+
+	m_nx_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 1023, 512);
+	m_ny_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 1023, 512);
+	m_nz_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 1023, 512);
+	wxStaticBoxSizer* const nunchukaxisBox = CreateAccelLayout(&m_nx_cont, &m_ny_cont, &m_nz_cont, _("Nunchuk orientation"));
+
+	m_c = CreateButton("C");
+	m_z = CreateButton("Z");
+	m_ext_szr->Add(m_c_stick_szr);
+	m_ext_szr->Add(nunchukaxisBox);
 
 	for (unsigned int i = 0; i < 10; ++i)
 	{
@@ -129,38 +168,27 @@ void TASInputDlg::CreateWiiLayout()
 			m_controls[i]->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
 	}
 
-	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
-	wxGridSizer* const buttons_grid = new wxGridSizer(4);
+	for (unsigned int i = 4; i < 14; ++i)
+		if (m_buttons[i] != nullptr)
+			m_buttons_grid->Add(m_buttons[i]->checkbox, false);
+	m_buttons_grid->AddSpacer(5);
 
-	//m_c = CreateButton("C");
-	//m_z = CreateButton("Z");
-	m_plus = CreateButton("+");
-	m_minus = CreateButton("-");
-	m_one = CreateButton("1");
-	m_two = CreateButton("2");
-	m_home = CreateButton("HOME");
+	m_buttons_box->Add(m_buttons_grid);
+	m_buttons_box->Add(m_buttons_dpad);
 
-	buttons_grid->Add(m_a.checkbox, false);
-	buttons_grid->Add(m_b.checkbox, false);
-	//buttons_grid->Add(C.checkbox, false);
-	//buttons_grid->Add(Z.checkbox, false);
-	buttons_grid->Add(m_plus.checkbox, false);
-	buttons_grid->Add(m_minus.checkbox, false);
-	buttons_grid->Add(m_one.checkbox, false);
-	buttons_grid->Add(m_two.checkbox, false);
-	buttons_grid->Add(m_home.checkbox, false);
-	buttons_grid->AddSpacer(5);
+	m_wiimote_szr->Add(m_main_stick_szr);
+	m_wiimote_szr->Add(axisBox);
+	m_wiimote_szr->Add(m_buttons_box);
+	m_main_szr->Add(m_wiimote_szr);
+	m_main_szr->Add(m_ext_szr);
+	if (m_ext == 1)
+		m_main_szr->Show(m_ext_szr);
+	else
+		m_main_szr->Hide(m_ext_szr);
+	SetSizerAndFit(m_main_szr, true);
 
-	buttons_box->Add(buttons_grid);
-	buttons_box->Add(m_buttons_dpad);
-
-	wxBoxSizer* const main_szr = new wxBoxSizer(wxHORIZONTAL);
-
-	main_szr->Add(main_stick);
-	main_szr->Add(axisBox);
-	main_szr->Add(buttons_box);
-	SetSizerAndFit(main_szr);
 	ResetValues();
+	m_has_layout = true;
 }
 
 void TASInputDlg::CreateGCLayout()
@@ -174,29 +202,23 @@ void TASInputDlg::CreateGCLayout()
 	m_buttons[9] = &m_l;
 	m_buttons[10] = &m_r;
 	m_buttons[11] = &m_start;
-	m_buttons[12] = nullptr;
 
-	m_controls[2] = &m_l_cont;
-	m_controls[3] = &m_r_cont;
-	m_controls[4] = &m_c_stick.x_cont;
-	m_controls[5] = &m_c_stick.y_cont;
-	m_controls[6] = nullptr;
-	m_controls[7] = nullptr;
-	m_controls[8] = nullptr;
+	m_controls[2] = &m_c_stick.x_cont;
+	m_controls[3] = &m_c_stick.y_cont;
+	m_controls[4] = &m_l_cont;
+	m_controls[5] = &m_r_cont;
 
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
-	m_main_stick = CreateStick(ID_MAIN_STICK);
+	m_main_stick = CreateStick(ID_MAIN_STICK, 255, 255, 128, 128, false, true);
 	wxStaticBoxSizer* const main_box = CreateStickLayout(&m_main_stick, _("Main Stick"));
 
-	m_c_stick = CreateStick(ID_C_STICK);
+	m_c_stick = CreateStick(ID_C_STICK, 255, 255, 128, 128, false, true);
 	wxStaticBoxSizer* const c_box = CreateStickLayout(&m_c_stick, _("C Stick"));
 
 	wxStaticBoxSizer* const shoulder_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
-	m_l_cont = CreateControl(wxSL_VERTICAL | wxSL_INVERSE, -1, 100);
-	m_l_cont.default_value = 0;
-	m_r_cont = CreateControl(wxSL_VERTICAL | wxSL_INVERSE, -1, 100);
-	m_r_cont.default_value = 0;
+	m_l_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 255, 0);
+	m_r_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 255, 0);
 	shoulder_box->Add(m_l_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
 	shoulder_box->Add(m_l_cont.text, 0, wxALIGN_CENTER_VERTICAL);
 	shoulder_box->Add(m_r_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
@@ -208,8 +230,8 @@ void TASInputDlg::CreateGCLayout()
 			m_controls[i]->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
 	}
 
-	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
-	wxGridSizer* const buttons_grid = new wxGridSizer(4);
+	wxStaticBoxSizer* const m_buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
+	wxGridSizer* const m_buttons_grid = new wxGridSizer(4);
 
 	m_x = CreateButton("X");
 	m_y = CreateButton("Y");
@@ -218,18 +240,13 @@ void TASInputDlg::CreateGCLayout()
 	m_z = CreateButton("Z");
 	m_start = CreateButton("Start");
 
-	buttons_grid->Add(m_a.checkbox, false);
-	buttons_grid->Add(m_b.checkbox, false);
-	buttons_grid->Add(m_x.checkbox, false);
-	buttons_grid->Add(m_y.checkbox, false);
-	buttons_grid->Add(m_l.checkbox, false);
-	buttons_grid->Add(m_r.checkbox, false);
-	buttons_grid->Add(m_z.checkbox, false);
-	buttons_grid->Add(m_start.checkbox, false);
-	buttons_grid->AddSpacer(5);
+	for (unsigned int i = 4; i < 14; ++i)
+		if (m_buttons[i] != nullptr)
+			m_buttons_grid->Add(m_buttons[i]->checkbox, false);
+	m_buttons_grid->AddSpacer(5);
 
-	buttons_box->Add(buttons_grid);
-	buttons_box->Add(m_buttons_dpad);
+	m_buttons_box->Add(m_buttons_grid);
+	m_buttons_box->Add(m_buttons_dpad);
 
 	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
 
@@ -241,41 +258,43 @@ void TASInputDlg::CreateGCLayout()
 	bottom_box->AddSpacer(5);
 	bottom_box->Add(shoulder_box);
 	bottom_box->AddSpacer(5);
-	bottom_box->Add(buttons_box);
+	bottom_box->Add(m_buttons_box);
 	bottom_box->AddSpacer(5);
 	main_szr->Add(top_box);
 	main_szr->Add(bottom_box);
 	SetSizerAndFit(main_szr);
-	ResetValues();
 
+	ResetValues();
 	m_has_layout = true;
 }
 
 
-TASInputDlg::Control TASInputDlg::CreateControl(long style, int width, int height, u32 range)
+TASInputDlg::Control TASInputDlg::CreateControl(long style, int width, int height, bool reverse, u32 range, u32 default_value)
 {
 	Control tempCont;
 	tempCont.range = range;
-	tempCont.slider = new wxSlider(this, m_eleID++, range/2+1, 0, range, wxDefaultPosition, wxDefaultSize, style);
+	tempCont.default_value = default_value;
+	tempCont.slider = new wxSlider(this, m_eleID++, default_value, 0, range, wxDefaultPosition, wxDefaultSize, style);
 	tempCont.slider->SetMinSize(wxSize(width, height));
 	tempCont.slider->Bind(wxEVT_SLIDER, &TASInputDlg::UpdateFromSliders, this);
-	tempCont.text = new wxTextCtrl(this, m_eleID++, std::to_string(range/2+1), wxDefaultPosition, wxSize(40, 20));
+	tempCont.text = new wxTextCtrl(this, m_eleID++, std::to_string(default_value), wxDefaultPosition, wxSize(40, 20));
 	tempCont.text->SetMaxLength(range > 999 ? 4 : 3);
 	tempCont.text_id = m_eleID - 1;
 	tempCont.text->Bind(wxEVT_TEXT, &TASInputDlg::UpdateFromText, this);
 	tempCont.slider_id = m_eleID - 2;
+	tempCont.reverse = reverse;
 	return tempCont;
 }
 
-TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick)
+TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX, bool reverseY)
 {
 	Stick tempStick;
 	tempStick.bitmap = new wxStaticBitmap(this, id_stick, CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
 	tempStick.bitmap->Bind(wxEVT_MOTION, &TASInputDlg::OnMouseDownL, this);
 	tempStick.bitmap->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
 	tempStick.bitmap->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
-	tempStick.x_cont = CreateControl(wxSL_HORIZONTAL | (m_is_wii ? wxSL_INVERSE : 0), 120, -1, m_is_wii ? 1024 : 255);
-	tempStick.y_cont = CreateControl(wxSL_VERTICAL | (m_is_wii ? 0 : wxSL_INVERSE), -1, 120, m_is_wii ? 768 : 255);
+	tempStick.x_cont = CreateControl(wxSL_HORIZONTAL | (reverseX ? wxSL_INVERSE : 0), 120, -1, reverseX, xRange, defaultX);
+	tempStick.y_cont = CreateControl(wxSL_VERTICAL | (reverseY ?  wxSL_INVERSE : 0), -1, 120, reverseY, yRange, defaultY);
 	return tempStick;
 }
 
@@ -297,6 +316,25 @@ wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, const wxStrin
 	return temp_box;
 }
 
+wxStaticBoxSizer* TASInputDlg::CreateAccelLayout(Control* x, Control* y, Control* z, const wxString& title)
+{
+	wxStaticBoxSizer* const temp_box = new wxStaticBoxSizer(wxHORIZONTAL, this, title);
+	wxStaticBoxSizer* const xBox = new wxStaticBoxSizer(wxVERTICAL, this, _("X"));
+	wxStaticBoxSizer* const yBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Y"));
+	wxStaticBoxSizer* const zBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Z"));
+
+	xBox->Add(x->slider, 0, wxALIGN_CENTER_VERTICAL);
+	xBox->Add(x->text, 0, wxALIGN_CENTER_VERTICAL);
+	yBox->Add(y->slider, 0, wxALIGN_CENTER_VERTICAL);
+	yBox->Add(y->text, 0, wxALIGN_CENTER_VERTICAL);
+	zBox->Add(z->slider, 0, wxALIGN_CENTER_VERTICAL);
+	zBox->Add(z->text, 0, wxALIGN_CENTER_VERTICAL);
+	temp_box->Add(xBox);
+	temp_box->Add(yBox);
+	temp_box->Add(zBox);
+	return temp_box;
+}
+
 TASInputDlg::Button TASInputDlg::CreateButton(const std::string& name)
 {
 	Button temp;
@@ -310,9 +348,6 @@ TASInputDlg::Button TASInputDlg::CreateButton(const std::string& name)
 
 void TASInputDlg::ResetValues()
 {
-	if (!m_has_layout)
-		return;
-
 	for (unsigned int i = 0; i < 14; ++i)
 	{
 		if (m_buttons[i] != nullptr)
@@ -346,9 +381,9 @@ void TASInputDlg::SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, w
 	}
 }
 
-void TASInputDlg::SetSliderValue(Control* control, int CurrentValue, int defaultValue)
+void TASInputDlg::SetSliderValue(Control* control, int CurrentValue, int default_value)
 {
-	if (CurrentValue != defaultValue)
+	if (CurrentValue != default_value)
 	{
 		control->value = CurrentValue;
 		control->set_by_keyboard = true;
@@ -356,9 +391,9 @@ void TASInputDlg::SetSliderValue(Control* control, int CurrentValue, int default
 	}
 	else if (control->set_by_keyboard)
 	{
-		control->value = defaultValue;
+		control->value = default_value;
 		control->set_by_keyboard = false;
-		control->text->SetValue(std::to_string(defaultValue));
+		control->text->SetValue(std::to_string(default_value));
 	}
 }
 
@@ -378,7 +413,7 @@ void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 
 void TASInputDlg::SetWiiButtons(u16* butt)
 {
-	for (unsigned int i = 0; i < 14; ++i)
+	for (unsigned int i = 0; i < 10; ++i)
 	{
 		if (m_buttons[i] != nullptr)
 			*butt |= (m_buttons[i]->checkbox->IsChecked()) ? m_wii_buttons_bitmask[i] : 0;
@@ -403,14 +438,16 @@ void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 	SetButtonValue(&m_r, ((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
 }
 
-void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
+void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key)
 {
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
 	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
+	u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
 
 	if (coreData)
 	{
-		for (unsigned int i = 0; i < 14; ++i)
+		for (unsigned int i = 0; i < 10; ++i)
 		{
 			if (m_buttons[i] != nullptr)
 				SetButtonValue(m_buttons[i], (((wm_buttons*)coreData)->hex & m_wii_buttons_bitmask[i]) != 0);
@@ -420,9 +457,9 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
 
-		SetSliderValue(&m_x_cont, dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb);
-		SetSliderValue(&m_y_cont, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb);
-		SetSliderValue(&m_z_cont, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb, 616);
+		SetSliderValue(&m_x_cont, dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb, m_x_cont.default_value);
+		SetSliderValue(&m_y_cont, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1, m_y_cont.default_value);
+		SetSliderValue(&m_z_cont, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1, m_z_cont.default_value);
 	}
 
 	// I don't think this can be made to work in a sane manner.
@@ -431,21 +468,32 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
 	//	u16 x = 1023 - (irData[0] | ((irData[2] >> 4 & 0x3) << 8));
 	//	u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
 
-	//	SetStickValue(&MainStick.xCont.SetByKeyboard, &MainStick.xCont.value, MainStick.xCont.Text, x, 561);
-	//	SetStickValue(&MainStick.yCont.SetByKeyboard, &MainStick.yCont.value, MainStick.yCont.Text, y, 486);
+	//	SetStickValue(&m_main_stick.x_cont.set_by_keyboard, &m_main_stick.x_cont.value, m_main_stick.x_cont.text, x, 561);
+	//	SetStickValue(&m_main_stick.y_cont.set_by_keyboard, &m_main_stick.y_cont.value, m_main_stick.y_cont.text, y, 486);
 	//}
+
+	if (extData && ext == 1)
+	{
+		wm_nc& nunchuk = *(wm_nc*)extData;
+		WiimoteDecrypt(&key, (u8*)&nunchuk, 0, sizeof(wm_nc));
+		nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
+		SetButtonValue(m_buttons[11], nunchuk.bt.c != 0);
+		SetButtonValue(m_buttons[12], nunchuk.bt.z != 0);
+	}
 }
 
-void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
+void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key)
 {
-	if (!IsShown() || !m_is_wii)
+	if (!IsShown() || !m_has_layout)
 		return;
 
-	GetKeyBoardInput(data, rptf);
+	GetKeyBoardInput(data, rptf, ext, key);
 
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
 	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
 	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
+	u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
+	u8 size = rptf.size;
 
 	if (coreData)
 		SetWiiButtons(&((wm_buttons*)coreData)->hex);
@@ -482,51 +530,91 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
 		if (mode == 1)
 		{
 			memset(irData, 0xFF, sizeof(wm_ir_basic) * 2);
-			wm_ir_basic* irBasic = (wm_ir_basic*)irData;
+			wm_ir_basic* data = (wm_ir_basic*)irData;
 			for (unsigned int i = 0; i < 2; ++i)
 			{
 				if (x[i*2] < 1024 && y < 768)
 				{
-					irBasic[i].x1 = static_cast<u8>(x[i*2]);
-					irBasic[i].x1hi = x[i*2] >> 8;
+					data[i].x1 = static_cast<u8>(x[i*2]);
+					data[i].x1hi = x[i*2] >> 8;
 
-					irBasic[i].y1 = static_cast<u8>(y);
-					irBasic[i].y1hi = y >> 8;
+					data[i].y1 = static_cast<u8>(y);
+					data[i].y1hi = y >> 8;
 				}
 				if (x[i*2+1] < 1024 && y < 768)
 				{
-					irBasic[i].x2 = static_cast<u8>(x[i*2+1]);
-					irBasic[i].x2hi = x[i*2+1] >> 8;
+					data[i].x2 = static_cast<u8>(x[i*2+1]);
+					data[i].x2hi = x[i*2+1] >> 8;
 
-					irBasic[i].y2 = static_cast<u8>(y);
-					irBasic[i].y2hi = y >> 8;
+					data[i].y2 = static_cast<u8>(y);
+					data[i].y2hi = y >> 8;
 				}
 			}
 		}
 		else
 		{
 			memset(data, 0xFF, sizeof(wm_ir_extended) * 4);
-			wm_ir_extended* const irExtended = (wm_ir_extended*)irData;
+			wm_ir_extended* const data = (wm_ir_extended*)irData;
 			for (unsigned int i = 0; i < 4; ++i)
 			{
 				if (x[i] < 1024 && y < 768)
 				{
-					irExtended[i].x = static_cast<u8>(x[i]);
-					irExtended[i].xhi = x[i] >> 8;
+					data[i].x = static_cast<u8>(x[i]);
+					data[i].xhi = x[i] >> 8;
 
-					irExtended[i].y = static_cast<u8>(y);
-					irExtended[i].yhi = y >> 8;
+					data[i].y = static_cast<u8>(y);
+					data[i].yhi = y >> 8;
 
-					irExtended[i].size = 10;
+					data[i].size = 10;
 				}
 			}
 		}
 	}
+	if (ext != m_ext)
+	{
+		m_ext = ext;
+		if (ext == 0)
+		{
+			m_main_szr->Hide(m_ext_szr);
+		}
+		else
+		{
+			m_main_szr->Show(m_ext_szr);
+		}
+		SetSizerAndFit(m_main_szr);
+	}
+	else if (extData && ext == 1)
+	{
+		wm_nc& nunchuk = *(wm_nc*)extData;
+
+		nunchuk.jx = m_c_stick.x_cont.value;
+		nunchuk.jy = m_c_stick.y_cont.value;
+
+		nunchuk.ax    = m_nx_cont.value >> 2;
+		nunchuk.bt.acc_x_lsb = m_nx_cont.value & 0x3;
+		nunchuk.ay    = m_ny_cont.value >> 2;
+		nunchuk.bt.acc_y_lsb = m_ny_cont.value & 0x3;
+		nunchuk.az    = m_nz_cont.value >> 2;
+		nunchuk.bt.acc_z_lsb = m_nz_cont.value & 0x3;
+
+		nunchuk.bt.hex |= (m_buttons[11]->checkbox->IsChecked()) ? WiimoteEmu::Nunchuk::BUTTON_C : 0;
+		nunchuk.bt.hex |= (m_buttons[12]->checkbox->IsChecked()) ? WiimoteEmu::Nunchuk::BUTTON_Z : 0;
+		nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
+		WiimoteEncrypt(&key, (u8*)&nunchuk, 0, sizeof(wm_nc));
+	}
+	//else if (extData && ext == 2)
+	//{
+		// TODO
+		//wm_classic_extension& cc = *(wm_classic_extension*)extData;
+		//WiimoteDecrypt(&key, (u8*)&cc, 0, sizeof(wm_classic_extension));
+
+		//WiimoteEncrypt(&key, (u8*)&cc, 0, sizeof(wm_classic_extension));
+	//}
 }
 
 void TASInputDlg::GetValues(GCPadStatus* PadStatus)
 {
-	if (!IsShown() || m_is_wii)
+	if (!IsShown())
 		return;
 
 	//TODO:: Make this instant not when polled.
@@ -574,7 +662,6 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 	}
 
 	int value = ((wxSlider*) event.GetEventObject())->GetValue();
-
 	if (text)
 		text->SetValue(std::to_string(value));
 }
@@ -596,15 +683,25 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 			m_controls[i]->value = v;
 		}
 	}
-	if (!m_is_wii)
-		m_c_stick.bitmap->SetBitmap(CreateStickBitmap(m_c_stick.x_cont.value, 255 - m_c_stick.y_cont.value));
+	if (m_controls[2] != nullptr)
+	{
+		int x = m_c_stick.x_cont.value;
+		int y = m_c_stick.y_cont.value;
 
-	int x = (u8)((double)m_main_stick.x_cont.value / (double)m_main_stick.x_cont.range * 255.0);
-	int y = (u8)((double)m_main_stick.y_cont.value / (double)m_main_stick.y_cont.range * 255.0);
-	if (!m_is_wii)
-		y = 255 - (u8)y;
-	else
-		x = 255 - (u8)x;
+		if (m_c_stick.x_cont.reverse)
+			x = m_c_stick.x_cont.range - m_c_stick.x_cont.value + 1;
+		if (m_c_stick.y_cont.reverse)
+			y = m_c_stick.y_cont.range - m_c_stick.y_cont.value + 1;
+
+		m_c_stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
+	}
+
+	int x = (u8)(std::floor(((double)m_main_stick.x_cont.value / (double)m_main_stick.x_cont.range * 255.0) + .5));
+	int y = (u8)(std::floor(((double)m_main_stick.y_cont.value / (double)m_main_stick.y_cont.range * 255.0) + .5));
+	if (m_main_stick.x_cont.reverse)
+		x = 256 - (u8)x;
+	if (m_main_stick.y_cont.reverse)
+		y = 256 - (u8)y;
 	m_main_stick.bitmap->SetBitmap(CreateStickBitmap(x, y));
 }
 
@@ -648,16 +745,13 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 	if (stick == nullptr)
 		return;
 
-	u32 xCenter = stick->x_cont.range / 2 + (stick->x_cont.range % 2 == 0 ? 0 : 1);
-	u32 yCenter = stick->y_cont.range / 2 + (stick->y_cont.range % 2 == 0 ? 0 : 1);
-
-	stick->x_cont.value = xCenter;
-	stick->y_cont.value = yCenter;
+	stick->x_cont.value = stick->x_cont.default_value;
+	stick->y_cont.value = stick->y_cont.default_value;
 	stick->bitmap->SetBitmap(CreateStickBitmap(128,128));
-	stick->x_cont.text->SetValue(std::to_string(xCenter));
-	stick->y_cont.text->SetValue(std::to_string(yCenter));
-	stick->x_cont.slider->SetValue(xCenter);
-	stick->y_cont.slider->SetValue(yCenter);
+	stick->x_cont.text->SetValue(std::to_string(stick->x_cont.default_value));
+	stick->y_cont.text->SetValue(std::to_string(stick->y_cont.default_value));
+	stick->x_cont.slider->SetValue(stick->x_cont.default_value);
+	stick->y_cont.slider->SetValue(stick->y_cont.default_value);
 
 	event.Skip(true);
 }
@@ -692,20 +786,21 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 	stick->x_cont.value = ptM.x * stick->x_cont.range / 127;
 	stick->y_cont.value = ptM.y * stick->y_cont.range / 127;
 
-	if ((unsigned int)stick->y_cont.value > stick->y_cont.range)
+	if ((unsigned)stick->y_cont.value > stick->y_cont.range)
 		stick->y_cont.value = stick->y_cont.range;
-	if ((unsigned int)stick->x_cont.value > stick->x_cont.range)
+	if ((unsigned)stick->x_cont.value > stick->x_cont.range)
 		stick->x_cont.value = stick->x_cont.range;
 
-	if (!m_is_wii)
-		stick->y_cont.value = 255 - (u8)stick->y_cont.value;
-	else
+	if (stick->y_cont.reverse)
+		stick->y_cont.value = stick->y_cont.range - (u16)stick->y_cont.value;
+	if (stick->x_cont.reverse)
 		stick->x_cont.value = stick->x_cont.range - (u16)stick->x_cont.value;
 
 	stick->x_cont.value = (unsigned int)stick->x_cont.value > stick->x_cont.range ? stick->x_cont.range : stick->x_cont.value;
 	stick->y_cont.value = (unsigned int)stick->y_cont.value > stick->y_cont.range ? stick->y_cont.range : stick->y_cont.value;
-	stick->x_cont.value = stick->x_cont.value < 0 ? 0 : stick->x_cont.value;
-	stick->y_cont.value = stick->y_cont.value < 0 ? 0 : stick->y_cont.value;
+
+	int x = (u8)((double)stick->x_cont.value / (double)stick->x_cont.range * 255.0);
+	int y = (u8)((double)stick->y_cont.value / (double)stick->y_cont.range * 255.0);
 
 	stick->bitmap->SetBitmap(CreateStickBitmap(ptM.x*2, ptM.y*2));
 
