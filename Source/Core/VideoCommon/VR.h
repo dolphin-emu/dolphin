@@ -12,9 +12,9 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f;
 
 #ifdef HAVE_OCULUSSDK
-#include "../../../Externals/LibOVR/Src/Kernel/OVR_Types.h"
-#include "../../../Externals/LibOVR/Src/OVR_CAPI.h"
-#include "../../../Externals/LibOVR/Src/Kernel/OVR_Math.h"
+#include "Kernel/OVR_Types.h"
+#include "OVR_CAPI.h"
+#include "Kernel/OVR_Math.h"
 #endif
 
 #include <mutex>

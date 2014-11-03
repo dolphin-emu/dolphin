@@ -4,6 +4,7 @@ endif()
 
 set(LIBS	core
 			uicommon
+			OculusVR
 			${LZO}
 			${GTK2_LIBRARIES})
 
@@ -68,7 +69,8 @@ set(GUI_SRCS
 	VideoConfigDiag.cpp
 	WXInputBase.cpp
 	WiimoteConfigDiag.cpp
-	WxUtils.cpp)
+	WxUtils.cpp
+	ConfigVR.cpp)
 
 set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 
