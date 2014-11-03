@@ -174,20 +174,6 @@ static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags
 {
 	// OK, we know where to find free space. Now grab it!
 	// We just mimic the popular BAT setup.
-	u32 shm_position = 0;
-
-	for (int i = 0; i < num_views; i++)
-	{
-		// Zero all the pointers to be sure.
-		views[i].mapped_ptr = nullptr;
-
-		SKIP(flags, views[i].flags);
-
-		views[i].shm_position = shm_position;
-
-		if (!(views[i].flags & MV_MIRROR_PREVIOUS))
-			shm_position += views[i].size;
-	}
 
 	int i;
 	for (i = 0; i < num_views; i++)
@@ -236,16 +222,28 @@ bail:
 	return false;
 }
 
-u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena)
+static void MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flags)
 {
-	u32 total_mem = 0;
+	u32 shm_position = 0;
 
 	for (int i = 0; i < num_views; i++)
 	{
+		// Zero all the pointers to be sure.
+		views[i].mapped_ptr = nullptr;
+
 		SKIP(flags, views[i].flags);
-		if ((views[i].flags & MV_MIRROR_PREVIOUS) == 0)
-			total_mem += views[i].size;
+
+		views[i].shm_position = shm_position;
+
+		if (!(views[i].flags & MV_MIRROR_PREVIOUS))
+			shm_position += views[i].size;
 	}
+}
+
+u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena)
+{
+	MemoryMap_InitializeViews(views, num_views, flags);
+	u32 total_mem = views[num_views - 1].shm_position;
 
 	arena->GrabSHMSegment(total_mem);
 
