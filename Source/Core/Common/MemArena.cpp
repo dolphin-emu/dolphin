@@ -267,7 +267,7 @@ void MemoryMap_Shutdown(MemoryView *views, int num_views, u32 flags, MemArena *a
 	for (int i = 0; i < num_views; i++)
 	{
 		MemoryView* view = &views[i];
-		if (view->mapped_ptr && *(u8*)view->mapped_ptr && !freeset.count(view->mapped_ptr))
+		if (view->mapped_ptr && !freeset.count(view->mapped_ptr))
 		{
 			arena->ReleaseView(view->mapped_ptr, view->size);
 			freeset.insert(view->mapped_ptr);
