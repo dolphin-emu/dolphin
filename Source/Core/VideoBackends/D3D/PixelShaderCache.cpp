@@ -51,11 +51,11 @@ const char clear_program_code[] = {
 // TODO: Find some way to avoid having separate shaders for non-MSAA and MSAA...
 const char color_copy_program_code[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2D Tex0 : register(t0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	"in float2 uv0 : TEXCOORD0){\n"
+	"in float3 uv0 : TEXCOORD0){\n"
 	"ocol0 = Tex0.Sample(samp0,uv0);\n"
 	"}\n"
 };
@@ -63,16 +63,16 @@ const char color_copy_program_code[] = {
 // TODO: Improve sampling algorithm!
 const char color_copy_program_code_msaa[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	"in float2 uv0 : TEXCOORD0){\n"
+	"in float3 uv0 : TEXCOORD0,\n"
 	"int width, height, samples;\n"
 	"Tex0.GetDimensions(width, height, samples);\n"
 	"ocol0 = 0;\n"
 	"for(int i = 0; i < samples; ++i)\n"
-	"	ocol0 += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"	ocol0 += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"ocol0 /= samples;\n"
 	"}\n"
 };
