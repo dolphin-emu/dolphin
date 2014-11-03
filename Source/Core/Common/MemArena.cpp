@@ -222,9 +222,10 @@ bail:
 	return false;
 }
 
-static void MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flags)
+static u32 MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flags)
 {
 	u32 shm_position = 0;
+	u32 last_position;
 
 	for (int i = 0; i < num_views; i++)
 	{
@@ -233,17 +234,19 @@ static void MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flag
 
 		SKIP(flags, views[i].flags);
 
+		if (views[i].flags & MV_MIRROR_PREVIOUS)
+			shm_position = last_position;
 		views[i].shm_position = shm_position;
-
-		if (!(views[i].flags & MV_MIRROR_PREVIOUS))
-			shm_position += views[i].size;
+		last_position = shm_position;
+		shm_position += views[i].size;
 	}
+
+	return shm_position;
 }
 
 u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
-	MemoryMap_InitializeViews(views, num_views, flags);
-	u32 total_mem = views[num_views - 1].shm_position;
+	u32 total_mem = MemoryMap_InitializeViews(views, num_views, flags);
 
 	arena->GrabSHMSegment(total_mem);
 
