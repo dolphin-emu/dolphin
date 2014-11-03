@@ -91,38 +91,25 @@ void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 
 void Jit64::ClearCRFieldBit(int field, int bit)
 {
-	MOV(64, R(RSCRATCH2), PPCSTATE(cr_val[field]));
-
-	if (bit != CR_GT_BIT)
-	{
-		TEST(64, R(RSCRATCH2), R(RSCRATCH2));
-		FixupBranch dont_clear_gt = J_CC(CC_NZ);
-		BTS(64, R(RSCRATCH2), Imm8(63));
-		SetJumpTarget(dont_clear_gt);
-	}
-
 	switch (bit)
 	{
-	case CR_SO_BIT:  // set bit 61 to input
-		BTR(64, R(RSCRATCH2), Imm8(61));
+	case CR_SO_BIT:
+		BTR(64, PPCSTATE(cr_val[field]), Imm8(61));
 		break;
 
-	case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
-		SHR(64, R(RSCRATCH2), Imm8(32));
-		SHL(64, R(RSCRATCH2), Imm8(32));
+	case CR_EQ_BIT:
+		OR(64, PPCSTATE(cr_val[field]), Imm8(1));
 		break;
 
-	case CR_GT_BIT:  // set bit 63 to !input
-		BTR(64, R(RSCRATCH2), Imm8(63));
+	case CR_GT_BIT:
+		BTS(64, PPCSTATE(cr_val[field]), Imm8(63));
 		break;
 
-	case CR_LT_BIT:  // set bit 62 to input
-		BTR(64, R(RSCRATCH2), Imm8(62));
+	case CR_LT_BIT:
+		BTR(64, PPCSTATE(cr_val[field]), Imm8(62));
 		break;
 	}
-
-	BTS(64, R(RSCRATCH2), Imm8(32));
-	MOV(64, PPCSTATE(cr_val[field]), R(RSCRATCH2));
+	// We don't need to set bit 32; the cases where that's needed only come up when setting bits, not clearing.
 }
 
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
