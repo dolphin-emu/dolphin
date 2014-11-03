@@ -176,15 +176,17 @@ static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags
 	// We just mimic the popular BAT setup.
 	u32 shm_position = 0;
 
-	// Zero all the pointers to be sure.
 	for (int i = 0; i < num_views; i++)
 	{
+		// Zero all the pointers to be sure.
 		views[i].mapped_ptr = nullptr;
 
-		if (!(views[i].flags & MV_MIRROR_PREVIOUS) && i > 0)
-			shm_position += views[i - 1].size;
+		SKIP(flags, views[i].flags);
 
 		views[i].shm_position = shm_position;
+
+		if (!(views[i].flags & MV_MIRROR_PREVIOUS))
+			shm_position += views[i].size;
 	}
 
 	int i;
