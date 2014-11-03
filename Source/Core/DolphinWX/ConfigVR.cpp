@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <wx/checkbox.h>
 #include <wx/combobox.h>
 #include <wx/gbsizer.h>
 #include <wx/notebook.h>
@@ -18,12 +19,10 @@
 
 #include "InputCommon/HotkeysXInput.h"
 
+#include <wx/msgdlg.h>
+
+
 BEGIN_EVENT_TABLE(CConfigVR, wxDialog)
-
-//EVT_COMMAND_RANGE(0, NUM_VR_OPTIONS - 1, wxEVT_BUTTON, CConfigVR::OnButtonClick)
-//EVT_COMMAND_RANGE(0, NUM_VR_OPTIONS - 1, wxEVT_BUTTON, CConfigVR::DetectControl)
-
-//EVT_TIMER(wxID_ANY, CConfigVR::OnButtonTimer)
 
 EVT_CLOSE(CConfigVR::OnClose)
 
@@ -163,7 +162,7 @@ void CConfigVR::CreateGUIControls()
 				WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
 				HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]));
 
-			//m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
+			m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_BUTTON, &CConfigVR::DetectControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_MIDDLE_DOWN, &CConfigVR::ClearControl, this);
 
@@ -422,9 +421,35 @@ void CConfigVR::EndGetButtonsXInput()
 
 void CConfigVR::ConfigControl(wxEvent& event)
 {
-//	m_control_dialog = new ControlDialog(this, m_config, ((ControlButtonVR*)event.GetEventObject())->control_reference);
-//	m_control_dialog->ShowModal();
-//	m_control_dialog->Destroy();
+	ClickedButton = (wxButton *)event.GetEventObject();
+	
+	ciface::Core::DeviceQualifier dq;
+
+	int count = 0;
+
+	for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
+	{
+		dq.FromDevice(d);
+		if (dq.source == "XInput"){
+			m_vr_dialog = new VRDialog(this);
+			m_vr_dialog->SetButtonID(ClickedButton->GetId());
+			m_vr_dialog->ShowModal();
+			m_vr_dialog->Destroy();
+			count++;
+			break;
+		}
+	}
+
+	if (count == 0){
+		wxMessageDialog m_no_xinput(
+			this,
+			_("No XInput Device Detected.\nAttach an XInput Device to use this Feature."),
+			_("No XInput Device"),
+			wxOK | wxSTAY_ON_TOP,
+			wxDefaultPosition);
+
+		m_no_xinput.ShowModal();
+	}
 
 	// update changes that were made in the dialog
 	//UpdateGUI();
@@ -583,4 +608,56 @@ ciface::Core::Device::Control* CConfigVR::InputDetect(const unsigned int ms, cif
 
 	// no input was detected
 	return nullptr;
+}
+
+VRDialog::VRDialog(CConfigVR* const parent)
+	: wxDialog(parent, -1, _("Configure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+	wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(wxVERTICAL, this, "Input");
+
+	ciface::Core::DeviceQualifier dq;
+	for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
+	{
+		dq.FromDevice(d);
+		if (dq.source == "XInput"){
+			for (ciface::Core::Device::Input* input : d->Inputs())
+			{
+				wxCheckBox  *XInputCheckboxes = new wxCheckBox(this, -1, wxGetTranslation(StrToWxStr(input->GetName())), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+				XInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBox, this);
+				main_szr->Add(XInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
+			}
+		}
+
+	}
+
+	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
+	szr->Add(main_szr, 1, wxEXPAND | wxALL, 5);
+	szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxDOWN, 5);
+
+	SetSizerAndFit(szr); // needed
+
+	//UpdateGUI();
+	SetFocus();
+}
+
+void VRDialog::SetButtonID(int from_button){
+	button_id = from_button;
+}
+
+void VRDialog::OnCheckBox(wxCommandEvent& event)
+{
+	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
+	u32 single_button_mask = HotkeysXInput::GetBinaryfromXInputIniStr(checkbox->GetLabel());
+	static u32 value = 0;
+	if (checkbox->IsChecked()){
+		value |= single_button_mask;
+	}
+	else {
+		value &= ~single_button_mask;
+	}
+
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[button_id] = FALSE;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[button_id] = value;
+
+	event.Skip();
 }

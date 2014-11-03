@@ -5,18 +5,13 @@
 
 #pragma once
 
-#include <cstdio>
-#include <string>
-
-#include <wx/timer.h>
-
-#include "Common/CommonTypes.h"
 #include "DolphinWX/InputConfigDiag.h"
 
 class InputConfig;
 
 class CConfigVR : public wxDialog
 {
+	friend class VRDialog;
 public:
 
 	CConfigVR(wxWindow* parent,
@@ -26,6 +21,8 @@ public:
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_DIALOG_STYLE);
 	virtual ~CConfigVR();
+
+	void SaveXInputBinary(int Id, bool KBM, u32 Key);
 
 	enum
 	{
@@ -43,6 +40,7 @@ private:
 	wxComboBox* device_cbox;
 	wxNotebook* Notebook;
 	wxString OldLabel;
+	VRDialog* m_vr_dialog;
 	//wxTimer m_ButtonMappingTimer;
 
 	void OnOk(wxCommandEvent& event);
@@ -62,7 +60,6 @@ private:
 	int g_Pressed, g_Modkey;
 
 	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
-	void SaveXInputBinary(int Id, bool KBM, u32 Key);
 	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapping = wxString());
 	void DoGetButtons(int id);
 	void EndGetButtons();
@@ -77,4 +74,17 @@ private:
 	ciface::Core::DeviceQualifier    default_device;
 
 	DECLARE_EVENT_TABLE();
+};
+
+class VRDialog : public wxDialog
+{
+	int button_id;
+public:
+	VRDialog(CConfigVR* const parent);
+
+	void VRDialog::SetButtonID(int from_button);
+	//void UpdateGUI();
+
+private:
+	void OnCheckBox(wxCommandEvent& event);
 };

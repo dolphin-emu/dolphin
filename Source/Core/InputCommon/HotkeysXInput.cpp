@@ -291,19 +291,6 @@ namespace HotkeysXInput
 			NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);;
 		}
 
-		//if ((*XInput_State & ((1 << 18) | XINPUT_GAMEPAD_RIGHT_SHOULDER)) == ((1 << 18) | XINPUT_GAMEPAD_RIGHT_SHOULDER)) { //RIGHT STICK - UP
-		//	VertexShaderManager::TranslateView(0.0f, 0.01f);
-		//}
-		//if ((*XInput_State & ((1 << 19) | XINPUT_GAMEPAD_RIGHT_SHOULDER)) == ((1 << 19) | XINPUT_GAMEPAD_RIGHT_SHOULDER)){ //RIGHT STICK - DOWN
-		//	VertexShaderManager::TranslateView(0.0f, -0.01f);
-		//}
-		//if ((*XInput_State & ((1 << 20) | XINPUT_GAMEPAD_RIGHT_SHOULDER)) == ((1 << 20) | XINPUT_GAMEPAD_RIGHT_SHOULDER)){ //RIGHT STICK - RIGHT
-		//	VertexShaderManager::TranslateView(-0.01f, 0.0f);
-		//}
-		//if ((*XInput_State & ((1 << 21) | XINPUT_GAMEPAD_RIGHT_SHOULDER)) == ((1 << 21) | XINPUT_GAMEPAD_RIGHT_SHOULDER)){ //RIGHT STICK - LEFT
-		//	VertexShaderManager::TranslateView(0.01f, 0.0f);
-		//}
-
 
 	}
 
@@ -430,7 +417,7 @@ namespace HotkeysXInput
 		else if (ini_setting == XINPUT_GAMEPAD_RIGHT_SHOULDER){
 			return "Shoulder R";
 		}
-		else if (ini_setting == 0x0400){
+		else if (ini_setting == XINPUT_GAMEPAD_GUIDE){
 			return "Guide";
 		}
 		else if (ini_setting == XINPUT_GAMEPAD_LEFT_THUMB){
