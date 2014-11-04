@@ -401,6 +401,10 @@ void CheckExceptions()
 	// EXTERNAL INTERRUPT
 	else if (MSR & 0x0008000)  // Handling is delayed until MSR.EE=1.
 	{
+		// Make sure we are checking against the latest EXI status. This is required
+		// for devices which interrupt frequently, such as the gc mic
+		ExpansionInterface::UpdateInterrupts();
+
 		if (exceptions & EXCEPTION_EXTERNAL_INT)
 		{
 			// Pokemon gets this "too early", it hasn't a handler yet
