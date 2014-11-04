@@ -34,6 +34,7 @@ protected:
 
 private:
 
+	bool button_already_clicked;
 	wxButton* m_Ok;
 	wxButton *ClickedButton;
 	wxButton *m_Button_VRSettings[NUM_VR_OPTIONS];
@@ -41,7 +42,6 @@ private:
 	wxNotebook* Notebook;
 	wxString OldLabel;
 	VRDialog* m_vr_dialog;
-	//wxTimer m_ButtonMappingTimer;
 
 	void OnOk(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
@@ -51,12 +51,9 @@ private:
 
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxEvent& event);
-	bool DetectButton(wxButton* button, wxCommandEvent& event);
-	//void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
+	void ConfigControl(wxEvent& event);
 	void OnButtonClick(wxCommandEvent& event);
 	void OnKeyDown(wxKeyEvent& event);
-	void OnKeyDownXInput(wxKeyEvent& event);
-	//int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed, g_Modkey;
 	int g_Pressed, g_Modkey;
 
 	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
@@ -64,8 +61,6 @@ private:
 	void DoGetButtons(int id);
 	void EndGetButtons();
 	void EndGetButtonsXInput();
-	
-	void ConfigControl(wxEvent& event);
 
 	void CreateGUIControls();
 	void UpdateGUI();

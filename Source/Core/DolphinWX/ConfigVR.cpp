@@ -137,6 +137,8 @@ void CConfigVR::CreateGUIControls()
 
 	wxNotebook *Notebook = new wxNotebook(this, wxID_ANY);
 
+	button_already_clicked = false; //Used to determine whether a button has already been clicked.  If it has, don't allow more buttons to be clicked.
+
 	for (int j = 0; j < 2; j++)
 	{
 		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
@@ -168,16 +170,16 @@ void CConfigVR::CreateGUIControls()
 			m_Button_VRSettings[i] = new wxButton(Page, i, wxEmptyString, wxDefaultPosition, size);
 
 			m_Button_VRSettings[i]->SetFont(m_SmallFont);
-			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key (Assign space to clear).\nMiddle click to clear"));
+			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key (assign space to clear).\nMiddle click to clear.\nRight click to choose XInput Combinations (if a gamepad is detected)"));
 			SetButtonText(i, 
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[i],
 				WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
 				WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
 				HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]));
 
-			m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_BUTTON, &CConfigVR::DetectControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_MIDDLE_DOWN, &CConfigVR::ClearControl, this);
+			m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
 
 			wxBoxSizer *sVRKey = new wxBoxSizer(wxHORIZONTAL);
 			sVRKey->Add(stHotkeys, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
@@ -330,6 +332,7 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 		// Cancel and restore the old label if escape is hit.
 		else if (g_Pressed == WXK_ESCAPE){
 			ClickedButton->SetLabel(OldLabel);
+			button_already_clicked = false;
 			return;
 		}
 		else
@@ -360,31 +363,9 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 				WxUtils::WXKeymodToString(g_Modkey));
 			SaveButtonMapping(ClickedButton->GetId(), true, g_Pressed, g_Modkey);
 		}
-		EndGetButtons();
 	}
-}
 
-void CConfigVR::OnKeyDownXInput(wxKeyEvent& event)
-{
- 	if (ClickedButton != nullptr)
-	{
-		// Save the key
-		g_Pressed = event.GetKeyCode();
-
-		// Use the space key to set a blank key
-		if (g_Pressed == WXK_SPACE)
-		{
-			SaveButtonMapping(ClickedButton->GetId(), false, -1, 0);
-			SaveXInputBinary(ClickedButton->GetId(), false, 0);
-			SetButtonText(ClickedButton->GetId(), false, wxString());
-		}
-		// Cancel and restore the old label if escape is hit.
-		else if (g_Pressed == WXK_ESCAPE){
-			ClickedButton->SetLabel(OldLabel);
-			return;
-		}
-		EndGetButtonsXInput();
-	}
+	EndGetButtons();
 }
 
 // Update the textbox for the buttons
@@ -416,19 +397,14 @@ void CConfigVR::SaveXInputBinary(int Id, bool KBM, u32 Key)
 void CConfigVR::EndGetButtons()
 {
 	wxTheApp->Unbind(wxEVT_KEY_DOWN, &CConfigVR::OnKeyDown, this);
-	//m_ButtonMappingTimer.Stop();
-	//GetButtonWaitingTimer = 0;
-	//GetButtonWaitingID = 0;
+	button_already_clicked = false;
 	ClickedButton = nullptr;
 	SetEscapeId(wxID_ANY);
 }
 
 void CConfigVR::EndGetButtonsXInput()
 {
-	wxTheApp->Unbind(wxEVT_KEY_DOWN, &CConfigVR::OnKeyDownXInput, this);
-	//m_ButtonMappingTimer.Stop();
-	//GetButtonWaitingTimer = 0;
-	//GetButtonWaitingID = 0;
+	button_already_clicked = false;
 	ClickedButton = nullptr;
 	SetEscapeId(wxID_ANY);
 }
@@ -466,26 +442,6 @@ void CConfigVR::ConfigControl(wxEvent& event)
 
 	// update changes that were made in the dialog
 	UpdateGUI();
-}
-
-void CConfigVR::DetectControl(wxCommandEvent& event)
-{
-	wxButton* btn = (wxButton*)event.GetEventObject();
-	//if (DetectButton(btn) && m_iterate == true)
-	if (DetectButton(btn, event))
-	{
-#if 0
-		auto it = std::find(control_buttons.begin(), control_buttons.end(), btn);
-
-		// std find will never return end since btn will always be found in control_buttons
-		++it;
-		for (; it != control_buttons.end(); ++it)
-		{
-			if (!DetectButton(*it))
-				break;
-		}
-#endif
-	}
 }
 
 void CConfigVR::ClearControl(wxEvent& event)
@@ -528,56 +484,57 @@ inline void GetExpressionForControl(wxString &expr,
 		expr = wxString::Format("%s", expr);
 }
 
-bool CConfigVR::DetectButton(wxButton* button, wxCommandEvent& event)
+void CConfigVR::DetectControl(wxCommandEvent& event)
 {
-	bool success = false;
-	// find device :/
-	ciface::Core::Device* const dev = g_controller_interface.FindDevice(default_device);
-	if (dev)
-	{
-		if (default_device.name == "Keyboard Mouse") {
-			OnButtonClick(event);
+	if (button_already_clicked){ //Stop the user from being able to select multiple buttons at once
+		return;
+	}
+	else {
+		button_already_clicked = true;
+		// find devices
+		ciface::Core::Device* const dev = g_controller_interface.FindDevice(default_device);
+		if (dev)
+		{
+			if (default_device.name == "Keyboard Mouse") {
+				OnButtonClick(event);
+			}
+			else if (default_device.source == "XInput") {
+				// Get the button
+				ClickedButton = (wxButton *)event.GetEventObject();
+				SetEscapeId(wxID_CANCEL);  //This stops escape from exiting the whole ConfigVR box.
+				// Save old label so we can revert back
+				OldLabel = ClickedButton->GetLabel();
+
+				ClickedButton->SetLabel(_("<Press Button>"));
+
+				// This makes the "Press Button" text work on Linux. true (only if needed) prevents crash on Windows
+				wxTheApp->Yield(true);
+
+				//std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
+				ciface::Core::Device::Control* const ctrl = InputDetect(DETECT_WAIT_TIME, dev);
+
+				// if we got input, update expression and reference
+				if (ctrl)
+				{
+					wxString control_name = ctrl->GetName();
+					wxString expr;
+					GetExpressionForControl(expr, control_name);
+					ClickedButton->SetLabel(expr);
+					u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
+					SaveXInputBinary(ClickedButton->GetId(), false, xinput_binary);
+				}
+				else {
+					ClickedButton->SetLabel(OldLabel);
+				}
+
+				EndGetButtonsXInput();
+			}
 		}
-		else if (default_device.source == "XInput") {
-			wxTheApp->Bind(wxEVT_KEY_DOWN, &CConfigVR::OnKeyDownXInput, this);
-
-			// Get the button
-			ClickedButton = (wxButton *)event.GetEventObject();
-			SetEscapeId(wxID_CANCEL);  //This stops escape from exiting the whole ConfigVR box.
-			// Save old label so we can revert back
-			OldLabel = ClickedButton->GetLabel();
-
-			button->SetLabel(_("<Press Button>"));
-
-			// This makes the "Press Button" text work on Linux. true (only if needed) prevents crash on Windows
-			wxTheApp->Yield(true);
-
-			//std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
-			//ciface::Core::Device::Control* const ctrl = button->control_reference->Detect(DETECT_WAIT_TIME, dev);
-			ciface::Core::Device::Control* const ctrl = InputDetect(DETECT_WAIT_TIME, dev);
-
-			// if we got input, update expression and reference
-			if (ctrl)
-			{
-				wxString control_name = ctrl->GetName();
-				wxString expr;
-				GetExpressionForControl(expr, control_name);
-				button->SetLabel(expr);
-				u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
-				SaveXInputBinary(button->GetId(), false, xinput_binary);
-				success = true;
-			}
-			else {
-				button->SetLabel(OldLabel);
-			}
-
-			EndGetButtonsXInput();
+		else {
+			button_already_clicked = false;
 		}
 	}
 
-	//UpdateGUI();
-
-	return success;
 }
 
 
