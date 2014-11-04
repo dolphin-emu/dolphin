@@ -8,6 +8,7 @@
 #include "DolphinWX/InputConfigDiag.h"
 
 class InputConfig;
+class VRDialog;
 
 class CConfigVR : public wxDialog
 {
