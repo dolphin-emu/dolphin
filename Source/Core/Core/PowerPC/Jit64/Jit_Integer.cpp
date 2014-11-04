@@ -556,16 +556,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			MOV(64, PPCSTATE(cr_val[crf]), R(input));
 			// Place the comparison next to the branch for macro-op fusion
 			if (merge_branch)
-			{
-				// We only need to do a 32-bit compare, since the flags set will be the same as a sign-extended
-				// result.
-				// We should also test against gpr.R(a) if it's bound, since that's one less cycle of latency
-				// (the CPU doesn't have to wait for the movsxd to finish to resolve the branch).
-				if (gpr.R(a).IsSimpleReg())
-					TEST(32, gpr.R(a), gpr.R(a));
-				else
-					TEST(32, R(input), R(input));
-			}
+				TEST(64, R(input), R(input));
 		}
 		else
 		{
