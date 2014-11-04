@@ -86,7 +86,7 @@ void CheckGatherPipe()
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
 
 		// Profile where the FIFO writes are occurring.
-		JitInterface::CompileExceptionCheck(JitInterface::EXCEPTIONS_FIFO_WRITE);
+		JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::EXCEPTIONS_FIFO_WRITE);
 	}
 }
 

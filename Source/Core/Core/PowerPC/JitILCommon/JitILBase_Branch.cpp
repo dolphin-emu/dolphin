@@ -66,7 +66,7 @@ void JitILBase::bx(UGeckoInstruction inst)
 static IREmitter::InstLoc EmitCRTest(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst)
 {
 	IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
-	IREmitter::InstLoc CRTest;
+	IREmitter::InstLoc CRTest = nullptr;
 	switch (3 - (inst.BI & 3))
 	{
 	case CR_SO_BIT:
