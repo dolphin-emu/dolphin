@@ -8,6 +8,7 @@
 #include "DolphinWX/InputConfigDiag.h"
 
 class InputConfig;
+class VRDialog;
 
 class CConfigVR : public wxDialog
 {
@@ -82,7 +83,7 @@ class VRDialog : public wxDialog
 public:
 	VRDialog(CConfigVR* const parent);
 
-	void VRDialog::SetButtonID(int from_button);
+	void SetButtonID(int from_button);
 	//void UpdateGUI();
 
 private:
