@@ -14,9 +14,9 @@ class cInterfaceGLX : public cInterfaceBase
 {
 private:
 	cX11Window XWindow;
-	Display *dpy;
-	Window win;
-	GLXContext ctx;
+	Display *dpy, *dpy_offscreen;
+	Window win, win_offscreen;
+	GLXContext ctx, ctx_offscreen;
 	XVisualInfo *vi;
 public:
 	friend class cX11Window;
@@ -24,7 +24,12 @@ public:
 	void Swap() override;
 	void* GetFuncAddress(const std::string& name) override;
 	bool Create(void *window_handle);
+	bool CreateOffscreen();
 	bool MakeCurrent() override;
+	bool MakeCurrentOffscreen();
 	bool ClearCurrent() override;
+	bool ClearCurrentOffscreen();
+
 	void Shutdown() override;
+	void ShutdownOffscreen();
 };
