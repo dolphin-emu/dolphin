@@ -23,6 +23,10 @@ static int changeDevice;
 static int updateInterrupts;
 
 static CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
+
+static void ChangeDeviceCallback(u64 userdata, int cyclesLate);
+static void UpdateInterruptsCallback(u64 userdata, int cycles_late);
+
 void Init()
 {
 	InitSRAM();
@@ -82,7 +86,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	}
 }
 
-void ChangeDeviceCallback(u64 userdata, int cyclesLate)
+static void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
 	u8 channel = (u8)(userdata >> 32);
 	u8 type = (u8)(userdata >> 16);
@@ -117,11 +121,6 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 
 void UpdateInterrupts()
 {
-	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
-}
-
-void UpdateInterruptsCallback(u64 userdata, int cyclesLate)
-{
 	// Interrupts are mapped a bit strangely:
 	// Channel 0 Device 0 generates interrupt on channel 0
 	// Channel 0 Device 2 generates interrupt on channel 2
@@ -133,6 +132,21 @@ void UpdateInterruptsCallback(u64 userdata, int cyclesLate)
 		causeInt |= channel->IsCausingInterrupt();
 
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
+}
+
+static void UpdateInterruptsCallback(u64 userdata, int cycles_late)
+{
+	UpdateInterrupts();
+}
+
+void ScheduleUpdateInterrupts_Threadsafe(int cycles_late)
+{
+	CoreTiming::ScheduleEvent_Threadsafe(cycles_late, updateInterrupts, 0);
+}
+
+void ScheduleUpdateInterrupts(int cycles_late)
+{
+	CoreTiming::ScheduleEvent(cycles_late, updateInterrupts, 0);
 }
 
 } // end of namespace ExpansionInterface

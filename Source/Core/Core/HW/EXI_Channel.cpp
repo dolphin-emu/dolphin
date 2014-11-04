@@ -35,8 +35,6 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 
 	for (auto& device : m_pDevices)
 		device.reset(EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId));
-
-	updateInterrupts = CoreTiming::RegisterEvent("EXIInterrupt", UpdateInterrupts);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -93,7 +91,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			if (pDevice != nullptr)
 				pDevice->SetCS(m_Status.CHIP_SELECT);
 
-			CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
+			ExpansionInterface::UpdateInterrupts();
 		})
 	);
 
@@ -156,7 +154,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 void CEXIChannel::SendTransferComplete()
 {
 	m_Status.TCINT = 1;
-	CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
+	ExpansionInterface::UpdateInterrupts();
 }
 
 void CEXIChannel::RemoveDevices()
@@ -185,14 +183,9 @@ void CEXIChannel::AddDevice(IEXIDevice* pDevice, const int device_num, bool noti
 		if (m_ChannelId != 2)
 		{
 			m_Status.EXTINT = 1;
-			CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
+			ExpansionInterface::UpdateInterrupts();
 		}
 	}
-}
-
-void CEXIChannel::UpdateInterrupts(u64 userdata, int cyclesLate)
-{
-	ExpansionInterface::UpdateInterrupts();
 }
 
 bool CEXIChannel::IsCausingInterrupt()
