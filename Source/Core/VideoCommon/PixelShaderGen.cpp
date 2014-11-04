@@ -319,30 +319,51 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// As a workaround, we interpolate at the centroid of the coveraged pixel, which
 		// is always inside the primitive.
 		// Without MSAA, this flag is defined to have no effect.
-		out.Write("centroid in VS_OUTPUT o;\n");
-
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			out.Write("centroid in VS_OUTPUT f;\n");
 			out.Write("flat in int layer;\n");
+		}
+		else
+		{
+			out.Write("centroid in float4 colors_02;\n");
+			out.Write("centroid in float4 colors_12;\n");
+
+			// compute window position if needed because binding semantic WPOS is not widely supported
+			// Let's set up attributes
+			for (unsigned int i = 0; i < numTexgen; ++i)
+			{
+				out.Write("centroid in float3 uv%d;\n", i);
+			}
+			out.Write("centroid in float4 clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+			{
+				out.Write("centroid in float4 Normal;\n");
+			}
+		}
 
 		out.Write("void main()\n{\n");
 
-		// compute window position if needed because binding semantic WPOS is not widely supported
-		// Let's set up attributes
-		for (unsigned int i = 0; i < numTexgen; ++i)
+		if (g_ActiveConfig.iStereoMode > 0)
 		{
-			out.Write("\tfloat3 uv%d = o.tex%d;\n", i, i);
-		}
-		out.Write("\tfloat4 clipPos = o.clipPos;\n");
-		if (g_ActiveConfig.bEnablePixelLighting)
-		{
-			out.Write("\tfloat4 Normal = o.Normal;\n");
+			// compute window position if needed because binding semantic WPOS is not widely supported
+			// Let's set up attributes
+			for (unsigned int i = 0; i < numTexgen; ++i)
+			{
+				out.Write("\tfloat3 uv%d = f.tex%d;\n", i, i);
+			}
+			out.Write("\tfloat4 clipPos = f.clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+			{
+				out.Write("\tfloat4 Normal = f.Normal;\n");
+			}
 		}
 
 		// On Mali, global variables must be initialized as constants.
 		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 colors_0 = o.colors_0;\n");
-		out.Write("\tfloat4 colors_1 = o.colors_1;\n");
+		out.Write("\tfloat4 colors_0 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "f.colors_0" : "colors_02");
+		out.Write("\tfloat4 colors_1 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "f.colors_1" : "colors_12");
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}

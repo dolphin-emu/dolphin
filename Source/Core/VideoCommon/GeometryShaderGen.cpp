@@ -64,8 +64,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	GenerateVSOutputStruct(out, ApiType);
 
-	out.Write("centroid in VS_OUTPUT v[];\n");
-	out.Write("centroid out VS_OUTPUT o;\n");
+	out.Write("centroid in VS_OUTPUT o[];\n");
+	out.Write("centroid out VS_OUTPUT f;\n");
 
 	out.Write("flat out int layer;\n");
 
@@ -79,15 +79,15 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("\tgl_Layer = layer;\n");
 
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
-	out.Write("\t\to = v[i];\n");
+	out.Write("\t\tf = o[i];\n");
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
-		out.Write("\t\to.clipPos.x += o.clipPos.w * " I_STEREOOFFSET"[layer] * " I_PROJECTION"[0][0];\n");
-		out.Write("\t\to.pos.x += o.pos.w * " I_STEREOOFFSET"[layer] * " I_PROJECTION"[0][0];\n");
+		out.Write("\t\tf.clipPos.x += f.clipPos.w * " I_STEREOOFFSET"[layer] * " I_PROJECTION"[0][0];\n");
+		out.Write("\t\tf.pos.x += f.pos.w * " I_STEREOOFFSET"[layer] * " I_PROJECTION"[0][0];\n");
 	}
 
-	out.Write("\t\tgl_Position = o.pos;\n");
+	out.Write("\t\tgl_Position = f.pos;\n");
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");
 	out.Write("\tEndPrimitive();\n");
