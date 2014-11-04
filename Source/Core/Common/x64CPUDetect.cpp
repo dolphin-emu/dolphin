@@ -225,7 +225,7 @@ void CPUInfo::Detect()
 	}
 }
 
-// Turn the cpu info into a string we can show
+// Turn the CPU info into a string we can show
 std::string CPUInfo::Summarize()
 {
 	std::string sum(cpu_string);

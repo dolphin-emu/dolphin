@@ -143,16 +143,16 @@ struct OpArg
 		return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
 		       indexReg == b.indexReg && offset == b.offset;
 	}
-	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
+	void WriteRex(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
-	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
-	void WriteFloatModRM(XEmitter *emit, FloatOp op);
-	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
+	void WriteRest(XEmitter* emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
+	void WriteFloatModRM(XEmitter* emit, FloatOp op);
+	void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
 	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
 	u16 operandReg;
 
-	void WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
+	void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
 	bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}
 	bool IsSimpleReg() const {return scale == SCALE_NONE;}
 	bool IsSimpleReg(X64Reg reg) const
@@ -194,9 +194,9 @@ private:
 	u16 indexReg;
 };
 
-inline OpArg M(const void *ptr) {return OpArg((u64)ptr, (int)SCALE_RIP);}
+inline OpArg M(const void* ptr) {return OpArg((u64)ptr, (int)SCALE_RIP);}
 template <typename T>
-inline OpArg M(const T *ptr)    {return OpArg((u64)(const void *)ptr, (int)SCALE_RIP);}
+inline OpArg M(const T* ptr)    {return OpArg((u64)(const void*)ptr, (int)SCALE_RIP);}
 inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}
 inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
 
@@ -257,7 +257,7 @@ inline u32 PtrOffset(const void* ptr, const void* base)
 
 struct FixupBranch
 {
-	u8 *ptr;
+	u8* ptr;
 	int type; //0 = 8bit 1 = 32bit
 };
 
@@ -279,7 +279,7 @@ class XEmitter
 {
 	friend struct OpArg;  // for Write8 etc
 private:
-	u8 *code;
+	u8* code;
 	bool flags_locked;
 
 	void CheckFlags();
@@ -301,7 +301,7 @@ private:
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
-	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
+	void WriteNormalOp(XEmitter* emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 	void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 
@@ -313,19 +313,19 @@ protected:
 
 public:
 	XEmitter() { code = nullptr; flags_locked = false; }
-	XEmitter(u8 *code_ptr) { code = code_ptr; flags_locked = false; }
+	XEmitter(u8* code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
 
 	void WriteModRM(int mod, int rm, int reg);
 	void WriteSIB(int scale, int index, int base);
 
-	void SetCodePtr(u8 *ptr);
+	void SetCodePtr(u8* ptr);
 	void ReserveCodeSpace(int bytes);
-	const u8 *AlignCode4();
-	const u8 *AlignCode16();
-	const u8 *AlignCodePage();
-	const u8 *GetCodePtr() const;
-	u8 *GetWritableCodePtr();
+	const u8* AlignCode4();
+	const u8* AlignCode16();
+	const u8* AlignCodePage();
+	const u8* GetCodePtr() const;
+	u8* GetWritableCodePtr();
 
 	void LockFlags() { flags_locked = true; }
 	void UnlockFlags() { flags_locked = false; }
@@ -375,7 +375,7 @@ public:
 #ifdef CALL
 #undef CALL
 #endif
-	void CALL(const void *fnptr);
+	void CALL(const void* fnptr);
 	void CALLptr(OpArg arg);
 
 	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
@@ -385,7 +385,7 @@ public:
 	void SetJumpTarget(const FixupBranch &branch);
 
 	void SETcc(CCFlags flag, OpArg dest);
-	// Note: CMOV brings small if any benefit on current cpus.
+	// Note: CMOV brings small if any benefit on current CPUs.
 	void CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag);
 
 	// Fences
@@ -856,27 +856,27 @@ public:
 	// Utility functions
 	// The difference between this and CALL is that this aligns the stack
 	// where appropriate.
-	void ABI_CallFunction(const void *func);
+	void ABI_CallFunction(const void* func);
 
-	void ABI_CallFunctionC16(const void *func, u16 param1);
-	void ABI_CallFunctionCC16(const void *func, u32 param1, u16 param2);
+	void ABI_CallFunctionC16(const void* func, u16 param1);
+	void ABI_CallFunctionCC16(const void* func, u32 param1, u16 param2);
 
 	// These only support u32 parameters, but that's enough for a lot of uses.
 	// These will destroy the 1 or 2 first "parameter regs".
-	void ABI_CallFunctionC(const void *func, u32 param1);
-	void ABI_CallFunctionCC(const void *func, u32 param1, u32 param2);
-	void ABI_CallFunctionCP(const void *func, u32 param1, void *param2);
-	void ABI_CallFunctionCCC(const void *func, u32 param1, u32 param2, u32 param3);
-	void ABI_CallFunctionCCP(const void *func, u32 param1, u32 param2, void *param3);
-	void ABI_CallFunctionCCCP(const void *func, u32 param1, u32 param2,u32 param3, void *param4);
-	void ABI_CallFunctionPC(const void *func, void *param1, u32 param2);
-	void ABI_CallFunctionPPC(const void *func, void *param1, void *param2, u32 param3);
-	void ABI_CallFunctionAC(const void *func, const OpArg &arg1, u32 param2);
-	void ABI_CallFunctionA(const void *func, const OpArg &arg1);
+	void ABI_CallFunctionC(const void* func, u32 param1);
+	void ABI_CallFunctionCC(const void* func, u32 param1, u32 param2);
+	void ABI_CallFunctionCP(const void* func, u32 param1, void* param2);
+	void ABI_CallFunctionCCC(const void* func, u32 param1, u32 param2, u32 param3);
+	void ABI_CallFunctionCCP(const void* func, u32 param1, u32 param2, void* param3);
+	void ABI_CallFunctionCCCP(const void* func, u32 param1, u32 param2,u32 param3, void* param4);
+	void ABI_CallFunctionPC(const void* func, void* param1, u32 param2);
+	void ABI_CallFunctionPPC(const void* func, void* param1, void* param2, u32 param3);
+	void ABI_CallFunctionAC(const void* func, const OpArg &arg1, u32 param2);
+	void ABI_CallFunctionA(const void* func, const OpArg &arg1);
 
 	// Pass a register as a parameter.
-	void ABI_CallFunctionR(const void *func, X64Reg reg1);
-	void ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2);
+	void ABI_CallFunctionR(const void* func, X64Reg reg1);
+	void ABI_CallFunctionRR(const void* func, X64Reg reg1, X64Reg reg2);
 
 	// Helper method for the above, or can be used separately.
 	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2);

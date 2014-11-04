@@ -88,7 +88,7 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
 
-	// This is saved seperately from everything because it can be changed in SConfig::AutoSetup()
+	// This is saved separately from everything because it can be changed in SConfig::AutoSetup()
 	config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 
 	// If for example the ISO file is bad we return here

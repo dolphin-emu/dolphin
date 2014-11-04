@@ -66,7 +66,7 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 * -h, --help Show this help message  
 * -d, --debugger Opens the debugger  
 * -l, --logger Opens the logger  
-* -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)  
+* -e, --exec=<str> Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)  
 * -b, --batch Exit Dolphin with emulator  
 * -V, --video_backend=<str> Specify a video backend  
 * -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio  

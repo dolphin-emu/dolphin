@@ -313,8 +313,8 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_TITLE, _("Title"));
 
 		// Instead of showing the notes + the company, which is unknown with
-		// wii titles We show in the same column : company for GC games and
-		// description for wii/wad games
+		// Wii titles We show in the same column : company for GC games and
+		// description for Wii/wad games
 		InsertColumn(COLUMN_NOTES, _("Notes"));
 		InsertColumn(COLUMN_ID, _("ID"));
 		InsertColumn(COLUMN_COUNTRY, "");
@@ -365,12 +365,12 @@ void CGameListCtrl::Update()
 		// We just check for one hide setting to be enabled, as we may only
 		// have GC games for example, and hide them, so we should show the
 		// second message instead
-		if ((SConfig::GetInstance().m_ListGC  &&
-			SConfig::GetInstance().m_ListWii  &&
+		if ((SConfig::GetInstance().m_ListWii &&
+			SConfig::GetInstance().m_ListGC   &&
 			SConfig::GetInstance().m_ListWad) &&
 			(SConfig::GetInstance().m_ListJap &&
-			SConfig::GetInstance().m_ListUsa  &&
-			SConfig::GetInstance().m_ListPal))
+			SConfig::GetInstance().m_ListPal  &&
+			SConfig::GetInstance().m_ListUsa))
 		{
 			errorString = _("Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to browse for files...");
 		}
@@ -461,7 +461,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 				name = line.substr(rISOFile.GetUniqueID().size() + 3);
 				break;
 			}
-
 		}
 		titlestxt.close();
 	}
@@ -690,7 +689,7 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 		event.Veto();
 }
 
-const GameListItem *CGameListCtrl::GetISO(size_t index) const
+const GameListItem* CGameListCtrl::GetISO(size_t index) const
 {
 	if (index < m_ISOFiles.size())
 		return m_ISOFiles[index];
@@ -698,14 +697,14 @@ const GameListItem *CGameListCtrl::GetISO(size_t index) const
 		return nullptr;
 }
 
-static CGameListCtrl *caller;
+static CGameListCtrl* caller;
 static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 	// return 1 if item1 > item2
 	// return -1 if item1 < item2
 	// return 0 for identity
-	const GameListItem *iso1 = caller->GetISO(item1);
-	const GameListItem *iso2 = caller->GetISO(item2);
+	const GameListItem* iso1 = caller->GetISO(item1);
+	const GameListItem* iso2 = caller->GetISO(item2);
 
 	return CompareGameListItems(iso1, iso2, sortData);
 }
@@ -906,7 +905,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	}
 	if (GetSelectedItemCount() == 1)
 	{
-		const GameListItem *selected_iso = GetSelectedISO();
+		const GameListItem* selected_iso = GetSelectedISO();
 		if (selected_iso)
 		{
 			wxMenu* popupMenu = new wxMenu;
@@ -996,7 +995,7 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 
 void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem *iso = GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -1007,7 +1006,7 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem *iso = GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
 	std::string path = iso->GetWiiFSPath();
@@ -1017,7 +1016,7 @@ void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem *iso =  GetSelectedISO();
+	const GameListItem* iso =  GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -1033,7 +1032,7 @@ void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 // Save this file as the default file
 void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
 {
-	const GameListItem *iso = GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso) return;
 
 	if (event.IsChecked())
@@ -1055,7 +1054,7 @@ void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 {
 	if (GetSelectedItemCount() == 1)
 	{
-		const GameListItem *iso = GetSelectedISO();
+		const GameListItem* iso = GetSelectedISO();
 		if (!iso)
 			return;
 		if (wxMessageBox(_("Are you sure you want to delete this file?  It will be gone forever!"),
@@ -1074,7 +1073,7 @@ void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 
 			for (int i = 0; i < selected; i++)
 			{
-				const GameListItem *iso = GetSelectedISO();
+				const GameListItem* iso = GetSelectedISO();
 				File::Delete(iso->GetFileName());
 			}
 			Update();
@@ -1084,7 +1083,7 @@ void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem *iso = GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -1095,7 +1094,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem *iso = GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -1136,23 +1135,23 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	bool all_good = true;
 
 	{
-	wxProgressDialog progressDialog(
-		_compress ? _("Compressing ISO") : _("Decompressing ISO"),
-		_("Working..."),
-		1000,
-		this,
-		wxPD_APP_MODAL |
-		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
-		wxPD_SMOOTH
-		);
+		wxProgressDialog progressDialog(
+			_compress ? _("Compressing ISO") : _("Decompressing ISO"),
+			_("Working..."),
+			1000,
+			this,
+			wxPD_APP_MODAL |
+			wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+			wxPD_SMOOTH
+			);
 
-	m_currentItem = 0;
-	m_numberItem = GetSelectedItemCount();
-	for (u32 i=0; i < m_numberItem; i++)
-	{
-		const GameListItem *iso = GetSelectedISO();
-		if (iso->GetPlatform() == GameListItem::WII_WAD || iso->GetFileName().rfind(".wbfs") != std::string::npos)
-			continue;
+		m_currentItem = 0;
+		m_numberItem = GetSelectedItemCount();
+		for (u32 i=0; i < m_numberItem; i++)
+		{
+			const GameListItem* iso = GetSelectedISO();
+			if (iso->GetPlatform() == GameListItem::WII_WAD || iso->GetFileName().rfind(".wbfs") != std::string::npos)
+				continue;
 
 			if (!iso->IsCompressed() && _compress)
 			{
@@ -1206,7 +1205,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 						OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
 			}
 			m_currentItem++;
-	}
+		}
 	}
 
 	if (!all_good)
@@ -1223,7 +1222,7 @@ void CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg
 
 void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem *iso = GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -1303,7 +1302,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
 {
-	const GameListItem *iso = GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso || !Core::IsRunning())
 		return;
 	DVDInterface::ChangeDisc(WxStrToStr(iso->GetFileName()));
@@ -1330,7 +1329,6 @@ void CGameListCtrl::AutomaticColumnWidth()
 	}
 	else if (GetColumnCount() > 0)
 	{
-
 		int resizable = rc.GetWidth() - (
 			GetColumnWidth(COLUMN_PLATFORM)
 			+ GetColumnWidth(COLUMN_BANNER)

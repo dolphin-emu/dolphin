@@ -542,16 +542,16 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 {
 	// The interface for this is extremely silly.
 	//
-	// Imagine a physical device that links three Gamecubes together
+	// Imagine a physical device that links three GameCubes together
 	// and emulates NetPlay that way. Which GameCube controls which
 	// in-game controllers can be configured on the device (m_pad_map)
 	// but which sockets on each individual GameCube should be used
 	// to control which players? The solution that Dolphin uses is
 	// that we hardcode the knowledge that they go in order, so if
-	// you have a 3P game with three gamecubes, then every single
+	// you have a 3P game with three GameCubes, then every single
 	// controller should be plugged into slot 1.
 	//
-	// If you have a 4P game, then one of the Gamecubes will have
+	// If you have a 4P game, then one of the GameCubes will have
 	// a controller plugged into slot 1, and another in slot 2.
 	//
 	// The slot number is the "local" pad number, and what  player

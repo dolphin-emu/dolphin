@@ -84,7 +84,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 	{
 	case IOCTLV_READ_DIR:
 		{
-			// the wii uses this function to define the type (dir or file)
+			// the Wii uses this function to define the type (dir or file)
 			std::string DirName(HLE_IPC_BuildFilename(Memory::GetString(
 				CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size)));
 

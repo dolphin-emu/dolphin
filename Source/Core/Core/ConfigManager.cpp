@@ -255,10 +255,9 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 {
 	IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
 
-	gamelist->Set("ListDrives", m_ListDrives);
-	gamelist->Set("ListWad", m_ListWad);
 	gamelist->Set("ListWii", m_ListWii);
 	gamelist->Set("ListGC", m_ListGC);
+	gamelist->Set("ListWad", m_ListWad);
 	gamelist->Set("ListJap", m_ListJap);
 	gamelist->Set("ListPal", m_ListPal);
 	gamelist->Set("ListUsa", m_ListUsa);
@@ -267,6 +266,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 	gamelist->Set("ListKorea", m_ListKorea);
 	gamelist->Set("ListTaiwan", m_ListTaiwan);
 	gamelist->Set("ListUnknown", m_ListUnknown);
+	gamelist->Set("ListDrives", m_ListDrives);
 	gamelist->Set("ListSort", m_ListSort);
 	gamelist->Set("ListSortSecondary", m_ListSort2);
 
@@ -466,19 +466,18 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 {
 	IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
 
-	gamelist->Get("ListDrives",       &m_ListDrives,  false);
-	gamelist->Get("ListWad",          &m_ListWad,     true);
 	gamelist->Get("ListWii",          &m_ListWii,     true);
 	gamelist->Get("ListGC",           &m_ListGC,      true);
+	gamelist->Get("ListWad",          &m_ListWad,     true);
 	gamelist->Get("ListJap",          &m_ListJap,     true);
 	gamelist->Get("ListPal",          &m_ListPal,     true);
 	gamelist->Get("ListUsa",          &m_ListUsa,     true);
-
 	gamelist->Get("ListFrance",       &m_ListFrance,  true);
 	gamelist->Get("ListItaly",        &m_ListItaly,   true);
 	gamelist->Get("ListKorea",        &m_ListKorea,   true);
 	gamelist->Get("ListTaiwan",       &m_ListTaiwan,  true);
 	gamelist->Get("ListUnknown",      &m_ListUnknown, true);
+	gamelist->Get("ListDrives",       &m_ListDrives,  false);
 	gamelist->Get("ListSort",         &m_ListSort,       3);
 	gamelist->Get("ListSortSecondary",&m_ListSort2,  0);
 

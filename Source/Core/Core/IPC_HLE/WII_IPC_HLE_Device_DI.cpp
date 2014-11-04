@@ -167,7 +167,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	{
 	case DVDLowInquiry:
 		{
-			// (shuffle2) Taken from my wii
+			// (shuffle2) Taken from my Wii
 			Memory::Write_U32(0x00000002, _BufferOut);
 			Memory::Write_U32(0x20060526, _BufferOut + 4);
 			// This was in the oubuf even though this cmd is only supposed to reply with 64bits

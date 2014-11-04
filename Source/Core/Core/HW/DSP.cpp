@@ -135,10 +135,10 @@ struct ARAM_DMA
 	}
 };
 
-// So we may abstract gc/wii differences a little
+// So we may abstract GC/Wii differences a little
 struct ARAMInfo
 {
-	bool wii_mode; // wii EXRAM is managed in Memory:: so we need to skip statesaving, etc
+	bool wii_mode; // Wii EXRAM is managed in Memory:: so we need to skip statesaving, etc
 	u32 size;
 	u32 mask;
 	u8* ptr; // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
@@ -645,7 +645,7 @@ static void Do_ARAM_DMA()
 }
 
 // (shuffle2) I still don't believe that this hack is actually needed... :(
-// Maybe the wii sports ucode is processed incorrectly?
+// Maybe the Wii Sports ucode is processed incorrectly?
 // (LM) It just means that dsp reads via '0xffdd' on WII can end up in EXRAM or main RAM
 u8 ReadARAM(u32 _iAddress)
 {

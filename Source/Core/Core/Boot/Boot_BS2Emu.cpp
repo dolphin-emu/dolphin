@@ -222,7 +222,7 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 
 		if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
 		{
-			PanicAlertT("SetupWiiMemory: Cant create setting.txt file");
+			PanicAlertT("SetupWiiMemory: Can't create setting.txt file");
 			return false;
 		}
 		// Write the 256 byte setting.txt to memory.
@@ -305,7 +305,7 @@ bool CBoot::EmulatedBS2_Wii()
 {
 	INFO_LOG(BOOT, "Faking Wii BS2...");
 
-	// setup wii memory
+	// setup Wii memory
 	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	if (VolumeHandler::IsValid())
 		CountryCode = VolumeHandler::GetVolume()->GetCountry();
