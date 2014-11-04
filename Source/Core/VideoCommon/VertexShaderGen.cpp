@@ -52,9 +52,6 @@ static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 	if (g_ActiveConfig.bEnablePixelLighting)
 		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
 
-	if (g_ActiveConfig.iStereoMode > 0)
-		DefineVSOutputStructMember(object, api_type, "float4", "rawpos", -1, "POSITION");
-
 	object.Write("};\n");
 }
 
@@ -125,6 +122,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
+		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		out.Write("centroid out VS_OUTPUT %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "v" : "o");
 
 		out.Write("void main()\n{\n");
@@ -204,10 +202,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 
 	out.Write("o.pos = float4(dot(" I_PROJECTION"[0], pos), dot(" I_PROJECTION"[1], pos), dot(" I_PROJECTION"[2], pos), dot(" I_PROJECTION"[3], pos));\n");
-
-	uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
-	if (g_ActiveConfig.iStereoMode > 0)
-		out.Write("o.rawpos = pos;\n");
 
 	out.Write("int4 lacc;\n"
 			"float3 ldir, h;\n"
