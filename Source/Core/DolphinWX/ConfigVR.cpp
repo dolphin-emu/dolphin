@@ -49,8 +49,8 @@ namespace
 // Used to restrict changing of some options while emulator is running
 void CConfigVR::UpdateGUI()
 {
-	if (Core::IsRunning())
-	{
+	//if (Core::IsRunning())
+	//{
 		// Disable the Core stuff on GeneralPage
 		//CPUThread->Disable();
 		//SkipIdle->Disable();
@@ -58,9 +58,22 @@ void CConfigVR::UpdateGUI()
 
 		//CPUEngine->Disable();
 		//_NTSCJ->Disable();
-	}
+	//}
 
-	device_cbox->SetValue(StrToWxStr(default_device.ToString()));
+	device_cbox->SetValue(StrToWxStr(default_device.ToString())); //Update ComboBox
+	
+	int i = 0;
+
+	//Update Buttons
+	for (wxButton* button : m_Button_VRSettings)
+	{
+		SetButtonText(i,
+			SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[i],
+			WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
+			WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
+			HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]));
+		i++;
+	}
 }
 
 #define VR_NUM_COLUMNS 2
@@ -391,6 +404,7 @@ void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id] = KBM;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] = Key;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[Id] = 0;
 }
 
 void CConfigVR::SaveXInputBinary(int Id, bool KBM, u32 Key)
@@ -431,8 +445,7 @@ void CConfigVR::ConfigControl(wxEvent& event)
 	{
 		dq.FromDevice(d);
 		if (dq.source == "XInput"){
-			m_vr_dialog = new VRDialog(this);
-			m_vr_dialog->SetButtonID(ClickedButton->GetId());
+			m_vr_dialog = new VRDialog(this, ClickedButton->GetId());
 			m_vr_dialog->ShowModal();
 			m_vr_dialog->Destroy();
 			count++;
@@ -452,7 +465,7 @@ void CConfigVR::ConfigControl(wxEvent& event)
 	}
 
 	// update changes that were made in the dialog
-	//UpdateGUI();
+	UpdateGUI();
 }
 
 void CConfigVR::DetectControl(wxCommandEvent& event)
@@ -562,7 +575,7 @@ bool CConfigVR::DetectButton(wxButton* button, wxCommandEvent& event)
 		}
 	}
 
-	UpdateGUI();
+	//UpdateGUI();
 
 	return success;
 }
@@ -610,10 +623,12 @@ ciface::Core::Device::Control* CConfigVR::InputDetect(const unsigned int ms, cif
 	return nullptr;
 }
 
-VRDialog::VRDialog(CConfigVR* const parent)
+VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 	: wxDialog(parent, -1, _("Configure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(wxVERTICAL, this, "Input");
+
+	button_id = from_button;
 
 	ciface::Core::DeviceQualifier dq;
 	for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
@@ -624,6 +639,9 @@ VRDialog::VRDialog(CConfigVR* const parent)
 			{
 				wxCheckBox  *XInputCheckboxes = new wxCheckBox(this, -1, wxGetTranslation(StrToWxStr(input->GetName())), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
 				XInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBox, this);
+				if (HotkeysXInput::IsXInputButtonSet(input->GetName(), button_id)){
+					XInputCheckboxes->SetValue(true);
+				}
 				main_szr->Add(XInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
 			}
 		}
@@ -635,20 +653,14 @@ VRDialog::VRDialog(CConfigVR* const parent)
 	szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxDOWN, 5);
 
 	SetSizerAndFit(szr); // needed
-
-	//UpdateGUI();
 	SetFocus();
-}
-
-void VRDialog::SetButtonID(int from_button){
-	button_id = from_button;
 }
 
 void VRDialog::OnCheckBox(wxCommandEvent& event)
 {
 	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
 	u32 single_button_mask = HotkeysXInput::GetBinaryfromXInputIniStr(checkbox->GetLabel());
-	static u32 value = 0;
+	u32 value = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[button_id];
 	if (checkbox->IsChecked()){
 		value |= single_button_mask;
 	}

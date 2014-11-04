@@ -80,10 +80,7 @@ class VRDialog : public wxDialog
 {
 	int button_id;
 public:
-	VRDialog(CConfigVR* const parent);
-
-	void VRDialog::SetButtonID(int from_button);
-	//void UpdateGUI();
+	VRDialog(CConfigVR* const parent, int from_button);
 
 private:
 	void OnCheckBox(wxCommandEvent& event);
