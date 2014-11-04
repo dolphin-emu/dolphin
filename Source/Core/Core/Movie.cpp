@@ -21,6 +21,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_Device.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -65,6 +66,7 @@ static std::string s_videoBackend = "unknown";
 static int s_iCPUCore = 1;
 bool g_bClearSave = false;
 bool g_bDiscChange = false;
+bool g_bReset = false;
 static std::string s_author = "";
 std::string g_discChange = "";
 u64 g_titleID = 0;
@@ -576,6 +578,8 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 		s_InputDisplay[controllerID].append(" LEFT");
 	if (padState.DPadRight)
 		s_InputDisplay[controllerID].append(" RIGHT");
+	if (padState.reset)
+		s_InputDisplay[controllerID].append(" RESET");
 
 	s_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerL, " L"));
 	s_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerR, " R"));
@@ -726,6 +730,11 @@ void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 	s_padState.CStickX   = PadStatus->substickX;
 	s_padState.CStickY   = PadStatus->substickY;
 
+	s_padState.disc = g_bDiscChange;
+	g_bDiscChange = false;
+	s_padState.reset = g_bReset;
+	g_bReset = false;
+
 	SetInputDisplayString(s_padState, controllerID);
 }
 
@@ -735,12 +744,6 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 		return;
 
 	CheckPadStatus(PadStatus, controllerID);
-
-	if (g_bDiscChange)
-	{
-		s_padState.disc = g_bDiscChange;
-		g_bDiscChange = false;
-	}
 
 	EnsureTmpInputSize((size_t)(s_currentByte + 8));
 	memcpy(&(tmpInput[s_currentByte]), &s_padState, 8);
@@ -1109,6 +1112,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 			PanicAlertT("Change the disc to %s", g_discChange.c_str());
 		}
 	}
+
+	if (s_padState.reset)
+		ProcessorInterface::ResetButton_Tap();
 
 	SetInputDisplayString(s_padState, controllerID);
 	CheckInputEnd();

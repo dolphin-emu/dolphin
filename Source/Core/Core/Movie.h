@@ -39,18 +39,18 @@ struct ControllerState
 	     DPadLeft:1, DPadRight:1;
 	bool L:1, R:1;                         // Binary triggers, 2 bits
 	bool disc:1;                           // Checks for disc being changed
-	bool reserved:3;                       // Reserved bits used for padding, 4 bits
+	bool reset:1;                          // Console reset button
+	bool reserved:2;                       // Reserved bits used for padding, 2 bits
 
 	u8   TriggerL, TriggerR;               // Triggers, 16 bits
 	u8   AnalogStickX, AnalogStickY;       // Main Stick, 16 bits
 	u8   CStickX, CStickY;                 // Sub-Stick, 16 bits
-
-}; // Total: 60 + 4 = 64 bits per frame
+};
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bDiscChange, g_bClearSave;
+extern bool g_bDiscChange, g_bClearSave, g_bReset;
 extern u64 g_titleID;
 
 extern u64 g_currentFrame, g_totalFrames;
