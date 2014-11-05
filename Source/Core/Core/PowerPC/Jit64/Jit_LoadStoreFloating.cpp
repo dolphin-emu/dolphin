@@ -101,11 +101,50 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	int s = inst.RS;
 	int a = inst.RA;
 	int b = inst.RB;
+	s32 imm = (s16)inst.SIMM_16;
+	int accessSize = single ? 32 : 64;
 
-	FALLBACK_IF((!indexed && !a) || (update && js.memcheck && a == b));
+	FALLBACK_IF(update && js.memcheck && a == b);
+
+	if (single)
+	{
+		fpr.BindToRegister(s, true, false);
+		ConvertDoubleToSingle(XMM0, fpr.RX(s));
+		MOVD_xmm(R(RSCRATCH), XMM0);
+	}
+	else
+	{
+		if (fpr.R(s).IsSimpleReg())
+			MOVQ_xmm(R(RSCRATCH), fpr.RX(s));
+		else
+			MOV(64, R(RSCRATCH), fpr.R(s));
+	}
+
+	if (!indexed && (!a || gpr.R(a).IsImm()))
+	{
+		u32 addr = (a ? (u32)gpr.R(a).offset : 0) + imm;
+		bool exception = WriteToConstAddress(accessSize, R(RSCRATCH), addr, CallerSavedRegistersInUse());
+
+		if (update)
+		{
+			if (!js.memcheck || !exception)
+			{
+				gpr.SetImmediate32(a, addr);
+			}
+			else
+			{
+				gpr.KillImmediate(a, true, true);
+				MEMCHECK_START(false)
+				ADD(32, gpr.R(a), Imm32((u32)imm));
+				MEMCHECK_END
+			}
+		}
+		fpr.UnlockAll();
+		gpr.UnlockAll();
+		return;
+	}
 
 	s32 offset = 0;
-	s32 imm = (s16)inst.SIMM_16;
 	if (indexed)
 	{
 		if (update)
@@ -140,21 +179,8 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		MOV(32, R(RSCRATCH2), gpr.R(a));
 	}
 
-	if (single)
-	{
-		fpr.BindToRegister(s, true, false);
-		ConvertDoubleToSingle(XMM0, fpr.RX(s));
-		SafeWriteF32ToReg(XMM0, RSCRATCH2, offset, CallerSavedRegistersInUse());
-		fpr.UnlockAll();
-	}
-	else
-	{
-		if (fpr.R(s).IsSimpleReg())
-			MOVQ_xmm(R(RSCRATCH), fpr.RX(s));
-		else
-			MOV(64, R(RSCRATCH), fpr.R(s));
-		SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, offset, CallerSavedRegistersInUse());
-	}
+	SafeWriteRegToReg(RSCRATCH, RSCRATCH2, accessSize, offset, CallerSavedRegistersInUse());
+
 	if (js.memcheck && update)
 	{
 		// revert the address change if an exception occurred
@@ -162,6 +188,8 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		SUB(32, gpr.R(a), indexed ? gpr.R(b) : Imm32(imm));
 		MEMCHECK_END
 	}
+
+	fpr.UnlockAll();
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }

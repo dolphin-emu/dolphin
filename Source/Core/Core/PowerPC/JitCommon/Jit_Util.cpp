@@ -422,6 +422,16 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	}
 }
 
+static OpArg SwapImmediate(int accessSize, OpArg reg_value)
+{
+	if (accessSize == 32)
+		return Imm32(Common::swap32((u32)reg_value.offset));
+	else if (accessSize == 16)
+		return Imm16(Common::swap16((u16)reg_value.offset));
+	else
+		return Imm8((u8)reg_value.offset);
+}
+
 u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
 	u8* result = GetWritableCodePtr();
@@ -429,14 +439,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	if (reg_value.IsImm())
 	{
 		if (swap)
-		{
-			if (accessSize == 32)
-				reg_value = Imm32(Common::swap32((u32)reg_value.offset));
-			else if (accessSize == 16)
-				reg_value = Imm16(Common::swap16((u16)reg_value.offset));
-			else
-				reg_value = Imm8((u8)reg_value.offset);
-		}
+			reg_value = SwapImmediate(accessSize, reg_value);
 		MOV(accessSize, dest, reg_value);
 	}
 	else if (swap)
@@ -459,6 +462,68 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	}
 
 	return result;
+}
+
+void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
+{
+	// No need to protect these, they don't touch any state
+	// question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
+	switch (accessSize)
+	{
+	case 8:
+		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite8);
+		break;
+	case 16:
+		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite16);
+		break;
+	case 32:
+		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite32);
+		break;
+	}
+	jit->js.fifoBytesThisBlock += accessSize >> 3;
+}
+
+bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, BitSet32 registersInUse)
+{
+	// If we already know the address through constant folding, we can do some
+	// fun tricks...
+	if ((address & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe && accessSize <= 32)
+	{
+		if (!arg.IsSimpleReg() || arg.GetSimpleReg() != RSCRATCH)
+			MOV(32, R(RSCRATCH), arg);
+
+		UnsafeWriteGatherPipe(accessSize);
+		return false;
+	}
+	else if (Memory::IsRAMAddress(address))
+	{
+		WriteToConstRamAddress(accessSize, arg, address);
+		return false;
+	}
+	else
+	{
+		// Helps external systems know which instruction triggered the write
+		MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
+
+		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+		switch (accessSize)
+		{
+		case 64:
+			ABI_CallFunctionAC((void *)&Memory::Write_U64, arg, address);
+			break;
+		case 32:
+			ABI_CallFunctionAC((void *)&Memory::Write_U32, arg, address);
+			break;
+		case 16:
+			ABI_CallFunctionAC((void *)&Memory::Write_U16, arg, address);
+			break;
+		case 8:
+			ABI_CallFunctionAC((void *)&Memory::Write_U8, arg, address);
+			break;
+		}
+		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+		return true;
+	}
 }
 
 void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, BitSet32 registersInUse, int flags)
@@ -565,20 +630,30 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	SetJumpTarget(exit);
 }
 
-// Destroys the same as SafeWrite plus RSCRATCH.  TODO: see if we can avoid temporaries here
-void EmuCodeBlock::SafeWriteF32ToReg(X64Reg xmm_value, X64Reg reg_addr, s32 offset, BitSet32 registersInUse, int flags)
+void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address, bool swap)
 {
-	// TODO: PSHUFB might be faster if fastmem supported MOVSS.
-	MOVD_xmm(R(RSCRATCH), xmm_value);
-	SafeWriteRegToReg(RSCRATCH, reg_addr, 32, offset, registersInUse, flags);
-}
+	X64Reg reg;
+	if (arg.IsImm())
+	{
+		arg = SwapImmediate(accessSize, arg);
+		MOV(accessSize, MDisp(RMEM, address & 0x3FFFFFFF), arg);
+		return;
+	}
 
-void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap)
-{
-	if (swap)
-		SwapAndStore(accessSize, MDisp(RMEM, address & 0x3FFFFFFF), arg);
+	if (!arg.IsSimpleReg() || (!cpu_info.bMOVBE && swap && arg.GetSimpleReg() != RSCRATCH))
+	{
+		MOV(accessSize, R(RSCRATCH), arg);
+		reg = RSCRATCH;
+	}
 	else
-		MOV(accessSize, MDisp(RMEM, address & 0x3FFFFFFF), R(arg));
+	{
+		reg = arg.GetSimpleReg();
+	}
+
+	if (swap)
+		SwapAndStore(accessSize, MDisp(RMEM, address & 0x3FFFFFFF), reg);
+	else
+		MOV(accessSize, MDisp(RMEM, address & 0x3FFFFFFF), R(reg));
 }
 
 void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm)
