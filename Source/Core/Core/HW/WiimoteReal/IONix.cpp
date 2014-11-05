@@ -152,6 +152,7 @@ bool Wiimote::ConnectInternal()
 
 	// Output channel
 	addr.l2_psm = htobs(WM_OUTPUT_CHANNEL);
+	sleep(1); // TODO: Make this 'wait to sync' call
 	if ((cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
 			connect(cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
