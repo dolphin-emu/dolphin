@@ -12,7 +12,6 @@ option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 
-option(OPENMP "Enable OpenMP parallelization" ON)
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(FASTLOG "Enable all logs" OFF)
@@ -344,19 +343,6 @@ add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 # externals.
 include(CheckLib)
 include(CheckCXXSourceRuns)
-
-if(OPENMP)
-	include(FindOpenMP OPTIONAL)
-	if(OPENMP_FOUND)
-		message("OpenMP parallelization enabled")
-		add_definitions("${OpenMP_CXX_FLAGS}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-	endif()
-endif()
-if(NOT OPENMP_FOUND)
-	add_definitions(-Wno-unknown-pragmas)
-	message("OpenMP parallelization disabled")
-endif()
 
 if(NOT ANDROID)
 

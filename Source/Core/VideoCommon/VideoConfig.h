@@ -65,9 +65,6 @@ struct VideoConfig final
 	bool bUseXFB;
 	bool bUseRealXFB;
 
-	// OpenMP
-	bool bOMPDecoder;
-
 	// Enhancements
 	int iMultisampleMode;
 	int iEFBScale;
