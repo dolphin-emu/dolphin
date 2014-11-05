@@ -977,25 +977,19 @@ void Jit64::mullwx(UGeckoInstruction inst)
 	else
 	{
 		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, (d == a || d == b), true);
 		if (gpr.R(a).IsImm() || gpr.R(b).IsImm())
 		{
 			u32 imm = gpr.R(a).IsImm() ? (u32)gpr.R(a).offset : (u32)gpr.R(b).offset;
 			int src = gpr.R(a).IsImm() ? b : a;
+			gpr.BindToRegister(d, d == src, true);
 			MultiplyImmediate(imm, src, d, inst.OE);
-		}
-		else if (d == a)
-		{
-			IMUL(32, gpr.RX(d), gpr.R(b));
-		}
-		else if (d == b)
-		{
-			IMUL(32, gpr.RX(d), gpr.R(a));
 		}
 		else
 		{
-			MOV(32, gpr.R(d), gpr.R(b));
-			IMUL(32, gpr.RX(d), gpr.R(a));
+			gpr.BindToRegister(d, d == a || d == b, true);
+			if (d != a && d != b)
+				MOV(32, gpr.R(d), gpr.R(b));
+			IMUL(32, gpr.RX(d), gpr.R(d == a ? b : a));
 		}
 		if (inst.OE)
 			GenerateOverflow();
