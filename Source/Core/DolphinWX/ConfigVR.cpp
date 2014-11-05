@@ -25,6 +25,7 @@
 BEGIN_EVENT_TABLE(CConfigVR, wxDialog)
 
 EVT_CLOSE(CConfigVR::OnClose)
+EVT_BUTTON(wxID_OK, CConfigVR::OnOk)
 
 END_EVENT_TABLE()
 
@@ -83,8 +84,8 @@ void CConfigVR::CreateGUIControls()
 
 	const wxString pageNames[] =
 	{
-		_("VR Freelook"),
-		_("VR Options")
+		_("VR Freelook")
+		//_("VR Options")
 	};
 
 	const wxString VRText[] =
@@ -139,7 +140,7 @@ void CConfigVR::CreateGUIControls()
 
 	button_already_clicked = false; //Used to determine whether a button has already been clicked.  If it has, don't allow more buttons to be clicked.
 
-	for (int j = 0; j < 2; j++)
+	for (int j = 0; j < 1; j++)
 	{
 		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
 		Notebook->AddPage(Page, pageNames[j]);
@@ -248,14 +249,13 @@ void CConfigVR::UpdateDeviceComboBox()
 void CConfigVR::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	EndModal(wxID_OK);
+	// Save the config. Dolphin crashes too often to only save the settings on closing
+	SConfig::GetInstance().SaveSettings();
 }
 
 void CConfigVR::OnOk(wxCommandEvent& WXUNUSED (event))
 {
 	Close();
-
-	// Save the config. Dolphin crashes too often to only save the settings on closing
-	//SConfig::GetInstance().SaveSettings();
 }
 
 //On Combo Box Selection
@@ -471,7 +471,7 @@ void CConfigVR::ClearControl(wxEvent& event)
    
 }
 
-inline bool IsAlphabetic(wxString &str)
+inline bool IsAlphabeticVR(wxString &str)
 {
 	for (wxUniChar c : str)
 		if (!isalpha(c))
@@ -480,7 +480,7 @@ inline bool IsAlphabetic(wxString &str)
 	return true;
 }
 
-inline void GetExpressionForControl(wxString &expr,
+inline void GetExpressionForControlVR(wxString &expr,
 	wxString &control_name,
 	ciface::Core::DeviceQualifier *control_device = nullptr,
 	ciface::Core::DeviceQualifier *default_device = nullptr)
@@ -497,7 +497,7 @@ inline void GetExpressionForControl(wxString &expr,
 	// append the control name
 	expr += control_name;
 
-	if (!IsAlphabetic(expr))
+	if (!IsAlphabeticVR(expr))
 		expr = wxString::Format("%s", expr);
 }
 
@@ -535,7 +535,7 @@ void CConfigVR::DetectControl(wxCommandEvent& event)
 				{
 					wxString control_name = ctrl->GetName();
 					wxString expr;
-					GetExpressionForControl(expr, control_name);
+					GetExpressionForControlVR(expr, control_name);
 					ClickedButton->SetLabel(expr);
 					u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
 					SaveXInputBinary(ClickedButton->GetId(), false, xinput_binary);
