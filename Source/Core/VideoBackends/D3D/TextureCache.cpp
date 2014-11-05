@@ -81,8 +81,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
-	unsigned int height, unsigned int expanded_width,
+TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
 	unsigned int tex_levels, PC_TexFormat pcfmt)
 {
 	D3D11_USAGE usage = D3D11_USAGE_DEFAULT;

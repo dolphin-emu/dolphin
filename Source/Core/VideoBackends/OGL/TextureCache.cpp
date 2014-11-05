@@ -108,8 +108,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, virtual_width, virtual_height, level);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
-	unsigned int height, unsigned int expanded_width,
+TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
 	unsigned int tex_levels, PC_TexFormat pcfmt)
 {
 	int gl_format = 0,
