@@ -281,18 +281,19 @@ bool DolphinApp::OnInit()
 	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
 	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
 
-#ifdef _WIN32
 	if (File::Exists("www.dolphin-emulator.com.txt"))
 	{
 		File::Delete("www.dolphin-emulator.com.txt");
-		MessageBox(nullptr,
-				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
-				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
-				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
-		ShellExecute(nullptr, L"open", L"http://dolphin-emu.org/?ref=badver", nullptr, nullptr, SW_SHOWDEFAULT);
+		wxMessageDialog dlg(nullptr, _(
+		    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
+		    "download Dolphin from the official website instead: http://dolphin-emu.org/"),
+		    _("Unofficial version detected"), wxOK | wxICON_WARNING);
+		dlg.ShowModal();
+
+		wxLaunchDefaultBrowser("http://dolphin-emu.org/?ref=badver");
+
 		exit(0);
 	}
-#endif
 
 	// The following is not needed with X11, where window managers
 	// do not allow windows to be created off the desktop.
