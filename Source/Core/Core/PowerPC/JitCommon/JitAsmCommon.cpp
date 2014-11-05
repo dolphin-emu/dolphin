@@ -18,8 +18,6 @@
 
 using namespace Gen;
 
-static int temp32;
-
 void CommonAsmRoutines::GenFifoWrite(int size)
 {
 	// Assume value in RSCRATCH
