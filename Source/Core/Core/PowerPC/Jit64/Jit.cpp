@@ -747,12 +747,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				if (ops[i].gprInReg[reg] && !gpr.R(reg).IsImm())
 					gpr.BindToRegister(reg, true, false);
 			}
-			for (int reg : ops[i].regsOut)
+			for (int reg : ops[i].fregsIn)
 			{
 				if (fpr.NumFreeRegisters() < 2)
 					break;
 				if (ops[i].fprInXmm[reg])
-					gpr.BindToRegister(reg, true, false);
+					fpr.BindToRegister(reg, true, false);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);
