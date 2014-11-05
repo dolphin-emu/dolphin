@@ -20,13 +20,30 @@ using namespace Gen;
 
 void CommonAsmRoutines::GenFifoWrite(int size)
 {
-	// Assume value in RSCRATCH
-	u32 gather_pipe = (u32)(u64)GPFifo::m_gatherPipe;
-	_assert_msg_(DYNA_REC, gather_pipe <= 0x7FFFFFFF, "Gather pipe not in low 2GB of memory!");
-	MOV(32, R(RSCRATCH2), M(&GPFifo::m_gatherPipeCount));
-	SwapAndStore(size, MDisp(RSCRATCH2, gather_pipe), RSCRATCH);
-	ADD(32, R(RSCRATCH2), Imm8(size >> 3));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
+	// Assume value in RSCRATCH2
+	PUSH(ESI);
+	MOV(32, R(RSCRATCH), Imm32((u32)(u64)GPFifo::m_gatherPipe));
+	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
+
+	SwapAndStore(size, MComplex(RSCRATCH, ESI, 1, 0), RSCRATCH2);
+
+	ADD(32, R(ESI), Imm8(size >> 3));
+	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+	POP(ESI);
+	RET();
+}
+
+void CommonAsmRoutines::GenFifoFloatWrite()
+{
+	// Assume value in XMM0
+	PUSH(ESI);
+	MOVD_xmm(R(RSCRATCH2), XMM0);
+	MOV(32, R(RSCRATCH), Imm32((u32)(u64)GPFifo::m_gatherPipe));
+	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
+	SwapAndStore(32, MComplex(RSCRATCH, RSI, 1, 0), RSCRATCH2);
+	ADD(32, R(ESI), Imm8(4));
+	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+	POP(ESI);
 	RET();
 }
 
@@ -153,8 +170,8 @@ void CommonAsmRoutines::GenFres()
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
-static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = { 3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-static const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = { 3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15 };
+static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+static const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 
 static const float GC_ALIGNED16(m_quantizeTableS[]) =
 {
@@ -366,8 +383,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	// Easy!
 	const u8* storeSingleFloat = AlignCode4();
-	MOVD_xmm(R(RSCRATCH), XMM0);
-	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 32, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
+	SafeWriteF32ToReg(XMM0, RSCRATCH_EXTRA, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 	/*
 	if (cpu_info.bSSSE3)
