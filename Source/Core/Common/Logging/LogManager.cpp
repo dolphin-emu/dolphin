@@ -10,7 +10,7 @@
 #include <string>
 
 #ifdef ANDROID
-#include "Core/Host.h"
+#include <android/log.h>
 #endif
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -141,7 +141,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	                                   LogTypes::LOG_LEVEL_TO_CHAR[(int)level],
 	                                   log->GetShortName().c_str(), temp);
 #ifdef ANDROID
-	Host_SysMessage(msg.c_str());
+	__android_log_write(ANDROID_LOG_INFO, "Dolphinemu", msg.c_str());
 #endif
 	log->Trigger(level, msg.c_str());
 }

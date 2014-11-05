@@ -106,15 +106,6 @@ bool Host_RendererHasFocus()
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
-void Host_SysMessage(const char *fmt, ...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	__android_log_vprint(ANDROID_LOG_INFO, DOLPHIN_TAG, fmt, args);
-	va_end(args);
-}
-
 void Host_SetWiiMoteConnectionState(int _State) {}
 
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}

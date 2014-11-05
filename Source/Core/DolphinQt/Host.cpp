@@ -13,20 +13,6 @@
 
 #include "DolphinQt/MainWindow.h"
 
-void Host_SysMessage(const char *fmt, ...)
-{
-	va_list list;
-	char msg[512];
-
-	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
-	va_end(list);
-
-	if (msg[strlen(msg)-1] == '\n')
-		msg[strlen(msg)-1] = '\0';
-	PanicAlert("%s", msg);
-}
-
 void Host_Message(int id)
 {
 	// TODO
