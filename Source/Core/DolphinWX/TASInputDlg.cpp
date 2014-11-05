@@ -667,7 +667,6 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 
 void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 {
-	int v;
 	unsigned long value;
 
 	if (!((wxTextCtrl*) event.GetEventObject())->GetValue().ToULong(&value))
@@ -677,7 +676,7 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 	{
 		if (m_controls[i] != nullptr && event.GetId() == m_controls[i]->text_id)
 		{
-			v = value > m_controls[i]->range ? m_controls[i]->range : value;
+			int v = value > m_controls[i]->range ? m_controls[i]->range : value;
 			m_controls[i]->slider->SetValue(v);
 			m_controls[i]->value = v;
 		}
