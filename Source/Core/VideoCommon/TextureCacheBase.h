@@ -47,12 +47,13 @@ public:
 		int frameCount;
 
 
-		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _num_mipmaps)
+		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _num_mipmaps, unsigned int _num_layers)
 		{
 			addr = _addr;
 			size_in_bytes = _size;
 			format = _format;
 			num_mipmaps = _num_mipmaps;
+			num_layers = _num_layers;
 		}
 
 		void SetDimensions(unsigned int _native_width, unsigned int _native_height, unsigned int _virtual_width, unsigned int _virtual_height)
