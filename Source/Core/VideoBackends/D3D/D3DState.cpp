@@ -38,9 +38,9 @@ StateManager::StateManager()
 	, m_currentDepthState(nullptr)
 	, m_currentRasterizerState(nullptr)
 	, m_dirtyFlags(~0u)
+	, m_pending()
+	, m_current()
 {
-	memset(&m_pending, 0, sizeof(m_pending));
-	memset(&m_current, 0, sizeof(m_current));
 }
 
 void StateManager::PushBlendState(const ID3D11BlendState* state) { m_blendStates.push(AutoBlendState(state)); }
