@@ -336,7 +336,6 @@ void Jit64::stX(UGeckoInstruction inst)
 	int a = inst.RA;
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	bool update = (inst.OPCD & 1) && offset;
-	FALLBACK_IF(update);
 
 	if (!a && update)
 		PanicAlert("Invalid stX");
