@@ -39,7 +39,7 @@
     <property name="title">
      <string>Fi&amp;le</string>
     </property>
-    <addaction name="actOpen"/>
+    <addaction name="actionOpen"/>
    </widget>
    <widget class="QMenu" name="mnuEmulation">
     <property name="title">
@@ -65,12 +65,13 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actWebsite"/>
-    <addaction name="actOnlineDocs"/>
-    <addaction name="actGitHub"/>
+    <addaction name="actionWebsite"/>
+    <addaction name="actionOnlineDocs"/>
+    <addaction name="actionGitHub"/>
     <addaction name="separator"/>
-    <addaction name="actSystemInfo"/>
-    <addaction name="actAbout"/>
+    <addaction name="actionSystemInfo"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
    </widget>
    <widget class="QMenu" name="mnuMovie">
     <property name="title">
@@ -96,34 +97,35 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actOpen"/>
-   <addaction name="separator"/>
-   <addaction name="actPlay"/>
-   <addaction name="actStop"/>
+   <addaction name="actionPlay"/>
+   <addaction name="actionStop"/>
   </widget>
-  <action name="actWebsite">
+  <action name="actionWebsite">
    <property name="text">
     <string>&amp;Website</string>
    </property>
   </action>
-  <action name="actOnlineDocs">
+  <action name="actionOnlineDocs">
    <property name="text">
     <string>&amp;Online Documentation</string>
    </property>
   </action>
-  <action name="actGitHub">
+  <action name="actionGitHub">
    <property name="text">
     <string>&amp;Dolphin at GitHub</string>
    </property>
   </action>
-  <action name="actAbout">
+  <action name="actionAbout">
    <property name="text">
     <string>&amp;About</string>
    </property>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
+   </property>
   </action>
-  <action name="actOpen">
+  <action name="actionOpen">
    <property name="text">
-    <string>&amp;Open</string>
+    <string>&amp;Open...</string>
    </property>
    <property name="toolTip">
     <string>Open file...</string>
@@ -132,19 +134,27 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actSystemInfo">
+  <action name="actionSystemInfo">
    <property name="text">
     <string>&amp;System Information</string>
    </property>
   </action>
-  <action name="actPlay">
+  <action name="actionPlay">
    <property name="text">
     <string>Play</string>
    </property>
   </action>
-  <action name="actStop">
+  <action name="actionStop">
    <property name="text">
     <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutQtRole</enum>
    </property>
   </action>
  </widget>
