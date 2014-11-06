@@ -16,8 +16,7 @@
 class CWatchView;
 class wxWindow;
 
-class CWatchWindow
-	: public wxPanel
+class CWatchWindow : public wxPanel
 {
 public:
 	CWatchWindow(wxWindow* parent,
@@ -35,8 +34,6 @@ public:
 	void LoadAll();
 
 private:
-	DECLARE_EVENT_TABLE();
-
 	wxAuiManager m_mgr;
 
 	enum

@@ -60,35 +60,6 @@ extern "C"  // Bitmaps
 	#include "DolphinWX/resources/toolbar_add_breakpoint.c" // NOLINT
 }
 
-class DebugInterface;
-
-// -------
-// Main
-
-BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
-
-	// Menu bar
-	EVT_MENU_RANGE(IDM_INTERPRETER, IDM_JITSROFF, CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_FONTPICKER, CCodeWindow::OnChangeFont)
-	EVT_MENU_RANGE(IDM_CLEARCODECACHE, IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
-	EVT_MENU_RANGE(IDM_CLEARSYMBOLS, IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
-	EVT_MENU_RANGE(IDM_PROFILEBLOCKS, IDM_WRITEPROFILE, CCodeWindow::OnProfilerMenu)
-
-	// Toolbar
-	EVT_MENU_RANGE(IDM_STEP, IDM_GOTOPC, CCodeWindow::OnCodeStep)
-	EVT_TEXT(IDM_ADDRBOX, CCodeWindow::OnAddrBoxChange)
-
-	// Other
-	EVT_LISTBOX(ID_SYMBOLLIST,    CCodeWindow::OnSymbolListChange)
-	EVT_LISTBOX(ID_CALLSTACKLIST, CCodeWindow::OnCallstackListChange)
-	EVT_LISTBOX(ID_CALLERSLIST,   CCodeWindow::OnCallersListChange)
-	EVT_LISTBOX(ID_CALLSLIST,     CCodeWindow::OnCallsListChange)
-
-	EVT_HOST_COMMAND(wxID_ANY,    CCodeWindow::OnHostMessage)
-
-END_EVENT_TABLE()
-
-// Class
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, position, size, style, name)
@@ -109,23 +80,40 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 
 	DebugInterface* di = &PowerPC::debug_interface;
 
-	codeview = new CCodeView(di, &g_symbolDB, this, ID_CODEVIEW);
+	codeview = new CCodeView(di, &g_symbolDB, this, wxID_ANY);
 	sizerBig->Add(sizerLeft, 2, wxEXPAND);
 	sizerBig->Add(codeview, 5, wxEXPAND);
 
-	sizerLeft->Add(callstack = new wxListBox(this, ID_CALLSTACKLIST,
-				wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
-	sizerLeft->Add(symbols = new wxListBox(this, ID_SYMBOLLIST,
-				wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 1, wxEXPAND);
-	sizerLeft->Add(calls = new wxListBox(this, ID_CALLSLIST, wxDefaultPosition,
-				wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
-	sizerLeft->Add(callers = new wxListBox(this, ID_CALLERSLIST, wxDefaultPosition,
-				wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
+	sizerLeft->Add(callstack = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
+	callstack->Bind(wxEVT_LISTBOX, &CCodeWindow::OnCallstackListChange, this);
+
+	sizerLeft->Add(symbols = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 1, wxEXPAND);
+	symbols->Bind(wxEVT_LISTBOX, &CCodeWindow::OnSymbolListChange, this);
+
+	sizerLeft->Add(calls = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
+	calls->Bind(wxEVT_LISTBOX, &CCodeWindow::OnCallsListChange, this);
+
+	sizerLeft->Add(callers = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
+	callers->Bind(wxEVT_LISTBOX, &CCodeWindow::OnCallersListChange, this);
 
 	SetSizer(sizerBig);
 
 	sizerLeft->Fit(this);
 	sizerBig->Fit(this);
+
+	// Menu
+	Bind(wxEVT_MENU, &CCodeWindow::OnCPUMode, this, IDM_INTERPRETER, IDM_JITSROFF);
+	Bind(wxEVT_MENU, &CCodeWindow::OnChangeFont, this, IDM_FONTPICKER);
+	Bind(wxEVT_MENU, &CCodeWindow::OnJitMenu, this, IDM_CLEARCODECACHE, IDM_SEARCHINSTRUCTION);
+	Bind(wxEVT_MENU, &CCodeWindow::OnSymbolsMenu, this, IDM_CLEARSYMBOLS, IDM_PATCHHLEFUNCTIONS);
+	Bind(wxEVT_MENU, &CCodeWindow::OnProfilerMenu, this, IDM_PROFILEBLOCKS, IDM_WRITEPROFILE);
+
+	// Toolbar
+	Bind(wxEVT_MENU, &CCodeWindow::OnCodeStep, this, IDM_STEP, IDM_GOTOPC);
+	Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this, IDM_ADDRBOX);
+
+	// Other
+	Bind(wxEVT_HOST_COMMAND, &CCodeWindow::OnHostMessage, this);
 }
 
 wxMenuBar *CCodeWindow::GetMenuBar()

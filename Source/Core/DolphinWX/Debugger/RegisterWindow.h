@@ -15,8 +15,7 @@
 class CRegisterView;
 class wxWindow;
 
-class CRegisterWindow
-	: public wxPanel
+class CRegisterWindow : public wxPanel
 {
 public:
 	CRegisterWindow(wxWindow* parent,
@@ -28,10 +27,7 @@ public:
 
 	void NotifyUpdate();
 
-
 private:
-	DECLARE_EVENT_TABLE();
-
 	enum
 	{
 		ID_GPR = 1002

@@ -255,6 +255,9 @@ CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 	SetColLabelSize(0);
 	DisableDragRowSize();
 
+	Bind(wxEVT_GRID_CELL_RIGHT_CLICK, &CRegisterView::OnMouseDownR, this);
+	Bind(wxEVT_MENU, &CRegisterView::OnPopupMenu, this);
+
 	AutoSizeColumns();
 }
 

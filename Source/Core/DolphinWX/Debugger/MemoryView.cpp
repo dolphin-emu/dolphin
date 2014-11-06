@@ -48,17 +48,6 @@ enum
 	IDM_VIEWASHEX,
 };
 
-BEGIN_EVENT_TABLE(CMemoryView, wxControl)
-	EVT_PAINT(CMemoryView::OnPaint)
-	EVT_LEFT_DOWN(CMemoryView::OnMouseDownL)
-	EVT_LEFT_UP(CMemoryView::OnMouseUpL)
-	EVT_MOTION(CMemoryView::OnMouseMove)
-	EVT_RIGHT_DOWN(CMemoryView::OnMouseDownR)
-	EVT_MOUSEWHEEL(CMemoryView::OnScrollWheel)
-	EVT_MENU(-1, CMemoryView::OnPopupMenu)
-	EVT_SIZE(CMemoryView::OnResize)
-END_EVENT_TABLE()
-
 CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
 	: wxControl(parent, wxID_ANY)
 	, curAddress(debuginterface->GetPC())
@@ -71,6 +60,14 @@ CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
 	, memory(0)
 	, viewAsType(VIEWAS_FP)
 {
+	Bind(wxEVT_PAINT, &CMemoryView::OnPaint, this);
+	Bind(wxEVT_LEFT_DOWN, &CMemoryView::OnMouseDownL, this);
+	Bind(wxEVT_LEFT_UP, &CMemoryView::OnMouseUpL, this);
+	Bind(wxEVT_MOTION, &CMemoryView::OnMouseMove, this);
+	Bind(wxEVT_RIGHT_DOWN, &CMemoryView::OnMouseDownR, this);
+	Bind(wxEVT_MOUSEWHEEL, &CMemoryView::OnScrollWheel, this);
+	Bind(wxEVT_MENU, &CMemoryView::OnPopupMenu, this);
+	Bind(wxEVT_SIZE, &CMemoryView::OnResize, this);
 }
 
 int CMemoryView::YToAddress(int y)
