@@ -109,19 +109,21 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 	unsigned int vol = (unsigned int)(m_options->settings[4]->GetValue() * 100);
 	float amp = 10.0f; // Boost the speaker volume relative to the rest of the game audio
 
-	unsigned int sample_rate = sample_rate_dividend / Common::swap16(m_reg_speaker.sample_rate);
-	float speaker_volume_ratio = (float)m_reg_speaker.volume / volume_divisor;
-	unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio * amp);
-	unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio * amp);
+	if (m_reg_speaker.sample_rate)
+	{
+		unsigned int sample_rate = sample_rate_dividend / Common::swap16(m_reg_speaker.sample_rate);
+		float speaker_volume_ratio = (float)m_reg_speaker.volume / volume_divisor;
+		unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio * amp);
+		unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio * amp);
 
-	if (left_volume > 255)
-		left_volume = 255;
-	if (right_volume > 255)
-		right_volume = 255;
+		if (left_volume > 255)
+			left_volume = 255;
+		if (right_volume > 255)
+			right_volume = 255;
 
-	g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
-	g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(samples.get(), sd->length, sample_rate);
-
+		g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
+		g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(samples.get(), sd->length, sample_rate);
+	}
 
 #ifdef WIIMOTE_SPEAKER_DUMP
 	static int num = 0;
