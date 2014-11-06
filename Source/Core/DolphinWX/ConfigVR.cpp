@@ -25,6 +25,7 @@
 BEGIN_EVENT_TABLE(CConfigVR, wxDialog)
 
 EVT_CLOSE(CConfigVR::OnClose)
+EVT_BUTTON(wxID_OK, CConfigVR::OnOk)
 
 END_EVENT_TABLE()
 
@@ -83,8 +84,8 @@ void CConfigVR::CreateGUIControls()
 
 	const wxString pageNames[] =
 	{
-		_("VR Freelook"),
-		_("VR Options")
+		_("VR Freelook")
+		//_("VR Options")
 	};
 
 	const wxString VRText[] =
@@ -131,7 +132,7 @@ void CConfigVR::CreateGUIControls()
 	const int page_breaks[3] = {VR_POSITION_RESET, NUM_VR_OPTIONS, NUM_VR_OPTIONS};
 
 	// Configuration controls sizes
-	wxSize size(100,20);
+	wxSize size(150,20);
 	// A small type font
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
@@ -139,7 +140,7 @@ void CConfigVR::CreateGUIControls()
 
 	button_already_clicked = false; //Used to determine whether a button has already been clicked.  If it has, don't allow more buttons to be clicked.
 
-	for (int j = 0; j < 2; j++)
+	for (int j = 0; j < 1; j++)
 	{
 		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
 		Notebook->AddPage(Page, pageNames[j]);
@@ -248,14 +249,13 @@ void CConfigVR::UpdateDeviceComboBox()
 void CConfigVR::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	EndModal(wxID_OK);
+	// Save the config. Dolphin crashes too often to only save the settings on closing
+	SConfig::GetInstance().SaveSettings();
 }
 
 void CConfigVR::OnOk(wxCommandEvent& WXUNUSED (event))
 {
 	Close();
-
-	// Save the config. Dolphin crashes too often to only save the settings on closing
-	//SConfig::GetInstance().SaveSettings();
 }
 
 //On Combo Box Selection
@@ -375,7 +375,24 @@ void CConfigVR::SetButtonText(int id, bool KBM, const wxString &keystr, const wx
 		m_Button_VRSettings[id]->SetLabel(modkeystr + keystr);
 	}
 	else {
-		m_Button_VRSettings[id]->SetLabel(XInputMapping);
+		wxString xinput_gui_string = "";
+		ciface::Core::DeviceQualifier dq;
+		for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
+		{
+			dq.FromDevice(d);
+			if (dq.source == "XInput"){
+				for (ciface::Core::Device::Input* input : d->Inputs()){
+					if (HotkeysXInput::IsXInputButtonSet(input->GetName(), id)){
+						//Concat string
+						if (xinput_gui_string != ""){
+							xinput_gui_string += " && ";
+						}
+						xinput_gui_string += input->GetName();
+					}
+				}
+			}
+		}
+		m_Button_VRSettings[id]->SetLabel(xinput_gui_string);
 	}
 }
 
@@ -454,7 +471,7 @@ void CConfigVR::ClearControl(wxEvent& event)
    
 }
 
-inline bool IsAlphabetic(wxString &str)
+inline bool IsAlphabeticVR(wxString &str)
 {
 	for (wxUniChar c : str)
 		if (!isalpha(c))
@@ -463,7 +480,7 @@ inline bool IsAlphabetic(wxString &str)
 	return true;
 }
 
-inline void GetExpressionForControl(wxString &expr,
+inline void GetExpressionForControlVR(wxString &expr,
 	wxString &control_name,
 	ciface::Core::DeviceQualifier *control_device = nullptr,
 	ciface::Core::DeviceQualifier *default_device = nullptr)
@@ -480,7 +497,7 @@ inline void GetExpressionForControl(wxString &expr,
 	// append the control name
 	expr += control_name;
 
-	if (!IsAlphabetic(expr))
+	if (!IsAlphabeticVR(expr))
 		expr = wxString::Format("%s", expr);
 }
 
@@ -518,7 +535,7 @@ void CConfigVR::DetectControl(wxCommandEvent& event)
 				{
 					wxString control_name = ctrl->GetName();
 					wxString expr;
-					GetExpressionForControl(expr, control_name);
+					GetExpressionForControlVR(expr, control_name);
 					ClickedButton->SetLabel(expr);
 					u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
 					SaveXInputBinary(ClickedButton->GetId(), false, xinput_binary);
@@ -583,7 +600,8 @@ ciface::Core::Device::Control* CConfigVR::InputDetect(const unsigned int ms, cif
 VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 	: wxDialog(parent, -1, _("Configure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(wxVERTICAL, this, "Input");
+	wxBoxSizer* const input_szr1 = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const input_szr2 = new wxBoxSizer(wxVERTICAL);
 
 	button_id = from_button;
 
@@ -592,6 +610,7 @@ VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 	{
 		dq.FromDevice(d);
 		if (dq.source == "XInput"){
+			int i = 0;
 			for (ciface::Core::Device::Input* input : d->Inputs())
 			{
 				wxCheckBox  *XInputCheckboxes = new wxCheckBox(this, -1, wxGetTranslation(StrToWxStr(input->GetName())), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
@@ -599,17 +618,26 @@ VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 				if (HotkeysXInput::IsXInputButtonSet(input->GetName(), button_id)){
 					XInputCheckboxes->SetValue(true);
 				}
-				main_szr->Add(XInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
+				if (i<13){
+					input_szr1->Add(XInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
+				}
+				else {
+					input_szr2->Add(XInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
+				}
+				i++;
 			}
 		}
 
 	}
 
-	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
-	szr->Add(main_szr, 1, wxEXPAND | wxALL, 5);
-	szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxDOWN, 5);
+	wxBoxSizer* const horizontal_szr = new wxStaticBoxSizer(wxHORIZONTAL, this, "Input"); //Horizontal box to add both columns of checkboxes to.
+	horizontal_szr->Add(input_szr1, 1, wxEXPAND | wxALL, 5);
+	horizontal_szr->Add(input_szr2, 1, wxEXPAND | wxALL, 5);
+	wxBoxSizer* const vertical_szr = new wxBoxSizer(wxVERTICAL); //Horizontal box to add both columns of checkboxes to.
+	vertical_szr->Add(horizontal_szr, 1, wxEXPAND | wxALL, 5);
+	vertical_szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxDOWN, 5);
 
-	SetSizerAndFit(szr); // needed
+	SetSizerAndFit(vertical_szr); // needed
 	SetFocus();
 }
 
