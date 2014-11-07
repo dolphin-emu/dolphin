@@ -285,11 +285,11 @@ bool DolphinApp::OnInit()
 		File::Delete("www.dolphin-emulator.com.txt");
 		wxMessageDialog dlg(nullptr, _(
 		    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
-		    "download Dolphin from the official website instead: http://dolphin-emu.org/"),
+		    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
 		    _("Unofficial version detected"), wxOK | wxICON_WARNING);
 		dlg.ShowModal();
 
-		wxLaunchDefaultBrowser("http://dolphin-emu.org/?ref=badver");
+		wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
 
 		exit(0);
 	}
