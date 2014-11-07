@@ -184,7 +184,6 @@ bool BootCore(const std::string& _rFilename)
 		dsp_section->Get("Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode, StartUp.m_strGPUDeterminismMode);
-		StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
@@ -223,6 +222,8 @@ bool BootCore(const std::string& _rFilename)
 			}
 		}
 	}
+
+	StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
 	// Movie settings
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
