@@ -36,12 +36,12 @@ public:
 	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
 
 	std::string GetUniqueID() const override;
-	void SetUniqueID(std::string _ID);
+	void SetUniqueID(const std::string& _ID);
 
 	std::string GetMakerID() const override;
 
 	std::vector<std::string> GetNames() const override;
-	void SetName(std::string);
+	void SetName(const std::string&);
 
 	u32 GetFSTSize() const override;
 

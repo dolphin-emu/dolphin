@@ -67,6 +67,7 @@ struct ExtensionReg
 	u8 constant_id[6];
 };
 
+//cegli note: This should possibly be removed if not used anymore.
 void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel);
@@ -136,6 +137,7 @@ public:
 
 	void LoadDefaults(const ControllerInterface& ciface) override;
 
+	int CurrentExtension() const { return m_extension->active_extension; }
 	void CycleThroughExtensions();
 
 protected:
@@ -144,8 +146,8 @@ protected:
 	void HandleExtensionSwap();
 	void UpdateButtonsStatus();
 
-	void GetCoreData(u8* const data);
-	void GetAccelData(u8* const data, u8* const core);
+	void GetButtonData(u8* const data);
+	void GetAccelData(u8* const data, const ReportFeatures& rptf);
 	void GetIRData(u8* const data, bool use_accel);
 	void GetExtData(u8* const data);
 

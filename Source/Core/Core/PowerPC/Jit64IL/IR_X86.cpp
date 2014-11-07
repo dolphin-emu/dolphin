@@ -26,6 +26,7 @@ The register allocation is linear scan allocation.
 
 #include <algorithm>
 
+#include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -60,15 +61,15 @@ struct RegInfo
 		RegInfo(RegInfo&); // DO NOT IMPLEMENT
 };
 
-static u32 regsInUse(RegInfo& R)
+static BitSet32 regsInUse(RegInfo& R)
 {
-	u32 result = 0;
+	BitSet32 result;
 	for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
 	{
 		if (R.regs[i] != nullptr)
-			result |= (1 << i);
+			result[i] = true;
 		if (R.fregs[i] != nullptr)
-			result |= (1 << (16 + i));
+			result[16 + i] = true;
 	}
 	return result;
 }

@@ -11,7 +11,7 @@
 
 namespace JitInterface
 {
-	enum
+	enum class ExceptionType
 	{
 		EXCEPTIONS_FIFO_WRITE
 	};
@@ -39,7 +39,7 @@ namespace JitInterface
 	// If "forced" is true, a recompile is being requested on code that hasn't been modified.
 	void InvalidateICache(u32 address, u32 size, bool forced);
 
-	void CompileExceptionCheck(int type);
+	void CompileExceptionCheck(ExceptionType type);
 
 	void Shutdown();
 }

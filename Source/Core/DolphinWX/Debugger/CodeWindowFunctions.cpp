@@ -51,6 +51,7 @@
 #include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 
 // Save and load settings
@@ -421,6 +422,8 @@ void CCodeWindow::OpenPages()
 		Parent->ToggleLogConfigWindow(true);
 	if (bShowOnStart[IDM_REGISTERWINDOW - IDM_LOGWINDOW])
 		ToggleRegisterWindow(true);
+	if (bShowOnStart[IDM_WATCHWINDOW - IDM_LOGWINDOW])
+		ToggleWatchWindow(true);
 	if (bShowOnStart[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW])
 		ToggleBreakPointWindow(true);
 	if (bShowOnStart[IDM_MEMORYWINDOW - IDM_LOGWINDOW])
@@ -458,6 +461,24 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 	{
 		Parent->DoRemovePage(m_RegisterWindow, false);
 		m_RegisterWindow = nullptr;
+	}
+}
+
+void CCodeWindow::ToggleWatchWindow(bool bShow)
+{
+	GetMenuBar()->FindItem(IDM_WATCHWINDOW)->Check(bShow);
+	if (bShow)
+	{
+		if (!m_WatchWindow)
+			m_WatchWindow = new CWatchWindow(Parent, IDM_WATCHWINDOW);
+		Parent->DoAddPage(m_WatchWindow,
+		        iNbAffiliation[IDM_WATCHWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_WATCHWINDOW - IDM_LOGWINDOW]);
+	}
+	else // Close
+	{
+		Parent->DoRemovePage(m_WatchWindow, false);
+		m_WatchWindow = nullptr;
 	}
 }
 

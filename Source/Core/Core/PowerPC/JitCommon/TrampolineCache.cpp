@@ -36,7 +36,7 @@ void TrampolineCache::Shutdown()
 	cachedTrampolines.clear();
 }
 
-const u8* TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 registersInUse)
+const u8* TrampolineCache::GetReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse)
 {
 	TrampolineCacheKey key = { registersInUse, 0, info };
 
@@ -49,7 +49,7 @@ const u8* TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	return trampoline;
 }
 
-const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, u32 registersInUse)
+const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -97,7 +97,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, u
 	return trampoline;
 }
 
-const u8* TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse, u32 pc)
+const u8* TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u32 pc)
 {
 	TrampolineCacheKey key = { registersInUse, pc, info };
 
@@ -110,7 +110,7 @@ const u8* TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 	return trampoline;
 }
 
-const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, u32 registersInUse, u32 pc)
+const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u32 pc)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -184,7 +184,7 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, 
 
 size_t TrampolineCacheKeyHasher::operator()(const TrampolineCacheKey& k) const
 {
-	size_t res = std::hash<int>()(k.registersInUse);
+	size_t res = std::hash<int>()(k.registersInUse.m_val);
 	res ^= std::hash<int>()(k.info.operandSize)    >> 1;
 	res ^= std::hash<int>()(k.info.regOperandReg)  >> 2;
 	res ^= std::hash<int>()(k.info.scaledReg)      >> 3;

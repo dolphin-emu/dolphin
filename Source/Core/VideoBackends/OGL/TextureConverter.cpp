@@ -221,7 +221,6 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
-	GL_REPORT_ERRORD();
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0+9);
@@ -238,13 +237,9 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
-	GL_REPORT_ERRORD();
-
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	GL_REPORT_ERRORD();
 
 	// .. and then read back the results.
 	// TODO: make this less slow.
@@ -280,9 +275,6 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	{
 		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	}
-
-	GL_REPORT_ERRORD();
-
 }
 
 int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
@@ -355,7 +347,6 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
-	GL_REPORT_ERRORD();
 }
 
 
@@ -376,8 +367,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[1]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, destTexture, 0);
 
-	GL_REPORT_FBO_ERROR();
-
 	// activate source texture
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0+9);
@@ -392,7 +381,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	FramebufferManager::SetFramebuffer(0);
 
 	g_renderer->RestoreAPIState();
-	GL_REPORT_ERRORD();
 }
 
 }  // namespace

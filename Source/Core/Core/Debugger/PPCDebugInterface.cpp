@@ -131,6 +131,11 @@ void PPCDebugInterface::ToggleBreakpoint(unsigned int address)
 		PowerPC::breakpoints.Add(address);
 }
 
+void PPCDebugInterface::AddWatch(unsigned int address)
+{
+	PowerPC::watches.Add(address);
+}
+
 void PPCDebugInterface::ClearAllMemChecks()
 {
 	PowerPC::memchecks.Clear();

@@ -249,21 +249,15 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	// That is, check that none of b's outputs matches any of a's inputs,
 	// and that none of a's outputs matches any of b's inputs.
 	// The latter does not apply if a is a cmp, of course, but doesn't hurt to check.
-	for (int j = 0; j < 3; j++)
-	{
-		int regInA = a.regsIn[j];
-		int regInB = b.regsIn[j];
-		// register collision: b outputs to one of a's inputs
-		if (regInA >= 0 && (b.regsOut[0] == regInA || b.regsOut[1] == regInA))
-			return false;
-		// register collision: a outputs to one of b's inputs
-		if (regInB >= 0 && (a.regsOut[0] == regInB || a.regsOut[1] == regInB))
-			return false;
-		// register collision: b outputs to one of a's outputs (overwriting it)
-		for (int k = 0; k < 2; k++)
-			if (b.regsOut[k] >= 0 && (b.regsOut[k] == a.regsOut[0] || b.regsOut[k] == a.regsOut[1]))
-				return false;
-	}
+	// register collision: b outputs to one of a's inputs
+	if (b.regsOut & a.regsIn)
+		return false;
+	// register collision: a outputs to one of b's inputs
+	if (a.regsOut & b.regsIn)
+		return false;
+	// register collision: b outputs to one of a's outputs (overwriting it)
+	if (b.regsOut & a.regsOut)
+		return false;
 
 	return true;
 }
@@ -412,6 +406,11 @@ static bool isCarryOp(const CodeOp& a)
 	return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) && a.opinfo->type == OPTYPE_INTEGER;
 }
 
+static bool isCror(const CodeOp& a)
+{
+	return a.inst.OPCD == 19 && a.inst.SUBOP10 == 449;
+}
+
 void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type)
 {
 	// Bubbling an instruction sometimes reveals another opportunity to bubble an instruction, so do
@@ -432,7 +431,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 			CodeOp &b = code[i + increment];
 			// Reorder integer compares, rlwinm., and carry-affecting ops
 			// (if we add more merged branch instructions, add them here!)
-			if ((type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
+			if ((type == REORDER_CROR && isCror(a)) || (type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
 			{
 				// once we're next to a carry instruction, don't move away!
 				if (type == REORDER_CARRY && i != start)
@@ -460,6 +459,10 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 
 void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 {
+	// Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
+	// picky about this, but cror seems to almost solely be used for this purpose in real code.
+	// Additionally, the other boolean ops seem to almost never be used.
+	ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
 	// For carry, bubble instructions *towards* each other; one direction often isn't enough
 	// to get pairs like addc/adde next to each other.
 	if (HasOption(OPTION_CARRY_MERGE))
@@ -520,42 +523,41 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 467) // mtspr
 		code->outputCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
 
-	int numOut = 0;
-	int numIn = 0;
-	int numFloatIn = 0;
+	code->regsIn = BitSet32(0);
+	code->regsOut = BitSet32(0);
 	if (opinfo->flags & FL_OUT_A)
 	{
-		code->regsOut[numOut++] = code->inst.RA;
+		code->regsOut[code->inst.RA] = true;
 		block->m_gpa->SetOutputRegister(code->inst.RA, index);
 	}
 	if (opinfo->flags & FL_OUT_D)
 	{
-		code->regsOut[numOut++] = code->inst.RD;
+		code->regsOut[code->inst.RD] = true;
 		block->m_gpa->SetOutputRegister(code->inst.RD, index);
 	}
 	if (opinfo->flags & FL_OUT_S)
 	{
-		code->regsOut[numOut++] = code->inst.RS;
+		code->regsOut[code->inst.RS] = true;
 		block->m_gpa->SetOutputRegister(code->inst.RS, index);
 	}
 	if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
 	{
-		code->regsIn[numIn++] = code->inst.RA;
+		code->regsIn[code->inst.RA] = true;
 		block->m_gpa->SetInputRegister(code->inst.RA, index);
 	}
 	if (opinfo->flags & FL_IN_B)
 	{
-		code->regsIn[numIn++] = code->inst.RB;
+		code->regsIn[code->inst.RB] = true;
 		block->m_gpa->SetInputRegister(code->inst.RB, index);
 	}
 	if (opinfo->flags & FL_IN_C)
 	{
-		code->regsIn[numIn++] = code->inst.RC;
+		code->regsIn[code->inst.RC] = true;
 		block->m_gpa->SetInputRegister(code->inst.RC, index);
 	}
 	if (opinfo->flags & FL_IN_S)
 	{
-		code->regsIn[numIn++] = code->inst.RS;
+		code->regsIn[code->inst.RS] = true;
 		block->m_gpa->SetInputRegister(code->inst.RS, index);
 	}
 
@@ -564,24 +566,17 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->fregOut = code->inst.FD;
 	else if (opinfo->flags & FL_OUT_FLOAT_S)
 		code->fregOut = code->inst.FS;
+	code->fregsIn = BitSet32(0);
 	if (opinfo->flags & FL_IN_FLOAT_A)
-		code->fregsIn[numFloatIn++] = code->inst.FA;
+		code->fregsIn[code->inst.FA] = true;
 	if (opinfo->flags & FL_IN_FLOAT_B)
-		code->fregsIn[numFloatIn++] = code->inst.FB;
+		code->fregsIn[code->inst.FB] = true;
 	if (opinfo->flags & FL_IN_FLOAT_C)
-		code->fregsIn[numFloatIn++] = code->inst.FC;
+		code->fregsIn[code->inst.FC] = true;
 	if (opinfo->flags & FL_IN_FLOAT_D)
-		code->fregsIn[numFloatIn++] = code->inst.FD;
+		code->fregsIn[code->inst.FD] = true;
 	if (opinfo->flags & FL_IN_FLOAT_S)
-		code->fregsIn[numFloatIn++] = code->inst.FS;
-
-	// Set remaining register slots as unused (-1)
-	for (int j = numIn; j < 3; j++)
-		code->regsIn[j] = -1;
-	for (int j = numOut; j < 2; j++)
-		code->regsOut[j] = -1;
-	for (int j = numFloatIn; j < 4; j++)
-		code->fregsIn[j] = -1;
+		code->fregsIn[code->inst.FS] = true;
 
 	switch (opinfo->type)
 	{
@@ -797,7 +792,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	// Scan for flag dependencies; assume the next block (or any branch that can leave the block)
 	// wants flags, to be safe.
 	bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
-	u32 fprInUse = 0, gprInUse = 0, gprInReg = 0, fprInXmm = 0;
+	BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
 		bool opWantsCR0 = code[i].wantsCR0;
@@ -822,30 +817,20 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		code[i].fprInXmm = fprInXmm;
 		// TODO: if there's no possible endblocks or exceptions in between, tell the regcache
 		// we can throw away a register if it's going to be overwritten later.
-		for (int j = 0; j < 3; j++)
-			if (code[i].regsIn[j] >= 0)
-			{
-				gprInUse |= 1 << code[i].regsIn[j];
-				gprInReg |= 1 << code[i].regsIn[j];
-			}
-		for (int j = 0; j < 4; j++)
-			if (code[i].fregsIn[j] >= 0)
-			{
-				fprInUse |= 1 << code[i].fregsIn[j];
-				if (strncmp(code[i].opinfo->opname, "stfd", 4))
-					fprInXmm |= 1 << code[i].fregsIn[j];
-			}
+		gprInUse |= code[i].regsIn;
+		gprInReg |= code[i].regsIn;
+		fprInUse |= code[i].fregsIn;
+		if (strncmp(code[i].opinfo->opname, "stfd", 4))
+			fprInXmm |= code[i].fregsIn;
 		// For now, we need to count output registers as "used" though; otherwise the flush
 		// will result in a redundant store (e.g. store to regcache, then store again to
 		// the same location later).
-		for (int j = 0; j < 2; j++)
-			if (code[i].regsOut[j] >= 0)
-				gprInUse |= 1 << code[i].regsOut[j];
+		gprInUse |= code[i].regsOut;
 		if (code[i].fregOut >= 0)
 		{
-			fprInUse |= 1 << code[i].fregOut;
+			fprInUse[code[i].fregOut] = true;
 			if (strncmp(code[i].opinfo->opname, "stfd", 4))
-				fprInXmm |= 1 << code[i].fregOut;
+				fprInXmm[code[i].fregOut] = true;
 		}
 	}
 	return address;

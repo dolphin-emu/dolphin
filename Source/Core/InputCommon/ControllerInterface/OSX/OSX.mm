@@ -108,7 +108,7 @@ void DeviceElementDebugPrint(const void *value, void *context)
 	}
 }
 
-void DeviceDebugPrint(IOHIDDeviceRef device)
+static void DeviceDebugPrint(IOHIDDeviceRef device)
 {
 #if 0
 #define shortlog(x) NSLog(@"%s: %@", \

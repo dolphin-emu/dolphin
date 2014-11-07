@@ -148,14 +148,12 @@ void RasterFont::printString(const char *s, double x, double y, double z)
 
 	// go to the right spot
 	glRasterPos3d(x, y, z);
-	GL_REPORT_ERRORD();
 
 	glPushAttrib (GL_LIST_BIT);
 	glListBase(fontOffset);
 	glCallLists((GLsizei)strlen(s2), GL_UNSIGNED_BYTE, (GLubyte *) s2);
-	GL_REPORT_ERRORD();
+
 	glPopAttrib();
-	GL_REPORT_ERRORD();
 }
 
 void RasterFont::printCenteredString(const char *s, double y, int screen_width, double z)

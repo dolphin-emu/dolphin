@@ -32,7 +32,7 @@ struct SConfig : NonCopyable
 	// name of the last used filename
 	std::string m_LastFilename;
 
-	// gcm folder
+	// ISO folder
 	std::vector<std::string> m_ISOFolder;
 	bool m_RecursiveISOFolder;
 

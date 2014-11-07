@@ -16,6 +16,9 @@
     <Filter Include="GLExtensions">
       <UniqueIdentifier>{4366f285-ded5-48c9-9464-03fb46174526}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GLInterface">
+      <UniqueIdentifier>{1734a626-f6e2-41b1-8753-43447bed39af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeVertexFormat.cpp">
@@ -58,6 +61,12 @@
     <ClCompile Include="SamplerCache.cpp" />
     <ClCompile Include="GLExtensions\GLExtensions.cpp">
       <Filter>GLExtensions</Filter>
+    </ClCompile>
+    <ClCompile Include="GLInterface\GLInterface.cpp">
+      <Filter>GLInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="GLInterface\WGL.cpp">
+      <Filter>GLInterface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +186,9 @@
     </ClInclude>
     <ClInclude Include="GLExtensions\KHR_debug.h">
       <Filter>GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GLInterface\WGL.h">
+      <Filter>GLInterface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

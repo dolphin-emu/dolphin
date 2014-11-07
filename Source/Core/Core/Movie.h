@@ -39,18 +39,18 @@ struct ControllerState
 	     DPadLeft:1, DPadRight:1;
 	bool L:1, R:1;                         // Binary triggers, 2 bits
 	bool disc:1;                           // Checks for disc being changed
-	bool reserved:3;                       // Reserved bits used for padding, 4 bits
+	bool reset:1;                          // Console reset button
+	bool reserved:2;                       // Reserved bits used for padding, 2 bits
 
 	u8   TriggerL, TriggerR;               // Triggers, 16 bits
 	u8   AnalogStickX, AnalogStickY;       // Main Stick, 16 bits
 	u8   CStickX, CStickY;                 // Sub-Stick, 16 bits
-
-}; // Total: 60 + 4 = 64 bits per frame
+};
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bDiscChange, g_bClearSave;
+extern bool g_bDiscChange, g_bClearSave, g_bReset;
 extern u64 g_titleID;
 
 extern u64 g_currentFrame, g_totalFrames;
@@ -163,7 +163,7 @@ bool PlayInput(const std::string& filename);
 void LoadInput(const std::string& filename);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const struct wiimote_key key);
+bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap &p);
@@ -171,16 +171,16 @@ void CheckMD5();
 void GetMD5();
 void Shutdown();
 void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const struct wiimote_key key);
+void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key);
 
 std::string GetInputDisplay();
 
 // Done this way to avoid mixing of core and gui code
 typedef void(*GCManipFunction)(GCPadStatus*, int);
-typedef void(*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int);
+typedef void(*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key);
 
 void SetGCInputManip(GCManipFunction);
 void SetWiiInputManip(WiiManipFunction);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
-void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID);
+void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
 }

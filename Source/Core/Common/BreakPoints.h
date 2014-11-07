@@ -44,6 +44,13 @@ struct TMemCheck
 	            bool write, int size, u32 pc);
 };
 
+struct TWatch
+{
+	std::string name = "";
+	u32  iAddress;
+	bool bOn;
+};
+
 // Code breakpoints.
 class BreakPoints
 {
@@ -67,6 +74,7 @@ public:
 	// Remove Breakpoint
 	void Remove(u32 _iAddress);
 	void Clear();
+	void ClearAllTemporary();
 
 	void DeleteByAddress(u32 _Address);
 
@@ -97,4 +105,34 @@ public:
 	void Remove(u32 _Address);
 
 	void Clear() { m_MemChecks.clear(); }
+};
+
+class Watches
+{
+public:
+	typedef std::vector<TWatch> TWatches;
+	typedef std::vector<std::string> TWatchesStr;
+
+	const TWatches& GetWatches() { return m_Watches; }
+
+	TWatchesStr GetStrings() const;
+	void AddFromStrings(const TWatchesStr& bps);
+
+	bool IsAddressWatch(u32 _iAddress) const;
+
+	// Add BreakPoint
+	void Add(u32 em_address);
+	void Add(const TWatch& bp);
+
+	void Update(int count, u32 em_address);
+	void UpdateName(int count, const std::string name);
+
+	// Remove Breakpoint
+	void Remove(u32 _iAddress);
+	void Clear();
+
+	void DeleteByAddress(u32 _Address);
+
+private:
+	TWatches m_Watches;
 };

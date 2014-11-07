@@ -11,7 +11,7 @@
 #include "Kernel/OVR_Math.h"
 #endif
 
-#include "Common/CommonTypes.h"
+#include "Common/BitSet.h"#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -35,7 +35,7 @@ extern bool g_aspect_wide;
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
-static int nMaterialsChanged;
+static BitSet32 nMaterialsChanged;
 static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
@@ -660,7 +660,7 @@ void VertexShaderManager::Dirty()
 
 	bProjectionChanged = true;
 
-	nMaterialsChanged = 15;
+	nMaterialsChanged = BitSet32::AllTrue(4);
 
 	dirty = true;
 }
@@ -753,35 +753,16 @@ void VertexShaderManager::SetConstants()
 		nLightsChanged[0] = nLightsChanged[1] = -1;
 	}
 
-	if (nMaterialsChanged)
+	for (int i : nMaterialsChanged)
 	{
-		for (int i = 0; i < 2; ++i)
-		{
-			if (nMaterialsChanged & (1 << i))
-			{
-				u32 data = xfmem.ambColor[i];
+		u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
 				constants.materials[i][0] = (data >> 24) & 0xFF;
 				constants.materials[i][1] = (data >> 16) & 0xFF;
 				constants.materials[i][2] = (data >>  8) & 0xFF;
 				constants.materials[i][3] =  data        & 0xFF;
-			}
-		}
-
-		for (int i = 0; i < 2; ++i)
-		{
-			if (nMaterialsChanged & (1 << (i + 2)))
-			{
-				u32 data = xfmem.matColor[i];
-				constants.materials[i+2][0] = (data >> 24) & 0xFF;
-				constants.materials[i+2][1] = (data >> 16) & 0xFF;
-				constants.materials[i+2][2] = (data >>  8) & 0xFF;
-				constants.materials[i+2][3] =  data        & 0xFF;
-			}
-		}
 		dirty = true;
-
-		nMaterialsChanged = 0;
 	}
+	nMaterialsChanged = BitSet32(0);
 
 	if (bPosNormalMatrixChanged)
 	{
@@ -1708,7 +1689,7 @@ void VertexShaderManager::SetProjectionChanged()
 
 void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
 {
-	nMaterialsChanged  |= (1 << index);
+	nMaterialsChanged[index] = true;
 }
 
 void VertexShaderManager::ScaleView(float scale)

@@ -132,8 +132,7 @@ bool CFileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 	std::vector<u8> buffer(AppSize);
 	if (m_rVolume->Read(0x2440, AppSize, &buffer[0]))
 	{
-		std::string exportName(_rExportFolder);
-		exportName += "/apploader.img";
+		std::string exportName(_rExportFolder + "/apploader.img");
 
 		File::IOFile AppFile(exportName, "wb");
 		if (AppFile)
@@ -185,8 +184,7 @@ bool CFileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
 	std::vector<u8> buffer(DolSize);
 	if (m_rVolume->Read(DolOffset, DolSize, &buffer[0]))
 	{
-		std::string exportName(_rExportFolder);
-		exportName += "/boot.dol";
+		std::string exportName(_rExportFolder + "/boot.dol");
 
 		File::IOFile DolFile(exportName, "wb");
 		if (DolFile)

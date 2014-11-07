@@ -5,9 +5,6 @@
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="VideoInterface\VideoInterface.cpp">
-      <Filter>VideoInterface</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\Resources.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -15,11 +12,27 @@
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="SystemInfo.cpp" />
+    <ClCompile Include="VideoInterface\RenderWidget.cpp">
+      <Filter>VideoInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="SystemInfo.h" />
+    <QtMoc Include="VideoInterface\RenderWidget.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
@@ -34,6 +47,9 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{730f2ae7-a686-4bc8-bb49-b4f8bd240329}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{c18a1fb3-64ff-4249-b808-d73a56ea3a2d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utils\Resources.h">
@@ -41,6 +57,9 @@
     </ClInclude>
     <ClInclude Include="Utils\Utils.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoInterface\RenderWidget.h">
+      <Filter>VideoInterface</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

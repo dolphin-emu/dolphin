@@ -50,4 +50,6 @@ private:
 	static QVector<QPixmap> m_regions;
 	static QVector<QPixmap> m_ratings;
 	static QVector<QPixmap> m_pixmaps;
+
+	static QString GetImageFilename(QString name, QString dir);
 };

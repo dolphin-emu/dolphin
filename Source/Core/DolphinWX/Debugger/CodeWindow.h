@@ -19,6 +19,7 @@
 
 class CFrame;
 class CRegisterWindow;
+class CWatchWindow;
 class CBreakPointWindow;
 class CMemoryWindow;
 class CJitWindow;
@@ -77,6 +78,7 @@ public:
 
 	void ToggleCodeWindow(bool bShow);
 	void ToggleRegisterWindow(bool bShow);
+	void ToggleWatchWindow(bool bShow);
 	void ToggleBreakPointWindow(bool bShow);
 	void ToggleMemoryWindow(bool bShow);
 	void ToggleJitWindow(bool bShow);
@@ -93,6 +95,7 @@ public:
 
 	// Sub dialogs
 	CRegisterWindow* m_RegisterWindow;
+	CWatchWindow* m_WatchWindow;
 	CBreakPointWindow* m_BreakpointWindow;
 	CMemoryWindow* m_MemoryWindow;
 	CJitWindow* m_JitWindow;
@@ -126,6 +129,7 @@ private:
 	// Debugger functions
 	void SingleStep();
 	void StepOver();
+	void StepOut();
 	void ToggleBreakpoint();
 
 	void UpdateLists();

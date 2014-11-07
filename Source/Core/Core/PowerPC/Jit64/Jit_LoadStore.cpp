@@ -98,9 +98,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	if (accessSize == 8 && js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 954 &&
 	    js.next_inst.RS == inst.RD && js.next_inst.RA == inst.RD && !js.next_inst.Rc)
 	{
-		js.downcountAmount++;
-		js.skipnext = true;
-		signExtend = true;
+		if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
+		{
+			js.downcountAmount++;
+			js.skipnext = true;
+			signExtend = true;
+		}
 	}
 
 	// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
@@ -109,6 +112,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 	// ... maybe the throttle one already do that :p
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+	    PowerPC::GetState() != PowerPC::CPU_STEPPING &&
 	    inst.OPCD == 32 &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
 	    (Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
@@ -130,7 +134,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		TEST(32, gpr.R(d), gpr.R(d));
 		FixupBranch noIdle = J_CC(CC_NZ);
 
-		u32 registersInUse = CallerSavedRegistersInUse();
+		BitSet32 registersInUse = CallerSavedRegistersInUse();
 		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
 		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
@@ -242,11 +246,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, js.memcheck, true);
-	u32 registersInUse = CallerSavedRegistersInUse();
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	if (update && storeAddress)
 	{
 		// We need to save the (usually scratch) address register for the update.
-		registersInUse |= (1 << RSCRATCH2);
+		registersInUse[RSCRATCH2] = true;
 	}
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
@@ -310,7 +314,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	SwitchToFarCode();
 	SetJumpTarget(slow);
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
-	u32 registersInUse = CallerSavedRegistersInUse();
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, RSCRATCH);
 	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -330,98 +334,53 @@ void Jit64::stX(UGeckoInstruction inst)
 
 	int s = inst.RS;
 	int a = inst.RA;
-
-	bool update = inst.OPCD & 1;
-
 	s32 offset = (s32)(s16)inst.SIMM_16;
-	if (a || !update)
+	bool update = (inst.OPCD & 1) && offset;
+
+	if (!a && update)
+		PanicAlert("Invalid stX");
+
+	int accessSize;
+	switch (inst.OPCD & ~1)
 	{
-		int accessSize;
-		switch (inst.OPCD & ~1)
+	case 36: // stw
+		accessSize = 32;
+		break;
+	case 44: // sth
+		accessSize = 16;
+		break;
+	case 38: // stb
+		accessSize = 8;
+		break;
+	default:
+		_assert_msg_(DYNA_REC, 0, "stX: Invalid access size.");
+		return;
+	}
+
+	// If we already know the address of the write
+	if (!a || gpr.R(a).IsImm())
+	{
+		u32 addr = (a ? (u32)gpr.R(a).offset : 0) + offset;
+		bool exception = WriteToConstAddress(accessSize, gpr.R(s), addr, CallerSavedRegistersInUse());
+		if (update)
 		{
-		case 36: // stw
-			accessSize = 32;
-			break;
-		case 44: // sth
-			accessSize = 16;
-			break;
-		case 38: // stb
-			accessSize = 8;
-			break;
-		default:
-			_assert_msg_(DYNA_REC, 0, "stX: Invalid access size.");
-			return;
-		}
-
-		if ((a == 0) || gpr.R(a).IsImm())
-		{
-			// If we already know the address through constant folding, we can do some
-			// fun tricks...
-			u32 addr = ((a == 0) ? 0 : (u32)gpr.R(a).offset);
-			addr += offset;
-			if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
+			if (!js.memcheck || !exception)
 			{
-				// Helps external systems know which instruction triggered the write
-				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
-
-				MOV(32, R(RSCRATCH2), gpr.R(s));
-				if (update)
-					gpr.SetImmediate32(a, addr);
-
-				// No need to protect these, they don't touch any state
-				// question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
-				switch (accessSize)
-				{
-				case 8:
-					CALL((void *)asm_routines.fifoDirectWrite8);
-					break;
-				case 16:
-					CALL((void *)asm_routines.fifoDirectWrite16);
-					break;
-				case 32:
-					CALL((void *)asm_routines.fifoDirectWrite32);
-					break;
-				}
-				js.fifoBytesThisBlock += accessSize >> 3;
-				gpr.UnlockAllX();
-				return;
-			}
-			else if (Memory::IsRAMAddress(addr))
-			{
-				MOV(32, R(RSCRATCH), gpr.R(s));
-				WriteToConstRamAddress(accessSize, RSCRATCH, addr, true);
-				if (update)
-					gpr.SetImmediate32(a, addr);
-				return;
+				gpr.SetImmediate32(a, addr);
 			}
 			else
 			{
-				// Helps external systems know which instruction triggered the write
-				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
-
-				u32 registersInUse = CallerSavedRegistersInUse();
-				ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-				switch (accessSize)
-				{
-				case 32:
-					ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), gpr.R(s), addr);
-					break;
-				case 16:
-					ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), gpr.R(s), addr);
-					break;
-				case 8:
-					ABI_CallFunctionAC((void *)&Memory::Write_U8, gpr.R(s), addr);
-					break;
-				}
-				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-				if (update)
-					gpr.SetImmediate32(a, addr);
-				return;
+				gpr.KillImmediate(a, true, true);
+				MEMCHECK_START(false)
+				ADD(32, gpr.R(a), Imm32((u32)offset));
+				MEMCHECK_END
 			}
 		}
-
+	}
+	else
+	{
 		gpr.Lock(a, s);
-		gpr.BindToRegister(a, true, false);
+		gpr.BindToRegister(a, true, update);
 		if (gpr.R(s).IsImm())
 		{
 			SafeWriteRegToReg(gpr.R(s), gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
@@ -442,21 +401,14 @@ void Jit64::stX(UGeckoInstruction inst)
 			SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 		}
 
-		if (update && offset)
+		if (update)
 		{
 			MEMCHECK_START(false)
-			gpr.KillImmediate(a, true, true);
-
 			ADD(32, gpr.R(a), Imm32((u32)offset));
-
 			MEMCHECK_END
 		}
-		gpr.UnlockAll();
 	}
-	else
-	{
-		PanicAlert("Invalid stX");
-	}
+	gpr.UnlockAll();
 }
 
 void Jit64::stXx(UGeckoInstruction inst)
@@ -551,7 +503,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 		ADD(32, R(RSCRATCH2), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | (1 << RSCRATCH_EXTRA), false);
+		SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | BitSet32 { RSCRATCH_EXTRA }, false);
 		gpr.BindToRegister(i, false, true);
 		MOV(32, gpr.R(i), R(RSCRATCH));
 	}

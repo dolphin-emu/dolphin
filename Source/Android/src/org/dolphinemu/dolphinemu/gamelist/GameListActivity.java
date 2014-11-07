@@ -263,16 +263,16 @@ public final class GameListActivity extends Activity
 			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which)
 				{
-					String directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
+					String directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "ISOPaths", "0");
 					int intDirs = Integer.parseInt(directories);
 
 					for (int i = 0; i < intDirs; i++)
 					{
-						NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + i, "");
+						NativeLibrary.SetConfig("Dolphin.ini", "General", "ISOPath" + i, "");
 					}
 
 					// Since we flushed all paths, we signify this in the ini.
-					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", "0");
+					NativeLibrary.SetConfig("Dolphin.ini", "General", "ISOPaths", "0");
 
 					// Now finally, clear the game list.
 					((GameListFragment) getFragmentManager().findFragmentById(R.id.content_frame)).clearGameList();

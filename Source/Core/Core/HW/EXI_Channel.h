@@ -83,10 +83,6 @@ private:
 	// Since channels operate a bit differently from each other
 	u32 m_ChannelId;
 
-	int updateInterrupts;
-
-	static void UpdateInterrupts(u64 userdata, int cyclesLate);
-
 public:
 	// get device
 	IEXIDevice* GetDevice(const u8 _CHIP_SELECT);

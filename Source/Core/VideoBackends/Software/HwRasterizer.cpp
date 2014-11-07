@@ -152,8 +152,6 @@ namespace HwRasterizer
 			texType = GL_TEXTURE_RECTANGLE;
 		else
 			texType = GL_TEXTURE_2D;
-
-		GL_REPORT_ERRORD();
 	}
 	static float width, height;
 	static void LoadTexture()
@@ -178,7 +176,6 @@ namespace HwRasterizer
 		glBindTexture(texType, cacheEntry.texture);
 		glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
 		glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, (texUnit.texMode0[0].min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
-		GL_REPORT_ERRORD();
 	}
 
 	void BeginTriangles()
@@ -247,7 +244,6 @@ namespace HwRasterizer
 			glDisableVertexAttribArray(col_atex);
 			glDisableVertexAttribArray(col_apos);
 		}
-		GL_REPORT_ERRORD();
 	}
 
 	static void DrawTextureVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
@@ -295,7 +291,6 @@ namespace HwRasterizer
 			glDisableVertexAttribArray(tex_atex);
 			glDisableVertexAttribArray(tex_apos);
 		}
-		GL_REPORT_ERRORD();
 	}
 
 	void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
@@ -332,7 +327,6 @@ namespace HwRasterizer
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 			glDisableVertexAttribArray(col_apos);
 		}
-		GL_REPORT_ERRORD();
 	}
 
 	TexCacheEntry::TexCacheEntry()
@@ -358,8 +352,6 @@ namespace HwRasterizer
 		glGenTextures(1, (GLuint *)&texture);
 		glBindTexture(texType, texture);
 		glTexImage2D(texType, 0, GL_RGBA, (GLsizei)image_width, (GLsizei)image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
-
-		GL_REPORT_ERRORD();
 	}
 
 	void TexCacheEntry::Destroy()

@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DolphinWX/GLInterface/EGLX11.h"
+#include "VideoBackends/OGL/GLInterface/EGLX11.h"
 
 EGLDisplay cInterfaceEGLX11::OpenDisplay()
 {

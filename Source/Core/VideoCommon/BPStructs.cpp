@@ -269,19 +269,13 @@ static void BPWritten(const BPCmd& bp)
 		{
 			u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
 			u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
+			u32 addr = bpmem.tmem_config.tlut_src << 5;
 
-			u32 addr = 0;
+			// The GameCube ignores the upper bits of this address. Some games (WW, MKDD) set them.
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+				addr = addr & 0x01FFFFFF;
 
-			// TODO - figure out a cleaner way.
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				addr = bpmem.tmem_config.tlut_src << 5;
-			else
-				addr = (bpmem.tmem_config.tlut_src & 0xFFFFF) << 5;
-
-			if (addr)
-				Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
-			else
-				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
+			Memory::CopyFromEmu(texMem + tlutTMemAddr, addr, tlutXferCount);
 
 			return;
 		}

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
 // Vertex array numbers
@@ -252,7 +253,7 @@ struct CPState final
     VAT vtx_attr[8];
 
 	// Attributes that actually belong to VertexLoaderManager:
-	int attr_dirty; // bitfield
+	BitSet32 attr_dirty;
 	VertexLoader* vertex_loaders[8];
 };
 

@@ -19,8 +19,8 @@
 class MemArena
 {
 public:
-	void GrabLowMemSpace(size_t size);
-	void ReleaseSpace();
+	void GrabSHMSegment(size_t size);
+	void ReleaseSHMSegment();
 	void *CreateView(s64 offset, size_t size, void *base = nullptr);
 	void ReleaseView(void *view, size_t size);
 
@@ -43,14 +43,16 @@ enum {
 
 struct MemoryView
 {
-	u8 **out_ptr_low;
-	u8 **out_ptr;
+	u8** out_ptr;
 	u32 virtual_address;
 	u32 size;
 	u32 flags;
+	void* mapped_ptr;
+	void* view_ptr;
+	u32 shm_position;
 };
 
 // Uses a memory arena to set up an emulator-friendly memory map according to
 // a passed-in list of MemoryView structures.
-u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
-void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
+u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena);
+void MemoryMap_Shutdown(MemoryView *views, int num_views, u32 flags, MemArena *arena);
