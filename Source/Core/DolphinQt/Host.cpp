@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <cstdarg>
 #include <cstring>
 
 #include <QApplication>
