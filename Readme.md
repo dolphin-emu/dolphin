@@ -6,7 +6,7 @@ Dolphin is an emulator for running GameCube, Triforce and Wii games on
 Windows/Linux/OS X systems and recent Android devices. It's licensed under
 the terms of the GNU General Public License, version 2 (GPLv2).
 
-Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before use.
+Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 ## System Requirements
 * OS
@@ -101,6 +101,7 @@ These folders are installed read-only and should not be changed:
 * `Maps`: symbol tables (dev only)
 * `Shaders`: post-processing shaders
 * `Themes`: icon themes for GUI
+* `Resources`: icons that are theme-agnostic
 * `Wii`: default Wii NAND contents
 
 ## User folder structure
