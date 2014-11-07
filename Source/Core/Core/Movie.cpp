@@ -1351,9 +1351,7 @@ void CheckMD5()
 	Core::DisplayMessage("Verifying checksum...", 2000);
 
 	unsigned char gameMD5[16];
-	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
-	md5_file(game, gameMD5);
+	md5_file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), gameMD5);
 
 	if (memcmp(gameMD5,s_MD5,16) == 0)
 		Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1365,9 +1363,7 @@ void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
 	memset(s_MD5, 0, sizeof(s_MD5));
-	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(),SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
-	md5_file(game, s_MD5);
+	md5_file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), s_MD5);
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 
