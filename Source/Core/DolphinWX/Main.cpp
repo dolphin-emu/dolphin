@@ -435,20 +435,6 @@ void DolphinApp::OnFatalException()
 // ------------
 // Talk to GUI
 
-void Host_SysMessage(const char *fmt, ...)
-{
-	va_list list;
-	char msg[512];
-
-	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
-	va_end(list);
-
-	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
-	//wxMessageBox(StrToWxStr(msg));
-	PanicAlert("%s", msg);
-}
-
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
 #ifdef __WXGTK__
