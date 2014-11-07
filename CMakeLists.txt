@@ -18,6 +18,10 @@ option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 option(FASTLOG "Enable all logs" OFF)
 option(OPROFILING "Enable profiling" OFF)
 option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
+endif()
 ########################################
 # Optional Targets
 # TODO: Add DSPSpy

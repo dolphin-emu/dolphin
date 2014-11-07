@@ -39,16 +39,16 @@ private slots:
 	void OnCoreStateChanged(Core::EState state);
 
 	// Main toolbar
-	void on_actOpen_triggered();
-	void on_actPlay_triggered();
-	void on_actStop_triggered();
+	void OnOpen();
+	void OnPlay();
+	void OnStop();
 
 	// Help menu
-	void on_actWebsite_triggered();
-	void on_actOnlineDocs_triggered();
-	void on_actGitHub_triggered();
-	void on_actSystemInfo_triggered();
-	void on_actAbout_triggered();
+	void OnOpenWebsite();
+	void OnOpenDocs();
+	void OnOpenGitHub();
+	void OnOpenSystemInfo();
+	void OnOpenAbout();
 
 	// Misc.
 	void UpdateIcons();

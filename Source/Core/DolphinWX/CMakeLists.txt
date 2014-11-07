@@ -1,7 +1,3 @@
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
-endif()
-
 set(LIBS	core
 			uicommon
 			${LZO}

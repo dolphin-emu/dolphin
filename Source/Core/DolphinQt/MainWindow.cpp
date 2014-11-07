@@ -33,12 +33,25 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 #endif
 
 	Resources::Init();
-
 	UpdateIcons();
 	setWindowIcon(Resources::GetIcon(Resources::DOLPHIN_LOGO));
 
+	// Connect all the signals/slots
 	connect(this, SIGNAL(CoreStateChanged(Core::EState)), this, SLOT(OnCoreStateChanged(Core::EState)));
-	emit CoreStateChanged(Core::CORE_UNINITIALIZED); // update GUI items
+
+	connect(m_ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnOpen()));
+
+	connect(m_ui->actionPlay, SIGNAL(triggered()), this, SLOT(OnPlay()));
+	connect(m_ui->actionStop, SIGNAL(triggered()), this, SLOT(OnStop()));
+
+	connect(m_ui->actionWebsite, SIGNAL(triggered()), this, SLOT(OnOpenWebsite()));
+	connect(m_ui->actionOnlineDocs, SIGNAL(triggered()), this, SLOT(OnOpenDocs()));
+	connect(m_ui->actionGitHub, SIGNAL(triggered()), this, SLOT(OnOpenGitHub()));
+	connect(m_ui->actionSystemInfo, SIGNAL(triggered()), this, SLOT(OnOpenSystemInfo()));
+	connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(OnOpenAbout()));
+
+	// Update GUI items
+	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
 }
 
 DMainWindow::~DMainWindow()
@@ -121,12 +134,12 @@ void DMainWindow::DoStartPause()
 		m_render_widget->setCursor(Qt::BlankCursor);
 }
 
-void DMainWindow::on_actOpen_triggered()
+void DMainWindow::OnOpen()
 {
 	StartGame(ShowFileDialog());
 }
 
-void DMainWindow::on_actPlay_triggered()
+void DMainWindow::OnPlay()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
@@ -141,7 +154,7 @@ void DMainWindow::on_actPlay_triggered()
 	}
 }
 
-void DMainWindow::on_actStop_triggered()
+void DMainWindow::OnStop()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED && !m_isStopping)
 	{
@@ -192,20 +205,20 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	bool is_paused = (state == Core::CORE_PAUSE);
 
 	// Update the toolbar
-	m_ui->actPlay->setEnabled(is_not_initialized || is_running || is_paused);
+	m_ui->actionPlay->setEnabled(is_not_initialized || is_running || is_paused);
 	if (is_running)
 	{
-		m_ui->actPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PAUSE));
-		m_ui->actPlay->setText(tr("Pause"));
+		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PAUSE));
+		m_ui->actionPlay->setText(tr("Pause"));
 	}
 	else if (is_paused || is_not_initialized)
 	{
-		m_ui->actPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLAY));
-		m_ui->actPlay->setText(tr("Play"));
+		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLAY));
+		m_ui->actionPlay->setText(tr("Play"));
 	}
 
-	m_ui->actStop->setEnabled(!is_not_initialized);
-	m_ui->actOpen->setEnabled(is_not_initialized);
+	m_ui->actionStop->setEnabled(!is_not_initialized);
+	m_ui->actionOpen->setEnabled(is_not_initialized);
 }
 
 // DRenderWidget
@@ -239,33 +252,33 @@ bool DMainWindow::RenderWidgetHasFocus()
 // "Resources". Call this function after changing the icon theme.
 void DMainWindow::UpdateIcons()
 {
-	m_ui->actOpen->setIcon(Resources::GetIcon(Resources::TOOLBAR_OPEN));
-	m_ui->actStop->setIcon(Resources::GetIcon(Resources::TOOLBAR_STOP));
+	// Play/Pause is handled in OnCoreStateChanged().
+	m_ui->actionStop->setIcon(Resources::GetIcon(Resources::TOOLBAR_STOP));
 }
 
 // Help menu
-void DMainWindow::on_actWebsite_triggered()
+void DMainWindow::OnOpenWebsite()
 {
     QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
 }
 
-void DMainWindow::on_actOnlineDocs_triggered()
+void DMainWindow::OnOpenDocs()
 {
 	QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/docs/guides/")));
 }
 
-void DMainWindow::on_actGitHub_triggered()
+void DMainWindow::OnOpenGitHub()
 {
 	QDesktopServices::openUrl(QUrl(SL("https://github.com/dolphin-emu/dolphin/")));
 }
 
-void DMainWindow::on_actSystemInfo_triggered()
+void DMainWindow::OnOpenSystemInfo()
 {
 	DSystemInfo* dlg = new DSystemInfo(this);
 	dlg->open();
 }
 
-void DMainWindow::on_actAbout_triggered()
+void DMainWindow::OnOpenAbout()
 {
 	DAboutDialog* dlg = new DAboutDialog(this);
 	dlg->open();
