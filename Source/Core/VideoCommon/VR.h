@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+#define OCULUSSDK043
 
 // Distances are in metres, angles are in degrees.
 const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, DEFAULT_VR_HUD_THICKNESS = 0.5f,
