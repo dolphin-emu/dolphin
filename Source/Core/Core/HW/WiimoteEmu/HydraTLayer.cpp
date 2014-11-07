@@ -15,22 +15,22 @@
 namespace HydraTLayer
 {
 
-void GetButtons(int index, bool sideways, bool has_extension, wm_core * butt, bool * cycle_extension)
+void GetButtons(int index, bool sideways, bool has_extension, wm_buttons * butt, bool * cycle_extension)
 {
 	u32 mask;
 	if (RazerHydra::getButtons(index, sideways, has_extension, &mask, cycle_extension))
 	{
-		*butt |= (mask & UDPWM_BA) ? WiimoteEmu::Wiimote::BUTTON_A : 0;
-		*butt |= (mask & UDPWM_BB) ? WiimoteEmu::Wiimote::BUTTON_B : 0;
-		*butt |= (mask & UDPWM_B1) ? WiimoteEmu::Wiimote::BUTTON_ONE : 0;
-		*butt |= (mask & UDPWM_B2) ? WiimoteEmu::Wiimote::BUTTON_TWO : 0;
-		*butt |= (mask & UDPWM_BP) ? WiimoteEmu::Wiimote::BUTTON_PLUS : 0;
-		*butt |= (mask & UDPWM_BM) ? WiimoteEmu::Wiimote::BUTTON_MINUS : 0;
-		*butt |= (mask & UDPWM_BH) ? WiimoteEmu::Wiimote::BUTTON_HOME : 0;
-		*butt |= (mask & UDPWM_BU) ? WiimoteEmu::Wiimote::PAD_UP : 0;
-		*butt |= (mask & UDPWM_BD) ? WiimoteEmu::Wiimote::PAD_DOWN : 0;
-		*butt |= (mask & UDPWM_BL) ? WiimoteEmu::Wiimote::PAD_LEFT : 0;
-		*butt |= (mask & UDPWM_BR) ? WiimoteEmu::Wiimote::PAD_RIGHT : 0;
+		butt->hex |= (mask & UDPWM_BA) ? WiimoteEmu::Wiimote::BUTTON_A : 0;
+		butt->hex |= (mask & UDPWM_BB) ? WiimoteEmu::Wiimote::BUTTON_B : 0;
+		butt->hex |= (mask & UDPWM_B1) ? WiimoteEmu::Wiimote::BUTTON_ONE : 0;
+		butt->hex |= (mask & UDPWM_B2) ? WiimoteEmu::Wiimote::BUTTON_TWO : 0;
+		butt->hex |= (mask & UDPWM_BP) ? WiimoteEmu::Wiimote::BUTTON_PLUS : 0;
+		butt->hex |= (mask & UDPWM_BM) ? WiimoteEmu::Wiimote::BUTTON_MINUS : 0;
+		butt->hex |= (mask & UDPWM_BH) ? WiimoteEmu::Wiimote::BUTTON_HOME : 0;
+		butt->hex |= (mask & UDPWM_BU) ? WiimoteEmu::Wiimote::PAD_UP : 0;
+		butt->hex |= (mask & UDPWM_BD) ? WiimoteEmu::Wiimote::PAD_DOWN : 0;
+		butt->hex |= (mask & UDPWM_BL) ? WiimoteEmu::Wiimote::PAD_LEFT : 0;
+		butt->hex |= (mask & UDPWM_BR) ? WiimoteEmu::Wiimote::PAD_RIGHT : 0;
 	}
 }
 
@@ -61,14 +61,14 @@ void GetNunchukAcceleration(int index, WiimoteEmu::AccelData * const data)
 	}
 }
 
-void GetNunchuk(int index, u8 *jx, u8 *jy, u8 *butt)
+void GetNunchuk(int index, u8 *jx, u8 *jy, wm_nc_core *butt)
 {
 	float x, y;
 	u8 mask;
 	if (RazerHydra::getNunchuk(index, &x, &y, &mask))
 	{
-		*butt |= (mask & UDPWM_NC) ? WiimoteEmu::Nunchuk::BUTTON_C : 0;
-		*butt |= (mask & UDPWM_NZ) ? WiimoteEmu::Nunchuk::BUTTON_Z : 0;
+		butt->hex |= (mask & UDPWM_NC) ? WiimoteEmu::Nunchuk::BUTTON_C : 0;
+		butt->hex |= (mask & UDPWM_NZ) ? WiimoteEmu::Nunchuk::BUTTON_Z : 0;
 		*jx = u8(0x80 + x * 127);
 		*jy = u8(0x80 + y * 127);
 	}
@@ -80,23 +80,23 @@ void GetClassic(int index, wm_classic_extension *ccdata)
 	u32 mask;
 	if (RazerHydra::getClassic(index, &lx, &ly, &rx, &ry, &l, &r, &mask))
 	 {
-		ccdata->bt |= (mask & CC_B_A)     ? WiimoteEmu::Classic::BUTTON_A : 0;
-		ccdata->bt |= (mask & CC_B_B)     ? WiimoteEmu::Classic::BUTTON_B : 0;
-		ccdata->bt |= (mask & CC_B_X)     ? WiimoteEmu::Classic::BUTTON_X : 0;
-		ccdata->bt |= (mask & CC_B_Y)     ? WiimoteEmu::Classic::BUTTON_Y : 0;
-		ccdata->bt |= (mask & CC_B_PLUS)  ? WiimoteEmu::Classic::BUTTON_PLUS : 0;
-		ccdata->bt |= (mask & CC_B_MINUS) ? WiimoteEmu::Classic::BUTTON_MINUS : 0;
-		ccdata->bt |= (mask & CC_B_HOME)  ? WiimoteEmu::Classic::BUTTON_HOME : 0;
-		ccdata->bt |= (mask & CC_B_L)     ? WiimoteEmu::Classic::TRIGGER_L : 0;
-		ccdata->bt |= (mask & CC_B_R)     ? WiimoteEmu::Classic::TRIGGER_R : 0;
-		ccdata->bt |= (mask & CC_B_ZL)    ? WiimoteEmu::Classic::BUTTON_ZL : 0;
-		ccdata->bt |= (mask & CC_B_ZR)    ? WiimoteEmu::Classic::BUTTON_ZR : 0;
-		ccdata->bt |= (mask & CC_B_UP)    ? WiimoteEmu::Classic::PAD_UP : 0;
-		ccdata->bt |= (mask & CC_B_DOWN)  ? WiimoteEmu::Classic::PAD_DOWN : 0;
-		ccdata->bt |= (mask & CC_B_LEFT)  ? WiimoteEmu::Classic::PAD_LEFT : 0;
-		ccdata->bt |= (mask & CC_B_RIGHT) ? WiimoteEmu::Classic::PAD_RIGHT : 0;
-		ccdata->lx = (u8)(31.5f + lx * 31.5f);
-		ccdata->ly = (u8)(31.5f + ly * 31.5f);
+		ccdata->bt.hex |= (mask & CC_B_A)     ? WiimoteEmu::Classic::BUTTON_A : 0;
+		ccdata->bt.hex |= (mask & CC_B_B) ? WiimoteEmu::Classic::BUTTON_B : 0;
+		ccdata->bt.hex |= (mask & CC_B_X) ? WiimoteEmu::Classic::BUTTON_X : 0;
+		ccdata->bt.hex |= (mask & CC_B_Y)     ? WiimoteEmu::Classic::BUTTON_Y : 0;
+		ccdata->bt.hex |= (mask & CC_B_PLUS)  ? WiimoteEmu::Classic::BUTTON_PLUS : 0;
+		ccdata->bt.hex |= (mask & CC_B_MINUS) ? WiimoteEmu::Classic::BUTTON_MINUS : 0;
+		ccdata->bt.hex |= (mask & CC_B_HOME)  ? WiimoteEmu::Classic::BUTTON_HOME : 0;
+		ccdata->bt.hex |= (mask & CC_B_L)     ? WiimoteEmu::Classic::TRIGGER_L : 0;
+		ccdata->bt.hex |= (mask & CC_B_R)     ? WiimoteEmu::Classic::TRIGGER_R : 0;
+		ccdata->bt.hex |= (mask & CC_B_ZL)    ? WiimoteEmu::Classic::BUTTON_ZL : 0;
+		ccdata->bt.hex |= (mask & CC_B_ZR)    ? WiimoteEmu::Classic::BUTTON_ZR : 0;
+		ccdata->bt.hex |= (mask & CC_B_UP)    ? WiimoteEmu::Classic::PAD_UP : 0;
+		ccdata->bt.hex |= (mask & CC_B_DOWN)  ? WiimoteEmu::Classic::PAD_DOWN : 0;
+		ccdata->bt.hex |= (mask & CC_B_LEFT)  ? WiimoteEmu::Classic::PAD_LEFT : 0;
+		ccdata->bt.hex |= (mask & CC_B_RIGHT) ? WiimoteEmu::Classic::PAD_RIGHT : 0;
+		ccdata->regular_data.lx = (u8)(31.5f + lx * 31.5f);
+		ccdata->regular_data.ly = (u8)(31.5f + ly * 31.5f);
 		u8 trigger = (u8)(l * 31);
 		ccdata->lt1 = trigger;
 		ccdata->lt2 = trigger >> 3;

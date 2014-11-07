@@ -67,11 +67,6 @@ struct ExtensionReg
 	u8 constant_id[6];
 };
 
-//cegli note: This should possibly be removed if not used anymore.
-void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
-	const accel_cal& calib,
-	const WiimoteEmu::AccelData& accel);
-
 void EmulateShake(AccelData* const accel_data
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step);

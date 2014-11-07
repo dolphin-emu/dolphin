@@ -116,7 +116,6 @@ void Nunchuk::GetState(u8* const data)
 	// flip the button bits :/
 	ncdata->bt.hex ^= 0x03;
 
-	//FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, *(accel_cal*)&reg.calibration, accel); //AE - Deleted During Merge
 	accel_cal& calib = *(accel_cal*)&reg.calibration;
 
 	u16 x = (u16)(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);

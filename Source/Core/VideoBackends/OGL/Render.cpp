@@ -1503,15 +1503,15 @@ void Renderer::AsyncTimewarpDraw()
 	if (s_bScreenshot)
 	{
 		TargetRectangle flipped_trc = GetTargetRectangle();
-		if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
-		{
-			std::swap(flipped_trc.left, flipped_trc.right);
-		}
-		else
-		{
+		//if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
+		//{
+		//	std::swap(flipped_trc.left, flipped_trc.right);
+		//}
+		//else
+		//{
 			// Flip top and bottom for some reason; TODO: Fix the code to suck less?
 			std::swap(flipped_trc.top, flipped_trc.bottom);
-		}
+		//}
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -1529,15 +1529,15 @@ void Renderer::AsyncTimewarpDraw()
 		if (SConfig::GetInstance().m_DumpFrames)
 		{
 			TargetRectangle flipped_trc = GetTargetRectangle();
-			if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
-			{
-				std::swap(flipped_trc.left, flipped_trc.right);
-			}
-			else
-			{
+			//if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
+			//{
+			//	std::swap(flipped_trc.left, flipped_trc.right);
+			//}
+			//else
+			//{
 				// Flip top and bottom for some reason; TODO: Fix the code to suck less?
 				std::swap(flipped_trc.top, flipped_trc.bottom);
-			}
+			//}
 
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -1550,7 +1550,8 @@ void Renderer::AsyncTimewarpDraw()
 			}
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-			if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
+			//if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
+			if (w > 0 && h > 0)
 			{
 				if (!bLastFrameDumped)
 				{
@@ -2031,11 +2032,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			if (eye)
 				FramebufferManager::SwapRenderEye();
-//			glClearColor(0, 0, 0, 0);
-//			glClearDepth(1);
+			//glClearColor(0, 0, 0, 0);
+			//glClearDepth(1);
 			glClearColor(0.f, 0.f, 0.f, 1.f);
 			glClearDepthf(1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		}
 	}
 	// VR
 	g_texture_cache->ClearRenderTargets();

@@ -82,32 +82,6 @@ static const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-//void FillRawAccelFromGForceData(wm_accel& raw_accel,
-//	const accel_cal& calib,
-//	const WiimoteEmu::AccelData& accel)
-//{
-//	raw_accel.x = (u8)trim(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-//	raw_accel.y = (u8)trim(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-//	raw_accel.z = (u8)trim(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
-//}
-//cegli note: This was altered by CarlKenner, but original function was deleted by RachelBryk.  Keeping for now, don't know if it should still be used.
-// Convert accelerometer readings in G's to 8-bit calibrated values and 2-bit Nunchuk-format LSB values (preserving buttons).
-void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
-	const accel_cal& calib,
-	const WiimoteEmu::AccelData& accel)
-{
-	lsb &= 3;
-	u32 temp = trim10bit(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	raw_accel.x = (u8)(temp >> 2);
-	lsb |= (temp & 3) << 2;
-	temp = trim10bit(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	raw_accel.y = (u8)(temp >> 2);
-	lsb |= (temp & 3) << 4;
-	temp = trim10bit(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
-	raw_accel.z = (u8)(temp >> 2);
-	lsb |= (temp & 3) << 6;
-}
-
 void EmulateShake(AccelData* const accel
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step )
