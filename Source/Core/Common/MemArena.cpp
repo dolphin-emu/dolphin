@@ -225,7 +225,7 @@ bail:
 static u32 MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flags)
 {
 	u32 shm_position = 0;
-	u32 last_position;
+	u32 last_position = 0;
 
 	for (int i = 0; i < num_views; i++)
 	{
