@@ -116,7 +116,8 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			g_texture_cache->ClearRenderTargets();
 		}
 
-		if ((config.iStereoMode > 0) != backup_config.s_stereo_3d)
+		if ((config.iStereoMode > 0) != backup_config.s_stereo_3d ||
+			config.bStereoMonoEFBDepth != backup_config.s_mono_efb_depth)
 		{
 			g_texture_cache->DeleteShaders();
 			g_texture_cache->CompileShaders();
@@ -133,6 +134,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	backup_config.s_hires_textures = config.bHiresTextures;
 	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
 	backup_config.s_stereo_3d = config.iStereoMode > 0;
+	backup_config.s_mono_efb_depth = config.bStereoMonoEFBDepth;
 }
 
 void TextureCache::Cleanup()

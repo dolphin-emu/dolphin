@@ -361,7 +361,7 @@ void TextureCache::CompileShaders()
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture(samp9, vec3(f_uv0.xy, 0));\n"
+		"	vec4 texcol = texture(samp9, vec3(f_uv0.xy, %s));\n"
 
 		// 255.99998474121 = 16777215/16777216*256
 		"	float workspace = texcol.x * 255.99998474121;\n"
@@ -387,30 +387,21 @@ void TextureCache::CompileShaders()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
-	const char *VProgram = (g_ActiveConfig.iStereoMode > 0) ?
-		"out vec2 v_uv0;\n"
+	const char *VProgram =
+		"out vec3 %s_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-		"	v_uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy);\n"
-		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-		"}\n" :
-		"out vec3 f_uv0;\n"
-		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-		"uniform vec4 copy_position;\n" // left, top, right, bottom
-		"void main()\n"
-		"{\n"
-		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-		"	f_uv0 = vec3(mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy), 0.0);\n"
+		"	%s_uv0 = vec3(mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy), 0.0);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
 	const char *GProgram = (g_ActiveConfig.iStereoMode > 0) ?
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = 6) out;\n"
-		"in vec2 v_uv0[];\n"
+		"in vec3 v_uv0[];\n"
 		"out vec3 f_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"void main()\n"
@@ -418,7 +409,7 @@ void TextureCache::CompileShaders()
 		"	int layers = textureSize(samp9, 0).z;\n"
 		"	for (int layer = 0; layer < layers; ++layer) {\n"
 		"		for (int i = 0; i < gl_in.length(); ++i) {\n"
-		"			f_uv0 = vec3(v_uv0[i], layer);\n"
+		"			f_uv0 = vec3(v_uv0[i].xy, layer);\n"
 		"			gl_Position = gl_in[i].gl_Position;\n"
 		"			gl_Layer = layer;\n"
 		"			EmitVertex();\n"
@@ -427,8 +418,11 @@ void TextureCache::CompileShaders()
 		"	}\n"
 		"}\n" : nullptr;
 
-	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, VProgram, pColorMatrixProg, GProgram);
-	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, VProgram, pDepthMatrixProg, GProgram);
+	const char* prefix = (GProgram == nullptr) ? "f" : "v";
+	const char* depth_layer = (g_ActiveConfig.bStereoMonoEFBDepth) ? "0" : "f_uv0.z";
+
+	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), pColorMatrixProg, GProgram);
+	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), StringFromFormat(pDepthMatrixProg, depth_layer).c_str(), GProgram);
 
 	s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
 	s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");

@@ -70,6 +70,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("StereoSeparation", &iStereoSeparation, 50);
 	settings->Get("StereoFocalLength", &iStereoFocalLength, 30);
 	settings->Get("StereoSwapEyes", &bStereoSwapEyes, false);
+	settings->Get("StereoMonoEFBDepth", &bStereoMonoEFBDepth, false);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
 	settings->Get("MSAA", &iMultisampleMode, 0);
@@ -145,6 +146,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "StereoSeparation", iStereoSeparation);
 	CHECK_SETTING("Video_Settings", "StereoFocalLength", iStereoFocalLength);
 	CHECK_SETTING("Video_Settings", "StereoSwapEyes", bStereoSwapEyes);
+	CHECK_SETTING("Video_Settings", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
@@ -237,6 +239,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("StereoSeparation", iStereoSeparation);
 	settings->Set("StereoFocalLength", iStereoFocalLength);
 	settings->Set("StereoSwapEyes", bStereoSwapEyes);
+	settings->Set("StereoMonoEFBDepth", bStereoMonoEFBDepth);
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
 	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);

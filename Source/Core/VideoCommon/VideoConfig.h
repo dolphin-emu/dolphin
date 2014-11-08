@@ -83,6 +83,7 @@ struct VideoConfig final
 	int iStereoSeparation;
 	int iStereoFocalLength;
 	bool bStereoSwapEyes;
+	bool bStereoMonoEFBDepth;
 
 	// Information
 	bool bShowFPS;
