@@ -38,6 +38,7 @@ static char s_vertex_shader[] =
 
 OpenGLPostProcessing::OpenGLPostProcessing()
 	: m_initialized(false)
+	, m_anaglyph(false)
 {
 	CreateHeader();
 
@@ -160,7 +161,8 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 void OpenGLPostProcessing::ApplyShader()
 {
 	// shader didn't changed
-	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader)
+	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader &&
+			((g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH) == m_anaglyph))
 		return;
 
 	m_shader.Destroy();
@@ -222,6 +224,7 @@ void OpenGLPostProcessing::ApplyShader()
 		std::string glsl_name = "option_" + it.first;
 		m_uniform_bindings[it.first] = glGetUniformLocation(m_shader.glprogid, glsl_name.c_str());
 	}
+	m_anaglyph = g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH;
 	m_initialized = true;
 }
 
