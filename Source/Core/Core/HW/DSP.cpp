@@ -241,7 +241,7 @@ void Init(bool hle)
 		g_ARAM.wii_mode = true;
 		g_ARAM.size = Memory::EXRAM_SIZE;
 		g_ARAM.mask = Memory::EXRAM_MASK;
-		g_ARAM.ptr = Memory::GetPointer(0x10000000);
+		g_ARAM.ptr = Memory::m_pEXRAM;
 	}
 	else
 	{

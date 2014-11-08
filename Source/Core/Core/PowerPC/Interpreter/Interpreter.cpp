@@ -48,23 +48,6 @@ void Interpreter::Shutdown()
 {
 }
 
-static void patches()
-{
-/*	if (Memory::Read_U16(0x90000880) == 0x130b)
-	{
-		PanicAlert("Memory::Read_U16(0x900008800) == 0x130b");
-	}
-*/
-/*	if (PC == 0x80074cd4)
-	{
-		u16 command = Common::swap16(Memory::Read_U16(PowerPC::ppcState.gpr[3] + 8));
-		if (command == 0x0b13)
-		{
-			PanicAlert("command: %x", command);
-		}
-	}*/
-}
-
 static int startTrace = 0;
 
 static void Trace(UGeckoInstruction& instCode)
@@ -178,8 +161,6 @@ int Interpreter::SingleStepInner()
 	}
 	last_pc = PC;
 	PC = NPC;
-
-	patches();
 
 	GekkoOPInfo *opinfo = GetOpInfo(instCode);
 	return opinfo->numCycles;

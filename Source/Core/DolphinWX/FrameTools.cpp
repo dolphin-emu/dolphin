@@ -216,19 +216,19 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	movieMenu->Append(IDM_TASINPUT, _("TAS Input"));
 	movieMenu->AppendSeparator();
-	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
+	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at End of Movie"));
 	movieMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
-	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
+	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show Lag Counter"));
 	movieMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
-	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show frame counter"));
+	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show Frame Counter"));
 	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
 	movieMenu->Check(IDM_RECORDREADONLY, true);
-	movieMenu->AppendCheckItem(IDM_SHOWINPUTDISPLAY, _("Show input display"));
+	movieMenu->AppendCheckItem(IDM_SHOWINPUTDISPLAY, _("Show Input Display"));
 	movieMenu->Check(IDM_SHOWINPUTDISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
 	movieMenu->AppendSeparator();
-	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump frames"));
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump Frames"));
 	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, SConfig::GetInstance().m_DumpFrames);
-	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump audio"));
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump Audio"));
 	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
 	menubar->Append(movieMenu, _("&Movie"));
 
@@ -357,7 +357,7 @@ wxMenuBar* CFrame::CreateMenu()
 	columnsMenu->Check(IDM_SHOW_ID, SConfig::GetInstance().m_showIDColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
 	columnsMenu->Check(IDM_SHOW_REGION, SConfig::GetInstance().m_showRegionColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_SIZE, _("File size"));
+	columnsMenu->AppendCheckItem(IDM_SHOW_SIZE, _("File Size"));
 	columnsMenu->Check(IDM_SHOW_SIZE, SConfig::GetInstance().m_showSizeColumn);
 	columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
 	columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
@@ -431,7 +431,7 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = _("Export Recording...");
 			break;
 		case HK_READ_ONLY_MODE:
-			Label = _("&Read-only mode");
+			Label = _("&Read-Only Mode");
 			break;
 
 		case HK_FULLSCREEN:
@@ -662,10 +662,10 @@ void CFrame::BootGame(const std::string& filename)
 			if (m_GameListCtrl->GetSelectedISO()->IsValid())
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
-		else if (!StartUp.m_strDefaultGCM.empty() &&
-		         File::Exists(StartUp.m_strDefaultGCM))
+		else if (!StartUp.m_strDefaultISO.empty() &&
+		         File::Exists(StartUp.m_strDefaultISO))
 		{
-			bootfile = StartUp.m_strDefaultGCM;
+			bootfile = StartUp.m_strDefaultISO;
 		}
 		else
 		{
@@ -743,21 +743,20 @@ void CFrame::OnRecordReadOnly(wxCommandEvent& event)
 
 void CFrame::OnTASInput(wxCommandEvent& event)
 {
-	std::string number[4] = {"1","2","3","4"};
-
 	for (int i = 0; i < 4; ++i)
 	{
 		if (SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_NONE && SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_GC_GBA)
 		{
 			g_TASInputDlg[i]->CreateGCLayout();
 			g_TASInputDlg[i]->Show(true);
-			g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
+			g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - Controller %d"), i + 1));
 		}
+
 		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
 		{
-			g_TASInputDlg[i+4]->CreateWiiLayout();
+			g_TASInputDlg[i+4]->CreateWiiLayout(i);
 			g_TASInputDlg[i+4]->Show(true);
-			g_TASInputDlg[i+4]->SetTitle("TAS Input - Wiimote " + number[i]);
+			g_TASInputDlg[i+4]->SetTitle(wxString::Format(_("TAS Input - Wiimote %d"), i + 1));
 		}
 	}
 }
@@ -1377,6 +1376,8 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))
 {
+	if (Movie::IsRecordingInput())
+		Movie::g_bReset = true;
 	ProcessorInterface::ResetButton_Tap();
 }
 
@@ -1929,7 +1930,7 @@ void CFrame::UpdateGUI()
 		if (m_GameListCtrl->IsEnabled())
 		{
 			// Prepare to load Default ISO, enable play button
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty())
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO.empty())
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);

@@ -141,7 +141,7 @@ void VertexLoader::CompileVertexTranslator()
 
 	m_compiledCode = GetCodePtr();
 	// We only use RAX (caller saved) and RBX (callee saved).
-	ABI_PushRegistersAndAdjustStack(1 << RBX, 8);
+	ABI_PushRegistersAndAdjustStack({RBX}, 8);
 
 	// save count
 	MOV(64, R(RBX), R(ABI_PARAM1));
@@ -226,10 +226,9 @@ void VertexLoader::CompileVertexTranslator()
 
 		if (pFunc == nullptr)
 		{
-			Host_SysMessage(
-				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!",
+			PanicAlert("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!",
 				(u32)m_VtxDesc.Normal, m_VtxAttr.NormalFormat,
-				m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3).c_str());
+				m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 		}
 		WriteCall(pFunc);
 
@@ -402,7 +401,7 @@ void VertexLoader::CompileVertexTranslator()
 	SUB(64, R(RBX), Imm8(1));
 
 	J_CC(CC_NZ, loop_start);
-	ABI_PopRegistersAndAdjustStack(1 << RBX, 8);
+	ABI_PopRegistersAndAdjustStack({RBX}, 8);
 	RET();
 #endif
 }

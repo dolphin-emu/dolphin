@@ -26,6 +26,4 @@ private:
 	wxTextCtrl* m_pEditStartAddress;
 
 	void OnOK(wxCommandEvent& event);
-
-	DECLARE_EVENT_TABLE();
 };

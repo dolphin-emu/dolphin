@@ -293,4 +293,4 @@ enum
 			(wxObject*) nullptr \
 			),
 
-extern const wxEventType wxEVT_HOST_COMMAND;
+wxDECLARE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);

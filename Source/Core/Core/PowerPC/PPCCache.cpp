@@ -12,9 +12,8 @@
 
 namespace PowerPC
 {
-
-	const u32 plru_mask[8] = {11, 11, 19, 19, 37, 37, 69, 69};
-	const u32 plru_value[8] = {11, 3, 17, 1, 36, 4, 64, 0};
+	static const u32 s_plru_mask[8] = {11, 11, 19, 19, 37, 37, 69, 69};
+	static const u32 s_plru_value[8] = {11, 3, 17, 1, 36, 4, 64, 0};
 
 	InstructionCache::InstructionCache()
 	{
@@ -150,7 +149,7 @@ namespace PowerPC
 			valid[set] |= (1 << t);
 		}
 		// update plru
-		plru[set] = (plru[set] & ~plru_mask[t]) | plru_value[t];
+		plru[set] = (plru[set] & ~s_plru_mask[t]) | s_plru_value[t];
 		u32 res = Common::swap32(data[set][t][(addr >> 2) & 7]);
 		return res;
 	}

@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DolphinWX/GLInterface/AGL.h"
+#include "VideoBackends/OGL/GLInterface/AGL.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"

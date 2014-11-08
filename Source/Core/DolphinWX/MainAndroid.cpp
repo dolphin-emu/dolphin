@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <jni.h>
@@ -105,15 +104,6 @@ bool Host_RendererHasFocus()
 }
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
-
-void Host_SysMessage(const char *fmt, ...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	__android_log_vprint(ANDROID_LOG_INFO, DOLPHIN_TAG, fmt, args);
-	va_end(args);
-}
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 

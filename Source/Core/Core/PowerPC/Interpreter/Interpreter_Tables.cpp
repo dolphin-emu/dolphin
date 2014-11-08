@@ -285,8 +285,8 @@ static GekkoOPTemplate table31_2[] =
 	{522,  Interpreter::addcx,       {"addcox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{138,  Interpreter::addex,       {"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{650,  Interpreter::addex,       {"addeox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
-	{234,  Interpreter::addmex,      {"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
-	{202,  Interpreter::addzex,      {"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{234,  Interpreter::addmex,      {"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{202,  Interpreter::addzex,      {"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{491,  Interpreter::divwx,       {"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 40, 0, 0, 0}},
 	{1003, Interpreter::divwx,       {"divwox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE, 40, 0, 0, 0}},
 	{459,  Interpreter::divwux,      {"divwux",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 40, 0, 0, 0}},
@@ -295,14 +295,14 @@ static GekkoOPTemplate table31_2[] =
 	{11,   Interpreter::mulhwux,     {"mulhwux", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 5, 0, 0, 0}},
 	{235,  Interpreter::mullwx,      {"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 5, 0, 0, 0}},
 	{747,  Interpreter::mullwx,      {"mullwox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE, 5, 0, 0, 0}},
-	{104,  Interpreter::negx,        {"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 1, 0, 0, 0}},
+	{104,  Interpreter::negx,        {"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 1, 0, 0, 0}},
 	{40,   Interpreter::subfx,       {"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 1, 0, 0, 0}},
 	{552,  Interpreter::subfx,       {"subox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
 	{8,    Interpreter::subfcx,      {"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{520,  Interpreter::subfcx,      {"subfcox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
 	{136,  Interpreter::subfex,      {"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
-	{232,  Interpreter::subfmex,     {"subfmex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
-	{200,  Interpreter::subfzex,     {"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{232,  Interpreter::subfmex,     {"subfmex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{200,  Interpreter::subfzex,     {"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 };
 
 static GekkoOPTemplate table59[] =

@@ -143,8 +143,8 @@ using namespace Gen;
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
 
-		for (u32 i = 0; i < (b.originalSize + 7) / 8; ++i)
-			valid_block.Set(pAddr / 32 + i);
+		for (u32 block = pAddr / 32; block <= (pAddr + (b.originalSize - 1) * 4) / 32; ++block)
+			valid_block.Set(block);
 
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 		if (block_link)

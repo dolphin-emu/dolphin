@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
-#include "DolphinWX/GLInterface/WGL.h"
+#include "VideoBackends/OGL/GLInterface/WGL.h"
 
 #include "VideoCommon/VR920.h"
 #endif

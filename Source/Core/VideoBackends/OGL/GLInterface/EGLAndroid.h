@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "DolphinWX/GLInterface/EGL.h"
+#include "VideoBackends/OGL/GLInterface/EGL.h"
 
 class cInterfaceEGLAndroid : public cInterfaceEGL
 {

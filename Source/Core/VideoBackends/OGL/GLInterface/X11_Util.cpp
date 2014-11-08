@@ -4,8 +4,8 @@
 
 #include "Common/Thread.h"
 #include "Core/Host.h"
-#include "DolphinWX/GLInterface/X11_Util.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
+#include "VideoBackends/OGL/GLInterface/X11_Util.h"
 #include "VideoCommon/VideoConfig.h"
 
 void cX11Window::Initialize(Display *_dpy)

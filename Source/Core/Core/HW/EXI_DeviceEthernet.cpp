@@ -4,6 +4,7 @@
 
 #include "Common/Network.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/Memmap.h"
@@ -123,6 +124,7 @@ void CEXIETHERNET::ImmWrite(u32 data,  u32 size)
 			exi_status.interrupt_mask = data;
 			break;
 		}
+		ExpansionInterface::UpdateInterrupts();
 	}
 	else
 	{
@@ -401,6 +403,7 @@ void CEXIETHERNET::SendComplete()
 		mBbaMem[BBA_IR] |= INT_T;
 
 		exi_status.interrupt |= exi_status.TRANSFER;
+		ExpansionInterface::ScheduleUpdateInterrupts_Threadsafe(0);
 	}
 
 	mBbaMem[BBA_LTPS] = 0;
@@ -571,6 +574,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 		mBbaMem[BBA_IR] |= INT_R;
 
 		exi_status.interrupt |= exi_status.TRANSFER;
+		ExpansionInterface::ScheduleUpdateInterrupts_Threadsafe(0);
 	}
 	else
 	{

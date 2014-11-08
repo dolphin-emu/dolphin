@@ -21,6 +21,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_Device.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -65,6 +66,7 @@ static std::string s_videoBackend = "unknown";
 static int s_iCPUCore = 1;
 bool g_bClearSave = false;
 bool g_bDiscChange = false;
+bool g_bReset = false;
 static std::string s_author = "";
 std::string g_discChange = "";
 u64 g_titleID = 0;
@@ -576,6 +578,8 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 		s_InputDisplay[controllerID].append(" LEFT");
 	if (padState.DPadRight)
 		s_InputDisplay[controllerID].append(" RIGHT");
+	if (padState.reset)
+		s_InputDisplay[controllerID].append(" RESET");
 
 	s_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerL, " L"));
 	s_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerR, " R"));
@@ -625,7 +629,8 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 	if (accelData)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
-		std::string accel = StringFromFormat(" ACC:%d,%d,%d", dt->x, dt->y, dt->z);
+		std::string accel = StringFromFormat(" ACC:%d,%d,%d",
+			dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1);
 		s_InputDisplay[controllerID].append(accel);
 	}
 
@@ -637,22 +642,23 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 		s_InputDisplay[controllerID].append(ir);
 	}
 
-	// Nunchuck
+	// Nunchuk
 	if (extData && ext == 1)
 	{
-		wm_nc nunchuck;
-		memcpy(&nunchuck, extData, sizeof(wm_nc));
-		WiimoteDecrypt(&key, (u8*)&nunchuck, 0, sizeof(wm_nc));
-		nunchuck.bt.hex = nunchuck.bt.hex ^ 0xFF;
+		wm_nc nunchuk;
+		memcpy(&nunchuk, extData, sizeof(wm_nc));
+		WiimoteDecrypt(&key, (u8*)&nunchuk, 0, sizeof(wm_nc));
+		nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
-		std::string accel = StringFromFormat(" N-ACC:%d,%d,%d", nunchuck.ax, nunchuck.ay, nunchuck.az);
+		std::string accel = StringFromFormat(" N-ACC:%d,%d,%d",
+			(nunchuk.ax << 2) | nunchuk.bt.acc_x_lsb, (nunchuk.ay << 2) | nunchuk.bt.acc_y_lsb, (nunchuk.az << 2) | nunchuk.bt.acc_z_lsb);
 
-		if (nunchuck.bt.c)
+		if (nunchuk.bt.c)
 			s_InputDisplay[controllerID].append(" C");
-		if (nunchuck.bt.z)
+		if (nunchuk.bt.z)
 			s_InputDisplay[controllerID].append(" Z");
 		s_InputDisplay[controllerID].append(accel);
-		s_InputDisplay[controllerID].append(Analog2DToString(nunchuck.jx, nunchuck.jy, " ANA"));
+		s_InputDisplay[controllerID].append(Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA"));
 	}
 
 	// Classic controller
@@ -724,6 +730,11 @@ void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 	s_padState.CStickX   = PadStatus->substickX;
 	s_padState.CStickY   = PadStatus->substickY;
 
+	s_padState.disc = g_bDiscChange;
+	g_bDiscChange = false;
+	s_padState.reset = g_bReset;
+	g_bReset = false;
+
 	SetInputDisplayString(s_padState, controllerID);
 }
 
@@ -734,12 +745,6 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 
 	CheckPadStatus(PadStatus, controllerID);
 
-	if (g_bDiscChange)
-	{
-		s_padState.disc = g_bDiscChange;
-		g_bDiscChange = false;
-	}
-
 	EnsureTmpInputSize((size_t)(s_currentByte + 8));
 	memcpy(&(tmpInput[s_currentByte]), &s_padState, 8);
 	s_currentByte += 8;
@@ -748,11 +753,10 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 
 void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
 {
-	u8 size = rptf.size;
 	SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
 
 	if (IsRecordingInput())
-		RecordWiimote(wiimote, data, size);
+		RecordWiimote(wiimote, data, rptf.size);
 }
 
 void RecordWiimote(int wiimote, u8 *data, u8 size)
@@ -1109,6 +1113,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		}
 	}
 
+	if (s_padState.reset)
+		ProcessorInterface::ResetButton_Tap();
+
 	SetInputDisplayString(s_padState, controllerID);
 	CheckInputEnd();
 }
@@ -1148,8 +1155,6 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 
 	memcpy(data, &(tmpInput[s_currentByte]), size);
 	s_currentByte += size;
-
-	SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
 
 	g_currentInputCount++;
 
@@ -1260,10 +1265,10 @@ void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 	if (gcmfunc)
 		(*gcmfunc)(PadStatus, controllerID);
 }
-void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID)
+void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
 {
 	if (wiimfunc)
-		(*wiimfunc)(data, rptf, controllerID);
+		(*wiimfunc)(data, rptf, controllerID, ext, key);
 }
 
 void SetGraphicsConfig()
@@ -1346,9 +1351,7 @@ void CheckMD5()
 	Core::DisplayMessage("Verifying checksum...", 2000);
 
 	unsigned char gameMD5[16];
-	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
-	md5_file(game, gameMD5);
+	md5_file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), gameMD5);
 
 	if (memcmp(gameMD5,s_MD5,16) == 0)
 		Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
@@ -1360,9 +1363,7 @@ void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
 	memset(s_MD5, 0, sizeof(s_MD5));
-	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(),SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
-	md5_file(game, s_MD5);
+	md5_file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), s_MD5);
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

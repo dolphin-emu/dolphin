@@ -54,10 +54,11 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	DMainWindow w;
-	w.show();
+	g_main_window = new DMainWindow();
+	g_main_window->show();
 
 	int retcode = app.exec();
+	delete g_main_window;
 	UICommon::Shutdown();
 	return retcode;
 }

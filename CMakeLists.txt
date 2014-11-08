@@ -12,12 +12,15 @@ option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 
-option(OPENMP "Enable OpenMP parallelization" ON)
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(FASTLOG "Enable all logs" OFF)
 option(OPROFILING "Enable profiling" OFF)
 option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
+endif()
 ########################################
 # Optional Targets
 # TODO: Add DSPSpy
@@ -340,19 +343,6 @@ add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 # externals.
 include(CheckLib)
 include(CheckCXXSourceRuns)
-
-if(OPENMP)
-	include(FindOpenMP OPTIONAL)
-	if(OPENMP_FOUND)
-		message("OpenMP parallelization enabled")
-		add_definitions("${OpenMP_CXX_FLAGS}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-	endif()
-endif()
-if(NOT OPENMP_FOUND)
-	add_definitions(-Wno-unknown-pragmas)
-	message("OpenMP parallelization disabled")
-endif()
 
 if(NOT ANDROID)
 
@@ -764,6 +754,11 @@ add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 # Start compiling our code
 #
 add_definitions(-std=gnu++0x)
+
+# These aren't actually needed for C11/C++11
+# but some dependencies require them (LLVM, libav).
+add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
+
 add_subdirectory(Source)
 
 

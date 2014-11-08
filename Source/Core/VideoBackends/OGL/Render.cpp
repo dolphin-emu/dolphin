@@ -1503,15 +1503,8 @@ void Renderer::AsyncTimewarpDraw()
 	if (s_bScreenshot)
 	{
 		TargetRectangle flipped_trc = GetTargetRectangle();
-		if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
-		{
-			std::swap(flipped_trc.left, flipped_trc.right);
-		}
-		else
-		{
-			// Flip top and bottom for some reason; TODO: Fix the code to suck less?
-			std::swap(flipped_trc.top, flipped_trc.bottom);
-		}
+		// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+		std::swap(flipped_trc.top, flipped_trc.bottom);
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -1529,15 +1522,8 @@ void Renderer::AsyncTimewarpDraw()
 		if (SConfig::GetInstance().m_DumpFrames)
 		{
 			TargetRectangle flipped_trc = GetTargetRectangle();
-			if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
-			{
-				std::swap(flipped_trc.left, flipped_trc.right);
-			}
-			else
-			{
-				// Flip top and bottom for some reason; TODO: Fix the code to suck less?
-				std::swap(flipped_trc.top, flipped_trc.bottom);
-			}
+			// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+			std::swap(flipped_trc.top, flipped_trc.bottom);
 
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -1693,15 +1679,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
-	if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
-	{
-		std::swap(flipped_trc.left, flipped_trc.right);
-	}
-	else
-	{
-		// Flip top and bottom for some reason; TODO: Fix the code to suck less?
-		std::swap(flipped_trc.top, flipped_trc.bottom);
-	}
+	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+	std::swap(flipped_trc.top, flipped_trc.bottom);
 
 	// Copy the framebuffer to screen.
 	const XFBSource* xfbSource = nullptr;
@@ -1935,6 +1914,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (!bLastFrameDumped)
 			{
 				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
+				File::CreateFullPath(movie_file_name);
 				pFrameDump.Open(movie_file_name, "wb");
 				if (!pFrameDump)
 				{
@@ -2320,17 +2300,15 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = new u8[W * 4 * H];
+	std::unique_ptr<u8[]> data(new u8[W * 4 * H]);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 
 	// Turn image upside down
-	FlipImageData(data, W, H, 4);
-	bool success = TextureToPng(data, W*4, filename, W, H, false);
-	delete[] data;
+	FlipImageData(data.get(), W, H, 4);
 
-	return success;
+	return TextureToPng(data.get(), W * 4, filename, W, H, false);
 
 }
 

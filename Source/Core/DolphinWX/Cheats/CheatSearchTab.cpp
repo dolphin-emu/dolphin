@@ -126,7 +126,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
-	const u8* const memptr = Memory::GetPointer(0);
+	const u8* const memptr = Memory::m_pRAM;
 	if (memptr == nullptr)
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
@@ -158,7 +158,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
-	const u8* const memptr = Memory::GetPointer(0);
+	const u8* const memptr = Memory::m_pRAM;
 	if (memptr == nullptr)
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
@@ -254,7 +254,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	UpdateCheatSearchResultsList();
 }
 
-void CheatSearchTab::ApplyFocus(wxEvent& ev)
+void CheatSearchTab::ApplyFocus(wxFocusEvent& ev)
 {
 	ev.Skip();
 	m_value_x_radiobtn.rad_uservalue->SetValue(true);
@@ -264,7 +264,7 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 {
 	m_lbox_search_results->Clear();
 
-	wxString count_label = _("Count:") + wxString::Format(" %lu",
+	wxString count_label = wxString::Format(_("Count: %lu"),
 		(unsigned long)m_search_results.size());
 	if (m_search_results.size() > MAX_CHEAT_SEARCH_RESULTS_DISPLAY)
 	{

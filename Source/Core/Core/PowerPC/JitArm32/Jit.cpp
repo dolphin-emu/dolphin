@@ -397,7 +397,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 				// get end tic
 				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
 				// tic counter += (end tic - start tic)
-				PROFILER_ADD_DIFF_LARGE_INTEGER(&b->ticCounter, &b->ticStop, &b->ticStart);
+				PROFILER_UPDATE_TIME(&b);
 				PROFILER_VPOP;
 			}
 		}
@@ -467,4 +467,3 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	FlushIcache();
 	return start;
 }
-

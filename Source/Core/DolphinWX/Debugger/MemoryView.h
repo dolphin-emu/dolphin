@@ -58,6 +58,4 @@ private:
 	};
 
 	EViewAsType viewAsType;
-
-	DECLARE_EVENT_TABLE()
 };

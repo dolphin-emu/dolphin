@@ -51,7 +51,7 @@ static BITMAPINFOHEADER s_bitmap;
 // so we have to save a frame and always be behind
 static void* s_stored_frame = nullptr;
 static u64 s_stored_frame_size = 0;
-bool b_start_dumping = false;
+static bool s_start_dumping = false;
 
 bool AVIDump::Start(HWND hWnd, int w, int h)
 {
@@ -171,7 +171,7 @@ void AVIDump::Stop()
 	// store one copy of the last video frame, CFR case
 	if (s_stream_compressed)
 		AVIStreamWrite(s_stream_compressed, s_frame_count++, 1, GetFrame(), s_bitmap.biSizeImage, AVIIF_KEYFRAME, nullptr, &s_byte_buffer);
-	b_start_dumping = false;
+	s_start_dumping = false;
 	CloseFile();
 	s_file_count = 0;
 	NOTICE_LOG(VIDEO, "Stop");
@@ -228,10 +228,10 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 	u64 one_cfr = SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	int nplay = 0;
 	s64 delta;
-	if (!b_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
 	{
 		delta = CoreTiming::GetTicks();
-		b_start_dumping = true;
+		s_start_dumping = true;
 	}
 	else
 	{
@@ -334,7 +334,7 @@ static int s_width;
 static int s_height;
 static int s_size;
 static u64 s_last_frame;
-bool b_start_dumping = false;
+static bool s_start_dumping = false;
 static u64 s_last_pts;
 
 static void InitAVCodec()
@@ -446,11 +446,11 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	int error = 0;
 	u64 delta;
 	s64 last_pts;
-	if (!b_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
 	{
 		delta = CoreTiming::GetTicks();
 		last_pts = AV_NOPTS_VALUE;
-		b_start_dumping = true;
+		s_start_dumping = true;
 	}
 	else
 	{

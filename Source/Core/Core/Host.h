@@ -34,7 +34,6 @@ void Host_RequestRenderWindowSize(int width, int height);
 void Host_RequestFullscreen(bool enable_fullscreen);
 void Host_SetStartupDebuggingParameters();
 void Host_SetWiiMoteConnectionState(int _State);
-void Host_SysMessage(const char *fmt, ...);
 void Host_UpdateDisasmDialog();
 void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);

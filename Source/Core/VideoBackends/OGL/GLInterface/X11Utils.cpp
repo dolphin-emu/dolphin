@@ -10,7 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
-#include "DolphinWX/X11Utils.h"
+#include "VideoBackends/OGL/GLInterface/X11Utils.h"
 
 extern char **environ;
 
@@ -40,19 +40,6 @@ void ToggleFullscreen(Display *dpy, Window win)
 	                SubstructureRedirectMask | SubstructureNotifyMask, &event))
 		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.");
 }
-
-
-#if defined(HAVE_WX) && HAVE_WX
-Window XWindowFromHandle(void *Handle)
-{
-	return GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(Handle)));
-}
-
-Display *XDisplayFromHandle(void *Handle)
-{
-	return GDK_WINDOW_XDISPLAY(gtk_widget_get_window(GTK_WIDGET(Handle)));
-}
-#endif
 
 void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 {

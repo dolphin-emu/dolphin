@@ -11,7 +11,6 @@
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
-#define NET_SSL_MAX_HOSTNAME_LEN 256
 #define NET_SSL_MAXINSTANCES 4
 
 #define SSLID_VALID(x) (x >= 0 && x < NET_SSL_MAXINSTANCES && CWII_IPC_HLE_Device_net_ssl::_SSL[x].active)
@@ -64,7 +63,7 @@ struct WII_SSL
 	x509_crt clicert;
 	pk_context pk;
 	int sockfd;
-	char hostname[NET_SSL_MAX_HOSTNAME_LEN];
+	std::string hostname;
 	bool active;
 };
 

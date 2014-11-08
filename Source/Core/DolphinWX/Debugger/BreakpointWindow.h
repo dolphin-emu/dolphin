@@ -43,8 +43,6 @@ public:
 	void LoadAll();
 
 private:
-	DECLARE_EVENT_TABLE();
-
 	wxAuiManager m_mgr;
 	CBreakPointView* m_BreakPointListView;
 	CCodeWindow* m_pCodeWindow;

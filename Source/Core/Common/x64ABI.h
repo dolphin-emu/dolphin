@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/BitSet.h"
 #include "Common/x64Emitter.h"
 
 // x64 ABI:s, and helpers to help follow them when JIT-ing code.
@@ -23,6 +24,9 @@
 // Callee-save:  RBX RBP R12 R13 R14 R15
 // Parameters:   RDI RSI RDX RCX R8 R9
 
+#define ABI_ALL_FPRS BitSet32(0xffff0000)
+#define ABI_ALL_GPRS BitSet32(0x0000ffff)
+
 #ifdef _WIN32 // 64-bit Windows - the really exotic calling convention
 
 #define ABI_PARAM1 RCX
@@ -31,11 +35,9 @@
 #define ABI_PARAM4 R9
 
 // xmm0-xmm15 use the upper 16 bits in the functions that push/pop registers.
-#define ABI_ALL_CALLER_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << R8) | \
-                              (1 << R9) | (1 << R10) | (1 << R11) | \
-                              (1 << (XMM0+16)) | (1 << (XMM1+16)) | (1 << (XMM2+16)) | (1 << (XMM3+16)) | \
-                              (1 << (XMM4+16)) | (1 << (XMM5+16)))
-
+#define ABI_ALL_CALLER_SAVED \
+	(BitSet32 { RAX, RCX, RDX, R8, R9, R10, R11, \
+	            XMM0+16, XMM1+16, XMM2+16, XMM3+16, XMM4+16, XMM5+16 })
 #else  //64-bit Unix / OS X
 
 #define ABI_PARAM1 RDI
@@ -47,13 +49,12 @@
 
 // FIXME: avoid pushing all 16 XMM registers when possible? most functions we call probably
 // don't actually clobber them.
-#define ABI_ALL_CALLER_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << RDI) | \
-                              (1 << RSI) | (1 << R8) | (1 << R9) | (1 << R10) | (1 << R11) | \
-                              0xffff0000 /* xmm0..15 */)
-
+#define ABI_ALL_CALLER_SAVED \
+	(BitSet32 { RAX, RCX, RDX, RDI, RSI, R8, R9, R10, R11 } | \
+	 ABI_ALL_FPRS)
 #endif // WIN32
 
-#define ABI_ALL_CALLEE_SAVED ((u32) ~ABI_ALL_CALLER_SAVED)
+#define ABI_ALL_CALLEE_SAVED (~ABI_ALL_CALLER_SAVED)
 
 #define ABI_RETURN RAX
 

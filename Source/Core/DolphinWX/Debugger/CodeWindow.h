@@ -108,16 +108,6 @@ public:
 	int iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 private:
-	enum
-	{
-		// Debugger GUI Objects
-		ID_CODEVIEW,
-		ID_CALLSTACKLIST,
-		ID_CALLERSLIST,
-		ID_CALLSLIST,
-		ID_SYMBOLLIST
-	};
-
 	void OnSymbolListChange(wxCommandEvent& event);
 	void OnSymbolListContextMenu(wxContextMenuEvent& event);
 	void OnCallstackListChange(wxCommandEvent& event);
@@ -143,6 +133,4 @@ private:
 	wxListBox* callers;
 	wxListBox* calls;
 	Common::Event sync_event;
-
-	DECLARE_EVENT_TABLE()
 };

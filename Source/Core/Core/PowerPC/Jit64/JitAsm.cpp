@@ -43,22 +43,23 @@ void Jit64AsmRoutineManager::Generate()
 	MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
 	const u8* outerLoop = GetCodePtr();
-		ABI_PushRegistersAndAdjustStack(0, 0);
+		ABI_PushRegistersAndAdjustStack({}, 0);
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-		ABI_PopRegistersAndAdjustStack(0, 0);
+		ABI_PopRegistersAndAdjustStack({}, 0);
 		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
 		dispatcherMispredictedBLR = GetCodePtr();
+		AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
 		#if 0 // debug mispredicts
 		MOV(32, R(ABI_PARAM1), MDisp(RSP, 8)); // guessed_pc
-		ABI_PushRegistersAndAdjustStack(1 << RSCRATCH, 0);
+		ABI_PushRegistersAndAdjustStack(1 << RSCRATCH2, 0);
 		CALL(reinterpret_cast<void *>(&ReportMispredict));
-		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH, 0);
+		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH2, 0);
 		#endif
 
 		ResetStack();
 
-		SUB(32, PPCSTATE(downcount), R(RSCRATCH));
+		SUB(32, PPCSTATE(downcount), R(RSCRATCH2));
 
 		dispatcher = GetCodePtr();
 			// The result of slice decrementation should be in flags if somebody jumped here
@@ -71,9 +72,9 @@ void Jit64AsmRoutineManager::Generate()
 			{
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
-				ABI_PushRegistersAndAdjustStack(0, 0);
+				ABI_PushRegistersAndAdjustStack({}, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
-				ABI_PopRegistersAndAdjustStack(0, 0);
+				ABI_PopRegistersAndAdjustStack({}, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				dbg_exit = J_CC(CC_NZ, true);
 				SetJumpTarget(notStepping);
@@ -83,7 +84,6 @@ void Jit64AsmRoutineManager::Generate()
 
 			dispatcherNoCheck = GetCodePtr();
 			MOV(32, R(RSCRATCH), PPCSTATE(pc));
-			dispatcherPcInRSCRATCH = GetCodePtr();
 
 			u32 mask = 0;
 			FixupBranch no_mem;
@@ -129,9 +129,9 @@ void Jit64AsmRoutineManager::Generate()
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
-			ABI_PushRegistersAndAdjustStack(0, 0);
+			ABI_PushRegistersAndAdjustStack({}, 0);
 			ABI_CallFunctionA((void *)&Jit, PPCSTATE(pc));
-			ABI_PopRegistersAndAdjustStack(0, 0);
+			ABI_PopRegistersAndAdjustStack({}, 0);
 
 			// Jit might have cleared the code cache
 			ResetStack();
@@ -146,9 +146,9 @@ void Jit64AsmRoutineManager::Generate()
 		FixupBranch noExtException = J_CC(CC_Z);
 		MOV(32, R(RSCRATCH), PPCSTATE(pc));
 		MOV(32, PPCSTATE(npc), R(RSCRATCH));
-		ABI_PushRegistersAndAdjustStack(0, 0);
+		ABI_PushRegistersAndAdjustStack({}, 0);
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-		ABI_PopRegistersAndAdjustStack(0, 0);
+		ABI_PopRegistersAndAdjustStack({}, 0);
 		SetJumpTarget(noExtException);
 
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
@@ -186,8 +186,6 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	GenFifoWrite(16);
 	fifoDirectWrite32 = AlignCode4();
 	GenFifoWrite(32);
-	fifoDirectWriteFloat = AlignCode4();
-	GenFifoFloatWrite();
 	frsqrte = AlignCode4();
 	GenFrsqrte();
 	fres = AlignCode4();

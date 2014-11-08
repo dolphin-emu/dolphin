@@ -293,9 +293,9 @@ bool CBoot::BootUp()
 		{
 			BS2Success = EmulatedBS2(dolWii);
 		}
-		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
+		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultISO.empty())
 		{
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultISO);
 			BS2Success = EmulatedBS2(dolWii);
 		}
 
@@ -343,9 +343,9 @@ bool CBoot::BootUp()
 		{
 			BS2Success = EmulatedBS2(elfWii);
 		}
-		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
+		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultISO.empty())
 		{
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultISO);
 			BS2Success = EmulatedBS2(elfWii);
 		}
 
@@ -357,10 +357,10 @@ bool CBoot::BootUp()
 			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
 			BS2Success = EmulatedBS2(elfWii);
 		}
-		else if (!_StartupPara.m_strDefaultGCM.empty())
+		else if (!_StartupPara.m_strDefaultISO.empty())
 		{
-			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultGCM.c_str());
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
+			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultISO);
 		}
 		else VolumeHandler::SetVolumeDirectory(_StartupPara.m_strFilename, elfWii);
 
@@ -390,8 +390,8 @@ bool CBoot::BootUp()
 		// load default image or create virtual drive from directory
 		if (!_StartupPara.m_strDVDRoot.empty())
 			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, true);
-		else if (!_StartupPara.m_strDefaultGCM.empty())
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+		else if (!_StartupPara.m_strDefaultISO.empty())
+			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultISO);
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 		break;

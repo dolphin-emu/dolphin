@@ -96,21 +96,19 @@ private:
 	wxBitmap m_Bitmaps[Num_Bitmaps];
 };
 
-BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
-	EVT_CLOSE(CBreakPointWindow::OnClose)
-	EVT_LIST_ITEM_SELECTED(wxID_ANY, CBreakPointWindow::OnSelectBP)
-END_EVENT_TABLE()
-
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent,
 	    wxWindowID id, const wxString& title, const wxPoint& position,
 	    const wxSize& size, long style)
 	: wxPanel(parent, id, position, size, style, title)
 	, m_pCodeWindow(_pCodeWindow)
 {
+	Bind(wxEVT_CLOSE_WINDOW, &CBreakPointWindow::OnClose, this);
+
 	m_mgr.SetManagedWindow(this);
 	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
 	m_BreakPointListView = new CBreakPointView(this, wxID_ANY);
+	m_BreakPointListView->Bind(wxEVT_LIST_ITEM_SELECTED, &CBreakPointWindow::OnSelectBP, this);
 
 	m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
 	              LeftDockable(true).RightDockable(true).BottomDockable(false).Floatable(false));
