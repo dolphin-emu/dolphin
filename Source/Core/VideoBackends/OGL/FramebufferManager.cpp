@@ -604,7 +604,11 @@ void FramebufferManager::ConfigureRift()
 #ifdef _WIN32
 	cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
 	cfg.OGL.DC = GetDC(cfg.OGL.Window);
-	//ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr);
+#ifdef OCULUSSDK043
+	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) {//If in Direct Mode
+		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
+	}
+#endif
 #endif
 	int caps = 0;
 	if (g_Config.bChromatic)

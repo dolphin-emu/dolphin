@@ -326,8 +326,13 @@ void FramebufferManager::ConfigureRift()
 	cfg.D3D11.pDeviceContext = D3D::context;
 	cfg.D3D11.pSwapChain = D3D::swapchain;
 	cfg.D3D11.pBackBufferRT = D3D::GetBackBuffer()->GetRTV();
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
-		ovrHmd_AttachToWindow(hmd, D3D::hWnd, nullptr, nullptr);
+	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) {//If Rift is in Direct Mode
+		//To do: This is a bit of a hack, but I haven't found any problems with this.  
+		//If we don't want to do this, large changes will be needed to init sequence.
+		DX11::D3D::UnloadDXGI();  //Unload CreateDXGIFactory() before ovrHmd_AttachToWindow, or else direct mode won't work.
+		ovrHmd_AttachToWindow(hmd, D3D::hWnd, nullptr, nullptr); //Attach to Direct Mode.
+		DX11::D3D::LoadDXGI();
+	}
 	int caps = 0;
 	if (g_Config.bChromatic)
 		caps |= ovrDistortionCap_Chromatic;
@@ -347,7 +352,7 @@ void FramebufferManager::ConfigureRift()
 		caps |= ovrDistortionCap_HqDistortion;
 	ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps,
 		g_eye_fov, g_eye_render_desc);
-	ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
+	ovrhmd_EnableHSWDisplaySDKRender(hmd, false); //Disable Health and Safety Warning.
 }
 #endif
 
