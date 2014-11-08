@@ -33,23 +33,16 @@
 #include "DolphinWX/Debugger/DSPRegisterView.h"
 #include "DolphinWX/Debugger/MemoryView.h"
 
-class wxWindow;
-
 static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
-
-BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
-	EVT_CLOSE(DSPDebuggerLLE::OnClose)
-	EVT_MENU_RANGE(ID_RUNTOOL, ID_SHOWPCTOOL, DSPDebuggerLLE::OnChangeState)
-	EVT_TEXT_ENTER(ID_ADDRBOX, DSPDebuggerLLE::OnAddrBoxChange)
-	EVT_LISTBOX(ID_SYMBOLLIST, DSPDebuggerLLE::OnSymbolListChange)
-END_EVENT_TABLE()
-
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize,
 			wxTAB_TRAVERSAL, _("DSP LLE Debugger"))
 	, m_CachedStepCounter(-1)
 {
+	Bind(wxEVT_CLOSE_WINDOW, &DSPDebuggerLLE::OnClose, this);
+	Bind(wxEVT_MENU, &DSPDebuggerLLE::OnChangeState, this, ID_RUNTOOL, ID_SHOWPCTOOL);
+
 	m_DebuggerFrame = this;
 
 	// notify wxAUI which frame to use
@@ -65,12 +58,16 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_Toolbar->AddTool(ID_SHOWPCTOOL, _("Show PC"),
 		wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, wxSize(10,10)));
 	m_Toolbar->AddSeparator();
-	m_Toolbar->AddControl(new wxTextCtrl(m_Toolbar, ID_ADDRBOX, wxEmptyString,
-		wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
+
+	m_addr_txtctrl = new wxTextCtrl(m_Toolbar, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	m_addr_txtctrl->Bind(wxEVT_TEXT_ENTER, &DSPDebuggerLLE::OnAddrBoxChange, this);
+
+	m_Toolbar->AddControl(m_addr_txtctrl);
 	m_Toolbar->Realize();
 
-	m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition,
+	m_SymbolList = new wxListBox(this, wxID_ANY, wxDefaultPosition,
 		wxSize(140, 100), 0, nullptr, wxLB_SORT);
+	m_SymbolList->Bind(wxEVT_LISTBOX, &DSPDebuggerLLE::OnSymbolListChange, this);
 
 	m_MainNotebook = new wxAuiNotebook(this, wxID_ANY,
 		wxDefaultPosition, wxDefaultSize,
@@ -253,8 +250,7 @@ void DSPDebuggerLLE::UpdateRegisterFlags()
 
 void DSPDebuggerLLE::OnAddrBoxChange(wxCommandEvent& event)
 {
-	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)m_Toolbar->FindControl(ID_ADDRBOX);
-	wxString txt = pAddrCtrl->GetValue();
+	wxString txt = m_addr_txtctrl->GetValue();
 
 	auto text = StripSpaces(WxStrToStr(txt));
 	if (text.size())
@@ -262,9 +258,9 @@ void DSPDebuggerLLE::OnAddrBoxChange(wxCommandEvent& event)
 		u32 addr;
 		sscanf(text.c_str(), "%04x", &addr);
 		if (JumpToAddress(addr))
-			pAddrCtrl->SetBackgroundColour(*wxWHITE);
+			m_addr_txtctrl->SetBackgroundColour(*wxWHITE);
 		else
-			pAddrCtrl->SetBackgroundColour(*wxRED);
+			m_addr_txtctrl->SetBackgroundColour(*wxRED);
 	}
 	event.Skip();
 }

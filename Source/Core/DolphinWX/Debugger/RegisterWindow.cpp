@@ -15,14 +15,6 @@
 #include "DolphinWX/Debugger/RegisterView.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
 
-class wxWindow;
-
-BEGIN_EVENT_TABLE(CRegisterWindow, wxPanel)
-EVT_GRID_CELL_RIGHT_CLICK(CRegisterView::OnMouseDownR)
-EVT_MENU(-1, CRegisterView::OnPopupMenu)
-END_EVENT_TABLE()
-
-
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
 		const wxPoint& position, const wxSize& size,
 		long style, const wxString& name)

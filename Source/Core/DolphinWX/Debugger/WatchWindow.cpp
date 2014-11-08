@@ -26,13 +26,6 @@ extern "C" {
 #include "DolphinWX/resources/toolbar_debugger_delete.c"
 }
 
-class wxWindow;
-
-BEGIN_EVENT_TABLE(CWatchWindow, wxPanel)
-EVT_GRID_CELL_RIGHT_CLICK(CWatchView::OnMouseDownR)
-EVT_MENU(-1, CWatchView::OnPopupMenu)
-END_EVENT_TABLE()
-
 class CWatchToolbar : public wxAuiToolBar
 {
 public:

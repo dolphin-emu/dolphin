@@ -20,6 +20,4 @@ private:
 	wxTextCtrl *m_pEditAddress;
 
 	void OnOK(wxCommandEvent& event);
-
-	DECLARE_EVENT_TABLE();
 };

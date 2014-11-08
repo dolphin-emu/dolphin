@@ -229,7 +229,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.
 
-const wxEventType wxEVT_HOST_COMMAND = wxNewEventType();
+wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
 

@@ -221,6 +221,9 @@ CWatchView::CWatchView(wxWindow* parent, wxWindowID id)
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
+
+	Bind(wxEVT_GRID_CELL_RIGHT_CLICK, &CWatchView::OnMouseDownR, this);
+	Bind(wxEVT_MENU, &CWatchView::OnPopupMenu, this);
 }
 
 void CWatchView::Update()
