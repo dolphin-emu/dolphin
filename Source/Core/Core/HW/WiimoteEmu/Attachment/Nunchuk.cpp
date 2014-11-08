@@ -90,7 +90,7 @@ void Nunchuk::GetState(u8* const data)
 	ncdata->jx = u8(trim(state[0]));
 	ncdata->jy = u8(trim(state[1]));
 
-	HydraTLayer::GetNunchuk(m_index, &ncdata->jx, &ncdata->jy, (u8 *)&ncdata->bt);
+	HydraTLayer::GetNunchuk(m_index, &ncdata->jx, &ncdata->jy, &ncdata->bt);
 
 	if (ncdata->jx != cal.jx.center || ncdata->jy != cal.jy.center)
 	{

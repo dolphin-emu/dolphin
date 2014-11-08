@@ -1640,8 +1640,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
 			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+#ifdef OCULUSSDK042
+			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+#endif
+#ifdef OCULUSSDK043
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
+#endif
 		}
 		g_first_rift_frame = false;
 
@@ -1679,8 +1685,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
-	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
-	std::swap(flipped_trc.top, flipped_trc.bottom);
+		// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+		std::swap(flipped_trc.top, flipped_trc.bottom);
 
 	// Copy the framebuffer to screen.
 	const XFBSource* xfbSource = nullptr;
@@ -1911,28 +1917,28 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
 
-			if (!bLastFrameDumped)
-			{
-				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
+				if (!bLastFrameDumped)
+				{
+					movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
 				File::CreateFullPath(movie_file_name);
-				pFrameDump.Open(movie_file_name, "wb");
-				if (!pFrameDump)
-				{
-					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
+					pFrameDump.Open(movie_file_name, "wb");
+					if (!pFrameDump)
+					{
+						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
+					}
+					else
+					{
+						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
+					}
 				}
-				else
+				if (pFrameDump)
 				{
-					OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
+					FlipImageData(&frame_data[0], w, h);
+					pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
+					pFrameDump.Flush();
 				}
+				bLastFrameDumped = true;
 			}
-			if (pFrameDump)
-			{
-				FlipImageData(&frame_data[0], w, h);
-				pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
-				pFrameDump.Flush();
-			}
-			bLastFrameDumped = true;
-		}
 		else
 		{
 			if (bLastFrameDumped)
@@ -2017,8 +2023,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			if (eye)
 				FramebufferManager::SwapRenderEye();
-//			glClearColor(0, 0, 0, 0);
-//			glClearDepth(1);
+			//glClearColor(0, 0, 0, 0);
+			//glClearDepth(1);
 			glClearColor(0.f, 0.f, 0.f, 1.f);
 			glClearDepthf(1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

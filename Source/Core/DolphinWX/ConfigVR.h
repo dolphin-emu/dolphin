@@ -5,18 +5,14 @@
 
 #pragma once
 
-#include <cstdio>
-#include <string>
-
-#include <wx/timer.h>
-
-#include "Common/CommonTypes.h"
 #include "DolphinWX/InputConfigDiag.h"
 
 class InputConfig;
+class VRDialog;
 
 class CConfigVR : public wxDialog
 {
+	friend class VRDialog;
 public:
 
 	CConfigVR(wxWindow* parent,
@@ -26,6 +22,8 @@ public:
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_DIALOG_STYLE);
 	virtual ~CConfigVR();
+
+	void SaveXInputBinary(int Id, bool KBM, u32 Key);
 
 	enum
 	{
@@ -37,13 +35,14 @@ protected:
 
 private:
 
+	bool button_already_clicked;
 	wxButton* m_Ok;
 	wxButton *ClickedButton;
 	wxButton *m_Button_VRSettings[NUM_VR_OPTIONS];
 	wxComboBox* device_cbox;
 	wxNotebook* Notebook;
 	wxString OldLabel;
-	//wxTimer m_ButtonMappingTimer;
+	VRDialog* m_vr_dialog;
 
 	void OnOk(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
@@ -52,22 +51,17 @@ private:
 	void RefreshDevices(wxCommandEvent&);
 
 	void DetectControl(wxCommandEvent& event);
-	bool DetectButton(wxButton* button, wxCommandEvent& event);
-	//void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
+	void ClearControl(wxEvent& event);
+	void ConfigControl(wxEvent& event);
 	void OnButtonClick(wxCommandEvent& event);
 	void OnKeyDown(wxKeyEvent& event);
-	void OnKeyDownXInput(wxKeyEvent& event);
-	//int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed, g_Modkey;
 	int g_Pressed, g_Modkey;
 
 	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
-	void SaveXInputMapping(int Id, bool KBM, std::string XInputMapping);
-	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapipng = wxString());
+	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapping = wxString());
 	void DoGetButtons(int id);
 	void EndGetButtons();
 	void EndGetButtonsXInput();
-	
-	void ConfigControl(wxEvent& event);
 
 	void CreateGUIControls();
 	void UpdateGUI();
@@ -76,4 +70,14 @@ private:
 	ciface::Core::DeviceQualifier    default_device;
 
 	DECLARE_EVENT_TABLE();
+};
+
+class VRDialog : public wxDialog
+{
+	int button_id;
+public:
+	VRDialog(CConfigVR* const parent, int from_button);
+
+private:
+	void OnCheckBox(wxCommandEvent& event);
 };

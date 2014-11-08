@@ -399,8 +399,10 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 	const bool is_upright = m_options->settings[2]->value != 0;
 
 	EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
+
 	// Tilt and motion
 	HydraTLayer::GetAcceleration(m_index, is_sideways, m_extension && m_extension->active_extension > 0, &m_accel);
+
 	EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
 	EmulateShake(&m_accel, m_shake, m_shake_step);
 
@@ -759,7 +761,7 @@ void Wiimote::Update()
 			m_status.buttons = *(wm_buttons*)(data + rptf.core);
 	}
 
-	Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_key);
+		Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_key);
 
 	// don't send a data report if auto reporting is off
 	if (false == m_reporting_auto && data[2] >= WM_REPORT_CORE)

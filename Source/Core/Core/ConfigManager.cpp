@@ -126,41 +126,42 @@ static const struct
 	const bool  KBM;
 	const int   DefaultKey;
 	const int   DefaultModifier;
-	const std::string XInputMapping;
+	const u32   XInputMapping;
+	//const std::string XInputMapping;
 } g_VRData[] = {
-		{ "FreeLookReset",              true, 82, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookForward",            true, 87, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookBackward",           true, 83, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookLeft",               true, 65, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookRight",              true, 68, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookUp",                 true, 69, 4 /* wxMOD_SHIFT */ },
-		{ "FreeLookDown",               true, 81, 4 /* wxMOD_SHIFT */ },
-		{ "VRPermanentCameraForward",   true, 80, 4 /* wxMOD_SHIFT */ },
-		{ "VRPermanentCameraBackward",  true, 59, 4 /* wxMOD_SHIFT */ },
-		{ "VRLargerScale",              true, 61, 4 /* wxMOD_SHIFT */ },
-		{ "VRSmallerScale",	            true, 45, 4 /* wxMOD_SHIFT */ },
-		{ "VRCameraTiltUp",             true, 79, 4 /* wxMOD_SHIFT */ },
-		{ "VRCameraTiltDown",           true, 76, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookReset",              true, 82, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreeLookForward",            true, 87, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreeLookBackward",           true, 83, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreeLookLeft",               true, 65, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreeLookRight",              true, 68, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreeLookUp",                 true, 69, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreeLookDown",               true, 81, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRPermanentCameraForward",   true, 80, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRPermanentCameraBackward",  true, 59, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRLargerScale",              true, 61, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRSmallerScale",	            true, 45, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRCameraTiltUp",             true, 79, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRCameraTiltDown",           true, 76, 4 /* wxMOD_SHIFT */, 0 },
 
-		{ "VRHUDForward",               true, 47, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUDBackward",              true, 46, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUDThicker",               true, 93, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUDThinner",               true, 91, 4 /* wxMOD_SHIFT */ },
-		{ "VRHUD3DCloser",              true,  0, 0 /* wxMOD_NONE */ },
-		{ "VRHUD3DFurther",             true,  0, 0 /* wxMOD_NONE */ },
+		{ "VRHUDForward",               true, 47, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRHUDBackward",              true, 46, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRHUDThicker",               true, 93, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRHUDThinner",               true, 91, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VRHUD3DCloser",              true,  0, 0 /* wxMOD_NONE */, 0 },
+		{ "VRHUD3DFurther",             true,  0, 0 /* wxMOD_NONE */, 0 },
 
-		{ "VR2DScreenLarger",           true, 44, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DScreenSmaller",          true, 77, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraForward",          true, 74, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraBackward",         true, 85, 4 /* wxMOD_SHIFT */ },
-		//{ "VR2DScreenLeft",             true, 0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
-		//{ "VR2DScreenRight",            true, 0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
-		{ "VR2DCameraUp",               true, 72, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraDown",             true, 89, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraTiltUp",           true, 73, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DCameraTiltDown",         true, 75, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DScreenThicker",          true, 84, 4 /* wxMOD_SHIFT */ },
-		{ "VR2DScreenThinner",          true, 71, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenLarger",           true, 44, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DScreenSmaller",          true, 77, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DCameraForward",          true, 74, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DCameraBackward",         true, 85, 4 /* wxMOD_SHIFT */, 0 },
+		//{ "VR2DScreenLeft",             true, 0, 0 /* wxMOD_NONE */, 0 }, //doesn't_exist_right_now?
+		//{ "VR2DScreenRight",            true, 0, 0 /* wxMOD_NONE */, 0 }, //doesn't_exist_right_now?
+		{ "VR2DCameraUp",               true, 72, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DCameraDown",             true, 89, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DCameraTiltUp",           true, 73, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DCameraTiltDown",         true, 75, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DScreenThicker",          true, 84, 4 /* wxMOD_SHIFT */, 0 },
+		{ "VR2DScreenThinner",          true, 71, 4 /* wxMOD_SHIFT */, 0 },
 
 };
 

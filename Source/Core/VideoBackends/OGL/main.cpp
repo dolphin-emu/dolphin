@@ -208,6 +208,7 @@ bool VideoBackend::InitializeOtherThread(void *window_handle, std::thread *video
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
+	// TODO: Make this check if it needs offscreen or not (aka, if VR is enabled)
 	GLInterface->MakeCurrentOffscreen();
 
 	g_renderer = new Renderer;

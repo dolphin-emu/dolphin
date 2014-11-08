@@ -757,10 +757,10 @@ void VertexShaderManager::SetConstants()
 	for (int i : nMaterialsChanged)
 	{
 		u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
-		constants.materials[i][0] = (data >> 24) & 0xFF;
-		constants.materials[i][1] = (data >> 16) & 0xFF;
-		constants.materials[i][2] = (data >>  8) & 0xFF;
-		constants.materials[i][3] =  data        & 0xFF;
+				constants.materials[i][0] = (data >> 24) & 0xFF;
+				constants.materials[i][1] = (data >> 16) & 0xFF;
+				constants.materials[i][2] = (data >>  8) & 0xFF;
+				constants.materials[i][3] =  data        & 0xFF;
 		dirty = true;
 	}
 	nMaterialsChanged = BitSet32(0);
@@ -1459,12 +1459,22 @@ void VertexShaderManager::SetProjectionConstants()
 #ifdef HAVE_OCULUSSDK
 		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
 		{
+#ifdef OCULUSSDK042
+			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
+			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
+			posLeft[2] = g_eye_render_desc[0].ViewAdjust.z * UnitsPerMetre;
+			posRight[0] = g_eye_render_desc[1].ViewAdjust.x * UnitsPerMetre;
+			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
+			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
+#endif
+#ifdef OCULUSSDK043
 			posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x * UnitsPerMetre;
 			posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y * UnitsPerMetre;
 			posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z * UnitsPerMetre;
 			posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x * UnitsPerMetre;
 			posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y * UnitsPerMetre;
 			posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z * UnitsPerMetre;
+#endif
 		}
 #endif
 		Matrix44::Translate(eye_pos_matrix_left, posLeft);

@@ -161,6 +161,7 @@ void VertexManager::vFlush3D(bool useDstAlpha)
 
 		// setup the pointers (empty function)
 		nativeVertexFmt->SetupVertexPointers();
+
 		u32 index_size = IndexGenerator::GetIndexLen();
 		u32 max_index = IndexGenerator::GetNumVerts();
 		GLenum primitive_mode = 0;
@@ -202,6 +203,7 @@ void VertexManager::vFlush3D(bool useDstAlpha)
 
 		// setup the pointers (empty function)
 		nativeVertexFmt->SetupVertexPointers();
+
 		u32 index_size = IndexGenerator::GetIndexLen();
 		u32 max_index = IndexGenerator::GetNumVerts();
 		GLenum primitive_mode = 0;

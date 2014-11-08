@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+#define OCULUSSDK043
 
 // Distances are in metres, angles are in degrees.
 const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, DEFAULT_VR_HUD_THICKNESS = 0.5f,
@@ -12,9 +13,9 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f;
 
 #ifdef HAVE_OCULUSSDK
-#include "../../../Externals/LibOVR/Src/Kernel/OVR_Types.h"
-#include "../../../Externals/LibOVR/Src/OVR_CAPI.h"
-#include "../../../Externals/LibOVR/Src/Kernel/OVR_Math.h"
+#include "Kernel/OVR_Types.h"
+#include "OVR_CAPI.h"
+#include "Kernel/OVR_Math.h"
 #endif
 
 #include <mutex>

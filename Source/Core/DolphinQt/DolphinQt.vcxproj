@@ -87,7 +87,7 @@
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
+	<ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
     <ClCompile Include="SystemInfo.cpp" />
     <ClCompile Include="Utils\Resources.cpp" />

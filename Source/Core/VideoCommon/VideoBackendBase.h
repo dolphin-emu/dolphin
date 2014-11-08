@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <thread>
 
 #include "Common/ChunkFile.h"
 #include "VideoCommon/PerfQueryBase.h"
