@@ -428,14 +428,16 @@ void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 
 	SetStickValue(&m_c_stick.x_cont.set_by_keyboard, &m_c_stick.x_cont.value, m_c_stick.x_cont.text, PadStatus->substickX);
 	SetStickValue(&m_c_stick.y_cont.set_by_keyboard, &m_c_stick.y_cont.value, m_c_stick.y_cont.text, PadStatus->substickY);
+	SetSliderValue(&m_l_cont, PadStatus->triggerLeft, 0);
+	SetSliderValue(&m_r_cont, PadStatus->triggerRight, 0);
 
 	for (unsigned int i = 0; i < 14; ++i)
 	{
 		if (m_buttons[i] != nullptr)
 			SetButtonValue(m_buttons[i], ((PadStatus->button & m_gc_pad_buttons_bitmask[i]) != 0));
 	}
-	SetButtonValue(&m_l, ((PadStatus->triggerLeft) != 0) || ((PadStatus->button & PAD_TRIGGER_L) != 0));
-	SetButtonValue(&m_r, ((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
+	SetButtonValue(&m_l, ((PadStatus->triggerLeft) == 255) || ((PadStatus->button & PAD_TRIGGER_L) != 0));
+	SetButtonValue(&m_r, ((PadStatus->triggerRight) == 255) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
 }
 
 void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key)
