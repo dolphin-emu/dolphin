@@ -67,8 +67,8 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
 	settings->Get("StereoMode", &iStereoMode, 0);
-	settings->Get("StereoSeparation", &iStereoSeparation, 65);
-	settings->Get("StereoFocalLength", &iStereoFocalLength, 50);
+	settings->Get("StereoSeparation", &iStereoSeparation, 50);
+	settings->Get("StereoFocalLength", &iStereoFocalLength, 30);
 	settings->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);

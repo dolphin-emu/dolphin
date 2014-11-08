@@ -239,7 +239,7 @@ private:
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
 #define I_DEPTHPARAMS           "cDepth" // farZ, zRange
-#define I_STEREOOFFSET          "csoffset"
+#define I_STEREOPARAMS          "cstereo"
 
 static const char s_shader_uniforms[] =
 	"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
@@ -251,4 +251,4 @@ static const char s_shader_uniforms[] =
 	"\tfloat4 " I_NORMALMATRICES"[32];\n"
 	"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
 	"\tfloat4 " I_DEPTHPARAMS";\n"
-	"\tfloat4 " I_STEREOOFFSET";\n";
+	"\tfloat4 " I_STEREOPARAMS";\n";

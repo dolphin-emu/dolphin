@@ -83,8 +83,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
-		out.Write("\t\tf.clipPos.x += f.clipPos.w * " I_STEREOOFFSET"[layer] * " I_PROJECTION"[0][0];\n");
-		out.Write("\t\tf.pos.x += f.pos.w * " I_STEREOOFFSET"[layer] * " I_PROJECTION"[0][0];\n");
+		out.Write("\t\tf.clipPos.x += " I_STEREOPARAMS"[layer] * (f.clipPos.w - " I_STEREOPARAMS"[2]);\n");
+		out.Write("\t\tf.pos.x += " I_STEREOPARAMS"[layer] * (f.pos.w - " I_STEREOPARAMS"[2]);\n");
 	}
 
 	out.Write("\t\tgl_Position = f.pos;\n");
