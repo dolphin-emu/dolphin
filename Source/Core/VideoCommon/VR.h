@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #pragma once
-#define OCULUSSDK043
 
 // Distances are in metres, angles are in degrees.
 const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, DEFAULT_VR_HUD_THICKNESS = 0.5f,
@@ -13,9 +12,22 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f;
 
 #ifdef HAVE_OCULUSSDK
+#include "OVR_Version.h"
 #include "Kernel/OVR_Types.h"
 #include "OVR_CAPI.h"
 #include "Kernel/OVR_Math.h"
+
+// Detect which version of the Oculus SDK we are using
+#if OVR_MINOR_VERSION >= 4
+#if OVR_BUILD_VERSION >= 3
+#define OCULUSSDK043
+#else
+#define OCULUSSDK042
+#endif
+#else
+Error, Oculus SDK 0.3.x is no longer supported   
+#endif
+
 #endif
 
 #include <mutex>
