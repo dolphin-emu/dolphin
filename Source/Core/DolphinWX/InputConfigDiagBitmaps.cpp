@@ -27,8 +27,6 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
-class wxTimerEvent;
-
 static void DrawCenteredRectangle(wxDC &dc, int x, int y, int w, int h)
 {
 	x -= w / 2;

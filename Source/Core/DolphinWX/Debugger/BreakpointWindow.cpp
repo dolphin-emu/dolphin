@@ -35,8 +35,6 @@ extern "C" {
 #include "DolphinWX/resources/toolbar_debugger_delete.c"
 }
 
-class wxWindow;
-
 class CBreakPointBar : public wxAuiToolBar
 {
 public:

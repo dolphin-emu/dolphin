@@ -28,8 +28,6 @@
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WiimoteConfigDiag.h"
 
-class InputConfig;
-
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputConfig& config)
 	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"))
 	, m_config(config)

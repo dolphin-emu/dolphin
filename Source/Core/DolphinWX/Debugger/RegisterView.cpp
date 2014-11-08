@@ -25,8 +25,6 @@
 #include "DolphinWX/Debugger/RegisterView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 
-class wxWindow;
-
 // F-zero 80005e60 wtf??
 
 enum

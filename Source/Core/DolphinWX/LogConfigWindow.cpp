@@ -27,8 +27,6 @@
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-class wxWindow;
-
 LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))
 	, m_LogWindow(log_window), enableAll(true)

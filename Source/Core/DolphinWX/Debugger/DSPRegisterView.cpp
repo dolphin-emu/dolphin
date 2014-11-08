@@ -16,7 +16,6 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DSPRegisterView.h"
 
-class wxWindow;
 
 wxString CDSPRegTable::GetValue(int row, int col)
 {

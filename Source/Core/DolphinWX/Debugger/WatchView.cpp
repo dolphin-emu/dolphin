@@ -23,8 +23,6 @@
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 
-class wxWindow;
-
 enum
 {
 	IDM_DELETEWATCH,

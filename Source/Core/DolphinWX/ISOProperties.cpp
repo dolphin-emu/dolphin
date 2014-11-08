@@ -78,8 +78,6 @@
 #include "DolphinWX/resources/isoprop_file.xpm"
 #include "DolphinWX/resources/isoprop_folder.xpm"
 
-class wxWindow;
-
 struct WiiPartition
 {
 	DiscIO::IVolume *Partition;
