@@ -117,6 +117,15 @@ void CCPU::EnableStepping(const bool _bStepping)
 	}
 	else
 	{
+		// SingleStep so that the "continue", "step over" and "step out" debugger functions
+		// work when the PC is at a breakpoint at the beginning of the block
+		if (PowerPC::breakpoints.IsAddressBreakPoint(PC) && PowerPC::GetMode() != PowerPC::MODE_INTERPRETER)
+		{
+			PowerPC::CoreMode oldMode = PowerPC::GetMode();
+			PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+			PowerPC::SingleStep();
+			PowerPC::SetMode(oldMode);
+		}
 		PowerPC::Start();
 		m_StepEvent.Set();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);

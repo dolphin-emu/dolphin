@@ -82,21 +82,13 @@ static const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-// Convert accelerometer readings in G's to 8-bit calibrated values and 2-bit Nunchuk-format LSB values (preserving buttons).
-void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
+void FillRawAccelFromGForceData(wm_full_accel& raw_accel,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel)
 {
-	lsb &= 3;
-	u32 temp = trim10bit(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	raw_accel.x = (u8)(temp >> 2);
-	lsb |= (temp & 3) << 2;
-	temp = trim10bit(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	raw_accel.y = (u8)(temp >> 2);
-	lsb |= (temp & 3) << 4;
-	temp = trim10bit(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
-	raw_accel.z = (u8)(temp >> 2);
-	lsb |= (temp & 3) << 6;
+	raw_accel.x = (u16)trim(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
+	raw_accel.y = (u16)trim(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
+	raw_accel.z = (u16)trim(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
 }
 
 void EmulateShake(AccelData* const accel
@@ -387,10 +379,10 @@ bool Wiimote::Step()
 void Wiimote::UpdateButtonsStatus()
 {
 	// update buttons in status struct
-	m_status.buttons = 0;
+	m_status.buttons.hex = 0;
 	const bool is_sideways = m_options->settings[1]->value != 0;
-	m_buttons->GetState(&m_status.buttons, button_bitmasks);
-	m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
+	m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
+	m_dpad->GetState(&m_status.buttons.hex, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
 	bool cycle_extension = false;
 	HydraTLayer::GetButtons(m_index, is_sideways, m_extension->active_extension > 0, &m_status.buttons, &cycle_extension);
 	if (cycle_extension)
@@ -399,7 +391,7 @@ void Wiimote::UpdateButtonsStatus()
 	}
 }
 
-void Wiimote::GetCoreData(u8* const data)
+void Wiimote::GetButtonData(u8* const data)
 {
 	// when a movie is active, the button update happens here instead of Wiimote::Step, to avoid potential desync issues.
 	if (Core::g_want_determinism)
@@ -407,10 +399,10 @@ void Wiimote::GetCoreData(u8* const data)
 		UpdateButtonsStatus();
 	}
 
-	*(wm_core*)data |= m_status.buttons;
+	((wm_buttons*)data)->hex |= m_status.buttons.hex;
 }
 
-void Wiimote::GetAccelData(u8* const data, u8* const core)
+void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 {
 	const bool is_sideways = m_options->settings[1]->value != 0;
 	const bool is_upright = m_options->settings[2]->value != 0;
@@ -426,11 +418,19 @@ void Wiimote::GetAccelData(u8* const data, u8* const core)
 	EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
 	EmulateShake(&m_accel, m_shake, m_shake_step);
 
-	u8 lsb = 0;
-	FillRawAccelFromGForceData(*(wm_accel*)data, lsb, *(accel_cal*)&m_eeprom[0x16], m_accel);
-	// Move the least significant bits of the accelerometer data into the right places in the buttons field.
-	// lsb is currently in nunchuk format. Assume little-endian (the rest of Dolphin does too).
-	*(wm_core*)core |= ((lsb << 3) && 0x0060) | ((lsb << 8) && 0x2000) | ((lsb << 7) && 0x4000);
+	wm_full_accel tmpAccel;
+
+	FillRawAccelFromGForceData(tmpAccel, *(accel_cal*)&m_eeprom[0x16], m_accel);
+
+	wm_accel& accel = *(wm_accel*)(data + rptf.accel);
+	wm_buttons& core = *(wm_buttons*)(data + rptf.core);
+
+	accel.x = tmpAccel.x >> 2;
+	accel.y = tmpAccel.y >> 1;
+	accel.z = tmpAccel.z >> 1;
+	core.acc_x_lsb = tmpAccel.x & 0x3;
+	core.acc_y_lsb = tmpAccel.y & 0x1;
+	core.acc_z_lsb = tmpAccel.z & 0x1;
 }
 #define kCutoffFreq 5.0
 inline void LowPassFilter(double & var, double newval, double period)
@@ -591,7 +591,7 @@ void Wiimote::GetExtData(u8* const data)
 
 	// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
 	// i think it should be unencrpyted in the register, encrypted when read.
-	memcpy(m_reg_ext.controller_data, data, sizeof(wm_extension));
+	memcpy(m_reg_ext.controller_data, data, sizeof(wm_nc)); // TODO: Should it be nc specific?
 
 	// motionplus pass-through modes
 	if (m_motion_plus_active)
@@ -631,7 +631,7 @@ void Wiimote::GetExtData(u8* const data)
 	}
 
 	if (0xAA == m_reg_ext.encryption)
-		WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_extension));
+		WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_nc));
 }
 
 void Wiimote::Update()
@@ -654,7 +654,7 @@ void Wiimote::Update()
 	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_key))
 	{
 		if (rptf.core)
-			m_status.buttons = *(wm_core*)(data + rptf.core);
+			m_status.buttons = *(wm_buttons*)(data + rptf.core);
 	}
 	else
 	{
@@ -663,11 +663,11 @@ void Wiimote::Update()
 
 		// core buttons
 		if (rptf.core)
-			GetCoreData(data + rptf.core);
+			GetButtonData(data + rptf.core);
 
 		// acceleration
 		if (rptf.accel)
-			GetAccelData(data + rptf.accel, data + rptf.core);
+			GetAccelData(data, rptf);
 
 		// IR
 		if (rptf.ir)
@@ -705,8 +705,8 @@ void Wiimote::Update()
 							// mix real-buttons with emu-buttons in the status struct, and in the report
 							if (real_rptf.core && rptf.core)
 							{
-								m_status.buttons |= *(wm_core*)(real_data + real_rptf.core);
-								*(wm_core*)(data + rptf.core) = m_status.buttons;
+								m_status.buttons.hex |= ((wm_buttons*)(real_data + real_rptf.core))->hex;
+								*(wm_buttons*)(data + rptf.core) = m_status.buttons;
 							}
 
 							// accel
@@ -720,7 +720,7 @@ void Wiimote::Update()
 							// ext
 							// use real-ext data if an emu-extention isn't chosen
 							if (real_rptf.ext && rptf.ext && (0 == m_extension->switch_extension))
-								memcpy(data + rptf.ext, real_data + real_rptf.ext, sizeof(wm_extension));
+								memcpy(data + rptf.ext, real_data + real_rptf.ext, sizeof(wm_nc));  // TODO: Why NC specific?
 						}
 						else if (WM_ACK_DATA != real_data[1] || m_extension->active_extension > 0)
 							rptf_size = 0;
@@ -761,7 +761,7 @@ void Wiimote::Update()
 	{
 		NetPlay_GetWiimoteData(m_index, data, rptf.size);
 		if (rptf.core)
-			m_status.buttons = *(wm_core*)(data + rptf.core);
+			m_status.buttons = *(wm_buttons*)(data + rptf.core);
 	}
 	if (!Movie::IsPlayingInput())
 	{

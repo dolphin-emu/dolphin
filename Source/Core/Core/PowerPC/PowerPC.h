@@ -114,6 +114,7 @@ enum CPUState
 
 extern PowerPCState ppcState;
 
+extern Watches watches;
 extern BreakPoints breakpoints;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;

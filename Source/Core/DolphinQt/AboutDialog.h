@@ -8,7 +8,8 @@
 #include <QDialog>
 
 // Predefinitions
-namespace Ui {
+namespace Ui
+{
 class DAboutDialog;
 }
 

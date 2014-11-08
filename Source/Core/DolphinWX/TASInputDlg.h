@@ -56,7 +56,7 @@ class TASInputDlg : public wxDialog
 		void CreateGCLayout();
 		void CreateWiiLayout();
 		wxBitmap CreateStickBitmap(int x, int y);
-		void SetWiiButtons(wm_core* butt);
+		void SetWiiButtons(u16* butt);
 		void GetIRData(u8* const data, u8 mode, bool use_accel);
 
 	private:

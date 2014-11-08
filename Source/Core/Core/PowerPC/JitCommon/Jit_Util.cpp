@@ -316,13 +316,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		// The following masks the region used by the GC/Wii virtual memory lib
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 
-#ifdef ENABLE_MEM_CHECK
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
-		{
-			mem_mask |= Memory::EXRAM_MASK;
-		}
-#endif
-
 		if (opAddress.IsImm())
 		{
 			u32 address = (u32)opAddress.offset + offset;
@@ -518,13 +511,6 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
 	// The following masks the region used by the GC/Wii virtual memory lib
 	mem_mask |= Memory::ADDR_MASK_MEM1;
-
-#ifdef ENABLE_MEM_CHECK
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
-	{
-		mem_mask |= Memory::EXRAM_MASK;
-	}
-#endif
 
 	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
 

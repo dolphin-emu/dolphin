@@ -12,7 +12,7 @@
 namespace HydraTLayer
 {
 
-void GetButtons(int index, bool sideways, bool has_extension, wm_core * butt, bool * cycle_extension);
+void GetButtons(int index, bool sideways, bool has_extension, wm_buttons * butt, bool * cycle_extension);
 void GetAcceleration(int index, bool sideways, bool has_extension, WiimoteEmu::AccelData * const data);
 void GetIR(int index, double * x, double * y, double * z);
 void GetNunchukAcceleration(int index, WiimoteEmu::AccelData * const data);

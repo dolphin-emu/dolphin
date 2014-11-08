@@ -928,8 +928,6 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight, color);
-
-	GL_REPORT_ERRORD();
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -1081,7 +1079,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
 				             GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depthMap);
-				GL_REPORT_ERRORD();
 
 				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap);
 
@@ -1139,7 +1136,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 				else
 					glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
 						     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
-				GL_REPORT_ERRORD();
 
 				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap);
 
@@ -1554,7 +1550,7 @@ void Renderer::AsyncTimewarpDraw()
 			}
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-			if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
+			if (w > 0 && h > 0)
 			{
 				if (!bLastFrameDumped)
 				{
@@ -1706,8 +1702,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// Flip top and bottom for some reason; TODO: Fix the code to suck less?
 		std::swap(flipped_trc.top, flipped_trc.bottom);
 	}
-
-	GL_REPORT_ERRORD();
 
 	// Copy the framebuffer to screen.
 	const XFBSource* xfbSource = nullptr;
@@ -1879,7 +1873,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			}
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-			if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
+			if (w > 0 && h > 0)
 			{
 				if (!bLastFrameDumped)
 				{
@@ -1937,29 +1931,27 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			frame_data.resize(3 * w * h);
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-			if (GL_REPORT_ERROR() == GL_NO_ERROR)
+
+			if (!bLastFrameDumped)
 			{
-				if (!bLastFrameDumped)
+				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
+				pFrameDump.Open(movie_file_name, "wb");
+				if (!pFrameDump)
 				{
-					movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
-					pFrameDump.Open(movie_file_name, "wb");
-					if (!pFrameDump)
-					{
-						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
-					}
-					else
-					{
-						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
-					}
+					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				}
-				if (pFrameDump)
+				else
 				{
-					FlipImageData(&frame_data[0], w, h);
-					pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
-					pFrameDump.Flush();
+					OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
 				}
-				bLastFrameDumped = true;
 			}
+			if (pFrameDump)
+			{
+				FlipImageData(&frame_data[0], w, h);
+				pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
+				pFrameDump.Flush();
+			}
+			bLastFrameDumped = true;
 		}
 		else
 		{
@@ -2021,26 +2013,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// ---------------------------------------------------------------------
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !(g_has_rift && g_ActiveConfig.bEnableVR))
 	{
-		GL_REPORT_ERRORD();
-
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		DrawDebugInfo();
 		DrawDebugText();
 
-		GL_REPORT_ERRORD();
-
 		// Do our OSD callbacks
 		OSD::DoCallbacks(OSD::OSD_ONFRAME);
 		OSD::DrawMessages();
-		GL_REPORT_ERRORD();
 	}
 	// Copy the rendered frame to the real window
 	if (!(g_has_rift && g_ActiveConfig.bEnableVR))
 		GLInterface->Swap();
-
-	GL_REPORT_ERRORD();
 
 	NewVRFrame();
 
@@ -2058,7 +2043,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glClearDepthf(1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		}
-		GL_REPORT_ERRORD();
 	}
 	// VR
 	g_texture_cache->ClearRenderTargets();
@@ -2118,11 +2102,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Render to the framebuffer.
 	FramebufferManager::SetFramebuffer(0);
 
-	GL_REPORT_ERRORD();
-
 	RestoreAPIState();
 
-	GL_REPORT_ERRORD();
 	g_Config.iSaveTargetId = 0;
 	
 	// VR layer debugging, sometimes layers need to flash.
@@ -2343,14 +2324,6 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-	// Show failure message
-	if (GL_REPORT_ERROR() != GL_NO_ERROR)
-	{
-		delete[] data;
-		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
-		return false;
-	}
 
 	// Turn image upside down
 	FlipImageData(data, W, H, 4);

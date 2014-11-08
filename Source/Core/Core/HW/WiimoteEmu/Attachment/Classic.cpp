@@ -85,7 +85,7 @@ Classic::Classic(WiimoteEmu::ExtensionReg& _reg, int index)
 void Classic::GetState(u8* const data)
 {
 	wm_classic_extension* const ccdata = (wm_classic_extension*)data;
-	ccdata->bt = 0;
+	ccdata->bt.hex = 0;
 
 	// not using calibration data, o well
 
@@ -94,8 +94,8 @@ void Classic::GetState(u8* const data)
 	ControlState x, y;
 	m_left_stick->GetState(&x, &y);
 
-	ccdata->lx = static_cast<u8>(Classic::LEFT_STICK_CENTER_X + (x * Classic::LEFT_STICK_RADIUS));
-	ccdata->ly = static_cast<u8>(Classic::LEFT_STICK_CENTER_Y + (y * Classic::LEFT_STICK_RADIUS));
+	ccdata->regular_data.lx = static_cast<u8>(Classic::LEFT_STICK_CENTER_X + (x * Classic::LEFT_STICK_RADIUS));
+	ccdata->regular_data.ly = static_cast<u8>(Classic::LEFT_STICK_CENTER_Y + (y * Classic::LEFT_STICK_RADIUS));
 	}
 
 	// right stick
@@ -117,7 +117,7 @@ void Classic::GetState(u8* const data)
 	{
 	ControlState trigs[2] = { 0, 0 };
 	u8 lt, rt;
-	m_triggers->GetState(&ccdata->bt, classic_trigger_bitmasks, trigs);
+	m_triggers->GetState(&ccdata->bt.hex, classic_trigger_bitmasks, trigs);
 
 	lt = static_cast<u8>(trigs[0] * Classic::LEFT_TRIGGER_RANGE);
 	rt = static_cast<u8>(trigs[1] * Classic::RIGHT_TRIGGER_RANGE);
@@ -128,13 +128,13 @@ void Classic::GetState(u8* const data)
 	}
 
 	// buttons
-	m_buttons->GetState(&ccdata->bt, classic_button_bitmasks);
+	m_buttons->GetState(&ccdata->bt.hex, classic_button_bitmasks);
 	// dpad
-	m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
+	m_dpad->GetState(&ccdata->bt.hex, classic_dpad_bitmasks);
 	HydraTLayer::GetClassic(m_index, ccdata);
 
 	// flip button bits
-	ccdata->bt ^= 0xFFFF;
+	ccdata->bt.hex ^= 0xFFFF;
 }
 
 
