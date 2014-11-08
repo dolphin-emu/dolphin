@@ -40,8 +40,6 @@
 #include "DolphinWX/Debugger/MemoryView.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
 
-class DebugInterface;
-
 enum
 {
 	IDM_MEM_ADDRBOX,
