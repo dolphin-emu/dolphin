@@ -419,25 +419,25 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s3DGrid->Add(HudThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD 3D Closer:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD 3D Closer:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	Hud3DCloser = new wxSpinCtrlDouble(m_VR, ID_HUD_3D_CLOSER, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, DEFAULT_VR_HUD_3D_CLOSER, 0.1);
-	s3DGrid->Add(Hud3DCloser, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("0=back, 1=front")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(Hud3DCloser, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("0=back, 1=front")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera forward:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera forward:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	CameraForward = new wxSpinCtrlDouble(m_VR, ID_CAMERA_FORWARD, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, DEFAULT_VR_CAMERA_FORWARD, 0.1);
-	s3DGrid->Add(CameraForward, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(CameraForward, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera pitch:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera pitch:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	CameraPitch = new wxSpinCtrlDouble(m_VR, ID_CAMERA_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -180, 360, DEFAULT_VR_CAMERA_PITCH, 1);
-	s3DGrid->Add(CameraPitch, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees up")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(CameraPitch, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees up")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Aim distance:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Aim distance:")), wxGBPosition(6, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	AimDistance = new wxSpinCtrlDouble(m_VR, ID_AIM_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_AIM_DISTANCE, 0.1);
-	s3DGrid->Add(AimDistance, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(AimDistance, wxGBPosition(6, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(6, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	wxStaticBoxSizer * const sb2D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("2D Screens"));
 	sbVR->Add(sb2D, 0, wxEXPAND | wxALL, 5);
