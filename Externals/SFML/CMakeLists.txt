@@ -1,17 +1,28 @@
-include_directories(BEFORE include)
+include_directories(BEFORE include src)
 
-set(SRCS	src/SFML/Network/Ftp.cpp
-			src/SFML/Network/Http.cpp
-			src/SFML/Network/IPAddress.cpp
-			src/SFML/Network/Packet.cpp
-			src/SFML/Network/SelectorBase.cpp
-			src/SFML/Network/SocketTCP.cpp
-			src/SFML/Network/SocketUDP.cpp)
+set(SRC_NETWORK
+	src/SFML/Network/Http.cpp
+	src/SFML/Network/IPAddress.cpp
+	src/SFML/Network/Packet.cpp
+	src/SFML/Network/Socket.cpp
+	src/SFML/Network/SocketSelector.cpp
+	src/SFML/Network/TcpListener.cpp
+	src/SFML/Network/TcpSocket.cpp
+	src/SFML/Network/UdpSocket.cpp
+)
 
-if(UNIX)
-	set(SRCS ${SRCS} src/SFML/Network/Unix/SocketHelper.cpp)
-elseif(WIN32)
-	set(SRCS ${SRCS} src/SFML/Network/Win32/SocketHelper.cpp)
+if(WIN32)
+	list(APPEND SRC_NETWORK src/SFML/Network/Win32/SocketImpl.cpp)
+else()
+	list(APPEND SRC_NETWORK src/SFML/Network/Unix/SocketImpl.cpp)
 endif()
 
-add_library(sfml-network ${SRCS})
+set(SRC_SYSTEM
+	src/SFML/System/Err.cpp
+	src/SFML/System/String.cpp
+	src/SFML/System/Time.cpp
+)
+
+add_definitions(-DSFML_STATIC)
+add_library(sfml-network ${SRC_NETWORK})
+add_library(sfml-system ${SRC_SYSTEM})

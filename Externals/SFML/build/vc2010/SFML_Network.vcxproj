@@ -42,31 +42,48 @@
     <Import Project="..\..\..\..\Source\VSProps\ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\SFML\Network\Ftp.cpp" />
     <ClCompile Include="..\..\src\SFML\Network\Http.cpp" />
     <ClCompile Include="..\..\src\SFML\Network\IPAddress.cpp" />
     <ClCompile Include="..\..\src\SFML\Network\Packet.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\SelectorBase.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\SocketTCP.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\SocketUDP.cpp" />
-    <ClCompile Include="..\..\src\SFML\Network\Win32\SocketHelper.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\Socket.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\SocketSelector.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\TcpListener.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\TcpSocket.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\UdpSocket.cpp" />
+    <ClCompile Include="..\..\src\SFML\Network\Win32\SocketImpl.cpp" />
+    <ClCompile Include="..\..\src\SFML\System\Err.cpp" />
+    <ClCompile Include="..\..\src\SFML\System\String.cpp" />
+    <ClCompile Include="..\..\src\SFML\System\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\SFML\Network\Ftp.hpp" />
+    <ClInclude Include="..\..\include\SFML\Config.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\Export.hpp" />
     <ClInclude Include="..\..\include\SFML\Network\Http.hpp" />
     <ClInclude Include="..\..\include\SFML\Network\IPAddress.hpp" />
     <ClInclude Include="..\..\include\SFML\Network\Packet.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\Selector.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SelectorBase.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SocketHelper.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\Sockets.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SocketTCP.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\SocketUDP.hpp" />
-    <ClInclude Include="..\..\include\SFML\Network\Win32\SocketHelper.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\include\SFML\Network\Selector.inl" />
+    <ClInclude Include="..\..\include\SFML\Network\Socket.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SocketHandle.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\SocketSelector.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\TcpListener.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\TcpSocket.hpp" />
+    <ClInclude Include="..\..\include\SFML\Network\UdpSocket.hpp" />
+    <ClInclude Include="..\..\include\SFML\System.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Err.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Export.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\NonCopyable.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\String.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Time.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Utf.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\Utf.inl" />
+    <ClInclude Include="..\..\src\SFML\Network\SocketImpl.hpp" />
+    <ClInclude Include="..\..\src\SFML\Network\Win32\SocketImpl.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
