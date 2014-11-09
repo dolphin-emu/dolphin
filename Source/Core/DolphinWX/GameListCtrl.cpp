@@ -184,35 +184,29 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	return 0;
 }
 
-BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
-	EVT_KEY_DOWN(wxEmuStateTip::OnKeyDown)
-END_EVENT_TABLE()
-
-BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
-	EVT_SIZE(CGameListCtrl::OnSize)
-	EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
-	EVT_LEFT_DOWN(CGameListCtrl::OnLeftClick)
-	EVT_LIST_KEY_DOWN(LIST_CTRL, CGameListCtrl::OnKeyPress)
-	EVT_MOTION(CGameListCtrl::OnMouseMotion)
-	EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
-	EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
-	EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
-	EVT_MENU(IDM_GAMEWIKI, CGameListCtrl::OnWiki)
-	EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
-	EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
-	EVT_MENU(IDM_EXPORTSAVE, CGameListCtrl::OnExportSave)
-	EVT_MENU(IDM_SETDEFAULTISO, CGameListCtrl::OnSetDefaultISO)
-	EVT_MENU(IDM_COMPRESSISO, CGameListCtrl::OnCompressISO)
-	EVT_MENU(IDM_MULTICOMPRESSISO, CGameListCtrl::OnMultiCompressISO)
-	EVT_MENU(IDM_MULTIDECOMPRESSISO, CGameListCtrl::OnMultiDecompressISO)
-	EVT_MENU(IDM_DELETEISO, CGameListCtrl::OnDeleteISO)
-	EVT_MENU(IDM_LIST_CHANGEDISC, CGameListCtrl::OnChangeDisc)
-END_EVENT_TABLE()
-
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 		wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style), toolTip(nullptr)
 {
+	Bind(wxEVT_SIZE, &CGameListCtrl::OnSize, this);
+	Bind(wxEVT_RIGHT_DOWN, &CGameListCtrl::OnRightClick, this);
+	Bind(wxEVT_LEFT_DOWN, &CGameListCtrl::OnLeftClick, this);
+	Bind(wxEVT_MOTION, &CGameListCtrl::OnMouseMotion, this);
+	Bind(wxEVT_LIST_KEY_DOWN, &CGameListCtrl::OnKeyPress, this);
+	Bind(wxEVT_LIST_COL_BEGIN_DRAG, &CGameListCtrl::OnColBeginDrag, this);
+	Bind(wxEVT_LIST_COL_CLICK, &CGameListCtrl::OnColumnClick, this);
+
+	Bind(wxEVT_MENU, &CGameListCtrl::OnProperties, this, IDM_PROPERTIES);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnWiki, this, IDM_GAMEWIKI);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenContainingFolder, this, IDM_OPENCONTAININGFOLDER);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenSaveFolder, this, IDM_OPENSAVEFOLDER);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnExportSave, this, IDM_EXPORTSAVE);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnSetDefaultISO, this, IDM_SETDEFAULTISO);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnCompressISO, this, IDM_COMPRESSISO);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnMultiCompressISO, this, IDM_MULTICOMPRESSISO);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnMultiDecompressISO, this, IDM_MULTIDECOMPRESSISO);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnDeleteISO, this, IDM_DELETEISO);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGEDISC);
 }
 
 CGameListCtrl::~CGameListCtrl()
