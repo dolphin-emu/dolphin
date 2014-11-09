@@ -420,19 +420,48 @@ void Jit64::stXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	bool update = !!(inst.SUBOP10 & 32);
 	bool byte_reverse = !!(inst.SUBOP10 & 512);
-	FALLBACK_IF(!a || (update && a == s) || (update && js.memcheck && a == b));
+	FALLBACK_IF((update && a == s) || (update && js.memcheck && a == b));
 
 	gpr.Lock(a, b, s);
 
+	s32 offset = 0;
+	X64Reg addr = RSCRATCH2;
 	if (update)
 	{
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
-		MOV(32, R(RSCRATCH2), gpr.R(a));
+		addr = gpr.RX(a);
+	}
+	else if (!a)
+	{
+		gpr.BindToRegister(b, true, false);
+		addr = gpr.RX(b);
 	}
 	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
 		LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+	}
+	else if (gpr.R(a).IsImm() || gpr.R(b).IsImm())
+	{
+		s32 imm = (s32)(gpr.R(a).IsImm() ? gpr.R(a).offset : gpr.R(b).offset);
+		int src = gpr.R(a).IsImm() ? b : a;
+		gpr.BindToRegister(src, true, false);
+
+		// Offsets have to fit in a signed 32-bit range.
+		if (imm & 0x80000000)
+		{
+			// This is okay despite x86 only supporting signed 32 bit immediates, since signed addition
+			// is equivalent to unsigned addition.
+			// Optimizing this case does matter because indexed stores are often used with an immediate
+			// argument of a normal address, e.g. 0x80060300, since non-indexed stores don't support
+			// offsets that large.
+			LEA(32, RSCRATCH2, MDisp(gpr.RX(src), imm));
+		}
+		else
+		{
+			addr = gpr.RX(src);
+			offset = imm;
+		}
 	}
 	else
 	{
@@ -462,7 +491,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 
 	if (gpr.R(s).IsImm())
 	{
-		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		SafeWriteRegToReg(gpr.R(s), addr, accessSize, offset, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 	else
 	{
@@ -477,7 +506,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 			gpr.BindToRegister(s, true, false);
 			reg_value = gpr.RX(s);
 		}
-		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		SafeWriteRegToReg(reg_value, addr, accessSize, offset, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 
 	if (update && js.memcheck)
