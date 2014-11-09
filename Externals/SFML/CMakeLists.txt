@@ -23,6 +23,5 @@ set(SRC_SYSTEM
 	src/SFML/System/Time.cpp
 )
 
-add_definitions(-DSFML_STATIC)
 add_library(sfml-network ${SRC_NETWORK})
 add_library(sfml-system ${SRC_SYSTEM})
