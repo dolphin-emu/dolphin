@@ -22,7 +22,6 @@ void Init()
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackend::PopulateList();
-	InitVR();
 	WiimoteReal::LoadSettings();
 
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
@@ -36,7 +35,6 @@ void Shutdown()
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
-	ShutdownVR();
 }
 
 void CreateDirectories()

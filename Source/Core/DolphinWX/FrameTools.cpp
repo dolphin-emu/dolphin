@@ -1031,6 +1031,8 @@ void CFrame::StartGame(const std::string& filename)
 			position = wxDefaultPosition;
 #endif
 
+		InitVR(); //Must be done before g_has_hmd is used below.
+
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 		// VR window must be a certain size for Head Mounted Displays

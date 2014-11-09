@@ -77,6 +77,7 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
+#include "VideoCommon/VR.h"
 
 namespace OGL
 {
@@ -287,6 +288,7 @@ void VideoBackend::Video_Cleanup()
 		delete g_renderer;
 		g_renderer = nullptr;
 		GLInterface->ClearCurrentOffscreen();
+		ShutdownVR();
 	}
 }
 
