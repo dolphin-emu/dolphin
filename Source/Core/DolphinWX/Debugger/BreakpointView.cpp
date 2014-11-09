@@ -22,9 +22,6 @@
 #include "DolphinWX/Debugger/BreakpointView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
-class wxWindow;
-struct Symbol;
-
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
 	: wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize,
 			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING)

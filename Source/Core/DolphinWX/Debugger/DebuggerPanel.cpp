@@ -28,8 +28,6 @@
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/TextureCacheBase.h"
 
-class wxWindow;
-
 BEGIN_EVENT_TABLE(GFXDebuggerPanel, wxPanel)
 	EVT_CLOSE(GFXDebuggerPanel::OnClose)
 	EVT_BUTTON(ID_PAUSE,GFXDebuggerPanel::OnPauseButton)

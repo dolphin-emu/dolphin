@@ -28,8 +28,6 @@
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 
-class wxWindow;
-
 BEGIN_EVENT_TABLE(CPatchAddEdit, wxDialog)
 	EVT_BUTTON(wxID_OK, CPatchAddEdit::SavePatchData)
 	EVT_BUTTON(ID_ENTRY_ADD, CPatchAddEdit::AddRemoveEntry)

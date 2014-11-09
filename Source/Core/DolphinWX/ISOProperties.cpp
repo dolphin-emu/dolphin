@@ -81,8 +81,6 @@
 #include "DolphinWX/resources/isoprop_folder.xpm"
 #include "VideoCommon/VR.h"
 
-class wxWindow;
-
 struct WiiPartition
 {
 	DiscIO::IVolume *Partition;

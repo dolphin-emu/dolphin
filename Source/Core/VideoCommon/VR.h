@@ -51,7 +51,7 @@ extern bool g_has_hmd, g_has_rift, g_has_vr920;
 extern bool g_new_tracking_frame;
 extern Matrix44 g_head_tracking_matrix;
 extern float g_head_tracking_position[3];
-extern int g_hmd_window_width, g_hmd_window_height; 
+extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
 extern const char *g_hmd_device_name;
 
 extern bool debug_nextScene;
