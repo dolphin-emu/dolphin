@@ -155,12 +155,12 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name, ControlState de
 
 ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_BUTTONS)
 {
-	settings.emplace_back(new Setting(_trans("Threshold"), 0.5f));
+	settings.emplace_back(new Setting(_trans("Threshold"), 0.5));
 }
 
 ControllerEmu::MixedTriggers::MixedTriggers(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_MIXED_TRIGGERS)
 {
-	settings.emplace_back(new Setting(_trans("Threshold"), 0.9f));
+	settings.emplace_back(new Setting(_trans("Threshold"), 0.9));
 }
 
 ControllerEmu::Triggers::Triggers(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_TRIGGERS)
@@ -203,7 +203,7 @@ ControllerEmu::Tilt::Tilt(const std::string& _name) : ControlGroup(_name, GROUP_
 
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 	settings.emplace_back(new Setting(_trans("Circle Stick"), 0));
-	settings.emplace_back(new Setting(_trans("Angle"), 0.9f, 0, 180));
+	settings.emplace_back(new Setting(_trans("Angle"), 0.9, 0, 180));
 }
 
 ControllerEmu::Cursor::Cursor(const std::string& _name)
@@ -216,9 +216,9 @@ ControllerEmu::Cursor::Cursor(const std::string& _name)
 	controls.emplace_back(new Input("Backward"));
 	controls.emplace_back(new Input(_trans("Hide")));
 
-	settings.emplace_back(new Setting(_trans("Center"), 0.5f));
-	settings.emplace_back(new Setting(_trans("Width"), 0.5f));
-	settings.emplace_back(new Setting(_trans("Height"), 0.5f));
+	settings.emplace_back(new Setting(_trans("Center"), 0.5));
+	settings.emplace_back(new Setting(_trans("Width"), 0.5));
+	settings.emplace_back(new Setting(_trans("Height"), 0.5));
 
 }
 
