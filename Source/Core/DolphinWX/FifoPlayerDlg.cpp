@@ -43,8 +43,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
 
-class wxWindow;
-
 wxDEFINE_EVENT(RECORDING_FINISHED_EVENT, wxCommandEvent);
 wxDEFINE_EVENT(FRAME_WRITTEN_EVENT, wxCommandEvent);
 

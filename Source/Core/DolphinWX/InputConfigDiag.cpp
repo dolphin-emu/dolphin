@@ -53,8 +53,6 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ExpressionParser.h"
 
-class wxWindow;
-
 using namespace ciface::ExpressionParser;
 
 void GamepadPage::ConfigExtension(wxCommandEvent& event)

@@ -47,8 +47,6 @@
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-class wxWindow;
-
 #define NETPLAY_TITLEBAR  "Dolphin NetPlay"
 #define INITIAL_PAD_BUFFER_SIZE 5
 

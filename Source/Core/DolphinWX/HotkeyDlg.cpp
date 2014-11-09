@@ -27,8 +27,6 @@
 #include "DolphinWX/HotkeyDlg.h"
 #include "DolphinWX/WXInputBase.h"
 
-class wxWindow;
-
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1, wxEVT_BUTTON, HotkeyConfigDialog::OnButtonClick)
 	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
