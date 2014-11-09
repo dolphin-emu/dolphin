@@ -1085,8 +1085,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	SetWindowSize(fbStride, fbHeight);
 
-	const bool windowResized = CheckForResize();
-	const bool fullscreen = g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled() &&
+	bool windowResized = CheckForResize();
+	bool fullscreen = g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled() &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
 
 	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
@@ -1102,6 +1102,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			fullscreen_changed = true;
 		}
 	}
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+	{
+		windowResized = false;
+		fullscreen = false;
+		fullscreen_changed = false;
+		fullscreen_state = false;
+	}
+#endif		
 
 	bool xfbchanged = false;
 

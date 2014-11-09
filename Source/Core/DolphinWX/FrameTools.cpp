@@ -1085,9 +1085,11 @@ void CFrame::StartGame(const std::string& filename)
 
 	wxBeginBusyCursor();
 
-	if (g_has_hmd && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If Rift is in Direct Mode, start the mirror windowed.
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If Rift is in Direct Mode, start the mirror windowed.
 		DoFullscreen(FALSE);
 	else
+#endif
 		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
 	if (!BootManager::BootCore(filename))
