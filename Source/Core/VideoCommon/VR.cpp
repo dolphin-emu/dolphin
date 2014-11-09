@@ -133,6 +133,9 @@ void ShutdownVR()
 #ifdef HAVE_OCULUSSDK
 	if (hmd)
 	{
+		// on my computer, on runtime 0.4.2, the Rift won't switch itself off without this:
+		if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+			ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_DisplayOff);
 		ovrHmd_Destroy(hmd);
 		NOTICE_LOG(VR, "Oculus Rift shut down.");
 	}
