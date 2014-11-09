@@ -346,8 +346,16 @@ HRESULT Create(HWND wnd)
 	{
 		// forcing buffer resolution to xres and yres..
 		// this is not a problem as long as we're in windowed mode
-		swap_chain_desc.BufferDesc.Width = xres;
-		swap_chain_desc.BufferDesc.Height = yres;
+		if (g_has_hmd)
+		{
+			swap_chain_desc.BufferDesc.Width = g_hmd_window_width;
+			swap_chain_desc.BufferDesc.Height = g_hmd_window_height;
+		}
+		else
+		{
+			swap_chain_desc.BufferDesc.Width = xres;
+			swap_chain_desc.BufferDesc.Height = yres;
+		}
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
