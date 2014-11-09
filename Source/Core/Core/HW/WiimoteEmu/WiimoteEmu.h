@@ -24,10 +24,9 @@ namespace WiimoteReal
 {
 class Wiimote;
 }
-
 namespace WiimoteEmu
 {
-
+#pragma pack(push,1)
 struct ReportFeatures
 {
 	u8 core, accel, ir, ext, size;
@@ -197,7 +196,6 @@ private:
 	wiimote_key m_ext_key;
 
 	u8 m_eeprom[WIIMOTE_EEPROM_SIZE];
-
 	struct MotionPlusReg
 	{
 		u8 unknown[0xF0];
@@ -233,6 +231,7 @@ private:
 		u8  play;
 		u8  unk_9;
 	} m_reg_speaker;
+#pragma pack(pop)
 };
 
 void Spy(Wiimote* wm_, const void* data_, size_t size_);
