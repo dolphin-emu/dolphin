@@ -177,7 +177,7 @@ void Jit64::Init()
 	EnableBlockLink();
 
 	jo.fpAccurateFcmp = SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF;
-	jo.optimizeGatherPipe = true;
+	jo.optimizeGatherPipe = false;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
