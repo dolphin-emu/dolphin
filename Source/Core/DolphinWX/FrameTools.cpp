@@ -1039,16 +1039,21 @@ void CFrame::StartGame(const std::string& filename)
 		if (g_has_hmd)
 		{
 			size = wxSize(g_hmd_window_width, g_hmd_window_height);
+			position.x = g_hmd_window_x;
+			position.y = g_hmd_window_y;
 		}
+		else
+		{
 #ifdef _WIN32
-		// Out of desktop check
-		int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
-		int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
-		int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
-		int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-		if ((leftPos + width) < (position.x + size.GetWidth()) || leftPos > position.x || (topPos + height) < (position.y + size.GetHeight()) || topPos > position.y)
-			position.x = position.y = wxDefaultCoord;
+			// Out of desktop check
+			int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+			int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
+			int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+			int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+			if ((leftPos + width) < (position.x + size.GetWidth()) || leftPos > position.x || (topPos + height) < (position.y + size.GetHeight()) || topPos > position.y)
+				position.x = position.y = wxDefaultCoord;
 #endif
+		}
 		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
