@@ -34,6 +34,7 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 namespace DX11
 {
@@ -80,6 +81,11 @@ void InitBackendInfo()
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
+	//Oculus SDK Bug: Once OpenGL mode has been attached in Direct Mode,
+	//running the next line will cause a crash in Oculus SDK.  Seems to work
+    //If you never ShutdownVR() the OpenGL mode, and never InitVR() for the
+	//Direct3D mode, but that is very hacky.  Running ovr_Initialize(); here stops
+	//crash, bug kills Direct Mode. Wait until SDK fixes this issue?
 	hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
@@ -220,6 +226,7 @@ void VideoBackend::Shutdown()
 		delete g_renderer;
 		g_renderer = nullptr;
 		g_texture_cache = nullptr;
+		ShutdownVR();
 	}
 }
 

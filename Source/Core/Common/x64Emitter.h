@@ -10,6 +10,7 @@
 #include <cstring>
 #include <functional>
 
+#include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
 #include "Common/CommonTypes.h"
 
@@ -302,7 +303,7 @@ private:
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
-	void ABI_CalculateFrameSize(u32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
+	void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 
 protected:
 	inline void Write8(u8 value)   {*code++ = value;}
@@ -883,8 +884,8 @@ public:
 	// Saves/restores the registers and adjusts the stack to be aligned as
 	// required by the ABI, where the previous alignment was as specified.
 	// Push returns the size of the shadow space, i.e. the offset of the frame.
-	size_t ABI_PushRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
-	void ABI_PopRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
+	size_t ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
+	void ABI_PopRegistersAndAdjustStack(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
 
 	inline int ABI_GetNumXMMRegs() { return 16; }
 

@@ -12,9 +12,22 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f;
 
 #ifdef HAVE_OCULUSSDK
+#include "OVR_Version.h"
 #include "Kernel/OVR_Types.h"
 #include "OVR_CAPI.h"
 #include "Kernel/OVR_Math.h"
+
+// Detect which version of the Oculus SDK we are using
+#if OVR_MINOR_VERSION >= 4
+#if OVR_BUILD_VERSION >= 3
+#define OCULUSSDK043
+#else
+#define OCULUSSDK042
+#endif
+#else
+Error, Oculus SDK 0.3.x is no longer supported   
+#endif
+
 #endif
 
 #include <mutex>
@@ -38,7 +51,7 @@ extern bool g_has_hmd, g_has_rift, g_has_vr920;
 extern bool g_new_tracking_frame;
 extern Matrix44 g_head_tracking_matrix;
 extern float g_head_tracking_position[3];
-extern int g_hmd_window_width, g_hmd_window_height; 
+extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
 extern const char *g_hmd_device_name;
 
 extern bool debug_nextScene;

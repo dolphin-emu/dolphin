@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/VideoConfig.h"
@@ -29,7 +30,6 @@
 
 #include "Core/ConfigManager.h" // for EuRGB60
 #include "Core/CoreTiming.h"
-#include "Core/HW/SystemTimers.h"
 
 static HWND s_emu_wnd;
 static LONG s_byte_buffer;
@@ -51,7 +51,7 @@ static BITMAPINFOHEADER s_bitmap;
 // so we have to save a frame and always be behind
 static void* s_stored_frame = nullptr;
 static u64 s_stored_frame_size = 0;
-bool b_start_dumping = false;
+static bool s_start_dumping = false;
 
 bool AVIDump::Start(HWND hWnd, int w, int h)
 {
@@ -171,7 +171,7 @@ void AVIDump::Stop()
 	// store one copy of the last video frame, CFR case
 	if (s_stream_compressed)
 		AVIStreamWrite(s_stream_compressed, s_frame_count++, 1, GetFrame(), s_bitmap.biSizeImage, AVIIF_KEYFRAME, nullptr, &s_byte_buffer);
-	b_start_dumping = false;
+	s_start_dumping = false;
 	CloseFile();
 	s_file_count = 0;
 	NOTICE_LOG(VIDEO, "Stop");
@@ -228,10 +228,10 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 	u64 one_cfr = SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	int nplay = 0;
 	s64 delta;
-	if (!b_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
 	{
 		delta = CoreTiming::GetTicks();
-		b_start_dumping = true;
+		s_start_dumping = true;
 	}
 	else
 	{
@@ -334,7 +334,8 @@ static int s_width;
 static int s_height;
 static int s_size;
 static u64 s_last_frame;
-bool b_start_dumping = false;
+static bool s_start_dumping = false;
+static u64 s_last_pts;
 
 static void InitAVCodec()
 {
@@ -352,6 +353,7 @@ bool AVIDump::Start(int w, int h)
 	s_height = h;
 
 	s_last_frame = CoreTiming::GetTicks();
+	s_last_pts = 0;
 
 	InitAVCodec();
 	bool success = CreateFile();
@@ -416,14 +418,6 @@ static void PreparePacket(AVPacket* pkt)
 	av_init_packet(pkt);
 	pkt->data = nullptr;
 	pkt->size = 0;
-	if (s_stream->codec->coded_frame->pts != AV_NOPTS_VALUE)
-	{
-		pkt->pts = av_rescale_q(s_stream->codec->coded_frame->pts,
-		                        s_stream->codec->time_base, s_stream->time_base);
-	}
-	if (s_stream->codec->coded_frame->key_frame)
-		pkt->flags |= AV_PKT_FLAG_KEY;
-	pkt->stream_index = s_stream->index;
 }
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
@@ -448,11 +442,45 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	// Encode and write the image.
 	AVPacket pkt;
 	PreparePacket(&pkt);
-	int got_packet;
-	int error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+	int got_packet = 0;
+	int error = 0;
+	u64 delta;
+	s64 last_pts;
+	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	{
+		delta = CoreTiming::GetTicks();
+		last_pts = AV_NOPTS_VALUE;
+		s_start_dumping = true;
+	}
+	else
+	{
+		delta = CoreTiming::GetTicks() - s_last_frame;
+		last_pts = (s_last_pts * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+	}
+	u64 pts_in_ticks = s_last_pts + delta;
+	s_scaled_frame->pts = (pts_in_ticks * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+	if (s_scaled_frame->pts != last_pts)
+	{
+		s_last_frame = CoreTiming::GetTicks();
+		s_last_pts = pts_in_ticks;
+		error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+	}
 	while (!error && got_packet)
 	{
 		// Write the compressed frame in the media file.
+		if (pkt.pts != AV_NOPTS_VALUE)
+		{
+			pkt.pts = av_rescale_q(pkt.pts,
+			                       s_stream->codec->time_base, s_stream->time_base);
+		}
+		if (pkt.dts != AV_NOPTS_VALUE)
+		{
+			pkt.dts = av_rescale_q(pkt.dts,
+			                       s_stream->codec->time_base, s_stream->time_base);
+		}
+		if (s_stream->codec->coded_frame->key_frame)
+			pkt.flags |= AV_PKT_FLAG_KEY;
+		pkt.stream_index = s_stream->index;
 		av_interleaved_write_frame(s_format_context, &pkt);
 
 		// Handle delayed frames.

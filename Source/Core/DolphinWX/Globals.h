@@ -14,6 +14,7 @@ enum
 {
 	Toolbar_Step,
 	Toolbar_StepOver,
+	Toolbar_StepOut,
 	Toolbar_Skip,
 	Toolbar_GotoPC,
 	Toolbar_SetPC,
@@ -150,6 +151,7 @@ enum
 	IDM_LOGWINDOW,
 	IDM_LOGCONFIGWINDOW,
 	IDM_REGISTERWINDOW,
+	IDM_WATCHWINDOW,
 	IDM_BREAKPOINTWINDOW,
 	IDM_MEMORYWINDOW,
 	IDM_JITWINDOW,
@@ -231,6 +233,7 @@ enum
 	ID_TOOLBAR_DEBUG,
 	IDM_STEP,
 	IDM_STEPOVER,
+	IDM_STEPOUT,
 	IDM_TOGGLE_BREAKPOINT,
 	IDM_SKIP,
 	IDM_SETPC,
@@ -290,4 +293,4 @@ enum
 			(wxObject*) nullptr \
 			),
 
-extern const wxEventType wxEVT_HOST_COMMAND;
+wxDECLARE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);

@@ -94,6 +94,7 @@ public:
 	template<class uid_data2>
 	uid_data2* GetUidData() { return &data; }
 	const uid_data* GetUidData() const { return &data; }
+	const u8* GetUidDataRaw() const { return &values[0]; }
 
 	size_t GetUidDataSize() const { return sizeof(values); }
 
@@ -192,7 +193,7 @@ public:
 				file << "\n\nShader uid:\n";
 				for (unsigned int i = 0; i < new_uid.GetUidDataSize(); ++i)
 				{
-					u32 value = ((u32*)new_uid.GetUidData())[i];
+					u8 value = new_uid.GetUidDataRaw()[i];
 					if ((i % 4) == 0)
 					{
 						auto last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
@@ -200,7 +201,7 @@ public:
 						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
 					}
 
-					file << std::setw(8) << std::setfill('0') << std::hex << value << std::setw(1);
+					file << std::setw(2) << std::setfill('0') << std::hex << value << std::setw(1);
 					if ((i % 4) < 3)
 						file << ' ';
 					else

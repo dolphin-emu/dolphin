@@ -276,6 +276,18 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 	int a = inst.FA;
 	int b = inst.FB;
 	int crf = inst.CRFD;
+	int output[4] = { CR_SO, CR_EQ, CR_GT, CR_LT };
+
+	// Merge neighboring fcmp and cror (the primary use of cror).
+	UGeckoInstruction next = js.next_inst;
+	if (next.OPCD == 19 && next.SUBOP10 == 449 && (next.CRBA >> 2) == crf && (next.CRBB >> 2) == crf && (next.CRBD >> 2) == crf)
+	{
+		js.skipnext = true;
+		js.downcountAmount++;
+		int dst = 3 - (next.CRBD & 3);
+		output[3 - (next.CRBA & 3)] |= 1 << dst;
+		output[3 - (next.CRBB & 3)] |= 1 << dst;
+	}
 
 	fpr.Lock(a, b);
 	fpr.BindToRegister(b, true, false);
@@ -315,14 +327,14 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 		pGreater = J_CC(CC_B);
 	}
 
-	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_EQ)));
+	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_EQ_BIT])));
 	if (fprf)
 		OR(32, PPCSTATE(fpscr), Imm32(CR_EQ << FPRF_SHIFT));
 
 	continue1 = J();
 
 	SetJumpTarget(pNaN);
-	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_SO)));
+	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_SO_BIT])));
 	if (fprf)
 		OR(32, PPCSTATE(fpscr), Imm32(CR_SO << FPRF_SHIFT));
 
@@ -331,13 +343,13 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 		continue2 = J();
 
 		SetJumpTarget(pGreater);
-		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_GT)));
+		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_GT_BIT])));
 		if (fprf)
 			OR(32, PPCSTATE(fpscr), Imm32(CR_GT << FPRF_SHIFT));
 		continue3 = J();
 
 		SetJumpTarget(pLesser);
-		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_LT)));
+		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_LT_BIT])));
 		if (fprf)
 			OR(32, PPCSTATE(fpscr), Imm32(CR_LT << FPRF_SHIFT));
 	}

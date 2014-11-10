@@ -7,6 +7,7 @@
 #if HAVE_PORTAUDIO
 
 #include "Core/CoreTiming.h"
+#include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceMic.h"
 #include "Core/HW/GCPad.h"
@@ -176,8 +177,9 @@ void CEXIMic::SetCS(int cs)
 
 void CEXIMic::UpdateNextInterruptTicks()
 {
-	next_int_ticks = CoreTiming::GetTicks() +
-		(SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
+	int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
+	next_int_ticks = CoreTiming::GetTicks() + diff;
+	ExpansionInterface::ScheduleUpdateInterrupts(diff);
 }
 
 bool CEXIMic::IsInterruptSet()

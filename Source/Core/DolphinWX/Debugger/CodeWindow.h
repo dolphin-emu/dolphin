@@ -19,6 +19,7 @@
 
 class CFrame;
 class CRegisterWindow;
+class CWatchWindow;
 class CBreakPointWindow;
 class CMemoryWindow;
 class CJitWindow;
@@ -77,6 +78,7 @@ public:
 
 	void ToggleCodeWindow(bool bShow);
 	void ToggleRegisterWindow(bool bShow);
+	void ToggleWatchWindow(bool bShow);
 	void ToggleBreakPointWindow(bool bShow);
 	void ToggleMemoryWindow(bool bShow);
 	void ToggleJitWindow(bool bShow);
@@ -93,6 +95,7 @@ public:
 
 	// Sub dialogs
 	CRegisterWindow* m_RegisterWindow;
+	CWatchWindow* m_WatchWindow;
 	CBreakPointWindow* m_BreakpointWindow;
 	CMemoryWindow* m_MemoryWindow;
 	CJitWindow* m_JitWindow;
@@ -105,16 +108,6 @@ public:
 	int iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 private:
-	enum
-	{
-		// Debugger GUI Objects
-		ID_CODEVIEW,
-		ID_CALLSTACKLIST,
-		ID_CALLERSLIST,
-		ID_CALLSLIST,
-		ID_SYMBOLLIST
-	};
-
 	void OnSymbolListChange(wxCommandEvent& event);
 	void OnSymbolListContextMenu(wxContextMenuEvent& event);
 	void OnCallstackListChange(wxCommandEvent& event);
@@ -126,6 +119,7 @@ private:
 	// Debugger functions
 	void SingleStep();
 	void StepOver();
+	void StepOut();
 	void ToggleBreakpoint();
 
 	void UpdateLists();
@@ -139,6 +133,4 @@ private:
 	wxListBox* callers;
 	wxListBox* calls;
 	Common::Event sync_event;
-
-	DECLARE_EVENT_TABLE()
 };

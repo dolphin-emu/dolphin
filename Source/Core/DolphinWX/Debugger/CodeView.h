@@ -95,6 +95,4 @@ private:
 	bool m_selecting;
 
 	int m_lx, m_ly;
-
-	DECLARE_EVENT_TABLE()
 };

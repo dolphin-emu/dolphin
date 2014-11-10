@@ -39,11 +39,10 @@ public:
 	void OnAddMemoryCheck(wxCommandEvent& WXUNUSED(event));
 	void Event_SaveAll(wxCommandEvent& WXUNUSED(event));
 	void SaveAll();
-	void LoadAll(wxCommandEvent& WXUNUSED(event));
+	void Event_LoadAll(wxCommandEvent& WXUNUSED(event));
+	void LoadAll();
 
 private:
-	DECLARE_EVENT_TABLE();
-
 	wxAuiManager m_mgr;
 	CBreakPointView* m_BreakPointListView;
 	CCodeWindow* m_pCodeWindow;

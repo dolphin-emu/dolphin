@@ -37,6 +37,7 @@ void JitILBase::lXz(UGeckoInstruction inst)
 	// Idle Skipping. This really should be done somewhere else.
 	// Either lower in the IR or higher in PPCAnalyist
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+		PowerPC::GetState() != PowerPC::CPU_STEPPING &&
 		inst.OPCD == 32 && // Lwx
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||

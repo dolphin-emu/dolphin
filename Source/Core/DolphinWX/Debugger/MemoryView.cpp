@@ -25,10 +25,13 @@
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
+#include "DolphinWX/Debugger/WatchWindow.h"
 
 enum
 {
@@ -38,22 +41,12 @@ enum
 	IDM_COPYCODE,
 	IDM_RUNTOHERE,
 	IDM_DYNARECRESULTS,
+	IDM_WATCHADDRESS,
 	IDM_TOGGLEMEMORY,
 	IDM_VIEWASFP,
 	IDM_VIEWASASCII,
 	IDM_VIEWASHEX,
 };
-
-BEGIN_EVENT_TABLE(CMemoryView, wxControl)
-	EVT_PAINT(CMemoryView::OnPaint)
-	EVT_LEFT_DOWN(CMemoryView::OnMouseDownL)
-	EVT_LEFT_UP(CMemoryView::OnMouseUpL)
-	EVT_MOTION(CMemoryView::OnMouseMove)
-	EVT_RIGHT_DOWN(CMemoryView::OnMouseDownR)
-	EVT_MOUSEWHEEL(CMemoryView::OnScrollWheel)
-	EVT_MENU(-1, CMemoryView::OnPopupMenu)
-	EVT_SIZE(CMemoryView::OnResize)
-END_EVENT_TABLE()
 
 CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
 	: wxControl(parent, wxID_ANY)
@@ -67,6 +60,14 @@ CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
 	, memory(0)
 	, viewAsType(VIEWAS_FP)
 {
+	Bind(wxEVT_PAINT, &CMemoryView::OnPaint, this);
+	Bind(wxEVT_LEFT_DOWN, &CMemoryView::OnMouseDownL, this);
+	Bind(wxEVT_LEFT_UP, &CMemoryView::OnMouseUpL, this);
+	Bind(wxEVT_MOTION, &CMemoryView::OnMouseMove, this);
+	Bind(wxEVT_RIGHT_DOWN, &CMemoryView::OnMouseDownR, this);
+	Bind(wxEVT_MOUSEWHEEL, &CMemoryView::OnScrollWheel, this);
+	Bind(wxEVT_MENU, &CMemoryView::OnPopupMenu, this);
+	Bind(wxEVT_SIZE, &CMemoryView::OnResize, this);
 }
 
 int CMemoryView::YToAddress(int y)
@@ -161,6 +162,10 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 {
+	CFrame* main_frame = (CFrame*)(GetParent()->GetParent()->GetParent());
+	CCodeWindow* code_window = main_frame->g_pCodeWindow;
+	CWatchWindow* watch_window = code_window->m_WatchWindow;
+
 #if wxUSE_CLIPBOARD
 	wxTheClipboard->Open();
 #endif
@@ -179,6 +184,13 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 			}
 			break;
 #endif
+
+		case IDM_WATCHADDRESS:
+			debugger->AddWatch(selection);
+			if (watch_window)
+				watch_window->NotifyUpdate();
+			Refresh();
+			break;
 
 		case IDM_TOGGLEMEMORY:
 			memory ^= 1;
@@ -215,6 +227,7 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 	menu->Append(IDM_COPYADDRESS, _("Copy &address"));
 	menu->Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
+	menu->Append(IDM_WATCHADDRESS, _("Add to &watch"));
 	menu->Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
 
 	wxMenu* viewAsSubMenu = new wxMenu;

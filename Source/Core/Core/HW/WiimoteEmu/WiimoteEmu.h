@@ -24,10 +24,9 @@ namespace WiimoteReal
 {
 class Wiimote;
 }
-
 namespace WiimoteEmu
 {
-
+#pragma pack(push,1)
 struct ReportFeatures
 {
 	u8 core, accel, ir, ext, size;
@@ -66,10 +65,6 @@ struct ExtensionReg
 	// address 0xFA
 	u8 constant_id[6];
 };
-
-void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
-	const accel_cal& calib,
-	const WiimoteEmu::AccelData& accel);
 
 void EmulateShake(AccelData* const accel_data
 	  , ControllerEmu::Buttons* const buttons_group
@@ -136,6 +131,8 @@ public:
 
 	void LoadDefaults(const ControllerInterface& ciface) override;
 
+	int CurrentExtension() const { return m_extension->active_extension; }
+
 	void CycleThroughExtensions();
 
 protected:
@@ -144,8 +141,8 @@ protected:
 	void HandleExtensionSwap();
 	void UpdateButtonsStatus();
 
-	void GetCoreData(u8* const data);
-	void GetAccelData(u8* const data, u8* const core);
+	void GetButtonData(u8* const data);
+	void GetAccelData(u8* const data, const ReportFeatures& rptf);
 	void GetIRData(u8* const data, bool use_accel);
 	void GetExtData(u8* const data);
 
@@ -213,7 +210,6 @@ private:
 	wiimote_key m_ext_key;
 
 	u8 m_eeprom[WIIMOTE_EEPROM_SIZE];
-
 	struct MotionPlusReg
 	{
 		u8 unknown[0xF0];
@@ -249,6 +245,7 @@ private:
 		u8  play;
 		u8  unk_9;
 	} m_reg_speaker;
+#pragma pack(pop)
 };
 
 void Spy(Wiimote* wm_, const void* data_, size_t size_);

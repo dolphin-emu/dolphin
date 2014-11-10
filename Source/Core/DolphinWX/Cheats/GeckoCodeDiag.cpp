@@ -30,8 +30,6 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 
-class IniFile;
-
 namespace Gecko
 {
 

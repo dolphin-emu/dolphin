@@ -47,6 +47,9 @@ public:
 	// Initialization, etc
 
 	void Init() override;
+
+	void EnableBlockLink();
+
 	void Shutdown() override;
 
 	// Jit!

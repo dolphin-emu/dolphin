@@ -36,7 +36,7 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
 			memset(&ssl.ctx, 0, sizeof(ssl_context));
 			memset(&ssl.session, 0, sizeof(ssl_session));
 			memset(&ssl.entropy, 0, sizeof(entropy_context));
-			memset(ssl.hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
+			ssl.hostname.clear();
 
 			ssl.active = false;
 		}
@@ -176,9 +176,8 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			ssl_set_authmode(&ssl->ctx, SSL_VERIFY_NONE);
 			ssl_set_renegotiation(&ssl->ctx, SSL_RENEGOTIATION_ENABLED);
 
-			memcpy(ssl->hostname, hostname.c_str(), std::min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
-			ssl->hostname[NET_SSL_MAX_HOSTNAME_LEN-1] = '\0';
-			ssl_set_hostname(&ssl->ctx, ssl->hostname);
+			ssl->hostname = hostname;
+			ssl_set_hostname(&ssl->ctx, ssl->hostname.c_str());
 
 			ssl->active = true;
 			Memory::Write_U32(freeSSL, _BufferIn);
@@ -217,7 +216,7 @@ _SSL_NEW_ERROR:
 			memset(&ssl->ctx, 0, sizeof(ssl_context));
 			memset(&ssl->session, 0, sizeof(ssl_session));
 			memset(&ssl->entropy, 0, sizeof(entropy_context));
-			memset(ssl->hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
+			ssl->hostname.clear();
 
 			ssl->active = false;
 
@@ -262,7 +261,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
+				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname.c_str());
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
@@ -359,7 +358,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
+				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname.c_str());
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);

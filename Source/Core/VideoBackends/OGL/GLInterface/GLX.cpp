@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "DolphinWX/GLInterface/GLX.h"
+#include "VideoBackends/OGL/GLInterface/GLX.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"

@@ -8,11 +8,11 @@
 namespace WiimoteEmu
 {
 
-static const u8 nunchuck_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
-/* Default calibration for the nunchuck. It should be written to 0x20 - 0x3f of the
+static const u8 nunchuk_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
+/* Default calibration for the nunchuk. It should be written to 0x20 - 0x3f of the
    extension register. 0x80 is the neutral x and y accelerators and 0xb3 is the
    neutral z accelerometer that is adjusted for gravity. */
-static const u8 nunchuck_calibration[] =
+static const u8 nunchuk_calibration[] =
 {
 	0x80, 0x80, 0x80, 0x00, // accelerometer x, y, z neutral
 	0xb3, 0xb3, 0xb3, 0x00, //  x, y, z g-force values
@@ -53,9 +53,9 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg, int index) : Attachment(_trans(
 
 	// set up register
 	// calibration
-	memcpy(&calibration, nunchuck_calibration, sizeof(nunchuck_calibration));
+	memcpy(&calibration, nunchuk_calibration, sizeof(nunchuk_calibration));
 	// id
-	memcpy(&id, nunchuck_id, sizeof(nunchuck_id));
+	memcpy(&id, nunchuk_id, sizeof(nunchuk_id));
 
 	// this should get set to 0 on disconnect, but it isn't, o well
 	memset(m_shake_step, 0, sizeof(m_shake_step));
@@ -63,8 +63,8 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg, int index) : Attachment(_trans(
 
 void Nunchuk::GetState(u8* const data)
 {
-	wm_extension* const ncdata = (wm_extension*)data;
-	ncdata->bt = 0;
+	wm_nc* const ncdata = (wm_nc*)data;
+	ncdata->bt.hex = 0;
 
 	// stick
 	double state[2];
@@ -111,12 +111,30 @@ void Nunchuk::GetState(u8* const data)
 	// shake
 	EmulateShake(&accel, m_shake, m_shake_step);
 	// buttons
-	m_buttons->GetState(&ncdata->bt, nunchuk_button_bitmasks);
+	m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks);
 
 	// flip the button bits :/
-	ncdata->bt ^= 0x03;
+	ncdata->bt.hex ^= 0x03;
 
-	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, ncdata->bt, *(accel_cal*)&reg.calibration, accel);
+	accel_cal& calib = *(accel_cal*)&reg.calibration;
+
+	u16 x = (u16)(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
+	u16 y = (u16)(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
+	u16 z = (u16)(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+
+	if (x > 1024)
+		x = 1024;
+	if (y > 1024)
+		y = 1024;
+	if (z > 1024)
+		z = 1024;
+
+	ncdata->ax = x & 0xFF;
+	ncdata->ay = y & 0xFF;
+	ncdata->az = z & 0xFF;
+	ncdata->passthrough_data.acc_x_lsb = x >> 8 & 0x3;
+	ncdata->passthrough_data.acc_y_lsb = y >> 8 & 0x3;
+	ncdata->passthrough_data.acc_z_lsb = z >> 8 & 0x3;
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)

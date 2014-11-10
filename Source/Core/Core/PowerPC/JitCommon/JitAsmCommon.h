@@ -13,16 +13,13 @@ public:
 	const u8 *fifoDirectWrite8;
 	const u8 *fifoDirectWrite16;
 	const u8 *fifoDirectWrite32;
-	const u8 *fifoDirectWriteFloat;
 
 	const u8 *enterCode;
 
 	const u8 *dispatcherMispredictedBLR;
 	const u8 *dispatcher;
 	const u8 *dispatcherNoCheck;
-	const u8 *dispatcherPcInRSCRATCH;
 
-	const u8 *dispatchPcInRSCRATCH;
 	const u8 *doTiming;
 
 	const u8 *frsqrte;

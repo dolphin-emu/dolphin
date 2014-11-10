@@ -11,6 +11,7 @@
 #include "Kernel/OVR_Math.h"
 #endif
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
@@ -35,7 +36,7 @@ extern bool g_aspect_wide;
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
-static int nMaterialsChanged;
+static BitSet32 nMaterialsChanged;
 static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
@@ -660,7 +661,7 @@ void VertexShaderManager::Dirty()
 
 	bProjectionChanged = true;
 
-	nMaterialsChanged = 15;
+	nMaterialsChanged = BitSet32::AllTrue(4);
 
 	dirty = true;
 }
@@ -753,35 +754,16 @@ void VertexShaderManager::SetConstants()
 		nLightsChanged[0] = nLightsChanged[1] = -1;
 	}
 
-	if (nMaterialsChanged)
+	for (int i : nMaterialsChanged)
 	{
-		for (int i = 0; i < 2; ++i)
-		{
-			if (nMaterialsChanged & (1 << i))
-			{
-				u32 data = xfmem.ambColor[i];
+		u32 data = i >= 2 ? xfmem.matColor[i - 2] : xfmem.ambColor[i];
 				constants.materials[i][0] = (data >> 24) & 0xFF;
 				constants.materials[i][1] = (data >> 16) & 0xFF;
 				constants.materials[i][2] = (data >>  8) & 0xFF;
 				constants.materials[i][3] =  data        & 0xFF;
-			}
-		}
-
-		for (int i = 0; i < 2; ++i)
-		{
-			if (nMaterialsChanged & (1 << (i + 2)))
-			{
-				u32 data = xfmem.matColor[i];
-				constants.materials[i+2][0] = (data >> 24) & 0xFF;
-				constants.materials[i+2][1] = (data >> 16) & 0xFF;
-				constants.materials[i+2][2] = (data >>  8) & 0xFF;
-				constants.materials[i+2][3] =  data        & 0xFF;
-			}
-		}
 		dirty = true;
-
-		nMaterialsChanged = 0;
 	}
+	nMaterialsChanged = BitSet32(0);
 
 	if (bPosNormalMatrixChanged)
 	{
@@ -1477,12 +1459,22 @@ void VertexShaderManager::SetProjectionConstants()
 #ifdef HAVE_OCULUSSDK
 		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
 		{
+#ifdef OCULUSSDK042
+			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
+			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
+			posLeft[2] = g_eye_render_desc[0].ViewAdjust.z * UnitsPerMetre;
+			posRight[0] = g_eye_render_desc[1].ViewAdjust.x * UnitsPerMetre;
+			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
+			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
+#endif
+#ifdef OCULUSSDK043
 			posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x * UnitsPerMetre;
 			posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y * UnitsPerMetre;
 			posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z * UnitsPerMetre;
 			posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x * UnitsPerMetre;
 			posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y * UnitsPerMetre;
 			posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z * UnitsPerMetre;
+#endif
 		}
 #endif
 		Matrix44::Translate(eye_pos_matrix_left, posLeft);
@@ -1708,7 +1700,7 @@ void VertexShaderManager::SetProjectionChanged()
 
 void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
 {
-	nMaterialsChanged  |= (1 << index);
+	nMaterialsChanged[index] = true;
 }
 
 void VertexShaderManager::ScaleView(float scale)

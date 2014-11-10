@@ -9,12 +9,12 @@
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 //#define _WRITE_MC_HEADER 1
-void MigrateFromMemcardFile(std::string strDirectoryName, int card_index);
+void MigrateFromMemcardFile(const std::string& strDirectoryName, int card_index);
 
 class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 {
 public:
-	GCMemcardDirectory(std::string directory, int slot = 0, u16 sizeMb = MemCard2043Mb, bool ascii = true,
+	GCMemcardDirectory(const std::string& directory, int slot = 0, u16 sizeMb = MemCard2043Mb, bool ascii = true,
 		DiscIO::IVolume::ECountry  card_region = DiscIO::IVolume::COUNTRY_EUROPE, int gameId = 0);
 	~GCMemcardDirectory();
 	void FlushToFile();
@@ -26,7 +26,7 @@ public:
 	void DoState(PointerWrap &p) override;
 
 private:
-	int LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly);
+	int LoadGCI(const std::string& fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly);
 	inline s32 SaveAreaRW(u32 block, bool writing = false);
 	// s32 DirectoryRead(u32 offset, u32 length, u8* destaddress);
 	s32 DirectoryWrite(u32 destaddress, u32 length, u8 *srcaddress);

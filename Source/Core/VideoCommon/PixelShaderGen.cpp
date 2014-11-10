@@ -943,7 +943,10 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 
 	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
-	out.Write("\tif(!( ");
+	// This outputted if statement is not like 'if(!(cond))' for a reason.
+	// Qualcomm's v95 drivers produce incorrect code using logical not
+	// Checking against false produces the correct code.
+	out.Write("\tif(( ");
 
 	uid_data->alpha_test_comp0 = bpmem.alpha_test.comp0;
 	uid_data->alpha_test_comp1 = bpmem.alpha_test.comp1;
@@ -958,7 +961,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	// Lookup the second component from the alpha function table
 	compindex = bpmem.alpha_test.comp1;
 	out.Write(tevAlphaFuncsTable[compindex], alphaRef[1]);
-	out.Write(")) {\n");
+	out.Write(") == false) {\n");
 
 	out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)

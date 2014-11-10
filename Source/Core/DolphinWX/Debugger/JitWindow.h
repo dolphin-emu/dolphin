@@ -77,8 +77,6 @@ private:
 	wxTextCtrl* x86_box;
 	wxListBox* top_instructions;
 
-	DECLARE_EVENT_TABLE()
-
 	void OnSymbolListChange(wxCommandEvent& event);
 	void OnCallstackListChange(wxCommandEvent& event);
 	void OnAddrBoxChange(wxCommandEvent& event);

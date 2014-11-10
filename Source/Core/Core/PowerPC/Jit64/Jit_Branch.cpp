@@ -229,7 +229,11 @@ void Jit64::bclrx(UGeckoInstruction inst)
 #endif
 
 	MOV(32, R(RSCRATCH), PPCSTATE_LR);
-	AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+	// We don't have to do this because WriteBLRExit handles it for us. Specifically, since we only ever push
+	// divisible-by-four instruction addresses onto the stack, if the return address matches, we're already
+	// good. If it doesn't match, the mispredicted-BLR code handles the fixup.
+	if (!m_enable_blr_optimization)
+		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 	if (inst.LK)
 		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 

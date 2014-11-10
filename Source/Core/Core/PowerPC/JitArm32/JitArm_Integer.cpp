@@ -275,7 +275,7 @@ void JitArm::arith(UGeckoInstruction inst)
 				Imm[0] = gpr.GetImm(s);
 			}
 			isImm[1] = true;
-			Imm[1] = inst.UIMM << (shiftedImm ? 16 : 0);
+			Imm[1] = inst.UIMM;
 			Rc = true;
 		break;
 
@@ -364,7 +364,7 @@ void JitArm::arith(UGeckoInstruction inst)
 			break;
 			case 28:
 			case 29:
-				gpr.SetImmediate(a, And(Imm[0], Imm[1]));
+				gpr.SetImmediate(a, And(Imm[0], Imm[1] << (shiftedImm ? 16 : 0)));
 				dest = a;
 			break;
 			case 31: // addcx, addx, subfx
@@ -542,12 +542,22 @@ void JitArm::arith(UGeckoInstruction inst)
 		{
 			dest = a;
 			gpr.BindToRegister(a, s == a);
-			ARMReg rA = gpr.GetReg();
 			RS = gpr.R(s);
 			RA = gpr.R(a);
-			MOVI2R(rA, Imm[1]);
-			ANDS(RA, RS, rA);
-			gpr.Unlock(rA);
+
+			Operand2 imm_val;
+			if (TryMakeOperand2(Imm[1] << (shiftedImm ? 16 : 0), imm_val))
+			{
+				AND(RA, RS, imm_val);
+			}
+			else
+			{
+				ARMReg rA = gpr.GetReg();
+				MOVI2R(rA, Imm[1]);
+				Operand2 rotated_reg(rA, ST_ROR, shiftedImm ? 16 : 0);
+				AND(RA, RS, rotated_reg);
+				gpr.Unlock(rA);
+			}
 		}
 		break;
 		case 31:

@@ -63,7 +63,7 @@ public final class GameListFragment extends ListFragment
 	private void fill()
 	{
 		List<GameListItem> fls = new ArrayList<GameListItem>();
-		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
+		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "ISOPaths", "0");
 		int intDirectories = Integer.parseInt(Directories);
 
 		// Extensions to filter by.
@@ -71,7 +71,7 @@ public final class GameListFragment extends ListFragment
 
 		for (int a = 0; a < intDirectories; ++a)
 		{
-			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + a, "");
+			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "ISOPath" + a, "");
 			File currentDir = new File(BrowseDir);
 			File[] dirs = currentDir.listFiles();
 			try

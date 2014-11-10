@@ -25,14 +25,12 @@
 
 #define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, _(text))
 
-BEGIN_EVENT_TABLE(MemoryCheckDlg, wxDialog)
-	EVT_BUTTON(wxID_OK, MemoryCheckDlg::OnOK)
-END_EVENT_TABLE()
-
 MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 	: wxDialog(parent, wxID_ANY, _("Memory Check"))
 	, m_parent(parent)
 {
+	Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this);
+
 	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, "");
 	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, "");
 	m_pWriteFlag = new wxCheckBox(this, wxID_ANY, _("Write"));

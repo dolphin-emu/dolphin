@@ -7,6 +7,7 @@
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 namespace DX11
 {
@@ -203,6 +204,7 @@ DXGI_SAMPLE_DESC GetAAMode(int index)
 	return aa_modes[index];
 }
 
+//#pragma optimize("", off)
 HRESULT Create(HWND wnd)
 {
 	hWnd = wnd;
@@ -224,30 +226,86 @@ HRESULT Create(HWND wnd)
 		return hr;
 	}
 
-	IDXGIFactory* factory;
-	IDXGIAdapter* adapter;
-	IDXGIOutput* output;
+	IDXGIFactory* factory = nullptr;
+	IDXGIAdapter* adapter = nullptr;
+	IDXGIOutput* output = nullptr;
+	DXGI_OUTPUT_DESC out_desc;
 	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
-	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
-	if (FAILED(hr))
+	// Find the adapter & output (monitor) to use for fullscreen, based on the reported name of the HMD's monitor.
+	if (g_hmd_device_name && strlen(g_hmd_device_name) > 1)
 	{
-		// try using the first one
-		hr = factory->EnumAdapters(0, &adapter);
-		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		for (UINT AdapterIndex = 0;; AdapterIndex++)
+		{
+			SAFE_RELEASE(adapter);
+
+			HRESULT hr = factory->EnumAdapters(AdapterIndex, &adapter);
+			if (hr == DXGI_ERROR_NOT_FOUND)
+				break;
+
+			DXGI_ADAPTER_DESC Desc;
+			adapter->GetDesc(&Desc);
+
+			bool deviceNameFound = false;
+
+			for (UINT OutputIndex = 0;; OutputIndex++)
+			{
+				IDXGIOutput *Output;
+				hr = adapter->EnumOutputs(OutputIndex, &Output);
+				if (hr == DXGI_ERROR_NOT_FOUND)
+				{
+					break;
+				}
+
+				memset(&out_desc, 0, sizeof(out_desc));
+				Output->GetDesc(&out_desc);
+
+				MONITORINFOEXA monitor;
+				monitor.cbSize = sizeof(monitor);
+				if (::GetMonitorInfoA(out_desc.Monitor, &monitor) && !strcmp(monitor.szDevice, g_hmd_device_name))
+				{
+					deviceNameFound = true;
+					output = Output;
+					//FSDesktopX = monitor.rcMonitor.left;
+					//FSDesktopY = monitor.rcMonitor.top;
+					break;
+				}
+				else
+				{
+					SAFE_RELEASE(Output);
+				}
+			}
+
+			if (output)
+				break;
+		}
+
+		if (!output)
+			SAFE_RELEASE(adapter);
 	}
 
-	// TODO: Make this configurable
-	hr = adapter->EnumOutputs(0, &output);
-	if (FAILED(hr))
+	if (!adapter)
 	{
-		// try using the first one
+		hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
+		if (FAILED(hr))
+		{
+			// try using the first one
+			hr = factory->EnumAdapters(0, &adapter);
+			if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		}
+
+		// TODO: Make this configurable
 		hr = adapter->EnumOutputs(0, &output);
-		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs!\n")
-		                                _T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
-		                                _T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
-		                                _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		if (FAILED(hr))
+		{
+			// try using the first one
+			hr = adapter->EnumOutputs(0, &output);
+			if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs!\n")
+				_T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
+				_T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
+				_T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		}
 	}
 
 	// get supported AA modes
@@ -265,9 +323,8 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.OutputWindow = wnd;
 	swap_chain_desc.SampleDesc.Count = 1;
 	swap_chain_desc.SampleDesc.Quality = 0;
-	swap_chain_desc.Windowed = !g_ActiveConfig.bFullscreen;
+	swap_chain_desc.Windowed = !(g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled());
 
-	DXGI_OUTPUT_DESC out_desc;
 	memset(&out_desc, 0, sizeof(out_desc));
 	output->GetDesc(&out_desc);
 
@@ -275,6 +332,11 @@ HRESULT Create(HWND wnd)
 	memset(&mode_desc, 0, sizeof(mode_desc));
 	mode_desc.Width = out_desc.DesktopCoordinates.right - out_desc.DesktopCoordinates.left;
 	mode_desc.Height = out_desc.DesktopCoordinates.bottom - out_desc.DesktopCoordinates.top;
+	if (g_has_hmd)
+	{
+		mode_desc.Width = g_hmd_window_width;
+		mode_desc.Height = g_hmd_window_height;
+	}
 	mode_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	mode_desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	hr = output->FindClosestMatchingMode(&mode_desc, &swap_chain_desc.BufferDesc, nullptr);
@@ -284,8 +346,18 @@ HRESULT Create(HWND wnd)
 	{
 		// forcing buffer resolution to xres and yres..
 		// this is not a problem as long as we're in windowed mode
-		swap_chain_desc.BufferDesc.Width = xres;
-		swap_chain_desc.BufferDesc.Height = yres;
+#ifdef HAVE_OCULUSSDK
+		if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+		{
+			swap_chain_desc.BufferDesc.Width = g_hmd_window_width;
+			swap_chain_desc.BufferDesc.Height = g_hmd_window_height;
+		}
+		else
+#endif
+		{
+			swap_chain_desc.BufferDesc.Width = xres;
+			swap_chain_desc.BufferDesc.Height = yres;
+		}
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -355,6 +427,7 @@ HRESULT Create(HWND wnd)
 	stateman = new StateManager;
 	return S_OK;
 }
+//#pragma optimize("", on)
 
 void Close()
 {

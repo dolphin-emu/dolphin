@@ -13,12 +13,6 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#elif defined __GNUC__
-#pragma GCC diagnostic ignored "-Wunknown-pragmas"
-#endif
-
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
 #include <emmintrin.h>
@@ -234,22 +228,6 @@ static void DecodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 }
 #endif
 
-static inline void SetOpenMPThreadCount(int width, int height)
-{
-#ifdef _OPENMP
-	// Don't use multithreading in small Textures
-	if (g_ActiveConfig.bOMPDecoder && width > 127 && height > 127)
-	{
-		// don't span to many threads they will kill the rest of the emu :)
-		omp_set_num_threads((omp_get_num_procs() + 2) / 3);
-	}
-	else
-	{
-		omp_set_num_threads(1);
-	}
-#endif
-}
-
 // JSD 01/06/11:
 // TODO: we really should ensure BOTH the source and destination addresses are aligned to 16-byte boundaries to
 // squeeze out a little more performance. _mm_loadu_si128/_mm_storeu_si128 is slower than _mm_load_si128/_mm_store_si128
@@ -260,8 +238,6 @@ static inline void SetOpenMPThreadCount(int width, int height)
 
 PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
-	SetOpenMPThreadCount(width, height);
-
 	const int Wsteps4 = (width + 3) / 4;
 	const int Wsteps8 = (width + 7) / 8;
 
@@ -270,7 +246,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 	case GX_TF_C4:
 		if (tlutfmt == GX_TL_RGB5A3)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
 					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
@@ -278,7 +253,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		else if (tlutfmt == GX_TL_IA8)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
 					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
@@ -287,7 +261,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		else if (tlutfmt == GX_TL_RGB565)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
 					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
@@ -307,7 +280,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 				const __m128i maskB3A2 = _mm_set_epi8(11,11,11,11,3,3,3,3,10,10,10,10,2,2,2,2);
 				const __m128i maskD5C4 = _mm_set_epi8(13,13,13,13,5,5,5,5,12,12,12,12,4,4,4,4);
 				const __m128i maskF7E6 = _mm_set_epi8(15,15,15,15,7,7,7,7,14,14,14,14,6,6,6,6);
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 8)
 					for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
 						for (int iy = 0, xStep =  4 * yStep; iy < 8; iy += 2,xStep++)
@@ -343,7 +315,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// JSD optimized with SSE2 intrinsics.
 			// Produces a ~76% speed improvement over reference C implementation.
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 8)
 					for (int x = 0, yStep = (y / 8) * Wsteps8 ; x < width; x += 8, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
@@ -415,7 +386,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, xStep++)
@@ -441,7 +411,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// JSD optimized with SSE2 intrinsics.
 			// Produces an ~86% speed improvement over reference C implementation.
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,yStep++)
 					{
@@ -527,7 +496,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 	case GX_TF_C8:
 		if (tlutfmt == GX_TL_RGB5A3)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -535,7 +503,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		else if (tlutfmt == GX_TL_IA8)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -544,7 +511,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		else if (tlutfmt == GX_TL_RGB565)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -554,7 +520,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		break;
 	case GX_TF_IA4:
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -568,7 +533,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// Produces an ~50% speed improvement over SSE2 implementation.
 			if (cpu_info.bSSSE3)
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -590,7 +554,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 				const __m128i kMask_x0f = _mm_set_epi32(0x00000000L, 0x00000000L, 0x00ff00ffL, 0x00ff00ffL);
 				const __m128i kMask_xf000 = _mm_set_epi32(0xff000000L, 0xff000000L, 0xff000000L, 0xff000000L);
 				const __m128i kMask_x0fff = _mm_set_epi32(0x00ffffffL, 0x00ffffffL, 0x00ffffffL, 0x00ffffffL);
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -639,7 +602,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 	case GX_TF_C14X2:
 		if (tlutfmt == GX_TL_RGB5A3)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -647,7 +609,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		else if (tlutfmt == GX_TL_IA8)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -655,7 +616,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		else if (tlutfmt == GX_TL_RGB565)
 		{
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -671,7 +631,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			const __m128i kMaskG1 = _mm_set1_epi32(0x00000300);
 			const __m128i kMaskB0 = _mm_set1_epi32(0x00F80000);
 			const __m128i kAlpha  = _mm_set1_epi32(0xFF000000);
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -748,7 +707,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -841,7 +799,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// JSD optimized with SSE2 intrinsics (2 in 4 cases)
 			// Produces a ~25% speed improvement over reference C implementation.
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
@@ -955,7 +912,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~30% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					{
@@ -987,7 +943,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// JSD optimized with SSE2 intrinsics
 			// Produces a ~68% speed improvement over reference C implementation.
 			{
-				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					{
@@ -1091,7 +1046,6 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			// Produces a ~50% improvement for x86 and a ~40% improvement for x64 in speed over reference C implementation.
 			// The x64 compiled reference C code is faster than the x86 compiled reference C code, but the SSE2 is
 			// faster than both.
-			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 			{
 				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)

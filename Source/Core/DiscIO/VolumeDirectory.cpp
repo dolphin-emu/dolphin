@@ -152,7 +152,7 @@ std::string CVolumeDirectory::GetUniqueID() const
 	return std::string(m_diskHeader.begin(), m_diskHeader.begin() + ID_LENGTH);
 }
 
-void CVolumeDirectory::SetUniqueID(std::string id)
+void CVolumeDirectory::SetUniqueID(const std::string& id)
 {
 	size_t length = id.length();
 	if (length > 6)
@@ -178,7 +178,7 @@ std::vector<std::string> CVolumeDirectory::GetNames() const
 	return std::vector<std::string>(1, (char*)(&m_diskHeader[0x20]));
 }
 
-void CVolumeDirectory::SetName(std::string name)
+void CVolumeDirectory::SetName(const std::string& name)
 {
 	size_t length = name.length();
 	if (length > MAX_NAME_LENGTH)

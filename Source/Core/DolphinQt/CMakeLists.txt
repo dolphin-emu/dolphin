@@ -14,7 +14,7 @@ set(SRCS
 	SystemInfo.cpp
 	Utils/Resources.cpp
 	Utils/Utils.cpp
-	VideoInterface/VideoInterface.cpp
+	VideoInterface/RenderWidget.cpp
 	)
 
 set(UIS

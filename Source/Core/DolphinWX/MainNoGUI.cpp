@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <cstdarg>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -55,10 +54,10 @@ void Host_Message(int Id)
 	}
 }
 
-void* windowHandle;
+static void* s_window_handle;
 void* Host_GetRenderHandle()
 {
-	return windowHandle;
+	return s_window_handle;
 }
 
 void Host_UpdateTitle(const std::string& title)
@@ -104,32 +103,13 @@ bool Host_RendererHasFocus()
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
-void Host_SysMessage(const char *fmt, ...)
-{
-	va_list list;
-	char msg[512];
-
-	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
-	va_end(list);
-
-	size_t len = strlen(msg);
-	if (msg[len - 1] != '\n')
-	{
-		msg[len - 1] = '\n';
-		msg[len] = '\0';
-	}
-
-	fprintf(stderr, "%s", msg);
-}
-
 void Host_SetWiiMoteConnectionState(int _State) {}
 
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "DolphinWX/X11Utils.h"
+#include "VideoBackends/OGL/GLInterface/X11Utils.h"
 
 class PlatformX11 : public Platform
 {
@@ -157,7 +137,7 @@ class PlatformX11 : public Platform
 		XSetWMProtocols(dpy, win, wmProtocols, 1);
 		XMapRaised(dpy, win);
 		XFlush(dpy);
-		windowHandle = (void *) win;
+		s_window_handle = (void*) win;
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
@@ -367,8 +347,8 @@ int main(int argc, char* argv[])
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		updateMainFrameEvent.Wait();
 
-	platform->Shutdown();
 	Core::Shutdown();
+	platform->Shutdown();
 	UICommon::Shutdown();
 
 	delete platform;

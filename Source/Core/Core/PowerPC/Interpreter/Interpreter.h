@@ -34,8 +34,6 @@ public:
 
 	void Log();
 
-	// to keep the code cleaner
-	#define m_GPR (PowerPC::ppcState.gpr)
 	static bool m_EndBlock;
 
 	static void unknown_instruction(UGeckoInstruction _inst);

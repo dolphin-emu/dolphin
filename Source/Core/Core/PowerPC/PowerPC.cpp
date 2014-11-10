@@ -35,6 +35,7 @@ static volatile CPUState state = CPU_POWERDOWN;
 Interpreter * const interpreter = Interpreter::getInstance();
 static CoreMode mode;
 
+Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
@@ -161,6 +162,9 @@ void Init(int cpu_core)
 	state = CPU_STEPPING;
 
 	ppcState.iCache.Init();
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		breakpoints.ClearAllTemporary();
 }
 
 void Shutdown()
@@ -299,10 +303,6 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
 
 void CheckExceptions()
 {
-	// Make sure we are checking against the latest EXI status. This is required
-	// for devices which interrupt frequently, such as the gc mic
-	ExpansionInterface::UpdateInterrupts();
-
 	// Read volatile data once
 	u32 exceptions = ppcState.Exceptions;
 

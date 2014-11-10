@@ -28,7 +28,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 #if defined(HAVE_X11) && HAVE_X11
-#include "DolphinWX/X11Utils.h"
+#include "VideoBackends/OGL/GLInterface/X11Utils.h"
 #endif
 
 // Class declarations
@@ -353,6 +353,6 @@ void OnStoppedCallback();
 
 // For TASInputDlg
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);
-void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID);
+void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key);
 bool TASInputHasFocus();
 extern int g_saveSlot;

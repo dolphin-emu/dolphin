@@ -170,43 +170,24 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
 	return x86_disasm.str();
 }
 
-enum
-{
-	IDM_REFRESH_LIST = 23350,
-	IDM_PPC_BOX,
-	IDM_X86_BOX,
-	IDM_NEXT,
-	IDM_PREV,
-	IDM_BLOCKLIST,
-};
-
-BEGIN_EVENT_TABLE(CJitWindow, wxPanel)
-	//EVT_TEXT(IDM_ADDRBOX, CJitWindow::OnAddrBoxChange)
-	//EVT_LISTBOX(IDM_SYMBOLLIST, CJitWindow::OnSymbolListChange)
-	//EVT_HOST_COMMAND(wxID_ANY, CJitWindow::OnHostMessage)
-	EVT_BUTTON(IDM_REFRESH_LIST, CJitWindow::OnRefresh)
-END_EVENT_TABLE()
-
 CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 		const wxSize& size, long style, const wxString& name)
 : wxPanel(parent, id, pos, size, style, name)
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sizerSplit = new wxBoxSizer(wxHORIZONTAL);
-	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, "(ppc)",
+	sizerSplit->Add(ppc_box = new wxTextCtrl(this, wxID_ANY, "(ppc)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
-	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, "(x86)",
+	sizerSplit->Add(x86_box = new wxTextCtrl(this, wxID_ANY, "(x86)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
-	sizerBig->Add(block_list = new JitBlockList(this, IDM_BLOCKLIST,
+	sizerBig->Add(block_list = new JitBlockList(this, wxID_ANY,
 				wxDefaultPosition, wxSize(100, 140),
 				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING),
 				0, wxEXPAND);
 	sizerBig->Add(sizerSplit, 2, wxEXPAND);
-	// sizerBig->Add(memview, 5, wxEXPAND);
-	// sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerBig->Add(button_refresh = new wxButton(this, IDM_REFRESH_LIST, _("&Refresh")));
-	// sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, ""));
-	// sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
+
+	sizerBig->Add(button_refresh = new wxButton(this, wxID_ANY, _("&Refresh")));
+	button_refresh->Bind(wxEVT_BUTTON, &CJitWindow::OnRefresh, this);
 
 	SetSizer(sizerBig);
 

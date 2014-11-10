@@ -45,8 +45,13 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	std::array<wxString, 3> data_size_names = {{ _("8-bit"), _("16-bit"), _("32-bit") }};
 	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
-	// result controls
+	// Listbox for search results (shown in monospace font).
 	m_lbox_search_results = new wxListBox(this, -1);
+	wxFont list_font = m_lbox_search_results->GetFont();
+	list_font.SetFamily(wxFONTFAMILY_TELETYPE);
+	m_lbox_search_results->SetFont(list_font);
+
+	// Result count
 	m_label_results_count = new wxStaticText(this, -1, _("Count:"));
 
 	// create AR code button
@@ -121,7 +126,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
-	const u8* const memptr = Memory::GetPointer(0);
+	const u8* const memptr = Memory::m_pRAM;
 	if (memptr == nullptr)
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
@@ -153,7 +158,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
-	const u8* const memptr = Memory::GetPointer(0);
+	const u8* const memptr = Memory::m_pRAM;
 	if (memptr == nullptr)
 	{
 		WxUtils::ShowErrorDialog(_("A game is not currently running."));
@@ -249,7 +254,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	UpdateCheatSearchResultsList();
 }
 
-void CheatSearchTab::ApplyFocus(wxEvent& ev)
+void CheatSearchTab::ApplyFocus(wxFocusEvent& ev)
 {
 	ev.Skip();
 	m_value_x_radiobtn.rad_uservalue->SetValue(true);
@@ -259,7 +264,7 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 {
 	m_lbox_search_results->Clear();
 
-	wxString count_label = _("Count:") + wxString::Format(" %lu",
+	wxString count_label = wxString::Format(_("Count: %lu"),
 		(unsigned long)m_search_results.size());
 	if (m_search_results.size() > MAX_CHEAT_SEARCH_RESULTS_DISPLAY)
 	{
@@ -286,7 +291,7 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 			// #elseif BIG_ENDIAN
 			// need to do some stuff in here (for 8 and 16bit) for bigendian
 			// #endif
-			std::string rowfmt = StringFromFormat("0x%%08x    0x%%0%ux    %%u/%%i", m_search_type_size*2);
+			std::string rowfmt = StringFromFormat("0x%%08X    0x%%0%uX    %%u/%%i", m_search_type_size*2);
 
 			m_lbox_search_results->Append(
 				wxString::Format(rowfmt.c_str(), result.address, display_value, display_value, display_value));
