@@ -4,14 +4,13 @@
 #
 # Translators:
 # nakee <nakeee@gmail.com>, 2011
-# nakee <nakeee@gmail.com>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-11-10 00:23+0000\n"
-"PO-Revision-Date: 2014-11-10 00:23+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
+"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Hebrew (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/he/)\n"
 "Language: he\n"
@@ -790,8 +789,9 @@ msgid "Blue Right"
 msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:587
+#, fuzzy
 msgid "Borderless Fullscreen"
-msgstr ""
+msgstr "&מסך מלא"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:121
 #: Source/Core/DolphinWX/ConfigMain.cpp:291
@@ -2421,8 +2421,9 @@ msgid "FullScr"
 msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:286
+#, fuzzy
 msgid "Fullscreen Resolution:"
-msgstr ""
+msgstr "&מסך מלא"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:551
 msgid "GCI File(*.gci)"
@@ -2449,8 +2450,9 @@ msgid "GCPad"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:353
+#, fuzzy
 msgid "Game ID"
-msgstr ""
+msgstr "משחק:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:498
 msgid "Game ID:"

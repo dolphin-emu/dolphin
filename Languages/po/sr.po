@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-11-10 00:23+0000\n"
-"PO-Revision-Date: 2014-11-10 00:23+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
+"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Serbian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sr/)\n"
 "Language: sr\n"
@@ -395,8 +395,9 @@ msgstr "<Sistem>"
 
 #: Source/Core/DolphinWX/NetWindow.cpp:256
 #: Source/Core/DolphinWX/NetWindow.cpp:292
+#, fuzzy
 msgid "A NetPlay window is already open!"
-msgstr ""
+msgstr "Netplay prozor je vec otvoren!!"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:132
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:164
@@ -794,8 +795,9 @@ msgid "Blue Right"
 msgstr "Blue right "
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:587
+#, fuzzy
 msgid "Borderless Fullscreen"
-msgstr ""
+msgstr "&Pun Ekran"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:121
 #: Source/Core/DolphinWX/ConfigMain.cpp:291
@@ -856,8 +858,9 @@ msgid "C-Stick"
 msgstr "C-Stick"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:801
+#, fuzzy
 msgid "CP register "
-msgstr ""
+msgstr "&Registri"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:573
 msgid "CPU Emulator Engine"
@@ -922,8 +925,9 @@ msgid "Change"
 msgstr "Promeni"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:948
+#, fuzzy
 msgid "Change &Disc"
-msgstr ""
+msgstr "Promeni Disk"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:399
 msgid "Change &Disc..."
@@ -938,9 +942,9 @@ msgid "Change Game"
 msgstr "Promeni Igru"
 
 #: Source/Core/Core/Movie.cpp:1112
-#, c-format
+#, fuzzy, c-format
 msgid "Change the disc to %s"
-msgstr ""
+msgstr "Promeni Disk"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:524
 msgid ""
@@ -1168,12 +1172,14 @@ msgid "Connect Wiimote 4"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:265
+#, fuzzy
 msgid "Connect Wiimotes"
-msgstr ""
+msgstr "Povezivanje..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1586
+#, fuzzy
 msgid "Connected"
-msgstr ""
+msgstr "Povezivanje..."
 
 #: Source/Core/DolphinWX/Main.cpp:569
 msgid "Connecting..."
@@ -1255,9 +1261,9 @@ msgid "Count:"
 msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:267
-#, c-format
+#, fuzzy, c-format
 msgid "Count: %lu"
-msgstr ""
+msgstr "Zemlja:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:500
 msgid "Country:"
@@ -1619,8 +1625,9 @@ msgid "Dolphin Wiimote Configuration"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:377
+#, fuzzy
 msgid "Dolphin at &GitHub"
-msgstr ""
+msgstr "Dolphin &Web Sajt"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:375
 msgid ""
@@ -2244,8 +2251,9 @@ msgid "File Info"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:357
+#, fuzzy
 msgid "File Size"
-msgstr ""
+msgstr "Velicina"
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:301
 msgid "File contained no codes."
@@ -2429,8 +2437,9 @@ msgid "FullScr"
 msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:286
+#, fuzzy
 msgid "Fullscreen Resolution:"
-msgstr ""
+msgstr "&Pun Ekran"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:551
 msgid "GCI File(*.gci)"
@@ -2457,8 +2466,9 @@ msgid "GCPad"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:353
+#, fuzzy
 msgid "Game ID"
-msgstr ""
+msgstr "Igra"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:498
 msgid "Game ID:"
@@ -2491,7 +2501,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:561
 msgid "GameCube"
-msgstr ""
+msgstr "GameCube "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:239
 msgid "GameCube &Pad Settings"
@@ -3670,12 +3680,14 @@ msgid "Output"
 msgstr ""
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:88
+#, fuzzy
 msgid "Overlay Information"
-msgstr ""
+msgstr "Informacija "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:425
+#, fuzzy
 msgid "P&lay Input Recording..."
-msgstr ""
+msgstr "Pokreni snimanje "
 
 #: Source/Core/Core/HW/GCPad.cpp:18
 msgid "Pad"
@@ -4145,8 +4157,9 @@ msgid "Save state to selected slot"
 msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:265
+#, fuzzy
 msgid "Save to selected slot"
-msgstr ""
+msgstr "Odabrani font"
 
 #: Source/Core/Core/Movie.cpp:892
 #, c-format
@@ -4210,57 +4223,69 @@ msgid "Select"
 msgstr "Izaberi "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:346
+#, fuzzy
 msgid "Select Columns"
-msgstr ""
+msgstr "Odabrani font"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:522
-#, c-format
+#, fuzzy, c-format
 msgid "Select Slot %i"
-msgstr ""
+msgstr "Odabrani font"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:254
+#, fuzzy
 msgid "Select State Slot 1"
-msgstr ""
+msgstr "Snimaj State Slot 1"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:263
+#, fuzzy
 msgid "Select State Slot 10"
-msgstr ""
+msgstr "Snimaj State Slot 1"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:255
+#, fuzzy
 msgid "Select State Slot 2"
-msgstr ""
+msgstr "Snimaj State Slot 2"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:256
+#, fuzzy
 msgid "Select State Slot 3"
-msgstr ""
+msgstr "Snimaj State Slot 3"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:257
+#, fuzzy
 msgid "Select State Slot 4"
-msgstr ""
+msgstr "Snimaj State Slot 4"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:258
+#, fuzzy
 msgid "Select State Slot 5"
-msgstr ""
+msgstr "Snimaj State Slot 5"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:259
+#, fuzzy
 msgid "Select State Slot 6"
-msgstr ""
+msgstr "Snimaj State Slot 6"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:260
+#, fuzzy
 msgid "Select State Slot 7"
-msgstr ""
+msgstr "Snimaj State Slot 7 "
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:261
+#, fuzzy
 msgid "Select State Slot 8"
-msgstr ""
+msgstr "Snimaj State Slot 8"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:262
+#, fuzzy
 msgid "Select State Slot 9"
-msgstr ""
+msgstr "Snimaj State Slot 1"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:183
+#, fuzzy
 msgid "Select State slot"
-msgstr ""
+msgstr "Snimaj State Slot 1"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:822
 #: Source/Core/DolphinWX/FrameTools.cpp:1286
@@ -4685,8 +4710,9 @@ msgid "Start &NetPlay"
 msgstr "Pokreni &NetPlay"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:422
+#, fuzzy
 msgid "Start Re&cording Input"
-msgstr ""
+msgstr "Pokreni Sni&manje"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:209
 msgid "Start Recording"
@@ -5424,9 +5450,9 @@ msgid "Wiimote %i"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1585
-#, c-format
+#, fuzzy, c-format
 msgid "Wiimote %i %s"
-msgstr ""
+msgstr "&Wiimote Opcije"
 
 #: Source/Core/DolphinWX/Main.cpp:570
 msgid "Wiimote Connected"
@@ -5523,8 +5549,9 @@ msgid "XAudio2_7 master voice creation failed: %#X"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:805
+#, fuzzy
 msgid "XF register "
-msgstr ""
+msgstr "&Registri"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:323
 msgid "Y"
@@ -5629,3 +5656,39 @@ msgstr ""
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:591
 msgid "| OR"
 msgstr "| ILI"
+
+#~ msgid "%s failed to open"
+#~ msgstr "%s nije uspelo da otvori"
+
+#~ msgid "%s is a 0 byte file"
+#~ msgstr "%s je 0 byte fajl"
+
+#~ msgid "(-)+zFar"
+#~ msgstr "(-)+zFar"
+
+#~ msgid "(-)+zNear"
+#~ msgstr "(-)+zNear"
+
+#~ msgid "(UNKNOWN)"
+#~ msgstr "(NEPOZNAT/O)"
+
+#~ msgid "16 bit"
+#~ msgstr "16 bit"
+
+#~ msgid "32 bit"
+#~ msgstr "32 bit"
+
+#~ msgid "8 bit"
+#~ msgstr "8 bit"
+
+#~ msgid "Acceleration"
+#~ msgstr "Ubrzanje"
+
+#~ msgid "Add new pane"
+#~ msgstr "Dodaj nova okna"
+
+#~ msgid "Cannot open %s"
+#~ msgstr "Nemoze otvoriti %s"
+
+#~ msgid "Video"
+#~ msgstr "Video "

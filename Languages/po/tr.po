@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-11-10 00:23+0000\n"
-"PO-Revision-Date: 2014-11-10 00:23+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
+"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Turkish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/tr/)\n"
 "Language: tr\n"
@@ -289,8 +289,9 @@ msgid "&Properties"
 msgstr "&Özellikler"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:431
+#, fuzzy
 msgid "&Read-Only Mode"
-msgstr ""
+msgstr "&Salt-okunur mod"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:402
 msgid "&Refresh List"
@@ -325,8 +326,9 @@ msgid "&View"
 msgstr "&Görünüm"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:291
+#, fuzzy
 msgid "&Watch"
-msgstr ""
+msgstr "Yamalar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:240
 msgid "&Wiimote Settings"
@@ -402,8 +404,9 @@ msgstr "<Sistem>"
 
 #: Source/Core/DolphinWX/NetWindow.cpp:256
 #: Source/Core/DolphinWX/NetWindow.cpp:292
+#, fuzzy
 msgid "A NetPlay window is already open!"
-msgstr ""
+msgstr "Bir NetPlay penceresi zaten açık!"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:132
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:164
@@ -419,6 +422,7 @@ msgstr ""
 "Wiimote'larınızı elle bağlamak zorundasınız."
 
 #: Source/Core/DolphinWX/NetWindow.cpp:129
+#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -434,6 +438,21 @@ msgid ""
 "\n"
 "The host must have the chosen TCP port open/forwarded!\n"
 msgstr ""
+"UYARI:\n"
+"\n"
+"Netplay sadece aşağıdaki seçeneklerle çalışır:\n"
+"- Çift Çekirdeğe İzin Ver [KAPALI]\n"
+"- DSP Emulatör motoru bütün bilgisayarlarda aynı olmalıdır!\n"
+"- DSP LLE'yi ayrı işlem biriminde çalıştır [KAPALI]\n"
+"- Çerçeve Sınırı [Ses] olmamalı.\n"
+"- Her Wiimote için eklentiler manuel olarak seçilmeli.\n"
+"\n"
+"Bütün oyuncular aynı Dolphin versiyonu ve ayarlarını kullanmalıdır.\n"
+"Bütün oyuncular aynı hafıza kartlarına sahip olmalı veya hafıza kartları "
+"devre dışı bırakılmalıdır.\n"
+"Wiimote desteği berbattır. Kullanmayın.\n"
+"\n"
+"Sunucu seçilmiş olan TCP portunu açmış olmalıdır!\n"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:115
 #: Source/Core/DolphinWX/ConfigMain.cpp:121
@@ -609,7 +628,7 @@ msgstr "Tüm GC/Wii dosyaları (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1243
 msgid "All GameCube GCM files (gcm)"
-msgstr ""
+msgstr "Tüm GameCube GCM Dosyaları (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1621
 #: Source/Core/DolphinWX/FrameTools.cpp:1635
@@ -698,8 +717,9 @@ msgid "Arm JIT (experimental)"
 msgstr "Arm JIT (deneysel)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:71
+#, fuzzy
 msgid "Arm64 JIT (experimental)"
-msgstr ""
+msgstr "Arm JIT (deneysel)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:302
 #: Source/Core/DolphinWX/ConfigMain.cpp:797
@@ -834,8 +854,9 @@ msgid "Blue Right"
 msgstr "Mavi Sağ"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:587
+#, fuzzy
 msgid "Borderless Fullscreen"
-msgstr ""
+msgstr "Tam Ekran Moduna Geç"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:121
 #: Source/Core/DolphinWX/ConfigMain.cpp:291
@@ -899,8 +920,9 @@ msgid "C-Stick"
 msgstr "C-Çubuğu"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:801
+#, fuzzy
 msgid "CP register "
-msgstr ""
+msgstr "BP kaydı"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:573
 msgid "CPU Emulator Engine"
@@ -975,8 +997,9 @@ msgid "Change"
 msgstr "Değiştir"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:948
+#, fuzzy
 msgid "Change &Disc"
-msgstr ""
+msgstr "Diski Değiştir"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:399
 msgid "Change &Disc..."
@@ -991,9 +1014,9 @@ msgid "Change Game"
 msgstr "Oyunu Değiştir"
 
 #: Source/Core/Core/Movie.cpp:1112
-#, c-format
+#, fuzzy, c-format
 msgid "Change the disc to %s"
-msgstr ""
+msgstr "Diski Değiştir"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:524
 msgid ""
@@ -1224,12 +1247,14 @@ msgid "Connect Wiimote 4"
 msgstr "4. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:265
+#, fuzzy
 msgid "Connect Wiimotes"
-msgstr ""
+msgstr "1. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1586
+#, fuzzy
 msgid "Connected"
-msgstr ""
+msgstr "Bağlan"
 
 #: Source/Core/DolphinWX/Main.cpp:569
 msgid "Connecting..."
@@ -1272,6 +1297,9 @@ msgid ""
 "backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
+" \"%s\" okunamadı. Sürücüde disk yok veya bu disk bir GC/Wii yedeği değil. "
+"Lütfen bilgisayarların çoğunun gerçek GameCube veya Wii disklerini "
+"okuyamadıklarını unutmayın."
 
 #: Source/Core/Core/CoreParameter.cpp:297
 #, c-format
@@ -1279,9 +1307,9 @@ msgid "Could not recognize ISO file %s"
 msgstr "Kalıp dosyası %s tanınamadı."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:636
-#, c-format
+#, fuzzy, c-format
 msgid "Could not save %s."
-msgstr ""
+msgstr "%s kaydedilemedi."
 
 #: Source/Core/Core/HW/GCMemcardRaw.cpp:107
 #, c-format
@@ -1320,9 +1348,9 @@ msgid "Count:"
 msgstr "Sayı:"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:267
-#, c-format
+#, fuzzy, c-format
 msgid "Count: %lu"
-msgstr ""
+msgstr "Sayı:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:500
 msgid "Country:"
@@ -1369,8 +1397,9 @@ msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "wxFileSelector'den sonra şu anki konum %s 'den %s'ye değiştirilmiştir."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:359
+#, fuzzy
 msgid "Custom"
-msgstr ""
+msgstr "[Özel]"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:312
 msgid "Czech"
@@ -1451,8 +1480,9 @@ msgid "Debug"
 msgstr "Hata ayıklama"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:107
+#, fuzzy
 msgid "Debug Only"
-msgstr ""
+msgstr "Hata ayıklama"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:544
 msgid "Debugging"
@@ -1532,8 +1562,9 @@ msgid "Device Settings"
 msgstr "Aygıt Ayarları"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:263
+#, fuzzy
 msgid "Device not found"
-msgstr ""
+msgstr "Oyun bulunamadı!"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Dial"
@@ -1611,8 +1642,9 @@ msgid "Disc Read Error"
 msgstr "Disk Okuma Hatası"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1586
+#, fuzzy
 msgid "Disconnected"
-msgstr ""
+msgstr "Bağlı değil"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:332
 msgid "Display"
@@ -1635,7 +1667,7 @@ msgid "Dolphin"
 msgstr "Dolphin"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:32
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Dolphin %s\n"
 "Copyright (c) 2003-2014+ Dolphin Team\n"
@@ -1668,6 +1700,42 @@ msgid ""
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
+"Dolphin %s\n"
+"Copyright (c) 2003-2013+ Dolphin Takımı\n"
+"\n"
+"Dal: %s\n"
+"Revizyon: %s\n"
+"Derleme zamanı: %s @ %s\n"
+"\n"
+"Dolphin, orjinal olarak F|RES ve ector yazmaya\n"
+"başladığı bir GameCube/Wii emulatörüdür.\n"
+"Bugün Dolphin bir sürü geliştiricinin bulunduğu bir\n"
+"takımı olan (burada saymak için çok fazla...) açık\n"
+"kaynaklı bir projedir.\n"
+"Eğer merak ediyorsanız,\n"
+"http://code.google.com/p/dolphin-emu/\n"
+"adresindeki proje sayfamızı ziyaret edebilirsiniz.\n"
+"\n"
+"Bushing, Costis, CrowTRobo, Marcan, Segher,\n"
+"Titanik, or9 ve Hotquik'e ters mühendislik ve \n"
+"belgeler/örnekler için özel olarak teşekkür ederiz.\n"
+"\n"
+"Gilles Mouchard'a projemize kickstart verdiği\n"
+"için büyük teşekkürlerimizi sunarız.\n"
+"\n"
+"Frank Wille'ye PowerPC disassembler'ı için\n"
+"teşekkür ederiz.\n"
+"\n"
+"hcs/destop'a GC ADPCM çözücüsü için teşekkür\n"
+"ederiz.\n"
+"\n"
+"Mustafa Can Elmacı'ya projemizi Türkçe'ye\n"
+"çevirdiği için teşekkür ederiz.\n"
+"\n"
+"Nintendo ile herhangi bir bağlantımız yoktur.\n"
+"GameCube ve Wii Nintendo'nun trademark'larıdır.\n"
+"Bu emulatör yasal olarak sahip olmadığınız oyunları\n"
+"oynamak için kullanılmamalıdır."
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:36
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:219
@@ -1705,20 +1773,27 @@ msgid "Dolphin Wiimote Configuration"
 msgstr "Dolphin Wiimote Yapılandırması"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:377
+#, fuzzy
 msgid "Dolphin at &GitHub"
-msgstr ""
+msgstr "&Google Code'da Dolphin"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:375
+#, fuzzy
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "browse for files..."
 msgstr ""
+"Dolphin herhangi bir GC veya Wii kalıbı bulamadı. Buraya çift tıklatarak "
+"dosyalara göz atabilirsiniz..."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:379
+#, fuzzy
 msgid ""
 "Dolphin is currently set to hide all games. Double-click here to show all "
 "games..."
 msgstr ""
+"Dolphin şu anda oyunları gizlemeye ayarlıdır. Buraya çift tıklatarak tüm "
+"oyunları görebilirsiniz."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1213
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1299
@@ -1748,8 +1823,9 @@ msgid "Downloaded %lu codes. (added %lu)"
 msgstr "%lu kod indirildi. (%lu eklendi)"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:118
+#, fuzzy
 msgid "Drawn Object Range"
-msgstr ""
+msgstr "Nesne Aralığı"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:34
 msgid "Drums"
@@ -1772,16 +1848,19 @@ msgid "Dump Frames"
 msgstr "Kareleri Dök"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:104
+#, fuzzy
 msgid "Dump Objects"
-msgstr ""
+msgstr "Nesne"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:112
+#, fuzzy
 msgid "Dump TEV Stages"
-msgstr ""
+msgstr "EFB Hedef Dökümü"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:113
+#, fuzzy
 msgid "Dump Texture Fetches"
-msgstr ""
+msgstr "Dokuları Dök"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:553
@@ -1914,8 +1993,9 @@ msgid "Enable AR Logging"
 msgstr "AR Geçmişine İzin Ver"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:390
+#, fuzzy
 msgid "Enable BAT"
-msgstr ""
+msgstr "İzin ver"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:402
 msgid "Enable Block Merging"
@@ -1938,8 +2018,9 @@ msgid "Enable Dual Core (speedup)"
 msgstr "Çift Çekirdeğe İzin Ver (hızı artırır)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:394
+#, fuzzy
 msgid "Enable FPRF"
-msgstr ""
+msgstr "İzin ver"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:387
 msgid "Enable Idle Skipping"
@@ -1988,10 +2069,13 @@ msgstr ""
 "Emin değilseniz, 1x seçin."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:401
+#, fuzzy
 msgid ""
 "Enable fast disc access. Needed for a few games. (ON = Fast, OFF = "
 "Compatible)"
 msgstr ""
+"Disk erişimini hızlandırır. Bazı oyunlarda gereklidir. (Açık = Hızlı, Kapalı "
+"= Uyumlu)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:835
 msgid "Enable pages"
@@ -2024,10 +2108,13 @@ msgstr ""
 "Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:391
+#, fuzzy
 msgid ""
 "Enables Block Address Translation, needed for a few games. Requires MMU. (ON "
 "= Compatible, OFF = Fast)"
 msgstr ""
+"Hafıza Yönetim Ünitesini etkinleştirir. Bazı oyunlarda gereklidir. (Açık = "
+"Uyumlu, Kapalı = Hızlı)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:537
 msgid ""
@@ -2045,10 +2132,13 @@ msgstr ""
 "etkinleştir. Sadece OpenAL çözücüsünde çalışır."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:395
+#, fuzzy
 msgid ""
 "Enables Floating Point Result Flag calculation, needed for a few games. (ON "
 "= Compatible, OFF = Fast)"
 msgstr ""
+"Hafıza Yönetim Ünitesini etkinleştirir. Bazı oyunlarda gereklidir. (Açık = "
+"Uyumlu, Kapalı = Hızlı)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:112
 msgid ""
@@ -2294,8 +2384,9 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/NetWindow.cpp:283
+#, fuzzy
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
-msgstr ""
+msgstr "Dinleme başarısız. Bir başka NetPlay sunucusu mu çalışıyor?"
 
 #: Source/Core/Core/Movie.cpp:883
 #, c-format
@@ -2330,9 +2421,9 @@ msgstr ""
 "(0x6000-0x7FFF)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:622
-#, c-format
+#, fuzzy, c-format
 msgid "Failed to read data from gci file %s"
-msgstr ""
+msgstr "%s dosyasından veri okunamadı"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:96
 msgid ""
@@ -2363,8 +2454,9 @@ msgid "Failed to read unique ID from disc image"
 msgstr "Disk kalıbının özgün ID'si okunamadı."
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1218
+#, fuzzy
 msgid "Failed to update country code in SYSCONF"
-msgstr ""
+msgstr "BT.DINF 'den SYSCONF 'a yazma başarısız."
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:87
 msgid "Failed to write BT.DINF to SYSCONF"
@@ -2399,8 +2491,9 @@ msgid "File Info"
 msgstr "Dosya Bilgisi"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:357
+#, fuzzy
 msgid "File Size"
-msgstr ""
+msgstr "Dosya sistemi"
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:301
 msgid "File contained no codes."
@@ -2493,12 +2586,17 @@ msgstr ""
 "Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:114
+#, fuzzy
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Causes graphical glitches in some games.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Oyunun görüntüsünü geniş ekran çözünürlüğüne uydurmaya zorlar. \n"
+"Bazı oyunlarda görüntü hatalarına neden olur. \n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:517
 msgid ""
@@ -2532,9 +2630,9 @@ msgid "Found %u results for '"
 msgstr ""
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:92
-#, c-format
+#, fuzzy, c-format
 msgid "Found %u save files"
-msgstr ""
+msgstr "%x kayıt dosyası bulundu"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:901
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:969
@@ -2597,8 +2695,9 @@ msgid "FullScr"
 msgstr "Tam Ekran"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:286
+#, fuzzy
 msgid "Fullscreen Resolution:"
-msgstr ""
+msgstr "Tam Ekran çözünürlüğü:"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:551
 msgid "GCI File(*.gci)"
@@ -2625,8 +2724,9 @@ msgid "GCPad"
 msgstr "GC Kolu"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:353
+#, fuzzy
 msgid "Game ID"
-msgstr ""
+msgstr "Oyun ID'si:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:498
 msgid "Game ID:"
@@ -2659,20 +2759,20 @@ msgstr "Oyun Yapılandırması"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:561
 msgid "GameCube"
-msgstr ""
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:239
 msgid "GameCube &Pad Settings"
-msgstr ""
+msgstr "GameCube &Kolu Ayarları"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1075
 #: Source/Core/DolphinWX/MemcardManager.cpp:232
 msgid "GameCube Memory Cards (*.raw,*.gcp)"
-msgstr ""
+msgstr "GameCube Hafıza Kartları (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:562
 msgid "GameCube Pad settings"
-msgstr ""
+msgstr "GameCube Kolu ayarları"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:542
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
@@ -2807,11 +2907,15 @@ msgid "Hide Mouse Cursor"
 msgstr "Fare İşaretçisini Gizle"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:110
+#, fuzzy
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Emülasyon penceresinin üzerine gelen fare imlecini gizler.\n"
+"\n"
+"Emin değilseniz, işaretli bırakın."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
 msgid "Home"
@@ -2952,20 +3056,27 @@ msgid "Import failed"
 msgstr "Alma başarısız"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:468
+#, fuzzy
 msgid ""
 "Imported file has gsc extension\n"
 "but does not have a correct header."
 msgstr ""
+"Alınan dosya gsc uzantısına sahip\n"
+"ama başlığı düzgün değil"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:456
+#, fuzzy
 msgid "Imported file has invalid length."
-msgstr ""
+msgstr "Alınan dosyanın uzunluğu hatalı"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:465
+#, fuzzy
 msgid ""
 "Imported file has sav extension\n"
 "but does not have a correct header."
 msgstr ""
+"Alınan dosya sav uzantısına sahip\n"
+"ama başlığı düzgün değil"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:413
 msgid "In Game"
@@ -3087,8 +3198,9 @@ msgid "Invalid Write to 0x%08x, PC = 0x%08x "
 msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:476
+#, fuzzy
 msgid "Invalid bat.map or dir entry."
-msgstr ""
+msgstr "Hatalı bat.map veya konum girişi"
 
 #: Source/Core/Core/CoreTiming.cpp:470
 #, c-format
@@ -3100,8 +3212,9 @@ msgid "Invalid file"
 msgstr "Hatalı dosya"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:575
+#, fuzzy
 msgid "Invalid index"
-msgstr ""
+msgstr "Hatalı dosya"
 
 #: Source/Core/DiscIO/BannerLoaderGC.cpp:32
 #, c-format
@@ -3135,8 +3248,9 @@ msgid "Invalid state"
 msgstr "Hatalı durum"
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:75
+#, fuzzy
 msgid "Invalid value."
-msgstr ""
+msgstr "Hatalı Değer!"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:519
 #: Source/Core/DolphinWX/ConfigMain.cpp:285
@@ -3158,8 +3272,9 @@ msgid "JIT Recompiler (recommended)"
 msgstr "JIT Yeniden Derleyici (önerilen)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:67
+#, fuzzy
 msgid "JITIL Recompiler (slower, experimental)"
-msgstr ""
+msgstr "JIT Yeniden Derleyici (önerilen)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:224
 #: Source/Core/DolphinWX/ISOProperties.cpp:524
@@ -3173,8 +3288,9 @@ msgid "KOREA"
 msgstr "KORE"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:322
+#, fuzzy
 msgid "Keep Window on Top"
-msgstr ""
+msgstr "Pencereyi üstte tut"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:109
 msgid ""
@@ -3191,8 +3307,9 @@ msgid "Key"
 msgstr "Tuş"
 
 #: Source/Core/DolphinWX/NetWindow.cpp:355
+#, fuzzy
 msgid "Kick Player"
-msgstr ""
+msgstr "Fifo Oynatıcısı"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:527
 #: Source/Core/DolphinWX/ConfigMain.cpp:303
@@ -3390,20 +3507,27 @@ msgid "Log Configuration"
 msgstr "Geçmiş Yapılandırması"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:320
+#, fuzzy
 msgid "Log Render Time to File"
-msgstr ""
+msgstr "Dosyaya Yaz"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:100
 msgid "Log Types"
 msgstr "Geçmiş Türü"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:134
+#, fuzzy
 msgid ""
 "Log the render time of every frame to User/Logs/render_time.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Emülasyon hızını ölçmek için 1 saniye içerisinde yorumlanan çerçeve sayısını "
+"User/Logs/fps.txt dosyasına yazar. Dolphin'in performans'ını test etmek "
+"istiyorsanız bu özelliği kullanabilirsiniz.\n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:85
 msgid "Logger Outputs"
@@ -3423,8 +3547,9 @@ msgid "M Button"
 msgstr "M Düğmesi"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:510
+#, fuzzy
 msgid "MD5 Checksum:"
-msgstr ""
+msgstr "Sağlamayı Düzelt"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:544
 #: Source/Core/DolphinWX/MemcardManager.cpp:583
@@ -3465,8 +3590,9 @@ msgid "Max"
 msgstr "En fazla"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:462
+#, fuzzy
 msgid "Memcard already has a save for this title."
-msgstr ""
+msgstr "Hafıza kartı bu başlık için zaten bir kayda sahip. "
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:305
 msgid "Memcard already opened"
@@ -3739,8 +3865,9 @@ msgid "No file loaded"
 msgstr "Dosya yüklenmedi"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:453
+#, fuzzy
 msgid "No free directory index entries."
-msgstr ""
+msgstr "Boş dizin indeks girişi yok"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:939
 msgid "No recorded file"
@@ -3801,12 +3928,14 @@ msgid "Nunchuk"
 msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:158
+#, fuzzy
 msgid "Nunchuk orientation"
-msgstr ""
+msgstr "Nunchuk Hızlandırma"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:153
+#, fuzzy
 msgid "Nunchuk stick"
-msgstr ""
+msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:921
 msgid "Object"
@@ -3896,8 +4025,9 @@ msgstr ""
 "ve kayıtları yeni bir hafıza kartına alın.\n"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:112
+#, fuzzy
 msgid "Orientation"
-msgstr ""
+msgstr "Çevrimiçi &Belgeler"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:336
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:519
@@ -3917,12 +4047,14 @@ msgid "Output"
 msgstr "Çıkış"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:88
+#, fuzzy
 msgid "Overlay Information"
-msgstr ""
+msgstr "Bilgilendirme"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:425
+#, fuzzy
 msgid "P&lay Input Recording..."
-msgstr ""
+msgstr "Çekimi O&ynat..."
 
 #: Source/Core/Core/HW/GCPad.cpp:18
 msgid "Pad"
@@ -3973,8 +4105,9 @@ msgid "Pause"
 msgstr "Duraklat"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:217
+#, fuzzy
 msgid "Pause at End of Movie"
-msgstr ""
+msgstr "Videonun sonunda duraklat"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Per-Pixel Lighting"
@@ -3990,8 +4123,9 @@ msgid "Perspective %d"
 msgstr "Perspektif %d"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:347
+#, fuzzy
 msgid "Platform"
-msgstr ""
+msgstr "Platformları Göster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:554
 #: Source/Core/DolphinWX/FrameTools.cpp:1822
@@ -4066,8 +4200,9 @@ msgid "Portuguese (Brazilian)"
 msgstr "Portekizce (Brezilya)"
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:24
+#, fuzzy
 msgid "Post Processing Shader Configuration"
-msgstr ""
+msgstr "Dolphin GC Kolu Yapılandırması"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:423
 msgid "Post-Processing Effect:"
@@ -4239,8 +4374,9 @@ msgid "Refresh game list"
 msgstr "Oyun listesini yenile"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:355
+#, fuzzy
 msgid "Region"
-msgstr ""
+msgstr "Bölgeleri Göster"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:460
 #: Source/Core/DolphinWX/ISOProperties.cpp:481
@@ -4402,8 +4538,9 @@ msgid "Save state to selected slot"
 msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:265
+#, fuzzy
 msgid "Save to selected slot"
-msgstr ""
+msgstr "Seçilen yazı tipi"
 
 #: Source/Core/Core/Movie.cpp:892
 #, c-format
@@ -4467,57 +4604,69 @@ msgid "Select"
 msgstr "Seç"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:346
+#, fuzzy
 msgid "Select Columns"
-msgstr ""
+msgstr "Seçilen yazı tipi"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:522
-#, c-format
+#, fuzzy, c-format
 msgid "Select Slot %i"
-msgstr ""
+msgstr "Slot %i"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:254
+#, fuzzy
 msgid "Select State Slot 1"
-msgstr ""
+msgstr "1. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:263
+#, fuzzy
 msgid "Select State Slot 10"
-msgstr ""
+msgstr "10. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:255
+#, fuzzy
 msgid "Select State Slot 2"
-msgstr ""
+msgstr "2. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:256
+#, fuzzy
 msgid "Select State Slot 3"
-msgstr ""
+msgstr "3. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:257
+#, fuzzy
 msgid "Select State Slot 4"
-msgstr ""
+msgstr "4. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:258
+#, fuzzy
 msgid "Select State Slot 5"
-msgstr ""
+msgstr "5. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:259
+#, fuzzy
 msgid "Select State Slot 6"
-msgstr ""
+msgstr "6. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:260
+#, fuzzy
 msgid "Select State Slot 7"
-msgstr ""
+msgstr "7. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:261
+#, fuzzy
 msgid "Select State Slot 8"
-msgstr ""
+msgstr "8. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:262
+#, fuzzy
 msgid "Select State Slot 9"
-msgstr ""
+msgstr "9. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:183
+#, fuzzy
 msgid "Select State slot"
-msgstr ""
+msgstr "1. Duruma Kaydet"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:822
 #: Source/Core/DolphinWX/FrameTools.cpp:1286
@@ -4589,6 +4738,7 @@ msgid "Selected font"
 msgstr "Seçilen yazı tipi"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:106
+#, fuzzy
 msgid ""
 "Selects the display resolution used in fullscreen mode.\n"
 "This should always be bigger than or equal to the internal resolution. "
@@ -4596,6 +4746,12 @@ msgid ""
 "\n"
 "If unsure, select auto."
 msgstr ""
+"Tam ekran modunda kullanılacak olan çözünürlüğü seçin.\n"
+"Bu değer iç çözünürlükten büyük veya iç çözünürlüğün katı olmalıdır. "
+"Performansa olan etkisi ihmal edilebilir düzeydedir.\n"
+"\n"
+"Emin değilseniz, masaüstü çözünürlüğünüzü seçin.\n"
+"Hala emin değilseniz, kullanabildiğiniz en yüksek çözünürlüğü seçin."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:103
 msgid ""
@@ -4719,8 +4875,9 @@ msgid "Show FPS"
 msgstr "FPS'yi goster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:221
+#, fuzzy
 msgid "Show Frame Counter"
-msgstr ""
+msgstr "Lag sayacını göster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:331
 msgid "Show France"
@@ -4747,8 +4904,9 @@ msgid "Show Korea"
 msgstr "Korelileri Göster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:219
+#, fuzzy
 msgid "Show Lag Counter"
-msgstr ""
+msgstr "Lag sayacını göster"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:514
 msgid "Show Language:"
@@ -4950,8 +5108,9 @@ msgid "Spanish"
 msgstr "İspanyolca"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
+#, fuzzy
 msgid "Speaker Pan"
-msgstr ""
+msgstr "Hoparlör Ses Seviyesi:"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:135
 msgid "Speaker Volume:"
@@ -4997,8 +5156,9 @@ msgid "Start &NetPlay"
 msgstr "&NetPlay'i Başlat"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:422
+#, fuzzy
 msgid "Start Re&cording Input"
-msgstr ""
+msgstr "Çekimi B&aşlat"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:209
 msgid "Start Recording"
@@ -5063,9 +5223,9 @@ msgid "Successfully imported save files"
 msgstr "Kayıt dosyaları başarıyla alındı"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:101
-#, c-format
+#, fuzzy, c-format
 msgid "Sucessfully exported %u saves to %s"
-msgstr ""
+msgstr "Dosya %s 'ye başarıyla verildi"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:331
 msgid "Swedish"
@@ -5112,9 +5272,9 @@ msgid "TAS Input - Controller %d"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:736
-#, c-format
+#, fuzzy, c-format
 msgid "TAS Input - Wiimote %d"
-msgstr ""
+msgstr "%i. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:20
 msgid "Tab"
@@ -5163,12 +5323,14 @@ msgid "The address is invalid"
 msgstr "Adres geçersiz"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:523
+#, fuzzy
 msgid "The checksum was successfully fixed."
-msgstr ""
+msgstr "Sağlama başarıyla düzeltildi"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1252
+#, fuzzy
 msgid "The chosen directory is already in the list."
-msgstr ""
+msgstr "Seçilen konum zaten listede"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1199
@@ -5201,12 +5363,14 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Belirttiğiniz dosya (%s) bulunamadı"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:565
+#, fuzzy
 msgid "The name cannot be empty"
-msgstr ""
+msgstr "İsim boş olamaz"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:557
+#, fuzzy
 msgid "The name cannot contain the character ','"
-msgstr ""
+msgstr "İsim ',' karakterini içeremez"
 
 #: Source/Core/Core/Movie.cpp:184
 #, c-format
@@ -5230,8 +5394,9 @@ msgstr ""
 "Emin değilseniz, en sağdaki değeri kullanın."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:459
+#, fuzzy
 msgid "The save you are trying to copy has an invalid file size."
-msgstr ""
+msgstr "Kopyalamayı denediğiniz kaydın boyutu hatalı"
 
 #: Source/Core/DolphinWX/Main.cpp:404
 msgid ""
@@ -5326,10 +5491,15 @@ msgstr ""
 "Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:514
+#, fuzzy
 msgid ""
 "This limits the game speed to the specified number of frames per second "
 "(full speed is 60 for NTSC and 50 for PAL)."
 msgstr ""
+"Bu oyun hızını belirttiğiniz FPS'ye limitler (tam hız NTSC için 60, PAL için "
+"50'dir). Alternatif olarak, seste oluşan sorunları çözmek için DSP'nin limit "
+"koymasına izin verebilirsiniz (seste oluşan klikleri düzeltebilir, ama bazı "
+"oyunlarda sürekli sese de neden olabilir)."
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:513
 msgid ""
@@ -5351,8 +5521,9 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:364
+#, fuzzy
 msgid "This will let you manually edit the INI config file."
-msgstr ""
+msgstr "INI Yapılandırma dosyasını elle düzenlemeye izin verir."
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:158
 #: Source/Core/InputCommon/ControllerEmu.cpp:163
@@ -5390,8 +5561,9 @@ msgid "Toggle Fog"
 msgstr "Sisi Aç/Kapat"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:228
+#, fuzzy
 msgid "Toggle Frame limit"
-msgstr ""
+msgstr "Çerçeve Sınırı:"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:556
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:214
@@ -5613,8 +5785,9 @@ msgid "Value: "
 msgstr "Değer:"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:93
+#, fuzzy
 msgid "Various Statistics"
-msgstr ""
+msgstr "İstatistikleri Göster"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:56
 msgid "Verbosity"
@@ -5711,12 +5884,15 @@ msgstr ""
 "veya bu kaydı Salt Okunur mod kapalıyken yüklemeniz daha iyi olacaktır. "
 
 #: Source/Core/Core/Movie.cpp:915
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte %u < %u) (frame %u < %u). You should load another save before "
 "continuing."
 msgstr ""
+"Dikkat: Şu anki kaydın bitişinden sonra yer alan bir kayıt yüklediniz. (bayt "
+"%u > %u) (çerçeve %u > %u). Devam etmeden önce başka bir kayıt yüklemeniz, "
+"veya bu kaydı Salt Okunur mod kapalıyken yüklemeniz daha iyi olacaktır. "
 
 #: Source/Core/Core/Movie.cpp:955
 #, c-format
@@ -5815,9 +5991,9 @@ msgid "Wiimote %i"
 msgstr "Wiimote %i"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1585
-#, c-format
+#, fuzzy, c-format
 msgid "Wiimote %i %s"
-msgstr ""
+msgstr "Wiimote %i"
 
 #: Source/Core/DolphinWX/Main.cpp:570
 msgid "Wiimote Connected"
@@ -5914,8 +6090,9 @@ msgid "XAudio2_7 master voice creation failed: %#X"
 msgstr "XAudio2_7 ana ses oluşturulamadı: %#X"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:805
+#, fuzzy
 msgid "XF register "
-msgstr ""
+msgstr "BP kaydı"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:323
 msgid "Y"
@@ -5930,12 +6107,14 @@ msgid "You can't close panes that have pages in them."
 msgstr "Sayfalı bölmeleri kapatamazsınız."
 
 #: Source/Core/DolphinWX/NetWindow.cpp:262
+#, fuzzy
 msgid "You must choose a game!"
-msgstr ""
+msgstr "Bir oyun seçmelisiniz!!"
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:67
+#, fuzzy
 msgid "You must enter a name."
-msgstr ""
+msgstr "Bir isim girmelisiniz!"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:210
 msgid "You must enter a valid decimal, hexadecimal or octal value."
@@ -6032,3 +6211,334 @@ msgstr "wxExecute uygulama çalışırken -1 döndürdü!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:591
 msgid "| OR"
 msgstr "| VEYA"
+
+#~ msgid "%s failed to open"
+#~ msgstr "%s açılamadı"
+
+#~ msgid "%s is a 0 byte file"
+#~ msgstr "%s dosyası boş"
+
+#~ msgid "(-)+zFar"
+#~ msgstr "(-)+zFar"
+
+#~ msgid "(-)+zNear"
+#~ msgstr "(-)+zNear"
+
+#~ msgid "(UNKNOWN)"
+#~ msgstr "(BİLİNMEYEN)"
+
+#~ msgid "16 bit"
+#~ msgstr "16 bit"
+
+#~ msgid "32 bit"
+#~ msgstr "32 bit"
+
+#~ msgid "3D Vision"
+#~ msgstr "3D Vision"
+
+#~ msgid "8 bit"
+#~ msgstr "8 bit"
+
+#~ msgid "Acceleration"
+#~ msgstr "Hızlandırma"
+
+#~ msgid "Add new pane"
+#~ msgstr "Bölme ekle"
+
+#~ msgid ""
+#~ "Adds the specified value to zFar Parameter.\n"
+#~ "Two ways to express the floating point values.\n"
+#~ "Example: entering ''200'' or ''0.0002'' directly, it produces equal "
+#~ "effects, the acquired value will be ''0.0002''.\n"
+#~ "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
+#~ "\n"
+#~ "NOTE: Check LogWindow/Console for the acquired values."
+#~ msgstr ""
+#~ "zFar Parametresine belirli bir değer ekler.\n"
+#~ "Değişken nokta değerlerini ifade etmenin 2 yolu vardır.\n"
+#~ "Örneğin: ''200'' veya ''0.0002'' gibi doğrudan değer girmek, eşit etki "
+#~ "gösterir, ulaşılan değer ''0.0002'' olur.\n"
+#~ "Değerler: (0->+/-Tam Sayı) veya (0->+/-FP[doğruluğun 6 rakamı])\n"
+#~ "\n"
+#~ "NOT: Ulaşılan değerler için Giriş Penceresi veya Konsolu denetleyin."
+
+#~ msgid ""
+#~ "Adds the specified value to zNear Parameter.\n"
+#~ "Two ways to express the floating point values.\n"
+#~ "Example: entering ''200'' or ''0.0002'' directly, it produces equal "
+#~ "effects, the acquired value will be ''0.0002''.\n"
+#~ "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
+#~ "\n"
+#~ "NOTE: Check LogWindow/Console for the acquired values."
+#~ msgstr ""
+#~ "zNear Parametresine belirli bir değer ekler.\n"
+#~ "Değişken nokta değerlerini ifade etmenin 2 yolu vardır.\n"
+#~ "Örneğin: ''200'' veya ''0.0002'' gibi doğrudan değer girmek, eşit etki "
+#~ "gösterir, ulaşılan değer ''0.0002'' olur.\n"
+#~ "Değerler: (0->+/-Tam Sayı) veya (0->+/-FP[doğruluğun 6 rakamı])\n"
+#~ "\n"
+#~ "NOT: Ulaşılan değerler için Giriş Penceresi veya Konsolu denetleyin."
+
+#~ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
+#~ msgstr "Tüm GC/Wii kalıpları (gcm, iso, wbfs, ciso, gcz)"
+
+#~ msgid "Arm JITIL (experimental)"
+#~ msgstr "Arm JITIL (deneysel)"
+
+#~ msgid "Bad File Header"
+#~ msgstr "Kötü Dosya Başlığı"
+
+#~ msgid "Cannot open %s"
+#~ msgstr "%s açılamadı."
+
+#~ msgid "Changes sign to zFar Parameter (after correction)"
+#~ msgstr "zFar Parametresinin işaretini değiştirir (düzeltme sonrası)"
+
+#~ msgid "Changes sign to zNear Parameter (after correction)"
+#~ msgstr "zNear Parametresinin işaretini değiştirir (düzeltme sonrası)"
+
+#~ msgid "Custom Projection Hack"
+#~ msgstr "Özel Görüntüleme Hilesi"
+
+#~ msgid "Custom Projection Hack Settings"
+#~ msgstr "Özel Görüntüleme Hilesi Ayarları"
+
+#~ msgid "Customize some Orthographic Projection parameters."
+#~ msgstr "Bazı ortografik projeksiyon parametrelerini özelleştir."
+
+#~ msgid "Direct3D"
+#~ msgstr "Direct3D"
+
+#~ msgid ""
+#~ "Display the inputs read by the emulator.\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "Emülatör tarafından okunan girişleri göster. \n"
+#~ "\n"
+#~ "Emin değilseniz, işaretsiz bırakın."
+
+#~ msgid ""
+#~ "Dump all rendered frames to an AVI file in User/Dump/Frames/\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "İşlenen çerçeveleri User/Dump/Frames içerisine bir AVI dosyası olarak "
+#~ "kaydet. \n"
+#~ "\n"
+#~ "Emin değilseniz, işaretsiz bırakın."
+
+#~ msgid "Edit"
+#~ msgstr "Düzen"
+
+#~ msgid "Edit current perspective"
+#~ msgstr "Şu anki perspektifi düzenle"
+
+#~ msgid ""
+#~ "Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if "
+#~ "it's supported by your GPU.\n"
+#~ "Possibly causes issues.\n"
+#~ "Requires fullscreen to work.\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "Eğer GPU'nuz tarafından destekleniyorsa nVidia 3D Vision teknolojisini "
+#~ "kullanarak stereoskopik 3D efektleri açar. \n"
+#~ "Bazı hatalara neden olabilir. \n"
+#~ "Çalışması için tam ekran gereklidir.\n"
+#~ "\n"
+#~ "Emin değilseniz, işaretsiz bırakın."
+
+#~ msgid "Enable Bounding Box Calculation"
+#~ msgstr "Sınırlayıcı Kutu Hesaplama'yı Etkinleştir"
+
+#~ msgid "Enables Custom Projection Hack"
+#~ msgstr "Özel Gösterim Hilesini Etkinleştirir"
+
+#~ msgid "Export Failed"
+#~ msgstr "Verme başarısız."
+
+#~ msgid ""
+#~ "Failed to load DSP ROM:\t%s\n"
+#~ "\n"
+#~ "This file is required to use DSP LLE.\n"
+#~ "It is not included with Dolphin as it contains copyrighted data.\n"
+#~ "Use DSPSpy to dump the file from your physical console.\n"
+#~ "\n"
+#~ "You may use the DSP HLE engine which does not require ROM dumps.\n"
+#~ "(Choose it from the \"Audio\" tab of the configuration dialog.)"
+#~ msgstr ""
+#~ "DSP ROM %s yüklenemedi.\n"
+#~ "\n"
+#~ "Bu dosya, DSP LLE'yi kullanabilmek için gereklidir.\n"
+#~ "Telif hakkına sahip veri içerdiğinden Dolphin ile verilememektedir.\n"
+#~ "DSPSpy kullanarak dosyayı fiziksel konsolunuzdan alabilirsiniz.\n"
+#~ "\n"
+#~ "ROM dökümü gerektirmeyen DSP HLE'yi kullanabilirsiniz.\n"
+#~ "(Bunu yapılandırma diyalogundaki \"Audio\" sekmesinden yapabilirsiniz.)"
+
+#~ msgid ""
+#~ "Failed to load bthprops.cpl! Connecting real Wiimotes won't work and "
+#~ "Dolphin might crash unexpectedly!"
+#~ msgstr ""
+#~ "bthprops.cpl dosyası yüklenemedi! Gerçek Wiimote'ları bağlamak "
+#~ "çalışmayacak. Ayrıca Dolphin beklenmedik bir şekilde çökebilir."
+
+#~ msgid ""
+#~ "Failed to load hid.dll! Connecting real Wiimotes won't work and Dolphin "
+#~ "might crash unexpectedly!"
+#~ msgstr ""
+#~ "hid.dll dosyası yüklenemedi! Gerçek Wiimote'ları bağlamak çalışmayacak. "
+#~ "Ayrıca Dolphin beklenmedik bir şekilde çökebilir."
+
+#~ msgid "Failed to read banner.bin"
+#~ msgstr "banner.bin okunamadı."
+
+#~ msgid "Failed to read bk header"
+#~ msgstr "bk başlığı okunamadı"
+
+#~ msgid "Failed to read data from file %d"
+#~ msgstr "%d dosyasından veri okunamadı."
+
+#~ msgid "Failed to read header"
+#~ msgstr "Başlık okunamadı"
+
+#~ msgid "Failed to read header for file %d"
+#~ msgstr "%d dosyası için başlık okunamadı"
+
+#~ msgid "Failed to write bkhdr"
+#~ msgstr "bkhdr yazılamadı."
+
+#~ msgid "Failed to write data to file: %s"
+#~ msgstr "%s dosyasından veri yazılamadı"
+
+#~ msgid "Failed to write header for %s"
+#~ msgstr "%s için başlık yazılamadı."
+
+#~ msgid "Fast version of the MMU.  Does not work for every game."
+#~ msgstr "MMU'nun hızlı sürümü. Her oyunda çalışmaz."
+
+#~ msgid ""
+#~ "Hi,\n"
+#~ "\n"
+#~ "Dolphin requires that your CPU has support for SSE2 extensions.\n"
+#~ "Unfortunately your CPU does not support them, so Dolphin will not run.\n"
+#~ "\n"
+#~ "Sayonara!\n"
+#~ msgstr ""
+#~ "Merhaba,\n"
+#~ "\n"
+#~ "Dolphin işlemcinizin SSE2 uzantı desteğine ihtiyaç duyar.\n"
+#~ "Ne yazık ki işlemciniz SSE2'yi desteklemiyor, Dolphin çalışmayacaktır.\n"
+#~ "\n"
+#~ "Sayanora!\n"
+
+#~ msgid "IR Pointer"
+#~ msgstr "Kızılötesi İşaretleyici"
+
+#~ msgid ""
+#~ "If checked, the bounding box registers will be updated. Used by the Paper "
+#~ "Mario games."
+#~ msgstr ""
+#~ "Eğer işaretlenmişse, sınırlayıcı kutu kayıtları güncellenecektir. Paper "
+#~ "Mario oyunları tarafından kullanılır."
+
+#~ msgid ""
+#~ "InstallExceptionHandler called, but this platform does not yet support it."
+#~ msgstr ""
+#~ "InstallExceptionHandler çağrıldı, ama bu platform henüz bunu "
+#~ "desteklemiyor."
+
+#~ msgid "Invalid Size(%x) or Magic word (%x)"
+#~ msgstr "Yanlış boyut (%x) veya Sihirli kelime (%x)"
+
+#~ msgid "Load preset values from hack patterns available."
+#~ msgstr "Bu oyun için kullanılabilir önayar varsa buradan seçiniz."
+
+#~ msgid "Log FPS to file"
+#~ msgstr "FPS'yi dosyaya kaydet"
+
+#~ msgid ""
+#~ "MD5 mismatch\n"
+#~ " %016<PRIx64>%016<PRIx64> != %016<PRIx64>%016<PRIx64>"
+#~ msgstr ""
+#~ "MD5 eşleşmiyor\n"
+#~ "%016<PRIx64>%016<PRIx64> != %016<PRIx64>%016<PRIx64>"
+
+#~ msgid "MMU Speed Hack"
+#~ msgstr "MMU Hız Hilesi"
+
+#~ msgid "No ISOs or WADS found"
+#~ msgstr "Kalıp bulunamadı"
+
+#~ msgid "No banner file found for title  %s"
+#~ msgstr "Başlık %s için afiş dosyası bulunamadı"
+
+#~ msgid "No docking"
+#~ msgstr "Yerleştirme yok"
+
+#~ msgid "No save folder found for title %s"
+#~ msgstr "Başlık %s için kayıt klasörü bulunamadı"
+
+#~ msgid "Not a Wii save or read failure for file header size %x"
+#~ msgstr "Bir Wii kaydı değil veya bu başlık boyutu için okuma hatası: %x"
+
+#~ msgid "OpenMP Texture Decoder"
+#~ msgstr "OpenMP Doku Çözücü"
+
+#~ msgid "Parameters"
+#~ msgstr "Parametreler"
+
+#~ msgid "Presets: "
+#~ msgstr "Önayarlar:"
+
+#~ msgid "Save current perspective"
+#~ msgstr "Şu anki perspektifi kaydet"
+
+#~ msgid "Settings..."
+#~ msgstr "Ayarlar..."
+
+#~ msgid "Software Renderer"
+#~ msgstr "Yazılımsal Yorumlayıcı"
+
+#~ msgid "Sound buffer creation failed: %08x"
+#~ msgstr "Ses tamponu oluşturulamadı: %08x"
+
+#~ msgid "Square Stick"
+#~ msgstr "Kare Çubuk"
+
+#~ msgid "Tab split"
+#~ msgstr "Sekme bölme"
+
+#~ msgid "UDP Port:"
+#~ msgstr "UDP Bağ.Nok.:"
+
+#~ msgid "UDP Wiimote"
+#~ msgstr "UDP Wiimote"
+
+#~ msgid ""
+#~ "Use multiple threads to decode textures.\n"
+#~ "Might result in a speedup (especially on CPUs with more than two cores).\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "Dokuları emüle etmek için birden fazla işlem birimi kullanın. \n"
+#~ "Özellikle iki veya daha fazla çekirdeği olan işlemcilerde hızı artırır. \n"
+#~ "\n"
+#~ "Emin değilseniz, işaretsiz bırakın."
+
+#~ msgid "Video"
+#~ msgstr "Görüntü"
+
+#~ msgid ""
+#~ "Warning: Netplay/movies will desync because your CPU does not support DAZ "
+#~ "and Dolphin does not emulate it anymore."
+#~ msgstr ""
+#~ "Uyarı: Netplay ve videolar karışacaktır, çünkü işlemciniz DAZ'ı "
+#~ "desteklemiyor."
+
+#~ msgid "zFar Correction: "
+#~ msgstr "zFar Düzeltmesi:"
+
+#~ msgid "zNear Correction: "
+#~ msgstr "zNear Düzeltmesi:"
