@@ -471,7 +471,7 @@ DependentOption = K_SCAN_LINES
 [OptionRangeFloat]
 GUIName = ScanlineIntensity
 OptionName = B_SCANLINE_INTENSITY
-MinValue = 0.10
+MinValue = 0.15
 MaxValue = 0.30
 StepAmount = 0.01
 DefaultValue = 0.18
@@ -490,9 +490,24 @@ DependentOption = K_SCAN_LINES
 GUIName = ScanlineBrightness
 OptionName = B_SCANLINE_BRIGHTNESS
 MinValue = 0.50
-MaxValue = 4.00
+MaxValue = 2.00
 StepAmount = 0.01
 DefaultValue = 1.00
+DependentOption = K_SCAN_LINES
+
+[OptionRangeFloat]
+GUIName = ScanlineSpacing
+OptionName = B_SCANLINE_SPACING
+MinValue = 0.10
+MaxValue = 0.35
+StepAmount = 0.01
+DefaultValue = 0.25
+DependentOption = K_SCAN_LINES
+
+[OptionBool]
+GUIName = UseUV (Use UV, instead of fragment coordinates)
+OptionName = C_USE_UV_COORD
+DefaultValue = false
 DependentOption = K_SCAN_LINES
 
 [OptionBool]
@@ -1275,46 +1290,61 @@ float4 GrainPass(float4 color)
                            [SCANLINES CODE SECTION]
 ------------------------------------------------------------------------------*/
 
-vec4 ScanlinesPass(vec4 color)
+float4 ScanlinesPass(float4 color)
 {
-    vec4 intensity;
+    float uvcoord;
+    float4 intensity;
+
+    if (OptionEnabled(C_USE_UV_COORD)) {
+
+    if (GetOption(A_SCANLINE_TYPE) == 0) { uvcoord = texcoord.y; }
+    else { uvcoord = texcoord.x; }
+    
+    float pos0 = ((uvcoord) * (GetOption(B_SCANLINE_THICKNESS) * 220.0) * (GetOption(B_SCANLINE_SPACING) * 8));
+    float pos1 = cos((fract( pos0 ) - 0.5) * 3.1415926 * (GetOption(B_SCANLINE_INTENSITY)* 3.0)) *
+    (clamp(GetOption(B_SCANLINE_BRIGHTNESS), 0.0, 1.25) * 1.1);
+
+    color = lerp(float4(0.0, 0.0, 0.0, 0.0), color, pos1); }
+    
+    else {
 
     if (GetOption(A_SCANLINE_TYPE) == 0) {
-    if (fract(gl_FragCoord.y * 0.25) > GetOption(B_SCANLINE_THICKNESS))
+    if (fract(gl_FragCoord.y * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS))
     {
-        intensity = vec4(0);
+        intensity = float4(0.0, 0.0, 0.0, 0.0);
     } 
     else
     {
         intensity = smoothstep(0.2, GetOption(B_SCANLINE_BRIGHTNESS), color) +
-        normalize(vec4(color.xyz, RGBLuminance(color.xyz)));
+        normalize(float4(color.xyz, RGBLuminance(color.xyz)));
     } }
 
     else if (GetOption(A_SCANLINE_TYPE) == 1) {
-    if (fract(gl_FragCoord.x * 0.25) > GetOption(B_SCANLINE_THICKNESS))
+    if (fract(gl_FragCoord.x * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS))
     {
-        intensity = vec4(0);
+        intensity = float4(0.0, 0.0, 0.0, 0.0);
     }
     else
     {
         intensity = smoothstep(0.2, GetOption(B_SCANLINE_BRIGHTNESS), color) +
-        normalize(vec4(color.xyz, RGBLuminance(color.xyz)));
+        normalize(float4(color.xyz, RGBLuminance(color.xyz)));
     } }
 
     else if (GetOption(A_SCANLINE_TYPE) == 2) {
-    if (fract(gl_FragCoord.x * 0.25) > GetOption(B_SCANLINE_THICKNESS) && fract(gl_FragCoord.y * 0.25) > GetOption(B_SCANLINE_THICKNESS))
+    if (fract(gl_FragCoord.x * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS) &&
+        fract(gl_FragCoord.y * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS))
     {
-        intensity = vec4(0);
+        intensity = float4(0.0, 0.0, 0.0, 0.0);
     }
     else
     {
         intensity = smoothstep(0.2, GetOption(B_SCANLINE_BRIGHTNESS), color) +
-        normalize(vec4(color.xyz, RGBLuminance(color.xyz)));
+        normalize(float4(color.xyz, RGBLuminance(color.xyz)));
     } }
 
     float level = (4.0-texcoord.x) * GetOption(B_SCANLINE_INTENSITY);
 
-    color = intensity * (0.5-level) + color * 1.1;
+    color = intensity * (0.5 - level) + color * 1.1; }
 
     return color;
 }
@@ -1703,7 +1733,7 @@ FxaaFloat4 FxaaPixelShader(FxaaTex tex, FxaaFloat2 RcpFrame, FxaaFloat Subpix, F
     #endif
 }
 
-vec4 FxaaPass(vec4 color)
+float4 FxaaPass(float4 color)
 {
     color = FxaaPixelShader(samp9, pixelSize, GetOption(FXAA_SUBPIX_MAX), GetOption(FXAA_XEDGE_THRESHOLD), 0.000);
     
