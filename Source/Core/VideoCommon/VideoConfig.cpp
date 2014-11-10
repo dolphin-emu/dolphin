@@ -66,11 +66,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
-	settings->Get("StereoMode", &iStereoMode, 0);
-	settings->Get("StereoSeparation", &iStereoSeparation, 50);
-	settings->Get("StereoFocalLength", &iStereoFocalLength, 30);
-	settings->Get("StereoSwapEyes", &bStereoSwapEyes, false);
-	settings->Get("StereoMonoEFBDepth", &bStereoMonoEFBDepth, false);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
 	settings->Get("MSAA", &iMultisampleMode, 0);
@@ -87,6 +82,11 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
+	enhancements->Get("StereoMode", &iStereoMode, 0);
+	enhancements->Get("StereoSeparation", &iStereoSeparation, 50);
+	enhancements->Get("StereoFocalLength", &iStereoFocalLength, 30);
+	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
+	enhancements->Get("StereoMonoEFBDepth", &bStereoMonoEFBDepth, false);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
@@ -142,11 +142,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
 	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
-	CHECK_SETTING("Video_Settings", "StereoMode", iStereoMode);
-	CHECK_SETTING("Video_Settings", "StereoSeparation", iStereoSeparation);
-	CHECK_SETTING("Video_Settings", "StereoFocalLength", iStereoFocalLength);
-	CHECK_SETTING("Video_Settings", "StereoSwapEyes", bStereoSwapEyes);
-	CHECK_SETTING("Video_Settings", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
@@ -183,6 +178,11 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
+	CHECK_SETTING("Video_Enhancements", "StereoMode", iStereoMode);
+	CHECK_SETTING("Video_Enhancements", "StereoSeparation", iStereoSeparation);
+	CHECK_SETTING("Video_Enhancements", "StereoFocalLength", iStereoFocalLength);
+	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
+	CHECK_SETTING("Video_Enhancements", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
@@ -235,11 +235,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DumpEFBTarget", bDumpEFBTarget);
 	settings->Set("FreeLook", bFreeLook);
 	settings->Set("UseFFV1", bUseFFV1);
-	settings->Set("StereoMode", iStereoMode);
-	settings->Set("StereoSeparation", iStereoSeparation);
-	settings->Set("StereoFocalLength", iStereoFocalLength);
-	settings->Set("StereoSwapEyes", bStereoSwapEyes);
-	settings->Set("StereoMonoEFBDepth", bStereoMonoEFBDepth);
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
 	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);
@@ -257,6 +252,11 @@ void VideoConfig::Save(const std::string& ini_file)
 	enhancements->Set("ForceFiltering", bForceFiltering);
 	enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
 	enhancements->Set("PostProcessingShader", sPostProcessingShader);
+	enhancements->Set("StereoMode", iStereoMode);
+	enhancements->Set("StereoSeparation", iStereoSeparation);
+	enhancements->Set("StereoFocalLength", iStereoFocalLength);
+	enhancements->Set("StereoSwapEyes", bStereoSwapEyes);
+	enhancements->Set("StereoMonoEFBDepth", bStereoMonoEFBDepth);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
