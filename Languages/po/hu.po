@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-11-10 00:23+0000\n"
-"PO-Revision-Date: 2014-06-07 08:16+0000\n"
-"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
+"PO-Revision-Date: 2014-11-10 00:23+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/hu/)\n"
 "Language: hu\n"
@@ -289,9 +289,8 @@ msgid "&Properties"
 msgstr "&Tulajdonságok"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:431
-#, fuzzy
 msgid "&Read-Only Mode"
-msgstr "&Írásvédett mód"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:402
 msgid "&Refresh List"
@@ -326,9 +325,8 @@ msgid "&View"
 msgstr "&Nézet"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:291
-#, fuzzy
 msgid "&Watch"
-msgstr "Javítások"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:240
 msgid "&Wiimote Settings"
@@ -404,9 +402,8 @@ msgstr "<Rendszer>"
 
 #: Source/Core/DolphinWX/NetWindow.cpp:256
 #: Source/Core/DolphinWX/NetWindow.cpp:292
-#, fuzzy
 msgid "A NetPlay window is already open!"
-msgstr "Már egy NetPlay ablak nyitva van!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:132
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:164
@@ -611,7 +608,7 @@ msgstr "Minden GC/Wii fájl (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1243
 msgid "All GameCube GCM files (gcm)"
-msgstr "Minden GameCube GCM fájl (gcm)"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1621
 #: Source/Core/DolphinWX/FrameTools.cpp:1635
@@ -699,9 +696,8 @@ msgid "Arm JIT (experimental)"
 msgstr "Arm JIT (kísérleti)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:71
-#, fuzzy
 msgid "Arm64 JIT (experimental)"
-msgstr "Arm JIT (kísérleti)"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:302
 #: Source/Core/DolphinWX/ConfigMain.cpp:797
@@ -836,9 +832,8 @@ msgid "Blue Right"
 msgstr "Kék jobbra"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:587
-#, fuzzy
 msgid "Borderless Fullscreen"
-msgstr "Váltás teljes nézetre"
+msgstr ""
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:121
 #: Source/Core/DolphinWX/ConfigMain.cpp:291
@@ -901,9 +896,8 @@ msgid "C-Stick"
 msgstr "C-kar"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:801
-#, fuzzy
 msgid "CP register "
-msgstr "BP regiszter "
+msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:573
 msgid "CPU Emulator Engine"
@@ -979,9 +973,8 @@ msgid "Change"
 msgstr "Váltás"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:948
-#, fuzzy
 msgid "Change &Disc"
-msgstr "Lemez váltás"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:399
 msgid "Change &Disc..."
@@ -996,9 +989,9 @@ msgid "Change Game"
 msgstr "Játék váltás"
 
 #: Source/Core/Core/Movie.cpp:1112
-#, fuzzy, c-format
+#, c-format
 msgid "Change the disc to %s"
-msgstr "Lemez váltás"
+msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:524
 msgid ""
@@ -1228,14 +1221,12 @@ msgid "Connect Wiimote 4"
 msgstr "Wiimote 4 csatlakoztatása"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:265
-#, fuzzy
 msgid "Connect Wiimotes"
-msgstr "Wiimote 1 csatlakoztatása"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1586
-#, fuzzy
 msgid "Connected"
-msgstr "Csatlakozás"
+msgstr ""
 
 #: Source/Core/DolphinWX/Main.cpp:569
 msgid "Connecting..."
@@ -1278,9 +1269,6 @@ msgid ""
 "backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
-"\"%s\" nem olvasható.  Nincs lemez a meghajtóban, vagy ez nem egy GC/Wii "
-"biztonsági mentés.  Célszerű tudni, hogy az eredeti GameCube és Wii "
-"lemezeket a legtöbb számítógépes DVD meghajtó nem képes olvasni."
 
 #: Source/Core/Core/CoreParameter.cpp:297
 #, c-format
@@ -1288,9 +1276,9 @@ msgid "Could not recognize ISO file %s"
 msgstr "%s ISO fájl nem ismerhető fel"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:636
-#, fuzzy, c-format
+#, c-format
 msgid "Could not save %s."
-msgstr "%s nem menthető el"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcardRaw.cpp:107
 #, c-format
@@ -1322,9 +1310,9 @@ msgid "Count:"
 msgstr "Számláló:"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:267
-#, fuzzy, c-format
+#, c-format
 msgid "Count: %lu"
-msgstr "Számláló:"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:500
 msgid "Country:"
@@ -1371,9 +1359,8 @@ msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:359
-#, fuzzy
 msgid "Custom"
-msgstr "[Egyedi]"
+msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:312
 msgid "Czech"
@@ -1454,9 +1441,8 @@ msgid "Debug"
 msgstr "Hibakereső"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:107
-#, fuzzy
 msgid "Debug Only"
-msgstr "Hibakereső"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:544
 msgid "Debugging"
@@ -1537,9 +1523,8 @@ msgid "Device Settings"
 msgstr "Eszköz beállítások"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:263
-#, fuzzy
 msgid "Device not found"
-msgstr "A játék nem található!"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Dial"
@@ -1615,9 +1600,8 @@ msgid "Disc Read Error"
 msgstr "Lemez olvasási hiba"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1586
-#, fuzzy
 msgid "Disconnected"
-msgstr "Nincs csatlakoztatva"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:332
 msgid "Display"
@@ -1710,27 +1694,20 @@ msgid "Dolphin Wiimote Configuration"
 msgstr "Dolphin Wiimote beállítások"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:377
-#, fuzzy
 msgid "Dolphin at &GitHub"
-msgstr "Dolphin &Google Code oldal"
+msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:375
-#, fuzzy
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "browse for files..."
 msgstr ""
-"Dolphin nem talált egyetlen GC/Wii ISO fájlt sem.  Fájlok tallózásához dupla "
-"kattintás ide..."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:379
-#, fuzzy
 msgid ""
 "Dolphin is currently set to hide all games. Double-click here to show all "
 "games..."
 msgstr ""
-"A Dolphin beállításai végett jelenleg a játékok rejtve vannak.  Dupla "
-"kattintás ide a játékok megjelenítéséhez..."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1213
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1299
@@ -1758,9 +1735,8 @@ msgid "Downloaded %lu codes. (added %lu)"
 msgstr "Letöltve %lu kód. (hozzáadva %lu)"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:118
-#, fuzzy
 msgid "Drawn Object Range"
-msgstr "Elem hatótáv"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:34
 msgid "Drums"
@@ -1783,19 +1759,16 @@ msgid "Dump Frames"
 msgstr "Képkockák letárolása"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:104
-#, fuzzy
 msgid "Dump Objects"
-msgstr "Elem"
+msgstr ""
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:112
-#, fuzzy
 msgid "Dump TEV Stages"
-msgstr "EFB cél letárolása"
+msgstr ""
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:113
-#, fuzzy
 msgid "Dump Texture Fetches"
-msgstr "Textúrák letárolása"
+msgstr ""
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:553
@@ -1929,9 +1902,8 @@ msgid "Enable AR Logging"
 msgstr "AR naplózás bekapcsolása"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:390
-#, fuzzy
 msgid "Enable BAT"
-msgstr "Használat"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:402
 msgid "Enable Block Merging"
@@ -1954,9 +1926,8 @@ msgid "Enable Dual Core (speedup)"
 msgstr "Kétmagos mód használata (gyorsítás)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:394
-#, fuzzy
 msgid "Enable FPRF"
-msgstr "Használat"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:387
 msgid "Enable Idle Skipping"
@@ -2005,13 +1976,10 @@ msgstr ""
 "Ha bizonytalan vagy, válaszd ezt: 1x."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:401
-#, fuzzy
 msgid ""
 "Enable fast disc access. Needed for a few games. (ON = Fast, OFF = "
 "Compatible)"
 msgstr ""
-"Gyors lemez hozzáférés használata. Szükséges néhány játékhoz. (BE = gyors, "
-"KI = kompatibilis)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:835
 msgid "Enable pages"
@@ -2042,13 +2010,10 @@ msgstr ""
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:391
-#, fuzzy
 msgid ""
 "Enables Block Address Translation, needed for a few games. Requires MMU. (ON "
 "= Compatible, OFF = Fast)"
 msgstr ""
-"Bekapcsolja a memória kezelő egységet (Memory Management Unit), szükséges "
-"néhány játékhoz. (BE = kompatibilis, KI = gyors)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:537
 msgid ""
@@ -2066,13 +2031,10 @@ msgstr ""
 "feldolgozó esetén."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:395
-#, fuzzy
 msgid ""
 "Enables Floating Point Result Flag calculation, needed for a few games. (ON "
 "= Compatible, OFF = Fast)"
 msgstr ""
-"Bekapcsolja a memória kezelő egységet (Memory Management Unit), szükséges "
-"néhány játékhoz. (BE = kompatibilis, KI = gyors)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:112
 msgid ""
@@ -2356,9 +2318,9 @@ msgstr ""
 "(0x6000-0x7FFF)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:622
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read data from gci file %s"
-msgstr "%d fájlból történő adatok kiolvasása nem sikerült"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:96
 msgid ""
@@ -2389,9 +2351,8 @@ msgid "Failed to read unique ID from disc image"
 msgstr "A lemezképfájl egyedi azonosítójának kiolvasása sikertelen"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1218
-#, fuzzy
 msgid "Failed to update country code in SYSCONF"
-msgstr "A BT.DINF írása a SYSCONF fájlba sikertelen"
+msgstr ""
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:87
 msgid "Failed to write BT.DINF to SYSCONF"
@@ -2426,9 +2387,8 @@ msgid "File Info"
 msgstr "Fájl infó"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:357
-#, fuzzy
 msgid "File Size"
-msgstr "Fájlrendszer"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:301
 msgid "File contained no codes."
@@ -2522,17 +2482,12 @@ msgstr ""
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:114
-#, fuzzy
 msgid ""
 "Force the game to output graphics for widescreen resolutions.\n"
 "Causes graphical glitches in some games.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"A játék kimeneti grafikája kényszerített szélesvásznú felbontású lesz.\n"
-"Grafikai hibákat okozhat néhány játékban.\n"
-"\n"
-"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:517
 msgid ""
@@ -2566,9 +2521,9 @@ msgid "Found %u results for '"
 msgstr ""
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:92
-#, fuzzy, c-format
+#, c-format
 msgid "Found %u save files"
-msgstr "%s nem menthető el"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:901
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:969
@@ -2631,9 +2586,8 @@ msgid "FullScr"
 msgstr "Teljes méret"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:286
-#, fuzzy
 msgid "Fullscreen Resolution:"
-msgstr "Teljes kijelzős felbontás:"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:551
 msgid "GCI File(*.gci)"
@@ -2660,9 +2614,8 @@ msgid "GCPad"
 msgstr "GC irányító"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:353
-#, fuzzy
 msgid "Game ID"
-msgstr "Játék azonosító:"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:498
 msgid "Game ID:"
@@ -2695,20 +2648,20 @@ msgstr "Játék konfig"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:561
 msgid "GameCube"
-msgstr "GameCube"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:239
 msgid "GameCube &Pad Settings"
-msgstr "GameCube &irányító beállítások"
+msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1075
 #: Source/Core/DolphinWX/MemcardManager.cpp:232
 msgid "GameCube Memory Cards (*.raw,*.gcp)"
-msgstr "GameCube memóriakártyák (*.raw,*.gcp)"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:562
 msgid "GameCube Pad settings"
-msgstr "GameCube irányító beállítások"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:542
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
@@ -2837,15 +2790,11 @@ msgid "Hide Mouse Cursor"
 msgstr "Egérmutató elrejtése"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:110
-#, fuzzy
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Elrejti az egérmutatót, ha az megjelenik az emulációs ablakban.\n"
-"\n"
-"Ha bizonytalan vagy, hagyd kijelölve."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
 msgid "Home"
@@ -2985,27 +2934,20 @@ msgid "Import failed"
 msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:468
-#, fuzzy
 msgid ""
 "Imported file has gsc extension\n"
 "but does not have a correct header."
 msgstr ""
-"Az importált fájl gsc kiterjesztésű\n"
-"de nem rendelkezik megfelelő fejléccel"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:456
-#, fuzzy
 msgid "Imported file has invalid length."
-msgstr "Az importált fájl hossza érvénytelen"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:465
-#, fuzzy
 msgid ""
 "Imported file has sav extension\n"
 "but does not have a correct header."
 msgstr ""
-"Az importált fájl sav kiterjesztésű\n"
-"de nem rendelkezik megfelelő fejléccel"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:413
 msgid "In Game"
@@ -3127,9 +3069,8 @@ msgid "Invalid Write to 0x%08x, PC = 0x%08x "
 msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:476
-#, fuzzy
 msgid "Invalid bat.map or dir entry."
-msgstr "Érvénytelen bat.map vagy könyvtár bejegyzés"
+msgstr ""
 
 #: Source/Core/Core/CoreTiming.cpp:470
 #, c-format
@@ -3141,9 +3082,8 @@ msgid "Invalid file"
 msgstr "Érvénytelen fájl"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:575
-#, fuzzy
 msgid "Invalid index"
-msgstr "Érvénytelen fájl"
+msgstr ""
 
 #: Source/Core/DiscIO/BannerLoaderGC.cpp:32
 #, c-format
@@ -3180,9 +3120,8 @@ msgid "Invalid state"
 msgstr "Nem megfelelő mentés"
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:75
-#, fuzzy
 msgid "Invalid value."
-msgstr "Érvénytelen érték!"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:519
 #: Source/Core/DolphinWX/ConfigMain.cpp:285
@@ -3204,9 +3143,8 @@ msgid "JIT Recompiler (recommended)"
 msgstr "JIT Recompiler (ajánlott)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:67
-#, fuzzy
 msgid "JITIL Recompiler (slower, experimental)"
-msgstr "JIT Recompiler (ajánlott)"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:224
 #: Source/Core/DolphinWX/ISOProperties.cpp:524
@@ -3220,9 +3158,8 @@ msgid "KOREA"
 msgstr "KOREA"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:322
-#, fuzzy
 msgid "Keep Window on Top"
-msgstr "Ablak legfelül tartása"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:109
 msgid ""
@@ -3239,9 +3176,8 @@ msgid "Key"
 msgstr "Bill."
 
 #: Source/Core/DolphinWX/NetWindow.cpp:355
-#, fuzzy
 msgid "Kick Player"
-msgstr "Fifo lejátszó"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:527
 #: Source/Core/DolphinWX/ConfigMain.cpp:303
@@ -3439,27 +3375,20 @@ msgid "Log Configuration"
 msgstr "Napló beállítások"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:320
-#, fuzzy
 msgid "Log Render Time to File"
-msgstr "Írás fájlba"
+msgstr ""
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:100
 msgid "Log Types"
 msgstr "Napló típus"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:134
-#, fuzzy
 msgid ""
 "Log the render time of every frame to User/Logs/render_time.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"A másodpercenként megjelenített képkockák számát naplózza a User/Logs/fps."
-"txt fájlba. Használd ezt a tulajdonságot a Dolphin teljesítményének "
-"méréséhez.\n"
-" \n"
-"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:85
 msgid "Logger Outputs"
@@ -3479,9 +3408,8 @@ msgid "M Button"
 msgstr "M gomb"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:510
-#, fuzzy
 msgid "MD5 Checksum:"
-msgstr "Állandó ellenőrzőösszeg"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:544
 #: Source/Core/DolphinWX/MemcardManager.cpp:583
@@ -3522,9 +3450,8 @@ msgid "Max"
 msgstr "Max"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:462
-#, fuzzy
 msgid "Memcard already has a save for this title."
-msgstr "A memóriakártyán már van mentés ehhez a játékhoz"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:305
 msgid "Memcard already opened"
@@ -3798,9 +3725,8 @@ msgid "No file loaded"
 msgstr "Nincs fájl betöltve"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:453
-#, fuzzy
 msgid "No free directory index entries."
-msgstr "Nincs üres könyvtári jelzőszám bejegyzés"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:939
 msgid "No recorded file"
@@ -3861,14 +3787,12 @@ msgid "Nunchuk"
 msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:158
-#, fuzzy
 msgid "Nunchuk orientation"
-msgstr "Nunchuk gyorsítás"
+msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:153
-#, fuzzy
 msgid "Nunchuk stick"
-msgstr "Nunchuk"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:921
 msgid "Object"
@@ -3974,14 +3898,12 @@ msgid "Output"
 msgstr "Kimenet"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:88
-#, fuzzy
 msgid "Overlay Information"
-msgstr "Információk"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:425
-#, fuzzy
 msgid "P&lay Input Recording..."
-msgstr "F&elvétel visszajátszása..."
+msgstr ""
 
 #: Source/Core/Core/HW/GCPad.cpp:18
 msgid "Pad"
@@ -4032,9 +3954,8 @@ msgid "Pause"
 msgstr "Szünet"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:217
-#, fuzzy
 msgid "Pause at End of Movie"
-msgstr "Szünet a videó végén"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Per-Pixel Lighting"
@@ -4050,9 +3971,8 @@ msgid "Perspective %d"
 msgstr "%d perspektíva"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:347
-#, fuzzy
 msgid "Platform"
-msgstr "Platformok mutatása"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:554
 #: Source/Core/DolphinWX/FrameTools.cpp:1822
@@ -4127,9 +4047,8 @@ msgid "Portuguese (Brazilian)"
 msgstr "Portugál (brazil)"
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:24
-#, fuzzy
 msgid "Post Processing Shader Configuration"
-msgstr "Dolphin GCPad beállítások"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:423
 msgid "Post-Processing Effect:"
@@ -4301,9 +4220,8 @@ msgid "Refresh game list"
 msgstr "Játéklista frissítése"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:355
-#, fuzzy
 msgid "Region"
-msgstr "Régiók mutatása"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:460
 #: Source/Core/DolphinWX/ISOProperties.cpp:481
@@ -4463,9 +4381,8 @@ msgid "Save state to selected slot"
 msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:265
-#, fuzzy
 msgid "Save to selected slot"
-msgstr "Kiválasztott betűtípus"
+msgstr ""
 
 #: Source/Core/Core/Movie.cpp:892
 #, c-format
@@ -4529,69 +4446,57 @@ msgid "Select"
 msgstr "Választás"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:346
-#, fuzzy
 msgid "Select Columns"
-msgstr "Kiválasztott betűtípus"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:522
-#, fuzzy, c-format
+#, c-format
 msgid "Select Slot %i"
-msgstr "%i hely"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:254
-#, fuzzy
 msgid "Select State Slot 1"
-msgstr "Állás mentés az 1. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:263
-#, fuzzy
 msgid "Select State Slot 10"
-msgstr "Állás mentés az 1. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:255
-#, fuzzy
 msgid "Select State Slot 2"
-msgstr "Állás mentés a 2. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:256
-#, fuzzy
 msgid "Select State Slot 3"
-msgstr "Állás mentés a 3. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:257
-#, fuzzy
 msgid "Select State Slot 4"
-msgstr "Állás mentés a 4. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:258
-#, fuzzy
 msgid "Select State Slot 5"
-msgstr "Állás mentés az 5. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:259
-#, fuzzy
 msgid "Select State Slot 6"
-msgstr "Állás mentés a 6. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:260
-#, fuzzy
 msgid "Select State Slot 7"
-msgstr "Állás mentés a 7. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:261
-#, fuzzy
 msgid "Select State Slot 8"
-msgstr "Állás mentés a 8. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:262
-#, fuzzy
 msgid "Select State Slot 9"
-msgstr "Állás mentés az 1. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:183
-#, fuzzy
 msgid "Select State slot"
-msgstr "Állás mentés az 1. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:822
 #: Source/Core/DolphinWX/FrameTools.cpp:1286
@@ -4663,7 +4568,6 @@ msgid "Selected font"
 msgstr "Kiválasztott betűtípus"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:106
-#, fuzzy
 msgid ""
 "Selects the display resolution used in fullscreen mode.\n"
 "This should always be bigger than or equal to the internal resolution. "
@@ -4671,12 +4575,6 @@ msgid ""
 "\n"
 "If unsure, select auto."
 msgstr ""
-"A teljes kijelző estén használatos felbontást állítja be.\n"
-"Ennek mindig nagyobbnak, vagy azonosnak kell lennie a belső felbontással. "
-"Hatása a teljesítményre elhanyagolható.\n"
-"\n"
-"Ha bizonytalan vagy, használd az asztali felbontást.\n"
-"Ha továbbra is bizonytalan vagy, használd a legmagasabb működő felbontást."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:103
 msgid ""
@@ -4789,9 +4687,8 @@ msgid "Show FPS"
 msgstr "FPS kijelzése"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:221
-#, fuzzy
 msgid "Show Frame Counter"
-msgstr "Késési idő számláló megjelenítése"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:331
 msgid "Show France"
@@ -4818,9 +4715,8 @@ msgid "Show Korea"
 msgstr "Korea mutatása"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:219
-#, fuzzy
 msgid "Show Lag Counter"
-msgstr "Késési idő számláló megjelenítése"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:514
 msgid "Show Language:"
@@ -5024,9 +4920,8 @@ msgid "Spanish"
 msgstr "Spanyol"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
-#, fuzzy
 msgid "Speaker Pan"
-msgstr "Hangszóró hangerő:"
+msgstr ""
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:135
 msgid "Speaker Volume:"
@@ -5072,9 +4967,8 @@ msgid "Start &NetPlay"
 msgstr "&NetPlay indítása"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:422
-#, fuzzy
 msgid "Start Re&cording Input"
-msgstr "Felvétel in&dítása"
+msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:209
 msgid "Start Recording"
@@ -5140,9 +5034,9 @@ msgid "Successfully imported save files"
 msgstr "Mentés fájlok sikeresen importálva"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:101
-#, fuzzy, c-format
+#, c-format
 msgid "Sucessfully exported %u saves to %s"
-msgstr "Fájl sikeresen exportálva a(z) %s helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:331
 msgid "Swedish"
@@ -5190,9 +5084,9 @@ msgid "TAS Input - Controller %d"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:736
-#, fuzzy, c-format
+#, c-format
 msgid "TAS Input - Wiimote %d"
-msgstr "%i Wiimote csatlakoztatása"
+msgstr ""
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:20
 msgid "Tab"
@@ -5241,14 +5135,12 @@ msgid "The address is invalid"
 msgstr "A cím érvénytelen"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:523
-#, fuzzy
 msgid "The checksum was successfully fixed."
-msgstr "Az ellenőrző összeg sikeresen javítva"
+msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1252
-#, fuzzy
 msgid "The chosen directory is already in the list."
-msgstr "A választott könyvtár már szerepel a listán"
+msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1199
@@ -5281,14 +5173,12 @@ msgid "The file you specified (%s) does not exist"
 msgstr "Az általad megadott (%s) fájl nem létezik"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:565
-#, fuzzy
 msgid "The name cannot be empty"
-msgstr "A név mező nem lehet üres"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameAui.cpp:557
-#, fuzzy
 msgid "The name cannot contain the character ','"
-msgstr "A név nem tartalmazhatja a ',' karaktert"
+msgstr ""
 
 #: Source/Core/Core/Movie.cpp:184
 #, c-format
@@ -5312,9 +5202,8 @@ msgstr ""
 "Ha bizonytalan vagy, használd a jobbszélső értéket."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:459
-#, fuzzy
 msgid "The save you are trying to copy has an invalid file size."
-msgstr "A másolni kívánt mentés érvénytelen méretű"
+msgstr ""
 
 #: Source/Core/DolphinWX/Main.cpp:404
 msgid ""
@@ -5436,9 +5325,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:364
-#, fuzzy
 msgid "This will let you manually edit the INI config file."
-msgstr "Ez által kézileg szerkesztheted az INI konfigurációs fájlt"
+msgstr ""
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:158
 #: Source/Core/InputCommon/ControllerEmu.cpp:163
@@ -5476,9 +5364,8 @@ msgid "Toggle Fog"
 msgstr ""
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Toggle Frame limit"
-msgstr "Képkocka korlát:"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:556
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:214
@@ -5696,9 +5583,8 @@ msgid "Value: "
 msgstr "Érték:"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:93
-#, fuzzy
 msgid "Various Statistics"
-msgstr "Statisztikák megjelenítése"
+msgstr ""
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:56
 msgid "Verbosity"
@@ -5795,16 +5681,12 @@ msgstr ""
 "után."
 
 #: Source/Core/Core/Movie.cpp:915
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte %u < %u) (frame %u < %u). You should load another save before "
 "continuing."
 msgstr ""
-"Figyelem: Olyan mentést töltöttél be, ami a választott videó befejezése "
-"utáni. (%u > %u bájt) (%u > %u képkocka). Folytatás előtt betölthetsz egy "
-"másik mentést, vagy betöltheted ezt a mentést az írásvédett mód kikapcsolása "
-"után."
 
 #: Source/Core/Core/Movie.cpp:955
 #, c-format
@@ -5903,9 +5785,9 @@ msgid "Wiimote %i"
 msgstr "Wiimote %i"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1585
-#, fuzzy, c-format
+#, c-format
 msgid "Wiimote %i %s"
-msgstr "Wiimote %i"
+msgstr ""
 
 #: Source/Core/DolphinWX/Main.cpp:570
 msgid "Wiimote Connected"
@@ -6002,9 +5884,8 @@ msgid "XAudio2_7 master voice creation failed: %#X"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:805
-#, fuzzy
 msgid "XF register "
-msgstr "BP regiszter "
+msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:323
 msgid "Y"
@@ -6019,14 +5900,12 @@ msgid "You can't close panes that have pages in them."
 msgstr "Nem zárhatod be a lapokat tartalmazó táblákat."
 
 #: Source/Core/DolphinWX/NetWindow.cpp:262
-#, fuzzy
 msgid "You must choose a game!"
-msgstr "Választanod kell egy játékot!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:67
-#, fuzzy
 msgid "You must enter a name."
-msgstr "Meg kell adnod egy nevet!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:210
 msgid "You must enter a valid decimal, hexadecimal or octal value."
@@ -6122,282 +6001,3 @@ msgstr "wxExecute visszatért -1 alkalmazás fut!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:591
 msgid "| OR"
 msgstr "| VAGY"
-
-#~ msgid "%s failed to open"
-#~ msgstr "%s megnyitása sikertelen"
-
-#~ msgid "%s is a 0 byte file"
-#~ msgstr "%s egy 0 bájt méretű fájl"
-
-#~ msgid "(-)+zFar"
-#~ msgstr "(-)+zFar"
-
-#~ msgid "(-)+zNear"
-#~ msgstr "(-)+zNear"
-
-#~ msgid "(UNKNOWN)"
-#~ msgstr "(ISMERETLEN)"
-
-#~ msgid "16 bit"
-#~ msgstr "16 bit"
-
-#~ msgid "32 bit"
-#~ msgstr "32 bit"
-
-#~ msgid "3D Vision"
-#~ msgstr "3D Vision"
-
-#~ msgid "8 bit"
-#~ msgstr "8 bit"
-
-#~ msgid "Acceleration"
-#~ msgstr "Gyorsítás"
-
-#~ msgid "Add new pane"
-#~ msgstr "Új mező hozzáadása"
-
-#~ msgid ""
-#~ "Adds the specified value to zFar Parameter.\n"
-#~ "Two ways to express the floating point values.\n"
-#~ "Example: entering ''200'' or ''0.0002'' directly, it produces equal "
-#~ "effects, the acquired value will be ''0.0002''.\n"
-#~ "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
-#~ "\n"
-#~ "NOTE: Check LogWindow/Console for the acquired values."
-#~ msgstr ""
-#~ "Meghatározott értéket ad a zFar paraméterhez.\n"
-#~ "Két módja a lebegőpontos értékek kifejezésének.\n"
-#~ "Például: a ''200'' vagy ''0.0002'' érték közvetlen megadása, azonos "
-#~ "hatásokat eredményez, a kapott érték ''0.0002'' lesz.\n"
-#~ "Értékek: (0->+/-egész szám) vagy (0->+/-FP[6 számjegyes pontosság])\n"
-#~ "\n"
-#~ "MEGJEGYZÉS: Ellenőrizd a napló ablakot/konzolt a kapott értékekhez."
-
-#~ msgid ""
-#~ "Adds the specified value to zNear Parameter.\n"
-#~ "Two ways to express the floating point values.\n"
-#~ "Example: entering ''200'' or ''0.0002'' directly, it produces equal "
-#~ "effects, the acquired value will be ''0.0002''.\n"
-#~ "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
-#~ "\n"
-#~ "NOTE: Check LogWindow/Console for the acquired values."
-#~ msgstr ""
-#~ "Meghatározott értéket ad a zNear paraméterhez.\n"
-#~ "Két módja a lebegőpontos értékek kifejezésének.\n"
-#~ "Például: a ''200'' vagy ''0.0002'' érték közvetlen megadása, azonos "
-#~ "hatásokat eredményez, a kapott érték ''0.0002'' lesz.\n"
-#~ "Értékek: (0->+/-egész szám) vagy (0->+/-FP[6 számjegyes pontosság])\n"
-#~ "\n"
-#~ "MEGJEGYZÉS: Ellenőrizd a napló ablakot/konzolt a kapott értékekhez."
-
-#~ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-#~ msgstr "Minden GC/Wii képfájl (gcm, iso, wbfs, ciso, gcz)"
-
-#~ msgid "Bad File Header"
-#~ msgstr "Rossz fájl fejléc"
-
-#~ msgid "Cannot open %s"
-#~ msgstr "%s nem nyitható meg"
-
-#~ msgid "Changes sign to zFar Parameter (after correction)"
-#~ msgstr "Megváltoztatja a zFar paraméterhez tartozó jegyet (javítás után)"
-
-#~ msgid "Changes sign to zNear Parameter (after correction)"
-#~ msgstr "Megváltoztatja a zNear paraméterhez tartozó jegyet (javítás után)"
-
-#~ msgid "Custom Projection Hack"
-#~ msgstr "Egyedi megjelenítési hack"
-
-#~ msgid "Custom Projection Hack Settings"
-#~ msgstr "Egyedi megjelenítési hack beállítások"
-
-#~ msgid "Customize some Orthographic Projection parameters."
-#~ msgstr "Néhány ortografikus megjelenítési paraméter egyedi beállítása."
-
-#~ msgid ""
-#~ "Display the inputs read by the emulator.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Az emulátor által beolvasott bemenetek megjelenítése.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid ""
-#~ "Dump all rendered frames to an AVI file in User/Dump/Frames/\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Az összes létrehozott képkocka mentése egy AVI fájlba ide: User/Dump/"
-#~ "Frames/\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid "Edit"
-#~ msgstr "Szerkesztés"
-
-#~ msgid "Edit current perspective"
-#~ msgstr "Jelenlegi perspektíva szerkesztése"
-
-#~ msgid ""
-#~ "Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if "
-#~ "it's supported by your GPU.\n"
-#~ "Possibly causes issues.\n"
-#~ "Requires fullscreen to work.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "A 3D-s effektusok megjelenítése sztereoszkópikus módon az Nvidia 3D "
-#~ "Vision technológia használatával, ha támogatja a videókártya.\n"
-#~ "Estleg hibákat okozhat.\n"
-#~ "Működéséhez teljes képernyő szükséges.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid "Enable Bounding Box Calculation"
-#~ msgstr "Bounding Box kalkuláció használata"
-
-#~ msgid "Enables Custom Projection Hack"
-#~ msgstr "Egyedi megjelenítési hack használata"
-
-#~ msgid "Export Failed"
-#~ msgstr "Exportálás sikertelen"
-
-#~ msgid ""
-#~ "Failed to load DSP ROM:\t%s\n"
-#~ "\n"
-#~ "This file is required to use DSP LLE.\n"
-#~ "It is not included with Dolphin as it contains copyrighted data.\n"
-#~ "Use DSPSpy to dump the file from your physical console.\n"
-#~ "\n"
-#~ "You may use the DSP HLE engine which does not require ROM dumps.\n"
-#~ "(Choose it from the \"Audio\" tab of the configuration dialog.)"
-#~ msgstr ""
-#~ "DSP ROM betöltése sikertelen:\t%s\n"
-#~ "\n"
-#~ "Ez a fájl szükséges a DSP LLE használatához.\n"
-#~ "Dolphin nem tartalmazza a fájlt, mivel az jogvédett adatokat tartalmaz.\n"
-#~ "Használd a DSPSpy programot a fájl kinyeréséhez a saját játék "
-#~ "konzolodból.\n"
-#~ "\n"
-#~ "Használhatod a DSP HLE motort, amihez nem szükséges ROM mentés.\n"
-#~ "(Kiválaszthatod a \"Hang\" fülnél a beállítások párbeszédablakban.)"
-
-#~ msgid "Failed to read banner.bin"
-#~ msgstr "A banner.bin beolvasása sikertelen"
-
-#~ msgid "Failed to write bkhdr"
-#~ msgstr "A bkhdr írása sikertelen"
-
-#~ msgid "Failed to write header for %s"
-#~ msgstr "Fejléc írása sikertelen a(z) %s számára"
-
-#~ msgid "Fast version of the MMU.  Does not work for every game."
-#~ msgstr "MMU gyors verziója. Nem működik minden játéknál."
-
-#~ msgid ""
-#~ "Hi,\n"
-#~ "\n"
-#~ "Dolphin requires that your CPU has support for SSE2 extensions.\n"
-#~ "Unfortunately your CPU does not support them, so Dolphin will not run.\n"
-#~ "\n"
-#~ "Sayonara!\n"
-#~ msgstr ""
-#~ "Szia,\n"
-#~ "\n"
-#~ "A Dolphin működéséhez szükséges, hogy a processzor rendelkezzen SSE2 "
-#~ "utasításkészlettel.\n"
-#~ "Sajnos a processzorod nem támogatja azt, ezért a Dolphin nem fog "
-#~ "működni.\n"
-#~ "\n"
-#~ "Sayonara!\n"
-
-#~ msgid "IR Pointer"
-#~ msgstr "IR mutató"
-
-#~ msgid ""
-#~ "If checked, the bounding box registers will be updated. Used by the Paper "
-#~ "Mario games."
-#~ msgstr ""
-#~ "Kijelölés esetén a bounding box regiszterek frissítve lesznek. A Paper "
-#~ "Mario játékok használják."
-
-#~ msgid ""
-#~ "InstallExceptionHandler called, but this platform does not yet support it."
-#~ msgstr ""
-#~ "InstallExceptionHandler előidézve, de ez a platform még nem támogatja azt."
-
-#~ msgid "Invalid Size(%x) or Magic word (%x)"
-#~ msgstr "Érvénytelen méret(%x) vagy mágikus szó (%x)"
-
-#~ msgid "Load preset values from hack patterns available."
-#~ msgstr "Gombkiosztási értékek betöltése a hack mintákból rendelkezésre áll."
-
-#~ msgid "Log FPS to file"
-#~ msgstr "FPS naplózás fájlba"
-
-#~ msgid "MMU Speed Hack"
-#~ msgstr "MMU sebesség növelő hack"
-
-#~ msgid "No ISOs or WADS found"
-#~ msgstr "Nem találhatók sem ISO sem WAD fájlok"
-
-#~ msgid "No banner file found for title  %s"
-#~ msgstr "Nem található játék kép fájl a(z) %s játékhoz"
-
-#~ msgid "No docking"
-#~ msgstr "Nincs dokkolás"
-
-#~ msgid "No save folder found for title %s"
-#~ msgstr "%s játékhoz nem található mentési mappa"
-
-#~ msgid "OpenMP Texture Decoder"
-#~ msgstr "OpenMP textúra dekódoló"
-
-#~ msgid "Parameters"
-#~ msgstr "Paraméterek"
-
-#~ msgid "Presets: "
-#~ msgstr "Gombkiosztás:"
-
-#~ msgid "Save current perspective"
-#~ msgstr "Jelenlegi perspektíva mentése"
-
-#~ msgid "Settings..."
-#~ msgstr "Beállítások..."
-
-#~ msgid "Software Renderer"
-#~ msgstr "Szoftveres képalkotó"
-
-#~ msgid "Square Stick"
-#~ msgstr "Négyzetes kar"
-
-#~ msgid "Tab split"
-#~ msgstr "Tab split"
-
-#~ msgid "UDP Port:"
-#~ msgstr "UDP port:"
-
-#~ msgid "UDP Wiimote"
-#~ msgstr "UDP Wiimote"
-
-#~ msgid ""
-#~ "Use multiple threads to decode textures.\n"
-#~ "Might result in a speedup (especially on CPUs with more than two cores).\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Több folyamatág használata a textúrák dekódolásához.\n"
-#~ "Sebesség növekedést eredményezhet (főleg a két magnál többel rendelkező "
-#~ "processzorok esetén).\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid "Video"
-#~ msgstr "Kép"
-
-#~ msgid "zFar Correction: "
-#~ msgstr "zFar javítás:"
-
-#~ msgid "zNear Correction: "
-#~ msgstr "zNear javítás: "
