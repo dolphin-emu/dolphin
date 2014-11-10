@@ -581,7 +581,7 @@ float RGBLuminance(float3 color)
 }
 
 /*------------------------------------------------------------------------------
-                         [BICUBIC SCALER CODE SECTION]
+                        [BICUBIC SCALER CODE SECTION]
 ------------------------------------------------------------------------------*/
 
 float4 BicubicScaler(sampler2D tex, float2 uv, float2 texSize)
