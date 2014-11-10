@@ -20,38 +20,38 @@
 [configuration]
 
 [OptionBool]
-GUIName = Disable All Effects (Debugging)
+GUIName = Disable All Effects (To reset all settings to default, delete them from dolphin.ini)
 OptionName = DISABLE_EFFECTS
 DefaultValue = false
 
 [OptionBool]
 GUIName = Scaling Filters
-OptionName = A_SCALARS
+OptionName = A_SCALERS
 DefaultValue = false
 
 [OptionRangeInteger]
 GUIName = Bicubic Scaling
-OptionName = A_BICUBLIC_SCALAR
+OptionName = A_BICUBLIC_SCALER
 MinValue = 0
 MaxValue = 1
 StepAmount = 1
 DefaultValue = 0
-DependentOption = A_SCALARS
+DependentOption = A_SCALERS
 
 [OptionRangeInteger]
 GUIName = Lanczos Scaling
-OptionName = A_LANCZOS_SCALAR
+OptionName = B_LANCZOS_SCALER
 MinValue = 0
 MaxValue = 1
 StepAmount = 1
 DefaultValue = 0
-DependentOption = A_SCALARS
+DependentOption = A_SCALERS
 
 [OptionBool]
 GUIName = Note: You can use FXAA or a Scaling Filter, not both together.
 OptionName = PASS_WARN
 DefaultValue = true
-DependentOption = A_SCALARS
+DependentOption = A_SCALERS
 
 [OptionBool]
 GUIName = FXAA
@@ -60,7 +60,7 @@ DefaultValue = true
 
 [OptionRangeFloat]
 GUIName = SubpixelMax
-OptionName = FXAA_SUBPIX_MAX
+OptionName = A_FXAA_SUBPIX_MAX
 MinValue = 0.00
 MaxValue = 1.00
 StepAmount = 0.01
@@ -69,7 +69,7 @@ DependentOption = A_FXAA_PASS
 
 [OptionRangeFloat]
 GUIName = EdgeThreshold
-OptionName = FXAA_XEDGE_THRESHOLD
+OptionName = B_FXAA_EDGE_THRESHOLD
 MinValue = 0.010
 MaxValue = 0.500
 StepAmount = 0.001
@@ -78,7 +78,7 @@ DependentOption = A_FXAA_PASS
 
 [OptionRangeInteger]
 GUIName = ShowEdgeDetection
-OptionName = FXAA_ZSHOW_EDGES
+OptionName = C_FXAA_SHOW_EDGES
 MinValue = 0
 MaxValue = 1
 StepAmount = 1
@@ -214,7 +214,7 @@ DependentOption = C_TONEMAP_PASS
 
 [OptionBool]
 GUIName = Colour Correction
-OptionName = D_COLOUR_CORRECTION
+OptionName = D_COLOR_CORRECTION
 DefaultValue = true
 
 [OptionRangeInteger]
@@ -224,7 +224,7 @@ MinValue = 0
 MaxValue = 3
 StepAmount = 1
 DefaultValue = 1
-DependentOption = D_COLOUR_CORRECTION
+DependentOption = D_COLOR_CORRECTION
 
 [OptionRangeFloat]
 GUIName = RedCorrection
@@ -233,7 +233,7 @@ MinValue = 0.100
 MaxValue = 8.000
 StepAmount = 0.100
 DefaultValue = 1.000
-DependentOption = D_COLOUR_CORRECTION
+DependentOption = D_COLOR_CORRECTION
 
 [OptionRangeFloat]
 GUIName = GreenCorrection
@@ -242,7 +242,7 @@ MinValue = 0.100
 MaxValue = 8.000
 StepAmount = 0.100
 DefaultValue = 1.000
-DependentOption = D_COLOUR_CORRECTION
+DependentOption = D_COLOR_CORRECTION
 
 [OptionRangeFloat]
 GUIName = BlueCorrection
@@ -251,7 +251,7 @@ MinValue = 0.100
 MaxValue = 8.000
 StepAmount = 0.100
 DefaultValue = 1.000
-DependentOption = D_COLOUR_CORRECTION
+DependentOption = D_COLOR_CORRECTION
 
 [OptionBool]
 GUIName = Filmic Process
@@ -366,7 +366,7 @@ DefaultValue = false
 [OptionRangeFloat]
 GUIName = Vibrance
 OptionName = A_VIBRANCE
-MinValue = 0.00
+MinValue = -0.50
 MaxValue = 1.00
 StepAmount = 0.01
 DefaultValue = 0.20
@@ -446,7 +446,7 @@ DefaultValue = 1
 DependentOption = J_CEL_SHADING
 
 [OptionRangeInteger]
-GUIName = ColorRounding
+GUIName = ColourRounding
 OptionName = G_COLOR_ROUNDING
 MinValue = 0
 MaxValue = 1
@@ -502,12 +502,6 @@ MinValue = 0.10
 MaxValue = 0.35
 StepAmount = 0.01
 DefaultValue = 0.25
-DependentOption = K_SCAN_LINES
-
-[OptionBool]
-GUIName = UseUV (Use UV, instead of fragment coordinates)
-OptionName = C_USE_UV_COORD
-DefaultValue = false
 DependentOption = K_SCAN_LINES
 
 [OptionBool]
@@ -567,10 +561,11 @@ DependentOption = L_FILM_GRAIN_PASS
                             [GLOBALS|FUNCTIONS]
 ------------------------------------------------------------------------------*/
 
+uint timer = GetTime();
+
 float2 texcoord = GetCoordinates();
 float2 screenSize = GetResolution();
 float2 pixelSize = GetInvResolution();
-uint timer = GetTime();
 
 #define mul(x, y) y * x
 #define FIX(c) max(abs(c), 1e-5)
@@ -586,12 +581,12 @@ float RGBLuminance(float3 color)
 }
 
 /*------------------------------------------------------------------------------
-                         [BICUBIC SCALAR CODE SECTION]
+                         [BICUBIC SCALER CODE SECTION]
 ------------------------------------------------------------------------------*/
 
-float4 BicubicScalar(sampler2D tex, float2 uv, float2 texSize)
+float4 BicubicScaler(sampler2D tex, float2 uv, float2 texSize)
 {
-    float2 rec_nrCP = float2(1.0/texSize.x, 1.0/texSize.y);
+    float2 inputSize = float2(1.0/texSize.x, 1.0/texSize.y);
 
     float2 coord_hg = uv * texSize - 0.5;
     float2 index = floor(coord_hg);
@@ -618,10 +613,10 @@ float4 BicubicScalar(sampler2D tex, float2 uv, float2 texSize)
     float2 coord01 = index + float2(h0.x, h1.y);
     float2 coord11 = index + h1;
 
-    coord00 = (coord00 + 0.5) * rec_nrCP;
-    coord10 = (coord10 + 0.5) * rec_nrCP;
-    coord01 = (coord01 + 0.5) * rec_nrCP;
-    coord11 = (coord11 + 0.5) * rec_nrCP;
+    coord00 = (coord00 + 0.5) * inputSize;
+    coord10 = (coord10 + 0.5) * inputSize;
+    coord01 = (coord01 + 0.5) * inputSize;
+    coord11 = (coord11 + 0.5) * inputSize;
 
     float4 tex00 = textureLod(tex, coord00, 0.0);
     float4 tex10 = textureLod(tex, coord10, 0.0);
@@ -630,46 +625,47 @@ float4 BicubicScalar(sampler2D tex, float2 uv, float2 texSize)
 
     tex00 = lerp(tex01, tex00, float4(g0.y, g0.y, g0.y, g0.y));
     tex10 = lerp(tex11, tex10, float4(g0.y, g0.y, g0.y, g0.y));
+
     float4 res = lerp(tex10, tex00, float4(g0.x, g0.x, g0.x, g0.x));
 
     return res;
 }
 
-float4 BicubicScalarPass(float4 color)
+float4 BicubicScalerPass(float4 color)
 {
-    color = BicubicScalar(samp9, texcoord, screenSize);
+    color = BicubicScaler(samp9, texcoord, screenSize);
     return color;
 }
 
 /*------------------------------------------------------------------------------
-                         [LANCZOS SCALAR CODE SECTION]
+                         [LANCZOS SCALER CODE SECTION]
 ------------------------------------------------------------------------------*/
 
-float3 pixel(float xpos, float ypos)
+float3 PixelPos(float xpos, float ypos)
 {
 	return texture(samp9, float2(xpos, ypos)).rgb;
 }
 
-float4 weight4(float x)
+float4 WeightQuad(float x)
 {
-	float4 saample = FIX(PI * float4(1.0 + x, x, 1.0 - x, 2.0 - x));
-	float4 ret = sin(saample) * sin(saample / 2.0) / (saample * saample);
+	float4 weight = FIX(PI * float4(1.0 + x, x, 1.0 - x, 2.0 - x));
+	float4 ret = sin(weight) * sin(weight / 2.0) / (weight * weight);
 
 	return ret / dot(ret, float4(1.0, 1.0, 1.0, 1.0));
 }
 
-float3 line_run(float ypos, float4 xpos, float4 linetaps)
+float3 LineRun(float ypos, float4 xpos, float4 linetaps)
 {
     return mat4x3(
-    pixel(xpos.x, ypos),
-    pixel(xpos.y, ypos),
-    pixel(xpos.z, ypos),
-    pixel(xpos.w, ypos)) * linetaps;
+    PixelPos(xpos.x, ypos),
+    PixelPos(xpos.y, ypos),
+    PixelPos(xpos.z, ypos),
+    PixelPos(xpos.w, ypos)) * linetaps;
 }
 
-float4 LanczosScalar(float2 inputSize)
+float4 LanczosScaler(float2 inputSize)
 {
-    float2 stepxy = 1.0 / inputSize;
+    float2 stepxy = float2(1.0/inputSize.x, 1.0/inputSize.y);
     float2 pos = texcoord + stepxy * 0.5;
     float2 f = frac(pos / stepxy);
 
@@ -680,19 +676,19 @@ float4 LanczosScalar(float2 inputSize)
     xystart.x + stepxy.x * 2.0,
     xystart.x + stepxy.x * 3.0);
 
-    float4 linetaps = weight4(f.x);
-    float4 columntaps = weight4(f.y);
+    float4 linetaps = WeightQuad(f.x);
+    float4 columntaps = WeightQuad(f.y);
 
     return float4(mat4x3(
-    line_run(xystart.y, xpos, linetaps),
-    line_run(xystart.y + stepxy.y, xpos, linetaps),
-    line_run(xystart.y + stepxy.y * 2.0, xpos, linetaps),
-    line_run(xystart.y + stepxy.y * 3.0, xpos, linetaps)) * columntaps, 1.0);
+    LineRun(xystart.y, xpos, linetaps),
+    LineRun(xystart.y + stepxy.y, xpos, linetaps),
+    LineRun(xystart.y + stepxy.y * 2.0, xpos, linetaps),
+    LineRun(xystart.y + stepxy.y * 3.0, xpos, linetaps)) * columntaps, 1.0);
 }
 
-float4 LanczosScalarPass(float4 color)
+float4 LanczosScalerPass(float4 color)
 {
-    color = LanczosScalar(screenSize);
+    color = LanczosScaler(screenSize);
     return color;
 }
 
@@ -892,10 +888,10 @@ float3 ColorCorrection(float3 color)
 
 float4 TonemapPass(float4 color)
 {
-    const float delta = 0.001f;
-    const float wpoint = pow(1.002f, 2.0f);
+    const float delta = 0.001;
+    const float wpoint = pow(1.002, 2.0);
     
-    if (OptionEnabled(D_COLOUR_CORRECTION) && GetOption(A_PALETTE) == 1)
+    if (OptionEnabled(D_COLOR_CORRECTION) && GetOption(A_PALETTE) == 1)
     { color.rgb = ColorCorrection(color.rgb); }
     if (OptionEnabled(E_FILMIC_PROCESS) && GetOption(A_FILMIC) == 1)
     { color.rgb = ColorShift(color.rgb); }
@@ -916,7 +912,7 @@ float4 TonemapPass(float4 color)
     Yxy.g = XYZ.r / (XYZ.r + XYZ.g + XYZ.b);    // x = X / (X + Y + Z)
     Yxy.b = XYZ.g / (XYZ.r + XYZ.g + XYZ.b);    // y = Y / (X + Y + Z)
 
-    if (OptionEnabled(D_COLOUR_CORRECTION) && GetOption(A_PALETTE) == 2)
+    if (OptionEnabled(D_COLOR_CORRECTION) && GetOption(A_PALETTE) == 2)
     { Yxy.rgb = ColorCorrection(Yxy.rgb); }
 
     // (Lp) Map average luminance to the middlegrey zone by scaling pixel luminance
@@ -936,7 +932,7 @@ float4 TonemapPass(float4 color)
     XYZ.g = Yxy.r;                                  // copy luminance Y
     XYZ.b = Yxy.r * (1.0 - Yxy.g - Yxy.b) / Yxy.b;  // Z = Y * (1-x-y) / y
 
-    if (OptionEnabled(D_COLOUR_CORRECTION) && GetOption(A_PALETTE) == 3) 
+    if (OptionEnabled(D_COLOR_CORRECTION) && GetOption(A_PALETTE) == 3) 
     { XYZ.rgb = ColorCorrection(XYZ.rgb); }
 
     // XYZ -> RGB conversion
@@ -1189,12 +1185,12 @@ float height = screenSize.y;
 const float permTexUnit = 1.0/256.0;
 const float permTexUnitHalf = 0.5/256.0;
     
-float fade(in float t)
+float Fade(in float t)
 {
     return t*t*t*(t*(t*6.0 - 15.0) + 10.0);
 }
 
-float2 coordRot(in float2 tc, in float angle)
+float2 CoordRot(in float2 tc, in float angle)
 {
     float aspect = width/height;
     float rotX = ((tc.x * 2.0-1.0) * aspect * cos(angle)) - ((tc.y * 2.0-1.0) * sin(angle));
@@ -1205,7 +1201,7 @@ float2 coordRot(in float2 tc, in float angle)
     return float2(rotX,rotY);
 }
 
-float4 randomize(in float2 texcoord) 
+float4 Randomize(in float2 texcoord) 
 {
     float noise = (frac(sin(dot(texcoord, float2(12.9898, 78.233)*2.0)) * 43758.5453));
 
@@ -1217,63 +1213,61 @@ float4 randomize(in float2 texcoord)
     return float4(noiseR, noiseG, noiseB, noiseA);
 }
 
-float pnoise3D(in float3 p)
+float PerNoise(in float3 p)
 {
     float3 pi = permTexUnit*floor(p)+permTexUnitHalf;
     float3 pf = fract(p);
 
     // Noise contributions from (x=0, y=0), z=0 and z=1
-    float perm00 = randomize(pi.xy).a ;
-    float3  grad000 = randomize(float2(perm00, pi.z)).rgb * 4.0 - 1.0;
+    float perm00 = Randomize(pi.xy).a ;
+    float3  grad000 = Randomize(float2(perm00, pi.z)).rgb * 4.0 - 1.0;
     float n000 = dot(grad000, pf);
-    float3  grad001 = randomize(float2(perm00, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
+    float3  grad001 = Randomize(float2(perm00, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
     float n001 = dot(grad001, pf - float3(0.0, 0.0, 1.0));
 
     // Noise contributions from (x=0, y=1), z=0 and z=1
-    float perm01 = randomize(pi.xy + float2(0.0, permTexUnit)).a ;
-    float3  grad010 = randomize(float2(perm01, pi.z)).rgb * 4.0 - 1.0;
+    float perm01 = Randomize(pi.xy + float2(0.0, permTexUnit)).a ;
+    float3  grad010 = Randomize(float2(perm01, pi.z)).rgb * 4.0 - 1.0;
     float n010 = dot(grad010, pf - float3(0.0, 1.0, 0.0));
-    float3  grad011 = randomize(float2(perm01, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
+    float3  grad011 = Randomize(float2(perm01, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
     float n011 = dot(grad011, pf - float3(0.0, 1.0, 1.0));
 
     // Noise contributions from (x=1, y=0), z=0 and z=1
-    float perm10 = randomize(pi.xy + float2(permTexUnit, 0.0)).a ;
-    float3  grad100 = randomize(float2(perm10, pi.z)).rgb * 4.0 - 1.0;
+    float perm10 = Randomize(pi.xy + float2(permTexUnit, 0.0)).a ;
+    float3  grad100 = Randomize(float2(perm10, pi.z)).rgb * 4.0 - 1.0;
     float n100 = dot(grad100, pf - float3(1.0, 0.0, 0.0));
-    float3  grad101 = randomize(float2(perm10, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
+    float3  grad101 = Randomize(float2(perm10, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
     float n101 = dot(grad101, pf - float3(1.0, 0.0, 1.0));
 
     // Noise contributions from (x=1, y=1), z=0 and z=1
-    float perm11 = randomize(pi.xy + float2(permTexUnit, permTexUnit)).a ;
-    float3  grad110 = randomize(float2(perm11, pi.z)).rgb * 4.0 - 1.0;
+    float perm11 = Randomize(pi.xy + float2(permTexUnit, permTexUnit)).a ;
+    float3  grad110 = Randomize(float2(perm11, pi.z)).rgb * 4.0 - 1.0;
     float n110 = dot(grad110, pf - float3(1.0, 1.0, 0.0));
-    float3  grad111 = randomize(float2(perm11, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
+    float3  grad111 = Randomize(float2(perm11, pi.z + permTexUnit)).rgb * 4.0 - 1.0;
     float n111 = dot(grad111, pf - float3(1.0, 1.0, 1.0));
 
-    float4 n_x = mix(float4(n000, n001, n010, n011), float4(n100, n101, n110, n111), fade(pf.x));
+    float4 n_x = mix(float4(n000, n001, n010, n011), float4(n100, n101, n110, n111), Fade(pf.x));
 
-    float2 n_xy = mix(n_x.xy, n_x.zw, fade(pf.y));
-    float n_xyz = mix(n_xy.x, n_xy.y, fade(pf.z));
+    float2 n_xy = mix(n_x.xy, n_x.zw, Fade(pf.y));
+    float n_xyz = mix(n_xy.x, n_xy.y, Fade(pf.z));
 
     return n_xyz;
 }
 
 float4 GrainPass(float4 color)
 {
-    float3 rotOffset = float3(1.425,3.892,5.835); //rotation offset values	
-    float2 rotCoordsR = coordRot(texcoord, timer + rotOffset.x);
-    float3 noise = float3(pnoise3D(float3(rotCoordsR *
+    float3 rotOffset = float3(1.425, 3.892, 5.835); //rotation offset values	
+    float2 rotCoordsR = CoordRot(texcoord, timer + rotOffset.x);
+    float3 noise = float3(PerNoise(float3(rotCoordsR *
     float2(width / GetOption(A_GRAIN_SIZE), height / GetOption(A_GRAIN_SIZE)), 0.0)));
 
-    if (GetOption(C_COLORED) == 1)
-    {
-        float2 rotCoordsG = coordRot(texcoord, timer + rotOffset.y);
-        float2 rotCoordsB = coordRot(texcoord, timer + rotOffset.z);
-        noise.g = mix(noise.r,pnoise3D(float3(rotCoordsG *
-        float2(width / GetOption(A_GRAIN_SIZE), height / GetOption(A_GRAIN_SIZE)), 1.0)), GetOption(D_COLOR_AMOUNT));
-        noise.b = mix(noise.r,pnoise3D(float3(rotCoordsB *
-        float2(width / GetOption(A_GRAIN_SIZE), height / GetOption(A_GRAIN_SIZE)), 2.0)), GetOption(D_COLOR_AMOUNT));
-    }
+    if (GetOption(C_COLORED) == 1) {
+    float2 rotCoordsG = CoordRot(texcoord, timer + rotOffset.y);
+    float2 rotCoordsB = CoordRot(texcoord, timer + rotOffset.z);
+    noise.g = mix(noise.r,PerNoise(float3(rotCoordsG *
+    float2(width / GetOption(A_GRAIN_SIZE), height / GetOption(A_GRAIN_SIZE)), 1.0)), GetOption(D_COLOR_AMOUNT));
+    noise.b = mix(noise.r,PerNoise(float3(rotCoordsB *
+    float2(width / GetOption(A_GRAIN_SIZE), height / GetOption(A_GRAIN_SIZE)), 2.0)), GetOption(D_COLOR_AMOUNT)); }
 
     //noisiness response curve based on scene luminance
     float luminance = mix(0.0, dot(color.rgb, lumCoeff), GetOption(E_LUMA_AMOUNT));
@@ -1292,23 +1286,9 @@ float4 GrainPass(float4 color)
 
 float4 ScanlinesPass(float4 color)
 {
-    float uvcoord;
     float4 intensity;
 
-    if (OptionEnabled(C_USE_UV_COORD)) {
-
-    if (GetOption(A_SCANLINE_TYPE) == 0) { uvcoord = texcoord.y; }
-    else { uvcoord = texcoord.x; }
-    
-    float pos0 = ((uvcoord) * (GetOption(B_SCANLINE_THICKNESS) * 220.0) * (GetOption(B_SCANLINE_SPACING) * 8));
-    float pos1 = cos((fract( pos0 ) - 0.5) * 3.1415926 * (GetOption(B_SCANLINE_INTENSITY)* 3.0)) *
-    (clamp(GetOption(B_SCANLINE_BRIGHTNESS), 0.0, 1.25) * 1.1);
-
-    color = lerp(float4(0.0, 0.0, 0.0, 0.0), color, pos1); }
-    
-    else {
-
-    if (GetOption(A_SCANLINE_TYPE) == 0) {
+    if (GetOption(A_SCANLINE_TYPE) == 0) { //X coord scanlines
     if (fract(gl_FragCoord.y * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS))
     {
         intensity = float4(0.0, 0.0, 0.0, 0.0);
@@ -1319,7 +1299,7 @@ float4 ScanlinesPass(float4 color)
         normalize(float4(color.xyz, RGBLuminance(color.xyz)));
     } }
 
-    else if (GetOption(A_SCANLINE_TYPE) == 1) {
+    else if (GetOption(A_SCANLINE_TYPE) == 1) { //Y coord scanlines
     if (fract(gl_FragCoord.x * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS))
     {
         intensity = float4(0.0, 0.0, 0.0, 0.0);
@@ -1330,7 +1310,7 @@ float4 ScanlinesPass(float4 color)
         normalize(float4(color.xyz, RGBLuminance(color.xyz)));
     } }
 
-    else if (GetOption(A_SCANLINE_TYPE) == 2) {
+    else if (GetOption(A_SCANLINE_TYPE) == 2) { //XY coord scanlines
     if (fract(gl_FragCoord.x * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS) &&
         fract(gl_FragCoord.y * GetOption(B_SCANLINE_SPACING)) > GetOption(B_SCANLINE_THICKNESS))
     {
@@ -1344,7 +1324,7 @@ float4 ScanlinesPass(float4 color)
 
     float level = (4.0-texcoord.x) * GetOption(B_SCANLINE_INTENSITY);
 
-    color = intensity * (0.5 - level) + color * 1.1; }
+    color = intensity * (0.5 - level) + color * 1.1;
 
     return color;
 }
@@ -1428,7 +1408,7 @@ float4 ScanlinesPass(float4 color)
 #define FxaaTex sampler2D
 
 #if (FXAA_GLSL_120 == 1)
-#define FxaaTexTop(t, p) texture2DLod(t, p, 0.0)
+    #define FxaaTexTop(t, p) texture2DLod(t, p, 0.0)
 #if (FXAA_FAST_PIXEL_OFFSET == 1)
     #define FxaaTexOff(t, p, o, r) texture2DLodOffset(t, p, 0.0, o)
 #else
@@ -1442,7 +1422,6 @@ float4 ScanlinesPass(float4 color)
     #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, p, o, 1)
 #endif
 #endif
-
 #if (FXAA_GLSL_130 == 1)
     #define FxaaTexTop(t, p) textureLod(t, p, 0.0)
     #define FxaaTexOff(t, p, o, r) textureLodOffset(t, p, 0.0, o)
@@ -1726,7 +1705,7 @@ FxaaFloat4 FxaaPixelShader(FxaaTex tex, FxaaFloat2 RcpFrame, FxaaFloat Subpix, F
     #if (FXAA_DISCARD == 1)
         return FxaaTexTop(tex, posM);
     #else
-        if (GetOption(FXAA_ZSHOW_EDGES) == 1)
+        if (GetOption(C_FXAA_SHOW_EDGES) == 1)
         { return -rgbyM; }
         else
         { return FxaaFloat4(FxaaTexTop(tex, posM).xyz, lumaM); }
@@ -1735,7 +1714,7 @@ FxaaFloat4 FxaaPixelShader(FxaaTex tex, FxaaFloat2 RcpFrame, FxaaFloat Subpix, F
 
 float4 FxaaPass(float4 color)
 {
-    color = FxaaPixelShader(samp9, pixelSize, GetOption(FXAA_SUBPIX_MAX), GetOption(FXAA_XEDGE_THRESHOLD), 0.000);
+    color = FxaaPixelShader(samp9, pixelSize, GetOption(A_FXAA_SUBPIX_MAX), GetOption(B_FXAA_EDGE_THRESHOLD), 0.000);
     
     return color;
 }
@@ -1751,8 +1730,8 @@ void main()
     if (!OptionEnabled(DISABLE_EFFECTS))
     {
         if (OptionEnabled(A_FXAA_PASS)) { color = FxaaPass(color); }
-        if (OptionEnabled(A_BICUBLIC_SCALAR)) { color = BicubicScalarPass(color); }
-        if (OptionEnabled(A_LANCZOS_SCALAR)) { color = LanczosScalarPass(color); }
+        if (OptionEnabled(A_BICUBLIC_SCALER)) { color = BicubicScalerPass(color); }
+        if (OptionEnabled(B_LANCZOS_SCALER)) { color = LanczosScalerPass(color); }
         if (OptionEnabled(G_TEXTURE_SHARPEN)) { color = TexSharpenPass(color); }
         if (OptionEnabled(J_CEL_SHADING)) { color = CelPass(color); }
         if (OptionEnabled(K_SCAN_LINES)) { color = ScanlinesPass(color); }
