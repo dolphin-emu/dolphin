@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include <limits>
+#include <type_traits>
 
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
@@ -12,13 +12,6 @@
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
-
-#if _M_SSE >= 0x401
-#include <smmintrin.h>
-#include <emmintrin.h>
-#elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
-#include <tmmintrin.h>
-#endif
 
 // warning: mapping buffer should be disabled to use this
 #define LOG_NORM()  // PRIM_LOG("norm: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-3], ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
@@ -37,7 +30,7 @@ __forceinline float FracAdjust(T val)
 	//auto const U16FRAC = 1.f / (1u << 15);
 
 	// TODO: is this right?
-	return val / float(1u << (sizeof(T) * 8 - std::numeric_limits<T>::is_signed - 1));
+	return val / float(1u << (sizeof(T) * 8 - std::is_signed<T>::value - 1));
 }
 
 template <>
@@ -76,11 +69,11 @@ struct Normal_Direct
 template <typename I, typename T, int N, int Offset>
 __forceinline void Normal_Index_Offset()
 {
-	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_NORMAL]
-		+ (index * g_main_cp_state.array_strides[ARRAY_NORMAL]) + sizeof(T) * 3 * Offset);
+	                + (index * g_main_cp_state.array_strides[ARRAY_NORMAL]) + sizeof(T) * 3 * Offset);
 	ReadIndirect<T, N * 3>(data);
 }
 
@@ -107,6 +100,63 @@ struct Normal_Index_Indices3
 
 	static const int size = sizeof(I) * 3;
 };
+
+#if _M_SSE >= 0x301
+template <typename T, int N>
+struct Normal_Direct_SSSE3
+{
+	static void LOADERDECL function()
+	{
+		const T* pData = reinterpret_cast<const T*>(DataGetPosition());
+		const float frac = 1. / float(1u << (sizeof(T) * 8 - std::is_signed<T>::value - 1));
+		const __m128 scale = _mm_set_ps(frac, frac, frac, frac);
+		for (int i = 0; i < N; i++, pData += 3)
+			Vertex_Read_SSSE3<T, true, true>(pData, scale);
+		DataSkip<N * 3 * sizeof(T)>();
+	}
+
+	static const int size = sizeof(T) * N * 3;
+};
+
+template <typename I, typename T, int N, int Offset>
+__forceinline void Normal_Index_Offset_SSSE3()
+{
+	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
+
+	auto const index = DataRead<I>();
+	const T* pData = (const T*)(cached_arraybases[ARRAY_NORMAL]
+	               + (index * g_main_cp_state.array_strides[ARRAY_NORMAL]) + sizeof(T) * 3 * Offset);
+	const float frac = 1. / float(1u << (sizeof(T) * 8 - std::is_signed<T>::value - 1));
+	const __m128 scale = _mm_set_ps(frac, frac, frac, frac);
+	for (int i = 0; i < N; i++, pData += 3)
+		Vertex_Read_SSSE3<T, true, true>(pData, scale);
+}
+
+template <typename I, typename T, int N>
+struct Normal_Index_SSSE3
+{
+	static void LOADERDECL function()
+	{
+		Normal_Index_Offset_SSSE3<I, T, N, 0>();
+	}
+
+	static const int size = sizeof(I);
+};
+
+template <typename I, typename T>
+struct Normal_Index_Indices3_SSSE3
+{
+	static void LOADERDECL function()
+	{
+		Normal_Index_Offset_SSSE3<I, T, 1, 0>();
+		Normal_Index_Offset_SSSE3<I, T, 1, 1>();
+		Normal_Index_Offset_SSSE3<I, T, 1, 2>();
+	}
+
+	static const int size = sizeof(I) * 3;
+};
+
+#endif
 
 }
 
@@ -180,6 +230,77 @@ void VertexLoader_Normal::Init()
 	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT] = Normal_Index_Indices3<u16, u16>();
 	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT]  = Normal_Index_Indices3<u16, s16>();
 	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT]  = Normal_Index_Indices3<u16, float>();
+
+#if _M_SSE >= 0x301
+	if (cpu_info.bSSSE3)
+	{
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_UBYTE] = Normal_Direct_SSSE3<u8, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_BYTE] = Normal_Direct_SSSE3<s8, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_USHORT] = Normal_Direct_SSSE3<u16, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_SHORT] = Normal_Direct_SSSE3<s16, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT][FORMAT_FLOAT] = Normal_Direct_SSSE3<float, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] = Normal_Direct_SSSE3<u8, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE] = Normal_Direct_SSSE3<s8, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT] = Normal_Direct_SSSE3<u16, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] = Normal_Direct_SSSE3<s16, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] = Normal_Direct_SSSE3<float, 3>();
+
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_UBYTE] = Normal_Direct_SSSE3<u8, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_BYTE] = Normal_Direct_SSSE3<s8, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_USHORT] = Normal_Direct_SSSE3<u16, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_SHORT] = Normal_Direct_SSSE3<s16, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT][FORMAT_FLOAT] = Normal_Direct_SSSE3<float, 1>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] = Normal_Direct_SSSE3<u8, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE] = Normal_Direct_SSSE3<s8, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT] = Normal_Direct_SSSE3<u16, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] = Normal_Direct_SSSE3<s16, 3>();
+		m_Table[NRM_DIRECT][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] = Normal_Direct_SSSE3<float, 3>();
+
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_UBYTE] = Normal_Index_SSSE3<u8, u8, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_BYTE] = Normal_Index_SSSE3<u8, s8, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_USHORT] = Normal_Index_SSSE3<u8, u16, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_SHORT] = Normal_Index_SSSE3<u8, s16, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT][FORMAT_FLOAT] = Normal_Index_SSSE3<u8, float, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] = Normal_Index_SSSE3<u8, u8, 3>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE] = Normal_Index_SSSE3<u8, s8, 3>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT] = Normal_Index_SSSE3<u8, u16, 3>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] = Normal_Index_SSSE3<u8, s16, 3>();
+		m_Table[NRM_INDEX8][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] = Normal_Index_SSSE3<u8, float, 3>();
+
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_UBYTE] = Normal_Index_SSSE3<u8, u8, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_BYTE] = Normal_Index_SSSE3<u8, s8, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_USHORT] = Normal_Index_SSSE3<u8, u16, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_SHORT] = Normal_Index_SSSE3<u8, s16, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT][FORMAT_FLOAT] = Normal_Index_SSSE3<u8, float, 1>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] = Normal_Index_Indices3_SSSE3<u8, u8>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE] = Normal_Index_Indices3_SSSE3<u8, s8>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT] = Normal_Index_Indices3_SSSE3<u8, u16>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] = Normal_Index_Indices3_SSSE3<u8, s16>();
+		m_Table[NRM_INDEX8][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] = Normal_Index_Indices3_SSSE3<u8, float>();
+
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_UBYTE] = Normal_Index_SSSE3<u16, u8, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_BYTE] = Normal_Index_SSSE3<u16, s8, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_USHORT] = Normal_Index_SSSE3<u16, u16, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_SHORT] = Normal_Index_SSSE3<u16, s16, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT][FORMAT_FLOAT] = Normal_Index_SSSE3<u16, float, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] = Normal_Index_SSSE3<u16, u8, 3>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE] = Normal_Index_SSSE3<u16, s8, 3>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT] = Normal_Index_SSSE3<u16, u16, 3>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] = Normal_Index_SSSE3<u16, s16, 3>();
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] = Normal_Index_SSSE3<u16, float, 3>();
+
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_UBYTE] = Normal_Index_SSSE3<u16, u8, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_BYTE] = Normal_Index_SSSE3<u16, s8, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_USHORT] = Normal_Index_SSSE3<u16, u16, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_SHORT] = Normal_Index_SSSE3<u16, s16, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT][FORMAT_FLOAT] = Normal_Index_SSSE3<u16, float, 1>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] = Normal_Index_Indices3_SSSE3<u16, u8>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE] = Normal_Index_Indices3_SSSE3<u16, s8>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT] = Normal_Index_Indices3_SSSE3<u16, u16>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] = Normal_Index_Indices3_SSSE3<u16, s16>();
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] = Normal_Index_Indices3_SSSE3<u16, float>();
+	}
+#endif
 }
 
 unsigned int VertexLoader_Normal::GetSize(u64 _type,

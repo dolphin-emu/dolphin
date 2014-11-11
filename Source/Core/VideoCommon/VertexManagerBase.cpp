@@ -53,7 +53,8 @@ u32 VertexManager::GetRemainingSize()
 
 void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
 {
-	u32 const needed_vertex_bytes = count * stride;
+	// The SSE vertex loader can write up to 4 bytes past the end
+	u32 const needed_vertex_bytes = count * stride + 4;
 
 	// We can't merge different kinds of primitives, so we have to flush here
 	if (current_primitive_type != primitive_from_gx[primitive])
