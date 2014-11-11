@@ -151,7 +151,7 @@ static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to R
 static wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
 static wxString stereo_3d_desc = wxTRANSLATE("Select the stereoscopic 3D  mode, stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
 static wxString stereo_separation_desc = wxTRANSLATE("Control the interpupillary distance, this is the distance between the virtual eyes.");
-static wxString stereo_convergence_desc = wxTRANSLATE("Control the convergence distance, this controls the apparant distance of virtual objects.\nA lower value creates a stronger feeling of depth while a higher value is generally more comfortable.");
+static wxString stereo_convergence_desc = wxTRANSLATE("Control the convergence distance, this controls the apparant distance of virtual objects.\nA higher value creates a stronger feeling of depth while a lower value is generally more comfortable.");
 static wxString stereo_swap_desc = wxTRANSLATE("Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.\n\nIf unsure, leave this unchecked.");
 static wxString stereo_mono_depth_desc = wxTRANSLATE("Use the same depth buffer for both eyes in an EFB copy.\nThis is needed for games which use the depth buffer to calculate shadows.\n\nIf unsure, leave this unchecked.");
 
