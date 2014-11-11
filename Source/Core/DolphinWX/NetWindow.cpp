@@ -47,7 +47,6 @@
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-#define NETPLAY_TITLEBAR  "Dolphin NetPlay"
 #define INITIAL_PAD_BUFFER_SIZE 5
 
 BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
@@ -78,7 +77,7 @@ static void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_li
 }
 
 NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
-	: wxFrame(parent, wxID_ANY, NETPLAY_TITLEBAR)
+	: wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup"))
 	, m_game_list(game_list)
 {
 	IniFile inifile;
@@ -305,7 +304,7 @@ void NetPlaySetupDiag::OnQuit(wxCommandEvent&)
 
 NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list,
 		const std::string& game, const bool is_hosting)
-	: wxFrame(parent, wxID_ANY, NETPLAY_TITLEBAR)
+	: wxFrame(parent, wxID_ANY, _("Dolphin NetPlay"))
 	, m_selected_game(game)
 	, m_start_btn(nullptr)
 	, m_game_list(game_list)
