@@ -189,7 +189,7 @@ DependentOption = C_TONEMAP_PASS
 GUIName = Exposure
 OptionName = D_EXPOSURE
 MinValue = 0.25
-MaxValue = 2.00
+MaxValue = 1.50
 StepAmount = 0.01
 DefaultValue = 1.00
 DependentOption = C_TONEMAP_PASS
@@ -198,7 +198,7 @@ DependentOption = C_TONEMAP_PASS
 GUIName = Luminance
 OptionName = E_LUMINANCE
 MinValue = 0.25
-MaxValue = 2.00
+MaxValue = 1.50
 StepAmount = 0.01
 DefaultValue = 1.00
 DependentOption = C_TONEMAP_PASS
@@ -207,7 +207,7 @@ DependentOption = C_TONEMAP_PASS
 GUIName = WhitePoint
 OptionName = F_WHITEPOINT
 MinValue = 0.25
-MaxValue = 2.00
+MaxValue = 1.50
 StepAmount = 0.01
 DefaultValue = 1.00
 DependentOption = C_TONEMAP_PASS
@@ -334,8 +334,8 @@ DependentOption = G_TEXTURE_SHARPEN
 [OptionRangeFloat]
 GUIName = SharpenClamp
 OptionName = B_SHARPEN_CLAMP
-MinValue = 0.000
-MaxValue = 0.500
+MinValue = 0.005
+MaxValue = 0.250
 StepAmount = 0.001
 DefaultValue = 0.020
 DependentOption = G_TEXTURE_SHARPEN
@@ -403,7 +403,7 @@ DependentOption = J_CEL_SHADING
 [OptionRangeFloat]
 GUIName = EdgeFilter
 OptionName = B_EDGE_FILTER
-MinValue = 0.15
+MinValue = 0.25
 MaxValue = 1.00
 StepAmount = 0.01
 DefaultValue = 0.60
@@ -762,7 +762,7 @@ float3 BloomCorrection(float3 color)
 
 float3 Blend(float3 color, float3 bloom)
 {
-    float3 BlendAddLight = (color + bloom) * 0.75f;
+    float3 BlendAddLight = (color + bloom) * 0.75;
     float3 BlendScreen = (color + bloom) - (color * bloom);
     float3 BlendLuma = lerp((color * bloom), (1.0 - ((1.0 - color) * (1.0 - bloom))), RGBLuminance(color + bloom));
 
@@ -850,7 +850,7 @@ float3 FilmicTonemap(float3 color)
     float W = GetOption(F_WHITEPOINT);
 
     float3 numerator = ((Q*(A*Q + C*B) + D*E) / (Q*(A*Q + B) + D*F)) - E / F;
-    float3 denominator = ((float3(W)*(A*W + C*B) + D*E) / (W*(A*W + B) + D*F)) - E / F;
+    float denominator = ((W*(A*W + C*B) + D*E) / (W*(A*W + B) + D*F)) - E / F;
 
     color.xyz = numerator / denominator;
 
@@ -899,11 +899,11 @@ float4 TonemapPass(float4 color)
     color.rgb = FilmicTonemap(color.rgb);
 
     // RGB -> XYZ conversion
-    const mat3 RGB2XYZ = mat3( 0.4124564, 0.3575761, 0.1804375,
-                               0.2126729, 0.7151522, 0.0721750,
-                               0.0193339, 0.1191920, 0.9503041 );
+    const mat3 RGB2XYZ = mat3( 0.4124564, 0.2126729, 0.0193339,
+                               0.3575761, 0.7151522, 0.1191920,
+                               0.1804375, 0.0721750, 0.9503041 );
 
-    float3 XYZ = (color.rgb * RGB2XYZ);
+    float3 XYZ = (RGB2XYZ * color.rgb);
 
     // XYZ -> Yxy conversion
     float3 Yxy;
@@ -917,7 +917,6 @@ float4 TonemapPass(float4 color)
 
     // (Lp) Map average luminance to the middlegrey zone by scaling pixel luminance
     float Lp;
-
     if (GetOption(A_TONEMAP_TYPE) == 1)
     { Lp = Yxy.r * FilmicTonemap(Yxy.rrr).r / RGBLuminance(Yxy.rrr) *
          GetOption(D_EXPOSURE) / (GetOption(E_LUMINANCE) + delta); }
@@ -936,11 +935,11 @@ float4 TonemapPass(float4 color)
     { XYZ.rgb = ColorCorrection(XYZ.rgb); }
 
     // XYZ -> RGB conversion
-    const mat3 XYZ2RGB = mat3( 3.2404542,-1.5371385,-0.4985314,
-                              -0.9692660, 1.8760108, 0.0415560,
-                               0.0556434,-0.2040259, 1.0572252 );
+    const mat3 XYZ2RGB = mat3( 3.2404542, -0.9692660,  0.0556434,
+                              -1.5371385,  1.8760108, -0.2040259,
+                              -0.4985314,  0.0415560,  1.0572252 );
 
-    color.rgb = (XYZ * XYZ2RGB);
+    color.rgb = (XYZ2RGB * XYZ);
     color.a = RGBLuminance(color.rgb);
 
     return color;
@@ -1013,7 +1012,7 @@ float4 TexSharpenPass(float4 color)
     color.a = RGBLuminance(color.rgb);
 
     if (GetOption(D_SEDGE_DETECTION) == 1)
-    { color = (0.5f + (sharpenLuma * 4)).xxxx; }
+    { color = (0.5 + (sharpenLuma * 4)).xxxx; }
 
     return color;
 }
@@ -1076,37 +1075,33 @@ float4 ContrastPass(float4 color)
 float3 GetYUV(float3 rgb)
 {
     mat3 RGB2YUV;
-if (GetOption(F_LUMA_CONVERSION) == 0) {
-    RGB2YUV = mat3(
-              0.299, 0.587, 0.114,
-             -0.14713, -0.28886f, 0.436,
-              0.615, -0.51499, -0.10001 ); }
+    if (GetOption(F_LUMA_CONVERSION) == 0) {
+    RGB2YUV = mat3(0.299, 0.587, 0.114,
+                  -0.14713, -0.28886, 0.436,
+                   0.615, -0.51499, -0.10001); }
 
-else {
-    RGB2YUV = mat3(
-              0.2126, 0.7152, 0.0722,
-             -0.09991, -0.33609, 0.436,
-              0.615, -0.55861, -0.05639 ); }
+    else {
+    RGB2YUV = mat3(0.2126, 0.7152, 0.0722,
+                  -0.09991, -0.33609, 0.436,
+                   0.615, -0.55861, -0.05639); }
 
-    return mul(RGB2YUV, rgb);
+    return (rgb * RGB2YUV);
 }
 
 float3 GetRGB(float3 yuv)
 {
     mat3 YUV2RGB;
-if (GetOption(F_LUMA_CONVERSION) == 0) {
-    YUV2RGB = mat3(
-             1.000, 0.000, 1.13983,
-             1.000, -0.39465, -0.58060,
-             1.000, 2.03211, 0.000 ); }
+    if (GetOption(F_LUMA_CONVERSION) == 0) {
+    YUV2RGB = mat3(1.000, 0.000, 1.13983,
+                   1.000, -0.39465, -0.58060,
+                   1.000, 2.03211, 0.000 ); }
 
-else {
-    YUV2RGB = mat3(
-             1.000, 0.000, 1.28033,
-             1.000, -0.21482, -0.38059,
-             1.000, 2.12798, 0.000 ); }
+    else {
+    YUV2RGB = mat3(1.000, 0.000, 1.28033,
+                   1.000, -0.21482, -0.38059,
+                   1.000, 2.12798, 0.000); }
 
-    return mul(YUV2RGB, yuv);
+    return (yuv * YUV2RGB);
 }
 
 float4 CelPass(float4 color)
@@ -1114,6 +1109,7 @@ float4 CelPass(float4 color)
     float3 yuv;
     float3 sum = color.rgb;
     float2 pixel = pixelSize * GetOption(C_EDGE_THICKNESS);
+
     const float2 RoundingOffset = float2(0.25, 0.25);
     const float3 thresholds = float3(5.0, 8.0, 6.0);
 
@@ -1161,7 +1157,7 @@ float4 CelPass(float4 color)
     float edgeY = dot(texture(samp9, texcoord + float2(pixel.x, -pixel.y)).rgb, lumCoeff);
     edgeY = dot(float4(texture(samp9, texcoord + float2(-pixel.x, pixel.y)).rgb, edgeY), float4(lumCoeff, -1.0));
 
-    float edge = dot(float2(edgeX, edgeY), float2(edgeX, edgeY));
+    float edge = dot(float2(edgeX, edgeY), float2(edgeX, edgeY)); edge = saturate(edge);
 
     if (GetOption(D_PALETTE_TYPE) == 0)
         { color.rgb = lerp(color.rgb, color.rgb + pow(edge, GetOption(B_EDGE_FILTER)) * -GetOption(A_EDGE_STRENGTH), GetOption(A_EDGE_STRENGTH)); }
@@ -1172,7 +1168,7 @@ float4 CelPass(float4 color)
 
     color.a = RGBLuminance(color.rgb);
 
-    return saturate(color);
+    return color;
 }
 
 /*------------------------------------------------------------------------------
@@ -1181,7 +1177,6 @@ float4 CelPass(float4 color)
 
 float width = screenSize.x;
 float height = screenSize.y;
-
 const float permTexUnit = 1.0/256.0;
 const float permTexUnitHalf = 0.5/256.0;
     
@@ -1195,6 +1190,7 @@ float2 CoordRot(in float2 tc, in float angle)
     float aspect = width/height;
     float rotX = ((tc.x * 2.0-1.0) * aspect * cos(angle)) - ((tc.y * 2.0-1.0) * sin(angle));
     float rotY = ((tc.y * 2.0-1.0) * cos(angle)) + ((tc.x * 2.0-1.0) * aspect * sin(angle));
+
     rotX = ((rotX/aspect) * 0.5+0.5);
     rotY = rotY * 0.5+0.5;
 
@@ -1215,8 +1211,8 @@ float4 Randomize(in float2 texcoord)
 
 float PerNoise(in float3 p)
 {
-    float3 pi = permTexUnit*floor(p)+permTexUnitHalf;
     float3 pf = fract(p);
+    float3 pi = permTexUnit * floor(p) + permTexUnitHalf;
 
     // Noise contributions from (x=0, y=0), z=0 and z=1
     float perm00 = Randomize(pi.xy).a ;
@@ -1326,7 +1322,7 @@ float4 ScanlinesPass(float4 color)
 
     color = intensity * (0.5 - level) + color * 1.1;
 
-    return color;
+    return saturate(color);
 }
 
 /*------------------------------------------------------------------------------
