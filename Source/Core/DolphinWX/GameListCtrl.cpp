@@ -903,57 +903,57 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		const GameListItem *selected_iso = GetSelectedISO();
 		if (selected_iso)
 		{
-			wxMenu* popupMenu = new wxMenu;
-			popupMenu->Append(IDM_PROPERTIES, _("&Properties"));
-			popupMenu->Append(IDM_GAMEWIKI, _("&Wiki"));
-			popupMenu->AppendSeparator();
+			wxMenu popupMenu;
+			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
+			popupMenu.Append(IDM_GAMEWIKI, _("&Wiki"));
+			popupMenu.AppendSeparator();
 
 			if (selected_iso->GetPlatform() != GameListItem::GAMECUBE_DISC)
 			{
-				popupMenu->Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
-				popupMenu->Append(IDM_EXPORTSAVE, _("Export Wii save (Experimental)"));
+				popupMenu.Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
+				popupMenu.Append(IDM_EXPORTSAVE, _("Export Wii save (Experimental)"));
 			}
-			popupMenu->Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
-			popupMenu->AppendCheckItem(IDM_SETDEFAULTISO, _("Set as &default ISO"));
+			popupMenu.Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
+			popupMenu.AppendCheckItem(IDM_SETDEFAULTISO, _("Set as &default ISO"));
 
 			// First we have to decide a starting value when we append it
 			if (selected_iso->GetFileName() == SConfig::GetInstance().
 				m_LocalCoreStartupParameter.m_strDefaultISO)
-				popupMenu->FindItem(IDM_SETDEFAULTISO)->Check();
+				popupMenu.FindItem(IDM_SETDEFAULTISO)->Check();
 
-			popupMenu->AppendSeparator();
-			popupMenu->Append(IDM_DELETEISO, _("&Delete ISO..."));
+			popupMenu.AppendSeparator();
+			popupMenu.Append(IDM_DELETEISO, _("&Delete ISO..."));
 
 			if (selected_iso->GetPlatform() != GameListItem::WII_WAD)
 			{
 				if (selected_iso->IsCompressed())
-					popupMenu->Append(IDM_COMPRESSISO, _("Decompress ISO..."));
+					popupMenu.Append(IDM_COMPRESSISO, _("Decompress ISO..."));
 				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" &&
 				         selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
-					popupMenu->Append(IDM_COMPRESSISO, _("Compress ISO..."));
+					popupMenu.Append(IDM_COMPRESSISO, _("Compress ISO..."));
 			}
 			else
 			{
-				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
+				popupMenu.Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
 			}
 			if (selected_iso->GetPlatform() == GameListItem::GAMECUBE_DISC ||
 				selected_iso->GetPlatform() == GameListItem::WII_DISC)
 			{
-				wxMenuItem* changeDiscItem = popupMenu->Append(IDM_LIST_CHANGEDISC, _("Change &Disc"));
+				wxMenuItem* changeDiscItem = popupMenu.Append(IDM_LIST_CHANGEDISC, _("Change &Disc"));
 				changeDiscItem->Enable(Core::IsRunning());
 			}
 
-			PopupMenu(popupMenu);
+			PopupMenu(&popupMenu);
 		}
 	}
 	else if (GetSelectedItemCount() > 1)
 	{
-		wxMenu* popupMenu = new wxMenu;
-		popupMenu->Append(IDM_DELETEISO, _("&Delete selected ISOs..."));
-		popupMenu->AppendSeparator();
-		popupMenu->Append(IDM_MULTICOMPRESSISO, _("Compress selected ISOs..."));
-		popupMenu->Append(IDM_MULTIDECOMPRESSISO, _("Decompress selected ISOs..."));
-		PopupMenu(popupMenu);
+		wxMenu popupMenu;
+		popupMenu.Append(IDM_DELETEISO, _("&Delete selected ISOs..."));
+		popupMenu.AppendSeparator();
+		popupMenu.Append(IDM_MULTICOMPRESSISO, _("Compress selected ISOs..."));
+		popupMenu.Append(IDM_MULTIDECOMPRESSISO, _("Decompress selected ISOs..."));
+		PopupMenu(&popupMenu);
 	}
 }
 

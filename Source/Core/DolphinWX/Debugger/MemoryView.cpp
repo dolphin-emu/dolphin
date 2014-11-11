@@ -221,22 +221,22 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 {
 	// popup menu
-	wxMenu* menu = new wxMenu;
+	wxMenu menu;
 	//menu.Append(IDM_GOTOINMEMVIEW, _("&Goto in mem view"));
 #if wxUSE_CLIPBOARD
-	menu->Append(IDM_COPYADDRESS, _("Copy &address"));
-	menu->Append(IDM_COPYHEX, _("Copy &hex"));
+	menu.Append(IDM_COPYADDRESS, _("Copy &address"));
+	menu.Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
-	menu->Append(IDM_WATCHADDRESS, _("Add to &watch"));
-	menu->Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
+	menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
+	menu.Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
 
-	wxMenu* viewAsSubMenu = new wxMenu;
-	viewAsSubMenu->Append(IDM_VIEWASFP, _("FP value"));
-	viewAsSubMenu->Append(IDM_VIEWASASCII, "ASCII");
-	viewAsSubMenu->Append(IDM_VIEWASHEX, _("Hex"));
-	menu->AppendSubMenu(viewAsSubMenu, _("View As:"));
+	wxMenu viewAsSubMenu;
+	viewAsSubMenu.Append(IDM_VIEWASFP, _("FP value"));
+	viewAsSubMenu.Append(IDM_VIEWASASCII, "ASCII");
+	viewAsSubMenu.Append(IDM_VIEWASHEX, _("Hex"));
+	menu.AppendSubMenu(&viewAsSubMenu, _("View As:"));
 
-	PopupMenu(menu);
+	PopupMenu(&menu);
 }
 
 void CMemoryView::OnPaint(wxPaintEvent& event)
