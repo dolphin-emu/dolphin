@@ -49,10 +49,6 @@
 
 #define INITIAL_PAD_BUFFER_SIZE 5
 
-BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
-	EVT_COMMAND(wxID_ANY, wxEVT_THREAD, NetPlayDiag::OnThread)
-END_EVENT_TABLE()
-
 static NetPlayServer* netplay_server = nullptr;
 static NetPlayClient* netplay_client = nullptr;
 NetPlayDiag *NetPlayDiag::npd = nullptr;
@@ -309,6 +305,8 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	, m_start_btn(nullptr)
 	, m_game_list(game_list)
 {
+	Bind(wxEVT_THREAD, &NetPlayDiag::OnThread, this);
+
 	wxPanel* const panel = new wxPanel(this);
 
 	// top crap
@@ -534,7 +532,7 @@ void NetPlayDiag::OnQuit(wxCommandEvent&)
 }
 
 // update gui
-void NetPlayDiag::OnThread(wxCommandEvent& event)
+void NetPlayDiag::OnThread(wxThreadEvent& event)
 {
 	// player list
 	m_playerids.clear();
@@ -582,7 +580,9 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 		// update selected game :/
 		{
 		m_selected_game.assign(WxStrToStr(event.GetString()));
-		m_game_btn->SetLabel(event.GetString().Prepend(_(" Game : ")));
+
+		wxString button_label = event.GetString();
+		m_game_btn->SetLabel(button_label.Prepend(_(" Game : ")));
 		}
 		break;
 	case NP_GUI_EVT_START_GAME :
