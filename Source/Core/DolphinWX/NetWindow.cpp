@@ -425,9 +425,6 @@ void NetPlayDiag::OnChat(wxCommandEvent&)
 
 	if (!text.empty())
 	{
-		if (text.length() > 2000)
-			text.erase(2000);
-
 		netplay_client->SendChatMessage(WxStrToStr(text));
 		m_chat_text->AppendText(text.Prepend(" >> ").Append('\n'));
 		m_chat_msg_text->Clear();
