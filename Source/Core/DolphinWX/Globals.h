@@ -281,7 +281,6 @@ enum
 	IDM_MPANEL, ID_STATUSBAR,
 
 	ID_TOOLBAR = 500,
-	LIST_CTRL = 1000
 };
 
 // custom message macro

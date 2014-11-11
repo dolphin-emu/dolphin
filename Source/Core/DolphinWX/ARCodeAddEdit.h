@@ -20,33 +20,22 @@ namespace ActionReplay { struct ARCode; }
 
 class CARCodeAddEdit : public wxDialog
 {
-	public:
-		CARCodeAddEdit(int _selection, wxWindow* parent,
-			wxWindowID id = 1,
-			const wxString& title = _("Edit ActionReplay Code"),
-			const wxPoint& pos = wxDefaultPosition,
-			const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_DIALOG_STYLE);
+public:
+	CARCodeAddEdit(int _selection, wxWindow* parent,
+		wxWindowID id = 1,
+		const wxString& title = _("Edit ActionReplay Code"),
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxDEFAULT_DIALOG_STYLE);
 
-	private:
-		DECLARE_EVENT_TABLE();
+private:
+	wxTextCtrl* EditCheatName;
+	wxSpinButton* EntrySelection;
+	wxTextCtrl* EditCheatCode;
 
-		wxTextCtrl *EditCheatName;
-		wxSpinButton *EntrySelection;
-		wxTextCtrl *EditCheatCode;
+	void SaveCheatData(wxCommandEvent& event);
+	void ChangeEntry(wxSpinEvent& event);
+	void UpdateTextCtrl(ActionReplay::ARCode arCode);
 
-		enum
-		{
-			ID_EDITCHEAT_NAME_TEXT = 4550,
-			ID_EDITCHEAT_NAME,
-			ID_ENTRY_SELECT,
-			ID_EDITCHEAT_CODE
-		};
-
-		void SaveCheatData(wxCommandEvent& event);
-		void ChangeEntry(wxSpinEvent& event);
-		void UpdateTextCtrl(ActionReplay::ARCode arCode);
-
-		int selection;
-
+	int selection;
 };

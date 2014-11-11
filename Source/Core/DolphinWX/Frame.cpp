@@ -319,7 +319,6 @@ EVT_ACTIVATE(CFrame::OnActive)
 EVT_CLOSE(CFrame::OnClose)
 EVT_SIZE(CFrame::OnResize)
 EVT_MOVE(CFrame::OnMove)
-EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 
 EVT_AUI_PANE_CLOSE(CFrame::OnPaneClose)
@@ -393,9 +392,10 @@ CFrame::CFrame(wxFrame* parent,
 	// This panel is the parent for rendering and it holds the gamelistctrl
 	m_Panel = new wxPanel(this, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 
-	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
-			wxDefaultPosition, wxDefaultSize,
-			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
+	m_GameListCtrl = new CGameListCtrl(m_Panel, wxID_ANY,
+	        wxDefaultPosition, wxDefaultSize,
+	        wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
+	m_GameListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CFrame::OnGameListCtrl_ItemActivated, this);
 
 	wxBoxSizer *sizerPanel = new wxBoxSizer(wxHORIZONTAL);
 	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
