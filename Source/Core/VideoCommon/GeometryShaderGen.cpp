@@ -71,11 +71,14 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	out.Write("void main()\n{\n");
 
+	// If the GPU supports invocation we don't need a for loop and can simply use the
+	// invocation identifier to determine which layer we're rendering.
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\tlayer = gl_InvocationID;\n");
 	else
 		out.Write("\tfor (layer = 0; layer < %d; ++layer) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
+	// Select the output layer
 	out.Write("\tgl_Layer = layer;\n");
 
 	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
@@ -83,6 +86,13 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
+		// For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
+		// to the depth of the vertex. We retrieve the depth value from the w-component of the projected
+		// vertex which contains the negated z-component of the original vertex.
+		// For negative parallax (out-of-screen effects) we subtract a convergence value from
+		// the depth value. This results in objects at a distance smaller than the convergence
+		// distance to seemingly appear in front of the screen.
+		// This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
 		out.Write("\t\tf.clipPos.x += " I_STEREOPARAMS"[layer] * (f.clipPos.w - " I_STEREOPARAMS"[2]);\n");
 		out.Write("\t\tf.pos.x += " I_STEREOPARAMS"[layer] * (f.pos.w - " I_STEREOPARAMS"[2]);\n");
 	}
