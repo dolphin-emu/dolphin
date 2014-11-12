@@ -1172,7 +1172,63 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
-		static float debugSpeed = 0.1f; //How big the VR Camera Movement adjustments are.
+		static float oldfUnitsPerMetre = 0;
+		static float freelookSpeed;
+
+		//Recalculate only when fUnitsPerMetre changes.
+		if (g_Config.fUnitsPerMetre != oldfUnitsPerMetre){
+			//Seems like a pretty good approximation of freelookSpeed, but maybe there could be a better calculation to deal with the changing scale.
+			if (g_Config.fUnitsPerMetre < 0.125)
+				freelookSpeed = g_Config.fUnitsPerMetre * 128;
+			else if (g_Config.fUnitsPerMetre < 0.25)
+				freelookSpeed = g_Config.fUnitsPerMetre * 64;
+			else if (g_Config.fUnitsPerMetre < 0.50)
+				freelookSpeed = g_Config.fUnitsPerMetre * 32;
+			else if (g_Config.fUnitsPerMetre < 0.75)
+				freelookSpeed = g_Config.fUnitsPerMetre * 16;
+			else if (g_Config.fUnitsPerMetre < 1.00)
+				freelookSpeed = g_Config.fUnitsPerMetre * 8;
+			else if (g_Config.fUnitsPerMetre < 1.25)
+				freelookSpeed = g_Config.fUnitsPerMetre * 4;
+			else if (g_Config.fUnitsPerMetre < 1.5)
+				freelookSpeed = g_Config.fUnitsPerMetre * 2;
+			else if (g_Config.fUnitsPerMetre < 2)
+				freelookSpeed = g_Config.fUnitsPerMetre;
+			else if (g_Config.fUnitsPerMetre < 3.5)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.5;
+			else if (g_Config.fUnitsPerMetre < 5)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.25;
+			else if (g_Config.fUnitsPerMetre < 8)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.125;
+			else if (g_Config.fUnitsPerMetre < 12)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0625;
+			else if (g_Config.fUnitsPerMetre < 18)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0313;
+			else if (g_Config.fUnitsPerMetre < 25)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0156;
+			else if (g_Config.fUnitsPerMetre < 40)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0078;
+			else if (g_Config.fUnitsPerMetre < 60)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0039;
+			else if (g_Config.fUnitsPerMetre < 80)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0020;
+			else if (g_Config.fUnitsPerMetre < 120)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0010;
+			else if (g_Config.fUnitsPerMetre < 200)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00050;
+			else if (g_Config.fUnitsPerMetre < 300)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00024;
+			else if (g_Config.fUnitsPerMetre < 400)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00012;
+			else if (g_Config.fUnitsPerMetre < 3000)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00006;
+			else if (g_Config.fUnitsPerMetre < 8000)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00003;
+			else
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.000015;
+		}
+
+		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
 
 		if (IsVRSettingsKey(event, VR_POSITION_RESET)) {
 			VertexShaderManager::ResetView();
@@ -1184,22 +1240,22 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 		}
 		if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_FORWARD)) {
-			VertexShaderManager::TranslateView(0.0f, debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, freelookSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_BACKWARD)) {
-			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, -freelookSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_UP)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -freelookSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_DOWN)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, freelookSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_LEFT)) {
-			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+			VertexShaderManager::TranslateView(freelookSpeed, 0.0f);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_RIGHT)) {
-			VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+			VertexShaderManager::TranslateView(-freelookSpeed, 0.0f);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_LARGER_SCALE)) {
 			// Make everything 10% bigger (and further)
@@ -1215,12 +1271,12 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_PERMANENT_CAMERA_FORWARD)) {
 			// Move camera forward 10cm
-			g_Config.fCameraForward += 0.1f;
+			g_Config.fCameraForward += freelookSpeed;
 			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_PERMANENT_CAMERA_BACKWARD)) {
 			// Move camera back 10cm
-			g_Config.fCameraForward -= 0.1f;
+			g_Config.fCameraForward -= freelookSpeed;
 			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_CAMERA_TILT_UP)) {
@@ -1344,154 +1400,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);;
 		}
 
-
-
-
-
-		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
-		{
-			// everything is in metres, except UnitsPerMetre which is in game units
-			switch (event.GetKeyCode())
-			{
-			case '9':
-				debugSpeed /= 2.0f;
-				break;
-			case '0':
-				debugSpeed *= 2.0f;
-				break;
-			//case 'W':
-			//	VertexShaderManager::TranslateView(0.0f, debugSpeed);
-			//	break;
-			//case 'S':
-			//	VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-			//	break;
-			//case 'A':
-			//	VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-			//	break;
-			//case 'D':
-			//	VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-			//	break;
-			//case 'Q':
-			//	VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
-			//	break;
-			//case 'E':
-			//	VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
-			//	break;
-			//case 'R':
-			//	VertexShaderManager::ResetView();
-			//	break;
-			default:
-				break;
-			}
-		}
 		if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
 		{
 			switch (event.GetKeyCode())
 			{
-			// Make everything 10% smaller (and closer)
-			//case '-':
-			//	g_Config.fUnitsPerMetre *= 1.10f;
-			//	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
-			//	break;
-			// Make everything 10% bigger (and further)
-			//case '=':
-			//	g_Config.fUnitsPerMetre /= 1.10f;
-			//	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
-			//	break;
-			//	// Make everything 20% smaller (and closer)
-			//case ',':
-			//	g_Config.fScreenHeight *= 1.05f;
-			//	NOTICE_LOG(VR, "Screen is %fm high", g_Config.fScreenHeight);
-			//	break;
-			//	// Make everything 20% bigger (and further)
-			//case 'M':
-			//	g_Config.fScreenHeight /= 1.05f;
-			//	NOTICE_LOG(VR, "Screen is %fm High", g_Config.fScreenHeight);
-			//	break;
-			// Make HUD 10cm thinner
-			//case '[':
-			//	if (g_Config.fHudThickness <= 0.01f)
-			//		g_Config.fHudThickness = 0;
-			//	else if (g_Config.fHudThickness <= 0.1f)
-			//		g_Config.fHudThickness -= 0.01f;
-			//	else
-			//		g_Config.fHudThickness -= 0.1f;
-			//	NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
-			//	break;
-			//// Make HUD 10cm thicker
-			//case ']':
-			//	if (g_Config.fHudThickness < 0.01f)
-			//		g_Config.fHudThickness = 0.01f;
-			//	else if (g_Config.fHudThickness < 0.1f)
-			//		g_Config.fHudThickness += 0.01f;
-			//	else
-			//		g_Config.fHudThickness += 0.1f;
-			//	NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
-			//	break;
-			// Move HUD in 10cm
-			//case '.':
-			//	g_Config.fHudDistance -= 0.1f;
-			//	if (g_Config.fHudDistance <= 0)
-			//		g_Config.fHudDistance = 0;
-			//	NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
-			//	break;
-			// Move HUD out 10cm
-			//case '/':
-			//	g_Config.fHudDistance += 0.1f;
-			//	NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
-			//	break;
-			//	// Move Screen in 10cm
-			//case 'J':
-			//	g_Config.fScreenDistance -= 0.1f;
-			//	if (g_Config.fScreenDistance <= 0)
-			//		g_Config.fScreenDistance = 0;
-			//	NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
-			//	break;
-			//	// Move Screen out 10cm
-			//case 'U':
-			//	g_Config.fScreenDistance += 0.1f;
-			//	NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
-			//	break;
-			//	// Move Screen in 10cm
-			//case 'H':
-			//	g_Config.fScreenUp -= 0.1f;
-			//	NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
-			//	break;
-			//	// Move Screen out 10cm
-			//case 'Y':
-			//	g_Config.fScreenUp += 0.1f;
-			//	NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
-			//	break;
-			//// Move camera back 10cm
-			//case ';':
-			//	g_Config.fCameraForward -= 0.1f;
-			//	NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
-			//	break;
-			//// Move camera forward 10cm
-			//case 'P':
-			//	g_Config.fCameraForward += 0.1f;
-			//	NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
-			//	break;
-			//// Pitch camera up 5 degrees
-			//case 'O':
-			//	g_Config.fCameraPitch += 5.0f;
-			//	NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
-			//	break;
-			// Pitch camera down 5 degrees
-			//case 'L':
-			//	g_Config.fCameraPitch -= 5.0f;
-			//	NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
-			//	break;
-			//	// Pitch camera up 5 degrees
-			//case 'I':
-			//	g_Config.fScreenPitch += 5.0f;
-			//	NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
-			//	break;
-			//	// Pitch camera down 5 degrees
-			//case 'K':
-			//	g_Config.fScreenPitch -= 5.0f;
-			//	NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
-			//	break;
 			// Previous layer
 			case 'B':
 				g_Config.iSelectedLayer--;
@@ -1506,38 +1418,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
 				debug_nextScene = true;
 				break;
-			// Make Screen 10cm thinner
-			//case 'G':
-			//	if (g_Config.fScreenThickness <= 0.01f)
-			//		g_Config.fScreenThickness = 0;
-			//	else if (g_Config.fScreenThickness <= 0.1f)
-			//		g_Config.fScreenThickness -= 0.01f;
-			//	else
-			//		g_Config.fScreenThickness -= 0.1f;
-			//	NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
-			//	break;
-			//// Make Screen 10cm thicker
-			//case 'T':
-			//	if (g_Config.fScreenThickness < 0.01f)
-			//		g_Config.fScreenThickness = 0.01f;
-			//	else if (g_Config.fScreenThickness < 0.1f)
-			//		g_Config.fScreenThickness += 0.01f;
-			//	else
-			//		g_Config.fScreenThickness += 0.1f;
-			//	NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
-			//	break;
 			case '\'':
 				NOTICE_LOG(VR, "--- pressed ' ---");
 				debug_nextScene = true;
 				break;
-//#ifdef HAVE_OCULUSSDK
-			//case 'R':
-			//	if (g_has_rift)
-			//	{
-			//		ovrHmd_RecenterPose(hmd);
-			//	}
-			//	break;
-//#endif
 			}
 		}
 	}
