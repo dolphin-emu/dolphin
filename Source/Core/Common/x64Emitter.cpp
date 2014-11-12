@@ -1184,7 +1184,7 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 		}
 		else
 		{
-			_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Unhandled case");
+			_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Unhandled case %d %d", operand.scale, bits);
 		}
 		_operandReg = (X64Reg)normalops[op].ext; //pass extension in REG of ModRM
 	}

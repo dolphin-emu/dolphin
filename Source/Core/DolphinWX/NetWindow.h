@@ -82,11 +82,9 @@ public:
 	bool IsRecording() override;
 
 private:
-    DECLARE_EVENT_TABLE()
-
 	void OnChat(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
-	void OnThread(wxCommandEvent& event);
+	void OnThread(wxThreadEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
 	void OnAdjustBuffer(wxCommandEvent& event);
 	void OnConfigPads(wxCommandEvent& event);

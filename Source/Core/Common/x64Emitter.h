@@ -871,8 +871,8 @@ public:
 	void ABI_CallFunctionCCCP(const void *func, u32 param1, u32 param2,u32 param3, void *param4);
 	void ABI_CallFunctionPC(const void *func, void *param1, u32 param2);
 	void ABI_CallFunctionPPC(const void *func, void *param1, void *param2, u32 param3);
-	void ABI_CallFunctionAC(const void *func, const OpArg &arg1, u32 param2);
-	void ABI_CallFunctionA(const void *func, const OpArg &arg1);
+	void ABI_CallFunctionAC(int bits, const void *func, const OpArg &arg1, u32 param2);
+	void ABI_CallFunctionA(int bits, const void *func, const OpArg &arg1);
 
 	// Pass a register as a parameter.
 	void ABI_CallFunctionR(const void *func, X64Reg reg1);

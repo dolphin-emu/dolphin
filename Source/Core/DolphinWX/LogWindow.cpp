@@ -41,14 +41,6 @@
 // Milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 200
 
-BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
-	EVT_CLOSE(CLogWindow::OnClose)
-	EVT_BUTTON(IDM_CLEARLOG, CLogWindow::OnClear)
-	EVT_CHOICE(IDM_FONT, CLogWindow::OnFontChange)
-	EVT_CHECKBOX(IDM_WRAPLINE, CLogWindow::OnWrapLineCheck)
-	EVT_TIMER(IDTM_UPDATELOG, CLogWindow::OnLogTimer)
-END_EVENT_TABLE()
-
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 		const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
@@ -56,11 +48,13 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
 	, m_Log(nullptr), m_cmdline(nullptr), m_FontChoice(nullptr)
 {
+	Bind(wxEVT_CLOSE_WINDOW, &CLogWindow::OnClose, this);
 	m_LogManager = LogManager::GetInstance();
 
 	CreateGUIControls();
 
-	m_LogTimer = new wxTimer(this, IDTM_UPDATELOG);
+	m_LogTimer = new wxTimer(this);
+	m_LogTimer->Bind(wxEVT_TIMER, &CLogWindow::OnLogTimer, this);
 	m_LogTimer->Start(UPDATETIME);
 }
 
@@ -124,7 +118,8 @@ void CLogWindow::CreateGUIControls()
 	}
 
 	// Font
-	m_FontChoice = new wxChoice(this, IDM_FONT);
+	m_FontChoice = new wxChoice(this, wxID_ANY);
+	m_FontChoice->Bind(wxEVT_CHOICE, &CLogWindow::OnFontChange, this);
 	m_FontChoice->Append(_("Default font"));
 	m_FontChoice->Append(_("Monospaced font"));
 	m_FontChoice->Append(_("Selected font"));
@@ -142,27 +137,32 @@ void CLogWindow::CreateGUIControls()
 	// Word wrap
 	bool wrap_lines;
 	options->Get("WrapLines", &wrap_lines, false);
-	m_WrapLine = new wxCheckBox(this, IDM_WRAPLINE, _("Word Wrap"));
+	m_WrapLine = new wxCheckBox(this, wxID_ANY, _("Word Wrap"));
+	m_WrapLine->Bind(wxEVT_CHECKBOX, &CLogWindow::OnWrapLineCheck, this);
 	m_WrapLine->SetValue(wrap_lines);
 
 	// Log viewer
-	m_Log = CreateTextCtrl(this, IDM_LOG, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY |
+	m_Log = CreateTextCtrl(this, wxID_ANY, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY |
 			(wrap_lines ? wxTE_WORDWRAP : wxTE_DONTWRAP));
 
 	// submit row
-	m_cmdline = new wxTextCtrl(this, IDM_SUBMITCMD, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+	m_cmdline = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
 			wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB);
 
+	// Clear log button
+	m_clear_log_btn = new wxButton(this, wxID_ANY, _("Clear"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+	m_clear_log_btn->Bind(wxEVT_BUTTON, &CLogWindow::OnClear, this);
+
 	// Sizers
-	wxBoxSizer *sTop = new wxBoxSizer(wxHORIZONTAL);
-	sTop->Add(new wxButton(this, IDM_CLEARLOG, _("Clear"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+	wxBoxSizer* sTop = new wxBoxSizer(wxHORIZONTAL);
+	sTop->Add(m_clear_log_btn);
 	sTop->Add(m_FontChoice, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 3);
 	sTop->Add(m_WrapLine, 0, wxALIGN_CENTER_VERTICAL);
 
 	sBottom = new wxBoxSizer(wxVERTICAL);
 	PopulateBottom();
 
-	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(sTop, 0, wxEXPAND);
 	sMain->Add(sBottom, 1, wxEXPAND);
 	SetSizer(sMain);
@@ -273,9 +273,9 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 	Text = m_Log->GetValue();
 	m_Log->Destroy();
 	if (event.IsChecked())
-		m_Log = CreateTextCtrl(this, IDM_LOG, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_WORDWRAP);
+		m_Log = CreateTextCtrl(this, wxID_ANY, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_WORDWRAP);
 	else
-		m_Log = CreateTextCtrl(this, IDM_LOG, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+		m_Log = CreateTextCtrl(this, wxID_ANY, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 	m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
 	m_Log->AppendText(Text);
 	PopulateBottom();
