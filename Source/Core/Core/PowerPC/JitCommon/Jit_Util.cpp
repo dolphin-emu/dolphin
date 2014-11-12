@@ -464,6 +464,17 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	return result;
 }
 
+static OpArg FixImmediate(int accessSize, OpArg arg)
+{
+	if (arg.IsImm())
+	{
+		arg = accessSize == 8  ? Imm8((u8)arg.offset) :
+		      accessSize == 16 ? Imm16((u16)arg.offset) :
+		                         Imm32((u32)arg.offset);
+	}
+	return arg;
+}
+
 void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
 {
 	// No need to protect these, they don't touch any state
@@ -479,18 +490,23 @@ void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
 	case 32:
 		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite32);
 		break;
+	case 64:
+		CALL((void *)jit->GetAsmRoutines()->fifoDirectWrite64);
+		break;
 	}
 	jit->js.fifoBytesThisBlock += accessSize >> 3;
 }
 
 bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, BitSet32 registersInUse)
 {
+	arg = FixImmediate(accessSize, arg);
+
 	// If we already know the address through constant folding, we can do some
 	// fun tricks...
-	if ((address & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe && accessSize <= 32)
+	if ((address & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
 	{
 		if (!arg.IsSimpleReg() || arg.GetSimpleReg() != RSCRATCH)
-			MOV(32, R(RSCRATCH), arg);
+			MOV(accessSize, R(RSCRATCH), arg);
 
 		UnsafeWriteGatherPipe(accessSize);
 		return false;
@@ -509,16 +525,16 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, B
 		switch (accessSize)
 		{
 		case 64:
-			ABI_CallFunctionAC((void *)&Memory::Write_U64, arg, address);
+			ABI_CallFunctionAC(64, (void *)&Memory::Write_U64, arg, address);
 			break;
 		case 32:
-			ABI_CallFunctionAC((void *)&Memory::Write_U32, arg, address);
+			ABI_CallFunctionAC(32, (void *)&Memory::Write_U32, arg, address);
 			break;
 		case 16:
-			ABI_CallFunctionAC((void *)&Memory::Write_U16, arg, address);
+			ABI_CallFunctionAC(16, (void *)&Memory::Write_U16, arg, address);
 			break;
 		case 8:
-			ABI_CallFunctionAC((void *)&Memory::Write_U8, arg, address);
+			ABI_CallFunctionAC(8, (void *)&Memory::Write_U8, arg, address);
 			break;
 		}
 		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -529,12 +545,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, B
 void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, BitSet32 registersInUse, int flags)
 {
 	// set the correct immediate format
-	if (reg_value.IsImm())
-	{
-		reg_value = accessSize == 32 ? Imm32((u32)reg_value.offset) :
-		            accessSize == 16 ? Imm16((u16)reg_value.offset) :
-		                               Imm8((u8)reg_value.offset);
-	}
+	reg_value = FixImmediate(accessSize, reg_value);
 
 	// TODO: support byte-swapped non-immediate fastmem stores
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&

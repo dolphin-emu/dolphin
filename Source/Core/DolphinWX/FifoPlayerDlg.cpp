@@ -65,25 +65,6 @@ FifoPlayerDlg::FifoPlayerDlg(wxWindow * const parent) :
 
 FifoPlayerDlg::~FifoPlayerDlg()
 {
-	Unbind(RECORDING_FINISHED_EVENT, &FifoPlayerDlg::OnRecordingFinished, this);
-	Unbind(FRAME_WRITTEN_EVENT, &FifoPlayerDlg::OnFrameWritten, this);
-
-	// Disconnect Events
-	Unbind(wxEVT_PAINT, &FifoPlayerDlg::OnPaint, this);
-	m_FrameFromCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnFrameFrom, this);
-	m_FrameToCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnFrameTo, this);
-	m_ObjectFromCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnObjectFrom, this);
-	m_ObjectToCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnObjectTo, this);
-	m_EarlyMemoryUpdates->Unbind(wxEVT_CHECKBOX, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
-	m_RecordStop->Unbind(wxEVT_BUTTON, &FifoPlayerDlg::OnRecordStop, this);
-	m_Save->Unbind(wxEVT_BUTTON, &FifoPlayerDlg::OnSaveFile, this);
-	m_FramesToRecordCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnNumFramesToRecord, this);
-	m_Close->Unbind(wxEVT_BUTTON, &FifoPlayerDlg::OnCloseClick, this);
-
-	m_framesList->Unbind(wxEVT_LISTBOX, &FifoPlayerDlg::OnFrameListSelectionChanged, this);
-	m_objectsList->Unbind(wxEVT_LISTBOX, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
-	m_objectCmdList->Unbind(wxEVT_LISTBOX, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
-
 	FifoPlayer::GetInstance().SetFrameWrittenCallback(nullptr);
 
 	sMutex.lock();
