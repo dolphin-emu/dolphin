@@ -134,7 +134,7 @@ enum VRFreelook
 	VR_2D_SCREEN_THICKER,
 	VR_2D_SCREEN_THINNER,
 
-	NUM_VR_OPTIONS,
+	NUM_VR_HOTKEYS,
 };
 
 enum GPUDeterminismMode
@@ -221,11 +221,11 @@ struct SCoreStartupParameter
 	int iHotkeyModifier[NUM_HOTKEYS];
 
 	// VR Settings
-	int iVRSettings[NUM_VR_OPTIONS];
-	int iVRSettingsModifier[NUM_VR_OPTIONS];
-	bool iVRSettingsKBM[NUM_VR_OPTIONS];
-	u32 iVRSettingsXInputMapping[NUM_VR_OPTIONS];
-	bool bHotkeysXInput = true;
+	int iVRSettings[NUM_VR_HOTKEYS];
+	int iVRSettingsModifier[NUM_VR_HOTKEYS];
+	bool iVRSettingsKBM[NUM_VR_HOTKEYS];
+	u32 iVRSettingsXInputMapping[NUM_VR_HOTKEYS];
+	bool bHotkeysXInput;
 
 	// Display settings
 	std::string strFullscreenResolution;

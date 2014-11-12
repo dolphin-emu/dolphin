@@ -84,7 +84,7 @@ void CConfigVR::CreateGUIControls()
 
 	const wxString pageNames[] =
 	{
-		_("VR Freelook")
+		_("VR Hotkeys")
 		//_("VR Options")
 	};
 
@@ -100,6 +100,8 @@ void CConfigVR::CreateGUIControls()
 
 		_("Permanent Camera Forward"),
 		_("Permanent Camera Backward"),
+		//_("Permanent Camera Up"),
+		//_("Permanent Camera Down"),
 		_("Larger Scale"),
 		_("Smaller Scale"),
 		_("Tilt Camera Up"),
@@ -129,7 +131,7 @@ void CConfigVR::CreateGUIControls()
 
 	};
 
-	const int page_breaks[3] = {VR_POSITION_RESET, NUM_VR_OPTIONS, NUM_VR_OPTIONS};
+	const int page_breaks[3] = {VR_POSITION_RESET, NUM_VR_HOTKEYS, NUM_VR_HOTKEYS};
 
 	// Configuration controls sizes
 	wxSize size(150,20);
@@ -207,8 +209,16 @@ void CConfigVR::CreateGUIControls()
 			device_cbox->Bind(wxEVT_TEXT_ENTER, &CConfigVR::SetDevice, this);
 			refresh_button->Bind(wxEVT_BUTTON, &CConfigVR::RefreshDevices, this);
 
-			device_sbox->Add(device_cbox, 4, wxLEFT | wxRIGHT, 3);
-			device_sbox->Add(refresh_button, 1, wxLEFT | wxRIGHT, 3);
+			wxCheckBox  *xInputPollEnableCheckbox = new wxCheckBox(Page, -1, _("Enable XInput Polling"), wxDefaultPosition, wxDefaultSize);
+			xInputPollEnableCheckbox->Bind(wxEVT_CHECKBOX, &CConfigVR::OnXInputPollCheckbox, this);
+			xInputPollEnableCheckbox->SetToolTip(_("Check to enable XInput polling during game emulation. Uncheck to disable."));
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput){
+				xInputPollEnableCheckbox->SetValue(true);
+			}
+
+			device_sbox->Add(device_cbox, 10, wxLEFT | wxRIGHT, 3);
+			device_sbox->Add(refresh_button, 3, wxLEFT | wxRIGHT, 3);
+			device_sbox->Add(xInputPollEnableCheckbox, 4, wxALL, 6);
 
 			wxBoxSizer* const sPage = new wxBoxSizer(wxVERTICAL);
 			sPage->Add(device_sbox, 0, wxEXPAND | wxALL, 5);
@@ -266,9 +276,6 @@ void CConfigVR::SetDevice(wxCommandEvent&)
 	// show user what it was validated as
 	device_cbox->SetValue(StrToWxStr(default_device.ToString()));
 
-	// this will set all the controls to this default device
-	//vr_hotkey_controller->UpdateDefaultDevice();
-
 	// update references
 	//std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	//vr_hotkey_controller->UpdateReferences(g_controller_interface);
@@ -282,11 +289,22 @@ void CConfigVR::RefreshDevices(wxCommandEvent&)
 	// refresh devices
 	g_controller_interface.Reinitialize();
 
-	// update all control references
-	//UpdateControlReferences();
-
 	// update device cbox
 	UpdateDeviceComboBox();
+}
+
+// On Checkbox Click
+void CConfigVR::OnXInputPollCheckbox(wxCommandEvent& event)
+{
+	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
+	if (checkbox->IsChecked()){
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput = 1;
+	}
+	else {
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput = 0;
+	}
+
+	event.Skip();
 }
 
 // Input button clicked

@@ -290,7 +290,9 @@ void SConfig::SaveVRSettings(IniFile& ini)
 {
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
-	for (int i = 0; i < NUM_VR_OPTIONS; i++)
+	vrsettings->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
+
+	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{
 		vrsettings->Set(g_VRData[i].IniText, m_LocalCoreStartupParameter.iVRSettings[i]);
 		vrsettings->Set(std::string(g_VRData[i].IniText) + "Modifier",
@@ -547,7 +549,9 @@ void SConfig::LoadVRSettings(IniFile& ini)
 {
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
-	for (int i = 0; i < NUM_VR_OPTIONS; i++)
+	vrsettings->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
+
+	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{
 		vrsettings->Get(g_VRData[i].IniText,
 			&m_LocalCoreStartupParameter.iVRSettings[i], g_VRData[i].DefaultKey);
