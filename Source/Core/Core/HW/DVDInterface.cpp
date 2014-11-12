@@ -346,8 +346,13 @@ void Init()
 	CurrentStart = 0;
 	CurrentLength = 0;
 
+	g_ErrorCode = 0;
+	g_bDiscInside = false;
 	g_bStream = false;
 	g_bStopAtTrackEnd = false;
+
+	g_last_read_offset = 0;
+	g_last_read_time = 0;
 
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
