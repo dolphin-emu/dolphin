@@ -1085,13 +1085,14 @@ float4 CelPass(float4 color)
 {   
     float3 yuv;
     float3 sum = color.rgb;
-    float2 pixel = pixelSize * GetOption(C_EDGE_THICKNESS);
-
-    const float2 RoundingOffset = float2(0.25, 0.25);
-    const float3 thresholds = float3(9.0, 8.0, 5.0);
 
     const int NUM = 9;
-    float2 c[NUM] = float2[NUM](
+    const float2 RoundingOffset = float2(0.25, 0.25);
+    const float3 thresholds = float3(9.0, 8.0, 6.0);
+
+    float lum[NUM];
+    float3 col[NUM];
+    float2 set[NUM] = float2[NUM](
     float2(-0.0078125, -0.0078125),
     float2(0.00, -0.0078125),
     float2(0.0078125, -0.0078125),
@@ -1102,12 +1103,9 @@ float4 CelPass(float4 color)
     float2(0.00, 0.0078125),
     float2(0.0078125, 0.0078125) );
 
-    float3 col[NUM];
-    float lum[NUM];
-
     for (int i = 0; i < NUM; i++)
     {
-        col[i] = texture(samp9, texcoord + c[i] * RoundingOffset).rgb;
+        col[i] = texture(samp9, texcoord + set[i] * RoundingOffset).rgb;
 
         if (GetOption(G_COLOR_ROUNDING) == 1) {
         col[i].r = round(col[i].r * thresholds.r) / thresholds.r;
@@ -1127,6 +1125,8 @@ float4 CelPass(float4 color)
     }
 
     float3 shadedColor = (sum / NUM);
+    float2 pixel = float2(pixelSize.x * GetOption(C_EDGE_THICKNESS),
+                          pixelSize.y * GetOption(C_EDGE_THICKNESS));
 
     float edgeX = dot(texture(samp9, texcoord + pixel).rgb, lumCoeff);
     edgeX = dot(float4(texture(samp9, texcoord - pixel).rgb, edgeX), float4(lumCoeff, -1.0));
@@ -1139,9 +1139,9 @@ float4 CelPass(float4 color)
     if (GetOption(D_PALETTE_TYPE) == 0)
         { color.rgb = lerp(color.rgb, color.rgb + pow(edge, GetOption(B_EDGE_FILTER)) * -GetOption(A_EDGE_STRENGTH), GetOption(A_EDGE_STRENGTH)); }
     else if (GetOption(D_PALETTE_TYPE) == 1)
-        { color.rgb = lerp(color.rgb + pow(edge, GetOption(B_EDGE_FILTER)) * -GetOption(A_EDGE_STRENGTH), shadedColor, 0.25); }
+        { color.rgb = lerp(color.rgb + pow(edge, GetOption(B_EDGE_FILTER)) * -GetOption(A_EDGE_STRENGTH), shadedColor, 0.30); }
     else if (GetOption(D_PALETTE_TYPE) == 2)
-        { color.rgb = lerp(shadedColor + edge * -GetOption(A_EDGE_STRENGTH), pow(edge, GetOption(B_EDGE_FILTER)) * -GetOption(A_EDGE_STRENGTH) + color.rgb, 0.5); }
+        { color.rgb = lerp(shadedColor + edge * -GetOption(A_EDGE_STRENGTH), pow(edge, GetOption(B_EDGE_FILTER)) * -GetOption(A_EDGE_STRENGTH) + color.rgb, 0.50); }
 
     color.a = RGBLuminance(color.rgb);
 
