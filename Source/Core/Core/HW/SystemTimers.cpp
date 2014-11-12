@@ -143,8 +143,9 @@ static void SICallback(u64 userdata, int cyclesLate)
 
 static void HotkeysXInputCallback(u64 userdata, int cyclesLate)
 {
-	HotkeysXInput::Update();
-	CoreTiming::ScheduleEvent((SerialInterface::GetTicksToNextSIPoll()*15) - cyclesLate, et_HotkeysXInput);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput)
+		HotkeysXInput::Update();
+	CoreTiming::ScheduleEvent((SerialInterface::GetTicksToNextSIPoll()*12) - cyclesLate, et_HotkeysXInput);
 }
 
 static void CPCallback(u64 userdata, int cyclesLate)
@@ -260,8 +261,7 @@ void Init()
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput) //Currently used only for VR Hotkeys
-		et_HotkeysXInput = CoreTiming::RegisterEvent("HotkeysXInputCallback", HotkeysXInputCallback);
+	et_HotkeysXInput = CoreTiming::RegisterEvent("HotkeysXInputCallback", HotkeysXInputCallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
 		et_CP = CoreTiming::RegisterEvent("CPCallback", CPCallback);
@@ -274,8 +274,7 @@ void Init()
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(0, et_DSP);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput)
-		CoreTiming::ScheduleEvent((VideoInterface::GetTicksPerFrame()*15), et_HotkeysXInput); //Only poll every 15 frames to avoid unnecassary CPU usage.
+	CoreTiming::ScheduleEvent((VideoInterface::GetTicksPerFrame()*12), et_HotkeysXInput); //Only poll every 10 frames to avoid unnecassary CPU usage.
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)

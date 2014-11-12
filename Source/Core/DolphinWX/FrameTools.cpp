@@ -1033,6 +1033,13 @@ void CFrame::StartGame(const std::string& filename)
 
 		InitVR(); //Must be done before g_has_hmd is used below.
 
+#ifdef HAVE_OCULUSSDK
+		if (g_has_rift)
+		{
+			ovrHmd_RecenterPose(hmd);
+		}
+#endif
+
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 		// VR window must be a certain size for Head Mounted Displays

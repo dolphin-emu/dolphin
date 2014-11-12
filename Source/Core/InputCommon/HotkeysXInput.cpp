@@ -121,7 +121,63 @@ namespace HotkeysXInput
 
 	void OnXInputPoll(u32* XInput_State){
 
-		static float debugSpeed = 0.05f; //How big the VR Camera Movement adjustments are.
+		static float oldfUnitsPerMetre = 0;
+		static float freelookSpeed;
+
+		//Recalculate only when fUnitsPerMetre changes.
+		if (g_Config.fUnitsPerMetre != oldfUnitsPerMetre){
+			//Seems like a pretty good approximation of freelookSpeed, but maybe there could be a better calculation to deal with the changing scale.
+			if (g_Config.fUnitsPerMetre < 0.125)
+				freelookSpeed = g_Config.fUnitsPerMetre * 128;
+			else if (g_Config.fUnitsPerMetre < 0.25)
+				freelookSpeed = g_Config.fUnitsPerMetre * 64;
+			else if (g_Config.fUnitsPerMetre < 0.50)
+				freelookSpeed = g_Config.fUnitsPerMetre * 32;
+			else if (g_Config.fUnitsPerMetre < 0.75)
+				freelookSpeed = g_Config.fUnitsPerMetre * 16;
+			else if (g_Config.fUnitsPerMetre < 1.00)
+				freelookSpeed = g_Config.fUnitsPerMetre * 8;
+			else if (g_Config.fUnitsPerMetre < 1.25)
+				freelookSpeed = g_Config.fUnitsPerMetre * 4;
+			else if (g_Config.fUnitsPerMetre < 1.5)
+				freelookSpeed = g_Config.fUnitsPerMetre * 2;
+			else if (g_Config.fUnitsPerMetre < 2)
+				freelookSpeed = g_Config.fUnitsPerMetre;
+			else if (g_Config.fUnitsPerMetre < 3.5)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.5;
+			else if (g_Config.fUnitsPerMetre < 5)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.25;
+			else if (g_Config.fUnitsPerMetre < 8)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.125;
+			else if (g_Config.fUnitsPerMetre < 12)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0625;
+			else if (g_Config.fUnitsPerMetre < 18)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0313;
+			else if (g_Config.fUnitsPerMetre < 25)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0156;
+			else if (g_Config.fUnitsPerMetre < 40)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0078;
+			else if (g_Config.fUnitsPerMetre < 60)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0039;
+			else if (g_Config.fUnitsPerMetre < 80)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0020;
+			else if (g_Config.fUnitsPerMetre < 120)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.0010;
+			else if (g_Config.fUnitsPerMetre < 200)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00050;
+			else if (g_Config.fUnitsPerMetre < 300)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00024;
+			else if (g_Config.fUnitsPerMetre < 400)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00012;
+			else if (g_Config.fUnitsPerMetre < 3000)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00006;
+			else if (g_Config.fUnitsPerMetre < 8000)
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.00003;
+			else
+				freelookSpeed = g_Config.fUnitsPerMetre * 0.000015;
+		}
+
+		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
 
 		if (IsVRSettingsXInput(XInput_State, VR_POSITION_RESET)) {
 			VertexShaderManager::ResetView();
@@ -133,22 +189,22 @@ namespace HotkeysXInput
 #endif
 		}
 		if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_FORWARD)) {
-			VertexShaderManager::TranslateView(0.0f, debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, freelookSpeed);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_BACKWARD)) {
-			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+			VertexShaderManager::TranslateView(0.0f, -freelookSpeed);
 		}
 		if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_UP)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed / 2);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -freelookSpeed / 2);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_DOWN)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed / 2);
+			VertexShaderManager::TranslateView(0.0f, 0.0f, freelookSpeed / 2);
 		}
 		if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_LEFT)) {
-			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+			VertexShaderManager::TranslateView(freelookSpeed, 0.0f);
 		}
 		else if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_RIGHT)) {
-			VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+			VertexShaderManager::TranslateView(-freelookSpeed, 0.0f);
 		}
 		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_LARGER_SCALE)) {
 			// Make everything 10% bigger (and further)
@@ -164,12 +220,12 @@ namespace HotkeysXInput
 		}
 		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_PERMANENT_CAMERA_FORWARD)) {
 			// Move camera forward 10cm
-			g_Config.fCameraForward += 0.1f;
+			g_Config.fCameraForward += freelookSpeed;
 			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
 		}
 		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_PERMANENT_CAMERA_BACKWARD)) {
 			// Move camera back 10cm
-			g_Config.fCameraForward -= 0.1f;
+			g_Config.fCameraForward -= freelookSpeed;
 			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
 		}
 		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_CAMERA_TILT_UP)) {

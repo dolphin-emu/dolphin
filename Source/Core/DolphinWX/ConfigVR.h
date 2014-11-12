@@ -38,7 +38,7 @@ private:
 	bool button_already_clicked;
 	wxButton* m_Ok;
 	wxButton *ClickedButton;
-	wxButton *m_Button_VRSettings[NUM_VR_OPTIONS];
+	wxButton *m_Button_VRSettings[NUM_VR_HOTKEYS];
 	wxComboBox* device_cbox;
 	wxNotebook* Notebook;
 	wxString OldLabel;
@@ -53,6 +53,7 @@ private:
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxEvent& event);
 	void ConfigControl(wxEvent& event);
+	void OnXInputPollCheckbox(wxCommandEvent& event);
 	void OnButtonClick(wxCommandEvent& event);
 	void OnKeyDown(wxKeyEvent& event);
 	int g_Pressed, g_Modkey;
