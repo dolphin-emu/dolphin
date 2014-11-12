@@ -48,7 +48,7 @@ DefaultValue = 0
 DependentOption = A_SCALERS
 
 [OptionBool]
-GUIName = Note: You can use FXAA or a Scaling Filter, not both together.
+GUIName = Note: Use FXAA or a Scaling Filter, not both together.
 OptionName = PASS_WARN
 DefaultValue = true
 DependentOption = A_SCALERS
@@ -130,7 +130,7 @@ DependentOption = B_BLOOM_PASS
 GUIName = BloomReds
 OptionName = E_BLOOM_REDS
 MinValue = 0.100
-MaxValue = 8.000
+MaxValue = 4.000
 StepAmount = 0.100
 DefaultValue = 1.000
 DependentOption = B_BLOOM_PASS
@@ -139,7 +139,7 @@ DependentOption = B_BLOOM_PASS
 GUIName = BloomGreens
 OptionName = F_BLOOM_GREENS
 MinValue = 0.100
-MaxValue = 8.000
+MaxValue = 4.000
 StepAmount = 0.100
 DefaultValue = 1.000
 DependentOption = B_BLOOM_PASS
@@ -148,7 +148,7 @@ DependentOption = B_BLOOM_PASS
 GUIName = BloomBlues
 OptionName = G_BLOOM_BLUES
 MinValue = 0.100
-MaxValue = 8.000
+MaxValue = 4.000
 StepAmount = 0.100
 DefaultValue = 1.000
 DependentOption = B_BLOOM_PASS
@@ -230,7 +230,7 @@ DependentOption = D_COLOR_CORRECTION
 GUIName = RedCorrection
 OptionName = B_RED_CORRECTION
 MinValue = 0.100
-MaxValue = 8.000
+MaxValue = 4.000
 StepAmount = 0.100
 DefaultValue = 1.000
 DependentOption = D_COLOR_CORRECTION
@@ -239,7 +239,7 @@ DependentOption = D_COLOR_CORRECTION
 GUIName = GreenCorrection
 OptionName = C_GREEN_CORRECTION
 MinValue = 0.100
-MaxValue = 8.000
+MaxValue = 4.000
 StepAmount = 0.100
 DefaultValue = 1.000
 DependentOption = D_COLOR_CORRECTION
@@ -248,7 +248,7 @@ DependentOption = D_COLOR_CORRECTION
 GUIName = BlueCorrection
 OptionName = D_BLUE_CORRECTION
 MinValue = 0.100
-MaxValue = 8.000
+MaxValue = 4.000
 StepAmount = 0.100
 DefaultValue = 1.000
 DependentOption = D_COLOR_CORRECTION
@@ -306,7 +306,7 @@ DependentOption = E_FILMIC_PROCESS
 [OptionBool]
 GUIName = Gamma Correction
 OptionName = F_GAMMA_CORRECTION
-DefaultValue = false
+DefaultValue = true
 
 [OptionRangeFloat]
 GUIName = Gamma
@@ -346,7 +346,7 @@ OptionName = C_SHARPEN_BIAS
 MinValue = 1.00
 MaxValue = 4.00
 StepAmount = 0.05
-DefaultValue = 1.25
+DefaultValue = 1.00
 DependentOption = G_TEXTURE_SHARPEN
 
 [OptionRangeInteger]
@@ -406,7 +406,7 @@ OptionName = B_EDGE_FILTER
 MinValue = 0.25
 MaxValue = 1.00
 StepAmount = 0.01
-DefaultValue = 0.60
+DefaultValue = 0.65
 DependentOption = J_CEL_SHADING
 
 [OptionRangeFloat]
@@ -434,15 +434,6 @@ MinValue = 0
 MaxValue = 1
 StepAmount = 1
 DefaultValue = 0
-DependentOption = J_CEL_SHADING
-
-[OptionRangeInteger]
-GUIName = LumaConversion
-OptionName = F_LUMA_CONVERSION
-MinValue = 0
-MaxValue = 1
-StepAmount = 1
-DefaultValue = 1
 DependentOption = J_CEL_SHADING
 
 [OptionRangeInteger]
@@ -643,15 +634,15 @@ float4 BicubicScalerPass(float4 color)
 
 float3 PixelPos(float xpos, float ypos)
 {
-	return texture(samp9, float2(xpos, ypos)).rgb;
+    return texture(samp9, float2(xpos, ypos)).rgb;
 }
 
 float4 WeightQuad(float x)
 {
-	float4 weight = FIX(PI * float4(1.0 + x, x, 1.0 - x, 2.0 - x));
-	float4 ret = sin(weight) * sin(weight / 2.0) / (weight * weight);
+    float4 weight = FIX(PI * float4(1.0 + x, x, 1.0 - x, 2.0 - x));
+    float4 ret = sin(weight) * sin(weight / 2.0) / (weight * weight);
 
-	return ret / dot(ret, float4(1.0, 1.0, 1.0, 1.0));
+    return ret / dot(ret, float4(1.0, 1.0, 1.0, 1.0));
 }
 
 float3 LineRun(float ypos, float4 xpos, float4 linetaps)
@@ -919,7 +910,7 @@ float4 TonemapPass(float4 color)
     float Lp;
     if (GetOption(A_TONEMAP_TYPE) == 1)
     { Lp = Yxy.r * FilmicTonemap(Yxy.rrr).r / RGBLuminance(Yxy.rrr) *
-         GetOption(D_EXPOSURE) / (GetOption(E_LUMINANCE) + delta); }
+        GetOption(D_EXPOSURE) / (GetOption(E_LUMINANCE) + delta); }
     else
     { Lp = Yxy.r * GetOption(D_EXPOSURE) / (GetOption(E_LUMINANCE) + delta); }
 
@@ -1069,39 +1060,25 @@ float4 ContrastPass(float4 color)
 }
 
 /*------------------------------------------------------------------------------
-                       [CEL SHADING CODE SECTION]
+                          [CEL SHADING CODE SECTION]
 ------------------------------------------------------------------------------*/
 
-float3 GetYUV(float3 rgb)
+float3 GetYUV(float3 RGB)
 {
-    mat3 RGB2YUV;
-    if (GetOption(F_LUMA_CONVERSION) == 0) {
-    RGB2YUV = mat3(0.299, 0.587, 0.114,
-                  -0.14713, -0.28886, 0.436,
-                   0.615, -0.51499, -0.10001); }
+    const mat3 RGB2YUV = mat3(0.2126, 0.7152, 0.0722,
+                             -0.09991,-0.33609, 0.436,
+                              0.615, -0.55861, -0.05639);
 
-    else {
-    RGB2YUV = mat3(0.2126, 0.7152, 0.0722,
-                  -0.09991, -0.33609, 0.436,
-                   0.615, -0.55861, -0.05639); }
-
-    return (rgb * RGB2YUV);
+    return (RGB * RGB2YUV);
 }
 
-float3 GetRGB(float3 yuv)
+float3 GetRGB(float3 YUV)
 {
-    mat3 YUV2RGB;
-    if (GetOption(F_LUMA_CONVERSION) == 0) {
-    YUV2RGB = mat3(1.000, 0.000, 1.13983,
-                   1.000, -0.39465, -0.58060,
-                   1.000, 2.03211, 0.000 ); }
+    const mat3 YUV2RGB = mat3(1.000, 0.000, 1.28033,
+                              1.000,-0.21482,-0.38059,
+                              1.000, 2.12798, 0.000);
 
-    else {
-    YUV2RGB = mat3(1.000, 0.000, 1.28033,
-                   1.000, -0.21482, -0.38059,
-                   1.000, 2.12798, 0.000); }
-
-    return (yuv * YUV2RGB);
+    return (YUV * YUV2RGB);
 }
 
 float4 CelPass(float4 color)
@@ -1111,7 +1088,7 @@ float4 CelPass(float4 color)
     float2 pixel = pixelSize * GetOption(C_EDGE_THICKNESS);
 
     const float2 RoundingOffset = float2(0.25, 0.25);
-    const float3 thresholds = float3(5.0, 8.0, 6.0);
+    const float3 thresholds = float3(9.0, 8.0, 5.0);
 
     const int NUM = 9;
     float2 c[NUM] = float2[NUM](
@@ -1133,17 +1110,17 @@ float4 CelPass(float4 color)
         col[i] = texture(samp9, texcoord + c[i] * RoundingOffset).rgb;
 
         if (GetOption(G_COLOR_ROUNDING) == 1) {
-        col[i].r = (round(col[i].r * thresholds.r) / thresholds.r);
-        col[i].g = (round(col[i].g * thresholds.g) / thresholds.g);
-        col[i].b = (round(col[i].b * thresholds.b) / thresholds.b); }
+        col[i].r = round(col[i].r * thresholds.r) / thresholds.r;
+        col[i].g = round(col[i].g * thresholds.g) / thresholds.g;
+        col[i].b = round(col[i].b * thresholds.b) / thresholds.b; }
 
         lum[i] = RGBLuminance(col[i].xyz);
         yuv = GetYUV(col[i]);
 
         if (GetOption(E_YUV_LUMA) == 0)
-        { yuv.r = saturate(round(yuv.r * lum[i]) / thresholds.r + lum[i]); }
+        { yuv.r = round(yuv.r * thresholds.r) / thresholds.r; }
         else
-        { yuv.r = saturate(round(yuv.r * thresholds.r) / thresholds.r + lum[i] / (255.0 / 5.0)); }
+        { yuv.r = saturate(round(yuv.r * lum[i]) / thresholds.r + lum[i]); }
 
         yuv = GetRGB(yuv);
         sum += yuv;
@@ -1157,7 +1134,7 @@ float4 CelPass(float4 color)
     float edgeY = dot(texture(samp9, texcoord + float2(pixel.x, -pixel.y)).rgb, lumCoeff);
     edgeY = dot(float4(texture(samp9, texcoord + float2(-pixel.x, pixel.y)).rgb, edgeY), float4(lumCoeff, -1.0));
 
-    float edge = dot(float2(edgeX, edgeY), float2(edgeX, edgeY)); edge = saturate(edge);
+    float edge = dot(float2(edgeX, edgeY), float2(edgeX, edgeY));
 
     if (GetOption(D_PALETTE_TYPE) == 0)
         { color.rgb = lerp(color.rgb, color.rgb + pow(edge, GetOption(B_EDGE_FILTER)) * -GetOption(A_EDGE_STRENGTH), GetOption(A_EDGE_STRENGTH)); }
@@ -1168,7 +1145,7 @@ float4 CelPass(float4 color)
 
     color.a = RGBLuminance(color.rgb);
 
-    return color;
+    return saturate(color);
 }
 
 /*------------------------------------------------------------------------------
