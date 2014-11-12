@@ -67,11 +67,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pch", "PCH\pch.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\UnitTests.vcxproj", "{474661E7-C73A-43A6-AFEE-EE1EC433D49E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{61BC7BE2-572F-4DC2-B00E-121C7CF7C545}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -223,8 +218,5 @@ Global
 		{A4C423AA-F57C-46C7-A172-D1A777017D29} = {AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4}
 		{AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
 		{76563A7F-1011-4EAD-B667-7BB18D09568E} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
