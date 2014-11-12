@@ -13,6 +13,7 @@ public:
 	const u8 *fifoDirectWrite8;
 	const u8 *fifoDirectWrite16;
 	const u8 *fifoDirectWrite32;
+	const u8 *fifoDirectWrite64;
 
 	const u8 *enterCode;
 
@@ -55,8 +56,6 @@ protected:
 
 public:
 	void GenFifoWrite(int size);
-	void GenFifoXmm64Write();
-	void GenFifoFloatWrite();
 	void GenFrsqrte();
 	void GenFres();
 };
