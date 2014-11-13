@@ -64,17 +64,17 @@ private:
 	{
 	public:
 		std::string GetName() const;
-		Motor(u8 index, WORD& motor, WORD range) : m_index(index), m_motor(motor), m_range(range) {}
+		Motor(u8 index, Device* parent, WORD &motor, WORD range) : m_index(index), m_parent(parent), m_motor(motor), m_range(range) {}
 		void SetState(ControlState state);
 	private:
 		WORD& m_motor;
 		const WORD m_range;
 		const u8 m_index;
+		Device* m_parent;
 	};
 
 public:
 	void UpdateInput() override;
-	void UpdateOutput() override;
 
 	Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
@@ -82,9 +82,11 @@ public:
 	int GetId() const;
 	std::string GetSource() const;
 
+	void UpdateMotors();
+
 private:
 	XINPUT_STATE m_state_in;
-	XINPUT_VIBRATION m_state_out, m_current_state_out;
+	XINPUT_VIBRATION m_state_out;
 	const BYTE m_subtype;
 	const u8 m_index;
 };
