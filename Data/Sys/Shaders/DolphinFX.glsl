@@ -397,7 +397,7 @@ OptionName = A_EDGE_STRENGTH
 MinValue = 0.00
 MaxValue = 4.00
 StepAmount = 0.01
-DefaultValue = 1.50
+DefaultValue = 1.75
 DependentOption = J_CEL_SHADING
 
 [OptionRangeFloat]
@@ -544,6 +544,61 @@ MaxValue = 1.00
 StepAmount = 0.10
 DefaultValue = 1.00
 DependentOption = L_FILM_GRAIN_PASS
+
+[OptionBool]
+GUIName = Vignette
+OptionName = L_VIGNETTE_PASS
+DefaultValue = false
+
+[OptionRangeFloat]
+GUIName = VignetteRatio
+OptionName = A_VIG_RATIO
+MinValue = 1.00
+MaxValue = 2.00
+StepAmount = 0.01
+DefaultValue = 1.50
+DependentOption = L_VIGNETTE_PASS
+
+[OptionRangeFloat]
+GUIName = VignetteRadius
+OptionName = B_VIG_RADIUS
+MinValue = 0.50
+MaxValue = 2.00
+StepAmount = 0.01
+DefaultValue = 1.00
+DependentOption = L_VIGNETTE_PASS
+
+[OptionRangeFloat]
+GUIName = VignetteAmount
+OptionName = C_VIG_AMOUNT
+MinValue = 0.10
+MaxValue = 2.00
+StepAmount = 0.01
+DefaultValue = 0.25
+DependentOption = L_VIGNETTE_PASS
+
+[OptionRangeInteger]
+GUIName = VignetteSlope
+OptionName = D_VIG_SLOPE
+MinValue = 2
+MaxValue = 16
+StepAmount = 2
+DefaultValue = 12
+DependentOption = L_VIGNETTE_PASS
+
+[OptionBool]
+GUIName = Dithering
+OptionName = M_DITHER_PASS
+DefaultValue = false
+
+[OptionRangeInteger]
+GUIName = Dither Type
+OptionName = A_DITHER_TYPE
+MinValue = 0
+MaxValue = 1
+StepAmount = 1
+DefaultValue = 1
+DependentOption = M_DITHER_PASS
 
 [/configuration]
 */
@@ -1254,6 +1309,25 @@ float4 GrainPass(float4 color)
 }
 
 /*------------------------------------------------------------------------------
+                            [VIGNETTE CODE SECTION]
+------------------------------------------------------------------------------*/
+
+float4 VignettePass(float4 color)
+{
+	const float2 VignetteCenter = float2(0.500, 0.500);
+    float2 tc = texcoord - VignetteCenter;
+
+	tc *= float2((2560.0 / 1440.0), GetOption(A_VIG_RATIO));
+	tc /= GetOption(B_VIG_RADIUS);
+
+	float v = dot(tc, tc);
+
+	color.rgb *= (1.0 + pow(v, GetOption(D_VIG_SLOPE) * 0.25) * -GetOption(C_VIG_AMOUNT));
+
+	return color;
+}
+
+/*------------------------------------------------------------------------------
                            [SCANLINES CODE SECTION]
 ------------------------------------------------------------------------------*/
 
@@ -1300,6 +1374,40 @@ float4 ScanlinesPass(float4 color)
     color = intensity * (0.5 - level) + color * 1.1;
 
     return saturate(color);
+}
+
+/*------------------------------------------------------------------------------
+                           [DITHERING CODE SECTION]
+------------------------------------------------------------------------------*/
+
+float4 DitherPass(float4 color)
+{
+    float ditherBit  = 8.0;
+
+    if (GetOption(A_DITHER_TYPE) == 1) //Ordered grid
+    {
+        float gridPos = fract(dot(gl_FragCoord.xy -
+        vec2(0.5, 0.5), vec2(1.0 / 16.0, 10.0 / 36.0) + 0.25));
+
+        float shift = (0.25) * (1.0 / (pow(2.0, ditherBit) - 1.0));
+        float3 rgbShift = float3(shift, -shift, shift);
+        rgbShift = lerp(2.0 * rgbShift, -2.0 * rgbShift, gridPos);
+
+        color.rgb += rgbShift;
+    }
+    else //Pseudo random
+    {
+        float seed = dot(texcoord, float2(12.9898, 78.233)); float sine = sin(seed);
+        float noise = frac(sine * 43758.5453 + texcoord.x);
+
+        float shift = (1.0 / (pow(2, ditherBit) - 1.0));
+        float halfShift = (shift * 0.5);
+        shift = shift * noise - halfShift;
+
+        color.rgb += float3(-shift, shift, -shift);
+    }
+
+    return color;
 }
 
 /*------------------------------------------------------------------------------
@@ -1714,6 +1822,8 @@ void main()
         if (OptionEnabled(H_PIXEL_VIBRANCE)) { color = VibrancePass(color); }
         if (OptionEnabled(I_CONTRAST_ENHANCEMENT)) { color = ContrastPass(color); }
         if (OptionEnabled(L_FILM_GRAIN_PASS)) { color = GrainPass(color); }
+        if (OptionEnabled(L_VIGNETTE_PASS)) { color = VignettePass(color); }
+        if (OptionEnabled(M_DITHER_PASS)) { color = DitherPass(color); }
     }
 
     SetOutput(color);
