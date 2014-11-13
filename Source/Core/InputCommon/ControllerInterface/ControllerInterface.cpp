@@ -135,13 +135,11 @@ void ControllerInterface::Shutdown()
 //
 // Update input for all devices, return true if all devices returned successful
 //
-bool ControllerInterface::UpdateInput(const bool force)
+bool ControllerInterface::UpdateInput()
 {
 	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
-	if (force)
-		lk.lock();
-	else if (!lk.try_lock())
+	if (!lk.try_lock())
 		return false;
 
 	size_t ok_count = 0;
@@ -163,13 +161,11 @@ bool ControllerInterface::UpdateInput(const bool force)
 //
 // Update output for all devices, return true if all devices returned successful
 //
-bool ControllerInterface::UpdateOutput(const bool force)
+bool ControllerInterface::UpdateOutput()
 {
 	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
-	if (force)
-		lk.lock();
-	else if (!lk.try_lock())
+	if (!lk.try_lock())
 		return false;
 
 	size_t ok_count = 0;
