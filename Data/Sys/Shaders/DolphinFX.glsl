@@ -1314,17 +1314,18 @@ float4 GrainPass(float4 color)
 
 float4 VignettePass(float4 color)
 {
-	const float2 VignetteCenter = float2(0.500, 0.500);
+    const float2 VignetteCenter = float2(0.500, 0.500);
     float2 tc = texcoord - VignetteCenter;
 
-	tc *= float2((2560.0 / 1440.0), GetOption(A_VIG_RATIO));
-	tc /= GetOption(B_VIG_RADIUS);
+    // hardcoded pre ratio calculations, for uniform output on arbitrary resolutions.
+    tc *= float2((2560.0 / 1440.0), GetOption(A_VIG_RATIO));
+    tc /= GetOption(B_VIG_RADIUS);
 
-	float v = dot(tc, tc);
+    float v = dot(tc, tc);
 
-	color.rgb *= (1.0 + pow(v, GetOption(D_VIG_SLOPE) * 0.25) * -GetOption(C_VIG_AMOUNT));
+    color.rgb *= (1.0 + pow(v, GetOption(D_VIG_SLOPE) * 0.25) * -GetOption(C_VIG_AMOUNT));
 
-	return color;
+    return color;
 }
 
 /*------------------------------------------------------------------------------
