@@ -410,7 +410,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 
 	// D3D doesn't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
 	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,1x1, so we limit the mipmap count to 6 there
-	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(expandedWidth, expandedHeight) >> maxlevel == 0)
+	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(width, height) >> maxlevel == 0)
 		--maxlevel;
 
 	TCacheEntryBase *entry = textures[texID];
