@@ -68,12 +68,6 @@ bool KeyboardMouse::UpdateInput()
 	return true;
 }
 
-bool KeyboardMouse::UpdateOutput()
-{
-	return true;
-}
-
-
 std::string KeyboardMouse::GetName() const
 {
 	return "Keyboard Mouse";

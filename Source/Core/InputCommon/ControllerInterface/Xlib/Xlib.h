@@ -71,7 +71,6 @@ private:
 
 public:
 	bool UpdateInput() override;
-	bool UpdateOutput() override;
 
 	KeyboardMouse(Window window);
 	~KeyboardMouse();

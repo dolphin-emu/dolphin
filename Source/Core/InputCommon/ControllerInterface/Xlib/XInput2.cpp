@@ -286,11 +286,6 @@ bool KeyboardMouse::UpdateInput()
 	return true;
 }
 
-bool KeyboardMouse::UpdateOutput()
-{
-	return true;
-}
-
 std::string KeyboardMouse::GetName() const
 {
 	// This is the name string we got from the X server for this master

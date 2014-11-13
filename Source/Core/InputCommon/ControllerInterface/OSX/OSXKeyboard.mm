@@ -89,11 +89,6 @@ bool Keyboard::UpdateInput()
 	return true;
 }
 
-bool Keyboard::UpdateOutput()
-{
-	return true;
-}
-
 std::string Keyboard::GetName() const
 {
 	return m_device_name;
