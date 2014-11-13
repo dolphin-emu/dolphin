@@ -120,8 +120,8 @@ public:
 	bool IsInit() const { return m_is_init; }
 
 	void UpdateReference(ControlReference* control, const ciface::Core::DeviceQualifier& default_device) const;
-	bool UpdateInput();
-	bool UpdateOutput();
+	void UpdateInput();
+	void UpdateOutput();
 
 	std::recursive_mutex update_lock;
 

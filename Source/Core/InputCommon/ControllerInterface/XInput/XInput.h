@@ -73,8 +73,8 @@ private:
 	};
 
 public:
-	bool UpdateInput();
-	bool UpdateOutput();
+	void UpdateInput() override;
+	void UpdateOutput() override;
 
 	Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 

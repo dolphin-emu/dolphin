@@ -134,8 +134,8 @@ private:
 #endif
 
 public:
-	bool UpdateInput() override;
-	bool UpdateOutput() override;
+	void UpdateInput() override;
+	void UpdateOutput() override;
 
 	Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index);
 	~Joystick();

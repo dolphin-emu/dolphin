@@ -54,7 +54,7 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void *win
 		AddInput(new Button(i, m_mousebuttons[i]));
 }
 
-bool Keyboard::UpdateInput()
+void Keyboard::UpdateInput()
 {
 	CGRect bounds = CGRectZero;
 	uint32_t windowid[1] = { m_windowid };
@@ -85,8 +85,6 @@ bool Keyboard::UpdateInput()
 	m_mousebuttons[0] = CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonLeft);
 	m_mousebuttons[1] = CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonRight);
 	m_mousebuttons[2] = CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonCenter);
-
-	return true;
 }
 
 std::string Keyboard::GetName() const

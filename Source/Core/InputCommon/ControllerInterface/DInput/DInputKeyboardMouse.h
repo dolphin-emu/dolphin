@@ -77,7 +77,7 @@ private:
 	};
 
 public:
-	bool UpdateInput();
+	void UpdateInput() override;
 
 	KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
 	~KeyboardMouse();

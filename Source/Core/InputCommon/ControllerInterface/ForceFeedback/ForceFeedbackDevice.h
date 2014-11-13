@@ -52,7 +52,7 @@ private:
 
 public:
 	bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, int cAxes);
-	bool UpdateOutput();
+	void UpdateOutput() override;
 
 	virtual ~ForceFeedbackDevice();
 private:

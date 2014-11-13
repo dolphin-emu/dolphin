@@ -316,15 +316,13 @@ void Joystick::TriangleEffect::SetState(ControlState state)
 }
 #endif
 
-bool Joystick::UpdateInput()
+void Joystick::UpdateInput()
 {
 	// each joystick is doin this, o well
 	SDL_JoystickUpdate();
-
-	return true;
 }
 
-bool Joystick::UpdateOutput()
+void Joystick::UpdateOutput()
 {
 #ifdef USE_SDL_HAPTIC
 	for (auto &i : m_state_out)
@@ -359,7 +357,6 @@ bool Joystick::UpdateOutput()
 		}
 	}
 #endif
-	return true;
 }
 
 std::string Joystick::GetName() const

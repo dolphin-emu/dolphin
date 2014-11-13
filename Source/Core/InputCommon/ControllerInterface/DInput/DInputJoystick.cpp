@@ -177,7 +177,7 @@ std::string Joystick::GetSource() const
 
 // update IO
 
-bool Joystick::UpdateInput()
+void Joystick::UpdateInput()
 {
 	HRESULT hr = 0;
 
@@ -215,9 +215,7 @@ bool Joystick::UpdateInput()
 
 	// try reacquire if input lost
 	if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
-		hr = m_device->Acquire();
-
-	return SUCCEEDED(hr);
+		m_device->Acquire();
 }
 
 // get name

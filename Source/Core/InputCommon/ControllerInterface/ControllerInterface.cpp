@@ -135,22 +135,15 @@ void ControllerInterface::Shutdown()
 //
 // Update input for all devices, return true if all devices returned successful
 //
-bool ControllerInterface::UpdateInput()
+void ControllerInterface::UpdateInput()
 {
 	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
 	if (!lk.try_lock())
-		return false;
-
-	size_t ok_count = 0;
+		return;
 
 	for (ciface::Core::Device* d : m_devices)
-	{
-		if (d->UpdateInput())
-			++ok_count;
-	}
-
-	return (m_devices.size() == ok_count);
+		d->UpdateInput();
 }
 
 //
@@ -158,22 +151,15 @@ bool ControllerInterface::UpdateInput()
 //
 // Update output for all devices, return true if all devices returned successful
 //
-bool ControllerInterface::UpdateOutput()
+void ControllerInterface::UpdateOutput()
 {
 	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
 	if (!lk.try_lock())
-		return false;
-
-	size_t ok_count = 0;
+		return;
 
 	for (ciface::Core::Device* d : m_devices)
-	{
-		if (d->UpdateOutput())
-			++ok_count;
-	}
-
-	return (m_devices.size() == ok_count);
+		d->UpdateOutput();
 }
 
 //

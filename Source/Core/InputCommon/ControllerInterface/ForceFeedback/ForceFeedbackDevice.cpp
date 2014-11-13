@@ -133,10 +133,8 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	return true;
 }
 
-bool ForceFeedbackDevice::UpdateOutput()
+void ForceFeedbackDevice::UpdateOutput()
 {
-	size_t ok_count = 0;
-
 	DIEFFECT eff;
 	memset(&eff, 0, sizeof(eff));
 	eff.dwSize = sizeof(DIEFFECT);
@@ -151,22 +149,16 @@ bool ForceFeedbackDevice::UpdateOutput()
 				eff.cbTypeSpecificParams = state.size;
 				eff.lpvTypeSpecificParams = state.params;
 				// set params and start effect
-				ok_count += SUCCEEDED(state.iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START));
+				state.iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START);
 			}
 			else
 			{
-				ok_count += SUCCEEDED(state.iface->Stop());
+				state.iface->Stop();
 			}
 
 			state.params = nullptr;
 		}
-		else
-		{
-			++ok_count;
-		}
 	}
-
-	return (m_state_out.size() == ok_count);
 }
 
 template<>

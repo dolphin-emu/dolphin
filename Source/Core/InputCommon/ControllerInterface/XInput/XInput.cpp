@@ -203,23 +203,19 @@ std::string Device::GetSource() const
 
 // Update I/O
 
-bool Device::UpdateInput()
+void Device::UpdateInput()
 {
-	return (ERROR_SUCCESS == PXInputGetState(m_index, &m_state_in));
+	PXInputGetState(m_index, &m_state_in);
 }
 
-bool Device::UpdateOutput()
+void Device::UpdateOutput()
 {
 	// this if statement is to make rumble work better when multiple ControllerInterfaces are using the device
 	// only calls XInputSetState if the state changed
 	if (memcmp(&m_state_out, &m_current_state_out, sizeof(m_state_out)))
 	{
 		m_current_state_out = m_state_out;
-		return (ERROR_SUCCESS == PXInputSetState(m_index, &m_state_out));
-	}
-	else
-	{
-		return true;
+		PXInputSetState(m_index, &m_state_out);
 	}
 }
 
