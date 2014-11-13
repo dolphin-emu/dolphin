@@ -805,6 +805,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			D3D::context->RSSetViewports(1, &rightVp);
 			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma, 1);
+			
+			D3D::context->RSSetViewports(1, &vp);
 		}
 		else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
 		{
@@ -828,6 +830,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			D3D11_BOX box = CD3D11_BOX(0, 0, 0, s_backbuffer_width, s_backbuffer_height, 1);
 			D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, s_3d_vision_texture->GetTex(), 0, &box);
 
+			D3D::context->RSSetViewports(1, &vp);
 			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 		}
 		else
