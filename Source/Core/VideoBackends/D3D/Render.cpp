@@ -55,6 +55,18 @@ ID3D11DepthStencilState* resetdepthstate = nullptr;
 ID3D11RasterizerState* resetraststate = nullptr;
 
 static ID3D11Texture2D* s_screenshot_texture = nullptr;
+static D3DTexture2D* s_3d_vision_texture = nullptr;
+
+typedef struct _Nv_Stereo_Image_Header
+{
+	unsigned int    dwSignature;
+	unsigned int    dwWidth;
+	unsigned int    dwHeight;
+	unsigned int    dwBPP;
+	unsigned int    dwFlags;
+} NVSTEREOIMAGEHEADER, *LPNVSTEREOIMAGEHEADER;
+
+#define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
 // GX pipeline state
 struct
@@ -181,6 +193,24 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
 	CHECK(hr==S_OK, "Create screenshot staging texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
+}
+
+void Create3DVisionTexture(int width, int height)
+{
+	// Create a staging texture for 3D vision with signature information in the last row.
+	// Nvidia 3D Vision supports full SBS, so there is no loss in resolution during this process.
+	D3D11_SUBRESOURCE_DATA sysData;
+	sysData.SysMemPitch = 4 * width * 2;
+	sysData.pSysMem = new u8[(height + 1) * sysData.SysMemPitch];
+	LPNVSTEREOIMAGEHEADER header = (LPNVSTEREOIMAGEHEADER)((u8*)sysData.pSysMem + height * sysData.SysMemPitch);
+	header->dwSignature = NVSTEREO_IMAGE_SIGNATURE;
+	header->dwWidth = width * 2;
+	header->dwHeight = height + 1;
+	header->dwBPP = 32;
+	header->dwFlags = 0;
+
+	s_3d_vision_texture = D3DTexture2D::Create(width * 2, height + 1, D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sysData);
+	delete[] sysData.pSysMem;
 }
 
 Renderer::Renderer(void *&window_handle)
@@ -776,6 +806,30 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			D3D::context->RSSetViewports(1, &rightVp);
 			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma, 1);
 		}
+		else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
+		{
+			if (!s_3d_vision_texture)
+				Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
+			
+			D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
+			D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)(X + s_backbuffer_width), (float)Y, (float)Width, (float)Height);
+
+			// Render to staging texture which is double the width of the backbuffer
+			D3D::context->OMSetRenderTargets(1, &s_3d_vision_texture->GetRTV(), nullptr);
+
+			D3D::context->RSSetViewports(1, &leftVp);
+			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma, 0);
+
+			D3D::context->RSSetViewports(1, &rightVp);
+			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma, 1);
+
+			// Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
+			// recognize the signature and automatically include the right eye frame.
+			D3D11_BOX box = CD3D11_BOX(0, 0, 0, s_backbuffer_width, s_backbuffer_height, 1);
+			D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, s_3d_vision_texture->GetTex(), 0, &box);
+
+			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+		}
 		else
 		{
 			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), Gamma);
@@ -972,6 +1026,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
 			SAFE_RELEASE(s_screenshot_texture);
+			SAFE_RELEASE(s_3d_vision_texture);
 			s_backbuffer_width = D3D::GetBackBufferWidth();
 			s_backbuffer_height = D3D::GetBackBufferHeight();
 		}

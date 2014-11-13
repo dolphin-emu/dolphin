@@ -37,7 +37,7 @@ void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned 
 
 }  // namespace
 
-D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D11_BIND_FLAG bind, D3D11_USAGE usage, DXGI_FORMAT fmt, unsigned int levels, unsigned int slices)
+D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D11_BIND_FLAG bind, D3D11_USAGE usage, DXGI_FORMAT fmt, unsigned int levels, unsigned int slices, D3D11_SUBRESOURCE_DATA* data)
 {
 	ID3D11Texture2D* pTexture = nullptr;
 	HRESULT hr;
@@ -50,7 +50,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 	else
 		cpuflags = (D3D11_CPU_ACCESS_FLAG)0;
 	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(fmt, width, height, slices, levels, bind, usage, cpuflags);
-	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
+	hr = D3D::device->CreateTexture2D(&texdesc, data, &pTexture);
 	if (FAILED(hr))
 	{
 		PanicAlert("Failed to create texture at %s, line %d: hr=%#x\n", __FILE__, __LINE__, hr);
