@@ -101,7 +101,6 @@ public:
 	virtual int GetId() const = 0;
 	virtual std::string GetSource() const = 0;
 	virtual void UpdateInput() {}
-	virtual void UpdateOutput() {}
 
 	const std::vector<Input*>& Inputs() const { return m_inputs; }
 	const std::vector<Output*>& Outputs() const { return m_outputs; }

@@ -69,7 +69,6 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 	static int _last_numPAD = 4;
 	if (_numPAD <= _last_numPAD)
 	{
-		g_controller_interface.UpdateOutput();
 		g_controller_interface.UpdateInput();
 	}
 	_last_numPAD = _numPAD;

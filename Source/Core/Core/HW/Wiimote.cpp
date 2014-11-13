@@ -117,7 +117,6 @@ void Update(int _number)
 
 	if (_number <= s_last_number)
 	{
-		g_controller_interface.UpdateOutput();
 		g_controller_interface.UpdateInput();
 	}
 	s_last_number = _number;

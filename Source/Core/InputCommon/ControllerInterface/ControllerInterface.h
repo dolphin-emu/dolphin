@@ -121,7 +121,6 @@ public:
 
 	void UpdateReference(ControlReference* control, const ciface::Core::DeviceQualifier& default_device) const;
 	void UpdateInput();
-	void UpdateOutput();
 
 	std::recursive_mutex update_lock;
 
