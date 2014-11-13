@@ -22,7 +22,7 @@ Version:    4.0.2
 Release:    0%{?dist}
 Group:      System/Emulators/Other
 License:    GPL-2.0
-URL:        http://www.dolphin-emu.org/
+URL:        https://dolphin-emu.org/
 BuildArch:  x86_64 armv7l aarch64
 
 # For this spec file to work, the Dolphin Emulator sources must be located
