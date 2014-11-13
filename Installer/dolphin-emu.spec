@@ -102,6 +102,17 @@ Translations into various languages for Dolphin Emulator
 
 # ------------------------------------------------------
 
+%package nogui
+Summary:        Dolphin Emulator without a graphical user interface
+
+%description nogui
+Dolphin Emulator without a graphical user interface
+
+%files nogui
+%{_bindir}/%{name}-nogui
+
+# ------------------------------------------------------
+
 %prep
 %setup -q
 
