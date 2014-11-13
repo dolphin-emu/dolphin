@@ -645,9 +645,9 @@ void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::RightClickOnBanner(wxMouseEvent& event)
 {
-	wxMenu* popupMenu = new wxMenu;
-	popupMenu->Append(IDM_BNRSAVEAS, _("Save as..."));
-	PopupMenu(popupMenu);
+	wxMenu popupMenu;
+	popupMenu.Append(IDM_BNRSAVEAS, _("Save as..."));
+	PopupMenu(&popupMenu);
 
 	event.Skip();
 }
@@ -668,41 +668,41 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 {
 	m_Treectrl->SelectItem(event.GetItem());
 
-	wxMenu* popupMenu = new wxMenu;
+	wxMenu popupMenu;
 
 	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
 	    m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
 	{
-		popupMenu->Append(IDM_EXTRACTDIR, _("Extract Partition..."));
+		popupMenu.Append(IDM_EXTRACTDIR, _("Extract Partition..."));
 	}
 	else if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 1)
 	{
-		popupMenu->Append(IDM_EXTRACTDIR, _("Extract Directory..."));
+		popupMenu.Append(IDM_EXTRACTDIR, _("Extract Directory..."));
 	}
 	else if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 2)
 	{
-		popupMenu->Append(IDM_EXTRACTFILE, _("Extract File..."));
+		popupMenu.Append(IDM_EXTRACTFILE, _("Extract File..."));
 	}
 
-	popupMenu->Append(IDM_EXTRACTALL, _("Extract All Files..."));
+	popupMenu.Append(IDM_EXTRACTALL, _("Extract All Files..."));
 
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) ||
 		(m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
 		m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection()))
 	{
-		popupMenu->AppendSeparator();
-		popupMenu->Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
-		popupMenu->Append(IDM_EXTRACTDOL, _("Extract DOL..."));
+		popupMenu.AppendSeparator();
+		popupMenu.Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
+		popupMenu.Append(IDM_EXTRACTDOL, _("Extract DOL..."));
 	}
 
 	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
 		m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
 	{
-		popupMenu->AppendSeparator();
-		popupMenu->Append(IDM_CHECKINTEGRITY, _("Check Partition Integrity"));
+		popupMenu.AppendSeparator();
+		popupMenu.Append(IDM_CHECKINTEGRITY, _("Check Partition Integrity"));
 	}
 
-	PopupMenu(popupMenu);
+	PopupMenu(&popupMenu);
 
 	event.Skip();
 }

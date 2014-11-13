@@ -333,21 +333,21 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	if (!g_pCodeWindow) return;
 
 	// Create the popup menu
-	wxMenu* MenuPopup = new wxMenu;
+	wxMenu MenuPopup;
 
-	wxMenuItem* Item =  new wxMenuItem(MenuPopup, wxID_ANY, _("Select floating windows"));
-	MenuPopup->Append(Item);
+	wxMenuItem* Item =  new wxMenuItem(&MenuPopup, wxID_ANY, _("Select floating windows"));
+	MenuPopup.Append(Item);
 	Item->Enable(false);
-	MenuPopup->Append(new wxMenuItem(MenuPopup));
+	MenuPopup.Append(new wxMenuItem(&MenuPopup));
 
 	for (int i = IDM_LOGWINDOW; i <= IDM_CODEWINDOW; i++)
 	{
 		wxWindow *Win = FindWindowById(i);
 		if (Win && Win->IsEnabled())
 		{
-			Item = new wxMenuItem(MenuPopup, i + IDM_FLOAT_LOGWINDOW - IDM_LOGWINDOW,
+			Item = new wxMenuItem(&MenuPopup, i + IDM_FLOAT_LOGWINDOW - IDM_LOGWINDOW,
 					Win->GetName(), "", wxITEM_CHECK);
-			MenuPopup->Append(Item);
+			MenuPopup.Append(Item);
 			Item->Check(!!FindWindowById(i + IDM_LOGWINDOW_PARENT - IDM_LOGWINDOW));
 		}
 	}
@@ -357,7 +357,7 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	Pt = ScreenToClient(Pt);
 
 	// Show
-	PopupMenu(MenuPopup, Pt);
+	PopupMenu(&MenuPopup, Pt);
 }
 
 void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
