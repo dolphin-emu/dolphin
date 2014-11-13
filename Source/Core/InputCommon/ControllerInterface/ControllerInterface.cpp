@@ -148,9 +148,6 @@ bool ControllerInterface::UpdateInput()
 	{
 		if (d->UpdateInput())
 			++ok_count;
-		//else
-		// disabled. it might be causing problems
-			//(*d)->ClearInputState();
 	}
 
 	return (m_devices.size() == ok_count);

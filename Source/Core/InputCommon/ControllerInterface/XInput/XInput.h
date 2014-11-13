@@ -76,8 +76,6 @@ public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	void ClearInputState();
-
 	Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
 	std::string GetName() const;

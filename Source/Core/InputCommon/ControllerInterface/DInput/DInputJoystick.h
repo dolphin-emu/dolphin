@@ -54,8 +54,6 @@ private:
 public:
 	bool UpdateInput();
 
-	void ClearInputState();
-
 	Joystick(const LPDIRECTINPUTDEVICE8 device, const unsigned int index);
 	~Joystick();
 

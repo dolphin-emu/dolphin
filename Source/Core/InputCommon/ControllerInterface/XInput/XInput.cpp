@@ -165,11 +165,6 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 			AddOutput(new Motor(i, (&m_state_out.wLeftMotorSpeed)[i], 65535));
 	}
 
-	ClearInputState();
-}
-
-void Device::ClearInputState()
-{
 	ZeroMemory(&m_state_in, sizeof(m_state_in));
 }
 

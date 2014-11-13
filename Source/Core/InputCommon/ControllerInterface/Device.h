@@ -103,8 +103,6 @@ public:
 	virtual bool UpdateInput() { return true; }
 	virtual bool UpdateOutput() { return true; }
 
-	virtual void ClearInputState();
-
 	const std::vector<Input*>& Inputs() const { return m_inputs; }
 	const std::vector<Output*>& Outputs() const { return m_outputs; }
 
