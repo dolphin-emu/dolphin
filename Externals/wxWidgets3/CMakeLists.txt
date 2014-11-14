@@ -862,6 +862,7 @@ set(SRCS
 	${SRCS_GENERIC})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
 	add_definitions(-D__WXOSX_COCOA__)
 	set(SRCS
 		${SRCS}
@@ -895,6 +896,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		${PANGOCAIRO_LIBRARIES}
 		${GTK2_LIBRARIES})
 else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 	add_definitions(-D__WXMSW__)
 	set(SRCS
 		${SRCS}
@@ -904,7 +906,6 @@ endif()
 add_definitions(-DWXBUILDING)
 # wxWidgets warnings are not our problem.
 add_definitions(-w)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
 
 enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wx STATIC ${PNG_SRCS} ${SRCS})
