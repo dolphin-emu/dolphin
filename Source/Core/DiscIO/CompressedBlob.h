@@ -36,7 +36,7 @@ const u32 kBlobCookie = 0xB10BC001;
 struct CompressedBlobHeader // 32 bytes
 {
 	u32 magic_cookie; //0xB10BB10B
-	u32 sub_type; // gc image, whatever
+	u32 sub_type; // GC image, whatever
 	u64 compressed_data_size;
 	u64 data_size;
 	u32 block_size;

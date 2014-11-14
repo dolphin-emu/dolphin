@@ -331,7 +331,7 @@ bool Wiimote::Step()
 	if (!m_read_requests.empty())
 	{
 		ReadRequest& rr = m_read_requests.front();
-		// send up to 16 bytes to the wii
+		// send up to 16 bytes to the Wii
 		SendReadDataReply(rr);
 		//SendReadDataReply(rr.channel, rr);
 

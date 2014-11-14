@@ -190,7 +190,7 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 
 void SetInterrupt(u32 _causemask, bool _bSet)
 {
-	// TODO(ector): add sanity check that current thread id is cpu thread
+	// TODO(ector): add sanity check that current thread id is CPU thread
 
 	if (_bSet && !(m_InterruptCause & _causemask))
 	{

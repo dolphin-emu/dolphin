@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 
-// Detect the cpu, so we'll know which optimizations to use
+// Detect the CPU, so we'll know which optimizations to use
 #pragma once
 
 #include <string>
@@ -78,11 +78,11 @@ struct CPUInfo
 	// Call Detect()
 	explicit CPUInfo();
 
-	// Turn the cpu info into a string we can show
+	// Turn the CPU info into a string we can show
 	std::string Summarize();
 
 private:
-	// Detects the various cpu features
+	// Detects the various CPU features
 	void Detect();
 };
 

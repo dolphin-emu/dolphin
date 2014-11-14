@@ -270,7 +270,7 @@ void Init()
 	g_StatusReg.Hex = 0;
 
 	g_EXIClockCount.Hex = 0;
-	//g_EXIClockCount.LOCK = 1; // Supposedly set on reset, but logs from real wii don't look like it is...
+	//g_EXIClockCount.LOCK = 1; // Supposedly set on reset, but logs from real Wii don't look like it is...
 	memset(g_SIBuffer, 0, 128);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);

@@ -73,7 +73,7 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 
 	png_init_io(png_ptr, fp.GetHandle());
 
-	// Write header (8 bit colour depth)
+	// Write header (8 bit color depth)
 	png_set_IHDR(png_ptr, info_ptr, width, height,
 		8, PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
 		PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);

@@ -160,7 +160,7 @@ enum Opcode
 	InterpreterBranch,
 
 	IdleBranch,    // branch operation belonging to idle loop
-	ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
+	ShortIdleLoop, // Idle loop seen in homebrew like Wii mahjong,
 	               // just a branch
 
 	// used for exception checking, at least until someone

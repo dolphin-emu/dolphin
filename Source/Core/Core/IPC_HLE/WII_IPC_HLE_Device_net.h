@@ -531,14 +531,14 @@ private:
 	// Seconds between 1.1.1970 and 4.1.2008 16:00:38
 	static const u64 wii_bias = 0x477E5826;
 
-	// Returns seconds since wii epoch
+	// Returns seconds since Wii epoch
 	// +/- any bias set from IOCTL_NW24_SET_UNIVERSAL_TIME
 	u64 GetAdjustedUTC() const
 	{
 		return Common::Timer::GetTimeSinceJan1970() - wii_bias + utcdiff;
 	}
 
-	// Store the difference between what the wii thinks is UTC and
+	// Store the difference between what the Wii thinks is UTC and
 	// what the host OS thinks
 	void SetAdjustedUTC(u64 wii_utc)
 	{

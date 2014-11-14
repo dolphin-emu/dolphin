@@ -104,10 +104,10 @@ struct SConfig : NonCopyable
 
 	SysConf* m_SYSCONF;
 
-	// save settings
+	// Save settings
 	void SaveSettings();
 
-	// load settings
+	// Load settings
 	void LoadSettings();
 
 	// Return the permanent and somewhat globally used instance of this struct

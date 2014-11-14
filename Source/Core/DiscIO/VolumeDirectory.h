@@ -86,7 +86,7 @@ private:
 
 	u32 m_totalNameSize;
 
-	// gc has no shift, wii has 2 bit shift
+	// GameCube has no shift, Wii has 2 bit shift
 	u32 m_addressShift;
 
 	// first address on disk containing file data

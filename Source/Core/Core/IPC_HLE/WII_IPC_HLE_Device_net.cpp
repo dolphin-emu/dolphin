@@ -785,7 +785,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			optval[4], optval[5],optval[6], optval[7], optval[8], optval[9], optval[10], optval[11], optval[12], optval[13], optval[14],
 			optval[15], optval[16], optval[17], optval[18], optval[19]);
 
-		//TODO: bug booto about this, 0x2005 most likely timeout related, default value on wii is , 0x2001 is most likely tcpnodelay
+		//TODO: bug booto about this, 0x2005 most likely timeout related, default value on Wii is , 0x2001 is most likely tcpnodelay
 		if (level == 6 && (optname == 0x2005 || optname == 0x2001))
 		{
 			ReturnValue = 0;

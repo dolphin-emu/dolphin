@@ -172,7 +172,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	{
 		/*
 			ERROR CODES:
-			-4 Cant find device specified
+			-4 Can't find device specified
 		*/
 
 		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);

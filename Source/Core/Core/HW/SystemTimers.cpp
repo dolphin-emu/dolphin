@@ -237,7 +237,7 @@ void Init()
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
 	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
 
-	// Emulated gekko <-> flipper bus speed ratio (cpu clock / flipper clock)
+	// Emulated gekko <-> flipper bus speed ratio (CPU clock / flipper clock)
 	CP_PERIOD = GetTicksPerSecond() / 10000;
 
 	Common::Timer::IncreaseResolution();
