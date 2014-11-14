@@ -393,7 +393,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 			DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x "
 				"being written from queue(%lu) to %08x...",
 				((hci_event_hdr_t*)event.m_buffer)->event,
-				(unsigned long)m_EventQueue.size()-1,
+				(unsigned long)m_EventQueue.size() - 1,
 				m_HCIEndpoint.m_address);
 			m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 			m_HCIEndpoint.SetRetVal(event.m_size);
@@ -423,7 +423,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		DEBUG_LOG(WII_IPC_WIIMOTE,
 			"HCI event %x being written from queue(%lu) to %08x...",
 			((hci_event_hdr_t*)event.m_buffer)->event,
-			(unsigned long)m_EventQueue.size()-1,
+			(unsigned long)m_EventQueue.size() - 1,
 			m_HCIEndpoint.m_address);
 		m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
 		m_HCIEndpoint.SetRetVal(event.m_size);

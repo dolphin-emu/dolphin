@@ -196,7 +196,7 @@ public:
 					u8 value = new_uid.GetUidDataRaw()[i];
 					if ((i % 4) == 0)
 					{
-						auto last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
+						auto last_value = (i+3 < new_uid.GetUidDataSize() - 1) ? i+3 : new_uid.GetUidDataSize();
 						file << std::setfill(' ') << std::dec;
 						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
 					}

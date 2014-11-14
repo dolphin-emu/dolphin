@@ -540,7 +540,7 @@ void FifoPlayerDlg::OnFindPreviousClick(wxCommandEvent& event)
 	{
 		if (it->cmd_idx < cur_cmd_index)
 		{
-			ChangeSearchResult(search_results.size()-1 - (it - search_results.rbegin()));
+			ChangeSearchResult(search_results.size() - 1 - (it - search_results.rbegin()));
 			return;
 		}
 	}

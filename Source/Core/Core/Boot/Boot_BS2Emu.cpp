@@ -86,7 +86,7 @@ bool CBoot::EmulatedBS2_GC()
 	u32 iAppLoaderOffset = 0x2440;
 	u32 iAppLoaderEntry  = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
 	u32 iAppLoaderSize   = VolumeHandler::Read32(iAppLoaderOffset + 0x14) + VolumeHandler::Read32(iAppLoaderOffset + 0x18);
-	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
+	if ((iAppLoaderEntry == (u32) - 1) || (iAppLoaderSize == (u32) - 1))
 	{
 		INFO_LOG(BOOT, "GC BS2: Not running apploader!");
 		return false;
@@ -351,7 +351,7 @@ bool CBoot::EmulatedBS2_Wii()
 		// Load Apploader to Memory
 		u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
 		u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
-		if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
+		if ((iAppLoaderEntry == (u32) - 1) || (iAppLoaderSize == (u32) - 1))
 		{
 			ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
 			return false;

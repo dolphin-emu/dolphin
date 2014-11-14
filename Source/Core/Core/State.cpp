@@ -593,7 +593,7 @@ void SaveFirstSaved()
 	else
 	{
 		std::map<double, int>::iterator it = savedStates.begin();
-		std::advance(it, savedStates.size()-1);
+		std::advance(it, savedStates.size() - 1);
 		Save(it->second, true);
 	}
 }

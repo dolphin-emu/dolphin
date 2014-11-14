@@ -66,9 +66,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 
 		// read current block
 		if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
-		{
 			return(false);
-		}
 
 		if (m_LastDecryptedBlockOffset != Block)
 		{

@@ -128,7 +128,7 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 	return wxApp::Initialize(c, v);
 }
 
-// The `main program' equivalent that creates the main window and return the main frame
+// The 'main program' equivalent that creates the main window and return the main frame
 
 bool DolphinApp::OnInit()
 {
