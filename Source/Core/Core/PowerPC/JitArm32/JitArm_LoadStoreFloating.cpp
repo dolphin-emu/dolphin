@@ -134,7 +134,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 	if (update)
 		MOV(RA, rB);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
+	if (false)
 	{
 		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 		BIC(rB, rB, mask); // 1
@@ -301,7 +301,8 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		MOV(RA, rB);
 		SetCC();
 	}
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
+
+	if (false)
 	{
 		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 		BIC(rB, rB, mask); // 1
