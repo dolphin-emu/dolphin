@@ -56,7 +56,7 @@ static void CreatePrograms()
 	 *
 	 * This shader doesn't really match what the GameCube does internally in the
 	 * copy pipeline.
-	 *  1. It uses Opengl's built in filtering when yscaling, someone could work
+	 *  1. It uses OpenGL's built in filtering when yscaling, someone could work
 	 *     out how the copypipeline does it's filtering and implement it correctly
 	 *     in this shader.
 	 *  2. Deflickering isn't implemented, a futher filtering over 3 lines.

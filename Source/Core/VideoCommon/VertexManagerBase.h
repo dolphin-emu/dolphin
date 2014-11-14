@@ -57,7 +57,7 @@ protected:
 private:
 	static bool IsFlushed;
 
-	//virtual void Draw(u32 stride, bool alphapass) = 0;
+	// virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
 	virtual void vFlush(bool useDstAlpha) = 0;
 };

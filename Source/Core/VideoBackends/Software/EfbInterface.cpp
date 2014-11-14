@@ -553,7 +553,7 @@ namespace EfbInterface
 		}
 	}
 
-	// Like CopyToXFB, but we copy directly into the opengl color texture without going via GameCube main memory or doing a yuyv conversion
+	// Like CopyToXFB, but we copy directly into the OpenGL color texture without going via GameCube main memory or doing a yuyv conversion
 	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 	{
 		if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT)

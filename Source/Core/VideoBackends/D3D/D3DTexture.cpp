@@ -43,9 +43,12 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 	HRESULT hr;
 
 	D3D11_CPU_ACCESS_FLAG cpuflags;
-	if (usage == D3D11_USAGE_STAGING) cpuflags = (D3D11_CPU_ACCESS_FLAG)((int)D3D11_CPU_ACCESS_WRITE|(int)D3D11_CPU_ACCESS_READ);
-	else if (usage == D3D11_USAGE_DYNAMIC) cpuflags = D3D11_CPU_ACCESS_WRITE;
-	else cpuflags = (D3D11_CPU_ACCESS_FLAG)0;
+	if (usage == D3D11_USAGE_STAGING)
+		cpuflags = (D3D11_CPU_ACCESS_FLAG)((int)D3D11_CPU_ACCESS_WRITE|(int)D3D11_CPU_ACCESS_READ);
+	else if (usage == D3D11_USAGE_DYNAMIC)
+		cpuflags = D3D11_CPU_ACCESS_WRITE;
+	else
+		cpuflags = (D3D11_CPU_ACCESS_FLAG)0;
 	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(fmt, width, height, 1, levels, bind, usage, cpuflags);
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
 	if (FAILED(hr))
@@ -90,9 +93,12 @@ D3DTexture2D::D3DTexture2D(ID3D11Texture2D* texptr, D3D11_BIND_FLAG bind,
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = CD3D11_SHADER_RESOURCE_VIEW_DESC(srv_dim, srv_format);
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc = CD3D11_DEPTH_STENCIL_VIEW_DESC(dsv_dim, dsv_format);
 	D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = CD3D11_RENDER_TARGET_VIEW_DESC(rtv_dim, rtv_format);
-	if (bind & D3D11_BIND_SHADER_RESOURCE) D3D::device->CreateShaderResourceView(tex, &srv_desc, &srv);
-	if (bind & D3D11_BIND_RENDER_TARGET) D3D::device->CreateRenderTargetView(tex, &rtv_desc, &rtv);
-	if (bind & D3D11_BIND_DEPTH_STENCIL) D3D::device->CreateDepthStencilView(tex, &dsv_desc, &dsv);
+	if (bind & D3D11_BIND_SHADER_RESOURCE)
+		D3D::device->CreateShaderResourceView(tex, &srv_desc, &srv);
+	if (bind & D3D11_BIND_RENDER_TARGET)
+		D3D::device->CreateRenderTargetView(tex, &rtv_desc, &rtv);
+	if (bind & D3D11_BIND_DEPTH_STENCIL)
+		D3D::device->CreateDepthStencilView(tex, &dsv_desc, &dsv);
 	tex->AddRef();
 }
 
