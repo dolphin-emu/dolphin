@@ -118,10 +118,19 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 		    "bFF_BPEnable: %s\n"
 		    "bFF_BPInt: %s\n"
 		    "bFF_Breakpoint: %s\n"
+		    "bFF_GPLinkEnable: %s\n"
+		    "bFF_HiWatermarkInt: %s\n"
+		    "bFF_LoWatermarkInt: %s\n"
 		    ,cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
-		    ,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
-		    ,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_BPInt ? "true" : "false"
-		    ,fifo.bFF_Breakpoint ? "true" : "false");
+		    ,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint
+		    ,fifo.bFF_GPReadEnable ? "true" : "false"
+		    ,fifo.bFF_BPEnable ? "true" : "false"
+		    ,fifo.bFF_BPInt ? "true" : "false"
+		    ,fifo.bFF_Breakpoint ? "true" : "false"
+		    ,fifo.bFF_GPLinkEnable ? "true" : "false"
+		    ,fifo.bFF_HiWatermarkInt ? "true" : "false"
+		    ,fifo.bFF_LoWatermarkInt ? "true" : "false"
+		    );
 	}
 }
 

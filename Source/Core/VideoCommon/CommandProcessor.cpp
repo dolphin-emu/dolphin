@@ -304,6 +304,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void GatherPipeBursted()
 {
+	if (IsOnThread())
+		SetCPStatusFromCPU();
+
 	ProcessFifoEvents();
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
@@ -325,9 +328,6 @@ void GatherPipeBursted()
 		}
 		return;
 	}
-
-	if (IsOnThread())
-		SetCPStatusFromCPU();
 
 	// update the fifo pointer
 	if (fifo.CPWritePointer >= fifo.CPEnd)
@@ -369,6 +369,7 @@ void UpdateInterrupts(u64 userdata)
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
 		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);
 	}
+	CoreTiming::ForceExceptionCheck(0);
 	interruptWaiting = false;
 }
 
@@ -404,6 +405,7 @@ void SetCPStatusFromGPU()
 			INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
 		fifo.bFF_Breakpoint = false;
 	}
+
 	// overflow & underflow check
 	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
 	fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
@@ -447,7 +449,7 @@ void SetCPStatusFromCPU()
 
 	if (interrupt != interruptSet && !interruptWaiting)
 	{
-		u64 userdata = interrupt?1:0;
+		u64 userdata = interrupt ? 1 : 0;
 		if (IsOnThread())
 		{
 			if (!interrupt || bpInt || undfInt || ovfInt)
