@@ -46,7 +46,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE *dsphle, bool wii)
 	                 // nddemo, Star Fox
 	case 0x07f88145: // bustamove, Ikaruga, F-Zero GX, Robotech Battle Cry, Star Soldier, Soul Calibur 2,
 		// Zelda:OOT, Tony Hawk, Viewtiful Joe
-	case 0xe2136399: // Billy Hatcher, Dragon Ball Z, Mario Party 5, TMNT, 1080° Avalanche
+	case 0xe2136399: // Billy Hatcher, Dragon Ball Z, Mario Party 5, TMNT, 1080Â° Avalanche
 	case 0x3389a79e: // MP1/MP2 Wii (Metroid Prime Trilogy)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", crc);
 		return new AXUCode(dsphle, crc);
