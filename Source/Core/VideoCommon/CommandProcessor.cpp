@@ -404,7 +404,33 @@ void SetCPStatusFromGPU()
 			INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
 		fifo.bFF_Breakpoint = false;
 	}
-	SetCPStatusFromCPU();
+	// overflow & underflow check
+	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
+	fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
+
+	bool bpInt = fifo.bFF_Breakpoint && fifo.bFF_BPInt;
+	bool ovfInt = fifo.bFF_HiWatermark && fifo.bFF_HiWatermarkInt;
+	bool undfInt = fifo.bFF_LoWatermark && fifo.bFF_LoWatermarkInt;
+
+	bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
+
+	if (interrupt != interruptSet && !interruptWaiting)
+	{
+		u64 userdata = interrupt ? 1 : 0;
+		if (IsOnThread())
+		{
+			if (!interrupt || bpInt || undfInt || ovfInt)
+			{
+				// Schedule the interrupt asynchronously
+				interruptWaiting = true;
+				CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
+			}
+		}
+		else
+		{
+			CommandProcessor::UpdateInterrupts(userdata);
+		}
+	}
 }
 
 void SetCPStatusFromCPU()
@@ -426,18 +452,9 @@ void SetCPStatusFromCPU()
 		{
 			if (!interrupt || bpInt || undfInt || ovfInt)
 			{
-				if (Core::IsGPUThread())
-				{
-					// Schedule the interrupt asynchronously
-					interruptWaiting = true;
-					CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
-				}
-				else
-				{
-					interruptSet = interrupt;
-					INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
-					ProcessorInterface::SetInterrupt(INT_CAUSE_CP, interrupt);
-				}
+				interruptSet = interrupt;
+				INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
+				ProcessorInterface::SetInterrupt(INT_CAUSE_CP, interrupt);
 			}
 		}
 		else
@@ -451,7 +468,7 @@ void ProcessFifoAllDistance()
 {
 	if (IsOnThread())
 	{
-		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
+		while (!interruptWaiting && fifo.bFF_GPReadEnable &&
 			fifo.CPReadWriteDistance && !AtBreakpoint())
 			Common::YieldCPU();
 	}
@@ -489,13 +506,6 @@ void SetCpStatusRegister()
 
 void SetCpControlRegister()
 {
-	// If the new fifo is being attached, force an exception check
-	// This fixes the hang while booting Eternal Darkness
-	if (!fifo.bFF_GPReadEnable && m_CPCtrlReg.GPReadEnable && !m_CPCtrlReg.BPEnable)
-	{
-		CoreTiming::ForceExceptionCheck(0);
-	}
-
 	fifo.bFF_BPInt = m_CPCtrlReg.BPInt;
 	fifo.bFF_BPEnable = m_CPCtrlReg.BPEnable;
 	fifo.bFF_HiWatermarkInt = m_CPCtrlReg.FifoOverflowIntEnable;
