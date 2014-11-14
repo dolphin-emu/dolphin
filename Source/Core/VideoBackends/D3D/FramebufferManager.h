@@ -81,8 +81,6 @@ public:
 		m_efb.color_tex = swaptex;
 	}
 
-	static int GetEFBSlices() { return m_efb.slices; }
-
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
 	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) override;

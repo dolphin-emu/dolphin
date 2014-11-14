@@ -57,7 +57,7 @@ FramebufferManager::FramebufferManager()
 	D3D11_TEXTURE2D_DESC texdesc;
 	HRESULT hr;
 
-	m_efb.slices = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+	m_EFBLayers = m_efb.slices = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
 
 	// EFB color texture - primary render target
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
@@ -164,7 +164,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 {
 	return new XFBSource(D3DTexture2D::Create(target_width, target_height,
 		(D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE),
-		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, FramebufferManager::GetEFBSlices()), FramebufferManager::GetEFBSlices());
+		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, FramebufferManager::GetEFBLayers()), FramebufferManager::GetEFBLayers());
 }
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)
