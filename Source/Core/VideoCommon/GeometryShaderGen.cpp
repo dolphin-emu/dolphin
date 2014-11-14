@@ -64,8 +64,16 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	}
 	else // D3D
 	{
-		out.Write("[maxvertexcount(6)]\n");
-		out.Write("void main(triangle VS_OUTPUT o[3], inout TriangleStream<GS_OUTPUT> Output)\n{\n");
+		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
+		{
+			out.Write("[maxvertexcount(3)]\n[instance(%d)]\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
+			out.Write("void main(triangle VS_OUTPUT o[3], inout TriangleStream<GS_OUTPUT> Output, in uint InstanceID : SV_GSInstanceID)\n{\n");
+		}
+		else
+		{
+			out.Write("[maxvertexcount(6)]\n");
+			out.Write("void main(triangle VS_OUTPUT o[3], inout TriangleStream<GS_OUTPUT> Output)\n{\n");
+		}
 
 		out.Write("\tGS_OUTPUT gs;\n");
 	}
@@ -75,13 +83,19 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	// If the GPU supports invocation we don't need a for loop and can simply use the
 	// invocation identifier to determine which layer we're rendering.
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
-		out.Write("\tint l = gl_InvocationID;\n");
+	{
+		if (ApiType == API_OPENGL)
+			out.Write("\tint l = gl_InvocationID;\n");
+		else
+			out.Write("\tint l = InstanceID;\n");
+	}
 	else
 		out.Write("\tfor (int l = 0; l < %d; ++l) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
 	out.Write("\tfor (int i = 0; i < 3; ++i) {\n");
-	out.Write("\t\tgs.layer = l;\n");
 
+	// Select the output layer
+	out.Write("\t\tgs.layer = l;\n");
 	if (ApiType == API_OPENGL)
 		out.Write("\t\tgl_Layer = l;\n");
 
@@ -118,7 +132,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	if (ApiType == API_OPENGL)
 		out.Write("\tEndPrimitive();\n");
 	else
-		out.Write("\t\tOutput.RestartStrip();\n");
+		out.Write("\tOutput.RestartStrip();\n");
 
 	if (!g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\t}\n");
