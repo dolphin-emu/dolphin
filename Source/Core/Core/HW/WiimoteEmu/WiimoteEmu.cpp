@@ -244,6 +244,10 @@ void Wiimote::Reset()
 		delete[] m_read_requests.front().data;
 		m_read_requests.pop();
 	}
+
+	// Yamaha ADPCM state initialize
+	m_adpcm_state.predictor = 0;
+	m_adpcm_state.step = 127;
 }
 
 Wiimote::Wiimote( const unsigned int index )
