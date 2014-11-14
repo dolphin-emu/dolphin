@@ -319,8 +319,14 @@ void FramebufferManager::ConfigureRift()
 {
 	ovrD3D11Config cfg;
 	cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
+#ifdef OCULUSSDK044
+	cfg.D3D11.Header.BackBufferSize.w = hmdDesc.Resolution.w;
+	cfg.D3D11.Header.BackBufferSize.h = hmdDesc.Resolution.h;
+#endif
+#ifdef OCULUSSDK043
 	cfg.D3D11.Header.RTSize.w = hmdDesc.Resolution.w;
 	cfg.D3D11.Header.RTSize.h = hmdDesc.Resolution.h;
+#endif
 	cfg.D3D11.Header.Multisample = 0;
 	cfg.D3D11.pDevice = D3D::device;
 	cfg.D3D11.pDeviceContext = D3D::context;

@@ -131,7 +131,7 @@ namespace HotkeysXInput
 
 		//Recalculate only when fUnitsPerMetre changes.
 		if (g_has_hmd && (g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale)){
-			freeLookSpeed = (20 / g_Config.fUnitsPerMetre) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
 		}
 		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale){
 			freeLookSpeed = 10 * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;

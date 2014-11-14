@@ -1178,7 +1178,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 		//Recalculate only when fUnitsPerMetre or fFreeLookScale changes.
 		if (g_has_hmd && (g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale)){
-			freeLookSpeed = (20 / g_Config.fUnitsPerMetre) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
 		}
 		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale){
 			freeLookSpeed = 10 * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
@@ -1452,8 +1452,16 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 		if (mouseMoveEnabled)
 		{
-			VertexShaderManager::TranslateView((event.GetX() - lastMouse[0]) / 50.0f,
-					(event.GetY() - lastMouse[1]) / 50.0f);
+			if (g_has_hmd){
+				VertexShaderManager::TranslateView(
+					(((event.GetX() - lastMouse[0]) / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale) / 25.0f,
+					(((event.GetY() - lastMouse[1]) / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale) / 25.0f);
+			}
+			else {
+				VertexShaderManager::TranslateView(
+					((event.GetX() - lastMouse[0]) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale) / 25.0f,
+					((event.GetY() - lastMouse[1]) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale) / 25.0f);
+			}
 			lastMouse[0] = event.GetX();
 			lastMouse[1] = event.GetY();
 		}
