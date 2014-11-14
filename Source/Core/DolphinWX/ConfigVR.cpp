@@ -195,34 +195,52 @@ void CConfigVR::CreateGUIControls()
 
 		if (j == 0) {
 
-			wxStaticBoxSizer *sVRKeyBox = new wxStaticBoxSizer(wxVERTICAL, Page, _("VR Camera Controls"));
-			sVRKeyBox->Add(sVRKeys);
-
+			//Create "Device" box, and all buttons/options within it/
 			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Device"));
 
-			device_cbox = new wxComboBox(Page, -1, "", wxDefaultPosition, wxSize(64, -1));
+			device_cbox = new wxComboBox(Page, wxID_ANY, "", wxDefaultPosition, wxSize(64, -1));
 			device_cbox->ToggleWindowStyle(wxTE_PROCESS_ENTER);
 
-			wxButton* refresh_button = new wxButton(Page, -1, _("Refresh"), wxDefaultPosition, wxSize(60, -1));
+			wxButton* refresh_button = new wxButton(Page, wxID_ANY, _("Refresh"), wxDefaultPosition, wxSize(60, -1));
 
 			device_cbox->Bind(wxEVT_COMBOBOX, &CConfigVR::SetDevice, this);
 			device_cbox->Bind(wxEVT_TEXT_ENTER, &CConfigVR::SetDevice, this);
 			refresh_button->Bind(wxEVT_BUTTON, &CConfigVR::RefreshDevices, this);
 
-			wxCheckBox  *xInputPollEnableCheckbox = new wxCheckBox(Page, -1, _("Enable XInput Polling"), wxDefaultPosition, wxDefaultSize);
+			device_sbox->Add(device_cbox, 10, wxLEFT | wxRIGHT, 3);
+			device_sbox->Add(refresh_button, 3, wxLEFT | wxRIGHT, 3);
+
+			//Create "Options" box, and all buttons/options within it.
+			wxStaticBoxSizer* const options_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Options"));
+			wxGridBagSizer* const options_gszr = new wxGridBagSizer(3, 3);
+			options_sbox->Add(options_gszr, 1, wxALIGN_CENTER_VERTICAL, 3);
+
+			wxSpinCtrlDouble *const spin_freelook_scale = new wxSpinCtrlDouble(Page, wxID_ANY, wxString::Format(wxT("%f"), SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale), wxDefaultPosition, wxSize(60, -1), wxSP_ARROW_KEYS, 0.001f, 100.0f, 1.00f, 0.05f);
+			wxStaticText *spin_freelook_scale_label = new wxStaticText(Page, wxID_ANY, _(" Free Look Scale: "));
+			spin_freelook_scale->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
+			spin_freelook_scale_label->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
+			spin_freelook_scale->Bind(wxEVT_SPINCTRLDOUBLE, &CConfigVR::OnFreeLookScale, this);
+
+			wxCheckBox  *xInputPollEnableCheckbox = new wxCheckBox(Page, wxID_ANY, _("Enable XInput Polling"), wxDefaultPosition, wxDefaultSize);
 			xInputPollEnableCheckbox->Bind(wxEVT_CHECKBOX, &CConfigVR::OnXInputPollCheckbox, this);
 			xInputPollEnableCheckbox->SetToolTip(_("Check to enable XInput polling during game emulation. Uncheck to disable."));
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput){
 				xInputPollEnableCheckbox->SetValue(true);
 			}
 
-			device_sbox->Add(device_cbox, 10, wxLEFT | wxRIGHT, 3);
-			device_sbox->Add(refresh_button, 3, wxLEFT | wxRIGHT, 3);
-			device_sbox->Add(xInputPollEnableCheckbox, 4, wxALL, 6);
+			options_gszr->Add(spin_freelook_scale_label, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL, 3);
+			options_gszr->Add(spin_freelook_scale, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL, 3);
+			options_gszr->Add(xInputPollEnableCheckbox, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 3);
 
+			//Create "VR Camera Controls" and add keys to it.
+			wxStaticBoxSizer *vr_camera_controls_box = new wxStaticBoxSizer(wxVERTICAL, Page, _("VR Camera Controls"));
+			vr_camera_controls_box->Add(sVRKeys);
+
+			//Add all boxes to page.
 			wxBoxSizer* const sPage = new wxBoxSizer(wxVERTICAL);
 			sPage->Add(device_sbox, 0, wxEXPAND | wxALL, 5);
-			sPage->Add(sVRKeyBox, 0, wxEXPAND | wxALL, 5);
+			sPage->Add(options_sbox, 0, wxEXPAND | wxALL, 5);
+			sPage->Add(vr_camera_controls_box, 0, wxEXPAND | wxALL, 5);
 			Page->SetSizer(sPage);
 
 		}
@@ -303,6 +321,14 @@ void CConfigVR::OnXInputPollCheckbox(wxCommandEvent& event)
 	else {
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput = 0;
 	}
+
+	event.Skip();
+}
+
+void CConfigVR::OnFreeLookScale(wxCommandEvent& event)
+{
+	wxSpinCtrlDouble* spinctrl = (wxSpinCtrlDouble*)event.GetEventObject();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale = spinctrl->GetValue();
 
 	event.Skip();
 }
@@ -616,7 +642,7 @@ ciface::Core::Device::Control* CConfigVR::InputDetect(const unsigned int ms, cif
 }
 
 VRDialog::VRDialog(CConfigVR* const parent, int from_button)
-	: wxDialog(parent, -1, _("Configure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+	: wxDialog(parent, wxID_ANY, _("Configure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxBoxSizer* const input_szr1 = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* const input_szr2 = new wxBoxSizer(wxVERTICAL);
@@ -631,7 +657,7 @@ VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 			int i = 0;
 			for (ciface::Core::Device::Input* input : d->Inputs())
 			{
-				wxCheckBox  *XInputCheckboxes = new wxCheckBox(this, -1, wxGetTranslation(StrToWxStr(input->GetName())), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+				wxCheckBox  *XInputCheckboxes = new wxCheckBox(this, wxID_ANY, wxGetTranslation(StrToWxStr(input->GetName())), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
 				XInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBox, this);
 				if (HotkeysXInput::IsXInputButtonSet(input->GetName(), button_id)){
 					XInputCheckboxes->SetValue(true);

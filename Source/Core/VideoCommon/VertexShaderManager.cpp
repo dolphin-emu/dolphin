@@ -35,7 +35,7 @@ static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 extern bool g_aspect_wide;
 
 // track changes
-static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
+static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged, bFreeLookChanged;
 static BitSet32 nMaterialsChanged;
 static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
@@ -1533,7 +1533,7 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
 	}
-	else if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo) && xfmem.projection.type == GX_PERSPECTIVE)
+	else if ((bFreeLookChanged || g_ActiveConfig.bAnaglyphStereo) && xfmem.projection.type == GX_PERSPECTIVE)
 	{
 		Matrix44 mtxA;
 		Matrix44 mtxB;
@@ -1707,6 +1707,12 @@ void VertexShaderManager::ScaleView(float scale)
 {
 	for (int i = 0; i < 3; i++)
 		s_fViewTranslationVector[i] *= scale;
+
+	if (s_fViewTranslationVector[0] || s_fViewTranslationVector[1] || s_fViewTranslationVector[2])
+		bFreeLookChanged = true;
+	else
+		bFreeLookChanged = false;
+
 	bProjectionChanged = true;
 }
 
@@ -1719,6 +1725,11 @@ void VertexShaderManager::TranslateView(float x, float y, float z)
 
 	for (int i = 0; i < 3; i++)
 		s_fViewTranslationVector[i] += result[i];
+
+	if (s_fViewTranslationVector[0] || s_fViewTranslationVector[1] || s_fViewTranslationVector[2])
+		bFreeLookChanged = true;
+	else
+		bFreeLookChanged = false;
 
 	bProjectionChanged = true;
 }
@@ -1739,6 +1750,11 @@ void VertexShaderManager::RotateView(float x, float y)
 	Matrix33::RotateY(my, -s_fViewRotation[0]);
 	Matrix33::Multiply(my, mx, s_viewInvRotationMatrix);
 
+	if (s_fViewRotation[0] || s_fViewRotation[1])
+		bFreeLookChanged = true;
+	else
+		bFreeLookChanged = false;
+
 	bProjectionChanged = true;
 }
 
@@ -1749,6 +1765,7 @@ void VertexShaderManager::ResetView()
 	Matrix33::LoadIdentity(s_viewInvRotationMatrix);
 	s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
 
+	bFreeLookChanged = false;
 	bProjectionChanged = true;
 }
 

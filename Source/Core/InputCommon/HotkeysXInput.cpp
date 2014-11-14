@@ -45,6 +45,7 @@ namespace HotkeysXInput
 			}
 		}
 
+		//If XInput device detected
 		if (xinput_dev){
 			// get inputs from xinput device
 			std::vector<ciface::Core::Device::Input*>::const_iterator
@@ -115,21 +116,29 @@ namespace HotkeysXInput
 				(binary_trigger_r << 16) |
 				button_states;
 
-			OnXInputPoll(&full_controller_state);
+			//Don't waste CPU cycles on OnXInputPoll if nothing is pressed on XInput device.
+			if (full_controller_state){
+				OnXInputPoll(&full_controller_state);
+			}
 		}
 	}
 
 	void OnXInputPoll(u32* XInput_State){
 
-		static float oldfUnitsPerMetre = 0;
-		static float freelookSpeed;
+		static float oldfUnitsPerMetre;
+		static float oldfFreeLookScale;
+		static float freeLookSpeed;
 
 		//Recalculate only when fUnitsPerMetre changes.
-		if (g_Config.fUnitsPerMetre != oldfUnitsPerMetre){
-			freelookSpeed = 20/g_Config.fUnitsPerMetre;
+		if (g_has_hmd && (g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale)){
+			freeLookSpeed = (20 / g_Config.fUnitsPerMetre) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
+		}
+		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale){
+			freeLookSpeed = 10 * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
 		}
 
 		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
+		oldfFreeLookScale = SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
 
 		if (IsVRSettingsXInput(XInput_State, VR_POSITION_RESET)) {
 			VertexShaderManager::ResetView();
@@ -140,165 +149,167 @@ namespace HotkeysXInput
 			}
 #endif
 		}
-		if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_FORWARD)) {
-			VertexShaderManager::TranslateView(0.0f, freelookSpeed);
+		if (IsVRSettingsXInput(XInput_State, VR_CAMERA_FORWARD)) {
+			VertexShaderManager::TranslateView(0.0f, freeLookSpeed);
 		}
-		else if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_BACKWARD)) {
-			VertexShaderManager::TranslateView(0.0f, -freelookSpeed);
+		else if (IsVRSettingsXInput(XInput_State, VR_CAMERA_BACKWARD)) {
+			VertexShaderManager::TranslateView(0.0f, -freeLookSpeed);
 		}
-		if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_UP)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, -freelookSpeed / 2);
+		if (IsVRSettingsXInput(XInput_State, VR_CAMERA_UP)) {
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed / 2);
 		}
-		else if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_DOWN)) {
-			VertexShaderManager::TranslateView(0.0f, 0.0f, freelookSpeed / 2);
+		else if (IsVRSettingsXInput(XInput_State, VR_CAMERA_DOWN)) {
+			VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed / 2);
 		}
-		if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_LEFT)) {
-			VertexShaderManager::TranslateView(freelookSpeed, 0.0f);
+		if (IsVRSettingsXInput(XInput_State, VR_CAMERA_LEFT)) {
+			VertexShaderManager::TranslateView(freeLookSpeed, 0.0f);
 		}
-		else if (g_Config.bFreeLook && IsVRSettingsXInput(XInput_State, VR_CAMERA_RIGHT)) {
-			VertexShaderManager::TranslateView(-freelookSpeed, 0.0f);
+		else if (IsVRSettingsXInput(XInput_State, VR_CAMERA_RIGHT)) {
+			VertexShaderManager::TranslateView(-freeLookSpeed, 0.0f);
 		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_LARGER_SCALE)) {
-			// Make everything 10% bigger (and further)
-			g_Config.fUnitsPerMetre /= 1.10f;
-			VertexShaderManager::ScaleView(1.10f);
-			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_SMALLER_SCALE)) {
-			// Make everything 10% smaller (and closer)
-			g_Config.fUnitsPerMetre *= 1.10f;
-			VertexShaderManager::ScaleView(1.0f / 1.10f);
-			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_PERMANENT_CAMERA_FORWARD)) {
-			// Move camera forward 10cm
-			g_Config.fCameraForward += freelookSpeed;
-			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_PERMANENT_CAMERA_BACKWARD)) {
-			// Move camera back 10cm
-			g_Config.fCameraForward -= freelookSpeed;
-			NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_CAMERA_TILT_UP)) {
-			// Pitch camera up 5 degrees
-			g_Config.fCameraPitch += 1.0f;
-			NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_CAMERA_TILT_DOWN)) {
-			// Pitch camera down 5 degrees
-			g_Config.fCameraPitch -= 1.0f;
-			NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_HUD_FORWARD)) {
-			// Move HUD out 10cm
-			g_Config.fHudDistance += 0.1f;
-			NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_HUD_BACKWARD)) {
-			// Move HUD in 10cm
-			g_Config.fHudDistance -= 0.1f;
-			if (g_Config.fHudDistance <= 0)
-				g_Config.fHudDistance = 0;
-			NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_HUD_THICKER)) {
-			// Make HUD 10cm thicker
-			if (g_Config.fHudThickness < 0.01f)
-				g_Config.fHudThickness = 0.01f;
-			else if (g_Config.fHudThickness < 0.1f)
-				g_Config.fHudThickness += 0.01f;
-			else
-				g_Config.fHudThickness += 0.1f;
-			NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_HUD_THINNER)) {
-			// Make HUD 10cm thinner
-			if (g_Config.fHudThickness <= 0.01f)
-				g_Config.fHudThickness = 0;
-			else if (g_Config.fHudThickness <= 0.1f)
-				g_Config.fHudThickness -= 0.01f;
-			else
-				g_Config.fHudThickness -= 0.1f;
-			NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_HUD_3D_CLOSER)) {
-			// Make HUD 3D elements 5% closer (and smaller)
-			if (g_Config.fHud3DCloser >= 0.95f)
-				g_Config.fHud3DCloser = 1;
-			else
-				g_Config.fHud3DCloser += 0.05f;
-			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_HUD_3D_FURTHER)) {
-			// Make HUD 3D elements 5% further (and smaller)
-			if (g_Config.fHud3DCloser <= 0.05f)
-				g_Config.fHud3DCloser = 0;
-			else
-				g_Config.fHud3DCloser -= 0.05f;
-			NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_LARGER)) {
-			// Make everything 20% smaller (and closer)
-			g_Config.fScreenHeight *= 1.05f;
-			NOTICE_LOG(VR, "Screen is %fm high", g_Config.fScreenHeight);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_SMALLER)) {
-			// Make everything 20% bigger (and further)
-			g_Config.fScreenHeight /= 1.05f;
-			NOTICE_LOG(VR, "Screen is %fm High", g_Config.fScreenHeight);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_THICKER)) {
-			// Make Screen 10cm thicker
-			if (g_Config.fScreenThickness < 0.01f)
-				g_Config.fScreenThickness = 0.01f;
-			else if (g_Config.fScreenThickness < 0.1f)
-				g_Config.fScreenThickness += 0.01f;
-			else
-				g_Config.fScreenThickness += 0.1f;
-			NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_THINNER)) {
-			// Make Screen 10cm thinner
-			if (g_Config.fScreenThickness <= 0.01f)
-				g_Config.fScreenThickness = 0;
-			else if (g_Config.fScreenThickness <= 0.1f)
-				g_Config.fScreenThickness -= 0.01f;
-			else
-				g_Config.fScreenThickness -= 0.1f;
-			NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_FORWARD)) {
-			// Move Screen in 10cm
-			g_Config.fScreenDistance -= 0.1f;
-			if (g_Config.fScreenDistance <= 0)
-				g_Config.fScreenDistance = 0;
-			NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_BACKWARD)) {
-			// Move Screen out 10cm
-			g_Config.fScreenDistance += 0.1f;
-			NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_UP)) {
-			// Move Screen Down (Camera Up) 10cm
-			g_Config.fScreenUp -= 0.1f;
-			NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_DOWN)) {
-			// Move Screen Up (Camera Down) 10cm
-			g_Config.fScreenUp += 0.1f;
-			NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_TILT_UP)) {
-			// Pitch camera up 5 degrees
-			g_Config.fScreenPitch += 1.0f;
-			NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
-		}
-		else if (g_has_rift && IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_TILT_DOWN)) {
-			// Pitch camera down 5 degrees
-			g_Config.fScreenPitch -= 1.0f;
-			NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);;
+		else if (g_has_hmd){
+			if (IsVRSettingsXInput(XInput_State, VR_LARGER_SCALE)) {
+				// Make everything 10% bigger (and further)
+				g_Config.fUnitsPerMetre /= 1.10f;
+				VertexShaderManager::ScaleView(1.10f);
+				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_SMALLER_SCALE)) {
+				// Make everything 10% smaller (and closer)
+				g_Config.fUnitsPerMetre *= 1.10f;
+				VertexShaderManager::ScaleView(1.0f / 1.10f);
+				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_PERMANENT_CAMERA_FORWARD)) {
+				// Move camera forward 10cm
+				g_Config.fCameraForward += freeLookSpeed;
+				NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_PERMANENT_CAMERA_BACKWARD)) {
+				// Move camera back 10cm
+				g_Config.fCameraForward -= freeLookSpeed;
+				NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_CAMERA_TILT_UP)) {
+				// Pitch camera up 5 degrees
+				g_Config.fCameraPitch += 1.0f;
+				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_CAMERA_TILT_DOWN)) {
+				// Pitch camera down 5 degrees
+				g_Config.fCameraPitch -= 1.0f;
+				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_HUD_FORWARD)) {
+				// Move HUD out 10cm
+				g_Config.fHudDistance += 0.1f;
+				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_HUD_BACKWARD)) {
+				// Move HUD in 10cm
+				g_Config.fHudDistance -= 0.1f;
+				if (g_Config.fHudDistance <= 0)
+					g_Config.fHudDistance = 0;
+				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_HUD_THICKER)) {
+				// Make HUD 10cm thicker
+				if (g_Config.fHudThickness < 0.01f)
+					g_Config.fHudThickness = 0.01f;
+				else if (g_Config.fHudThickness < 0.1f)
+					g_Config.fHudThickness += 0.01f;
+				else
+					g_Config.fHudThickness += 0.1f;
+				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_HUD_THINNER)) {
+				// Make HUD 10cm thinner
+				if (g_Config.fHudThickness <= 0.01f)
+					g_Config.fHudThickness = 0;
+				else if (g_Config.fHudThickness <= 0.1f)
+					g_Config.fHudThickness -= 0.01f;
+				else
+					g_Config.fHudThickness -= 0.1f;
+				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_HUD_3D_CLOSER)) {
+				// Make HUD 3D elements 5% closer (and smaller)
+				if (g_Config.fHud3DCloser >= 0.95f)
+					g_Config.fHud3DCloser = 1;
+				else
+					g_Config.fHud3DCloser += 0.05f;
+				NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_HUD_3D_FURTHER)) {
+				// Make HUD 3D elements 5% further (and smaller)
+				if (g_Config.fHud3DCloser <= 0.05f)
+					g_Config.fHud3DCloser = 0;
+				else
+					g_Config.fHud3DCloser -= 0.05f;
+				NOTICE_LOG(VR, "HUD 3D Items are %5.1f%% closer", g_Config.fHud3DCloser * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_LARGER)) {
+				// Make everything 20% smaller (and closer)
+				g_Config.fScreenHeight *= 1.05f;
+				NOTICE_LOG(VR, "Screen is %fm high", g_Config.fScreenHeight);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_SMALLER)) {
+				// Make everything 20% bigger (and further)
+				g_Config.fScreenHeight /= 1.05f;
+				NOTICE_LOG(VR, "Screen is %fm High", g_Config.fScreenHeight);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_THICKER)) {
+				// Make Screen 10cm thicker
+				if (g_Config.fScreenThickness < 0.01f)
+					g_Config.fScreenThickness = 0.01f;
+				else if (g_Config.fScreenThickness < 0.1f)
+					g_Config.fScreenThickness += 0.01f;
+				else
+					g_Config.fScreenThickness += 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_SCREEN_THINNER)) {
+				// Make Screen 10cm thinner
+				if (g_Config.fScreenThickness <= 0.01f)
+					g_Config.fScreenThickness = 0;
+				else if (g_Config.fScreenThickness <= 0.1f)
+					g_Config.fScreenThickness -= 0.01f;
+				else
+					g_Config.fScreenThickness -= 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_FORWARD)) {
+				// Move Screen in 10cm
+				g_Config.fScreenDistance -= 0.1f;
+				if (g_Config.fScreenDistance <= 0)
+					g_Config.fScreenDistance = 0;
+				NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_BACKWARD)) {
+				// Move Screen out 10cm
+				g_Config.fScreenDistance += 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_UP)) {
+				// Move Screen Down (Camera Up) 10cm
+				g_Config.fScreenUp -= 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_DOWN)) {
+				// Move Screen Up (Camera Down) 10cm
+				g_Config.fScreenUp += 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_TILT_UP)) {
+				// Pitch camera up 5 degrees
+				g_Config.fScreenPitch += 1.0f;
+				NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
+			}
+			else if (IsVRSettingsXInput(XInput_State, VR_2D_CAMERA_TILT_DOWN)) {
+				// Pitch camera down 5 degrees
+				g_Config.fScreenPitch -= 1.0f;
+				NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
+			}
 		}
 
 

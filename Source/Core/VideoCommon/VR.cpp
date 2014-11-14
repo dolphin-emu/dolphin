@@ -137,6 +137,8 @@ void ShutdownVR()
 		if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
 			ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_DisplayOff);
 		ovrHmd_Destroy(hmd);
+		g_has_rift = false;
+		g_has_hmd = false;
 		NOTICE_LOG(VR, "Oculus Rift shut down.");
 	}
 	ovr_Shutdown();
