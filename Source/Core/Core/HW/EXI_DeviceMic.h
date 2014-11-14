@@ -60,7 +60,7 @@ private:
 	int ring_pos;
 	u8 ring_buffer[64 * sample_size];
 
-	// 0 to disable interrupts, else it will be checked against current cpu ticks
+	// 0 to disable interrupts, else it will be checked against current CPU ticks
 	// to determine if interrupt should be raised
 	u64 next_int_ticks;
 	void UpdateNextInterruptTicks();

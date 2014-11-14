@@ -246,7 +246,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		break;
 	}
 
-	if (IsWiiDisc) // Only one language with wii banners
+	if (IsWiiDisc) // Only one language with Wii banners
 	{
 		m_Lang->SetSelection(0);
 		m_Lang->Disable();

@@ -8,7 +8,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 
-// standard gamecube controller
+// standard GameCube controller
 class CSIDevice_GCController : public ISIDevice
 {
 private:

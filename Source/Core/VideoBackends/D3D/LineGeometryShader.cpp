@@ -83,7 +83,7 @@ static const char LINE_GS_COMMON[] =
 "#endif\n"
 
 	// Apply TexOffset to all tex coordinates in the vertex.
-	// They can each be enabled seperately.
+	// They can each be enabled separately.
 "#if NUM_TEXCOORDS >= 1\n"
 	"r0.tex0.x += Params.TexOffset * Params.TexOffsetEnable[0];\n"
 	"r1.tex0.x += Params.TexOffset * Params.TexOffsetEnable[0];\n"

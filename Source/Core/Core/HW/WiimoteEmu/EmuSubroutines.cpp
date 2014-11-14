@@ -1085,7 +1085,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				file.close();
 			}
 
-			// read mem to be sent to wii
+			// read memory to be sent to Wii
 			memcpy(block, m_eeprom + address, size);
 		}
 		break;

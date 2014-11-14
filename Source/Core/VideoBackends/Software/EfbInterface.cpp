@@ -540,7 +540,7 @@ namespace EfbInterface
 			{
 				// YU pixel
 				xfb_in_ram[x].Y = scanline[i].Y + 16;
-				// we mix our color difrences in 10 bit space so it will round more accurately
+				// we mix our color differences in 10 bit space so it will round more accurately
 				// U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
 				xfb_in_ram[x].UV = 128 + ((scanline[i-1].U + (scanline[i].U << 1) + scanline[i+1].U) >> 2);
 
@@ -553,7 +553,7 @@ namespace EfbInterface
 		}
 	}
 
-	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via GameCube main memory or doing a yuyv conversion
+	// Like CopyToXFB, but we copy directly into the opengl color texture without going via GameCube main memory or doing a yuyv conversion
 	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 	{
 		if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT)

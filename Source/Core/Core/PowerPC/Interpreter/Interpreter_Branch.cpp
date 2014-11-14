@@ -120,7 +120,7 @@ void Interpreter::rfid(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-// sc isn't really used for anything important in gc games (just for a write barrier) so we really don't have to emulate it.
+// sc isn't really used for anything important in GameCube games (just for a write barrier) so we really don't have to emulate it.
 // We do it anyway, though :P
 void Interpreter::sc(UGeckoInstruction _inst)
 {
