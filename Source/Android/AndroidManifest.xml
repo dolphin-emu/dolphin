@@ -6,8 +6,8 @@
     android:installLocation="auto">
 
     <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="19" />
+        android:minSdkVersion="17"
+        android:targetSdkVersion="21" />
 
     <uses-feature android:glEsVersion="0x00020000" />
 
