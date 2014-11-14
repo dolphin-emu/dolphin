@@ -144,14 +144,7 @@ public final class FolderBrowser extends ListFragment
 		{
 			String isoPath = NativeLibrary.GetConfig("Dolphin.ini", "General", "ISOPath" + i, "");
 
-			if (isoPath.equals(currentDir.getPath()))
-			{
-				pathNotPresent = false;
-			}
-			else
-			{
-				pathNotPresent = true;
-			}
+			pathNotPresent = !isoPath.equals(currentDir.getPath());
 		}
 
 		// User doesn't have this path in the config, so add it.
