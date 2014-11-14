@@ -153,7 +153,7 @@ u16 dsp_read_accelerator()
 	// TODO: Take GAIN into account
 	// adpcm = 0, pcm8 = 0x100, pcm16 = 0x800
 	// games using pcm8 : Phoenix Wright Ace Attorney (Wiiware), Megaman 9-10 (WiiWare)
-	// games using pcm16: gc sega games, ...
+	// games using pcm16: GC Sega games, ...
 
 	// Check for loop.
 	// Somehow, YN1 and YN2 must be initialized with their "loop" values,

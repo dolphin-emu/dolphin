@@ -108,10 +108,10 @@ struct SConfig : NonCopyable
 	// eg. an Oculus Rift window wouldn't be suitable for normal non-VR gaming.
 	bool m_special_case;
 
-	// save settings
+	// Save settings
 	void SaveSettings();
 
-	// load settings
+	// Load settings
 	void LoadSettings();
 
 	// Return the permanent and somewhat globally used instance of this struct

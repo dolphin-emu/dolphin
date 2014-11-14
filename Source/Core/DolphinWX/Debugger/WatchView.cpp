@@ -247,18 +247,18 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 		TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
 	}
 
-	wxMenu* menu = new wxMenu;
+	wxMenu menu;
 	if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1))
-		menu->Append(IDM_DELETEWATCH, _("&Delete watch"));
+		menu.Append(IDM_DELETEWATCH, _("&Delete watch"));
 
 	if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1) && (col == 1 || col == 2))
 	{
 #ifdef ENABLE_MEM_CHECK
-		menu->Append(IDM_ADDMEMCHECK, _("Add memory &breakpoint"));
+		menu.Append(IDM_ADDMEMCHECK, _("Add memory &breakpoint"));
 #endif
-		menu->Append(IDM_VIEWMEMORY, _("View &memory"));
+		menu.Append(IDM_VIEWMEMORY, _("View &memory"));
 	}
-	PopupMenu(menu);
+	PopupMenu(&menu);
 }
 
 void CWatchView::OnPopupMenu(wxCommandEvent& event)

@@ -54,7 +54,7 @@ static void CreatePrograms()
 {
 	/* TODO: Accuracy Improvements
 	 *
-	 * This shader doesn't really match what the gamecube does interally in the
+	 * This shader doesn't really match what the GameCube does internally in the
 	 * copy pipeline.
 	 *  1. It uses Opengl's built in filtering when yscaling, someone could work
 	 *     out how the copypipeline does it's filtering and implement it correctly
@@ -62,7 +62,7 @@ static void CreatePrograms()
 	 *  2. Deflickering isn't implemented, a futher filtering over 3 lines.
 	 *     Isn't really needed on non-interlaced monitors (and would lower quality;
 	 *     But hey, accuracy!)
-	 *  3. Flipper's YUYV conversion implements a 3 pixel horozontal blur on the
+	 *  3. Flipper's YUYV conversion implements a 3 pixel horizontal blur on the
 	 *     UV channels, centering the U channel on the Left pixel and the V channel
 	 *     on the Right pixel.
 	 *     The current implementation Centers both UV channels at the same place
@@ -101,7 +101,7 @@ static void CreatePrograms()
 	 *
 	 * The YVYU to RGB conversion here matches the RGB to YUYV done above, but
 	 * if a game modifies or adds images to the XFB then it should be using the
-	 * same algorithm as the flipper, and could result in slight colour inaccuracies
+	 * same algorithm as the flipper, and could result in slight color inaccuracies
 	 * when run back through this shader.
 	 */
 	const char *VProgramYuyvToRgb =
@@ -253,9 +253,9 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	{
 		// writing to a texture of a different size
 		// also copy more then one block line, so the different strides matters
-		// copy into one pbo first, map this buffer, and then memcpy into gc memory
+		// copy into one pbo first, map this buffer, and then memcpy into GC memory
 		// in this way, we only have one vram->ram transfer, but maybe a bigger
-		// cpu overhead because of the pbo
+		// CPU overhead because of the pbo
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
 		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, nullptr, GL_STREAM_READ);
 		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
@@ -340,7 +340,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	glUniform4f(s_rgbToYuyvUniform_loc, static_cast<float>(sourceRc.left), static_cast<float>(sourceRc.top),
 		static_cast<float>(sourceRc.right), static_cast<float>(sourceRc.bottom));
 
-	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
+	// We enable linear filtering, because the GameCube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
 	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);

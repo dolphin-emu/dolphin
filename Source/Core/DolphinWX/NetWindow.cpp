@@ -123,7 +123,6 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY,
 		_("ALERT:\n\n"
 		"Netplay will only work with the following settings:\n"
-		" - Enable Dual Core [OFF]\n"
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
 		" - Manually set the extensions for each wiimote\n"

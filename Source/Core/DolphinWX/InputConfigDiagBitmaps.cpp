@@ -163,7 +163,7 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 		}
 
 		// adjusted dot
-		if (x != 0 && y != 0)
+		if (x != 0 || y != 0)
 		{
 			dc.SetPen(*wxRED_PEN);
 			dc.SetBrush(*wxRED_BRUSH);

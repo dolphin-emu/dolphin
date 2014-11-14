@@ -86,7 +86,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 
 	if (titleID == TITLEID_SYSMENU)
 		HLE_IPC_CreateVirtualFATFilesystem();
-	// setup wii mem
+	// setup Wii memory
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
 		return false;
 

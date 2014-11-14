@@ -385,7 +385,7 @@ public:
 	void SetJumpTarget(const FixupBranch &branch);
 
 	void SETcc(CCFlags flag, OpArg dest);
-	// Note: CMOV brings small if any benefit on current cpus.
+	// Note: CMOV brings small if any benefit on current CPUs.
 	void CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag);
 
 	// Fences

@@ -14,7 +14,7 @@
 #include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SystemTimers.h"
 
-// --- Dance mat gamecube controller ---
+// --- Dance mat GameCube controller ---
 CSIDevice_DanceMat::CSIDevice_DanceMat(SIDevices device, int _iDeviceNumber)
 	: ISIDevice(device, _iDeviceNumber)
 	, m_TButtonComboStart(0)

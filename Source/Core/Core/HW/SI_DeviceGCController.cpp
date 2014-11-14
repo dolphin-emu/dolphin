@@ -14,7 +14,7 @@
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SystemTimers.h"
 
-// --- standard gamecube controller ---
+// --- standard GameCube controller ---
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNumber)
 	: ISIDevice(device, _iDeviceNumber)
 	, m_TButtonComboStart(0)

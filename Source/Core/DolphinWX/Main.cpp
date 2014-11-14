@@ -168,7 +168,7 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, "e", "exec",
-			"Loads the specified file (DOL,ELF,GCM,ISO,WAD)",
+			"Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -426,7 +426,7 @@ void DolphinApp::InitLanguageSupport()
 
 void DolphinApp::OnEndSession(wxCloseEvent& event)
 {
-	// Close if we've recieved wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
+	// Close if we've received wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
 	if (!event.CanVeto())
 	{
 		main_frame->Close(true);
@@ -494,7 +494,7 @@ void* Host_GetRenderHandle()
 	return main_frame->GetRenderHandle();
 }
 
-// OK, this thread boundary is DANGEROUS on linux
+// OK, this thread boundary is DANGEROUS on Linux
 // wxPostEvent / wxAddPendingEvent is the solution.
 void Host_NotifyMapLoaded()
 {
