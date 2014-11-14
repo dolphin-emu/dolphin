@@ -1,3 +1,7 @@
+set(LIBS core gtest)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	list(APPEND LIBS ${FOUNDATION_LIBRARY} ${CORESERV_LIBRARY})
+endif()
 macro(add_dolphin_test target srcs)
 	# Since this is a Core dependency, it can't be linked as a library and has
 	# to be linked as an object file. Otherwise CMake inserts the library after
@@ -9,7 +13,7 @@ macro(add_dolphin_test target srcs)
 	add_custom_command(TARGET Test_${target}
 	                   PRE_LINK
 	                   COMMAND mkdir -p ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests)
-	target_link_libraries(Test_${target} core gtest)
+	target_link_libraries(Test_${target} ${LIBS})
 	add_dependencies(unittests Test_${target})
 	add_test(NAME ${target} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests/${target})
 endmacro(add_dolphin_test)
