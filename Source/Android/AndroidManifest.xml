@@ -19,7 +19,8 @@
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:allowBackup="true">
+        android:allowBackup="true"
+        android:supportsRtl="true">
         <activity
             android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"
             android:label="@string/app_name"
