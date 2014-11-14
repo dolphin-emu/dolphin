@@ -230,11 +230,11 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 	menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
 	menu.Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
 
-	wxMenu viewAsSubMenu;
-	viewAsSubMenu.Append(IDM_VIEWASFP, _("FP value"));
-	viewAsSubMenu.Append(IDM_VIEWASASCII, "ASCII");
-	viewAsSubMenu.Append(IDM_VIEWASHEX, _("Hex"));
-	menu.AppendSubMenu(&viewAsSubMenu, _("View As:"));
+	wxMenu* viewAsSubMenu = new wxMenu;
+	viewAsSubMenu->Append(IDM_VIEWASFP, _("FP value"));
+	viewAsSubMenu->Append(IDM_VIEWASASCII, "ASCII");
+	viewAsSubMenu->Append(IDM_VIEWASHEX, _("Hex"));
+	menu.AppendSubMenu(viewAsSubMenu, _("View As:"));
 
 	PopupMenu(&menu);
 }
