@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 #include <wx/bitmap.h>
@@ -80,30 +81,26 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			if (pFileSystem != nullptr || m_Platform == WII_WAD)
 			{
-				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
+				std::unique_ptr<DiscIO::IBannerLoader> pBannerLoader(DiscIO::CreateBannerLoader(*pFileSystem, pVolume));
 
-				if (pBannerLoader != nullptr)
+				if (pBannerLoader != nullptr && pBannerLoader->IsValid())
 				{
-					if (pBannerLoader->IsValid())
+					if (m_Platform != WII_WAD)
+						m_banner_names = pBannerLoader->GetNames();
+					m_company = pBannerLoader->GetCompany();
+					m_descriptions = pBannerLoader->GetDescriptions();
+
+					std::vector<u32> Buffer = pBannerLoader->GetBanner(&m_ImageWidth, &m_ImageHeight);
+					u32* pData = &Buffer[0];
+					// resize vector to image size
+					m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
+
+					for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
 					{
-						if (m_Platform != WII_WAD)
-							m_banner_names = pBannerLoader->GetNames();
-						m_company = pBannerLoader->GetCompany();
-						m_descriptions = pBannerLoader->GetDescriptions();
-
-						std::vector<u32> Buffer = pBannerLoader->GetBanner(&m_ImageWidth, &m_ImageHeight);
-						u32* pData = &Buffer[0];
-						// resize vector to image size
-						m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
-
-						for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
-						{
-							m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
-							m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >>  8;
-							m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >>  0;
-						}
+						m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
+						m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >>  8;
+						m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >>  0;
 					}
-					delete pBannerLoader;
 				}
 
 				delete pFileSystem;
