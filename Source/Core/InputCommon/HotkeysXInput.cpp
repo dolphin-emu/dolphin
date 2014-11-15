@@ -127,10 +127,11 @@ namespace HotkeysXInput
 
 		static float oldfUnitsPerMetre;
 		static float oldfFreeLookScale;
+		static float oldfScale;
 		static float freeLookSpeed;
 
-		//Recalculate only when fUnitsPerMetre changes.
-		if (g_has_hmd && (g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale)){
+		//Recalculate only when fUnitsPerMetre, fFreeLookScale, or fScale changes.
+		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale)){
 			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
 		}
 		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale){
@@ -139,6 +140,7 @@ namespace HotkeysXInput
 
 		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
 		oldfFreeLookScale = SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
+		oldfScale = g_ActiveConfig.fScale;
 
 		if (IsVRSettingsXInput(XInput_State, VR_POSITION_RESET)) {
 			VertexShaderManager::ResetView();

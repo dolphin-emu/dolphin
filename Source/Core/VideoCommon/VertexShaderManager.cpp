@@ -1466,8 +1466,7 @@ void VertexShaderManager::SetProjectionConstants()
 			posRight[0] = g_eye_render_desc[1].ViewAdjust.x * UnitsPerMetre;
 			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
 			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
-#endif
-#ifdef OCULUSSDK043
+#else
 			posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x * UnitsPerMetre;
 			posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y * UnitsPerMetre;
 			posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z * UnitsPerMetre;
