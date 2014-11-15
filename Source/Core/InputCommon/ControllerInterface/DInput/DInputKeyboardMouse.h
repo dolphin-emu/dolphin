@@ -25,7 +25,7 @@ private:
 		DIMOUSESTATE2 mouse;
 		struct
 		{
-			float x, y;
+			ControlState x, y;
 		} cursor;
 	};
 
@@ -68,10 +68,10 @@ private:
 	public:
 		std::string GetName() const;
 		bool IsDetectable() { return false; }
-		Cursor(u8 index, const float& axis, const bool positive) : m_index(index), m_axis(axis), m_positive(positive) {}
+		Cursor(u8 index, const ControlState& axis, const bool positive) : m_index(index), m_axis(axis), m_positive(positive) {}
 		ControlState GetState() const;
 	private:
-		const float& m_axis;
+		const ControlState& m_axis;
 		const u8 m_index;
 		const bool m_positive;
 	};

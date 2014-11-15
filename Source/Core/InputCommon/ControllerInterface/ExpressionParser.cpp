@@ -317,7 +317,7 @@ public:
 		switch (op)
 		{
 		case TOK_NOT:
-			return 1.0f - value;
+			return 1.0 - value;
 		default:
 			assert(false);
 			return 0;
@@ -329,7 +329,7 @@ public:
 		switch (op)
 		{
 		case TOK_NOT:
-			inner->SetValue(1.0f - value);
+			inner->SetValue(1.0 - value);
 		default:
 			assert(false);
 		}
