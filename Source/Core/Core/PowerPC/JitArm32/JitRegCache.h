@@ -135,4 +135,6 @@ public:
 	// Public function doesn't kill immediates
 	// In reality when you call R(u32) it'll bind an immediate there
 	void BindToRegister(u32 preg, bool doLoad = true);
+
+	void StoreFromRegister(u32 preg);
 };

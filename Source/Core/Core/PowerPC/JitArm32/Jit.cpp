@@ -444,6 +444,13 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 					BKPT(0x7777);
 				}
 				JitArmTables::CompileInstruction(ops[i]);
+
+				// If we have a register that will never be used again, flush it.
+				for (int j : ~ops[i].gprInUse)
+					gpr.StoreFromRegister(j);
+				for (int j : ~ops[i].fprInUse)
+					fpr.StoreFromRegister(j);
+
 				if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 				{
 					// Don't do this yet
