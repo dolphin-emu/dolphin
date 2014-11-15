@@ -15,6 +15,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/ec_wii.h"
 #include "Core/IPC_HLE/ICMP.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
@@ -314,6 +315,10 @@ static void GetMacAddress(u8* mac)
 	// Parse MAC address from config, and generate a new one if it doesn't
 	// exist or can't be parsed.
 	std::string wireless_mac = SConfig::GetInstance().m_WirelessMac;
+
+	if (Core::g_want_determinism)
+		wireless_mac = "12:34:56:78:9a:bc";
+
 	if (!StringToMacAddress(wireless_mac, mac))
 	{
 		GenerateMacAddress(IOS, mac);
