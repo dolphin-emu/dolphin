@@ -77,9 +77,9 @@ void JitArm::lfXX(UGeckoInstruction inst)
 		break;
 	}
 
-	ARMReg v0 = fpr.R0(inst.FD), v1;
+	ARMReg v0 = fpr.R0(inst.FD, false), v1;
 	if (single)
-		v1 = fpr.R1(inst.FD);
+		v1 = fpr.R1(inst.FD, false);
 
 	if (update)
 	{
@@ -134,28 +134,9 @@ void JitArm::lfXX(UGeckoInstruction inst)
 	if (update)
 		MOV(RA, rB);
 
-	if (false)
-	{
-		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-		BIC(rB, rB, mask); // 1
-		MOVI2R(rA, (u32)Memory::base, false); // 2-3
-		ADD(rB, rB, rA); // 4
-
-		NEONXEmitter nemit(this);
-		if (single)
-		{
-			VLDR(S0, rB, 0);
-			nemit.VREV32(I_8, D0, D0); // Byte swap to result
-			VCVT(v0, S0, 0);
-			VCVT(v1, S0, 0);
-		}
-		else
-		{
-			VLDR(v0, rB, 0);
-			nemit.VREV64(I_8, v0, v0); // Byte swap to result
-		}
-	}
-	else
+	// This branch gets changed to a NOP when the fastpath fails
+	FixupBranch fast_path = B();
+	FixupBranch slow_out;
 	{
 		PUSH(4, R0, R1, R2, R3);
 		MOV(R0, rB);
@@ -163,9 +144,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 		{
 			MOVI2R(rA, (u32)&Memory::Read_U32);
 			BL(rA);
-
 			VMOV(S0, R0);
-
 			VCVT(v0, S0, 0);
 			VCVT(v1, S0, 0);
 		}
@@ -181,7 +160,34 @@ void JitArm::lfXX(UGeckoInstruction inst)
 #endif
 		}
 		POP(4, R0, R1, R2, R3);
+		slow_out = B();
 	}
+	SetJumpTarget(fast_path);
+	{
+		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
+		ARMReg rC = gpr.GetReg();
+		BIC(rC, rB, mask);
+		MOVI2R(rA, (u32)Memory::base);
+		ADD(rC, rC, rA);
+
+		NEONXEmitter nemit(this);
+		if (single)
+		{
+			nemit.VLD1(F_32, D0, rC);
+			nemit.VREV32(I_8, D0, D0); // Byte swap to result
+			VCVT(v0, S0, 0);
+			VCVT(v1, S0, 0);
+		}
+		else
+		{
+			nemit.VLD1(I_64, v0, rC);
+			nemit.VREV64(I_8, v0, v0); // Byte swap to result
+		}
+		gpr.Unlock(rC);
+	}
+
+	SetJumpTarget(slow_out);
+
 	gpr.Unlock(rA, rB);
 	SetJumpTarget(DoNotLoad);
 }
@@ -302,36 +308,17 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		SetCC();
 	}
 
-	if (false)
-	{
-		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-		BIC(rB, rB, mask); // 1
-		MOVI2R(rA, (u32)Memory::base, false); // 2-3
-		ADD(rB, rB, rA); // 4
-
-		NEONXEmitter nemit(this);
-		if (single)
-		{
-			VCVT(S0, v0, 0);
-			nemit.VREV32(I_8, D0, D0);
-			VSTR(S0, rB, 0);
-		}
-		else
-		{
-			nemit.VREV64(I_8, D0, v0);
-			VSTR(D0, rB, 0);
-		}
-	}
-	else
+	// This branch gets changed to a NOP when the fastpath fails
+	FixupBranch fast_path = B();
+	FixupBranch slow_out;
 	{
 		PUSH(4, R0, R1, R2, R3);
 		if (single)
 		{
-			MOVI2R(rA, (u32)&Memory::Write_U32);
+			MOV(R1, rB);
 			VCVT(S0, v0, 0);
 			VMOV(R0, S0);
-			MOV(R1, rB);
-
+			MOVI2R(rA, (u32)&Memory::Write_U32);
 			BL(rA);
 		}
 		else
@@ -347,43 +334,32 @@ void JitArm::stfXX(UGeckoInstruction inst)
 			BL(rA);
 		}
 		POP(4, R0, R1, R2, R3);
+		slow_out = B();
 	}
-	gpr.Unlock(rA, rB);
-}
-
-// Some games use stfs as a way to quickly write to the gatherpipe and other hardware areas.
-// Keep it as a safe store until this can get optimized.
-// Look at the JIT64 implementation to see how it is done
-
-void JitArm::stfs(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff);
-
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg v0 = fpr.R0(inst.FS);
-	VCVT(S0, v0, 0);
-
-	if (inst.RA)
+	SetJumpTarget(fast_path);
 	{
-		MOVI2R(rB, inst.SIMM_16);
-		ARMReg RA = gpr.R(inst.RA);
-		ADD(rB, rB, RA);
+		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
+		ARMReg rC = gpr.GetReg();
+		BIC(rC, rB, mask);
+		MOVI2R(rA, (u32)Memory::base);
+		ADD(rC, rC, rA);
+
+		NEONXEmitter nemit(this);
+		if (single)
+		{
+			VCVT(S0, v0, 0);
+			nemit.VREV32(I_8, D0, D0);
+			VSTR(S0, rC, 0);
+		}
+		else
+		{
+			nemit.VREV64(I_8, D0, v0);
+			VSTR(D0, rC, 0);
+		}
+		gpr.Unlock(rC);
 	}
-	else
-	{
-		MOVI2R(rB, (u32)inst.SIMM_16);
-	}
 
-	MOVI2R(rA, (u32)&Memory::Write_U32);
-	PUSH(4, R0, R1, R2, R3);
-	VMOV(R0, S0);
-	MOV(R1, rB);
-
-	BL(rA);
-
-	POP(4, R0, R1, R2, R3);
+	SetJumpTarget(slow_out);
 
 	gpr.Unlock(rA, rB);
 }
