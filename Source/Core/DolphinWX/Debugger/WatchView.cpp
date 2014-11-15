@@ -56,7 +56,7 @@ static void UpdateWatchAddr(int count, u32 value)
 	PowerPC::watches.Update(count - 1, value);
 }
 
-static void SetWatchName(int count, const std::string value)
+static void SetWatchName(int count, const std::string& value)
 {
 	if ((count - 1) < (int)PowerPC::watches.GetWatches().size())
 	{
