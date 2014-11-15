@@ -322,8 +322,7 @@ void FramebufferManager::ConfigureRift()
 #ifdef OCULUSSDK044
 	cfg.D3D11.Header.BackBufferSize.w = hmdDesc.Resolution.w;
 	cfg.D3D11.Header.BackBufferSize.h = hmdDesc.Resolution.h;
-#endif
-#ifdef OCULUSSDK043
+#else
 	cfg.D3D11.Header.RTSize.w = hmdDesc.Resolution.w;
 	cfg.D3D11.Header.RTSize.h = hmdDesc.Resolution.h;
 #endif

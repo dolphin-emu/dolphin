@@ -155,8 +155,7 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 #ifdef OCULUSSDK042
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#endif
-#ifdef OCULUSSDK043
+#else
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
 #endif
