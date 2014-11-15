@@ -14,7 +14,7 @@
 
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginRight="6dip"/>
+        android:layout_marginEnd="6dip"/>
 
     <!-- Properties in the 'tools' namespace are only visible in the UI editor, not at runtime. -->
     <TextView tools:text="@string/file_size"
@@ -24,9 +24,9 @@
 
         android:textColor="#bbbbbb"
 
-        android:layout_toRightOf="@id/BrowserItemIcon"
+        android:layout_toEndOf="@id/BrowserItemIcon"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
 
         android:singleLine="true"
         android:ellipsize="marquee"
@@ -45,8 +45,8 @@
         android:singleLine="true"
         android:ellipsize="end"
 
-        android:layout_toRightOf="@id/BrowserItemIcon"
-        android:layout_alignParentRight="true"
+        android:layout_toEndOf="@id/BrowserItemIcon"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_above="@id/BrowserItemSubTitle"
         android:layout_alignWithParentIfMissing="true"
