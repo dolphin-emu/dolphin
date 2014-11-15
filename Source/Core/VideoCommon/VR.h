@@ -19,7 +19,9 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 
 // Detect which version of the Oculus SDK we are using
 #if OVR_MINOR_VERSION >= 4
-#if OVR_BUILD_VERSION >= 3
+#if OVR_BUILD_VERSION >= 4
+#define OCULUSSDK044
+#elif OVR_BUILD_VERSION >= 3
 #define OCULUSSDK043
 #else
 #define OCULUSSDK042

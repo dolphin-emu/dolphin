@@ -127,7 +127,6 @@ static const struct
 	const int   DefaultKey;
 	const int   DefaultModifier;
 	const u32   XInputMapping;
-	//const std::string XInputMapping;
 } g_VRData[] = {
 		{ "FreeLookReset",              true, 82, 4 /* wxMOD_SHIFT */, 0 },
 		{ "FreeLookForward",            true, 87, 4 /* wxMOD_SHIFT */, 0 },
@@ -291,6 +290,7 @@ void SConfig::SaveVRSettings(IniFile& ini)
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
 	vrsettings->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
+	vrsettings->Set("FreeLookScale", m_LocalCoreStartupParameter.fFreeLookScale);
 
 	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{
@@ -550,6 +550,7 @@ void SConfig::LoadVRSettings(IniFile& ini)
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
 	vrsettings->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
+	vrsettings->Get("FreeLookScale", &m_LocalCoreStartupParameter.fFreeLookScale, 1.00);
 
 	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{

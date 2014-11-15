@@ -598,8 +598,14 @@ void FramebufferManager::ConfigureRift()
 {
 	ovrGLConfig cfg;
 	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
+#ifdef OCULUSSDK044
+	cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
+	cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
+#endif
+#ifdef OCULUSSDK043
 	cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
 	cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
+#endif
 	cfg.OGL.Header.Multisample = 0;
 #ifdef _WIN32
 	cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
