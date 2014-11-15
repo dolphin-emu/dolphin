@@ -3,100 +3,42 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cstring>
+#include <functional>
+#include <regex>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
-#include "Common/StringUtil.h"
+#include "Common/FileUtil.h"
 
-#ifndef _WIN32
-#include <dirent.h>
-#else
-#include <windows.h>
-#endif
-
-
-CFileSearch::CFileSearch(const CFileSearch::XStringVector& _rSearchStrings, const CFileSearch::XStringVector& _rDirectories)
+std::vector<std::string> DoFileSearch(const std::vector<std::string>& globs, const std::vector<std::string>& directories, bool recursive)
 {
-	// Reverse the loop order for speed?
-	for (auto& _rSearchString : _rSearchStrings)
+	std::string regex_str = "^(";
+	for (const auto& str : globs)
 	{
-		for (auto& _rDirectory : _rDirectories)
-		{
-			FindFiles(_rSearchString, _rDirectory);
-		}
+		if (regex_str.size() != 2)
+			regex_str += "|";
+		// convert glob to regex
+		regex_str += std::regex_replace(std::regex_replace(str, std::regex("\\."), std::string("\\.")), std::regex("\\*"), std::string(".*"));
 	}
+	regex_str += ")$";
+	std::regex regex(regex_str);
+	std::vector<std::string> result;
+	for (const std::string& directory : directories)
+	{
+		File::FSTEntry entry = File::ScanDirectoryTree(directory, recursive);
+
+		std::function<void(File::FSTEntry&)> DoEntry;
+		DoEntry = [&](File::FSTEntry& thisEntry) {
+			if (std::regex_match(thisEntry.virtualName, regex))
+				result.push_back(thisEntry.physicalName);
+			for (auto& child : thisEntry.children)
+				DoEntry(child);
+		};
+		DoEntry(entry);
+	}
+	// remove duplicates
+	std::sort(result.begin(), result.end());
+	result.erase(std::unique(result.begin(), result.end()), result.end());
+	return result;
 }
 
-
-void CFileSearch::FindFiles(const std::string& _searchString, const std::string& _strPath)
-{
-	std::string GCMSearchPath;
-	BuildCompleteFilename(GCMSearchPath, _strPath, _searchString);
-#ifdef _WIN32
-	WIN32_FIND_DATA findData;
-	HANDLE FindFirst = FindFirstFile(UTF8ToTStr(GCMSearchPath).c_str(), &findData);
-
-	if (FindFirst != INVALID_HANDLE_VALUE)
-	{
-		bool bkeepLooping = true;
-
-		while (bkeepLooping)
-		{
-			if (findData.cFileName[0] != '.')
-			{
-				std::string strFilename;
-				BuildCompleteFilename(strFilename, _strPath, TStrToUTF8(findData.cFileName));
-				m_FileNames.push_back(strFilename);
-			}
-
-			bkeepLooping = FindNextFile(FindFirst, &findData) ? true : false;
-		}
-	}
-	FindClose(FindFirst);
-
-
-#else
-	// TODO: super lame/broken
-
-	auto end_match(_searchString);
-
-	// assuming we have a "*.blah"-like pattern
-	if (!end_match.empty() && end_match[0] == '*')
-		end_match.erase(0, 1);
-
-	// ugly
-	if (end_match == ".*")
-		end_match.clear();
-
-	DIR* dir = opendir(_strPath.c_str());
-
-	if (!dir)
-		return;
-
-	while (auto const dp = readdir(dir))
-	{
-		std::string found(dp->d_name);
-
-		if ((found != ".") && (found != "..") &&
-		    (found.size() >= end_match.size()) &&
-		    std::equal(end_match.rbegin(), end_match.rend(), found.rbegin()))
-		{
-			std::string full_name;
-			if (_strPath.c_str()[_strPath.size()-1] == DIR_SEP_CHR)
-				full_name = _strPath + found;
-			else
-				full_name = _strPath + DIR_SEP + found;
-
-			m_FileNames.push_back(full_name);
-		}
-	}
-
-	closedir(dir);
-#endif
-}
-
-const CFileSearch::XStringVector& CFileSearch::GetFileNames() const
-{
-	return m_FileNames;
-}
