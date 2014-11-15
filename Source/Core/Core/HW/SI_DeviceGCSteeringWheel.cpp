@@ -22,7 +22,18 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 		const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 		if (numPAD < 4)
-			Pad::Motor(numPAD, uType, uStrength);
+		{
+			if (uType == 0x06)
+			{
+				// map 0..255 to -1.0..1.0
+				ControlState strength = uStrength / 127.5 - 1;
+				Pad::Rumble(numPAD, strength);
+			}
+			else
+			{
+				Pad::Rumble(numPAD, 0);
+			}
+		}
 
 		if (!_Poll)
 		{

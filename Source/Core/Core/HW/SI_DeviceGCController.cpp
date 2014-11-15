@@ -249,7 +249,12 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 			if (numPAD < 4)
-				Pad::Rumble(numPAD, uType, uStrength);
+			{
+				if (uType == 1 && uStrength > 2)
+					Pad::Rumble(numPAD, 1.0);
+				else
+					Pad::Rumble(numPAD, 0.0);
+			}
 
 			if (!_Poll)
 			{

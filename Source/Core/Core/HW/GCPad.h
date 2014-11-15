@@ -17,8 +17,7 @@ void Initialize(void* const hwnd);
 InputConfig* GetConfig();
 
 void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus);
-void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
-void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
+void Rumble(u8 _numPAD, const ControlState strength);
 
 bool GetMicButton(u8 pad);
 }
