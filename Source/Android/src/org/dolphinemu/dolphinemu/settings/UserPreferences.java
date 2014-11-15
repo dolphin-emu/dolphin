@@ -21,6 +21,11 @@ import android.preference.PreferenceManager;
  */
 public final class UserPreferences
 {
+	private UserPreferences()
+	{
+		// Disallows instantiation.
+	}
+
 	/**
 	 * Loads the settings stored in the Dolphin ini config files to the shared preferences of this front-end.
 	 * 

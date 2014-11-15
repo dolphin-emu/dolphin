@@ -53,6 +53,11 @@ public final class NativeLibrary
 		public static final int PRESSED = 1;
 	}
 
+	private NativeLibrary()
+	{
+		// Disallows instantiation.
+	}
+
 	/**
 	 * Default touchscreen device
 	 */
