@@ -7,6 +7,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Timer.h"
 
+#include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #ifdef _WIN32
@@ -528,21 +529,26 @@ private:
 	u64 rtc;
 	s64 utcdiff;
 
-	// Seconds between 1.1.1970 and 4.1.2008 16:00:38
-	static const u64 wii_bias = 0x477E5826;
+	// TODO: depending on CEXIIPL is a hack which I don't feel like removing
+	// because the function itself is pretty hackish; wait until I re-port my
+	// netplay rewrite; also, is that random 16:00:38 actually meaningful?
+	// seems very very doubtful since Wii was released in 2006
+
+	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
+	static const u64 wii_bias = 0x477E5826 - 0x386D4380;
 
 	// Returns seconds since Wii epoch
 	// +/- any bias set from IOCTL_NW24_SET_UNIVERSAL_TIME
 	u64 GetAdjustedUTC() const
 	{
-		return Common::Timer::GetTimeSinceJan1970() - wii_bias + utcdiff;
+		return CEXIIPL::GetGCTime() - wii_bias + utcdiff;
 	}
 
 	// Store the difference between what the Wii thinks is UTC and
 	// what the host OS thinks
 	void SetAdjustedUTC(u64 wii_utc)
 	{
-		utcdiff = Common::Timer::GetTimeSinceJan1970() - wii_bias - wii_utc;
+		utcdiff = CEXIIPL::GetGCTime() - wii_bias - wii_utc;
 	}
 };
 

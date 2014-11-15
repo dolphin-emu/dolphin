@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Common/FileUtil.h"
+#include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_Socket.h"
 
@@ -128,6 +129,14 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 	{
 		BufferOut3 = CommandBuffer.PayloadBuffer.at(2).m_Address;
 		BufferOutSize3 = CommandBuffer.PayloadBuffer.at(2).m_Size;
+	}
+
+	// I don't trust SSL to be deterministic, and this is never going to sync
+	// as such (as opposed to forwarding IPC results or whatever), so -
+	if (Core::g_want_determinism)
+	{
+		Memory::Write_U32(-1, _CommandAddress + 0x4);
+		return true;
 	}
 
 	switch (CommandBuffer.Parameter)
