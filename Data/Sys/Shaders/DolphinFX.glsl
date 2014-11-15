@@ -726,7 +726,7 @@ float4 LanczosScaler(float2 inputSize)
     float2 pos = texcoord + stepxy * 0.5;
     float2 f = frac(pos / stepxy);
 
-    float2 xystart = (-2.0 - f) * stepxy + pos;
+    float2 xystart = (-1.5 -f) * stepxy + pos;
     float4 xpos = float4(
     xystart.x,
     xystart.x + stepxy.x,
