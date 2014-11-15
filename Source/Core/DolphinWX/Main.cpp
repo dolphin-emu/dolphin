@@ -506,11 +506,6 @@ void Host_UpdateTitle(const std::string& title)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
-{
-	main_frame->GetRenderWindowSize(x, y, width, height);
-}
-
 void Host_RequestRenderWindowSize(int width, int height)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOWSIZEREQUEST);
