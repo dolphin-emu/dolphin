@@ -92,11 +92,11 @@ int CVolumeGC::GetRevision() const
 	if (!m_pReader)
 		return 0;
 
-	u8 Revision;
-	if (!Read(7, 1, &Revision))
+	u8 revision;
+	if (!Read(7, 1, &revision))
 		return 0;
 
-	return Revision;
+	return revision;
 }
 
 std::vector<std::string> CVolumeGC::GetNames() const
