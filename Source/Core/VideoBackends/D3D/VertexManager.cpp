@@ -140,11 +140,15 @@ void VertexManager::Draw(u32 stride)
 	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
 		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D::stateman->SetGeometryConstants(VertexShaderCache::GetConstantBuffer());
+		D3D::stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetActiveShader() : nullptr);
 
 		D3D::stateman->Apply();
 		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
 		INCSTAT(stats.thisFrame.numDrawCalls);
+
+		D3D::stateman->SetGeometryShader(nullptr);
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
@@ -220,6 +224,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 		if (!GeometryShaderCache::SetShader(components))
 		{
 			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
+			return;
 		}
 	}
 
