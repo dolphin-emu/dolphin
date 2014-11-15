@@ -338,7 +338,7 @@ struct wm_report
 struct wm_leds
 {
 	u8 rumble : 1;
-	// real wii also sets bit 0x2 (unknown purpose)
+	// real Wii also sets bit 0x2 (unknown purpose)
 	u8 : 3;
 	u8 leds : 4;
 };
@@ -347,7 +347,7 @@ struct wm_leds
 struct wm_report_mode
 {
 	u8 rumble : 1;
-	// unsure what "all_the_time" actually is, the real wii does set it (bit 0x2)
+	// unsure what "all_the_time" actually is, the real Wii does set it (bit 0x2)
 	u8 all_the_time : 1;
 	u8 continuous : 1;
 	u8 : 5;

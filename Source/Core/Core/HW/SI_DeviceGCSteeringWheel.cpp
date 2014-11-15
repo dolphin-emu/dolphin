@@ -15,7 +15,7 @@
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/SystemTimers.h"
 
-// --- standard gamecube controller ---
+// --- standard GameCube controller ---
 CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(SIDevices device, int _iDeviceNumber)
 	: ISIDevice(device, _iDeviceNumber)
 	, m_TButtonComboStart(0)

@@ -62,9 +62,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			if (!DiscIO::IsVolumeWadFile(pVolume))
 				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
 			else
-			{
 				m_Platform = WII_WAD;
-			}
 
 			m_volume_names = pVolume->GetNames();
 
@@ -165,9 +163,7 @@ bool GameListItem::LoadFromCache()
 void GameListItem::SaveToCache()
 {
 	if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX)))
-	{
 		File::CreateDir(File::GetUserPath(D_CACHE_IDX));
-	}
 
 	CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
 }
