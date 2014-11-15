@@ -453,11 +453,14 @@ bool CreateEmptyFile(const std::string &filename)
 
 // Scans the directory tree gets, starting from _Directory and adds the
 // results into parentEntry. Returns the number of files+directories found
-u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
+FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
 {
 	INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
 	// How many files + directories we found
-	u32 foundEntries = 0;
+	FSTEntry parent_entry;
+	parent_entry.physicalName = directory;
+	parent_entry.isDirectory = true;
+	parent_entry.size = 0;
 #ifdef _WIN32
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
@@ -466,59 +469,55 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
-		return foundEntries;
+		return parent_entry;
 	}
 	// Windows loop
 	do
 	{
-		FSTEntry entry;
-		const std::string virtualName(TStrToUTF8(ffd.cFileName));
+		const std::string virtual_name(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = nullptr;
 
 	DIR *dirp = opendir(directory.c_str());
 	if (!dirp)
-		return 0;
+			return parent_entry;
 
-	// non Windows loop
-	while (!readdir_r(dirp, &dirent, &result) && result)
-	{
-		FSTEntry entry;
-		const std::string virtualName(result->d_name);
-#endif
-		// check for "." and ".."
-		if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
-				((virtualName[0] == '.') && (virtualName[1] == '.') &&
-				 (virtualName[2] == '\0')))
-			continue;
-		entry.virtualName = virtualName;
-		entry.physicalName = directory;
-		entry.physicalName += DIR_SEP + entry.virtualName;
-
-		if (IsDirectory(entry.physicalName))
+		// non Windows loop
+		while (!readdir_r(dirp, &dirent, &result) && result)
 		{
-			entry.isDirectory = true;
-			// is a directory, lets go inside
-			entry.size = ScanDirectoryTree(entry.physicalName, entry);
-			foundEntries += (u32)entry.size;
-		}
-		else
-		{ // is a file
-			entry.isDirectory = false;
-			entry.size = GetSize(entry.physicalName.c_str());
-		}
-		++foundEntries;
-		// Push into the tree
-		parentEntry.children.push_back(entry);
-#ifdef _WIN32
-	} while (FindNextFile(hFind, &ffd) != 0);
+			const std::string virtual_name(result->d_name);
+	#endif
+			if (virtual_name == "." || virtual_name == "..")
+				continue;
+			auto physical_name = directory + DIR_SEP + virtual_name;
+			FSTEntry entry;
+			entry.isDirectory = IsDirectory(physical_name);
+			if (entry.isDirectory)
+			{
+				if (recursive)
+					entry = ScanDirectoryTree(physical_name, true);
+				else
+					entry.size = 0;
+			}
+			else
+			{
+				entry.size = GetSize(physical_name);
+			}
+			entry.virtualName = virtual_name;
+			entry.physicalName = physical_name;
+
+			++parent_entry.size;
+			// Push into the tree
+			parent_entry.children.push_back(entry);
+	#ifdef _WIN32
+		} while (FindNextFile(hFind, &ffd) != 0);
 	FindClose(hFind);
 #else
 	}
 	closedir(dirp);
 #endif
 	// Return number of entries found.
-	return foundEntries;
+	return parent_entry;
 }
 
 
