@@ -76,7 +76,16 @@ def show_differences(bad, good):
 
 def check_file(path):
     print('Checking %s' % path)
-    lines = (l.strip() for l in open(path).read().split('\n'))
+    try:
+        try:
+            data = open(path, encoding='utf-8').read()
+        except TypeError: # py2
+            data = open(path).read().decode('utf-8')
+    except UnicodeDecodeError:
+        sys.stderr.write('%s: bad UTF-8 data\n' % path)
+        return
+
+    lines = (l.strip() for l in data.split('\n'))
     lines = exclude_if_blocks(lines)
     includes = list(filter_includes(lines))
     sorted_includes = sort_includes(includes)

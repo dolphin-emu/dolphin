@@ -444,7 +444,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 					BKPT(0x7777);
 				}
 				JitArmTables::CompileInstruction(ops[i]);
-				fpr.Flush();
 				if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 				{
 					// Don't do this yet
