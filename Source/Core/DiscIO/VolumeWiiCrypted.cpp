@@ -160,7 +160,7 @@ int CVolumeWiiCrypted::GetRevision() const
 		return 0;
 
 	u8 revision;
-	if (!Read(7, 1, &revision))
+	if (!m_pReader->Read(7, 1, &revision))
 		return 0;
 
 	return revision;
