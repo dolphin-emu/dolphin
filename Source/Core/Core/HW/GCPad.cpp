@@ -64,15 +64,6 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 		return;
 	}
 
-	// if we are on the next input cycle, update output and input
-	// if we can get a lock
-	static int _last_numPAD = 4;
-	if (_numPAD <= _last_numPAD)
-	{
-		g_controller_interface.UpdateInput();
-	}
-	_last_numPAD = _numPAD;
-
 	// get input
 	((GCPad*)s_config.controllers[_numPAD])->GetInput(_pPADStatus);
 }
