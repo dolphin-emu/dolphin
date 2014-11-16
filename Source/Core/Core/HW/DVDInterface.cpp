@@ -268,7 +268,8 @@ void UpdateInterrupts();
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
 void ExecuteCommand();
 void FinishExecuteRead();
-s64 CalculateDiscReadTime(u64 offset, s64 length);
+u64 SimulateDiscReadTime();
+s64 CalculateRawDiscReadTime(u64 offset, s64 length);
 
 void DoState(PointerWrap &p)
 {
@@ -301,7 +302,12 @@ void DoState(PointerWrap &p)
 static void TransferComplete(u64 userdata, int cyclesLate)
 {
 	if (m_DICR.TSTART)
-		FinishExecuteRead();
+	{
+		m_DICR.TSTART = 0;
+		m_DILENGTH.Length = 0;
+		GenerateDIInterrupt(INT_TCINT);
+		g_ErrorCode = 0;
+	}
 }
 
 static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
@@ -598,6 +604,11 @@ void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 
 void ExecuteCommand()
 {
+	// This variable is used to simulate the time is takes to execute a command.
+	// 1 / 15000 seconds is just some arbitrary default value.
+	// Commands that implement more precise timing are supposed to overwrite this.
+	u64 ticks_until_TC = SystemTimers::GetTicksPerSecond() / 15000;
+
 	// _dbg_assert_(DVDINTERFACE, _DICR.RW == 0); // only DVD to Memory
 	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD) &&
 	            (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD))
@@ -715,91 +726,13 @@ void ExecuteCommand()
 						}
 					}
 
-					u64 ticksUntilTC = 0;
+					ticks_until_TC = SimulateDiscReadTime();
 
-					// The drive buffers 1 MiB (?) of data after every read request;
-					// if a read request is covered by this buffer (or if it's
-					// faster to wait for the data to be buffered), the drive
-					// doesn't seek; it returns buffered data.  Data can be
-					// transferred from the buffer at up to 16 MiB/s.
-					//
-					// If the drive has to seek, the time this takes varies a lot.
-					// A short seek is around 50 ms; a long seek is around 150 ms.
-					// However, the time isn't purely dependent on the distance; the
-					// pattern of previous seeks seems to matter in a way I'm
-					// not sure how to explain.
-					//
-					// Metroid Prime is a good example of a game that's sensitive to
-					// all of these details; if there isn't enough latency in the
-					// right places, doors open too quickly, and if there's too
-					// much latency in the wrong places, the video before the
-					// save-file select screen lags.
-					//
-					// For now, just use a very rough approximation: 50 ms seek
-					// for reads outside 1 MiB, accelerated reads within 1 MiB.
-					// We can refine this if someone comes up with a more complete
-					// model for seek times.
-
-					u64 cur_time = CoreTiming::GetTicks();
-					// Number of ticks it takes to seek and read directly from the disk.
-					u64 disk_read_duration = CalculateDiscReadTime(iDVDOffset, m_DILENGTH.Length) +
-						SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
-
-					if (iDVDOffset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
+					// Here is the actual disc reading
+					if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
 					{
-						// No buffer; just use the simple seek time + read time.
-						DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes", s64(g_last_read_offset) - s64(iDVDOffset));
-						ticksUntilTC = disk_read_duration;
-						g_last_read_time = cur_time + ticksUntilTC;
+						PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 					}
-					else
-					{
-						// Possibly buffered; use the buffer if it saves time.
-						// It's not proven that the buffer actually behaves like this, but
-						// it appears to be a decent approximation.
-
-						// Time at which the buffer will contain the data we need.
-						u64 buffer_fill_time = g_last_read_time +
-							CalculateDiscReadTime(g_last_read_offset, iDVDOffset + m_DILENGTH.Length - g_last_read_offset);
-						// Number of ticks it takes to transfer the data from the buffer to memory.
-						u64 buffer_read_duration = m_DILENGTH.Length *
-							(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
-
-						if (cur_time > buffer_fill_time)
-						{
-							DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRId64, s64(iDVDOffset));
-							ticksUntilTC = buffer_read_duration;
-							g_last_read_time = buffer_fill_time;
-						}
-						else if (cur_time + disk_read_duration > buffer_fill_time)
-						{
-							DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRId64, s64(iDVDOffset));
-							ticksUntilTC = std::max(buffer_fill_time - cur_time, buffer_read_duration);
-							g_last_read_time = buffer_fill_time;
-						}
-						else
-						{
-							DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes", s64(g_last_read_offset) - s64(iDVDOffset));
-							ticksUntilTC = disk_read_duration;
-							g_last_read_time = cur_time + ticksUntilTC;
-						}
-					}
-					g_last_read_offset = (iDVDOffset + m_DILENGTH.Length - 2048) & ~2047;
-
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
-					{
-						// Make sure fast disc speed performs "instant" reads; in addition
-						// to being used to speed up games, fast disc speed is used as a
-						// workaround for crashes in certain games, including Star Wars
-						// Rogue Leader.
-						FinishExecuteRead();
-						return;
-					}
-
-					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
-
-					// Early return; we'll finish executing the command in FinishExecuteRead.
-					return;
 				}
 				break;
 
@@ -1108,33 +1041,110 @@ void ExecuteCommand()
 		break;
 	}
 
-	// transfer is done
-	m_DICR.TSTART = 0;
-	m_DILENGTH.Length = 0;
-	GenerateDIInterrupt(INT_TCINT);
-	g_ErrorCode = 0;
+	// The transfer is finished after a delay
+	CoreTiming::ScheduleEvent((int)ticks_until_TC, tc);
 }
 
-void FinishExecuteRead()
+// Simulates the timing aspects of reading data from a disc.
+// Sets g_last_read_offset and g_last_read_time, and returns ticks_until_TC.
+u64 SimulateDiscReadTime()
 {
-	u32 iDVDOffset = m_DICMDBUF[1].Hex << 2;
+	u64 DVD_offset = (u64)m_DICMDBUF[1].Hex << 2;
+	u64 current_time = CoreTiming::GetTicks();
+	u64 ticks_until_TC;
 
-	if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 	{
-		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+		// Make sure fast disc speed performs "instant" reads; in addition
+		// to being used to speed up games, fast disc speed is used as a
+		// workaround for crashes in certain games, including Star Wars
+		// Rogue Leader.
+		ticks_until_TC = 0;
+		g_last_read_time = current_time;
+	}
+	else
+	{
+		// The drive buffers 1 MiB (?) of data after every read request;
+		// if a read request is covered by this buffer (or if it's
+		// faster to wait for the data to be buffered), the drive
+		// doesn't seek; it returns buffered data.  Data can be
+		// transferred from the buffer at up to 16 MiB/s.
+		//
+		// If the drive has to seek, the time this takes varies a lot.
+		// A short seek is around 50 ms; a long seek is around 150 ms.
+		// However, the time isn't purely dependent on the distance; the
+		// pattern of previous seeks seems to matter in a way I'm
+		// not sure how to explain.
+		//
+		// Metroid Prime is a good example of a game that's sensitive to
+		// all of these details; if there isn't enough latency in the
+		// right places, doors open too quickly, and if there's too
+		// much latency in the wrong places, the video before the
+		// save-file select screen lags.
+		//
+		// For now, just use a very rough approximation: 50 ms seek
+		// for reads outside 1 MiB, accelerated reads within 1 MiB.
+		// We can refine this if someone comes up with a more complete
+		// model for seek times.
+
+		// Number of ticks it takes to seek and read directly from the disk.
+		u64 disk_read_duration = CalculateRawDiscReadTime(DVD_offset, m_DILENGTH.Length) +
+			SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+
+		if (DVD_offset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
+		{
+			// No buffer; just use the simple seek time + read time.
+			DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
+				s64(g_last_read_offset) - s64(DVD_offset));
+			ticks_until_TC = disk_read_duration;
+			g_last_read_time = current_time + ticks_until_TC;
+		}
+		else
+		{
+			// Possibly buffered; use the buffer if it saves time.
+			// It's not proven that the buffer actually behaves like this, but
+			// it appears to be a decent approximation.
+
+			// Time at which the buffer will contain the data we need.
+			u64 buffer_fill_time = g_last_read_time +
+				CalculateRawDiscReadTime(g_last_read_offset,
+				DVD_offset + m_DILENGTH.Length - g_last_read_offset);
+			// Number of ticks it takes to transfer the data from the buffer to memory.
+			u64 buffer_read_duration = m_DILENGTH.Length *
+				(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
+
+			if (current_time > buffer_fill_time)
+			{
+				DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRId64, s64(DVD_offset));
+				ticks_until_TC = buffer_read_duration;
+				g_last_read_time = buffer_fill_time;
+			}
+			else if (current_time + disk_read_duration > buffer_fill_time)
+			{
+				DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRId64, s64(DVD_offset));
+				ticks_until_TC = std::max(buffer_fill_time - current_time,
+				                          buffer_read_duration);
+				g_last_read_time = buffer_fill_time;
+			}
+			else
+			{
+				DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes",
+					s64(g_last_read_offset) - s64(DVD_offset));
+				ticks_until_TC = disk_read_duration;
+				g_last_read_time = current_time + ticks_until_TC;
+			}
+		}
 	}
 
-	// transfer is done
-	m_DICR.TSTART = 0;
-	m_DILENGTH.Length = 0;
-	GenerateDIInterrupt(INT_TCINT);
-	g_ErrorCode = 0;
+	g_last_read_offset = (DVD_offset + m_DILENGTH.Length - 2048) & ~2047;
+
+	return ticks_until_TC;
 }
 
 // Returns the number of ticks it takes to read an amount of
 // data from a disc, ignoring factors such as seek times.
 // The result will be negative if the length is negative.
-s64 CalculateDiscReadTime(u64 offset, s64 length)
+s64 CalculateRawDiscReadTime(u64 offset, s64 length)
 {
 	// The speed will be calculated using the average offset. This is a bit
 	// inaccurate since the speed doesn't increase linearly with the offset,
