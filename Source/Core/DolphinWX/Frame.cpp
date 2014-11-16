@@ -1150,10 +1150,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			static float debugSpeed = 1.0f;
 			switch (event.GetKeyCode())
 			{
-			case '(':
+			case '1':
 				debugSpeed /= 2.0f;
 				break;
-			case ')':
+			case '2':
 				debugSpeed *= 2.0f;
 				break;
 			case 'W':
