@@ -9,6 +9,7 @@ set(SRCS	ActionReplay.cpp
 			ec_wii.cpp
 			GeckoCodeConfig.cpp
 			GeckoCode.cpp
+			MemTools.cpp
 			Movie.cpp
 			NetPlayClient.cpp
 			NetPlayServer.cpp
@@ -179,7 +180,6 @@ set(SRCS	ActionReplay.cpp
 
 if(_M_X86)
 	set(SRCS ${SRCS}
-			x64MemTools.cpp
 			PowerPC/Jit64IL/IR_X86.cpp
 			PowerPC/Jit64IL/JitIL.cpp
 			PowerPC/Jit64IL/JitIL_Tables.cpp
@@ -201,7 +201,6 @@ if(_M_X86)
 			PowerPC/JitCommon/TrampolineCache.cpp)
 elseif(_M_ARM_32)
 	set(SRCS ${SRCS}
-			ArmMemTools.cpp
 			PowerPC/JitArm32/Jit.cpp
 			PowerPC/JitArm32/JitAsm.cpp
 			PowerPC/JitArm32/JitArm_BackPatch.cpp

@@ -9,7 +9,6 @@
 
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm32/Jit.h"
-#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 
 using namespace ArmGen;
 

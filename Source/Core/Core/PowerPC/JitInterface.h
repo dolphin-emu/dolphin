@@ -6,8 +6,8 @@
 
 #include <string>
 #include "Common/ChunkFile.h"
+#include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
-#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 
 namespace JitInterface
 {
