@@ -251,7 +251,7 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 		}
 	}
 	Memory::CopyFromEmu(s_video_buffer_write_ptr, readPtr, len);
-	OpcodeDecoder_Preprocess(write_ptr + len);
+	OpcodeDecoder_Preprocess(write_ptr + len, false);
 	// This would have to be locked if the GPU thread didn't spin.
 	s_video_buffer_write_ptr = write_ptr + len;
 }
@@ -289,7 +289,7 @@ void RunGpuLoop()
 			// See comment in SyncGPU
 			if (write_ptr > seen_ptr)
 			{
-				OpcodeDecoder_Run(write_ptr);
+				OpcodeDecoder_Run(write_ptr, false);
 
 				{
 					std::lock_guard<std::mutex> vblk(s_video_buffer_lock);
@@ -325,7 +325,7 @@ void RunGpuLoop()
 
 
 					u8* write_ptr = s_video_buffer_write_ptr;
-					cyclesExecuted = OpcodeDecoder_Run(write_ptr);
+					cyclesExecuted = OpcodeDecoder_Run(write_ptr, false);
 
 
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) >= cyclesExecuted)
@@ -399,7 +399,7 @@ void RunGpu()
 			FPURoundMode::SaveSIMDState();
 			FPURoundMode::LoadDefaultSIMDState();
 			ReadDataFromFifo(fifo.CPReadPointer);
-			OpcodeDecoder_Run(s_video_buffer_write_ptr);
+			OpcodeDecoder_Run(s_video_buffer_write_ptr, false);
 			FPURoundMode::LoadSIMDState();
 		}
 

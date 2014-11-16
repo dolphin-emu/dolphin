@@ -128,7 +128,7 @@ void PadSettingSpin::UpdateGUI()
 
 void PadSettingSpin::UpdateValue()
 {
-	setting->SetValue(float(((wxSpinCtrl*)wxcontrol)->GetValue()) / 100);
+	setting->SetValue(ControlState(((wxSpinCtrl*)wxcontrol)->GetValue()) / 100);
 }
 
 ControlDialog::ControlDialog(GamepadPage* const parent, InputConfig& config, ControllerInterface::ControlReference* const ref)
@@ -490,7 +490,7 @@ void GamepadPage::ClearControl(wxEvent& event)
 {
 	ControlButton* const btn = (ControlButton*)event.GetEventObject();
 	btn->control_reference->expression.clear();
-	btn->control_reference->range = 1.0f;
+	btn->control_reference->range = 1.0;
 
 	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 	controller->UpdateReferences(g_controller_interface);

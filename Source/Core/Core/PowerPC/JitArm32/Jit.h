@@ -205,7 +205,6 @@ public:
 	// Floating point loadStore
 	void lfXX(UGeckoInstruction _inst);
 	void stfXX(UGeckoInstruction _inst);
-	void stfs(UGeckoInstruction _inst);
 
 	// Paired Singles
 	void ps_add(UGeckoInstruction _inst);
