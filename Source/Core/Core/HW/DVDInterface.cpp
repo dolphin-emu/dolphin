@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cmath>
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -23,17 +24,54 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// A GameCube disc can be read at somewhere between
-// 2 and 3MB/sec, depending on the location on disk.  Wii disks
-// not yet tested.
-static const u32 DISC_TRANSFER_RATE_GC = 3 * 1024 * 1024;
+static const double PI = 3.14159265358979323846264338328;
 
 // Rate the drive can transfer data to main memory, given the data
-// is already buffered.
-static const u32 BUFFER_TRANSFER_RATE_GC = 16 * 1024 * 1024;
+// is already buffered. Measured in bytes per second.
+static const u32 BUFFER_TRANSFER_RATE = 1024 * 1024 * 16;
 
 // Disc access time measured in milliseconds
 static const u32 DISC_ACCESS_TIME_MS = 50;
+
+// The size of a Wii disc layer in bytes (is this correct?)
+static const u64 WII_DISC_LAYER_SIZE = 4699979776;
+
+// By knowing the disc read speed at two locations defined here,
+// the program can calulate the speed at arbitrary locations.
+// Offsets are in bytes, and speeds are in bytes per second.
+//
+// These speeds are approximate. Using exact speeds is not possible
+// because of how much variation there is between different hardware.
+
+static const u32 GC_DISC_LOCATION_1_OFFSET = 0;             // The beginning of a GC disc
+static const u32 GC_DISC_LOCATION_1_READ_SPEED = 1024 * 1024 * 2;
+static const u32 GC_DISC_LOCATION_2_OFFSET = 1459978239;    // The end of a GC disc
+static const u32 GC_DISC_LOCATION_2_READ_SPEED = (u32)(1024 * 1024 * 3.3);
+
+static const u32 WII_DISC_LOCATION_1_OFFSET = 0;                    // The beginning of a Wii disc
+static const u32 WII_DISC_LOCATION_1_READ_SPEED = (u32)(1024 * 1024 * 3.5);
+static const u64 WII_DISC_LOCATION_2_OFFSET = WII_DISC_LAYER_SIZE;  // The end of a Wii disc
+static const u32 WII_DISC_LOCATION_2_READ_SPEED = 1024 * 1024 * 9;
+
+// These values are used for disc read speed calculations. Calculations
+// are done using an arbitrary length unit where the radius of a disc track
+// is the same as the read speed at that track in bytes per second.
+
+static const double GC_DISC_AREA_UP_TO_LOCATION_1 =
+	PI * GC_DISC_LOCATION_1_READ_SPEED * GC_DISC_LOCATION_1_READ_SPEED;
+static const double GC_DISC_AREA_UP_TO_LOCATION_2 =
+	PI * GC_DISC_LOCATION_2_READ_SPEED * GC_DISC_LOCATION_2_READ_SPEED;
+static const double GC_BYTES_PER_AREA_UNIT =
+	(GC_DISC_LOCATION_2_OFFSET - GC_DISC_LOCATION_1_OFFSET) /
+	(GC_DISC_AREA_UP_TO_LOCATION_2 - GC_DISC_AREA_UP_TO_LOCATION_1);
+
+static const double WII_DISC_AREA_UP_TO_LOCATION_1 =
+	PI * WII_DISC_LOCATION_1_READ_SPEED * WII_DISC_LOCATION_1_READ_SPEED;
+static const double WII_DISC_AREA_UP_TO_LOCATION_2 =
+	PI * WII_DISC_LOCATION_2_READ_SPEED * WII_DISC_LOCATION_2_READ_SPEED;
+static const double WII_BYTES_PER_AREA_UNIT =
+	(WII_DISC_LOCATION_2_OFFSET - WII_DISC_LOCATION_1_OFFSET) /
+	(WII_DISC_AREA_UP_TO_LOCATION_2 - WII_DISC_AREA_UP_TO_LOCATION_1);
 
 namespace DVDInterface
 {
@@ -230,6 +268,7 @@ void UpdateInterrupts();
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
 void ExecuteCommand();
 void FinishExecuteRead();
+s64 CalculateDiscReadTime(u64 offset, s64 length);
 
 void DoState(PointerWrap &p)
 {
@@ -678,14 +717,14 @@ void ExecuteCommand()
 
 					u64 ticksUntilTC = 0;
 
-					// The drive buffers 1MB (?) of data after every read request;
+					// The drive buffers 1 MiB (?) of data after every read request;
 					// if a read request is covered by this buffer (or if it's
 					// faster to wait for the data to be buffered), the drive
 					// doesn't seek; it returns buffered data.  Data can be
-					// transferred from the buffer at up to 16MB/sec.
+					// transferred from the buffer at up to 16 MiB/s.
 					//
 					// If the drive has to seek, the time this takes varies a lot.
-					// A short seek is around 50ms; a long seek is around 150ms.
+					// A short seek is around 50 ms; a long seek is around 150 ms.
 					// However, the time isn't purely dependent on the distance; the
 					// pattern of previous seeks seems to matter in a way I'm
 					// not sure how to explain.
@@ -696,15 +735,14 @@ void ExecuteCommand()
 					// much latency in the wrong places, the video before the
 					// save-file select screen lags.
 					//
-					// For now, just use a very rough approximation: 50ms seek
-					// and 3MB/sec for reads outside 1MB, acceleated reads
-					// within 1MB.  We can refine this if someone comes up
-					// with a more complete model for seek times.
+					// For now, just use a very rough approximation: 50 ms seek
+					// for reads outside 1 MiB, accelerated reads within 1 MiB.
+					// We can refine this if someone comes up with a more complete
+					// model for seek times.
 
 					u64 cur_time = CoreTiming::GetTicks();
 					// Number of ticks it takes to seek and read directly from the disk.
-					u64 disk_read_duration = m_DILENGTH.Length *
-						(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
+					u64 disk_read_duration = CalculateDiscReadTime(iDVDOffset, m_DILENGTH.Length) +
 						SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
 
 					if (iDVDOffset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
@@ -721,12 +759,11 @@ void ExecuteCommand()
 						// it appears to be a decent approximation.
 
 						// Time at which the buffer will contain the data we need.
-						u64 buffer_fill_time = (iDVDOffset + m_DILENGTH.Length - g_last_read_offset) *
-							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
-							g_last_read_time;
+						u64 buffer_fill_time = g_last_read_time +
+							CalculateDiscReadTime(g_last_read_offset, iDVDOffset + m_DILENGTH.Length - g_last_read_offset);
 						// Number of ticks it takes to transfer the data from the buffer to memory.
 						u64 buffer_read_duration = m_DILENGTH.Length *
-							(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE_GC);
+							(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
 
 						if (cur_time > buffer_fill_time)
 						{
@@ -1092,6 +1129,52 @@ void FinishExecuteRead()
 	m_DILENGTH.Length = 0;
 	GenerateDIInterrupt(INT_TCINT);
 	g_ErrorCode = 0;
+}
+
+// Returns the number of ticks it takes to read an amount of
+// data from a disc, ignoring factors such as seek times.
+// The result will be negative if the length is negative.
+s64 CalculateDiscReadTime(u64 offset, s64 length)
+{
+	// The speed will be calculated using the average offset. This is a bit
+	// inaccurate since the speed doesn't increase linearly with the offset,
+	// but since reads only span a small part of the disc, it's insignificant.
+	u64 average_offset = offset + (length / 2);
+
+	// Here, addresses on the second layer of Wii discs are replaced with equivalent
+	// addresses on the first layer so that the speed calculation works correctly.
+	// This is wrong for reads spanning two layers, but those should be rare.
+	average_offset %= WII_DISC_LAYER_SIZE;
+
+	// The area on the disc between position 1 and the arbitrary position X is:
+	// LOCATION_X_SPEED * LOCATION_X_SPEED * pi - AREA_UP_TO_LOCATION_1
+	//
+	// The number of bytes between position 1 and position X is:
+	// LOCATION_X_OFFSET - LOCATION_1_OFFSET
+	//
+	// This means that the following equation is true:
+	// (LOCATION_X_SPEED * LOCATION_X_SPEED * pi - AREA_UP_TO_LOCATION_1) *
+	// BYTES_PER_AREA_UNIT = LOCATION_X_OFFSET - LOCATION_1_OFFSET
+	//
+	// Solving this equation for LOCATION_X_SPEED results in this:
+	// LOCATION_X_SPEED = sqrt(((LOCATION_X_OFFSET - LOCATION_1_OFFSET) /
+	// BYTES_PER_AREA_UNIT + AREA_UP_TO_LOCATION_1) / pi)
+	//
+	// Note that the speed at a track (in bytes per second) is the same as
+	// the radius of that track because of the length unit used.
+	double speed;
+	if (VolumeHandler::IsWii())
+	{
+		speed = std::sqrt(((average_offset - WII_DISC_LOCATION_1_OFFSET) /
+			WII_BYTES_PER_AREA_UNIT + WII_DISC_AREA_UP_TO_LOCATION_1) / PI);
+	}
+	else
+	{
+		speed = std::sqrt(((average_offset - GC_DISC_LOCATION_1_OFFSET) /
+			GC_BYTES_PER_AREA_UNIT + GC_DISC_AREA_UP_TO_LOCATION_1) / PI);
+	}
+
+	return (s64)(SystemTimers::GetTicksPerSecond() / speed * length);
 }
 
 }  // namespace
