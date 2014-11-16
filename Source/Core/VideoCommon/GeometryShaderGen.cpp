@@ -74,15 +74,15 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	// If the GPU supports invocation we don't need a for loop and can simply use the
 	// invocation identifier to determine which layer we're rendering.
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
-		out.Write("\tlayer = gl_InvocationID;\n");
+		out.Write("\tint l = gl_InvocationID;\n");
 	else
-		out.Write("\tfor (layer = 0; layer < %d; ++layer) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
+		out.Write("\tfor (int l = 0; l < %d; ++l) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
-	// Select the output layer
-	out.Write("\tgl_Layer = layer;\n");
-
-	out.Write("\tfor (int i = 0; i < gl_in.length(); ++i) {\n");
+	out.Write("\tfor (int i = 0; i < 3; ++i) {\n");
+	out.Write("\t\tlayer = l;\n");
+	out.Write("\t\tgl_Layer = l;\n");
 	out.Write("\t\tf = o[i];\n");
+	out.Write("\t\tfloat4 pos = o[i].pos;\n");
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
@@ -93,11 +93,12 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 		// the depth value. This results in objects at a distance smaller than the convergence
 		// distance to seemingly appear in front of the screen.
 		// This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
-		out.Write("\t\tf.clipPos.x += " I_STEREOPARAMS"[layer] * (f.clipPos.w - " I_STEREOPARAMS"[2]);\n");
-		out.Write("\t\tf.pos.x += " I_STEREOPARAMS"[layer] * (f.pos.w - " I_STEREOPARAMS"[2]);\n");
+		out.Write("\t\tf.clipPos.x = o[i].clipPos.x + " I_STEREOPARAMS"[l] * (o[i].clipPos.w - " I_STEREOPARAMS"[2]);\n");
+		out.Write("\t\tpos.x = o[i].pos.x + " I_STEREOPARAMS"[l] * (o[i].pos.w - " I_STEREOPARAMS"[2]);\n");
 	}
 
-	out.Write("\t\tgl_Position = f.pos;\n");
+	out.Write("\t\tf.pos.x = pos.x;\n");
+	out.Write("\t\tgl_Position = pos;\n");
 	out.Write("\t\tEmitVertex();\n");
 	out.Write("\t}\n");
 	out.Write("\tEndPrimitive();\n");

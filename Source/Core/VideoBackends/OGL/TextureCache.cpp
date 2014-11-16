@@ -408,7 +408,7 @@ void TextureCache::CompileShaders()
 		"{\n"
 		"	int layers = textureSize(samp9, 0).z;\n"
 		"	for (int layer = 0; layer < layers; ++layer) {\n"
-		"		for (int i = 0; i < gl_in.length(); ++i) {\n"
+		"		for (int i = 0; i < 3; ++i) {\n"
 		"			f_uv0 = vec3(v_uv0[i].xy, layer);\n"
 		"			gl_Position = gl_in[i].gl_Position;\n"
 		"			gl_Layer = layer;\n"
