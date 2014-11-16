@@ -48,6 +48,7 @@ Wiimote::Wiimote()
 
 Wiimote::~Wiimote()
 {
+	DisablePowerAssertionInternal();
 	StopThread();
 	ClearReadQueue();
 	m_write_reports.Clear();
@@ -334,6 +335,7 @@ bool Wiimote::PrepareOnThread()
 void Wiimote::EmuStart()
 {
 	DisableDataReporting();
+	EnablePowerAssertionInternal();
 }
 
 void Wiimote::EmuStop()
@@ -343,6 +345,8 @@ void Wiimote::EmuStop()
 	DisableDataReporting();
 
 	NOTICE_LOG(WIIMOTE, "Stopping Wiimote data reporting.");
+
+	DisablePowerAssertionInternal();
 }
 
 void Wiimote::EmuResume()
@@ -358,6 +362,8 @@ void Wiimote::EmuResume()
 	QueueReport(WM_REPORT_MODE, &rpt, sizeof(rpt));
 
 	NOTICE_LOG(WIIMOTE, "Resuming Wiimote data reporting.");
+
+	EnablePowerAssertionInternal();
 }
 
 void Wiimote::EmuPause()
@@ -371,6 +377,8 @@ void Wiimote::EmuPause()
 	QueueReport(WM_REPORT_MODE, &rpt, sizeof(rpt));
 
 	NOTICE_LOG(WIIMOTE, "Pausing Wiimote data reporting.");
+
+	DisablePowerAssertionInternal();
 }
 
 static unsigned int CalculateConnectedWiimotes()

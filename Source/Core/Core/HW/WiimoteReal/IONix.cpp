@@ -255,4 +255,9 @@ int Wiimote::IOWrite(u8 const* buf, size_t len)
 	return write(int_sock, buf, (int)len);
 }
 
+void Wiimote::EnablePowerAssertionInternal()
+{}
+void Wiimote::DisablePowerAssertionInternal()
+{}
+
 }; // WiimoteReal
