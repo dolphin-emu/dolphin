@@ -401,7 +401,7 @@ void TextureCache::CompileShaders()
 	const char *GProgram = (g_ActiveConfig.iStereoMode > 0) ?
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = 6) out;\n"
-		"in vec3 v_uv0[];\n"
+		"in vec3 v_uv0[3];\n"
 		"out vec3 f_uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"void main()\n"

@@ -64,7 +64,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	GenerateVSOutputStruct(out, ApiType);
 
-	out.Write("centroid in VS_OUTPUT o[];\n");
+	out.Write("centroid in VS_OUTPUT o[3];\n");
 	out.Write("centroid out VS_OUTPUT f;\n");
 
 	out.Write("flat out int layer;\n");
