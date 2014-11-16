@@ -205,7 +205,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		out.Write("\n");
 		for (int i = 0; i < 8; ++i)
-			out.Write("Texture2D Tex%d : register(t%d);\n", i, i);
+			out.Write("Texture2DArray Tex%d : register(t%d);\n", i, i);
 	}
 	out.Write("\n");
 
@@ -372,7 +372,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
 		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
-		out.Write("  in centroid float4 colors_1 : COLOR1");
+		out.Write("  in centroid float4 colors_1 : COLOR1\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		for (unsigned int i = 0; i < numTexgen; ++i)
@@ -380,6 +380,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
 			out.Write(",\n  in centroid float4 Normal : TEXCOORD%d", numTexgen + 1);
+		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
+		if (g_ActiveConfig.iStereoMode > 0)
+			out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
 		out.Write("        ) {\n");
 	}
 
@@ -938,7 +941,7 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
 	if (ApiType == API_D3D)
-		out.Write("iround(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap,texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * Tex%d.Sample(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0", texswap);
 	else
 		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "gs.layer" : "0.0", texswap);
 }
