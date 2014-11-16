@@ -388,6 +388,28 @@ void ARMXEmitter::YIELD()
 	Write32(condition | 0x0320F001);
 }
 
+void ARMXEmitter::MRC(u32 coproc, u32 opc1, ARMReg Rt, u32 CRn, u32 CRm, u32 opc2)
+{
+	_assert_msg_(DYNA_REC, coproc <= 0xF, "%s has co-processor that is %d when it must be under 16!", __FUNCTION__, coproc);
+	_assert_msg_(DYNA_REC, opc1 <= 7, "%s has opc1 that is %d when it must be under 8!", __FUNCTION__, opc1);
+	_assert_msg_(DYNA_REC, CRn <= 0xF, "%s has CRn that is %d when it must be under 16!", __FUNCTION__, CRn);
+	_assert_msg_(DYNA_REC, opc2 <= 7, "%s has opc2 that is %d when it must be under 8!", __FUNCTION__, opc2);
+
+	Write32(condition | (0b1110 << 24) | (opc1 << 21) | (1 << 20) | (CRn << 16) \
+			| (Rt << 12) | (coproc << 8) | (opc2 << 5) | (1 << 4) | CRm);
+}
+
+void ARMXEmitter::MCR(u32 coproc, u32 opc1, ARMReg Rt, u32 CRn, u32 CRm, u32 opc2)
+{
+	_assert_msg_(DYNA_REC, coproc <= 0xF, "%s has co-processor that is %d when it must be under 16!", __FUNCTION__, coproc);
+	_assert_msg_(DYNA_REC, opc1 <= 7, "%s has opc1 that is %d when it must be under 8!", __FUNCTION__, opc1);
+	_assert_msg_(DYNA_REC, CRn <= 0xF, "%s has CRn that is %d when it must be under 16!", __FUNCTION__, CRn);
+	_assert_msg_(DYNA_REC, opc2 <= 7, "%s has opc2 that is %d when it must be under 8!", __FUNCTION__, opc2);
+
+	Write32(condition | (0b1110 << 24) | (opc1 << 21) | (CRn << 16) \
+			| (Rt << 12) | (coproc << 8) | (opc2 << 5) | (1 << 4) | CRm);
+}
+
 FixupBranch ARMXEmitter::B()
 {
 	FixupBranch branch;

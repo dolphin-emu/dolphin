@@ -385,6 +385,10 @@ public:
 	// Hint instruction
 	void YIELD();
 
+	// System
+	void MRC(u32 coproc, u32 opc1, ARMReg Rt, u32 CRn, u32 CRm, u32 opc2 = 0);
+	void MCR(u32 coproc, u32 opc1, ARMReg Rt, u32 CRn, u32 CRm, u32 opc2 = 0);
+
 	// Do nothing
 	void NOP(int count = 1); //nop padding - TODO: fast nop slides, for amd and intel (check their manuals)
 
