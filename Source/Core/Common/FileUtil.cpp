@@ -637,13 +637,11 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 			continue;
 
 		std::string source, dest;
-		source = source_path + virtualName;
-		dest = dest_path + virtualName;
+		source = source_path + "/" + virtualName;
+		dest = dest_path + "/" + virtualName;
 		if (IsDirectory(source))
 		{
-			source += '/';
-			dest += '/';
-			if (!File::Exists(dest)) File::CreateFullPath(dest);
+			if (!File::Exists(dest)) File::CreateFullPath(dest + "/");
 			CopyDir(source, dest);
 		}
 		else if (!File::Exists(dest)) File::Copy(source, dest);
