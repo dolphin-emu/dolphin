@@ -474,7 +474,7 @@ void NetPlayDiag::StopGame()
 // NetPlayUI methods called from ---NETPLAY--- thread
 void NetPlayDiag::Update()
 {
-	wxCommandEvent evt(wxEVT_THREAD, 1);
+	wxThreadEvent evt(wxEVT_THREAD, 1);
 	GetEventHandler()->AddPendingEvent(evt);
 }
 
@@ -487,15 +487,14 @@ void NetPlayDiag::AppendChat(const std::string& msg)
 
 void NetPlayDiag::OnMsgChangeGame(const std::string& filename)
 {
-	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
-	// TODO: using a wxString in AddPendingEvent from another thread is unsafe i guess?
-	evt.SetString(StrToWxStr(filename));
-	GetEventHandler()->AddPendingEvent(evt);
+	wxThreadEvent* evt = new wxThreadEvent(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
+	evt->SetString(StrToWxStr(filename));
+	GetEventHandler()->QueueEvent(evt);
 }
 
 void NetPlayDiag::OnMsgStartGame()
 {
-	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
 	if (m_start_btn)
 		m_start_btn->Disable();
@@ -504,7 +503,7 @@ void NetPlayDiag::OnMsgStartGame()
 
 void NetPlayDiag::OnMsgStopGame()
 {
-	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
 	if (m_start_btn)
 		m_start_btn->Enable();
