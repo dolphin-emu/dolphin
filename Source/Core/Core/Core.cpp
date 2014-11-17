@@ -277,10 +277,8 @@ static void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	#if _M_X86_64 || _M_ARM_32
 	if (_CoreParameter.bFastmem)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
-	#endif
 
 	if (!s_state_filename.empty())
 		State::LoadAs(s_state_filename);
@@ -308,9 +306,7 @@ static void CpuThread()
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
-	#if _M_X86_64 || _M_ARM_32
 	EMM::UninstallExceptionHandler();
-	#endif
 
 	return;
 }

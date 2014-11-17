@@ -87,9 +87,24 @@
 	#define CTX_RIP __ss.__rip
 #elif defined(__linux__)
 	#include <signal.h>
-	#if _M_X86_64
+
+	#ifdef ANDROID
+		#include <asm/sigcontext.h>
+		typedef struct sigcontext mcontext_t;
+		typedef struct ucontext
+		{
+			uint32_t uc_flags;
+			struct ucontext* uc_link;
+			stack_t uc_stack;
+			mcontext_t uc_mcontext;
+			// ...
+		} ucontext_t;
+	#else
 		#include <ucontext.h>
-		typedef mcontext_t SContext;
+	#endif
+	typedef mcontext_t SContext;
+
+	#if _M_X86_64
 		#define CTX_RAX gregs[REG_RAX]
 		#define CTX_RBX gregs[REG_RBX]
 		#define CTX_RCX gregs[REG_RCX]
@@ -108,14 +123,11 @@
 		#define CTX_R15 gregs[REG_R15]
 		#define CTX_RIP gregs[REG_RIP]
 	#elif _M_ARM_64
-		typedef struct sigcontext SContext;
 		#define CTX_REG(x) regs[x]
 		#define CTX_SP sp
 		#define CTX_PC pc
 	#elif _M_ARM_32
-		#include <asm/sigcontext.h>
 		// Add others if required.
-		typedef sigcontext SContext;
 		#define CTX_PC  arm_pc
 	#else
 		#warning No context definition for OS
