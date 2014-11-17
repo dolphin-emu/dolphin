@@ -330,7 +330,7 @@ void GatherPipeBursted()
 	}
 
 	// update the fifo pointer
-	if (fifo.CPWritePointer >= fifo.CPEnd)
+	if (fifo.CPWritePointer == fifo.CPEnd)
 		fifo.CPWritePointer = fifo.CPBase;
 	else
 		fifo.CPWritePointer += GATHER_PIPE_SIZE;
@@ -341,6 +341,10 @@ void GatherPipeBursted()
 		ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
 		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 	}
+
+	// If the game is running close to overflowing, make the exception checking more frequent.
+	if (fifo.bFF_HiWatermark)
+		CoreTiming::ForceExceptionCheck(0);
 
 	Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
@@ -470,8 +474,7 @@ void ProcessFifoAllDistance()
 {
 	if (IsOnThread())
 	{
-		while (!interruptWaiting && fifo.bFF_GPReadEnable &&
-			fifo.CPReadWriteDistance && !AtBreakpoint())
+		while (!interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 			Common::YieldCPU();
 	}
 }
