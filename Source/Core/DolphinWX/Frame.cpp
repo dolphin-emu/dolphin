@@ -972,6 +972,17 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_SELECT_STATE_SLOT_10: return IDM_SELECTSLOT10;
 	case HK_SAVE_STATE_SLOT_SELECTED: return IDM_SAVESELECTEDSLOT;
 	case HK_LOAD_STATE_SLOT_SELECTED: return IDM_LOADSELECTEDSLOT;
+
+	case HK_FREELOOK_INCREASE_SPEED: return IDM_FREELOOK_INCREASE_SPEED;
+	case HK_FREELOOK_DECREASE_SPEED: return IDM_FREELOOK_DECREASE_SPEED;
+	case HK_FREELOOK_RESET_SPEED: return IDM_FREELOOK_RESET_SPEED;
+	case HK_FREELOOK_LEFT: return IDM_FREELOOK_LEFT;
+	case HK_FREELOOK_RIGHT: return IDM_FREELOOK_RIGHT;
+	case HK_FREELOOK_UP: return IDM_FREELOOK_UP;
+	case HK_FREELOOK_DOWN: return IDM_FREELOOK_DOWN;
+	case HK_FREELOOK_ZOOM_IN: return IDM_FREELOOK_ZOOM_IN;
+	case HK_FREELOOK_ZOOM_OUT: return IDM_FREELOOK_ZOOM_OUT;
+	case HK_FREELOOK_RESET: return IDM_FREELOOK_RESET;
 	}
 
 	return -1;
@@ -1165,44 +1176,30 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
-		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
+		if (g_Config.bFreeLook)
 		{
 			static float debugSpeed = 1.0f;
-			switch (event.GetKeyCode())
-			{
-			case '1':
-				debugSpeed /= 2.0f;
-				break;
-			case '2':
+
+			if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
 				debugSpeed *= 2.0f;
-				break;
-			case 'W':
-				VertexShaderManager::TranslateView(0.0f, debugSpeed);
-				break;
-			case 'S':
-				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-				break;
-			case 'A':
-				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-				break;
-			case 'D':
-				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-				break;
-			case 'Q':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
-				break;
-			case 'E':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
-				break;
-			case 'R':
-				VertexShaderManager::ResetView();
-				break;
-			case 'F':
+			else if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+				debugSpeed /= 2.0f;
+			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
 				debugSpeed = 1.0f;
-				break;
-			default:
-				break;
-			}
+			else if (IsHotkey(event, HK_FREELOOK_UP))
+				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_DOWN))
+				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_LEFT))
+				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+			else if (IsHotkey(event, HK_FREELOOK_RIGHT))
+				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+			else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
+				VertexShaderManager::TranslateView(0.0f, debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
+				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_RESET))
+				VertexShaderManager::ResetView();
 		}
 	}
 	else

@@ -69,6 +69,18 @@ static const struct
 	{ "ToggleThrottle",      9 /* '\t' */,        0 /* wxMOD_NONE */ },
 	{ "IncreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
+
+	{ "FreelookIncreaseSpeed",49 /* '1' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookDecreaseSpeed",50 /* '2' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookResetSpeed",   70 /* 'F' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookUp",           69 /* 'E' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookDown",         81 /* 'Q' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookLeft",         65 /* 'A' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookRight",        68 /* 'D' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookZoomIn",       87 /* 'W' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookZoomOut",      83 /* 'S' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookReset",        82 /* 'R' */,       4 /* wxMOD_SHIFT */ },
+
 	{ "LoadStateSlot1",      340 /* WXK_F1 */,    0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot2",      341 /* WXK_F2 */,    0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot3",      342 /* WXK_F3 */,    0 /* wxMOD_NONE */ },
