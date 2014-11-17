@@ -26,9 +26,10 @@ ovrFovPort g_eye_fov[2];
 ovrEyeRenderDesc g_eye_render_desc[2];
 ovrFrameTiming g_rift_frame_timing;
 ovrPosef g_eye_poses[2], g_front_eye_poses[2];
-std::mutex g_ovr_lock;
 int g_ovr_frameindex;
 #endif
+
+std::mutex g_ovr_lock;
 
 bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;

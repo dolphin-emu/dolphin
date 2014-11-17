@@ -306,14 +306,14 @@ int main(int argc, char* argv[])
 			help = 1;
 			break;
 		case 'v':
-			fprintf(stderr, "%s\n", scm_rev_str);
+			fprintf(stderr, "%s%s\n", scm_rev_str, SCM_OCULUS_STR);
 			return 1;
 		}
 	}
 
 	if (help == 1 || argc == optind)
 	{
-		fprintf(stderr, "%s\n\n", scm_rev_str);
+		fprintf(stderr, "%s%s\n\n", scm_rev_str, SCM_OCULUS_STR);
 		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
 		fprintf(stderr, "  -e, --exec   Load the specified file\n");

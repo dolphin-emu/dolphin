@@ -336,10 +336,13 @@ bool DolphinApp::OnInit()
 		y = wxDefaultCoord;
 #endif
 
-	main_frame = new CFrame(nullptr, wxID_ANY,
-				StrToWxStr(scm_rev_str),
-				wxPoint(x, y), wxSize(w, h),
-				UseDebugger, BatchMode, UseLogger);
+	{
+		std::string titleStr = StringFromFormat("%s%s", scm_rev_str, SCM_OCULUS_STR);
+		main_frame = new CFrame(nullptr, wxID_ANY,
+			StrToWxStr(titleStr),
+			wxPoint(x, y), wxSize(w, h),
+			UseDebugger, BatchMode, UseLogger);
+	}
 	SetTopWindow(main_frame);
 	main_frame->SetMinSize(wxSize(400, 300));
 

@@ -30,6 +30,9 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 Error, Oculus SDK 0.3.x is no longer supported   
 #endif
 
+#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
+#else
+#define SCM_OCULUS_STR ", no Oculus SDK"
 #endif
 
 #include <mutex>
@@ -56,6 +59,8 @@ extern float g_head_tracking_position[3];
 extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
 extern const char *g_hmd_device_name;
 
+extern std::mutex g_ovr_lock;
+
 extern bool debug_nextScene;
 
 #ifdef HAVE_OCULUSSDK
@@ -65,6 +70,5 @@ extern ovrFovPort g_eye_fov[2];
 extern ovrEyeRenderDesc g_eye_render_desc[2];
 extern ovrFrameTiming g_rift_frame_timing;
 extern ovrPosef g_eye_poses[2], g_front_eye_poses[2];
-extern std::mutex g_ovr_lock;
 extern int g_ovr_frameindex;
 #endif

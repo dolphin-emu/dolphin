@@ -18,6 +18,7 @@
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/resources/dolphin_logo.cpp"
+#include "VideoCommon/VR.h"
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
@@ -34,7 +35,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 				"\n"
 				"Branch: %s\n"
 				"Revision: %s\n"
-				"Compiled: %s @ %s\n"
+				"Compiled: %s @ %s%s\n"
 				"\n"
 				"Dolphin is a GameCube/Wii emulator, which was\n"
 				"originally written by F|RES and ector.\n"
@@ -59,7 +60,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 				"GameCube and Wii are trademarks of Nintendo.\n"
 				"The emulator should not be used to play games\n"
 				"you do not legally own."),
-		scm_desc_str, scm_branch_str, scm_rev_git_str, __DATE__, __TIME__);
+		scm_desc_str, scm_branch_str, scm_rev_git_str, __DATE__, __TIME__, SCM_OCULUS_STR);
 
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
 	Message->Wrap(GetSize().GetWidth());
