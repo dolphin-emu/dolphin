@@ -11,12 +11,9 @@ import org.dolphinemu.dolphinemu.settings.cpu.CPUSettingsFragment;
 import org.dolphinemu.dolphinemu.settings.input.InputConfigFragment;
 import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
 
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -28,66 +25,23 @@ import android.support.v4.view.ViewPager;
  * Main activity that manages all of the preference fragments used to display
  * the settings to the user.
  */
-public final class PrefsActivity extends Activity implements ActionBar.TabListener, OnSharedPreferenceChangeListener
+public final class PrefsActivity extends Activity implements OnSharedPreferenceChangeListener
 {
-	/**
-	 * The {@link ViewPager} that will host the section contents.
-	 */
-	private ViewPager mViewPager;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-
-		// Set the ViewPager.
 		setContentView(R.layout.viewpager);
-		mViewPager = (ViewPager) findViewById(R.id.pager);
 
 		// Set the ViewPager adapter.
-		final ViewPagerAdapter mSectionsPagerAdapter = new ViewPagerAdapter(getFragmentManager());
-		mViewPager.setAdapter(mSectionsPagerAdapter);
+		final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+		viewPager.setAdapter(new ViewPagerAdapter(getFragmentManager()));
 
 		// Register the preference change listener.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		sPrefs.registerOnSharedPreferenceChangeListener(this);
-
-		// Set up the action bar.
-		final ActionBar actionBar = getActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		actionBar.addTab(actionBar.newTab().setText(R.string.cpu_settings).setTabListener(this));
-		actionBar.addTab(actionBar.newTab().setText(R.string.input_settings).setTabListener(this));
-		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
-
-		// When swiping between different sections, select the corresponding
-		// tab. We can also use ActionBar.Tab#select() to do this if we have
-		// a reference to the Tab.
-		mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener()
-		{
-			@Override
-			public void onPageSelected(int position)
-			{
-				actionBar.setSelectedNavigationItem(position);
-			}
-		} );
 	}
 
-	public void onTabSelected(Tab tab, FragmentTransaction ft)
-	{
-		// When the given tab is selected, switch to the corresponding page in the ViewPager.
-		mViewPager.setCurrentItem(tab.getPosition());
-	}
-
-	public void onTabReselected(Tab tab, FragmentTransaction ft)
-	{
-		// Do nothing.
-	}
-
-	public void onTabUnselected(Tab tab, FragmentTransaction ft)
-	{
-		// Do nothing.
-	}
-	
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
 	{
@@ -101,6 +55,12 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 	 */
 	private final class ViewPagerAdapter extends FragmentPagerAdapter
 	{
+		private final String[] pageTitles = {
+			getString(R.string.cpu_settings),
+			getString(R.string.input_settings),
+			getString(R.string.video_settings)
+		};
+
 		public ViewPagerAdapter(FragmentManager fm)
 		{
 			super(fm);
@@ -135,20 +95,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		@Override
 		public CharSequence getPageTitle(int position)
 		{
-			switch(position)
-			{
-				case 0:
-					return getString(R.string.cpu_settings);
-
-				case 1:
-					return getString(R.string.input_settings);
-
-				case 2:
-					return getString(R.string.video_settings);
-
-				default: // Should never happen.
-					return null;
-			}
+			return pageTitles[position];
 		}
 	}
 }
