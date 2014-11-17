@@ -135,8 +135,10 @@ void JitArm::lfXX(UGeckoInstruction inst)
 		MOV(RA, rB);
 
 	// This branch gets changed to a NOP when the fastpath fails
-	FixupBranch fast_path = B();
-	FixupBranch slow_out;
+	FixupBranch fast_path;
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
+		fast_path = B();
+
 	{
 		PUSH(4, R0, R1, R2, R3);
 		MOV(R0, rB);
@@ -160,33 +162,35 @@ void JitArm::lfXX(UGeckoInstruction inst)
 #endif
 		}
 		POP(4, R0, R1, R2, R3);
-		slow_out = B();
 	}
-	SetJumpTarget(fast_path);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
 	{
-		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-		ARMReg rC = gpr.GetReg();
-		BIC(rC, rB, mask);
-		MOVI2R(rA, (u32)Memory::base);
-		ADD(rC, rC, rA);
+		FixupBranch slow_out = B();
+		SetJumpTarget(fast_path);
+		{
+			Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
+			ARMReg rC = gpr.GetReg();
+			BIC(rC, rB, mask);
+			MOVI2R(rA, (u32)Memory::base);
+			ADD(rC, rC, rA);
 
-		NEONXEmitter nemit(this);
-		if (single)
-		{
-			nemit.VLD1(F_32, D0, rC);
-			nemit.VREV32(I_8, D0, D0); // Byte swap to result
-			VCVT(v0, S0, 0);
-			VCVT(v1, S0, 0);
+			NEONXEmitter nemit(this);
+			if (single)
+			{
+				nemit.VLD1(F_32, D0, rC);
+				nemit.VREV32(I_8, D0, D0); // Byte swap to result
+				VCVT(v0, S0, 0);
+				VCVT(v1, S0, 0);
+			}
+			else
+			{
+				nemit.VLD1(I_64, v0, rC);
+				nemit.VREV64(I_8, v0, v0); // Byte swap to result
+			}
+			gpr.Unlock(rC);
 		}
-		else
-		{
-			nemit.VLD1(I_64, v0, rC);
-			nemit.VREV64(I_8, v0, v0); // Byte swap to result
-		}
-		gpr.Unlock(rC);
+		SetJumpTarget(slow_out);
 	}
-
-	SetJumpTarget(slow_out);
 
 	gpr.Unlock(rA, rB);
 	SetJumpTarget(DoNotLoad);
@@ -309,8 +313,10 @@ void JitArm::stfXX(UGeckoInstruction inst)
 	}
 
 	// This branch gets changed to a NOP when the fastpath fails
-	FixupBranch fast_path = B();
-	FixupBranch slow_out;
+	FixupBranch fast_path;
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
+		fast_path = B();
+
 	{
 		PUSH(4, R0, R1, R2, R3);
 		if (single)
@@ -334,32 +340,35 @@ void JitArm::stfXX(UGeckoInstruction inst)
 			BL(rA);
 		}
 		POP(4, R0, R1, R2, R3);
-		slow_out = B();
 	}
-	SetJumpTarget(fast_path);
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
 	{
-		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-		ARMReg rC = gpr.GetReg();
-		BIC(rC, rB, mask);
-		MOVI2R(rA, (u32)Memory::base);
-		ADD(rC, rC, rA);
+		FixupBranch slow_out = B();
+		SetJumpTarget(fast_path);
+		{
+			Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
+			ARMReg rC = gpr.GetReg();
+			BIC(rC, rB, mask);
+			MOVI2R(rA, (u32)Memory::base);
+			ADD(rC, rC, rA);
 
-		NEONXEmitter nemit(this);
-		if (single)
-		{
-			VCVT(S0, v0, 0);
-			nemit.VREV32(I_8, D0, D0);
-			VSTR(S0, rC, 0);
+			NEONXEmitter nemit(this);
+			if (single)
+			{
+				VCVT(S0, v0, 0);
+				nemit.VREV32(I_8, D0, D0);
+				VSTR(S0, rC, 0);
+			}
+			else
+			{
+				nemit.VREV64(I_8, D0, v0);
+				VSTR(D0, rC, 0);
+			}
+			gpr.Unlock(rC);
 		}
-		else
-		{
-			nemit.VREV64(I_8, D0, v0);
-			VSTR(D0, rC, 0);
-		}
-		gpr.Unlock(rC);
+		SetJumpTarget(slow_out);
 	}
-
-	SetJumpTarget(slow_out);
 
 	gpr.Unlock(rA, rB);
 }
