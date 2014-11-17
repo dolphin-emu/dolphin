@@ -1771,7 +1771,8 @@ void CFrame::UpdateGUI()
 	{
 		if (GetCmdForHotkey(i) == -1)
 			continue;
-		GetMenuBar()->FindItem(GetCmdForHotkey(i))->SetItemLabel(GetMenuLabel(i));
+		if (GetMenuBar()->FindItem(GetCmdForHotkey(i)))
+			GetMenuBar()->FindItem(GetCmdForHotkey(i))->SetItemLabel(GetMenuLabel(i));
 	}
 
 	GetMenuBar()->FindItem(IDM_LOADSTATE)->Enable(Initialized);
