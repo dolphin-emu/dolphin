@@ -883,6 +883,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		${OPENGL_LIBRARY}
 		${QUICKTIME_LIBRARY})
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 	add_definitions(-D__WXGTK__)
 	set(SRCS
 		${SRCS}
@@ -896,7 +897,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		${PANGOCAIRO_LIBRARIES}
 		${GTK2_LIBRARIES})
 else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 	add_definitions(-D__WXMSW__)
 	set(SRCS
 		${SRCS}
