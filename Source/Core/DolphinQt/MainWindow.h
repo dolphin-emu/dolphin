@@ -26,7 +26,6 @@ public:
 	~DMainWindow();
 
 	// DRenderWidget
-	void RenderWidgetSize(int& x_pos, int& y_pos, int& w, int& h);
 	bool RenderWidgetHasFocus();
 	DRenderWidget* GetRenderWidget() { return m_render_widget.get(); }
 

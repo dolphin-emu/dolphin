@@ -32,14 +32,6 @@ void* Host_GetRenderHandle()
 	return (void*)(g_main_window->GetRenderWidget()->winId());
 }
 
-void Host_GetRenderWindowSize(int& x, int& y, int& w, int& h)
-{
-	// TODO: Make it more clear what this is supposed to return.. i.e. WX always sets x=y=0
-	g_main_window->RenderWidgetSize(x, y, w, h);
-	x = 0;
-	y = 0;
-}
-
 void Host_RequestRenderWindowSize(int w, int h)
 {
 	DRenderWidget* render_widget = g_main_window->GetRenderWidget();
