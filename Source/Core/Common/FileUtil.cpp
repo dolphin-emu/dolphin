@@ -20,6 +20,7 @@
 #include <commdlg.h>   // for GetSaveFileName
 #include <direct.h>    // getcwd
 #include <io.h>
+#include <objbase.h>   // guid stuff
 #include <shellapi.h>
 #include <windows.h>
 #else
@@ -666,6 +667,32 @@ bool SetCurrentDir(const std::string &directory)
 	return __chdir(directory.c_str()) == 0;
 }
 
+std::string CreateTempDir()
+{
+#ifdef _WIN32
+	TCHAR temp[MAX_PATH];
+	if (!GetTempPath(MAX_PATH, temp))
+		return "";
+
+	GUID guid;
+	CoCreateGuid(&guid);
+	TCHAR tguid[40];
+	StringFromGUID2(guid, tguid, 39);
+	tguid[39] = 0;
+	std::string dir = TStrToUTF8(temp) + "/" + TStrToUTF8(tguid);
+	if (!CreateDir(dir))
+		return "";
+	dir = ReplaceAll(dir, "\\", DIR_SEP);
+	return dir;
+#else
+	const char* base = getenv("TMPDIR") ?: "/tmp";
+	std::string path = std::string(base) + "/DolphinWii.XXXXXX";
+	if (!mkdtemp(&path[0]))
+		return "";
+	return path;
+#endif
+}
+
 std::string GetTempFilenameForAtomicWrite(const std::string &path)
 {
 	std::string abs = path;
@@ -734,17 +761,9 @@ static void RebuildUserDirectories(unsigned int dir_index)
 {
 	switch (dir_index)
 	{
-	case D_WIIROOT_IDX:
-		s_user_paths[D_WIIUSER_IDX]    = s_user_paths[D_WIIROOT_IDX] + DIR_SEP;
-		s_user_paths[D_WIISYSCONF_IDX] = s_user_paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
-		s_user_paths[D_WIIWC24_IDX]    = s_user_paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
-		s_user_paths[F_WIISYSCONF_IDX] = s_user_paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
-		break;
-
 	case D_USER_IDX:
 		s_user_paths[D_GCUSER_IDX]         = s_user_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
 		s_user_paths[D_WIIROOT_IDX]        = s_user_paths[D_USER_IDX] + WII_USER_DIR;
-		s_user_paths[D_WIIUSER_IDX]        = s_user_paths[D_WIIROOT_IDX] + DIR_SEP;
 		s_user_paths[D_CONFIG_IDX]         = s_user_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
 		s_user_paths[D_GAMESETTINGS_IDX]   = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
 		s_user_paths[D_MAPS_IDX]           = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
@@ -762,14 +781,11 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[D_DUMPDSP_IDX]        = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
 		s_user_paths[D_LOGS_IDX]           = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
 		s_user_paths[D_MAILLOGS_IDX]       = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-		s_user_paths[D_WIISYSCONF_IDX]     = s_user_paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
-		s_user_paths[D_WIIWC24_IDX]    = s_user_paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
 		s_user_paths[D_THEMES_IDX]         = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
 		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
 		s_user_paths[F_MAINLOG_IDX]        = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
-		s_user_paths[F_WIISYSCONF_IDX]     = s_user_paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 		s_user_paths[F_RAMDUMP_IDX]        = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
 		s_user_paths[F_ARAMDUMP_IDX]       = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
 		s_user_paths[F_FAKEVMEMDUMP_IDX]   = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;

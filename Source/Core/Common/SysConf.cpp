@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
@@ -15,8 +16,7 @@
 SysConf::SysConf()
 	: m_IsValid(false)
 {
-	m_FilenameDefault = File::GetUserPath(F_WIISYSCONF_IDX);
-	m_IsValid = LoadFromFile(m_FilenameDefault);
+	UpdateLocation();
 }
 
 SysConf::~SysConf()
@@ -409,7 +409,10 @@ void SysConf::UpdateLocation()
 	// Clear the old filename and set the default filename to the new user path
 	// So that it can be generated if the file does not exist in the new location
 	m_Filename.clear();
-	m_FilenameDefault =  File::GetUserPath(F_WIISYSCONF_IDX);
+	// Note: We don't use the dummy Wii root here (if in use) because this is
+	// all tied up with the configuration code.  In the future this should
+	// probably just be synced with the other settings.
+	m_FilenameDefault = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF;
 	Reload();
 }
 

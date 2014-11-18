@@ -5,11 +5,14 @@
 #include <algorithm>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Core.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
@@ -19,7 +22,7 @@ static Common::replace_v replacements;
 // This is used by several of the FileIO and /dev/fs functions
 std::string HLE_IPC_BuildFilename(std::string path_wii)
 {
-	std::string path_full = File::GetUserPath(D_WIIROOT_IDX);
+	std::string path_full = File::GetUserPath(D_SESSION_WIIROOT_IDX);
 
 	// Replaces chars that FAT32 can't support with strings defined in /sys/replace
 	for (auto& replacement : replacements)

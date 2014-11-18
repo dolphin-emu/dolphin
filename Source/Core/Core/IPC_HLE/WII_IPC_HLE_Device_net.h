@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 #include "Common/Timer.h"
 
 #include "Core/HW/EXI_DeviceIPL.h"
@@ -172,7 +174,7 @@ private:
 public:
 	NWC24Config()
 	{
-		path = File::GetUserPath(D_WIIWC24_IDX) + "nwc24msg.cfg";
+		path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR "/nwc24msg.cfg";
 		ReadConfig();
 	}
 
@@ -211,7 +213,7 @@ public:
 	{
 		if (!File::Exists(path))
 		{
-			if (!File::CreateFullPath(File::GetUserPath(D_WIIWC24_IDX)))
+			if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR))
 			{
 				ERROR_LOG(WII_IPC_WC24, "Failed to create directory for WC24");
 			}
@@ -322,7 +324,7 @@ class WiiNetConfig
 public:
 	WiiNetConfig()
 	{
-		path = File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/config.dat";
+		path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR "/net/02/config.dat";
 		ReadConfig();
 	}
 
@@ -347,7 +349,7 @@ public:
 	{
 		if (!File::Exists(path))
 		{
-			if (!File::CreateFullPath(std::string(File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/")))
+			if (!File::CreateFullPath(std::string(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR "/net/02/")))
 			{
 				ERROR_LOG(WII_IPC_NET, "Failed to create directory for network config file");
 			}

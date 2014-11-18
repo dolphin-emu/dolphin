@@ -32,7 +32,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {
 	// clear tmp folder
 	{
-		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
+		std::string Path = HLE_IPC_BuildFilename("/tmp");
 		File::DeleteDirRecursively(Path);
 		File::CreateDir(Path);
 	}
@@ -221,7 +221,6 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
 {
 	//u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
-	//LOG(WII_IPC_FILEIO, "FS: IOCtl (Device=%s, DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);
 
 	u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
 	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
@@ -483,7 +482,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 
 	// handle /tmp
 
-	std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
+	std::string Path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/tmp";
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		File::DeleteDirRecursively(Path);
