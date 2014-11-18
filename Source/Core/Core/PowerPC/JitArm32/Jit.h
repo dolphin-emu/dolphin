@@ -58,6 +58,10 @@ private:
 	ArmGen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
 	bool BackPatch(SContext* ctx);
+
+	void BeginTimeProfile(JitBlock* b);
+	void EndTimeProfile(JitBlock* b);
+
 public:
 	JitArm() : code_buffer(32000) {}
 	~JitArm() {}
