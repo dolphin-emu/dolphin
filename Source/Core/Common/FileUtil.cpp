@@ -739,15 +739,16 @@ std::string GetSysDirectory()
 	return sysDir;
 }
 
+static std::string s_paths[NUM_PATH_INDICES];
+
 // Returns a string with a Dolphin data dir or file in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-const std::string& GetUserPath(const unsigned int DirIDX, const std::string &newPath)
+const std::string& GetUserPath(unsigned int idx)
 {
-	static std::string paths[NUM_PATH_INDICES];
-
-	// Set up all paths and files on the first run
-	if (paths[D_USER_IDX].empty())
+	// Set up all s_paths and files on the first run
+	if (s_paths[D_USER_IDX].empty())
 	{
+		std::string user;
 #ifdef _WIN32
 		// Detect where the User directory is. There are five different cases (on top of the
 		// command line flag, which overrides all this):
@@ -785,151 +786,91 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 		bool my_documents_found = SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, my_documents));
 
 		if (local) // Case 1-2
-			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+			user = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 		else if (configPath[0]) // Case 3
-			paths[D_USER_IDX] = TStrToUTF8(configPath);
+			user = TStrToUTF8(configPath);
 		else if (my_documents_found) // Case 4
-			paths[D_USER_IDX] = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+			user = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
 		else // Case 5
-			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+			user = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
 		// Prettify the path: it will be displayed in some places, we don't want a mix of \ and /.
-		paths[D_USER_IDX] = ReplaceAll(paths[D_USER_IDX], "\\", DIR_SEP);
+		user = ReplaceAll(user, "\\", DIR_SEP);
 
 		// Make sure it ends in DIR_SEP.
-		if (*paths[D_USER_IDX].rbegin() != DIR_SEP_CHR)
-			paths[D_USER_IDX] += DIR_SEP;
+		if (*user.rbegin() != DIR_SEP_CHR)
+			user += DIR_SEP;
 #else
 		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
-			paths[D_USER_IDX] = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
+			user = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
 		else
-			paths[D_USER_IDX] = std::string(getenv("HOME") ?
+			user = std::string(getenv("HOME") ?
 				getenv("HOME") : getenv("PWD") ?
 				getenv("PWD") : "") + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 #endif
-
-		paths[D_GCUSER_IDX]         = paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-		paths[D_WIIROOT_IDX]        = paths[D_USER_IDX] + WII_USER_DIR;
-		paths[D_WIIUSER_IDX]        = paths[D_WIIROOT_IDX] + DIR_SEP;
-		paths[D_CONFIG_IDX]         = paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
-		paths[D_GAMESETTINGS_IDX]   = paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
-		paths[D_MAPS_IDX]           = paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
-		paths[D_CACHE_IDX]          = paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-		paths[D_SHADERCACHE_IDX]    = paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
-		paths[D_SHADERS_IDX]        = paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
-		paths[D_STATESAVES_IDX]     = paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
-		paths[D_SCREENSHOTS_IDX]    = paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-		paths[D_LOAD_IDX]           = paths[D_USER_IDX] + LOAD_DIR DIR_SEP;
-		paths[D_HIRESTEXTURES_IDX]  = paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
-		paths[D_DUMP_IDX]           = paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-		paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-		paths[D_DUMPAUDIO_IDX]      = paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-		paths[D_DUMPTEXTURES_IDX]   = paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-		paths[D_DUMPDSP_IDX]        = paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-		paths[D_LOGS_IDX]           = paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-		paths[D_MAILLOGS_IDX]       = paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-		paths[D_WIISYSCONF_IDX]     = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
-		paths[D_WIIWC24_IDX]        = paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
-		paths[D_THEMES_IDX]         = paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
-		paths[F_DOLPHINCONFIG_IDX]  = paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-		paths[F_DEBUGGERCONFIG_IDX] = paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-		paths[F_LOGGERCONFIG_IDX]   = paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-		paths[F_MAINLOG_IDX]        = paths[D_LOGS_IDX] + MAIN_LOG;
-		paths[F_WIISYSCONF_IDX]     = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
-		paths[F_RAMDUMP_IDX]        = paths[D_DUMP_IDX] + RAM_DUMP;
-		paths[F_ARAMDUMP_IDX]       = paths[D_DUMP_IDX] + ARAM_DUMP;
-		paths[F_FAKEVMEMDUMP_IDX]   = paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
-		paths[F_GCSRAM_IDX]         = paths[D_GCUSER_IDX] + GC_SRAM;
+		SetUserPath(D_USER_IDX, user);
 	}
 
-	if (!newPath.empty())
+	return s_paths[idx];
+}
+
+void SetUserPath(unsigned int idx, const std::string& new_path)
+{
+	s_paths[idx] = new_path;
+
+	switch (idx)
 	{
-		if (!File::IsDirectory(newPath))
-		{
-			WARN_LOG(COMMON, "Invalid path specified %s", newPath.c_str());
-			return paths[DirIDX];
-		}
-		else
-		{
-			paths[DirIDX] = newPath;
-		}
+	case D_WIIROOT_IDX:
+		SetUserPath(D_WIIUSER_IDX,        s_paths[D_WIIROOT_IDX] + DIR_SEP);
+		SetUserPath(D_WIISYSCONF_IDX,     s_paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP);
+		SetUserPath(D_WIIWC24_IDX,        s_paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP);
+		SetUserPath(F_WIISYSCONF_IDX,     s_paths[D_WIISYSCONF_IDX] + WII_SYSCONF);
+		break;
 
-		switch (DirIDX)
-		{
-		case D_WIIROOT_IDX:
-			paths[D_WIIUSER_IDX]    = paths[D_WIIROOT_IDX] + DIR_SEP;
-			paths[D_WIISYSCONF_IDX] = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
-			paths[F_WIISYSCONF_IDX] = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
-			break;
+	case D_USER_IDX:
+		SetUserPath(D_GCUSER_IDX ,        s_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP);
+		SetUserPath(D_WIIROOT_IDX,        s_paths[D_USER_IDX] + WII_USER_DIR);
+		SetUserPath(D_CONFIG_IDX,         s_paths[D_USER_IDX] + CONFIG_DIR DIR_SEP);
+		SetUserPath(D_GAMESETTINGS_IDX,   s_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP);
+		SetUserPath(D_MAPS_IDX,           s_paths[D_USER_IDX] + MAPS_DIR DIR_SEP);
+		SetUserPath(D_CACHE_IDX,          s_paths[D_USER_IDX] + CACHE_DIR DIR_SEP);
+		SetUserPath(D_SHADERCACHE_IDX,    s_paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP);
+		SetUserPath(D_SHADERS_IDX,        s_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP);
+		SetUserPath(D_STATESAVES_IDX,     s_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP);
+		SetUserPath(D_SCREENSHOTS_IDX,    s_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP);
+		SetUserPath(D_DUMP_IDX,           s_paths[D_USER_IDX] + DUMP_DIR DIR_SEP);
+		SetUserPath(D_LOGS_IDX,           s_paths[D_USER_IDX] + LOGS_DIR DIR_SEP);
+		SetUserPath(D_THEMES_IDX,         s_paths[D_USER_IDX] + THEMES_DIR DIR_SEP);
+		break;
 
-		case D_USER_IDX:
-			paths[D_GCUSER_IDX]         = paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-			paths[D_WIIROOT_IDX]        = paths[D_USER_IDX] + WII_USER_DIR;
-			paths[D_WIIUSER_IDX]        = paths[D_WIIROOT_IDX] + DIR_SEP;
-			paths[D_CONFIG_IDX]         = paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
-			paths[D_GAMESETTINGS_IDX]   = paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
-			paths[D_MAPS_IDX]           = paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
-			paths[D_CACHE_IDX]          = paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-			paths[D_SHADERCACHE_IDX]    = paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
-			paths[D_SHADERS_IDX]        = paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
-			paths[D_STATESAVES_IDX]     = paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
-			paths[D_SCREENSHOTS_IDX]    = paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-			paths[D_HIRESTEXTURES_IDX]  = paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
-			paths[D_DUMP_IDX]           = paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-			paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-			paths[D_DUMPAUDIO_IDX]      = paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-			paths[D_DUMPTEXTURES_IDX]   = paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-			paths[D_DUMPDSP_IDX]        = paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-			paths[D_LOGS_IDX]           = paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-			paths[D_MAILLOGS_IDX]       = paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-			paths[D_WIISYSCONF_IDX]     = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
-			paths[D_THEMES_IDX]         = paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
-			paths[F_DOLPHINCONFIG_IDX]  = paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-			paths[F_DEBUGGERCONFIG_IDX] = paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-			paths[F_LOGGERCONFIG_IDX]   = paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-			paths[F_MAINLOG_IDX]        = paths[D_LOGS_IDX] + MAIN_LOG;
-			paths[F_WIISYSCONF_IDX]     = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
-			paths[F_RAMDUMP_IDX]        = paths[D_DUMP_IDX] + RAM_DUMP;
-			paths[F_ARAMDUMP_IDX]       = paths[D_DUMP_IDX] + ARAM_DUMP;
-			paths[F_FAKEVMEMDUMP_IDX]   = paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
-			paths[F_GCSRAM_IDX]         = paths[D_GCUSER_IDX] + GC_SRAM;
-			break;
+	case D_CONFIG_IDX:
+		SetUserPath(F_DOLPHINCONFIG_IDX,  s_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG);
+		SetUserPath(F_DEBUGGERCONFIG_IDX, s_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG);
+		SetUserPath(F_LOGGERCONFIG_IDX,   s_paths[D_CONFIG_IDX] + LOGGER_CONFIG);
+		break;
 
-		case D_CONFIG_IDX:
-			paths[F_DOLPHINCONFIG_IDX]  = paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-			paths[F_DEBUGGERCONFIG_IDX] = paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-			paths[F_LOGGERCONFIG_IDX]   = paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-			break;
+	case D_GCUSER_IDX:
+		SetUserPath(F_GCSRAM_IDX,         s_paths[D_GCUSER_IDX] + GC_SRAM);
+		break;
 
-		case D_GCUSER_IDX:
-			paths[F_GCSRAM_IDX]         = paths[D_GCUSER_IDX] + GC_SRAM;
-			break;
+	case D_DUMP_IDX:
+		SetUserPath(D_DUMPFRAMES_IDX,     s_paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP);
+		SetUserPath(D_DUMPAUDIO_IDX,      s_paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP);
+		SetUserPath(D_DUMPTEXTURES_IDX,   s_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP);
+		SetUserPath(D_DUMPDSP_IDX,        s_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP);
+		SetUserPath(F_RAMDUMP_IDX,        s_paths[D_DUMP_IDX] + RAM_DUMP);
+		SetUserPath(F_ARAMDUMP_IDX,       s_paths[D_DUMP_IDX] + ARAM_DUMP);
+		SetUserPath(F_FAKEVMEMDUMP_IDX,   s_paths[D_DUMP_IDX] + FAKEVMEM_DUMP);
+		break;
+	case D_LOGS_IDX:
+		SetUserPath(D_MAILLOGS_IDX,       s_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP);
+		SetUserPath(F_MAINLOG_IDX,        s_paths[D_LOGS_IDX] + MAIN_LOG);
+		break;
 
-		case D_DUMP_IDX:
-			paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-			paths[D_DUMPAUDIO_IDX]      = paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-			paths[D_DUMPTEXTURES_IDX]   = paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-			paths[D_DUMPDSP_IDX]        = paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-			paths[F_RAMDUMP_IDX]        = paths[D_DUMP_IDX] + RAM_DUMP;
-			paths[F_ARAMDUMP_IDX]       = paths[D_DUMP_IDX] + ARAM_DUMP;
-			paths[F_FAKEVMEMDUMP_IDX]   = paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
-			break;
-		case D_LOGS_IDX:
-			paths[D_MAILLOGS_IDX]       = paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-			paths[F_MAINLOG_IDX]        = paths[D_LOGS_IDX] + MAIN_LOG;
-			break;
-
-		case D_LOAD_IDX:
-			paths[D_HIRESTEXTURES_IDX]  = paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
-		}
-
-		paths[D_WIIUSER_IDX]    = paths[D_WIIROOT_IDX] + DIR_SEP;
-		paths[D_WIIWC24_IDX]    = paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
-		paths[D_WIISYSCONF_IDX] = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
-		paths[F_WIISYSCONF_IDX] = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+	case D_LOAD_IDX:
+		SetUserPath(D_HIRESTEXTURES_IDX,  s_paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP);
 	}
 
-	return paths[DirIDX];
 }
 
 std::string GetThemeDir(const std::string& theme_name)

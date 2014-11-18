@@ -127,7 +127,9 @@ std::string GetTempFilenameForAtomicWrite(const std::string &path);
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-const std::string& GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
+const std::string& GetUserPath(unsigned int idx);
+
+void SetUserPath(unsigned int idx, const std::string& new_path);
 
 // probably doesn't belong here
 std::string GetThemeDir(const std::string& theme_name);

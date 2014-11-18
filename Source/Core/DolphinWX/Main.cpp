@@ -224,7 +224,7 @@ bool DolphinApp::OnInit()
 	if (parser.Found("user", &userPath))
 	{
 		File::CreateFullPath(WxStrToStr(userPath) + DIR_SEP);
-		File::GetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
+		File::SetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
 	}
 #endif // wxUSE_CMDLINE_PARSER
 
