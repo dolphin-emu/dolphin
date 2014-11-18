@@ -33,7 +33,6 @@ void Resources::Init()
 	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(dir + SL("Flag_Korea.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_NETHERLANDS].load(dir + SL("Flag_Netherlands.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(dir + SL("Flag_Russia.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_SDK].load(dir + SL("Flag_SDK.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(dir + SL("Flag_Spain.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(dir + SL("Flag_Taiwan.png"));
 	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(dir + SL("Flag_Unknown.png"));

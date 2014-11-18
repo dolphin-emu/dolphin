@@ -181,7 +181,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					Region = EUR_DIR;
 					break;
 
-				case DiscIO::IVolume::COUNTRY_SDK:
 				case DiscIO::IVolume::COUNTRY_UNKNOWN:
 				default:
 					if (PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
@@ -265,7 +264,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					Region = EUR_DIR;
 					break;
 
-				case DiscIO::IVolume::COUNTRY_SDK:
 				case DiscIO::IVolume::COUNTRY_UNKNOWN:
 				default:
 					bNTSC = false;

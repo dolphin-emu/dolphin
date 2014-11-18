@@ -74,7 +74,6 @@
 #include "DolphinWX/resources/Flag_Korea.xpm"
 #include "DolphinWX/resources/Flag_Netherlands.xpm"
 #include "DolphinWX/resources/Flag_Russia.xpm"
-#include "DolphinWX/resources/Flag_SDK.xpm"
 #include "DolphinWX/resources/Flag_Spain.xpm"
 #include "DolphinWX/resources/Flag_Taiwan.xpm"
 #include "DolphinWX/resources/Flag_Unknown.xpm"
@@ -236,7 +235,6 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]         = m_imageListSmall->Add(wxBitmap(Flag_Korea_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_NETHERLANDS]   = m_imageListSmall->Add(wxBitmap(Flag_Netherlands_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_RUSSIA]        = m_imageListSmall->Add(wxBitmap(Flag_Russia_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK]           = m_imageListSmall->Add(wxBitmap(Flag_SDK_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SPAIN]         = m_imageListSmall->Add(wxBitmap(Flag_Spain_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]        = m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]       = m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm));

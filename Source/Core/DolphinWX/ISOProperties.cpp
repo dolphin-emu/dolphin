@@ -253,9 +253,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			m_Lang->Disable();
 		}
 		break;
-	case DiscIO::IVolume::COUNTRY_SDK:
-		m_Country->SetValue(_("No Country (SDK)"));
-		break;
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:
 		m_Country->SetValue(_("UNKNOWN"));
