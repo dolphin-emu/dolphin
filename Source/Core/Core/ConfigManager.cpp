@@ -423,8 +423,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 	general->Get("NANDRootPath", &m_NANDPath);
 	if (!m_NANDPath.empty())
 		File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
-	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
-	DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 	general->Get("WirelessMac", &m_WirelessMac);
 }
 

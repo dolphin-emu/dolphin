@@ -676,6 +676,31 @@ bool SetCurrentDir(const std::string &directory)
 	return __chdir(directory.c_str()) == 0;
 }
 
+std::string CreateTempDir()
+{
+#ifdef _WIN32
+	TCHAR temp[MAX_PATH];
+	if (!GetTempPath(MAX_PATH, temp))
+		return "";
+
+	GUID guid;
+	CoCreateGuid(&guid);
+	TCHAR tguid[40];
+	StringFromGUID2(guid, tguid, 39);
+	tguid[39] = 0;
+	std::string dir = TStrToUTF8(temp) + "/" + TStrToUTF8(tguid);
+	if (!CreateDir(dir))
+		return "";
+	return dir;
+#else
+	const char* base = getenv("TMPDIR") ?: "/tmp";
+	std::string path = std::string(base) + "/DolphinWii.XXXXXX";
+	if (!mkdtemp(&path[0]))
+		return "";
+	return path;
+#endif
+}
+
 std::string GetTempFilenameForAtomicWrite(const std::string &path)
 {
 	std::string abs = path;
@@ -820,13 +845,6 @@ void SetUserPath(unsigned int idx, const std::string& new_path)
 
 	switch (idx)
 	{
-	case D_WIIROOT_IDX:
-		SetUserPath(D_WIIUSER_IDX,        s_paths[D_WIIROOT_IDX] + DIR_SEP);
-		SetUserPath(D_WIISYSCONF_IDX,     s_paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP);
-		SetUserPath(D_WIIWC24_IDX,        s_paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP);
-		SetUserPath(F_WIISYSCONF_IDX,     s_paths[D_WIISYSCONF_IDX] + WII_SYSCONF);
-		break;
-
 	case D_USER_IDX:
 		SetUserPath(D_GCUSER_IDX ,        s_paths[D_USER_IDX] + GC_USER_DIR DIR_SEP);
 		SetUserPath(D_WIIROOT_IDX,        s_paths[D_USER_IDX] + WII_USER_DIR);

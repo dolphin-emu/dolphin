@@ -26,8 +26,8 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 	pVolume->GetTitleID((u8*)&TitleID);
 	TitleID = Common::swap64(TitleID);
 
-	std::string Filename = StringFromFormat("%stitle/%08x/%08x/data/banner.bin",
-		File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
+	std::string Filename = StringFromFormat("%s/title/%08x/%08x/data/banner.bin",
+		File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
 	if (!File::Exists(Filename))
 	{
