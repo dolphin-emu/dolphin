@@ -8,11 +8,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/filefn.h>
 #include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/string.h>
+#include <wx/window.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -131,7 +133,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	if (!m_pImage.empty())
 	{
 		wxImage Image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
-		double Scale = WxUtils::GetCurrentBitmapLogicalScale();
+		double Scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
 		// Note: This uses nearest neighbor, which subjectively looks a lot
 		// better for GC banners than smooths caling.
 		Image.Rescale(DVD_BANNER_WIDTH * Scale, DVD_BANNER_HEIGHT * Scale);
