@@ -1892,17 +1892,20 @@ namespace GLExtensions
 		// Grab a few functions for initial checking
 		// We need them to grab the extension list
 		// Also to check if there is an error grabbing the version
-		// If it fails then the user's drivers don't support GL 3.0
 		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
 			return false;
 		if (GetFuncAddress("glGetString", (void**)&glGetString) == nullptr)
-			return false;
-		if (GetFuncAddress("glGetStringi", (void**)&glGetStringi) == nullptr)
 			return false;
 		if (GetFuncAddress("glGetError", (void**)&glGetError) == nullptr)
 			return false;
 
 		InitVersion();
+
+		// We need to use glGetStringi to get the extension list
+		// if we are using GLES3 or a GL version greater than 2.1
+		if (_GLVersion > 210 && GetFuncAddress("glGetStringi", (void**)&glGetStringi) == nullptr)
+			return false;
+
 		InitExtensionList();
 
 		return InitFunctionPointers();
