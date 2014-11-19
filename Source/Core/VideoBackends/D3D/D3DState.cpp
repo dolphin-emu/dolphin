@@ -183,9 +183,7 @@ ID3D11BlendState* StateCache::Get(BlendState state)
 	auto it = m_blend.find(state.packed);
 
 	if (it != m_blend.end())
-	{
 		return it->second;
-	}
 
 	D3D11_BLEND_DESC blenddc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
 
@@ -256,9 +254,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
 	auto it = m_raster.find(state.packed);
 
 	if (it != m_raster.end())
-	{
 		return it->second;
-	}
 
 	D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(state.wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID,
 		state.cull_mode,
@@ -279,9 +275,7 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
 	auto it = m_depth.find(state.hex);
 
 	if (it != m_depth.end())
-	{
 		return it->second;
-	}
 
 	D3D11_DEPTH_STENCIL_DESC depthdc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 

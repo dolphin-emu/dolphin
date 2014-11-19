@@ -61,7 +61,7 @@ unsigned int GetMaxTextureSize();
 HRESULT SetFullscreenState(bool enable_fullscreen);
 HRESULT GetFullscreenState(bool* fullscreen_state);
 
-// Ihis function will assign a name to the given resource.
+// This function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.
 template <typename T>
@@ -76,11 +76,11 @@ void SetDebugObjectName(T resource, const char* name)
 
 }  // namespace D3D
 
-typedef HRESULT (WINAPI *CREATEDXGIFACTORY)(REFIID, void**);
+typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
-typedef HRESULT (WINAPI *D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 
-typedef HRESULT (WINAPI *D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
+typedef HRESULT (WINAPI* D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
 extern D3DREFLECT PD3DReflect;
 extern pD3DCompile PD3DCompile;
 

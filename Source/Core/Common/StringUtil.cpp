@@ -350,7 +350,7 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 	std::string result;
 
 	iconv_t const conv_desc = iconv_open("UTF-8", fromcode);
-	if ((iconv_t)-1 == conv_desc)
+	if ((iconv_t) - 1 == conv_desc)
 	{
 		ERROR_LOG(COMMON, "Iconv initialization failure [%s]: %s", fromcode, strerror(errno));
 	}
@@ -372,7 +372,7 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 			size_t const iconv_result = iconv(conv_desc, (char**)(&src_buffer), &src_bytes,
 				&dst_buffer, &dst_bytes);
 
-			if ((size_t)-1 == iconv_result)
+			if ((size_t) - 1 == iconv_result)
 			{
 				if (EILSEQ == errno || EINVAL == errno)
 				{

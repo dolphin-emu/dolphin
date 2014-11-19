@@ -35,7 +35,7 @@ void Jit64AsmRoutineManager::Generate()
 		MOV(64, M(&s_saved_rsp), R(RSP));
 	}
 	// something that can't pass the BLR test
-	MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
+	MOV(64, MDisp(RSP, 8), Imm32((u32) - 1));
 
 	// Two statically allocated registers.
 	MOV(64, R(RMEM), Imm64((u64)Memory::base));

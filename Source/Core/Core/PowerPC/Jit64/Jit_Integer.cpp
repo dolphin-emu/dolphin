@@ -892,7 +892,7 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
 		return;
 	}
 
-	if (imm == (u32)-1)
+	if (imm == (u32) - 1)
 	{
 		if (d != a)
 			MOV(32, gpr.R(d), gpr.R(a));

@@ -92,7 +92,7 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 		m_listbox_gcodes->Append(StrToWxStr(code.name));
 		if (code.enabled)
 		{
-			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount()-1, true);
+			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount() - 1, true);
 		}
 	}
 

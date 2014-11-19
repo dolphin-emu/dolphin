@@ -250,7 +250,7 @@ wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Styl
 void CLogWindow::OnFontChange(wxCommandEvent& event)
 {
 	// Update selected font
-	LogFont[LogFont.size()-1] = DebuggerFont;
+	LogFont[LogFont.size() - 1] = DebuggerFont;
 	m_Log->SetStyle(0, m_Log->GetLastPosition(),
 			wxTextAttr(wxNullColour, wxNullColour, LogFont[event.GetSelection()]));
 	m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, LogFont[event.GetSelection()]));

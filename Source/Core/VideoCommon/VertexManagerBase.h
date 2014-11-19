@@ -19,7 +19,7 @@ private:
 	static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float)*3;                 // 3 pos
 	static const u32 LARGEST_POSSIBLE_VERTEX = sizeof(float)*45 + sizeof(u32)*2; // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
 
-	static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
+	static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16) - 1;
 
 public:
 	static const u32 MAXVBUFFERSIZE = ROUND_UP_POW2 (MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
@@ -57,7 +57,7 @@ protected:
 private:
 	static bool IsFlushed;
 
-	//virtual void Draw(u32 stride, bool alphapass) = 0;
+	// virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
 	virtual void vFlush(bool useDstAlpha) = 0;
 };

@@ -39,7 +39,7 @@ bool SignatureDB::Load(const std::string& filename)
 		memset(&temp, 0, sizeof(temp));
 
 		f.ReadArray(&temp, 1);
-		temp.name[sizeof(temp.name)-1] = 0;
+		temp.name[sizeof(temp.name) - 1] = 0;
 
 		DBFunc dbf;
 		dbf.name = temp.name;

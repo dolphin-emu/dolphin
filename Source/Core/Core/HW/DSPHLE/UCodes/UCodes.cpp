@@ -18,7 +18,7 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
-UCodeInterface* UCodeFactory(u32 crc, DSPHLE *dsphle, bool wii)
+UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 {
 	switch (crc)
 	{

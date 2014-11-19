@@ -70,8 +70,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 
 	EntrySelection = new wxSpinButton(this);
 	EntrySelection->Bind(wxEVT_SPIN, &CPatchAddEdit::ChangeEntry, this);
-	EntrySelection->SetRange(0, (int)tempEntries.size()-1);
-	EntrySelection->SetValue((int)tempEntries.size()-1);
+	EntrySelection->SetRange(0, (int)tempEntries.size() - 1);
+	EntrySelection->SetValue((int)tempEntries.size() - 1);
 
 	wxArrayString wxArrayStringFor_EditPatchType;
 	for (int i = 0; i < 3; ++i)

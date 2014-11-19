@@ -467,7 +467,7 @@ void CFrame::DoAddPage(wxWindow *Win, int i, bool Float)
 	if (!Win) return;
 
 	// Ensure accessor remains within valid bounds.
-	if (i < 0 || i > GetNotebookCount()-1)
+	if (i < 0 || i > GetNotebookCount() - 1)
 		i = 0;
 
 	// The page was already previously added, no need to add it again.
@@ -842,7 +842,7 @@ void CFrame::SaveIniPerspectives()
 	{
 		STmp += Perspective.Name + ",";
 	}
-	STmp = STmp.substr(0, STmp.length()-1);
+	STmp = STmp.substr(0, STmp.length() - 1);
 
 	IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
 	perspectives->Set("Perspectives", STmp);
@@ -862,8 +862,8 @@ void CFrame::SaveIniPerspectives()
 			SHeight += StringFromFormat("%i,", Perspective.Height[j]);
 		}
 		// Remove the ending ","
-		SWidth = SWidth.substr(0, SWidth.length()-1);
-		SHeight = SHeight.substr(0, SHeight.length()-1);
+		SWidth = SWidth.substr(0, SWidth.length() - 1);
+		SHeight = SHeight.substr(0, SHeight.length() - 1);
 
 		perspec_section->Set("Width", SWidth);
 		perspec_section->Set("Height", SHeight);
