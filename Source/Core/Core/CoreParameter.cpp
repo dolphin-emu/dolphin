@@ -169,6 +169,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					Region = JAP_DIR;
 					break;
 
+				case DiscIO::IVolume::COUNTRY_AUSTRALIA:
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
 				case DiscIO::IVolume::COUNTRY_ITALY:
