@@ -17,7 +17,7 @@
 static bool IsOsSupported()
 {
 #ifdef Q_OS_OSX
-	return QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7;
+	return QSysInfo::MacintoshVersion >= QSysInfo::MV_10_9;
 #elif defined(Q_OS_WIN)
 	return (QSysInfo::WindowsVersion & QSysInfo::WV_NT_based) >= QSysInfo::WV_VISTA;
 #else
@@ -28,7 +28,7 @@ static bool IsOsSupported()
 static QString LowestSupportedOsVersion()
 {
 #ifdef Q_OS_OSX
-	return SL("Mac OS X 10.7");
+	return SL("Mac OS X 10.9");
 #elif defined(Q_OS_WIN)
 	return SL("Windows Vista SP2");
 #else
