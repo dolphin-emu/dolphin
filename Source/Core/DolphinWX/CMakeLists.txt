@@ -181,7 +181,7 @@ elseif(wxWidgets_FOUND)
 				COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
 				VERBATIM
 				)
-			add_custom_target(CopyDataIntoBundle ALL
+			add_custom_target(CopyDataIntoBundleWx ALL
 				DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
 				)
 		endif()
@@ -219,7 +219,7 @@ elseif(wxWidgets_FOUND)
 				${CMAKE_SOURCE_DIR}/Data/Sys
 				VERBATIM
 				)
-			add_custom_target(CopyTranslationsIntoBundle ALL
+			add_custom_target(CopyTranslationsIntoBundleWx ALL
 				DEPENDS ${BUNDLE_PATH}/Contents/Resources/en.lproj
 				)
 		endif()

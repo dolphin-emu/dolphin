@@ -83,7 +83,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
 			VERBATIM
 			)
-		add_custom_target(CopyDataIntoBundle ALL
+		add_custom_target(CopyDataIntoBundleQt ALL
 			DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
 			)
 	endif()
