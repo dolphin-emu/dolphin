@@ -2,44 +2,30 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// Games that uses this UCode (exhaustive list):
+// Games that use this UCode (exhaustive list):
 // * Animal Crossing (type ????, CRC ????)
 // * Donkey Kong Jungle Beat (type ????, CRC ????)
 // * IPL (type ????, CRC ????)
 // * Luigi's Mansion (type ????, CRC ????)
-// * Mario Kary: Double Dash!! (type ????, CRC ????)
+// * Mario Kart: Double Dash!! (type ????, CRC ????)
 // * Pikmin (type ????, CRC ????)
 // * Pikmin 2 (type ????, CRC ????)
 // * Super Mario Galaxy (type ????, CRC ????)
 // * Super Mario Galaxy 2 (type ????, CRC ????)
 // * Super Mario Sunshine (type ????, CRC ????)
 // * The Legend of Zelda: Four Swords Adventures (type ????, CRC ????)
-// * The Legend of Zelda: The Wind Waker (type Normal, CRC 86840740)
+// * The Legend of Zelda: The Wind Waker (type DAC, CRC 86840740)
 // * The Legend of Zelda: Twilight Princess (type ????, CRC ????)
 
 #include "Core/ConfigManager.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
 ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
-	: UCodeInterface(dsphle, crc),
-	  m_sync_in_progress(false),
-	  m_max_voice(0),
-	  m_num_sync_mail(0),
-	  m_num_voices(0),
-	  m_sync_cmd_pending(false),
-	  m_current_voice(0),
-	  m_current_buffer(0),
-	  m_num_buffers(0),
-	  m_num_steps(0),
-	  m_list_in_progress(false),
-	  m_step(0),
-	  m_read_offset(0)
+	: UCodeInterface(dsphle, crc)
 {
-	m_mail_handler.PushMail(DSP_INIT);
-	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+	m_mail_handler.PushMail(DSP_INIT, true);
 	m_mail_handler.PushMail(0xF3551111); // handshake
 }
 
@@ -52,9 +38,37 @@ void ZeldaUCode::Update()
 {
 	if (NeedsResumeMail())
 	{
-		m_mail_handler.PushMail(DSP_RESUME);
-		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		m_mail_handler.PushMail(DSP_RESUME, true);
 	}
+}
+
+u32 ZeldaUCode::GetUpdateMs()
+{
+	return SConfig::GetInstance().bWii ? 3 : 5;
+}
+
+void ZeldaUCode::DoState(PointerWrap &p)
+{
+	p.Do(m_mail_current_state);
+	p.Do(m_mail_expected_cmd_mails);
+
+	p.Do(m_sync_max_voice_id);
+	p.Do(m_sync_flags);
+
+	p.Do(m_cmd_buffer);
+	p.Do(m_read_offset);
+	p.Do(m_write_offset);
+	p.Do(m_pending_commands_count);
+	p.Do(m_cmd_can_execute);
+
+	p.Do(m_rendering_requested_frames);
+	p.Do(m_rendering_voices_per_frame);
+	p.Do(m_rendering_mram_lbuf_addr);
+	p.Do(m_rendering_mram_rbuf_addr);
+	p.Do(m_rendering_curr_frame);
+	p.Do(m_rendering_curr_voice);
+
+	DoStateShared(p);
 }
 
 void ZeldaUCode::HandleMail(u32 mail)
@@ -65,181 +79,218 @@ void ZeldaUCode::HandleMail(u32 mail)
 		return;
 	}
 
-	if (m_sync_in_progress)
+	switch (m_mail_current_state)
 	{
-		if (m_sync_cmd_pending)
+	case MailState::WAITING:
+		if (mail & 0x80000000)
 		{
-			u32 n = (mail >> 16) & 0xF;
-			m_max_voice = (n + 1) << 4;
-			m_sync_flags[n] = mail & 0xFFFF;
-			m_sync_in_progress = false;
-
-			m_current_voice = m_max_voice;
-
-			if (m_current_voice >= m_num_voices)
+			if ((mail >> 16) != 0xCDD1)
 			{
-				// TODO(delroth): Mix audio.
+				ERROR_LOG(DSPHLE, "Rendering end mail without prefix CDD1: %08x",
+				          mail);
+			}
 
-				m_current_buffer++;
+			switch (mail & 0xFFFF)
+			{
+			case 1:
+				NOTICE_LOG(DSPHLE, "UCode being replaced.");
+				m_upload_setup_in_progress = true;
+				SetMailState(MailState::HALTED);
+				break;
 
-				m_mail_handler.PushMail(DSP_SYNC);
-				DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-				m_mail_handler.PushMail(0xF355FF00 | m_current_buffer);
+			case 2:
+				NOTICE_LOG(DSPHLE, "UCode being rebooted to ROM.");
+				SetMailState(MailState::HALTED);
+				m_dsphle->SetUCode(UCODE_ROM);
+				break;
 
-				m_current_voice = 0;
+			case 3:
+				m_cmd_can_execute = true;
+				RunPendingCommands();
+				break;
 
-				if (m_current_buffer == m_num_buffers)
-				{
-					m_mail_handler.PushMail(DSP_FRAME_END);
-					m_sync_cmd_pending = false;
-				}
+			default:
+				NOTICE_LOG(DSPHLE, "Unknown end rendering action. Halting.");
+			case 0:
+				NOTICE_LOG(DSPHLE, "UCode asked to halt. Stopping any processing.");
+				SetMailState(MailState::HALTED);
+				break;
+			}
+		}
+		else if (!(mail & 0xFFFF))
+		{
+			if (RenderingInProgress())
+			{
+				SetMailState(MailState::RENDERING);
+			}
+			else
+			{
+				NOTICE_LOG(DSPHLE, "Sync mail (%08x) received when rendering was not active. Halting.",
+				           mail);
+				SetMailState(MailState::HALTED);
 			}
 		}
 		else
 		{
-			m_sync_in_progress = false;
+			SetMailState(MailState::WRITING_CMD);
+			m_mail_expected_cmd_mails = mail & 0xFFFF;
 		}
+		break;
 
-		return;
-	}
+	case MailState::RENDERING:
+		m_sync_max_voice_id = (((mail >> 16) & 0xF) + 1) << 4;
+		m_sync_flags[(mail >> 16) & 0xFF] = mail & 0xFFFF;
 
-	if (m_list_in_progress)
-	{
-		if (m_step >= sizeof(m_buffer) / 4)
-			PanicAlert("m_step out of range");
+		RenderAudio();
+		SetMailState(MailState::WAITING);
+		break;
 
-		((u32*)m_buffer)[m_step] = mail;
-		m_step++;
+	case MailState::WRITING_CMD:
+		Write32(mail);
 
-		if (m_step >= m_num_steps)
+		if (--m_mail_expected_cmd_mails == 0)
 		{
-			ExecuteList();
-			m_list_in_progress = false;
+			m_pending_commands_count += 1;
+			SetMailState(MailState::WAITING);
+			RunPendingCommands();
 		}
+		break;
 
-		return;
-	}
-
-	// Here holds: m_sync_in_progress == false && m_list_in_progress == false
-
-	// Zelda-only mails:
-	// - 0000XXXX - Begin list
-	// - 00000000, 000X0000 - Sync mails
-	// - CDD1XXXX - comes after DsyncFrame completed, seems to be debugging stuff
-
-	if (mail == 0)
-	{
-		m_sync_in_progress = true;
-	}
-	else if ((mail >> 16) == 0)
-	{
-		m_list_in_progress = true;
-		m_num_steps = mail;
-		m_step = 0;
-	}
-	else if ((mail >> 16) == 0xCDD1) // A 0xCDD1000X mail should come right after we send a DSP_FRAME_END mail
-	{
-		// The low part of the mail tells the operation to perform
-		// Seeing as every possible operation number halts the uCode,
-		// except 3, that thing seems to be intended for debugging
-		switch (mail & 0xFFFF)
-		{
-		case 0x0003: // Do nothing - continue normally
-			return;
-
-		case 0x0001: // accepts params to either DMA to iram and/or DRAM (used for hotbooting a new ucode)
-			// TODO find a better way to protect from HLEMixer?
-			m_upload_setup_in_progress = true;
-			return;
-
-		case 0x0002: // Let IROM play us off
-			m_dsphle->SetUCode(UCODE_ROM);
-			return;
-
-		case 0x0000: // Halt
-			WARN_LOG(DSPHLE, "Zelda uCode: received halting operation %04X", mail & 0xFFFF);
-			return;
-
-		default:     // Invalid (the real ucode would likely crash)
-			WARN_LOG(DSPHLE, "Zelda uCode: received invalid operation %04X", mail & 0xFFFF);
-			return;
-		}
-	}
-	else
-	{
-		WARN_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", mail);
+	case MailState::HALTED:
+		WARN_LOG(DSPHLE, "Received mail %08x while we're halted.", mail);
+		break;
 	}
 }
 
-void ZeldaUCode::ExecuteList()
+void ZeldaUCode::RunPendingCommands()
 {
-	m_read_offset = 0;
-
-	u32 cmd_mail = Read32();
-	u32 command = (cmd_mail >> 24) & 0x7f;
-	u32 sync;
-	u32 extra_data = cmd_mail & 0xFFFF;
-
-	sync = cmd_mail >> 16;
-
-	switch (command)
+	if (RenderingInProgress() || !m_cmd_can_execute)
 	{
-		case 0x00: break;
+		// No commands can be ran while audio rendering is in progress or
+		// waiting for an ACK.
+		return;
+	}
 
-		case 0x01:
-			Read32(); Read32(); Read32(); Read32();
+	while (m_pending_commands_count)
+	{
+		m_pending_commands_count--;
+
+		u32 cmd_mail = Read32();
+		u32 command = (cmd_mail >> 24) & 0x7f;
+		u32 sync = cmd_mail >> 16;
+		u32 extra_data = cmd_mail & 0xFFFF;
+
+		switch (command)
+		{
+		case 0x00:
+		case 0x03:
+		case 0x0A:
+		case 0x0B:
+		case 0x0C:
+		case 0x0E:
+		case 0x0F:
+			// NOP commands. Log anyway in case we encounter a new version
+			// where these are not NOPs anymore.
+			NOTICE_LOG(DSPHLE, "Received a NOP command: %d", command);
+			SendCommandAck(CommandAck::STANDARD, sync);
 			break;
 
-		case 0x02:
-			Read32(); Read32();
+		case 0x04:
+		case 0x05:
+		case 0x06:
+		case 0x07:
+		case 0x08:
+		case 0x09:
+			// Commands that crash the DAC UCode. Log and enter HALTED mode.
+			NOTICE_LOG(DSPHLE, "Received a crashy command: %d", command);
+			SetMailState(MailState::HALTED);
 			return;
 
-		case 0x03: break;
-
-		case 0x0d:
-			Read32();
+		// Command 01: TODO: find a name and implement.
+		case 0x01:
+			WARN_LOG(DSPHLE, "CMD01: %08x %08x %08x %08x",
+			         Read32(), Read32(), Read32(), Read32());
+			m_rendering_voices_per_frame = extra_data;
+			SendCommandAck(CommandAck::STANDARD, sync);
 			break;
 
-		case 0x0e:
-			Read32();
+		// Command 02: starts audio processing. NOTE: this handler uses return,
+		// not break. This is because it hijacks the mail control flow and
+		// stops processing of further commands until audio processing is done.
+		case 0x02:
+			m_rendering_requested_frames = (cmd_mail >> 16) & 0xFF;
+			m_rendering_mram_lbuf_addr = Read32();
+			m_rendering_mram_rbuf_addr = Read32();
+
+			m_rendering_curr_frame = 0;
+			m_rendering_curr_voice = 0;
+			RenderAudio();
+			return;
+
+		// Command 0D: TODO: find a name and implement.
+		case 0x0D:
+			WARN_LOG(DSPHLE, "CMD0D: %08x", Read32());
+			SendCommandAck(CommandAck::STANDARD, sync);
 			break;
 
 		default:
-			PanicAlert("Zelda UCode - unknown command: %x (size %i)", command, m_num_steps);
-			break;
+			NOTICE_LOG(DSPHLE, "Received a non-existing command (%d), halting.", command);
+			SetMailState(MailState::HALTED);
+			return;
+		}
+	}
+}
+
+void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
+{
+	u32 ack_mail;
+	switch (ack_type)
+	{
+	case CommandAck::STANDARD: ack_mail = DSP_SYNC; break;
+	case CommandAck::DONE_RENDERING: ack_mail = DSP_FRAME_END; break;
+	}
+	m_mail_handler.PushMail(ack_mail, true);
+
+	if (ack_type == CommandAck::STANDARD)
+	{
+		m_mail_handler.PushMail(0xF3550000 | sync_value);
+	}
+}
+
+void ZeldaUCode::RenderAudio()
+{
+	WARN_LOG(DSPHLE, "RenderAudio() frame %d/%d voice %d/%d (sync to %d)",
+	         m_rendering_curr_frame, m_rendering_requested_frames,
+	         m_rendering_curr_voice, m_rendering_voices_per_frame,
+	         m_sync_max_voice_id);
+
+	if (!RenderingInProgress())
+	{
+		WARN_LOG(DSPHLE, "Trying to render audio while no rendering should be happening.");
+		return;
 	}
 
-	m_mail_handler.PushMail(DSP_SYNC);
-	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-	m_mail_handler.PushMail(0xF3550000 | sync);
-}
+	while (m_rendering_curr_frame < m_rendering_requested_frames)
+	{
+		while (m_rendering_curr_voice < m_rendering_voices_per_frame)
+		{
+			// If we are not meant to render this voice yet, go back to message
+			// processing.
+			if (m_rendering_curr_voice >= m_sync_max_voice_id)
+				return;
 
-u32 ZeldaUCode::GetUpdateMs()
-{
-	return SConfig::GetInstance().bWii ? 3 : 5;
-}
+			// TODO(delroth): render.
 
-void ZeldaUCode::DoState(PointerWrap &p)
-{
-	p.Do(m_sync_in_progress);
-	p.Do(m_max_voice);
-	p.Do(m_sync_flags);
+			m_rendering_curr_voice++;
+		}
 
-	p.Do(m_num_sync_mail);
+		SendCommandAck(CommandAck::STANDARD, 0xFF00 | m_rendering_curr_frame);
 
-	p.Do(m_num_voices);
+		m_rendering_curr_voice = 0;
+		m_sync_max_voice_id = 0;
+		m_rendering_curr_frame++;
+	}
 
-	p.Do(m_sync_cmd_pending);
-	p.Do(m_current_voice);
-	p.Do(m_current_buffer);
-	p.Do(m_num_buffers);
-
-	p.Do(m_num_steps);
-	p.Do(m_list_in_progress);
-	p.Do(m_step);
-	p.Do(m_buffer);
-
-	p.Do(m_read_offset);
-
-	DoStateShared(p);
+	SendCommandAck(CommandAck::DONE_RENDERING, 0);
+	m_cmd_can_execute = false;  // Block command execution until ACK is received.
 }
