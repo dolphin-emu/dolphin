@@ -415,6 +415,16 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "BlockMerging"));
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
 
+	wxBoxSizer* const sGPUDeterminism = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const GPUDeterminismText = new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core: "));
+	arrayStringFor_GPUDeterminism.Add(_("Not Set"));
+	arrayStringFor_GPUDeterminism.Add(_("auto"));
+	arrayStringFor_GPUDeterminism.Add(_("none"));
+	arrayStringFor_GPUDeterminism.Add(_("fake-completion"));
+	GPUDeterminism = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_GPUDeterminism);
+	sGPUDeterminism->Add(GPUDeterminismText);
+	sGPUDeterminism->Add(GPUDeterminism);
+
 	// Wii Console
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Wii", "Widescreen"));
 
@@ -443,6 +453,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(BlockMerging, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND|wxALL, 5);
 
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
@@ -1062,6 +1073,19 @@ void CISOProperties::LoadGameConfig()
 
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
+	sTemp = "";
+	if (!GameIniLocal.GetIfExists("Core", "GPUDeterminismMode", &sTemp))
+		GameIniDefault.GetIfExists("Core", "GPUDeterminismMode", &sTemp);
+
+	if (sTemp == "")
+		GPUDeterminism->SetSelection(0);
+	else if (sTemp == "auto")
+		GPUDeterminism->SetSelection(1);
+	else if (sTemp == "none")
+		GPUDeterminism->SetSelection(2);
+	else if (sTemp == "fake-completion")
+		GPUDeterminism->SetSelection(3);
+
 	PatchList_Load();
 	ActionReplayList_Load();
 	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
@@ -1126,6 +1150,18 @@ bool CISOProperties::SaveGameConfig()
 
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
 	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
+
+	std::string tmp;
+	if (GPUDeterminism->GetSelection() == 0)
+		tmp = "Not Set";
+	else if (GPUDeterminism->GetSelection() == 1)
+		tmp = "auto";
+	else if (GPUDeterminism->GetSelection() == 2)
+		tmp = "none";
+	else if (GPUDeterminism->GetSelection() == 3)
+		tmp = "fake-completion";
+
+	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
 
 	PatchList_Save();
 	ActionReplayList_Save();
