@@ -20,6 +20,7 @@
 #include "Core/Core.h"
 #include "Core/Movie.h"
 
+#include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
@@ -465,6 +466,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
+	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -1159,6 +1161,52 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	}
 
 	return 0;
+}
+
+u16 Renderer::BBoxRead(int index)
+{
+	int swapped_index = index;
+	if (index >= 2)
+		swapped_index ^= 1; // swap 2 and 3 for top/bottom
+
+	// Here we get the min/max value of the truncated position of the upscaled and swapped framebuffer.
+	// So we have to correct them to the unscaled EFB sizes.
+	int value = BoundingBox::Get(swapped_index);
+
+	if (index < 2)
+	{
+		// left/right
+		value = value * EFB_WIDTH / s_target_width;
+	}
+	else
+	{
+		// up/down -- we have to swap up and down
+		value = value * EFB_HEIGHT / s_target_height;
+		value = EFB_HEIGHT - value - 1;
+	}
+	if (index & 1)
+		value++; // fix max values to describe the outer border
+
+	return value;
+}
+
+void Renderer::BBoxWrite(int index, u16 _value)
+{
+	int value = _value; // u16 isn't enough to multiply by the efb width
+	if (index & 1)
+		value--;
+	if (index < 2)
+	{
+		value = value * s_target_width / EFB_WIDTH;
+	}
+	else
+	{
+		index ^= 1; // swap 2 and 3 for top/bottom
+		value = EFB_HEIGHT - value - 1;
+		value = value * s_target_height / EFB_HEIGHT;
+	}
+
+	BoundingBox::Set(index, value);
 }
 
 void Renderer::SetViewport()
