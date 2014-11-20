@@ -198,7 +198,10 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 
 	if (serno.empty() || serno == "000000000")
 	{
-		serno = gen.generateSerialNumber();
+		if (Core::g_want_determinism)
+			serno = "000000000";
+		else
+			serno = gen.generateSerialNumber();
 		INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
 	}
 	else
