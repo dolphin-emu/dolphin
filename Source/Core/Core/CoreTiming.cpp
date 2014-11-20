@@ -226,6 +226,12 @@ u64 GetIdleTicks()
 void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
 	_assert_msg_(POWERPC, !Core::IsCPUThread(), "ScheduleEvent_Threadsafe from wrong thread");
+	if (Core::g_want_determinism)
+	{
+		ERROR_LOG(POWERPC, "Someone scheduled an off-thread \"%s\" event while netplay or movie play/record "
+		                   "was active.  This is likely to cause a desync.",
+		                   event_types[event_type].name.c_str());
+	}
 	std::lock_guard<std::mutex> lk(tsWriteLock);
 	Event ne;
 	ne.time = globalTimer + cyclesIntoFuture;
