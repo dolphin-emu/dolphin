@@ -17,6 +17,7 @@ namespace BoundingBox
 
 // External vars
 bool active = false;
+int  tolerance = 3;
 u16 coords[4] = { 0x80, 0xA0, 0x80, 0xA0 };
 u8 posMtxIdx;
 u8 texMtxIdx[8];
