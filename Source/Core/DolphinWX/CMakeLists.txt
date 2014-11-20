@@ -1,18 +1,3 @@
-set(LIBS	core
-			uicommon
-			${LZO}
-			${GTK2_LIBRARIES})
-
-if(NOT ANDROID)
-	link_directories(${CMAKE_PREFIX_PATH}/lib)
-else()
-	set(LIBS ${LIBS} png iconv)
-endif()
-
-if(LIBAV_FOUND)
-	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})
-endif()
-
 set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
@@ -65,24 +50,21 @@ set(GUI_SRCS
 
 set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 
+list(APPEND LIBS core uicommon)
+
+if(ANDROID)
+	list(APPEND LIBS png)
+endif()
+
+
 set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
 
 set(NOGUI_SRCS MainNoGUI.cpp)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	# Link against OS X system frameworks.
-	list(APPEND LIBS
-		${APPKIT_LIBRARY}
-		${AU_LIBRARY}
-		${COREAUDIO_LIBRARY}
-		${COREFUND_LIBRARY}
-		${CORESERV_LIBRARY}
-		${IOK_LIBRARY}
-		${FORCEFEEDBACK}
-		)
 	if(wxWidgets_FOUND)
-		list(APPEND LIBS
+		list(APPEND WXLIBS
 			${APPSERV_LIBRARY}
 			${COCOA_LIBRARY}
 			)
@@ -94,11 +76,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
-        ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
-	set(LIBS ${LIBS} usbhid)
-endif()
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(DOLPHIN_EXE_BASE Dolphin)
 else()
@@ -106,10 +83,6 @@ else()
 endif()
 
 set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
-
-if(USE_UPNP)
-  set(LIBS  ${LIBS} miniupnpc)
-endif()
 
 include(FindGettext)
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
@@ -145,7 +118,7 @@ if(ANDROID)
 	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
 elseif(wxWidgets_FOUND)
 	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
-	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS} ${LLVM_LIBRARIES})
+	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
