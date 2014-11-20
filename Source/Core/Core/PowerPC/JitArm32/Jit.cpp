@@ -40,6 +40,7 @@ void JitArm::Init()
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	InitBackpatch();
 }
 
 void JitArm::ClearCache()

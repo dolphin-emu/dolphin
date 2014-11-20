@@ -24,16 +24,13 @@ void JitArm::lfXX(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff);
 
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
 	ARMReg RA;
 
 	u32 a = inst.RA, b = inst.RB;
 
 	s32 offset = inst.SIMM_16;
-	bool single = false;
+	u32 flags = BackPatchInfo::FLAG_LOAD;
 	bool update = false;
-	bool zeroA = false;
 	s32 offsetReg = -1;
 
 	switch (inst.OPCD)
@@ -42,157 +39,152 @@ void JitArm::lfXX(UGeckoInstruction inst)
 			switch (inst.SUBOP10)
 			{
 				case 567: // lfsux
-					single = true;
+					flags |= BackPatchInfo::FLAG_SIZE_F32;
 					update = true;
 					offsetReg = b;
 				break;
 				case 535: // lfsx
-					single = true;
-					zeroA = true;
+					flags |= BackPatchInfo::FLAG_SIZE_F32;
 					offsetReg = b;
 				break;
 				case 631: // lfdux
+					flags |= BackPatchInfo::FLAG_SIZE_F64;
 					update = true;
 					offsetReg = b;
 				break;
 				case 599: // lfdx
-					zeroA = true;
+					flags |= BackPatchInfo::FLAG_SIZE_F64;
 					offsetReg = b;
 				break;
 			}
 		break;
 		case 49: // lfsu
+			flags |= BackPatchInfo::FLAG_SIZE_F32;
 			update = true;
-			single = true;
 		break;
 		case 48: // lfs
-			single = true;
-			zeroA = true;
+			flags |= BackPatchInfo::FLAG_SIZE_F32;
 		break;
 		case 51: // lfdu
+			flags |= BackPatchInfo::FLAG_SIZE_F64;
 			update = true;
 		break;
 		case 50: // lfd
-			zeroA = true;
+			flags |= BackPatchInfo::FLAG_SIZE_F64;
 		break;
 	}
 
-	ARMReg v0 = fpr.R0(inst.FD, false), v1;
-	if (single)
+	ARMReg v0 = fpr.R0(inst.FD, false), v1 = INVALID_REG;
+	if (flags & BackPatchInfo::FLAG_SIZE_F32)
 		v1 = fpr.R1(inst.FD, false);
 
+	ARMReg rA = R11;
+	ARMReg addr = R12;
+
+	u32 imm_addr = 0;
+	bool is_immediate = false;
 	if (update)
 	{
-		RA = gpr.R(a);
-		// Update path /always/ uses RA
-		if (offsetReg == -1) // uses SIMM_16
+		// Always uses RA
+		if (gpr.IsImm(a) && offsetReg == -1)
 		{
-			MOVI2R(rB, offset);
-			ADD(rB, rB, RA);
+			is_immediate = true;
+			imm_addr = offset + gpr.GetImm(a);
+		}
+		else if (gpr.IsImm(a) && offsetReg != -1 && gpr.IsImm(offsetReg))
+		{
+			is_immediate = true;
+			imm_addr = gpr.GetImm(a) + gpr.GetImm(offsetReg);
 		}
 		else
 		{
-			ADD(rB, gpr.R(offsetReg), RA);
-		}
-	}
-	else
-	{
-		if (zeroA)
-		{
 			if (offsetReg == -1)
 			{
-				if (a)
+				Operand2 off;
+				if (TryMakeOperand2(offset, off))
 				{
-					RA = gpr.R(a);
-					MOVI2R(rB, offset);
-					ADD(rB, rB, RA);
+					ADD(addr, gpr.R(a), off);
 				}
 				else
 				{
-					MOVI2R(rB, (u32)offset);
+					MOVI2R(addr, offset);
+					ADD(addr, addr, gpr.R(a));
 				}
 			}
 			else
 			{
-				ARMReg RB = gpr.R(offsetReg);
-				if (a)
-				{
-					RA = gpr.R(a);
-					ADD(rB, RB, RA);
-				}
-				else
-				{
-					MOV(rB, RB);
-				}
+				ADD(addr, gpr.R(offsetReg), gpr.R(a));
 			}
 		}
 	}
+	else
+	{
+		if (offsetReg == -1)
+		{
+			if (a && gpr.IsImm(a))
+			{
+				is_immediate = true;
+				imm_addr = gpr.GetImm(a) + offset;
+			}
+			else if (a)
+			{
+				Operand2 off;
+				if (TryMakeOperand2(offset, off))
+				{
+					ADD(addr, gpr.R(a), off);
+				}
+				else
+				{
+					MOVI2R(addr, offset);
+					ADD(addr, addr, gpr.R(a));
+				}
+			}
+			else
+			{
+				is_immediate = true;
+				imm_addr = offset;
+			}
+		}
+		else
+		{
+			if (a && gpr.IsImm(a) && gpr.IsImm(offsetReg))
+			{
+				is_immediate = true;
+				imm_addr = gpr.GetImm(a) + gpr.GetImm(offsetReg);
+			}
+			else if (!a && gpr.IsImm(offsetReg))
+			{
+				is_immediate = true;
+				imm_addr = gpr.GetImm(offsetReg);
+			}
+			else if (a)
+			{
+				ADD(addr, gpr.R(a), gpr.R(offsetReg));
+			}
+			else
+			{
+				MOV(addr, gpr.R(offsetReg));
+			}
+		}
+	}
+
+	if (update)
+		RA = gpr.R(a);
+
+	if (is_immediate)
+		MOVI2R(addr, imm_addr);
+
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
 
 	if (update)
-		MOV(RA, rB);
+		MOV(RA, addr);
 
-	// This branch gets changed to a NOP when the fastpath fails
-	FixupBranch fast_path;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
-		fast_path = B();
+	EmitBackpatchRoutine(this, flags,
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
+			!(is_immediate && Memory::IsRAMAddress(imm_addr)), v0, v1);
 
-	{
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		if (single)
-		{
-			MOVI2R(rA, (u32)&Memory::Read_U32);
-			BL(rA);
-			VMOV(S0, R0);
-			VCVT(v0, S0, 0);
-			VCVT(v1, S0, 0);
-		}
-		else
-		{
-			MOVI2R(rA, (u32)&Memory::Read_F64);
-			BL(rA);
-
-#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
-			VMOV(v0, R0);
-#else
-			VMOV(v0, D0);
-#endif
-		}
-		POP(4, R0, R1, R2, R3);
-	}
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
-	{
-		FixupBranch slow_out = B();
-		SetJumpTarget(fast_path);
-		{
-			Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-			ARMReg rC = gpr.GetReg();
-			BIC(rC, rB, mask);
-			MOVI2R(rA, (u32)Memory::base);
-			ADD(rC, rC, rA);
-
-			NEONXEmitter nemit(this);
-			if (single)
-			{
-				nemit.VLD1(F_32, D0, rC);
-				nemit.VREV32(I_8, D0, D0); // Byte swap to result
-				VCVT(v0, S0, 0);
-				VCVT(v1, S0, 0);
-			}
-			else
-			{
-				nemit.VLD1(I_64, v0, rC);
-				nemit.VREV64(I_8, v0, v0); // Byte swap to result
-			}
-			gpr.Unlock(rC);
-		}
-		SetJumpTarget(slow_out);
-	}
-
-	gpr.Unlock(rA, rB);
 	SetJumpTarget(DoNotLoad);
 }
 
@@ -201,16 +193,13 @@ void JitArm::stfXX(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff);
 
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
 	ARMReg RA;
 
 	u32 a = inst.RA, b = inst.RB;
 
 	s32 offset = inst.SIMM_16;
-	bool single = false;
+	u32 flags = BackPatchInfo::FLAG_STORE;
 	bool update = false;
-	bool zeroA = false;
 	s32 offsetReg = -1;
 
 	switch (inst.OPCD)
@@ -219,157 +208,196 @@ void JitArm::stfXX(UGeckoInstruction inst)
 			switch (inst.SUBOP10)
 			{
 				case 663: // stfsx
-					single = true;
-					zeroA = true;
+					flags |= BackPatchInfo::FLAG_SIZE_F32;
 					offsetReg = b;
 				break;
 				case 695: // stfsux
-					single = true;
+					flags |= BackPatchInfo::FLAG_SIZE_F32;
 					offsetReg = b;
 				break;
 				case 727: // stfdx
-					zeroA = true;
+					flags |= BackPatchInfo::FLAG_SIZE_F64;
 					offsetReg = b;
 				break;
 				case 759: // stfdux
+					flags |= BackPatchInfo::FLAG_SIZE_F64;
 					update = true;
 					offsetReg = b;
 				break;
 			}
 		break;
 		case 53: // stfsu
+			flags |= BackPatchInfo::FLAG_SIZE_F32;
 			update = true;
-			single = true;
 		break;
 		case 52: // stfs
-			single = true;
-			zeroA = true;
+			flags |= BackPatchInfo::FLAG_SIZE_F32;
 		break;
 		case 55: // stfdu
+			flags |= BackPatchInfo::FLAG_SIZE_F64;
 			update = true;
 		break;
 		case 54: // stfd
-			zeroA = true;
+			flags |= BackPatchInfo::FLAG_SIZE_F64;
 		break;
 	}
 
 	ARMReg v0 = fpr.R0(inst.FS);
 
+	ARMReg rA = R11;
+	ARMReg addr = R12;
+
+	u32 imm_addr = 0;
+	bool is_immediate = false;
 	if (update)
 	{
-		RA = gpr.R(a);
-		// Update path /always/ uses RA
-		if (offsetReg == -1) // uses SIMM_16
+		// Always uses RA
+		if (gpr.IsImm(a) && offsetReg == -1)
 		{
-			MOVI2R(rB, offset);
-			ADD(rB, rB, RA);
+			is_immediate = true;
+			imm_addr = offset + gpr.GetImm(a);
+		}
+		else if (gpr.IsImm(a) && offsetReg != -1 && gpr.IsImm(offsetReg))
+		{
+			is_immediate = true;
+			imm_addr = gpr.GetImm(a) + gpr.GetImm(offsetReg);
 		}
 		else
 		{
-			ADD(rB, gpr.R(offsetReg), RA);
+			if (offsetReg == -1)
+			{
+				Operand2 off;
+				if (TryMakeOperand2(offset, off))
+				{
+					ADD(addr, gpr.R(a), off);
+				}
+				else
+				{
+					MOVI2R(addr, offset);
+					ADD(addr, addr, gpr.R(a));
+				}
+			}
+			else
+			{
+				ADD(addr, gpr.R(offsetReg), gpr.R(a));
+			}
 		}
 	}
 	else
 	{
-		if (zeroA)
+		if (offsetReg == -1)
 		{
-			if (offsetReg == -1)
+			if (a && gpr.IsImm(a))
 			{
-				if (a)
+				is_immediate = true;
+				imm_addr = gpr.GetImm(a) + offset;
+			}
+			else if (a)
+			{
+				Operand2 off;
+				if (TryMakeOperand2(offset, off))
 				{
-					RA = gpr.R(a);
-					MOVI2R(rB, offset);
-					ADD(rB, rB, RA);
+					ADD(addr, gpr.R(a), off);
 				}
 				else
 				{
-					MOVI2R(rB, (u32)offset);
+					MOVI2R(addr, offset);
+					ADD(addr, addr, gpr.R(a));
 				}
 			}
 			else
 			{
-				ARMReg RB = gpr.R(offsetReg);
-				if (a)
-				{
-					RA = gpr.R(a);
-					ADD(rB, RB, RA);
-				}
-				else
-				{
-					MOV(rB, RB);
-				}
+				is_immediate = true;
+				imm_addr = offset;
+			}
+		}
+		else
+		{
+			if (a && gpr.IsImm(a) && gpr.IsImm(offsetReg))
+			{
+				is_immediate = true;
+				imm_addr = gpr.GetImm(a) + gpr.GetImm(offsetReg);
+			}
+			else if (!a && gpr.IsImm(offsetReg))
+			{
+				is_immediate = true;
+				imm_addr = gpr.GetImm(offsetReg);
+			}
+			else if (a)
+			{
+				ADD(addr, gpr.R(a), gpr.R(offsetReg));
+			}
+			else
+			{
+				MOV(addr, gpr.R(offsetReg));
 			}
 		}
 	}
 
+	if (is_immediate)
+		MOVI2R(addr, imm_addr);
+
 	if (update)
 	{
+		RA = gpr.R(a);
 		LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 		CMP(rA, EXCEPTION_DSI);
 
 		SetCC(CC_NEQ);
-		MOV(RA, rB);
+		MOV(RA, addr);
 		SetCC();
 	}
 
-	// This branch gets changed to a NOP when the fastpath fails
-	FixupBranch fast_path;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
-		fast_path = B();
-
+	if (is_immediate)
 	{
-		PUSH(4, R0, R1, R2, R3);
-		if (single)
+		if ((imm_addr & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
 		{
-			MOV(R1, rB);
-			VCVT(S0, v0, 0);
-			VMOV(R0, S0);
-			MOVI2R(rA, (u32)&Memory::Write_U32);
-			BL(rA);
-		}
-		else
-		{
-			MOVI2R(rA, (u32)&Memory::Write_F64);
-#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
-			VMOV(R0, v0);
-			MOV(R2, rB);
-#else
-			VMOV(D0, v0);
-			MOV(R0, rB);
-#endif
-			BL(rA);
-		}
-		POP(4, R0, R1, R2, R3);
-	}
+			int accessSize;
+			if (flags & BackPatchInfo::FLAG_SIZE_F64)
+				accessSize = 64;
+			else
+				accessSize = 32;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
-	{
-		FixupBranch slow_out = B();
-		SetJumpTarget(fast_path);
-		{
-			Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-			ARMReg rC = gpr.GetReg();
-			BIC(rC, rB, mask);
-			MOVI2R(rA, (u32)Memory::base);
-			ADD(rC, rC, rA);
-
+			MOVI2R(R14, (u32)&GPFifo::m_gatherPipeCount);
+			MOVI2R(R10, (u32)GPFifo::m_gatherPipe);
+			LDR(R11, R14);
+			ADD(R10, R10, R11);
 			NEONXEmitter nemit(this);
-			if (single)
+			if (accessSize == 64)
+			{
+				PUSH(2, R0, R1);
+				nemit.VREV64(I_8, D0, v0);
+				VMOV(R0, D0);
+				STR(R0, R10, 0);
+				STR(R1, R10, 4);
+				POP(2, R0, R1);
+			}
+			else if (accessSize == 32)
 			{
 				VCVT(S0, v0, 0);
 				nemit.VREV32(I_8, D0, D0);
-				VSTR(S0, rC, 0);
+				VMOV(addr, S0);
+				STR(addr, R10);
 			}
-			else
-			{
-				nemit.VREV64(I_8, D0, v0);
-				VSTR(D0, rC, 0);
-			}
-			gpr.Unlock(rC);
-		}
-		SetJumpTarget(slow_out);
-	}
+			ADD(R11, R11, accessSize >> 3);
+			STR(R11, R14);
+			jit->js.fifoBytesThisBlock += accessSize >> 3;
 
-	gpr.Unlock(rA, rB);
+		}
+		else if (Memory::IsRAMAddress(imm_addr))
+		{
+			MOVI2R(addr, imm_addr);
+			EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, false, v0);
+		}
+		else
+		{
+			MOVI2R(addr, imm_addr);
+			EmitBackpatchRoutine(this, flags, false, false, v0);
+		}
+	}
+	else
+	{
+		EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, true, v0);
+	}
 }
 
