@@ -1747,7 +1747,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		sourceRc.right = EFB_WIDTH;
 		sourceRc.top = 0;
 		sourceRc.bottom = EFB_HEIGHT;
-		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
 		FramebufferManager::m_eye_texture[0].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
@@ -1775,8 +1774,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindVertexArray(0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
 			glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
-			// Dismiss health and safety warning as soon as possible (it covers our own health and safety warning).
-			ovrHmd_DismissHSWDisplay(hmd);
 		}
 		else
 		{
@@ -1808,18 +1805,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	else
 	{
 		EFBRectangle sourceRc;
-		if (g_has_hmd)
-		{
-			// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
-			sourceRc.left = 0;
-			sourceRc.right = EFB_WIDTH;
-			sourceRc.top = 0;
-			sourceRc.bottom = EFB_HEIGHT;
-		}
-		else
-		{
 			sourceRc = rc;
-		}
 		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
