@@ -719,7 +719,7 @@ void UpdateWantDeterminism(bool initial)
 	bool new_want_determinism =
 		Movie::IsPlayingInput() ||
 		Movie::IsRecordingInput() ||
-		NetPlay::IsNetPlayRunning();
+		NetPlay::IsNetPlayRunning() || 1;
 	if (new_want_determinism != g_want_determinism || initial)
 	{
 		WARN_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");

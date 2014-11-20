@@ -10,6 +10,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Hash.h"
 #include "Common/MemArena.h"
 #include "Common/MemoryUtil.h"
 
@@ -386,5 +387,17 @@ bool IsRAMAddress(const u32 addr, bool allow_locked_cache, bool allow_fake_vmem)
 		return false;
 	}
 }
+
+u64 GetMemoryHash()
+{
+	u64 hash = 0;
+	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	hash ^= GetMurmurHash3(m_pRAM, RAM_SIZE, 0);
+	hash ^= GetMurmurHash3(m_pL1Cache, L1_CACHE_SIZE, 0);
+	if (wii)
+		hash ^= GetMurmurHash3(m_pEXRAM, EXRAM_SIZE, 0);
+	return hash;
+}
+
 
 }  // namespace

@@ -28,6 +28,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
@@ -367,7 +368,7 @@ void ExecuteCommand(u32 _Address)
 
 		std::string DeviceName = Memory::GetString(Memory::Read_U32(_Address + 0xC));
 
-		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
+		ERROR_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)
 		{
 			if (DeviceName.find("/dev/es") == 0)
@@ -562,6 +563,50 @@ void EnqueueRequest(u32 address)
 {
 	CoreTiming::ScheduleEvent(1000, event_enqueue, address | ENQUEUE_REQUEST_FLAG);
 }
+static u64 Hash(u32 address, u32 size)
+{
+	return GetMurmurHash3(Memory::GetPointer(address), size, 0);
+}
+static void PrintCmdHash(u32 address)
+{
+	u64 h = Hash(address, 0x30);
+	IPCCommandType cmd = (IPCCommandType)Memory::Read_U32(address);
+	switch (cmd)
+	{
+	case IPC_CMD_READ:
+	{
+		u32 read_address = Memory::Read_U32(address + 0xc);
+		u32 read_size = Memory::Read_U32(address + 0x10);
+		h += Hash(read_address, read_size);
+		break;
+	}
+	case IPC_CMD_IOCTL:
+	{
+		// just in case
+		u32 in_address = Memory::Read_U32(address + 0x10);
+		u32 in_size = Memory::Read_U32(address + 0x14);
+
+		u32 out_address = Memory::Read_U32(address + 0x18);
+		u32 out_size = Memory::Read_U32(address + 0x1c);
+		h += Hash(in_address, in_size);
+		h += Hash(out_address, out_size);
+		break;
+	}
+	case IPC_CMD_IOCTLV:
+	{
+		SIOCtlVBuffer cb(address);
+		for (auto& buf : cb.InBuffer)
+			h += Hash(buf.m_Address, buf.m_Size);
+		for (auto& buf : cb.PayloadBuffer)
+			h += Hash(buf.m_Address, buf.m_Size);
+		break;
+	}
+	default:
+		break;
+	}
+	ERROR_LOG(WII_IPC_HLE, "[%llx] fd %d type %d", (unsigned long long) h, Memory::Read_U32(address + 8), cmd);
+	//ERROR_LOG(MEMMAP, "[] Memory hash is %llx\n", (unsigned long long) Memory::GetMemoryHash());
+}
 
 // Called when IOS module has some reply
 // NOTE: Only call this if you have correctly handled
@@ -569,6 +614,7 @@ void EnqueueRequest(u32 address)
 //       Please search for examples of this being called elsewhere.
 void EnqueueReply(u32 address, int cycles_in_future)
 {
+	PrintCmdHash(address);
 	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue, address);
 }
 
