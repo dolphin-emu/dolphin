@@ -55,6 +55,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
@@ -79,6 +80,7 @@ static int et_DSP;
 static int et_IPC_HLE;
 static int et_PatchEngine; // PatchEngine updates every 1/60th of a second by default
 static int et_Throttle;
+static int et_mem_hash;
 
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
@@ -148,6 +150,13 @@ static void DecrementerCallback(u64 userdata, int cyclesLate)
 {
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
 	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DECREMENTER);
+}
+
+static void MemHashCallback(u64 userdata, int cyclesLate)
+{
+	ERROR_LOG(MEMMAP, "Memory hash is %llx\n", (unsigned long long) Memory::GetMemoryHash());
+	ERROR_LOG(MEMMAP, "%p %p %p\n", Memory::m_pRAM, Memory::m_pEXRAM, Memory::m_pL1Cache);
+	CoreTiming::ScheduleEvent(GetTicksPerSecond() - cyclesLate, et_mem_hash);
 }
 
 void DecrementerSet()
@@ -266,6 +275,8 @@ void Init()
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
 		CoreTiming::ScheduleEvent(CP_PERIOD, et_CP);
+	et_mem_hash = CoreTiming::RegisterEvent("MemHash", MemHashCallback);
+	CoreTiming::ScheduleEvent(0, et_mem_hash);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_PatchEngine);
 

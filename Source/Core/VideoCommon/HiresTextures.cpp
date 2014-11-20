@@ -24,37 +24,12 @@ void Init(const std::string& gameCode)
 {
 	textureMap.clear();
 
-	CFileSearch::XStringVector Directories;
+	std::vector<std::string> Directories;
 
 	std::string szDir = StringFromFormat("%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode.c_str());
 	Directories.push_back(szDir);
 
-	for (u32 i = 0; i < Directories.size(); i++)
-	{
-		File::FSTEntry FST_Temp;
-		File::ScanDirectoryTree(Directories[i], FST_Temp);
-		for (auto& entry : FST_Temp.children)
-		{
-			if (entry.isDirectory)
-			{
-				bool duplicate = false;
-
-				for (auto& Directory : Directories)
-				{
-					if (Directory == entry.physicalName)
-					{
-						duplicate = true;
-						break;
-					}
-				}
-
-				if (!duplicate)
-					Directories.push_back(entry.physicalName);
-			}
-		}
-	}
-
-	CFileSearch::XStringVector Extensions = {
+	std::vector<std::string> Extensions {
 		"*.png",
 		"*.bmp",
 		"*.tga",
@@ -62,14 +37,13 @@ void Init(const std::string& gameCode)
 		"*.jpg" // Why not? Could be useful for large photo-like textures
 	};
 
-	CFileSearch FileSearch(Extensions, Directories);
-	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+	auto rFilenames = DoFileSearch(Extensions, {szDir}, /*recursive*/ true);
 
 	const std::string code = StringFromFormat("%s_", gameCode.c_str());
 
 	if (rFilenames.size() > 0)
 	{
-		for (auto& rFilename : rFilenames)
+		for (const std::string& rFilename : rFilenames)
 		{
 			std::string FileName;
 			SplitPath(rFilename, nullptr, &FileName, nullptr);

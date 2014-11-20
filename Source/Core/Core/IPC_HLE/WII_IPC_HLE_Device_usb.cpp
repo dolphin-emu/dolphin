@@ -45,11 +45,12 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	}
 	else
 	{
+		bool force_default_bdaddrs = Core::g_want_determinism;
 		bdaddr_t tmpBD = BDADDR_ANY;
 		u8 i = 0;
 		while (i < MAX_BBMOTES)
 		{
-			if (i < BT_DINF.num_registered)
+			if (i < BT_DINF.num_registered && !force_default_bdaddrs)
 			{
 				tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0];
 				tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1];
@@ -81,10 +82,13 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 			i++;
 		}
 
-		// save now so that when games load sysconf file it includes the new wiimotes
-		// and the correct order for connected wiimotes
-		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
-			PanicAlertT("Failed to write BT.DINF to SYSCONF");
+		if (!force_default_bdaddrs)
+		{
+			// save now so that when games load sysconf file it includes the new wiimotes
+			// and the correct order for connected wiimotes
+			if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
+				PanicAlertT("Failed to write BT.DINF to SYSCONF");
+		}
 	}
 
 	// The BCM2045's btaddr:

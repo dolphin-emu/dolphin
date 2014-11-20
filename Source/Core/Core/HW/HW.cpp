@@ -4,6 +4,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/NandPaths.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -25,6 +26,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "DiscIO/NANDContentLoader.h"
 
 namespace HW
 {
@@ -50,6 +52,9 @@ namespace HW
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
+			Common::InitializeWiiRoot(Core::g_want_determinism);
+			DiscIO::cUIDsys::AccessInstance().UpdateLocation();
+			DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 			WII_IPCInterface::Init();
 			WII_IPC_HLE_Interface::Init();
 		}
@@ -70,6 +75,7 @@ namespace HW
 		{
 			WII_IPCInterface::Shutdown();
 			WII_IPC_HLE_Interface::Shutdown();
+			Common::ShutdownWiiRoot();
 		}
 
 		State::Shutdown();

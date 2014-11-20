@@ -41,6 +41,7 @@ Make AA apply instantly during gameplay if possible
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
 #include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
@@ -99,35 +100,10 @@ static void GetShaders(std::vector<std::string> &shaders)
 {
 	std::set<std::string> already_found;
 
-	shaders.clear();
-	static const std::string directories[] = {
+	shaders = DoFileSearch({"*.glsl"}, {
 		File::GetUserPath(D_SHADERS_IDX),
-		File::GetSysDirectory() + SHADERS_DIR DIR_SEP,
-	};
-	for (auto& directory : directories)
-	{
-		if (!File::IsDirectory(directory))
-			continue;
-
-		File::FSTEntry entry;
-		File::ScanDirectoryTree(directory, entry);
-		for (auto& file : entry.children)
-		{
-			std::string name = file.virtualName;
-			if (name.size() < 5)
-				continue;
-			if (strcasecmp(name.substr(name.size() - 5).c_str(), ".glsl"))
-				continue;
-
-			name = name.substr(0, name.size() - 5);
-			if (already_found.find(name) != already_found.end())
-				continue;
-
-			already_found.insert(name);
-			shaders.push_back(name);
-		}
-	}
-	std::sort(shaders.begin(), shaders.end());
+		File::GetSysDirectory() + SHADERS_DIR DIR_SEP
+	});
 }
 
 static void InitBackendInfo()

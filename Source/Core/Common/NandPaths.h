@@ -18,6 +18,9 @@ namespace Common
 	typedef std::pair<char, std::string> replace_t;
 	typedef std::vector<replace_t> replace_v;
 
+	void InitializeWiiRoot(bool use_temporary);
+	void ShutdownWiiRoot();
+
 	std::string GetTicketFileName(u64 _titleID);
 	std::string GetTMDFileName(u64 _titleID);
 	std::string GetTitleDataPath(u64 _titleID);

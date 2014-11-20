@@ -62,14 +62,13 @@ bool CWiiSaveCrypted::ExportWiiSave(u64 title_id)
 
 void CWiiSaveCrypted::ExportAllSaves()
 {
-	std::string title_folder = File::GetUserPath(D_WIIUSER_IDX) + "title";
+	std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
 	std::vector<u64> titles;
 	const u32 path_mask = 0x00010000;
 	for (int i = 0; i < 8; ++i)
 	{
-		File::FSTEntry fst_tmp;
 		std::string folder = StringFromFormat("%s/%08x/", title_folder.c_str(), path_mask | i);
-		File::ScanDirectoryTree(folder, fst_tmp);
+		File::FSTEntry fst_tmp = File::ScanDirectoryTree(folder, false);
 
 		for (const File::FSTEntry& entry : fst_tmp.children)
 		{
@@ -627,8 +626,7 @@ void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory, std::vecto
 			file_list.push_back(directories[i]);
 		}
 
-		File::FSTEntry fst_tmp;
-		File::ScanDirectoryTree(directories[i], fst_tmp);
+		File::FSTEntry fst_tmp = File::ScanDirectoryTree(directories[i], false);
 		for (const File::FSTEntry& elem : fst_tmp.children)
 		{
 			if (elem.virtualName != "banner.bin")
