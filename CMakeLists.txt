@@ -48,6 +48,8 @@ endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
+# Libraries to link
+set(LIBS)
 
 # Set up paths
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
@@ -411,6 +413,7 @@ if(NOT ANDROID)
 		set(HAS_LLVM 1)
 
 		include_directories(${LLVM_INCLUDE_DIRS})
+		list(APPEND LIBS ${LLVM_LIBRARIES})
 
 		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 	endif()
@@ -456,6 +459,10 @@ if(NOT ANDROID)
 	endif()
 	if(ENCODE_FRAMEDUMPS)
 		check_libav()
+		if(LIBAV_FOUND)
+			LIST(APPEND LIBS ${LIBAV_LIBRARIES})
+		endif()
+
 	endif()
 
 	set(CMAKE_REQUIRED_LIBRARIES portaudio)
@@ -535,6 +542,7 @@ else()
 	include_directories(Externals/LZO)
 	set(LZO lzo2)
 endif()
+list(APPEND LIBS ${LZO})
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	check_lib(PNG png png.h QUIET)
@@ -619,6 +627,7 @@ if(USE_UPNP)
 		include_directories(Externals/miniupnpc/src)
 	endif()
 	add_definitions(-DUSE_UPNP)
+	list(APPEND LIBS miniupnpc)
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
@@ -649,6 +658,12 @@ if (ANDROID)
 	message("Using static iconv from Externals")
 	include_directories(Externals/libiconv-1.14/include)
 	add_subdirectory(Externals/libiconv-1.14)
+	list(APPEND LIBS iconv)
+else()
+	find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
+	find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
+	list(APPEND LIBS ${ICONV_LIBRARIES})
+	mark_as_advanced(ICONV_INCLUDE_DIR ICONV_LIBRARIES)
 endif()
 
 if(ENABLE_QT)
@@ -695,6 +710,7 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 			include(FindGTK2)
 			if(GTK2_FOUND)
 				include_directories(${GTK2_INCLUDE_DIRS})
+				list(APPEND LIBS ${GTK2_LIBRARIES})
 			else()
 				message(FATAL_ERROR "GTK is required to build the WX UI. Please install the GTK development libraries.")
 			endif()
@@ -733,6 +749,23 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX AND NOT ANDROID)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
+   ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+	set(LIBS ${LIBS} usbhid)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# Link against OS X system frameworks.
+	list(APPEND LIBS
+		${APPKIT_LIBRARY}
+		${AU_LIBRARY}
+		${COREAUDIO_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOK_LIBRARY}
+		${FORCEFEEDBACK}
+		)
+endif()
 
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
