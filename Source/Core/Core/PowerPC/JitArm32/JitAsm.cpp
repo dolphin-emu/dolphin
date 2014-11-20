@@ -609,4 +609,15 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	pairedStoreQuantized[14] = storeSingleS8;
 	pairedStoreQuantized[15] = storeSingleS16;
 
+	m_increment_profile_counter = AlignCode16();
+
+	nemit.VLD1(I_64, D0, R0); // Start
+	ADD(R0, R0, 8);
+	nemit.VLD1(I_64, D1, R0); // End
+	ADD(R0, R0, 8);
+	nemit.VLD1(I_64, D2, R0); // Counter
+	nemit.VSUB(I_64, D1, D1, D0);
+	nemit.VADD(I_64, D2, D2, D1);
+	nemit.VST1(I_64, D2, R0);
+	MOV(_PC, _LR);
 }

@@ -36,6 +36,9 @@
     <ClCompile Include="RasterFont.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
+    <ClCompile Include="BoundingBox.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
     <ClCompile Include="FramebufferManager.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -81,6 +84,9 @@
     </ClInclude>
     <ClInclude Include="RasterFont.h">
       <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingBox.h">
+      <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="FramebufferManager.h">
       <Filter>Render</Filter>

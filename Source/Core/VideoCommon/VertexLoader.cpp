@@ -171,7 +171,8 @@ void VertexLoader::CompileVertexTranslator()
 #endif
 
 	// Get the pointer to this vertex's buffer data for the bounding box
-	WriteCall(BoundingBox::SetVertexBufferPosition);
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+		WriteCall(BoundingBox::SetVertexBufferPosition);
 
 	// Colors
 	const u64 col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
@@ -380,7 +381,8 @@ void VertexLoader::CompileVertexTranslator()
 	}
 
 	// Update the bounding box
-	WriteCall(BoundingBox::Update);
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+		WriteCall(BoundingBox::Update);
 
 	if (m_VtxDesc.PosMatIdx)
 	{
@@ -457,7 +459,8 @@ void VertexLoader::SetupRunVertices(const VAT& vat, int primitive, int const cou
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
 	// Prepare bounding box
-	BoundingBox::Prepare(vat, primitive, m_VtxDesc, m_native_vtx_decl);
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+		BoundingBox::Prepare(vat, primitive, m_VtxDesc, m_native_vtx_decl);
 }
 
 void VertexLoader::ConvertVertices ( int count )

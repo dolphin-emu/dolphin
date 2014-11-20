@@ -69,6 +69,18 @@ static const struct
 	{ "ToggleThrottle",      9 /* '\t' */,        0 /* wxMOD_NONE */ },
 	{ "IncreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
+
+	{ "FreelookIncreaseSpeed",49 /* '1' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookDecreaseSpeed",50 /* '2' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookResetSpeed",   70 /* 'F' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookUp",           69 /* 'E' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookDown",         81 /* 'Q' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookLeft",         65 /* 'A' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookRight",        68 /* 'D' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookZoomIn",       87 /* 'W' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookZoomOut",      83 /* 'S' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookReset",        82 /* 'R' */,       4 /* wxMOD_SHIFT */ },
+
 	{ "LoadStateSlot1",      340 /* WXK_F1 */,    0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot2",      341 /* WXK_F2 */,    0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot3",      342 /* WXK_F3 */,    0 /* wxMOD_NONE */ },
@@ -340,9 +352,15 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 	gamelist->Set("ListJap", m_ListJap);
 	gamelist->Set("ListPal", m_ListPal);
 	gamelist->Set("ListUsa", m_ListUsa);
+	gamelist->Set("ListAustralia", m_ListAustralia);
 	gamelist->Set("ListFrance", m_ListFrance);
+	gamelist->Set("ListGermany", m_ListGermany);
+	gamelist->Set("ListInternational", m_ListInternational);
 	gamelist->Set("ListItaly", m_ListItaly);
 	gamelist->Set("ListKorea", m_ListKorea);
+	gamelist->Set("ListNetherlands", m_ListNetherlands);
+	gamelist->Set("ListRussia", m_ListRussia);
+	gamelist->Set("ListSpain", m_ListSpain);
 	gamelist->Set("ListTaiwan", m_ListTaiwan);
 	gamelist->Set("ListUnknown", m_ListUnknown);
 	gamelist->Set("ListSort", m_ListSort);
@@ -590,21 +608,27 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 {
 	IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
 
-	gamelist->Get("ListDrives",       &m_ListDrives,  false);
-	gamelist->Get("ListWad",          &m_ListWad,     true);
-	gamelist->Get("ListWii",          &m_ListWii,     true);
-	gamelist->Get("ListGC",           &m_ListGC,      true);
-	gamelist->Get("ListJap",          &m_ListJap,     true);
-	gamelist->Get("ListPal",          &m_ListPal,     true);
-	gamelist->Get("ListUsa",          &m_ListUsa,     true);
+	gamelist->Get("ListDrives",        &m_ListDrives,  false);
+	gamelist->Get("ListWad",           &m_ListWad,     true);
+	gamelist->Get("ListWii",           &m_ListWii,     true);
+	gamelist->Get("ListGC",            &m_ListGC,      true);
+	gamelist->Get("ListJap",           &m_ListJap,     true);
+	gamelist->Get("ListPal",           &m_ListPal,     true);
+	gamelist->Get("ListUsa",           &m_ListUsa,     true);
 
-	gamelist->Get("ListFrance",       &m_ListFrance,  true);
-	gamelist->Get("ListItaly",        &m_ListItaly,   true);
-	gamelist->Get("ListKorea",        &m_ListKorea,   true);
-	gamelist->Get("ListTaiwan",       &m_ListTaiwan,  true);
-	gamelist->Get("ListUnknown",      &m_ListUnknown, true);
-	gamelist->Get("ListSort",         &m_ListSort,       3);
-	gamelist->Get("ListSortSecondary",&m_ListSort2,  0);
+	gamelist->Get("ListAustralia",     &m_ListAustralia,     true);
+	gamelist->Get("ListFrance",        &m_ListFrance,        true);
+	gamelist->Get("ListGermany",       &m_ListGermany,       true);
+	gamelist->Get("ListInternational", &m_ListInternational, true);
+	gamelist->Get("ListItaly",         &m_ListItaly,         true);
+	gamelist->Get("ListKorea",         &m_ListKorea,         true);
+	gamelist->Get("ListNetherlands",   &m_ListNetherlands,   true);
+	gamelist->Get("ListRussia",        &m_ListRussia,        true);
+	gamelist->Get("ListSpain",         &m_ListSpain,         true);
+	gamelist->Get("ListTaiwan",        &m_ListTaiwan,        true);
+	gamelist->Get("ListUnknown",       &m_ListUnknown,       true);
+	gamelist->Get("ListSort",          &m_ListSort,       3);
+	gamelist->Get("ListSortSecondary", &m_ListSort2,      0);
 
 	// Determines if compressed games display in blue
 	gamelist->Get("ColorCompressed", &m_ColorCompressed, true);

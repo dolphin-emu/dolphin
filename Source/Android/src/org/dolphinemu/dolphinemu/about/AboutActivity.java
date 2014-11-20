@@ -9,13 +9,9 @@ package org.dolphinemu.dolphinemu.about;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
 
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
-import android.app.ActionBar.TabListener;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -25,9 +21,8 @@ import android.support.v4.view.ViewPager;
  * Activity for the about menu, which displays info
  * related to the CPU and GPU. Along with misc other info.
  */
-public final class AboutActivity extends Activity implements TabListener
+public final class AboutActivity extends Activity
 {
-	private ViewPager viewPager;
 	private final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
 
 	@Override
@@ -37,32 +32,10 @@ public final class AboutActivity extends Activity implements TabListener
 
 		// Set the view pager
 		setContentView(R.layout.viewpager);
-		viewPager = (ViewPager) findViewById(R.id.pager);
 
-		// Initialize the ViewPager adapter.
-		final ViewPagerAdapter adapter = new ViewPagerAdapter(getFragmentManager());
-		viewPager.setAdapter(adapter);
-
-		// Set up the ActionBar
-		final ActionBar actionBar = getActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		actionBar.addTab(actionBar.newTab().setText(R.string.general).setTabListener(this));
-		actionBar.addTab(actionBar.newTab().setText(R.string.cpu).setTabListener(this));
-		actionBar.addTab(actionBar.newTab().setText(R.string.gles_two).setTabListener(this));
-		if (eglHelper.supportsGLES3())
-			actionBar.addTab(actionBar.newTab().setText(R.string.gles_three).setTabListener(this));
-		if (eglHelper.supportsOpenGL())
-			actionBar.addTab(actionBar.newTab().setText(R.string.desktop_gl).setTabListener(this));
-
-		// Set the page change listener
-		viewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener()
-		{
-			@Override
-			public void onPageSelected(int position)
-			{
-				actionBar.setSelectedNavigationItem(position);
-			}
-		});
+		// Initialize the viewpager.
+		final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+		viewPager.setAdapter(new ViewPagerAdapter(getFragmentManager()));
 	}
 
 	@Override
@@ -73,31 +46,20 @@ public final class AboutActivity extends Activity implements TabListener
 		eglHelper.closeHelper();
 	}
 
-	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft)
-	{
-		// When the given tab is selected, switch to the corresponding page in the ViewPager.
-		viewPager.setCurrentItem(tab.getPosition());
-	}
-
-	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft)
-	{
-		// Do nothing.
-	}
-
-	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft)
-	{
-		// Do nothing.
-	}
-
 	/**
 	 * {@link FragmentPagerAdapter} subclass responsible for handling
 	 * the individual {@link Fragment}s within the {@link ViewPager}.
 	 */
 	private final class ViewPagerAdapter extends FragmentPagerAdapter
 	{
+		private final String[] pageTitles = {
+			getString(R.string.general),
+			getString(R.string.cpu),
+			getString(R.string.gles_two),
+			getString(R.string.gles_three),
+			getString(R.string.desktop_gl),
+		};
+
 		public ViewPagerAdapter(FragmentManager fm)
 		{
 			super(fm);
@@ -154,26 +116,7 @@ public final class AboutActivity extends Activity implements TabListener
 		@Override
 		public CharSequence getPageTitle(int position)
 		{
-			switch (position)
-			{
-				case 0:
-					return getString(R.string.general);
-
-				case 1:
-					return getString(R.string.cpu);
-
-				case 2:
-					return getString(R.string.gles_two);
-
-				case 3:
-					return getString(R.string.gles_three);
-				
-				case 4:
-					return getString(R.string.desktop_gl);
-
-				default: // Should never happen
-					return null;
-			}
+			return pageTitles[position];
 		}
 	}
 }

@@ -221,23 +221,6 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	m_ui->actionOpen->setEnabled(is_not_initialized);
 }
 
-// DRenderWidget
-void DMainWindow::RenderWidgetSize(int& x_pos, int& y_pos, int& w, int& h)
-{
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-	{
-		x_pos = x();
-		y_pos = y();
-	}
-	else
-	{
-		x_pos = m_render_widget->x();
-		y_pos = m_render_widget->y();
-	}
-	w = m_render_widget->width();
-	h = m_render_widget->height();
-}
-
 bool DMainWindow::RenderWidgetHasFocus()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)

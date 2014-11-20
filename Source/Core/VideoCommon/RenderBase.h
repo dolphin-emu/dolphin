@@ -104,6 +104,9 @@ public:
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
 
+	virtual u16 BBoxRead(int index) = 0;
+	virtual void BBoxWrite(int index, u16 value) = 0;
+
 	// What's the real difference between these? Too similar names.
 	virtual void ResetAPIState() = 0;
 	virtual void RestoreAPIState() = 0;

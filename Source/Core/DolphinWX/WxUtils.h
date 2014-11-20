@@ -25,8 +25,6 @@ void Explore(const std::string& path);
 // Displays a wxMessageBox geared for errors
 void ShowErrorDialog(const wxString& error_msg);
 
-double GetCurrentBitmapLogicalScale();
-
 wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length);
 
 // From a wxBitmap, creates the corresponding disabled version for toolbar buttons
