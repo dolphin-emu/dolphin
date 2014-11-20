@@ -883,6 +883,32 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
+			//Change to compatible D3D Blend State:
+			//Some games (e.g. Paper Mario) do not use a Blend State that is compatible
+			//with the Oculus Rift's SDK.  Changing to these settings (which are used in
+			//most games) fixes this issue.
+			//To Do: Only use this when needed?  Is this slow?
+			ID3D11BlendState* g_pOculusRiftBlendState = NULL;
+
+			D3D11_BLEND_DESC oculusBlendDesc;
+			ZeroMemory(&oculusBlendDesc, sizeof(D3D11_BLEND_DESC));
+			oculusBlendDesc.AlphaToCoverageEnable = FALSE;
+			oculusBlendDesc.IndependentBlendEnable = FALSE;
+			oculusBlendDesc.RenderTarget[0].BlendEnable = TRUE;
+			oculusBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+			oculusBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+			oculusBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+			oculusBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+			oculusBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+			oculusBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+			oculusBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+			HRESULT hr = D3D::device->CreateBlendState(&oculusBlendDesc, &g_pOculusRiftBlendState);
+			if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
+			D3D::SetDebugObjectName((ID3D11DeviceChild*)g_pOculusRiftBlendState, "blend state used to make sure rift draw call works");
+
+			D3D::context->OMSetBlendState(g_pOculusRiftBlendState, NULL, 0xFFFFFFFF);
+
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 		}
