@@ -172,12 +172,16 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				case DiscIO::IVolume::COUNTRY_AUSTRALIA:
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
+				case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
 				case DiscIO::IVolume::COUNTRY_ITALY:
+				case DiscIO::IVolume::COUNTRY_NETHERLANDS:
 				case DiscIO::IVolume::COUNTRY_RUSSIA:
+				case DiscIO::IVolume::COUNTRY_SPAIN:
 					bNTSC = false;
 					Region = EUR_DIR;
 					break;
 
+				case DiscIO::IVolume::COUNTRY_UNKNOWN:
 				default:
 					if (PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
 								   "\nContinue with PAL region?"))
@@ -250,14 +254,17 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					Region = JAP_DIR;
 					break;
 
+				case DiscIO::IVolume::COUNTRY_AUSTRALIA:
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
+				case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
 				case DiscIO::IVolume::COUNTRY_ITALY:
 				case DiscIO::IVolume::COUNTRY_RUSSIA:
 					bNTSC = false;
 					Region = EUR_DIR;
 					break;
 
+				case DiscIO::IVolume::COUNTRY_UNKNOWN:
 				default:
 					bNTSC = false;
 					Region = EUR_DIR;

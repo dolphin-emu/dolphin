@@ -836,17 +836,32 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		(SConfig::GetInstance().m_ListJap &&
 		SConfig::GetInstance().m_ListUsa  &&
 		SConfig::GetInstance().m_ListPal  &&
+		SConfig::GetInstance().m_ListAustralia &&
 		SConfig::GetInstance().m_ListFrance &&
+		SConfig::GetInstance().m_ListGermany &&
 		SConfig::GetInstance().m_ListItaly &&
 		SConfig::GetInstance().m_ListKorea &&
+		SConfig::GetInstance().m_ListNetherlands &&
+		SConfig::GetInstance().m_ListRussia &&
+		SConfig::GetInstance().m_ListSpain &&
 		SConfig::GetInstance().m_ListTaiwan &&
 		SConfig::GetInstance().m_ListUnknown)))
 	{
-		SConfig::GetInstance().m_ListGC      = SConfig::GetInstance().m_ListWii =
-		SConfig::GetInstance().m_ListWad     = SConfig::GetInstance().m_ListJap =
-		SConfig::GetInstance().m_ListUsa     = SConfig::GetInstance().m_ListPal =
-		SConfig::GetInstance().m_ListFrance  = SConfig::GetInstance().m_ListItaly =
-		SConfig::GetInstance().m_ListKorea   = SConfig::GetInstance().m_ListTaiwan =
+		SConfig::GetInstance().m_ListGC =
+		SConfig::GetInstance().m_ListWii =
+		SConfig::GetInstance().m_ListWad =
+		SConfig::GetInstance().m_ListJap =
+		SConfig::GetInstance().m_ListUsa =
+		SConfig::GetInstance().m_ListPal =
+		SConfig::GetInstance().m_ListAustralia =
+		SConfig::GetInstance().m_ListFrance =
+		SConfig::GetInstance().m_ListGermany =
+		SConfig::GetInstance().m_ListItaly =
+		SConfig::GetInstance().m_ListKorea =
+		SConfig::GetInstance().m_ListNetherlands =
+		SConfig::GetInstance().m_ListRussia =
+		SConfig::GetInstance().m_ListSpain =
+		SConfig::GetInstance().m_ListTaiwan =
 		SConfig::GetInstance().m_ListUnknown = true;
 
 		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
@@ -855,9 +870,14 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_LISTJAP)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTUSA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTPAL)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTAUSTRALIA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTFRANCE)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTGERMANY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTITALY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTKOREA)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTNETHERLANDS)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTRUSSIA)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTSPAIN)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTTAIWAN)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_UNK)->Check(true);
 
