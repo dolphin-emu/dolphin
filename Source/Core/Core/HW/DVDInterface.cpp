@@ -1046,8 +1046,19 @@ void ExecuteCommand()
 		break;
 	}
 
-	// The transfer is finished after a delay
-	CoreTiming::ScheduleEvent((int)ticks_until_TC, tc);
+	if (ticks_until_TC)
+	{
+		// The transfer is finished after a delay
+		CoreTiming::ScheduleEvent((int)ticks_until_TC, tc);
+	}
+	else
+	{
+		// transfer is done
+		m_DICR.TSTART = 0;
+		m_DILENGTH.Length = 0;
+		GenerateDIInterrupt(INT_TCINT);
+		g_ErrorCode = 0;
+	}
 }
 
 // Simulates the timing aspects of reading data from a disc.
