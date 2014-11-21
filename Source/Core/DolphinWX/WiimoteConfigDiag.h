@@ -11,6 +11,7 @@
 
 class InputConfig;
 class wxButton;
+class wxStaticBoxSizer;
 class wxWindow;
 
 class WiimoteConfigDiag : public wxDialog
@@ -59,6 +60,7 @@ public:
 	}
 
 private:
+	wxStaticBoxSizer* CreateGamecubeSizer();
 	void Cancel(wxCommandEvent& event);
 
 	InputConfig& m_config;
