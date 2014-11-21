@@ -19,6 +19,13 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
+#if _M_SSE >= 0x401
+#include <smmintrin.h>
+#include <emmintrin.h>
+#elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
+#include <tmmintrin.h>
+#endif
+
 #ifdef _M_X86
 #define USE_VERTEX_LOADER_JIT
 #endif
@@ -27,8 +34,8 @@
 extern int tcIndex;
 extern int colIndex;
 extern int colElements[2];
-extern float posScale;
-extern float tcScale[8];
+GC_ALIGNED128(extern float posScale[4]);
+GC_ALIGNED64(extern float tcScale[8][2]);
 
 class VertexLoaderUID
 {
@@ -155,3 +162,61 @@ private:
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
 #endif
 };
+
+#if _M_SSE >= 0x301
+static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L);
+static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
+static const __m128i kMaskSwap16to32l_3 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFF0405L, 0xFFFF0203L, 0xFFFF0001L);
+static const __m128i kMaskSwap16to32l_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFF0203L, 0xFFFF0001L);
+static const __m128i kMaskSwap16to32h_3 = _mm_set_epi32(0xFFFFFFFFL, 0x0405FFFFL, 0x0203FFFFL, 0x0001FFFFL);
+static const __m128i kMaskSwap16to32h_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x0203FFFFL, 0x0001FFFFL);
+static const __m128i kMask8to32l_3 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFF02L, 0xFFFFFF01L, 0xFFFFFF00L);
+static const __m128i kMask8to32l_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF01L, 0xFFFFFF00L);
+static const __m128i kMask8to32h_3 = _mm_set_epi32(0xFFFFFFFFL, 0x02FFFFFFL, 0x01FFFFFFL, 0x00FFFFFFL);
+static const __m128i kMask8to32h_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x01FFFFFFL, 0x00FFFFFFL);
+
+template <typename T, bool threeIn, bool threeOut>
+__forceinline void Vertex_Read_SSSE3(const T* pData, __m128 scale)
+{
+	__m128i coords, mask;
+
+	int loadBytes = sizeof(T) * (2 + threeIn);
+	if (loadBytes > 8)
+		coords = _mm_loadu_si128((__m128i*)pData);
+	else if (loadBytes > 4)
+		coords = _mm_loadl_epi64((__m128i*)pData);
+	else
+		coords = _mm_cvtsi32_si128(*(u32*)pData);
+
+	// Float case (no scaling)
+	if (sizeof(T) == 4)
+	{
+		coords = _mm_shuffle_epi8(coords, threeIn ? kMaskSwap32_3 : kMaskSwap32_2);
+		if (threeOut)
+			_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, coords);
+		else
+			_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, coords);
+	}
+	else
+	{
+		// Byte swap, unpack, and move to high bytes for sign extend.
+		if (std::is_unsigned<T>::value)
+			mask = sizeof(T) == 2 ? (threeIn ? kMaskSwap16to32l_3 : kMaskSwap16to32l_2) : (threeIn ? kMask8to32l_3 : kMask8to32l_2);
+		else
+			mask = sizeof(T) == 2 ? (threeIn ? kMaskSwap16to32h_3 : kMaskSwap16to32h_2) : (threeIn ? kMask8to32h_3 : kMask8to32h_2);
+		coords = _mm_shuffle_epi8(coords, mask);
+
+		// Sign extend
+		if (std::is_signed<T>::value)
+			coords = _mm_srai_epi32(coords, 32 - sizeof(T) * 8);
+
+		__m128 out = _mm_mul_ps(_mm_cvtepi32_ps(coords), scale);
+		if (threeOut)
+			_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, out);
+		else
+			_mm_storel_pi((__m64*)VertexManager::s_pCurBufferPointer, out);
+	}
+
+	VertexManager::s_pCurBufferPointer += sizeof(float) * (2 + threeOut);
+}
+#endif
