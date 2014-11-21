@@ -6,6 +6,7 @@
 #pragma once
 
 #include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/VideoConfigDiag.h"
 
 class InputConfig;
 class VRDialog;
@@ -32,6 +33,34 @@ public:
 	};
 
 protected:
+
+	void Event_ClickSave(wxCommandEvent&);
+
+	// Enables/disables UI elements depending on current config
+	void OnUpdateUI(wxUpdateUIEvent& ev)
+	{
+		// Things which shouldn't be changed during emulation
+		if (Core::IsRunning())
+		{
+			async_timewarp_checkbox->Disable();
+		}
+		ev.Skip();
+	}
+
+	// Creates controls and connects their enter/leave window events to Evt_Enter/LeaveControl
+	SettingCheckBox* CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
+	SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num = 0, const wxString choices[] = nullptr, long style = 0);
+	SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
+	SettingNumber* CreateNumber(wxWindow* parent, float &setting, const wxString& description, float min, float max, float inc, long style = 0);
+
+	// Same as above but only connects enter/leave window events
+	wxControl* RegisterControl(wxControl* const control, const wxString& description);
+
+	void Evt_EnterControl(wxMouseEvent& ev);
+	void Evt_LeaveControl(wxMouseEvent& ev);
+	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
+
+	SettingCheckBox* async_timewarp_checkbox;
 
 private:
 
@@ -72,6 +101,11 @@ private:
 	ciface::Core::DeviceQualifier    default_device;
 
 	DECLARE_EVENT_TABLE();
+
+	std::map<wxWindow*, wxString> ctrl_descs; // maps setting controls to their descriptions
+	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects
+
+	VideoConfig &vconfig;
 };
 
 class VRDialog : public wxDialog

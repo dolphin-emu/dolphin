@@ -49,10 +49,12 @@ struct VideoConfig final
 {
 	VideoConfig();
 	void Load(const std::string& ini_file);
+	void LoadVR(const std::string& ini_file);
 	void GameIniLoad();
 	void GameIniSave();
 	void VerifyValidity();
 	void Save(const std::string& ini_file);
+	void SaveVR(const std::string& ini_file);
 	void UpdateProjectionHack();
 	bool IsVSync();
 	bool VRSettingsModified();

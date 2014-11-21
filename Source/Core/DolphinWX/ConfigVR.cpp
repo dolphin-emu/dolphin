@@ -15,6 +15,7 @@
 
 #include "DolphinWX/ConfigVR.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
 #include "InputCommon/HotkeysXInput.h"
@@ -29,10 +30,14 @@ EVT_BUTTON(wxID_OK, CConfigVR::OnOk)
 
 END_EVENT_TABLE()
 
-CConfigVR::CConfigVR(wxWindow* parent, wxWindowID id, const wxString& title,
-		const wxPoint& position, const wxSize& size, long style)
+CConfigVR::CConfigVR(wxWindow* parent, wxWindowID id, const wxString& title, 
+	const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
+	, vconfig(g_Config)
+
 {
+	vconfig.LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+
 	CreateGUIControls();
 
 	UpdateDeviceComboBox();
@@ -81,11 +86,82 @@ void CConfigVR::UpdateGUI()
 
 void CConfigVR::CreateGUIControls()
 {
+	// Configuration controls sizes
+	wxSize size(150, 20);
+	// A small type font
+	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+	wxNotebook *Notebook = new wxNotebook(this, wxID_ANY);
+
+	// -- VR --
+	{
+		wxPanel* const page_vr = new wxPanel(Notebook, -1);
+		Notebook->AddPage(page_vr, _("VR"));
+		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
+
+		// - vr
+		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
+
+		// Scale
+		{
+			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale,
+				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale:"));
+			label->SetToolTip(wxGetTranslation(scale_desc));
+
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_scale);
+		}
+		// Lean back angle
+		{
+			SettingNumber *const spin_lean = CreateNumber(page_vr, vconfig.fLeanBackAngle,
+				wxGetTranslation(lean_desc), -180.0f, 180.0f, 1.0f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Lean back angle:"));
+
+			label->SetToolTip(wxGetTranslation(lean_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_lean);
+		}
+		// VR Player
+		{
+			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
+
+			szr_vr->Add(new wxStaticText(page_vr, -1, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc),
+				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+			szr_vr->Add(choice_vr, 1, 0, 0);
+			choice_vr->Select(vconfig.iVRPlayer);
+		}
+
+		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Dynamic prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Orientation tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Magnetic yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Position tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Chromatic aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Don't restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Flip vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
+		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
+		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
+		szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bAsynchronousTimewarp));
+
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
+		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
+
+		szr_vr_main->AddStretchSpacer();
+		CreateDescriptionArea(page_vr, szr_vr_main);
+		page_vr->SetSizerAndFit(szr_vr_main);
+	}
 
 	const wxString pageNames[] =
 	{
 		_("VR Hotkeys")
-		//_("VR Options")
+		//_("VR Hotkeys 2")
 	};
 
 	const wxString VRText[] =
@@ -127,18 +203,9 @@ void CConfigVR::CreateGUIControls()
 		_("2D Screen Thicker"),
 		_("2D Screen Thinner"),
 		
-
-
 	};
 
 	const int page_breaks[3] = {VR_POSITION_RESET, NUM_VR_HOTKEYS, NUM_VR_HOTKEYS};
-
-	// Configuration controls sizes
-	wxSize size(150,20);
-	// A small type font
-	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-
-	wxNotebook *Notebook = new wxNotebook(this, wxID_ANY);
 
 	button_already_clicked = false; //Used to determine whether a button has already been clicked.  If it has, don't allow more buttons to be clicked.
 
@@ -254,6 +321,95 @@ void CConfigVR::CreateGUIControls()
 
 }
 
+SettingCheckBox* CConfigVR::CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse, long style)
+{
+	SettingCheckBox* const cb = new SettingCheckBox(parent, label, wxString(), setting, reverse, style);
+	RegisterControl(cb, description);
+	return cb;
+}
+
+SettingChoice* CConfigVR::CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num, const wxString choices[], long style)
+{
+	SettingChoice* const ch = new SettingChoice(parent, setting, wxString(), num, choices, style);
+	RegisterControl(ch, description);
+	return ch;
+}
+
+SettingRadioButton* CConfigVR::CreateRadioButton(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse, long style)
+{
+	SettingRadioButton* const rb = new SettingRadioButton(parent, label, wxString(), setting, reverse, style);
+	RegisterControl(rb, description);
+	return rb;
+}
+
+SettingNumber* CConfigVR::CreateNumber(wxWindow* parent, float &setting, const wxString& description, float min, float max, float inc, long style)
+{
+	SettingNumber* const sn = new SettingNumber(parent, wxString(), setting, min, max, inc, style);
+	RegisterControl(sn, description);
+	return sn;
+}
+
+/* Use this to register descriptions for controls which have NOT been created using the Create* functions from above */
+wxControl* CConfigVR::RegisterControl(wxControl* const control, const wxString& description)
+{
+	ctrl_descs.insert(std::pair<wxWindow*, wxString>(control, description));
+	control->Bind(wxEVT_ENTER_WINDOW, &CConfigVR::Evt_EnterControl, this);
+	control->Bind(wxEVT_LEAVE_WINDOW, &CConfigVR::Evt_LeaveControl, this);
+	return control;
+}
+
+void CConfigVR::Evt_EnterControl(wxMouseEvent& ev)
+{
+	// TODO: Re-Fit the sizer if necessary!
+
+	// Get settings control object from event
+	wxWindow* ctrl = (wxWindow*)ev.GetEventObject();
+	if (!ctrl) return;
+
+	// look up description text object from the control's parent (which is the wxPanel of the current tab)
+	wxStaticText* descr_text = desc_texts[ctrl->GetParent()];
+	if (!descr_text) return;
+
+	// look up the description of the selected control and assign it to the current description text object's label
+	descr_text->SetLabel(ctrl_descs[ctrl]);
+	descr_text->Wrap(descr_text->GetContainingSizer()->GetSize().x - 20);
+
+	ev.Skip();
+}
+
+// TODO: Don't hardcode the size of the description area via line breaks
+#define DEFAULT_DESC_TEXT _("Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n")
+void CConfigVR::Evt_LeaveControl(wxMouseEvent& ev)
+{
+	// look up description text control and reset its label
+	wxWindow* ctrl = (wxWindow*)ev.GetEventObject();
+	if (!ctrl) return;
+	wxStaticText* descr_text = desc_texts[ctrl->GetParent()];
+	if (!descr_text) return;
+
+	descr_text->SetLabel(DEFAULT_DESC_TEXT);
+	descr_text->Wrap(descr_text->GetContainingSizer()->GetSize().x - 20);
+	ev.Skip();
+}
+
+void CConfigVR::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer)
+{
+	// Create description frame
+	wxStaticBoxSizer* const desc_sizer = new wxStaticBoxSizer(wxVERTICAL, page, _("Description"));
+	sizer->Add(desc_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+
+	// Need to call SetSizerAndFit here, since we don't want the description texts to change the dialog width
+	page->SetSizerAndFit(sizer);
+
+	// Create description text
+	wxStaticText* const desc_text = new wxStaticText(page, wxID_ANY, DEFAULT_DESC_TEXT);
+	desc_text->Wrap(desc_sizer->GetSize().x - 20);
+	desc_sizer->Add(desc_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+
+	// Store description text object for later lookup
+	desc_texts.insert(std::pair<wxWindow*, wxStaticText*>(page, desc_text));
+}
+
 //Poll devices available and put them in the device combo box.
 void CConfigVR::UpdateDeviceComboBox()
 {
@@ -276,6 +432,7 @@ void CConfigVR::UpdateDeviceComboBox()
 
 void CConfigVR::OnClose(wxCloseEvent& WXUNUSED (event))
 {
+	g_Config.SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 	EndModal(wxID_OK);
 	// Save the config. Dolphin crashes too often to only save the settings on closing
 	SConfig::GetInstance().SaveSettings();

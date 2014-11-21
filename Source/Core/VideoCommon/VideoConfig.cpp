@@ -132,24 +132,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	hacks->Get("EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
-	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
-	vr->Get("Scale", &fScale, 1.0f);
-	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
-	vr->Get("EnableVR", &bEnableVR, true);
-	vr->Get("LowPersistence", &bLowPersistence, true);
-	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
-	vr->Get("OrientationTracking", &bOrientationTracking, true);
-	vr->Get("MagYawCorrection", &bMagYawCorrection, true);
-	vr->Get("PositionTracking", &bPositionTracking, true);
-	vr->Get("Chromatic", &bChromatic, true);
-	vr->Get("Timewarp", &bTimewarp, true);
-	vr->Get("Vignette", &bVignette, false);
-	vr->Get("NoRestore", &bNoRestore, false);
-	vr->Get("FlipVertical", &bFlipVertical, false);
-	vr->Get("sRGB", &bSRGB, false);
-	vr->Get("Overdrive", &bOverdrive, false);
-	vr->Get("HQDistortion", &bHqDistortion, false);
-	vr->Get("Player", &iVRPlayer, 0);
+	LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -170,6 +153,32 @@ void VideoConfig::Load(const std::string& ini_file)
 	if (bEnableShaderDebugging)
 		OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
 }
+
+void VideoConfig::LoadVR(const std::string& ini_file)
+{
+	IniFile iniFile;
+	iniFile.Load(ini_file);
+
+	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
+	vr->Get("Scale", &fScale, 1.0f);
+	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
+	vr->Get("EnableVR", &bEnableVR, true);
+	vr->Get("LowPersistence", &bLowPersistence, true);
+	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
+	vr->Get("OrientationTracking", &bOrientationTracking, true);
+	vr->Get("MagYawCorrection", &bMagYawCorrection, true);
+	vr->Get("PositionTracking", &bPositionTracking, true);
+	vr->Get("Chromatic", &bChromatic, true);
+	vr->Get("Timewarp", &bTimewarp, true);
+	vr->Get("Vignette", &bVignette, false);
+	vr->Get("NoRestore", &bNoRestore, false);
+	vr->Get("FlipVertical", &bFlipVertical, false);
+	vr->Get("sRGB", &bSRGB, false);
+	vr->Get("Overdrive", &bOverdrive, false);
+	vr->Get("HQDistortion", &bHqDistortion, false);
+	vr->Get("Player", &iVRPlayer, 0);
+}
+
 
 void VideoConfig::GameIniLoad()
 {
@@ -405,6 +414,15 @@ void VideoConfig::Save(const std::string& ini_file)
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
 	hacks->Set("EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
+
+	SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	iniFile.Save(ini_file);
+}
+
+void VideoConfig::SaveVR(const std::string& ini_file)
+{
+	IniFile iniFile;
+	iniFile.Load(ini_file);
 
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Set("Scale", fScale);
