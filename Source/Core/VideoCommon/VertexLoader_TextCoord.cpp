@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <type_traits>
+
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 
@@ -9,13 +11,6 @@
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
-
-
-#if _M_SSE >= 0x401
-#include <smmintrin.h>
-#elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
-#include <tmmintrin.h>
-#endif
 
 template <int N>
 void LOG_TEX();
@@ -54,7 +49,7 @@ float TCScale(float val, float scale)
 template <typename T, int N>
 void LOADERDECL TexCoord_ReadDirect()
 {
-	auto const scale = tcScale[tcIndex];
+	auto const scale = tcScale[tcIndex][0];
 	DataWriter dst;
 	DataReader src;
 
@@ -69,12 +64,12 @@ void LOADERDECL TexCoord_ReadDirect()
 template <typename I, typename T, int N>
 void LOADERDECL TexCoord_ReadIndex()
 {
-	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
-		+ (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + tcIndex]));
-	auto const scale = tcScale[tcIndex];
+	                + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + tcIndex]));
+	auto const scale = tcScale[tcIndex][0];
 	DataWriter dst;
 
 	for (int i = 0; i != N; ++i)
@@ -84,44 +79,27 @@ void LOADERDECL TexCoord_ReadIndex()
 	++tcIndex;
 }
 
-#if _M_SSE >= 0x401
-static const __m128i kMaskSwap16_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x02030001L);
-
-template <typename I>
-void LOADERDECL TexCoord_ReadIndex_Short2_SSE4()
+#if _M_SSE >= 0x301
+template <typename T>
+void LOADERDECL TexCoord_ReadDirect2_SSSE3()
 {
-	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
-
-	// Heavy in ZWW
-	auto const index = DataRead<I>();
-	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0+tcIndex]));
-	const __m128i a = _mm_cvtsi32_si128(*pData);
-	const __m128i b = _mm_shuffle_epi8(a, kMaskSwap16_2);
-	const __m128i c = _mm_cvtepi16_epi32(b);
-	const __m128 d = _mm_cvtepi32_ps(c);
-	const __m128 e = _mm_load1_ps(&tcScale[tcIndex]);
-	const __m128 f = _mm_mul_ps(d, e);
-	_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, f);
-	VertexManager::s_pCurBufferPointer += sizeof(float) * 2;
+	const T* pData = reinterpret_cast<const T*>(DataGetPosition());
+	__m128 scale = _mm_castsi128_ps(_mm_loadl_epi64((__m128i*)tcScale[tcIndex]));
+	Vertex_Read_SSSE3<T, false, false>(pData, scale);
+	DataSkip<2 * sizeof(T)>();
 	LOG_TEX<2>();
 	tcIndex++;
 }
-#endif
 
-#if _M_SSE >= 0x301
-static const __m128i kMaskSwap32 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
-
-template <typename I>
-void LOADERDECL TexCoord_ReadIndex_Float2_SSSE3()
+template <typename I, typename T>
+void LOADERDECL TexCoord_ReadIndex2_SSSE3()
 {
-	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0+tcIndex]));
-	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));
-	GC_ALIGNED128(const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32));
-	_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
-	VertexManager::s_pCurBufferPointer += sizeof(float) * 2;
+	const T* pData = (const T*)(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex] + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + tcIndex]));
+	__m128 scale = _mm_castsi128_ps(_mm_loadl_epi64((__m128i*)tcScale[tcIndex]));
+	Vertex_Read_SSSE3<T, false, false>(pData, scale);
 	LOG_TEX<2>();
 	tcIndex++;
 }
@@ -177,23 +155,24 @@ void VertexLoader_TextCoord::Init()
 {
 
 #if _M_SSE >= 0x301
-
 	if (cpu_info.bSSSE3)
 	{
-		tableReadTexCoord[2][4][1] = TexCoord_ReadIndex_Float2_SSSE3<u8>;
-		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex_Float2_SSSE3<u16>;
+		tableReadTexCoord[1][0][1] = TexCoord_ReadDirect2_SSSE3<u8>;
+		tableReadTexCoord[1][1][1] = TexCoord_ReadDirect2_SSSE3<s8>;
+		tableReadTexCoord[1][2][1] = TexCoord_ReadDirect2_SSSE3<u16>;
+		tableReadTexCoord[1][3][1] = TexCoord_ReadDirect2_SSSE3<s16>;
+		tableReadTexCoord[1][4][1] = TexCoord_ReadDirect2_SSSE3<float>;
+		tableReadTexCoord[2][0][1] = TexCoord_ReadIndex2_SSSE3<u8, u8>;
+		tableReadTexCoord[3][0][1] = TexCoord_ReadIndex2_SSSE3<u16, u8>;
+		tableReadTexCoord[2][1][1] = TexCoord_ReadIndex2_SSSE3<u8, s8>;
+		tableReadTexCoord[3][1][1] = TexCoord_ReadIndex2_SSSE3<u16, s8>;
+		tableReadTexCoord[2][2][1] = TexCoord_ReadIndex2_SSSE3<u8, u16>;
+		tableReadTexCoord[3][2][1] = TexCoord_ReadIndex2_SSSE3<u16, u16>;
+		tableReadTexCoord[2][3][1] = TexCoord_ReadIndex2_SSSE3<u8, s16>;
+		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex2_SSSE3<u16, s16>;
+		tableReadTexCoord[2][4][1] = TexCoord_ReadIndex2_SSSE3<u8, float>;
+		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex2_SSSE3<u16, float>;
 	}
-
-#endif
-
-#if _M_SSE >= 0x401
-
-	if (cpu_info.bSSE4_1)
-	{
-		tableReadTexCoord[2][3][1] = TexCoord_ReadIndex_Short2_SSE4<u8>;
-		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex_Short2_SSE4<u16>;
-	}
-
 #endif
 
 }

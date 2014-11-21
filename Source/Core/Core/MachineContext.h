@@ -88,20 +88,7 @@
 #elif defined(__linux__)
 	#include <signal.h>
 
-	#ifdef ANDROID
-		#include <asm/sigcontext.h>
-		typedef struct sigcontext mcontext_t;
-		typedef struct ucontext
-		{
-			uint32_t uc_flags;
-			struct ucontext* uc_link;
-			stack_t uc_stack;
-			mcontext_t uc_mcontext;
-			// ...
-		} ucontext_t;
-	#else
-		#include <ucontext.h>
-	#endif
+	#include <ucontext.h>
 	typedef mcontext_t SContext;
 
 	#if _M_X86_64

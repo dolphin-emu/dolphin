@@ -23,19 +23,9 @@ set(UIS
 	SystemInfo.ui
 	)
 
-set(LIBS core uicommon)
+list(APPEND LIBS core uicommon)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	# Link against OS X system frameworks.
-	list(APPEND LIBS
-		${APPKIT_LIBRARY}
-		${AU_LIBRARY}
-		${COREAUDIO_LIBRARY}
-		${COREFUND_LIBRARY}
-		${CORESERV_LIBRARY}
-		${IOK_LIBRARY}
-		${FORCEFEEDBACK}
-		)
 	set(DOLPHINQT_BINARY DolphinQt)
 else()
 	set(DOLPHINQT_BINARY dolphin-emu-qt)
@@ -83,7 +73,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
 			VERBATIM
 			)
-		add_custom_target(CopyDataIntoBundle ALL
+		add_custom_target(CopyDataIntoBundleQt ALL
 			DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
 			)
 	endif()
