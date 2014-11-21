@@ -38,6 +38,8 @@ CConfigVR::CConfigVR(wxWindow* parent, wxWindowID id, const wxString& title,
 {
 	vconfig.LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 
+	Bind(wxEVT_UPDATE_UI, &CConfigVR::OnUpdateUI, this);
+
 	CreateGUIControls();
 
 	UpdateDeviceComboBox();
@@ -152,6 +154,143 @@ void CConfigVR::CreateGUIControls()
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
+
+		szr_vr_main->AddStretchSpacer();
+		CreateDescriptionArea(page_vr, szr_vr_main);
+		page_vr->SetSizerAndFit(szr_vr_main);
+	}
+
+	// -- VR Game --
+	{
+		wxPanel* const page_vr = new wxPanel(Notebook, -1);
+		Notebook->AddPage(page_vr, _("VR Game"));
+		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
+
+		// - vr
+		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
+
+		// Units Per Metre
+		{
+			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fUnitsPerMetre,
+				wxGetTranslation(temp_desc), 0.0000001f, 10000000, 0.5f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Units per metre:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_scale);
+		}
+		// HUD distance
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudDistance,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Distance:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// HUD thickness
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudThickness,
+				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Thickness:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// HUD 3D Forward
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHud3DCloser,
+				wxGetTranslation(temp_desc), 0.0f, 1.0f, 0.5f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD 3D Items Closer:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Camera forward
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraForward,
+				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera forward:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Camera pitch
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraPitch,
+				wxGetTranslation(temp_desc), -180, 360, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera pitch:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Aim distance
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fAimDistance,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Aim distance:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Height
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenHeight,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Height:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Distance
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenDistance,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Distance:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Thickness
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenThickness,
+				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Thickness:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Up
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenUp,
+				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Up:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen pitch
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenPitch,
+				wxGetTranslation(temp_desc), -180, 360, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Pitch:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
+
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For this game only"));
+		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
+
+		wxButton* const btn_save = new wxButton(page_vr, wxID_OK, _("Save"));
+		btn_save->Bind(wxEVT_BUTTON, &CConfigVR::Event_ClickSave, this);
+		szr_vr->Add(btn_save, 1, wxALIGN_CENTER_VERTICAL, 0);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal == "")
+		{
+			btn_save->Disable();
+			page_vr->Disable();
+		}
 
 		szr_vr_main->AddStretchSpacer();
 		CreateDescriptionArea(page_vr, szr_vr_main);
@@ -428,6 +567,12 @@ void CConfigVR::UpdateDeviceComboBox()
 	}
 
 	default_device.FromString(WxStrToStr(device_cbox->GetValue())); //Set device to be used to match what's selected in the Combo Box
+}
+
+void CConfigVR::Event_ClickSave(wxCommandEvent&)
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal != "")
+		g_Config.GameIniSave();
 }
 
 void CConfigVR::OnClose(wxCloseEvent& WXUNUSED (event))
