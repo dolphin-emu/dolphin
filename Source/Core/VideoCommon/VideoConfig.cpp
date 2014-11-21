@@ -60,7 +60,7 @@ VideoConfig::VideoConfig()
 	bNoRestore = false;
 	bFlipVertical = false;
 	bSRGB = false;
-	bOverdrive = false;
+	bOverdrive = true;
 	bHqDistortion = false;
 	iVRPlayer = 0;
 
@@ -174,7 +174,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("NoRestore", &bNoRestore, false);
 	vr->Get("FlipVertical", &bFlipVertical, false);
 	vr->Get("sRGB", &bSRGB, false);
-	vr->Get("Overdrive", &bOverdrive, false);
+	vr->Get("Overdrive", &bOverdrive, true);
 	vr->Get("HQDistortion", &bHqDistortion, false);
 	vr->Get("Player", &iVRPlayer, 0);
 }

@@ -380,6 +380,9 @@ static void BPWritten(const BPCmd& bp)
 			BoundingBox::coords[offset]     = bp.newvalue & 0x3ff;
 			BoundingBox::coords[offset + 1] = bp.newvalue >> 10;
 			BoundingBox::active = true;
+
+			g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
+			g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
 		}
 		return;
 	case BPMEM_TEXINVALIDATE:

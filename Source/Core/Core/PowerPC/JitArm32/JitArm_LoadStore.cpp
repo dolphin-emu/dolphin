@@ -86,8 +86,8 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
 	ARMReg rC = gpr.GetReg();
-	ARMReg RA;
-	ARMReg RB;
+	ARMReg RA = INVALID_REG;
+	ARMReg RB = INVALID_REG;
 	if (dest != -1)
 		RA = gpr.R(dest);
 	if (regOffset != -1)

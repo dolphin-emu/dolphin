@@ -111,14 +111,6 @@ public final class NativeLibrary
 	public static native void SetFilename(String filename);
 
 	/**
-	 * Sets the dimensions of the rendering window.
-	 * 
-	 * @param width  The new width of the rendering window (in pixels).
-	 * @param height The new height of the rendering window (in pixels).
-	 */
-	public static native void SetDimensions(int width, int height);
-
-	/**
 	 * Gets the embedded banner within the given ISO/ROM.
 	 * 
 	 * @param filename the file path to the ISO/ROM.

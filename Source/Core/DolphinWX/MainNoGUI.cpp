@@ -72,14 +72,6 @@ void Host_UpdateMainFrame()
 	updateMainFrameEvent.Set();
 }
 
-void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
-{
-	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
-	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
-	width = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth;
-	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
-}
-
 void Host_RequestRenderWindowSize(int width, int height) {}
 
 void Host_RequestFullscreen(bool enable_fullscreen) {}
