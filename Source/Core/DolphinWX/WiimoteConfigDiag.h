@@ -61,6 +61,10 @@ public:
 
 private:
 	wxStaticBoxSizer* CreateGamecubeSizer();
+	wxStaticBoxSizer* CreateWiimoteConfigSizer();
+	wxStaticBoxSizer* CreateBalanceBoardSizer();
+	wxStaticBoxSizer* CreateRealWiimoteSizer();
+	wxStaticBoxSizer* CreateGeneralWiimoteSettingsSizer();
 	void Cancel(wxCommandEvent& event);
 
 	InputConfig& m_config;
