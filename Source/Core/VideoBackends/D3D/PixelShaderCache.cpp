@@ -79,12 +79,12 @@ const char color_copy_program_code_msaa[] = {
 
 const char color_matrix_program_code[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2D Tex0 : register(t0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
+	"in float3 uv0 : TEXCOORD0){\n"
 	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
 	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
@@ -93,17 +93,17 @@ const char color_matrix_program_code[] = {
 
 const char color_matrix_program_code_msaa[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
+	"in float3 uv0 : TEXCOORD0){\n"
 	"int width, height, samples;\n"
 	"Tex0.GetDimensions(width, height, samples);\n"
 	"float4 texcol = 0;\n"
 	"for(int i = 0; i < samples; ++i)\n"
-	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"texcol /= samples;\n"
 	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
@@ -112,12 +112,12 @@ const char color_matrix_program_code_msaa[] = {
 
 const char depth_matrix_program[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2D Tex0 : register(t0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
+	" in float3 uv0 : TEXCOORD0){\n"
 	"	float4 texcol = Tex0.Sample(samp0,uv0);\n"
 
 	// 255.99998474121 = 16777215/16777216*256
@@ -147,17 +147,17 @@ const char depth_matrix_program[] = {
 
 const char depth_matrix_program_msaa[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
+	" in float3 uv0 : TEXCOORD0){\n"
 	"	int width, height, samples;\n"
 	"	Tex0.GetDimensions(width, height, samples);\n"
 	"	float4 texcol = 0;\n"
 	"	for(int i = 0; i < samples; ++i)\n"
-	"		texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"		texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"	texcol /= samples;\n"
 
 	// 255.99998474121 = 16777215/16777216*256
