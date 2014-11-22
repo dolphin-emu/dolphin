@@ -227,7 +227,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	sListsSizer->Add(m_objectsList, 0, wxALL, 5);
 
 	m_objectCmdList = new wxListBox(m_AnalyzePage, wxID_ANY);
-	m_objectCmdList->SetMinSize(wxSize(175, 250));
+	m_objectCmdList->SetMinSize(wxSize(300, 250));
 	sListsSizer->Add(m_objectCmdList, 0, wxALL, 5);
 
 	sFrameInfoSizer->Add(sListsSizer, 0, wxALL, 5);
@@ -634,9 +634,13 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		int cmd = *objectdata++;
 		int stream_size = Common::swap16(objectdata);
 		objectdata += 2;
+
+		wxString errorLabel;
+		if (stream_size && ((objectdata_end - objectdata) % stream_size)){
+			errorLabel = _("NOTE: Stream size doesn't match actual data length\n");
+		}
+
 		wxString newLabel = wxString::Format("%08X:  %02X %04X  ", obj_offset, cmd, stream_size);
-		if (stream_size && ((objectdata_end - objectdata) % stream_size))
-			newLabel += _("NOTE: Stream size doesn't match actual data length\n");
 
 		while (objectdata < objectdata_end)
 		{
@@ -645,7 +649,12 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		m_objectCmdList->Append(newLabel);
 		m_objectCmdOffsets.push_back(0);
 
-
+		//Add errorLabel after objectdata newLabel has already been added.
+		if (errorLabel != ""){
+			m_objectCmdList->Append(errorLabel);
+			m_objectCmdOffsets.push_back(0);
+		}
+		
 		// Between objectdata_end and next_objdata_start, there are register setting commands
 		if (object_idx + 1 < (int)frame.objectStarts.size())
 		{
