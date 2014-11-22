@@ -73,7 +73,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
 	for (int i = 0; i < 4; i++)
 	{
 		config_buttons[i] = new wxButton(this, wxID_ANY, _("Configure"));
-		pad_labels[i] = new wxStaticText(this, wxID_ANY, wxString::Format(_("Pad %i"), i + 1));
+		pad_labels[i] = new wxStaticText(this, wxID_ANY, wxString::Format(_("Port %i"), i + 1));
 
 		// Only add AM-Baseboard to the first pad.
 		if (i == 0)
@@ -82,13 +82,11 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
 			pad_type_choices[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, pad_type_strs.size() - 1, pad_type_strs.data());
 
 		gamecube_flex_sizer->Add(pad_labels[i], 0, wxALIGN_CENTER_VERTICAL);
-		gamecube_flex_sizer->AddGrowableCol(0, 1);
 		gamecube_flex_sizer->Add(pad_type_choices[i], 0, wxALIGN_CENTER_VERTICAL);
-		gamecube_flex_sizer->AddGrowableCol(0, 2);
-		gamecube_flex_sizer->Add(config_buttons[i], 0, wxALIGN_RIGHT);
+		gamecube_flex_sizer->Add(config_buttons[i], 0, wxALIGN_CENTER_VERTICAL);
 	}
 
-	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5 );
+	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5);
 	return gamecube_static_sizer;
 }
 
@@ -152,7 +150,9 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateWiimoteConfigSizer()
 	wiimote_group->Add(wiimote_control_section, 0, wxEXPAND | wxALL);
 	wiimote_group->AddSpacer(5);
 	wiimote_group->Add(CreateBalanceBoardSizer(), 0, wxEXPAND | wxALL);
+	wiimote_group->AddSpacer(5);
 	wiimote_group->Add(CreateRealWiimoteSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM);
+	wiimote_group->AddSpacer(5);
 	wiimote_group->Add(CreateGeneralWiimoteSettingsSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM);
 
 	return wiimote_group;
