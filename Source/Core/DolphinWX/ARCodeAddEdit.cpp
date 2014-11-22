@@ -29,11 +29,6 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
-//BEGIN_EVENT_TABLE(CARCodeAddEdit, wxDialog)
-//	EVT_BUTTON(wxID_OK, CARCodeAddEdit::SaveCheatData)
-//	EVT_SPIN(ID_ENTRY_SELECT, CARCodeAddEdit::ChangeEntry)
-//END_EVENT_TABLE()
-
 CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 	, selection(_selection)
