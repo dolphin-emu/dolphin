@@ -190,8 +190,7 @@ private:
 		Toolbar_ConfigMain,
 		Toolbar_ConfigGFX,
 		Toolbar_ConfigDSP,
-		Toolbar_ConfigPAD,
-		Toolbar_Wiimote,
+		Toolbar_Controller,
 		EToolbar_Max
 	};
 
@@ -293,8 +292,7 @@ private:
 	void OnConfigMain(wxCommandEvent& event); // Options
 	void OnConfigGFX(wxCommandEvent& event);
 	void OnConfigDSP(wxCommandEvent& event);
-	void OnConfigPAD(wxCommandEvent& event);
-	void OnConfigWiimote(wxCommandEvent& event);
+	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
 
 	void OnToggleFullscreen(wxCommandEvent& event);
