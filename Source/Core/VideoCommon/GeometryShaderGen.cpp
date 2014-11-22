@@ -62,6 +62,9 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write(s_shader_uniforms);
 	out.Write("};\n");
 
+	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
+	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+
 	GenerateVSOutputStruct(out, ApiType);
 
 	out.Write("centroid in VS_OUTPUT o[3];\n");
