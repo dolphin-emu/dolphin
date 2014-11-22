@@ -225,7 +225,6 @@ protected:
 
 			progressive_scan_checkbox->Disable();
 			render_to_main_checkbox->Disable();
-			async_timewarp_checkbox->Disable();
 		}
 		ev.Skip();
 	}
