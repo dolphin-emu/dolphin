@@ -1,6 +1,8 @@
-# Dolphin Code Styling
+# Dolphin Coding Style & Licensing
 
-## Table of Contents
+If you make any contributions to Dolphin after December 1st, 2014, you are agreeing that any code you have contributed will be licensed under the GNU GPL version 2 (or any later version).
+
+## Coding Style
 ---
 
 - [Introduction] (#introduction)
@@ -113,7 +115,7 @@ class ExampleClass : public SomeParent
 {
 public:
     ExampleClass(int x, int y);
-  
+
     int GetX() const;
     int GetY() const;
 
