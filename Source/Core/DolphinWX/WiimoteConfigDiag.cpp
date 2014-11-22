@@ -72,7 +72,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
 
 	for (int i = 0; i < 4; i++)
 	{
-		config_buttons[i] = new wxButton(this, wxID_ANY, _("Configure"));
+		config_buttons[i] = new wxButton(this, wxID_ANY, _("Configure"), wxDefaultPosition, wxSize(100, 25));
 		pad_labels[i] = new wxStaticText(this, wxID_ANY, wxString::Format(_("Port %i"), i + 1));
 
 		// Only add AM-Baseboard to the first pad.
@@ -83,7 +83,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
 
 		gamecube_flex_sizer->Add(pad_labels[i], 0, wxALIGN_CENTER_VERTICAL);
 		gamecube_flex_sizer->Add(pad_type_choices[i], 0, wxALIGN_CENTER_VERTICAL);
-		gamecube_flex_sizer->Add(config_buttons[i], 0, wxALIGN_CENTER_VERTICAL);
+		gamecube_flex_sizer->Add(config_buttons[i], 1, wxEXPAND);
 	}
 
 	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5);
