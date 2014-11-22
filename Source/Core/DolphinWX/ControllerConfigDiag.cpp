@@ -28,14 +28,14 @@
 #include "Core/HW/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/InputConfigDiag.h"
-#include "DolphinWX/WiimoteConfigDiag.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "VideoBackends/OGL/GLInterface/X11Utils.h"
 #endif
 
-const std::array<wxString, 7> WiimoteConfigDiag::m_gc_pad_type_strs = {{
+const std::array<wxString, 7> ControllerConfigDiag::m_gc_pad_type_strs = {{
 	_("None"),
 	_("Standard Controller"),
 	_("Steering Wheel"),
@@ -45,8 +45,8 @@ const std::array<wxString, 7> WiimoteConfigDiag::m_gc_pad_type_strs = {{
 	_("AM-Baseboard")
 }};
 
-WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent)
-	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"))
+ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
+	: wxDialog(parent, -1, _("Dolphin Controller Configuration"))
 {
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -58,14 +58,14 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent)
 	main_sizer->Add(control_sizer, 0, wxEXPAND);
 	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	Bind(wxEVT_BUTTON, &WiimoteConfigDiag::Save, this, wxID_OK);
-	Bind(wxEVT_BUTTON, &WiimoteConfigDiag::Cancel, this, wxID_CANCEL);
+	Bind(wxEVT_BUTTON, &ControllerConfigDiag::Save, this, wxID_OK);
+	Bind(wxEVT_BUTTON, &ControllerConfigDiag::Cancel, this, wxID_CANCEL);
 
 	SetSizerAndFit(main_sizer);
 	Center();
 }
 
-wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
+wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 {
 	wxStaticBoxSizer* const gamecube_static_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("GameCube Controllers"));
 	wxFlexGridSizer* const gamecube_flex_sizer = new wxFlexGridSizer(3, 5, 5);
@@ -83,7 +83,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
 		const wxWindowID button_id = wxWindow::NewControlId();
 		m_gc_port_config_ids.insert(std::make_pair(button_id, i));
 		config_buttons[i] = new wxButton(this, button_id, _("Configure"), wxDefaultPosition, wxSize(100, 25));
-		config_buttons[i]->Bind(wxEVT_BUTTON, &WiimoteConfigDiag::OnGameCubeConfigButton, this);
+		config_buttons[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnGameCubeConfigButton, this);
 
 		// Create a control ID for the choice boxes on the fly.
 		const wxWindowID choice_id = wxWindow::NewControlId();
@@ -95,7 +95,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
 		else
 			pad_type_choices[i] = new wxChoice(this, choice_id, wxDefaultPosition, wxDefaultSize, m_gc_pad_type_strs.size() - 1, m_gc_pad_type_strs.data());
 
-		pad_type_choices[i]->Bind(wxEVT_CHOICE, &WiimoteConfigDiag::OnGameCubePortChanged, this);
+		pad_type_choices[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::OnGameCubePortChanged, this);
 
 		// Set the saved pad type as the default choice.
 		switch (SConfig::GetInstance().m_SIDevice[i])
@@ -133,7 +133,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGamecubeSizer()
 	return gamecube_static_sizer;
 }
 
-wxStaticBoxSizer* WiimoteConfigDiag::CreateWiimoteConfigSizer()
+wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 {
 	wxStaticText* wiimote_label[4];
 	wxChoice* wiimote_source_ch[4];
@@ -156,9 +156,9 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateWiimoteConfigSizer()
 
 		wiimote_label[i] = new wxStaticText(this, wxID_ANY, wiimote_str);
 		wiimote_source_ch[i] = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize, src_choices.size(), src_choices.data());
-		wiimote_source_ch[i]->Bind(wxEVT_CHOICE, &WiimoteConfigDiag::SelectSource, this);
+		wiimote_source_ch[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::SelectSource, this);
 		wiimote_configure_bt[i] = new wxButton(this, config_bt_id, _("Configure"));
-		wiimote_configure_bt[i]->Bind(wxEVT_BUTTON, &WiimoteConfigDiag::ConfigEmulatedWiimote, this);
+		wiimote_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::ConfigEmulatedWiimote, this);
 
 		m_orig_wiimote_sources[i] = g_wiimote_sources[i];
 		wiimote_source_ch[i]->Select(m_orig_wiimote_sources[i]);
@@ -201,7 +201,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateWiimoteConfigSizer()
 	return wiimote_group;
 }
 
-wxStaticBoxSizer* WiimoteConfigDiag::CreateBalanceBoardSizer()
+wxStaticBoxSizer* ControllerConfigDiag::CreateBalanceBoardSizer()
 {
 	wxStaticBoxSizer* const bb_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Balance Board"));
 	wxFlexGridSizer* const bb_sizer = new wxFlexGridSizer(1, 5, 5);
@@ -214,7 +214,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateBalanceBoardSizer()
 	}};
 
 	wxChoice* const bb_source = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize, src_choices.size(), src_choices.data());
-	bb_source->Bind(wxEVT_CHOICE, &WiimoteConfigDiag::SelectSource, this);
+	bb_source->Bind(wxEVT_CHOICE, &ControllerConfigDiag::SelectSource, this);
 
 	m_orig_wiimote_sources[WIIMOTE_BALANCE_BOARD] = g_wiimote_sources[WIIMOTE_BALANCE_BOARD];
 	bb_source->Select(m_orig_wiimote_sources[WIIMOTE_BALANCE_BOARD] ? 1 : 0);
@@ -230,11 +230,11 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateBalanceBoardSizer()
 	return bb_group;
 }
 
-wxStaticBoxSizer* WiimoteConfigDiag::CreateRealWiimoteSizer()
+wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 {
 	// "Real wiimotes" controls
 	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"));
-	refresh_btn->Bind(wxEVT_BUTTON, &WiimoteConfigDiag::RefreshRealWiimotes, this);
+	refresh_btn->Bind(wxEVT_BUTTON, &ControllerConfigDiag::RefreshRealWiimotes, this);
 
 	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimotes"));
 	wxBoxSizer* const real_wiimotes_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -244,7 +244,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateRealWiimoteSizer()
 		                                                      "You must manually connect your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
 
 	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
-	continuous_scanning->Bind(wxEVT_CHECKBOX, &WiimoteConfigDiag::OnContinuousScanning, this);
+	continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);
 	continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
 	real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
@@ -256,7 +256,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateRealWiimoteSizer()
 	return real_wiimotes_group;
 }
 
-wxStaticBoxSizer* WiimoteConfigDiag::CreateGeneralWiimoteSettingsSizer()
+wxStaticBoxSizer* ControllerConfigDiag::CreateGeneralWiimoteSettingsSizer()
 {
 	const wxString str[] = { _("Bottom"), _("Top") };
 	wxChoice* const WiiSensBarPos = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2, str);
@@ -265,7 +265,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGeneralWiimoteSettingsSizer()
 	wxCheckBox* const WiimoteMotor = new wxCheckBox(this, wxID_ANY, _("Wiimote Motor"));
 
 	auto wiimote_speaker = new wxCheckBox(this, wxID_ANY, _("Enable Speaker Data"));
-	wiimote_speaker->Bind(wxEVT_CHECKBOX, &WiimoteConfigDiag::OnEnableSpeaker, this);
+	wiimote_speaker->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnEnableSpeaker, this);
 	wiimote_speaker->SetValue(SConfig::GetInstance().m_WiimoteEnableSpeaker);
 
 	wxStaticText* const WiiSensBarPosText = new wxStaticText(this, wxID_ANY, _("Sensor Bar Position:"));
@@ -302,10 +302,10 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGeneralWiimoteSettingsSizer()
 	WiimoteSpkVolume->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.SPKV"));
 	WiimoteMotor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
 
-	WiiSensBarPos->Bind(wxEVT_CHOICE, &WiimoteConfigDiag::OnSensorBarPos, this);
-	WiiSensBarSens->Bind(wxEVT_SLIDER, &WiimoteConfigDiag::OnSensorBarSensitivity, this);
-	WiimoteSpkVolume->Bind(wxEVT_SLIDER, &WiimoteConfigDiag::OnSpeakerVolume, this);
-	WiimoteMotor->Bind(wxEVT_CHECKBOX, &WiimoteConfigDiag::OnMotor, this);
+	WiiSensBarPos->Bind(wxEVT_CHOICE, &ControllerConfigDiag::OnSensorBarPos, this);
+	WiiSensBarSens->Bind(wxEVT_SLIDER, &ControllerConfigDiag::OnSensorBarSensitivity, this);
+	WiimoteSpkVolume->Bind(wxEVT_SLIDER, &ControllerConfigDiag::OnSpeakerVolume, this);
+	WiimoteMotor->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnMotor, this);
 
 	// "General Settings" layout
 	wxStaticBoxSizer* const general_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("General Settings"));
@@ -339,7 +339,7 @@ wxStaticBoxSizer* WiimoteConfigDiag::CreateGeneralWiimoteSettingsSizer()
 }
 
 
-void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
+void ControllerConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 {
 	InputConfig* const wiimote_plugin = Wiimote::GetConfig();
 	bool was_init = false;
@@ -369,12 +369,12 @@ void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 	//m_emu_config_diag->Destroy();
 }
 
-void WiimoteConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
+void ControllerConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
 {
 	WiimoteReal::Refresh();
 }
 
-void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
+void ControllerConfigDiag::SelectSource(wxCommandEvent& event)
 {
 	// This needs to be changed now in order for refresh to work right.
 	// Revert if the dialog is canceled.
@@ -394,13 +394,13 @@ void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
 	}
 }
 
-void WiimoteConfigDiag::RevertSource()
+void ControllerConfigDiag::RevertSource()
 {
 	for (int i = 0; i < MAX_BBMOTES; ++i)
 		g_wiimote_sources[i] = m_orig_wiimote_sources[i];
 }
 
-void WiimoteConfigDiag::Save(wxCommandEvent& event)
+void ControllerConfigDiag::Save(wxCommandEvent& event)
 {
 	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
 
@@ -425,13 +425,13 @@ void WiimoteConfigDiag::Save(wxCommandEvent& event)
 	event.Skip();
 }
 
-void WiimoteConfigDiag::Cancel(wxCommandEvent& event)
+void ControllerConfigDiag::Cancel(wxCommandEvent& event)
 {
 	RevertSource();
 	event.Skip();
 }
 
-void WiimoteConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
+void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 {
 	const unsigned int device_num = m_gc_port_choice_ids[event.GetId()];
 	const wxString device_name = event.GetString();
@@ -458,7 +458,7 @@ void WiimoteConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 		SerialInterface::ChangeDevice(tempType, device_num);
 }
 
-void WiimoteConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
+void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 {
 	InputConfig* const pad_plugin = Pad::GetConfig();
 	const int port_num = m_gc_port_config_ids[event.GetId()];

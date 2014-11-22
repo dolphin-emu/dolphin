@@ -15,10 +15,10 @@ class wxButton;
 class wxStaticBoxSizer;
 class wxWindow;
 
-class WiimoteConfigDiag : public wxDialog
+class ControllerConfigDiag : public wxDialog
 {
 public:
-	WiimoteConfigDiag(wxWindow* const parent);
+	ControllerConfigDiag(wxWindow* const parent);
 
 	void RefreshRealWiimotes(wxCommandEvent& event);
 

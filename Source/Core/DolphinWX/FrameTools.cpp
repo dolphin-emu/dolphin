@@ -64,6 +64,7 @@
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/ConfigMain.h"
+#include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
@@ -75,7 +76,6 @@
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
-#include "DolphinWX/WiimoteConfigDiag.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
@@ -1345,9 +1345,9 @@ void CFrame::OnConfigDSP(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED (event))
 {
-	WiimoteConfigDiag m_ConfigFrame(this);
-	m_ConfigFrame.ShowModal();
-	m_ConfigFrame.Destroy();
+	ControllerConfigDiag config_dlg(this);
+	config_dlg.ShowModal();
+	config_dlg.Destroy();
 }
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
