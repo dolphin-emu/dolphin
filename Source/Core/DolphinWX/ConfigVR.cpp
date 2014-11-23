@@ -300,7 +300,6 @@ void CConfigVR::CreateGUIControls()
 	const wxString pageNames[] =
 	{
 		_("VR Hotkeys")
-		//_("VR Hotkeys 2")
 	};
 
 	const wxString VRText[] =
@@ -355,6 +354,7 @@ void CConfigVR::CreateGUIControls()
 
 		wxGridBagSizer *sVRKeys = new wxGridBagSizer();
 
+		// -- VR Hotkeys --
 		// Header line
 		if (j == 0){
 			for (int i = 0; i < VR_NUM_COLUMNS; i++)

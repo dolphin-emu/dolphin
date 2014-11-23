@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonFuncs.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -142,6 +143,43 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 	size_t size = count * loader->GetVertexSize();
 	if (buf_size < size)
 		return false;
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries){
+		//if (SConfig::GetInstance().m_LocalCoreStartupParameter.update)
+		//{
+			//SConfig::GetInstance().m_LocalCoreStartupParameter.done = false;
+			u8* data;
+			size_t num_render_skip_data;
+			bool manual_skip_drawing;
+			for (int render_skip_entry = 0; render_skip_entry < SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries; render_skip_entry++)
+			{
+				//Find which entry we're on
+				SkipEntry e = SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.at(render_skip_entry);
+
+				//Find number of data chunks in entry
+				num_render_skip_data = e.size();
+
+				//Make a copy of the video_buffer_read_ptr, which will be used to see if the data matches.
+				data = g_video_buffer_read_ptr;
+				manual_skip_drawing = true;
+				for (int d = 0; d < num_render_skip_data; d++)
+				{
+					if (*data++ != e.at(d))
+					{
+						//Data didn't match, try next entry.
+						manual_skip_drawing = false;
+						break;
+					}
+				}
+				//Data stream matched the entry, skip rendering it.
+				if (manual_skip_drawing){
+					DataSkip((u32)size);
+					return true;
+				}
+			}
+			//SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
+		//}
+	}
 
 	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
 	{

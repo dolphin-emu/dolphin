@@ -709,6 +709,8 @@
     <ClCompile Include="HW\WiimoteEmu\HydraTLayer.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp" />
+    <ClCompile Include="RmObjEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -725,6 +727,7 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="RmObjEngine.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="VolumeHandler.h" />
     <ClInclude Include="ActionReplay.h">

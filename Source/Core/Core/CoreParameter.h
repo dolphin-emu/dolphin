@@ -5,8 +5,11 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Common/IniFile.h"
+
+typedef std::vector<u8> SkipEntry;
 
 enum Hotkey
 {
@@ -238,6 +241,12 @@ struct SCoreStartupParameter
 	u32 iVRSettingsXInputMapping[NUM_VR_HOTKEYS];
 	bool bHotkeysXInput;
 	float fFreeLookScale;
+
+	//Remove Layer
+	std::vector<SkipEntry> render_skip_entries;
+	size_t num_render_skip_entries = 0;
+	volatile bool update = true;
+	volatile bool done = true;
 
 	// Display settings
 	std::string strFullscreenResolution;

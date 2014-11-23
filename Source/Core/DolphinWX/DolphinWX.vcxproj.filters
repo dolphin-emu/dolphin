@@ -169,6 +169,9 @@
     <ClCompile Include="ConfigVR.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="RmObjAddEdit.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -304,6 +307,9 @@
       <Filter>GUI\Video</Filter>
     </ClInclude>
     <ClInclude Include="ConfigVR.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="RmObjAddEdit.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
