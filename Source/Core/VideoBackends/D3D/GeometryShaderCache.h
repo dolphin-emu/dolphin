@@ -21,6 +21,8 @@ public:
 	static bool SetShader(u32 components); // TODO: Should be renamed to LoadShader
 	static bool InsertByteCode(const GeometryShaderUid &uid, const void* bytecode, unsigned int bytecodelen);
 
+	static ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader();
+
 	static ID3D11GeometryShader* GetActiveShader() { return last_entry->shader; }
 
 private:

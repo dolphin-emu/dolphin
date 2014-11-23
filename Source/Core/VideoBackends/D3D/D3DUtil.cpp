@@ -10,6 +10,7 @@
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
@@ -653,6 +654,7 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 	}
 
 	stateman->SetVertexShader(VertexShaderCache::GetClearVertexShader());
+	stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetClearGeometryShader() : nullptr);
 	stateman->SetPixelShader(PixelShaderCache::GetClearProgram());
 	stateman->SetInputLayout(VertexShaderCache::GetClearInputLayout());
 
@@ -663,9 +665,11 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 
 	stateman->Apply();
 	context->Draw(4, cq_offset);
+
+	stateman->SetGeometryShader(nullptr);
 }
 
-void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout)
+void drawClearQuad(u32 Color, float z)
 {
 	ClearVertex coords[4] = {
 		{-1.0f,  1.0f, z, Color},
@@ -683,9 +687,10 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 		clear_quad_data.z = z;
 	}
 
-	stateman->SetVertexShader(Vshader);
-	stateman->SetPixelShader(PShader);
-	stateman->SetInputLayout(layout);
+	stateman->SetVertexShader(VertexShaderCache::GetClearVertexShader());
+	stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetClearGeometryShader() : nullptr);
+	stateman->SetPixelShader(PixelShaderCache::GetClearProgram());
+	stateman->SetInputLayout(VertexShaderCache::GetClearInputLayout());
 
 	UINT stride = sizeof(ClearVertex);
 	UINT offset = 0;
@@ -694,6 +699,8 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 
 	stateman->Apply();
 	context->Draw(4, clearq_offset);
+
+	stateman->SetGeometryShader(nullptr);
 }
 
 }  // namespace D3D

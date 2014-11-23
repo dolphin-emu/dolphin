@@ -27,7 +27,11 @@ const GeometryShaderCache::GSCacheEntry* GeometryShaderCache::last_entry;
 GeometryShaderUid GeometryShaderCache::last_uid;
 UidChecker<GeometryShaderUid,ShaderCode> GeometryShaderCache::geometry_uid_checker;
 
+ID3D11GeometryShader* ClearGeometryShader = nullptr;
+
 LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
+
+ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return ClearGeometryShader; }
 
 ID3D11Buffer* gscbuf = nullptr;
 
@@ -41,8 +45,43 @@ public:
 	}
 };
 
+const char clear_shader_code[] = {
+	"struct VSOUTPUT\n"
+	"{\n"
+	"float4 vPosition   : POSITION;\n"
+	"float4 vColor0   : COLOR0;\n"
+	"};\n"
+	"struct GSOUTPUT\n"
+	"{\n"
+	"float4 vPosition   : POSITION;\n"
+	"float4 vColor0   : COLOR0;\n"
+	"uint slice    : SV_RenderTargetArrayIndex;\n"
+	"};\n"
+	"[maxvertexcount(6)]\n"
+	"void main(triangle VSOUTPUT o[3], inout TriangleStream<GSOUTPUT> Output)\n"
+	"{\n"
+	"for(int slice = 0; slice < 2; slice++)\n"
+	"{\n"
+	"for(int i = 0; i < 3; i++)\n"
+	"{\n"
+	"GSOUTPUT OUT;\n"
+	"OUT.vPosition = o[i].vPosition;\n"
+	"OUT.vColor0 = o[i].vColor0;\n"
+	"OUT.slice = slice;\n"
+	"Output.Append(OUT);\n"
+	"}\n"
+	"Output.RestartStrip();\n"
+	"}\n"
+	"}\n"
+};
+
 void GeometryShaderCache::Init()
 {
+	// used when drawing clear quads
+	ClearGeometryShader = D3D::CompileAndCreateGeometryShader(clear_shader_code);
+	CHECK(ClearGeometryShader != nullptr, "Create clear geometry shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearGeometryShader, "clear geometry shader");
+
 	Clear();
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
@@ -72,6 +111,8 @@ void GeometryShaderCache::Clear()
 
 void GeometryShaderCache::Shutdown()
 {
+	SAFE_RELEASE(ClearGeometryShader);
+
 	Clear();
 	g_gs_disk_cache.Sync();
 	g_gs_disk_cache.Close();
