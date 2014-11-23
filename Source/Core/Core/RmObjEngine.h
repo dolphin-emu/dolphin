@@ -39,6 +39,7 @@ void LoadRmObjSection(const std::string& section, std::vector<RmObj> &patches,
                       IniFile &globalIni, IniFile &localIni);
 void LoadRmObjs();
 void ApplyRmObjs(const std::vector<RmObj> &rmobjects);
+void ApplyFrameRmObjs();
 void Shutdown();
 
 inline int GetRmObjTypeCharLength(RmObjType type)

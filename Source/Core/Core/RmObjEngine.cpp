@@ -134,23 +134,16 @@ namespace RmObjEngine
 					}
 
 					SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.push_back(skipEntry);
-
-					//Paper Mario - Black Bar Skip
-					//skipEntry.push_back(0xFE);
-					//skipEntry.push_back(0xD0);
-					//skipEntry.push_back(0x00);
-					//skipEntry.push_back(0xF0);
-
-					//Metroid - Black Bar Skip
-					//skipEntry.push_back(0xC3);
-					//skipEntry.push_back(0xA5);
-					//skipEntry.push_back(0x00);
-					//skipEntry.push_back(0x00);
 				}
 			}
 		}
 		SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries = SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.size();
 		//SConfig::GetInstance().m_LocalCoreStartupParameter.update = true;
+	}
+
+	void ApplyFrameRmObjs()
+	{
+		ApplyRmObjs(rmObjCodes);
 	}
 
 	void Shutdown()
