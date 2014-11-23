@@ -6,20 +6,8 @@
 // RmObjEngine
 // Supports the removal of objects/effects from the rendering loop
 
-#include <algorithm>
-#include <map>
-#include <string>
-#include <vector>
-
-#include "Common/CommonPaths.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/StringUtil.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/RmObjEngine.h"
-
-using namespace Common;
 
 namespace RmObjEngine
 {

@@ -4,24 +4,6 @@
 
 #pragma once
 
-#include <vector>
-#include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
-
-#include "Core/RmObjEngine.h"
-
-class wxButton;
-class wxRadioBox;
-class wxSpinButton;
-class wxSpinEvent;
-class wxStaticBoxSizer;
-class wxTextCtrl;
-class wxWindow;
-
 class CRmObjAddEdit : public wxDialog
 {
 public:
@@ -38,16 +20,13 @@ private:
 	wxTextCtrl* EditRmObjOffset;
 	wxRadioBox* EditRmObjType;
 	wxTextCtrl* EditRmObjValue;
-	wxSpinButton* EntrySelection;
-	wxButton* EntryAdd;
-	wxButton* EntryRemove;
 	wxStaticBoxSizer* sbEntry;
 
 	void CreateGUIControls(int selection);
 	void SaveRmObjData(wxCommandEvent& event);
 	bool UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::iterator iterEntry);
 
-	int selection, currentItem;
+	int selection;
 	std::vector<RmObjEngine::RmObjEntry> tempEntries;
 	std::vector<RmObjEngine::RmObjEntry>::iterator itCurEntry;
 };
