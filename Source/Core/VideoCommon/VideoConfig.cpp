@@ -84,7 +84,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
 	enhancements->Get("StereoMode", &iStereoMode, 0);
 	enhancements->Get("StereoSeparation", &iStereoSeparation, 50);
-	enhancements->Get("StereoFocalLength", &iStereoFocalLength, 30);
+	enhancements->Get("StereoConvergence", &iStereoConvergence, 30);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 	enhancements->Get("StereoMonoEFBDepth", &bStereoMonoEFBDepth, false);
 
@@ -180,7 +180,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
 	CHECK_SETTING("Video_Enhancements", "StereoMode", iStereoMode);
 	CHECK_SETTING("Video_Enhancements", "StereoSeparation", iStereoSeparation);
-	CHECK_SETTING("Video_Enhancements", "StereoFocalLength", iStereoFocalLength);
+	CHECK_SETTING("Video_Enhancements", "StereoConvergence", iStereoConvergence);
 	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
 	CHECK_SETTING("Video_Enhancements", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
 
@@ -254,7 +254,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	enhancements->Set("PostProcessingShader", sPostProcessingShader);
 	enhancements->Set("StereoMode", iStereoMode);
 	enhancements->Set("StereoSeparation", iStereoSeparation);
-	enhancements->Set("StereoFocalLength", iStereoFocalLength);
+	enhancements->Set("StereoConvergence", iStereoConvergence);
 	enhancements->Set("StereoSwapEyes", bStereoSwapEyes);
 	enhancements->Set("StereoMonoEFBDepth", bStereoMonoEFBDepth);
 

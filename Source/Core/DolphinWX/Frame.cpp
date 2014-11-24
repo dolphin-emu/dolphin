@@ -1135,13 +1135,13 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		}
 		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
 		{
-			if (++g_Config.iStereoFocalLength > 200)
-				g_Config.iStereoFocalLength = 200;
+			if (++g_Config.iStereoConvergence > 200)
+				g_Config.iStereoConvergence = 200;
 		}
 		else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
 		{
-			if (--g_Config.iStereoFocalLength < 10)
-				g_Config.iStereoFocalLength = 10;
+			if (--g_Config.iStereoConvergence < 10)
+				g_Config.iStereoConvergence = 10;
 		}
 
 		else

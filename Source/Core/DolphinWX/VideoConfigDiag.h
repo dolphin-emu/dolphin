@@ -174,7 +174,7 @@ protected:
 
 	void Event_StereoFoc(wxCommandEvent &ev)
 	{
-		vconfig.iStereoFocalLength = ev.GetInt();
+		vconfig.iStereoConvergence = ev.GetInt();
 
 		ev.Skip();
 	}

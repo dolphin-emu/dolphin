@@ -81,7 +81,7 @@ struct VideoConfig final
 	std::string sPostProcessingShader;
 	int iStereoMode;
 	int iStereoSeparation;
-	int iStereoFocalLength;
+	int iStereoConvergence;
 	bool bStereoSwapEyes;
 	bool bStereoMonoEFBDepth;
 

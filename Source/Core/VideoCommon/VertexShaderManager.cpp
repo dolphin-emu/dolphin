@@ -518,7 +518,7 @@ void VertexShaderManager::SetConstants()
 			float offset = g_ActiveConfig.iStereoSeparation / 10000.0f;
 			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
 			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-			constants.stereoparams[2] = (float)g_ActiveConfig.iStereoFocalLength;
+			constants.stereoparams[2] = (float)g_ActiveConfig.iStereoConvergence;
 		}
 		else
 		{
