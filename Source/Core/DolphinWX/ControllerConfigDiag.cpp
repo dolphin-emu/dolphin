@@ -73,7 +73,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	wxStaticText* pad_labels[4];
 	wxChoice* pad_type_choices[4];
 	wxButton* config_buttons[4];
-	// TODO: Add bind call here
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -178,7 +177,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 	}
 	wiimote_control_section->Add(wiimote_sizer, 1, wxEXPAND, 5 );
 
-	// TODO: Move to wiimote sizer creation.
 	// Disable some controls when emulation is running
 	if (Core::GetState() != Core::CORE_UNINITIALIZED && NetPlay::IsNetPlayRunning())
 	{
@@ -189,7 +187,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		}
 	}
 
-	// Combine all wiimote UI.
 	wiimote_group->Add(wiimote_control_section, 0, wxEXPAND | wxALL);
 	wiimote_group->AddSpacer(5);
 	wiimote_group->Add(CreateBalanceBoardSizer(), 0, wxEXPAND | wxALL);
