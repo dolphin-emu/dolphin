@@ -52,9 +52,9 @@ void CRmObjAddEdit::CreateGUIControls(int _selection)
 	EditRmObjName->SetValue(currentName);
 
 	wxArrayString wxArrayStringFor_EditRmObjType;
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 8; ++i)
 		wxArrayStringFor_EditRmObjType.Add(StrToWxStr(RmObjEngine::RmObjTypeStrings[i]));
-	EditRmObjType = new wxRadioBox(this, wxID_ANY, _("Type"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditRmObjType, 4, wxRA_SPECIFY_COLS);
+	EditRmObjType = new wxRadioBox(this, wxID_ANY, _("Type"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditRmObjType, 8, wxRA_SPECIFY_COLS);
 	EditRmObjType->SetSelection((int)tempEntries.at(0).type);
 
 	wxStaticText* EditRmObjValueText = new wxStaticText(this, wxID_ANY, _("Value:"));
@@ -119,11 +119,19 @@ bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::it
 	if (EditRmObjValue->GetValue().ToULongLong(&value, 16))
 	{
 		(*iterEntry).value = value;
-		if (tempType == RmObjEngine::RMOBJ_16BIT && value > 0xffff)
+		if (tempType == RmObjEngine::RMOBJ_08BIT && value > 0xff)
+			parsed_ok = false;
+		else if (tempType == RmObjEngine::RMOBJ_16BIT && value > 0xffff)
+			parsed_ok = false;
+		else if (tempType == RmObjEngine::RMOBJ_24BIT && value > 0xffffff)
 			parsed_ok = false;
 		else if (tempType == RmObjEngine::RMOBJ_32BIT && value > 0xffffffff)
 			parsed_ok = false;
+		else if (tempType == RmObjEngine::RMOBJ_40BIT && value > 0xffffffffff)
+			parsed_ok = false;
 		else if (tempType == RmObjEngine::RMOBJ_48BIT && value > 0xffffffffffff)
+			parsed_ok = false;
+		else if (tempType == RmObjEngine::RMOBJ_52BIT && value > 0xffffffffffffff)
 			parsed_ok = false;
 		else if (tempType == RmObjEngine::RMOBJ_64BIT && value > 0xffffffffffffffff)
 			parsed_ok = false;

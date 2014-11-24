@@ -11,9 +11,13 @@ namespace RmObjEngine
 
 enum RmObjType
 {
+	RMOBJ_08BIT,
 	RMOBJ_16BIT,
+	RMOBJ_24BIT,
 	RMOBJ_32BIT,
+	RMOBJ_40BIT,
 	RMOBJ_48BIT,
+	RMOBJ_52BIT,
 	RMOBJ_64BIT,
 };
 
@@ -43,8 +47,8 @@ void ApplyFrameRmObjs();
 void Shutdown();
 
 inline int GetRmObjTypeCharLength(RmObjType type)
-{
-	int size;
+{	
+#if 0
 	switch (type)
 	{
 	case RmObjEngine::RMOBJ_16BIT:
@@ -63,7 +67,9 @@ inline int GetRmObjTypeCharLength(RmObjType type)
 		size = 16;
 		break;
 	}
-	return size;
+#endif
+
+	return (type + 1) << 1;
 }
 
 }  // namespace

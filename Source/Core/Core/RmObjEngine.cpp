@@ -14,9 +14,13 @@ namespace RmObjEngine
 
 	const char *RmObjTypeStrings[] =
 	{
+		"08bits",
 		"16bits",
+		"24bits",
 		"32bits",
+		"40bits",
 		"48bits",
+		"56bits",
 		"64bits"
 	};
 
@@ -83,8 +87,8 @@ namespace RmObjEngine
 						bool success = true;
 						success &= TryParse(items[1], &pE.value);
 
-						pE.type = RmObjType(std::find(RmObjTypeStrings, RmObjTypeStrings + 4, items[0]) - RmObjTypeStrings);
-						success &= (pE.type != (RmObjType)4);
+						pE.type = RmObjType(std::find(RmObjTypeStrings, RmObjTypeStrings + 8, items[0]) - RmObjTypeStrings);
+						success &= (pE.type != (RmObjType)8);
 						if (success)
 						{
 							currentRmObj.entries.push_back(pE);
