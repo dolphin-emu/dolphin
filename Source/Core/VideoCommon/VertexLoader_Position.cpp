@@ -75,12 +75,14 @@ void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
 	auto const scale = posScale[0];
-	DataWriter dst;
-	DataReader src;
+	DataReader dst(VertexManager::s_pCurBufferPointer, nullptr);
+	DataReader src(g_video_buffer_read_ptr, nullptr);
 
 	for (int i = 0; i < 3; ++i)
 		dst.Write(i<N ? PosScale(src.Read<T>(), scale) : 0.f);
 
+	dst.WritePointer(&VertexManager::s_pCurBufferPointer);
+	src.WritePointer(&g_video_buffer_read_ptr);
 	LOG_VTX();
 }
 
@@ -93,11 +95,12 @@ void LOADERDECL Pos_ReadIndex()
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
 	auto const scale = posScale[0];
-	DataWriter dst;
+	DataReader dst(VertexManager::s_pCurBufferPointer, nullptr);
 
 	for (int i = 0; i < 3; ++i)
 		dst.Write(i<N ? PosScale(Common::FromBigEndian(data[i]), scale) : 0.f);
 
+	dst.WritePointer(&VertexManager::s_pCurBufferPointer);
 	LOG_VTX();
 }
 

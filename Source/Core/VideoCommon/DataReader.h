@@ -9,9 +9,63 @@
 
 extern u8* g_video_buffer_read_ptr;
 
-#if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
-#include <tmmintrin.h>
-#endif
+class DataReader
+{
+public:
+	__forceinline DataReader()
+	: buffer(nullptr), end(nullptr) {}
+
+	__forceinline DataReader(u8* src, u8* _end)
+	: buffer(src), end(_end) {}
+
+	__forceinline void WritePointer(u8** src)
+	{
+		*src = buffer;
+	}
+
+	__forceinline u8* operator=(u8* src)
+	{
+		buffer = src;
+		return src;
+	}
+
+	__forceinline size_t size()
+	{
+		return end - buffer;
+	}
+
+	template <typename T, bool swapped = true> __forceinline T Peek(int offset = 0)
+	{
+		T data = *(T*)(buffer + offset);
+		if (swapped)
+			data = Common::FromBigEndian(data);
+		return data;
+	}
+
+	template <typename T, bool swapped = true> __forceinline T Read()
+	{
+		const T result = Peek<T, swapped>();
+		buffer += sizeof(T);
+		return result;
+	}
+
+	template <typename T, bool swapped = false> __forceinline void Write(T data)
+	{
+		if (swapped)
+			data = Common::FromBigEndian(data);
+		*(T*)(buffer) = data;
+		buffer += sizeof(T);
+	}
+
+	template <typename T = u8> __forceinline void Skip(size_t data = 1)
+	{
+		buffer += sizeof(T) * data;
+	}
+
+private:
+	u8* __restrict buffer;
+	u8* end;
+};
 
 __forceinline void DataSkip(u32 skip)
 {
@@ -56,22 +110,6 @@ __forceinline T DataRead(u8** bufp = &g_video_buffer_read_ptr)
 	return result;
 }
 
-class DataReader
-{
-public:
-	inline DataReader() : buffer(g_video_buffer_read_ptr), offset(0) {}
-	inline ~DataReader() { g_video_buffer_read_ptr += offset; }
-	template <typename T> inline T Read()
-	{
-		const T result = Common::FromBigEndian(*(T*)(buffer + offset));
-		offset += sizeof(T);
-		return result;
-	}
-private:
-	u8 *buffer;
-	int offset;
-};
-
 // TODO: kill these
 __forceinline u8 DataReadU8()
 {
@@ -111,18 +149,3 @@ __forceinline void DataWrite(T data)
 	*(T*)VertexManager::s_pCurBufferPointer = data;
 	VertexManager::s_pCurBufferPointer += sizeof(T);
 }
-
-class DataWriter
-{
-public:
-	inline DataWriter() : buffer(VertexManager::s_pCurBufferPointer), offset(0) {}
-	inline ~DataWriter() { VertexManager::s_pCurBufferPointer += offset; }
-	template <typename T> inline void Write(T data)
-	{
-		*(T*)(buffer+offset) = data;
-		offset += sizeof(T);
-	}
-private:
-	u8 *buffer;
-	int offset;
-};
