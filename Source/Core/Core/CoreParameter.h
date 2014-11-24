@@ -243,6 +243,8 @@ struct SCoreStartupParameter
 	std::string m_strGameIniDefaultRevisionSpecific;
 	std::string m_strGameIniLocal;
 
+	std::string m_perfDir;
+
 	// Constructor just calls LoadDefaults
 	SCoreStartupParameter();
 

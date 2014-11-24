@@ -5,7 +5,6 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
-#include <cstdlib>
 #include <fstream>
 #include <string>
 
@@ -13,6 +12,7 @@
 #include "Common/FileUtil.h"
 #include "Common/JitRegister.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 
 #ifdef _WIN32
 #include <process.h>
@@ -45,10 +45,10 @@ void Init()
 	s_agent = op_open_agent();
 #endif
 
-	const char* perf_dir = getenv("DOLPHIN_PERF_DIR");
-	if (perf_dir && perf_dir[0])
+	const std::string& perf_dir = SConfig::GetInstance().m_LocalCoreStartupParameter.m_perfDir;
+	if (!perf_dir.empty())
 	{
-		std::string filename = StringFromFormat("%s/perf-%d.map", perf_dir, getpid());
+		std::string filename = StringFromFormat("%s/perf-%d.map", perf_dir.data(), getpid());
 		s_perf_map_file.Open(filename, "w");
 		// Disable buffering in order to avoid missing some mappings
 		// if the event of a crash:
