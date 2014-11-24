@@ -515,10 +515,10 @@ void VertexShaderManager::SetConstants()
 
 		if (g_ActiveConfig.iStereoMode > 0 && xfmem.projection.type == GX_PERSPECTIVE)
 		{
-			float offset = g_ActiveConfig.iStereoSeparation / 10000.0f;
+			float offset = (g_ActiveConfig.iStereoSeparation / 10000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
 			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
 			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-			constants.stereoparams[2] = (float)g_ActiveConfig.iStereoConvergence;
+			constants.stereoparams[2] = g_ActiveConfig.iStereoConvergence * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
 		}
 		else
 		{

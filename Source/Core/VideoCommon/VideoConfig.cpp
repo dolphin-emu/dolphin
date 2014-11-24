@@ -41,6 +41,8 @@ VideoConfig::VideoConfig()
 
 	// Game-specific stereoscopy settings
 	bStereoMonoEFBDepth = false;
+	iStereoSeparationPercent = 100;
+	iStereoConvergencePercent = 100;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -186,6 +188,8 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
 
 	CHECK_SETTING("Video_Stereoscopy", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
+	CHECK_SETTING("Video_Stereoscopy", "StereoSeparationPercent", iStereoSeparationPercent);
+	CHECK_SETTING("Video_Stereoscopy", "StereoConvergencePercent", iStereoConvergencePercent);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
