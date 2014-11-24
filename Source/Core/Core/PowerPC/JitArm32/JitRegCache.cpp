@@ -9,7 +9,7 @@ using namespace ArmGen;
 
 ArmRegCache::ArmRegCache()
 {
-	emit = 0;
+	emit = nullptr;
 }
 
 void ArmRegCache::Init(ARMXEmitter *emitter)

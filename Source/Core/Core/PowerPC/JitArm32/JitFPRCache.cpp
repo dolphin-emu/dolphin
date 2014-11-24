@@ -9,7 +9,7 @@ using namespace ArmGen;
 
 ArmFPRCache::ArmFPRCache()
 {
-	emit = 0;
+	emit = nullptr;
 }
 
 void ArmFPRCache::Init(ARMXEmitter *emitter)

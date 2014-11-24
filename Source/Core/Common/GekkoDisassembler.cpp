@@ -2285,7 +2285,7 @@ const char* GekkoDisassembler::GetGPRName(u32 index)
 	if (index < 32)
 		return gprnames[index];
 
-	return 0;
+	return nullptr;
 }
 
 static const char* fprnames[] =
@@ -2301,5 +2301,5 @@ const char* GekkoDisassembler::GetFPRName(u32 index)
 	if (index < 32)
 		return fprnames[index];
 
-	return 0;
+	return nullptr;
 }
