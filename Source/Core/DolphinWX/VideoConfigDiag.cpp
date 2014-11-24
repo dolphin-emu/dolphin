@@ -153,7 +153,6 @@ static wxString stereo_3d_desc = wxTRANSLATE("Select the stereoscopic 3D  mode, 
 static wxString stereo_separation_desc = wxTRANSLATE("Control the interpupillary distance, this is the distance between the virtual eyes.");
 static wxString stereo_convergence_desc = wxTRANSLATE("Control the convergence distance, this controls the apparant distance of virtual objects.\nA higher value creates a stronger feeling of depth while a lower value is generally more comfortable.");
 static wxString stereo_swap_desc = wxTRANSLATE("Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.\n\nIf unsure, leave this unchecked.");
-static wxString stereo_mono_depth_desc = wxTRANSLATE("Use the same depth buffer for both eyes in an EFB copy.\nThis is needed for games which use the depth buffer to calculate shadows.\n\nIf unsure, leave this unchecked.");
 
 
 #if !defined(__APPLE__)
@@ -472,9 +471,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Convergence:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(conv_slider, 0, wxEXPAND | wxRIGHT);
 
-		szr_stereo->Add(CreateCheckBox(page_enh, _("Swap eyes"), wxGetTranslation(stereo_swap_desc), vconfig.bStereoSwapEyes));
-
-		szr_stereo->Add(CreateCheckBox(page_enh, _("Mono EFB Depth Copy"), wxGetTranslation(stereo_mono_depth_desc), vconfig.bStereoMonoEFBDepth));
+		szr_stereo->Add(CreateCheckBox(page_enh, _("Swap Eyes"), wxGetTranslation(stereo_swap_desc), vconfig.bStereoSwapEyes));
 
 		wxStaticBoxSizer* const group_stereo = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Stereoscopy"));
 		group_stereo->Add(szr_stereo, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

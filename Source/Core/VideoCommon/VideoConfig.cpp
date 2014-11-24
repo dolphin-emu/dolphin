@@ -38,6 +38,9 @@ VideoConfig::VideoConfig()
 	backend_info.APIType = API_NONE;
 	backend_info.bUseMinimalMipCount = false;
 	backend_info.bSupportsExclusiveFullscreen = false;
+
+	// Game-specific stereoscopy settings
+	bStereoMonoEFBDepth = false;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -86,7 +89,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("StereoSeparation", &iStereoSeparation, 50);
 	enhancements->Get("StereoConvergence", &iStereoConvergence, 30);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
-	enhancements->Get("StereoMonoEFBDepth", &bStereoMonoEFBDepth, false);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
@@ -182,7 +184,8 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "StereoSeparation", iStereoSeparation);
 	CHECK_SETTING("Video_Enhancements", "StereoConvergence", iStereoConvergence);
 	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
-	CHECK_SETTING("Video_Enhancements", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
+
+	CHECK_SETTING("Video_Stereoscopy", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
@@ -256,7 +259,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	enhancements->Set("StereoSeparation", iStereoSeparation);
 	enhancements->Set("StereoConvergence", iStereoConvergence);
 	enhancements->Set("StereoSwapEyes", bStereoSwapEyes);
-	enhancements->Set("StereoMonoEFBDepth", bStereoMonoEFBDepth);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);

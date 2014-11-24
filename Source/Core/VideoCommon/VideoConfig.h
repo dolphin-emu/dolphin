@@ -83,7 +83,6 @@ struct VideoConfig final
 	int iStereoSeparation;
 	int iStereoConvergence;
 	bool bStereoSwapEyes;
-	bool bStereoMonoEFBDepth;
 
 	// Information
 	bool bShowFPS;
@@ -124,6 +123,9 @@ struct VideoConfig final
 	bool bFastDepthCalc;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
+
+	// Stereoscopy
+	bool bStereoMonoEFBDepth;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
