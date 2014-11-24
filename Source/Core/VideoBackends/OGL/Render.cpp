@@ -563,6 +563,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsStereoscopy)
+		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
+
 	if (!bSuccess)
 	{
 		// Not all needed extensions are supported, so we have to stop here.
@@ -581,9 +584,6 @@ Renderer::Renderer()
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
-
-	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsStereoscopy)
-		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
 
 	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
