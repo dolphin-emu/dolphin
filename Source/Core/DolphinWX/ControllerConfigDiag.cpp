@@ -23,6 +23,7 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI.h"
@@ -96,6 +97,10 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 
 		pad_type_choices[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::OnGameCubePortChanged, this);
 
+		// Disable controller type selection for certain circumstances.
+		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+			pad_type_choices[i]->Disable();
+
 		// Set the saved pad type as the default choice.
 		switch (SConfig::GetInstance().m_SIDevice[i])
 		{
@@ -158,6 +163,10 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		wiimote_source_ch[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::SelectSource, this);
 		wiimote_configure_bt[i] = new wxButton(this, config_bt_id, _("Configure"));
 		wiimote_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::ConfigEmulatedWiimote, this);
+
+		// Disable controller type selection for certain circumstances.
+		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+			wiimote_source_ch[i]->Disable();
 
 		m_orig_wiimote_sources[i] = g_wiimote_sources[i];
 		wiimote_source_ch[i]->Select(m_orig_wiimote_sources[i]);
