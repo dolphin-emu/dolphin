@@ -24,7 +24,14 @@ private:
 
 	void CreateGUIControls(int selection);
 	void SaveRmObjData(wxCommandEvent& event);
+	void ButtonUporDown(wxCommandEvent& event);
 	bool UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::iterator iterEntry);
+
+	enum
+	{
+		ID_BUTTON_UP,
+		ID_BUTTON_DOWN
+	};
 
 	int selection;
 	std::vector<RmObjEngine::RmObjEntry> tempEntries;

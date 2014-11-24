@@ -14,7 +14,7 @@ namespace RmObjEngine
 
 	const char *RmObjTypeStrings[] =
 	{
-		"08bits",
+		"8bits",
 		"16bits",
 		"24bits",
 		"32bits",

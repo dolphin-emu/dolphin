@@ -48,27 +48,6 @@ void Shutdown();
 
 inline int GetRmObjTypeCharLength(RmObjType type)
 {	
-#if 0
-	switch (type)
-	{
-	case RmObjEngine::RMOBJ_16BIT:
-		size = 4;
-		break;
-
-	case RmObjEngine::RMOBJ_32BIT:
-		size = 8;
-		break;
-
-	case RmObjEngine::RMOBJ_48BIT:
-		size = 12;
-		break;
-
-	case RmObjEngine::RMOBJ_64BIT:
-		size = 16;
-		break;
-	}
-#endif
-
 	return (type + 1) << 1;
 }
 
