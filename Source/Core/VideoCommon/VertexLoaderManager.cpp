@@ -145,9 +145,9 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 		return false;
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries){
-		//if (SConfig::GetInstance().m_LocalCoreStartupParameter.update)
-		//{
-			//SConfig::GetInstance().m_LocalCoreStartupParameter.done = false;
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.update)
+		{
+			SConfig::GetInstance().m_LocalCoreStartupParameter.done = false;
 			u8* data;
 			size_t num_render_skip_data;
 			bool manual_skip_drawing;
@@ -177,8 +177,8 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 					return true;
 				}
 			}
-			//SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
-		//}
+			SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
+		}
 	}
 
 	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))

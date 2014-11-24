@@ -112,10 +112,10 @@ namespace RmObjEngine
 	void ApplyRmObjs(const std::vector<RmObj> &rmobjects)
 	{
 		// Make the rendering code skip over checking skip entries
-		//SConfig::GetInstance().m_LocalCoreStartupParameter.update = false;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.update = false;
 
 		// Wait until the next time the next time the rendering thread finishes checking the skip entries.
-		//while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false);
+		while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false);
 
 		SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.clear();
 
@@ -138,7 +138,7 @@ namespace RmObjEngine
 			}
 		}
 		SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries = SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.size();
-		//SConfig::GetInstance().m_LocalCoreStartupParameter.update = true;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.update = true;
 	}
 
 	void ApplyFrameRmObjs()
