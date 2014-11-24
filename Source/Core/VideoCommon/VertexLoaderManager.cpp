@@ -177,8 +177,8 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 					return true;
 				}
 			}
-			SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
 		}
+		SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
 	}
 
 	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
