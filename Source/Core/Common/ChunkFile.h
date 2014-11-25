@@ -323,6 +323,8 @@ private:
 	}
 };
 
+// NOTE: this class is only used in DolphinWX/ISOFile.cpp for caching loaded
+// ISO data. It will be removed when DolphinWX is, so please don't use it.
 class CChunkFileReader
 {
 public:

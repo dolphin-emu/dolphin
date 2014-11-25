@@ -12,6 +12,10 @@ set(SRCS
 	MainWindow.cpp
 	MainWindow.h
 	SystemInfo.cpp
+	GameList/GameFile.cpp
+	GameList/GameGrid.cpp
+	GameList/GameTracker.cpp
+	GameList/GameTree.cpp
 	Utils/Resources.cpp
 	Utils/Utils.cpp
 	VideoInterface/RenderWidget.cpp
@@ -21,6 +25,8 @@ set(UIS
 	AboutDialog.ui
 	MainWindow.ui
 	SystemInfo.ui
+	GameList/GameGrid.ui
+	GameList/GameTree.ui
 	)
 
 list(APPEND LIBS core uicommon)

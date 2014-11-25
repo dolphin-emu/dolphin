@@ -27,6 +27,27 @@
     <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="GameList\GameFile.cpp">
+      <Filter>GameList</Filter>
+    </ClCompile>
+    <ClCompile Include="GameList\GameGrid.cpp">
+      <Filter>GameList</Filter>
+    </ClCompile>
+    <ClCompile Include="GameList\GameTracker.cpp">
+      <Filter>GameList</Filter>
+    </ClCompile>
+    <ClCompile Include="GameList\GameTree.cpp">
+      <Filter>GameList</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)GameGrid.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)GameTree.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
@@ -36,6 +57,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
+    <QtUi Include="GameList\*.ui">
+      <Filter>GameList</Filter>
+    </QtUi>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
@@ -50,6 +74,9 @@
     <Filter Include="Generated Files">
       <UniqueIdentifier>{c18a1fb3-64ff-4249-b808-d73a56ea3a2d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameList">
+      <UniqueIdentifier>{be9925db-448c-46d8-a5a3-fb957490d3ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utils\Resources.h">
@@ -60,6 +87,18 @@
     </ClInclude>
     <ClInclude Include="VideoInterface\RenderWidget.h">
       <Filter>VideoInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="GameList\GameFile.h">
+      <Filter>GameList</Filter>
+    </ClInclude>
+    <ClInclude Include="GameList\GameGrid.h">
+      <Filter>GameList</Filter>
+    </ClInclude>
+    <ClInclude Include="GameList\GameTracker.h">
+      <Filter>GameList</Filter>
+    </ClInclude>
+    <ClInclude Include="GameList\GameTree.h">
+      <Filter>GameList</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
