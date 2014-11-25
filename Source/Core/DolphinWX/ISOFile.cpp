@@ -113,7 +113,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_Valid = true;
 
 			// Create a cache file only if we have an image.
-			// Wii isos create their images after you have generated the first savegame
+			// Wii ISOs create their images after you have generated the first savegame
 			if (!m_pImage.empty())
 				SaveToCache();
 		}

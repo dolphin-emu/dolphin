@@ -9,7 +9,7 @@
 class ROMUCode : public UCodeInterface
 {
 public:
-	ROMUCode(DSPHLE *dsphle, u32 crc);
+	ROMUCode(DSPHLE* dsphle, u32 crc);
 	virtual ~ROMUCode();
 	u32 GetUpdateMs() override;
 
