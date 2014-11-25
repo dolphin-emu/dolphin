@@ -123,7 +123,6 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY,
 		_("ALERT:\n\n"
 		"Netplay will only work with the following settings:\n"
-		" - Enable Dual Core [OFF]\n"
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
 		" - Manually set the extensions for each wiimote\n"
@@ -475,7 +474,7 @@ void NetPlayDiag::StopGame()
 // NetPlayUI methods called from ---NETPLAY--- thread
 void NetPlayDiag::Update()
 {
-	wxCommandEvent evt(wxEVT_THREAD, 1);
+	wxThreadEvent evt(wxEVT_THREAD, 1);
 	GetEventHandler()->AddPendingEvent(evt);
 }
 
@@ -488,15 +487,14 @@ void NetPlayDiag::AppendChat(const std::string& msg)
 
 void NetPlayDiag::OnMsgChangeGame(const std::string& filename)
 {
-	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
-	// TODO: using a wxString in AddPendingEvent from another thread is unsafe i guess?
-	evt.SetString(StrToWxStr(filename));
-	GetEventHandler()->AddPendingEvent(evt);
+	wxThreadEvent* evt = new wxThreadEvent(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
+	evt->SetString(StrToWxStr(filename));
+	GetEventHandler()->QueueEvent(evt);
 }
 
 void NetPlayDiag::OnMsgStartGame()
 {
-	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
 	if (m_start_btn)
 		m_start_btn->Disable();
@@ -505,7 +503,7 @@ void NetPlayDiag::OnMsgStartGame()
 
 void NetPlayDiag::OnMsgStopGame()
 {
-	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
 	if (m_start_btn)
 		m_start_btn->Enable();

@@ -255,10 +255,8 @@ static void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	#if _M_X86_64 || _M_ARM_32
 	if (_CoreParameter.bFastmem)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
-	#endif
 
 	if (!s_state_filename.empty())
 		State::LoadAs(s_state_filename);
@@ -283,9 +281,7 @@ static void CpuThread()
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
-	#if _M_X86_64 || _M_ARM_32
 	EMM::UninstallExceptionHandler();
-	#endif
 
 	return;
 }
@@ -358,7 +354,7 @@ void EmuThread()
 	}
 
 	Pad::Initialize(s_window_handle);
-	// Load and Init Wiimotes - only if we are booting in wii mode
+	// Load and Init Wiimotes - only if we are booting in Wii mode
 	if (core_parameter.bWii)
 	{
 		Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
@@ -398,7 +394,7 @@ void EmuThread()
 	Host_UpdateDisasmDialog();
 	Host_UpdateMainFrame();
 
-	// Determine the cpu thread function
+	// Determine the CPU thread function
 	void (*cpuThreadFunc)(void);
 	if (core_parameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
 		cpuThreadFunc = FifoPlayerThread;
@@ -582,15 +578,15 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	if (doLock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
 		return true;
 
-	// first pause or unpause the cpu
+	// first pause or unpause the CPU
 	bool wasUnpaused = CCPU::PauseAndLock(doLock, unpauseOnUnlock);
 	ExpansionInterface::PauseAndLock(doLock, unpauseOnUnlock);
 
-	// audio has to come after cpu, because cpu thread can wait for audio thread (m_throttle).
+	// audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
 	AudioCommon::PauseAndLock(doLock, unpauseOnUnlock);
 	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
 
-	// video has to come after cpu, because cpu thread can wait for video thread (s_efbAccessRequested).
+	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
 	g_video_backend->PauseAndLock(doLock, unpauseOnUnlock);
 	return wasUnpaused;
 }

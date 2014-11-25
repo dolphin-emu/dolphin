@@ -141,13 +141,13 @@
     <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="ec_wii.cpp" />
+    <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
-    <ClCompile Include="x64MemTools.cpp" />
     <ClCompile Include="ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
@@ -631,9 +631,6 @@
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -718,6 +715,7 @@
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="Host.h" />
+    <ClCompile Include="MachineContext.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />
     <ClInclude Include="NetPlayClient.h" />
@@ -1174,9 +1172,6 @@
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\JitCommon\JitBackpatch.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\JitBase.h">

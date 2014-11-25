@@ -10,6 +10,7 @@
 	#include <xlocale.h>
 #endif
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/LightingShaderGen.h"
@@ -264,6 +265,16 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			"\tfloat4 " I_DEPTHPARAMS";\n"
 			"};\n");
 	}
+
+	if (g_ActiveConfig.backend_info.bSupportsBBox)
+	{
+		out.Write(
+			"layout(std140, binding = 3) buffer BBox {\n"
+			"\tint4 bbox_data;\n"
+			"};\n"
+		);
+	}
+
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
 
@@ -549,6 +560,17 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// the alpha from ocol0 will be written to the framebuffer.
 		out.Write("\tocol1 = float4(prev) / 255.0;\n");
 		out.Write("\tocol0.a = float(" I_ALPHA".a) / 255.0;\n");
+	}
+
+	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
+	{
+		uid_data->bounding_box = true;
+		out.Write(
+			"\tif(bbox_data.x > int(gl_FragCoord.x)) atomicMin(bbox_data.x, int(gl_FragCoord.x));\n"
+			"\tif(bbox_data.y < int(gl_FragCoord.x)) atomicMax(bbox_data.y, int(gl_FragCoord.x));\n"
+			"\tif(bbox_data.z > int(gl_FragCoord.y)) atomicMin(bbox_data.z, int(gl_FragCoord.y));\n"
+			"\tif(bbox_data.w < int(gl_FragCoord.y)) atomicMax(bbox_data.w, int(gl_FragCoord.y));\n"
+		);
 	}
 
 	out.Write("}\n");

@@ -35,6 +35,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="GLExtensions\GLExtensions.cpp" />
     <ClCompile Include="GLInterface\GLInterface.cpp" />
@@ -54,6 +55,7 @@
     <ClCompile Include="VertexManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="GLExtensions\ARB_blend_func_extended.h" />
     <ClInclude Include="GLExtensions\ARB_buffer_storage.h" />

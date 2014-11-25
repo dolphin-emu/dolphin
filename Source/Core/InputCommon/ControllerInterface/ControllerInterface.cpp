@@ -31,7 +31,7 @@ using namespace ciface::ExpressionParser;
 
 namespace
 {
-const float INPUT_DETECT_THRESHOLD = 0.55f;
+const ControlState INPUT_DETECT_THRESHOLD = 0.55;
 }
 
 ControllerInterface g_controller_interface;
@@ -194,7 +194,7 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 	if (parsed_expression)
 		return parsed_expression->GetValue() * range;
 	else
-		return 0.0f;
+		return 0.0;
 }
 
 //
@@ -208,7 +208,7 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 {
 	if (parsed_expression)
 		parsed_expression->SetValue(state);
-	return 0.0f;
+	return 0.0;
 }
 
 //

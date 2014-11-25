@@ -55,7 +55,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 		Statistics::SwapDL();
 
 		u8 *end = g_video_buffer_read_ptr + size;
-		cycles = OpcodeDecoder_Run(end);
+		cycles = OpcodeDecoder_Run(end, true);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -80,7 +80,7 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 		g_video_buffer_pp_read_ptr = startAddress;
 
 		u8 *end = startAddress + size;
-		OpcodeDecoder_Preprocess(end);
+		OpcodeDecoder_Preprocess(end, true);
 	}
 
 	g_video_buffer_pp_read_ptr = old_read_ptr;
@@ -118,15 +118,24 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 		    "bFF_BPEnable: %s\n"
 		    "bFF_BPInt: %s\n"
 		    "bFF_Breakpoint: %s\n"
+		    "bFF_GPLinkEnable: %s\n"
+		    "bFF_HiWatermarkInt: %s\n"
+		    "bFF_LoWatermarkInt: %s\n"
 		    ,cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
-		    ,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
-		    ,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_BPInt ? "true" : "false"
-		    ,fifo.bFF_Breakpoint ? "true" : "false");
+		    ,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint
+		    ,fifo.bFF_GPReadEnable ? "true" : "false"
+		    ,fifo.bFF_BPEnable ? "true" : "false"
+		    ,fifo.bFF_BPInt ? "true" : "false"
+		    ,fifo.bFF_Breakpoint ? "true" : "false"
+		    ,fifo.bFF_GPLinkEnable ? "true" : "false"
+		    ,fifo.bFF_HiWatermarkInt ? "true" : "false"
+		    ,fifo.bFF_LoWatermarkInt ? "true" : "false"
+		    );
 	}
 }
 
 template <bool is_preprocess, u8** bufp>
-static u32 Decode(u8* end)
+static u32 Decode(u8* end, bool in_display_list)
 {
 	u8 *opcodeStart = *bufp;
 	if (*bufp == end)
@@ -205,10 +214,19 @@ static u32 Decode(u8* end)
 				return 0;
 			u32 address = DataRead<u32>(bufp);
 			u32 count = DataRead<u32>(bufp);
-			if (is_preprocess)
-				InterpretDisplayListPreprocess(address, count);
+
+			if (in_display_list)
+			{
+				cycles = 6;
+				WARN_LOG(VIDEO,"recursive display list detected");
+			}
 			else
-				cycles = 6 + InterpretDisplayList(address, count);
+			{
+				if (is_preprocess)
+					InterpretDisplayListPreprocess(address, count);
+				else
+					cycles = 6 + InterpretDisplayList(address, count);
+			}
 		}
 		break;
 
@@ -297,13 +315,13 @@ void OpcodeDecoder_Shutdown()
 {
 }
 
-u32 OpcodeDecoder_Run(u8* end)
+u32 OpcodeDecoder_Run(u8* end, bool in_display_list)
 {
 	u32 totalCycles = 0;
 	while (true)
 	{
 		u8* old = g_video_buffer_read_ptr;
-		u32 cycles = Decode</*is_preprocess*/ false, &g_video_buffer_read_ptr>(end);
+		u32 cycles = Decode</*is_preprocess*/ false, &g_video_buffer_read_ptr>(end, in_display_list);
 		if (cycles == 0)
 		{
 			g_video_buffer_read_ptr = old;
@@ -314,12 +332,12 @@ u32 OpcodeDecoder_Run(u8* end)
 	return totalCycles;
 }
 
-void OpcodeDecoder_Preprocess(u8 *end)
+void OpcodeDecoder_Preprocess(u8 *end, bool in_display_list)
 {
 	while (true)
 	{
 		u8* old = g_video_buffer_pp_read_ptr;
-		u32 cycles = Decode</*is_preprocess*/ true, &g_video_buffer_pp_read_ptr>(end);
+		u32 cycles = Decode</*is_preprocess*/ true, &g_video_buffer_pp_read_ptr>(end, in_display_list);
 		if (cycles == 0)
 		{
 			g_video_buffer_pp_read_ptr = old;

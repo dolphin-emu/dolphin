@@ -7,8 +7,7 @@
 package org.dolphinemu.dolphinemu.about;
 
 /**
- * Represents an item within an info
- * {@list Fragment} in the About menu.
+ * Represents an item within an info fragment in the About menu.
  */
 final class AboutFragmentItem
 {

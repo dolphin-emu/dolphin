@@ -12,7 +12,7 @@ class SoundStream
 {
 protected:
 
-	CMixer *m_mixer;
+	CMixer* m_mixer;
 	// We set this to shut down the sound thread.
 	// 0=keep playing, 1=stop playing NOW.
 	volatile int threadData;
@@ -21,11 +21,11 @@ protected:
 	bool m_muted;
 
 public:
-	SoundStream(CMixer *mixer) : m_mixer(mixer), threadData(0), m_logAudio(false), m_muted(false) {}
+	SoundStream(CMixer* mixer) : m_mixer(mixer), threadData(0), m_logAudio(false), m_muted(false) {}
 	virtual ~SoundStream() { delete m_mixer; }
 
 	static  bool isValid() { return false; }
-	virtual CMixer *GetMixer() const { return m_mixer; }
+	virtual CMixer* GetMixer() const { return m_mixer; }
 	virtual bool Start() { return false; }
 	virtual void SetVolume(int) {}
 	virtual void SoundLoop() {}
@@ -36,7 +36,7 @@ public:
 
 	virtual void StartLogAudio(const std::string& filename)
 	{
-		if (! m_logAudio)
+		if (!m_logAudio)
 		{
 			m_logAudio = true;
 			g_wave_writer.Start(filename, m_mixer->GetSampleRate());

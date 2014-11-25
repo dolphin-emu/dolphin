@@ -48,7 +48,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 ANativeWindow* surf;
-int g_width, g_height;
 std::string g_filename;
 
 #define DOLPHIN_TAG "Dolphinemu"
@@ -75,14 +74,6 @@ void Host_UpdateDisasmDialog(){}
 
 void Host_UpdateMainFrame()
 {
-}
-
-void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
-{
-	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
-	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
-	width = g_width;
-	height = g_height;
 }
 
 void Host_RequestRenderWindowSize(int width, int height) {}
@@ -311,11 +302,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(
 {
 	g_filename = GetJString(env, jFile);
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetDimensions(JNIEnv *env, jobject obj, jint _width, jint _height)
-{
-	g_width = (int)_width;
-	g_height = (int)_height;
-}
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv *env, jobject obj, jint slot)
 {
@@ -348,6 +334,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
 {
 	surf = ANativeWindow_fromSurface(env, _surf);
+
 	// Install our callbacks
 	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
 	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);

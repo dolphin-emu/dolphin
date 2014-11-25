@@ -232,9 +232,13 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// cost of calling out to C for this is actually significant.
 		MOV(64, R(RAX), M(&CoreTiming::globalTimer));
 		SUB(64, R(RAX), M(&CoreTiming::fakeTBStartTicks));
-		// The timer can change within a long block, so add in any difference
-		if (js.downcountAmount)
-			ADD(64, R(RAX), Imm32(js.downcountAmount));
+		// It might seem convenient to correct the timer for the block position here for even more accurate
+		// timing, but as of currently, this can break games. If we end up reading a time *after* the time
+		// at which an interrupt was supposed to occur, e.g. because we're 100 cycles into a block with only
+		// 50 downcount remaining, some games don't function correctly, such as Karaoke Party Revolution,
+		// which won't get past the loading screen.
+		//if (js.downcountAmount)
+		//	ADD(64, R(RAX), Imm32(js.downcountAmount));
 		// a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
 		MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
 		MUL(64, R(RDX));

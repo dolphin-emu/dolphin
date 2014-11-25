@@ -41,8 +41,9 @@ static int s_texmtxread = 0;
 int tcIndex;
 int colIndex;
 int colElements[2];
-float posScale;
-float tcScale[8];
+// Duplicated (4x and 2x respectively) and used in SSE code in the vertex loader JIT
+GC_ALIGNED128(float posScale[4]);
+GC_ALIGNED64(float tcScale[8][2]);
 
 static const float fractionTable[32] = {
 	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
@@ -65,10 +66,8 @@ static void LOADERDECL PosMtx_ReadDirect_UByte()
 
 static void LOADERDECL PosMtx_Write()
 {
-	DataWrite<u8>(s_curposmtx);
-	DataWrite<u8>(0);
-	DataWrite<u8>(0);
-	DataWrite<u8>(0);
+	// u8, 0, 0, 0
+	DataWrite<u32>(s_curposmtx);
 }
 
 static void LOADERDECL TexMtx_ReadDirect_UByte()
@@ -171,7 +170,8 @@ void VertexLoader::CompileVertexTranslator()
 #endif
 
 	// Get the pointer to this vertex's buffer data for the bounding box
-	WriteCall(BoundingBox::SetVertexBufferPosition);
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+		WriteCall(BoundingBox::SetVertexBufferPosition);
 
 	// Colors
 	const u64 col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
@@ -380,7 +380,8 @@ void VertexLoader::CompileVertexTranslator()
 	}
 
 	// Update the bounding box
-	WriteCall(BoundingBox::Update);
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+		WriteCall(BoundingBox::Update);
 
 	if (m_VtxDesc.PosMatIdx)
 	{
@@ -449,15 +450,16 @@ void VertexLoader::SetupRunVertices(const VAT& vat, int primitive, int const cou
 	m_VtxAttr.texCoord[6].Frac = vat.g2.Tex6Frac;
 	m_VtxAttr.texCoord[7].Frac = vat.g2.Tex7Frac;
 
-	posScale = fractionTable[m_VtxAttr.PosFrac];
+	posScale[0] = posScale[1] = posScale[2] = posScale[3] = fractionTable[m_VtxAttr.PosFrac];
 	if (m_native_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)
-			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];
+			tcScale[i][0] = tcScale[i][1] = fractionTable[m_VtxAttr.texCoord[i].Frac];
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
 	// Prepare bounding box
-	BoundingBox::Prepare(vat, primitive, m_VtxDesc, m_native_vtx_decl);
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+		BoundingBox::Prepare(vat, primitive, m_VtxDesc, m_native_vtx_decl);
 }
 
 void VertexLoader::ConvertVertices ( int count )

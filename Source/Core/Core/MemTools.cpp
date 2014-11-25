@@ -10,6 +10,7 @@
 #include "Common/Thread.h"
 #include "Common/x64Analyzer.h"
 
+#include "Core/MachineContext.h"
 #include "Core/MemTools.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -22,6 +23,8 @@ namespace EMM
 {
 
 #ifdef _WIN32
+
+const bool g_exception_handlers_supported = true;
 
 LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
@@ -90,6 +93,8 @@ void InstallExceptionHandler()
 void UninstallExceptionHandler() {}
 
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
+
+const bool g_exception_handlers_supported = true;
 
 static void CheckKR(const char* name, kern_return_t kr)
 {
@@ -209,7 +214,9 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler() {}
 
-#elif defined(_POSIX_VERSION)
+#elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
+
+const bool g_exception_handlers_supported = true;
 
 static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
@@ -275,9 +282,11 @@ void UninstallExceptionHandler()
 		free(old_stack.ss_sp);
 	}
 }
-#else
+#else // _M_GENERIC or unsupported platform
 
-#error Unsupported x86_64 platform! Report this if you support sigaction
+const bool g_exception_handlers_supported = false;
+void InstallExceptionHandler() {}
+void UninstallExceptionHandler() {}
 
 #endif
 

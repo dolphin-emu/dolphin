@@ -305,7 +305,7 @@ bool CBoot::EmulatedBS2_Wii()
 {
 	INFO_LOG(BOOT, "Faking Wii BS2...");
 
-	// setup wii memory
+	// setup Wii memory
 	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	if (VolumeHandler::IsValid())
 		CountryCode = VolumeHandler::GetVolume()->GetCountry();

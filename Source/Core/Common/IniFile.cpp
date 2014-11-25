@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
 // see IniFile.h
 
 #include <algorithm>
@@ -291,7 +290,6 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>*
 
 	return true;
 }
-
 
 void IniFile::SortSections()
 {

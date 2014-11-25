@@ -17,7 +17,6 @@ void* Host_GetRenderHandle() { return nullptr; }
 void Host_UpdateTitle(const std::string&) {}
 void Host_UpdateDisasmDialog() {}
 void Host_UpdateMainFrame() {}
-void Host_GetRenderWindowSize(int&, int&, int&, int&) {}
 void Host_RequestRenderWindowSize(int, int) {}
 void Host_RequestFullscreen(bool) {}
 void Host_SetStartupDebuggingParameters() {}

@@ -49,12 +49,13 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, m_Log(nullptr), m_cmdline(nullptr), m_FontChoice(nullptr)
 {
 	Bind(wxEVT_CLOSE_WINDOW, &CLogWindow::OnClose, this);
+	Bind(wxEVT_TIMER, &CLogWindow::OnLogTimer, this);
+
 	m_LogManager = LogManager::GetInstance();
 
 	CreateGUIControls();
 
 	m_LogTimer = new wxTimer(this);
-	m_LogTimer->Bind(wxEVT_TIMER, &CLogWindow::OnLogTimer, this);
 	m_LogTimer->Start(UPDATETIME);
 }
 

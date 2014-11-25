@@ -87,9 +87,11 @@
 	#define CTX_RIP __ss.__rip
 #elif defined(__linux__)
 	#include <signal.h>
+
+	#include <ucontext.h>
+	typedef mcontext_t SContext;
+
 	#if _M_X86_64
-		#include <ucontext.h>
-		typedef mcontext_t SContext;
 		#define CTX_RAX gregs[REG_RAX]
 		#define CTX_RBX gregs[REG_RBX]
 		#define CTX_RCX gregs[REG_RCX]
@@ -108,14 +110,11 @@
 		#define CTX_R15 gregs[REG_R15]
 		#define CTX_RIP gregs[REG_RIP]
 	#elif _M_ARM_64
-		typedef struct sigcontext SContext;
 		#define CTX_REG(x) regs[x]
 		#define CTX_SP sp
 		#define CTX_PC pc
 	#elif _M_ARM_32
-		#include <asm/sigcontext.h>
 		// Add others if required.
-		typedef sigcontext SContext;
 		#define CTX_PC  arm_pc
 	#else
 		#warning No context definition for OS

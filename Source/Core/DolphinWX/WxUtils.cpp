@@ -58,18 +58,6 @@ void ShowErrorDialog(const wxString& error_msg)
 	wxMessageBox(error_msg, _("Error"), wxOK | wxICON_ERROR);
 }
 
-double GetCurrentBitmapLogicalScale()
-{
-#ifdef __APPLE__
-	// wx doesn't expose this itself, unfortunately.
-	if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
-	{
-		return [[NSScreen mainScreen] backingScaleFactor];
-	}
-#endif
-	return 1.0;
-}
-
 wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 {
 	wxMemoryInputStream is(data, length);

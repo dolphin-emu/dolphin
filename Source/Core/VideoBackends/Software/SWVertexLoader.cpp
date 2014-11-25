@@ -42,15 +42,15 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
 	m_CurrentVat = &g_main_cp_state.vtx_attr[attributeIndex];
 
-	posScale = 1.0f / float(1 << m_CurrentVat->g0.PosFrac);
-	tcScale[0] = 1.0f / float(1 << m_CurrentVat->g0.Tex0Frac);
-	tcScale[1] = 1.0f / float(1 << m_CurrentVat->g1.Tex1Frac);
-	tcScale[2] = 1.0f / float(1 << m_CurrentVat->g1.Tex2Frac);
-	tcScale[3] = 1.0f / float(1 << m_CurrentVat->g1.Tex3Frac);
-	tcScale[4] = 1.0f / float(1 << m_CurrentVat->g2.Tex4Frac);
-	tcScale[5] = 1.0f / float(1 << m_CurrentVat->g2.Tex5Frac);
-	tcScale[6] = 1.0f / float(1 << m_CurrentVat->g2.Tex6Frac);
-	tcScale[7] = 1.0f / float(1 << m_CurrentVat->g2.Tex7Frac);
+	posScale[0] = posScale[1] = posScale[2] = posScale[3] = 1.0f / float(1 << m_CurrentVat->g0.PosFrac);
+	tcScale[0][0] = tcScale[0][1] = 1.0f / float(1 << m_CurrentVat->g0.Tex0Frac);
+	tcScale[1][0] = tcScale[1][1] = 1.0f / float(1 << m_CurrentVat->g1.Tex1Frac);
+	tcScale[2][0] = tcScale[2][1] = 1.0f / float(1 << m_CurrentVat->g1.Tex2Frac);
+	tcScale[3][0] = tcScale[3][1] = 1.0f / float(1 << m_CurrentVat->g1.Tex3Frac);
+	tcScale[4][0] = tcScale[4][1] = 1.0f / float(1 << m_CurrentVat->g2.Tex4Frac);
+	tcScale[5][0] = tcScale[5][1] = 1.0f / float(1 << m_CurrentVat->g2.Tex5Frac);
+	tcScale[6][0] = tcScale[6][1] = 1.0f / float(1 << m_CurrentVat->g2.Tex6Frac);
+	tcScale[7][0] = tcScale[7][1] = 1.0f / float(1 << m_CurrentVat->g2.Tex7Frac);
 
 	//TexMtx
 	const u64 tmDesc[8] = {

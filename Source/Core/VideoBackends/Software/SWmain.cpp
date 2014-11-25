@@ -33,6 +33,7 @@
 #include "VideoBackends/Software/VideoBackend.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
@@ -281,6 +282,11 @@ u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputDa
 u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
 {
 	return EfbInterface::perf_values[type];
+}
+
+u16 VideoSoftware::Video_GetBoundingBox(int index)
+{
+	return BoundingBox::coords[index];
 }
 
 bool VideoSoftware::Video_Screenshot(const std::string& filename)

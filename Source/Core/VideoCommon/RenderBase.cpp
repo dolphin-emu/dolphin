@@ -132,7 +132,7 @@ int Renderer::EFBToScaledX(int x)
 {
 	switch (g_ActiveConfig.iEFBScale)
 	{
-	case SCALE_AUTO: // fractional
+		case SCALE_AUTO: // fractional
 			return FramebufferManagerBase::ScaleToVirtualXfbWidth(x, s_backbuffer_width);
 
 		default:

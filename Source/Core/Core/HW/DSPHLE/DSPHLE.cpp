@@ -185,7 +185,7 @@ void DSPHLE::DoState(PointerWrap &p)
 	m_MailHandler.DoState(p);
 }
 
-// Mailbox fuctions
+// Mailbox functions
 unsigned short DSPHLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
@@ -237,7 +237,7 @@ void DSPHLE::DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short _Value)
 	}
 }
 
-// Other DSP fuctions
+// Other DSP functions
 u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 {
 	DSP::UDSPControl Temp(_Value);

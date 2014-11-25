@@ -36,6 +36,7 @@ public:
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
+	int GetRevision() const override;
 
 	bool SupportsIntegrityCheck() const override { return true; }
 	bool CheckIntegrity() const override;

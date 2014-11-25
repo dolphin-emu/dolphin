@@ -48,6 +48,7 @@ Make AA apply instantly during gameplay if possible
 #include "Core/Core.h"
 #include "Core/Host.h"
 
+#include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
@@ -205,6 +206,7 @@ void VideoBackend::Video_Prepare()
 	Renderer::Init();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
+	BoundingBox::Init();
 
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
@@ -229,6 +231,7 @@ void VideoBackend::Video_Cleanup()
 		// The following calls are NOT Thread Safe
 		// And need to be called from the video thread
 		Renderer::Shutdown();
+		BoundingBox::Shutdown();
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
 		delete g_sampler_cache;

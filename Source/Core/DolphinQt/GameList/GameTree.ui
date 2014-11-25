@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DGameTree</class>
+ <widget class="QTreeWidget" name="DGameTree">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>396</width>
+    <height>296</height>
+   </rect>
+  </property>
+  <property name="sortingEnabled">
+   <bool>true</bool>
+  </property>
+  <column>
+   <property name="text">
+    <string>Type</string>
+   </property>
+  </column>
+  <column>
+   <property name="text">
+    <string>Banner</string>
+   </property>
+  </column>
+  <column>
+   <property name="text">
+    <string>Title</string>
+   </property>
+  </column>
+  <column>
+   <property name="text">
+    <string>Description</string>
+   </property>
+  </column>
+  <column>
+   <property name="text">
+    <string>Region</string>
+   </property>
+  </column>
+  <column>
+   <property name="text">
+    <string>Size</string>
+   </property>
+  </column>
+  <column>
+   <property name="text">
+    <string>State</string>
+   </property>
+  </column>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
