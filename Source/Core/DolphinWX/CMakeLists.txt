@@ -48,6 +48,13 @@ set(GUI_SRCS
 	WiimoteConfigDiag.cpp
 	WxUtils.cpp)
 
+set(NOGUI_SRCS MainNoGUI.cpp)
+
+if(USE_X11)
+	set(GUI_SRCS ${GUI_SRCS} X11Utils.cpp)
+	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
+endif()
+
 set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 
 list(APPEND LIBS core uicommon)
@@ -56,11 +63,8 @@ if(ANDROID)
 	list(APPEND LIBS png)
 endif()
 
-
 set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
-
-set(NOGUI_SRCS MainNoGUI.cpp)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	if(wxWidgets_FOUND)
