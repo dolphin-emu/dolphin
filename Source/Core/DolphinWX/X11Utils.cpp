@@ -10,7 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
-#include "VideoBackends/OGL/GLInterface/X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 
 extern char **environ;
 
