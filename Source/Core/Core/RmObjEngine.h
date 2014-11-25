@@ -19,6 +19,14 @@ enum RmObjType
 	RMOBJ_48BIT,
 	RMOBJ_52BIT,
 	RMOBJ_64BIT,
+	RMOBJ_72BIT,
+	RMOBJ_80BIT,
+	RMOBJ_88BIT,
+	RMOBJ_96BIT,
+	RMOBJ_104BIT,
+	RMOBJ_112BIT,
+	RMOBJ_120BIT,
+	RMOBJ_128BIT,
 };
 
 extern const char *RmObjTypeStrings[];
@@ -26,9 +34,10 @@ extern const char *RmObjTypeStrings[];
 struct RmObjEntry
 {
 	RmObjEntry() {}
-	RmObjEntry(RmObjType _t, u64 _value) : type(_t), value(_value) {}
+	RmObjEntry(RmObjType _t, u64 _value) : type(_t), value_lower(_value), value_upper(_value) {}
 	RmObjType type;
-	u64 value;
+	u64 value_lower;
+	u64 value_upper;
 };
 
 struct RmObj

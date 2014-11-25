@@ -26,6 +26,7 @@ private:
 	void SaveRmObjData(wxCommandEvent& event);
 	void ButtonUporDown(wxCommandEvent& event);
 	bool UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::iterator iterEntry);
+	bool ParseValue(unsigned long long value, RmObjEngine::RmObjType tempType);
 
 	enum
 	{

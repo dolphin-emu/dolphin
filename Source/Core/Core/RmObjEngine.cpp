@@ -21,7 +21,15 @@ namespace RmObjEngine
 		"40bits",
 		"48bits",
 		"56bits",
-		"64bits"
+		"64bits",
+		"72bits",
+		"80bits",
+		"88bits",
+		"96bits",
+		"104bits",
+		"112bits",
+		"120bits",
+		"128bits"
 	};
 
 	static std::vector<RmObj> rmObjCodes;
@@ -81,14 +89,15 @@ namespace RmObjEngine
 					std::vector<std::string> items;
 					SplitString(line, ':', items);
 
-					if (items.size() >= 2)
+					if (items.size() >= 3)
 					{
 						RmObjEntry pE;
 						bool success = true;
-						success &= TryParse(items[1], &pE.value);
+						success &= TryParse(items[1], &pE.value_upper);
+						success &= TryParse(items[2], &pE.value_lower);
 
-						pE.type = RmObjType(std::find(RmObjTypeStrings, RmObjTypeStrings + 8, items[0]) - RmObjTypeStrings);
-						success &= (pE.type != (RmObjType)8);
+						pE.type = RmObjType(std::find(RmObjTypeStrings, RmObjTypeStrings + 16, items[0]) - RmObjTypeStrings);
+						success &= (pE.type != (RmObjType)16);
 						if (success)
 						{
 							currentRmObj.entries.push_back(pE);
@@ -129,13 +138,23 @@ namespace RmObjEngine
 			{
 				for (const RmObjEntry& entry : rmobject.entries)
 				{
-					u64 value = entry.value;
+					u64 value_add_lower = entry.value_lower;
+					u64 value_add_upper = entry.value_upper;
 					SkipEntry skipEntry;
 					int size = GetRmObjTypeCharLength(entry.type) >> 1;
 
-					for (int j = size; j > 0; j--){
-						skipEntry.push_back((0xFF & (value >> ((j - 1)*8))));
+					if (size > 8) {
+						size = size - 8;
+						for (int j = size; j > 0; j--){
+							skipEntry.push_back((0xFF & (value_add_upper >> ((j - 1) * 8))));
+						}
+						size = 8;
 					}
+					
+					for (int j = size; j > 0; j--){
+						skipEntry.push_back((0xFF & (value_add_lower >> ((j - 1) * 8))));
+					}
+					
 
 					SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.push_back(skipEntry);
 				}

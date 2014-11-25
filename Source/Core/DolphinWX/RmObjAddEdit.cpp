@@ -53,7 +53,7 @@ void CRmObjAddEdit::CreateGUIControls(int _selection)
 	EditRmObjName->SetValue(currentName);
 
 	wxArrayString wxArrayStringFor_EditRmObjType;
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < 16; ++i)
 		wxArrayStringFor_EditRmObjType.Add(StrToWxStr(RmObjEngine::RmObjTypeStrings[i]));
 	EditRmObjType = new wxRadioBox(this, wxID_ANY, _("Size"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditRmObjType, 8, wxRA_SPECIFY_COLS);
 	EditRmObjType->SetSelection((int)tempEntries.at(0).type);
@@ -61,9 +61,13 @@ void CRmObjAddEdit::CreateGUIControls(int _selection)
 	wxStaticText* EditRmObjValueText = new wxStaticText(this, wxID_ANY, _("Value:"));
 	EditRmObjValue = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(225, 20));
 	if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 8)
-		EditRmObjValue->SetValue(wxString::Format("%0*X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type), (u32)tempEntries.at(0).value));
-	else 
-		EditRmObjValue->SetValue(wxString::Format("%0*X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type)-8, (u32)((tempEntries.at(0).value & 0xffffffff00000000) >> 32), (u32)((tempEntries.at(0).value & 0xffffffff))));
+		EditRmObjValue->SetValue(wxString::Format("%0*X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type), (u32)tempEntries.at(0).value_lower));
+	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 16)
+		EditRmObjValue->SetValue(wxString::Format("%0*X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type)-8, (u32)((tempEntries.at(0).value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries.at(0).value_lower & 0xffffffff))));
+	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 24)
+		EditRmObjValue->SetValue(wxString::Format("%0*X%08X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type)-16, (u32)(tempEntries.at(0).value_upper & 0xffffffff), (u32)((tempEntries.at(0).value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries.at(0).value_lower & 0xffffffff))));
+	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 32)
+		EditRmObjValue->SetValue(wxString::Format("%0*X%08X%08X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type)-24, (u32)((tempEntries.at(0).value_upper & 0xffffffff00000000) >> 32), (u32)(tempEntries.at(0).value_upper & 0xffffffff), (u32)((tempEntries.at(0).value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries.at(0).value_lower & 0xffffffff))));
 
 	wxButton* BruteForceUp = new wxButton(this, ID_BUTTON_UP, _("Up"));
 	wxButton* BruteForceDown = new wxButton(this, ID_BUTTON_DOWN, _("Down"));
@@ -79,11 +83,11 @@ void CRmObjAddEdit::CreateGUIControls(int _selection)
 	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(_("Object Removal Code")));
 
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
-	sgEntry->Add(EditRmObjType, wxGBPosition(0, 0), wxGBSpan(1, 4), wxEXPAND|wxALL, 5);
-	sgEntry->Add(EditRmObjValueText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sgEntry->Add(EditRmObjValue, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sgEntry->Add(BruteForceUp, wxGBPosition(1, 2), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sgEntry->Add(BruteForceDown, wxGBPosition(1, 3), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+	sgEntry->Add(EditRmObjType, wxGBPosition(0, 0), wxGBSpan(2, 4), wxEXPAND|wxALL, 5);
+	sgEntry->Add(EditRmObjValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sgEntry->Add(EditRmObjValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sgEntry->Add(BruteForceUp, wxGBPosition(2, 2), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sgEntry->Add(BruteForceDown, wxGBPosition(2, 3), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
 	sgEntry->AddGrowableCol(1);
 
 	sbEntry->Add(sgEntry, 0, wxEXPAND);
@@ -123,26 +127,81 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	if (!UpdateTempEntryData(itCurEntry))
 		return;
 
-	unsigned long long valueLongLong;
+	unsigned long long value_lower;
+	unsigned long long value_upper = 0;
+	RmObjEngine::RmObjType tempType = (RmObjEngine::RmObjType)EditRmObjType->GetSelection();
 
 	//Get wxString
 	wxString valueString = EditRmObjValue->GetValue();
+	int length = EditRmObjValue->GetValue().length();
 
-	//Change to Long Long
-	valueString.ToULongLong(&valueLongLong, 16);
-	
-	if (event.GetId() == ID_BUTTON_UP)
-		valueLongLong++;
-	else
-		valueLongLong--;
+	//Parse Upper If Needed
+	if (tempType > RmObjEngine::RMOBJ_64BIT) {
+		if (length > 16) {
+			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) {
+				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType - 8))){
+					length = 16;
+				}
+				else
+					return;
+			}
+			else {
+				wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
+				return;
+			}
+		}
+	}
+	//Always Parse Lower
+	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16)) {
+		if (!ParseValue(value_lower, tempType))
+			return;
+	}
+	else {
+		wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
+		return;
+	}
+
+	//Now we have upper and lower
+
+	//To Do: There is still a bug where if the lower pushes the upper higher than the limit
+	//it will let it go over and print it.
+	if (event.GetId() == ID_BUTTON_UP) {
+		if (value_lower == 0xFFFFFFFFFFFFFFFF){
+			value_lower = 0;
+			value_upper++;
+		}
+		else
+			value_lower++;
+	}
+	else {
+		if (value_lower == 0){
+			if (value_upper == 0){
+				return;
+			}
+			else {
+				value_upper--;
+				value_lower = 0xFFFFFFFFFFFFFFFF;
+			}
+		}
+		else
+			value_lower--;
+	}
+
+	if (tempType > RmObjEngine::RMOBJ_64BIT) {
+		if (!ParseValue(value_upper, tempType))
+			return;
+	}
+	if (!ParseValue(value_lower, tempType))
+		return;
 
 	if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 8)
-		EditRmObjValue->SetValue(wxString::Format("%0*X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type), (u32)valueLongLong));
-	else
-		EditRmObjValue->SetValue(wxString::Format("%0*X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) - 8, (u32)((valueLongLong & 0xffffffff00000000) >> 32), (u32)((valueLongLong & 0xffffffff))));
-
-	if (!UpdateTempEntryData(itCurEntry))
-		return;
+		EditRmObjValue->SetValue(wxString::Format("%0*X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type), (u32)value_lower));
+	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 16)
+		EditRmObjValue->SetValue(wxString::Format("%0*X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) - 8, (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
+	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 24)
+		EditRmObjValue->SetValue(wxString::Format("%0*X%08X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) - 16, (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
+	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 32)
+		EditRmObjValue->SetValue(wxString::Format("%0*X%08X%08X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) - 24, (u32)((value_upper & 0xffffffff00000000) >> 32), (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
 
 	if (selection == -1)
 	{
@@ -169,37 +228,79 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 
 bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::iterator iterEntry)
 {
-	unsigned long long value;
-	bool parsed_ok = true;
+	unsigned long long value_lower;
+	unsigned long long value_upper;
 
 	RmObjEngine::RmObjType tempType =
-	(*iterEntry).type = (RmObjEngine::RmObjType)EditRmObjType->GetSelection();
+		(*iterEntry).type = (RmObjEngine::RmObjType)EditRmObjType->GetSelection();
 
-	if (EditRmObjValue->GetValue().ToULongLong(&value, 16))	{
-		(*iterEntry).value = value;
-		if (tempType == RmObjEngine::RMOBJ_08BIT && value > 0xff)
-			parsed_ok = false;
-		else if (tempType == RmObjEngine::RMOBJ_16BIT && value > 0xffff)
-			parsed_ok = false;
-		else if (tempType == RmObjEngine::RMOBJ_24BIT && value > 0xffffff)
-			parsed_ok = false;
-		else if (tempType == RmObjEngine::RMOBJ_32BIT && value > 0xffffffff)
-			parsed_ok = false;
-		else if (tempType == RmObjEngine::RMOBJ_40BIT && value > 0xffffffffff)
-			parsed_ok = false;
-		else if (tempType == RmObjEngine::RMOBJ_48BIT && value > 0xffffffffffff)
-			parsed_ok = false;
-		else if (tempType == RmObjEngine::RMOBJ_52BIT && value > 0xffffffffffffff)
-			parsed_ok = false;
-		else if (tempType == RmObjEngine::RMOBJ_64BIT && value > 0xffffffffffffffff)
-			parsed_ok = false;
-	} else {
+	size_t length = EditRmObjValue->GetValue().Length();
+
+	//Parse Upper If Needed
+	if (tempType > RmObjEngine::RMOBJ_64BIT) {
+		if (length > 16) {
+			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) {
+				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8))){
+					(*iterEntry).value_upper = value_upper;
+					length = 16;
+				}
+				else
+					return false;
+			}
+			else {
+				wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
+				return false;
+			}
+		}
+		else {
+			value_upper = 0;
+		}
+	}
+	//Always Parse Lower
+	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16)) {
+		if (ParseValue(value_lower, tempType)) {
+			(*iterEntry).value_lower = value_lower;
+			return true;
+		}
+		else
+			return false;
+	}
+	else {
+		wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
+		return false;
+	}
+}
+
+
+//Checks if the value is larger than the maximum it is allowed by the type.
+//e.g. if tempType = 8bits, value cannot be > 0xFF.
+bool CRmObjAddEdit::ParseValue(unsigned long long value, RmObjEngine::RmObjType tempType)
+{
+	bool parsed_ok = true;
+
+	//u64 mask = (1 << ((tempType + 1) << 3)) - 1;
+	
+	if (tempType == RmObjEngine::RMOBJ_08BIT && value > 0xff)
 		parsed_ok = false;
+	else if (tempType == RmObjEngine::RMOBJ_16BIT && value > 0xffff)
+		parsed_ok = false;
+	else if (tempType == RmObjEngine::RMOBJ_24BIT && value > 0xffffff)
+		parsed_ok = false;
+	else if (tempType == RmObjEngine::RMOBJ_32BIT && value > 0xffffffff)
+		parsed_ok = false;
+	else if (tempType == RmObjEngine::RMOBJ_40BIT && value > 0xffffffffff)
+		parsed_ok = false;
+	else if (tempType == RmObjEngine::RMOBJ_48BIT && value > 0xffffffffffff)
+		parsed_ok = false;
+	else if (tempType == RmObjEngine::RMOBJ_52BIT && value > 0xffffffffffffff)
+		parsed_ok = false;
+	else if (tempType == RmObjEngine::RMOBJ_64BIT && value > 0xffffffffffffffff)
+		parsed_ok = false;
+	
+	if (!parsed_ok) {
+		wxMessageBox(_("Value too large.\nEntry not modified."), _("Error"));
+		return false;
 	}
 
-	if (!parsed_ok)	{
-		wxMessageBox(_("Value too large or a non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
-	}
-
-	return parsed_ok;
+	return true;
 }

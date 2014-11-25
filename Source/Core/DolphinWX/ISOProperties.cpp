@@ -1621,7 +1621,7 @@ void CISOProperties::RmObjList_Save()
 			lines.push_back("$" + p.name);
 			for (const RmObjEngine::RmObjEntry& entry : p.entries)
 			{
-				std::string temp = StringFromFormat("%s:0x%08X%08X", RmObjEngine::RmObjTypeStrings[entry.type], (entry.value & 0xffffffff00000000) >> 32, (entry.value & 0xffffffff));
+				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", RmObjEngine::RmObjTypeStrings[entry.type], (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
 				lines.push_back(temp);
 			}
 		}
