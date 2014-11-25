@@ -35,7 +35,7 @@ elseif(USE_X11)
         # Make sure to link to it if using GLX.
         set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
     endif()
-    set(SRCS ${SRCS} GLInterface/X11_Util.cpp GLInterface/X11Utils.cpp)
+    set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
     set(LIBS ${LIBS} ${XRANDR_LIBRARIES})
 endif()
 

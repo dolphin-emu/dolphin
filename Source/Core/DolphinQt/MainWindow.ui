@@ -60,6 +60,16 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="mnuGameListStyle">
+     <property name="title">
+      <string>Gamelist view style</string>
+     </property>
+     <addaction name="actionListView"/>
+     <addaction name="actionTreeView"/>
+     <addaction name="actionGridView"/>
+     <addaction name="actionIconView"/>
+    </widget>
+    <addaction name="mnuGameListStyle"/>
    </widget>
    <widget class="QMenu" name="mnuHelp">
     <property name="title">
@@ -79,11 +89,11 @@
     </property>
    </widget>
    <addaction name="mnuFile"/>
+   <addaction name="mnuView"/>
    <addaction name="mnuEmulation"/>
    <addaction name="mnuMovie"/>
    <addaction name="mnuOptions"/>
    <addaction name="mnuTools"/>
-   <addaction name="mnuView"/>
    <addaction name="mnuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -155,6 +165,38 @@
    </property>
    <property name="menuRole">
     <enum>QAction::AboutQtRole</enum>
+   </property>
+  </action>
+  <action name="actionListView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>List view</string>
+   </property>
+  </action>
+  <action name="actionTreeView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tree view</string>
+   </property>
+  </action>
+  <action name="actionGridView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grid view</string>
+   </property>
+  </action>
+  <action name="actionIconView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Icon view</string>
    </property>
   </action>
  </widget>

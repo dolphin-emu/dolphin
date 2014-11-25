@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DGameGrid</class>
+ <widget class="QListWidget" name="DGameGrid">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>256</width>
+    <height>192</height>
+   </rect>
+  </property>
+  <property name="isWrapping" stdset="0">
+   <bool>true</bool>
+  </property>
+  <property name="resizeMode">
+   <enum>QListView::Adjust</enum>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <QActionGroup>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -28,20 +29,40 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 {
 	m_ui = std::make_unique<Ui::DMainWindow>();
 	m_ui->setupUi(this);
-#ifdef Q_OS_MACX
-	m_ui->toolbar->setMovable(false);
-#endif
 
 	Resources::Init();
 	UpdateIcons();
 	setWindowIcon(Resources::GetIcon(Resources::DOLPHIN_LOGO));
+
+	// Create the GameList
+	m_game_tracker = new DGameTracker(this);
+	m_ui->centralWidget->addWidget(m_game_tracker);
+	m_game_tracker->ScanForGames();
+	m_game_tracker->SelectLastBootedGame();
+
+	// Setup the GameList style switching actions
+	QActionGroup* gamelistGroup = new QActionGroup(this);
+	gamelistGroup->addAction(m_ui->actionListView);
+	gamelistGroup->addAction(m_ui->actionTreeView);
+	gamelistGroup->addAction(m_ui->actionGridView);
+	gamelistGroup->addAction(m_ui->actionIconView);
+
+	// TODO: save/load this from user prefs!
+	m_ui->actionListView->setChecked(true);
+	OnGameListStyleChanged();
 
 	// Connect all the signals/slots
 	connect(this, SIGNAL(CoreStateChanged(Core::EState)), this, SLOT(OnCoreStateChanged(Core::EState)));
 
 	connect(m_ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnOpen()));
 
+	connect(m_ui->actionListView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
+	connect(m_ui->actionTreeView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
+	connect(m_ui->actionGridView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
+	connect(m_ui->actionIconView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
+
 	connect(m_ui->actionPlay, SIGNAL(triggered()), this, SLOT(OnPlay()));
+	connect(m_game_tracker, SIGNAL(StartGame()), this, SLOT(OnPlay()));
 	connect(m_ui->actionStop, SIGNAL(triggered()), this, SLOT(OnStop()));
 
 	connect(m_ui->actionWebsite, SIGNAL(triggered()), this, SLOT(OnOpenWebsite()));
@@ -52,6 +73,11 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 
 	// Update GUI items
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
+
+	// Platform-specific stuff
+#ifdef Q_OS_MACX
+	m_ui->toolbar->setMovable(false);
+#endif
 }
 
 DMainWindow::~DMainWindow()
@@ -69,7 +95,7 @@ void DMainWindow::StartGame(const QString filename)
 	// TODO: When rendering to main, this won't resize the parent window..
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
-		connect(m_render_widget.get(), SIGNAL(Closed()), this, SLOT(on_actStop_triggered()));
+		connect(m_render_widget.get(), SIGNAL(Closed()), this, SLOT(OnStop()));
 		m_render_widget->move(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
 		m_render_widget->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth, // TODO: Make sure these are client sizes!
@@ -106,7 +132,8 @@ void DMainWindow::StartGame(const QString filename)
 QString DMainWindow::RequestBootFilename()
 {
 	// If a game is already selected, just return the filename
-	//  ... TODO
+	if (m_game_tracker->SelectedGame() != nullptr)
+			return m_game_tracker->SelectedGame()->GetFileName();
 
 	return ShowFileDialog();
 }
@@ -198,6 +225,18 @@ void DMainWindow::OnStop()
 	m_isStopping = false;
 }
 
+void DMainWindow::OnGameListStyleChanged()
+{
+	if (m_ui->actionListView->isChecked())
+		m_game_tracker->SetViewStyle(STYLE_LIST);
+	else if (m_ui->actionTreeView->isChecked())
+		m_game_tracker->SetViewStyle(STYLE_TREE);
+	else if (m_ui->actionGridView->isChecked())
+		m_game_tracker->SetViewStyle(STYLE_GRID);
+	else if (m_ui->actionIconView->isChecked())
+		m_game_tracker->SetViewStyle(STYLE_ICON);
+}
+
 void DMainWindow::OnCoreStateChanged(Core::EState state)
 {
 	bool is_not_initialized = (state == Core::CORE_UNINITIALIZED);
@@ -219,6 +258,7 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 
 	m_ui->actionStop->setEnabled(!is_not_initialized);
 	m_ui->actionOpen->setEnabled(is_not_initialized);
+	m_game_tracker->setEnabled(is_not_initialized);
 }
 
 bool DMainWindow::RenderWidgetHasFocus()

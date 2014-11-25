@@ -19,13 +19,9 @@ class IVolume;
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
 {
 	if (IsVolumeWiiDisc(pVolume) || IsVolumeWadFile(pVolume))
-	{
 		return new CBannerLoaderWii(pVolume);
-	}
 	if (_rFileSystem.IsValid())
-	{
 		return new CBannerLoaderGC(_rFileSystem, pVolume);
-	}
 
 	return nullptr;
 }
