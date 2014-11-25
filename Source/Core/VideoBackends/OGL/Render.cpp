@@ -161,7 +161,6 @@ static void ApplySSAASettings()
 	}
 }
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
@@ -195,7 +194,6 @@ static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLe
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
-#endif
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
 static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
@@ -520,7 +518,7 @@ Renderer::Renderer()
 			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 		}
 	}
-#if defined(_DEBUG) || defined(DEBUGFAST)
+
 	if (GLExtensions::Supports("GL_KHR_debug"))
 	{
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
@@ -533,7 +531,7 @@ Renderer::Renderer()
 		glDebugMessageCallbackARB( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
-#endif
+
 	int samples;
 	glGetIntegerv(GL_SAMPLES, &samples);
 	if (samples > 1)
