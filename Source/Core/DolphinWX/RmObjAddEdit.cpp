@@ -163,12 +163,15 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 
 	//Now we have upper and lower
 
-	//To Do: There is still a bug where if the lower pushes the upper higher than the limit
-	//it will let it go over and print it.
 	if (event.GetId() == ID_BUTTON_UP) {
 		if (value_lower == 0xFFFFFFFFFFFFFFFF){
-			value_lower = 0;
-			value_upper++;
+			if (value_upper == 0xFFFFFFFFFFFFFFFF){
+				return;
+			}
+			else {
+				value_lower = 0;
+				value_upper++;
+			}
 		}
 		else
 			value_lower++;
@@ -188,9 +191,13 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	}
 
 	if (tempType > RmObjEngine::RMOBJ_64BIT) {
-		if (!ParseValue(value_upper, tempType))
+		if (!ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8)))
 			return;
 	}
+	else if (value_upper > 0) {
+			return;
+	}
+
 	if (!ParseValue(value_lower, tempType))
 		return;
 
