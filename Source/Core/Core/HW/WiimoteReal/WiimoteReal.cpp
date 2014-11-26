@@ -204,10 +204,10 @@ bool Wiimote::Read()
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 &&
 		    index == WIIMOTE_BALANCE_BOARD)
 		{
-			static sf::SocketUDP Socket;
-			Socket.Send((char*)rpt.data(),
+			static sf::UdpSocket Socket;
+			Socket.send((char*)rpt.data(),
 			            rpt.size(),
-			            sf::IPAddress::LocalHost,
+			            sf::IpAddress::LocalHost,
 		                SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
 		}
 
@@ -237,8 +237,8 @@ bool Wiimote::Write()
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 && index == WIIMOTE_BALANCE_BOARD)
 			{
-				static sf::SocketUDP Socket;
-				Socket.Send((char*)rpt.data(), rpt.size(), sf::IPAddress::LocalHost, SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+				static sf::UdpSocket Socket;
+				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
 			}
 			IOWrite(rpt.data(), rpt.size());
 
