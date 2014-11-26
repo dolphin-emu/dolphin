@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Core/HW/SI_Device.h"
 
 #include "SFML/Network.hpp"
