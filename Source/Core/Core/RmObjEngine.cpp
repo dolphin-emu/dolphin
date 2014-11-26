@@ -7,6 +7,7 @@
 // Supports the removal of objects/effects from the rendering loop
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/RmObjEngine.h"
 
 namespace RmObjEngine
@@ -128,7 +129,8 @@ namespace RmObjEngine
 		SConfig::GetInstance().m_LocalCoreStartupParameter.update = false;
 
 		// Wait until the next time the next time the rendering thread finishes checking the skip entries.
-		while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false);
+		if (Core::IsRunning())
+			while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false);
 
 		SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.clear();
 

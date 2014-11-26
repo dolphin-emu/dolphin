@@ -190,6 +190,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 			value_lower--;
 	}
 
+	// Double check values are valid before updating the entry.
 	if (tempType > RmObjEngine::RMOBJ_64BIT) {
 		if (!ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8)))
 			return;
@@ -201,6 +202,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	if (!ParseValue(value_lower, tempType))
 		return;
 
+	// Print new valid entry.
 	if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 8)
 		EditRmObjValue->SetValue(wxString::Format("%0*X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type), (u32)value_lower));
 	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 16)
@@ -209,6 +211,10 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 		EditRmObjValue->SetValue(wxString::Format("%0*X%08X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) - 16, (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
 	else if (RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) <= 32)
 		EditRmObjValue->SetValue(wxString::Format("%0*X%08X%08X%08X", RmObjEngine::GetRmObjTypeCharLength(tempEntries.at(0).type) - 24, (u32)((value_upper & 0xffffffff00000000) >> 32), (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
+
+	// Put the valid entry in the RmObjEntry
+	(*itCurEntry).value_upper = value_upper;
+	(*itCurEntry).value_lower = value_lower;
 
 	if (selection == -1)
 	{
