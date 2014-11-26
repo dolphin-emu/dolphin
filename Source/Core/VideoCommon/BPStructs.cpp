@@ -256,7 +256,7 @@ static void BPWritten(const BPCmd& bp)
 			}
 
 			// Clear the rectangular region after copying it.
-			if (PE_copy.clear)
+			if (PE_copy.clear && !g_Config.bEFBCopyClearDisable)
 			{
 				ClearScreen(srcRect);
 			}

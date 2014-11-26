@@ -195,6 +195,7 @@ protected:
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 
 		// EFB copy
+		efbcopy_clear_disable->Enable(!vconfig.bEFBCopyEnable);
 		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
 		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
 		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && !vconfig.bCopyEFBToTexture);
@@ -259,6 +260,7 @@ protected:
 	SettingCheckBox* borderless_fullscreen;
 	SettingCheckBox* render_to_main_checkbox;
 	SettingCheckBox* async_timewarp_checkbox;
+	SettingCheckBox* efbcopy_clear_disable;
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;

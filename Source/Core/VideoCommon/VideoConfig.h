@@ -106,6 +106,7 @@ struct VideoConfig final
 	bool bPerfQueriesEnable;
 
 	bool bEFBCopyEnable;
+	bool bEFBCopyClearDisable;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
 	bool bCopyEFBToTexture;

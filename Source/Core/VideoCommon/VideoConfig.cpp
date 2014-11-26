@@ -127,6 +127,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
+	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
 	hacks->Get("EFBToTextureEnable", &bCopyEFBToTexture, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
@@ -248,6 +249,7 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
+	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
@@ -410,6 +412,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
+	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
 	hacks->Set("EFBToTextureEnable", bCopyEFBToTexture);
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
 	hacks->Set("EFBCopyCacheEnable", bEFBCopyCacheEnable);
