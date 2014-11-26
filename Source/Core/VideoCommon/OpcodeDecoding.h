@@ -40,5 +40,5 @@ extern bool g_bRecordFifoData;
 
 void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
-u32 OpcodeDecoder_Run(u8* end, bool in_display_list);
-void OpcodeDecoder_Preprocess(u8* end, bool in_display_list);
+u8* OpcodeDecoder_Run(u8* start, u8* end, u32* cycles, bool in_display_list);
+u8* OpcodeDecoder_Preprocess(u8* start, u8* end, bool in_display_list);

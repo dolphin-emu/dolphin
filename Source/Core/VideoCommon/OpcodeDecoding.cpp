@@ -34,6 +34,9 @@
 
 bool g_bRecordFifoData = false;
 
+u8* g_video_buffer_read_ptr;
+static u8* s_video_buffer_pp_read_ptr;
+
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_video_buffer_read_ptr;
@@ -49,13 +52,10 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 	// Avoid the crash if Memory::GetPointer failed ..
 	if (startAddress != nullptr)
 	{
-		g_video_buffer_read_ptr = startAddress;
-
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		u8 *end = g_video_buffer_read_ptr + size;
-		cycles = OpcodeDecoder_Run(end, true);
+		OpcodeDecoder_Run(startAddress, startAddress + size, &cycles, true);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -70,20 +70,17 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 
 static void InterpretDisplayListPreprocess(u32 address, u32 size)
 {
-	u8* old_read_ptr = g_video_buffer_pp_read_ptr;
+	u8* old_read_ptr = s_video_buffer_pp_read_ptr;
 	u8* startAddress = Memory::GetPointer(address);
 
 	PushFifoAuxBuffer(startAddress, size);
 
 	if (startAddress != nullptr)
 	{
-		g_video_buffer_pp_read_ptr = startAddress;
-
-		u8 *end = startAddress + size;
-		OpcodeDecoder_Preprocess(end, true);
+		OpcodeDecoder_Preprocess(startAddress, startAddress + size, true);
 	}
 
-	g_video_buffer_pp_read_ptr = old_read_ptr;
+	s_video_buffer_pp_read_ptr = old_read_ptr;
 }
 
 static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
@@ -315,33 +312,40 @@ void OpcodeDecoder_Shutdown()
 {
 }
 
-u32 OpcodeDecoder_Run(u8* end, bool in_display_list)
+u8* OpcodeDecoder_Run(u8* start, u8* end, u32* cycles, bool in_display_list)
 {
+	g_video_buffer_read_ptr = start;
 	u32 totalCycles = 0;
 	while (true)
 	{
 		u8* old = g_video_buffer_read_ptr;
-		u32 cycles = Decode</*is_preprocess*/ false, &g_video_buffer_read_ptr>(end, in_display_list);
-		if (cycles == 0)
+		u32 cycles_op = Decode</*is_preprocess*/ false, &g_video_buffer_read_ptr>(end, in_display_list);
+		if (cycles_op == 0)
 		{
 			g_video_buffer_read_ptr = old;
 			break;
 		}
-		totalCycles += cycles;
+		totalCycles += cycles_op;
 	}
-	return totalCycles;
+	if (cycles)
+	{
+		*cycles = totalCycles;
+	}
+	return g_video_buffer_read_ptr;
 }
 
-void OpcodeDecoder_Preprocess(u8 *end, bool in_display_list)
+u8* OpcodeDecoder_Preprocess(u8* start, u8 *end, bool in_display_list)
 {
+	s_video_buffer_pp_read_ptr = start;
 	while (true)
 	{
-		u8* old = g_video_buffer_pp_read_ptr;
-		u32 cycles = Decode</*is_preprocess*/ true, &g_video_buffer_pp_read_ptr>(end, in_display_list);
+		u8* old = s_video_buffer_pp_read_ptr;
+		u32 cycles = Decode</*is_preprocess*/ true, &s_video_buffer_pp_read_ptr>(end, in_display_list);
 		if (cycles == 0)
 		{
-			g_video_buffer_pp_read_ptr = old;
+			s_video_buffer_pp_read_ptr = old;
 			break;
 		}
 	}
+	return s_video_buffer_pp_read_ptr;
 }
