@@ -26,8 +26,17 @@
 #include <AL/alext.h>
 #endif
 
+#ifdef __APPLE__
+// Avoid conflict with objc.h (on Windows, ST uses the system BOOL type, so this doesn't work)
+#define BOOL SoundTouch_BOOL
+#endif
+
 #include <soundtouch/SoundTouch.h>
 #include <soundtouch/STTypes.h>
+
+#ifdef __APPLE__
+#undef BOOL
+#endif
 
 // 16 bit Stereo
 #define SFX_MAX_SOURCE          1

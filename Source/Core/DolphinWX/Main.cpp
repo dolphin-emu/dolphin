@@ -241,12 +241,12 @@ bool DolphinApp::OnInit()
 #endif
 
 #ifdef __APPLE__
-	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
+	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_9)
 	{
-		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.7 or greater.\n"
+		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.9 or greater.\n"
 				"Unfortunately you're running an old version of OS X.\n"
 				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
-				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"
+				"Please upgrade to 10.9 or greater to use the newest Dolphin version.\n\n"
 				"Sayonara!\n");
 		return false;
 	}
