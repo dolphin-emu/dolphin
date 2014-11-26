@@ -71,7 +71,7 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 
 
 // Exception generation
-const u32 ExcEnc[][3] = {
+static const u32 ExcEnc[][3] = {
 	{0, 0, 1}, // SVC
 	{0, 0, 2}, // HVC
 	{0, 0, 3}, // SMC
@@ -83,13 +83,13 @@ const u32 ExcEnc[][3] = {
 };
 
 // Arithmetic generation
-const u32 ArithEnc[] = {
+static const u32 ArithEnc[] = {
 	0x058, // ADD
 	0x258, // SUB
 };
 
 // Conditional Select
-const u32 CondSelectEnc[][2] = {
+static const u32 CondSelectEnc[][2] = {
 	{0, 0}, // CSEL
 	{0, 1}, // CSINC
 	{1, 0}, // CSINV
@@ -97,7 +97,7 @@ const u32 CondSelectEnc[][2] = {
 };
 
 // Data-Processing (1 source)
-const u32 Data1SrcEnc[][2] = {
+static const u32 Data1SrcEnc[][2] = {
 	{0, 0}, // RBIT
 	{0, 1}, // REV16
 	{0, 2}, // REV32
@@ -107,7 +107,7 @@ const u32 Data1SrcEnc[][2] = {
 };
 
 // Data-Processing (2 source)
-const u32 Data2SrcEnc[] = {
+static const u32 Data2SrcEnc[] = {
 	0x02, // UDIV
 	0x03, // SDIV
 	0x08, // LSLV
@@ -125,7 +125,7 @@ const u32 Data2SrcEnc[] = {
 };
 
 // Data-Processing (3 source)
-const u32 Data3SrcEnc[][2] = {
+static const u32 Data3SrcEnc[][2] = {
 	{0, 0}, // MADD
 	{0, 1}, // MSUB
 	{1, 0}, // SMADDL (64Bit Only)
@@ -137,7 +137,7 @@ const u32 Data3SrcEnc[][2] = {
 };
 
 // Logical (shifted register)
-const u32 LogicalEnc[][2] = {
+static const u32 LogicalEnc[][2] = {
 	{0, 0}, // AND
 	{0, 1}, // BIC
 	{1, 0}, // OOR
@@ -149,7 +149,7 @@ const u32 LogicalEnc[][2] = {
 };
 
 // Load/Store Exclusive
-u32 LoadStoreExcEnc[][5] = {
+static u32 LoadStoreExcEnc[][5] = {
 	{0, 0, 0, 0, 0}, // STXRB
 	{0, 0, 0, 0, 1}, // STLXRB
 	{0, 0, 1, 0, 0}, // LDXRB
