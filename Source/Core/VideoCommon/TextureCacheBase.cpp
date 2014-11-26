@@ -112,6 +112,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			config.bCopyEFBToTexture != backup_config.s_copy_efb_to_texture ||
 			config.bCopyEFBScaled != backup_config.s_copy_efb_scaled ||
 			config.bEFBCopyEnable != backup_config.s_copy_efb ||
+			config.bEFBCopyClearDisable != backup_config.s_copy_efb_clear_disable ||
 			config.iEFBScale != backup_config.s_efb_scale)
 		{
 			g_texture_cache->ClearRenderTargets();
@@ -122,6 +123,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	backup_config.s_copy_efb_to_texture = config.bCopyEFBToTexture;
 	backup_config.s_copy_efb_scaled = config.bCopyEFBScaled;
 	backup_config.s_copy_efb = config.bEFBCopyEnable;
+	backup_config.s_copy_efb_clear_disable = config.bEFBCopyClearDisable;
 	backup_config.s_efb_scale = config.iEFBScale;
 	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;

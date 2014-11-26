@@ -255,8 +255,11 @@ static void BPWritten(const BPCmd& bp)
 				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
 			}
 
+			if (!g_ActiveConfig.bEFBCopyEnable && g_ActiveConfig.bEFBCopyClearDisable){
+				// Skip clear screen
+			}
 			// Clear the rectangular region after copying it.
-			if (PE_copy.clear && !g_Config.bEFBCopyClearDisable)
+			else if (PE_copy.clear)
 			{
 				ClearScreen(srcRect);
 			}
