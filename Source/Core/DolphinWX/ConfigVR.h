@@ -83,7 +83,7 @@ private:
 	void ClearControl(wxEvent& event);
 	void ConfigControl(wxEvent& event);
 	void OnXInputPollCheckbox(wxCommandEvent& event);
-	void OnFreeLookScale(wxCommandEvent& event);
+	void OnFreeLookSensitivity(wxCommandEvent& event);
 	void OnButtonClick(wxCommandEvent& event);
 	void OnKeyDown(wxKeyEvent& event);
 	int g_Pressed, g_Modkey;

@@ -240,7 +240,7 @@ struct SCoreStartupParameter
 	bool iVRSettingsKBM[NUM_VR_HOTKEYS];
 	u32 iVRSettingsXInputMapping[NUM_VR_HOTKEYS];
 	bool bHotkeysXInput;
-	float fFreeLookScale;
+	float fFreeLookSensitivity;
 
 	//Remove Layer
 	std::vector<SkipEntry> render_skip_entries;

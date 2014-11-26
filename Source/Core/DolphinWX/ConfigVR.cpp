@@ -421,11 +421,11 @@ void CConfigVR::CreateGUIControls()
 			wxGridBagSizer* const options_gszr = new wxGridBagSizer(3, 3);
 			options_sbox->Add(options_gszr, 1, wxALIGN_CENTER_VERTICAL, 3);
 
-			wxSpinCtrlDouble *const spin_freelook_scale = new wxSpinCtrlDouble(Page, wxID_ANY, wxString::Format(wxT("%f"), SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale), wxDefaultPosition, wxSize(60, -1), wxSP_ARROW_KEYS, 0.001f, 100.0f, 1.00f, 0.05f);
-			wxStaticText *spin_freelook_scale_label = new wxStaticText(Page, wxID_ANY, _(" Free Look Scale: "));
+			wxSpinCtrlDouble *const spin_freelook_scale = new wxSpinCtrlDouble(Page, wxID_ANY, wxString::Format(wxT("%f"), SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity), wxDefaultPosition, wxSize(60, -1), wxSP_ARROW_KEYS, 0.001f, 100.0f, 1.00f, 0.05f);
+			wxStaticText *spin_freelook_scale_label = new wxStaticText(Page, wxID_ANY, _(" Free Look Sensitivity: "));
 			spin_freelook_scale->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
 			spin_freelook_scale_label->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
-			spin_freelook_scale->Bind(wxEVT_SPINCTRLDOUBLE, &CConfigVR::OnFreeLookScale, this);
+			spin_freelook_scale->Bind(wxEVT_SPINCTRLDOUBLE, &CConfigVR::OnFreeLookSensitivity, this);
 
 			wxCheckBox  *xInputPollEnableCheckbox = new wxCheckBox(Page, wxID_ANY, _("Enable XInput Polling"), wxDefaultPosition, wxDefaultSize);
 			xInputPollEnableCheckbox->Bind(wxEVT_CHECKBOX, &CConfigVR::OnXInputPollCheckbox, this);
@@ -627,10 +627,10 @@ void CConfigVR::OnXInputPollCheckbox(wxCommandEvent& event)
 	event.Skip();
 }
 
-void CConfigVR::OnFreeLookScale(wxCommandEvent& event)
+void CConfigVR::OnFreeLookSensitivity(wxCommandEvent& event)
 {
 	wxSpinCtrlDouble* spinctrl = (wxSpinCtrlDouble*)event.GetEventObject();
-	SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale = spinctrl->GetValue();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity = spinctrl->GetValue();
 
 	event.Skip();
 }

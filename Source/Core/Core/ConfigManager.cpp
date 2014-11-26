@@ -302,7 +302,7 @@ void SConfig::SaveVRSettings(IniFile& ini)
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
 	vrsettings->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
-	vrsettings->Set("FreeLookScale", m_LocalCoreStartupParameter.fFreeLookScale);
+	vrsettings->Set("FreeLookSensitivity", m_LocalCoreStartupParameter.fFreeLookSensitivity);
 
 	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{
@@ -568,7 +568,7 @@ void SConfig::LoadVRSettings(IniFile& ini)
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
 	vrsettings->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
-	vrsettings->Get("FreeLookScale", &m_LocalCoreStartupParameter.fFreeLookScale, 1.00);
+	vrsettings->Get("FreeLookSensitivity", &m_LocalCoreStartupParameter.fFreeLookSensitivity, 1.00);
 
 	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{

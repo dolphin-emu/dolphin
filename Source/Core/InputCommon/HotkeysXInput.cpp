@@ -126,20 +126,20 @@ namespace HotkeysXInput
 	void OnXInputPoll(u32* XInput_State){
 
 		static float oldfUnitsPerMetre;
-		static float oldfFreeLookScale;
+		static float oldfFreeLookSensitivity;
 		static float oldfScale;
 		static float freeLookSpeed;
 
-		//Recalculate only when fUnitsPerMetre, fFreeLookScale, or fScale changes.
-		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale)){
-			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
+		//Recalculate only when fUnitsPerMetre, fFreeLookSensitivity, or fScale changes.
+		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity != oldfFreeLookSensitivity)){
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
 		}
-		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale != oldfFreeLookScale){
-			freeLookSpeed = 10 * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
+		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity != oldfFreeLookSensitivity){
+			freeLookSpeed = 10 * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
 		}
 
 		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
-		oldfFreeLookScale = SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookScale;
+		oldfFreeLookSensitivity = SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
 		oldfScale = g_ActiveConfig.fScale;
 
 		if (IsVRSettingsXInput(XInput_State, VR_POSITION_RESET)) {
