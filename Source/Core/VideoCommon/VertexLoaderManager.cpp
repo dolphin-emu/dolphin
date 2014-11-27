@@ -130,7 +130,7 @@ static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 	return loader;
 }
 
-bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, bool skip_drawing)
+bool RunVertices(int vtx_attr_group, int primitive, int count, DataReader& src, bool skip_drawing)
 {
 	if (!count)
 		return true;
@@ -140,13 +140,13 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
 
 	size_t size = count * loader->GetVertexSize();
-	if (buf_size < size)
+	if (src.size() < size)
 		return false;
 
 	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
 	{
 		// if cull mode is CULL_ALL, ignore triangles and quads
-		DataSkip((u32)size);
+		src.Skip(size);
 		return true;
 	}
 
@@ -160,7 +160,10 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 	VertexManager::PrepareForAdditionalData(primitive, count,
 			loader->GetNativeVertexDeclaration().stride);
 
+
+	src.WritePointer(&g_video_buffer_read_ptr);
 	loader->RunVertices(state->vtx_attr[vtx_attr_group], primitive, count);
+	src = g_video_buffer_read_ptr;
 
 	IndexGenerator::AddIndices(primitive, count);
 

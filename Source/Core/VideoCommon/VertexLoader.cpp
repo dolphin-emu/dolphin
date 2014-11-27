@@ -45,6 +45,9 @@ int colElements[2];
 GC_ALIGNED128(float posScale[4]);
 GC_ALIGNED64(float tcScale[8][2]);
 
+// This pointer is used as the source for all fixed function loader calls
+u8* g_video_buffer_read_ptr;
+
 static const float fractionTable[32] = {
 	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
 	1.0f / (1U << 4), 1.0f / (1U << 5), 1.0f / (1U << 6), 1.0f / (1U << 7),

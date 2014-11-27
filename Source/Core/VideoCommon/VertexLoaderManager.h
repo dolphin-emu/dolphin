@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
 namespace VertexLoaderManager
@@ -18,7 +19,7 @@ namespace VertexLoaderManager
 
 	int GetVertexSize(int vtx_attr_group, bool preprocess);
 	// Returns false if buf_size is insufficient.
-	bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, bool skip_drawing = false);
+	bool RunVertices(int vtx_attr_group, int primitive, int count, DataReader& src, bool skip_drawing = false);
 
 	// For debugging
 	void AppendListToString(std::string *dest);

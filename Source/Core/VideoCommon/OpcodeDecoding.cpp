@@ -34,12 +34,8 @@
 
 bool g_bRecordFifoData = false;
 
-u8* g_video_buffer_read_ptr;
-static u8* s_video_buffer_pp_read_ptr;
-
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
-	u8* old_pVideoData = g_video_buffer_read_ptr;
 	u8* startAddress;
 
 	if (g_use_deterministic_gpu_thread)
@@ -55,32 +51,26 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		OpcodeDecoder_Run(startAddress, startAddress + size, &cycles, true);
+		OpcodeDecoder_Run(DataReader(startAddress, startAddress + size), &cycles, true);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
 		Statistics::SwapDL();
 	}
 
-	// reset to the old pointer
-	g_video_buffer_read_ptr = old_pVideoData;
-
 	return cycles;
 }
 
 static void InterpretDisplayListPreprocess(u32 address, u32 size)
 {
-	u8* old_read_ptr = s_video_buffer_pp_read_ptr;
 	u8* startAddress = Memory::GetPointer(address);
 
 	PushFifoAuxBuffer(startAddress, size);
 
 	if (startAddress != nullptr)
 	{
-		OpcodeDecoder_Preprocess(startAddress, startAddress + size, true);
+		OpcodeDecoder_Run<true>(DataReader(startAddress, startAddress + size), nullptr, true);
 	}
-
-	s_video_buffer_pp_read_ptr = old_read_ptr;
 }
 
 static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
@@ -131,180 +121,8 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 	}
 }
 
-template <bool is_preprocess, u8** bufp>
-static u32 Decode(u8* end, bool in_display_list)
-{
-	u8 *opcodeStart = *bufp;
-	if (*bufp == end)
-		return 0;
-
-	u8 cmd_byte = DataRead<u8>(bufp);
-	u32 cycles;
-	int refarray;
-	switch (cmd_byte)
-	{
-	case GX_NOP:
-		cycles = 6; // Hm, this means that we scan over nop streams pretty slowly...
-		break;
-
-	case GX_LOAD_CP_REG: //0x08
-		{
-			if (end - *bufp < 1 + 4)
-				return 0;
-			cycles = 12;
-			u8 sub_cmd = DataRead<u8>(bufp);
-			u32 value = DataRead<u32>(bufp);
-			LoadCPReg(sub_cmd, value, is_preprocess);
-			if (!is_preprocess)
-				INCSTAT(stats.thisFrame.numCPLoads);
-		}
-		break;
-
-	case GX_LOAD_XF_REG:
-		{
-			if (end - *bufp < 4)
-				return 0;
-			u32 Cmd2 = DataRead<u32>(bufp);
-			int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-			if ((size_t) (end - *bufp) < transfer_size * sizeof(u32))
-				return 0;
-			cycles = 18 + 6 * transfer_size;
-			if (!is_preprocess)
-			{
-				u32 xf_address = Cmd2 & 0xFFFF;
-				LoadXFReg(transfer_size, xf_address);
-
-				INCSTAT(stats.thisFrame.numXFLoads);
-			}
-			else
-			{
-				*bufp += transfer_size * sizeof(u32);
-			}
-		}
-		break;
-
-	case GX_LOAD_INDX_A: //used for position matrices
-		refarray = 0xC;
-		goto load_indx;
-	case GX_LOAD_INDX_B: //used for normal matrices
-		refarray = 0xD;
-		goto load_indx;
-	case GX_LOAD_INDX_C: //used for postmatrices
-		refarray = 0xE;
-		goto load_indx;
-	case GX_LOAD_INDX_D: //used for lights
-		refarray = 0xF;
-		goto load_indx;
-	load_indx:
-		if (end - *bufp < 4)
-			return 0;
-		cycles = 6;
-		if (is_preprocess)
-			PreprocessIndexedXF(DataRead<u32>(bufp), refarray);
-		else
-			LoadIndexedXF(DataRead<u32>(bufp), refarray);
-		break;
-
-	case GX_CMD_CALL_DL:
-		{
-			if (end - *bufp < 8)
-				return 0;
-			u32 address = DataRead<u32>(bufp);
-			u32 count = DataRead<u32>(bufp);
-
-			if (in_display_list)
-			{
-				cycles = 6;
-				WARN_LOG(VIDEO,"recursive display list detected");
-			}
-			else
-			{
-				if (is_preprocess)
-					InterpretDisplayListPreprocess(address, count);
-				else
-					cycles = 6 + InterpretDisplayList(address, count);
-			}
-		}
-		break;
-
-	case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
-		cycles = 6;
-		DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
-		break;
-
-	case GX_CMD_INVL_VC: // Invalidate Vertex Cache
-		cycles = 6;
-		DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
-		break;
-
-	case GX_LOAD_BP_REG: //0x61
-		// In skipped_frame case: We have to let BP writes through because they set
-		// tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
-		{
-			if (end - *bufp < 4)
-				return 0;
-			cycles = 12;
-			u32 bp_cmd = DataRead<u32>(bufp);
-			if (is_preprocess)
-			{
-				LoadBPRegPreprocess(bp_cmd);
-			}
-			else
-			{
-				LoadBPReg(bp_cmd);
-				INCSTAT(stats.thisFrame.numBPLoads);
-			}
-		}
-		break;
-
-	// draw primitives
-	default:
-		if ((cmd_byte & 0xC0) == 0x80)
-		{
-			cycles = 1600;
-			// load vertices
-			if (end - *bufp < 2)
-				return 0;
-			u16 num_vertices = DataRead<u16>(bufp);
-
-			if (is_preprocess)
-			{
-				size_t size = num_vertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK, is_preprocess);
-				if ((size_t) (end - *bufp) < size)
-					return 0;
-				*bufp += size;
-			}
-			else
-			{
-				if (!VertexLoaderManager::RunVertices(
-					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-					num_vertices,
-					end - *bufp,
-					g_bSkipCurrentFrame))
-					return 0;
-			}
-		}
-		else
-		{
-			UnknownOpcode(cmd_byte, opcodeStart, is_preprocess);
-			cycles = 1;
-		}
-		break;
-	}
-
-	// Display lists get added directly into the FIFO stream
-	if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
-		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(*bufp - opcodeStart));
-
-	// In is_preprocess mode, we don't actually care about cycles, at least for
-	// now... make sure the compiler realizes that.
-	return is_preprocess ? 1 : cycles;
-}
-
 void OpcodeDecoder_Init()
 {
-	g_video_buffer_read_ptr = GetVideoBufferStartPtr();
 }
 
 
@@ -312,40 +130,185 @@ void OpcodeDecoder_Shutdown()
 {
 }
 
-u8* OpcodeDecoder_Run(u8* start, u8* end, u32* cycles, bool in_display_list)
+template <bool is_preprocess>
+u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 {
-	g_video_buffer_read_ptr = start;
 	u32 totalCycles = 0;
+	u8* opcodeStart;
 	while (true)
 	{
-		u8* old = g_video_buffer_read_ptr;
-		u32 cycles_op = Decode</*is_preprocess*/ false, &g_video_buffer_read_ptr>(end, in_display_list);
-		if (cycles_op == 0)
+		src.WritePointer(&opcodeStart);
+
+		if (!src.size())
+			goto end;
+
+		u8 cmd_byte = src.Read<u8>();
+		int refarray;
+		switch (cmd_byte)
 		{
-			g_video_buffer_read_ptr = old;
+		case GX_NOP:
+			totalCycles += 6; // Hm, this means that we scan over nop streams pretty slowly...
+			break;
+
+		case GX_LOAD_CP_REG: //0x08
+			{
+				if (src.size() < 1 + 4)
+					goto end;
+				totalCycles += 12;
+				u8 sub_cmd = src.Read<u8>();
+				u32 value =  src.Read<u32>();
+				LoadCPReg(sub_cmd, value, is_preprocess);
+				if (!is_preprocess)
+					INCSTAT(stats.thisFrame.numCPLoads);
+			}
+			break;
+
+		case GX_LOAD_XF_REG:
+			{
+				if (src.size() < 4)
+					goto end;
+				u32 Cmd2 =  src.Read<u32>();
+				int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+				if (src.size() < transfer_size * sizeof(u32))
+					goto end;
+				totalCycles += 18 + 6 * transfer_size;
+				if (!is_preprocess)
+				{
+					u32 xf_address = Cmd2 & 0xFFFF;
+					LoadXFReg(transfer_size, xf_address, src);
+
+					INCSTAT(stats.thisFrame.numXFLoads);
+				}
+				src.Skip<u32>(transfer_size);
+			}
+			break;
+
+		case GX_LOAD_INDX_A: //used for position matrices
+			refarray = 0xC;
+			goto load_indx;
+		case GX_LOAD_INDX_B: //used for normal matrices
+			refarray = 0xD;
+			goto load_indx;
+		case GX_LOAD_INDX_C: //used for postmatrices
+			refarray = 0xE;
+			goto load_indx;
+		case GX_LOAD_INDX_D: //used for lights
+			refarray = 0xF;
+			goto load_indx;
+		load_indx:
+			if (src.size() < 4)
+				goto end;
+			totalCycles += 6;
+			if (is_preprocess)
+				PreprocessIndexedXF(src.Read<u32>(), refarray);
+			else
+				LoadIndexedXF(src.Read<u32>(), refarray);
+			break;
+
+		case GX_CMD_CALL_DL:
+			{
+				if (src.size() < 8)
+					goto end;
+				u32 address = src.Read<u32>();
+				u32 count = src.Read<u32>();
+
+				if (in_display_list)
+				{
+					totalCycles += 6;
+					WARN_LOG(VIDEO,"recursive display list detected");
+				}
+				else
+				{
+					if (is_preprocess)
+						InterpretDisplayListPreprocess(address, count);
+					else
+						totalCycles += 6 + InterpretDisplayList(address, count);
+				}
+			}
+			break;
+
+		case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
+			totalCycles += 6;
+			DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
+			break;
+
+		case GX_CMD_INVL_VC: // Invalidate Vertex Cache
+			totalCycles += 6;
+			DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
+			break;
+
+		case GX_LOAD_BP_REG: //0x61
+			// In skipped_frame case: We have to let BP writes through because they set
+			// tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
+			{
+				if (src.size() < 4)
+					goto end;
+				totalCycles += 12;
+				u32 bp_cmd = src.Read<u32>();
+				if (is_preprocess)
+				{
+					LoadBPRegPreprocess(bp_cmd);
+				}
+				else
+				{
+					LoadBPReg(bp_cmd);
+					INCSTAT(stats.thisFrame.numBPLoads);
+				}
+			}
+			break;
+
+		// draw primitives
+		default:
+			if ((cmd_byte & 0xC0) == 0x80)
+			{
+				// load vertices
+				if (src.size() < 2)
+					goto end;
+				u16 num_vertices = src.Read<u16>();
+
+				if (is_preprocess)
+				{
+					size_t size = num_vertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK, is_preprocess);
+					if (src.size() < size)
+						goto end;
+					src.Skip(size);
+				}
+				else
+				{
+					if (!VertexLoaderManager::RunVertices(
+						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+						num_vertices,
+						src,
+						g_bSkipCurrentFrame))
+						goto end;
+				}
+				totalCycles += 1600;
+			}
+			else
+			{
+				UnknownOpcode(cmd_byte, opcodeStart, is_preprocess);
+				totalCycles += 1;
+			}
 			break;
 		}
-		totalCycles += cycles_op;
+
+		// Display lists get added directly into the FIFO stream
+		if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
+		{
+			u8* opcodeEnd;
+			src.WritePointer(&opcodeEnd);
+			FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(opcodeEnd - opcodeStart));
+		}
 	}
+
+end:
 	if (cycles)
 	{
 		*cycles = totalCycles;
 	}
-	return g_video_buffer_read_ptr;
+	return opcodeStart;
 }
 
-u8* OpcodeDecoder_Preprocess(u8* start, u8 *end, bool in_display_list)
-{
-	s_video_buffer_pp_read_ptr = start;
-	while (true)
-	{
-		u8* old = s_video_buffer_pp_read_ptr;
-		u32 cycles = Decode</*is_preprocess*/ true, &s_video_buffer_pp_read_ptr>(end, in_display_list);
-		if (cycles == 0)
-		{
-			s_video_buffer_pp_read_ptr = old;
-			break;
-		}
-	}
-	return s_video_buffer_pp_read_ptr;
-}
+template u8* OpcodeDecoder_Run<true>(DataReader src, u32* cycles, bool in_display_list);
+template u8* OpcodeDecoder_Run<false>(DataReader src, u32* cycles, bool in_display_list);
