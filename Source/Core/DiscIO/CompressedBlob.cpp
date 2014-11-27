@@ -163,11 +163,19 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 		scrubbing = true;
 	}
 
+	z_stream z;
+	memset(&z, 0, sizeof(z));
+	if (deflateInit(&z, 9) != Z_OK)
+		return false;
+
 	File::IOFile inf(infile, "rb");
 	File::IOFile f(outfile, "wb");
 
 	if (!f || !inf)
+	{
+		deflateEnd(&z);
 		return false;
+	}
 
 	callback("Files opened, ready to compress.", 0, arg);
 
@@ -213,23 +221,20 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 		}
 
 		offsets[i] = position;
-		// u64 start = i * header.block_size;
-		// u64 size = header.block_size;
-		std::fill(in_buf, in_buf + header.block_size, 0);
+
+		size_t read_bytes;
 		if (scrubbing)
-			DiscScrubber::GetNextBlock(inf, in_buf);
+			read_bytes = DiscScrubber::GetNextBlock(inf, in_buf);
 		else
-			inf.ReadBytes(in_buf, header.block_size);
-		z_stream z;
-		memset(&z, 0, sizeof(z));
-		z.zalloc = Z_NULL;
-		z.zfree  = Z_NULL;
-		z.opaque = Z_NULL;
+			inf.ReadArray(in_buf, header.block_size, &read_bytes);
+		if (read_bytes < header.block_size)
+			std::fill(in_buf + read_bytes, in_buf + header.block_size, 0);
+
+		int retval = deflateReset(&z);
 		z.next_in   = in_buf;
 		z.avail_in  = header.block_size;
 		z.next_out  = out_buf;
 		z.avail_out = block_size;
-		int retval = deflateInit(&z, 9);
 
 		if (retval != Z_OK)
 		{
@@ -258,8 +263,6 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 			position += comp_size;
 			num_compressed++;
 		}
-
-		deflateEnd(&z);
 	}
 
 	header.compressed_data_size = position;
@@ -285,6 +288,8 @@ cleanup:
 	delete[] out_buf;
 	delete[] offsets;
 	delete[] hashes;
+
+	deflateEnd(&z);
 
 	DiscScrubber::Cleanup();
 	callback("Done compressing disc image.", 1.0f, arg);

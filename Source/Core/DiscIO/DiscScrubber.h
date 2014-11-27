@@ -25,7 +25,7 @@ namespace DiscScrubber
 {
 
 bool SetupScrub(const std::string& filename, int block_size);
-void GetNextBlock(File::IOFile& in, u8* buffer);
+size_t GetNextBlock(File::IOFile& in, u8* buffer);
 void Cleanup();
 
 } // namespace DiscScrubber
