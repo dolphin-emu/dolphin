@@ -195,6 +195,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 	int num_compressed = 0;
 	int num_stored = 0;
 	int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
+	bool was_cancelled = false;
 
 	for (u32 i = 0; i < header.num_blocks; i++)
 	{
@@ -206,7 +207,9 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 				ratio = (int)(100 * position / inpos);
 
 			std::string temp = StringFromFormat("%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
-			callback(temp, (float)i / (float)header.num_blocks, arg);
+			was_cancelled = !callback(temp, (float)i / (float)header.num_blocks, arg);
+			if (was_cancelled)
+				break;
 		}
 
 		offsets[i] = position;
@@ -261,11 +264,20 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 
 	header.compressed_data_size = position;
 
-	// Okay, go back and fill in headers
-	f.Seek(0, SEEK_SET);
-	f.WriteArray(&header, 1);
-	f.WriteArray(offsets, header.num_blocks);
-	f.WriteArray(hashes, header.num_blocks);
+	if (was_cancelled)
+	{
+		// Remove the incomplete output file.
+		f.Close();
+		File::Delete(outfile);
+	}
+	else
+	{
+		// Okay, go back and fill in headers
+		f.Seek(0, SEEK_SET);
+		f.WriteArray(&header, 1);
+		f.WriteArray(offsets, header.num_blocks);
+		f.WriteArray(hashes, header.num_blocks);
+	}
 
 cleanup:
 	// Cleanup
@@ -301,12 +313,15 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
 	int progress_monitor = std::max<int>(1, header.num_blocks / 100);
+	bool was_cancelled = false;
 
 	for (u64 i = 0; i < header.num_blocks; i++)
 	{
 		if (i % progress_monitor == 0)
 		{
-			callback("Unpacking", (float)i / (float)header.num_blocks, arg);
+			was_cancelled = !callback("Unpacking", (float)i / (float)header.num_blocks, arg);
+			if (was_cancelled)
+				break;
 		}
 		reader->Read(i * header.block_size, header.block_size, buffer);
 		f.WriteBytes(buffer, header.block_size);
@@ -314,7 +329,16 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 
 	delete[] buffer;
 
-	f.Resize(header.data_size);
+	if (was_cancelled)
+	{
+		// Remove the incomplete output file.
+		f.Close();
+		File::Delete(outfile);
+	}
+	else
+	{
+		f.Resize(header.data_size);
+	}
 
 	delete reader;
 
