@@ -88,8 +88,8 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
 	enhancements->Get("StereoMode", &iStereoMode, 0);
-	enhancements->Get("StereoSeparation", &iStereoSeparation, 50);
-	enhancements->Get("StereoConvergence", &iStereoConvergence, 30);
+	enhancements->Get("StereoSeparation", &iStereoSeparation, 20);
+	enhancements->Get("StereoConvergence", &iStereoConvergence, 20);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");

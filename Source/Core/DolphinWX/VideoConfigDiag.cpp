@@ -150,8 +150,8 @@ static wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect afte
 static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 static wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
 static wxString stereo_3d_desc = wxTRANSLATE("Select the stereoscopic 3D  mode, stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
-static wxString stereo_separation_desc = wxTRANSLATE("Control the interpupillary distance, this is the distance between the virtual eyes.");
-static wxString stereo_convergence_desc = wxTRANSLATE("Control the convergence distance, this controls the apparant distance of virtual objects.\nA higher value creates a stronger feeling of depth while a lower value is generally more comfortable.");
+static wxString stereo_separation_desc = wxTRANSLATE("Control the separation distance, this is the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.");
+static wxString stereo_convergence_desc = wxTRANSLATE("Control the convergence distance, this controls the apparant distance of virtual objects.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.");
 static wxString stereo_swap_desc = wxTRANSLATE("Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.\n\nIf unsure, leave this unchecked.");
 
 
@@ -457,14 +457,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_stereo->Add(new wxStaticText(page_enh, -1, _("Stereoscopic 3D Mode:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(CreateChoice(page_enh, vconfig.iStereoMode, wxGetTranslation(stereo_3d_desc), 4, stereo_choices));
 
-		wxSlider* const sep_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoSeparation, 10, 100, wxDefaultPosition, wxDefaultSize);
+		wxSlider* const sep_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoSeparation, 0, 100, wxDefaultPosition, wxDefaultSize);
 		sep_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoSep, this);
 		RegisterControl(sep_slider, wxGetTranslation(stereo_separation_desc));
 
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Separation:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(sep_slider, 0, wxEXPAND | wxRIGHT);
 
-		wxSlider* const conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergence, 10, 200, wxDefaultPosition, wxDefaultSize);
+		wxSlider* const conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergence, 0, 500, wxDefaultPosition, wxDefaultSize);
 		conv_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoFoc, this);
 		RegisterControl(conv_slider, wxGetTranslation(stereo_convergence_desc));
 
