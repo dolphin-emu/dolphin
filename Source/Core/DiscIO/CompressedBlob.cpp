@@ -163,8 +163,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 		scrubbing = true;
 	}
 
-	z_stream z;
-	memset(&z, 0, sizeof(z));
+	z_stream z = {};
 	if (deflateInit(&z, 9) != Z_OK)
 		return false;
 
