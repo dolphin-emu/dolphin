@@ -311,20 +311,23 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 	}
 
 	const CompressedBlobHeader &header = reader->GetHeader();
-	u8* buffer = new u8[header.block_size];
-	int progress_monitor = std::max<int>(1, header.num_blocks / 100);
+	static const size_t BUFFER_BLOCKS = 32;
+	size_t buffer_size = header.block_size * BUFFER_BLOCKS;
+	u8* buffer = new u8[buffer_size];
+	u32 num_buffers = header.num_blocks / BUFFER_BLOCKS;
+	int progress_monitor = std::max<int>(1, num_buffers / 100);
 	bool was_cancelled = false;
 
-	for (u64 i = 0; i < header.num_blocks; i++)
+	for (u64 i = 0; i < num_buffers; i++)
 	{
 		if (i % progress_monitor == 0)
 		{
-			was_cancelled = !callback("Unpacking", (float)i / (float)header.num_blocks, arg);
+			was_cancelled = !callback("Unpacking", (float)i / (float)num_buffers, arg);
 			if (was_cancelled)
 				break;
 		}
-		reader->Read(i * header.block_size, header.block_size, buffer);
-		f.WriteBytes(buffer, header.block_size);
+		reader->Read(i * buffer_size, buffer_size, buffer);
+		f.WriteBytes(buffer, buffer_size);
 	}
 
 	delete[] buffer;
