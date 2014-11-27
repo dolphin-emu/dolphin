@@ -148,7 +148,14 @@ void ClearScreen(const EFBRectangle &rc)
 			color = RGBA8ToRGB565ToRGBA8(color);
 			z = Z24ToZ16ToZ24(z);
 		}
-		g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
+
+		if (!g_ActiveConfig.bEFBCopyEnable && g_ActiveConfig.bEFBCopyClearDisable){
+			// Skip clear screen
+			g_renderer->SkipClearScreen(colorEnable, alphaEnable, zEnable);
+		}
+		// Clear the rectangular region after copying it.
+		else
+			g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
 	}
 }
 

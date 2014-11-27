@@ -588,6 +588,33 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	RestoreAPIState();
 }
 
+void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
+{
+	ResetAPIState();
+
+	if (colorEnable && alphaEnable) D3D::stateman->PushBlendState(clearblendstates[0]);
+	else if (colorEnable) D3D::stateman->PushBlendState(clearblendstates[1]);
+	else if (alphaEnable) D3D::stateman->PushBlendState(clearblendstates[2]);
+	else D3D::stateman->PushBlendState(clearblendstates[3]);
+
+	// TODO: Should we enable Z testing here?
+	/*if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(cleardepthstates[0]);
+	else */if (zEnable) D3D::stateman->PushDepthState(cleardepthstates[1]);
+	else /*if (!zEnable)*/ D3D::stateman->PushDepthState(cleardepthstates[2]);
+
+	//To Do: Not needed?
+	//D3D::context->VSSetShader(VertexShaderCache::GetClearVertexShader(), nullptr, 0);
+	//D3D::context->PSSetShader(PixelShaderCache::GetClearProgram(), nullptr, 0);
+	//D3D::context->IASetInputLayout(VertexShaderCache::GetClearInputLayout());
+
+	D3D::stateman->Apply();
+
+	D3D::stateman->PopDepthState();
+	D3D::stateman->PopBlendState();
+
+	RestoreAPIState();
+}
+
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	// TODO: MSAA support..

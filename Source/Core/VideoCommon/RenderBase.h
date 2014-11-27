@@ -99,6 +99,7 @@ public:
 	virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
 
 	virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) = 0;
+	virtual void SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable) = 0;
 	virtual void ReinterpretPixelData(unsigned int convtype) = 0;
 	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma = 1.0f);
 

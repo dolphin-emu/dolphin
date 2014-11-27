@@ -1382,6 +1382,30 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	ClearEFBCache();
 }
 
+void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
+{
+	ResetAPIState();
+
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	{
+		FramebufferManager::RenderToEye(eye);
+		// color
+		GLboolean const
+			color_mask = colorEnable ? GL_TRUE : GL_FALSE,
+			alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
+		glColorMask(color_mask, color_mask, color_mask, alpha_mask);
+
+		// depth
+		glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	RestoreAPIState();
+
+	ClearEFBCache();
+}
+
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	if (convtype == 0 || convtype == 2)
