@@ -96,6 +96,8 @@ msgid ""
 "%s\n"
 "was not loaded because there are not enough free blocks on virtual memorycard"
 msgstr ""
+"%s\n"
+"加载错误, 存储卡没有足够的可用区块。"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:104
 #, c-format
@@ -104,6 +106,9 @@ msgid ""
 "was not loaded because there is less than 10%% free space on the memorycard\n"
 "Total Blocks: %d; Free Blocks: %d"
 msgstr ""
+"%s\n"
+"加载错误, 存储卡具有小于10％的可用区块。\n"
+"区块的总数：%d; 可用区块数： %d"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:193
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:372
