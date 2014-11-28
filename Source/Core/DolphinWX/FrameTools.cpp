@@ -920,13 +920,27 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		int width, height;
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-			!RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
+		if (!RendererIsFullscreen())
 		{
-			m_RenderFrame->GetClientSize(&width, &height);
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			{
+				wxPoint position = m_Panel->GetPosition();
+
+				if (SConfig::GetInstance().m_InterfaceToolbar)
+					position.y += m_ToolBar->GetSize().GetHeight();
+
+				wxSize size = m_Panel->GetSize();
+
+				m_RenderFrame->SetSize(size);
+				m_RenderFrame->SetPosition(position);
+			}
+			else if (!m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
+			{
+				int width, height;
+				m_RenderFrame->GetClientSize(&width, &height);
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
+			}
 		}
 		m_LogWindow->Refresh();
 		m_LogWindow->Update();
@@ -984,17 +998,22 @@ void CFrame::StartGame(const std::string& filename)
 		m_GameListCtrl->Hide();
 
 		m_RenderParent = m_Panel;
-		m_RenderFrame = this;
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
-			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
-		else
-			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 
-		// No, I really don't want TAB_TRAVERSAL being set behind my back,
-		// thanks.  (Note that calling DisableSelfFocus would prevent this flag
-		// from being set for new children, but wouldn't reset the existing
-		// flag.)
-		m_RenderParent->SetWindowStyle(m_RenderParent->GetWindowStyle() & ~wxTAB_TRAVERSAL);
+		// Compensate the render frame position for the toolbar
+		wxPoint position = m_Panel->GetPosition();
+		if (SConfig::GetInstance().m_InterfaceToolbar)
+			position.y += m_ToolBar->GetSize().GetHeight();
+
+		// This is a dirty hack that seems to activate MDI behaviour without actually involving MDI frames.
+		// It requires the initial parent of the render frame to be the main frame and then to reparent it to a panel.
+		// TODO: Implement these as proper MDI frames.
+		m_RenderFrame = new CRenderFrame(this, wxID_ANY, _("Dolphin"), position, m_Panel->GetSize(), wxBORDER_NONE);
+		m_RenderFrame->Reparent(m_RenderParent);
+
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
+			SetWindowStyle(GetWindowStyle() | wxSTAY_ON_TOP);
+		else
+			SetWindowStyle(GetWindowStyle() & ~wxSTAY_ON_TOP);
 	}
 	else
 	{
@@ -1019,27 +1038,28 @@ void CFrame::StartGame(const std::string& filename)
 		if ((leftPos + width) < (position.x + size.GetWidth()) || leftPos > position.x || (topPos + height) < (position.y + size.GetHeight()) || topPos > position.y)
 			position.x = position.y = wxDefaultCoord;
 #endif
-		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
+		m_RenderFrame = new CRenderFrame(this, wxID_ANY, _("Dolphin"), position);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
 		else
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 
-		m_RenderFrame->SetBackgroundColour(*wxBLACK);
-		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
-		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
-		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
-		m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
 #ifdef _WIN32
 		// The renderer should use a top-level window for exclusive fullscreen support.
 		m_RenderParent = m_RenderFrame;
 #else
 		// To capture key events on Linux and Mac OS X the frame needs at least one child.
-		m_RenderParent = new wxPanel(m_RenderFrame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
+		m_RenderParent = new wxPanel(m_RenderFrame, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
 #endif
 
-		m_RenderFrame->Show();
+		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
+		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
+		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
+		m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
 	}
+
+	m_RenderFrame->SetBackgroundColour(*wxBLACK);
+	m_RenderFrame->Show();
 
 #if defined(__APPLE__)
 	NSView *view = (NSView *) m_RenderFrame->GetHandle();
@@ -1055,9 +1075,7 @@ void CFrame::StartGame(const std::string& filename)
 	if (!BootManager::BootCore(filename))
 	{
 		DoFullscreen(false);
-		// Destroy the renderer frame when not rendering to main
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-			m_RenderFrame->Destroy();
+		m_RenderFrame->Destroy();
 		m_RenderParent = nullptr;
 		m_bGameLoading = false;
 		UpdateGUI();
@@ -1165,8 +1183,7 @@ void CFrame::DoStop()
 
 			// If exclusive fullscreen is not enabled then we can pause the emulation
 			// before we've exited fullscreen. If not then we need to exit fullscreen first.
-			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
-				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled())
 			{
 				Core::SetState(Core::CORE_PAUSE);
 			}
@@ -1247,11 +1264,8 @@ void CFrame::OnStopped()
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 		m_RenderParent->SetCursor(wxNullCursor);
 	DoFullscreen(false);
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-	{
-		m_RenderFrame->Destroy();
-	}
-	else
+	m_RenderFrame->Destroy();
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 #if defined(__APPLE__)
 		// Disable the full screen button when not in a game.

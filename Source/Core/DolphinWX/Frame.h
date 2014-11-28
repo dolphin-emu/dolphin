@@ -62,6 +62,8 @@ class CRenderFrame : public wxFrame
 		bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
 
 	private:
+		wxWindow* m_WindowedParent;
+		long m_WindowedStyle;
 		void OnDropFiles(wxDropFilesEvent& event);
 		static bool IsValidSavestateDropped(const std::string& filepath);
 		#ifdef _WIN32
@@ -89,9 +91,9 @@ public:
 	void* GetRenderHandle()
 	{
 		#if defined(HAVE_X11) && HAVE_X11
-			return reinterpret_cast<void*>(X11Utils::XWindowFromHandle(m_RenderParent->GetHandle()));
+			return reinterpret_cast<void*>(X11Utils::XWindowFromHandle(m_RenderFrame->GetHandle()));
 		#else
-			return reinterpret_cast<void*>(m_RenderParent->GetHandle());
+			return reinterpret_cast<void*>(m_RenderFrame->GetHandle());
 		#endif
 	}
 
@@ -235,7 +237,6 @@ private:
 	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
 			const wxString& title = "",
 			wxWindow * = nullptr);
-	wxString AuiFullscreen, AuiCurrent;
 	void AddPane();
 	void UpdateCurrentPerspective();
 	void SaveIniPerspectives();
