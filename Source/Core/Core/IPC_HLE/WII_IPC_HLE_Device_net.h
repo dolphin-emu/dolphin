@@ -391,9 +391,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
-	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual u64 Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual u64 Close(u32 _CommandAddress, bool _bForce) override;
+	virtual u64 IOCtl(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -454,22 +454,22 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	{}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
+	virtual u64 Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
-		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-		return true;
+		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
+		return DEFAULT_REPLY_DELAY;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override
+	virtual u64 Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress + 4);
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) override
+	virtual u64 IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn  = Memory::Read_U32(_CommandAddress + 0x10);
@@ -512,7 +512,7 @@ public:
 		// write return values
 		Memory::Write_U32(common_result, BufferOut);
 		Memory::Write_U32(result, _CommandAddress + 4);
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
 
 private:
@@ -593,10 +593,10 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
-	virtual bool IOCtl(u32 _CommandAddress) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual u64 Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual u64 Close(u32 _CommandAddress, bool _bForce) override;
+	virtual u64 IOCtl(u32 _CommandAddress) override;
+	virtual u64 IOCtlV(u32 _CommandAddress) override;
 
 	virtual u32 Update() override;
 
@@ -617,9 +617,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual u64 Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual u64 Close(u32 _CommandAddress, bool _bForce) override;
+	virtual u64 IOCtlV(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -645,9 +645,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_wd_command();
 
-	virtual bool Open(u32 CommandAddress, u32 Mode) override;
-	virtual bool Close(u32 CommandAddress, bool Force) override;
-	virtual bool IOCtlV(u32 CommandAddress) override;
+	virtual u64 Open(u32 CommandAddress, u32 Mode) override;
+	virtual u64 Close(u32 CommandAddress, bool Force) override;
+	virtual u64 IOCtlV(u32 CommandAddress) override;
 
 private:
 	enum

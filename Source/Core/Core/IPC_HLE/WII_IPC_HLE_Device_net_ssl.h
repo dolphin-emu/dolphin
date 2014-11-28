@@ -75,12 +75,12 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ssl();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual u64 Open(u32 _CommandAddress, u32 _Mode) override;
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual u64 Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual bool IOCtl(u32 _CommandAddress) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual u64 IOCtl(u32 _CommandAddress) override;
+	virtual u64 IOCtlV(u32 _CommandAddress) override;
 	int getSSLFreeID();
 
 	static WII_SSL _SSL[NET_SSL_MAXINSTANCES];

@@ -43,7 +43,7 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 	}
 }
 
-bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
+u64 CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
 	if (VolumeHandler::IsValid())
 	{
@@ -53,10 +53,10 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 	}
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
-	return true;
+	return DEFAULT_REPLY_DELAY;
 }
 
-bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
+u64 CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 {
 	if (m_pFileSystem)
 	{
@@ -67,10 +67,10 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return true;
+	return DEFAULT_REPLY_DELAY;
 }
 
-bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
+u64 CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 {
 	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
@@ -84,10 +84,10 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-	return true;
+	return GetCmdDelay(_CommandAddress);
 }
 
-bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
+u64 CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 {
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
@@ -132,7 +132,7 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-	return true;
+	return DEFAULT_REPLY_DELAY;
 }
 
 u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
@@ -447,7 +447,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	return 1;
 }
 
-int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
+u64 CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 {
 	u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
 	u32 Command  = Memory::Read_U32(BufferIn) >> 24;

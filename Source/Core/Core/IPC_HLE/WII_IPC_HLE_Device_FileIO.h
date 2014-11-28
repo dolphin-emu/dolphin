@@ -17,12 +17,12 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_FileIO();
 
-	bool Close(u32 _CommandAddress, bool _bForce) override;
-	bool Open(u32 _CommandAddress, u32 _Mode) override;
-	bool Seek(u32 _CommandAddress) override;
-	bool Read(u32 _CommandAddress) override;
-	bool Write(u32 _CommandAddress) override;
-	bool IOCtl(u32 _CommandAddress) override;
+	u64 Close(u32 _CommandAddress, bool _bForce) override;
+	u64 Open(u32 _CommandAddress, u32 _Mode) override;
+	u64 Seek(u32 _CommandAddress) override;
+	u64 Read(u32 _CommandAddress) override;
+	u64 Write(u32 _CommandAddress) override;
+	u64 IOCtl(u32 _CommandAddress) override;
 	void DoState(PointerWrap &p) override;
 
 	File::IOFile OpenFile();
