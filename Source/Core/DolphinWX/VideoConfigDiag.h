@@ -165,6 +165,20 @@ protected:
 		ev.Skip();
 	}
 
+	void Event_StereoSep(wxCommandEvent &ev)
+	{
+		vconfig.iStereoSeparation = ev.GetInt();
+
+		ev.Skip();
+	}
+
+	void Event_StereoFoc(wxCommandEvent &ev)
+	{
+		vconfig.iStereoConvergence = ev.GetInt();
+
+		ev.Skip();
+	}
+
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 
@@ -183,6 +197,12 @@ protected:
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
+
+		// PP Shaders
+		if (choice_ppshader)
+			choice_ppshader->Enable(vconfig.iStereoMode != STEREO_ANAGLYPH);
+		if (button_config_pp)
+			button_config_pp->Enable(vconfig.iStereoMode != STEREO_ANAGLYPH);
 
 		// Things which shouldn't be changed during emulation
 		if (Core::IsRunning())
@@ -247,6 +267,8 @@ protected:
 	SettingRadioButton* real_xfb;
 
 	wxCheckBox* progressive_scan_checkbox;
+
+	wxChoice* choice_ppshader;
 
 	std::map<wxWindow*, wxString> ctrl_descs; // maps setting controls to their descriptions
 	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects

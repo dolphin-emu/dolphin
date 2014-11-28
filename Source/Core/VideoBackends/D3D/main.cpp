@@ -78,6 +78,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsOversizedViewports = false;
 	g_Config.backend_info.bSupportsBBox = false; // TODO: not implemented
+	g_Config.backend_info.bSupportsStereoscopy = false; // TODO: not implemented
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;

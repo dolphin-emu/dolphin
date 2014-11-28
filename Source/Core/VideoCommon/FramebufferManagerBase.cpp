@@ -12,6 +12,8 @@ const XFBSourceBase* FramebufferManagerBase::m_overlappingXFBArray[MAX_VIRTUAL_X
 unsigned int FramebufferManagerBase::s_last_xfb_width = 1;
 unsigned int FramebufferManagerBase::s_last_xfb_height = 1;
 
+unsigned int FramebufferManagerBase::m_EFBLayers = 1;
+
 FramebufferManagerBase::FramebufferManagerBase()
 {
 	m_realXFBSource = nullptr;

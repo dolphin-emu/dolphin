@@ -115,6 +115,13 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		{
 			g_texture_cache->ClearRenderTargets();
 		}
+
+		if ((config.iStereoMode > 0) != backup_config.s_stereo_3d ||
+			config.bStereoMonoEFBDepth != backup_config.s_mono_efb_depth)
+		{
+			g_texture_cache->DeleteShaders();
+			g_texture_cache->CompileShaders();
+		}
 	}
 
 	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
@@ -126,6 +133,8 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
 	backup_config.s_hires_textures = config.bHiresTextures;
 	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
+	backup_config.s_stereo_3d = config.iStereoMode > 0;
+	backup_config.s_mono_efb_depth = config.bStereoMonoEFBDepth;
 }
 
 void TextureCache::Cleanup()
@@ -444,14 +453,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_NORMAL &&
+		if (((entry->type == TCET_NORMAL &&
 		     width == entry->virtual_width &&
 		     height == entry->virtual_height &&
 		     full_format == entry->format &&
 		     entry->num_mipmaps > maxlevel) ||
 		    (entry->type == TCET_EC_DYNAMIC &&
 		     entry->native_width == width &&
-		     entry->native_height == height))
+		     entry->native_height == height)) &&
+		     entry->num_layers == 1)
 		{
 			// reuse the texture
 		}
@@ -519,6 +529,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		// But that will currently make the above "existing entry" tests fail as "texLevels" is not calculated until after.
 		// Currently, we might try to reuse a texture which appears to have more levels than actual, maybe..
 		entry->num_mipmaps = maxlevel + 1;
+		entry->num_layers = 1;
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -529,7 +540,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		entry->Load(width, height, expandedWidth, 0);
 	}
 
-	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
+	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps, entry->num_layers);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
 
@@ -886,12 +897,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h)
+		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h && entry->num_layers == FramebufferManagerBase::GetEFBLayers())
 		{
 			scaled_tex_w = tex_w;
 			scaled_tex_h = tex_h;
 		}
-		else if (!(entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h))
+		else if (!(entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h && entry->num_layers == FramebufferManagerBase::GetEFBLayers()))
 		{
 			if (entry->type == TCET_EC_VRAM)
 			{
@@ -914,7 +925,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		textures[dstAddr] = entry = AllocateRenderTarget(scaled_tex_w, scaled_tex_h);
 
 		// TODO: Using the wrong dstFormat, dumb...
-		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 1);
+		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 1, FramebufferManagerBase::GetEFBLayers());
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;

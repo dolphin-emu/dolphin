@@ -83,6 +83,8 @@ public:
 	static const TargetRectangle& GetTargetRectangle() { return target_rc; }
 	static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
 
+	// Use this to convert a single target rectangle to two stereo rectangles
+	static void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc, TargetRectangle& rightRc);
 
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
 	static int EFBToScaledX(int x);

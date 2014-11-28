@@ -1123,6 +1123,26 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			State::Load(g_saveSlot);
 		}
+		else if (IsHotkey(event, HK_INCREASE_SEPARATION))
+		{
+			if (++g_Config.iStereoSeparation > 100)
+				g_Config.iStereoSeparation = 100;
+		}
+		else if (IsHotkey(event, HK_DECREASE_SEPARATION))
+		{
+			if (--g_Config.iStereoSeparation < 0)
+				g_Config.iStereoSeparation = 0;
+		}
+		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+		{
+			if (++g_Config.iStereoConvergence > 500)
+				g_Config.iStereoConvergence = 500;
+		}
+		else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
+		{
+			if (--g_Config.iStereoConvergence < 0)
+				g_Config.iStereoConvergence = 0;
+		}
 
 		else
 		{
