@@ -80,7 +80,7 @@ void CConfigVR::UpdateGUI()
 			WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
 			WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
 			HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]));
-		i++;
+		++i;
 	}
 }
 
@@ -347,7 +347,7 @@ void CConfigVR::CreateGUIControls()
 
 	button_already_clicked = false; //Used to determine whether a button has already been clicked.  If it has, don't allow more buttons to be clicked.
 
-	for (int j = 0; j < 1; j++)
+	for (int j = 0; j < 1; ++j)
 	{
 		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
 		Notebook->AddPage(Page, pageNames[j]);
@@ -356,8 +356,9 @@ void CConfigVR::CreateGUIControls()
 
 		// -- VR Hotkeys --
 		// Header line
-		if (j == 0){
-			for (int i = 0; i < VR_NUM_COLUMNS; i++)
+		if (j == 0)
+		{
+			for (int i = 0; i < VR_NUM_COLUMNS; ++i)
 			{
 				wxBoxSizer *HeaderSizer = new wxBoxSizer(wxHORIZONTAL);
 				wxStaticText *StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Action"));
@@ -370,7 +371,7 @@ void CConfigVR::CreateGUIControls()
 
 		int column_break = (page_breaks[j+1] + page_breaks[j] + 1) / 2;
 
-		for (int i = page_breaks[j]; i < page_breaks[j+1]; i++)
+		for (int i = page_breaks[j]; i < page_breaks[j+1]; ++i)
 		{
 			// Text for the action
 			wxStaticText *stHotkeys = new wxStaticText(Page, wxID_ANY, VRText[i]);
@@ -399,8 +400,8 @@ void CConfigVR::CreateGUIControls()
 				wxDefaultSpan, wxEXPAND | wxLEFT, (i < column_break) ? 1 : 30);
 		}
 
-		if (j == 0) {
-
+		if (j == 0) 
+		{
 			//Create "Device" box, and all buttons/options within it/
 			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Device"));
 
@@ -430,7 +431,8 @@ void CConfigVR::CreateGUIControls()
 			wxCheckBox  *xInputPollEnableCheckbox = new wxCheckBox(Page, wxID_ANY, _("Enable XInput Polling"), wxDefaultPosition, wxDefaultSize);
 			xInputPollEnableCheckbox->Bind(wxEVT_CHECKBOX, &CConfigVR::OnXInputPollCheckbox, this);
 			xInputPollEnableCheckbox->SetToolTip(_("Check to enable XInput polling during game emulation. Uncheck to disable."));
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput){
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput)
+			{
 				xInputPollEnableCheckbox->SetValue(true);
 			}
 
@@ -448,7 +450,6 @@ void CConfigVR::CreateGUIControls()
 			sPage->Add(options_sbox, 0, wxEXPAND | wxALL, 5);
 			sPage->Add(vr_camera_controls_box, 0, wxEXPAND | wxALL, 5);
 			Page->SetSizer(sPage);
-
 		}
 	}
 
@@ -560,10 +561,11 @@ void CConfigVR::UpdateDeviceComboBox()
 	{
 		dq.FromDevice(d);
 		device_cbox->Append(StrToWxStr(dq.ToString())); //Put Name of Device into Combo Box
-		if (i == 0){
+		if (i == 0)
+		{
 			device_cbox->SetValue(StrToWxStr(dq.ToString())); //Show first device detected in Combo Box by default
 		}
-		i++;
+		++i;
 	}
 
 	default_device.FromString(WxStrToStr(device_cbox->GetValue())); //Set device to be used to match what's selected in the Combo Box
@@ -617,10 +619,12 @@ void CConfigVR::RefreshDevices(wxCommandEvent&)
 void CConfigVR::OnXInputPollCheckbox(wxCommandEvent& event)
 {
 	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
-	if (checkbox->IsChecked()){
+	if (checkbox->IsChecked())
+	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput = 1;
 	}
-	else {
+	else 
+	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeysXInput = 0;
 	}
 
@@ -676,7 +680,8 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 			SetButtonText(ClickedButton->GetId(), true, wxString());
 		}
 		// Cancel and restore the old label if escape is hit.
-		else if (g_Pressed == WXK_ESCAPE){
+		else if (g_Pressed == WXK_ESCAPE)
+		{
 			ClickedButton->SetLabel(OldLabel);
 			button_already_clicked = false;
 			return;
@@ -717,18 +722,23 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 // Update the textbox for the buttons
 void CConfigVR::SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr, const wxString &XInputMapping)
 {
-	if (KBM == true){
+	if (KBM == true)
+	{
 		m_Button_VRSettings[id]->SetLabel(modkeystr + keystr);
 	}
-	else {
+	else 
+	{
 		wxString xinput_gui_string = "";
 		ciface::Core::DeviceQualifier dq;
 		for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
 		{
 			dq.FromDevice(d);
-			if (dq.source == "XInput"){
-				for (ciface::Core::Device::Input* input : d->Inputs()){
-					if (HotkeysXInput::IsXInputButtonSet(input->GetName(), id)){
+			if (dq.source == "XInput")
+			{
+				for (ciface::Core::Device::Input* input : d->Inputs())
+				{
+					if (HotkeysXInput::IsXInputButtonSet(input->GetName(), id))
+					{
 						//Concat string
 						if (xinput_gui_string != ""){
 							xinput_gui_string += " && ";
@@ -783,7 +793,8 @@ void CConfigVR::ConfigControl(wxEvent& event)
 	for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
 	{
 		dq.FromDevice(d);
-		if (dq.source == "XInput"){
+		if (dq.source == "XInput")
+		{
 			m_vr_dialog = new VRDialog(this, ClickedButton->GetId());
 			m_vr_dialog->ShowModal();
 			m_vr_dialog->Destroy();
@@ -792,7 +803,8 @@ void CConfigVR::ConfigControl(wxEvent& event)
 		}
 	}
 
-	if (count == 0){
+	if (count == 0)
+	{
 		wxMessageDialog m_no_xinput(
 			this,
 			_("No XInput Device Detected.\nAttach an XInput Device to use this Feature."),
@@ -849,19 +861,24 @@ inline void GetExpressionForControlVR(wxString &expr,
 
 void CConfigVR::DetectControl(wxCommandEvent& event)
 {
-	if (button_already_clicked){ //Stop the user from being able to select multiple buttons at once
+	//Stop the user from being able to select multiple buttons at once
+	if (button_already_clicked)
+	{ 
 		return;
 	}
-	else {
+	else 
+	{
 		button_already_clicked = true;
 		// find devices
 		ciface::Core::Device* const dev = g_controller_interface.FindDevice(default_device);
 		if (dev)
 		{
-			if (default_device.name == "Keyboard Mouse") {
+			if (default_device.name == "Keyboard Mouse") 
+			{
 				OnButtonClick(event);
 			}
-			else if (default_device.source == "XInput") {
+			else if (default_device.source == "XInput") 
+			{
 				// Get the button
 				ClickedButton = (wxButton *)event.GetEventObject();
 				SetEscapeId(wxID_CANCEL);  //This stops escape from exiting the whole ConfigVR box.
@@ -886,14 +903,16 @@ void CConfigVR::DetectControl(wxCommandEvent& event)
 					u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
 					SaveXInputBinary(ClickedButton->GetId(), false, xinput_binary);
 				}
-				else {
+				else 
+				{
 					ClickedButton->SetLabel(OldLabel);
 				}
 
 				EndGetButtonsXInput();
 			}
 		}
-		else {
+		else 
+		{
 			button_already_clicked = false;
 		}
 	}
@@ -955,22 +974,26 @@ VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 	for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
 	{
 		dq.FromDevice(d);
-		if (dq.source == "XInput"){
+		if (dq.source == "XInput")
+		{
 			int i = 0;
 			for (ciface::Core::Device::Input* input : d->Inputs())
 			{
 				wxCheckBox  *XInputCheckboxes = new wxCheckBox(this, wxID_ANY, wxGetTranslation(StrToWxStr(input->GetName())), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
 				XInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBox, this);
-				if (HotkeysXInput::IsXInputButtonSet(input->GetName(), button_id)){
+				if (HotkeysXInput::IsXInputButtonSet(input->GetName(), button_id))
+				{
 					XInputCheckboxes->SetValue(true);
 				}
-				if (i<13){
+				if (i<13)
+				{
 					input_szr1->Add(XInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
 				}
-				else {
+				else 
+				{
 					input_szr2->Add(XInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
 				}
-				i++;
+				++i;
 			}
 		}
 
@@ -992,12 +1015,10 @@ void VRDialog::OnCheckBox(wxCommandEvent& event)
 	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
 	u32 single_button_mask = HotkeysXInput::GetBinaryfromXInputIniStr(checkbox->GetLabel());
 	u32 value = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[button_id];
-	if (checkbox->IsChecked()){
+	if (checkbox->IsChecked())
 		value |= single_button_mask;
-	}
-	else {
+	else 
 		value &= ~single_button_mask;
-	}
 
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[button_id] = FALSE;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[button_id] = value;

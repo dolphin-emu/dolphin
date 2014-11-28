@@ -610,7 +610,8 @@ void FramebufferManager::ConfigureRift()
 	cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
 	cfg.OGL.DC = GetDC(cfg.OGL.Window);
 #ifndef OCULUSSDK042
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) {//If in Direct Mode
+	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If in Direct Mode
+	{
 		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
 	}
 #endif

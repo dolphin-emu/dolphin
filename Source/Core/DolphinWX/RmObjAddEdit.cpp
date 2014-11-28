@@ -136,66 +136,85 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	int length = EditRmObjValue->GetValue().length();
 
 	//Parse Upper If Needed
-	if (tempType > RmObjEngine::RMOBJ_64BIT) {
-		if (length > 16) {
-			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) {
-				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType - 8))){
+	if (tempType > RmObjEngine::RMOBJ_64BIT) 
+	{
+		if (length > 16) 
+		{
+			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) 
+			{
+				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType - 8)))
 					length = 16;
-				}
 				else
 					return;
 			}
-			else {
+			else 
+			{
 				wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
 				return;
 			}
 		}
 	}
 	//Always Parse Lower
-	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16)) {
+	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16)) 
+	{
 		if (!ParseValue(value_lower, tempType))
 			return;
 	}
-	else {
+	else 
+	{
 		wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
 		return;
 	}
 
 	//Now we have upper and lower
 
-	if (event.GetId() == ID_BUTTON_UP) {
-		if (value_lower == 0xFFFFFFFFFFFFFFFF){
-			if (value_upper == 0xFFFFFFFFFFFFFFFF){
+	if (event.GetId() == ID_BUTTON_UP) 
+	{
+		if (value_lower == 0xFFFFFFFFFFFFFFFF)
+		{
+			if (value_upper == 0xFFFFFFFFFFFFFFFF)
+			{
 				return;
 			}
-			else {
+			else 
+			{
 				value_lower = 0;
 				value_upper++;
 			}
 		}
 		else
+		{
 			value_lower++;
+		}
 	}
-	else {
-		if (value_lower == 0){
-			if (value_upper == 0){
+	else 
+	{
+		if (value_lower == 0)
+		{
+			if (value_upper == 0)
+			{
 				return;
 			}
-			else {
+			else 
+			{
 				value_upper--;
 				value_lower = 0xFFFFFFFFFFFFFFFF;
 			}
 		}
 		else
+		{
 			value_lower--;
+		}
 	}
 
 	// Double check values are valid before updating the entry.
-	if (tempType > RmObjEngine::RMOBJ_64BIT) {
+	if (tempType > RmObjEngine::RMOBJ_64BIT) 
+	{
 		if (!ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8)))
 			return;
 	}
-	else if (value_upper > 0) {
+	else if (value_upper > 0) 
+	{
 			return;
 	}
 
@@ -252,33 +271,44 @@ bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::it
 	//Parse Upper If Needed
 	if (tempType > RmObjEngine::RMOBJ_64BIT) {
 		if (length > 16) {
-			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) {
-				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8))){
+			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) 
+			{
+				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8)))
+				{
 					(*iterEntry).value_upper = value_upper;
 					length = 16;
 				}
 				else
+				{
 					return false;
+				}
 			}
-			else {
+			else 
+			{
 				wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
 				return false;
 			}
 		}
-		else {
+		else 
+		{
 			value_upper = 0;
 		}
 	}
 	//Always Parse Lower
-	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16)) {
-		if (ParseValue(value_lower, tempType)) {
+	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16))
+	{
+		if (ParseValue(value_lower, tempType))
+		{
 			(*iterEntry).value_lower = value_lower;
 			return true;
 		}
 		else
+		{
 			return false;
+		}
 	}
-	else {
+	else
+	{
 		wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
 		return false;
 	}
@@ -310,7 +340,8 @@ bool CRmObjAddEdit::ParseValue(unsigned long long value, RmObjEngine::RmObjType 
 	else if (tempType == RmObjEngine::RMOBJ_64BIT && value > 0xffffffffffffffff)
 		parsed_ok = false;
 	
-	if (!parsed_ok) {
+	if (!parsed_ok) 
+	{
 		wxMessageBox(_("Value too large.\nEntry not modified."), _("Error"));
 		return false;
 	}

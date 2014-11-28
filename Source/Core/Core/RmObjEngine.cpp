@@ -130,7 +130,7 @@ namespace RmObjEngine
 
 		// Wait until the next time the next time the rendering thread finishes checking the skip entries.
 		if (Core::IsRunning())
-			while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false);
+			while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false) {}
 
 		SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.clear();
 
@@ -145,15 +145,18 @@ namespace RmObjEngine
 					SkipEntry skipEntry;
 					int size = GetRmObjTypeCharLength(entry.type) >> 1;
 
-					if (size > 8) {
+					if (size > 8) 
+					{
 						size = size - 8;
-						for (int j = size; j > 0; j--){
+						for (int j = size; j > 0; --j)
+						{
 							skipEntry.push_back((0xFF & (value_add_upper >> ((j - 1) * 8))));
 						}
 						size = 8;
 					}
 					
-					for (int j = size; j > 0; j--){
+					for (int j = size; j > 0; --j)
+					{
 						skipEntry.push_back((0xFF & (value_add_lower >> ((j - 1) * 8))));
 					}
 					

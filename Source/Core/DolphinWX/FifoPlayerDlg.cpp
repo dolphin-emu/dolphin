@@ -636,7 +636,8 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		objectdata += 2;
 
 		wxString errorLabel;
-		if (stream_size && ((objectdata_end - objectdata) % stream_size)){
+		if (stream_size && ((objectdata_end - objectdata) % stream_size))
+		{
 			errorLabel = _("NOTE: Stream size doesn't match actual data length\n");
 		}
 
@@ -650,7 +651,8 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		m_objectCmdOffsets.push_back(0);
 
 		//Add errorLabel after objectdata newLabel has already been added.
-		if (errorLabel != ""){
+		if (errorLabel != "")
+		{
 			m_objectCmdList->Append(errorLabel);
 			m_objectCmdOffsets.push_back(0);
 		}

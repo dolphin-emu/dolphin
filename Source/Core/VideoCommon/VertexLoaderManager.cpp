@@ -144,7 +144,8 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 	if (buf_size < size)
 		return false;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries){
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries)
+	{
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.update)
 		{
 			SConfig::GetInstance().m_LocalCoreStartupParameter.done = false;
@@ -172,7 +173,8 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 					}
 				}
 				//Data stream matched the entry, skip rendering it.
-				if (manual_skip_drawing){
+				if (manual_skip_drawing)
+				{
 					DataSkip((u32)size);
 					return true;
 				}
