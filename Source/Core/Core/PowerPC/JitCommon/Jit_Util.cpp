@@ -799,6 +799,10 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, OpArg input, X64Reg tmp)
 			PADDQ(output, R(tmp));
 		}
 	}
+	else if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+	{
+		MOVAPD(output, input);
+	}
 }
 
 static u32 GC_ALIGNED16(temp32);
