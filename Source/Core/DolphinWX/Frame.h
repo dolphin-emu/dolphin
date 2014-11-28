@@ -123,7 +123,7 @@ public:
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
 	void PopulateSavedPerspectives();
-	static void ConnectWiimote(int wm_idx, bool connect);
+	static void ConnectWiimote(int wm_idx);
 	void UpdateTitle(const std::string &str);
 
 	const CGameListCtrl *GetGameListCtrl() const;

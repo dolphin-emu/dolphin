@@ -1590,10 +1590,11 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void CFrame::ConnectWiimote(int wm_idx, bool connect)
+void CFrame::ConnectWiimote(int wm_idx)
 {
 	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
+		bool connect = !GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->IsConnected();
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
 		wxString msg(wxString::Format(_("Wiimote %i %s"), wm_idx + 1,
 					connect ? _("Connected") : _("Disconnected")));
@@ -1604,7 +1605,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
-	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
+	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1);
 }
 
 // Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover

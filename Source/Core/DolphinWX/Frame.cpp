@@ -1175,8 +1175,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Actually perform the wiimote connection or disconnection
 		if (WiimoteId >= 0)
 		{
-			bool connect = !GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
-			ConnectWiimote(WiimoteId, connect);
+			ConnectWiimote(WiimoteId);
 		}
 
 		if (g_Config.bFreeLook)
