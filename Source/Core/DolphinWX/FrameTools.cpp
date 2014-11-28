@@ -113,24 +113,13 @@ extern "C" {
 class InputConfig;
 class wxFrame;
 
-// This override allows returning a fake menubar object while removing the real one from the screen
-wxMenuBar* CFrame::GetMenuBar() const
-{
-	if (m_frameMenuBar)
-	{
-		return m_frameMenuBar;
-	}
-	else
-	{
-		return m_menubar_shadow;
-	}
-}
-
 // Create menu items
 // ---------------------
-wxMenuBar* CFrame::CreateMenu()
+void CFrame::CreateMenu()
 {
-	wxMenuBar* menubar = new wxMenuBar();
+	if (GetMenuBar()) GetMenuBar()->Destroy();
+
+	wxMenuBar *m_MenuBar = new wxMenuBar();
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
@@ -153,7 +142,7 @@ wxMenuBar* CFrame::CreateMenu()
 	fileMenu->Append(IDM_BROWSE, _("&Browse for ISOs..."));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _("E&xit") + wxString("\tAlt+F4"));
-	menubar->Append(fileMenu, _("&File"));
+	m_MenuBar->Append(fileMenu, _("&File"));
 
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
@@ -204,7 +193,7 @@ wxMenuBar* CFrame::CreateMenu()
 	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
 		loadMenu->Append(IDM_LOADLAST1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
 
-	menubar->Append(emulationMenu, _("&Emulation"));
+	m_MenuBar->Append(emulationMenu, _("&Emulation"));
 
 	// Movie menu
 	wxMenu* movieMenu = new wxMenu;
@@ -228,7 +217,7 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, SConfig::GetInstance().m_DumpFrames);
 	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump Audio"));
 	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
-	menubar->Append(movieMenu, _("&Movie"));
+	m_MenuBar->Append(movieMenu, _("&Movie"));
 
 	// Options menu
 	wxMenu* pOptionsMenu = new wxMenu;
@@ -244,7 +233,7 @@ wxMenuBar* CFrame::CreateMenu()
 		pOptionsMenu->AppendSeparator();
 		g_pCodeWindow->CreateMenuOptions(pOptionsMenu);
 	}
-	menubar->Append(pOptionsMenu, _("&Options"));
+	m_MenuBar->Append(pOptionsMenu, _("&Options"));
 
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
@@ -270,7 +259,7 @@ wxMenuBar* CFrame::CreateMenu()
 	wiimoteMenu->AppendSeparator();
 	wiimoteMenu->AppendCheckItem(IDM_CONNECT_BALANCEBOARD, GetMenuLabel(HK_BALANCEBOARD_CONNECT));
 
-	menubar->Append(toolsMenu, _("&Tools"));
+	m_MenuBar->Append(toolsMenu, _("&Tools"));
 
 	wxMenu* viewMenu = new wxMenu;
 	viewMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _("Show &Toolbar"));
@@ -374,11 +363,11 @@ wxMenuBar* CFrame::CreateMenu()
 
 
 
-	menubar->Append(viewMenu, _("&View"));
+	m_MenuBar->Append(viewMenu, _("&View"));
 
 	if (g_pCodeWindow)
 	{
-		g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, menubar);
+		g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
 	}
 
 	// Help menu
@@ -390,9 +379,10 @@ wxMenuBar* CFrame::CreateMenu()
 	helpMenu->Append(IDM_HELPGITHUB, _("Dolphin at &GitHub"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(wxID_ABOUT, _("&About..."));
-	menubar->Append(helpMenu, _("&Help"));
+	m_MenuBar->Append(helpMenu, _("&Help"));
 
-	return menubar;
+	// Associate the menu bar with the frame
+	SetMenuBar(m_MenuBar);
 }
 
 wxString CFrame::GetMenuLabel(int Id)
