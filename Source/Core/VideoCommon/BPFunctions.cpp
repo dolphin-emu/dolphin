@@ -13,6 +13,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 namespace BPFunctions
 {
@@ -149,13 +150,15 @@ void ClearScreen(const EFBRectangle &rc)
 			z = Z24ToZ16ToZ24(z);
 		}
 
-		if (!g_ActiveConfig.bEFBCopyEnable && g_ActiveConfig.bEFBCopyClearDisable)
+		//Allow the first ClearScreen to go through, but block the rest if EFBCopyClearDisable is checked.
+		if (!g_ActiveConfig.bEFBCopyEnable && g_ActiveConfig.bEFBCopyClearDisable && !g_new_frame_tracker_for_efb_skip)
 		{
 			g_renderer->SkipClearScreen(colorEnable, alphaEnable, zEnable);
 		}
 		else 
 		{
 			g_renderer->ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
+			g_new_frame_tracker_for_efb_skip = false;
 		}
 	}
 }
