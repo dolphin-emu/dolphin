@@ -64,7 +64,6 @@ protected:
 		bool enableBlocklink;
 		bool fpAccurateFcmp;
 		bool optimizeGatherPipe;
-		bool fastInterrupts;
 		bool accurateSinglePrecision;
 	};
 	struct JitState
