@@ -173,7 +173,6 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 
 void Jit64::Init()
 {
-	jo.optimizeStack = true;
 	EnableBlockLink();
 
 	jo.optimizeGatherPipe = true;
