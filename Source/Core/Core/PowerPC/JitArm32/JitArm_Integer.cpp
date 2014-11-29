@@ -870,13 +870,50 @@ void JitArm::rlwimix(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RS = gpr.R(inst.RS);
+	int a = inst.RA, s = inst.RS;
+	if (gpr.IsImm(s) && inst.MB <= inst.ME)
+	{
+		u32 imm = _rotl(gpr.GetImm(s), inst.SH) & mask;
+		imm >>= 31 - inst.ME;
+		ARMReg rA = gpr.GetReg();
+
+		MOVI2R(rA, imm);
+		BFI(gpr.R(a), rA, 31 - inst.ME, inst.ME - inst.MB + 1);
+		if (inst.Rc)
+			ComputeRC(gpr.R(a));
+
+		gpr.Unlock(rA);
+		return;
+	}
+
+	ARMReg RA = gpr.R(a);
+	ARMReg RS = gpr.R(s);
+
+	if (inst.SH == 0 && inst.MB <= inst.ME)
+	{
+		if (inst.ME != 31)
+		{
+			ARMReg rA = gpr.GetReg();
+			LSR(rA, RS, 31 - inst.ME);
+			BFI(RA, rA, 31 - inst.ME, inst.ME - inst.MB + 1);
+			gpr.Unlock(rA);
+		}
+		else
+		{
+			BFI(RA, RS, 0, inst.ME - inst.MB + 1);
+		}
+		if (inst.Rc)
+			ComputeRC(RA);
+
+		return;
+	}
+
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
+	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+
 	MOVI2R(rA, mask);
 
-	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
 	BIC (rB, RA, rA); // RA & ~mask
 	AND (rA, rA, Shift);
 	ORR(RA, rB, rA);
@@ -892,13 +929,62 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
+	if (gpr.IsImm(inst.RS))
+	{
+		gpr.SetImmediate(inst.RA, _rotl(gpr.GetImm(inst.RS), inst.SH) & mask);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(inst.RA), 0);
+		return;
+	}
+
+	gpr.BindToRegister(inst.RA, inst.RA == inst.RS);
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RS = gpr.R(inst.RS);
 	ARMReg rA = gpr.GetReg();
-	MOVI2R(rA, mask);
+	bool inverse = false;
+	bool fit_op = false;
+	Operand2 op2;
+	fit_op = TryMakeOperand2_AllowInverse(mask, op2, &inverse);
 
-	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
-	AND(RA, rA, Shift);
+	if (!inst.SH && fit_op)
+	{
+		if (inverse)
+			BIC(RA, RS, op2);
+		else
+			AND(RA, RS, op2);
+	}
+	else if (!inst.SH && inst.ME == 31)
+	{
+		UBFX(RA, RS, 0, inst.ME - inst.MB + 1);
+	}
+	else if (!inst.SH && inst.MB == 0)
+	{
+		LSR(RA, RS, 31 - inst.ME);
+		LSL(RA, RA, 31 - inst.ME);
+	}
+	else if (inst.SH == 16 && inst.MB >= 16 && inst.ME == 31)
+	{
+		UBFX(RA, RS, 16, 32 - inst.MB);
+	}
+	else if (inst.SH == 16 && inst.MB == 0 && inst.ME == 15)
+	{
+		LSL(RA, RS, 16);
+	}
+	else if (fit_op)
+	{
+		Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+		MOV(RA, Shift);
+		if (inverse)
+			BIC(RA, RA, op2);
+		else
+			AND(RA, RA, op2);
+	}
+	else
+	{
+		MOVI2R(rA, mask);
+		Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+		AND(RA, rA, Shift);
+	}
 
 	if (inst.Rc)
 		ComputeRC(RA);
