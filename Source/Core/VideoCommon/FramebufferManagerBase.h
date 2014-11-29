@@ -55,7 +55,7 @@ public:
 	static int ScaleToVirtualXfbWidth(int x, unsigned int backbuffer_width);
 	static int ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height);
 
-	static int GetEFBLayers() { return m_EFBLayers; }
+	static unsigned int GetEFBLayers() { return m_EFBLayers; }
 
 protected:
 	struct VirtualXFB
