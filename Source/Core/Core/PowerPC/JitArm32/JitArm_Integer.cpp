@@ -850,6 +850,14 @@ void JitArm::negx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 
+	if (gpr.IsImm(inst.RA))
+	{
+		gpr.SetImmediate(inst.RD, ~gpr.GetImm(inst.RA) + 1);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(inst.RD), 0);
+		return;
+	}
+
 	gpr.BindToRegister(inst.RD, inst.RD == inst.RA);
 	ARMReg RD = gpr.R(inst.RD);
 	ARMReg RA = gpr.R(inst.RA);
