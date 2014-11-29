@@ -134,7 +134,7 @@ void JitArmAsmRoutineManager::Generate()
 			// R12 Confirmed this is the correct iCache Location loaded.
 			TST(R12, 0x80); // Test  to see if it is a JIT block.
 
-			SetCC(CC_EQ);
+			FixupBranch no_block = B_CC(CC_NEQ);
 				// Success, it is our Jitblock.
 				MOVI2R(R14, (u32)jit->GetBlockCache()->GetCodePointers());
 				// LDR R14 right here to get CodePointers()[0] pointer.
@@ -143,7 +143,7 @@ void JitArmAsmRoutineManager::Generate()
 
 				B(R14);
 				// No need to jump anywhere after here, the block will go back to dispatcher start
-			SetCC();
+			SetJumpTarget(no_block);
 
 		// If we get to this point, that means that we don't have the block cached to execute
 		// So call ArmJit to compile the block and then execute it.
