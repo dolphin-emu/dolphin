@@ -35,6 +35,7 @@ ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
+ID3D11PixelShader* s_AnaglyphProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
@@ -57,6 +58,19 @@ const char color_copy_program_code[] = {
 	"in float4 pos : SV_Position,\n"
 	"in float3 uv0 : TEXCOORD0){\n"
 	"ocol0 = Tex0.Sample(samp0,uv0);\n"
+	"}\n"
+};
+
+const char anaglyph_program_code[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+	"void main(\n"
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
+	"in float3 uv0 : TEXCOORD0){\n"
+	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0));\n"
+	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1));\n"
+	"ocol0 = float4(pow(0.7 * c0.g + 0.3 * c0.b, 1.5), c1.gba);"
 	"}\n"
 };
 
@@ -385,6 +399,11 @@ ID3D11PixelShader* PixelShaderCache::GetClearProgram()
 	return s_ClearProgram;
 }
 
+ID3D11PixelShader* PixelShaderCache::GetAnaglyphProgram()
+{
+	return s_AnaglyphProgram;
+}
+
 ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 {
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
@@ -423,6 +442,11 @@ void PixelShaderCache::Init()
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
 	CHECK(s_ClearProgram!=nullptr, "Create clear pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
+
+	// used for anaglyph stereoscopy
+	s_AnaglyphProgram = D3D::CompileAndCreatePixelShader(anaglyph_program_code);
+	CHECK(s_AnaglyphProgram != nullptr, "Create anaglyph pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_AnaglyphProgram, "anaglyph pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram[0] = D3D::CompileAndCreatePixelShader(color_copy_program_code);
@@ -484,6 +508,7 @@ void PixelShaderCache::Shutdown()
 	SAFE_RELEASE(pscbuf);
 
 	SAFE_RELEASE(s_ClearProgram);
+	SAFE_RELEASE(s_AnaglyphProgram);
 	for (int i = 0; i < 2; ++i)
 	{
 		SAFE_RELEASE(s_ColorCopyProgram[i]);

@@ -50,7 +50,7 @@ enum StereoMode
 	STEREO_SBS,
 	STEREO_TAB,
 	STEREO_ANAGLYPH,
-	STEREO_3DVISION = STEREO_ANAGLYPH
+	STEREO_3DVISION
 };
 
 // NEVER inherit from this class.
