@@ -63,6 +63,8 @@ VideoConfig::VideoConfig()
 	bOverdrive = true;
 	bHqDistortion = false;
 	iVRPlayer = 0;
+	iMinExtraFrames = DEFAULT_VR_MIN_EXTRA_FRAMES;
+	iMaxExtraFrames = DEFAULT_VR_MAX_EXTRA_FRAMES;
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
@@ -178,6 +180,8 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("Overdrive", &bOverdrive, true);
 	vr->Get("HQDistortion", &bHqDistortion, false);
 	vr->Get("Player", &iVRPlayer, 0);
+	vr->Get("MinExtraFrames", &iMinExtraFrames, DEFAULT_VR_MIN_EXTRA_FRAMES);
+	vr->Get("MaxExtraFrames", &iMaxExtraFrames, DEFAULT_VR_MAX_EXTRA_FRAMES);
 }
 
 
@@ -445,6 +449,9 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
 	vr->Set("Player", iVRPlayer);
+	vr->Set("MinExtraFrames", iMinExtraFrames);
+	vr->Set("MaxExtraFrames", iMaxExtraFrames);
+
 	iniFile.Save(ini_file);
 }
 

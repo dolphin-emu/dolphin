@@ -134,6 +134,27 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iVRPlayer);
 		}
+		// Synchronous Timewarp extra frames per frame
+		{
+			U32Setting *num = new U32Setting(page_vr, _("Min exta frames:"), vconfig.iMinExtraFrames, 0, 89);
+			RegisterControl(num, lean_desc);
+			num->SetValue(vconfig.iMinExtraFrames);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Min exta frames:"));
+
+			label->SetToolTip(wxGetTranslation(lean_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(num);
+		}
+		{
+			U32Setting *num = new U32Setting(page_vr, _("Max exta frames:"), vconfig.iMaxExtraFrames, 0, 89);
+			RegisterControl(num, lean_desc);
+			num->SetValue(vconfig.iMaxExtraFrames);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Max exta frames:"));
+
+			label->SetToolTip(wxGetTranslation(lean_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(num);
+		}
 
 		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));

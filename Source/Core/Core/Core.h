@@ -66,6 +66,7 @@ void SetStateFileName(std::string val);
 void SetBlockStart(u32 addr);
 
 bool ShouldSkipFrame(int skipped);
+bool ShouldAddTimewarpFrame();
 void VideoThrottle();
 void RequestRefreshInfo();
 
