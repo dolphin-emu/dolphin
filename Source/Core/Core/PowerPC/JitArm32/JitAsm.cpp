@@ -226,12 +226,10 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		BIC(R10, R10, mask);
 		ADD(R10, R10, R8);
 
-		LDRH(R12, R10);
-		SXTB(R12, R12);
+		LDRB(R12, R10);
 		VMOV(S0, R12);
 
-		LDRH(R12, R10, 2);
-		SXTB(R12, R12);
+		LDRB(R12, R10, 1);
 		VMOV(S1, R12);
 
 		MOVI2R(R10, (u32)&m_dequantizeTableS);
@@ -252,7 +250,6 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		ADD(R10, R10, R8);
 
 		LDRB(R12, R10);
-		SXTB(R12, R12);
 		VMOV(S0, R12);
 
 		MOVI2R(R10, (u32)&m_dequantizeTableS);
@@ -270,12 +267,10 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		BIC(R10, R10, mask);
 		ADD(R10, R10, R8);
 
-		LDRH(R12, R10);
-		SXTB(R12, R12);
+		LDRSB(R12, R10);
 		VMOV(S0, R12);
 
-		LDRH(R12, R10, 2);
-		SXTB(R12, R12);
+		LDRSB(R12, R10, 1);
 		VMOV(S1, R12);
 
 		MOVI2R(R10, (u32)&m_dequantizeTableS);
@@ -295,8 +290,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		BIC(R10, R10, mask);
 		ADD(R10, R10, R8);
 
-		LDRB(R12, R10);
-		SXTB(R12, R12);
+		LDRSB(R12, R10);
 		VMOV(S0, R12);
 
 		MOVI2R(R10, (u32)&m_dequantizeTableS);
@@ -316,12 +310,10 @@ void JitArmAsmRoutineManager::GenerateCommon()
 
 		LDRH(R12, R10);
 		REV16(R12, R12);
-		SXTH(R12, R12);
 		VMOV(S0, R12);
 
 		LDRH(R12, R10, 2);
 		REV16(R12, R12);
-		SXTH(R12, R12);
 		VMOV(S1, R12);
 
 		MOVI2R(R10, (u32)&m_dequantizeTableS);
