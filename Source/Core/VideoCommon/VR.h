@@ -61,6 +61,7 @@ extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window
 extern const char *g_hmd_device_name;
 
 extern std::mutex g_ovr_lock;
+extern volatile u32 g_drawn_vr;
 
 extern bool debug_nextScene;
 

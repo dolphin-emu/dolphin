@@ -67,6 +67,8 @@
 // TODO: ugly, remove
 bool g_aspect_wide;
 
+volatile u32 g_drawn_vr = 0;
+
 namespace Core
 {
 
@@ -735,6 +737,7 @@ void VideoThrottle()
 		s_timer.Update();
 		Common::AtomicStore(s_drawn_frame, 0);
 		s_drawn_video = 0;
+		Common::AtomicStore(g_drawn_vr, 0);
 	}
 
 	s_drawn_video++;
@@ -775,6 +778,7 @@ void UpdateTitle()
 
 	float FPS = (float) (Common::AtomicLoad(s_drawn_frame) * 1000.0 / ElapseTime);
 	float VPS = (float) (s_drawn_video * 1000.0 / ElapseTime);
+	float VRPS = (float) (Common::AtomicLoad(g_drawn_vr) * 1000.0 / ElapseTime);
 	float Speed = (float) (s_drawn_video * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
@@ -784,12 +788,12 @@ void UpdateTitle()
 	std::string SFPS;
 
 	if (Movie::IsPlayingInput())
-		SFPS = StringFromFormat("VI: %u/%u - Input: %u/%u - FPS: %.0f - VPS: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u/%u - Input: %u/%u - FPS: %.0f - VPS: %.0f - VR: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, VRPS, Speed);
 	else if (Movie::IsRecordingInput())
-		SFPS = StringFromFormat("VI: %u - Input: %u - FPS: %.0f - VPS: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u - Input: %u - FPS: %.0f - VPS: %.0f - VR: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, VRPS, Speed);
 	else
 	{
-		SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
+		SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - VR: %.0f - %.0f%%", FPS, VPS, VRPS, Speed);
 		if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
 		{
 			// Use extended or summary information. The summary information does not print the ticks data,
