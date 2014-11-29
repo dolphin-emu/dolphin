@@ -227,7 +227,7 @@ void JitArm::stX(UGeckoInstruction inst)
 		// Check for DSI exception prior to writing back address
 		LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 		TST(rA, EXCEPTION_DSI);
-		SetCC(CC_EQ);
+		FixupBranch has_exception = B_CC(CC_NEQ);
 		if (regOffset == -1)
 		{
 			MOVI2R(rA, offset);
@@ -237,7 +237,7 @@ void JitArm::stX(UGeckoInstruction inst)
 		{
 			ADD(RA, RA, RB);
 		}
-		SetCC();
+		SetJumpTarget(has_exception);
 		gpr.Unlock(rA);
 	}
 }
