@@ -466,10 +466,30 @@ namespace HotkeysXInput
 			false == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[id]);
 	}
 
+	//Take in ID of setting and Current XInput State, and compare to see if the right buttons are being pressed.
+	bool IsHotkeyXInput(u32* XInput_State, int id)
+	{
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[id];
+		return (((*XInput_State & ini_setting) == ini_setting) &&
+			false == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[id]);
+	}
+
 	//Take xinput_string and see if it is currently set in ini.
 	bool IsXInputButtonSet(wxString button_string, int id)
 	{
 		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[id];
+		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
+
+		if ((xinput_value & ini_setting) == xinput_value)
+			return true;
+		else
+			return false;
+	}
+
+	//Take xinput_string and see if it is currently set in ini.
+	bool IsHotkeyXInputButtonSet(wxString button_string, int id)
+	{
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[id];
 		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
 
 		if ((xinput_value & ini_setting) == xinput_value)
