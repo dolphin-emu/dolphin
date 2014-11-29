@@ -62,6 +62,7 @@ namespace D3D
 						ID3D11PixelShader* PShader,
 						ID3D11VertexShader* VShader,
 						ID3D11InputLayout* layout,
+						ID3D11GeometryShader* GShader = nullptr,
 						float Gamma = 1.0f,
 						u32 slice = 0);
 	void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
@@ -70,8 +71,9 @@ namespace D3D
 							int SourceHeight,
 							const MathUtil::Rectangle<float>* rDest,
 							ID3D11PixelShader* PShader,
-							ID3D11VertexShader* Vshader,
+							ID3D11VertexShader* VShader,
 							ID3D11InputLayout* layout,
+							ID3D11GeometryShader* GShader = nullptr,
 							float Gamma = 1.0f,
 							u32 slice = 0);
 	void drawClearQuad(u32 Color, float z);

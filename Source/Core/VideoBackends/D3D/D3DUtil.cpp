@@ -511,8 +511,9 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 						int SourceWidth,
 						int SourceHeight,
 						ID3D11PixelShader* PShader,
-						ID3D11VertexShader* Vshader,
+						ID3D11VertexShader* VShader,
 						ID3D11InputLayout* layout,
+						ID3D11GeometryShader* GShader,
 						float Gamma,
 						u32 slice)
 {
@@ -556,13 +557,16 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	D3D::stateman->SetVertexBuffer(util_vbuf->GetBuffer(), stride, offset);
 	D3D::stateman->SetPixelShader(PShader);
 	D3D::stateman->SetTexture(0, texture);
-	D3D::stateman->SetVertexShader(Vshader);
+	D3D::stateman->SetVertexShader(VShader);
+	D3D::stateman->SetGeometryShader(GShader);
 
 	D3D::stateman->Apply();
 	D3D::context->Draw(4, stq_offset);
 
 	D3D::stateman->SetTexture(0, nullptr); // immediately unbind the texture
 	D3D::stateman->Apply();
+
+	D3D::stateman->SetGeometryShader(nullptr);
 }
 
 void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
@@ -571,8 +575,9 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 							int SourceHeight,
 							const MathUtil::Rectangle<float>* rDest,
 							ID3D11PixelShader* PShader,
-							ID3D11VertexShader* Vshader,
+							ID3D11VertexShader* VShader,
 							ID3D11InputLayout* layout,
+							ID3D11GeometryShader* GShader,
 							float Gamma,
 							u32 slice)
 {
@@ -618,13 +623,16 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	stateman->SetInputLayout(layout);
 	stateman->SetTexture(0, texture);
 	stateman->SetPixelShader(PShader);
-	stateman->SetVertexShader(Vshader);
+	stateman->SetVertexShader(VShader);
+	stateman->SetGeometryShader(GShader);
 
 	stateman->Apply();
 	context->Draw(4, stsq_offset);
 
 	stateman->SetTexture(0, nullptr); // immediately unbind the texture
 	stateman->Apply();
+
+	stateman->SetGeometryShader(nullptr);
 }
 
 // Fills a certain area of the current render target with the specified color

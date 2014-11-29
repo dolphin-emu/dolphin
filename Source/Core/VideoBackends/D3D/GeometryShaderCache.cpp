@@ -28,10 +28,12 @@ GeometryShaderUid GeometryShaderCache::last_uid;
 UidChecker<GeometryShaderUid,ShaderCode> GeometryShaderCache::geometry_uid_checker;
 
 ID3D11GeometryShader* ClearGeometryShader = nullptr;
+ID3D11GeometryShader* CopyGeometryShader = nullptr;
 
 LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
 
 ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return ClearGeometryShader; }
+ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return CopyGeometryShader; }
 
 ID3D11Buffer* gscbuf = nullptr;
 
@@ -75,12 +77,51 @@ const char clear_shader_code[] = {
 	"}\n"
 };
 
+const char copy_shader_code[] = {
+	"struct VSOUTPUT\n"
+	"{\n"
+	"float4 vPosition : POSITION;\n"
+	"float3 vTexCoord : TEXCOORD0;\n"
+	"float  vTexCoord1 : TEXCOORD1;\n"
+	"};\n"
+	"struct GSOUTPUT\n"
+	"{\n"
+	"float4 vPosition : POSITION;\n"
+	"float3 vTexCoord : TEXCOORD0;\n"
+	"float  vTexCoord1 : TEXCOORD1;\n"
+	"uint slice    : SV_RenderTargetArrayIndex;\n"
+	"};\n"
+	"[maxvertexcount(6)]\n"
+	"void main(triangle VSOUTPUT o[3], inout TriangleStream<GSOUTPUT> Output)\n"
+	"{\n"
+	"for(int slice = 0; slice < 2; slice++)\n"
+	"{\n"
+	"for(int i = 0; i < 3; i++)\n"
+	"{\n"
+	"GSOUTPUT OUT;\n"
+	"OUT.vPosition = o[i].vPosition;\n"
+	"OUT.vTexCoord = o[i].vTexCoord;\n"
+	"OUT.vTexCoord.z = slice;\n"
+	"OUT.vTexCoord1 = o[i].vTexCoord1;\n"
+	"OUT.slice = slice;\n"
+	"Output.Append(OUT);\n"
+	"}\n"
+	"Output.RestartStrip();\n"
+	"}\n"
+	"}\n"
+};
+
 void GeometryShaderCache::Init()
 {
 	// used when drawing clear quads
 	ClearGeometryShader = D3D::CompileAndCreateGeometryShader(clear_shader_code);
 	CHECK(ClearGeometryShader != nullptr, "Create clear geometry shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearGeometryShader, "clear geometry shader");
+
+	// used for buffer copy
+	CopyGeometryShader = D3D::CompileAndCreateGeometryShader(copy_shader_code);
+	CHECK(CopyGeometryShader != nullptr, "Create copy geometry shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)CopyGeometryShader, "copy geometry shader");
 
 	Clear();
 
@@ -112,6 +153,7 @@ void GeometryShaderCache::Clear()
 void GeometryShaderCache::Shutdown()
 {
 	SAFE_RELEASE(ClearGeometryShader);
+	SAFE_RELEASE(CopyGeometryShader);
 
 	Clear();
 	g_gs_disk_cache.Sync();

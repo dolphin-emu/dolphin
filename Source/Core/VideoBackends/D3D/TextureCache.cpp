@@ -7,6 +7,7 @@
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/PSTextureEncoder.h"
 #include "VideoBackends/D3D/TextureCache.h"
@@ -163,7 +164,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
 			&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 			(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
-			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
+			(g_Config.iStereoMode > 0) ? GeometryShaderCache::GetCopyGeometryShader() : nullptr);
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 

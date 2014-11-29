@@ -208,7 +208,7 @@ void XFBSource::CopyEFB(float Gamma)
 	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), sourceRc.AsRECT(),
 		Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 		PixelShaderCache::GetColorCopyProgram(true), VertexShaderCache::GetSimpleVertexShader(),
-		VertexShaderCache::GetSimpleInputLayout(),Gamma);
+		VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma);
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
