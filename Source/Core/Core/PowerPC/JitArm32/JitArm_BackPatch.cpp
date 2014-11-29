@@ -225,9 +225,8 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 	{
 		ARMReg temp2 = R10;
 		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-		emit->BIC(temp, addr, mask); // 1
-		emit->MOVI2R(temp2, (u32)Memory::base); // 2-3
-		emit->ADD(temp, temp, temp2); // 4
+		emit->BIC(temp, addr, mask);
+		emit->ADD(temp, temp, R8);
 
 		if (flags & BackPatchInfo::FLAG_STORE &&
 		    flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))

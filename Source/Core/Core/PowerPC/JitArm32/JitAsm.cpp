@@ -96,6 +96,7 @@ void JitArmAsmRoutineManager::Generate()
 	SUB(_SP, _SP, 4);
 
 	MOVI2R(R9, (u32)&PowerPC::ppcState.spr[0]);
+	MOVI2R(R8, (u32)Memory::base);
 
 	FixupBranch skipToRealDispatcher = B();
 	dispatcher = GetCodePtr();
@@ -203,8 +204,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedFloatTwo = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		nemit.VLD1(I_32, D0, R10);
 		nemit.VREV32(I_8, D0, D0);
@@ -214,8 +214,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedFloatOne = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		nemit.VLD1(I_32, D0, R10);
 		nemit.VREV32(I_8, D0, D0);
@@ -225,8 +224,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedU8Two = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRH(R12, R10);
 		SXTB(R12, R12);
@@ -251,8 +249,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedU8One = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRB(R12, R10);
 		SXTB(R12, R12);
@@ -271,8 +268,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedS8Two = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRH(R12, R10);
 		SXTB(R12, R12);
@@ -297,8 +293,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedS8One = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRB(R12, R10);
 		SXTB(R12, R12);
@@ -317,8 +312,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedU16Two = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRH(R12, R10);
 		REV16(R12, R12);
@@ -345,8 +339,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedU16One = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRH(R12, R10);
 		REV16(R12, R12);
@@ -364,8 +357,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedS16Two = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRH(R12, R10);
 		REV16(R12, R12);
@@ -392,8 +384,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	const u8* loadPairedS16One = GetCodePtr();
 	{
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		LDRH(R12, R10);
 
@@ -439,8 +430,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		TST(R10, arghmask);
 		FixupBranch argh = B_CC(CC_NEQ);
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		nemit.VREV32(I_8, D0, D0);
 		nemit.VST1(I_32, D0, R10);
@@ -511,8 +501,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		TST(R10, arghmask);
 		FixupBranch argh = B_CC(CC_NEQ);
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		VMOV(R12, S0);
 		REV(R12, R12);
@@ -540,8 +529,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		TST(R10, arghmask);
 		FixupBranch argh = B_CC(CC_NEQ);
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		VCVT(S0, S0, TO_INT | ROUND_TO_ZERO);
 		VMOV(R12, S0);
@@ -568,8 +556,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		TST(R10, arghmask);
 		FixupBranch argh = B_CC(CC_NEQ);
 		BIC(R10, R10, mask);
-		MOVI2R(R12, (u32)Memory::base);
-		ADD(R10, R10, R12);
+		ADD(R10, R10, R8);
 
 		VCVT(S0, S0, TO_INT | ROUND_TO_ZERO);
 		VMOV(R12, S0);

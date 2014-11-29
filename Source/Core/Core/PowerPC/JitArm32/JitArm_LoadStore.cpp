@@ -148,7 +148,7 @@ void JitArm::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, int accessSize
 		else if (Memory::IsRAMAddress(imm_addr))
 		{
 			MOVI2R(rA, imm_addr);
-			EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, false, RS);
+			EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, true, RS);
 		}
 		else
 		{
@@ -487,14 +487,12 @@ void JitArm::lmw(UGeckoInstruction inst)
 
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
 	MOVI2R(rA, inst.SIMM_16);
 	if (a)
 		ADD(rA, rA, gpr.R(a));
 	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-	BIC(rA, rA, mask); // 3
-	MOVI2R(rB, (u32)Memory::base, false); // 4-5
-	ADD(rA, rA, rB); // 6
+	BIC(rA, rA, mask);
+	ADD(rA, rA, R8);
 
 	for (int i = inst.RD; i < 32; i++)
 	{
@@ -502,7 +500,7 @@ void JitArm::lmw(UGeckoInstruction inst)
 		LDR(RX, rA, (i - inst.RD) * 4);
 		REV(RX, RX);
 	}
-	gpr.Unlock(rA, rB);
+	gpr.Unlock(rA);
 }
 
 void JitArm::stmw(UGeckoInstruction inst)
@@ -514,22 +512,20 @@ void JitArm::stmw(UGeckoInstruction inst)
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
-	ARMReg rC = gpr.GetReg();
 	MOVI2R(rA, inst.SIMM_16);
 	if (a)
 		ADD(rA, rA, gpr.R(a));
 	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
-	BIC(rA, rA, mask); // 3
-	MOVI2R(rB, (u32)Memory::base, false); // 4-5
-	ADD(rA, rA, rB); // 6
+	BIC(rA, rA, mask);
+	ADD(rA, rA, R8);
 
 	for (int i = inst.RD; i < 32; i++)
 	{
 		ARMReg RX = gpr.R(i);
-		REV(rC, RX);
-		STR(rC, rA, (i - inst.RD) * 4);
+		REV(rB, RX);
+		STR(rB, rA, (i - inst.RD) * 4);
 	}
-	gpr.Unlock(rA, rB, rC);
+	gpr.Unlock(rA, rB);
 }
 
 void JitArm::dcbst(UGeckoInstruction inst)
