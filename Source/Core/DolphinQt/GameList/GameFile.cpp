@@ -225,9 +225,9 @@ QString GameFile::CreateCacheFilename()
 
 	// Filename.extension_HashOfFolderPath_Size.cache
 	// Append hash to prevent ISO name-clashing in different folders.
-	filename.append(StringFromFormat("%s_%x_%lx.qcache",
+	filename.append(StringFromFormat("%s_%x_%llx.qcache",
 		extension.c_str(), HashFletcher((const u8*)pathname.c_str(), pathname.size()),
-		File::GetSize(m_file_name.toStdString())));
+		(unsigned long long)File::GetSize(m_file_name.toStdString())));
 
 	QString fullname = QString::fromStdString(File::GetUserPath(D_CACHE_IDX));
 	fullname += QString::fromStdString(filename);
