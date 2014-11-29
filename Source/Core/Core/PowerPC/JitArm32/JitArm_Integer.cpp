@@ -1025,9 +1025,19 @@ void JitArm::srawix(UGeckoInstruction inst)
 	int s = inst.RS;
 	int amount = inst.SH;
 
-	gpr.BindToRegister(a, a == s);
-	if (amount != 0)
+	if (gpr.IsImm(s))
 	{
+		s32 imm = (s32)gpr.GetImm(s);
+		gpr.SetImmediate(a, imm >> amount);
+
+		if (amount != 0 && (imm < 0) && (imm << (32 - amount)))
+			ComputeCarry(true);
+		else
+			ComputeCarry(false);
+	}
+	else if (amount != 0)
+	{
+		gpr.BindToRegister(a, a == s);
 		ARMReg RA = gpr.R(a);
 		ARMReg RS = gpr.R(s);
 		ARMReg tmp = gpr.GetReg();
@@ -1049,6 +1059,7 @@ void JitArm::srawix(UGeckoInstruction inst)
 	}
 	else
 	{
+		gpr.BindToRegister(a, a == s);
 		ARMReg RA = gpr.R(a);
 		ARMReg RS = gpr.R(s);
 		MOV(RA, RS);
