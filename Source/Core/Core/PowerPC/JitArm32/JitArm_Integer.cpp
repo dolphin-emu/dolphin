@@ -825,10 +825,34 @@ void JitArm::cmp (UGeckoInstruction inst)
 
 	gpr.Unlock(rA);
 }
+
+void JitArm::cmpl(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int crf = inst.CRFD;
+	u32 a = inst.RA, b = inst.RB;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		ComputeRC(gpr.GetImm(a) - gpr.GetImm(b), crf);
+		return;
+	}
+	else if (gpr.IsImm(b) && !gpr.GetImm(b))
+	{
+		ComputeRC(gpr.R(a), crf);
+		return;
+	}
+
+	FALLBACK_IF(true);
+}
+
 void JitArm::cmpi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
+
 	u32 a = inst.RA;
 	int crf = inst.CRFD;
 	if (gpr.IsImm(a))
@@ -838,10 +862,15 @@ void JitArm::cmpi(UGeckoInstruction inst)
 	}
 	ARMReg rA = gpr.GetReg();
 	ARMReg RA = gpr.R(a);
+	bool negated = false;
+	Operand2 off;
 
-	if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 256)
+	if (TryMakeOperand2_AllowNegation(inst.SIMM_16, off, &negated))
 	{
-		SUB(rA, RA, inst.SIMM_16);
+		if (negated)
+			ADD(rA, RA, off);
+		else
+			SUB(rA, RA, off);
 	}
 	else
 	{
@@ -851,6 +880,28 @@ void JitArm::cmpi(UGeckoInstruction inst)
 	ComputeRC(rA, crf);
 
 	gpr.Unlock(rA);
+}
+
+void JitArm::cmpli(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	u32 a = inst.RA;
+	int crf = inst.CRFD;
+
+	if (gpr.IsImm(a))
+	{
+		ComputeRC(gpr.GetImm(a) - inst.UIMM, crf);
+		return;
+	}
+
+	if (!inst.UIMM)
+	{
+		ComputeRC(gpr.R(a), crf);
+		return;
+	}
+
+	FALLBACK_IF(true);
 }
 
 void JitArm::negx(UGeckoInstruction inst)
