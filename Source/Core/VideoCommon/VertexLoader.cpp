@@ -410,8 +410,7 @@ void VertexLoader::CompileVertexTranslator()
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-	MOV(64, R(RAX), Imm64((u64)func));
-	CALLptr(R(RAX));
+	ABI_CallFunction((const void*)func);
 #else
 	m_PipelineStages[m_numPipelineStages++] = func;
 #endif
