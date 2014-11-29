@@ -519,6 +519,7 @@ void ProgramShaderCache::CreateHeader()
 		// Precision defines for GLSL ES
 		"%s\n"
 		"%s\n"
+		"%s\n"
 
 		// Silly differences
 		"#define float2 vec2\n"
@@ -551,6 +552,7 @@ void ProgramShaderCache::CreateHeader()
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""
+		, v>=GLSLES_300 ? "precision highp sampler2DArray;" : ""
 
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""
