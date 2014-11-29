@@ -248,7 +248,6 @@ void JitIL::Init()
 
 	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
-	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = false;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
