@@ -60,6 +60,7 @@ private:
 			FLAG_SIZE_F32 = (1 << 5),
 			FLAG_SIZE_F64 = (1 << 6),
 			FLAG_REVERSE  = (1 << 7),
+			FLAG_EXTEND   = (1 << 8),
 		};
 
 		u32 m_fastmem_size;

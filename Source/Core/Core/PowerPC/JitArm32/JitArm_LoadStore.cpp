@@ -347,12 +347,12 @@ void JitArm::SafeLoadToReg(ARMReg dest, s32 addr, s32 offsetReg, int accessSize,
 	if (reverse)
 		flags |= BackPatchInfo::FLAG_REVERSE;
 
+	if (signExtend)
+		flags |= BackPatchInfo::FLAG_EXTEND;
+
 	EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			!(is_immediate && Memory::IsRAMAddress(imm_addr)), dest);
-
-	if (signExtend) // Only on 16 loads
-		SXTH(dest, dest);
 
 	if (update)
 		MOV(gpr.R(addr), rA);

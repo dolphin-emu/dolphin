@@ -300,6 +300,9 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 				else if (flags & BackPatchInfo::FLAG_SIZE_16)
 					emit->REV16(RS, RS);
 			}
+
+			if (flags & BackPatchInfo::FLAG_EXTEND)
+				emit->SXTH(RS, RS);
 		}
 	}
 	else
@@ -590,13 +593,33 @@ void JitArm::InitBackpatch()
 
 			m_backpatch_info[flags] = info;
 		}
-
 		// 16bit - reverse
 		{
 			flags =
 				BackPatchInfo::FLAG_LOAD |
 				BackPatchInfo::FLAG_SIZE_16 |
 				BackPatchInfo::FLAG_REVERSE;
+			EmitBackpatchRoutine(this, flags, false, false, R0);
+			code_end = GetWritableCodePtr();
+			info.m_slowmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			info.m_fastmem_trouble_inst_offset =
+				EmitBackpatchRoutine(this, flags, true, false, R0);
+			code_end = GetWritableCodePtr();
+			info.m_fastmem_size = (code_end - code_base) / 4;
+
+			SetCodePtr(code_base);
+
+			m_backpatch_info[flags] = info;
+		}
+		// 16bit - sign extend
+		{
+			flags =
+				BackPatchInfo::FLAG_LOAD |
+				BackPatchInfo::FLAG_SIZE_16 |
+				BackPatchInfo::FLAG_EXTEND;
 			EmitBackpatchRoutine(this, flags, false, false, R0);
 			code_end = GetWritableCodePtr();
 			info.m_slowmem_size = (code_end - code_base) / 4;
