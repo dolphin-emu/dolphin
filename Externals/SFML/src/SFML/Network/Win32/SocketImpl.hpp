@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -22,64 +22,78 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef SFML_SOCKETHELPERUNIX_HPP
-#define SFML_SOCKETHELPERUNIX_HPP
+#ifndef SFML_SOCKETIMPL_HPP
+#define SFML_SOCKETIMPL_HPP
 
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
+#ifdef _WIN32_WINDOWS
+    #undef _WIN32_WINDOWS
+#endif
+#ifdef _WIN32_WINNT
+    #undef _WIN32_WINNT
+#endif
+#define _WIN32_WINDOWS 0x0501
+#define _WIN32_WINNT   0x0501
+#include <SFML/Network/Socket.hpp>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 
 
 namespace sf
 {
+namespace priv
+{
 ////////////////////////////////////////////////////////////
-/// This class defines helper functions to do all the
-/// non-portable socket stuff. This class is meant for internal
-/// use only
+/// \brief Helper class implementing all the non-portable
+///        socket stuff; this is the Windows version
+///
 ////////////////////////////////////////////////////////////
-class SFML_API SocketHelper
+class SocketImpl
 {
 public :
 
     ////////////////////////////////////////////////////////////
-    // Define some socket types
+    // Types
     ////////////////////////////////////////////////////////////
-    typedef int       SocketType;
-    typedef socklen_t LengthType;
+    typedef int AddrLength;
 
     ////////////////////////////////////////////////////////////
-    /// Return the value of the invalid socket
+    /// \brief Create an internal sockaddr_in address
     ///
-    /// \return Unique value of the invalid socket
+    /// \param address Target address
+    /// \param port    Target port
+    ///
+    /// \return sockaddr_in ready to be used by socket functions
     ///
     ////////////////////////////////////////////////////////////
-    static SocketType InvalidSocket();
+    static sockaddr_in createAddress(Uint32 address, unsigned short port);
 
     ////////////////////////////////////////////////////////////
-    /// Close / destroy a socket
+    /// \brief Return the value of the invalid socket
     ///
-    /// \param Socket : Socket to close
-    ///
-    /// \return True on success
+    /// \return Special value of the invalid socket
     ///
     ////////////////////////////////////////////////////////////
-    static bool Close(SocketType Socket);
+    static SocketHandle invalidSocket();
 
     ////////////////////////////////////////////////////////////
-    /// Set a socket as blocking or non-blocking
+    /// \brief Close and destroy a socket
     ///
-    /// \param Socket : Socket to modify
-    /// \param Block :  New blocking state of the socket
+    /// \param sock Handle of the socket to close
     ///
     ////////////////////////////////////////////////////////////
-    static void SetBlocking(SocketType Socket, bool Block);
+    static void close(SocketHandle sock);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Set a socket as blocking or non-blocking
+    ///
+    /// \param sock  Handle of the socket
+    /// \param block New blocking state of the socket
+    ///
+    ////////////////////////////////////////////////////////////
+    static void setBlocking(SocketHandle sock, bool block);
 
     ////////////////////////////////////////////////////////////
     /// Get the last socket error status
@@ -87,10 +101,12 @@ public :
     /// \return Status corresponding to the last socket error
     ///
     ////////////////////////////////////////////////////////////
-    static Socket::Status GetErrorStatus();
+    static Socket::Status getErrorStatus();
 };
+
+} // namespace priv
 
 } // namespace sf
 
 
-#endif // SFML_SOCKETHELPERUNIX_HPP
+#endif // SFML_SOCKETIMPL_HPP

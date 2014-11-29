@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -25,52 +25,62 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <SFML/Network/SocketHelper.hpp>
+#include <SFML/Network/Win32/SocketImpl.hpp>
+#include <cstring>
 
 
 namespace sf
 {
+namespace priv
+{
 ////////////////////////////////////////////////////////////
-/// Return the value of the invalid socket
+sockaddr_in SocketImpl::createAddress(Uint32 address, unsigned short port)
+{
+    sockaddr_in addr;
+    std::memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
+    addr.sin_addr.s_addr = htonl(address);
+    addr.sin_family      = AF_INET;
+    addr.sin_port        = htons(port);
+
+    return addr;
+}
+
+
 ////////////////////////////////////////////////////////////
-SocketHelper::SocketType SocketHelper::InvalidSocket()
+SocketHandle SocketImpl::invalidSocket()
 {
     return INVALID_SOCKET;
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Close / destroy a socket
-////////////////////////////////////////////////////////////
-bool SocketHelper::Close(SocketHelper::SocketType Socket)
+void SocketImpl::close(SocketHandle sock)
 {
-    return closesocket(Socket) != -1;
+    closesocket(sock);
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Set a socket as blocking or non-blocking
-////////////////////////////////////////////////////////////
-void SocketHelper::SetBlocking(SocketHelper::SocketType Socket, bool Block)
+void SocketImpl::setBlocking(SocketHandle sock, bool block)
 {
-    unsigned long Blocking = Block ? 0 : 1;
-    ioctlsocket(Socket, FIONBIO, &Blocking);
+    u_long blocking = block ? 0 : 1;
+    ioctlsocket(sock, FIONBIO, &blocking);
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Get the last socket error status
-////////////////////////////////////////////////////////////
-Socket::Status SocketHelper::GetErrorStatus()
+Socket::Status SocketImpl::getErrorStatus()
 {
     switch (WSAGetLastError())
     {
         case WSAEWOULDBLOCK :  return Socket::NotReady;
+        case WSAEALREADY :     return Socket::NotReady;
         case WSAECONNABORTED : return Socket::Disconnected;
         case WSAECONNRESET :   return Socket::Disconnected;
         case WSAETIMEDOUT :    return Socket::Disconnected;
         case WSAENETRESET :    return Socket::Disconnected;
         case WSAENOTCONN :     return Socket::Disconnected;
+        case WSAEISCONN :      return Socket::Done; // when connecting a non-blocking socket
         default :              return Socket::Error;
     }
 }
@@ -85,8 +95,8 @@ struct SocketInitializer
 {
     SocketInitializer()
     {
-        WSADATA InitData;
-        WSAStartup(MAKEWORD(2,2), &InitData);
+        WSADATA init;
+        WSAStartup(MAKEWORD(2, 2), &init);
     }
 
     ~SocketInitializer()
@@ -95,6 +105,8 @@ struct SocketInitializer
     }
 };
 
-SocketInitializer GlobalInitializer;
+SocketInitializer globalInitializer;
+
+} // namespace priv
 
 } // namespace sf

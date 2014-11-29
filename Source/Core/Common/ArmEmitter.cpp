@@ -543,43 +543,45 @@ void ARMXEmitter::WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg 
 
 // IMM, REG, IMMSREG, RSR
 // -1 for invalid if the instruction doesn't support that
-const s32 InstOps[][4] = {{16, 0, 0, 0}, // AND(s)
-                          {17, 1, 1, 1}, // EOR(s)
-                          {18, 2, 2, 2}, // SUB(s)
-                          {19, 3, 3, 3}, // RSB(s)
-                          {20, 4, 4, 4}, // ADD(s)
-                          {21, 5, 5, 5}, // ADC(s)
-                          {22, 6, 6, 6}, // SBC(s)
-                          {23, 7, 7, 7}, // RSC(s)
-                          {24, 8, 8, 8}, // TST
-                          {25, 9, 9, 9}, // TEQ
-                          {26, 10, 10, 10}, // CMP
-                          {27, 11, 11, 11}, // CMN
-                          {28, 12, 12, 12}, // ORR(s)
-                          {29, 13, 13, 13}, // MOV(s)
-                          {30, 14, 14, 14}, // BIC(s)
-                          {31, 15, 15, 15}, // MVN(s)
-                          {24, -1, -1, -1}, // MOVW
-                          {26, -1, -1, -1}, // MOVT
-                         };
+static const s32 InstOps[][4] = {
+	{16, 0, 0, 0}, // AND(s)
+	{17, 1, 1, 1}, // EOR(s)
+	{18, 2, 2, 2}, // SUB(s)
+	{19, 3, 3, 3}, // RSB(s)
+	{20, 4, 4, 4}, // ADD(s)
+	{21, 5, 5, 5}, // ADC(s)
+	{22, 6, 6, 6}, // SBC(s)
+	{23, 7, 7, 7}, // RSC(s)
+	{24, 8, 8, 8}, // TST
+	{25, 9, 9, 9}, // TEQ
+	{26, 10, 10, 10}, // CMP
+	{27, 11, 11, 11}, // CMN
+	{28, 12, 12, 12}, // ORR(s)
+	{29, 13, 13, 13}, // MOV(s)
+	{30, 14, 14, 14}, // BIC(s)
+	{31, 15, 15, 15}, // MVN(s)
+	{24, -1, -1, -1}, // MOVW
+	{26, -1, -1, -1}, // MOVT
+};
 
-const char *InstNames[] = {"AND",
-                           "EOR",
-                           "SUB",
-                           "RSB",
-                           "ADD",
-                           "ADC",
-                           "SBC",
-                           "RSC",
-                           "TST",
-                           "TEQ",
-                           "CMP",
-                           "CMN",
-                           "ORR",
-                           "MOV",
-                           "BIC",
-                           "MVN"
-                          };
+static const char* InstNames[] = {
+	"AND",
+	"EOR",
+	"SUB",
+	"RSB",
+	"ADD",
+	"ADC",
+	"SBC",
+	"RSC",
+	"TST",
+	"TEQ",
+	"CMP",
+	"CMN",
+	"ORR",
+	"MOV",
+	"BIC",
+	"MVN"
+};
 
 void ARMXEmitter::AND (ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(0, Rd, Rn, Rm); }
 void ARMXEmitter::ANDS(ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(0, Rd, Rn, Rm, true); }
@@ -774,7 +776,7 @@ void ARMXEmitter::SVC(Operand2 op)
 
 // IMM, REG, IMMSREG, RSR
 // -1 for invalid if the instruction doesn't support that
-const s32 LoadStoreOps[][4] = {
+static const s32 LoadStoreOps[][4] = {
 	{0x40, 0x60, 0x60, -1}, // STR
 	{0x41, 0x61, 0x61, -1}, // LDR
 	{0x44, 0x64, 0x64, -1}, // STRB
@@ -785,7 +787,7 @@ const s32 LoadStoreOps[][4] = {
 	{ 0x5,  0x1,  -1, -1}, // LDRSB
 	{ 0x5,  0x1,  -1, -1}, // LDRSH
 };
-const char *LoadStoreNames[] = {
+static const char* LoadStoreNames[] = {
 	"STR",
 	"LDR",
 	"STRB",

@@ -783,6 +783,11 @@ int Wiimote::IOWrite(const u8* buf, size_t len)
 	return _IOWrite(dev_handle, hid_overlap_write, stack, buf, len, nullptr);
 }
 
+void Wiimote::EnablePowerAssertionInternal()
+{}
+void Wiimote::DisablePowerAssertionInternal()
+{}
+
 // invokes callback for each found wiimote bluetooth device
 template <typename T>
 void ProcessWiimotes(bool new_scan, T& callback)

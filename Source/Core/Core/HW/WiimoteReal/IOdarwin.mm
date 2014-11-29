@@ -72,7 +72,6 @@
 	memcpy(wm->input, data, length);
 	wm->inputlen = length;
 
-	(void)UpdateSystemActivity(UsrActivity);
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
@@ -195,6 +194,7 @@ void Wiimote::InitInternal()
 	m_connected = false;
 	m_wiimote_thread_run_loop = nullptr;
 	btd = nil;
+	m_pm_assertion = kIOPMNullAssertionID;
 }
 
 void Wiimote::TeardownInternal()
@@ -326,6 +326,24 @@ int Wiimote::IOWrite(const unsigned char *buf, size_t len)
 		return len;
 	else
 		return 0;
+}
+
+void Wiimote::EnablePowerAssertionInternal()
+{
+	if (m_pm_assertion == kIOPMNullAssertionID)
+	{
+		if (IOReturn ret = IOPMAssertionCreateWithName(kIOPMAssertPreventUserIdleDisplaySleep, kIOPMAssertionLevelOn, CFSTR("Dolphin Wiimote activity"), &m_pm_assertion))
+			ERROR_LOG(WIIMOTE, "Could not create power management assertion: %08x", ret);
+	}
+}
+
+void Wiimote::DisablePowerAssertionInternal()
+{
+	if (m_pm_assertion != kIOPMNullAssertionID)
+	{
+		if (IOReturn ret = IOPMAssertionRelease(m_pm_assertion))
+			ERROR_LOG(WIIMOTE, "Could not release power management assertion: %08x", ret);
+	}
 }
 
 }

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -22,8 +22,8 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef SFML_SOCKETS_HPP
-#define SFML_SOCKETS_HPP
+#ifndef SFML_NETWORK_EXPORT_HPP
+#define SFML_NETWORK_EXPORT_HPP
 
 ////////////////////////////////////////////////////////////
 // Headers
@@ -31,15 +31,18 @@
 #include <SFML/Config.hpp>
 
 
-#ifdef SFML_SYSTEM_WINDOWS
+////////////////////////////////////////////////////////////
+// Define portable import / export macros
+////////////////////////////////////////////////////////////
+#if defined(SFML_NETWORK_EXPORTS)
 
-    #include <SFML/Network/Win32/Sockets.hpp>
+    #define SFML_NETWORK_API SFML_API_EXPORT
 
 #else
 
-    #include <SFML/Network/Unix/Sockets.hpp>
+    #define SFML_NETWORK_API SFML_API_IMPORT
 
 #endif
 
 
-#endif // SFML_SOCKETS_HPP
+#endif // SFML_NETWORK_EXPORT_HPP

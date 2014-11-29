@@ -22,32 +22,57 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef SFML_NETWORK_HPP
-#define SFML_NETWORK_HPP
+#ifndef SFML_ERR_HPP
+#define SFML_ERR_HPP
 
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-
-#include <SFML/System.hpp>
-//#include <SFML/Network/Ftp.hpp>
-#include <SFML/Network/Http.hpp>
-
-// This file is "IpAddress.hpp" upstream
-#include <SFML/Network/IPAddress.hpp>
-#include <SFML/Network/Packet.hpp>
-#include <SFML/Network/SocketSelector.hpp>
-#include <SFML/Network/TcpListener.hpp>
-#include <SFML/Network/TcpSocket.hpp>
-#include <SFML/Network/UdpSocket.hpp>
+#include <SFML/System/Export.hpp>
+#include <ostream>
 
 
-#endif // SFML_NETWORK_HPP
+namespace sf
+{
+////////////////////////////////////////////////////////////
+/// \brief Standard stream used by SFML to output warnings and errors
+///
+////////////////////////////////////////////////////////////
+SFML_SYSTEM_API std::ostream& err();
+
+} // namespace sf
+
+
+#endif // SFML_ERR_HPP
+
 
 ////////////////////////////////////////////////////////////
-/// \defgroup network Network module
+/// \fn sf::err
+/// \ingroup system
 ///
-/// Socket-based communication, utilities and higher-level
-/// network protocols (HTTP, FTP).
+/// By default, sf::err() outputs to the same location as std::cerr,
+/// (-> the stderr descriptor) which is the console if there's
+/// one available.
+///
+/// It is a standard std::ostream instance, so it supports all the
+/// insertion operations defined by the STL
+/// (operator <<, manipulators, etc.).
+///
+/// sf::err() can be redirected to write to another output, independantly
+/// of std::cerr, by using the rdbuf() function provided by the
+/// std::ostream class.
+///
+/// Example:
+/// \code
+/// // Redirect to a file
+/// std::ofstream file("sfml-log.txt");
+/// std::streambuf* previous = sf::err().rdbuf(file.rdbuf());
+///
+/// // Redirect to nothing
+/// sf::err().rdbuf(NULL);
+///
+/// // Restore the original output
+/// sf::err().rdbuf(previous);
+/// \endcode
 ///
 ////////////////////////////////////////////////////////////

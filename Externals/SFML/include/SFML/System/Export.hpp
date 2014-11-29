@@ -22,32 +22,27 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef SFML_NETWORK_HPP
-#define SFML_NETWORK_HPP
+#ifndef SFML_SYSTEM_EXPORT_HPP
+#define SFML_SYSTEM_EXPORT_HPP
 
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
+#include <SFML/Config.hpp>
 
-#include <SFML/System.hpp>
-//#include <SFML/Network/Ftp.hpp>
-#include <SFML/Network/Http.hpp>
-
-// This file is "IpAddress.hpp" upstream
-#include <SFML/Network/IPAddress.hpp>
-#include <SFML/Network/Packet.hpp>
-#include <SFML/Network/SocketSelector.hpp>
-#include <SFML/Network/TcpListener.hpp>
-#include <SFML/Network/TcpSocket.hpp>
-#include <SFML/Network/UdpSocket.hpp>
-
-
-#endif // SFML_NETWORK_HPP
 
 ////////////////////////////////////////////////////////////
-/// \defgroup network Network module
-///
-/// Socket-based communication, utilities and higher-level
-/// network protocols (HTTP, FTP).
-///
+// Define portable import / export macros
 ////////////////////////////////////////////////////////////
+#if defined(SFML_SYSTEM_EXPORTS)
+
+    #define SFML_SYSTEM_API SFML_API_EXPORT
+
+#else
+
+    #define SFML_SYSTEM_API SFML_API_IMPORT
+
+#endif
+
+
+#endif // SFML_SYSTEM_EXPORT_HPP
