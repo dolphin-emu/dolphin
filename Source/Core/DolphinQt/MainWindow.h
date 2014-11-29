@@ -27,7 +27,7 @@ public:
 	~DMainWindow();
 
 	// DRenderWidget
-	bool RenderWidgetHasFocus();
+	bool RenderWidgetHasFocus() const { return m_render_widget->isActiveWindow(); }
 	DRenderWidget* GetRenderWidget() { return m_render_widget.get(); }
 
 signals:
