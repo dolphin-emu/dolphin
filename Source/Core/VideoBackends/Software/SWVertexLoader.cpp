@@ -13,7 +13,6 @@
 #include "VideoBackends/Software/TransformUnit.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"

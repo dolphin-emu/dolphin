@@ -18,6 +18,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 #if _M_SSE >= 0x401
 #include <smmintrin.h>

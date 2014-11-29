@@ -275,6 +275,9 @@
     <ClInclude Include="VertexLoaderManager.h">
       <Filter>Vertex Loading</Filter>
     </ClInclude>
+    <ClInclude Include="VertexLoaderUtils.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
     <ClInclude Include="BoundingBox.h">
       <Filter>Util</Filter>
     </ClInclude>

@@ -20,8 +20,8 @@
 #include "VideoBackends/Software/SWCommandProcessor.h"
 #include "VideoBackends/Software/VideoBackend.h"
 
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 namespace SWCommandProcessor
 {

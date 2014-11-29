@@ -14,8 +14,8 @@
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/XFMemLoader.h"
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 typedef void (*DecodingFunction)(u32);
 
