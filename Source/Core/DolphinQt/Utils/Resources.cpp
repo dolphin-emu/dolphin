@@ -16,47 +16,47 @@ QVector<QPixmap> Resources::m_regions;
 QVector<QPixmap> Resources::m_ratings;
 QVector<QPixmap> Resources::m_pixmaps;
 
+// Wrapper for GetImageFilename() so you don't have to to call it directly
+#define GIFN(file) GetImageFilename(SL(file), dir)
+
 void Resources::Init()
 {
 	QString dir = QString::fromStdString(File::GetSysDirectory() + "Resources/");
 
 	m_regions.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
-	m_regions[DiscIO::IVolume::COUNTRY_JAPAN].load(dir + SL("Flag_Japan.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_EUROPE].load(dir + SL("Flag_Europe.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_USA].load(dir + SL("Flag_USA.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_JAPAN].load(GIFN("Flag_Japan"));
+	m_regions[DiscIO::IVolume::COUNTRY_EUROPE].load(GIFN("Flag_Europe"));
+	m_regions[DiscIO::IVolume::COUNTRY_USA].load(GIFN("Flag_USA"));
 
-	m_regions[DiscIO::IVolume::COUNTRY_AUSTRALIA].load(dir + SL("Flag_Australia.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_FRANCE].load(dir + SL("Flag_France.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_GERMANY].load(dir + SL("Flag_Germany.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_INTERNATIONAL].load(dir + SL("Flag_Europe.png")); // Uses European flag as a placeholder
-	m_regions[DiscIO::IVolume::COUNTRY_ITALY].load(dir + SL("Flag_Italy.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(dir + SL("Flag_Korea.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_NETHERLANDS].load(dir + SL("Flag_Netherlands.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(dir + SL("Flag_Russia.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(dir + SL("Flag_Spain.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(dir + SL("Flag_Taiwan.png"));
-	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(dir + SL("Flag_Unknown.png"));
+	m_regions[DiscIO::IVolume::COUNTRY_AUSTRALIA].load(GIFN("Flag_Australia"));
+	m_regions[DiscIO::IVolume::COUNTRY_FRANCE].load(GIFN("Flag_France"));
+	m_regions[DiscIO::IVolume::COUNTRY_GERMANY].load(GIFN("Flag_Germany"));
+	m_regions[DiscIO::IVolume::COUNTRY_INTERNATIONAL].load(GIFN("Flag_Europe")); // Uses European flag as a placeholder
+	m_regions[DiscIO::IVolume::COUNTRY_ITALY].load(GIFN("Flag_Italy"));
+	m_regions[DiscIO::IVolume::COUNTRY_KOREA].load(GIFN("Flag_Korea"));
+	m_regions[DiscIO::IVolume::COUNTRY_NETHERLANDS].load(GIFN("Flag_Netherlands"));
+	m_regions[DiscIO::IVolume::COUNTRY_RUSSIA].load(GIFN("Flag_Russia"));
+	m_regions[DiscIO::IVolume::COUNTRY_SPAIN].load(GIFN("Flag_Spain"));
+	m_regions[DiscIO::IVolume::COUNTRY_TAIWAN].load(GIFN("Flag_Taiwan"));
+	m_regions[DiscIO::IVolume::COUNTRY_UNKNOWN].load(GIFN("Flag_Unknown"));
 
 	m_platforms.resize(3);
-	m_platforms[0].load(dir + SL("Platform_Gamecube.png"));
-	m_platforms[1].load(dir + SL("Platform_Wii.png"));
-	m_platforms[2].load(dir + SL("Platform_Wad.png"));
+	m_platforms[0].load(GIFN("Platform_Gamecube"));
+	m_platforms[1].load(GIFN("Platform_Wii"));
+	m_platforms[2].load(GIFN("Platform_Wad"));
 
 	m_ratings.resize(6);
-	m_ratings[0].load(dir + SL("rating0.png"));
-	m_ratings[1].load(dir + SL("rating1.png"));
-	m_ratings[2].load(dir + SL("rating2.png"));
-	m_ratings[3].load(dir + SL("rating3.png"));
-	m_ratings[4].load(dir + SL("rating4.png"));
-	m_ratings[5].load(dir + SL("rating5.png"));
+	m_ratings[0].load(GIFN("rating0"));
+	m_ratings[1].load(GIFN("rating1"));
+	m_ratings[2].load(GIFN("rating2"));
+	m_ratings[3].load(GIFN("rating3"));
+	m_ratings[4].load(GIFN("rating4"));
+	m_ratings[5].load(GIFN("rating5"));
 
 	m_pixmaps.resize(NUM_ICONS);
-	m_pixmaps[DOLPHIN_LOGO].load(dir + SL("Dolphin.png"));
+	m_pixmaps[DOLPHIN_LOGO].load(GIFN("Dolphin"));
 	UpdatePixmaps();
 }
-
-// Wrapper for GetImageFilename() so you don't have to to call it directly
-#define GIFN(file) GetImageFilename(SL(file), dir)
 
 void Resources::UpdatePixmaps()
 {
