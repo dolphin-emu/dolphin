@@ -723,6 +723,14 @@ void JitArm::cntlzwx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	u32 a = inst.RA, s = inst.RS;
 
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, __builtin_clz(gpr.GetImm(s)));
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(a), 0);
+		return;
+	}
+
 	gpr.BindToRegister(a, a == s);
 	ARMReg RA = gpr.R(a);
 	ARMReg RS = gpr.R(s);
