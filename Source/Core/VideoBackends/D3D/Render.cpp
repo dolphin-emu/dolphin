@@ -59,6 +59,7 @@ ID3D11RasterizerState* resetraststate = nullptr;
 static ID3D11Texture2D* s_screenshot_texture = nullptr;
 static D3DTexture2D* s_3d_vision_texture = nullptr;
 
+// Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
 typedef struct _Nv_Stereo_Image_Header
 {
 	unsigned int    dwSignature;
@@ -808,14 +809,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			D3D::context->RSSetViewports(1, &rightVp);
 			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
-			
+
 			D3D::context->RSSetViewports(1, &vp);
 		}
 		else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
 		{
 			if (!s_3d_vision_texture)
 				Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
-			
+
 			D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
 			D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)(X + s_backbuffer_width), (float)Y, (float)Width, (float)Height);
 
