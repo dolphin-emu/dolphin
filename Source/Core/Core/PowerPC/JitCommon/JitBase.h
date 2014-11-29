@@ -62,7 +62,6 @@ protected:
 	{
 		bool optimizeStack;
 		bool enableBlocklink;
-		bool fpAccurateFcmp;
 		bool optimizeGatherPipe;
 		bool accurateSinglePrecision;
 	};
