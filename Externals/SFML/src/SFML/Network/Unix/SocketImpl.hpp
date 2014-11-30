@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -22,95 +22,88 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef SFML_SELECTOR_HPP
-#define SFML_SELECTOR_HPP
+#ifndef SFML_SOCKETIMPL_HPP
+#define SFML_SOCKETIMPL_HPP
 
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <SFML/Network/SocketUDP.hpp>
-#include <SFML/Network/SocketTCP.hpp>
-#include <SFML/Network/SelectorBase.hpp>
-#include <map>
+#include <SFML/Network/Socket.hpp>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
 
 
 namespace sf
 {
+namespace priv
+{
 ////////////////////////////////////////////////////////////
-/// Selector allow reading from multiple sockets
-/// without blocking. It's a kind of multiplexer
+/// \brief Helper class implementing all the non-portable
+///        socket stuff; this is the Unix version
+///
 ////////////////////////////////////////////////////////////
-template <typename Type>
-class Selector : private SelectorBase
+class SocketImpl
 {
 public :
 
     ////////////////////////////////////////////////////////////
-    /// Add a socket to watch
-    ///
-    /// \param Socket : Socket to add
-    ///
-    ////////////////////////////////////////////////////////////
-    void Add(Type Socket);
-
-    ////////////////////////////////////////////////////////////
-    /// Remove a socket
-    ///
-    /// \param Socket : Socket to remove
-    ///
-    ////////////////////////////////////////////////////////////
-    void Remove(Type Socket);
-
-    ////////////////////////////////////////////////////////////
-    /// Remove all sockets
-    ///
-    ////////////////////////////////////////////////////////////
-    void Clear();
-
-    ////////////////////////////////////////////////////////////
-    /// Wait and collect sockets which are ready for reading.
-    /// This functions will return either when at least one socket
-    /// is ready, or when the given time is out
-    ///
-    /// \param Timeout : Timeout, in seconds (0 by default : no timeout)
-    ///
-    /// \return Number of sockets ready to be read
-    ///
-    ////////////////////////////////////////////////////////////
-    unsigned int Wait(float Timeout = 0.f);
-
-    ////////////////////////////////////////////////////////////
-    /// After a call to Wait(), get the Index-th socket which is
-    /// ready for reading. The total number of sockets ready
-    /// is the integer returned by the previous call to Wait()
-    ///
-    /// \param Index : Index of the socket to get
-    ///
-    /// \return The Index-th socket
-    ///
-    ////////////////////////////////////////////////////////////
-    Type GetSocketReady(unsigned int Index);
-
-private :
-
-    ////////////////////////////////////////////////////////////
     // Types
     ////////////////////////////////////////////////////////////
-    typedef std::map<SocketHelper::SocketType, Type> SocketTable;
+    typedef socklen_t AddrLength;
 
     ////////////////////////////////////////////////////////////
-    // Member data
+    /// \brief Create an internal sockaddr_in address
+    ///
+    /// \param address Target address
+    /// \param port    Target port
+    ///
+    /// \return sockaddr_in ready to be used by socket functions
+    ///
     ////////////////////////////////////////////////////////////
-    SocketTable mySockets; ///< Table matching the SFML socket instances with their low-level handles
+    static sockaddr_in createAddress(Uint32 address, unsigned short port);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Return the value of the invalid socket
+    ///
+    /// \return Special value of the invalid socket
+    ///
+    ////////////////////////////////////////////////////////////
+    static SocketHandle invalidSocket();
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Close and destroy a socket
+    ///
+    /// \param sock Handle of the socket to close
+    ///
+    ////////////////////////////////////////////////////////////
+    static void close(SocketHandle sock);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Set a socket as blocking or non-blocking
+    ///
+    /// \param sock  Handle of the socket
+    /// \param block New blocking state of the socket
+    ///
+    ////////////////////////////////////////////////////////////
+    static void setBlocking(SocketHandle sock, bool block);
+
+    ////////////////////////////////////////////////////////////
+    /// Get the last socket error status
+    ///
+    /// \return Status corresponding to the last socket error
+    ///
+    ////////////////////////////////////////////////////////////
+    static Socket::Status getErrorStatus();
 };
 
-#include <SFML/Network/Selector.inl>
-
-// Let's define the two only valid types of Selector
-typedef Selector<SocketUDP> SelectorUDP;
-typedef Selector<SocketTCP> SelectorTCP;
+} // namespace priv
 
 } // namespace sf
 
 
-#endif // SFML_SELECTOR_HPP
+#endif // SFML_SOCKETIMPL_HPP

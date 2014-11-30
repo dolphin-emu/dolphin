@@ -140,13 +140,13 @@ static const struct
 	const int   DefaultModifier;
 	const u32   XInputMapping;
 } g_VRData[] = {
-		{ "FreeLookReset",              true, 82, 4 /* wxMOD_SHIFT */, 0 },
-		{ "FreeLookForward",            true, 87, 4 /* wxMOD_SHIFT */, 0 },
-		{ "FreeLookBackward",           true, 83, 4 /* wxMOD_SHIFT */, 0 },
-		{ "FreeLookLeft",               true, 65, 4 /* wxMOD_SHIFT */, 0 },
-		{ "FreeLookRight",              true, 68, 4 /* wxMOD_SHIFT */, 0 },
-		{ "FreeLookUp",                 true, 69, 4 /* wxMOD_SHIFT */, 0 },
-		{ "FreeLookDown",               true, 81, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreelookReset",              true, 82, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreelookZoomIn",             true, 87, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreelookZoomOut",            true, 83, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreelookLeft",               true, 65, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreelookRight",              true, 68, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreelookUp",                 true, 69, 4 /* wxMOD_SHIFT */, 0 },
+		{ "FreelookDown",               true, 81, 4 /* wxMOD_SHIFT */, 0 },
 		{ "VRPermanentCameraForward",   true, 80, 4 /* wxMOD_SHIFT */, 0 },
 		{ "VRPermanentCameraBackward",  true, 59, 4 /* wxMOD_SHIFT */, 0 },
 		{ "VRLargerScale",              true, 61, 4 /* wxMOD_SHIFT */, 0 },
@@ -289,20 +289,24 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 {
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
+	hotkeys->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
+	hotkeys->Set("FreeLookSensitivity", m_LocalCoreStartupParameter.fFreeLookSensitivity);
+
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		hotkeys->Set(g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
 		hotkeys->Set(std::string(g_HKData[i].IniText) + "Modifier",
 			m_LocalCoreStartupParameter.iHotkeyModifier[i]);
+		hotkeys->Set(std::string(g_HKData[i].IniText) + "KBM",
+			m_LocalCoreStartupParameter.iHotkeyKBM[i]);
+		hotkeys->Set(std::string(g_HKData[i].IniText) + "XInputMapping",
+			m_LocalCoreStartupParameter.iHotkeyXInputMapping[i]);
 	}
 }
 
 void SConfig::SaveVRSettings(IniFile& ini)
 {
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
-
-	vrsettings->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
-	vrsettings->Set("FreeLookSensitivity", m_LocalCoreStartupParameter.fFreeLookSensitivity);
 
 	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{
@@ -554,12 +558,19 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 {
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
+	hotkeys->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
+	hotkeys->Get("FreeLookSensitivity", &m_LocalCoreStartupParameter.fFreeLookSensitivity, 1.00);
+
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		hotkeys->Get(g_HKData[i].IniText,
 		    &m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "Modifier",
 		    &m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
+		hotkeys->Get(std::string(g_HKData[i].IniText) + "KBM",
+			&m_LocalCoreStartupParameter.iHotkeyKBM[i], g_VRData[i].KBM);
+		hotkeys->Get(std::string(g_HKData[i].IniText) + "XInputMapping",
+			&m_LocalCoreStartupParameter.iHotkeyXInputMapping[i], g_VRData[i].XInputMapping);
 	}
 }
 
@@ -567,8 +578,6 @@ void SConfig::LoadVRSettings(IniFile& ini)
 {
 	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
-	vrsettings->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
-	vrsettings->Get("FreeLookSensitivity", &m_LocalCoreStartupParameter.fFreeLookSensitivity, 1.00);
 
 	for (int i = 0; i < NUM_VR_HOTKEYS; i++)
 	{

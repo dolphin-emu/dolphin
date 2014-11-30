@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -22,43 +22,18 @@
 //
 ////////////////////////////////////////////////////////////
 
-#ifndef SFML_SOCKETHELPER_HPP
-#define SFML_SOCKETHELPER_HPP
-
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/Config.hpp>
 
 
-namespace sf
-{
-namespace Socket
-{
-    ////////////////////////////////////////////////////////////
-    /// Enumeration of status returned by socket functions
-    ////////////////////////////////////////////////////////////
-    enum Status
-    {
-        Done,         ///< The socket has sent / received the data
-        NotReady,     ///< The socket is not ready to send / receive data yet
-        Disconnected, ///< The TCP socket has been disconnected
-        Error         ///< An unexpected error happened
-    };
-}
+#if defined(SFML_SYSTEM_WINDOWS)
 
-} // namespace sf
-
-
-#ifdef SFML_SYSTEM_WINDOWS
-
-    #include <SFML/Network/Win32/SocketHelper.hpp>
+    #include <SFML/Network/Win32/SocketImpl.hpp>
 
 #else
 
-    #include <SFML/Network/Unix/SocketHelper.hpp>
+    #include <SFML/Network/Unix/SocketImpl.hpp>
 
 #endif
-
-
-#endif // SFML_SOCKETHELPER_HPP

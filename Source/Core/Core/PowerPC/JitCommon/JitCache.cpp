@@ -81,7 +81,7 @@ using namespace Gen;
 		else
 			Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
-
+		jit->js.fifoWriteAddresses.clear();
 		for (int i = 0; i < num_blocks; i++)
 		{
 			DestroyBlock(i, false);

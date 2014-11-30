@@ -11,7 +11,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ## System Requirements
 * OS
     * Microsoft Windows (Vista or higher).
-    * Linux or Apple Mac OS X (10.7 or higher).
+    * Linux or Apple Mac OS X (10.9 or higher).
     * Unix-like systems other than Linux might work but are not officially supported.
 * Processor
     * A CPU with SSE2 support.

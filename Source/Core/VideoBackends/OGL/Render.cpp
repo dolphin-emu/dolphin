@@ -694,6 +694,7 @@ void Renderer::Shutdown()
 		glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ElementArrayBufferBinding);
 		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &ArrayBufferBinding);
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+		Common::AtomicIncrement(g_drawn_vr);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
 		glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
 	}
@@ -1565,6 +1566,7 @@ void Renderer::AsyncTimewarpDraw()
 	//SuspendThread(thread_handle);
 #endif
 	ovrHmd_EndFrame(hmd, g_front_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+	Core::ShouldAddTimewarpFrame();
 #ifdef _WIN32
 	//ResumeThread(thread_handle);
 #endif
@@ -1841,6 +1843,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			while (Core::ShouldAddTimewarpFrame())
+			{
+				auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+				if (0 == frameTime.TimewarpPointSeconds) {
+					ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
+				}
+				else {
+					ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
+				}
+				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			}
+
 			//glBindVertexArray(VertexArrayBinding);
 			glBindVertexArray(0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);

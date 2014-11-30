@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2009 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -25,48 +25,56 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <SFML/Network/SocketHelper.hpp>
+#include <SFML/Network/Unix/SocketImpl.hpp>
 #include <errno.h>
 #include <fcntl.h>
+#include <cstring>
 
 
 namespace sf
 {
+namespace priv
+{
 ////////////////////////////////////////////////////////////
-/// Return the value of the invalid socket
+sockaddr_in SocketImpl::createAddress(Uint32 address, unsigned short port)
+{
+    sockaddr_in addr;
+    std::memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
+    addr.sin_addr.s_addr = htonl(address);
+    addr.sin_family      = AF_INET;
+    addr.sin_port        = htons(port);
+
+    return addr;
+}
+
+
 ////////////////////////////////////////////////////////////
-SocketHelper::SocketType SocketHelper::InvalidSocket()
+SocketHandle SocketImpl::invalidSocket()
 {
     return -1;
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Close / destroy a socket
-////////////////////////////////////////////////////////////
-bool SocketHelper::Close(SocketHelper::SocketType Socket)
+void SocketImpl::close(SocketHandle sock)
 {
-    return close(Socket) != -1;
+    ::close(sock);
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Set a socket as blocking or non-blocking
-////////////////////////////////////////////////////////////
-void SocketHelper::SetBlocking(SocketHelper::SocketType Socket, bool Block)
+void SocketImpl::setBlocking(SocketHandle sock, bool block)
 {
-    int Status = fcntl(Socket, F_GETFL);
-    if (Block)
-        fcntl(Socket, F_SETFL, Status & ~O_NONBLOCK);
+    int status = fcntl(sock, F_GETFL);
+    if (block)
+        fcntl(sock, F_SETFL, status & ~O_NONBLOCK);
     else
-        fcntl(Socket, F_SETFL, Status | O_NONBLOCK);
+        fcntl(sock, F_SETFL, status | O_NONBLOCK);
 }
 
 
 ////////////////////////////////////////////////////////////
-/// Get the last socket error status
-////////////////////////////////////////////////////////////
-Socket::Status SocketHelper::GetErrorStatus()
+Socket::Status SocketImpl::getErrorStatus()
 {
     // The followings are sometimes equal to EWOULDBLOCK,
     // so we have to make a special case for them in order
@@ -82,8 +90,11 @@ Socket::Status SocketHelper::GetErrorStatus()
         case ETIMEDOUT :    return Socket::Disconnected;
         case ENETRESET :    return Socket::Disconnected;
         case ENOTCONN :     return Socket::Disconnected;
+        case EPIPE :        return Socket::Disconnected;
         default :           return Socket::Error;
     }
 }
+
+} // namespace priv
 
 } // namespace sf

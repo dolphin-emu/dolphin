@@ -8,6 +8,7 @@
 #include <strsafe.h>
 #include <unordered_map>
 
+#include "Common/Atomic.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -256,6 +257,7 @@ Renderer::~Renderer()
 
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+		Core::ShouldAddTimewarpFrame();
 	}
 #endif
 	g_first_rift_frame = true;
@@ -933,6 +935,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			while (Core::ShouldAddTimewarpFrame())
+			{
+				auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+				if (0 == frameTime.TimewarpPointSeconds) {
+					ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
+				}
+				else {
+					ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
+				}
+				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			}
 		}
 		else
 		{

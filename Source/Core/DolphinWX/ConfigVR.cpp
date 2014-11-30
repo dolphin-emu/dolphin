@@ -134,6 +134,27 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iVRPlayer);
 		}
+		// Synchronous Timewarp extra frames per frame
+		{
+			U32Setting *num = new U32Setting(page_vr, _("Min exta frames:"), vconfig.iMinExtraFrames, 0, 89);
+			RegisterControl(num, lean_desc);
+			num->SetValue(vconfig.iMinExtraFrames);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Min exta frames:"));
+
+			label->SetToolTip(wxGetTranslation(lean_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(num);
+		}
+		{
+			U32Setting *num = new U32Setting(page_vr, _("Max exta frames:"), vconfig.iMaxExtraFrames, 0, 89);
+			RegisterControl(num, lean_desc);
+			num->SetValue(vconfig.iMaxExtraFrames);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Max exta frames:"));
+
+			label->SetToolTip(wxGetTranslation(lean_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(num);
+		}
 
 		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
@@ -305,12 +326,12 @@ void CConfigVR::CreateGUIControls()
 	const wxString VRText[] =
 	{
 		_("Reset Camera"),
-		_("Camera Forward"),
-		_("Camera Backward"),
-		_("Camera Left"),
-		_("Camera Right"),
-		_("Camera Up"),
-		_("Camera Down"),
+		_("Freelook Move In"),
+		_("Freelook Move Out"),
+		_("Freelook Move Left"),
+		_("Freelook Move Right"),
+		_("Freelook Move Up"),
+		_("Freelook Move Down"),
 
 		_("Permanent Camera Forward"),
 		_("Permanent Camera Backward"),
@@ -759,12 +780,74 @@ void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] = Key;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[Id] = 0;
+	int hk = -1;
+	switch (Id)
+	{
+	case VR_POSITION_RESET:
+		hk = HK_FREELOOK_RESET;
+		break;
+	case VR_CAMERA_BACKWARD:
+		hk = HK_FREELOOK_ZOOM_OUT;
+		break;
+	case VR_CAMERA_FORWARD:
+		hk = HK_FREELOOK_ZOOM_IN;
+		break;
+	case VR_CAMERA_LEFT:
+		hk = HK_FREELOOK_LEFT;
+		break;
+	case VR_CAMERA_RIGHT:
+		hk = HK_FREELOOK_RIGHT;
+		break;
+	case VR_CAMERA_UP:
+		hk = HK_FREELOOK_UP;
+		break;
+	case VR_CAMERA_DOWN:
+		hk = HK_FREELOOK_DOWN;
+		break;
+	}
+	if (hk > 0)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[hk] = KBM;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[hk] = Key;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[hk] = Modkey;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[hk] = 0;
+	}
 }
 
 void CConfigVR::SaveXInputBinary(int Id, bool KBM, u32 Key)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id] = KBM;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[Id] = Key;
+	int hk = -1;
+	switch (Id)
+	{
+	case VR_POSITION_RESET:
+		hk = HK_FREELOOK_RESET;
+		break;
+	case VR_CAMERA_BACKWARD:
+		hk = HK_FREELOOK_ZOOM_OUT;
+		break;
+	case VR_CAMERA_FORWARD:
+		hk = HK_FREELOOK_ZOOM_IN;
+		break;
+	case VR_CAMERA_LEFT:
+		hk = HK_FREELOOK_LEFT;
+		break;
+	case VR_CAMERA_RIGHT:
+		hk = HK_FREELOOK_RIGHT;
+		break;
+	case VR_CAMERA_UP:
+		hk = HK_FREELOOK_UP;
+		break;
+	case VR_CAMERA_DOWN:
+		hk = HK_FREELOOK_DOWN;
+		break;
+	}
+	if (hk > 0)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[hk] = KBM;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[hk] = Key;
+	}
 }
 
 void CConfigVR::EndGetButtons()

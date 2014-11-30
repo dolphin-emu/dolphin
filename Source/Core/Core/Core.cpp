@@ -67,6 +67,8 @@
 // TODO: ugly, remove
 bool g_aspect_wide;
 
+volatile u32 g_drawn_vr = 0;
+
 namespace Core
 {
 
@@ -74,8 +76,10 @@ bool g_want_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
+static Common::Timer s_vr_timer;
 static volatile u32 s_drawn_frame = 0;
 static u32 s_drawn_video = 0;
+static float s_vr_fps = 0;
 
 // Function forwarding
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
@@ -735,6 +739,7 @@ void VideoThrottle()
 		s_timer.Update();
 		Common::AtomicStore(s_drawn_frame, 0);
 		s_drawn_video = 0;
+		Common::AtomicStore(g_drawn_vr, 0);
 	}
 
 	s_drawn_video++;
@@ -752,6 +757,41 @@ bool ShouldSkipFrame(int skipped)
 	const bool fps_slow = !(s_timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS);
 
 	return fps_slow;
+}
+
+// Executed from GPU thread
+// reports if a frame should be added or not
+// in order to keep up 75 FPS
+bool ShouldAddTimewarpFrame()
+{
+	if (s_is_stopping)
+		return false;
+	static u32 timewarp_count = 0;
+	Common::AtomicIncrement(g_drawn_vr);
+	// Update info per second
+	u32 ElapseTime = (u32)s_vr_timer.GetTimeDifference();
+	bool vr_slow = (timewarp_count < g_ActiveConfig.iMinExtraFrames) || (ElapseTime > (Common::AtomicLoad(g_drawn_vr) + 0.33) * 1000.0 / 75);
+	if (vr_slow)
+	{
+		++timewarp_count;
+		if (timewarp_count > g_ActiveConfig.iMaxExtraFrames)
+		{
+			timewarp_count = 0;
+			vr_slow = false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	if ((ElapseTime >= 1000 && g_drawn_vr > 0) || s_request_refresh_info)
+	{
+		s_vr_fps = (float)(Common::AtomicLoad(g_drawn_vr) * 1000.0 / ElapseTime);
+		// Reset counter
+		s_vr_timer.Update();
+		Common::AtomicStore(g_drawn_vr, 0);
+	}
+	return false;
 }
 
 // --- Callbacks for backends / engine ---
@@ -775,6 +815,7 @@ void UpdateTitle()
 
 	float FPS = (float) (Common::AtomicLoad(s_drawn_frame) * 1000.0 / ElapseTime);
 	float VPS = (float) (s_drawn_video * 1000.0 / ElapseTime);
+	float VRPS = s_vr_fps;
 	float Speed = (float) (s_drawn_video * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
@@ -784,12 +825,12 @@ void UpdateTitle()
 	std::string SFPS;
 
 	if (Movie::IsPlayingInput())
-		SFPS = StringFromFormat("VI: %u/%u - Input: %u/%u - FPS: %.0f - VPS: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u/%u - Input: %u/%u - FPS: %.0f - VPS: %.0f - VR: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, VRPS, Speed);
 	else if (Movie::IsRecordingInput())
-		SFPS = StringFromFormat("VI: %u - Input: %u - FPS: %.0f - VPS: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u - Input: %u - FPS: %.0f - VPS: %.0f - VR: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, VRPS, Speed);
 	else
 	{
-		SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
+		SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - VR: %.0f - %.0f%%", FPS, VPS, VRPS, Speed);
 		if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
 		{
 			// Use extended or summary information. The summary information does not print the ticks data,

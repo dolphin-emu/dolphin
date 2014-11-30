@@ -240,6 +240,7 @@ set(LIBS
 	inputcommon
 	${LZO}
 	sfml-network
+	sfml-system
 	videoogl
 	videosoftware
 	z
