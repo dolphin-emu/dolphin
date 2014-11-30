@@ -774,7 +774,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 				dst_sample_unclamped += (s64)2 * coeffs[i] * input[i];
 			dst_sample_unclamped >>= 16;
 			MathUtil::Clamp(&dst_sample_unclamped, (s64)-0x8000, (s64)0x7fff);
-			dst_sample = dst_sample_unclamped;
+			dst_sample = (s16)dst_sample_unclamped;
 
 			pos += ratio;
 		}
