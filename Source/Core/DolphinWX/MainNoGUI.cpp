@@ -72,14 +72,6 @@ void Host_UpdateMainFrame()
 	updateMainFrameEvent.Set();
 }
 
-void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
-{
-	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
-	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
-	width = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth;
-	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
-}
-
 void Host_RequestRenderWindowSize(int width, int height) {}
 
 void Host_RequestFullscreen(bool enable_fullscreen) {}
@@ -109,7 +101,7 @@ void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "VideoBackends/OGL/GLInterface/X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 
 class PlatformX11 : public Platform
 {
@@ -306,14 +298,14 @@ int main(int argc, char* argv[])
 			help = 1;
 			break;
 		case 'v':
-			fprintf(stderr, "%s\n", scm_rev_str);
+			fprintf(stderr, "%s%s\n", scm_rev_str, SCM_OCULUS_STR);
 			return 1;
 		}
 	}
 
 	if (help == 1 || argc == optind)
 	{
-		fprintf(stderr, "%s\n\n", scm_rev_str);
+		fprintf(stderr, "%s%s\n\n", scm_rev_str, SCM_OCULUS_STR);
 		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
 		fprintf(stderr, "  -e, --exec   Load the specified file\n");

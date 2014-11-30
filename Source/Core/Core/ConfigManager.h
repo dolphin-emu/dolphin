@@ -63,9 +63,15 @@ struct SConfig : NonCopyable
 	bool m_ListPal;
 	bool m_ListUsa;
 	bool m_ListJap;
+	bool m_ListAustralia;
 	bool m_ListFrance;
+	bool m_ListGermany;
+	bool m_ListInternational;
 	bool m_ListItaly;
 	bool m_ListKorea;
+	bool m_ListNetherlands;
+	bool m_ListRussia;
+	bool m_ListSpain;
 	bool m_ListTaiwan;
 	bool m_ListUnknown;
 	int m_ListSort;
@@ -108,10 +114,10 @@ struct SConfig : NonCopyable
 	// eg. an Oculus Rift window wouldn't be suitable for normal non-VR gaming.
 	bool m_special_case;
 
-	// save settings
+	// Save settings
 	void SaveSettings();
 
-	// load settings
+	// Load settings
 	void LoadSettings();
 
 	// Return the permanent and somewhat globally used instance of this struct

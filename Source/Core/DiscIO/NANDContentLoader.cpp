@@ -129,7 +129,7 @@ private:
 	u8 m_TMDView[TMD_VIEW_SIZE];
 	u8 m_TMDHeader[TMD_HEADER_SIZE];
 	u32 m_TIKSize;
-	u8 *m_TIK;
+	u8* m_TIK;
 	u8 m_Country;
 
 	std::vector<SNANDContent> m_Content;
@@ -267,19 +267,13 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		rContent.m_pData = nullptr;
 
 		if (rContent.m_Type & 0x8000)  // shared app
-		{
 			rContent.m_Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(rContent.m_SHA1Hash);
-		}
 		else
-		{
 			rContent.m_Filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
-		}
 
 		// Be graceful about incorrect tmds.
 		if (File::Exists(rContent.m_Filename))
-		{
 			rContent.m_Size = (u32) File::GetSize(rContent.m_Filename);
-		}
 	}
 
 	delete [] pTMD;
@@ -484,13 +478,9 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 
 		std::string APPFileName;
 		if (Content.m_Type & 0x8000) //shared
-		{
 			APPFileName = CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash);
-		}
 		else
-		{
 			APPFileName = StringFromFormat("%s%08x.app", ContentPath.c_str(), Content.m_ContentID);
-		}
 
 		if (!File::Exists(APPFileName))
 		{
@@ -522,7 +512,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	return TitleID;
 }
 
-bool Add_Ticket(u64 TitleID, const u8 *p_tik, u32 tikSize)
+bool Add_Ticket(u64 TitleID, const u8* p_tik, u32 tikSize)
 {
 	std::string TicketFileName = Common::GetTicketFileName(TitleID);
 	File::CreateFullPath(TicketFileName);

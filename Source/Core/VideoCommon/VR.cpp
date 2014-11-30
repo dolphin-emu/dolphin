@@ -26,13 +26,15 @@ ovrFovPort g_eye_fov[2];
 ovrEyeRenderDesc g_eye_render_desc[2];
 ovrFrameTiming g_rift_frame_timing;
 ovrPosef g_eye_poses[2], g_front_eye_poses[2];
-std::mutex g_ovr_lock;
 int g_ovr_frameindex;
 #endif
+
+std::mutex g_ovr_lock;
 
 bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
 bool g_new_tracking_frame = true;
+bool g_new_frame_tracker_for_efb_skip = true;
 Matrix44 g_head_tracking_matrix;
 float g_head_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
@@ -45,6 +47,7 @@ static char hmd_device_name[MAX_PATH] = "";
 void NewVRFrame()
 {
 	g_new_tracking_frame = true;
+	g_new_frame_tracker_for_efb_skip = true;
 	ClearDebugProj();
 }
 
@@ -133,7 +136,12 @@ void ShutdownVR()
 #ifdef HAVE_OCULUSSDK
 	if (hmd)
 	{
+		// on my computer, on runtime 0.4.2, the Rift won't switch itself off without this:
+		if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+			ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_DisplayOff);
 		ovrHmd_Destroy(hmd);
+		g_has_rift = false;
+		g_has_hmd = false;
 		NOTICE_LOG(VR, "Oculus Rift shut down.");
 	}
 	ovr_Shutdown();
@@ -150,8 +158,7 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 #ifdef OCULUSSDK042
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#endif
-#ifdef OCULUSSDK043
+#else
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
 #endif

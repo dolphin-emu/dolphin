@@ -8,7 +8,7 @@ namespace DX11
 
 class VideoBackend : public VideoBackendHardware
 {
-	bool Initialize(void *) override;
+	bool Initialize(void*) override;
 	bool InitializeOtherThread(void *, std::thread *) override;
 	void Shutdown() override;
 	void ShutdownOtherThread() override;

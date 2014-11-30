@@ -21,6 +21,7 @@
 #include "Core/Core.h"
 #include "Core/Movie.h"
 
+#include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
@@ -166,7 +167,6 @@ static void ApplySSAASettings()
 	}
 }
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
@@ -200,7 +200,6 @@ static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLe
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
-#endif
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
 static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
@@ -472,6 +471,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
+	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -480,7 +480,8 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
 	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
 	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
-	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex");
+	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex") ||
+	                                     GLExtensions::Supports("GL_EXT_draw_elements_base_vertex");
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage");
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
@@ -524,7 +525,7 @@ Renderer::Renderer()
 			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 		}
 	}
-#if defined(_DEBUG) || defined(DEBUGFAST)
+
 	if (GLExtensions::Supports("GL_KHR_debug"))
 	{
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
@@ -537,7 +538,7 @@ Renderer::Renderer()
 		glDebugMessageCallbackARB( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
-#endif
+
 	int samples;
 	glGetIntegerv(GL_SAMPLES, &samples);
 	if (samples > 1)
@@ -693,6 +694,7 @@ void Renderer::Shutdown()
 		glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ElementArrayBufferBinding);
 		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &ArrayBufferBinding);
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+		Common::AtomicIncrement(g_drawn_vr);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
 		glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
 	}
@@ -1227,6 +1229,52 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	return 0;
 }
 
+u16 Renderer::BBoxRead(int index)
+{
+	int swapped_index = index;
+	if (index >= 2)
+		swapped_index ^= 1; // swap 2 and 3 for top/bottom
+
+	// Here we get the min/max value of the truncated position of the upscaled and swapped framebuffer.
+	// So we have to correct them to the unscaled EFB sizes.
+	int value = BoundingBox::Get(swapped_index);
+
+	if (index < 2)
+	{
+		// left/right
+		value = value * EFB_WIDTH / s_target_width;
+	}
+	else
+	{
+		// up/down -- we have to swap up and down
+		value = value * EFB_HEIGHT / s_target_height;
+		value = EFB_HEIGHT - value - 1;
+	}
+	if (index & 1)
+		value++; // fix max values to describe the outer border
+
+	return value;
+}
+
+void Renderer::BBoxWrite(int index, u16 _value)
+{
+	int value = _value; // u16 isn't enough to multiply by the efb width
+	if (index & 1)
+		value--;
+	if (index < 2)
+	{
+		value = value * s_target_width / EFB_WIDTH;
+	}
+	else
+	{
+		index ^= 1; // swap 2 and 3 for top/bottom
+		value = EFB_HEIGHT - value - 1;
+		value = value * s_target_height / EFB_HEIGHT;
+	}
+
+	BoundingBox::Set(index, value);
+}
+
 void Renderer::SetViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
@@ -1327,6 +1375,30 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 		glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
 
 		// glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	RestoreAPIState();
+
+	ClearEFBCache();
+}
+
+void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
+{
+	ResetAPIState();
+
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	{
+		FramebufferManager::RenderToEye(eye);
+		// color
+		GLboolean const
+			color_mask = colorEnable ? GL_TRUE : GL_FALSE,
+			alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
+		glColorMask(color_mask, color_mask, color_mask, alpha_mask);
+
+		// depth
+		glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
@@ -1494,6 +1566,7 @@ void Renderer::AsyncTimewarpDraw()
 	//SuspendThread(thread_handle);
 #endif
 	ovrHmd_EndFrame(hmd, g_front_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+	Core::ShouldAddTimewarpFrame();
 #ifdef _WIN32
 	//ResumeThread(thread_handle);
 #endif
@@ -1643,8 +1716,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #ifdef OCULUSSDK042
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#endif
-#ifdef OCULUSSDK043
+#else
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
 #endif
@@ -1748,7 +1820,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		sourceRc.right = EFB_WIDTH;
 		sourceRc.top = 0;
 		sourceRc.bottom = EFB_HEIGHT;
-		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
 		FramebufferManager::m_eye_texture[0].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
@@ -1772,12 +1843,22 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			while (Core::ShouldAddTimewarpFrame())
+			{
+				auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+				if (0 == frameTime.TimewarpPointSeconds) {
+					ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
+				}
+				else {
+					ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
+				}
+				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			}
+
 			//glBindVertexArray(VertexArrayBinding);
 			glBindVertexArray(0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
 			glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
-			// Dismiss health and safety warning as soon as possible (it covers our own health and safety warning).
-			ovrHmd_DismissHSWDisplay(hmd);
 		}
 		else
 		{
@@ -1809,18 +1890,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	else
 	{
 		EFBRectangle sourceRc;
-		if (g_has_hmd)
-		{
-			// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
-			sourceRc.left = 0;
-			sourceRc.right = EFB_WIDTH;
-			sourceRc.top = 0;
-			sourceRc.bottom = EFB_HEIGHT;
-		}
-		else
-		{
 			sourceRc = rc;
-		}
 		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa

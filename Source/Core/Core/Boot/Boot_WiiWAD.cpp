@@ -12,6 +12,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/PatchEngine.h"
+#include "Core/RmObjEngine.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HLE/HLE.h"
@@ -86,7 +87,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 
 	if (titleID == TITLEID_SYSMENU)
 		HLE_IPC_CreateVirtualFATFilesystem();
-	// setup wii mem
+	// setup Wii memory
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
 		return false;
 
@@ -123,6 +124,9 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
 	if (pVolume != nullptr)
 		PatchEngine::LoadPatches();
+
+	RmObjEngine::LoadRmObjs();
+	RmObjEngine::ApplyFrameRmObjs();
 
 	return true;
 }

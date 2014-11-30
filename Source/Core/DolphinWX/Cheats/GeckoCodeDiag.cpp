@@ -172,20 +172,20 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 	}
 
 	sf::Http::Request req;
-	req.SetURI("/txt.php?txt=" + gameid);
+	req.setUri("/txt.php?txt=" + gameid);
 
 	sf::Http http;
-	http.SetHost("geckocodes.org");
+	http.setHost("geckocodes.org");
 
-	const sf::Http::Response resp = http.SendRequest(req, 5.0f);
+	const sf::Http::Response resp = http.sendRequest(req, sf::seconds(5));
 
-	if (sf::Http::Response::Ok == resp.GetStatus())
+	if (sf::Http::Response::Ok == resp.getStatus())
 	{
 		// temp vector containing parsed codes
 		std::vector<GeckoCode> gcodes;
 
 		// parse the codes
-		std::istringstream ss(resp.GetBody());
+		std::istringstream ss(resp.getBody());
 
 		std::string line;
 

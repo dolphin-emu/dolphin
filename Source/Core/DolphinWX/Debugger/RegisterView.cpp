@@ -274,10 +274,10 @@ void CRegisterView::OnMouseDownR(wxGridEvent& event)
 	wxString strNewVal = GetValueByRowCol(row, col);
 	TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
 
-	wxMenu* menu = new wxMenu;
-	menu->Append(IDM_WATCHADDRESS, _("Add to &watch"));
-	menu->Append(IDM_VIEWMEMORY, _("View &memory"));
-	PopupMenu(menu);
+	wxMenu menu;
+	menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
+	menu.Append(IDM_VIEWMEMORY, _("View &memory"));
+	PopupMenu(&menu);
 }
 
 void CRegisterView::OnPopupMenu(wxCommandEvent& event)

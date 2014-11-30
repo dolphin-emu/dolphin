@@ -10,6 +10,7 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 	DEFAULT_VR_CAMERA_FORWARD = 0.0f, DEFAULT_VR_CAMERA_PITCH = 0.0f, DEFAULT_VR_AIM_DISTANCE = 7.0f, 
 	DEFAULT_VR_SCREEN_HEIGHT = 2.0f, DEFAULT_VR_SCREEN_DISTANCE = 1.5f, DEFAULT_VR_SCREEN_THICKNESS = 0.5f, 
 	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f;
+const int DEFAULT_VR_MIN_EXTRA_FRAMES = 0, DEFAULT_VR_MAX_EXTRA_FRAMES = 2;
 
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
@@ -19,7 +20,9 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 
 // Detect which version of the Oculus SDK we are using
 #if OVR_MINOR_VERSION >= 4
-#if OVR_BUILD_VERSION >= 3
+#if OVR_BUILD_VERSION >= 4
+#define OCULUSSDK044
+#elif OVR_BUILD_VERSION >= 3
 #define OCULUSSDK043
 #else
 #define OCULUSSDK042
@@ -28,6 +31,9 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 Error, Oculus SDK 0.3.x is no longer supported   
 #endif
 
+#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
+#else
+#define SCM_OCULUS_STR ", no Oculus SDK"
 #endif
 
 #include <mutex>
@@ -49,10 +55,14 @@ void UpdateHeadTrackingIfNeeded();
 extern bool g_force_vr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920;
 extern bool g_new_tracking_frame;
+extern bool g_new_frame_tracker_for_efb_skip;
 extern Matrix44 g_head_tracking_matrix;
 extern float g_head_tracking_position[3];
 extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
 extern const char *g_hmd_device_name;
+
+extern std::mutex g_ovr_lock;
+extern volatile u32 g_drawn_vr;
 
 extern bool debug_nextScene;
 
@@ -63,6 +73,5 @@ extern ovrFovPort g_eye_fov[2];
 extern ovrEyeRenderDesc g_eye_render_desc[2];
 extern ovrFrameTiming g_rift_frame_timing;
 extern ovrPosef g_eye_poses[2], g_front_eye_poses[2];
-extern std::mutex g_ovr_lock;
 extern int g_ovr_frameindex;
 #endif

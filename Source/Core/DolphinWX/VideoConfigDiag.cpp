@@ -119,26 +119,6 @@ static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use int
 #else
 static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
-static wxString async_desc = wxTRANSLATE("Render head rotation updates in a separate thread at full frame rate using Timewarp even when the game runs at a lower frame rate.");
-static wxString temp_desc = wxTRANSLATE("Game specific VR option, in metres or degrees");
-static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
-static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
-static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
-static wxString player_desc = wxTRANSLATE("During split-screen games, which player is wearing the Oculus Rift?\nPlayer 1 is top left, player 2 is top right, player 3 is bottom left, player 4 is bottom right.\nThe player in the Rift will only see their player's view.\n\nIf unsure, say Player 1.");
-static wxString lowpersistence_desc = wxTRANSLATE("Use low persistence on DK2 to reduce motion blur when turning your head.\n\nIf unsure, leave this checked.");
-static wxString dynamicpred_desc = wxTRANSLATE("\"Adjust prediction dynamically based on internally measured latency.\"\n\nIf unsure, leave this checked.");
-static wxString orientation_desc = wxTRANSLATE("Use orientation tracking.\n\nLeave this checked.");
-static wxString magyaw_desc = wxTRANSLATE("Use the Rift's magnetometers to prevent yaw drift when out of camera range.\n\nIf unsure, leave this checked.");
-static wxString position_desc = wxTRANSLATE("Use position tracking (both from camera and head/neck model).\n\nLeave this checked.");
-static wxString chromatic_desc = wxTRANSLATE("Use chromatic aberration correction to prevent red and blue fringes at the edges of objects.\n\nIf unsure, leave this checked.");
-static wxString timewarp_desc = wxTRANSLATE("Shift the warped display after rendering to correct for head movement during rendering.\n\nIf unsure, leave this checked.");
-static wxString vignette_desc = wxTRANSLATE("Fade out the edges of the screen to make the screen sides look less harsh.\nNot needed on DK1.\n\nIf unsure, leave this unchecked.");
-static wxString norestore_desc = wxTRANSLATE("Tell the Oculus SDK not to restore OpenGL state.\n\nIf unsure, leave this unchecked.");
-static wxString flipvertical_desc = wxTRANSLATE("Flip the screen vertically.\n\nIf unsure, leave this unchecked.");
-static wxString srgb_desc = wxTRANSLATE("\"Assume input images are in sRGB gamma-corrected color space.\"\n\nIf unsure, leave this unchecked.");
-static wxString overdrive_desc = wxTRANSLATE("Try to fix true black smearing by overdriving brightness transitions.\n\nIf unsure, leave this unchecked.");
-static wxString hqdistortion_desc = wxTRANSLATE("\"High-quality sampling of distortion buffer for anti-aliasing\".\n\nIf unsure, leave this unchecked.");
-static wxString hudontop_desc = wxTRANSLATE("Always draw the HUD on top of everything else.\nUse this when you can't see the HUD because the world is covering it up.\n\nIf unsure, leave this unchecked.");
 
 static wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, select auto.");
@@ -162,6 +142,7 @@ static wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used t
 static wxString efb_access_desc = wxTRANSLATE("Ignore any requests of the CPU to read from or write to the EFB.\nImproves performance in some games, but might disable some gameplay-related features or graphical effects.\n\nIf unsure, leave this unchecked.");
 static wxString efb_emulate_format_changes_desc = wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games without any negative effect. Causes graphical defects in a small number of other games though.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_desc = wxTRANSLATE("Disable emulation of EFB copies.\nThese are often used for post-processing or render-to-texture effects, so while checking this setting gives a great speedup it almost always also causes issues.\n\nIf unsure, leave this unchecked.");
+static wxString efb_copy_clear_desc = wxTRANSLATE("Disables the black box that appears where an EFB copy should have been rendered.  Use only if you are seeing a black box after disabling EFB copies, or a game is not rendering properly.  May cause artifacts such as bad blending on shadows.\nIf unsure, leave this unchecked.");
 static wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture objects.\nThis is not so accurate, but it works well enough for most games and gives a great speedup over EFB to RAM.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome games depend on this for certain graphical effects or gameplay functionality.\n\nIf unsure, check EFB to Texture instead.");
 static wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the rightmost value.");
@@ -182,7 +163,7 @@ static wxString dump_efb_desc = wxTRANSLATE("Dump the contents of EFB copies to 
 #if !defined WIN32 && defined HAVE_LIBAV
 static wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
-static wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\nHold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 to move faster and SHIFT+9 to move slower). Press SHIFT+R to reset the camera.\n\nIf unsure, leave this unchecked.");
+static wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera with the mouse.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\n\nIf unsure, leave this unchecked.");
 static wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
 static wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
@@ -497,11 +478,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("EFB Copies"));
 
 	SettingCheckBox* efbcopy_disable = CreateCheckBox(page_hacks, _("Disable"), wxGetTranslation(efb_copy_desc), vconfig.bEFBCopyEnable, true);
+	efbcopy_clear_disable = CreateCheckBox(page_hacks, _("Remove Blank EFB Copy Box"), wxGetTranslation(efb_copy_clear_desc), vconfig.bEFBCopyClearDisable, false);
 	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(efb_copy_texture_desc), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
 	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bCopyEFBToTexture, true);
 	cache_efb_copies = CreateCheckBox(page_hacks, _("Enable Cache"), wxGetTranslation(cache_efb_copies_desc), vconfig.bEFBCopyCacheEnable);
 
 	group_efbcopy->Add(efbcopy_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	group_efbcopy->Add(efbcopy_clear_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
@@ -592,7 +575,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump Textures"), wxGetTranslation(dump_textures_desc), vconfig.bDumpTextures));
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Load Custom Textures"), wxGetTranslation(load_hires_textures_desc), vconfig.bHiresTextures));
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"), wxGetTranslation(dump_efb_desc), vconfig.bDumpEFBTarget));
-	szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"), wxGetTranslation(free_look_desc), vconfig.bFreeLook));
+	szr_utility->Add(CreateCheckBox(page_advanced, _("Mouse Free Look"), wxGetTranslation(free_look_desc), vconfig.bFreeLook));
 #if !defined WIN32 && defined HAVE_LIBAV
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Frame Dumps use FFV1"), wxGetTranslation(use_ffv1_desc), vconfig.bUseFFV1));
 #endif
@@ -646,193 +629,18 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		// - vr
 		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
 
-		// Scale
-		{
-			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale, 
-				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale:"));
-			label->SetToolTip(wxGetTranslation(scale_desc));
-
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_scale);
-		}
-		// Lean back angle
-		{
-			SettingNumber *const spin_lean = CreateNumber(page_vr, vconfig.fLeanBackAngle,
-				wxGetTranslation(lean_desc), -180.0f, 180.0f, 1.0f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Lean back angle:"));
-
-			label->SetToolTip(wxGetTranslation(lean_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_lean);
-		}
-		// VR Player
-		{
-			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
-
-			szr_vr->Add(new wxStaticText(page_vr, -1, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc),
-				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
-			szr_vr->Add(choice_vr, 1, 0, 0);
-			choice_vr->Select(vconfig.iVRPlayer);
-		}
-
-		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Dynamic prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Orientation tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Magnetic yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Position tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Chromatic aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Don't restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Flip vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
 		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
 		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
-		szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bAsynchronousTimewarp));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
-
-		szr_vr_main->AddStretchSpacer();
-		CreateDescriptionArea(page_vr, szr_vr_main);
-		page_vr->SetSizerAndFit(szr_vr_main);
-	}
-
-	// -- VR Game --
-	{
-		wxPanel* const page_vr = new wxPanel(notebook, -1);
-		notebook->AddPage(page_vr, _("VR Game"));
-		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
-
-		// - vr
-		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
-
-		// Units Per Metre
-		{
-			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fUnitsPerMetre,
-				wxGetTranslation(temp_desc), 0.0000001f, 10000000, 0.5f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Units per metre:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_scale);
-		}
-		// HUD distance
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudDistance,
-				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Distance:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// HUD thickness
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudThickness,
-				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Thickness:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// HUD 3D Forward
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHud3DCloser,
-				wxGetTranslation(temp_desc), 0.0f, 1.0f, 0.5f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD 3D Items Closer:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Camera forward
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraForward,
-				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera forward:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Camera pitch
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraPitch,
-				wxGetTranslation(temp_desc), -180, 360, 1);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera pitch:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Aim distance
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fAimDistance,
-				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Aim distance:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Screen Height
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenHeight,
-				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Height:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Screen Distance
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenDistance,
-				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Distance:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Screen Thickness
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenThickness,
-				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Thickness:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Screen Up
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenUp,
-				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Up:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		// Screen pitch
-		{
-			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenPitch,
-				wxGetTranslation(temp_desc), -180, 360, 1);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Pitch:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin);
-		}
-		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
-
-		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For this game only"));
-		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
-
-		wxButton* const btn_save = new wxButton(page_vr, wxID_OK, _("Save"));
-		btn_save->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickSave, this);
-		szr_vr->Add(btn_save, 1, wxALIGN_CENTER_VERTICAL, 0);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal == "")
-		{
-			btn_save->Disable();
-			page_vr->Disable();
-		}
 
 		szr_vr_main->AddStretchSpacer();
 		CreateDescriptionArea(page_vr, szr_vr_main);

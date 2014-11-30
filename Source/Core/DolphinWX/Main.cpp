@@ -90,12 +90,6 @@ class wxFrame;
 
 IMPLEMENT_APP(DolphinApp)
 
-BEGIN_EVENT_TABLE(DolphinApp, wxApp)
-	EVT_TIMER(wxID_ANY, DolphinApp::AfterInit)
-	EVT_QUERY_END_SESSION(DolphinApp::OnEndSession)
-	EVT_END_SESSION(DolphinApp::OnEndSession)
-END_EVENT_TABLE()
-
 bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
 
@@ -135,10 +129,13 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 	return wxApp::Initialize(c, v);
 }
 
-// The `main program' equivalent that creates the main window and return the main frame
+// The 'main program' equivalent that creates the main window and return the main frame
 
 bool DolphinApp::OnInit()
 {
+	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
+	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
+
 	InitLanguageSupport();
 
 	// Declarations and definitions
@@ -171,7 +168,7 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, "e", "exec",
-			"Loads the specified file (DOL,ELF,GCM,ISO,WAD)",
+			"Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -274,12 +271,12 @@ bool DolphinApp::OnInit()
 #endif
 
 #ifdef __APPLE__
-	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
+	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_9)
 	{
-		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.7 or greater.\n"
+		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.9 or greater.\n"
 				"Unfortunately you're running an old version of OS X.\n"
 				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
-				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"
+				"Please upgrade to 10.9 or greater to use the newest Dolphin version.\n\n"
 				"Sayonara!\n");
 		return false;
 	}
@@ -339,18 +336,17 @@ bool DolphinApp::OnInit()
 		y = wxDefaultCoord;
 #endif
 
-	main_frame = new CFrame((wxFrame*)nullptr, wxID_ANY,
-				StrToWxStr(scm_rev_str),
-				wxPoint(x, y), wxSize(w, h),
-				UseDebugger, BatchMode, UseLogger);
+	{
+		std::string titleStr = StringFromFormat("%s%s", scm_rev_str, SCM_OCULUS_STR);
+		main_frame = new CFrame(nullptr, wxID_ANY,
+			StrToWxStr(titleStr),
+			wxPoint(x, y), wxSize(w, h),
+			UseDebugger, BatchMode, UseLogger);
+	}
 	SetTopWindow(main_frame);
 	main_frame->SetMinSize(wxSize(400, 300));
 
-	// Postpone final actions until event handler is running.
-	// Updating the game list makes use of wxProgressDialog which may
-	// only be run after OnInit() when the event handler is running.
-	m_afterinit = new wxTimer(this, wxID_ANY);
-	m_afterinit->Start(1, wxTIMER_ONE_SHOT);
+	AfterInit();
 
 	return true;
 }
@@ -359,16 +355,11 @@ void DolphinApp::MacOpenFile(const wxString &fileName)
 {
 	FileToLoad = fileName;
 	LoadFile = true;
-
-	if (m_afterinit == nullptr)
-		main_frame->BootGame(WxStrToStr(FileToLoad));
+	main_frame->BootGame(WxStrToStr(FileToLoad));
 }
 
-void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
+void DolphinApp::AfterInit()
 {
-	delete m_afterinit;
-	m_afterinit = nullptr;
-
 	if (!BatchMode)
 		main_frame->UpdateGameList();
 
@@ -382,7 +373,7 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 			}
 			else
 			{
-				main_frame->BootGame(std::string(""));
+				main_frame->BootGame("");
 			}
 		}
 	}
@@ -438,7 +429,7 @@ void DolphinApp::InitLanguageSupport()
 
 void DolphinApp::OnEndSession(wxCloseEvent& event)
 {
-	// Close if we've recieved wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
+	// Close if we've received wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
 	if (!event.CanVeto())
 	{
 		main_frame->Close(true);
@@ -506,7 +497,7 @@ void* Host_GetRenderHandle()
 	return main_frame->GetRenderHandle();
 }
 
-// OK, this thread boundary is DANGEROUS on linux
+// OK, this thread boundary is DANGEROUS on Linux
 // wxPostEvent / wxAddPendingEvent is the solution.
 void Host_NotifyMapLoaded()
 {
@@ -546,11 +537,6 @@ void Host_UpdateTitle(const std::string& title)
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
 	event.SetString(StrToWxStr(title));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
-{
-	main_frame->GetRenderWindowSize(x, y, width, height);
 }
 
 void Host_RequestRenderWindowSize(int width, int height)

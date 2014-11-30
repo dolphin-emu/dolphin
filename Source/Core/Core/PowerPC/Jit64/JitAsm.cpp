@@ -130,7 +130,7 @@ void Jit64AsmRoutineManager::Generate()
 
 			//Ok, no block, let's jit
 			ABI_PushRegistersAndAdjustStack({}, 0);
-			ABI_CallFunctionA((void *)&Jit, PPCSTATE(pc));
+			ABI_CallFunctionA(32, (void *)&Jit, PPCSTATE(pc));
 			ABI_PopRegistersAndAdjustStack({}, 0);
 
 			// Jit might have cleared the code cache
@@ -186,6 +186,8 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	GenFifoWrite(16);
 	fifoDirectWrite32 = AlignCode4();
 	GenFifoWrite(32);
+	fifoDirectWrite64 = AlignCode4();
+	GenFifoWrite(64);
 	frsqrte = AlignCode4();
 	GenFrsqrte();
 	fres = AlignCode4();

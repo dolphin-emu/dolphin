@@ -91,12 +91,12 @@ public final class InputConfigFragment extends PreferenceFragment
 		else
 		{
 			List<InputDevice.MotionRange> motions = input.getMotionRanges();
-			String fakeid = "";
+			StringBuilder fakeid = new StringBuilder();
 
 			for (InputDevice.MotionRange range : motions)
-				fakeid += range.getAxis();
+				fakeid.append(range.getAxis());
 
-			return fakeid;
+			return fakeid.toString();
 		}
 	}
 }

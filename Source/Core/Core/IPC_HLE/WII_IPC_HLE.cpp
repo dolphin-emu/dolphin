@@ -260,12 +260,8 @@ IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
 IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName)
 {
 	// scan device name and create the right one
-	IWII_IPC_HLE_Device* pDevice = nullptr;
-
 	INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", _rDeviceName.c_str());
-	pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
-
-	return pDevice;
+	return new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
 }
 
 

@@ -7,7 +7,7 @@
 #include "Core/HW/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"
 
-// standard gamecube controller
+// standard GameCube controller
 class CSIDevice_GCSteeringWheel : public ISIDevice
 {
 private:

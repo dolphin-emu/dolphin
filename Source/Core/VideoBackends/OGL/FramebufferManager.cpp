@@ -598,14 +598,20 @@ void FramebufferManager::ConfigureRift()
 {
 	ovrGLConfig cfg;
 	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
+#ifdef OCULUSSDK044
+	cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
+	cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
+#else
 	cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
 	cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
+#endif
 	cfg.OGL.Header.Multisample = 0;
 #ifdef _WIN32
 	cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
 	cfg.OGL.DC = GetDC(cfg.OGL.Window);
-#ifdef OCULUSSDK043
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) {//If in Direct Mode
+#ifndef OCULUSSDK042
+	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If in Direct Mode
+	{
 		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
 	}
 #endif

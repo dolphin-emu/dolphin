@@ -319,14 +319,20 @@ void FramebufferManager::ConfigureRift()
 {
 	ovrD3D11Config cfg;
 	cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
+#ifdef OCULUSSDK044
+	cfg.D3D11.Header.BackBufferSize.w = hmdDesc.Resolution.w;
+	cfg.D3D11.Header.BackBufferSize.h = hmdDesc.Resolution.h;
+#else
 	cfg.D3D11.Header.RTSize.w = hmdDesc.Resolution.w;
 	cfg.D3D11.Header.RTSize.h = hmdDesc.Resolution.h;
+#endif
 	cfg.D3D11.Header.Multisample = 0;
 	cfg.D3D11.pDevice = D3D::device;
 	cfg.D3D11.pDeviceContext = D3D::context;
 	cfg.D3D11.pSwapChain = D3D::swapchain;
 	cfg.D3D11.pBackBufferRT = D3D::GetBackBuffer()->GetRTV();
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) {//If Rift is in Direct Mode
+	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If Rift is in Direct Mode
+	{
 		//To do: This is a bit of a hack, but I haven't found any problems with this.  
 		//If we don't want to do this, large changes will be needed to init sequence.
 		DX11::D3D::UnloadDXGI();  //Unload CreateDXGIFactory() before ovrHmd_AttachToWindow, or else direct mode won't work.

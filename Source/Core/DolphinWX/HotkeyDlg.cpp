@@ -27,17 +27,15 @@
 #include "DolphinWX/HotkeyDlg.h"
 #include "DolphinWX/WXInputBase.h"
 
-BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
-	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1, wxEVT_BUTTON, HotkeyConfigDialog::OnButtonClick)
-	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
-END_EVENT_TABLE()
-
 HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 		const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 , m_ButtonMappingTimer(this)
 {
 	CreateHotkeyGUIControls();
+
+	Bind(wxEVT_BUTTON, &HotkeyConfigDialog::OnButtonClick, this, 0, NUM_HOTKEYS - 1);
+	Bind(wxEVT_TIMER, &HotkeyConfigDialog::OnButtonTimer, this);
 
 	g_Pressed = 0;
 	g_Modkey = 0;
@@ -55,6 +53,40 @@ void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] = Key;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id] = Modkey;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[Id] = true;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[Id] = 0;
+	int vr = -1;
+	switch (Id)
+	{
+	case HK_FREELOOK_RESET:
+		vr = VR_POSITION_RESET;
+		break;
+	case HK_FREELOOK_ZOOM_OUT:
+		vr = VR_CAMERA_BACKWARD;
+		break;
+	case HK_FREELOOK_ZOOM_IN:
+		vr = VR_CAMERA_FORWARD;
+		break;
+	case HK_FREELOOK_LEFT:
+		vr = VR_CAMERA_LEFT;
+		break;
+	case HK_FREELOOK_RIGHT:
+		vr = VR_CAMERA_RIGHT;
+		break;
+	case HK_FREELOOK_UP:
+		vr = VR_CAMERA_UP;
+		break;
+	case HK_FREELOOK_DOWN:
+		vr = VR_CAMERA_DOWN;
+		break;
+	}
+	if (vr > 0)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[vr] = true;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[vr] = Key;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[vr] = Modkey;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[vr] = 0;
+	}
 }
 
 void HotkeyConfigDialog::EndGetButtons()
@@ -228,6 +260,17 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Toggle Frame limit"),
 		_("Increase Frame limit"),
 		_("Decrease Frame limit"),
+
+		_("Freelook Increase Speed"),
+		_("Freelook Decrease Speed"),
+		_("Freelook Reset Speed"),
+		_("Freelook Move Up"),
+		_("Freelook Move Down"),
+		_("Freelook Move Left"),
+		_("Freelook Move Right"),
+		_("Freelook Move In"),
+		_("Freelook Move Out"),
+		_("Freelook Reset"),
 
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),

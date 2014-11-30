@@ -568,7 +568,7 @@ void XEmitter::NOP(size_t size)
 	}
 }
 
-void XEmitter::PAUSE() {Write8(0xF3); NOP();} //use in tight spinloops for energy saving on some cpu
+void XEmitter::PAUSE() {Write8(0xF3); NOP();} //use in tight spinloops for energy saving on some CPU
 void XEmitter::CLC()  {CheckFlags(); Write8(0xF8);} //clear carry
 void XEmitter::CMC()  {CheckFlags(); Write8(0xF5);} //flip carry
 void XEmitter::STC()  {CheckFlags(); Write8(0xF9);} //set carry
@@ -1184,7 +1184,7 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 		}
 		else
 		{
-			_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Unhandled case");
+			_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Unhandled case %d %d", operand.scale, bits);
 		}
 		_operandReg = (X64Reg)normalops[op].ext; //pass extension in REG of ModRM
 	}

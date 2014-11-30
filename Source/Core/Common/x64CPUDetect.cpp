@@ -81,7 +81,7 @@ CPUInfo::CPUInfo()
 	Detect();
 }
 
-// Detects the various cpu features
+// Detects the various CPU features
 void CPUInfo::Detect()
 {
 	memset(this, 0, sizeof(*this));
@@ -104,7 +104,7 @@ void CPUInfo::Detect()
 	int cpu_id[4];
 	memset(brand_string, 0, sizeof(brand_string));
 
-	// Detect CPU's CPUID capabilities, and grab cpu string
+	// Detect CPU's CPUID capabilities, and grab CPU string
 	__cpuid(cpu_id, 0x00000000);
 	u32 max_std_fn = cpu_id[0];  // EAX
 	*((int *)brand_string) = cpu_id[1];
@@ -225,7 +225,7 @@ void CPUInfo::Detect()
 	}
 }
 
-// Turn the cpu info into a string we can show
+// Turn the CPU info into a string we can show
 std::string CPUInfo::Summarize()
 {
 	std::string sum(cpu_string);

@@ -28,7 +28,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 #if defined(HAVE_X11) && HAVE_X11
-#include "VideoBackends/OGL/GLInterface/X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 #endif
 
 // Class declarations
@@ -113,7 +113,6 @@ public:
 	void PostEvent(wxCommandEvent& event);
 	void StatusBarMessage(const char * Text, ...);
 	void ClearStatusBar();
-	void GetRenderWindowSize(int& x, int& y, int& width, int& height);
 	void OnRenderWindowSizeRequest(int width, int height);
 	void BootGame(const std::string& filename);
 	void OnRenderParentClose(wxCloseEvent& event);

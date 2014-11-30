@@ -6,12 +6,12 @@ Dolphin is an emulator for running GameCube, Triforce and Wii games on
 Windows/Linux/OS X systems and recent Android devices. It's licensed under
 the terms of the GNU General Public License, version 2 (GPLv2).
 
-Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before using Dolphin.
+Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 ## System Requirements
 * OS
     * Microsoft Windows (Vista or higher).
-    * Linux or Apple Mac OS X (10.7 or higher).
+    * Linux or Apple Mac OS X (10.9 or higher).
     * Unix-like systems other than Linux might work but are not officially supported.
 * Processor
     * A CPU with SSE2 support.

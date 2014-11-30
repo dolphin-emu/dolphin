@@ -136,7 +136,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIREC
 		AddInput(new Cursor(!!(i&2), (&m_state_in.cursor.x)[i/2], !!(i&1)));
 }
 
-void GetMousePos(float* const x, float* const y)
+void GetMousePos(ControlState* const x, ControlState* const y)
 {
 	POINT point = { 1, 1 };
 	GetCursorPos(&point);
@@ -151,8 +151,8 @@ void GetMousePos(float* const x, float* const y)
 	unsigned int win_height = rect.bottom - rect.top;
 
 	// Return the mouse position as a range from -1 to 1
-	*x = (float)point.x / (float)win_width * 2 - 1;
-	*y = (float)point.y / (float)win_height * 2 - 1;
+	*x = (ControlState)point.x / (ControlState)win_width * 2 - 1;
+	*y = (ControlState)point.y / (ControlState)win_height * 2 - 1;
 }
 
 bool KeyboardMouse::UpdateInput()

@@ -63,9 +63,6 @@ void VertexManager::CreateDeviceObjects()
 
 void VertexManager::DestroyDeviceObjects()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, 0 );
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
-
 	delete s_vertexBuffer;
 	delete s_indexBuffer;
 }

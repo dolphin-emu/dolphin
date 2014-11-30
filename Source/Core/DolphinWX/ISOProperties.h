@@ -70,25 +70,33 @@ private:
 	// Core
 	wxCheckBox *CPUThread, *SkipIdle, *MMU, *BAT, *DCBZOFF, *FPRF;
 	wxCheckBox *VBeam, *SyncGPU, *FastDiscSpeed, *BlockMerging, *DSPHLE;
+
+	wxArrayString arrayStringFor_GPUDeterminism;
+	wxChoice* GPUDeterminism;
 	// Wii
-	wxCheckBox *EnableWideScreen;
+	wxCheckBox* EnableWideScreen;
 
 	wxArrayString arrayStringFor_EmuState;
-	wxChoice *EmuState;
-	wxTextCtrl *EmuIssues;
+	wxChoice* EmuState;
+	wxTextCtrl* EmuIssues;
+	wxArrayString arrayStringFor_RmObjs;
+	wxCheckListBox* RmObjs;
+	wxButton* EditRmObj;
+	wxButton* RemoveRmObj;
 	wxArrayString arrayStringFor_Patches;
-	wxCheckListBox *Patches;
-	wxButton *EditPatch;
-	wxButton *RemovePatch;
+	wxCheckListBox* Patches;
+	wxButton* EditPatch;
+	wxButton* RemovePatch;
 	wxArrayString arrayStringFor_Cheats;
-	wxCheckListBox *Cheats;
-	wxButton *EditCheat;
-	wxButton *RemoveCheat;
+	wxCheckListBox* Cheats;
+	wxButton* EditCheat;
+	wxButton* RemoveCheat;
 	wxArrayString arrayStringFor_Speedhacks;
-	wxCheckListBox *Speedhacks;
-	wxButton *EditSpeedhack;
-	wxButton *AddSpeedhack;
-	wxButton *RemoveSpeedhack;
+	wxCheckListBox* Speedhacks;
+	wxButton* EditSpeedhack;
+	wxButton* AddSpeedhack;
+	wxButton* RemoveSpeedhack;
+
 
 	// VR
 	wxCheckBox *Disable3D;
@@ -111,26 +119,26 @@ private:
 	wxTextCtrl *VRIssues;
 
 
-	wxTextCtrl *m_Name;
-	wxTextCtrl *m_GameID;
-	wxTextCtrl *m_Country;
-	wxTextCtrl *m_MakerID;
-	wxTextCtrl *m_Revision;
-	wxTextCtrl *m_Date;
-	wxTextCtrl *m_FST;
-	wxTextCtrl *m_MD5Sum;
-	wxButton   *m_MD5SumCompute;
+	wxTextCtrl* m_Name;
+	wxTextCtrl* m_GameID;
+	wxTextCtrl* m_Country;
+	wxTextCtrl* m_MakerID;
+	wxTextCtrl* m_Revision;
+	wxTextCtrl* m_Date;
+	wxTextCtrl* m_FST;
+	wxTextCtrl* m_MD5Sum;
+	wxButton*   m_MD5SumCompute;
 	wxArrayString arrayStringFor_Lang;
-	wxChoice *m_Lang;
-	wxTextCtrl *m_ShortName;
-	wxTextCtrl *m_Maker;
-	wxTextCtrl *m_Comment;
-	wxStaticBitmap *m_Banner;
+	wxChoice*   m_Lang;
+	wxTextCtrl* m_ShortName;
+	wxTextCtrl* m_Maker;
+	wxTextCtrl* m_Comment;
+	wxStaticBitmap* m_Banner;
 
-	wxTreeCtrl *m_Treectrl;
+	wxTreeCtrl* m_Treectrl;
 	wxTreeItemId RootId;
 
-	Gecko::CodeConfigPanel *m_geckocode_panel;
+	Gecko::CodeConfigPanel* m_geckocode_panel;
 
 	enum
 	{
@@ -155,6 +163,7 @@ private:
 		ID_SCREEN_RIGHT,
 		ID_SCREEN_UP,
 		ID_SCREEN_PITCH,
+		ID_RMOBJ_PAGE,
 		ID_PATCH_PAGE,
 		ID_ARCODE_PAGE,
 		ID_SPEEDHACK_PAGE,
@@ -177,6 +186,11 @@ private:
 		ID_SHOWDEFAULTCONFIG,
 		ID_EMUSTATE,
 		ID_EMU_ISSUES,
+		ID_RMOBJS_LIST,
+		ID_RMOBJS_CHECKBOX,
+		ID_EDITRMOBJ,
+		ID_ADDRMOBJ,
+		ID_REMOVERMOBJ,
 		ID_PATCHES_LIST,
 		ID_EDITPATCH,
 		ID_ADDPATCH,
@@ -219,7 +233,9 @@ private:
 	void OnEditConfig(wxCommandEvent& event);
 	void OnComputeMD5Sum(wxCommandEvent& event);
 	void OnShowDefaultConfig(wxCommandEvent& event);
+	void RmObjButtonClicked(wxCommandEvent& event);
 	void ListSelectionChanged(wxCommandEvent& event);
+	void CheckboxSelectionChanged(wxCommandEvent& event);
 	void PatchButtonClicked(wxCommandEvent& event);
 	void ActionReplayButtonClicked(wxCommandEvent& event);
 	void RightClickOnBanner(wxMouseEvent& event);
@@ -232,10 +248,10 @@ private:
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
 
-	GameListItem *OpenGameListItem;
+	GameListItem* OpenGameListItem;
 
-	std::vector<const DiscIO::SFileInfo *> GCFiles;
-	typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
+	std::vector<const DiscIO::SFileInfo*> GCFiles;
+	typedef std::vector<const DiscIO::SFileInfo*>::iterator fileIter;
 
 	size_t CreateDirectoryTree(wxTreeItemId& parent,
 			std::vector<const DiscIO::SFileInfo*> fileInfos,
@@ -249,10 +265,13 @@ private:
 	std::string GameIniFileDefault;
 	std::string GameIniFileLocal;
 
+	std::set<std::string> DefaultRmObjs;
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;
 
 	void LoadGameConfig();
+	void RmObjList_Load();
+	void RmObjList_Save();
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();

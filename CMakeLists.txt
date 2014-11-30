@@ -11,6 +11,9 @@ option(ENABLE_QT "Enable Qt (use the experimental Qt interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
+if(APPLE)
+	option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
+endif()
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
@@ -45,6 +48,8 @@ endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
+# Libraries to link
+set(LIBS)
 
 # Set up paths
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
@@ -153,9 +158,7 @@ if(NOT ENABLE_GENERIC)
 		set(_M_ARM 1)
 		set(_M_ARM_32 1)
 		add_definitions(-D_M_ARM=1 -D_M_ARM_32=1)
-		if(${ANDROID_NDK_ABI_NAME} MATCHES "armeabi-v7a")
-			add_definitions(-marm -march=armv7-a)
-		endif()
+		add_definitions(-marm -march=armv7-a)
 	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 		# This option only applies to 64bit ARM
 		set(_M_ARM 1)
@@ -221,10 +224,18 @@ if(ENABLE_LTO)
 endif()
 
 if(APPLE)
-	# Ignore MacPorts and Fink and any other locally installed packages that
-	# might prevent building a distributable binary.
-	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
-	set(ENV{PATH} /usr/bin:/bin:/usr/sbin:/sbin)
+	if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
+		# Hack up the path to prioritize the path to built-in OS libraries to
+		# increase the chance of not depending on a bunch of copies of them
+		# installed by MacPorts, Fink, Homebrew, etc, and ending up copying
+		# them into the bundle.  Since we optionally depend on libraries which
+		# are not part of OS X (ffmpeg, libusb, etc.), however, don't remove
+		# the default path entirely as was done in a previous version of this
+		# file.  This is still kinda evil, since it defeats the user's path
+		# settings...
+		# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
+		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
+	endif()
 
 	# Some of our code contains Objective C constructs.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c -stdlib=libc++")
@@ -239,10 +250,10 @@ if(APPLE)
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
 	# features can be used, not the minimum required version to run.
-	set(OSX_MIN_VERSION "10.7")
+	set(OSX_MIN_VERSION "10.9")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.7.sdk")
-	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk")
+	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.9.sdk")
+	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
 	if(EXISTS "${SYSROOT_PATH}/")
 		set(TARGET_SYSROOT ${SYSROOT_PATH})
 	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
@@ -280,6 +291,7 @@ if(APPLE)
 	find_library(COREAUDIO_LIBRARY CoreAudio)
 	find_library(COREFUND_LIBRARY CoreFoundation)
 	find_library(CORESERV_LIBRARY CoreServices)
+	find_library(FOUNDATION_LIBRARY foundation)
 	find_library(IOB_LIBRARY IOBluetooth)
 	find_library(IOK_LIBRARY IOKit)
 	find_library(QUICKTIME_LIBRARY QuickTime)
@@ -401,6 +413,7 @@ if(NOT ANDROID)
 		set(HAS_LLVM 1)
 
 		include_directories(${LLVM_INCLUDE_DIRS})
+		list(APPEND LIBS ${LLVM_LIBRARIES})
 
 		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 	endif()
@@ -446,6 +459,10 @@ if(NOT ANDROID)
 	endif()
 	if(ENCODE_FRAMEDUMPS)
 		check_libav()
+		if(LIBAV_FOUND)
+			LIST(APPEND LIBS ${LIBAV_LIBRARIES})
+		endif()
+
 	endif()
 
 	set(CMAKE_REQUIRED_LIBRARIES portaudio)
@@ -533,6 +550,7 @@ else()
 	include_directories(Externals/LZO)
 	set(LZO lzo2)
 endif()
+list(APPEND LIBS ${LZO})
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	check_lib(PNG png png.h QUIET)
@@ -590,16 +608,15 @@ if(LIBUSB_FOUND)
 	include_directories(${LIBUSB_INCLUDE_DIR})
 endif(LIBUSB_FOUND)
 
-set(SFML_FIND_VERSION TRUE)
-set(SFML_FIND_VERSION_MAJOR 1)
-set(SFML_FIND_VERSION_MINOR 5)
+set(SFML_REQD_VERSION 2.1)
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
-	include(FindSFML OPTIONAL)
+	find_package(SFML ${SFML_REQD_VERSION} COMPONENTS network system)
 endif()
-if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION_MAJOR
+if(SFML_FOUND)
 	message("Using shared SFML")
 else()
-	message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
+	message("Using static SFML ${SFML_REQD_VERSION} from Externals")
+	add_definitions(-DSFML_STATIC)
 	add_subdirectory(Externals/SFML)
 	include_directories(BEFORE Externals/SFML/include)
 endif()
@@ -617,6 +634,7 @@ if(USE_UPNP)
 		include_directories(Externals/miniupnpc/src)
 	endif()
 	add_definitions(-DUSE_UPNP)
+	list(APPEND LIBS miniupnpc)
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
@@ -647,6 +665,12 @@ if (ANDROID)
 	message("Using static iconv from Externals")
 	include_directories(Externals/libiconv-1.14/include)
 	add_subdirectory(Externals/libiconv-1.14)
+	list(APPEND LIBS iconv)
+else()
+	find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
+	find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
+	list(APPEND LIBS ${ICONV_LIBRARIES})
+	mark_as_advanced(ICONV_INCLUDE_DIR ICONV_LIBRARIES)
 endif()
 
 if(ENABLE_QT)
@@ -693,6 +717,9 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 			include(FindGTK2)
 			if(GTK2_FOUND)
 				include_directories(${GTK2_INCLUDE_DIRS})
+				list(APPEND LIBS ${GTK2_LIBRARIES})
+			else()
+				message(FATAL_ERROR "GTK is required to build the WX UI. Please install the GTK development libraries.")
 			endif()
 		endif()
 	endif()
@@ -729,6 +756,23 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX AND NOT ANDROID)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
+   ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+	set(LIBS ${LIBS} usbhid)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# Link against OS X system frameworks.
+	list(APPEND LIBS
+		${APPKIT_LIBRARY}
+		${AU_LIBRARY}
+		${COREAUDIO_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOK_LIBRARY}
+		${FORCEFEEDBACK}
+		)
+endif()
 
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header

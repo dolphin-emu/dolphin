@@ -5,8 +5,11 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Common/IniFile.h"
+
+typedef std::vector<u8> SkipEntry;
 
 enum Hotkey
 {
@@ -42,6 +45,17 @@ enum Hotkey
 
 	HK_INCREASE_FRAME_LIMIT,
 	HK_DECREASE_FRAME_LIMIT,
+
+	HK_FREELOOK_INCREASE_SPEED,
+	HK_FREELOOK_DECREASE_SPEED,
+	HK_FREELOOK_RESET_SPEED,
+	HK_FREELOOK_UP,
+	HK_FREELOOK_DOWN,
+	HK_FREELOOK_LEFT,
+	HK_FREELOOK_RIGHT,
+	HK_FREELOOK_ZOOM_IN,
+	HK_FREELOOK_ZOOM_OUT,
+	HK_FREELOOK_RESET,
 
 	HK_LOAD_STATE_SLOT_1,
 	HK_LOAD_STATE_SLOT_2,
@@ -134,7 +148,7 @@ enum VRFreelook
 	VR_2D_SCREEN_THICKER,
 	VR_2D_SCREEN_THINNER,
 
-	NUM_VR_OPTIONS,
+	NUM_VR_HOTKEYS,
 };
 
 enum GPUDeterminismMode
@@ -219,13 +233,22 @@ struct SCoreStartupParameter
 	// Hotkeys
 	int iHotkey[NUM_HOTKEYS];
 	int iHotkeyModifier[NUM_HOTKEYS];
+	bool iHotkeyKBM[NUM_HOTKEYS];
+	u32 iHotkeyXInputMapping[NUM_HOTKEYS];
+	bool bHotkeysXInput;
+	float fFreeLookSensitivity;
 
 	// VR Settings
-	int iVRSettings[NUM_VR_OPTIONS];
-	int iVRSettingsModifier[NUM_VR_OPTIONS];
-	bool iVRSettingsKBM[NUM_VR_OPTIONS];
-	u32 iVRSettingsXInputMapping[NUM_VR_OPTIONS];
-	bool bHotkeysXInput = true;
+	int iVRSettings[NUM_VR_HOTKEYS];
+	int iVRSettingsModifier[NUM_VR_HOTKEYS];
+	bool iVRSettingsKBM[NUM_VR_HOTKEYS];
+	u32 iVRSettingsXInputMapping[NUM_VR_HOTKEYS];
+
+	//Remove Layer
+	std::vector<SkipEntry> render_skip_entries;
+	size_t num_render_skip_entries = 0;
+	volatile bool update = true;
+	volatile bool done = true;
 
 	// Display settings
 	std::string strFullscreenResolution;

@@ -32,22 +32,22 @@ bool CoreAudioSound::Start()
 	OSStatus err;
 	AURenderCallbackStruct callback_struct;
 	AudioStreamBasicDescription format;
-	ComponentDescription desc;
-	Component component;
+	AudioComponentDescription desc;
+	AudioComponent component;
 
 	desc.componentType = kAudioUnitType_Output;
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
-	component = FindNextComponent(nullptr, &desc);
+	component = AudioComponentFindNext(nullptr, &desc);
 	if (component == nullptr)
 	{
 		ERROR_LOG(AUDIO, "error finding audio component");
 		return false;
 	}
 
-	err = OpenAComponent(component, &audioUnit);
+	err = AudioComponentInstanceNew(component, &audioUnit);
 	if (err != noErr)
 	{
 		ERROR_LOG(AUDIO, "error opening audio component");
@@ -131,7 +131,7 @@ void CoreAudioSound::Stop()
 	if (err != noErr)
 		ERROR_LOG(AUDIO, "error uninitializing audiounit");
 
-	err = CloseComponent(audioUnit);
+	err = AudioComponentInstanceDispose(audioUnit);
 	if (err != noErr)
 		ERROR_LOG(AUDIO, "error closing audio component");
 }

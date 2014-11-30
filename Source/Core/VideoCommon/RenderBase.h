@@ -99,10 +99,14 @@ public:
 	virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
 
 	virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) = 0;
+	virtual void SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable) = 0;
 	virtual void ReinterpretPixelData(unsigned int convtype) = 0;
 	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma = 1.0f);
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
+
+	virtual u16 BBoxRead(int index) = 0;
+	virtual void BBoxWrite(int index, u16 value) = 0;
 
 	// What's the real difference between these? Too similar names.
 	virtual void ResetAPIState() = 0;

@@ -14,6 +14,7 @@
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/PatchEngine.h"
+#include "Core/RmObjEngine.h"
 #include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
@@ -251,6 +252,8 @@ bool CBoot::BootUp()
 		{
 			// Load patches if they weren't already
 			PatchEngine::LoadPatches();
+			RmObjEngine::LoadRmObjs();
+			RmObjEngine::ApplyFrameRmObjs();
 		}
 
 		// Scan for common HLE functions

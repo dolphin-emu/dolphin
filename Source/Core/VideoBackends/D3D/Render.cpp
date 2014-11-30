@@ -8,6 +8,7 @@
 #include <strsafe.h>
 #include <unordered_map>
 
+#include "Common/Atomic.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -256,6 +257,7 @@ Renderer::~Renderer()
 
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+		Core::ShouldAddTimewarpFrame();
 	}
 #endif
 	g_first_rift_frame = true;
@@ -588,6 +590,33 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	RestoreAPIState();
 }
 
+void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
+{
+	ResetAPIState();
+
+	if (colorEnable && alphaEnable) D3D::stateman->PushBlendState(clearblendstates[0]);
+	else if (colorEnable) D3D::stateman->PushBlendState(clearblendstates[1]);
+	else if (alphaEnable) D3D::stateman->PushBlendState(clearblendstates[2]);
+	else D3D::stateman->PushBlendState(clearblendstates[3]);
+
+	// TODO: Should we enable Z testing here?
+	/*if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(cleardepthstates[0]);
+	else */if (zEnable) D3D::stateman->PushDepthState(cleardepthstates[1]);
+	else /*if (!zEnable)*/ D3D::stateman->PushDepthState(cleardepthstates[2]);
+
+	//To Do: Not needed?
+	//D3D::context->VSSetShader(VertexShaderCache::GetClearVertexShader(), nullptr, 0);
+	//D3D::context->PSSetShader(PixelShaderCache::GetClearProgram(), nullptr, 0);
+	//D3D::context->IASetInputLayout(VertexShaderCache::GetClearInputLayout());
+
+	D3D::stateman->Apply();
+
+	D3D::stateman->PopDepthState();
+	D3D::stateman->PopBlendState();
+
+	RestoreAPIState();
+}
+
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	// TODO: MSAA support..
@@ -736,8 +765,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #ifdef OCULUSSDK042
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#endif
-#ifdef OCULUSSDK043
+#else
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
 #endif
@@ -884,8 +912,40 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
+			//Change to compatible D3D Blend State:
+			//Some games (e.g. Paper Mario) do not use a Blend State that is compatible
+			//with the Oculus Rift's SDK.  They set RenderTargetWriteMask to 0,
+			//which masks out the call's Pixel Shader stage.  This also seems inefficient
+			// from a rendering point of view.  Could this be an area Dolphin could be optimized?
+			//To Do: Only use this when needed?  Is this slow?
+			ID3D11BlendState* g_pOculusRiftBlendState = NULL;
+
+			D3D11_BLEND_DESC oculusBlendDesc;
+			ZeroMemory(&oculusBlendDesc, sizeof(D3D11_BLEND_DESC));
+			oculusBlendDesc.AlphaToCoverageEnable = FALSE;
+			oculusBlendDesc.IndependentBlendEnable = FALSE;
+			oculusBlendDesc.RenderTarget[0].BlendEnable = FALSE;
+			oculusBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+			HRESULT hr = D3D::device->CreateBlendState(&oculusBlendDesc, &g_pOculusRiftBlendState);
+			if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
+			D3D::SetDebugObjectName((ID3D11DeviceChild*)g_pOculusRiftBlendState, "blend state used to make sure rift draw call works");
+
+			D3D::context->OMSetBlendState(g_pOculusRiftBlendState, NULL, 0xFFFFFFFF);
+
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			while (Core::ShouldAddTimewarpFrame())
+			{
+				auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+				if (0 == frameTime.TimewarpPointSeconds) {
+					ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
+				}
+				else {
+					ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
+				}
+				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			}
 		}
 		else
 		{

@@ -18,7 +18,7 @@
 
 #include "Common/CommonTypes.h"
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include "VideoBackends/OGL/GLInterface/X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 #endif
 
 class wxBoxSizer;
@@ -195,7 +195,7 @@ private:
 
 	// Misc
 	wxCheckBox* WiiScreenSaver;
-	wxCheckBox* WiiEuRGB60;
+	wxCheckBox* WiiPAL60;
 	wxChoice* WiiAspectRatio;
 	wxChoice* WiiSystemLang;
 

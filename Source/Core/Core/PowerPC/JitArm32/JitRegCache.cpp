@@ -9,7 +9,7 @@ using namespace ArmGen;
 
 ArmRegCache::ArmRegCache()
 {
-	emit = 0;
+	emit = nullptr;
 }
 
 void ArmRegCache::Init(ARMXEmitter *emitter)
@@ -300,3 +300,20 @@ void ArmRegCache::Flush(FlushMode mode)
 	}
 }
 
+void ArmRegCache::StoreFromRegister(u32 preg)
+{
+	if (regs[preg].GetType() == REG_IMM)
+	{
+		// This changes the type over to a REG_REG and gets caught below.
+		BindToRegister(preg, true, true);
+	}
+	if (regs[preg].GetType() == REG_REG)
+	{
+		u32 regindex = regs[preg].GetRegIndex();
+		emit->STR(ArmCRegs[regindex].Reg, R9, PPCSTATE_OFF(gpr) + preg * 4);
+
+		ArmCRegs[regindex].PPCReg = 33;
+		ArmCRegs[regindex].LastLoad = 0;
+		regs[preg].Flush();
+	}
+}

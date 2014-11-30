@@ -60,9 +60,11 @@ VideoConfig::VideoConfig()
 	bNoRestore = false;
 	bFlipVertical = false;
 	bSRGB = false;
-	bOverdrive = false;
+	bOverdrive = true;
 	bHqDistortion = false;
 	iVRPlayer = 0;
+	iMinExtraFrames = DEFAULT_VR_MIN_EXTRA_FRAMES;
+	iMaxExtraFrames = DEFAULT_VR_MAX_EXTRA_FRAMES;
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
@@ -127,29 +129,13 @@ void VideoConfig::Load(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
+	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
 	hacks->Get("EFBToTextureEnable", &bCopyEFBToTexture, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
-	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
-	vr->Get("Scale", &fScale, 1.0f);
-	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
-	vr->Get("EnableVR", &bEnableVR, true);
-	vr->Get("LowPersistence", &bLowPersistence, true);
-	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
-	vr->Get("OrientationTracking", &bOrientationTracking, true);
-	vr->Get("MagYawCorrection", &bMagYawCorrection, true);
-	vr->Get("PositionTracking", &bPositionTracking, true);
-	vr->Get("Chromatic", &bChromatic, true);
-	vr->Get("Timewarp", &bTimewarp, true);
-	vr->Get("Vignette", &bVignette, false);
-	vr->Get("NoRestore", &bNoRestore, false);
-	vr->Get("FlipVertical", &bFlipVertical, false);
-	vr->Get("sRGB", &bSRGB, false);
-	vr->Get("Overdrive", &bOverdrive, false);
-	vr->Get("HQDistortion", &bHqDistortion, false);
-	vr->Get("Player", &iVRPlayer, 0);
+	LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -170,6 +156,34 @@ void VideoConfig::Load(const std::string& ini_file)
 	if (bEnableShaderDebugging)
 		OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
 }
+
+void VideoConfig::LoadVR(const std::string& ini_file)
+{
+	IniFile iniFile;
+	iniFile.Load(ini_file);
+
+	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
+	vr->Get("Scale", &fScale, 1.0f);
+	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
+	vr->Get("EnableVR", &bEnableVR, true);
+	vr->Get("LowPersistence", &bLowPersistence, true);
+	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
+	vr->Get("OrientationTracking", &bOrientationTracking, true);
+	vr->Get("MagYawCorrection", &bMagYawCorrection, true);
+	vr->Get("PositionTracking", &bPositionTracking, true);
+	vr->Get("Chromatic", &bChromatic, true);
+	vr->Get("Timewarp", &bTimewarp, true);
+	vr->Get("Vignette", &bVignette, false);
+	vr->Get("NoRestore", &bNoRestore, false);
+	vr->Get("FlipVertical", &bFlipVertical, false);
+	vr->Get("sRGB", &bSRGB, false);
+	vr->Get("Overdrive", &bOverdrive, true);
+	vr->Get("HQDistortion", &bHqDistortion, false);
+	vr->Get("Player", &iVRPlayer, 0);
+	vr->Get("MinExtraFrames", &iMinExtraFrames, DEFAULT_VR_MIN_EXTRA_FRAMES);
+	vr->Get("MaxExtraFrames", &iMaxExtraFrames, DEFAULT_VR_MAX_EXTRA_FRAMES);
+}
+
 
 void VideoConfig::GameIniLoad()
 {
@@ -239,6 +253,7 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
+	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
@@ -401,10 +416,20 @@ void VideoConfig::Save(const std::string& ini_file)
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
+	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
 	hacks->Set("EFBToTextureEnable", bCopyEFBToTexture);
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
 	hacks->Set("EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
+
+	SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	iniFile.Save(ini_file);
+}
+
+void VideoConfig::SaveVR(const std::string& ini_file)
+{
+	IniFile iniFile;
+	iniFile.Load(ini_file);
 
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Set("Scale", fScale);
@@ -424,6 +449,9 @@ void VideoConfig::Save(const std::string& ini_file)
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
 	vr->Set("Player", iVRPlayer);
+	vr->Set("MinExtraFrames", iMinExtraFrames);
+	vr->Set("MaxExtraFrames", iMaxExtraFrames);
+
 	iniFile.Save(ini_file);
 }
 

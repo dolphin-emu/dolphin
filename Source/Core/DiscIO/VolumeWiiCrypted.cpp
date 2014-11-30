@@ -46,18 +46,15 @@ bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
 	// Medal Of Honor Heroes 2 read this DVD offset for PartitionsInfo
 	// and, PartitionsInfo is not encrypted, let's read it directly.
 	if (!m_pReader->Read(_Offset, _Length, _pBuffer))
-	{
 		return(false);
-	}
-	return true;
+	else
+		return true;
 }
 
 bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 {
 	if (m_pReader == nullptr)
-	{
 		return(false);
-	}
 
 	while (_Length > 0)
 	{
@@ -69,9 +66,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 
 		// read current block
 		if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
-		{
 			return(false);
-		}
 
 		if (m_LastDecryptedBlockOffset != Block)
 		{
@@ -118,16 +113,12 @@ void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
 std::string CVolumeWiiCrypted::GetUniqueID() const
 {
 	if (m_pReader == nullptr)
-	{
 		return std::string();
-	}
 
 	char ID[7];
 
 	if (!Read(0, 6, (u8*)ID))
-	{
 		return std::string();
-	}
 
 	ID[6] = '\0';
 
@@ -149,20 +140,28 @@ IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
 std::string CVolumeWiiCrypted::GetMakerID() const
 {
 	if (m_pReader == nullptr)
-	{
 		return std::string();
-	}
 
 	char makerID[3];
 
 	if (!Read(0x4, 0x2, (u8*)&makerID))
-	{
 		return std::string();
-	}
 
 	makerID[2] = '\0';
 
 	return makerID;
+}
+
+int CVolumeWiiCrypted::GetRevision() const
+{
+	if (!m_pReader)
+		return 0;
+
+	u8 revision;
+	if (!m_pReader->Read(7, 1, &revision))
+		return 0;
+
+	return revision;
 }
 
 std::vector<std::string> CVolumeWiiCrypted::GetNames() const
@@ -181,16 +180,12 @@ std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 u32 CVolumeWiiCrypted::GetFSTSize() const
 {
 	if (m_pReader == nullptr)
-	{
 		return 0;
-	}
 
 	u32 size;
 
 	if (!Read(0x428, 0x4, (u8*)&size))
-	{
 		return 0;
-	}
 
 	return size;
 }
@@ -198,16 +193,12 @@ u32 CVolumeWiiCrypted::GetFSTSize() const
 std::string CVolumeWiiCrypted::GetApploaderDate() const
 {
 	if (m_pReader == nullptr)
-	{
 		return std::string();
-	}
 
 	char date[16];
 
 	if (!Read(0x2440, 0x10, (u8*)&date))
-	{
 		return std::string();
-	}
 
 	date[10] = '\0';
 
@@ -217,25 +208,17 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
 u64 CVolumeWiiCrypted::GetSize() const
 {
 	if (m_pReader)
-	{
 		return m_pReader->GetDataSize();
-	}
 	else
-	{
 		return 0;
-	}
 }
 
 u64 CVolumeWiiCrypted::GetRawSize() const
 {
 	if (m_pReader)
-	{
 		return m_pReader->GetRawSize();
-	}
 	else
-	{
 		return 0;
-	}
 }
 
 bool CVolumeWiiCrypted::CheckIntegrity() const

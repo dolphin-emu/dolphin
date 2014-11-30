@@ -24,11 +24,13 @@ class wxEmuStateTip : public wxTipWindow
 {
 public:
 	wxEmuStateTip(wxWindow* parent, const wxString& text, wxEmuStateTip** windowPtr)
-		: wxTipWindow(parent, text, 70, (wxTipWindow**)windowPtr) {}
+	    : wxTipWindow(parent, text, 70, (wxTipWindow**)windowPtr)
+	{
+		Bind(wxEVT_KEY_DOWN, &wxEmuStateTip::OnKeyDown, this);
+	}
+
 	// wxTipWindow doesn't correctly handle KeyEvents and crashes... we must overload that.
 	void OnKeyDown(wxKeyEvent& event) { event.StopPropagation(); Close(); }
-private:
-	DECLARE_EVENT_TABLE()
 };
 
 class CGameListCtrl : public wxListCtrl
@@ -82,8 +84,6 @@ private:
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
 	void ScanForISOs();
-
-	DECLARE_EVENT_TABLE()
 
 	// events
 	void OnLeftClick(wxMouseEvent& event);
