@@ -89,17 +89,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
 	else
 		out.Write("cbuffer VSBlock {\n");
-	out.Write(
-		"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
-		"\tfloat4 " I_PROJECTION"[4];\n"
-		"\tint4 " I_MATERIALS"[4];\n"
-		"\tLight " I_LIGHTS"[8];\n"
-		"\tfloat4 " I_TEXMATRICES"[24];\n"
-		"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_NORMALMATRICES"[32];\n"
-		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_DEPTHPARAMS";\n"
-		"};\n");
+	out.Write(s_shader_uniforms);
+	out.Write("};\n");
 
 	GenerateVSOutputStruct(out, api_type);
 
@@ -131,22 +122,33 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
-		// Let's set up attributes
-		for (size_t i = 0; i < 8; ++i)
+		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
+		if (g_ActiveConfig.iStereoMode > 0)
 		{
-			if (i < xfmem.numTexGen.numTexGens)
-			{
-				out.Write("centroid out  float3 uv%d;\n", i);
-			}
+			out.Write("centroid out VS_OUTPUT o;\n");
 		}
-		out.Write("centroid out   float4 clipPos;\n");
-		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("centroid out   float4 Normal;\n");
+		else
+		{
+			// Let's set up attributes
+			for (size_t i = 0; i < 8; ++i)
+			{
+				if (i < xfmem.numTexGen.numTexGens)
+				{
+					out.Write("centroid out float3 uv%d;\n", i);
+				}
+			}
 
-		out.Write("centroid out   float4 colors_02;\n");
-		out.Write("centroid out   float4 colors_12;\n");
+			out.Write("centroid out float4 clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+				out.Write("centroid out float4 Normal;\n");
+			out.Write("centroid out float4 colors_02;\n");
+			out.Write("centroid out float4 colors_12;\n");
+		}
 
 		out.Write("void main()\n{\n");
+
+		if (g_ActiveConfig.iStereoMode <= 0)
+			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
 	{
@@ -172,8 +174,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (components & VB_HAS_POSMTXIDX)
 			out.Write("  int posmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
+
+		out.Write("VS_OUTPUT o;\n");
 	}
-	out.Write("VS_OUTPUT o;\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
@@ -431,27 +434,32 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	if (api_type == API_OPENGL)
 	{
-		// Bit ugly here
-		// TODO: Make pretty
-		// Will look better when we bind uniforms in GLSL 1.3
-		// clipPos/w needs to be done in pixel shader, not here
+		if (g_ActiveConfig.iStereoMode <= 0)
+		{
+			// Bit ugly here
+			// TODO: Make pretty
+			// Will look better when we bind uniforms in GLSL 1.3
+			// clipPos/w needs to be done in pixel shader, not here
 
-		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-			out.Write(" uv%d.xyz =  o.tex%d;\n", i, i);
-		out.Write("  clipPos = o.clipPos;\n");
+			for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
 
-		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("  Normal = o.Normal;\n");
+			out.Write("clipPos = o.clipPos;\n");
 
-		out.Write("colors_02 = o.colors_0;\n");
-		out.Write("colors_12 = o.colors_1;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+				out.Write("Normal = o.Normal;\n");
+
+			out.Write("colors_02 = o.colors_0;\n");
+			out.Write("colors_12 = o.colors_1;\n");
+		}
+
 		out.Write("gl_Position = o.pos;\n");
-		out.Write("}\n");
 	}
 	else // D3D
 	{
-		out.Write("return o;\n}\n");
+		out.Write("return o;\n");
 	}
+	out.Write("}\n");
 
 	if (is_writing_shadercode)
 	{
@@ -475,7 +483,12 @@ void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE
 	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
 }
 
-void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type)
+void GenerateVSOutputStruct(ShaderCode& object, API_TYPE api_type)
 {
 	GenerateVSOutputStruct<ShaderCode>(object, api_type);
+}
+
+void GenerateVSOutputStruct(ShaderGeneratorInterface& object, API_TYPE api_type)
+{
+	// Ignore unknown types
 }

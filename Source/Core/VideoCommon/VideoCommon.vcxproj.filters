@@ -143,6 +143,9 @@
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
     <ClCompile Include="VR.cpp" />
     <ClCompile Include="VR920.cpp" />
     <ClCompile Include="MetroidVR.cpp" />
@@ -277,6 +280,9 @@
     </ClInclude>
     <ClInclude Include="BoundingBox.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryShaderGen.h">
+      <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="VR.h" />
     <ClInclude Include="VR920.h" />

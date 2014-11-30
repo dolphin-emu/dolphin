@@ -28,21 +28,21 @@ int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
 
 GLenum FramebufferManager::m_textureType;
-
-GLuint FramebufferManager::m_efbFramebuffer[2];
+GLuint FramebufferManager::m_efbFramebuffer;
 GLuint FramebufferManager::m_xfbFramebuffer;
-GLuint FramebufferManager::m_efbColor[2];
-GLuint FramebufferManager::m_efbDepth[2];
-GLuint FramebufferManager::m_efbColorSwap[2]; // for hot swap when reinterpreting EFB pixel formats
+GLuint FramebufferManager::m_efbColor;
+GLuint FramebufferManager::m_efbDepth;
+GLuint FramebufferManager::m_efbColorSwap; // for hot swap when reinterpreting EFB pixel formats
 
 // Front buffers for Asynchronous Timewarp, to be swapped with either m_efbColor or m_resolvedColorTexture
 // at the end of a frame. The back buffer is rendered to while the front buffer is displayed, then they are flipped.
 volatile GLuint FramebufferManager::m_frontBuffer[2]; 
+volatile GLuint FramebufferManager::m_backBuffer[2];
 
 // Only used in MSAA mode.
-GLuint FramebufferManager::m_resolvedFramebuffer[2];
-GLuint FramebufferManager::m_resolvedColorTexture[2];
-GLuint FramebufferManager::m_resolvedDepthTexture[2];
+GLuint FramebufferManager::m_resolvedFramebuffer;
+GLuint FramebufferManager::m_resolvedColorTexture;
+GLuint FramebufferManager::m_resolvedDepthTexture;
 
 // reinterpret pixel format
 SHADER FramebufferManager::m_pixel_format_shaders[2];
@@ -53,21 +53,19 @@ ovrGLTexture FramebufferManager::m_eye_texture[2];
 #endif
 bool FramebufferManager::m_stereo3d = false;
 int FramebufferManager::m_eye_count = 1;
-int FramebufferManager::m_current_eye = 0;
 
 FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples)
 {
-	for (int eye = 0; eye < 2; ++eye)
-	{
-		m_efbFramebuffer[eye] = 0;
-		m_efbColor[eye] = 0;
-		m_efbDepth[eye] = 0;
-		m_efbColorSwap[eye] = 0;
-		m_resolvedFramebuffer[eye] = 0;
-		m_resolvedColorTexture[eye] = 0;
-		m_resolvedDepthTexture[eye] = 0;
-	}
-	if (g_has_hmd)
+	m_efbFramebuffer = 0;
+	m_xfbFramebuffer = 0;
+	m_efbColor = 0;
+	m_efbDepth = 0;
+	m_efbColorSwap = 0;
+	m_resolvedFramebuffer = 0;
+	m_resolvedColorTexture = 0;
+	m_resolvedDepthTexture = 0;
+
+	if (g_has_hmd || g_ActiveConfig.iStereoMode > 0)
 	{
 		m_stereo3d = true;
 		m_eye_count = 2;
@@ -77,7 +75,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_stereo3d = false;
 		m_eye_count = 1;
 	}
-	m_xfbFramebuffer = 0;
 
 	m_targetWidth = targetWidth;
 	m_targetHeight = targetHeight;
@@ -103,112 +100,89 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// alpha channel should be ignored if the EFB does not have one.
 
 	glActiveTexture(GL_TEXTURE0 + 9);
-	for (int eye = 0; eye < m_eye_count; ++eye)
+
+	GLuint glObj[3];
+	glGenTextures(3, glObj);
+	m_efbColor = glObj[0];
+	m_efbDepth = glObj[1];
+	m_efbColorSwap = glObj[2];
+
+	m_EFBLayers = (g_has_hmd || g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+
+	// OpenGL MSAA textures are a different kind of texture type and must be allocated
+	// with a different function, so we create them separately.
+	if (m_msaaSamples <= 1)
 	{
-		GLuint glObj[4];
-		glGenTextures(4, glObj);
-		m_efbColor[eye] = glObj[0];
-		m_efbDepth[eye] = glObj[1];
-		m_efbColorSwap[eye] = glObj[2];
-		m_frontBuffer[eye] = glObj[3];
+		m_textureType = GL_TEXTURE_2D_ARRAY;
 
-		// OpenGL MSAA textures are a different kind of texture type and must be allocated
-		// with a different function, so we create them separately.
-		if (m_msaaSamples <= 1)
-		{
-			m_textureType = GL_TEXTURE_2D;
+		glBindTexture(m_textureType, m_efbColor);
+		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-			glBindTexture(m_textureType, m_efbColor[eye]);
-			glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(m_textureType, m_efbDepth);
+		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage3D(m_textureType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
-			glBindTexture(m_textureType, m_frontBuffer[eye]);
-			glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(m_textureType, m_efbColorSwap);
+		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	}
+	else
+	{
+		m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+		GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
 
-			glBindTexture(m_textureType, m_efbDepth[eye]);
-			glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(m_textureType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+		glBindTexture(m_textureType, m_efbColor);
+		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 
-			glBindTexture(m_textureType, m_efbColorSwap[eye]);
-			glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		}
-		else
-		{
-			m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
+		glBindTexture(m_textureType, m_efbDepth);
+		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 
-			glBindTexture(m_textureType, m_efbColor[eye]);
-			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+		glBindTexture(m_textureType, m_efbColorSwap);
+		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+		glBindTexture(m_textureType, 0);
 
-			glBindTexture(m_textureType, m_efbDepth[eye]);
-			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, false);
+		// Although we are able to access the multisampled texture directly, we don't do it everywhere.
+		// The old way is to "resolve" this multisampled texture by copying it into a non-sampled texture.
+		// This would lead to an unneeded copy of the EFB, so we are going to avoid it.
+		// But as this job isn't done right now, we do need that texture for resolving:
+		glGenTextures(2, glObj);
+		m_resolvedColorTexture = glObj[0];
+		m_resolvedDepthTexture = glObj[1];
 
-			glBindTexture(m_textureType, m_efbColorSwap[eye]);
-			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
-			glBindTexture(m_textureType, 0);
+		glBindTexture(resolvedType, m_resolvedColorTexture);
+		glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage3D(resolvedType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-			// Although we are able to access the multisampled texture directly, we don't do it everywhere.
-			// The old way is to "resolve" this multisampled texture by copying it into a non-sampled texture.
-			// This would lead to an unneeded copy of the EFB, so we are going to avoid it.
-			// But as this job isn't done right now, we do need that texture for resolving:
-			glGenTextures(3, glObj);
-			m_resolvedColorTexture[eye] = glObj[0];
-			m_resolvedDepthTexture[eye] = glObj[1];
+		glBindTexture(resolvedType, m_resolvedDepthTexture);
+		glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage3D(resolvedType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
-			glBindTexture(GL_TEXTURE_2D, m_resolvedColorTexture[eye]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-			glBindTexture(GL_TEXTURE_2D, m_frontBuffer[eye]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-			glBindTexture(GL_TEXTURE_2D, m_resolvedDepthTexture[eye]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-
-			// Bind resolved textures to resolved framebuffer.
-			glGenFramebuffers(1, &m_resolvedFramebuffer[eye]);
-			glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[eye]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_resolvedColorTexture[eye], 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_resolvedDepthTexture[eye], 0);
-		}
+		// Bind resolved textures to resolved framebuffer.
+		glGenFramebuffers(1, &m_resolvedFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_resolvedColorTexture, 0);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_resolvedDepthTexture, 0);
 	}
 
 	// Create XFB framebuffer; targets will be created elsewhere.
 	glGenFramebuffers(1, &m_xfbFramebuffer);
 
-	for (int eye = 0; eye < m_eye_count; ++eye)
-	{
-		// Bind target textures to EFB framebuffer.
-		glGenFramebuffers(1, &m_efbFramebuffer[eye]);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor[eye], 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth[eye], 0);
-
-		// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
-		glViewport(0, 0, m_targetWidth, m_targetHeight);
-		glScissor(0, 0, m_targetWidth, m_targetHeight);
-		glClearColor(0.f, 0.f, 0.f, 1.f);
-		glClearDepthf(1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-	m_current_eye = m_eye_count - 1;
+	// Bind target textures to EFB framebuffer.
+	glGenFramebuffers(1, &m_efbFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_efbColor, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_efbDepth, 0);
 
 	if (g_has_vr920)
 	{
@@ -227,8 +201,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_eye_texture[0].OGL.Header.RenderViewport.Size.w = m_targetWidth;
 		m_eye_texture[0].OGL.Header.RenderViewport.Size.h = m_targetHeight;
 		m_eye_texture[1] = m_eye_texture[0];
-		m_eye_texture[0].OGL.TexId = m_efbColor[0];
-		m_eye_texture[1].OGL.TexId = m_efbColor[1];
+		// TODO! Fix this!!!!!!!
+		m_eye_texture[0].OGL.TexId = m_efbColor;
+		m_eye_texture[1].OGL.TexId = m_efbColor;
 #endif
 	}
 
@@ -247,9 +222,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	{
 		// non-msaa, so just fetch the pixel
 		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, pos, 0);\n"
+			"	return texelFetch(samp9, ivec3(pos, 0), 0);\n"
 			"}\n";
 	}
 	else if (g_ogl_config.bSupportSampleShading)
@@ -258,9 +233,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// This will lead to sample shading, but it's the only way to not loose
 		// the values of each sample.
 		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, pos, gl_SampleID);\n"
+			"	return texelFetch(samp9, ivec3(pos, 0), gl_SampleID);\n"
 			"}\n";
 	}
 	else
@@ -269,11 +244,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		std::stringstream samples;
 		samples << m_msaaSamples;
 		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
 			"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 			"	for(int i=0; i<" + samples.str() + "; i++)\n"
-			"		color += texelFetch(samp9, pos, i);\n"
+			"		color += texelFetch(samp9, ivec3(pos, 0), i);\n"
 			"	return color / " + samples.str() + ";\n"
 			"}\n";
 	}
@@ -325,60 +300,43 @@ FramebufferManager::~FramebufferManager()
 #endif
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	m_current_eye = 0;
 
-	GLuint glObj[6];
+	GLuint glObj[3];
 
 	// Note: OpenGL deletion functions silently ignore parameters of "0".
 
-	glObj[0] = m_efbFramebuffer[0];
-	glObj[1] = m_resolvedFramebuffer[0];
+	glObj[0] = m_efbFramebuffer;
+	glObj[1] = m_resolvedFramebuffer;
 	glObj[2] = m_xfbFramebuffer;
-	glObj[3] = m_efbFramebuffer[1];
-	glObj[4] = m_resolvedFramebuffer[1];
-	glDeleteFramebuffers(m_stereo3d ? 5 : 3, glObj);
+	glDeleteFramebuffers(3, glObj);
+	m_efbFramebuffer = 0;
 	m_xfbFramebuffer = 0;
-	for (int eye = 0; eye < 2; ++eye)
-	{
-		m_efbFramebuffer[eye] = 0;
-		m_resolvedFramebuffer[eye] = 0;
-	}
+	m_resolvedFramebuffer = 0;
 
-	glObj[0] = m_resolvedColorTexture[0];
-	glObj[1] = m_resolvedDepthTexture[0];
-	glObj[2] = m_resolvedColorTexture[1];
-	glObj[3] = m_resolvedDepthTexture[1];
-	glDeleteTextures(m_stereo3d?4:2, glObj);
-	for (int eye = 0; eye < 2; ++eye)
-	{
-		m_resolvedColorTexture[eye] = 0;
-		m_resolvedDepthTexture[eye] = 0;
-	}
+	glObj[0] = m_resolvedColorTexture;
+	glObj[1] = m_resolvedDepthTexture;
+	glDeleteTextures(2, glObj);
+	m_resolvedColorTexture = 0;
+	m_resolvedDepthTexture = 0;
 
-	glObj[0] = m_efbColor[0];
-	glObj[1] = m_efbDepth[0];
-	glObj[2] = m_efbColorSwap[0];
-	glObj[3] = m_efbColor[1];
-	glObj[4] = m_efbDepth[1];
-	glObj[5] = m_efbColorSwap[1];
-	glDeleteTextures(m_stereo3d ? 6 : 3, glObj);
-	for (int eye = 0; eye < 2; ++eye)
-	{
-		m_efbColor[eye] = 0;
-		m_efbDepth[eye] = 0;
-		m_efbColorSwap[eye] = 0;
-	}
+	glObj[0] = m_efbColor;
+	glObj[1] = m_efbDepth;
+	glObj[2] = m_efbColorSwap;
+	glDeleteTextures(3, glObj);
+	m_efbColor = 0;
+	m_efbDepth = 0;
+	m_efbColorSwap = 0;
 
 	// reinterpret pixel format
 	m_pixel_format_shaders[0].Destroy();
 	m_pixel_format_shaders[1].Destroy();
 }
 
-GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc, int eye)
+GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc)
 {
 	if (m_msaaSamples <= 1)
 	{
-		return m_efbColor[eye];
+		return m_efbColor;
 	}
 	else
 	{
@@ -389,8 +347,8 @@ GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc, int 
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer[eye]);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer[eye]);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer);
 		glBlitFramebuffer(
 			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
 			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
@@ -398,18 +356,17 @@ GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc, int 
 			);
 
 		// Return to EFB.
-		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
-		m_current_eye = eye;
+		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 
-		return m_resolvedColorTexture[eye];
+		return m_resolvedColorTexture;
 	}
 }
 
-GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc, int eye)
+GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc)
 {
 	if (m_msaaSamples <= 1)
 	{
-		return m_efbDepth[eye];
+		return m_efbDepth;
 	}
 	else
 	{
@@ -419,8 +376,8 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc, int 
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer[eye]);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer[eye]);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer);
 		glBlitFramebuffer(
 			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
 			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
@@ -428,10 +385,9 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc, int 
 			);
 
 		// Return to EFB.
-		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
-		m_current_eye = eye;
+		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 
-		return m_resolvedDepthTexture[eye];
+		return m_resolvedDepthTexture;
 	}
 }
 
@@ -445,69 +401,39 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 	}
 
 	TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
-	TextureConverter::EncodeToRamYUYV(ResolveAndGetRenderTarget(sourceRc, 0), targetRc, xfb_in_ram, fbWidth, fbHeight);
+	TextureConverter::EncodeToRamYUYV(ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram, fbWidth, fbHeight);
 }
 
 void FramebufferManager::SetFramebuffer(GLuint fb)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, fb != 0 ? fb : GetEFBFramebuffer(m_current_eye));
-}
-
-void FramebufferManager::RenderToEye(int eye)
-{
-	if (!m_stereo3d)
-		return;
-	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
-	m_current_eye = eye;
-}
-
-void FramebufferManager::SwapRenderEye()
-{
-	m_current_eye = 1 - m_current_eye;
-	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[m_current_eye]);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb != 0 ? fb : GetEFBFramebuffer());
 }
 
 void FramebufferManager::SwapAsyncFrontBuffers()
 {
 	if (m_msaaSamples <= 1)
 	{
-		GLuint temp;
-		for (int eye = 0; eye < m_eye_count; eye++)
-		{
-			temp = m_efbColor[eye];
-			m_efbColor[eye] = m_frontBuffer[eye];
-			m_frontBuffer[eye] = temp;
-			glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_efbColor[eye], 0);
-		}
+		// TODO!!!!!!!
 	}
 	else
 	{
-		GLuint temp;
-		for (int eye = 0; eye < m_eye_count; eye++)
-		{
-			temp = m_resolvedColorTexture[eye];
-			m_resolvedColorTexture[eye] = m_frontBuffer[eye];
-			m_frontBuffer[eye] = temp;
-			glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[eye]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_resolvedColorTexture[eye], 0);
-		}
+		// TODO!!!!!!!
 	}
 }
 
 
 // Apply AA if enabled
-GLuint FramebufferManager::ResolveAndGetRenderTarget(const EFBRectangle &source_rect, int eye)
+GLuint FramebufferManager::ResolveAndGetRenderTarget(const EFBRectangle &source_rect)
 {
-	return GetEFBColorTexture(source_rect, eye);
+	return GetEFBColorTexture(source_rect);
 }
 
-GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_rect, int eye)
+GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_rect)
 {
-	return GetEFBDepthTexture(source_rect, eye);
+	return GetEFBDepthTexture(source_rect);
 }
 
-void FramebufferManager::ReinterpretPixelData(unsigned int convtype, int eye)
+void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
 	g_renderer->ResetAPIState();
 
@@ -517,11 +443,10 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype, int eye)
 	// so we have to create a new texture and overwrite it completely.
 	// To not allocate one big texture every time, we've allocated two on
 	// initialization and just swap them here:
-	src_texture = m_efbColor[eye];
-	m_efbColor[eye] = m_efbColorSwap[eye];
-	m_efbColorSwap[eye] = src_texture;
-	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_efbColor[eye], 0);
+	src_texture = m_efbColor;
+	m_efbColor = m_efbColorSwap;
+	m_efbColorSwap = src_texture;
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_efbColor, 0);
 
 	glViewport(0,0, m_targetWidth, m_targetHeight);
 	glActiveTexture(GL_TEXTURE0 + 9);
@@ -532,8 +457,9 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype, int eye)
 	glBindTexture(m_textureType, 0);
 
 #ifdef HAVE_OCULUSSDK
+	// TODO!!!!!!!!
 	if (g_has_rift)
-		m_eye_texture[eye].OGL.TexId = m_efbColor[eye];
+		m_eye_texture[0].OGL.TexId = m_efbColor;
 #endif
 
 	g_renderer->RestoreAPIState();
@@ -554,11 +480,11 @@ void XFBSource::CopyEFB(float Gamma)
 	g_renderer->ResetAPIState();
 
 	// Copy EFB data to XFB and restore render target again
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer(0));
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
 	// Bind texture.
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
 
 	glBlitFramebuffer(
 		0, 0, texWidth, texHeight,
@@ -580,11 +506,11 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glGenTextures(1, &texture);
 
 	glActiveTexture(GL_TEXTURE0 + 9);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, target_width, target_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-	return new XFBSource(texture);
+	return new XFBSource(texture, m_EFBLayers);
 }
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)

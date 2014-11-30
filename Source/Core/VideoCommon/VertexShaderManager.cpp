@@ -1487,6 +1487,7 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44::Multiply(proj_left, view_matrix_left, final_matrix_left);
 		Matrix44::Multiply(proj_right, view_matrix_right, final_matrix_right);
 		if (flipped_x < 0)
+		if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			// flip all the x axis values, except x squared (data[0])
 			//Needed for Action Girlz Racing, Backyard Baseball
@@ -1532,7 +1533,7 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
 	}
-	else if ((bFreeLookChanged || g_ActiveConfig.bAnaglyphStereo) && xfmem.projection.type == GX_PERSPECTIVE)
+	else if ((bFreeLookChanged) && xfmem.projection.type == GX_PERSPECTIVE)
 	{
 		Matrix44 mtxA;
 		Matrix44 mtxB;
@@ -1552,6 +1553,20 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
+
+		if (g_ActiveConfig.iStereoMode > 0 && xfmem.projection.type == GX_PERSPECTIVE)
+		{
+			float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+			constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+		}
+		else
+		{
+			constants.stereoparams[0] = constants.stereoparams[1] = 0;
+		}
+
+		dirty = true;
 	}
 	else
 	{

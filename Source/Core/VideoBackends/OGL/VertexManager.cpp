@@ -122,170 +122,10 @@ void VertexManager::Draw(u32 stride)
 	INCSTAT(stats.thisFrame.numDrawCalls);
 }
 
-void VertexManager::vFlush3D(bool useDstAlpha)
+void VertexManager::vFlush(bool useDstAlpha)
 {
 	if (VertexShaderManager::m_layer_on_top)
 		glDepthFunc(GL_ALWAYS);
-	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
-	u32 stride = nativeVertexFmt->GetVertexStride();
-
-	if (m_last_vao != nativeVertexFmt->VAO)
-	{
-		glBindVertexArray(nativeVertexFmt->VAO);
-		m_last_vao = nativeVertexFmt->VAO;
-	}
-
-	PrepareDrawBuffers(stride);
-	
-	// Makes sure we can actually do Dual source blending
-	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
-
-	// Needs only one pass per eye
-	if (!useDstAlpha || dualSourcePossible)
-	{
-		// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
-		// the same pass as regular rendering.
-		if (useDstAlpha && dualSourcePossible)
-		{
-			ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, nativeVertexFmt->m_components);
-		}
-		else
-		{
-			ProgramShaderCache::SetShader(DSTALPHA_NONE, nativeVertexFmt->m_components);
-		}
-		// upload global constants
-		ProgramShaderCache::UploadConstants(false);
-
-		// setup the pointers (empty function)
-		nativeVertexFmt->SetupVertexPointers();
-
-		u32 index_size = IndexGenerator::GetIndexLen();
-		u32 max_index = IndexGenerator::GetNumVerts();
-		GLenum primitive_mode = 0;
-
-		switch (current_primitive_type)
-		{
-		case PRIMITIVE_POINTS:
-			primitive_mode = GL_POINTS;
-			break;
-		case PRIMITIVE_LINES:
-			primitive_mode = GL_LINES;
-			break;
-		case PRIMITIVE_TRIANGLES:
-			primitive_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
-			break;
-		}
-
-		if (g_ogl_config.bSupportsGLBaseVertex)
-		{
-			glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset, (GLint)s_baseVertex);
-			FramebufferManager::SwapRenderEye();
-			ProgramShaderCache::UploadConstants(true);
-			glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset, (GLint)s_baseVertex);
-		}
-		else
-		{
-			glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset);
-			FramebufferManager::SwapRenderEye();
-			ProgramShaderCache::UploadConstants(true);
-			glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset);
-		}
-	}
-	// Needs two passes per eye
-	else
-	{
-		ProgramShaderCache::SetShader(DSTALPHA_NONE, nativeVertexFmt->m_components);
-		// upload global constants
-		ProgramShaderCache::UploadConstants(false);
-
-		// setup the pointers (empty function)
-		nativeVertexFmt->SetupVertexPointers();
-
-		u32 index_size = IndexGenerator::GetIndexLen();
-		u32 max_index = IndexGenerator::GetNumVerts();
-		GLenum primitive_mode = 0;
-
-		switch (current_primitive_type)
-		{
-		case PRIMITIVE_POINTS:
-			primitive_mode = GL_POINTS;
-			break;
-		case PRIMITIVE_LINES:
-			primitive_mode = GL_LINES;
-			break;
-		case PRIMITIVE_TRIANGLES:
-			primitive_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
-			break;
-		}
-
-		if (g_ogl_config.bSupportsGLBaseVertex)
-		{
-			glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset, (GLint)s_baseVertex);
-			FramebufferManager::SwapRenderEye();
-			ProgramShaderCache::UploadConstants(true);
-			glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset, (GLint)s_baseVertex);
-
-			// only update alpha
-			ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, nativeVertexFmt->m_components);
-			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-			glDisable(GL_BLEND);
-			glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset, (GLint)s_baseVertex);
-			FramebufferManager::SwapRenderEye();
-			ProgramShaderCache::UploadConstants(true);
-			glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset, (GLint)s_baseVertex);
-		}
-		else
-		{
-			glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset);
-			FramebufferManager::SwapRenderEye();
-			ProgramShaderCache::UploadConstants(true);
-			glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset);
-
-			// only update alpha
-			ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, nativeVertexFmt->m_components);
-			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-			glDisable(GL_BLEND);
-			glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset);
-			FramebufferManager::SwapRenderEye();
-			ProgramShaderCache::UploadConstants(true);
-			glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr + s_index_offset);
-		}
-		// restore color mask
-		g_renderer->SetColorMask();
-		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
-			glEnable(GL_BLEND);
-	}
-
-	INCSTAT(stats.thisFrame.numDrawCalls);
-
-	g_Config.iSaveTargetId++;
-
-	ClearEFBCache();
-
-	if (VertexShaderManager::m_layer_on_top)
-	{
-		const GLenum glCmpFuncs[8] =
-		{
-			GL_NEVER,
-			GL_LESS,
-			GL_EQUAL,
-			GL_LEQUAL,
-			GL_GREATER,
-			GL_NOTEQUAL,
-			GL_GEQUAL,
-			GL_ALWAYS
-		};
-		glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
-	}
-}
-
-void VertexManager::vFlush(bool useDstAlpha)
-{
-	if (FramebufferManager::m_eye_count > 1)
-	{
-		vFlush3D(useDstAlpha);
-		return;
-	}
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
 	u32 stride  = nativeVertexFmt->GetVertexStride();
 
@@ -368,6 +208,22 @@ void VertexManager::vFlush(bool useDstAlpha)
 	g_Config.iSaveTargetId++;
 
 	ClearEFBCache();
+
+	if (VertexShaderManager::m_layer_on_top)
+	{
+		const GLenum glCmpFuncs[8] =
+		{
+			GL_NEVER,
+			GL_LESS,
+			GL_EQUAL,
+			GL_LEQUAL,
+			GL_GREATER,
+			GL_NOTEQUAL,
+			GL_GEQUAL,
+			GL_ALWAYS
+		};
+		glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
+	}
 }
 
 

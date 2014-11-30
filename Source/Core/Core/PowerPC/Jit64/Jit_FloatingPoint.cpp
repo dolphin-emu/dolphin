@@ -285,6 +285,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 		js.skipnext = true;
 		js.downcountAmount++;
 		int dst = 3 - (next.CRBD & 3);
+		output[3 - (next.CRBD & 3)] &= ~(1 << dst);
 		output[3 - (next.CRBA & 3)] |= 1 << dst;
 		output[3 - (next.CRBB & 3)] |= 1 << dst;
 	}
@@ -369,7 +370,6 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	FloatCompare(inst);
 }

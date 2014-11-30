@@ -60,13 +60,14 @@ namespace OGL
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(GLuint tex) : texture(tex) {}
+	XFBSource(GLuint tex, int layers) : texture(tex), m_layers(layers) {}
 	~XFBSource();
 
 	void CopyEFB(float Gamma) override;
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
 
 	const GLuint texture;
+	const int m_layers;
 };
 
 class FramebufferManager : public FramebufferManagerBase
@@ -77,33 +78,30 @@ public:
 
 	// To get the EFB in texture form, these functions may have to transfer
 	// the EFB to a resolved texture first.
-	static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc, int eye);
-	static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc, int eye);
+	static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc);
+	static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc);
 
-	static GLuint GetEFBFramebuffer(int eye) { return m_efbFramebuffer[eye]; }
+	static GLuint GetEFBFramebuffer() { return m_efbFramebuffer; }
 	static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
 
 	// Resolved framebuffer is only used in MSAA mode.
-	static GLuint GetResolvedFramebuffer(int eye) { return m_resolvedFramebuffer[eye]; }
+	static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer; }
 
 	static void SetFramebuffer(GLuint fb);
-
-	static void RenderToEye(int eye);
-	static void SwapRenderEye();
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
 	// If not in MSAA mode, will just return the render target texture ID.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-	static GLuint ResolveAndGetRenderTarget(const EFBRectangle &rect, int eye);
+	static GLuint ResolveAndGetRenderTarget(const EFBRectangle &rect);
 
 	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-	static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect, int eye);
+	static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
 
 	// Convert EFB content on pixel format change.
 	// convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8
-	static void ReinterpretPixelData(unsigned int convtype, int eye);
+	static void ReinterpretPixelData(unsigned int convtype);
 
 	static void SwapAsyncFrontBuffers();
 
@@ -112,9 +110,10 @@ public:
 	static void ConfigureRift();
 	static ovrGLTexture m_eye_texture[2];
 #endif
+	static volatile GLuint m_backBuffer[2];
 	static volatile GLuint m_frontBuffer[2];
 	static bool m_stereo3d;
-	static int m_eye_count, m_current_eye;
+	static int m_eye_count;
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
@@ -127,17 +126,16 @@ private:
 	static int m_msaaSamples;
 
 	static GLenum m_textureType;
-
-	static GLuint m_efbFramebuffer[2];
+	static GLuint m_efbFramebuffer;
 	static GLuint m_xfbFramebuffer;
-	static GLuint m_efbColor[2];
-	static GLuint m_efbDepth[2];
-	static GLuint m_efbColorSwap[2];// will be hot swapped with m_efbColor when reinterpreting EFB pixel formats
+	static GLuint m_efbColor;
+	static GLuint m_efbDepth;
+	static GLuint m_efbColorSwap;// will be hot swapped with m_efbColor when reinterpreting EFB pixel formats
 
 	// Only used in MSAA mode, TODO: try to avoid them
-	static GLuint m_resolvedFramebuffer[2];
-	static GLuint m_resolvedColorTexture[2];
-	static GLuint m_resolvedDepthTexture[2];
+	static GLuint m_resolvedFramebuffer;
+	static GLuint m_resolvedColorTexture;
+	static GLuint m_resolvedDepthTexture;
 
 	// For pixel format draw
 	static SHADER m_pixel_format_shaders[2];

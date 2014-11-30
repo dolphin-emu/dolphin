@@ -386,7 +386,6 @@ void Jit64::ps_cmpXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	FloatCompare(inst, !!(inst.SUBOP10 & 64));
 }

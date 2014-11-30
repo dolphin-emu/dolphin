@@ -57,6 +57,9 @@ private:
 		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) override;
 
 	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) override;
+
+	void CompileShaders() override;
+	void DeleteShaders() override;
 };
 
 bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);

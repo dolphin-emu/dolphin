@@ -95,6 +95,8 @@ static RasterFont* s_pfont = nullptr;
 static int s_MSAASamples = 1;
 static int s_LastMultisampleMode = 0;
 
+static bool s_LastStereo = false;
+
 static u32 s_blendMode;
 
 static bool s_vsync;
@@ -209,6 +211,10 @@ static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 static void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
+}
+static void GLAPIENTRY FramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
+{
+	glFramebufferTextureLayer(target, attachment, texture, level, 0);
 }
 
 static void InitDriverInfo()
@@ -448,13 +454,20 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_sampler_objects") && bSuccess)
+	if (!GLExtensions::Supports("GL_ARB_sampler_objects"))
 	{
 		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
 		// highest requirement, but it seems that no driver lacks support for it.
-		PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects."
-				"GPU: Does your video card support OpenGL 3.3?"
-				"Please report this issue, then there will be a workaround");
+		PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
+				"GPU: Does your video card support OpenGL 3.3?");
+		bSuccess = false;
+	}
+
+	if (GLExtensions::Version() < 300)
+	{
+		// integer vertex attributes require a gl3 only function
+		PanicAlert("GPU: OGL ERROR: Need OpenGL version 3.\n"
+				"GPU: Does your video card support OpenGL 3?");
 		bSuccess = false;
 	}
 
@@ -467,11 +480,17 @@ Renderer::Renderer()
 		glClearDepthf = ClearDepthf;
 	}
 
+	if (GLExtensions::Version() < 320 || GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+	{
+		glFramebufferTexture = FramebufferTexture;
+	}
+
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
+	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -500,6 +519,8 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
 		}
+		// TODO: OpenGL ES 3.1 provides the necessary features as extensions.
+		g_Config.backend_info.bSupportsStereoscopy = false;
 	}
 	else
 	{
@@ -514,11 +535,13 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
 		}
 		else
 		{
@@ -552,6 +575,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsStereoscopy)
+		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
+
 	if (!bSuccess)
 	{
 		// Not all needed extensions are supported, so we have to stop here.
@@ -563,6 +589,7 @@ Renderer::Renderer()
 	if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
 		g_ogl_config.max_samples = 1;
 
+	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
@@ -570,7 +597,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -580,12 +607,14 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
-			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
+			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
+			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing "
 			);
 
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 	ApplySSAASettings();
+	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
 
 	// Decide framebuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
@@ -1071,8 +1100,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					g_renderer->ResetAPIState();
 
 					// Resolve our rectangle.
-					FramebufferManager::GetEFBDepthTexture(efbPixelRc, 0);
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer(0));
+					FramebufferManager::GetEFBDepthTexture(efbPixelRc);
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 
 					g_renderer->RestoreAPIState();
 				}
@@ -1123,8 +1152,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					g_renderer->ResetAPIState();
 
 					// Resolve our rectangle.
-					FramebufferManager::GetEFBColorTexture(efbPixelRc, 0);
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer(0));
+					FramebufferManager::GetEFBColorTexture(efbPixelRc);
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 
 					g_renderer->RestoreAPIState();
 				}
@@ -1344,39 +1373,35 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	ResetAPIState();
 
-	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
-	{
-		FramebufferManager::RenderToEye(eye);
-		// color
-		GLboolean const
-			color_mask = colorEnable ? GL_TRUE : GL_FALSE,
-			alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
-		glColorMask(color_mask, color_mask, color_mask, alpha_mask);
+	// color
+	GLboolean const
+		color_mask = colorEnable ? GL_TRUE : GL_FALSE,
+		alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
+	glColorMask(color_mask, color_mask, color_mask, alpha_mask);
 
-		glClearColor(
-			float((color >> 16) & 0xFF) / 255.0f,
-			float((color >> 8) & 0xFF) / 255.0f,
-			float((color >> 0) & 0xFF) / 255.0f,
-			float((color >> 24) & 0xFF) / 255.0f);
+	glClearColor(
+		float((color >> 16) & 0xFF) / 255.0f,
+		float((color >> 8) & 0xFF) / 255.0f,
+		float((color >> 0) & 0xFF) / 255.0f,
+		float((color >> 24) & 0xFF) / 255.0f);
 
-		// depth
-		glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
+	// depth
+	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-		glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
+	glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
 
-		// Update rect for clearing the picture
-		// TODO fix this properly by setting the scissor rectangle
-		if (g_has_hmd)
-			glDisable(GL_SCISSOR_TEST);
-		else
-			glEnable(GL_SCISSOR_TEST);
+	// Update rect for clearing the picture
+	// TODO fix this properly by setting the scissor rectangle
+	if (g_has_hmd)
+		glDisable(GL_SCISSOR_TEST);
+	else
+		glEnable(GL_SCISSOR_TEST);
 
-		TargetRectangle const targetRc = ConvertEFBRectangle(rc);
-		glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	TargetRectangle const targetRc = ConvertEFBRectangle(rc);
+	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
 
-		// glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+	// glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	RestoreAPIState();
 
@@ -1387,20 +1412,16 @@ void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
 {
 	ResetAPIState();
 
-	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
-	{
-		FramebufferManager::RenderToEye(eye);
-		// color
-		GLboolean const
-			color_mask = colorEnable ? GL_TRUE : GL_FALSE,
-			alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
-		glColorMask(color_mask, color_mask, color_mask, alpha_mask);
+	// color
+	GLboolean const
+		color_mask = colorEnable ? GL_TRUE : GL_FALSE,
+		alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
+	glColorMask(color_mask, color_mask, color_mask, alpha_mask);
 
-		// depth
-		glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
+	// depth
+	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	RestoreAPIState();
 
@@ -1412,14 +1433,9 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	if (convtype == 0 || convtype == 2)
 	{
 		// Reinterpretting pixel data crashes OpenGL at the next glFinish
-		//for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
-		//{
-		//	if (eye)
-		//		FramebufferManager::SwapRenderEye();
-		//	FramebufferManager::ReinterpretPixelData(convtype, FramebufferManager::m_current_eye);
-		//}
+		//	FramebufferManager::ReinterpretPixelData(convtype);
 		if (!g_has_hmd)
-			FramebufferManager::ReinterpretPixelData(convtype, 0);
+			FramebufferManager::ReinterpretPixelData(convtype);
 	}
 	else
 	{
@@ -1808,7 +1824,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+			// TODO: Virtual XFB stereoscopic 3D support.
+			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
 		}
 	}
 #ifdef HAVE_OCULUSSDK
@@ -1822,8 +1839,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		sourceRc.bottom = EFB_HEIGHT;
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		FramebufferManager::m_eye_texture[0].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
-		FramebufferManager::m_eye_texture[1].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 1);
+		FramebufferManager::m_eye_texture[0].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
+		FramebufferManager::m_eye_texture[1].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		//m_post_processor->BindTargetFramebuffer();
@@ -1894,9 +1911,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
+		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
 
-		m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+		if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+		{
+			TargetRectangle leftRc, rightRc;
+			ConvertStereoRectangle(flipped_trc, leftRc, rightRc);
+
+			m_post_processor->BlitFromTexture(targetRc, leftRc, tex, s_target_width, s_target_height, 0);
+			m_post_processor->BlitFromTexture(targetRc, rightRc, tex, s_target_width, s_target_height, 1);
+		}
+		else
+		{
+			m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+		}
 	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -2045,15 +2073,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	}
 
-	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
+	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode) || (s_LastStereo != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode)
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode || s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 			ApplySSAASettings();
+			s_LastStereo = g_ActiveConfig.iStereoMode > 0;
 
 			if (g_ActiveConfig.bAsynchronousTimewarp)
 				g_ovr_lock.lock();
@@ -2088,20 +2117,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Clear framebuffer
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
-		FramebufferManager::RenderToEye(0);
-		for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
-		{
-			if (eye)
-				FramebufferManager::SwapRenderEye();
-			//glClearColor(0, 0, 0, 0);
-			//glClearDepth(1);
-			glClearColor(0.f, 0.f, 0.f, 1.f);
-			glClearDepthf(1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		}
+		glClearColor(0, 0, 0, 0);
+		// glClearColor(0.f, 0.f, 0.f, 1.f);
+		glClearDepth(1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 	// VR
-	g_texture_cache->ClearRenderTargets();
+	//g_texture_cache->ClearRenderTargets();
 
 	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
@@ -2214,24 +2236,20 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
-	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
-	{
-		FramebufferManager::RenderToEye(eye);
-		if (g_has_hmd)
-			glDisable(GL_SCISSOR_TEST);
-		else
-			glEnable(GL_SCISSOR_TEST);
-		SetGenerationMode();
-		BPFunctions::SetScissor();
-		SetColorMask();
-		SetDepthMode();
-		SetBlendMode(true);
-		SetLogicOpMode();
-		SetViewport();
+	if (g_has_hmd)
+		glDisable(GL_SCISSOR_TEST);
+	else
+		glEnable(GL_SCISSOR_TEST);
+	SetGenerationMode();
+	BPFunctions::SetScissor();
+	SetColorMask();
+	SetDepthMode();
+	SetBlendMode(true);
+	SetLogicOpMode();
+	SetViewport();
 
-		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-			glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
-	}
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
