@@ -53,7 +53,7 @@ void ZeldaUCode::DoState(PointerWrap &p)
 	p.Do(m_mail_expected_cmd_mails);
 
 	p.Do(m_sync_max_voice_id);
-	p.Do(m_sync_flags);
+	p.Do(m_sync_voice_skip_flags);
 
 	p.Do(m_cmd_buffer);
 	p.Do(m_read_offset);
@@ -63,10 +63,10 @@ void ZeldaUCode::DoState(PointerWrap &p)
 
 	p.Do(m_rendering_requested_frames);
 	p.Do(m_rendering_voices_per_frame);
-	p.Do(m_rendering_mram_lbuf_addr);
-	p.Do(m_rendering_mram_rbuf_addr);
 	p.Do(m_rendering_curr_frame);
 	p.Do(m_rendering_curr_voice);
+
+	m_renderer.DoState(p);
 
 	DoStateShared(p);
 }
@@ -139,7 +139,7 @@ void ZeldaUCode::HandleMail(u32 mail)
 
 	case MailState::RENDERING:
 		m_sync_max_voice_id = (((mail >> 16) & 0xF) + 1) << 4;
-		m_sync_flags[(mail >> 16) & 0xFF] = mail & 0xFFFF;
+		m_sync_voice_skip_flags[(mail >> 16) & 0xFF] = mail & 0xFFFF;
 
 		RenderAudio();
 		SetMailState(MailState::WAITING);
@@ -206,21 +206,40 @@ void ZeldaUCode::RunPendingCommands()
 			SetMailState(MailState::HALTED);
 			return;
 
-		// Command 01: TODO: find a name and implement.
+		// Command 01: Setup/initialization command. Provides the address to
+		// voice parameter blocks (VPBs) as well as some array of coefficients
+		// used for mixing.
 		case 0x01:
-			WARN_LOG(DSPHLE, "CMD01: %08x %08x %08x %08x",
-			         Read32(), Read32(), Read32(), Read32());
+		{
 			m_rendering_voices_per_frame = extra_data;
+
+			m_renderer.SetVPBBaseAddress(Read32());
+
+			u16* data_ptr = (u16*)HLEMemory_Get_Pointer(Read32());
+
+			std::array<s16, 0x100> resampling_coeffs;
+			for (size_t i = 0; i < 0x100; ++i)
+				resampling_coeffs[i] = Common::swap16(data_ptr[i]);
+			m_renderer.SetResamplingCoeffs(std::move(resampling_coeffs));
+
+			std::array<s16, 0x80> sine_table;
+			for (size_t i = 0; i < 0x80; ++i)
+				sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
+			m_renderer.SetSineTable(std::move(sine_table));
+
 			SendCommandAck(CommandAck::STANDARD, sync);
+			Read32(); Read32();
 			break;
+		}
 
 		// Command 02: starts audio processing. NOTE: this handler uses return,
 		// not break. This is because it hijacks the mail control flow and
 		// stops processing of further commands until audio processing is done.
 		case 0x02:
 			m_rendering_requested_frames = (cmd_mail >> 16) & 0xFF;
-			m_rendering_mram_lbuf_addr = Read32();
-			m_rendering_mram_rbuf_addr = Read32();
+			m_renderer.SetOutputVolume(cmd_mail & 0xFFFF);
+			m_renderer.SetOutputLeftBufferAddr(Read32());
+			m_renderer.SetOutputRightBufferAddr(Read32());
 
 			m_rendering_curr_frame = 0;
 			m_rendering_curr_voice = 0;
@@ -259,10 +278,12 @@ void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
 
 void ZeldaUCode::RenderAudio()
 {
+#if 0
 	WARN_LOG(DSPHLE, "RenderAudio() frame %d/%d voice %d/%d (sync to %d)",
 	         m_rendering_curr_frame, m_rendering_requested_frames,
 	         m_rendering_curr_voice, m_rendering_voices_per_frame,
 	         m_sync_max_voice_id);
+#endif
 
 	if (!RenderingInProgress())
 	{
@@ -272,6 +293,9 @@ void ZeldaUCode::RenderAudio()
 
 	while (m_rendering_curr_frame < m_rendering_requested_frames)
 	{
+		if (m_rendering_curr_voice == 0)
+			m_renderer.PrepareFrame();
+
 		while (m_rendering_curr_voice < m_rendering_voices_per_frame)
 		{
 			// If we are not meant to render this voice yet, go back to message
@@ -279,12 +303,18 @@ void ZeldaUCode::RenderAudio()
 			if (m_rendering_curr_voice >= m_sync_max_voice_id)
 				return;
 
-			// TODO(delroth): render.
+			// Test the sync flag for this voice, skip it if not set.
+			u16 flags = m_sync_voice_skip_flags[m_rendering_curr_voice >> 4];
+			u8 bit = 0xF - (m_rendering_curr_voice & 0xF);
+			if (flags & (1 << bit))
+				m_renderer.AddVoice(m_rendering_curr_voice);
 
 			m_rendering_curr_voice++;
 		}
 
 		SendCommandAck(CommandAck::STANDARD, 0xFF00 | m_rendering_curr_frame);
+
+		m_renderer.FinalizeFrame();
 
 		m_rendering_curr_voice = 0;
 		m_sync_max_voice_id = 0;
@@ -293,4 +323,512 @@ void ZeldaUCode::RenderAudio()
 
 	SendCommandAck(CommandAck::DONE_RENDERING, 0);
 	m_cmd_can_execute = false;  // Block command execution until ACK is received.
+}
+
+// Utility to define 32 bit accessors/modifiers methods based on two 16 bit
+// fields named _l and _h.
+#define DEFINE_32BIT_ACCESSOR(field_name, name) \
+	u32 Get##name() const { return (field_name##_h << 16) | field_name##_l; } \
+	void Set##name(u32 v) \
+	{ \
+		field_name##_h = v >> 16; \
+		field_name##_l = v & 0xFFFF; \
+	}
+
+#pragma pack(push, 1)
+struct ZeldaAudioRenderer::VPB
+{
+	static constexpr u16 SIZE_IN_WORDS = 0xC0;
+	static constexpr u16 RW_SIZE_IN_WORDS = 0x80;
+
+	// If zero, skip processing this voice.
+	u16 enabled;
+
+	// If non zero, skip processing this voice.
+	u16 done;
+
+	// In 4.12 format. 1.0 (0x1000) means 0x50 raw samples from RAM/accelerator
+	// will be "resampled" to 0x50 input samples. 2.0 (0x2000) means 2 raw
+	// samples for one input samples. 0.5 (0x800) means one raw sample for 2
+	// input samples.
+	u16 resampling_ratio;
+
+	u16 unk_03;
+
+	// If non zero, reset some value in the VPB when processing it.
+	u16 reset_vpb;
+
+	u16 unk_05;
+
+	// If non zero, input samples to this VPB will be the fixed value from
+	// VPB[33] (constant_sample_value). This is used when a voice is being
+	// terminated in order to force silence.
+	u16 use_constant_sample;
+
+	// Number of samples that should be saved in the VPB for processing during
+	// future frames. Should be at most TODO.
+	u16 samples_to_keep_count;
+
+	// Channel mixing information. Each voice can be mixed to 6 different
+	// channels, with separate volume information.
+	//
+	// Used only if VPB[2C] (use_dolby_volume) is not set. Otherwise, the
+	// values from VPB[0x20:0x2C] are used to mix to all available channels.
+	struct Channel
+	{
+		// Can be treated as an ID, but in the real world this is actually the
+		// address in DRAM of a DSP buffer. The game passes that information to
+		// the DSP, which means the game must know the memory layout of the DSP
+		// UCode... that's terrible.
+		u16 id;
+
+		s16 target_volume;
+		s16 current_volume;
+
+		u16 unk;
+	};
+	Channel channels[6];
+
+	u16 unk_20_28[0x8];
+
+	// When using Dolby voice mixing (see VPB[2C] use_dolby_volume), the X
+	// (left/right) and Y (front/back) coordinates of the sound. 0x00 is all
+	// right/back, 0x7F is all left/front. Format is 0XXXXXXX0YYYYYYY.
+	u16 dolby_voice_position;
+	u8 GetDolbyVoiceX() const { return (dolby_voice_position >> 8) & 0x7F; }
+	u8 GetDolbyVoiceY() const { return dolby_voice_position & 0x7F; }
+
+	// How much reverbation to apply to the Dolby mixed voice. 0 is none,
+	// 0x7FFF is the maximum value.
+	s16 dolby_reverb_factor;
+
+	// The volume for the 0x50 samples being mixed will ramp between current
+	// and target. After the ramping is done, the current value is updated (to
+	// match target, usually).
+	s16 dolby_volume_current;
+	s16 dolby_volume_target;
+
+	// If non zero, use positional audio mixing. Instead of using the channels
+	// information, use the 4 Dolby related VPB fields defined above.
+	u16 use_dolby_volume;
+
+	u16 unk_2D;
+	u16 unk_2E;
+	u16 unk_2F;
+
+	// Fractional part of the current sample position, in 0.12 format (all
+	// decimal part, 0x0800 = 0.5). The 4 top bits are unused.
+	u16 current_pos_frac;
+
+	u16 unk_31;
+	u16 unk_32;
+
+	// Value used as the constant sample value if VPB[6] (use_constant_sample)
+	// is set. Reset to the last sample value after each round of resampling.
+	s16 constant_sample;
+
+	// Current position in the voice. Not needed for accelerator based voice
+	// types since the accelerator exposes a streaming based interface, but DMA
+	// based voice types (PCM16_FROM_MRAM for example) require it to know where
+	// to seek in the MRAM buffer.
+	u16 current_position_h;
+	u16 current_position_l;
+	DEFINE_32BIT_ACCESSOR(current_position, CurrentPosition)
+
+	// Number of samples that will be processed before the loop point of the
+	// voice is reached. Maintained by the UCode and used by the game to
+	// schedule some parameters updates.
+	u16 samples_before_loop;
+
+	u16 unk_37;
+	u16 unk_38;
+	u16 unk_39;
+
+	// Remaining number of samples to load before considering the voice
+	// rendering complete and setting the done flag. Note that this is an
+	// absolute value that does not take into account loops. If a loop of 100
+	// samples is played 4 times, remaining_length will have decreased by 400.
+	u16 remaining_length_h;
+	u16 remaining_length_l;
+	DEFINE_32BIT_ACCESSOR(remaining_length, RemainingLength)
+
+	// Stores the last 4 resampled input samples after each frame, so that they
+	// can be used for future linear interpolation.
+	u16 resample_buffer[4];
+
+	u16 unk[0x80 - 0x40];
+
+	enum SamplesSourceType
+	{
+		// Samples stored in MRAM at an arbitrary sample rate (resampling is
+		// applied, unlike PCM16_FROM_MRAM_RAW).
+		SRC_PCM16_FROM_MRAM = 33,
+	};
+	u16 samples_source_type;
+
+	u16 unk_81;
+	u16 unk_82;
+	u16 unk_83;
+	u16 unk_84;
+
+	// If true, ramp down quickly to a volume of zero, and end the voice (by
+	// setting VPB[1] done) when it reaches zero.
+	u16 end_requested;
+
+	u16 unk_86;
+	u16 unk_87;
+
+	// Base address used to download samples data after the loop point of the
+	// voice has been reached.
+	u16 dma_loop_address_h;
+	u16 dma_loop_address_l;
+	DEFINE_32BIT_ACCESSOR(dma_loop_address, DMALoopAddress)
+
+	// Offset (in number of raw samples) of the start of the loop area in the
+	// voice. Note: some sample sources only use the _h part of this.
+	u16 loop_start_position_h;
+	u16 loop_start_position_l;
+	DEFINE_32BIT_ACCESSOR(loop_start_position, LoopStartPosition)
+
+	// Base address used to download samples data before the loop point of the
+	// voice has been reached.
+	u16 dma_base_address_h;
+	u16 dma_base_address_l;
+	DEFINE_32BIT_ACCESSOR(dma_base_address, DMABaseAddress)
+
+	u16 padding[SIZE_IN_WORDS];
+};
+#pragma pack(pop)
+
+void ZeldaAudioRenderer::PrepareFrame()
+{
+	if (m_prepared)
+		return;
+
+	m_buf_front_left.fill(0);
+	m_buf_front_right.fill(0);
+
+	// TODO: Dolby/reverb mixing here.
+
+	m_prepared = true;
+}
+
+void ZeldaAudioRenderer::AddVoice(u16 voice_id)
+{
+	VPB vpb;
+	FetchVPB(voice_id, &vpb);
+
+	if (!vpb.enabled || vpb.done)
+		return;
+
+	MixingBuffer input_samples;
+	LoadInputSamples(&input_samples, &vpb);
+
+	// TODO: In place effects.
+
+	// TODO: IIR.filter.
+
+	// TODO: Loop, etc.
+
+	if (vpb.use_dolby_volume)
+	{
+		if (vpb.end_requested)
+		{
+			vpb.dolby_volume_target = vpb.dolby_volume_current / 2;
+			if (vpb.dolby_volume_target == 0)
+				vpb.done = true;
+		}
+
+		// Each of these volumes is in 1.15 fixed format.
+		s16 right_volume = m_sine_table[vpb.GetDolbyVoiceX()];
+		s16 back_volume = m_sine_table[vpb.GetDolbyVoiceY()];
+		s16 left_volume = m_sine_table[vpb.GetDolbyVoiceX() ^ 0x7F];
+		s16 front_volume = m_sine_table[vpb.GetDolbyVoiceY() ^ 0x7F];
+
+		// Compute volume for each quadrant.
+		s16 quadrant_volumes[4] = {
+			(s16)((left_volume * front_volume) >> 16),
+			(s16)((left_volume * back_volume) >> 16),
+			(s16)((right_volume * front_volume) >> 16),
+			(s16)((right_volume * back_volume) >> 16),
+		};
+
+		// Compute the volume delta for each sample to match the difference
+		// between current and target volume.
+		s16 delta = vpb.dolby_volume_target - vpb.dolby_volume_current;
+		s16 volume_deltas[4];
+		for (size_t i = 0; i < 4; ++i)
+			volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> 16;
+
+		// Apply master volume to each quadrant.
+		for (size_t i = 0; i < 4; ++i)
+			quadrant_volumes[i] = (quadrant_volumes[i] * vpb.dolby_volume_current) >> 16;
+
+		// Compute reverb volume and ramp deltas.
+		s16 reverb_volumes[4], reverb_volume_deltas[4];
+		s16 reverb_volume_factor = (vpb.dolby_volume_current * vpb.dolby_reverb_factor) >> 15;
+		for (size_t i = 0; i < 4; ++i)
+		{
+			reverb_volumes[i] = (quadrant_volumes[i] * reverb_volume_factor) >> 15;
+			reverb_volume_deltas[i] = (volume_deltas[i] * vpb.dolby_reverb_factor) >> 16;
+		}
+
+		struct {
+			MixingBuffer* buffer;
+			s16 volume;
+			s16 volume_delta;
+		} buffers[8] = {
+			{ &m_buf_front_left, quadrant_volumes[0], volume_deltas[0] },
+			{ &m_buf_back_left, quadrant_volumes[1], volume_deltas[1] },
+			{ &m_buf_front_right, quadrant_volumes[2], volume_deltas[2] },
+			{ &m_buf_back_right, quadrant_volumes[3], volume_deltas[3] },
+
+			{ &m_buf_front_left_reverb, reverb_volumes[0], reverb_volume_deltas[0] },
+			{ &m_buf_back_left_reverb, reverb_volumes[1], reverb_volume_deltas[1] },
+			{ &m_buf_front_right_reverb, reverb_volumes[2], reverb_volume_deltas[2] },
+			{ &m_buf_back_right_reverb, reverb_volumes[3], reverb_volume_deltas[3] },
+		};
+		for (const auto& buffer : buffers)
+		{
+			AddBuffersWithVolumeRamp(buffer.buffer, input_samples, buffer.volume << 16,
+			                         (buffer.volume_delta << 16) / (s32)buffer.buffer->size());
+		}
+
+		vpb.dolby_volume_current = vpb.dolby_volume_target;
+	}
+	else
+	{
+		// TODO: Store input samples if requested by the VPB.
+
+		if (vpb.end_requested)
+		{
+			bool all_mute = true;
+			for (auto& channel : vpb.channels)
+			{
+				channel.target_volume = channel.current_volume / 2;
+				all_mute &= (channel.target_volume == 0);
+			}
+			if (all_mute)
+				vpb.done = true;
+		}
+
+		// Map buffer "IDs"/addresses to our emulated buffers.
+		std::map<u16, MixingBuffer*> buffers = {
+			{ 0x0D00, &m_buf_front_left },
+			{ 0x0D60, &m_buf_front_right },
+			{ 0x0F40, &m_buf_back_left },
+			{ 0x0CA0, &m_buf_back_right },
+			{ 0x0E80, &m_buf_front_left_reverb },
+			{ 0x0EE0, &m_buf_front_right_reverb },
+			{ 0x0C00, &m_buf_back_left_reverb },
+			{ 0x0C50, &m_buf_back_right_reverb },
+		};
+
+		for (auto& channel : vpb.channels)
+		{
+			if (!channel.id)
+				continue;
+
+			s16 volume_delta = channel.target_volume - channel.current_volume;
+			s32 volume_step = (volume_delta << 16) / (s32)input_samples.size();  // In 1.31 format.
+
+			// TODO: The last value of each channel structure is used to
+			// determine whether a channel should be skipped or not. Not
+			// implemented yet.
+
+			if (!channel.current_volume && !volume_step)
+				continue;
+
+			MixingBuffer* dst_buffer = buffers[channel.id];
+			if (!dst_buffer)
+			{
+				ERROR_LOG(DSPHLE, "Mixing to an unmapped buffer: %04x", channel.id);
+				continue;
+			}
+
+			s32 new_volume = AddBuffersWithVolumeRamp(
+					dst_buffer, input_samples, channel.current_volume << 16,
+					volume_step);
+			channel.current_volume = new_volume >> 16;
+		}
+	}
+
+	StoreVPB(voice_id, vpb);
+}
+
+void ZeldaAudioRenderer::FinalizeFrame()
+{
+	// TODO: Dolby mixing.
+
+	ApplyVolumeInPlace_4_12(&m_buf_front_left, m_output_volume);
+	ApplyVolumeInPlace_4_12(&m_buf_front_right, m_output_volume);
+
+	u16* ram_left_buffer = (u16*)HLEMemory_Get_Pointer(m_output_lbuf_addr);
+	u16* ram_right_buffer = (u16*)HLEMemory_Get_Pointer(m_output_rbuf_addr);
+	for (size_t i = 0; i < m_buf_front_left.size(); ++i)
+	{
+		ram_left_buffer[i] = Common::swap16(m_buf_front_left[i]);
+		ram_right_buffer[i] = Common::swap16(m_buf_front_right[i]);
+	}
+	m_output_lbuf_addr += sizeof (u16) * m_buf_front_left.size();
+	m_output_rbuf_addr += sizeof (u16) * m_buf_front_right.size();
+
+	// TODO: Some more Dolby mixing.
+
+	m_prepared = false;
+}
+
+void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
+{
+	u16* vpb_words = (u16*)vpb;
+	u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
+
+	size_t base_idx = voice_id * VPB::SIZE_IN_WORDS;
+	for (size_t i = 0; i < VPB::SIZE_IN_WORDS; ++i)
+		vpb_words[i] = Common::swap16(ram_vpbs[base_idx + i]);
+}
+
+void ZeldaAudioRenderer::StoreVPB(u16 voice_id, const VPB& vpb)
+{
+	const u16* vpb_words = (const u16*)&vpb;
+	u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
+
+	size_t base_idx = voice_id * VPB::SIZE_IN_WORDS;
+
+	// Only the first 0x80 words are transferred back - the rest is read-only.
+	for (size_t i = 0; i < VPB::RW_SIZE_IN_WORDS; ++i)
+		ram_vpbs[base_idx + i] = Common::swap16(vpb_words[i]);
+}
+
+void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
+{
+	// Input data pre-resampling. Resampled into the mixing buffer parameter at
+	// the end of processing, if needed.
+	//
+	// Maximum of 0x500 samples here - see NeededRawSamplesCount to understand
+	// this practical limit (resampling_ratio = 0xFFFF -> 0x500 samples). Add a
+	// margin of 4 that is needed for samples source that do resampling.
+	std::array<s16, 0x500 + 4> raw_input_samples;
+	for (size_t i = 0; i < 4; ++i)
+		raw_input_samples[i] = vpb->resample_buffer[i];
+
+	if (vpb->use_constant_sample)
+	{
+		buffer->fill(vpb->constant_sample);
+		return;
+	}
+
+	switch (vpb->samples_source_type)
+	{
+		case VPB::SRC_PCM16_FROM_MRAM:
+		{
+			DownloadRawSamplesFromMRAM(raw_input_samples.data() + 4, vpb,
+			                           NeededRawSamplesCount(*vpb));
+			Resample(vpb, raw_input_samples.data(), buffer);
+			break;
+		}
+
+		default:
+			ERROR_LOG(DSPHLE, "Using an unknown/unimplemented sample source: %04x", vpb->samples_source_type);
+			buffer->fill(0);
+			return;
+	}
+}
+
+u16 ZeldaAudioRenderer::NeededRawSamplesCount(const VPB& vpb)
+{
+	// Both of these are 4.12 fixed point, so shift by 12 to get the int part.
+	return (vpb.current_pos_frac + 0x50 * vpb.resampling_ratio) >> 12;
+}
+
+void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
+{
+	// Both in 20.12 format.
+	u32 ratio = vpb->resampling_ratio;
+	u32 pos = vpb->current_pos_frac;
+
+	// Check if we need to do some interpolation. If the resampling ratio is
+	// more than 4:1, it's not worth it.
+	if ((ratio >> 12) >= 4)
+	{
+		for (s16& dst_sample : *dst)
+		{
+			pos += ratio;
+			dst_sample = src[pos >> 12];
+		}
+	}
+	else
+	{
+		for (auto& dst_sample : *dst)
+		{
+			// We have 0x40 * 4 coeffs that need to be selected based on the
+			// most significant bits of the fractional part of the position. 12
+			// bits >> 6 = 6 bits = 0x40. Multiply by 4 since there are 4
+			// consecutive coeffs.
+			u32 coeffs_idx = ((pos & 0xFFF) >> 6) * 4;
+			const s16* coeffs = &m_resampling_coeffs[coeffs_idx];
+			const s16* input = &src[pos >> 12];
+
+			s64 dst_sample_unclamped = 0;
+			for (size_t i = 0; i < 4; ++i)
+				dst_sample_unclamped += (s64)2 * coeffs[i] * input[i];
+			dst_sample_unclamped >>= 16;
+			MathUtil::Clamp(&dst_sample_unclamped, (s64)-0x8000, (s64)0x7fff);
+			dst_sample = dst_sample_unclamped;
+
+			pos += ratio;
+		}
+	}
+
+	for (u32 i = 0; i < 4; ++i)
+		vpb->resample_buffer[i] = src[(pos >> 12) + i];
+	vpb->constant_sample = (*dst)[dst->size() - 1];
+	vpb->current_pos_frac = pos & 0xFFF;
+}
+
+void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(
+		s16* dst, VPB* vpb, u16 requested_samples_count)
+{
+	u32 addr = vpb->GetDMABaseAddress() + vpb->current_position_h * sizeof (u16);
+	s16* src_ptr = (s16*)HLEMemory_Get_Pointer(addr);
+
+	if (requested_samples_count > vpb->GetRemainingLength())
+	{
+		s16 last_sample = 0;
+		for (u16 i = 0; i < vpb->GetRemainingLength(); ++i)
+			*dst++ = last_sample = Common::swap16(*src_ptr++);
+		for (u16 i = vpb->GetRemainingLength(); i < requested_samples_count; ++i)
+			*dst++ = last_sample;
+
+		vpb->current_position_h += vpb->GetRemainingLength();
+		vpb->SetRemainingLength(0);
+		vpb->done = true;
+	}
+	else
+	{
+		vpb->SetRemainingLength(vpb->GetRemainingLength() - requested_samples_count);
+		vpb->samples_before_loop = vpb->loop_start_position_h - vpb->current_position_h;
+		if (requested_samples_count <= vpb->samples_before_loop)
+		{
+			for (u16 i = 0; i < requested_samples_count; ++i)
+				*dst++ = Common::swap16(*src_ptr++);
+			vpb->current_position_h += requested_samples_count;
+		}
+		else
+		{
+			for (u16 i = 0; i < vpb->samples_before_loop; ++i)
+				*dst++ = Common::swap16(*src_ptr++);
+			vpb->SetDMABaseAddress(vpb->GetDMALoopAddress());
+			src_ptr = (s16*)HLEMemory_Get_Pointer(vpb->GetDMALoopAddress());
+			for (u16 i = vpb->samples_before_loop; i < requested_samples_count; ++i)
+				*dst++ = Common::swap16(*src_ptr++);
+			vpb->current_position_h = requested_samples_count - vpb->samples_before_loop;
+		}
+	}
+}
+
+void ZeldaAudioRenderer::DoState(PointerWrap& p)
+{
+	p.Do(m_output_lbuf_addr);
+	p.Do(m_output_rbuf_addr);
 }
