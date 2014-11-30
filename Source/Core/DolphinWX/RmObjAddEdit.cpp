@@ -102,18 +102,18 @@ void CRmObjAddEdit::SaveRmObjData(wxCommandEvent& event)
 {
 	if (!UpdateTempEntryData(itCurEntry))
 		return;
-
-	for (int i = 0; i < rmObjCodes.size(); ++i)
-	{
-		if (rmObjCodes.at(i).name == WxStrToStr(EditRmObjName->GetValue()))
-		{
-			wxMessageBox(_("Name is already in use.  Please choose a unique name."), _("Error"));
-			return;
-		}
-	}
 		
 	if (selection == -1)
 	{
+		for (int i = 0; i < rmObjCodes.size(); ++i)
+		{
+			if (rmObjCodes.at(i).name == WxStrToStr(EditRmObjName->GetValue()))
+			{
+				wxMessageBox(_("Name is already in use.  Please choose a unique name."), _("Error"));
+				return;
+			}
+		}
+
 		RmObjEngine::RmObj newRmObj;
 		newRmObj.name = WxStrToStr(EditRmObjName->GetValue());
 		newRmObj.entries = tempEntries;
