@@ -376,6 +376,12 @@ void VideoConfig::VerifyValidity()
 	// TODO: Check iMaxAnisotropy value
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
+	if (g_has_rift)
+		iStereoMode = STEREO_OCULUS;
+	else if (g_has_vr920)
+		iStereoMode = STEREO_VR920;
+	else if (iStereoMode == STEREO_OCULUS || iStereoMode == STEREO_VR920)
+		iStereoMode = 0;
 	if (!backend_info.bSupportsStereoscopy) iStereoMode = 0;
 }
 

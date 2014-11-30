@@ -1457,7 +1457,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
 #ifdef HAVE_OCULUSSDK
-		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
+		if (g_has_rift && !bTelescopeHUD && !g_is_skybox && !(g_ActiveConfig.iStereoMode>0))
 		{
 #ifdef OCULUSSDK042
 			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
@@ -1521,7 +1521,7 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 
 		// If we are supposed to hide the layer, zero out the projection matrix
-		if (bHideLeft) {
+		if (bHideLeft && (bHideRight || !(g_ActiveConfig.iStereoMode>0))) {
 			memset(final_matrix_left.data, 0, 16 * sizeof(final_matrix_left.data[0]));
 		}
 		if (bHideRight)
@@ -1532,8 +1532,20 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
+		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+			constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+		}
+		else
+		{
+			constants.stereoparams[0] = constants.stereoparams[1] = 0;
+		}
+
 	}
-	else if ((bFreeLookChanged) && xfmem.projection.type == GX_PERSPECTIVE)
+	else if (bFreeLookChanged && xfmem.projection.type == GX_PERSPECTIVE)
 	{
 		Matrix44 mtxA;
 		Matrix44 mtxB;
