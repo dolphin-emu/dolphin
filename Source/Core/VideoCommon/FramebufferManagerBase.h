@@ -55,6 +55,8 @@ public:
 	static int ScaleToVirtualXfbWidth(int x, unsigned int backbuffer_width);
 	static int ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height);
 
+	static int GetEFBLayers() { return m_EFBLayers; }
+
 protected:
 	struct VirtualXFB
 	{
@@ -69,6 +71,8 @@ protected:
 	};
 
 	typedef std::list<VirtualXFB> VirtualXFBListType;
+
+	static unsigned int m_EFBLayers;
 
 private:
 	virtual XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) = 0;

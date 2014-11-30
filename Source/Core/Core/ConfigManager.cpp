@@ -83,6 +83,11 @@ static const struct
 	{ "FreelookZoomOut",       true, 83 /* 'S' */,       4 /* wxMOD_SHIFT */,   0 },
 	{ "FreelookReset",         true, 82 /* 'R' */,       4 /* wxMOD_SHIFT */,   0 },
 
+	{ "IncreaseSeparation",   true, 0,                   0 /* wxMOD_NONE */,    0 },
+	{ "DecreaseSeparation",   true, 0,                   0 /* wxMOD_NONE */,    0 },
+	{ "IncreaseConvergence",  true, 0,                   0 /* wxMOD_NONE */,    0 },
+	{ "DecreaseConvergence",  true, 0,                   0 /* wxMOD_NONE */,    0 },
+
 	{ "LoadStateSlot1",       true, 340 /* WXK_F1 */,    0 /* wxMOD_NONE */,    0 },
 	{ "LoadStateSlot2",       true, 341 /* WXK_F2 */,    0 /* wxMOD_NONE */,    0 },
 	{ "LoadStateSlot3",       true, 342 /* WXK_F3 */,    0 /* wxMOD_NONE */,    0 },

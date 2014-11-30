@@ -38,7 +38,7 @@ struct vertex_shader_uid_data
 	u32 numColorChans        : 2;
 	u32 dualTexTrans_enabled : 1;
 	u32 pixel_lighting       : 1;
-	u32 pad0                 : 1;
+	u32 stereo               : 1;
 
 	u32 texMtxInfo_n_projection : 16; // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
 	struct {
@@ -64,4 +64,5 @@ typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
-void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type);
+void GenerateVSOutputStruct(ShaderCode& object, API_TYPE api_type);
+void GenerateVSOutputStruct(ShaderGeneratorInterface& object, API_TYPE api_type);

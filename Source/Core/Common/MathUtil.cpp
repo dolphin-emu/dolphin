@@ -363,6 +363,12 @@ void Matrix44::Translate(Matrix44 &mtx, const float vec[3])
 	mtx.data[11] = vec[2];
 }
 
+void Matrix44::Shear(Matrix44 &mtx, const float a, const float b)
+{
+	LoadIdentity(mtx);
+	mtx.data[2] = a;
+	mtx.data[6] = b;
+}
 void Matrix44::Scale(Matrix44 &mtx, const float vec[3])
 {
 	LoadIdentity(mtx);
