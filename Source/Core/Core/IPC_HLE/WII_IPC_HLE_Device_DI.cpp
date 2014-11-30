@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/VolumeHandler.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
@@ -63,7 +64,11 @@ u64 CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 
 	DVDCommandResult result = ExecuteCommand(command_0, command_1, command_2, BufferOut, BufferOutSize, false);
 	Memory::Write_U32(result.interrupt_type, _CommandAddress + 0x4);
-	return result.ticks_until_completion;
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+		return 1;
+	else
+		return result.ticks_until_completion;
 }
 
 u64 CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
