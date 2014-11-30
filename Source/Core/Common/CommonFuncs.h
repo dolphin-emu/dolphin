@@ -194,7 +194,9 @@ inline u64 swap64(u64 _data) {return _byteswap_uint64(_data);}
 inline u16 swap16 (u16 _data) { u32 data = _data; __asm__ ("rev16 %0, %1\n" : "=l" (data) : "l" (data)); return (u16)data;}
 inline u32 swap32 (u32 _data) {__asm__ ("rev %0, %1\n" : "=l" (_data) : "l" (_data)); return _data;}
 inline u64 swap64(u64 _data) {return ((u64)swap32(_data) << 32) | swap32(_data >> 32);}
-#elif __linux__
+#elif __linux__ && !(ANDROID && _M_ARM_64)
+// Android NDK r10c has broken builtin byte swap routines
+// Disabled for now.
 inline u16 swap16(u16 _data) {return bswap_16(_data);}
 inline u32 swap32(u32 _data) {return bswap_32(_data);}
 inline u64 swap64(u64 _data) {return bswap_64(_data);}

@@ -385,13 +385,13 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 
 	// Downcount flag check, Only valid for linked blocks
 	{
-		SetCC(CC_MI);
+		FixupBranch no_downcount = B_CC(CC_PL);
 		ARMReg rA = gpr.GetReg(false);
 		MOVI2R(rA, js.blockStart);
 		STR(rA, R9, PPCSTATE_OFF(pc));
 		MOVI2R(rA, (u32)asm_routines.doTiming);
 		B(rA);
-		SetCC();
+		SetJumpTarget(no_downcount);
 	}
 
 	const u8 *normalEntry = GetCodePtr();
@@ -409,7 +409,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		MOVI2R(C, js.blockStart); // R3
 		LDR(A, R9, PPCSTATE_OFF(msr));
 		TST(A, Shift);
-		SetCC(CC_EQ);
+		FixupBranch no_fpe = B_CC(CC_NEQ);
 		STR(C, R9, PPCSTATE_OFF(pc));
 
 		LDR(A, R9, PPCSTATE_OFF(Exceptions));
@@ -422,7 +422,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);
 
-		SetCC();
+		SetJumpTarget(no_fpe);
 		gpr.Unlock(A, C);
 	}
 

@@ -321,14 +321,14 @@ static GekkoOPTemplate table59[] =
 
 static GekkoOPTemplate table63[] =
 {
-	{264, Interpreter::fabsx,       {"fabsx",   OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{264, Interpreter::fabsx,       {"fabsx",   OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{32,  Interpreter::fcmpo,       {"fcmpo",   OPTYPE_DOUBLEFP, FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{0,   Interpreter::fcmpu,       {"fcmpu",   OPTYPE_DOUBLEFP, FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
-	{14,  Interpreter::fctiwx,      {"fctiwx",  OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{15,  Interpreter::fctiwzx,     {"fctiwzx", OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{14,  Interpreter::fctiwx,      {"fctiwx",  OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{15,  Interpreter::fctiwzx,     {"fctiwzx", OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{72,  Interpreter::fmrx,        {"fmrx",    OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{136, Interpreter::fnabsx,      {"fnabsx",  OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{40,  Interpreter::fnegx,       {"fnegx",   OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{136, Interpreter::fnabsx,      {"fnabsx",  OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{40,  Interpreter::fnegx,       {"fnegx",   OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{12,  Interpreter::frspx,       {"frspx",   OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 
 	{64,  Interpreter::mcrfs,       {"mcrfs",   OPTYPE_SYSTEMFP, FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF, 1, 0, 0, 0}},

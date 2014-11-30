@@ -129,6 +129,12 @@ void CPUInfo::Detect()
 	if (max_std_fn >= 1)
 	{
 		__cpuid(cpu_id, 0x00000001);
+		int family = ((cpu_id[0] >> 8) & 0xf) + ((cpu_id[0] >> 20) & 0xff);
+		int model = ((cpu_id[0] >> 4) & 0xf) + ((cpu_id[0] >> 12) & 0xf0);
+		// Detect people unfortunate enough to be running Dolphin on an Atom
+		if (family == 6 && (model == 0x1C || model == 0x26 ||model == 0x27 || model == 0x35 || model == 0x36 ||
+		                    model == 0x37 || model == 0x4A || model == 0x4D || model == 0x5A || model == 0x5D))
+			bAtom = true;
 		logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
 		ht = (cpu_id[3] >> 28) & 1;
 
