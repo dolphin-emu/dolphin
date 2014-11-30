@@ -338,8 +338,8 @@ void ZeldaUCode::RenderAudio()
 #pragma pack(push, 1)
 struct ZeldaAudioRenderer::VPB
 {
-	static constexpr u16 SIZE_IN_WORDS = 0xC0;
-	static constexpr u16 RW_SIZE_IN_WORDS = 0x80;
+	static const u16 SIZE_IN_WORDS = 0xC0;
+	static const u16 RW_SIZE_IN_WORDS = 0x80;
 
 	// If zero, skip processing this voice.
 	u16 enabled;
@@ -670,8 +670,8 @@ void ZeldaAudioRenderer::FinalizeFrame()
 		ram_left_buffer[i] = Common::swap16(m_buf_front_left[i]);
 		ram_right_buffer[i] = Common::swap16(m_buf_front_right[i]);
 	}
-	m_output_lbuf_addr += sizeof (u16) * m_buf_front_left.size();
-	m_output_rbuf_addr += sizeof (u16) * m_buf_front_right.size();
+	m_output_lbuf_addr += sizeof (u16) * (u32)m_buf_front_left.size();
+	m_output_rbuf_addr += sizeof (u16) * (u32)m_buf_front_right.size();
 
 	// TODO: Some more Dolby mixing.
 
