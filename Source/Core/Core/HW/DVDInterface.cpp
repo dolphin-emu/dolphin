@@ -40,18 +40,17 @@ static const u64 WII_DISC_LAYER_SIZE = 4699979776;
 // the program can calulate the speed at arbitrary locations.
 // Offsets are in bytes, and speeds are in bytes per second.
 //
-// These speeds are approximate. Using exact speeds is not possible
-// because of how much variation there is between different hardware.
+// These speeds are approximations of speeds measured on real Wiis.
 
-static const u32 GC_DISC_LOCATION_1_OFFSET = 0;             // The beginning of a GC disc
-static const u32 GC_DISC_LOCATION_1_READ_SPEED = 1024 * 1024 * 2;
-static const u32 GC_DISC_LOCATION_2_OFFSET = 1459978239;    // The end of a GC disc
-static const u32 GC_DISC_LOCATION_2_READ_SPEED = (u32)(1024 * 1024 * 3.3);
+static const u32 GC_DISC_LOCATION_1_OFFSET = 0;             // The beginning of a GC disc - 48 mm
+static const u32 GC_DISC_LOCATION_1_READ_SPEED = (u32)(1024 * 1024 * 2.1);
+static const u32 GC_DISC_LOCATION_2_OFFSET = 1459978239;    // The end of a GC disc - 76 mm
+static const u32 GC_DISC_LOCATION_2_READ_SPEED = (u32)(1024 * 1024 * 3.325);
 
-static const u32 WII_DISC_LOCATION_1_OFFSET = 0;                    // The beginning of a Wii disc
+static const u32 WII_DISC_LOCATION_1_OFFSET = 0;                    // The beginning of a Wii disc - 48 mm
 static const u32 WII_DISC_LOCATION_1_READ_SPEED = (u32)(1024 * 1024 * 3.5);
-static const u64 WII_DISC_LOCATION_2_OFFSET = WII_DISC_LAYER_SIZE;  // The end of a Wii disc
-static const u32 WII_DISC_LOCATION_2_READ_SPEED = 1024 * 1024 * 9;
+static const u64 WII_DISC_LOCATION_2_OFFSET = WII_DISC_LAYER_SIZE;  // The end of a Wii disc - 116 mm
+static const u32 WII_DISC_LOCATION_2_READ_SPEED = (u32)(1024 * 1024 * 8.45);
 
 // These values are used for disc read speed calculations. Calculations
 // are done using an arbitrary length unit where the radius of a disc track
