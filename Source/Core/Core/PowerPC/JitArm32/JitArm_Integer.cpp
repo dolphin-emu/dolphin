@@ -817,6 +817,37 @@ void JitArm::cmp (UGeckoInstruction inst)
 
 	gpr.Unlock(rA);
 }
+
+void JitArm::cmpl(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	u32 a = inst.RA, b = inst.RB;
+	int crf = inst.CRFD;
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		ComputeRC(gpr.GetImm(a) - gpr.GetImm(b), crf);
+		return;
+	}
+
+	FALLBACK_IF(true);
+}
+
+void JitArm::cmpli(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	u32 a = inst.RA;
+	int crf = inst.CRFD;
+	if (gpr.IsImm(a))
+	{
+		ComputeRC(gpr.GetImm(a) - inst.UIMM, crf);
+		return;
+	}
+
+	FALLBACK_IF(true);
+}
+
 void JitArm::cmpi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
