@@ -36,8 +36,8 @@ GLuint FramebufferManager::m_efbColorSwap; // for hot swap when reinterpreting E
 
 // Front buffers for Asynchronous Timewarp, to be swapped with either m_efbColor or m_resolvedColorTexture
 // at the end of a frame. The back buffer is rendered to while the front buffer is displayed, then they are flipped.
-volatile GLuint FramebufferManager::m_frontBuffer[2]; 
-volatile GLuint FramebufferManager::m_backBuffer[2];
+GLuint FramebufferManager::m_frontBuffer[2]; 
+GLuint FramebufferManager::m_eyeFramebuffer[2];
 
 // Only used in MSAA mode.
 GLuint FramebufferManager::m_resolvedFramebuffer;
@@ -64,6 +64,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_resolvedFramebuffer = 0;
 	m_resolvedColorTexture = 0;
 	m_resolvedDepthTexture = 0;
+	m_eyeFramebuffer[0] = 0;
+	m_eyeFramebuffer[1] = 0;
+	m_frontBuffer[0] = 0;
+	m_frontBuffer[1] = 0;
 
 	if (g_has_hmd || g_ActiveConfig.iStereoMode > 0)
 	{
@@ -108,6 +112,20 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_efbColorSwap = glObj[2];
 
 	m_EFBLayers = (g_has_hmd || g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+
+	if (g_has_rift)
+	{
+		m_textureType = GL_TEXTURE_2D;
+		glGenTextures(2, m_frontBuffer);
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			glBindTexture(m_textureType, m_frontBuffer[eye]);
+			glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
+			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexImage2D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		}
+	}
 
 	// OpenGL MSAA textures are a different kind of texture type and must be allocated
 	// with a different function, so we create them separately.
@@ -178,6 +196,16 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// Create XFB framebuffer; targets will be created elsewhere.
 	glGenFramebuffers(1, &m_xfbFramebuffer);
 
+	if (g_has_rift)
+	{
+		glGenFramebuffers(2, m_eyeFramebuffer);
+		for (int eye = 0; eye < 2; ++eye)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, m_eyeFramebuffer[eye]);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_frontBuffer[eye], 0);
+		}
+	}
+
 	// Bind target textures to EFB framebuffer.
 	glGenFramebuffers(1, &m_efbFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
@@ -200,10 +228,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_eye_texture[0].OGL.Header.RenderViewport.Pos.y = 0;
 		m_eye_texture[0].OGL.Header.RenderViewport.Size.w = m_targetWidth;
 		m_eye_texture[0].OGL.Header.RenderViewport.Size.h = m_targetHeight;
+		m_eye_texture[0].OGL.TexId = m_frontBuffer[0];
 		m_eye_texture[1] = m_eye_texture[0];
-		// TODO! Fix this!!!!!!!
-		m_eye_texture[0].OGL.TexId = m_efbColor;
-		m_eye_texture[1].OGL.TexId = m_efbColor;
+		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
+			m_eye_texture[1].OGL.TexId = m_frontBuffer[1];
 #endif
 	}
 
@@ -312,12 +340,19 @@ FramebufferManager::~FramebufferManager()
 	m_efbFramebuffer = 0;
 	m_xfbFramebuffer = 0;
 	m_resolvedFramebuffer = 0;
+	glDeleteFramebuffers(2, m_eyeFramebuffer);
+	m_eyeFramebuffer[0] = 0;
+	m_eyeFramebuffer[1] = 0;
 
 	glObj[0] = m_resolvedColorTexture;
 	glObj[1] = m_resolvedDepthTexture;
 	glDeleteTextures(2, glObj);
 	m_resolvedColorTexture = 0;
 	m_resolvedDepthTexture = 0;
+
+	glDeleteTextures(2, m_frontBuffer);
+	m_frontBuffer[0] = 0;
+	m_frontBuffer[1] = 0;
 
 	glObj[0] = m_efbColor;
 	glObj[1] = m_efbDepth;
@@ -455,12 +490,6 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 	m_pixel_format_shaders[convtype ? 1 : 0].Bind();
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindTexture(m_textureType, 0);
-
-#ifdef HAVE_OCULUSSDK
-	// TODO!!!!!!!!
-	if (g_has_rift)
-		m_eye_texture[0].OGL.TexId = m_efbColor;
-#endif
 
 	g_renderer->RestoreAPIState();
 }

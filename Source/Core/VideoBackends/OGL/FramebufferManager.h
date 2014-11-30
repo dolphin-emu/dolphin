@@ -110,8 +110,8 @@ public:
 	static void ConfigureRift();
 	static ovrGLTexture m_eye_texture[2];
 #endif
-	static volatile GLuint m_backBuffer[2];
-	static volatile GLuint m_frontBuffer[2];
+	static GLuint m_eyeFramebuffer[2];
+	static GLuint m_frontBuffer[2];
 	static bool m_stereo3d;
 	static int m_eye_count;
 
