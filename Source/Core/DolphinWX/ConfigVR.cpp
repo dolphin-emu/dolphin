@@ -136,20 +136,20 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Synchronous Timewarp extra frames per frame
 		{
-			U32Setting *num = new U32Setting(page_vr, _("Min exta frames:"), vconfig.iMinExtraFrames, 0, 89);
+			U32Setting *num = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
 			RegisterControl(num, lean_desc);
-			num->SetValue(vconfig.iMinExtraFrames);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Min exta frames:"));
+			num->SetValue(vconfig.iExtraFrames);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Timewarped Frames:"));
 
 			label->SetToolTip(wxGetTranslation(lean_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(num);
 		}
 		{
-			U32Setting *num = new U32Setting(page_vr, _("Max exta frames:"), vconfig.iMaxExtraFrames, 0, 89);
+			SettingNumber* const num = CreateNumber(page_vr, vconfig.fTimeWarpTweak, _("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
 			RegisterControl(num, lean_desc);
-			num->SetValue(vconfig.iMaxExtraFrames);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Max exta frames:"));
+			num->SetValue(vconfig.fTimeWarpTweak);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Timewarp VSync Tweak:"));
 
 			label->SetToolTip(wxGetTranslation(lean_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);

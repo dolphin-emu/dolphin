@@ -1872,15 +1872,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-			while (Core::ShouldAddTimewarpFrame())
+			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
-				auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
-				if (0 == frameTime.TimewarpPointSeconds) {
-					ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
-				}
-				else {
-					ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
-				}
+				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+
+				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
+
 				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 			}
 
@@ -2188,6 +2185,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			FramebufferManager::ConfigureRift();
 		}
+
+		//To do: Probably not the right place for these.  Why do they update for D3D automatically, but not for OpenGL?
+		g_ActiveConfig.iExtraFrames = g_Config.iExtraFrames;
+		g_ActiveConfig.fTimeWarpTweak = g_Config.fTimeWarpTweak;
 	}
 #endif
 

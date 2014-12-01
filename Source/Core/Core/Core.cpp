@@ -764,6 +764,7 @@ bool ShouldSkipFrame(int skipped)
 // in order to keep up 75 FPS
 bool ShouldAddTimewarpFrame()
 {
+#if 0
 	if (s_is_stopping)
 		return false;
 	static u32 timewarp_count = 0;
@@ -791,6 +792,7 @@ bool ShouldAddTimewarpFrame()
 		s_vr_timer.Update();
 		Common::AtomicStore(g_drawn_vr, 0);
 	}
+#endif
 	return false;
 }
 

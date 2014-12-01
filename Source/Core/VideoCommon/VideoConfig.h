@@ -155,8 +155,8 @@ struct VideoConfig final
 	bool bOverdrive;
 	bool bHqDistortion;
 	int iVRPlayer;
-	u32 iMinExtraFrames;
-	u32 iMaxExtraFrames;
+	float fTimeWarpTweak;
+	u32 iExtraFrames;
 
 	// VR
 	float fUnitsPerMetre;
