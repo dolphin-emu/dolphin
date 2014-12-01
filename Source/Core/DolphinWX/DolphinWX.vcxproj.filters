@@ -160,11 +160,11 @@
     <ClCompile Include="TASInputDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="WiimoteConfigDiag.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="SoftwareVideoConfigDialog.cpp">
       <Filter>GUI\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerConfigDiag.cpp">
+      <Filter>GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -294,11 +294,11 @@
     <ClInclude Include="TASInputDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="WiimoteConfigDiag.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="SoftwareVideoConfigDialog.h">
       <Filter>GUI\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerConfigDiag.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
