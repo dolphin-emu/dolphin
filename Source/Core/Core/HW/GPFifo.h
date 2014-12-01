@@ -26,7 +26,7 @@ void DoState(PointerWrap &p);
 
 // ResetGatherPipe
 void ResetGatherPipe();
-void CheckGatherPipe();
+void CheckGatherPipe(bool exceptionCheck);
 
 bool IsEmpty();
 

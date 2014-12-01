@@ -84,6 +84,7 @@ protected:
 		bool carryFlagSet;
 		bool carryFlagInverted;
 		bool next_inst_bp;
+		bool maybeFifo;
 
 		int fifoBytesThisBlock;
 

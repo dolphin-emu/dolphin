@@ -292,14 +292,43 @@ static void ImHere()
 	been_here[PC] = 1;
 }
 
+void Jit64::FifoWriteCheck()
+{
+	// Don't need the PC stored here, since we're not adding an exception check
+	ABI_PushRegistersAndAdjustStack({}, 0);
+	ABI_CallFunctionC((void *)&GPFifo::CheckGatherPipe, 0);
+	ABI_PopRegistersAndAdjustStack({}, 0);
+
+	// Now we need to check for FIFO exceptions...
+	TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
+	FixupBranch clearInt = J_CC(CC_NZ);
+	TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+	FixupBranch extException = J_CC(CC_NZ, true);
+	SwitchToFarCode();
+	SetJumpTarget(extException);
+	TEST(32, PPCSTATE(msr), Imm32(0x0008000));
+	FixupBranch noExtIntEnable = J_CC(CC_Z, true);
+	TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+	FixupBranch noCPInt = J_CC(CC_Z, true);
+
+	MOV(32, PPCSTATE(pc), Imm32(js.compilerPC+4));
+	WriteExternalExceptionExit();
+
+	SwitchToNearCode();
+
+	SetJumpTarget(noCPInt);
+	SetJumpTarget(noExtIntEnable);
+	SetJumpTarget(clearInt);
+}
+
 bool Jit64::Cleanup()
 {
 	bool did_something = false;
 
-	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+	if (js.fifoBytesThisBlock)
 	{
 		ABI_PushRegistersAndAdjustStack({}, 0);
-		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+		ABI_CallFunctionC((void *)&GPFifo::CheckGatherPipe, 0);
 		ABI_PopRegistersAndAdjustStack({}, 0);
 		did_something = true;
 	}
@@ -605,6 +634,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
+		js.maybeFifo = jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
@@ -629,16 +659,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_compilerPC = ops[i + 1].address;
 			js.next_op = &ops[i + 1];
 			js.next_inst_bp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i + 1].address);
-		}
-
-		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
-		{
-			js.fifoBytesThisBlock -= 32;
-			MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-			BitSet32 registersInUse = CallerSavedRegistersInUse();
-			ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
-			ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 		}
 
 		u32 function = HLE::GetFunctionIndex(ops[i].address);
@@ -682,33 +702,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 				SwitchToNearCode();
 				js.firstFPInstructionFound = true;
-			}
-
-			// Add an external exception check if the instruction writes to the FIFO.
-			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
-			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
-				FixupBranch clearInt = J_CC(CC_NZ);
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-				FixupBranch extException = J_CC(CC_NZ, true);
-				SwitchToFarCode();
-				SetJumpTarget(extException);
-				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
-				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-				FixupBranch noCPInt = J_CC(CC_Z, true);
-
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
-
-				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				WriteExternalExceptionExit();
-
-				SwitchToNearCode();
-
-				SetJumpTarget(noCPInt);
-				SetJumpTarget(noExtIntEnable);
-				SetJumpTarget(clearInt);
 			}
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
@@ -776,6 +769,18 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				WriteExceptionExit();
 				SwitchToNearCode();
+			}
+
+			// Only add a FIFO exception check and gatherpipe check call if at least GATHER_PIPE_SIZE bytes
+			// could have been written to the FIFO. Rely on the FIFO write profiling to tell
+			// us this.
+			if (js.fifoBytesThisBlock >= GPFifo::GATHER_PIPE_SIZE)
+			{
+				// We need to push these to call CheckGatherPipe anyways, so just flush them.
+				gpr.Flush();
+				fpr.Flush();
+				js.fifoBytesThisBlock -= GPFifo::GATHER_PIPE_SIZE;
+				FifoWriteCheck();
 			}
 
 			if (opinfo->flags & FL_LOADSTORE)
