@@ -223,7 +223,7 @@ private:
 class InputConfigDialog : public wxDialog
 {
 public:
-	InputConfigDialog(wxWindow* const parent, InputConfig& config, const std::string& name, const int tab_num = 0);
+	InputConfigDialog(wxWindow* const parent, InputConfig& config, const wxString& name, const int tab_num = 0);
 	//~InputConfigDialog();
 
 	bool Destroy() override;

@@ -362,7 +362,7 @@ void ControllerConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 	}
-	InputConfigDialog m_ConfigFrame(this, *wiimote_plugin, _trans("Dolphin Emulated Wiimote Configuration"), m_wiimote_index_from_conf_bt_id[ev.GetId()]);
+	InputConfigDialog m_ConfigFrame(this, *wiimote_plugin, _("Dolphin Emulated Wiimote Configuration"), m_wiimote_index_from_conf_bt_id[ev.GetId()]);
 	m_ConfigFrame.ShowModal();
 	m_ConfigFrame.Destroy();
 	if (!was_init) // if game isn't running
@@ -486,7 +486,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 #endif
 	}
 
-	InputConfigDialog m_ConfigFrame(this, *pad_plugin, _trans("Dolphin GCPad Configuration"), port_num);
+	InputConfigDialog m_ConfigFrame(this, *pad_plugin, _("Dolphin GCPad Configuration"), port_num);
 	m_ConfigFrame.ShowModal();
 	m_ConfigFrame.Destroy();
 
