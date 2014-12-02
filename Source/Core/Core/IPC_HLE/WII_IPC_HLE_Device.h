@@ -119,40 +119,48 @@ public:
 	const std::string& GetDeviceName() const { return m_Name; }
 	u32 GetDeviceID() const { return m_DeviceID; }
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	// Returns the number of ticks to wait before sending a reply, or 0 if no reply is to be sent
+	virtual u64 Open(u32 _CommandAddress, u32 _Mode)
 	{
 		(void)_Mode;
 		WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
 		Memory::Write_U32(FS_ENOENT, _CommandAddress + 4);
 		m_Active = true;
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce = false)
+	// Returns the number of ticks to wait before sending a reply, or 0 if no reply is to be sent
+	virtual u64 Close(u32 _CommandAddress, bool _bForce = false)
 	{
 		WARN_LOG(WII_IPC_HLE, "%s does not support Close()", m_Name.c_str());
 		if (!_bForce)
 			Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
 		m_Active = false;
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
 
-#define UNIMPLEMENTED_CMD(cmd) WARN_LOG(WII_IPC_HLE, "%s does not support "#cmd"()", m_Name.c_str()); return true;
-	virtual bool Seek   (u32) { UNIMPLEMENTED_CMD(Seek) }
-	virtual bool Read   (u32) { UNIMPLEMENTED_CMD(Read) }
-	virtual bool Write  (u32) { UNIMPLEMENTED_CMD(Write) }
-	virtual bool IOCtl  (u32) { UNIMPLEMENTED_CMD(IOCtl) }
-	virtual bool IOCtlV (u32) { UNIMPLEMENTED_CMD(IOCtlV) }
+#define UNIMPLEMENTED_CMD(cmd) WARN_LOG(WII_IPC_HLE, "%s does not support "#cmd"()", m_Name.c_str()); return DEFAULT_REPLY_DELAY;
+	// Returns the number of ticks to wait before sending a reply, or 0 if no reply is to be sent
+	virtual u64 Seek(u32) { UNIMPLEMENTED_CMD(Seek) }
+	// Returns the number of ticks to wait before sending a reply, or 0 if no reply is to be sent
+	virtual u64 Read(u32) { UNIMPLEMENTED_CMD(Read) }
+	// Returns the number of ticks to wait before sending a reply, or 0 if no reply is to be sent
+	virtual u64 Write(u32) { UNIMPLEMENTED_CMD(Write) }
+	// Returns the number of ticks to wait before sending a reply, or 0 if no reply is to be sent
+	virtual u64 IOCtl(u32) { UNIMPLEMENTED_CMD(IOCtl) }
+	// Returns the number of ticks to wait before sending a reply, or 0 if no reply is to be sent
+	virtual u64 IOCtlV(u32) { UNIMPLEMENTED_CMD(IOCtlV) }
 #undef UNIMPLEMENTED_CMD
-
-	virtual int GetCmdDelay(u32) { return 0; }
 
 	virtual u32 Update() { return 0; }
 
 	virtual bool IsHardware() { return m_Hardware; }
 	virtual bool IsOpened() { return m_Active; }
-public:
+
+	static const u32 DEFAULT_REPLY_DELAY = 121500;	// 250 us
+
 	std::string m_Name;
+
 protected:
 
 	// STATE_TO_SAVE
@@ -223,33 +231,33 @@ public:
 	{
 	}
 
-	bool Open(u32 CommandAddress, u32 Mode) override
+	u64 Open(u32 CommandAddress, u32 Mode) override
 	{
 		(void)Mode;
 		WARN_LOG(WII_IPC_HLE, "%s faking Open()", m_Name.c_str());
 		Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
 		m_Active = true;
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
-	bool Close(u32 CommandAddress, bool bForce = false) override
+	u64 Close(u32 CommandAddress, bool bForce = false) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking Close()", m_Name.c_str());
 		if (!bForce)
 			Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
 		m_Active = false;
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
 
-	bool IOCtl(u32 CommandAddress) override
+	u64 IOCtl(u32 CommandAddress) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking IOCtl()", m_Name.c_str());
 		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
-	bool IOCtlV(u32 CommandAddress) override
+	u64 IOCtlV(u32 CommandAddress) override
 	{
 		WARN_LOG(WII_IPC_HLE, "%s faking IOCtlV()", m_Name.c_str());
 		Memory::Write_U32(FS_SUCCESS, CommandAddress + 4);
-		return true;
+		return DEFAULT_REPLY_DELAY;
 	}
 };

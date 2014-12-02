@@ -38,13 +38,11 @@ public:
 
 	virtual void DoState(PointerWrap& p) override;
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual u64 Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual u64 Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual bool IOCtl(u32 _CommandAddress) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
-
-	virtual int GetCmdDelay(u32) override;
+	virtual u64 IOCtl(u32 _CommandAddress) override;
+	virtual u64 IOCtlV(u32 _CommandAddress) override;
 
 private:
 
