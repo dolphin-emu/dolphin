@@ -235,7 +235,7 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_DSP_EMULATOR, _("&DSP Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_DSP_EMULATOR, _("&Audio Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
 	if (g_pCodeWindow)
@@ -570,7 +570,7 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->AddSeparator();
 	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],  _("Graphics settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR, _("DSP"),         m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR, _("Audio"),       m_Bitmaps[Toolbar_ConfigDSP],  _("Audio settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS,  _("Controllers"), m_Bitmaps[Toolbar_Controller], _("Controller settings"));
 }
 
