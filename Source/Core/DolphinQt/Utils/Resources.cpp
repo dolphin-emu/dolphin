@@ -84,7 +84,8 @@ QString Resources::GetImageFilename(QString name, QString dir)
 {
 	if (qApp->devicePixelRatio() >= 2)
 	{
-		QString fileName = name.prepend(dir).append(SL("@2x.png"));
+		QString fileName = name;
+		fileName.prepend(dir).append(SL("@2x.png"));
 		if (QFile::exists(fileName))
 			return fileName;
 	}
