@@ -1050,8 +1050,8 @@ GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const unsigned i
 };
 
 
-InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config, const std::string& name, const int tab_num)
-	: wxDialog(parent, wxID_ANY, wxGetTranslation(StrToWxStr(name)), wxPoint(128,-1))
+InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config, const wxString& name, const int tab_num)
+	: wxDialog(parent, wxID_ANY, name, wxPoint(128,-1))
 	, m_config(config)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
