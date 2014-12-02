@@ -320,7 +320,8 @@ void CConfigVR::CreateGUIControls()
 
 	const wxString pageNames[] =
 	{
-		_("VR Hotkeys")
+		_("VR Hotkeys"),
+		_("VR Instructions")
 	};
 
 	const wxString VRText[] =
@@ -368,7 +369,7 @@ void CConfigVR::CreateGUIControls()
 
 	button_already_clicked = false; //Used to determine whether a button has already been clicked.  If it has, don't allow more buttons to be clicked.
 
-	for (int j = 0; j < 1; ++j)
+	for (int j = 0; j < 2; ++j)
 	{
 		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
 		Notebook->AddPage(Page, pageNames[j]);
@@ -470,6 +471,47 @@ void CConfigVR::CreateGUIControls()
 			sPage->Add(device_sbox, 0, wxEXPAND | wxALL, 5);
 			sPage->Add(options_sbox, 0, wxEXPAND | wxALL, 5);
 			sPage->Add(vr_camera_controls_box, 0, wxEXPAND | wxALL, 5);
+			Page->SetSizer(sPage);
+		}
+
+		if (j == 1)
+		{
+			//Create "Device" box, and all buttons/options within it/
+			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Instructions"));
+
+			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,  
+				_("Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
+				"guide to help.\n\nDirect mode is working, but the performance is poor.  It is recommended to run in "
+				"extended mode!\n\nOpenGL mode is currently undergoing a merge with Dolphin's native stereoscopic rendering "
+				"code, and complete VR support is not finished (IPD, Convergence, Scale, etc. are not all automatically "
+				"implemented).  It is left enabled for experimentation, but the seperation and convergence will have to be "
+				"set manually for each game.  The experience is much better in most games with Direct3D right now, so try that "
+				"first.\n\nIn the 'Config' tab, 'Framelimit' should be set to match your Rift's refresh rate (most likely "
+				"75fps).  Games will run 25% too fast, but this will avoid judder. The Rift can be set to run at 60hz from "
+				"your AMD/Nvidia control panel and still run with low persistence, but flickering can be seen in bright scenes.\n\n"
+				"Under Graphics->Hacks->EFB Copies, 'Disable' and 'Remove Blank EFB Copy Box' should be checked for most games.\n\n"
+				"Right-clicking on each game will give you the options to adjust VR settings, and remove rendered objects. "
+				"Objects such as fake 16:9 bars can be removed from the game.  Some games already have object removal codes, "
+				"so make sure to check them if you would like the object removed.  You can find your own codes by starting "
+				"with an 8-bit code and clicking the up button until the object disappears.  Then move to 16bit, add two zeros "
+				"to the right side of your 8bit code, and continue hitting the up button until the object disappears again. "
+				"Continue until you have a long enough code for it to be unique.\n\nSome games run at 30fps as opposed to 60fps. "
+				"There is a 1:2 pullup (timewarp) feature that can be enabled to fake a frame rate of 60fps. To enable this, "
+				"go to the 'VR' tab and change 'Extra Timewarped Frames' to 1.  Setting this to 2 will insert two extra frames, "
+				"so PAL games that run at 25fps will have head tracking at 75fps, and N64 games that run at 20fps (e.g. Zelda: OoT) "
+				"will have head-tracking at 60fps. Make sure this is set to zero if running a 60fps game.\n\nTake time to set "
+				"the VR-Hotkeys. You can create combinations for XInput by right clicking on the buttons. Remember you can also set "
+				"a the gamecube/wii controller emulation to not happen during a certain button press, so setting freelook to 'Left "
+				"Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. The "
+				"freelook step size varies per game, so play with the 'Freelook Sensitivity' option to set it right for your game.\n\n"
+				"I hope you enjoy and watch for new updates, because we're making progress fast!"));
+
+			instruction_box->Wrap(630);
+
+			device_sbox->Add(instruction_box, wxEXPAND | wxALL);
+
+			wxBoxSizer* const sPage = new wxBoxSizer(wxVERTICAL);
+			sPage->Add(device_sbox, 0, wxEXPAND | wxALL, 5);
 			Page->SetSizer(sPage);
 		}
 	}
