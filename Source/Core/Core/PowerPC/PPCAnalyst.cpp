@@ -560,6 +560,22 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->regsIn[code->inst.RS] = true;
 		block->m_gpa->SetInputRegister(code->inst.RS, index);
 	}
+	if (code->inst.OPCD == 46) // lmw
+	{
+		for (int iReg = code->inst.RD; iReg < 32; ++iReg)
+		{
+			code->regsOut[iReg] = true;
+			block->m_gpa->SetOutputRegister(iReg, index);
+		}
+	}
+	else if (code->inst.OPCD == 47) //stmw
+	{
+		for (int iReg = code->inst.RS; iReg < 32; ++iReg)
+		{
+			code->regsIn[iReg] = true;
+			block->m_gpa->SetInputRegister(iReg, index);
+		}
+	}
 
 	code->fregOut = -1;
 	if (opinfo->flags & FL_OUT_FLOAT_D)
