@@ -45,7 +45,7 @@ class CConfigMain : public wxDialog
 public:
 
 	CConfigMain(wxWindow* parent,
-		wxWindowID id = 1,
+		wxWindowID id = wxID_ANY,
 		const wxString& title = _("Dolphin Configuration"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,

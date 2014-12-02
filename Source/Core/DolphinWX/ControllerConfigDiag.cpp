@@ -47,7 +47,7 @@ const std::array<wxString, 7> ControllerConfigDiag::m_gc_pad_type_strs = {{
 }};
 
 ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
-	: wxDialog(parent, -1, _("Dolphin Controller Configuration"))
+	: wxDialog(parent, wxID_ANY, _("Dolphin Controller Configuration"))
 {
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -239,15 +239,15 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateBalanceBoardSizer()
 wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 {
 	// "Real wiimotes" controls
-	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"));
+	wxButton* const refresh_btn = new wxButton(this, wxID_ANY, _("Refresh"));
 	refresh_btn->Bind(wxEVT_BUTTON, &ControllerConfigDiag::RefreshRealWiimotes, this);
 
 	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimotes"));
 	wxBoxSizer* const real_wiimotes_sizer = new wxBoxSizer(wxHORIZONTAL);
 
 	if (!WiimoteReal::g_wiimote_scanner.IsReady())
-		real_wiimotes_group->Add(new wxStaticText(this, -1, _("A supported bluetooth device could not be found.\n"
-		                                                      "You must manually connect your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
+		real_wiimotes_group->Add(new wxStaticText(this, wxID_ANY, _("A supported bluetooth device could not be found.\n"
+		                                                            "You must manually connect your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
 
 	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
 	continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);

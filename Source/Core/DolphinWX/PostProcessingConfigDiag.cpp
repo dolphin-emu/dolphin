@@ -20,7 +20,7 @@
 #include "VideoCommon/RenderBase.h"
 
 PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::string& shader)
-	: wxDialog(parent, -1,
+	: wxDialog(parent, wxID_ANY,
 		wxString::Format(_("Post Processing Shader Configuration"))),
 	  m_shader(shader)
 {
@@ -73,8 +73,8 @@ PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::
 	}
 
 	// Generate our UI
-	wxNotebook* const notebook = new wxNotebook(this, -1);
-	wxPanel* const page_general = new wxPanel(notebook, -1);
+	wxNotebook* const notebook = new wxNotebook(this, wxID_ANY);
+	wxPanel* const page_general = new wxPanel(notebook);
 	wxFlexGridSizer* const szr_general = new wxFlexGridSizer(2, 5, 5);
 
 	// Now let's actually populate our window with our information
@@ -84,7 +84,7 @@ PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::
 		if (it->HasChildren())
 		{
 			// Options with children get their own tab
-			wxPanel* const page_option = new wxPanel(notebook, -1);
+			wxPanel* const page_option = new wxPanel(notebook);
 			wxFlexGridSizer* const szr_option = new wxFlexGridSizer(2, 10, 5);
 			it->GenerateUI(this, page_option, szr_option);
 

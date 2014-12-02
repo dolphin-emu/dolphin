@@ -29,7 +29,7 @@ class TASInputDlg : public wxDialog
 {
 	public:
 		TASInputDlg(wxWindow* parent,
-		            wxWindowID id = 1,
+		            wxWindowID id = wxID_ANY,
 		            const wxString& title = _("TAS Input"),
 		            const wxPoint& pos = wxDefaultPosition,
 		            const wxSize& size = wxDefaultSize,
