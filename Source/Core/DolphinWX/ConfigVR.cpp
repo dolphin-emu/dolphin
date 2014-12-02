@@ -109,8 +109,9 @@ void CConfigVR::CreateGUIControls()
 			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale,
 				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale:"));
+			
+			spin_scale->SetToolTip(wxGetTranslation(scale_desc));
 			label->SetToolTip(wxGetTranslation(scale_desc));
-
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_scale);
 		}
@@ -120,6 +121,7 @@ void CConfigVR::CreateGUIControls()
 				wxGetTranslation(lean_desc), -180.0f, 180.0f, 1.0f);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Lean back angle:"));
 
+			spin_lean->SetToolTip(wxGetTranslation(lean_desc));
 			label->SetToolTip(wxGetTranslation(lean_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_lean);
@@ -136,24 +138,26 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Synchronous Timewarp extra frames per frame
 		{
-			U32Setting *num = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
-			RegisterControl(num, lean_desc);
-			num->SetValue(vconfig.iExtraFrames);
+			U32Setting* spin_extra_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
+			RegisterControl(spin_extra_frames, extraframes_desc);
+			spin_extra_frames->SetToolTip(extraframes_desc);
+			spin_extra_frames->SetValue(vconfig.iExtraFrames);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Timewarped Frames:"));
 
-			label->SetToolTip(wxGetTranslation(lean_desc));
+			label->SetToolTip(wxGetTranslation(extraframes_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(num);
+			szr_vr->Add(spin_extra_frames);
 		}
 		{
-			SettingNumber* const num = CreateNumber(page_vr, vconfig.fTimeWarpTweak, _("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
-			RegisterControl(num, lean_desc);
-			num->SetValue(vconfig.fTimeWarpTweak);
+			SettingNumber* const spin_timewarp_tweak = CreateNumber(page_vr, vconfig.fTimeWarpTweak, _("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
+			RegisterControl(spin_timewarp_tweak, timewarptweak_desc);
+			spin_timewarp_tweak->SetToolTip(timewarptweak_desc);
+			spin_timewarp_tweak->SetValue(vconfig.fTimeWarpTweak);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Timewarp VSync Tweak:"));
 
-			label->SetToolTip(wxGetTranslation(lean_desc));
+			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(num);
+			szr_vr->Add(spin_timewarp_tweak);
 		}
 
 		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
@@ -504,7 +508,7 @@ void CConfigVR::CreateGUIControls()
 				"a the gamecube/wii controller emulation to not happen during a certain button press, so setting freelook to 'Left "
 				"Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. The "
 				"freelook step size varies per game, so play with the 'Freelook Sensitivity' option to set it right for your game.\n\n"
-				"I hope you enjoy and watch for new updates, because we're making progress fast!"));
+				"Enjoy and watch for new updates, because we're making progress fast!"));
 
 			instruction_box->Wrap(630);
 
