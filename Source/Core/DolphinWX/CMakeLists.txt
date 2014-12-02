@@ -3,6 +3,7 @@ set(GUI_SRCS
 	AboutDolphin.cpp
 	ConfigMain.cpp
 	ConfigVR.cpp
+	ControllerConfigDiag.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
@@ -47,7 +48,6 @@ set(GUI_SRCS
 	TASInputDlg.cpp
 	VideoConfigDiag.cpp
 	WXInputBase.cpp
-	WiimoteConfigDiag.cpp
 	WxUtils.cpp
 	ConfigVR.cpp)
 

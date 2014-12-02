@@ -163,11 +163,18 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 		scrubbing = true;
 	}
 
+	z_stream z = {};
+	if (deflateInit(&z, 9) != Z_OK)
+		return false;
+
 	File::IOFile inf(infile, "rb");
 	File::IOFile f(outfile, "wb");
 
 	if (!f || !inf)
+	{
+		deflateEnd(&z);
 		return false;
+	}
 
 	callback("Files opened, ready to compress.", 0, arg);
 
@@ -195,6 +202,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 	int num_compressed = 0;
 	int num_stored = 0;
 	int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
+	bool was_cancelled = false;
 
 	for (u32 i = 0; i < header.num_blocks; i++)
 	{
@@ -206,27 +214,26 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 				ratio = (int)(100 * position / inpos);
 
 			std::string temp = StringFromFormat("%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
-			callback(temp, (float)i / (float)header.num_blocks, arg);
+			was_cancelled = !callback(temp, (float)i / (float)header.num_blocks, arg);
+			if (was_cancelled)
+				break;
 		}
 
 		offsets[i] = position;
-		// u64 start = i * header.block_size;
-		// u64 size = header.block_size;
-		std::fill(in_buf, in_buf + header.block_size, 0);
+
+		size_t read_bytes;
 		if (scrubbing)
-			DiscScrubber::GetNextBlock(inf, in_buf);
+			read_bytes = DiscScrubber::GetNextBlock(inf, in_buf);
 		else
-			inf.ReadBytes(in_buf, header.block_size);
-		z_stream z;
-		memset(&z, 0, sizeof(z));
-		z.zalloc = Z_NULL;
-		z.zfree  = Z_NULL;
-		z.opaque = Z_NULL;
+			inf.ReadArray(in_buf, header.block_size, &read_bytes);
+		if (read_bytes < header.block_size)
+			std::fill(in_buf + read_bytes, in_buf + header.block_size, 0);
+
+		int retval = deflateReset(&z);
 		z.next_in   = in_buf;
 		z.avail_in  = header.block_size;
 		z.next_out  = out_buf;
 		z.avail_out = block_size;
-		int retval = deflateInit(&z, 9);
 
 		if (retval != Z_OK)
 		{
@@ -255,17 +262,24 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 			position += comp_size;
 			num_compressed++;
 		}
-
-		deflateEnd(&z);
 	}
 
 	header.compressed_data_size = position;
 
-	// Okay, go back and fill in headers
-	f.Seek(0, SEEK_SET);
-	f.WriteArray(&header, 1);
-	f.WriteArray(offsets, header.num_blocks);
-	f.WriteArray(hashes, header.num_blocks);
+	if (was_cancelled)
+	{
+		// Remove the incomplete output file.
+		f.Close();
+		File::Delete(outfile);
+	}
+	else
+	{
+		// Okay, go back and fill in headers
+		f.Seek(0, SEEK_SET);
+		f.WriteArray(&header, 1);
+		f.WriteArray(offsets, header.num_blocks);
+		f.WriteArray(hashes, header.num_blocks);
+	}
 
 cleanup:
 	// Cleanup
@@ -273,6 +287,8 @@ cleanup:
 	delete[] out_buf;
 	delete[] offsets;
 	delete[] hashes;
+
+	deflateEnd(&z);
 
 	DiscScrubber::Cleanup();
 	callback("Done compressing disc image.", 1.0f, arg);
@@ -299,22 +315,37 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 	}
 
 	const CompressedBlobHeader &header = reader->GetHeader();
-	u8* buffer = new u8[header.block_size];
-	int progress_monitor = std::max<int>(1, header.num_blocks / 100);
+	static const size_t BUFFER_BLOCKS = 32;
+	size_t buffer_size = header.block_size * BUFFER_BLOCKS;
+	u8* buffer = new u8[buffer_size];
+	u32 num_buffers = header.num_blocks / BUFFER_BLOCKS;
+	int progress_monitor = std::max<int>(1, num_buffers / 100);
+	bool was_cancelled = false;
 
-	for (u64 i = 0; i < header.num_blocks; i++)
+	for (u64 i = 0; i < num_buffers; i++)
 	{
 		if (i % progress_monitor == 0)
 		{
-			callback("Unpacking", (float)i / (float)header.num_blocks, arg);
+			was_cancelled = !callback("Unpacking", (float)i / (float)num_buffers, arg);
+			if (was_cancelled)
+				break;
 		}
-		reader->Read(i * header.block_size, header.block_size, buffer);
-		f.WriteBytes(buffer, header.block_size);
+		reader->Read(i * buffer_size, buffer_size, buffer);
+		f.WriteBytes(buffer, buffer_size);
 	}
 
 	delete[] buffer;
 
-	f.Resize(header.data_size);
+	if (was_cancelled)
+	{
+		// Remove the incomplete output file.
+		f.Close();
+		File::Delete(outfile);
+	}
+	else
+	{
+		f.Resize(header.data_size);
+	}
 
 	delete reader;
 

@@ -107,13 +107,6 @@ static const wxLanguage langIds[] =
 #define DEV_NONE_STR        _trans("<Nothing>")
 #define DEV_DUMMY_STR       _trans("Dummy")
 
-#define SIDEV_STDCONT_STR   _trans("Standard Controller")
-#define SIDEV_STEERING_STR  _trans("Steering Wheel")
-#define SIDEV_DANCEMAT_STR  _trans("Dance Mat")
-#define SIDEV_BONGO_STR     _trans("TaruKonga (Bongos)")
-#define SIDEV_GBA_STR       "GBA"
-#define SIDEV_AM_BB_STR     _trans("AM-Baseboard")
-
 #define EXIDEV_MEMCARD_STR  _trans("Memory Card")
 #define EXIDEV_MEMDIR_STR   _trans("GCI Folder")
 #define EXIDEV_MIC_STR      _trans("Mic")
@@ -165,11 +158,6 @@ EVT_BUTTON(ID_GC_EXIDEVICE_SLOTA_PATH, CConfigMain::GCSettingsChanged)
 EVT_CHOICE(ID_GC_EXIDEVICE_SLOTB, CConfigMain::GCSettingsChanged)
 EVT_BUTTON(ID_GC_EXIDEVICE_SLOTB_PATH, CConfigMain::GCSettingsChanged)
 EVT_CHOICE(ID_GC_EXIDEVICE_SP1, CConfigMain::GCSettingsChanged)
-EVT_CHOICE(ID_GC_SIDEVICE0, CConfigMain::GCSettingsChanged)
-EVT_CHOICE(ID_GC_SIDEVICE1, CConfigMain::GCSettingsChanged)
-EVT_CHOICE(ID_GC_SIDEVICE2, CConfigMain::GCSettingsChanged)
-EVT_CHOICE(ID_GC_SIDEVICE3, CConfigMain::GCSettingsChanged)
-
 
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_E60, CConfigMain::WiiSettingsChanged)
@@ -404,14 +392,6 @@ void CConfigMain::InitializeGUIValues()
 		SP1Devices.Add(_(EXIDEV_BBA_STR));
 		SP1Devices.Add(_(EXIDEV_AM_BB_STR));
 
-	wxArrayString SIDevices;
-		SIDevices.Add(_(DEV_NONE_STR));
-		SIDevices.Add(_(SIDEV_STDCONT_STR));
-		SIDevices.Add(_(SIDEV_STEERING_STR));
-		SIDevices.Add(_(SIDEV_DANCEMAT_STR));
-		SIDevices.Add(_(SIDEV_BONGO_STR));
-		SIDevices.Add(_(SIDEV_GBA_STR));
-		SIDevices.Add(_(SIDEV_AM_BB_STR));
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -453,39 +433,6 @@ void CConfigMain::InitializeGUIValues()
 		}
 		if (!isMemcard && i < 2)
 			GCMemcardPath[i]->Disable();
-	}
-	for (int i = 0; i < 4; ++i)
-	{
-		// Add string to the wxChoice list
-		GCSIDevice[i]->Append(SIDevices);
-
-		switch (SConfig::GetInstance().m_SIDevice[i])
-		{
-		case SIDEVICE_GC_CONTROLLER:
-			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
-			break;
-		case SIDEVICE_GC_STEERING:
-			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
-			break;
-		case SIDEVICE_DANCEMAT:
-			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
-			break;
-		case SIDEVICE_GC_TARUKONGA:
-			GCSIDevice[i]->SetStringSelection(SIDevices[4]);
-			break;
-		case SIDEVICE_GC_GBA:
-			GCSIDevice[i]->SetStringSelection(SIDevices[5]);
-			break;
-		case SIDEVICE_AM_BASEBOARD:
-			GCSIDevice[i]->SetStringSelection(SIDevices[6]);
-			break;
-		default:
-			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
-			break;
-		}
-		// Remove the AM baseboard from the list, only the first list can select it
-		if (i == 0)
-			SIDevices.RemoveAt(SIDevices.GetCount() - 1);
 	}
 
 	// Wii - Misc
@@ -729,17 +676,6 @@ void CConfigMain::CreateGUIControls()
 	GCMemcardPath[1] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTB_PATH, "...",
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-	//SI Devices
-	wxStaticText* GCSIDeviceText[4];
-	GCSIDeviceText[0] = TEXT_BOX(GamecubePage, _("Port 1"));
-	GCSIDeviceText[1] = TEXT_BOX(GamecubePage, _("Port 2"));
-	GCSIDeviceText[2] = TEXT_BOX(GamecubePage, _("Port 3"));
-	GCSIDeviceText[3] = TEXT_BOX(GamecubePage, _("Port 4"));
-	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0);
-	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1);
-	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2);
-	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3);
-
 	// Populate the GameCube page
 	sGamecubeIPLSettings = new wxGridBagSizer();
 	sGamecubeIPLSettings->Add(GCAlwaysHLE_BS2, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
@@ -761,23 +697,10 @@ void CConfigMain::CreateGUIControls()
 	}
 	sbGamecubeDeviceSettings->Add(sbGamecubeEXIDevSettings, 0, wxALL, 5);
 
-	wxFlexGridSizer* sbGamecubeDevSettings = new wxFlexGridSizer(2, 10, 10);
-	for (int i = 0; i < 4; ++i)
-	{
-		sbGamecubeDevSettings->Add(GCSIDeviceText[i], 1, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 0);
-		sbGamecubeDevSettings->Add(GCSIDevice[i], 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 0);
-		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
-		{
-			GCSIDevice[i]->Disable();
-		}
-	}
-	sbGamecubeDeviceSettings->Add(sbGamecubeDevSettings, 0, wxALL, 5);
-
 	sGamecubePage = new wxBoxSizer(wxVERTICAL);
 	sGamecubePage->Add(sbGamecubeIPLSettings, 0, wxEXPAND|wxALL, 5);
 	sGamecubePage->Add(sbGamecubeDeviceSettings, 0, wxEXPAND|wxALL, 5);
 	GamecubePage->SetSizer(sGamecubePage);
-
 
 	// Wii page
 	// Misc Settings
@@ -1026,7 +949,6 @@ bool CConfigMain::SupportsVolumeChanges(std::string backend)
 // -----------------------
 void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 {
-	int sidevice = 0;
 	int exidevice = 0;
 	switch (event.GetId())
 	{
@@ -1052,15 +974,6 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_GC_EXIDEVICE_SLOTB_PATH:
 		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardB, false);
-		break;
-	case ID_GC_SIDEVICE3:
-		sidevice++;
-	case ID_GC_SIDEVICE2:
-		sidevice++;
-	case ID_GC_SIDEVICE1:
-		sidevice++;
-	case ID_GC_SIDEVICE0:
-		ChooseSIDevice(event.GetString(), sidevice);
 		break;
 	}
 }
@@ -1120,33 +1033,6 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 			WxUtils::ShowErrorDialog(_("Cannot use that file as a memory card.\n"
 			                           "Are you trying to use the same file in both slots?"));
 		}
-	}
-}
-
-void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
-{
-	SIDevices tempType;
-	if (!deviceName.compare(_(SIDEV_STDCONT_STR)))
-		tempType = SIDEVICE_GC_CONTROLLER;
-	else if (!deviceName.compare(_(SIDEV_STEERING_STR)))
-		tempType = SIDEVICE_GC_STEERING;
-	else if (!deviceName.compare(_(SIDEV_DANCEMAT_STR)))
-		tempType = SIDEVICE_DANCEMAT;
-	else if (!deviceName.compare(_(SIDEV_BONGO_STR)))
-		tempType = SIDEVICE_GC_TARUKONGA;
-	else if (!deviceName.compare(SIDEV_GBA_STR))
-		tempType = SIDEVICE_GC_GBA;
-	else if (!deviceName.compare(_(SIDEV_AM_BB_STR)))
-		tempType = SIDEVICE_AM_BASEBOARD;
-	else
-		tempType = SIDEVICE_NONE;
-
-	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
-
-	if (Core::IsRunning())
-	{
-		// Change plugged device! :D
-		SerialInterface::ChangeDevice(tempType, deviceNum);
 	}
 }
 
