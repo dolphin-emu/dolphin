@@ -491,6 +491,42 @@ void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 i
 	        (immr << 16) | (imms << 10) | (Rn << 5) | Rd);
 }
 
+void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	bool b64Bit = Is64Bit(Rt);
+	u32 type_encode = 0;
+
+	switch (type)
+	{
+	case INDEX_UNSIGNED:
+		type_encode = 0b010;
+		break;
+	case INDEX_POST:
+		type_encode = 0b001;
+		break;
+	case INDEX_PRE:
+		type_encode = 0b011;
+		break;
+	}
+
+	if (b64Bit)
+	{
+		op |= 0b10;
+		imm >>= 3;
+	}
+	else
+	{
+		imm >>= 2;
+	}
+
+	Rt = DecodeReg(Rt);
+	Rt2 = DecodeReg(Rt2);
+	Rn = DecodeReg(Rn);
+
+	Write32((op << 30) | (0b101 << 27) | (type_encode << 23) | (load << 22) | \
+	        ((imm & 0x7F) << 15) | (Rt2 << 10) | (Rn << 5) | Rt);
+}
+
 // FixupBranch branching
 void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 {
@@ -1118,6 +1154,20 @@ void ARM64XEmitter::LDRSW(ARM64Reg Rt, u32 imm)
 void ARM64XEmitter::PRFM(ARM64Reg Rt, u32 imm)
 {
 	EncodeLoadRegisterInst(3, Rt, imm);
+}
+
+// Load/Store pair
+void ARM64XEmitter::LDP(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStorePair(0, 1, type, Rt, Rt2, Rn, imm);
+}
+void ARM64XEmitter::LDPSW(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStorePair(1, 1, type, Rt, Rt2, Rn, imm);
+}
+void ARM64XEmitter::STP(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStorePair(0, 0, type, Rt, Rt2, Rn, imm);
 }
 
 // Load/Store Exclusive
