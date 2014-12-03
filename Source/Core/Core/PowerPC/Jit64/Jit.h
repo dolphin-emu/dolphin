@@ -18,10 +18,6 @@
 // ----------
 #pragma once
 
-#ifdef _WIN32
-#include <winnt.h>
-#endif
-
 #include "Common/x64ABI.h"
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
