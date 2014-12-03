@@ -616,12 +616,6 @@ void FramebufferManager::ConfigureRift()
 	}
 #endif
 #else
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If in Direct Mode
-	{
-		ovrHmd_AttachToWindow(hmd, (void *)cfg.OGL.Win, nullptr, nullptr); //Attach to Direct Mode.
-	}
-#endif
-#ifndef _WIN32
 	cfg.OGL.Disp = glXGetCurrentDisplay();
 	cfg.OGL.Win = glXGetCurrentDrawable();
 #endif

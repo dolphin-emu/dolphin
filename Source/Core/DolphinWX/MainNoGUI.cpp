@@ -24,6 +24,7 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VR.h"
 
 static bool rendererHasFocus = true;
 static bool running = true;
