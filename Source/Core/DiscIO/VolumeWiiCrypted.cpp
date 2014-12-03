@@ -11,6 +11,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
@@ -108,19 +109,31 @@ bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
 	// TitleID offset in tik is 0x1DC
 	return RAWRead(m_VolumeOffset + 0x1DC, 8, _pBuffer);
 }
-std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *_sz) const
-{
-	*_sz = 0;
-	u32 tmdSz,
-		tmdAddr;
 
-	RAWRead(m_VolumeOffset + 0x2a4, sizeof(u32), (u8*)&tmdSz);
-	RAWRead(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmdAddr);
-	tmdSz = Common::swap32(tmdSz);
-	tmdAddr = Common::swap32(tmdAddr) << 2;
-	std::unique_ptr<u8[]> buf{new u8[tmdSz]};
-	RAWRead(m_VolumeOffset + tmdAddr, tmdSz, buf.get());
-	*_sz = tmdSz;
+std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
+{
+	*size = 0;
+	u32 tmd_size;
+	u32 tmd_address;
+
+	RAWRead(m_VolumeOffset + 0x2a4, sizeof(u32), (u8*)&tmd_size);
+	RAWRead(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmd_address);
+	tmd_size = Common::swap32(tmd_size);
+	tmd_address = Common::swap32(tmd_address) << 2;
+
+	if (tmd_size > 1024 * 1024 * 4)
+	{
+		// The size is checked so that a malicious or corrupt ISO
+		// can't force Dolphin to allocate up to 4 GiB of memory.
+		// 4 MiB should be much bigger than the size of TMDs and much smaller
+		// than the amount of RAM in a computer that can run Dolphin.
+		PanicAlert("TMD > 4 MiB");
+		tmd_size = 1024 * 1024 * 4;
+	}
+
+	std::unique_ptr<u8[]> buf{ new u8[tmd_size] };
+	RAWRead(m_VolumeOffset + tmd_address, tmd_size, buf.get());
+	*size = tmd_size;
 	return buf;
 }
 
