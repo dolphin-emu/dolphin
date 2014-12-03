@@ -184,6 +184,7 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(resetdepthstate);
 	SAFE_RELEASE(resetraststate);
 	SAFE_RELEASE(s_screenshot_texture);
+	SAFE_RELEASE(s_3d_vision_texture);
 
 	s_television.Shutdown();
 
