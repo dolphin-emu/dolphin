@@ -55,6 +55,7 @@ enum
 
 	ADDR_MASK_HW_ACCESS = 0x0c000000,
 	ADDR_MASK_MEM1      = 0x20000000,
+	HW_PAGE_SIZE        = 4096,
 
 #if _ARCH_32
 	MEMVIEW32_MASK  = 0x3FFFFFFF,
@@ -136,6 +137,7 @@ enum XCheckTLBFlag
 	FLAG_OPCODE,
 };
 u32 TranslateAddress(u32 _Address, XCheckTLBFlag _Flag);
+bool CheckValidAddr(const u32 em_address, XCheckTLBFlag flag);
 void InvalidateTLBEntry(u32 _Address);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
