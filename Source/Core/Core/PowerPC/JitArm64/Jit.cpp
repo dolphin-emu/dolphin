@@ -97,14 +97,14 @@ void JitArm64::DoDownCount()
 // Exits
 void JitArm64::WriteExit(u32 destination)
 {
+	DoDownCount();
+
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	JitBlock::LinkData linkData;
 	linkData.exitAddress = destination;
 	linkData.exitPtrs = GetWritableCodePtr();
 	linkData.linkStatus = false;
-
-	DoDownCount();
 
 	// Link opportunity!
 	int block;
@@ -163,13 +163,12 @@ void JitArm64::SingleStep()
 	pExecAddr();
 }
 
-void JitArm64::Jit(u32 em_address)
+void JitArm64::Jit(u32)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
 	}
-
 	int block_num = blocks.AllocateBlock(PowerPC::ppcState.pc);
 	JitBlock *b = blocks.GetBlock(block_num);
 	const u8* BlockPtr = DoJit(PowerPC::ppcState.pc, &code_buffer, b);
@@ -282,6 +281,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = code_block.m_num_instructions;
+
 	FlushIcache();
 	return start;
 }
