@@ -59,8 +59,17 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
 void JitArm64::HLEFunction(UGeckoInstruction inst)
 {
-	WARN_LOG(DYNA_REC, "HLEFunction %08x - Fix me ;)", inst.hex);
-	exit(0);
+	gpr.Flush(FlushMode::FLUSH_ALL);
+	fpr.Flush(FlushMode::FLUSH_ALL);
+
+	MOVI2R(W0, js.compilerPC);
+	MOVI2R(W1, inst.hex);
+	MOVI2R(X30, (u64)&HLE::Execute);
+	BLR(X30);
+
+	ARM64Reg WA = gpr.GetReg();
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+	WriteExitDestInR(WA);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
