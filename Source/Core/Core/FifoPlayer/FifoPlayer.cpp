@@ -453,7 +453,7 @@ bool FifoPlayer::ShouldLoadBP(u8 address)
 	case BPMEM_LOADTLUT1:
 	case BPMEM_PERF1:
 		return false;
+	default:
+		return true;
 	}
-
-	return true;
 }
