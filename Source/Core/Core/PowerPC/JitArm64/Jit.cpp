@@ -49,8 +49,8 @@ void JitArm64::unknown_instruction(UGeckoInstruction inst)
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
-	gpr.Flush(FlushMode::FLUSH_ALL);
-	fpr.Flush(FlushMode::FLUSH_ALL);
+	gpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
+	fpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 	MOVI2R(W0, inst.hex);
 	MOVI2R(X30, (u64)instr);
