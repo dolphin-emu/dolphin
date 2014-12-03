@@ -405,7 +405,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	//if not early z culling will improve speed
 	if (api_type == API_D3D)
 	{
-		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
+		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
 	}
 	else // OGL
 	{
@@ -430,7 +430,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// which in turn can be critical if it happens for clear quads.
 	// Hence, we compensate for this pixel center difference so that primitives
 	// get rasterized correctly.
-	out.Write("o.pos.xy = o.pos.xy - " I_DEPTHPARAMS".zw;\n");
+	out.Write("o.pos.xy = o.pos.xy - " I_PIXELCENTERCORRECTION".xy;\n");
 
 	if (api_type == API_OPENGL)
 	{
