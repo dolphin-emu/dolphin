@@ -705,6 +705,7 @@ void SDRUpdated()
 
 
 // TLB cache
+//#define TLB_CACHE_ENABLE
 #define TLB_SIZE 128
 #define TLB_WAYS 2
 #define NUM_TLBS 2
@@ -754,7 +755,7 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 
 static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 {
-	if (_Flag != FLAG_NO_EXCEPTION)
+	if (_Flag == FLAG_NO_EXCEPTION)
 		return;
 
 	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
@@ -800,9 +801,11 @@ void InvalidateTLBEntry(u32 vpa)
 static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 {
 	// TLB cache
+#ifdef TLB_CACHE_ENABLE
 	u32 translatedAddress = 0;
 	if (LookupTLBPageAddress(_Flag, _Address, &translatedAddress))
 		return translatedAddress;
+#endif
 
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)];
 
@@ -831,9 +834,9 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 			{
 				UPTE2 PTE2;
 				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
-
+#ifdef TLB_CACHE_ENABLE
 				UpdateTLBEntry(_Flag, PTE2, _Address);
-
+#endif
 				// set the access bits
 				switch (_Flag)
 				{
@@ -862,9 +865,9 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 			{
 				UPTE2 PTE2;
 				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
-
+#ifdef TLB_CACHE_ENABLE
 				UpdateTLBEntry(_Flag, PTE2, _Address);
-
+#endif
 				switch (_Flag)
 				{
 				case FLAG_READ:     PTE2.R = 1; break;
