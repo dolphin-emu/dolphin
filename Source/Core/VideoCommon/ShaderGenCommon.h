@@ -258,17 +258,6 @@ static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 	object.Write("};\n");
 }
 
-template<class T>
-static inline void GenerateGSOutputStruct(T& object, API_TYPE api_type)
-{
-	object.Write("struct GS_OUTPUT {\n");
-
-	DefineOutputStructMember(object, api_type, "VS_OUTPUT", "vs", -1, "");
-	DefineOutputStructMember(object, api_type, (api_type == API_OPENGL) ? "flat int" : "uint", "layer", -1, "SV_RenderTargetArrayIndex");
-
-	object.Write("};\n");
-}
-
 // Constant variable names
 #define I_COLORS        "color"
 #define I_KCOLORS       "k"

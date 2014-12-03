@@ -265,7 +265,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	GenerateVSOutputStruct<T>(out, ApiType);
-	GenerateGSOutputStruct<T>(out, ApiType);
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
@@ -320,7 +319,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.iStereoMode > 0)
 		{
-			out.Write("centroid in GS_OUTPUT gs;\n");
+			out.Write("centroid in VS_OUTPUT vs;\n");
+			out.Write("flat in int layer;\n");
 		}
 		else
 		{
@@ -348,19 +348,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
 			{
-				out.Write("\tfloat3 uv%d = gs.vs.tex%d;\n", i, i);
+				out.Write("\tfloat3 uv%d = vs.tex%d;\n", i, i);
 			}
-			out.Write("\tfloat4 clipPos = gs.vs.clipPos;\n");
+			out.Write("\tfloat4 clipPos = vs.clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("\tfloat4 Normal = gs.vs.Normal;\n");
+				out.Write("\tfloat4 Normal = vs.Normal;\n");
 			}
 		}
 
 		// On Mali, global variables must be initialized as constants.
 		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 colors_0 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "gs.vs.colors_0" : "colors_02");
-		out.Write("\tfloat4 colors_1 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "gs.vs.colors_1" : "colors_12");
+		out.Write("\tfloat4 colors_0 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "vs.colors_0" : "colors_02");
+		out.Write("\tfloat4 colors_1 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "vs.colors_1" : "colors_12");
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}
@@ -943,7 +943,7 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	if (ApiType == API_D3D)
 		out.Write("iround(255.0 * Tex%d.Sample(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
 	else
-		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "gs.layer" : "0.0", texswap);
+		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
