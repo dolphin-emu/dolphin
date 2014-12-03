@@ -1,0 +1,160 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#include <string>
+
+#include "Common/FileUtil.h"
+#include "Common/LinearDiskCache.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ConfigManager.h"
+
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
+#include "VideoBackends/D3D/Globals.h"
+
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/GeometryShaderGen.h"
+#include "VideoCommon/VideoConfig.h"
+
+namespace DX11
+{
+
+GeometryShaderCache::GSCache GeometryShaderCache::GeometryShaders;
+const GeometryShaderCache::GSCacheEntry* GeometryShaderCache::last_entry;
+GeometryShaderUid GeometryShaderCache::last_uid;
+UidChecker<GeometryShaderUid,ShaderCode> GeometryShaderCache::geometry_uid_checker;
+
+LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
+
+ID3D11Buffer* gscbuf = nullptr;
+
+// this class will load the precompiled shaders into our cache
+class GeometryShaderCacheInserter : public LinearDiskCacheReader<GeometryShaderUid, u8>
+{
+public:
+	void Read(const GeometryShaderUid &key, const u8 *value, u32 value_size)
+	{
+		GeometryShaderCache::InsertByteCode(key, value, value_size);
+	}
+};
+
+void GeometryShaderCache::Init()
+{
+	Clear();
+
+	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+
+	std::string cache_filename = StringFromFormat("%sdx11-%s-gs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	GeometryShaderCacheInserter inserter;
+	g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	if (g_Config.bEnableShaderDebugging)
+		Clear();
+
+	last_entry = nullptr;
+}
+
+// ONLY to be used during shutdown.
+void GeometryShaderCache::Clear()
+{
+	for (auto& iter : GeometryShaders)
+		iter.second.Destroy();
+	GeometryShaders.clear();
+	geometry_uid_checker.Invalidate();
+
+	last_entry = nullptr;
+}
+
+void GeometryShaderCache::Shutdown()
+{
+	Clear();
+	g_gs_disk_cache.Sync();
+	g_gs_disk_cache.Close();
+}
+
+bool GeometryShaderCache::SetShader(u32 components)
+{
+	GeometryShaderUid uid;
+	GetGeometryShaderUid(uid, components, API_D3D);
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		ShaderCode code;
+		GenerateGeometryShaderCode(code, components, API_D3D);
+		geometry_uid_checker.AddToIndexAndCheck(code, uid, "Geometry", "g");
+	}
+
+	// Check if the shader is already set
+	if (last_entry)
+	{
+		if (uid == last_uid)
+		{
+			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
+			return (last_entry->shader != nullptr);
+		}
+	}
+
+	last_uid = uid;
+
+	// Check if the shader is already in the cache
+	GSCache::iterator iter;
+	iter = GeometryShaders.find(uid);
+	if (iter != GeometryShaders.end())
+	{
+		const GSCacheEntry &entry = iter->second;
+		last_entry = &entry;
+
+		return (entry.shader != nullptr);
+	}
+
+	// Need to compile a new shader
+	ShaderCode code;
+	GenerateGeometryShaderCode(code, components, API_D3D);
+
+	D3DBlob* pbytecode;
+	if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode))
+	{
+		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
+		return false;
+	}
+
+	// Insert the bytecode into the caches
+	g_gs_disk_cache.Append(uid, pbytecode->Data(), pbytecode->Size());
+
+	bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
+	pbytecode->Release();
+
+	if (g_ActiveConfig.bEnableShaderDebugging && success)
+	{
+		GeometryShaders[uid].code = code.GetBuffer();
+	}
+
+	return success;
+}
+
+bool GeometryShaderCache::InsertByteCode(const GeometryShaderUid &uid, const void* bytecode, unsigned int bytecodelen)
+{
+	ID3D11GeometryShader* shader = D3D::CreateGeometryShaderFromByteCode(bytecode, bytecodelen);
+	if (shader == nullptr)
+		return false;
+
+	// TODO: Somehow make the debug name a bit more specific
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of GeometryShaderCache");
+
+	// Make an entry in the table
+	GSCacheEntry newentry;
+	newentry.shader = shader;
+	GeometryShaders[uid] = newentry;
+	last_entry = &GeometryShaders[uid];
+
+	if (!shader)
+		return false;
+
+	return true;
+}
+
+}  // DX11

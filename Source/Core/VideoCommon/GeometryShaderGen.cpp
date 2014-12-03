@@ -69,7 +69,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 		out.Write("\tfor (int l = 0; l < %d; ++l) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
 	out.Write("\tfor (int i = 0; i < 3; ++i) {\n");
-	out.Write("\t\tlayer = l;\n");
+	out.Write("\t\tgs.layer = l;\n");
 	out.Write("\t\tgl_Layer = l;\n");
 	out.Write("\t\tf = o[i];\n");
 	out.Write("\t\tfloat4 pos = o[i].pos;\n");

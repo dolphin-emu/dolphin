@@ -16,6 +16,7 @@
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/Globals.h"
 #include "VideoBackends/D3D/PerfQuery.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
@@ -168,6 +169,7 @@ void VideoBackend::Video_Prepare()
 	g_perf_query = new PerfQuery;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
+	GeometryShaderCache::Init();
 	D3D::InitUtils();
 
 	// VideoCommon
@@ -205,6 +207,7 @@ void VideoBackend::Shutdown()
 		D3D::ShutdownUtils();
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		GeometryShaderCache::Shutdown();
 		BBox::Shutdown();
 
 		delete g_perf_query;
