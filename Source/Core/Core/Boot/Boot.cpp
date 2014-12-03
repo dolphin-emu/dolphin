@@ -225,14 +225,12 @@ bool CBoot::BootUp()
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
-		u32 _TMDsz = 0x208;
-		u8* _pTMD = new u8[_TMDsz];
-		pVolume->GetTMD(_pTMD, &_TMDsz);
-		if (_TMDsz)
+		u32 tmd_size;
+		std::unique_ptr<u8[]> tmd_buf = pVolume->GetTMD(&tmd_size);
+		if (tmd_size)
 		{
-			WII_IPC_HLE_Interface::ES_DIVerify(_pTMD, _TMDsz);
+			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buf.get(), tmd_size);
 		}
-		delete []_pTMD;
 
 
 		_StartupPara.bWii = VolumeHandler::IsWii();
