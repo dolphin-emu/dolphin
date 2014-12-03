@@ -15,6 +15,7 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
 void ClearDebugProj();
@@ -174,8 +175,8 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
 			*yaw = -RADIANS_TO_DEGREES(ya);   // should be degrees right
 			*x = pose.Translation.x;
-			*y = pose.Translation.y;
-			*z = pose.Translation.z;
+			*y = (pose.Translation.y * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) - (pose.Translation.z * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			*z = (pose.Translation.z * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) + (pose.Translation.y * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 		}
 	}
 	else
