@@ -190,7 +190,6 @@ namespace WiimoteReal
 
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len, DWORD* written);
 int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index);
-void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read);
 
 template <typename T>
 void ProcessWiimotes(bool new_scan, T& callback);
@@ -607,11 +606,6 @@ bool Wiimote::IsConnected() const
 	return m_dev_handle != 0;
 }
 
-void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read)
-{
-	SetEvent(hid_overlap_read.hEvent);
-}
-
 // positive = read packet
 // negative = didn't read packet
 // zero = error
@@ -632,7 +626,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 		{
 			auto const wait_result = WaitForSingleObject(hid_overlap_read.hEvent, INFINITE);
 
-			// In case the event was signalled by _IOWakeup before the read completed, cancel it.
+			// In case the event was signalled by IOWakeup before the read completed, cancel it.
 			CancelIo(dev_handle);
 
 			if (WAIT_FAILED == wait_result)
@@ -668,7 +662,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 
 void Wiimote::IOWakeup()
 {
-	_IOWakeup(m_dev_handle, m_hid_overlap_read);
+	SetEvent(m_hid_overlap_read.hEvent);
 }
 
 
