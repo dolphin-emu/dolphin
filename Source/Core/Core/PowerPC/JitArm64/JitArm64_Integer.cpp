@@ -22,8 +22,8 @@ void JitArm64::ComputeRC(u32 d)
 
 	if (gpr.IsImm(d))
 	{
-		MOVI2R(XA, gpr.GetImm(d));
-		SXTW(XA, XA);
+		MOVI2R(WA, gpr.GetImm(d));
+		SXTW(XA, WA);
 	}
 	else
 	{
@@ -252,20 +252,9 @@ void JitArm64::cntlzwx(UGeckoInstruction inst)
 	int s = inst.RS;
 
 	if (gpr.IsImm(s))
-	{
-		u32 mask = 0x80000000;
-		u32 i = 0;
-		for (; i < 32; i++, mask >>= 1)
-		{
-			if ((u32)gpr.GetImm(s) & mask)
-				break;
-		}
-		gpr.SetImmediate(a, i);
-	}
+		gpr.SetImmediate(a, __builtin_clz(gpr.GetImm(s)));
 	else
-	{
 		CLZ(gpr.R(a), gpr.R(s));
-	}
 
 	if (inst.Rc)
 		ComputeRC(a);

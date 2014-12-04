@@ -351,7 +351,7 @@ public:
 	ARMXEmitter() : code(nullptr), startcode(nullptr), lastCacheFlushEnd(nullptr) {
 		condition = CC_AL << 28;
 	}
-	ARMXEmitter(u8 *code_ptr) {
+	ARMXEmitter(u8* code_ptr) {
 		code = code_ptr;
 		lastCacheFlushEnd = code_ptr;
 		startcode = code_ptr;

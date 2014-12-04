@@ -49,8 +49,8 @@ void JitArm64::unknown_instruction(UGeckoInstruction inst)
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
-	gpr.Flush(FlushMode::FLUSH_ALL);
-	fpr.Flush(FlushMode::FLUSH_ALL);
+	gpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
+	fpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 	MOVI2R(W0, inst.hex);
 	MOVI2R(X30, (u64)instr);
@@ -59,8 +59,17 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
 void JitArm64::HLEFunction(UGeckoInstruction inst)
 {
-	WARN_LOG(DYNA_REC, "HLEFunction %08x - Fix me ;)", inst.hex);
-	exit(0);
+	gpr.Flush(FlushMode::FLUSH_ALL);
+	fpr.Flush(FlushMode::FLUSH_ALL);
+
+	MOVI2R(W0, js.compilerPC);
+	MOVI2R(W1, inst.hex);
+	MOVI2R(X30, (u64)&HLE::Execute);
+	BLR(X30);
+
+	ARM64Reg WA = gpr.GetReg();
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+	WriteExitDestInR(WA);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -97,14 +106,14 @@ void JitArm64::DoDownCount()
 // Exits
 void JitArm64::WriteExit(u32 destination)
 {
+	DoDownCount();
+
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	JitBlock::LinkData linkData;
 	linkData.exitAddress = destination;
 	linkData.exitPtrs = GetWritableCodePtr();
 	linkData.linkStatus = false;
-
-	DoDownCount();
 
 	// Link opportunity!
 	int block;
@@ -163,13 +172,12 @@ void JitArm64::SingleStep()
 	pExecAddr();
 }
 
-void JitArm64::Jit(u32 em_address)
+void JitArm64::Jit(u32)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
 	}
-
 	int block_num = blocks.AllocateBlock(PowerPC::ppcState.pc);
 	JitBlock *b = blocks.GetBlock(block_num);
 	const u8* BlockPtr = DoJit(PowerPC::ppcState.pc, &code_buffer, b);
@@ -282,6 +290,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = code_block.m_num_instructions;
+
 	FlushIcache();
 	return start;
 }
