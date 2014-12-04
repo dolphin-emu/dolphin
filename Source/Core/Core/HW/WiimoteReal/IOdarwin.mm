@@ -10,95 +10,7 @@
 }
 @end
 
-@implementation SearchBT
-- (void) deviceInquiryComplete: (IOBluetoothDeviceInquiry *) sender
-	error: (IOReturn) error
-	aborted: (BOOL) aborted
-{
-	done = true;
-	CFRunLoopStop(CFRunLoopGetCurrent());
-}
-
-- (void) deviceInquiryDeviceFound: (IOBluetoothDeviceInquiry *) sender
-	device: (IOBluetoothDevice *) device
-{
-	NOTICE_LOG(WIIMOTE, "Discovered bluetooth device at %s: %s",
-		[[device addressString] UTF8String],
-		[[device name] UTF8String]);
-
-	if ([[sender foundDevices] count] == maxDevices)
-		[sender stop];
-}
-@end
-
 @interface ConnectBT: NSObject {}
-@end
-
-@implementation ConnectBT
-- (void) l2capChannelData: (IOBluetoothL2CAPChannel *) l2capChannel
-	data: (unsigned char *) data
-	length: (NSUInteger) length
-{
-	IOBluetoothDevice *device = [l2capChannel device];
-	WiimoteReal::Wiimote *wm = nullptr;
-
-	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
-
-	for (int i = 0; i < MAX_WIIMOTES; i++)
-	{
-		if (WiimoteReal::g_wiimotes[i] == nullptr)
-			continue;
-		if ([device isEqual: WiimoteReal::g_wiimotes[i]->m_btd] == TRUE)
-			wm = WiimoteReal::g_wiimotes[i];
-	}
-
-	if (wm == nullptr) {
-		ERROR_LOG(WIIMOTE, "Received packet for unknown wiimote");
-		return;
-	}
-
-	if (length > MAX_PAYLOAD) {
-		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, too large",
-				wm->m_index + 1);
-		return;
-	}
-
-	if (wm->m_inputlen != -1) {
-		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, queue full",
-				wm->m_index + 1);
-		return;
-	}
-
-	memcpy(wm->m_input, data, length);
-	wm->m_inputlen = length;
-
-	CFRunLoopStop(CFRunLoopGetCurrent());
-}
-
-- (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
-{
-	IOBluetoothDevice *device = [l2capChannel device];
-	WiimoteReal::Wiimote *wm = nullptr;
-
-	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
-
-	for (int i = 0; i < MAX_WIIMOTES; i++)
-	{
-		if (WiimoteReal::g_wiimotes[i] == nullptr)
-			continue;
-		if ([device isEqual: WiimoteReal::g_wiimotes[i]->m_btd] == TRUE)
-			wm = WiimoteReal::g_wiimotes[i];
-	}
-
-	if (wm == nullptr) {
-		ERROR_LOG(WIIMOTE, "Channel for unknown wiimote was closed");
-		return;
-	}
-
-	WARN_LOG(WIIMOTE, "Lost channel to wiimote %i", wm->m_index + 1);
-
-	wm->DisconnectInternal();
-}
 @end
 
 namespace WiimoteReal
@@ -346,4 +258,92 @@ void Wiimote::DisablePowerAssertionInternal()
 	}
 }
 
+} // namespace
+
+@implementation SearchBT
+- (void) deviceInquiryComplete: (IOBluetoothDeviceInquiry *) sender
+	error: (IOReturn) error
+	aborted: (BOOL) aborted
+{
+	done = true;
+	CFRunLoopStop(CFRunLoopGetCurrent());
 }
+
+- (void) deviceInquiryDeviceFound: (IOBluetoothDeviceInquiry *) sender
+	device: (IOBluetoothDevice *) device
+{
+	NOTICE_LOG(WIIMOTE, "Discovered bluetooth device at %s: %s",
+		[[device addressString] UTF8String],
+		[[device name] UTF8String]);
+
+	if ([[sender foundDevices] count] == maxDevices)
+		[sender stop];
+}
+@end
+
+@implementation ConnectBT
+- (void) l2capChannelData: (IOBluetoothL2CAPChannel *) l2capChannel
+	data: (unsigned char *) data
+	length: (NSUInteger) length
+{
+	IOBluetoothDevice *device = [l2capChannel device];
+	WiimoteReal::Wiimote *wm = nullptr;
+
+	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
+
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		if (WiimoteReal::g_wiimotes[i] == nullptr)
+			continue;
+		if ([device isEqual: WiimoteReal::g_wiimotes[i]->m_btd] == TRUE)
+			wm = WiimoteReal::g_wiimotes[i];
+	}
+
+	if (wm == nullptr) {
+		ERROR_LOG(WIIMOTE, "Received packet for unknown wiimote");
+		return;
+	}
+
+	if (length > MAX_PAYLOAD) {
+		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, too large",
+				wm->m_index + 1);
+		return;
+	}
+
+	if (wm->m_inputlen != -1) {
+		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, queue full",
+				wm->m_index + 1);
+		return;
+	}
+
+	memcpy(wm->m_input, data, length);
+	wm->m_inputlen = length;
+
+	CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+- (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
+{
+	IOBluetoothDevice *device = [l2capChannel device];
+	WiimoteReal::Wiimote *wm = nullptr;
+
+	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
+
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		if (WiimoteReal::g_wiimotes[i] == nullptr)
+			continue;
+		if ([device isEqual: WiimoteReal::g_wiimotes[i]->m_btd] == TRUE)
+			wm = WiimoteReal::g_wiimotes[i];
+	}
+
+	if (wm == nullptr) {
+		ERROR_LOG(WIIMOTE, "Channel for unknown wiimote was closed");
+		return;
+	}
+
+	WARN_LOG(WIIMOTE, "Lost channel to wiimote %i", wm->m_index + 1);
+
+	wm->DisconnectInternal();
+}
+@end
