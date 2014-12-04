@@ -207,7 +207,7 @@ void XAudio2::SetVolume(int volume)
 	//linear 1- .01
 	m_volume = (float)volume / 100.f;
 
-	if (m_mastering_voice)
+	if (m_mastering_voice) 
 		m_mastering_voice->SetVolume(m_volume);
 }
 

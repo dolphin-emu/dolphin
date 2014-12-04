@@ -92,6 +92,7 @@ private:
 		ID_LATENCY,
 		ID_BACKEND,
 		ID_VOLUME,
+		ID_INTERP,
 
 		// Interface settings
 		ID_INTERFACE_CONFIRMSTOP,
@@ -161,6 +162,8 @@ private:
 	wxArrayString wxArrayBackends;
 	wxChoice*   BackendSelection;
 	wxSpinCtrl* Latency;
+	wxArrayString wxInterpMethods;
+	wxChoice* Interpolation;
 
 	// Interface
 	wxCheckBox* ConfirmStop;
@@ -247,6 +250,7 @@ private:
 
 	void AudioSettingsChanged(wxCommandEvent& event);
 	void AddAudioBackends();
+	void AddInterpAlgos();
 
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);

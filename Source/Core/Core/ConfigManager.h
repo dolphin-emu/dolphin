@@ -21,6 +21,11 @@
 #define BACKEND_PULSEAUDIO  "Pulse"
 #define BACKEND_XAUDIO2     "XAudio2"
 #define BACKEND_OPENSLES    "OpenSLES"
+
+// Interpolation Algorithms
+#define INTERP_LINEAR		"Linear"
+#define INTERP_CUBIC		"Cubic"
+#define INTERP_LANCZOS		"Lanczos"
 struct SConfig : NonCopyable
 {
 	// Wii Devices
@@ -104,6 +109,7 @@ struct SConfig : NonCopyable
 	bool m_DumpAudio;
 	int m_Volume;
 	std::string sBackend;
+	std::string sInterp;
 
 	// Input settings
 	bool m_BackgroundInput;

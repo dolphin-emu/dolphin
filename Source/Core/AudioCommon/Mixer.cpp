@@ -19,11 +19,40 @@
 #include <tmmintrin.h>
 #endif
 
+CMixer::MixerFifo::MixerFifo(CMixer *mixer, unsigned sample_rate)
+	: m_mixer(mixer)
+	, m_input_sample_rate(sample_rate)
+	, m_indexW(0)
+	, m_indexR(0)
+	, m_previousW(0)
+	, m_LVolume(256)
+	, m_RVolume(256)
+	, m_numLeftI(0.0f)
+	, m_frac(0)
+{
+	memset(m_buffer, 0, sizeof(m_buffer));
+
+	// get the selected interpolator and make new
+	interpAlgo = SConfig::GetInstance().sInterp;
+	if (interpAlgo == INTERP_LINEAR)
+		m_interp = new Linear(m_buffer);
+	else if (interpAlgo == INTERP_CUBIC)
+		m_interp = new Cubic(m_buffer);
+	else if (interpAlgo == INTERP_LANCZOS)
+		m_interp = new Lanczos(m_buffer);
+	else
+		m_interp = new Linear(m_buffer);
+}
+
+// clean up interpolator pointer
+CMixer::MixerFifo::~MixerFifo() {
+	delete m_interp;
+	m_interp = nullptr;
+}
+
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {
-	unsigned int currentSample = 0;
-
 	// Cache access in non-volatile variable
 	// This is the only function changing the read value, so it's safe to
 	// cache it locally although it's written here.
@@ -40,10 +69,6 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	if (offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
 	if (offset < -MAX_FREQ_SHIFT) offset = -MAX_FREQ_SHIFT;
 
-	//render numleft sample pairs to samples[]
-	//advance indexR with sample position
-	//remember fractional offset
-
 	u32 framelimit = SConfig::GetInstance().m_Framelimit;
 	float aid_sample_rate = m_input_sample_rate + offset;
 	if (consider_framelimit && framelimit > 1)
@@ -51,50 +76,30 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
-	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );
-
+	float ratio = aid_sample_rate / (float) m_mixer->m_sampleRate;
 	s32 lvolume = m_LVolume;
 	s32 rvolume = m_RVolume;
 
-	// TODO: consider a higher-quality resampling algorithm.
-	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2)
-	{
-		u32 indexR2 = indexR + 2; //next sample
+	// set interpolate parameters
+	m_interp->setRatio(ratio);	// ratio of in/out sample rate
+	m_interp->setVolume(lvolume, rvolume);
 
-		s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
-		s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
-		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac)  >> 16;
-		sampleL = (sampleL * lvolume) >> 8;
-		sampleL += samples[currentSample + 1];
-		MathUtil::Clamp(&sampleL, -32767, 32767);
-		samples[currentSample+1] = sampleL;
-
-		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
-		s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
-		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac)  >> 16;
-		sampleR = (sampleR * rvolume) >> 8;
-		sampleR += samples[currentSample];
-		MathUtil::Clamp(&sampleR, -32767, 32767);
-		samples[currentSample] = sampleR;
-
-		m_frac += ratio;
-		indexR += 2 * (u16)(m_frac >> 16);
-		m_frac &= 0xffff;
-	}
-
+	// interpolate!
+	unsigned int currentSample = m_interp->interpolate(samples, numSamples, indexR, indexW);
+	
 	// Padding
 	short s[2];
 	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
 	s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
-	s[0] = (s[0] * rvolume) >> 8;
-	s[1] = (s[1] * lvolume) >> 8;
+	s[0] = (s[0] * lvolume) >> 8;
+	s[1] = (s[1] * rvolume) >> 8;
 	for (; currentSample < numSamples * 2; currentSample += 2)
 	{
 		int sampleR = s[0] + samples[currentSample];
-		MathUtil::Clamp(&sampleR, -32767, 32767);
+		MathUtil::Clamp(&sampleR, -CLAMP, CLAMP);
 		samples[currentSample] = sampleR;
 		int sampleL = s[1] + samples[currentSample + 1];
-		MathUtil::Clamp(&sampleL, -32767, 32767);
+		MathUtil::Clamp(&sampleL, -CLAMP, CLAMP);
 		samples[currentSample + 1] = sampleL;
 	}
 
@@ -131,6 +136,7 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	// indexR isn't allowed to cache in the audio throttling loop as it
 	// needs to get updates to not deadlock.
 	u32 indexW = Common::AtomicLoad(m_indexW);
+	m_previousW = indexW;
 
 	// Check if we have enough free space
 	// indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
@@ -152,6 +158,16 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	}
 
 	Common::AtomicAdd(m_indexW, num_samples * 2);
+
+	// we need to convert the new values to floats if using cubic and lanczos
+	if (interpAlgo == INTERP_CUBIC) {
+		u32 indexW = Common::AtomicLoad(m_indexW);
+		((Cubic*) m_interp)->populateFloats(m_previousW, indexW);
+	}
+	else if (interpAlgo == INTERP_LANCZOS) {
+		u32 indexW = Common::AtomicLoad(m_indexW);
+		((Lanczos*) m_interp)->populateFloats(m_previousW, indexW);
+	}
 
 	return;
 }
