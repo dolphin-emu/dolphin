@@ -91,11 +91,17 @@ static void LOADERDECL TexMtx_Write_Float2()
 
 static void LOADERDECL TexMtx_Write_Float4()
 {
+#if _M_SSE >= 0x200
+	__m128 output = _mm_cvtsi32_ss(_mm_castsi128_ps(_mm_setzero_si128()), s_curtexmtx[s_texmtxwrite++]);
+	_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, _mm_shuffle_ps(output, output, 0x45 /* 1, 1, 0, 1 */));
+	VertexManager::s_pCurBufferPointer += sizeof(float) * 4;
+#else
 	DataWrite(0.f);
 	DataWrite(0.f);
 	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 	// Just to fill out with 0.
 	DataWrite(0.f);
+#endif
 }
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
