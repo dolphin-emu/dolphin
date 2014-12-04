@@ -365,7 +365,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[1]);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, destTexture, 0);
+	FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, destTexture, 0);
 
 	// activate source texture
 	// set srcAddr as data for source texture
