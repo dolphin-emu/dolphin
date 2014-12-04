@@ -423,7 +423,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS+numTexgen-1);
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
-			out.Write("\tint2 fixpoint_uv%d = iround(", i);
+			// TODO: What is the issue with rounding here?
+			out.Write("\tint2 fixpoint_uv%d = iround(floor(", i);
 			// optional perspective divides
 			uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
 			if (xfmem.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
@@ -434,7 +435,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			{
 				out.Write("uv%d.xy", i);
 			}
-			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n", i);
+			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0));\n", i);
 			// TODO: S24 overflows here?
 		}
 	}
