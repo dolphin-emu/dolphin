@@ -570,6 +570,9 @@ void FramebufferManager::ConfigureRift()
 		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
 	}
 #endif
+#else
+	cfg.OGL.Disp = glXGetCurrentDisplay();
+	cfg.OGL.Win = glXGetCurrentDrawable();
 #endif
 	int caps = 0;
 	if (g_Config.bChromatic)
