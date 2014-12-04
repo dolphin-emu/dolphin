@@ -273,10 +273,10 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr, nullptr))
 		{
 			auto const wm = new Wiimote;
-			wm->devicepath = detail_data->DevicePath;
+			wm->m_devicepath = detail_data->DevicePath;
 			bool real_wiimote = false, is_bb = false;
 
-			CheckDeviceType(wm->devicepath, real_wiimote, is_bb);
+			CheckDeviceType(wm->m_devicepath, real_wiimote, is_bb);
 			if (is_bb)
 			{
 				found_board = wm;
@@ -507,7 +507,7 @@ bool Wiimote::ConnectInternal()
 
 #ifdef SHARE_WRITE_WIIMOTES
 	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
-	if (g_connected_wiimotes.count(devicepath) != 0)
+	if (g_connected_wiimotes.count(m_devicepath) != 0)
 		return false;
 
 	auto const open_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
@@ -519,13 +519,13 @@ bool Wiimote::ConnectInternal()
 	auto const open_flags = FILE_SHARE_READ;
 #endif
 
-	dev_handle = CreateFile(devicepath.c_str(),
+	m_dev_handle = CreateFile(m_devicepath.c_str(),
 		GENERIC_READ | GENERIC_WRITE, open_flags,
 		nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr);
 
-	if (dev_handle == INVALID_HANDLE_VALUE)
+	if (m_dev_handle == INVALID_HANDLE_VALUE)
 	{
-		dev_handle = 0;
+		m_dev_handle = 0;
 		return false;
 	}
 
@@ -564,7 +564,7 @@ bool Wiimote::ConnectInternal()
 	}
 */
 #ifdef SHARE_WRITE_WIIMOTES
-	g_connected_wiimotes.insert(devicepath);
+	g_connected_wiimotes.insert(m_devicepath);
 #endif
 
 	return true;
@@ -575,36 +575,36 @@ void Wiimote::DisconnectInternal()
 	if (!IsConnected())
 		return;
 
-	CloseHandle(dev_handle);
-	dev_handle = 0;
+	CloseHandle(m_dev_handle);
+	m_dev_handle = 0;
 
 #ifdef SHARE_WRITE_WIIMOTES
 	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
-	g_connected_wiimotes.erase(devicepath);
+	g_connected_wiimotes.erase(m_devicepath);
 #endif
 }
 
 void Wiimote::InitInternal()
 {
-	dev_handle = 0;
-	stack = MSBT_STACK_UNKNOWN;
+	m_dev_handle = 0;
+	m_stack = MSBT_STACK_UNKNOWN;
 
-	hid_overlap_read = OVERLAPPED();
-	hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
+	m_hid_overlap_read = OVERLAPPED();
+	m_hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
 
-	hid_overlap_write = OVERLAPPED();
-	hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
+	m_hid_overlap_write = OVERLAPPED();
+	m_hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
 }
 
 void Wiimote::TeardownInternal()
 {
-	CloseHandle(hid_overlap_read.hEvent);
-	CloseHandle(hid_overlap_write.hEvent);
+	CloseHandle(m_hid_overlap_read.hEvent);
+	CloseHandle(m_hid_overlap_write.hEvent);
 }
 
 bool Wiimote::IsConnected() const
 {
-	return dev_handle != 0;
+	return m_dev_handle != 0;
 }
 
 void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read)
@@ -668,7 +668,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 
 void Wiimote::IOWakeup()
 {
-	_IOWakeup(dev_handle, hid_overlap_read);
+	_IOWakeup(m_dev_handle, m_hid_overlap_read);
 }
 
 
@@ -677,7 +677,7 @@ void Wiimote::IOWakeup()
 // zero = error
 int Wiimote::IORead(u8* buf)
 {
-	return _IORead(dev_handle, hid_overlap_read, buf, index);
+	return _IORead(m_dev_handle, m_hid_overlap_read, buf, m_index);
 }
 
 
@@ -780,7 +780,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 
 int Wiimote::IOWrite(const u8* buf, size_t len)
 {
-	return _IOWrite(dev_handle, hid_overlap_write, stack, buf, len, nullptr);
+	return _IOWrite(m_dev_handle, m_hid_overlap_write, m_stack, buf, len, nullptr);
 }
 
 void Wiimote::EnablePowerAssertionInternal()

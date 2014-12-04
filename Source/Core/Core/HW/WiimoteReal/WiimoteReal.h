@@ -73,29 +73,29 @@ public:
 
 	void QueueReport(u8 rpt_id, const void* data, unsigned int size);
 
-	int index;
+	int m_index;
 
 #if defined(__APPLE__)
-	IOBluetoothDevice *btd;
-	IOBluetoothL2CAPChannel *ichan;
-	IOBluetoothL2CAPChannel *cchan;
-	unsigned char* input;
-	int inputlen;
+	IOBluetoothDevice *m_btd;
+	IOBluetoothL2CAPChannel *m_ichan;
+	IOBluetoothL2CAPChannel *m_cchan;
+	unsigned char* m_input;
+	int m_inputlen;
 	bool m_connected;
 	CFRunLoopRef m_wiimote_thread_run_loop;
 	IOPMAssertionID m_pm_assertion;
 #elif defined(__linux__) && HAVE_BLUEZ
-	bdaddr_t bdaddr;                    // Bluetooth address
-	int cmd_sock;                       // Command socket
-	int int_sock;                       // Interrupt socket
-	int wakeup_pipe_w, wakeup_pipe_r;
+	bdaddr_t m_bdaddr;                    // Bluetooth address
+	int m_cmd_sock;                       // Command socket
+	int m_int_sock;                       // Interrupt socket
+	int m_wakeup_pipe_w, m_wakeup_pipe_r;
 
 #elif defined(_WIN32)
-	std::basic_string<TCHAR> devicepath; // Unique wiimote reference
+	std::basic_string<TCHAR> m_devicepath; // Unique wiimote reference
 	//ULONGLONG btaddr;                  // Bluetooth address
-	HANDLE dev_handle;                   // HID handle
-	OVERLAPPED hid_overlap_read, hid_overlap_write; // Overlap handle
-	enum win_bt_stack_t stack;           // Type of bluetooth stack to use
+	HANDLE m_dev_handle;                   // HID handle
+	OVERLAPPED m_hid_overlap_read, m_hid_overlap_write; // Overlap handle
+	enum win_bt_stack_t m_stack;           // Type of bluetooth stack to use
 #endif
 
 protected:

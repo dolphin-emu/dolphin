@@ -122,8 +122,8 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 void Wiimote::InitInternal()
 {
-	cmd_sock = -1;
-	int_sock = -1;
+	m_cmd_sock = -1;
+	m_int_sock = -1;
 
 	int fds[2];
 	if (pipe(fds))
@@ -131,15 +131,15 @@ void Wiimote::InitInternal()
 		ERROR_LOG(WIIMOTE, "pipe failed");
 		abort();
 	}
-	wakeup_pipe_w = fds[1];
-	wakeup_pipe_r = fds[0];
-	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
+	m_wakeup_pipe_w = fds[1];
+	m_wakeup_pipe_r = fds[0];
+	m_bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
 }
 
 void Wiimote::TeardownInternal()
 {
-	close(wakeup_pipe_w);
-	close(wakeup_pipe_r);
+	close(m_wakeup_pipe_w);
+	close(m_wakeup_pipe_r);
 }
 
 // Connect to a wiimote with a known address.
@@ -147,29 +147,29 @@ bool Wiimote::ConnectInternal()
 {
 	sockaddr_l2 addr;
 	addr.l2_family = AF_BLUETOOTH;
-	addr.l2_bdaddr = bdaddr;
+	addr.l2_bdaddr = m_bdaddr;
 	addr.l2_cid = 0;
 
 	// Output channel
 	addr.l2_psm = htobs(WM_OUTPUT_CHANNEL);
-	if ((cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-			connect(cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
+	if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
+	                  connect(m_cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		DEBUG_LOG(WIIMOTE, "Unable to open output socket to wiimote.");
-		close(cmd_sock);
-		cmd_sock = -1;
+		close(m_cmd_sock);
+		m_cmd_sock = -1;
 		return false;
 	}
 
 	// Input channel
 	addr.l2_psm = htobs(WM_INPUT_CHANNEL);
-	if ((int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-			connect(int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
+	if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
+	                  connect(m_int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		DEBUG_LOG(WIIMOTE, "Unable to open input socket from wiimote.");
-		close(int_sock);
-		close(cmd_sock);
-		int_sock = cmd_sock = -1;
+		close(m_int_sock);
+		close(m_cmd_sock);
+		m_int_sock = m_cmd_sock = -1;
 		return false;
 	}
 
@@ -178,22 +178,22 @@ bool Wiimote::ConnectInternal()
 
 void Wiimote::DisconnectInternal()
 {
-	close(cmd_sock);
-	close(int_sock);
+	close(m_cmd_sock);
+	close(m_int_sock);
 
-	cmd_sock = -1;
-	int_sock = -1;
+	m_cmd_sock = -1;
+	m_int_sock = -1;
 }
 
 bool Wiimote::IsConnected() const
 {
-	return cmd_sock != -1;// && int_sock != -1;
+	return m_cmd_sock != -1;// && int_sock != -1;
 }
 
 void Wiimote::IOWakeup()
 {
 	char c = 0;
-	if (write(wakeup_pipe_w, &c, 1) != 1)
+	if (write(m_wakeup_pipe_w, &c, 1) != 1)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to write to wakeup pipe.");
 	}
@@ -208,40 +208,40 @@ int Wiimote::IORead(u8* buf)
 
 	fd_set fds;
 	FD_ZERO(&fds);
-	FD_SET(int_sock, &fds);
-	FD_SET(wakeup_pipe_r, &fds);
+	FD_SET(m_int_sock, &fds);
+	FD_SET(m_wakeup_pipe_r, &fds);
 
-	if (select(int_sock + 1, &fds, nullptr, nullptr, nullptr) == -1)
+	if (select(m_int_sock + 1, &fds, nullptr, nullptr, nullptr) == -1)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", index + 1);
+		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", m_index + 1);
 		return -1;
 	}
 
-	if (FD_ISSET(wakeup_pipe_r, &fds))
+	if (FD_ISSET(m_wakeup_pipe_r, &fds))
 	{
 		char c;
-		if (read(wakeup_pipe_r, &c, 1) != 1)
+		if (read(m_wakeup_pipe_r, &c, 1) != 1)
 		{
 			ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
 		}
 		return -1;
 	}
 
-	if (!FD_ISSET(int_sock, &fds))
+	if (!FD_ISSET(m_int_sock, &fds))
 		return -1;
 
 	// Read the pending message into the buffer
-	int r = read(int_sock, buf, MAX_PAYLOAD);
+	int r = read(m_int_sock, buf, MAX_PAYLOAD);
 	if (r == -1)
 	{
 		// Error reading data
-		ERROR_LOG(WIIMOTE, "Receiving data from wiimote %i.", index + 1);
+		ERROR_LOG(WIIMOTE, "Receiving data from wiimote %i.", m_index + 1);
 
 		if (errno == ENOTCONN)
 		{
 			// This can happen if the bluetooth dongle is disconnected
 			ERROR_LOG(WIIMOTE, "Bluetooth appears to be disconnected.  "
-					"Wiimote %i will be disconnected.", index + 1);
+					"Wiimote %i will be disconnected.", m_index + 1);
 		}
 
 		r = 0;
@@ -252,7 +252,7 @@ int Wiimote::IORead(u8* buf)
 
 int Wiimote::IOWrite(u8 const* buf, size_t len)
 {
-	return write(int_sock, buf, (int)len);
+	return write(m_int_sock, buf, (int)len);
 }
 
 void Wiimote::EnablePowerAssertionInternal()
