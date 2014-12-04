@@ -686,6 +686,8 @@ void Renderer::Shutdown()
 
 	delete m_post_processor;
 	m_post_processor = nullptr;
+
+	OpenGL_DeleteAttributelessVAO();
 }
 
 void Renderer::Init()

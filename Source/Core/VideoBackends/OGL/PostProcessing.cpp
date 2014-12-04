@@ -72,6 +72,8 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 
 	if (m_attribute_workaround)
 		glBindVertexArray(m_attribute_vao);
+	else
+		OpenGL_BindAttributelessVAO();
 
 	m_shader.Bind();
 

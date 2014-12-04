@@ -16,6 +16,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 cInterfaceBase *GLInterface;
+static GLuint attributelessVAO = 0;
+static GLuint attributelessVBO = 0;
 
 namespace OGL
 {
@@ -113,3 +115,32 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 	return programID;
 }
 
+static void CreateAttributelessVAO()
+{
+	glGenVertexArrays(1, &attributelessVAO);
+
+	// In a compatibility context, we require a valid, bound array buffer.
+	glGenBuffers(1, &attributelessVBO);
+
+	// Initialize the buffer with nothing.
+	glBindBuffer(GL_ARRAY_BUFFER, attributelessVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
+
+	// We must also define vertex attribute 0.
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+}
+
+void OpenGL_BindAttributelessVAO()
+{
+	if (attributelessVAO == 0)
+		CreateAttributelessVAO();
+
+	glBindVertexArray(attributelessVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, attributelessVBO);
+}
+
+void OpenGL_DeleteAttributelessVAO()
+{
+	glDeleteVertexArrays(1, &attributelessVAO);
+	glDeleteBuffers(1, &attributelessVBO);
+}
