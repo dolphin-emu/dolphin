@@ -2,10 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-static const u32 PROFILER_FIELD_LENGTH = 8;
-static const u32 PROFILER_FIELD_LENGTH_FP = PROFILER_FIELD_LENGTH+3;
-static const int PROFILER_LAZY_DELAY = 60; // in frames
-
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -15,6 +11,10 @@ static const int PROFILER_LAZY_DELAY = 60; // in frames
 
 #include "Common/Profiler.h"
 #include "Common/Timer.h"
+
+static const u32 PROFILER_FIELD_LENGTH = 8;
+static const u32 PROFILER_FIELD_LENGTH_FP = PROFILER_FIELD_LENGTH + 3;
+static const int PROFILER_LAZY_DELAY = 60; // in frames
 
 std::list<Profiler*> Profiler::s_all_profilers;
 u32 Profiler::s_max_length = 0;
