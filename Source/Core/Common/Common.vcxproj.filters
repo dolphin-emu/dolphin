@@ -42,6 +42,7 @@
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="PcapFile.h" />
+    <ClInclude Include="Profiler.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StdMakeUnique.h" />
@@ -88,6 +89,7 @@
     <ClCompile Include="NandPaths.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="PcapFile.cpp" />
+    <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />

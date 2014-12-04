@@ -47,7 +47,7 @@ public:
 	void Run();
 	void SingleStep();
 
-	void Jit(u32 em_address);
+	void Jit(u32);
 
 	const char *GetName()
 	{

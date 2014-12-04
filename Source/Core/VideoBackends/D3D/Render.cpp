@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "Common/Atomic.h"
+#include "Common/Profiler.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -549,10 +550,9 @@ void Renderer::SetViewport()
 	Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
 	Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
-	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-										0.f,  // (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-										1.f); //  xfmem.viewport.farZ / 16777216.0f;
+		std::max(0.0f, std::min(1.0f, (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f)),
+		std::max(0.0f, std::min(1.0f, xfmem.viewport.farZ / 16777216.0f)));
 	D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -1082,6 +1082,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToStringProj());
+	}
+
+	std::string profile_output = Profiler::ToString();
+	if (!profile_output.empty())
+	{
+		D3D::font.DrawTextScaled(0, 44, 20, 0.0f, 0xFF00FFFF, profile_output);
 	}
 
 	OSD::DrawMessages();

@@ -243,7 +243,6 @@ namespace JitILProfiler
 
 void JitIL::Init()
 {
-	jo.optimizeStack = true;
 	EnableBlockLink();
 
 	jo.optimizeGatherPipe = true;

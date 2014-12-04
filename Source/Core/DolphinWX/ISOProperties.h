@@ -50,7 +50,7 @@ class CISOProperties : public wxDialog
 public:
 	CISOProperties(const std::string fileName,
 			wxWindow* parent,
-			wxWindowID id = 1,
+			wxWindowID id = wxID_ANY,
 			const wxString& title = _("Properties"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,

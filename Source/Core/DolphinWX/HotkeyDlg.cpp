@@ -340,7 +340,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 
 	for (int j = 0; j < 2; j++)
 	{
-		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
+		wxPanel *Page = new wxPanel(Notebook);
 		Notebook->AddPage(Page, pageNames[j]);
 
 		wxGridBagSizer *sHotkeys = new wxGridBagSizer();

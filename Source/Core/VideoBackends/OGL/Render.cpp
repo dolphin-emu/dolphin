@@ -13,6 +13,7 @@
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -814,6 +815,8 @@ void Renderer::DrawDebugInfo()
 
 	if (SConfig::GetInstance().m_ShowInputDisplay)
 		debug_info += Movie::GetInputDisplay();
+
+	debug_info += Profiler::ToString();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{

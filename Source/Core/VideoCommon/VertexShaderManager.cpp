@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cfloat>
 #include <sstream>
 
 #ifdef HAVE_OCULUSSDK
@@ -540,7 +541,7 @@ static float PHackValue(std::string sValue)
 
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
-	float fhackvalue1 = 0, fhackvalue2 = 0;
+	float fhackvalue1 = 0, fhackvalue2 = FLT_EPSILON; // hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
 	const char *sTemp[2];
 
@@ -820,8 +821,6 @@ void VertexShaderManager::SetConstants()
 		// VR, Check whether it is a skybox, fullscreen, letterboxed, splitscreen multiplayer, hud element, or offscreen
 		SetViewportType(xfmem.viewport);
 		LogViewport(xfmem.viewport);
-		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
-		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
 
 		// The console GPU places the pixel center at 7/12 unless antialiasing
 		// is enabled, while D3D and OpenGL place it at 0.5. See the comment
@@ -831,8 +830,8 @@ void VertexShaderManager::SetConstants()
 		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
 		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
 		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
-		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
-		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
+		constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
+		constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();

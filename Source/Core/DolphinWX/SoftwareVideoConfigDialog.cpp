@@ -22,7 +22,7 @@
 
 template <typename T>
 IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style) :
-	wxSpinCtrl(parent, -1, label, wxDefaultPosition, wxDefaultSize, style),
+	wxSpinCtrl(parent, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, style),
 	m_setting(setting)
 {
 	SetRange(minVal, maxVal);
@@ -32,18 +32,18 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 
 
 SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& _ininame) :
-	wxDialog(parent, -1,
+	wxDialog(parent, wxID_ANY,
 	wxString(wxString::Format(_("Dolphin %s Graphics Configuration"), title))),
 	vconfig(g_SWVideoConfig),
 	ininame(_ininame)
 {
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
-	wxNotebook* const notebook = new wxNotebook(this, -1);
+	wxNotebook* const notebook = new wxNotebook(this, wxID_ANY);
 
 	// -- GENERAL --
 	{
-	wxPanel* const page_general= new wxPanel(notebook, -1);
+	wxPanel* const page_general= new wxPanel(notebook);
 	notebook->AddPage(page_general, _("General"));
 	wxBoxSizer* const szr_general = new wxBoxSizer(wxVERTICAL);
 

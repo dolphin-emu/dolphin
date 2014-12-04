@@ -141,20 +141,23 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	bool IsWiiDisc = DiscIO::IsVolumeWiiDisc(OpenISO);
 	if (IsWiiDisc)
 	{
-		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
+		for (int group = 0; group < 4; group++)
 		{
-			WiiPartition temp;
-			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, 0, i)) != nullptr)
+			for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 			{
-				if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
+				WiiPartition temp;
+				if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
 				{
-					temp.FileSystem->GetFileList(temp.Files);
-					WiiDisc.push_back(temp);
+					if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
+					{
+						temp.FileSystem->GetFileList(temp.Files);
+						WiiDisc.push_back(temp);
+					}
 				}
-			}
-			else
-			{
-				break;
+				else
+				{
+					break;
+				}
 			}
 		}
 	}
