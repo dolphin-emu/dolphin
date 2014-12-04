@@ -15,6 +15,7 @@ set(SRCS BreakPoints.cpp
          Network.cpp
          PcapFile.cpp
          PerformanceCounter.cpp
+         Profiler.cpp
          SettingsHandler.cpp
          SDCardUtil.cpp
          StringUtil.cpp
