@@ -13,6 +13,28 @@
 namespace WiimoteReal
 {
 
+class WiimoteLinux final : public Wiimote
+{
+public:
+	WiimoteLinux(bdaddr_t bdaddr);
+	~WiimoteLinux() override;
+
+protected:
+	bool ConnectInternal() override;
+	void DisconnectInternal() override;
+	bool IsConnected() const override;
+	void IOWakeup() override;
+	int IORead(u8* buf) override;
+	int IOWrite(u8 const* buf, size_t len) override;
+
+private:
+	bdaddr_t m_bdaddr;   // Bluetooth address
+	int m_cmd_sock;      // Command socket
+	int m_int_sock;      // Interrupt socket
+	int m_wakeup_pipe_w;
+	int m_wakeup_pipe_r;
+};
+
 WiimoteScanner::WiimoteScanner()
 	: m_want_wiimotes()
 	, device_id(-1)
@@ -102,8 +124,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 				char bdaddr_str[18] = {};
 				ba2str(&scan_infos[i].bdaddr, bdaddr_str);
 
-				auto* const wm = new Wiimote;
-				wm->bdaddr = scan_infos[i].bdaddr;
+				Wiimote* wm = new WiimoteLinux(scan_infos[i].bdaddr);
 				if (IsBalanceBoardName(name))
 				{
 					found_board = wm;
@@ -120,7 +141,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 }
 
-void Wiimote::InitInternal()
+WiimoteLinux::WiimoteLinux(bdaddr_t bdaddr) : Wiimote(), m_bdaddr(bdaddr)
 {
 	m_cmd_sock = -1;
 	m_int_sock = -1;
@@ -133,17 +154,17 @@ void Wiimote::InitInternal()
 	}
 	m_wakeup_pipe_w = fds[1];
 	m_wakeup_pipe_r = fds[0];
-	m_bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
 }
 
-void Wiimote::TeardownInternal()
+WiimoteLinux::~WiimoteLinux()
 {
+	Shutdown();
 	close(m_wakeup_pipe_w);
 	close(m_wakeup_pipe_r);
 }
 
 // Connect to a wiimote with a known address.
-bool Wiimote::ConnectInternal()
+bool WiimoteLinux::ConnectInternal()
 {
 	sockaddr_l2 addr;
 	addr.l2_family = AF_BLUETOOTH;
@@ -176,7 +197,7 @@ bool Wiimote::ConnectInternal()
 	return true;
 }
 
-void Wiimote::DisconnectInternal()
+void WiimoteLinux::DisconnectInternal()
 {
 	close(m_cmd_sock);
 	close(m_int_sock);
@@ -185,12 +206,12 @@ void Wiimote::DisconnectInternal()
 	m_int_sock = -1;
 }
 
-bool Wiimote::IsConnected() const
+bool WiimoteLinux::IsConnected() const
 {
 	return m_cmd_sock != -1;// && int_sock != -1;
 }
 
-void Wiimote::IOWakeup()
+void WiimoteLinux::IOWakeup()
 {
 	char c = 0;
 	if (write(m_wakeup_pipe_w, &c, 1) != 1)
@@ -202,7 +223,7 @@ void Wiimote::IOWakeup()
 // positive = read packet
 // negative = didn't read packet
 // zero = error
-int Wiimote::IORead(u8* buf)
+int WiimoteLinux::IORead(u8* buf)
 {
 	// Block select for 1/2000th of a second
 
@@ -250,14 +271,9 @@ int Wiimote::IORead(u8* buf)
 	return r;
 }
 
-int Wiimote::IOWrite(u8 const* buf, size_t len)
+int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
 {
 	return write(m_int_sock, buf, (int)len);
 }
-
-void Wiimote::EnablePowerAssertionInternal()
-{}
-void Wiimote::DisablePowerAssertionInternal()
-{}
 
 }; // WiimoteReal

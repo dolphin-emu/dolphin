@@ -187,6 +187,27 @@ inline void init_lib()
 namespace WiimoteReal
 {
 
+class WiimoteWindows final : public Wiimote
+{
+public:
+	WiimoteWindows(const std::basic_string<TCHAR>& path);
+	~WiimoteWindows() override;
+
+protected:
+	bool ConnectInternal() override;
+	void DisconnectInternal() override;
+	bool IsConnected() const override;
+	void IOWakeup() override;
+	int IORead(u8* buf) override;
+	int IOWrite(u8 const* buf, size_t len) override;
+
+private:
+	std::basic_string<TCHAR> m_devicepath; // Unique wiimote reference
+	HANDLE m_dev_handle;                   // HID handle
+	OVERLAPPED m_hid_overlap_read;         // Overlap handles
+	OVERLAPPED m_hid_overlap_write;
+	enum win_bt_stack_t m_stack;           // Type of bluetooth stack to use
+};
 
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len, DWORD* written);
 int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index);
@@ -271,11 +292,11 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		// Query the data for this device
 		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr, nullptr))
 		{
-			auto const wm = new Wiimote;
-			wm->m_devicepath = detail_data->DevicePath;
+			std::basic_string<TCHAR> device_path(detail_data->DevicePath);
+			Wiimote* wm = new WiimoteWindows(device_path);
 			bool real_wiimote = false, is_bb = false;
 
-			CheckDeviceType(wm->m_devicepath, real_wiimote, is_bb);
+			CheckDeviceType(device_path, real_wiimote, is_bb);
 			if (is_bb)
 			{
 				found_board = wm;
@@ -499,7 +520,7 @@ bool WiimoteScanner::IsReady() const
 }
 
 // Connect to a wiimote with a known device path.
-bool Wiimote::ConnectInternal()
+bool WiimoteWindows::ConnectInternal()
 {
 	if (IsConnected())
 		return false;
@@ -569,7 +590,7 @@ bool Wiimote::ConnectInternal()
 	return true;
 }
 
-void Wiimote::DisconnectInternal()
+void WiimoteWindows::DisconnectInternal()
 {
 	if (!IsConnected())
 		return;
@@ -583,7 +604,7 @@ void Wiimote::DisconnectInternal()
 #endif
 }
 
-void Wiimote::InitInternal()
+WiimoteWindows::WiimoteWindows(const std::basic_string<TCHAR>& path) : m_devicepath(path)
 {
 	m_dev_handle = 0;
 	m_stack = MSBT_STACK_UNKNOWN;
@@ -595,13 +616,14 @@ void Wiimote::InitInternal()
 	m_hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
 }
 
-void Wiimote::TeardownInternal()
+WiimoteWindows::~WiimoteWindows()
 {
+	Shutdown();
 	CloseHandle(m_hid_overlap_read.hEvent);
 	CloseHandle(m_hid_overlap_write.hEvent);
 }
 
-bool Wiimote::IsConnected() const
+bool WiimoteWindows::IsConnected() const
 {
 	return m_dev_handle != 0;
 }
@@ -660,7 +682,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 	return bytes + 1;
 }
 
-void Wiimote::IOWakeup()
+void WiimoteWindows::IOWakeup()
 {
 	SetEvent(m_hid_overlap_read.hEvent);
 }
@@ -669,7 +691,7 @@ void Wiimote::IOWakeup()
 // positive = read packet
 // negative = didn't read packet
 // zero = error
-int Wiimote::IORead(u8* buf)
+int WiimoteWindows::IORead(u8* buf)
 {
 	return _IORead(m_dev_handle, m_hid_overlap_read, buf, m_index);
 }
@@ -772,15 +794,10 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 	return 0;
 }
 
-int Wiimote::IOWrite(const u8* buf, size_t len)
+int WiimoteWindows::IOWrite(const u8* buf, size_t len)
 {
 	return _IOWrite(m_dev_handle, m_hid_overlap_write, m_stack, buf, len, nullptr);
 }
-
-void Wiimote::EnablePowerAssertionInternal()
-{}
-void Wiimote::DisablePowerAssertionInternal()
-{}
 
 // invokes callback for each found wiimote bluetooth device
 template <typename T>

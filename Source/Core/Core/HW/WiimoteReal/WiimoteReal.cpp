@@ -42,17 +42,13 @@ Wiimote::Wiimote()
 	, m_channel(0)
 	, m_rumble_state()
 	, m_need_prepare()
-{
-	InitInternal();
-}
+{}
 
-Wiimote::~Wiimote()
+void Wiimote::Shutdown()
 {
-	DisablePowerAssertionInternal();
 	StopThread();
 	ClearReadQueue();
 	m_write_reports.Clear();
-	TeardownInternal();
 }
 
 // to be called from CPU thread
@@ -62,12 +58,9 @@ void Wiimote::WriteReport(Report rpt)
 	{
 		bool const new_rumble_state = (rpt[2] & 0x1) != 0;
 
+		// If this is a rumble report and the rumble state didn't change, ignore.
 		if (WM_RUMBLE == rpt[1] && new_rumble_state == m_rumble_state)
-		{
-			// If this is a rumble report and the rumble state didn't change, ignore
-			//ERROR_LOG(WIIMOTE, "Ignoring rumble report.");
 			return;
-		}
 
 		m_rumble_state = new_rumble_state;
 	}
@@ -508,8 +501,6 @@ void Wiimote::StopThread()
 	IOWakeup();
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
-#if defined(__APPLE__)
-#endif
 }
 
 void Wiimote::SetReady()

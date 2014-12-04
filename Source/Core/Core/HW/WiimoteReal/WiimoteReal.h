@@ -26,8 +26,9 @@ class Wiimote : NonCopyable
 {
 friend class WiimoteEmu::Wiimote;
 public:
-	Wiimote();
-	~Wiimote();
+	virtual ~Wiimote() {}
+	// This needs to be called in derived destructors!
+	void Shutdown();
 
 	void ControlChannel(const u16 channel, const void* const data, const u32 size);
 	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
@@ -47,22 +48,19 @@ public:
 	void EmuResume();
 	void EmuPause();
 
-	void EnablePowerAssertionInternal();
-	void DisablePowerAssertionInternal();
+	virtual void EnablePowerAssertionInternal() {}
+	virtual void DisablePowerAssertionInternal() {}
 
 	// connecting and disconnecting from physical devices
 	// (using address inserted by FindWiimotes)
 	// these are called from the wiimote's thread.
-	bool ConnectInternal();
-	void DisconnectInternal();
-
-	void InitInternal();
-	void TeardownInternal();
+	virtual bool ConnectInternal() = 0;
+	virtual void DisconnectInternal() = 0;
 
 	bool Connect();
 
 	// TODO: change to something like IsRelevant
-	bool IsConnected() const;
+	virtual bool IsConnected() const = 0;
 
 	void Prepare(int index);
 	bool PrepareOnThread();
@@ -75,30 +73,8 @@ public:
 
 	int m_index;
 
-#if defined(__APPLE__)
-	IOBluetoothDevice *m_btd;
-	IOBluetoothL2CAPChannel *m_ichan;
-	IOBluetoothL2CAPChannel *m_cchan;
-	unsigned char* m_input;
-	int m_inputlen;
-	bool m_connected;
-	CFRunLoopRef m_wiimote_thread_run_loop;
-	IOPMAssertionID m_pm_assertion;
-#elif defined(__linux__) && HAVE_BLUEZ
-	bdaddr_t m_bdaddr;                    // Bluetooth address
-	int m_cmd_sock;                       // Command socket
-	int m_int_sock;                       // Interrupt socket
-	int m_wakeup_pipe_w, m_wakeup_pipe_r;
-
-#elif defined(_WIN32)
-	std::basic_string<TCHAR> m_devicepath; // Unique wiimote reference
-	//ULONGLONG btaddr;                  // Bluetooth address
-	HANDLE m_dev_handle;                   // HID handle
-	OVERLAPPED m_hid_overlap_read, m_hid_overlap_write; // Overlap handle
-	enum win_bt_stack_t m_stack;           // Type of bluetooth stack to use
-#endif
-
 protected:
+	Wiimote();
 	Report m_last_input_report;
 	u16 m_channel;
 
@@ -106,9 +82,9 @@ private:
 	void ClearReadQueue();
 	void WriteReport(Report rpt);
 
-	int IORead(u8* buf);
-	int IOWrite(u8 const* buf, size_t len);
-	void IOWakeup();
+	virtual int IORead(u8* buf) = 0;
+	virtual int IOWrite(u8 const* buf, size_t len) = 0;
+	virtual void IOWakeup() = 0;
 
 	void ThreadFunc();
 	void SetReady();

@@ -16,6 +16,35 @@
 namespace WiimoteReal
 {
 
+class WiimoteDarwin final : public Wiimote
+{
+public:
+	WiimoteDarwin(IOBluetoothDevice* device);
+	~WiimoteDarwin() override;
+
+	// These are not protected/private because ConnectBT needs them.
+	void DisconnectInternal() override;
+	IOBluetoothDevice* m_btd;
+	unsigned char* m_input;
+	int m_inputlen;
+
+protected:
+	bool ConnectInternal() override;
+	bool IsConnected() const override;
+	void IOWakeup() override;
+	int IORead(u8* buf) override;
+	int IOWrite(u8 const* buf, size_t len) override;
+	void EnablePowerAssertionInternal() override;
+	void DisablePowerAssertionInternal() override;
+
+private:
+	IOBluetoothL2CAPChannel* m_ichan;
+	IOBluetoothL2CAPChannel* m_cchan;
+	bool m_connected;
+	CFRunLoopRef m_wiimote_thread_run_loop;
+	IOPMAssertionID m_pm_assertion;
+};
+
 WiimoteScanner::WiimoteScanner()
 	: m_run_thread()
 	, m_want_wiimotes()
@@ -76,8 +105,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		if (!IsValidBluetoothName([[dev name] UTF8String]))
 			continue;
 
-		Wiimote *wm = new Wiimote();
-		wm->m_btd = [dev retain];
+		Wiimote* wm = new WiimoteDarwin([dev retain]);
 		
 		if (IsBalanceBoardName([[dev name] UTF8String]))
 		{
@@ -100,17 +128,17 @@ bool WiimoteScanner::IsReady() const
 	return true;
 }
 
-void Wiimote::InitInternal()
+WiimoteDarwin::WiimoteDarwin(IOBluetoothDevice* device) : m_btd(device)
 {
 	m_inputlen = 0;
 	m_connected = false;
 	m_wiimote_thread_run_loop = nullptr;
-	m_btd = nil;
 	m_pm_assertion = kIOPMNullAssertionID;
 }
 
-void Wiimote::TeardownInternal()
+WiimoteDarwin::~WiimoteDarwin()
 {
+	Shutdown();
 	if (m_wiimote_thread_run_loop)
 	{
 		CFRelease(m_wiimote_thread_run_loop);
@@ -118,10 +146,11 @@ void Wiimote::TeardownInternal()
 	}
 	[m_btd release];
 	m_btd = nil;
+	DisablePowerAssertionInternal();
 }
 
 // Connect to a wiimote with a known address.
-bool Wiimote::ConnectInternal()
+bool WiimoteDarwin::ConnectInternal()
 {
 	if (IsConnected())
 		return false;
@@ -182,7 +211,7 @@ bad:
 }
 
 // Disconnect a wiimote.
-void Wiimote::DisconnectInternal()
+void WiimoteDarwin::DisconnectInternal()
 {
 	[m_ichan closeChannel];
 	[m_ichan release];
@@ -202,12 +231,12 @@ void Wiimote::DisconnectInternal()
 	m_connected = false;
 }
 
-bool Wiimote::IsConnected() const
+bool WiimoteDarwin::IsConnected() const
 {
 	return m_connected;
 }
 
-void Wiimote::IOWakeup()
+void WiimoteDarwin::IOWakeup()
 {
 	if (m_wiimote_thread_run_loop)
 	{
@@ -215,7 +244,7 @@ void Wiimote::IOWakeup()
 	}
 }
 
-int Wiimote::IORead(unsigned char *buf)
+int WiimoteDarwin::IORead(unsigned char *buf)
 {
 	m_input = buf;
 	m_inputlen = -1;
@@ -225,7 +254,7 @@ int Wiimote::IORead(unsigned char *buf)
 	return m_inputlen;
 }
 
-int Wiimote::IOWrite(const unsigned char *buf, size_t len)
+int WiimoteDarwin::IOWrite(const unsigned char *buf, size_t len)
 {
 	IOReturn ret;
 
@@ -240,7 +269,7 @@ int Wiimote::IOWrite(const unsigned char *buf, size_t len)
 		return 0;
 }
 
-void Wiimote::EnablePowerAssertionInternal()
+void WiimoteDarwin::EnablePowerAssertionInternal()
 {
 	if (m_pm_assertion == kIOPMNullAssertionID)
 	{
@@ -249,7 +278,7 @@ void Wiimote::EnablePowerAssertionInternal()
 	}
 }
 
-void Wiimote::DisablePowerAssertionInternal()
+void WiimoteDarwin::DisablePowerAssertionInternal()
 {
 	if (m_pm_assertion != kIOPMNullAssertionID)
 	{
@@ -287,7 +316,7 @@ void Wiimote::DisablePowerAssertionInternal()
 	length: (NSUInteger) length
 {
 	IOBluetoothDevice *device = [l2capChannel device];
-	WiimoteReal::Wiimote *wm = nullptr;
+	WiimoteReal::WiimoteDarwin *wm = nullptr;
 
 	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
@@ -295,8 +324,9 @@ void Wiimote::DisablePowerAssertionInternal()
 	{
 		if (WiimoteReal::g_wiimotes[i] == nullptr)
 			continue;
-		if ([device isEqual: WiimoteReal::g_wiimotes[i]->m_btd] == TRUE)
-			wm = WiimoteReal::g_wiimotes[i];
+		wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
+		if ([device isEqual: wm->m_btd] != TRUE)
+			wm = nullptr;
 	}
 
 	if (wm == nullptr) {
@@ -325,7 +355,7 @@ void Wiimote::DisablePowerAssertionInternal()
 - (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
 {
 	IOBluetoothDevice *device = [l2capChannel device];
-	WiimoteReal::Wiimote *wm = nullptr;
+	WiimoteReal::WiimoteDarwin *wm = nullptr;
 
 	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
@@ -333,8 +363,9 @@ void Wiimote::DisablePowerAssertionInternal()
 	{
 		if (WiimoteReal::g_wiimotes[i] == nullptr)
 			continue;
-		if ([device isEqual: WiimoteReal::g_wiimotes[i]->m_btd] == TRUE)
-			wm = WiimoteReal::g_wiimotes[i];
+		wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
+		if ([device isEqual: wm->m_btd] != TRUE)
+			wm = nullptr;
 	}
 
 	if (wm == nullptr) {
