@@ -11,7 +11,9 @@
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
+#include <vector>
 #include <zlib.h>
 
 #include "Common/CommonTypes.h"
@@ -303,21 +305,18 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 		return false;
 	}
 
-	CompressedBlobReader* reader = CompressedBlobReader::Create(infile);
+	std::unique_ptr<CompressedBlobReader> reader(CompressedBlobReader::Create(infile));
 	if (!reader)
 		return false;
 
 	File::IOFile f(outfile, "wb");
 	if (!f)
-	{
-		delete reader;
 		return false;
-	}
 
 	const CompressedBlobHeader &header = reader->GetHeader();
 	static const size_t BUFFER_BLOCKS = 32;
 	size_t buffer_size = header.block_size * BUFFER_BLOCKS;
-	u8* buffer = new u8[buffer_size];
+	std::vector<u8> buffer(buffer_size);
 	u32 num_buffers = header.num_blocks / BUFFER_BLOCKS;
 	int progress_monitor = std::max<int>(1, num_buffers / 100);
 	bool was_cancelled = false;
@@ -330,11 +329,9 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 			if (was_cancelled)
 				break;
 		}
-		reader->Read(i * buffer_size, buffer_size, buffer);
-		f.WriteBytes(buffer, buffer_size);
+		reader->Read(i * buffer_size, buffer_size, buffer.data());
+		f.WriteBytes(buffer.data(), buffer_size);
 	}
-
-	delete[] buffer;
 
 	if (was_cancelled)
 	{
@@ -346,8 +343,6 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 	{
 		f.Resize(header.data_size);
 	}
-
-	delete reader;
 
 	return true;
 }
