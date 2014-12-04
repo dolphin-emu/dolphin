@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <cmath>
 #include <cfloat>
+#include <cmath>
 #include <sstream>
 
 #include "Common/BitSet.h"
