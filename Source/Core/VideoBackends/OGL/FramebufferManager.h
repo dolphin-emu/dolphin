@@ -75,6 +75,7 @@ public:
 	static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer; }
 
 	static void SetFramebuffer(GLuint fb);
+	static void FramebufferTexture(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
