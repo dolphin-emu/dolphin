@@ -458,6 +458,8 @@ void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
 	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
+	SkipIdle->SetToolTip(_("Ignore idle commands sent by the game.\nRecommended for most games."));
+	EnableCheats->SetToolTip(_("Enables use of the Cheat Manager."));
 	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
 
 	// General - Advanced
@@ -471,11 +473,17 @@ void CConfigMain::InitializeGUITooltips()
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
 	// Audio tooltips
-	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."));
+	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread.\nNot recommended: may cause freezes."));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
+
+	// GameCube - IPL
+	GCSystemLang->SetToolTip(_("Sets the GameCube system language"));
 
 	// GameCube - Devices
 	GCEXIDevice[2]->SetToolTip(_("Serial Port 1 - This is the port which devices such as the net adapter use"));
+
+	// Wii - Basic
+	WiiSystemLang->SetToolTip(_("Sets the Wii system language"));
 
 	// Wii - Devices
 	WiiKeyboard->SetToolTip(_("This could cause slow down in Wii Menu and some games."));
