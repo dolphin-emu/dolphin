@@ -21,6 +21,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VR.h"
 
 static NativeVertexFormat* s_current_vtx_fmt;
 
@@ -137,12 +138,35 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 		return true;
 
 	CPState* state = &g_main_cp_state;
+	static u16 skip_objects_count = 0;
 
 	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
 
 	size_t size = count * loader->GetVertexSize();
 	if (buf_size < size)
 		return false;
+
+	if (g_new_frame_tracker_for_object_skip)
+	{
+		skip_objects_count = 0;
+		g_new_frame_tracker_for_object_skip = false;
+	}
+
+	if (skip_objects_count < SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end)
+	{
+		if (++skip_objects_count >= SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start)
+		{
+			DataSkip((u32)size);
+			return true;
+		}
+	}
+
+	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
+	{
+		// if cull mode is CULL_ALL, ignore triangles and quads
+		DataSkip((u32)size);
+		return true;
+	}
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries)
 	{
@@ -181,13 +205,6 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 			}
 		}
 		SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
-	}
-
-	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
-	{
-		// if cull mode is CULL_ALL, ignore triangles and quads
-		DataSkip((u32)size);
-		return true;
 	}
 
 	NativeVertexFormat* native = loader->GetNativeVertexFormat();
