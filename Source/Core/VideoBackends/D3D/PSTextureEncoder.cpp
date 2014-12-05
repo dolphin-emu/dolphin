@@ -183,7 +183,7 @@ static const char EFB_ENCODE_PS[] =
 "float4 Fetch_0(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0));\n"
+	"float4 result = EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0));\n"
 	"result.a = 1.0;\n"
 	"return result;\n"
 "}\n"
@@ -191,13 +191,13 @@ static const char EFB_ENCODE_PS[] =
 "float4 Fetch_1(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"return EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0));\n"
+	"return EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0));\n"
 "}\n"
 
 "float4 Fetch_2(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0));\n"
+	"float4 result = EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0));\n"
 	"result.a = 1.0;\n"
 	"return result;\n"
 "}\n"
@@ -206,7 +206,7 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
 
-	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0)).r;\n"
+	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0)).r;\n"
 	"uint4 bytes = uint4(\n"
 		"(depth24 >> 16) & 0xFF,\n" // r
 		"(depth24 >> 8) & 0xFF,\n"  // g

@@ -68,7 +68,7 @@ const char anaglyph_program_code[] = {
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
 	"in float3 uv0 : TEXCOORD0){\n"
-	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0));\n"
+	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0.0));\n"
 	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1));\n"
 	"ocol0 = float4(pow(0.7 * c0.g + 0.3 * c0.b, 1.5), c1.gba);"
 	"}\n"
