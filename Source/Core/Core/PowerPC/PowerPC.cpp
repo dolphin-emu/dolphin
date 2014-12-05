@@ -129,7 +129,7 @@ void Init(int cpu_core)
 			{
 				ppcState.tlb[tlb][set][way].flags = TLB_FLAG_INVALID;
 				ppcState.tlb[tlb][set][way].paddr = 0;
-				ppcState.tlb[tlb][set][way].pteg = 0;
+				ppcState.tlb[tlb][set][way].pte = 0;
 				ppcState.tlb[tlb][set][way].tag = 0;
 			}
 		}

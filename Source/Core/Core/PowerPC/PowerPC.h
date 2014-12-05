@@ -43,7 +43,7 @@ struct tlb_entry
 {
 	u32 tag;
 	u32 paddr;
-	u32 pteg;
+	u32 pte;
 	u8 flags;
 };
 

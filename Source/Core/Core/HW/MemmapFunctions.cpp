@@ -712,11 +712,14 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 		// Check if C bit requires updating
 		if (_Flag == FLAG_WRITE)
 		{
-			u8* pRAM = Memory::base;
 			UPTE2 PTE2;
-			PTE2.Hex = bswap((*(u32*)&pRAM[tlbe[0].pteg]));
+			PTE2.Hex = tlbe[0].pte;
 			if (PTE2.C == 0)
+			{
+				PTE2.C = 1;
+				tlbe[0].pte = PTE2.Hex;
 				return 0;
+			}
 		}
 
 		if (_Flag != FLAG_NO_EXCEPTION)
@@ -734,11 +737,14 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 		// Check if C bit requires updating
 		if (_Flag == FLAG_WRITE)
 		{
-			u8* pRAM = Memory::base;
 			UPTE2 PTE2;
-			PTE2.Hex = bswap((*(u32*)&pRAM[tlbe[1].pteg]));
+			PTE2.Hex = tlbe[1].pte;
 			if (PTE2.C == 0)
+			{
+				PTE2.C = 1;
+				tlbe[1].pte = PTE2.Hex;
 				return 0;
+			}
 		}
 
 		if (_Flag != FLAG_NO_EXCEPTION)
@@ -754,7 +760,7 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 	return 0;
 }
 
-static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa, const u32 pteg)
+static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 {
 	if (_Flag == FLAG_NO_EXCEPTION)
 		return;
@@ -765,7 +771,7 @@ static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa,
 		tlbe[0].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
 		tlbe[0].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-		tlbe[0].pteg = pteg;
+		tlbe[0].pte = PTE2.Hex;
 		tlbe[0].tag = vpa & ~0xfff;
 	}
 	else
@@ -773,7 +779,7 @@ static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa,
 		tlbe[1].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
 		tlbe[1].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-		tlbe[1].pteg = pteg;
+		tlbe[1].pte = PTE2.Hex;
 		tlbe[1].tag = vpa & ~0xfff;
 	}
 }
@@ -805,76 +811,58 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	// Direct access to the fastmem Arena
 	// FIXME: is this the best idea for clean code?
-	u8* pRAM = Memory::base;
+	u8* base = Memory::base;
 
 	// hash function no 1 "xor" .360
-	u32 hash1 = (VSID ^ page_index);
-	u32 pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
+	u32 hash = (VSID ^ page_index);
 
-	// hash1
-	for (int i = 0; i < 8; i++)
+	for (int hash_func = 0; hash_func < 2; hash_func++)
 	{
-		UPTE1 PTE1;
-		PTE1.Hex = bswap(*(u32*)&pRAM[pteg_addr]);
-
-		if (PTE1.V && !PTE1.H)
+		if (hash_func == 1)
 		{
-			if (VSID == PTE1.VSID && (api == PTE1.API))
-			{
-				UPTE2 PTE2;
-				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
-
-				// set the access bits
-				switch (_Flag)
-				{
-				case FLAG_READ:     PTE2.R = 1; break;
-				case FLAG_WRITE:    PTE2.C = 1; break;
-				case FLAG_NO_EXCEPTION: break;
-				case FLAG_OPCODE: break;
-				}
-
-				if (_Flag != FLAG_NO_EXCEPTION)
-					*(u32*)&pRAM[(pteg_addr + 4)] = bswap(PTE2.Hex);
-
-				UpdateTLBEntry(_Flag, PTE2, _Address, pteg_addr + 4);
-
-				return (PTE2.RPN << 12) | offset;
-			}
+			// hash function no 2 "not" .360
+			hash = ~hash;
 		}
-		pteg_addr += 8;
-	}
 
-	// hash function no 2 "not" .360
-	hash1 = ~hash1;
-	pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
-	for (int i = 0; i < 8; i++)
-	{
-		u32 pte = bswap(*(u32*)&pRAM[pteg_addr]);
-		if ((pte & PTE1_V) && (pte & PTE1_H))
+		u32 pteg_addr = ((hash & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
+
+		if ((pteg_addr >> 28) == 1)
+			base = Memory::m_pEXRAM;
+
+		for (int i = 0; i < 8; i++)
 		{
-			if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte)))
+			u32 pte = bswap(*(u32*)&base[pteg_addr]);
+			bool pteh = (pte & PTE1_H) == 0;
+
+			if (hash_func == 1)
+				pteh = !pteh;
+
+			if ((pte & PTE1_V) && pteh)
 			{
-				UPTE2 PTE2;
-				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
-
-				// set the access bits
-				switch (_Flag)
+				if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte)))
 				{
-				case FLAG_READ:     PTE2.R = 1; break;
-				case FLAG_WRITE:    PTE2.C = 1; break;
-				case FLAG_NO_EXCEPTION: break;
-				case FLAG_OPCODE: break;
+					UPTE2 PTE2;
+					PTE2.Hex = bswap((*(u32*)&base[(pteg_addr + 4)]));
+
+					// set the access bits
+					switch (_Flag)
+					{
+					case FLAG_NO_EXCEPTION: break;
+					case FLAG_READ:     PTE2.R = 1; break;
+					case FLAG_WRITE:    PTE2.R = 1; PTE2.C = 1; break;
+					case FLAG_OPCODE:   PTE2.R = 1; break;
+					}
+
+					if (_Flag != FLAG_NO_EXCEPTION)
+						*(u32*)&base[(pteg_addr + 4)] = bswap(PTE2.Hex);
+
+					UpdateTLBEntry(_Flag, PTE2, _Address);
+
+					return (PTE2.RPN << 12) | offset;
 				}
-
-				if (_Flag != FLAG_NO_EXCEPTION)
-					*(u32*)&pRAM[(pteg_addr + 4)] = bswap(PTE2.Hex);
-
-				UpdateTLBEntry(_Flag, PTE2, _Address, pteg_addr + 4);
-
-				return (PTE2.RPN << 12) | offset;
 			}
+			pteg_addr += 8;
 		}
-		pteg_addr += 8;
 	}
 	return 0;
 }
