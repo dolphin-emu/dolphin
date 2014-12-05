@@ -10,16 +10,20 @@ if (NOT OCULUSSDK_FOUND)
 	find_path(OCULUSSDK_INCLUDE_DIR NAMES OVR.h
 		PATHS
 		/usr/include/ovr-0.4.3/LibOVR/Include
+		/usr/include/ovr-0.4.4/LibOVR/Include
 		/usr/include
 		/usr/local/include/ovr-0.4.3/LibOVR/Include
+		/usr/local/include/ovr-0.4.4/LibOVR/Include
 		/usr/local/include
 	)
 
 	find_path(OCULUSSDK_SRC_DIR NAMES OVR_CAPI_GL.h
 		PATHS
 		/usr/include/ovr-0.4.3/LibOVR/Src
+		/usr/include/ovr-0.4.4/LibOVR/Src
 		/usr/include
 		/usr/local/include/ovr-0.4.3/LibOVR/Src
+		/usr/local/include/ovr-0.4.4/LibOVR/Src
 		/usr/local/include
 	)
 

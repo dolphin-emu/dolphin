@@ -800,3 +800,6 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 	// Store description text object for later lookup
 	desc_texts.insert(std::pair<wxWindow*,wxStaticText*>(page, desc_text));
 }
+
+template class FloatSetting<float>;
+template class FloatSetting<double>;

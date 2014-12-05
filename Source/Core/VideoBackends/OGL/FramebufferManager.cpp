@@ -6,6 +6,8 @@
 #include "VideoBackends/OGL/GLInterface/WGL.h"
 
 #include "VideoCommon/VR920.h"
+#else
+#include "VideoBackends/OGL/GLInterface/GLX.h"
 #endif
 
 #include "Common/CommonFuncs.h"
@@ -587,7 +589,7 @@ void FramebufferManager::ConfigureRift()
 #endif
 #else
 	cfg.OGL.Disp = glXGetCurrentDisplay();
-	cfg.OGL.Win = glXGetCurrentDrawable();
+	//cfg.OGL.Win = glXGetCurrentDrawable();
 #endif
 	int caps = 0;
 	if (g_Config.bChromatic)

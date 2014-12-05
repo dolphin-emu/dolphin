@@ -551,14 +551,9 @@ SettingRadioButton* CConfigVR::CreateRadioButton(wxWindow* parent, const wxStrin
 
 SettingNumber* CConfigVR::CreateNumber(wxWindow* parent, float &setting, const wxString& description, float min, float max, float inc, long style)
 {
-	//TODO: Find why it won't compile on Linux here
-#ifdef _WIN32
 	SettingNumber* const sn = new SettingNumber(parent, wxString(), setting, min, max, inc, style);
 	RegisterControl(sn, description);
 	return sn;
-#else
-	return nullptr;
-#endif
 }
 
 /* Use this to register descriptions for controls which have NOT been created using the Create* functions from above */
