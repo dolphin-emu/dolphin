@@ -13,9 +13,11 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ConstantManager.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
@@ -206,7 +208,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
-			out.Write("SAMPLER_BINDING(%d) uniform sampler2D samp%d;\n", i, i);
+			out.Write("SAMPLER_BINDING(%d) uniform sampler2DArray samp%d;\n", i, i);
 	}
 	else // D3D
 	{
@@ -253,17 +255,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("cbuffer VSBlock : register(b1) {\n");
 		}
-		out.Write(
-			"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
-			"\tfloat4 " I_PROJECTION"[4];\n"
-			"\tint4 " I_MATERIALS"[4];\n"
-			"\tLight " I_LIGHTS"[8];\n"
-			"\tfloat4 " I_TEXMATRICES"[24];\n"
-			"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
-			"\tfloat4 " I_NORMALMATRICES"[32];\n"
-			"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-			"\tfloat4 " I_DEPTHPARAMS";\n"
-			"};\n");
+		out.Write(s_shader_uniforms);
+		out.Write("};\n");
 	}
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox)
@@ -274,6 +267,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			"};\n"
 		);
 	}
+
+	GenerateVSOutputStruct(out, ApiType);
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
@@ -325,22 +320,52 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// As a workaround, we interpolate at the centroid of the coveraged pixel, which
 		// is always inside the primitive.
 		// Without MSAA, this flag is defined to have no effect.
-		out.Write("centroid in float4 colors_02;\n");
-		out.Write("centroid in float4 colors_12;\n");
-
-		// compute window position if needed because binding semantic WPOS is not widely supported
-		// Let's set up attributes
-		for (unsigned int i = 0; i < numTexgen; ++i)
+		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
+		if (g_ActiveConfig.iStereoMode > 0)
 		{
-			out.Write("centroid in float3 uv%d;\n", i);
+			out.Write("centroid in VS_OUTPUT f;\n");
+			out.Write("flat in int layer;\n");
 		}
-		out.Write("centroid in float4 clipPos;\n");
-		if (g_ActiveConfig.bEnablePixelLighting)
+		else
 		{
-			out.Write("centroid in float4 Normal;\n");
+			out.Write("centroid in float4 colors_02;\n");
+			out.Write("centroid in float4 colors_12;\n");
+
+			// compute window position if needed because binding semantic WPOS is not widely supported
+			// Let's set up attributes
+			for (unsigned int i = 0; i < numTexgen; ++i)
+			{
+				out.Write("centroid in float3 uv%d;\n", i);
+			}
+			out.Write("centroid in float4 clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+			{
+				out.Write("centroid in float4 Normal;\n");
+			}
 		}
 
 		out.Write("void main()\n{\n");
+
+		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			// compute window position if needed because binding semantic WPOS is not widely supported
+			// Let's set up attributes
+			for (unsigned int i = 0; i < numTexgen; ++i)
+			{
+				out.Write("\tfloat3 uv%d = f.tex%d;\n", i, i);
+			}
+			out.Write("\tfloat4 clipPos = f.clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+			{
+				out.Write("\tfloat4 Normal = f.Normal;\n");
+			}
+		}
+
+		// On Mali, global variables must be initialized as constants.
+		// This is why we initialize these variables locally instead.
+		out.Write("\tfloat4 colors_0 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "f.colors_0" : "colors_02");
+		out.Write("\tfloat4 colors_1 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "f.colors_1" : "colors_12");
+
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}
 	else // D3D
@@ -369,14 +394,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "\tint3 tevcoord=int3(0, 0, 0);\n"
 	          "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
 	          "\tint4 tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,0);\n\n"); // tev combiner inputs
-
-	if (ApiType == API_OPENGL)
-	{
-		// On Mali, global variables must be initialized as constants.
-		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 colors_0 = colors_02;\n");
-		out.Write("\tfloat4 colors_1 = colors_12;\n");
-	}
 
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
@@ -931,7 +948,7 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	if (ApiType == API_D3D)
 		out.Write("iround(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		out.Write("iround(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))).%s;\n", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0", texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
@@ -965,10 +982,10 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 
 	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
-	// This outputted if statement is not like 'if(!(cond))' for a reason.
-	// Qualcomm's v95 drivers produce incorrect code using logical not
-	// Checking against false produces the correct code.
-	out.Write("\tif(( ");
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENNEGATEDBOOLEAN))
+		out.Write("\tif(( ");
+	else
+		out.Write("\tif(!( ");
 
 	uid_data->alpha_test_comp0 = bpmem.alpha_test.comp0;
 	uid_data->alpha_test_comp1 = bpmem.alpha_test.comp1;
@@ -983,7 +1000,11 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	// Lookup the second component from the alpha function table
 	compindex = bpmem.alpha_test.comp1;
 	out.Write(tevAlphaFuncsTable[compindex], alphaRef[1]);
-	out.Write(") == false) {\n");
+
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENNEGATEDBOOLEAN))
+		out.Write(") == false) {\n");
+	else
+		out.Write(")) {\n");
 
 	out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)

@@ -32,6 +32,29 @@ u32 Timer::GetTimeMs()
 #endif
 }
 
+#ifdef _WIN32
+double GetFreq()
+{
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	return 1000000.0 / double(freq.QuadPart);
+}
+#endif
+
+u64 Timer::GetTimeUs()
+{
+#ifdef _WIN32
+	LARGE_INTEGER time;
+	static double freq = GetFreq();
+	QueryPerformanceCounter(&time);
+	return u64(double(time.QuadPart) * freq);
+#else
+	struct timeval t;
+	(void)gettimeofday(&t, nullptr);
+	return ((u64)(t.tv_sec * 1000000 + t.tv_usec));
+#endif
+}
+
 // --------------------------------------------
 // Initiate, Start, Stop, and Update the time
 // --------------------------------------------

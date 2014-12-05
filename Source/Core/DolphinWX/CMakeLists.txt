@@ -2,6 +2,7 @@ set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
 	ConfigMain.cpp
+	ControllerConfigDiag.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
@@ -45,8 +46,14 @@ set(GUI_SRCS
 	TASInputDlg.cpp
 	VideoConfigDiag.cpp
 	WXInputBase.cpp
-	WiimoteConfigDiag.cpp
 	WxUtils.cpp)
+
+set(NOGUI_SRCS MainNoGUI.cpp)
+
+if(USE_X11)
+	set(GUI_SRCS ${GUI_SRCS} X11Utils.cpp)
+	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
+endif()
 
 set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 
@@ -56,11 +63,8 @@ if(ANDROID)
 	list(APPEND LIBS png)
 endif()
 
-
 set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
-
-set(NOGUI_SRCS MainNoGUI.cpp)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	if(wxWidgets_FOUND)
@@ -103,10 +107,10 @@ if(ANDROID)
 	"-Wl,--no-whole-archive"
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}/
+		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}/
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/

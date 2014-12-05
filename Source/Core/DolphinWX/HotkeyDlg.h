@@ -28,7 +28,7 @@ class HotkeyConfigDialog : public wxDialog
 {
 public:
 	HotkeyConfigDialog(wxWindow* parent,
-			wxWindowID id = 1,
+			wxWindowID id = wxID_ANY,
 			const wxString &title = _("Hotkey Configuration"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,

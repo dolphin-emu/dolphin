@@ -173,12 +173,9 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 
 void Jit64::Init()
 {
-	jo.optimizeStack = true;
 	EnableBlockLink();
 
-	jo.fpAccurateFcmp = SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF;
 	jo.optimizeGatherPipe = true;
-	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 

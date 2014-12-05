@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Core/HW/SI_Device.h"
 
 #include "SFML/Network.hpp"
@@ -12,7 +14,7 @@
 
 void GBAConnectionWaiter_Shutdown();
 
-class GBASockServer : public sf::SocketTCP
+class GBASockServer
 {
 public:
 	GBASockServer();
@@ -29,7 +31,7 @@ private:
 		CMD_WRITE  = 0x15
 	};
 
-	sf::SocketTCP client;
+	std::unique_ptr<sf::TcpSocket> client;
 	char current_data[5];
 };
 

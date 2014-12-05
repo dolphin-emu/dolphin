@@ -243,12 +243,9 @@ namespace JitILProfiler
 
 void JitIL::Init()
 {
-	jo.optimizeStack = true;
 	EnableBlockLink();
 
-	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
-	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = false;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 

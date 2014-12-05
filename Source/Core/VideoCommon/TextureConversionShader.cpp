@@ -70,7 +70,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
-		WRITE(p, "SAMPLER_BINDING(9) uniform sampler2D samp0;\n");
+		WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
 
 		WRITE(p, "  out vec4 ocol0;\n");
 		WRITE(p, "void main()\n");
@@ -120,7 +120,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
 {
-	WRITE(p, "  %s = texture(samp0, uv0 + float2(%d, 0) * sample_offset).%s;\n",
+	WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
 		dest, xoffset, colorComp
 	);
 }

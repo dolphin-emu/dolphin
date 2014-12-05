@@ -128,7 +128,7 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 	return wxApp::Initialize(c, v);
 }
 
-// The `main program' equivalent that creates the main window and return the main frame
+// The 'main program' equivalent that creates the main window and return the main frame
 
 bool DolphinApp::OnInit()
 {
@@ -238,18 +238,6 @@ bool DolphinApp::OnInit()
 	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
 #elif wxUSE_ON_FATAL_EXCEPTION
 	wxHandleFatalExceptions(true);
-#endif
-
-#ifdef __APPLE__
-	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
-	{
-		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.7 or greater.\n"
-				"Unfortunately you're running an old version of OS X.\n"
-				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
-				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"
-				"Sayonara!\n");
-		return false;
-	}
 #endif
 
 	UICommon::CreateDirectories();

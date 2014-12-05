@@ -12,6 +12,7 @@
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -89,6 +90,8 @@ static RasterFont* s_pfont = nullptr;
 static int s_MSAASamples = 1;
 static int s_LastMultisampleMode = 0;
 
+static bool s_LastStereo = false;
+
 static u32 s_blendMode;
 
 static bool s_vsync;
@@ -161,7 +164,6 @@ static void ApplySSAASettings()
 	}
 }
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
@@ -195,7 +197,6 @@ static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLe
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
-#endif
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
 static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
@@ -443,13 +444,20 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_sampler_objects") && bSuccess)
+	if (!GLExtensions::Supports("GL_ARB_sampler_objects"))
 	{
 		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
 		// highest requirement, but it seems that no driver lacks support for it.
-		PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects."
-				"GPU: Does your video card support OpenGL 3.3?"
-				"Please report this issue, then there will be a workaround");
+		PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
+				"GPU: Does your video card support OpenGL 3.3?");
+		bSuccess = false;
+	}
+
+	if (GLExtensions::Version() < 300)
+	{
+		// integer vertex attributes require a gl3 only function
+		PanicAlert("GPU: OGL ERROR: Need OpenGL version 3.\n"
+				"GPU: Does your video card support OpenGL 3?");
 		bSuccess = false;
 	}
 
@@ -467,6 +475,7 @@ Renderer::Renderer()
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
+	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -495,6 +504,8 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
 		}
+		// TODO: OpenGL ES 3.1 provides the necessary features as extensions.
+		g_Config.backend_info.bSupportsStereoscopy = false;
 	}
 	else
 	{
@@ -509,18 +520,20 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
 		}
 		else
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 		}
 	}
-#if defined(_DEBUG) || defined(DEBUGFAST)
+
 	if (GLExtensions::Supports("GL_KHR_debug"))
 	{
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
@@ -533,7 +546,7 @@ Renderer::Renderer()
 		glDebugMessageCallbackARB( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
-#endif
+
 	int samples;
 	glGetIntegerv(GL_SAMPLES, &samples);
 	if (samples > 1)
@@ -547,6 +560,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsStereoscopy)
+		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
+
 	if (!bSuccess)
 	{
 		// Not all needed extensions are supported, so we have to stop here.
@@ -558,6 +574,7 @@ Renderer::Renderer()
 	if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
 		g_ogl_config.max_samples = 1;
 
+	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
@@ -565,7 +582,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -575,12 +592,14 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
-			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
+			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
+			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing "
 			);
 
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 	ApplySSAASettings();
+	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
 
 	// Decide framebuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
@@ -736,6 +755,8 @@ void Renderer::DrawDebugInfo()
 
 	if (SConfig::GetInstance().m_ShowInputDisplay)
 		debug_info += Movie::GetInputDisplay();
+
+	debug_info += Profiler::ToString();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
@@ -1495,7 +1516,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+			// TODO: Virtual XFB stereoscopic 3D support.
+			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
 		}
 	}
 	else
@@ -1505,7 +1527,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
 
-		m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+		if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+		{
+			TargetRectangle leftRc, rightRc;
+			ConvertStereoRectangle(flipped_trc, leftRc, rightRc);
+
+			m_post_processor->BlitFromTexture(targetRc, leftRc, tex, s_target_width, s_target_height, 0);
+			m_post_processor->BlitFromTexture(targetRc, rightRc, tex, s_target_width, s_target_height, 1);
+		}
+		else
+		{
+			m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+		}
 	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -1654,15 +1687,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	}
 
-	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
+	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode) || (s_LastStereo != (g_ActiveConfig.iStereoMode > 0)))
 	{
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode)
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode || s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 			ApplySSAASettings();
+			s_LastStereo = g_ActiveConfig.iStereoMode > 0;
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,

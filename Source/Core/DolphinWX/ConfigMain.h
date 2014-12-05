@@ -18,7 +18,7 @@
 
 #include "Common/CommonTypes.h"
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include "VideoBackends/OGL/GLInterface/X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 #endif
 
 class wxBoxSizer;
@@ -45,7 +45,7 @@ class CConfigMain : public wxDialog
 public:
 
 	CConfigMain(wxWindow* parent,
-		wxWindowID id = 1,
+		wxWindowID id = wxID_ANY,
 		const wxString& title = _("Dolphin Configuration"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
@@ -108,11 +108,6 @@ private:
 		ID_GC_EXIDEVICE_SLOTB,
 		ID_GC_EXIDEVICE_SLOTB_PATH,
 		ID_GC_EXIDEVICE_SP1,
-		ID_GC_SIDEVICE0,
-		ID_GC_SIDEVICE1,
-		ID_GC_SIDEVICE2,
-		ID_GC_SIDEVICE3,
-
 
 		ID_WII_IPL_SSV,
 		ID_WII_IPL_E60,
@@ -186,8 +181,6 @@ private:
 	// Device
 	wxChoice* GCEXIDevice[3];
 	wxButton* GCMemcardPath[2];
-	wxChoice* GCSIDevice[4];
-
 
 	wxBoxSizer* sWiiPage; // Wii settings
 	wxStaticBoxSizer* /*sbWiimoteSettings, **/sbWiiIPLSettings, *sbWiiDeviceSettings; // Wiimote, Misc and Device sections
@@ -257,7 +250,6 @@ private:
 
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
-	void ChooseSIDevice(wxString deviceName, int deviceNum);
 	void ChooseEXIDevice(wxString deviceName, int deviceNum);
 
 	void WiiSettingsChanged(wxCommandEvent& event);

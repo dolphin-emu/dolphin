@@ -96,7 +96,7 @@
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
     <ClCompile Include="PostProcessingConfigDiag.cpp" />
-    <ClCompile Include="WiimoteConfigDiag.cpp" />
+    <ClCompile Include="ControllerConfigDiag.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
@@ -144,7 +144,7 @@
     <ClInclude Include="TASInputDlg.h" />
     <ClInclude Include="VideoConfigDiag.h" />
     <ClInclude Include="PostProcessingConfigDiag.h" />
-    <ClInclude Include="WiimoteConfigDiag.h" />
+    <ClInclude Include="ControllerConfigDiag.h" />
     <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
   </ItemGroup>
@@ -222,11 +222,9 @@
   </ItemGroup>
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
-    <Copy SourceFiles="@(DataDirFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)"
-      Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)').Ticks)" />
+    <Copy SourceFiles="@(DataDirFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataDirFiles.Extension)').Ticks)" />
     <Message Text="Copying External .dlls" Importance="High" />
-    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(BinaryOutputDir)"
-      Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
+    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
     <Message Text="Copy: @(BinaryFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
     <Copy SourceFiles="@(BinaryFiles)" DestinationFolder="$(BinaryOutputDir)" />
   </Target>

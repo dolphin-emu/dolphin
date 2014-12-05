@@ -15,6 +15,9 @@ void JitArm64AsmRoutineManager::Generate()
 {
 	enterCode = GetCodePtr();
 
+	SUB(SP, SP, 16);
+	STR(INDEX_UNSIGNED, X30, SP, 0);
+
 	MOVI2R(X29, (u64)&PowerPC::ppcState);
 
 	dispatcher = GetCodePtr();
@@ -64,13 +67,19 @@ void JitArm64AsmRoutineManager::Generate()
 
 		// Check the state pointer to see if we are exiting
 		// Gets checked on every exception check
-		MOVI2R(W0, (u64)PowerPC::GetStatePtr());
-		LDR(INDEX_UNSIGNED, W0, W0, 0);
-		FixupBranch Exit = CBNZ(W0);
+		MOVI2R(X0, (u64)PowerPC::GetStatePtr());
+		LDR(INDEX_UNSIGNED, W0, X0, 0);
+
+		CMP(W0, 0);
+		FixupBranch Exit = B(CC_NEQ);
 
 	B(dispatcher);
 
 	SetJumpTarget(Exit);
+
+	LDR(INDEX_UNSIGNED, X30, SP, 0);
+	ADD(SP, SP, 16);
+	RET(X30);
 
 	FlushIcache();
 }

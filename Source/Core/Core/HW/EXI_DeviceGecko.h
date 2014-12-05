@@ -14,15 +14,14 @@
 #include "Core/HW/EXI_Device.h"
 
 class GeckoSockServer
-	: public sf::SocketTCP
 {
 public:
 	GeckoSockServer();
 	~GeckoSockServer();
-	bool GetAvailableSock(sf::SocketTCP &sock_to_fill);
+	bool GetAvailableSock();
 
 	// Client for this server object
-	sf::SocketTCP client;
+	std::unique_ptr<sf::TcpSocket> client;
 	void ClientThread();
 	std::thread clientThread;
 	std::mutex transfer_lock;
@@ -40,8 +39,8 @@ private:
 	static u16                       server_port;
 	static volatile bool             server_running;
 	static std::thread               connectionThread;
-	static std::queue<sf::SocketTCP> waiting_socks;
 	static std::mutex                connection_lock;
+	static std::queue<std::unique_ptr<sf::TcpSocket>> waiting_socks;
 };
 
 class CEXIGecko

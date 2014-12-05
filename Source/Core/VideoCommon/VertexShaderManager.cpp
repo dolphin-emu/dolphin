@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cfloat>
 #include <cmath>
 #include <sstream>
 
@@ -88,7 +89,7 @@ static float PHackValue(std::string sValue)
 
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
-	float fhackvalue1 = 0, fhackvalue2 = 0;
+	float fhackvalue1 = 0, fhackvalue2 = FLT_EPSILON; // hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
 	const char *sTemp[2];
 
@@ -359,8 +360,6 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
-		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
 
 		// The console GPU places the pixel center at 7/12 unless antialiasing
 		// is enabled, while D3D and OpenGL place it at 0.5. See the comment
@@ -370,8 +369,8 @@ void VertexShaderManager::SetConstants()
 		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
 		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
 		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
-		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
-		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
+		constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
+		constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
@@ -489,7 +488,7 @@ void VertexShaderManager::SetConstants()
 
 		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfmem.projection.type == GX_PERSPECTIVE)
+		if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			Matrix44 mtxA;
 			Matrix44 mtxB;
@@ -512,6 +511,19 @@ void VertexShaderManager::SetConstants()
 			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
 			memcpy(constants.projection, correctedMtx.data, 4*16);
 		}
+
+		if (g_ActiveConfig.iStereoMode > 0 && xfmem.projection.type == GX_PERSPECTIVE)
+		{
+			float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+			constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+		}
+		else
+		{
+			constants.stereoparams[0] = constants.stereoparams[1] = 0;
+		}
+
 		dirty = true;
 	}
 }

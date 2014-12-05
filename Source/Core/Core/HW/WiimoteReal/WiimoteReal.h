@@ -47,6 +47,9 @@ public:
 	void EmuResume();
 	void EmuPause();
 
+	void EnablePowerAssertionInternal();
+	void DisablePowerAssertionInternal();
+
 	// connecting and disconnecting from physical devices
 	// (using address inserted by FindWiimotes)
 	// these are called from the wiimote's thread.
@@ -80,6 +83,7 @@ public:
 	int inputlen;
 	bool m_connected;
 	CFRunLoopRef m_wiimote_thread_run_loop;
+	IOPMAssertionID m_pm_assertion;
 #elif defined(__linux__) && HAVE_BLUEZ
 	bdaddr_t bdaddr;                    // Bluetooth address
 	int cmd_sock;                       // Command socket

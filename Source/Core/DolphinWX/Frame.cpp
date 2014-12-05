@@ -260,8 +260,7 @@ EVT_MENU(IDM_TOGGLE_DUMPAUDIO, CFrame::OnToggleDumpAudio)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
 EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
-EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnConfigPAD)
-EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnConfigWiimote)
+EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
 
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
@@ -1123,6 +1122,26 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			State::Load(g_saveSlot);
 		}
+		else if (IsHotkey(event, HK_INCREASE_SEPARATION))
+		{
+			if (++g_Config.iStereoSeparation > 100)
+				g_Config.iStereoSeparation = 100;
+		}
+		else if (IsHotkey(event, HK_DECREASE_SEPARATION))
+		{
+			if (--g_Config.iStereoSeparation < 0)
+				g_Config.iStereoSeparation = 0;
+		}
+		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+		{
+			if (++g_Config.iStereoConvergence > 500)
+				g_Config.iStereoConvergence = 500;
+		}
+		else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
+		{
+			if (--g_Config.iStereoConvergence < 0)
+				g_Config.iStereoConvergence = 0;
+		}
 
 		else
 		{
@@ -1175,8 +1194,9 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Actually perform the wiimote connection or disconnection
 		if (WiimoteId >= 0)
 		{
-			bool connect = !GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
-			ConnectWiimote(WiimoteId, connect);
+			wxCommandEvent evt;
+			evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
+			OnConnectWiimote(evt);
 		}
 
 		if (g_Config.bFreeLook)

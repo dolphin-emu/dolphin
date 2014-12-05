@@ -19,7 +19,6 @@ enum RegType
 	REG_NOTLOADED = 0,
 	REG_REG, // Reg type is register
 	REG_IMM, // Reg is really a IMM
-	REG_AWAY, // Reg is away
 };
 enum RegLocation
 {
@@ -56,14 +55,6 @@ public:
 	{
 		return m_reg;
 	}
-	ARM64Reg GetAwayReg()
-	{
-		return m_away_reg;
-	}
-	RegLocation GetAwayLocation()
-	{
-		return m_away_location;
-	}
 	u32 GetImm()
 	{
 		return m_value;
@@ -72,16 +63,6 @@ public:
 	{
 		m_type = REG_REG;
 		m_reg = reg;
-
-		m_away_reg = INVALID_REG;
-	}
-	void LoadToAway(ARM64Reg reg, RegLocation location)
-	{
-		m_type = REG_AWAY;
-		m_away_reg = reg;
-		m_away_location = location;
-
-		m_reg = INVALID_REG;
 	}
 	void LoadToImm(u32 imm)
 	{
@@ -89,14 +70,12 @@ public:
 		m_value = imm;
 
 		m_reg = INVALID_REG;
-		m_away_reg = INVALID_REG;
 	}
 	void Flush()
 	{
 		// Invalidate any previous information
 		m_type = REG_NOTLOADED;
 		m_reg = INVALID_REG;
-		m_away_reg = INVALID_REG;
 
 		// Arbitrarily large value that won't roll over on a lot of increments
 		m_last_used = 0xFFFF;
@@ -110,12 +89,6 @@ private:
 	// For REG_REG
 	RegType m_type; // store type
 	ARM64Reg m_reg; // host register we are in
-
-	// For REG_AWAY
-	// Host register that we are away in
-	// This is a 64bit register
-	ARM64Reg m_away_reg;
-	RegLocation m_away_location;
 
 	// For REG_IMM
 	u32 m_value; // IMM value
@@ -227,7 +200,7 @@ public:
 	ARM64Reg R(u32 preg);
 
 	// Set a register to an immediate
-	void SetImmediate(u32 reg, u32 imm) { m_guest_registers[reg].LoadToImm(imm); }
+	void SetImmediate(u32 preg, u32 imm);
 
 	// Returns if a register is set as an immediate
 	bool IsImm(u32 reg) { return m_guest_registers[reg].GetType() == REG_IMM; }

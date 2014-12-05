@@ -61,7 +61,7 @@ void Shutdown();
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-DSPEmulator *GetDSPEmulator();
+DSPEmulator* GetDSPEmulator();
 
 void DoState(PointerWrap &p);
 

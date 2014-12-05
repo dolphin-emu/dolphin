@@ -299,6 +299,7 @@ private:
 	void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend);
 	void EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd);
 	void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
+	void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 
 protected:
 	inline void Write32(u32 value)
@@ -311,6 +312,12 @@ public:
 	ARM64XEmitter()
 		: m_code(nullptr), m_startcode(nullptr), m_lastCacheFlushEnd(nullptr)
 	{
+	}
+
+	ARM64XEmitter(u8* code_ptr) {
+		m_code = code_ptr;
+		m_lastCacheFlushEnd = code_ptr;
+		m_startcode = code_ptr;
 	}
 
 	virtual ~ARM64XEmitter()
@@ -538,6 +545,11 @@ public:
 	void LDR(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
 	void LDRSW(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
 	void PRFM(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
+
+	// Load/Store pair
+	void LDP(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
+	void LDPSW(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
+	void STP(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 
 	// Wrapper around MOVZ+MOVK
 	void MOVI2R(ARM64Reg Rd, u64 imm, bool optimize = true);

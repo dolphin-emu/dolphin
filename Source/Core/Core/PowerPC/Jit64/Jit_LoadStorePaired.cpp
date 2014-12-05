@@ -66,7 +66,6 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	if (w)
 	{
 		// One value
-		PXOR(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
 		CVTSD2SS(XMM0, fpr.R(s));
 		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
 	}

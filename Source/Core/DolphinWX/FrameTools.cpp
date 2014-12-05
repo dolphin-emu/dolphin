@@ -64,6 +64,7 @@
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/ConfigMain.h"
+#include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
@@ -75,7 +76,6 @@
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
-#include "DolphinWX/WiimoteConfigDiag.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
@@ -236,8 +236,7 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_EMULATOR, _("&DSP Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _("GameCube &Pad Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _("&Wiimote Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
 	if (g_pCodeWindow)
 	{
@@ -560,20 +559,19 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
 
-	WxUtils::AddToolbarButton(ToolBar, wxID_OPEN,                 _("Open"),     m_Bitmaps[Toolbar_FileOpen],   _("Open file..."));
-	WxUtils::AddToolbarButton(ToolBar, wxID_REFRESH,              _("Refresh"),  m_Bitmaps[Toolbar_Refresh],    _("Refresh game list"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_BROWSE,                _("Browse"),   m_Bitmaps[Toolbar_Browse],     _("Browse for an ISO directory..."));
+	WxUtils::AddToolbarButton(ToolBar, wxID_OPEN,               _("Open"),        m_Bitmaps[Toolbar_FileOpen],   _("Open file..."));
+	WxUtils::AddToolbarButton(ToolBar, wxID_REFRESH,            _("Refresh"),     m_Bitmaps[Toolbar_Refresh],    _("Refresh game list"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_BROWSE,              _("Browse"),      m_Bitmaps[Toolbar_Browse],     _("Browse for an ISO directory..."));
 	ToolBar->AddSeparator();
-	WxUtils::AddToolbarButton(ToolBar, IDM_PLAY,                  _("Play"),     m_Bitmaps[Toolbar_Play],       _("Play"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_STOP,                  _("Stop"),     m_Bitmaps[Toolbar_Stop],       _("Stop"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN,     _("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT,            _("ScrShot"),  m_Bitmaps[Toolbar_Screenshot], _("Take Screenshot"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_PLAY,                _("Play"),        m_Bitmaps[Toolbar_Play],       _("Play"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_STOP,                _("Stop"),        m_Bitmaps[Toolbar_Stop],       _("Stop"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN,   _("FullScr"),     m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT,          _("ScrShot"),     m_Bitmaps[Toolbar_Screenshot], _("Take Screenshot"));
 	ToolBar->AddSeparator();
-	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,          _("Config"),   m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,    _("Graphics"), m_Bitmaps[Toolbar_ConfigGFX],  _("Graphics settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR,   _("DSP"),      m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_PAD_PLUGIN,     _("GCPad"),    m_Bitmaps[Toolbar_ConfigPAD],  _("GameCube Pad settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote],    _("Wiimote settings"));
+	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],  _("Graphics settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR, _("DSP"),         m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS,  _("Controllers"), m_Bitmaps[Toolbar_Controller], _("Controller settings"));
 }
 
 
@@ -617,8 +615,7 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_ConfigMain].LoadFile(dir + "config.png",     wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigGFX ].LoadFile(dir + "graphics.png",   wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_ConfigDSP ].LoadFile(dir + "dsp.png",        wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigPAD ].LoadFile(dir + "gcpad.png",      wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Wiimote   ].LoadFile(dir + "wiimote.png",    wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Controller].LoadFile(dir + "classic.png",    wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Screenshot].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_FullScreen].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
 
@@ -1346,56 +1343,11 @@ void CFrame::OnConfigDSP(wxCommandEvent& WXUNUSED (event))
 		m_GameListCtrl->Update();
 }
 
-void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED (event))
 {
-	InputConfig* const pad_plugin = Pad::GetConfig();
-	bool was_init = false;
-	if (g_controller_interface.IsInit()) // check if game is running
-	{
-		was_init = true;
-	}
-	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		Pad::Initialize(reinterpret_cast<void*>(win));
-#else
-		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
-#endif
-	}
-	InputConfigDialog m_ConfigFrame(this, *pad_plugin, _trans("Dolphin GCPad Configuration"));
-	m_ConfigFrame.ShowModal();
-	m_ConfigFrame.Destroy();
-	if (!was_init) // if game isn't running
-	{
-		Pad::Shutdown();
-	}
-}
-
-void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
-{
-	InputConfig* const wiimote_plugin = Wiimote::GetConfig();
-	bool was_init = false;
-	if (g_controller_interface.IsInit()) // check if game is running
-	{
-		was_init = true;
-	}
-	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		Wiimote::Initialize(reinterpret_cast<void*>(win));
-#else
-		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
-#endif
-	}
-	WiimoteConfigDiag m_ConfigFrame(this, *wiimote_plugin);
-	m_ConfigFrame.ShowModal();
-	m_ConfigFrame.Destroy();
-	if (!was_init) // if game isn't running
-	{
-		Wiimote::Shutdown();
-	}
+	ControllerConfigDiag config_dlg(this);
+	config_dlg.ShowModal();
+	config_dlg.Destroy();
 }
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
@@ -1759,8 +1711,6 @@ void CFrame::UpdateGUI()
 		m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
 		m_ToolBar->EnableTool(IDM_TOGGLE_FULLSCREEN, Running || Paused);
 		m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
-		// Don't allow wiimote config while in GameCube mode
-		m_ToolBar->EnableTool(IDM_CONFIG_WIIMOTE_PLUGIN, !RunningGamecube);
 	}
 
 	// File
@@ -1803,7 +1753,6 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(RunningWii);
-	GetMenuBar()->FindItem(IDM_CONFIG_WIIMOTE_PLUGIN)->Enable(!RunningGamecube);
 	if (RunningWii)
 	{
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->
