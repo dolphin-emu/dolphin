@@ -2,8 +2,8 @@
 
 [Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://code.google.com/p/dolphin-emu/issues/list) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
 
-Dolphin is an emulator for running GameCube, Wii and Triforce games on
-Windows / Linux / OS X systems and recent Android devices. It's licensed under
+Dolphin is an emulator for running GameCube, Wii, and Triforce games on
+Windows, Linux, OSX, and recent Android devices. It's licensed under
 the terms of the GNU General Public License, version 2 (GPLv2).
 
 Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
@@ -33,7 +33,7 @@ Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
 installer is not necessary to run Dolphin since the Build directory contains
 a working Dolphin distribution.
 
-## Installation on Linux / OS X
+## Installation on Linux and OS X
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
