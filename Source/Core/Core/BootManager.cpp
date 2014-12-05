@@ -125,7 +125,6 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.m_strGPUDeterminismMode = StartUp.m_strGPUDeterminismMode;
 		config_cache.m_EnableJIT = SConfig::GetInstance().m_DSPEnableJIT;
-		config_cache.bDSPThread = StartUp.bDSPThread;
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
@@ -165,7 +164,6 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 		core_section->Get("BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		core_section->Get("DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
-		core_section->Get("DSPThread",        &StartUp.bDSPThread, StartUp.bDSPThread);
 		core_section->Get("GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
 		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
 		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
@@ -293,7 +291,6 @@ void Stop()
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
 		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
-		StartUp.bDSPThread = config_cache.bDSPThread;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		StartUp.m_strGPUDeterminismMode = config_cache.m_strGPUDeterminismMode;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
