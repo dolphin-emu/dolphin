@@ -13,6 +13,7 @@
 #include "Core/Core.h"
 #include "Core/Host.h"
 
+#include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/Globals.h"
@@ -77,7 +78,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsOversizedViewports = false;
-	g_Config.backend_info.bSupportsBBox = false; // TODO: not implemented
+	g_Config.backend_info.bSupportsBBox = true;
 	g_Config.backend_info.bSupportsStereoscopy = false; // TODO: not implemented
 
 	IDXGIFactory* factory;
@@ -180,6 +181,7 @@ void VideoBackend::Video_Prepare()
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
+	BBox::Init();
 
 	// Tell the host that the window is ready
 	Host_Message(WM_USER_CREATE);
@@ -204,6 +206,8 @@ void VideoBackend::Shutdown()
 		D3D::ShutdownUtils();
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		BBox::Shutdown();
+
 		delete g_perf_query;
 		delete g_vertex_manager;
 		delete g_texture_cache;
