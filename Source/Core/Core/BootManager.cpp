@@ -39,6 +39,7 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VR.h"
 
 namespace BootManager
 {
@@ -223,7 +224,13 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
-	StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
+#ifdef HAVE_OCULUSSDK
+	// If Oculus Rift is in Direct Mode, we must use Deterministic Dual Core for it not to randomly drop frames.
+	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+		StartUp.m_GPUDeterminismMode = GPU_DETERMINISM_FAKE_COMPLETION;
+	else
+#endif
+		StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
 	// Movie settings
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
