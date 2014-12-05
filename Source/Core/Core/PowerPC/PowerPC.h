@@ -27,6 +27,26 @@ enum CoreMode
 	MODE_JIT,
 };
 
+// TLB cache
+#define TLB_SIZE 128
+#define TLB_WAYS 2
+#define NUM_TLBS 2
+
+#define HW_PAGE_INDEX_SHIFT 12
+#define HW_PAGE_INDEX_MASK 0x3f
+#define HW_PAGE_TAG_SHIFT 18
+
+#define TLB_FLAG_MOST_RECENT 0x01
+#define TLB_FLAG_INVALID 0x02
+
+struct tlb_entry
+{
+	u32 tag;
+	u32 paddr;
+	u32 pteg;
+	u8 flags;
+};
+
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
 struct GC_ALIGNED64(PowerPCState)
 {
@@ -87,13 +107,7 @@ struct GC_ALIGNED64(PowerPCState)
 	// also for power management, but we don't care about that.
 	u32 spr[1024];
 
-	u32 dtlb_last;
-	u32 dtlb_va[128];
-	u32 dtlb_pa[128];
-
-	u32 itlb_last;
-	u32 itlb_va[128];
-	u32 itlb_pa[128];
+	tlb_entry tlb[NUM_TLBS][TLB_SIZE / TLB_WAYS][TLB_WAYS];
 
 	u32 pagetable_base;
 	u32 pagetable_hashmask;
