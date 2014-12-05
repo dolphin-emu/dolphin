@@ -79,7 +79,7 @@ Recompiler), which cannot be selected from the command line.
 
 Available video backends are "D3D" (only available on Windows) and
 "OGL". There's also "Software Renderer", which uses the CPU for rendering and
-is intended for debugging purposes, only.
+is intended for debugging purposes only.
 
 ## Sys Files
 * `totaldb.dsy`: Database of symbols (for devs only)
