@@ -704,49 +704,57 @@ void SDRUpdated()
 }
 
 
-// TLB cache
-#define TLB_SIZE 128
-#define TLB_WAYS 2
-#define NUM_TLBS 2
-
-#define HW_PAGE_INDEX_SHIFT 12
-#define HW_PAGE_INDEX_MASK 0x3f
-#define HW_PAGE_TAG_SHIFT 18
-
-#define TLB_FLAG_MOST_RECENT 0x01
-#define TLB_FLAG_INVALID 0x02
-
-struct tlb_entry
-{
-	u32 tag;
-	u32 paddr;
-	u8 flags;
-};
-
-// TODO: tlb needs to be in ppcState for save-state purposes.
-static tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
-
 static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
-	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
+	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
 	if (tlbe[0].tag == (vpa & ~0xfff) && !(tlbe[0].flags & TLB_FLAG_INVALID))
 	{
+		// Check if C bit requires updating
+		if (_Flag == FLAG_WRITE)
+		{
+			UPTE2 PTE2;
+			PTE2.Hex = tlbe[0].pte;
+			if (PTE2.C == 0)
+			{
+				PTE2.C = 1;
+				tlbe[0].pte = PTE2.Hex;
+				return 0;
+			}
+		}
+
 		if (_Flag != FLAG_NO_EXCEPTION)
 		{
 			tlbe[0].flags |= TLB_FLAG_MOST_RECENT;
 			tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
 		}
+
 		*paddr = tlbe[0].paddr | (vpa & 0xfff);
+
 		return 1;
 	}
 	if (tlbe[1].tag == (vpa & ~0xfff) && !(tlbe[1].flags & TLB_FLAG_INVALID))
 	{
+		// Check if C bit requires updating
+		if (_Flag == FLAG_WRITE)
+		{
+			UPTE2 PTE2;
+			PTE2.Hex = tlbe[1].pte;
+			if (PTE2.C == 0)
+			{
+				PTE2.C = 1;
+				tlbe[1].pte = PTE2.Hex;
+				return 0;
+			}
+		}
+
 		if (_Flag != FLAG_NO_EXCEPTION)
 		{
 			tlbe[1].flags |= TLB_FLAG_MOST_RECENT;
 			tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
 		}
+
 		*paddr = tlbe[1].paddr | (vpa & 0xfff);
+
 		return 1;
 	}
 	return 0;
@@ -757,12 +765,13 @@ static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 	if (_Flag == FLAG_NO_EXCEPTION)
 		return;
 
-	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
-	if ((tlbe[0].flags & TLB_FLAG_MOST_RECENT) == 0)
+	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	if ((tlbe[0].flags & TLB_FLAG_MOST_RECENT) == 0 || (tlbe[0].flags & TLB_FLAG_INVALID))
 	{
 		tlbe[0].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
 		tlbe[0].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
+		tlbe[0].pte = PTE2.Hex;
 		tlbe[0].tag = vpa & ~0xfff;
 	}
 	else
@@ -770,30 +779,19 @@ static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 		tlbe[1].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
 		tlbe[1].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
+		tlbe[1].pte = PTE2.Hex;
 		tlbe[1].tag = vpa & ~0xfff;
 	}
 }
 
 void InvalidateTLBEntry(u32 vpa)
 {
-	tlb_entry *tlbe = tlb[0][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
-	if (tlbe[0].tag == (vpa & ~0xfff))
-	{
-		tlbe[0].flags |= TLB_FLAG_INVALID;
-	}
-	if (tlbe[1].tag == (vpa & ~0xfff))
-	{
-		tlbe[1].flags |= TLB_FLAG_INVALID;
-	}
-	tlb_entry *tlbe_i = tlb[1][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
-	if (tlbe_i[0].tag == (vpa & ~0xfff))
-	{
-		tlbe_i[0].flags |= TLB_FLAG_INVALID;
-	}
-	if (tlbe_i[1].tag == (vpa & ~0xfff))
-	{
-		tlbe_i[1].flags |= TLB_FLAG_INVALID;
-	}
+	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[0][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	tlbe[0].flags |= TLB_FLAG_INVALID;
+	tlbe[1].flags |= TLB_FLAG_INVALID;
+	PowerPC::tlb_entry *tlbe_i = PowerPC::ppcState.tlb[1][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	tlbe_i[0].flags |= TLB_FLAG_INVALID;
+	tlbe_i[1].flags |= TLB_FLAG_INVALID;
 }
 
 // Page Address Translation
@@ -813,71 +811,58 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	// Direct access to the fastmem Arena
 	// FIXME: is this the best idea for clean code?
-	u8* pRAM = Memory::base;
+	u8* base = Memory::base;
 
 	// hash function no 1 "xor" .360
-	u32 hash1 = (VSID ^ page_index);
-	u32 pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
+	u32 hash = (VSID ^ page_index);
 
-	// hash1
-	for (int i = 0; i < 8; i++)
+	for (int hash_func = 0; hash_func < 2; hash_func++)
 	{
-		UPTE1 PTE1;
-		PTE1.Hex = bswap(*(u32*)&pRAM[pteg_addr]);
-
-		if (PTE1.V && !PTE1.H)
+		if (hash_func == 1)
 		{
-			if (VSID == PTE1.VSID && (api == PTE1.API))
-			{
-				UPTE2 PTE2;
-				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
-
-				UpdateTLBEntry(_Flag, PTE2, _Address);
-
-				// set the access bits
-				switch (_Flag)
-				{
-				case FLAG_READ:     PTE2.R = 1; break;
-				case FLAG_WRITE:    PTE2.C = 1; break;
-				case FLAG_NO_EXCEPTION: break;
-				case FLAG_OPCODE: break;
-				}
-				*(u32*)&pRAM[(pteg_addr + 4)] = bswap(PTE2.Hex);
-
-				return ((PTE2.RPN << 12) | offset);
-			}
+			// hash function no 2 "not" .360
+			hash = ~hash;
 		}
-		pteg_addr+=8;
-	}
 
-	// hash function no 2 "not" .360
-	hash1 = ~hash1;
-	pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
-	for (int i = 0; i < 8; i++)
-	{
-		u32 pte = bswap(*(u32*)&pRAM[pteg_addr]);
-		if ((pte & PTE1_V) && (pte & PTE1_H))
+		u32 pteg_addr = ((hash & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
+
+		if ((pteg_addr >> 28) == 1)
+			base = Memory::m_pEXRAM;
+
+		for (int i = 0; i < 8; i++)
 		{
-			if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte)))
+			u32 pte = bswap(*(u32*)&base[pteg_addr]);
+			bool pteh = (pte & PTE1_H) == 0;
+
+			if (hash_func == 1)
+				pteh = !pteh;
+
+			if ((pte & PTE1_V) && pteh)
 			{
-				UPTE2 PTE2;
-				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
-
-				UpdateTLBEntry(_Flag, PTE2, _Address);
-
-				switch (_Flag)
+				if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte)))
 				{
-				case FLAG_READ:     PTE2.R = 1; break;
-				case FLAG_WRITE:    PTE2.C = 1; break;
-				case FLAG_NO_EXCEPTION: break;
-				case FLAG_OPCODE: break;
-				}
-				*(u32*)&pRAM[(pteg_addr + 4)] = bswap(PTE2.Hex);
+					UPTE2 PTE2;
+					PTE2.Hex = bswap((*(u32*)&base[(pteg_addr + 4)]));
 
-				return ((PTE2.RPN << 12) | offset);
+					// set the access bits
+					switch (_Flag)
+					{
+					case FLAG_NO_EXCEPTION: break;
+					case FLAG_READ:     PTE2.R = 1; break;
+					case FLAG_WRITE:    PTE2.R = 1; PTE2.C = 1; break;
+					case FLAG_OPCODE:   PTE2.R = 1; break;
+					}
+
+					if (_Flag != FLAG_NO_EXCEPTION)
+						*(u32*)&base[(pteg_addr + 4)] = bswap(PTE2.Hex);
+
+					UpdateTLBEntry(_Flag, PTE2, _Address);
+
+					return (PTE2.RPN << 12) | offset;
+				}
 			}
+			pteg_addr += 8;
 		}
-		pteg_addr+=8;
 	}
 	return 0;
 }
