@@ -121,6 +121,20 @@ void Init(int cpu_core)
 	ppcState.pagetable_base = 0;
 	ppcState.pagetable_hashmask = 0;
 
+	for (int tlb = 0; tlb < 2; tlb++)
+	{
+		for (int set = 0; set < 64; set++)
+		{
+			for (int way = 0; way < 2; way++)
+			{
+				ppcState.tlb[tlb][set][way].flags = TLB_FLAG_INVALID;
+				ppcState.tlb[tlb][set][way].paddr = 0;
+				ppcState.tlb[tlb][set][way].pteg = 0;
+				ppcState.tlb[tlb][set][way].tag = 0;
+			}
+		}
+	}
+
 	ResetRegisters();
 	PPCTables::InitTables(cpu_core);
 

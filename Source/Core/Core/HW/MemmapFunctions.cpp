@@ -709,14 +709,6 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
 	if (tlbe[0].tag == (vpa & ~0xfff) && !(tlbe[0].flags & TLB_FLAG_INVALID))
 	{
-		if (_Flag != FLAG_NO_EXCEPTION)
-		{
-			tlbe[0].flags |= TLB_FLAG_MOST_RECENT;
-			tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
-		}
-
-		*paddr = tlbe[0].paddr | (vpa & 0xfff);
-
 		// Check if C bit requires updating
 		if (_Flag == FLAG_WRITE)
 		{
@@ -727,18 +719,18 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 				return 0;
 		}
 
+		if (_Flag != FLAG_NO_EXCEPTION)
+		{
+			tlbe[0].flags |= TLB_FLAG_MOST_RECENT;
+			tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
+		}
+
+		*paddr = tlbe[0].paddr | (vpa & 0xfff);
+
 		return 1;
 	}
 	if (tlbe[1].tag == (vpa & ~0xfff) && !(tlbe[1].flags & TLB_FLAG_INVALID))
 	{
-		if (_Flag != FLAG_NO_EXCEPTION)
-		{
-			tlbe[1].flags |= TLB_FLAG_MOST_RECENT;
-			tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
-		}
-
-		*paddr = tlbe[1].paddr | (vpa & 0xfff);
-
 		// Check if C bit requires updating
 		if (_Flag == FLAG_WRITE)
 		{
@@ -748,6 +740,14 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 			if (PTE2.C == 0)
 				return 0;
 		}
+
+		if (_Flag != FLAG_NO_EXCEPTION)
+		{
+			tlbe[1].flags |= TLB_FLAG_MOST_RECENT;
+			tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
+		}
+
+		*paddr = tlbe[1].paddr | (vpa & 0xfff);
 
 		return 1;
 	}
@@ -781,23 +781,11 @@ static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa,
 void InvalidateTLBEntry(u32 vpa)
 {
 	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[0][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-	if (tlbe[0].tag == (vpa & ~0xfff))
-	{
-		tlbe[0].flags |= TLB_FLAG_INVALID;
-	}
-	if (tlbe[1].tag == (vpa & ~0xfff))
-	{
-		tlbe[1].flags |= TLB_FLAG_INVALID;
-	}
+	tlbe[0].flags |= TLB_FLAG_INVALID;
+	tlbe[1].flags |= TLB_FLAG_INVALID;
 	PowerPC::tlb_entry *tlbe_i = PowerPC::ppcState.tlb[1][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-	if (tlbe_i[0].tag == (vpa & ~0xfff))
-	{
-		tlbe_i[0].flags |= TLB_FLAG_INVALID;
-	}
-	if (tlbe_i[1].tag == (vpa & ~0xfff))
-	{
-		tlbe_i[1].flags |= TLB_FLAG_INVALID;
-	}
+	tlbe_i[0].flags |= TLB_FLAG_INVALID;
+	tlbe_i[1].flags |= TLB_FLAG_INVALID;
 }
 
 // Page Address Translation
@@ -869,6 +857,7 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 				UPTE2 PTE2;
 				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
 
+				// set the access bits
 				switch (_Flag)
 				{
 				case FLAG_READ:     PTE2.R = 1; break;
