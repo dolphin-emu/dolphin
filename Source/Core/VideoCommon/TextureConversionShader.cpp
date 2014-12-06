@@ -4,10 +4,6 @@
 
 #include <cmath>
 #include <cstdio>
-#include <locale.h>
-#ifdef __APPLE__
-	#include <xlocale.h>
-#endif
 
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
@@ -579,10 +575,6 @@ static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 
 const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 {
-#ifndef ANDROID
-	locale_t locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
-	locale_t old_locale = uselocale(locale); // Apply the locale for this thread
-#endif
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	char *p = text;
@@ -666,10 +658,6 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("TextureConversionShader generator - buffer too small, canary has been eaten!");
 
-#ifndef ANDROID
-	uselocale(old_locale); // restore locale
-	freelocale(locale);
-#endif
 	return text;
 }
 
