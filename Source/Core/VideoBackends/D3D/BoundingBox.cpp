@@ -23,7 +23,7 @@ void BBox::Init()
 	if (g_ActiveConfig.backend_info.bSupportsBBox)
 	{
 		// Create 2 buffers here.
-		// First ror unordered access on Default pool.
+		// First for unordered access on default pool.
 		auto desc = CD3D11_BUFFER_DESC(4 * sizeof(s32), D3D11_BIND_UNORDERED_ACCESS, D3D11_USAGE_DEFAULT, 0, 0, 4);
 		int initial_values[4] = { 0, 0, 0, 0 };
 		D3D11_SUBRESOURCE_DATA data;
@@ -33,7 +33,7 @@ void BBox::Init()
 		HRESULT hr;
 		hr = D3D::device->CreateBuffer(&desc, &data, &s_bbox_buffer);
 		CHECK(SUCCEEDED(hr), "Create BoundingBox Buffer.");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_bbox_buffer, "BoundingBox Buffer");
+		D3D::SetDebugObjectName(s_bbox_buffer, "BoundingBox Buffer");
 
 		// Second to use as a staging buffer.
 		desc.Usage = D3D11_USAGE_STAGING;
@@ -41,7 +41,7 @@ void BBox::Init()
 		desc.BindFlags = 0;
 		hr = D3D::device->CreateBuffer(&desc, nullptr, &s_bbox_staging_buffer);
 		CHECK(SUCCEEDED(hr), "Create BoundingBox Staging Buffer.");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_bbox_staging_buffer, "BoundingBox Staging Buffer");
+		D3D::SetDebugObjectName(s_bbox_staging_buffer, "BoundingBox Staging Buffer");
 		
 		// UAV is required to allow concurrent access.
 		D3D11_UNORDERED_ACCESS_VIEW_DESC UAVdesc = {};
@@ -52,7 +52,7 @@ void BBox::Init()
 		UAVdesc.Buffer.NumElements = 4;
 		hr = D3D::device->CreateUnorderedAccessView(s_bbox_buffer, &UAVdesc, &s_bbox_uav);
 		CHECK(SUCCEEDED(hr), "Create BoundingBox UAV.");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)s_bbox_uav, "BoundingBox UAV");
+		D3D::SetDebugObjectName(s_bbox_uav, "BoundingBox UAV");
 	}
 }
 
