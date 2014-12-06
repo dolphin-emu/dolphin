@@ -1699,7 +1699,6 @@ void CFrame::UpdateGUI()
 	bool Paused          = Core::GetState() == Core::CORE_PAUSE;
 	bool Stopping        = Core::GetState() == Core::CORE_STOPPING;
 	bool RunningWii      = Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bool RunningGamecube = Initialized && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 
 	// Make sure that we have a toolbar
 	if (m_ToolBar)
