@@ -289,7 +289,7 @@ TASInputDlg::Control TASInputDlg::CreateControl(long style, int width, int heigh
 TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX, bool reverseY)
 {
 	Stick tempStick;
-	tempStick.bitmap = new wxStaticBitmap(this, id_stick, CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
+	tempStick.bitmap = new wxStaticBitmap(this, id_stick, CreateStickBitmap(128, 128));
 	tempStick.bitmap->Bind(wxEVT_MOTION, &TASInputDlg::OnMouseDownL, this);
 	tempStick.bitmap->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
 	tempStick.bitmap->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
@@ -338,7 +338,7 @@ wxStaticBoxSizer* TASInputDlg::CreateAccelLayout(Control* x, Control* y, Control
 TASInputDlg::Button TASInputDlg::CreateButton(const std::string& name)
 {
 	Button temp;
-	wxCheckBox* checkbox = new wxCheckBox(this, m_eleID++, name, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxCheckBoxNameStr);
+	wxCheckBox* checkbox = new wxCheckBox(this, m_eleID++, name);
 	checkbox->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
 	checkbox->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurbo, this);
 	temp.checkbox = checkbox;
@@ -710,7 +710,7 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 	if (event.CanVeto())
 	{
 		event.Skip(false);
-		this->Show(false);
+		Show(false);
 		ResetValues();
 	}
 }
@@ -753,7 +753,7 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 	stick->x_cont.slider->SetValue(stick->x_cont.default_value);
 	stick->y_cont.slider->SetValue(stick->y_cont.default_value);
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void TASInputDlg::OnRightClickSlider(wxMouseEvent& event)
@@ -806,7 +806,7 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 
 	stick->x_cont.slider->SetValue(stick->x_cont.value);
 	stick->y_cont.slider->SetValue(stick->y_cont.value);
-	event.Skip(true);
+	event.Skip();
 }
 
 void TASInputDlg::SetTurbo(wxMouseEvent& event)
@@ -824,7 +824,7 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 		if (button)
 			button->turbo_on = false;
 
-		event.Skip(true);
+		event.Skip();
 		return;
 	}
 
@@ -834,7 +834,7 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 		button->turbo_on = !button->turbo_on;
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void TASInputDlg::ButtonTurbo()
