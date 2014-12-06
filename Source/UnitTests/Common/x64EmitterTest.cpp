@@ -972,6 +972,19 @@ VEX_RMI_TEST(RORX)
 			} \
 	}
 
+AVX_RRM_TEST(VANDPS,  "dqword")
+AVX_RRM_TEST(VANDPD,  "dqword")
+AVX_RRM_TEST(VANDNPS, "dqword")
+AVX_RRM_TEST(VANDNPD, "dqword")
+AVX_RRM_TEST(VORPS,   "dqword")
+AVX_RRM_TEST(VORPD,   "dqword")
+AVX_RRM_TEST(VXORPS,  "dqword")
+AVX_RRM_TEST(VXORPD,  "dqword")
+AVX_RRM_TEST(VPAND,   "dqword")
+AVX_RRM_TEST(VPANDN,  "dqword")
+AVX_RRM_TEST(VPOR,    "dqword")
+AVX_RRM_TEST(VPXOR,   "dqword")
+
 #define FMA_TEST(Name, P, packed) \
 	AVX_RRM_TEST(Name ## 132 ## P ## S, packed ? "dqword" : "dword") \
 	AVX_RRM_TEST(Name ## 213 ## P ## S, packed ? "dqword" : "dword") \
