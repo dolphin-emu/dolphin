@@ -308,7 +308,7 @@ wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, const wxStrin
 	temp_xslider_box->Add(tempStick->x_cont.slider, 0, wxALIGN_TOP);
 	temp_xslider_box->Add(tempStick->x_cont.text, 0, wxALIGN_TOP);
 	temp_stick_box->Add(temp_xslider_box);
-	temp_stick_box->Add(tempStick->bitmap,0, wxALL|wxCenter,3);
+	temp_stick_box->Add(tempStick->bitmap, 0, wxALL | wxALIGN_CENTER, 3);
 	temp_box->Add(temp_stick_box);
 	temp_yslider_box->Add(tempStick->y_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
 	temp_yslider_box->Add(tempStick->y_cont.text, 0, wxALIGN_CENTER_VERTICAL);
