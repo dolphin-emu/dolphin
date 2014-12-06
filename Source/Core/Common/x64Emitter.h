@@ -766,15 +766,25 @@ public:
 	void VMULPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VDIVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
-	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
-	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
-	void VPOR(X64Reg regOp1, X64Reg regOp2, OpArg arg);
-	void VPXOR(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSHUFPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 shuffle);
 	void VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
-	// FMA
+	void VANDPS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VANDPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VANDNPS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VANDNPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VORPS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VORPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VXORPS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VXORPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+
+	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPOR(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPXOR(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+
+	// FMA3
 	void VFMADD132PS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VFMADD213PS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VFMADD231PS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
