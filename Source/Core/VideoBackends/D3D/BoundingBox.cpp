@@ -58,21 +58,9 @@ void BBox::Init()
 
 void BBox::Shutdown()
 {
-	if (s_bbox_buffer != nullptr)
-	{
-		s_bbox_buffer->Release();
-		s_bbox_buffer = nullptr;
-	}
-	if (s_bbox_staging_buffer != nullptr)
-	{
-		s_bbox_staging_buffer->Release();
-		s_bbox_staging_buffer = nullptr;
-	}
-	if (s_bbox_uav != nullptr)
-	{
-		s_bbox_uav->Release();
-		s_bbox_uav = nullptr;
-	}
+	SAFE_RELEASE(s_bbox_buffer);
+	SAFE_RELEASE(s_bbox_staging_buffer);
+	SAFE_RELEASE(s_bbox_uav);
 }
 
 void BBox::Set(int index, int value)
