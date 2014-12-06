@@ -963,9 +963,9 @@ VEX_RMI_TEST(RORX)
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
 			{ \
-				emitter->Name(r.reg, RAX, R(RAX)); \
-				emitter->Name(RAX, RAX, R(r.reg)); \
-				emitter->Name(RAX, r.reg, MatR(R12)); \
+				emitter->Name(r.reg, XMM0, R(XMM0)); \
+				emitter->Name(XMM0, XMM0, R(r.reg)); \
+				emitter->Name(XMM0, r.reg, MatR(R12)); \
 				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name + ", " + regset.out_name  + " " \
 				                  #Name " " + regset.out_name + ", " + regset.out_name + ", " + r.name + " " \
 				                  #Name " " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12] "); \
