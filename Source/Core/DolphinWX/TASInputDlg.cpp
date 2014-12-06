@@ -162,10 +162,10 @@ void TASInputDlg::CreateWiiLayout(int num)
 	m_ext_szr->Add(m_c_stick_szr);
 	m_ext_szr->Add(nunchukaxisBox);
 
-	for (unsigned int i = 0; i < 10; ++i)
+	for (Control* const control : m_controls)
 	{
-		if (m_controls[i] != nullptr)
-			m_controls[i]->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
+		if (control != nullptr)
+			control->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
 	}
 
 	for (unsigned int i = 4; i < 14; ++i)
@@ -224,10 +224,10 @@ void TASInputDlg::CreateGCLayout()
 	shoulder_box->Add(m_r_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
 	shoulder_box->Add(m_r_cont.text, 0, wxALIGN_CENTER_VERTICAL);
 
-	for (unsigned int i = 0; i < 10; ++i)
+	for (Control* const control : m_controls)
 	{
-		if (m_controls[i] != nullptr)
-			m_controls[i]->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
+		if (control != nullptr)
+			control->slider->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnRightClickSlider, this);
 	}
 
 	wxStaticBoxSizer* const m_buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
@@ -348,19 +348,19 @@ TASInputDlg::Button TASInputDlg::CreateButton(const std::string& name)
 
 void TASInputDlg::ResetValues()
 {
-	for (unsigned int i = 0; i < 14; ++i)
+	for (Button* const button : m_buttons)
 	{
-		if (m_buttons[i] != nullptr)
-			m_buttons[i]->checkbox->SetValue(false);
+		if (button != nullptr)
+			button->checkbox->SetValue(false);
 	}
 
-	for (unsigned int i = 0; i < 10; ++i)
+	for (Control* const control : m_controls)
 	{
-		if (m_controls[i] != nullptr)
+		if (control != nullptr)
 		{
-			m_controls[i]->value = m_controls[i]->default_value;
-			m_controls[i]->slider->SetValue(m_controls[i]->default_value);
-			m_controls[i]->text->SetValue(std::to_string(m_controls[i]->default_value));
+			control->value = control->default_value;
+			control->slider->SetValue(control->default_value);
+			control->text->SetValue(std::to_string(control->default_value));
 		}
 	}
 }
@@ -656,10 +656,10 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 {
 	wxTextCtrl* text = nullptr;
 
-	for (unsigned int i = 0; i < 10; ++i)
+	for (Control* const control : m_controls)
 	{
-		if (m_controls[i] != nullptr && event.GetId() == m_controls[i]->slider_id)
-			text = m_controls[i]->text;
+		if (control != nullptr && event.GetId() == control->slider_id)
+			text = control->text;
 	}
 
 	int value = ((wxSlider*) event.GetEventObject())->GetValue();
@@ -674,15 +674,16 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 	if (!((wxTextCtrl*) event.GetEventObject())->GetValue().ToULong(&value))
 		return;
 
-	for (unsigned int i = 0; i < 10; ++i)
+	for (Control* const control : m_controls)
 	{
-		if (m_controls[i] != nullptr && event.GetId() == m_controls[i]->text_id)
+		if (control != nullptr && event.GetId() == control->text_id)
 		{
-			int v = value > m_controls[i]->range ? m_controls[i]->range : value;
-			m_controls[i]->slider->SetValue(v);
-			m_controls[i]->value = v;
+			int v = (value > control->range) ? control->range : value;
+			control->slider->SetValue(v);
+			control->value = v;
 		}
 	}
+
 	if (m_controls[2] != nullptr)
 	{
 		int x = m_c_stick.x_cont.value;
@@ -720,9 +721,9 @@ bool TASInputDlg::TASHasFocus()
 	if (!m_has_layout)
 		return false;
 	//allows numbers to be used as hotkeys
-	for (unsigned int i = 0; i < 10; ++i)
+	for (Control* const control : m_controls)
 	{
-		if (m_controls[i] != nullptr && wxWindow::FindFocus() == m_controls[i]->text)
+		if (control != nullptr && wxWindow::FindFocus() == control->text)
 			return false;
 	}
 
@@ -758,13 +759,13 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 
 void TASInputDlg::OnRightClickSlider(wxMouseEvent& event)
 {
-	for (unsigned int i = 0; i < 10; ++i)
+	for (Control* const control : m_controls)
 	{
-		if (m_controls[i] != nullptr && event.GetId() == m_controls[i]->slider_id)
+		if (control != nullptr && event.GetId() == control->slider_id)
 		{
-			m_controls[i]->value = m_controls[i]->default_value;
-			m_controls[i]->slider->SetValue(m_controls[i]->default_value);
-			m_controls[i]->text->SetValue(std::to_string(m_controls[i]->default_value));
+			control->value = control->default_value;
+			control->slider->SetValue(control->default_value);
+			control->text->SetValue(std::to_string(control->default_value));
 		}
 	}
 }
@@ -813,10 +814,10 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 {
 	Button* button = nullptr;
 
-	for (unsigned int i = 0; i < 14; ++i)
+	for (Button* const btn : m_buttons)
 	{
-		if (m_buttons[i] != nullptr && event.GetId() == m_buttons[i]->id)
-			button = m_buttons[i];
+		if (btn != nullptr && event.GetId() == btn->id)
+			button = btn;
 	}
 
 	if (event.LeftDown())
@@ -844,10 +845,10 @@ void TASInputDlg::ButtonTurbo()
 	if (frame != Movie::g_currentFrame)
 	{
 		frame = Movie::g_currentFrame;
-		for (unsigned int i = 0; i < 14; ++i)
+		for (Button* const button : m_buttons)
 		{
-			if (m_buttons[i] != nullptr && m_buttons[i]->turbo_on)
-				m_buttons[i]->checkbox->SetValue(!m_buttons[i]->checkbox->GetValue());
+			if (button != nullptr && button->turbo_on)
+				button->checkbox->SetValue(!button->checkbox->GetValue());
 		}
 	}
 }
