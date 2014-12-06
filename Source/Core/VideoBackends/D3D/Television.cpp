@@ -151,7 +151,7 @@ void Television::Render()
 		MathUtil::Rectangle<int> sourceRc(0, 0, int(m_curWidth), int(m_curHeight));
 		MathUtil::Rectangle<float> destRc(-1.f, 1.f, 1.f, -1.f);
 
-		D3D::stateman->setSampler(0, m_samplerState);
+		D3D::stateman->SetSampler(0, m_samplerState);
 
 		D3D::drawShadedTexSubQuad(
 			m_yuyvTextureSRV, &sourceRc,

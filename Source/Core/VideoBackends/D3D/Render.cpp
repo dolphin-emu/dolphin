@@ -356,7 +356,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
-		D3D::stateman->setPixelConstants(0, access_efb_cbuf);
+		D3D::stateman->SetPixelConstants(0, access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), nullptr);
 		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
@@ -1010,7 +1010,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	{
 		// TODO: cache SamplerState directly, not d3d object
 		gx_state.sampler[stage].max_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-		D3D::stateman->setSampler(stage, gx_state_cache.Get(gx_state.sampler[stage]));
+		D3D::stateman->SetSampler(stage, gx_state_cache.Get(gx_state.sampler[stage]));
 	}
 
 	if (bUseDstAlpha)
@@ -1023,11 +1023,11 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
 	ID3D11Buffer* pixelConstants = PixelShaderCache::GetConstantBuffer();
 
-	D3D::stateman->setPixelConstants(pixelConstants, g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
-	D3D::stateman->setVertexConstants(vertexConstants);
+	D3D::stateman->SetPixelConstants(pixelConstants, g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
+	D3D::stateman->SetVertexConstants(vertexConstants);
 
-	D3D::stateman->setPixelShader(PixelShaderCache::GetActiveShader());
-	D3D::stateman->setVertexShader(VertexShaderCache::GetActiveShader());
+	D3D::stateman->SetPixelShader(PixelShaderCache::GetActiveShader());
+	D3D::stateman->SetVertexShader(VertexShaderCache::GetActiveShader());
 }
 
 void Renderer::RestoreState()

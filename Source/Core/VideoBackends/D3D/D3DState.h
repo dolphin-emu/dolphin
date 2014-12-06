@@ -110,7 +110,7 @@ public:
 	void PopDepthState();
 	void PopRasterizerState();
 
-	void setTexture(u32 index, ID3D11ShaderResourceView* texture)
+	void SetTexture(u32 index, ID3D11ShaderResourceView* texture)
 	{
 		if (m_current.textures[index] != texture)
 		{
@@ -119,7 +119,7 @@ public:
 		}
 	}
 
-	void setSampler(u32 index, ID3D11SamplerState* sampler)
+	void SetSampler(u32 index, ID3D11SamplerState* sampler)
 	{
 		if (m_current.samplers[index] != sampler)
 		{
@@ -128,7 +128,7 @@ public:
 		}
 	}
 
-	void setPixelConstants(ID3D11Buffer* buffer0, ID3D11Buffer* buffer1 = nullptr)
+	void SetPixelConstants(ID3D11Buffer* buffer0, ID3D11Buffer* buffer1 = nullptr)
 	{
 		if (m_current.pixelConstants[0] != buffer0)
 		{
@@ -143,7 +143,7 @@ public:
 		}
 	}
 
-	void setVertexConstants(ID3D11Buffer* buffer)
+	void SetVertexConstants(ID3D11Buffer* buffer)
 	{
 		if (m_current.vertexConstants != buffer)
 		{
@@ -152,7 +152,7 @@ public:
 		}
 	}
 
-	void setGeometryConstants(ID3D11Buffer* buffer)
+	void SetGeometryConstants(ID3D11Buffer* buffer)
 	{
 		if (m_current.geometryConstants != buffer)
 		{
@@ -161,7 +161,7 @@ public:
 		}
 	}
 
-	void setVertexBuffer(ID3D11Buffer* buffer, u32 stride, u32 offset)
+	void SetVertexBuffer(ID3D11Buffer* buffer, u32 stride, u32 offset)
 	{
 		if (m_current.vertexBuffer != buffer ||
 			m_current.vertexBufferStride != stride ||
@@ -174,7 +174,7 @@ public:
 		}
 	}
 
-	void setIndexBuffer(ID3D11Buffer* buffer)
+	void SetIndexBuffer(ID3D11Buffer* buffer)
 	{
 		if (m_current.indexBuffer != buffer)
 		{
@@ -183,7 +183,7 @@ public:
 		}
 	}
 
-	void setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology)
+	void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology)
 	{
 		if (m_current.topology != topology)
 		{
@@ -192,7 +192,7 @@ public:
 		}
 	}
 
-	void setInputLayout(ID3D11InputLayout* layout)
+	void SetInputLayout(ID3D11InputLayout* layout)
 	{
 		if (m_current.inputLayout != layout)
 		{
@@ -201,7 +201,7 @@ public:
 		}
 	}
 
-	void setPixelShader(ID3D11PixelShader* shader)
+	void SetPixelShader(ID3D11PixelShader* shader)
 	{
 		if (m_current.pixelShader != shader)
 		{
@@ -210,13 +210,13 @@ public:
 		}
 	}
 
-	void setPixelShaderDynamic(ID3D11PixelShader* shader, ID3D11ClassInstance * const * classInstances, u32 classInstancesCount)
+	void SetPixelShaderDynamic(ID3D11PixelShader* shader, ID3D11ClassInstance * const * classInstances, u32 classInstancesCount)
 	{
 		D3D::context->PSSetShader(shader, classInstances, classInstancesCount);
 		m_pending.pixelShader = shader;
 	}
 
-	void setVertexShader(ID3D11VertexShader* shader)
+	void SetVertexShader(ID3D11VertexShader* shader)
 	{
 		if (m_current.vertexShader != shader)
 		{
@@ -225,7 +225,7 @@ public:
 		}
 	}
 
-	void setGeometryShader(ID3D11GeometryShader* shader)
+	void SetGeometryShader(ID3D11GeometryShader* shader)
 	{
 		if (m_current.geometryShader != shader)
 		{

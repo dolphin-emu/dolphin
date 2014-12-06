@@ -30,7 +30,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	D3D::stateman->setTexture(stage, texture->GetSRV());
+	D3D::stateman->SetTexture(stage, texture->GetSRV());
 }
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
@@ -144,7 +144,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 		}
-		D3D::stateman->setPixelConstants(efbcopycbuf[cbufid]);
+		D3D::stateman->SetPixelConstants(efbcopycbuf[cbufid]);
 
 		const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		// TODO: try targetSource.asRECT();

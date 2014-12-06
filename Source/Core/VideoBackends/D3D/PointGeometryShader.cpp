@@ -218,8 +218,8 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 			DEBUG_LOG(VIDEO, "Point params: size %f, texOffset %f, vpWidth %f, vpHeight %f",
 				pointSize, texOffset, vpWidth, vpHeight);
 
-			D3D::stateman->setGeometryShader(shaderIt->second);
-			D3D::stateman->setGeometryConstants(m_paramsBuffer);
+			D3D::stateman->SetGeometryShader(shaderIt->second);
+			D3D::stateman->SetGeometryConstants(m_paramsBuffer);
 
 			return true;
 		}

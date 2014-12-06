@@ -128,15 +128,15 @@ void VertexManager::Draw(u32 stride)
 	u32 components = VertexLoaderManager::GetCurrentVertexFormat()->m_components;
 	u32 indices = IndexGenerator::GetIndexLen();
 
-	D3D::stateman->setVertexBuffer(m_buffers[m_currentBuffer], stride, 0);
-	D3D::stateman->setIndexBuffer(m_buffers[m_currentBuffer]);
+	D3D::stateman->SetVertexBuffer(m_buffers[m_currentBuffer], stride, 0);
+	D3D::stateman->SetIndexBuffer(m_buffers[m_currentBuffer]);
 
 	u32 baseVertex = m_vertexDrawOffset / stride;
 	u32 startIndex = m_indexDrawOffset / sizeof(u16);
 
 	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
-		D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		D3D::stateman->Apply();
 		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
@@ -158,14 +158,14 @@ void VertexManager::Draw(u32 stride)
 		if (m_lineShader.SetShader(components, lineWidth,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 			D3D::stateman->Apply();
 			D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
 			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			D3D::stateman->setGeometryShader(nullptr);
+			D3D::stateman->SetGeometryShader(nullptr);
 		}
 	}
 	else //if (current_primitive_type == PRIMITIVE_POINTS)
@@ -183,14 +183,14 @@ void VertexManager::Draw(u32 stride)
 		if (m_pointShader.SetShader(components, pointSize,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 			D3D::stateman->Apply();
 			D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
 			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			D3D::stateman->setGeometryShader(nullptr);
+			D3D::stateman->SetGeometryShader(nullptr);
 		}
 	}
 }

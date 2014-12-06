@@ -280,8 +280,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	// Set up all the state for XFB encoding
 
-	D3D::stateman->setPixelShader(m_pShader);
-	D3D::stateman->setVertexShader(m_vShader);
+	D3D::stateman->SetPixelShader(m_pShader);
+	D3D::stateman->SetVertexShader(m_vShader);
 
 	D3D::stateman->PushBlendState(m_xfbEncodeBlendState);
 	D3D::stateman->PushDepthState(m_xfbEncodeDepthState);
@@ -290,11 +290,11 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(width/2), FLOAT(height));
 	D3D::context->RSSetViewports(1, &vp);
 
-	D3D::stateman->setInputLayout(m_quadLayout);
-	D3D::stateman->setPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	D3D::stateman->SetInputLayout(m_quadLayout);
+	D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	UINT stride = sizeof(QuadVertex);
 	UINT offset = 0;
-	D3D::stateman->setVertexBuffer(m_quad, stride, offset);
+	D3D::stateman->SetVertexBuffer(m_quad, stride, offset);
 
 	TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(srcRect);
 
@@ -312,10 +312,10 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetEFBColorTexture()->GetSRV();
 
-	D3D::stateman->setVertexConstants(m_encodeParams);
-	D3D::stateman->setPixelConstants(m_encodeParams);
-	D3D::stateman->setTexture(0, pEFB);
-	D3D::stateman->setSampler(0, m_efbSampler);
+	D3D::stateman->SetVertexConstants(m_encodeParams);
+	D3D::stateman->SetPixelConstants(m_encodeParams);
+	D3D::stateman->SetTexture(0, pEFB);
+	D3D::stateman->SetSampler(0, m_efbSampler);
 
 	// Encode!
 
@@ -331,13 +331,13 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	D3D::context->OMSetRenderTargets(0, nullptr, nullptr);
 
-	D3D::stateman->setSampler(0, nullptr);
-	D3D::stateman->setTexture(0, nullptr);
-	D3D::stateman->setPixelConstants(nullptr);
-	D3D::stateman->setVertexConstants(nullptr);
+	D3D::stateman->SetSampler(0, nullptr);
+	D3D::stateman->SetTexture(0, nullptr);
+	D3D::stateman->SetPixelConstants(nullptr);
+	D3D::stateman->SetVertexConstants(nullptr);
 
-	D3D::stateman->setPixelShader(nullptr);
-	D3D::stateman->setVertexShader(nullptr);
+	D3D::stateman->SetPixelShader(nullptr);
+	D3D::stateman->SetVertexShader(nullptr);
 
 	D3D::stateman->PopRasterizerState();
 	D3D::stateman->PopDepthState();
