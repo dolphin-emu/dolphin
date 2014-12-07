@@ -27,14 +27,14 @@ DSystemInfo::DSystemInfo(QWidget* parent_widget) :
 	UpdateSystemInfo();
 
 	QPushButton* btn = m_ui->buttonBox->addButton(tr("Copy"), QDialogButtonBox::ActionRole);
-	connect(btn, SIGNAL(pressed()), this, SLOT(btnCopy_pressed()));
+	connect(btn, SIGNAL(pressed()), this, SLOT(CopyPressed()));
 }
 
 DSystemInfo::~DSystemInfo()
 {
 }
 
-void DSystemInfo::btnCopy_pressed()
+void DSystemInfo::CopyPressed()
 {
 	QClipboard* clipboard = QApplication::clipboard();
 	clipboard->setText(m_ui->txtSysInfo->toPlainText());
@@ -75,8 +75,6 @@ QString DSystemInfo::GetOS() const
 #elif defined(Q_OS_MAC)
 	ret += SL("Mac OS X ");
 	switch (QSysInfo::MacintoshVersion) {
-	case QSysInfo::MV_10_7: ret += SL("10.7"); break;
-	case QSysInfo::MV_10_8: ret += SL("10.8"); break;
 	case QSysInfo::MV_10_9: ret += SL("10.9"); break;
 	default: ret += SL("(unknown)"); break;
 	}

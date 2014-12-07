@@ -21,7 +21,7 @@ public:
 	~DSystemInfo();
 
 private slots:
-	void btnCopy_pressed();
+	void CopyPressed();
 
 private:
 	std::unique_ptr<Ui::DSystemInfo> m_ui;
