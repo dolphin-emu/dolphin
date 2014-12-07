@@ -505,6 +505,7 @@ void ProgramShaderCache::Shutdown()
 void ProgramShaderCache::CreateHeader()
 {
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
+
 	snprintf(s_glsl_header, sizeof(s_glsl_header),
 		"%s\n"
 		"%s\n" // ubo
@@ -515,6 +516,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // Sampler binding
 		"%s\n" // storage buffer
 		"%s\n" // shader5
+		"%s\n" // AEP
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -549,6 +551,7 @@ void ProgramShaderCache::CreateHeader()
 		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
+		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""
