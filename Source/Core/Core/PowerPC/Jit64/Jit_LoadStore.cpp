@@ -167,7 +167,8 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	{
 		if (inst.OPCD == 31)
 		{
-			gpr.Lock(b);
+			if (!gpr.R(b).IsImm())
+				gpr.BindToRegister(b, true, false);
 			opAddress = gpr.R(b);
 		}
 		else
