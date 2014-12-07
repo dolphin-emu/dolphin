@@ -835,16 +835,6 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 		return false;
 }
 
-bool CSIDevice_GCSteeringWheel::NetPlay_GetInput(u8 numPAD, GCPadStatus* PadStatus)
-{
-	return false;
-}
-
-bool CSIDevice_DanceMat::NetPlay_GetInput(u8 numPAD, GCPadStatus* PadStatus)
-{
-	return false;
-}
-
 // called from ---CPU--- thread
 // so all players' games get the same time
 u32 CEXIIPL::NetPlay_GetGCTime()
@@ -867,16 +857,6 @@ u8 CSIDevice_GCController::NetPlay_InGamePadToLocalPad(u8 numPAD)
 		return netplay_client->InGamePadToLocalPad(numPAD);
 	else
 		return numPAD;
-}
-
-u8 CSIDevice_GCSteeringWheel::NetPlay_InGamePadToLocalPad(u8 numPAD)
-{
-	return CSIDevice_GCController::NetPlay_InGamePadToLocalPad(numPAD);
-}
-
-u8 CSIDevice_DanceMat::NetPlay_InGamePadToLocalPad(u8 numPAD)
-{
-	return CSIDevice_GCController::NetPlay_InGamePadToLocalPad(numPAD);
 }
 
 bool NetPlay::IsNetPlayRunning()

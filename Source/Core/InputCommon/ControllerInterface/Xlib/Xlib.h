@@ -70,8 +70,7 @@ private:
 	};
 
 public:
-	bool UpdateInput() override;
-	bool UpdateOutput() override;
+	void UpdateInput() override;
 
 	KeyboardMouse(Window window);
 	~KeyboardMouse();

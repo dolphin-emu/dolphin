@@ -90,11 +90,6 @@ Joystick::~Joystick()
 		m_ff_device->Release();
 }
 
-bool Joystick::UpdateInput()
-{
-	return true;
-}
-
 std::string Joystick::GetName() const
 {
 	return m_device_name;

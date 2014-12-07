@@ -38,17 +38,6 @@ static const ForceType force_type_names[] =
 	//{GUID_Friction, "Friction"},
 };
 
-ForceFeedbackDevice::~ForceFeedbackDevice()
-{
-	// release the ff effect iface's
-	for (EffectState& state : m_state_out)
-	{
-		state.iface->Stop();
-		state.iface->Unload();
-		state.iface->Release();
-	}
-}
-
 bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, int cAxes)
 {
 	if (cAxes == 0)
@@ -107,14 +96,12 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 		LPDIRECTINPUTEFFECT pEffect;
 		if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, nullptr)))
 		{
-			m_state_out.push_back(EffectState(pEffect));
-
 			if (f.guid == GUID_ConstantForce)
-				AddOutput(new ForceConstant(f.name, m_state_out.back()));
+				AddOutput(new ForceConstant(f.name, pEffect));
 			else if (f.guid == GUID_RampForce)
-				AddOutput(new ForceRamp(f.name, m_state_out.back()));
+				AddOutput(new ForceRamp(f.name, pEffect));
 			else
-				AddOutput(new ForcePeriodic(f.name, m_state_out.back()));
+				AddOutput(new ForcePeriodic(f.name, pEffect));
 		}
 	}
 
@@ -133,40 +120,32 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	return true;
 }
 
-bool ForceFeedbackDevice::UpdateOutput()
+template<typename P>
+ForceFeedbackDevice::Force<P>::~Force()
 {
-	size_t ok_count = 0;
+	m_iface->Stop();
+	m_iface->Unload();
+	m_iface->Release();
+}
 
-	DIEFFECT eff;
-	memset(&eff, 0, sizeof(eff));
+template<typename P>
+void ForceFeedbackDevice::Force<P>::Update()
+{
+	DIEFFECT eff = {};
 	eff.dwSize = sizeof(DIEFFECT);
 	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 
-	for (EffectState& state : m_state_out)
-	{
-		if (state.params)
-		{
-			if (state.size)
-			{
-				eff.cbTypeSpecificParams = state.size;
-				eff.lpvTypeSpecificParams = state.params;
-				// set params and start effect
-				ok_count += SUCCEEDED(state.iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START));
-			}
-			else
-			{
-				ok_count += SUCCEEDED(state.iface->Stop());
-			}
+	eff.cbTypeSpecificParams = sizeof(P);
+	eff.lpvTypeSpecificParams = &params;
 
-			state.params = nullptr;
-		}
-		else
-		{
-			++ok_count;
-		}
-	}
+	// set params and start effect
+	m_iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START);
+}
 
-	return (m_state_out.size() == ok_count);
+template<typename P>
+void ForceFeedbackDevice::Force<P>::Stop()
+{
+	m_iface->Stop();
 }
 
 template<>
@@ -174,15 +153,14 @@ void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
 
-	LONG &val = params.lMagnitude;
-	if (val != new_val)
-	{
-		val = new_val;
-		m_state.params = &params; // tells UpdateOutput the state has changed
+	if (params.lMagnitude == new_val)
+		return;
 
-		// tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
+	params.lMagnitude = new_val;
+	if (new_val)
+		Update();
+	else
+		Stop();
 }
 
 template<>
@@ -190,14 +168,14 @@ void ForceFeedbackDevice::ForceRamp::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
 
-	if (params.lStart != new_val)
-	{
-		params.lStart = params.lEnd = new_val;
-		m_state.params = &params; // tells UpdateOutput the state has changed
+	if (params.lStart == new_val)
+		return;
 
-		// tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
+	params.lStart = params.lEnd = new_val;
+	if (new_val)
+		Update();
+	else
+		Stop();
 }
 
 template<>
@@ -205,22 +183,19 @@ void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state)
 {
 	const DWORD new_val = DWORD(10000 * state);
 
-	DWORD &val = params.dwMagnitude;
-	if (val != new_val)
-	{
-		val = new_val;
-		//params.dwPeriod = 0;//DWORD(0.05 * DI_SECONDS); // zero is working fine for me
+	if (params.dwMagnitude == new_val)
+		return;
 
-		m_state.params = &params; // tells UpdateOutput the state has changed
-
-		// tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
+	params.dwMagnitude = new_val;
+	if (new_val)
+		Update();
+	else
+		Stop();
 }
 
 template <typename P>
-ForceFeedbackDevice::Force<P>::Force(const std::string& name, EffectState& state)
-: m_name(name), m_state(state)
+ForceFeedbackDevice::Force<P>::Force(const std::string& name, LPDIRECTINPUTEFFECT iface)
+: m_name(name), m_iface(iface)
 {
 	memset(&params, 0, sizeof(params));
 }
