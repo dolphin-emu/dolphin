@@ -4,6 +4,7 @@
 
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
+#include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
@@ -276,6 +277,10 @@ void RunGpuLoop()
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	u32 cyclesExecuted = 0;
 
+	// If the host CPU has only two cores, idle loop instead of busy loop
+	// This allows a system that we are maxing out in dual core mode to do other things
+	bool yield_cpu = cpu_info.num_cores <= 2;
+
 	while (GpuRunningState)
 	{
 		g_video_backend->PeekMessages();
@@ -354,9 +359,8 @@ void RunGpuLoop()
 			// NOTE(jsd): Calling SwitchToThread() on Windows 7 x64 is a hot spot, according to profiler.
 			// See https://docs.google.com/spreadsheet/ccc?key=0Ah4nh0yGtjrgdFpDeF9pS3V6RUotRVE3S3J4TGM1NlE#gid=0
 			// for benchmark details.
-#if 0
-			Common::YieldCPU();
-#endif
+			if (yield_cpu)
+				Common::YieldCPU();
 		}
 		else
 		{
