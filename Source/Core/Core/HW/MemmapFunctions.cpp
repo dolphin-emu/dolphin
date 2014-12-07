@@ -811,7 +811,7 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	// Direct access to the fastmem Arena
 	// FIXME: is this the best idea for clean code?
-	u8* base = Memory::base;
+	u8* base_mem = Memory::base;
 
 	// hash function no 1 "xor" .360
 	u32 hash = (VSID ^ page_index);
@@ -827,11 +827,11 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 		u32 pteg_addr = ((hash & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 
 		if ((pteg_addr >> 28) == 1)
-			base = Memory::m_pEXRAM;
+			base_mem = Memory::m_pEXRAM;
 
 		for (int i = 0; i < 8; i++)
 		{
-			u32 pte = bswap(*(u32*)&base[pteg_addr]);
+			u32 pte = bswap(*(u32*)&base_mem[pteg_addr]);
 			bool pteh = (pte & PTE1_H) == 0;
 
 			if (hash_func == 1)
@@ -842,7 +842,7 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 				if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte)))
 				{
 					UPTE2 PTE2;
-					PTE2.Hex = bswap((*(u32*)&base[(pteg_addr + 4)]));
+					PTE2.Hex = bswap((*(u32*)&base_mem[(pteg_addr + 4)]));
 
 					// set the access bits
 					switch (_Flag)
@@ -854,7 +854,7 @@ static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 					}
 
 					if (_Flag != FLAG_NO_EXCEPTION)
-						*(u32*)&base[(pteg_addr + 4)] = bswap(PTE2.Hex);
+						*(u32*)&base_mem[(pteg_addr + 4)] = bswap(PTE2.Hex);
 
 					UpdateTLBEntry(_Flag, PTE2, _Address);
 
