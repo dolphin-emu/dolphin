@@ -551,7 +551,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	if (!jit->js.memcheck &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
-		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
+		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP)) &&
+		!jit->js.maybeFifo
 #ifdef ENABLE_MEM_CHECK
 	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
 #endif
@@ -590,7 +591,24 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
 	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
 
-	FixupBranch slow, exit;
+	FixupBranch slow, exit, exit2, skipfifo;
+	if (jit->js.maybeFifo)
+	{
+		CMP(32, R(reg_addr), Imm32(0xCC008000));
+		skipfifo = J_CC(CC_NE);
+		//static u64 count[2];
+		//ADD(64, M(&count[0]), Imm32(1));
+		if (!reg_value.IsSimpleReg() || reg_value.GetSimpleReg() != RSCRATCH)
+			MOV(accessSize, R(RSCRATCH), reg_value);
+		if (!swap)
+			BSWAP(accessSize, RSCRATCH);
+		UnsafeWriteGatherPipe(accessSize);
+		exit2 = J();
+		SetJumpTarget(skipfifo);
+		//ADD(64, M(&count[1]), Imm32(1));
+		//ERROR_LOG(COMMON, "%llu %llu", count[0], count[1]);
+		jit->js.fifoBytesThisBlock += accessSize >> 3;
+	}
 	slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
 	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
 	if (farcode.Enabled())
@@ -639,6 +657,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 		SwitchToNearCode();
 	}
 	SetJumpTarget(exit);
+	if (jit->js.maybeFifo)
+		SetJumpTarget(exit2);
 }
 
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address, bool swap)

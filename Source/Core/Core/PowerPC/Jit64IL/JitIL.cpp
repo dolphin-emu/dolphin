@@ -363,7 +363,7 @@ void JitIL::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
-		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+		ABI_CallFunctionC((void *)&GPFifo::CheckGatherPipe, 0);
 	}
 
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.

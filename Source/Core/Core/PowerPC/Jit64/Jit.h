@@ -111,6 +111,7 @@ public:
 	void WriteRfiExitDestInRSCRATCH();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	bool Cleanup();
+	void FifoWriteCheck();
 
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateConstantOverflow(s64 val);

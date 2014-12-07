@@ -55,7 +55,7 @@ void ResetGatherPipe()
 	m_gatherPipeCount = 0;
 }
 
-void CheckGatherPipe()
+void CheckGatherPipe(bool exceptionCheck)
 {
 	if (m_gatherPipeCount >= GATHER_PIPE_SIZE)
 	{
@@ -84,24 +84,25 @@ void CheckGatherPipe()
 
 		// move back the spill bytes
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
-
-		// Profile where the FIFO writes are occurring.
-		JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::EXCEPTIONS_FIFO_WRITE);
 	}
+
+	// Profile where the FIFO writes are occurring.
+	if (exceptionCheck)
+		JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::EXCEPTIONS_FIFO_WRITE);
 }
 
 void Write8(const u8 _iValue, const u32 _iAddress)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%02x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
 	FastWrite8(_iValue);
-	CheckGatherPipe();
+	CheckGatherPipe(true);
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%04x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
 	FastWrite16(_iValue);
-	CheckGatherPipe();
+	CheckGatherPipe(true);
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
@@ -111,13 +112,13 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%08x / %f",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue, floatvalue);
 //#endif
 	FastWrite32(_iValue);
-	CheckGatherPipe();
+	CheckGatherPipe(true);
 }
 
 void Write64(const u64 _iValue, const u32 _iAddress)
 {
 	FastWrite64(_iValue);
-	CheckGatherPipe();
+	CheckGatherPipe(true);
 }
 
 void FastWrite8(const u8 _iValue)
