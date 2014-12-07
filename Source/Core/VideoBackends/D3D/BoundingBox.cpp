@@ -42,7 +42,7 @@ void BBox::Init()
 		hr = D3D::device->CreateBuffer(&desc, nullptr, &s_bbox_staging_buffer);
 		CHECK(SUCCEEDED(hr), "Create BoundingBox Staging Buffer.");
 		D3D::SetDebugObjectName(s_bbox_staging_buffer, "BoundingBox Staging Buffer");
-		
+
 		// UAV is required to allow concurrent access.
 		D3D11_UNORDERED_ACCESS_VIEW_DESC UAVdesc = {};
 		UAVdesc.Format = DXGI_FORMAT_R32_SINT;
