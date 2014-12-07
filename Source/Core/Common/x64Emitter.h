@@ -194,7 +194,6 @@ private:
 	u16 indexReg;
 };
 
-inline OpArg M(const void *ptr) {return OpArg((u64)ptr, (int)SCALE_RIP);}
 template <typename T>
 inline OpArg M(const T *ptr)    {return OpArg((u64)(const void *)ptr, (int)SCALE_RIP);}
 inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}

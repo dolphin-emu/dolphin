@@ -29,7 +29,7 @@ namespace MMIO { class Mapping; }
 #define PPCSTATE(x) MDisp(RPPCSTATE, \
 	(int) ((char *) &PowerPC::ppcState.x - (char *) &PowerPC::ppcState) - 0x80)
 // In case you want to disable the ppcstate register:
-// #define PPCSTATE(x) M((void*) &PowerPC::ppcState.x)
+// #define PPCSTATE(x) M(&PowerPC::ppcState.x)
 #define PPCSTATE_LR PPCSTATE(spr[SPR_LR])
 #define PPCSTATE_CTR PPCSTATE(spr[SPR_CTR])
 #define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])

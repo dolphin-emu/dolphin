@@ -1721,7 +1721,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = fregURegWithMov(RI, I);
 			static const u32 GC_ALIGNED16(ssSignBits[4]) = {0x80000000};
-			Jit->PXOR(reg, M((void*)&ssSignBits));
+			Jit->PXOR(reg, M(ssSignBits));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
@@ -1733,7 +1733,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = fregURegWithMov(RI, I);
 			static const u64 GC_ALIGNED16(sdSignBits[2]) = {0x8000000000000000ULL};
-			Jit->PXOR(reg, M((void*)&sdSignBits));
+			Jit->PXOR(reg, M(sdSignBits));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
@@ -1745,7 +1745,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = fregURegWithMov(RI, I);
 			static const u32 GC_ALIGNED16(psSignBits[4]) = {0x80000000, 0x80000000};
-			Jit->PXOR(reg, M((void*)&psSignBits));
+			Jit->PXOR(reg, M(psSignBits));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
@@ -2266,7 +2266,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			FixupBranch noExtException = Jit->J_CC(CC_Z);
 			Jit->TEST(32, PPCSTATE(msr), Imm32(0x0008000));
 			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
-			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+			Jit->TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 			FixupBranch noCPInt = Jit->J_CC(CC_Z);
 
 			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
@@ -2284,7 +2284,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
-			Jit->TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+			Jit->TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
 			Jit->WriteExit(InstLoc);
 			Jit->SetJumpTarget(noBreakpoint);

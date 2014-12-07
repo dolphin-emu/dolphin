@@ -70,12 +70,12 @@ void Jit64AsmRoutineManager::Generate()
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 			{
-				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
+				TEST(32, M(PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
 				ABI_PushRegistersAndAdjustStack({}, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack({}, 0);
-				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+				TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				dbg_exit = J_CC(CC_NZ, true);
 				SetJumpTarget(notStepping);
 			}
@@ -151,7 +151,7 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_PopRegistersAndAdjustStack({}, 0);
 		SetJumpTarget(noExtException);
 
-		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+		TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
