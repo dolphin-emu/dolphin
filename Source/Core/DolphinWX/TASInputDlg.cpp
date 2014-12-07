@@ -159,7 +159,7 @@ void TASInputDlg::CreateWiiLayout(int num)
 
 	m_c = CreateButton("C");
 	m_z = CreateButton("Z");
-	m_ext_szr->Add(m_c_stick_szr);
+	m_ext_szr->Add(m_c_stick_szr, 0, wxLEFT | wxBOTTOM | wxRIGHT, 5);
 	m_ext_szr->Add(nunchukaxisBox);
 
 	for (Control* const control : m_controls)
@@ -176,9 +176,9 @@ void TASInputDlg::CreateWiiLayout(int num)
 	m_buttons_box->Add(m_buttons_grid);
 	m_buttons_box->Add(m_buttons_dpad);
 
-	m_wiimote_szr->Add(m_main_stick_szr);
-	m_wiimote_szr->Add(axisBox);
-	m_wiimote_szr->Add(m_buttons_box);
+	m_wiimote_szr->Add(m_main_stick_szr, 0, wxALL, 5);
+	m_wiimote_szr->Add(axisBox, 0, wxTOP | wxRIGHT, 5);
+	m_wiimote_szr->Add(m_buttons_box, 0, wxTOP | wxRIGHT, 5);
 	m_main_szr->Add(m_wiimote_szr);
 	m_main_szr->Add(m_ext_szr);
 	if (m_ext == 1)
@@ -250,16 +250,10 @@ void TASInputDlg::CreateGCLayout()
 
 	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
 
-	top_box->AddSpacer(5);
-	top_box->Add(main_box);
-	top_box->AddSpacer(5);
-	top_box->Add(c_box);
-	top_box->AddSpacer(5);
-	bottom_box->AddSpacer(5);
-	bottom_box->Add(shoulder_box);
-	bottom_box->AddSpacer(5);
-	bottom_box->Add(m_buttons_box);
-	bottom_box->AddSpacer(5);
+	top_box->Add(main_box, 0, wxALL, 5);
+	top_box->Add(c_box, 0, wxTOP | wxRIGHT, 5);
+	bottom_box->Add(shoulder_box, 0, wxLEFT | wxRIGHT, 5);
+	bottom_box->Add(m_buttons_box, 0, wxBOTTOM, 5);
 	main_szr->Add(top_box);
 	main_szr->Add(bottom_box);
 	SetSizerAndFit(main_szr);
@@ -329,9 +323,9 @@ wxStaticBoxSizer* TASInputDlg::CreateAccelLayout(Control* x, Control* y, Control
 	yBox->Add(y->text, 0, wxALIGN_CENTER_VERTICAL);
 	zBox->Add(z->slider, 0, wxALIGN_CENTER_VERTICAL);
 	zBox->Add(z->text, 0, wxALIGN_CENTER_VERTICAL);
-	temp_box->Add(xBox);
-	temp_box->Add(yBox);
-	temp_box->Add(zBox);
+	temp_box->Add(xBox, 0, wxLEFT | wxBOTTOM | wxRIGHT, 5);
+	temp_box->Add(yBox, 0, wxRIGHT, 5);
+	temp_box->Add(zBox, 0, wxRIGHT, 5);
 	return temp_box;
 }
 
