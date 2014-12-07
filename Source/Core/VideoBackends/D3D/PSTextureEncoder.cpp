@@ -1156,6 +1156,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::stateman->PopDepthState();
 		D3D::stateman->PopBlendState();
 
+		D3D::stateman->Apply();
+
 		// Transfer staging buffer to GameCube/Wii RAM
 
 		D3D11_MAPPED_SUBRESOURCE map = { 0 };
