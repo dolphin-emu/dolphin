@@ -296,7 +296,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		registersInUse[reg_value] = false;
 	}
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
+	if (!jit->js.memcheck &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
@@ -333,7 +333,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 			}
-			else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address) && accessSize != 64)
+			else if (MMIO::IsMMIOAddress(address) && accessSize != 64)
 			{
 				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
 				              address, accessSize, signExtend);
@@ -548,7 +548,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	reg_value = FixImmediate(accessSize, reg_value);
 
 	// TODO: support byte-swapped non-immediate fastmem stores
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
+	if (!jit->js.memcheck &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
 		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
