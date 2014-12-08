@@ -543,13 +543,13 @@ Renderer::Renderer()
 	{
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 		glDebugMessageCallback( ErrorCallback, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
+//		glEnable( GL_DEBUG_OUTPUT );
 	}
 	else if (GLExtensions::Supports("GL_ARB_debug_output"))
 	{
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 		glDebugMessageCallbackARB( ErrorCallback, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
+//		glEnable( GL_DEBUG_OUTPUT );
 	}
 
 	int samples;
