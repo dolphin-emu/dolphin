@@ -67,29 +67,29 @@ void DGameGrid::SetViewStyle(GameListStyle newStyle)
 	setDragEnabled(false);
 }
 
-void DGameGrid::AddGame(GameFile* item)
+void DGameGrid::AddGame(GameFile* gameItem)
 {
-	if (m_items.values().contains(item))
+	if (m_items.values().contains(gameItem))
 		return;
-	m_items.values().append(item);
+	m_items.values().append(gameItem);
 
 	QListWidgetItem* i = new QListWidgetItem;
-	i->setIcon(QIcon(item->GetBitmap()
+	i->setIcon(QIcon(gameItem->GetBitmap()
 		.scaled(GRID_BANNER_WIDTH, GRID_BANNER_HEIGHT, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-	i->setText(item->GetName(0));
-	if (item->IsCompressed())
+	i->setText(gameItem->GetName(0));
+	if (gameItem->IsCompressed())
 		i->setTextColor(QColor("#00F"));
 
 	addItem(i);
-	m_items.insert(i, item);
+	m_items.insert(i, gameItem);
 }
 
-void DGameGrid::RemoveGame(GameFile* item)
+void DGameGrid::RemoveGame(GameFile* gameItem)
 {
-	if (!m_items.values().contains(item))
+	if (!m_items.values().contains(gameItem))
 		return;
 
-	QListWidgetItem* i = m_items.key(item);
+	QListWidgetItem* i = m_items.key(gameItem);
 	m_items.remove(i);
 	delete i;
 }
