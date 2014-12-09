@@ -121,7 +121,6 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	: m_index(index), m_subtype(caps.SubType)
 {
 	ZeroMemory(&m_state_out, sizeof(m_state_out));
-	ZeroMemory(&m_current_state_out, sizeof(m_current_state_out));
 
 	// XInputGetCaps seems to always claim all capabilities are supported
 	// but I will leave all this stuff in, incase m$ fixes xinput up a bit
@@ -162,14 +161,9 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	{
 		//WORD val = (&caps.Vibration.wLeftMotorSpeed)[i]; // should be max value / nope, more lies
 		if ((&caps.Vibration.wLeftMotorSpeed)[i])
-			AddOutput(new Motor(i, (&m_state_out.wLeftMotorSpeed)[i], 65535));
+			AddOutput(new Motor(i, this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
 	}
 
-	ClearInputState();
-}
-
-void Device::ClearInputState()
-{
 	ZeroMemory(&m_state_in, sizeof(m_state_in));
 }
 
@@ -208,24 +202,14 @@ std::string Device::GetSource() const
 
 // Update I/O
 
-bool Device::UpdateInput()
+void Device::UpdateInput()
 {
-	return (ERROR_SUCCESS == PXInputGetState(m_index, &m_state_in));
+	PXInputGetState(m_index, &m_state_in);
 }
 
-bool Device::UpdateOutput()
+void Device::UpdateMotors()
 {
-	// this if statement is to make rumble work better when multiple ControllerInterfaces are using the device
-	// only calls XInputSetState if the state changed
-	if (memcmp(&m_state_out, &m_current_state_out, sizeof(m_state_out)))
-	{
-		m_current_state_out = m_state_out;
-		return (ERROR_SUCCESS == PXInputSetState(m_index, &m_state_out));
-	}
-	else
-	{
-		return true;
-	}
+	PXInputSetState(m_index, &m_state_out);
 }
 
 // GET name/source/id
@@ -270,6 +254,7 @@ ControlState Device::Axis::GetState() const
 void Device::Motor::SetState(ControlState state)
 {
 	m_motor = (WORD)(state * m_range);
+	m_parent->UpdateMotors();
 }
 
 u16 Device::Button::GetStates() const

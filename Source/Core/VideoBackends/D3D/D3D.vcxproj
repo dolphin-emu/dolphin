@@ -55,6 +55,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="D3DBase.cpp" />
     <ClCompile Include="D3DBlob.cpp" />
     <ClCompile Include="D3DShader.cpp" />
@@ -77,6 +78,7 @@
     <ClCompile Include="XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="D3DBase.h" />
     <ClInclude Include="D3DBlob.h" />
     <ClInclude Include="D3DShader.h" />

@@ -49,7 +49,7 @@ KeyboardMouse::~KeyboardMouse()
 	XCloseDisplay(m_display);
 }
 
-bool KeyboardMouse::UpdateInput()
+void KeyboardMouse::UpdateInput()
 {
 	XQueryKeymap(m_display, m_state.keyboard);
 
@@ -64,15 +64,7 @@ bool KeyboardMouse::UpdateInput()
 	// the mouse position as a range from -1 to 1
 	m_state.cursor.x = (float)win_x / (float)win_attribs.width * 2 - 1;
 	m_state.cursor.y = (float)win_y / (float)win_attribs.height * 2 - 1;
-
-	return true;
 }
-
-bool KeyboardMouse::UpdateOutput()
-{
-	return true;
-}
-
 
 std::string KeyboardMouse::GetName() const
 {

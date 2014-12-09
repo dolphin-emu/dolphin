@@ -149,20 +149,15 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		InitForceFeedback(m_device, (int)objects.size());
 	}
 
-	ClearInputState();
+	ZeroMemory(&m_state_in, sizeof(m_state_in));
+	// set hats to center
+	memset(m_state_in.rgdwPOV, 0xFF, sizeof(m_state_in.rgdwPOV));
 }
 
 Joystick::~Joystick()
 {
 	m_device->Unacquire();
 	m_device->Release();
-}
-
-void Joystick::ClearInputState()
-{
-	ZeroMemory(&m_state_in, sizeof(m_state_in));
-	// set hats to center
-	memset(m_state_in.rgdwPOV, 0xFF, sizeof(m_state_in.rgdwPOV));
 }
 
 std::string Joystick::GetName() const
@@ -182,7 +177,7 @@ std::string Joystick::GetSource() const
 
 // update IO
 
-bool Joystick::UpdateInput()
+void Joystick::UpdateInput()
 {
 	HRESULT hr = 0;
 
@@ -220,9 +215,7 @@ bool Joystick::UpdateInput()
 
 	// try reacquire if input lost
 	if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
-		hr = m_device->Acquire();
-
-	return SUCCEEDED(hr);
+		m_device->Acquire();
 }
 
 // get name

@@ -504,15 +504,17 @@ Renderer::Renderer()
 		if (strstr(g_ogl_config.glsl_version, "3.0"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
+			g_ogl_config.bSupportsAEP = false;
+			g_Config.backend_info.bSupportsStereoscopy = false;
 		}
 		else
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
+			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
+			g_Config.backend_info.bSupportsStereoscopy = g_ogl_config.bSupportsAEP;
 		}
-		// TODO: OpenGL ES 3.1 provides the necessary features as extensions.
-		g_Config.backend_info.bSupportsStereoscopy = false;
 	}
 	else
 	{
@@ -539,6 +541,9 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 		}
+
+		// Desktop OpenGL can't have the Android Extension Pack
+		g_ogl_config.bSupportsAEP = false;
 	}
 
 	if (GLExtensions::Supports("GL_KHR_debug"))

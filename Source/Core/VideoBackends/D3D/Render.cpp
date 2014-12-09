@@ -17,6 +17,7 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
+#include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
@@ -1501,6 +1502,45 @@ void Renderer::SetInterlacingMode()
 int Renderer::GetMaxTextureSize()
 {
 	return DX11::D3D::GetMaxTextureSize();
+}
+
+u16 Renderer::BBoxRead(int index)
+{
+	// Here we get the min/max value of the truncated position of the upscaled framebuffer.
+	// So we have to correct them to the unscaled EFB sizes.
+	int value = BBox::Get(index);
+
+	if (index < 2)
+	{
+		// left/right
+		value = value * EFB_WIDTH / s_target_width;
+	}
+	else
+	{
+		// up/down
+		value = value * EFB_HEIGHT / s_target_height;
+	}
+	if (index & 1)
+		value++; // fix max values to describe the outer border
+
+	return value;
+}
+
+void Renderer::BBoxWrite(int index, u16 _value)
+{
+	int value = _value; // u16 isn't enough to multiply by the efb width
+	if (index & 1)
+		value--;
+	if (index < 2)
+	{
+		value = value * s_target_width / EFB_WIDTH;
+	}
+	else
+	{
+		value = value * s_target_height / EFB_HEIGHT;
+	}
+
+	BBox::Set(index, value);
 }
 
 }  // namespace DX11

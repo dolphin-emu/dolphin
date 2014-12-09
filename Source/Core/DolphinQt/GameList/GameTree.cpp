@@ -114,6 +114,7 @@ void DGameTree::AddGame(GameFile* item)
 	i->setText(COL_DESCRIPTION, item->GetDescription());
 	i->setIcon(COL_REGION, QIcon(Resources::GetRegionPixmap(item->GetCountry())));
 	i->setText(COL_SIZE, NiceSizeFormat(item->GetFileSize()));
+	i->setIcon(COL_STATE, QIcon(Resources::GetRatingPixmap(item->GetEmuState())));
 	if (item->IsCompressed())
 	{
 		for (int col = 0; col < columnCount(); col++)

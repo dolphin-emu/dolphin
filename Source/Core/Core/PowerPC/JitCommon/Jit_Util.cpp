@@ -296,7 +296,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		registersInUse[reg_value] = false;
 	}
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
+	if (!jit->js.memcheck &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
@@ -333,7 +333,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 			}
-			else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address) && accessSize != 64)
+			else if (MMIO::IsMMIOAddress(address) && accessSize != 64)
 			{
 				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
 				              address, accessSize, signExtend);
@@ -548,7 +548,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	reg_value = FixImmediate(accessSize, reg_value);
 
 	// TODO: support byte-swapped non-immediate fastmem stores
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
+	if (!jit->js.memcheck &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
 		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
@@ -790,16 +790,16 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, OpArg input, X64Reg tmp)
 		// mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
 		if (input.IsSimpleReg() && cpu_info.bAVX)
 		{
-			VPAND(tmp, input.GetSimpleReg(), M((void*)&psRoundBit));
-			VPAND(output, input.GetSimpleReg(), M((void*)&psMantissaTruncate));
+			VPAND(tmp, input.GetSimpleReg(), M(psRoundBit));
+			VPAND(output, input.GetSimpleReg(), M(psMantissaTruncate));
 			PADDQ(output, R(tmp));
 		}
 		else
 		{
 			if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
 				MOVAPD(output, input);
-			avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M((void*)&psRoundBit), true, true);
-			PAND(output, M((void*)&psMantissaTruncate));
+			avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M(psRoundBit), true, true);
+			PAND(output, M(psMantissaTruncate));
 			PADDQ(output, R(tmp));
 		}
 	}
@@ -842,7 +842,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 	MOVSD(XMM1, R(src));
 
 	// Grab Exponent
-	PAND(XMM1, M((void *)&double_exponent));
+	PAND(XMM1, M(&double_exponent));
 	PSRLQ(XMM1, 52);
 	MOVD_xmm(R(RSCRATCH), XMM1);
 
@@ -862,15 +862,15 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	// xmm1 = fraction | 0x0010000000000000
 	MOVSD(XMM1, R(src));
-	PAND(XMM1, M((void *)&double_fraction));
-	POR(XMM1, M((void *)&double_explicit_top_bit));
+	PAND(XMM1, M(&double_fraction));
+	POR(XMM1, M(&double_explicit_top_bit));
 
 	// fraction >> shift
 	PSRLQ(XMM1, R(XMM0));
 
 	// OR the sign bit in.
 	MOVSD(XMM0, R(src));
-	PAND(XMM0, M((void *)&double_sign_bit));
+	PAND(XMM0, M(&double_sign_bit));
 	PSRLQ(XMM0, 32);
 	POR(XMM1, R(XMM0));
 
@@ -883,12 +883,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	// We want bits 0, 1
 	MOVSD(XMM1, R(src));
-	PAND(XMM1, M((void *)&double_top_two_bits));
+	PAND(XMM1, M(&double_top_two_bits));
 	PSRLQ(XMM1, 32);
 
 	// And 5 through to 34
 	MOVSD(XMM0, R(src));
-	PAND(XMM0, M((void *)&double_bottom_bits));
+	PAND(XMM0, M(&double_bottom_bits));
 	PSRLQ(XMM0, 29);
 
 	// OR them togther
@@ -988,7 +988,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 	{
 		MOVQ_xmm(R(RSCRATCH), xmm);
 		SHR(64, R(RSCRATCH), Imm8(63)); // Get the sign bit; almost all the branches need it.
-		PTEST(xmm, M((void*)psDoubleExp));
+		PTEST(xmm, M(psDoubleExp));
 		FixupBranch maxExponent = J_CC(CC_C);
 		FixupBranch zeroExponent = J_CC(CC_Z);
 
@@ -997,7 +997,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 		continue1 = J();
 
 		SetJumpTarget(maxExponent);
-		PTEST(xmm, M((void*)psDoubleFrac));
+		PTEST(xmm, M(psDoubleFrac));
 		FixupBranch notNAN = J_CC(CC_Z);
 
 		// Max exponent + mantissa: PPC_FPCLASS_QNAN
@@ -1025,10 +1025,10 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 	else
 	{
 		MOVQ_xmm(R(RSCRATCH), xmm);
-		TEST(64, R(RSCRATCH), M((void*)psDoubleExp));
+		TEST(64, R(RSCRATCH), M(psDoubleExp));
 		FixupBranch zeroExponent = J_CC(CC_Z);
-		AND(64, R(RSCRATCH), M((void*)psDoubleNoSign));
-		CMP(64, R(RSCRATCH), M((void*)psDoubleExp));
+		AND(64, R(RSCRATCH), M(psDoubleNoSign));
+		CMP(64, R(RSCRATCH), M(psDoubleExp));
 		FixupBranch nan = J_CC(CC_G); // This works because if the sign bit is set, RSCRATCH is negative
 		FixupBranch infinity = J_CC(CC_E);
 		MOVQ_xmm(R(RSCRATCH), xmm);

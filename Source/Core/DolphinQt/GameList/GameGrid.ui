@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>256</width>
-    <height>192</height>
+    <width>254</width>
+    <height>190</height>
    </rect>
   </property>
   <property name="isWrapping" stdset="0">
@@ -15,6 +15,9 @@
   </property>
   <property name="resizeMode">
    <enum>QListView::Adjust</enum>
+  </property>
+  <property name="uniformItemSizes">
+   <bool>true</bool>
   </property>
  </widget>
  <resources/>
