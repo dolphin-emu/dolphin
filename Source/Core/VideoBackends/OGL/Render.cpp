@@ -1560,7 +1560,7 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 void Renderer::AsyncTimewarpDraw()
 {
 #ifdef HAVE_OCULUSSDK
-	auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+	auto frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 	g_ovr_lock.unlock();
 
 	if (0 == frameTime.TimewarpPointSeconds) {
@@ -1732,8 +1732,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 #else
-			g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
-			g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
+			ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+			ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #endif
 		}
 		g_first_rift_frame = false;
@@ -1873,7 +1873,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
-				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 
 				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
 

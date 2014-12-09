@@ -762,13 +762,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
-			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 #ifdef OCULUSSDK042
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 #else
-			g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
-			g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
+			ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+			ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #endif
 		}
 		g_first_rift_frame = false;
@@ -937,10 +937,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 
+//#if 0
 			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
-				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 				//const ovrTexture* new_eye_texture = new ovrTexture(FramebufferManager::m_eye_texture[0].Texture);
 				//ovrD3D11Texture new_eye_texture;
 				//memcpy((void*)&new_eye_texture, &FramebufferManager::m_eye_texture[0], sizeof(ovrD3D11Texture));
@@ -948,10 +949,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				//ovrPosef new_eye_poses[2];
 				//memcpy((void*)&new_eye_poses, g_eye_poses, sizeof(ovrPosef)*2);
 
+				//Call Actual Headposition Function Again.
+				//NewTimewarpedFrame();
+				//VertexShaderManager::SetProjectionConstants();
+
 				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
 
 				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 			}
+//#endif
 
 		}
 		else
@@ -1152,7 +1158,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 	}
 #endif
 
