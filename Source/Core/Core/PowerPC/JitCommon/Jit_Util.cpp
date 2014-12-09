@@ -923,7 +923,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	SwitchToFarCode();
 	SetJumpTarget(nanConversion);
-	MOVD_xmm(RSCRATCH, R(src));
+	MOVQ_xmm(R(RSCRATCH), src);
 	// Put the quiet bit into CF.
 	BT(64, R(RSCRATCH), Imm8(51));
 	CVTSD2SS(dst, R(src));
@@ -960,7 +960,7 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	{
 		if (dst != src)
 			MOVAPS(dst, R(src));
-		MOVD_xmm(RSCRATCH, R(src));
+		MOVD_xmm(R(RSCRATCH), src);
 	}
 
 	UCOMISS(dst, R(dst));
