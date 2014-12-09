@@ -491,12 +491,13 @@ void VertexLoader::ConvertVertices ( int count )
 #endif
 }
 
-void VertexLoader::RunVertices(const VAT& vat, int primitive, int const count)
+int VertexLoader::RunVertices(const VAT& vat, int primitive, int count, DataReader src, DataReader dst)
 {
-	g_vertex_manager_write_ptr = g_vertex_manager->s_pCurBufferPointer;
+	dst.WritePointer(&g_vertex_manager_write_ptr);
+	src.WritePointer(&g_video_buffer_read_ptr);
 	SetupRunVertices(vat, primitive, count);
 	ConvertVertices(count);
-	g_vertex_manager->s_pCurBufferPointer = g_vertex_manager_write_ptr;
+	return count;
 }
 
 void VertexLoader::SetVAT(const VAT& vat)

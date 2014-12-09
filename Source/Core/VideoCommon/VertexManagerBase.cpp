@@ -51,7 +51,7 @@ u32 VertexManager::GetRemainingSize()
 	return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
-void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
+DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
 {
 	// The SSE vertex loader can write up to 4 bytes past the end
 	u32 const needed_vertex_bytes = count * stride + 4;
@@ -83,6 +83,13 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 		g_vertex_manager->ResetBuffer(stride);
 		IsFlushed = false;
 	}
+
+	return DataReader(s_pCurBufferPointer, s_pEndBufferPointer);
+}
+
+void VertexManager::FlushData(u32 count, u32 stride)
+{
+	s_pCurBufferPointer += count * stride;
 }
 
 u32 VertexManager::GetRemainingIndices(int primitive)

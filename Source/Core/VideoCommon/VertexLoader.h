@@ -118,7 +118,7 @@ public:
 		{ return m_native_vtx_decl; }
 
 	void SetupRunVertices(const VAT& vat, int primitive, int const count);
-	void RunVertices(const VAT& vat, int primitive, int count);
+	int RunVertices(const VAT& vat, int primitive, int count, DataReader src, DataReader dst);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;

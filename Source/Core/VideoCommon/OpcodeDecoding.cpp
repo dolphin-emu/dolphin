@@ -275,13 +275,17 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 				}
 				else
 				{
-					if (!VertexLoaderManager::RunVertices(
+					int bytes = VertexLoaderManager::RunVertices(
 						cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 						(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 						num_vertices,
 						src,
-						g_bSkipCurrentFrame))
+						g_bSkipCurrentFrame);
+
+					if (bytes < 0)
 						goto end;
+					else
+						src.Skip(bytes);
 				}
 				totalCycles += 1600;
 			}
