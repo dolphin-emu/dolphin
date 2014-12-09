@@ -901,41 +901,56 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 #else // MORE_ACCURATE_DOUBLETOSINGLE
 
+static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0xffffffffffffffff, 0x7fffffffffffffff);
+static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffbfffff);
+static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xfff7ffffffffffff);
+
+// Smallest positive double that results in a normalized single.
+static const double GC_ALIGNED16(min_norm_single) = std::numeric_limits<float>::min();
+
 void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 {
 	// Most games have flush-to-zero enabled, which causes the single -> double -> single process here to be lossy.
 	// This is a problem when games use float operations to copy non-float data.
 	// Changing the FPU mode is very expensive, so we can't do that.
-	// Here, check to see if the exponent is small enough that it will result in a denormal, and pass it to the x87 unit
+	// Here, check to see if the source is small enough that it will result in a denormal, and pass it to the x87 unit
 	// if it is.
-	MOVQ_xmm(R(RSCRATCH), src);
-	SHR(64, R(RSCRATCH), Imm8(55));
-	// Exponents 0x369 <= x <= 0x380 are denormal. This code accepts the range 0x368 <= x <= 0x387
-	// to save an instruction, since diverting a few more floats to the slow path can't hurt much.
-	SUB(8, R(RSCRATCH), Imm8(0x6D));
-	CMP(8, R(RSCRATCH), Imm8(0x3));
-	FixupBranch x87Conversion = J_CC(CC_BE, true);
+	avx_op(&XEmitter::VPAND, &XEmitter::PAND, XMM0, R(src), M(&double_sign_bit), true, true);
+	UCOMISD(XMM0, M(&min_norm_single));
+	FixupBranch nanConversion = J_CC(CC_P, true);
+	FixupBranch denormalConversion = J_CC(CC_B, true);
 	CVTSD2SS(dst, R(src));
 
 	SwitchToFarCode();
-	SetJumpTarget(x87Conversion);
+	SetJumpTarget(nanConversion);
+	MOVD_xmm(RSCRATCH, R(src));
+	// Put the quiet bit into CF.
+	BT(64, R(RSCRATCH), Imm8(51));
+	CVTSD2SS(dst, R(src));
+	FixupBranch continue1 = J_CC(CC_C, true);
+	// Clear the quiet bit of the SNaN, which was 0 (signalling) but got set to 1 (quiet) by conversion.
+	ANDPS(dst, M(&single_qnan_bit));
+	FixupBranch continue2 = J(true);
+
+	SetJumpTarget(denormalConversion);
 	MOVSD(M(&temp64), src);
 	FLD(64, M(&temp64));
 	FSTP(32, M(&temp32));
 	MOVSS(dst, M(&temp32));
-	FixupBranch continue1 = J(true);
+	FixupBranch continue3 = J(true);
 	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
+	SetJumpTarget(continue3);
 	// We'd normally need to MOVDDUP here to put the single in the top half of the output register too, but
 	// this function is only used to go directly to a following store, so we omit the MOVDDUP here.
 }
 #endif // MORE_ACCURATE_DOUBLETOSINGLE
 
+// Converting single->double is a bit easier because all single denormals are double normals.
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
 {
-	// If the input isn't denormal, just do things the simple way -- otherwise, go through the x87 unit, which has
-	// flush-to-zero off.
 	X64Reg gprsrc = src_is_gpr ? src : RSCRATCH;
 	if (src_is_gpr)
 	{
@@ -944,28 +959,24 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	else
 	{
 		if (dst != src)
-			MOVAPD(dst, R(src));
+			MOVAPS(dst, R(src));
 		MOVD_xmm(RSCRATCH, R(src));
 	}
-	// A sneaky hack: floating-point zero is rather common and we don't want to confuse it for denormals and
-	// needlessly send it through the slow path. If we subtract 1 before doing the comparison, it turns
-	// float-zero into 0xffffffff (skipping the slow path). This results in a single non-denormal being sent
-	// through the slow path (0x00800000), but the performance effects of that should be negligible.
-	SUB(32, R(gprsrc), Imm8(1));
-	TEST(32, R(gprsrc), Imm32(0x7f800000));
-	FixupBranch x87Conversion = J_CC(CC_Z, true);
+
+	UCOMISS(dst, R(dst));
 	CVTSS2SD(dst, R(dst));
+	FixupBranch nanConversion = J_CC(CC_P, true);
 
 	SwitchToFarCode();
-	SetJumpTarget(x87Conversion);
-	MOVSS(M(&temp32), dst);
-	FLD(32, M(&temp32));
-	FSTP(64, M(&temp64));
-	MOVSD(dst, M(&temp64));
-	FixupBranch continue1 = J(true);
+	SetJumpTarget(nanConversion);
+	TEST(32, R(gprsrc), Imm32(0x00400000));
+	FixupBranch continue1 = J_CC(CC_NZ, true);
+	ANDPD(dst, M(&double_qnan_bit));
+	FixupBranch continue2 = J(true);
 	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
 	MOVDDUP(dst, R(dst));
 }
 
