@@ -7,6 +7,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 
 extern u8* g_video_buffer_read_ptr;
+extern u8* g_vertex_manager_write_ptr;
 
 
 __forceinline void DataSkip(u32 skip)
@@ -88,6 +89,6 @@ __forceinline u8* DataGetPosition()
 template <typename T>
 __forceinline void DataWrite(T data)
 {
-	*(T*)VertexManager::s_pCurBufferPointer = data;
-	VertexManager::s_pCurBufferPointer += sizeof(T);
+	*(T*)g_vertex_manager_write_ptr = data;
+	g_vertex_manager_write_ptr += sizeof(T);
 }

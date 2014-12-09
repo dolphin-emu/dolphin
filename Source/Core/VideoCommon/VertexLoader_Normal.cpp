@@ -14,7 +14,7 @@
 #include "VideoCommon/VideoCommon.h"
 
 // warning: mapping buffer should be disabled to use this
-#define LOG_NORM()  // PRIM_LOG("norm: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-3], ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
+#define LOG_NORM()  // PRIM_LOG("norm: %f %f %f, ", ((float*)g_vertex_manager_write_ptr)[-3], ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);
 
 VertexLoader_Normal::Set VertexLoader_Normal::m_Table[NUM_NRM_TYPE][NUM_NRM_INDICES][NUM_NRM_ELEMENTS][NUM_NRM_FORMAT];
 
@@ -43,14 +43,14 @@ template <typename T, int N>
 __forceinline void ReadIndirect(const T* data)
 {
 	static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
-	DataReader dst(VertexManager::s_pCurBufferPointer, nullptr);
+	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
 	for (int i = 0; i != N; ++i)
 	{
 		dst.Write(FracAdjust(Common::FromBigEndian(data[i])));
 	}
 
-	dst.WritePointer(&VertexManager::s_pCurBufferPointer);
+	dst.WritePointer(&g_vertex_manager_write_ptr);
 	LOG_NORM();
 }
 

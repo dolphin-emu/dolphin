@@ -3,6 +3,7 @@
 #include <vector>
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 
 class NativeVertexFormat;
 class PointerWrap;

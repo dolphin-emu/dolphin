@@ -45,8 +45,9 @@ int colElements[2];
 GC_ALIGNED128(float posScale[4]);
 GC_ALIGNED64(float tcScale[8][2]);
 
-// This pointer is used as the source for all fixed function loader calls
+// This pointer is used as the source/dst for all fixed function loader calls
 u8* g_video_buffer_read_ptr;
+u8* g_vertex_manager_write_ptr;
 
 static const float fractionTable[32] = {
 	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
@@ -96,8 +97,8 @@ static void LOADERDECL TexMtx_Write_Float4()
 {
 #if _M_SSE >= 0x200
 	__m128 output = _mm_cvtsi32_ss(_mm_castsi128_ps(_mm_setzero_si128()), s_curtexmtx[s_texmtxwrite++]);
-	_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, _mm_shuffle_ps(output, output, 0x45 /* 1, 1, 0, 1 */));
-	VertexManager::s_pCurBufferPointer += sizeof(float) * 4;
+	_mm_storeu_ps((float*)g_vertex_manager_write_ptr, _mm_shuffle_ps(output, output, 0x45 /* 1, 1, 0, 1 */));
+	g_vertex_manager_write_ptr += sizeof(float) * 4;
 #else
 	DataWrite(0.f);
 	DataWrite(0.f);
@@ -492,8 +493,10 @@ void VertexLoader::ConvertVertices ( int count )
 
 void VertexLoader::RunVertices(const VAT& vat, int primitive, int const count)
 {
+	g_vertex_manager_write_ptr = g_vertex_manager->s_pCurBufferPointer;
 	SetupRunVertices(vat, primitive, count);
 	ConvertVertices(count);
+	g_vertex_manager->s_pCurBufferPointer = g_vertex_manager_write_ptr;
 }
 
 void VertexLoader::SetVAT(const VAT& vat)
