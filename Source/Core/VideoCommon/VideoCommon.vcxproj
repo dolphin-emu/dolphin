@@ -140,6 +140,7 @@
     <ClInclude Include="TextureDecoder.h" />
     <ClInclude Include="VertexLoader.h" />
     <ClInclude Include="VertexLoaderManager.h" />
+    <ClInclude Include="VertexLoaderUtils.h" />
     <ClInclude Include="VertexLoader_Color.h" />
     <ClInclude Include="VertexLoader_Normal.h" />
     <ClInclude Include="VertexLoader_Position.h" />

@@ -74,12 +74,14 @@ protected:
 
 	void ResetPointers()
 	{
-		g_video_buffer_read_ptr = &input_memory[0];
-		VertexManager::s_pCurBufferPointer = &output_memory[0];
 		m_input_pos = m_output_pos = 0;
+		src = DataReader(input_memory, input_memory+sizeof(input_memory));
+		dst = DataReader(output_memory, output_memory+sizeof(output_memory));
 	}
 
 	u32 m_input_pos, m_output_pos;
+	DataReader src;
+	DataReader dst;
 
 	TVtxDesc m_vtx_desc;
 	VAT m_vtx_attr;
@@ -103,7 +105,9 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZ)
 	Input(0.0f); Input(0.0f); Input(1.0f);
 
 	// Convert 4 points. "7" -> primitive are points.
-	loader.RunVertices(m_vtx_attr, 7, 4);
+	int count = loader.RunVertices(m_vtx_attr, 7, 4, src, dst);
+	src.Skip(4 * loader.GetVertexSize());
+	dst.Skip(count * loader.GetNativeVertexDeclaration().stride);
 
 	ExpectOut(0.0f); ExpectOut(0.0f); ExpectOut(0.0f);
 	ExpectOut(1.0f); ExpectOut(0.0f); ExpectOut(0.0f);
@@ -113,7 +117,9 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZ)
 	// Test that scale does nothing for floating point inputs.
 	Input(1.0f); Input(2.0f); Input(4.0f);
 	m_vtx_attr.g0.PosFrac = 1;
-	loader.RunVertices(m_vtx_attr, 7, 1);
+	count = loader.RunVertices(m_vtx_attr, 7, 1, src, dst);
+	src.Skip(1 * loader.GetVertexSize());
+	dst.Skip(count * loader.GetNativeVertexDeclaration().stride);
 	ExpectOut(1.0f); ExpectOut(2.0f); ExpectOut(4.0f);
 }
 
@@ -136,7 +142,9 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 	Input<u16>(12345); Input<u16>(54321);
 
 	// Convert 5 points. "7" -> primitive are points.
-	loader.RunVertices(m_vtx_attr, 7, 5);
+	int count = loader.RunVertices(m_vtx_attr, 7, 5, src, dst);
+	src.Skip(5 * loader.GetVertexSize());
+	dst.Skip(count * loader.GetNativeVertexDeclaration().stride);
 
 	ExpectOut(0.0f); ExpectOut(0.0f); ExpectOut(0.0f);
 	ExpectOut(1.0f); ExpectOut(2.0f); ExpectOut(0.0f);
@@ -147,7 +155,9 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 	// Test that scale works on U16 inputs.
 	Input<u16>(42); Input<u16>(24);
 	m_vtx_attr.g0.PosFrac = 1;
-	loader.RunVertices(m_vtx_attr, 7, 1);
+	count = loader.RunVertices(m_vtx_attr, 7, 1, src, dst);
+	src.Skip(1 * loader.GetVertexSize());
+	dst.Skip(count * loader.GetNativeVertexDeclaration().stride);
 	ExpectOut(21.0f); ExpectOut(12.0f); ExpectOut(0.0f);
 }
 
@@ -165,7 +175,9 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZSpeed)
 	for (int i = 0; i < 1000; ++i)
 	{
 		ResetPointers();
-		loader.RunVertices(m_vtx_attr, 7, 100000);
+		int count = loader.RunVertices(m_vtx_attr, 7, 100000, src, dst);
+		src.Skip(100000 * loader.GetVertexSize());
+		dst.Skip(count * loader.GetNativeVertexDeclaration().stride);
 	}
 }
 
@@ -183,7 +195,9 @@ TEST_F(VertexLoaderTest, PositionDirectU16XYSpeed)
 	for (int i = 0; i < 1000; ++i)
 	{
 		ResetPointers();
-		loader.RunVertices(m_vtx_attr, 7, 100000);
+		int count = loader.RunVertices(m_vtx_attr, 7, 100000, src, dst);
+		src.Skip(100000 * loader.GetVertexSize());
+		dst.Skip(count * loader.GetNativeVertexDeclaration().stride);
 	}
 }
 
@@ -244,6 +258,8 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 	for (int i = 0; i < 100; ++i)
 	{
 		ResetPointers();
-		loader.RunVertices(m_vtx_attr, 7, 100000);
+		int count = loader.RunVertices(m_vtx_attr, 7, 100000, src, dst);
+		src.Skip(100000 * loader.GetVertexSize());
+		dst.Skip(count * loader.GetNativeVertexDeclaration().stride);
 	}
 }
