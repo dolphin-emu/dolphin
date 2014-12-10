@@ -8,9 +8,6 @@
 #include "Core/HW/SI_GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
-static const u8 ENDPOINT_IN = 0x81;
-static const u8 ENDPOINT_OUT = 0x02;
-
 namespace SI_GCAdapter
 {
 
@@ -25,11 +22,14 @@ static bool adapter_thread_running;
 
 static bool libusb_driver_not_supported = false;
 
+static u8 endpoint_in = 0;
+static u8 endpoint_out = 0;
+
 void Read()
 {
 	while (adapter_thread_running)
 	{
-		libusb_interrupt_transfer(handle, ENDPOINT_IN, controller_payload, sizeof(controller_payload), &controller_payload_size, 0);
+		libusb_interrupt_transfer(handle, endpoint_in, controller_payload, sizeof(controller_payload), &controller_payload_size, 0);
 		Common::YieldCPU();
 	}
 }
@@ -126,9 +126,28 @@ void Init()
 				}
 				else
 				{
+					libusb_config_descriptor *config = nullptr;
+					libusb_get_config_descriptor(device, 0, &config);
+					for (u8 ic = 0; ic < config->bNumInterfaces; ic++)
+					{
+						const libusb_interface *interfaceContainer = &config->interface[ic];
+						for (int i = 0; i < interfaceContainer->num_altsetting; i++)
+						{
+							const libusb_interface_descriptor *interface = &interfaceContainer->altsetting[i];
+							for (int e = 0; e < (int)interface->bNumEndpoints; e++)
+							{
+								const libusb_endpoint_descriptor *endpoint = &interface->endpoint[e];
+								if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)
+									endpoint_in = endpoint->bEndpointAddress;
+								else
+									endpoint_out = endpoint->bEndpointAddress;
+							}
+						}
+					}
+
 					int tmp = 0;
 					unsigned char payload = 0x13;
-					libusb_interrupt_transfer(handle, ENDPOINT_OUT, &payload, sizeof(payload), &tmp, 0);
+					libusb_interrupt_transfer(handle, endpoint_out, &payload, sizeof(payload), &tmp, 0);
 
 					RefreshConnectedDevices();
 
@@ -224,11 +243,11 @@ void Output(SerialInterface::SSIChannel* g_Channel)
 	{
 		unsigned char rumble[5] = { 0x11, static_cast<u8>(g_Channel[0].m_Out.Hex & 0xff), static_cast<u8>(g_Channel[1].m_Out.Hex & 0xff), static_cast<u8>(g_Channel[2].m_Out.Hex & 0xff), static_cast<u8>(g_Channel[3].m_Out.Hex & 0xff) };
 		int size = 0;
-		libusb_interrupt_transfer(handle, ENDPOINT_OUT, rumble, sizeof(rumble), &size, 0);
+		libusb_interrupt_transfer(handle, endpoint_out, rumble, sizeof(rumble), &size, 0);
 
 		if (size != 0x05)
 		{
-			WARN_LOG(SERIALINTERFACE, "error reading rumble (size: %d)", size);
+			WARN_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
 			Shutdown();
 		}
 	}
@@ -251,7 +270,7 @@ void RefreshConnectedDevices()
 		return;
 
 	int size = 0;
-	libusb_interrupt_transfer(handle, ENDPOINT_IN, controller_payload, sizeof(controller_payload), &size, 0);
+	libusb_interrupt_transfer(handle, endpoint_in, controller_payload, sizeof(controller_payload), &size, 0);
 
 	if (size != 0x25 || controller_payload[0] != 0x21)
 	{
