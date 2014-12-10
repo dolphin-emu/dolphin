@@ -18,6 +18,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
@@ -117,7 +118,7 @@ public:
 		{ return m_native_vtx_decl; }
 
 	void SetupRunVertices(const VAT& vat, int primitive, int const count);
-	void RunVertices(const VAT& vat, int primitive, int count);
+	int RunVertices(const VAT& vat, int primitive, int count, DataReader src, DataReader dst);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;
@@ -193,9 +194,9 @@ __forceinline void Vertex_Read_SSSE3(const T* pData, __m128 scale)
 	{
 		coords = _mm_shuffle_epi8(coords, threeIn ? kMaskSwap32_3 : kMaskSwap32_2);
 		if (threeOut)
-			_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, coords);
+			_mm_storeu_si128((__m128i*)g_vertex_manager_write_ptr, coords);
 		else
-			_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, coords);
+			_mm_storel_epi64((__m128i*)g_vertex_manager_write_ptr, coords);
 	}
 	else
 	{
@@ -212,11 +213,11 @@ __forceinline void Vertex_Read_SSSE3(const T* pData, __m128 scale)
 
 		__m128 out = _mm_mul_ps(_mm_cvtepi32_ps(coords), scale);
 		if (threeOut)
-			_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, out);
+			_mm_storeu_ps((float*)g_vertex_manager_write_ptr, out);
 		else
-			_mm_storel_pi((__m64*)VertexManager::s_pCurBufferPointer, out);
+			_mm_storel_pi((__m64*)g_vertex_manager_write_ptr, out);
 	}
 
-	VertexManager::s_pCurBufferPointer += sizeof(float) * (2 + threeOut);
+	g_vertex_manager_write_ptr += sizeof(float) * (2 + threeOut);
 }
 #endif

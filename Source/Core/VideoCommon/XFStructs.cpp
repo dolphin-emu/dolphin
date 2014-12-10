@@ -19,14 +19,14 @@ static void XFMemWritten(u32 transferSize, u32 baseAddress)
 	VertexShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-static void XFRegWritten(int transferSize, u32 baseAddress)
+static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 {
 	u32 address = baseAddress;
 	u32 dataIndex = 0;
 
 	while (transferSize > 0 && address < 0x1058)
 	{
-		u32 newValue = DataPeek<u32>(dataIndex * sizeof(u32));
+		u32 newValue = src.Peek<u32>(dataIndex * sizeof(u32));
 		u32 nextAddress = address + 1;
 
 		switch (address)
@@ -193,7 +193,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress)
 	}
 }
 
-void LoadXFReg(u32 transferSize, u32 baseAddress)
+void LoadXFReg(u32 transferSize, u32 baseAddress, DataReader src)
 {
 	// do not allow writes past registers
 	if (baseAddress + transferSize > 0x1058)
@@ -229,17 +229,17 @@ void LoadXFReg(u32 transferSize, u32 baseAddress)
 		XFMemWritten(xfMemTransferSize, xfMemBase);
 		for (u32 i = 0; i < xfMemTransferSize; i++)
 		{
-			((u32*)&xfmem)[xfMemBase + i] = DataRead<u32>();
+			((u32*)&xfmem)[xfMemBase + i] = src.Read<u32>();
 		}
 	}
 
 	// write to XF regs
 	if (transferSize > 0)
 	{
-		XFRegWritten(transferSize, baseAddress);
+		XFRegWritten(transferSize, baseAddress, src);
 		for (u32 i = 0; i < transferSize; i++)
 		{
-			((u32*)&xfmem)[baseAddress + i] = DataRead<u32>();
+			((u32*)&xfmem)[baseAddress + i] = src.Read<u32>();
 		}
 	}
 }
