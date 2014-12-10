@@ -247,7 +247,8 @@ set(LIBS
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
+	        	       	HW/SI_GCAdapter.cpp)
 endif(LIBUSB_FOUND)
 
 set(LIBS ${LIBS} ${POLARSSL_LIBRARY})

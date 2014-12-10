@@ -27,6 +27,9 @@
 #include "Core/NetPlayProto.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI.h"
+#if defined(__LIBUSB__) || defined (_WIN32)
+#include "Core/HW/SI_GCAdapter.h"
+#endif
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "DolphinWX/ControllerConfigDiag.h"
@@ -68,7 +71,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 
 wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 {
-	wxStaticBoxSizer* const gamecube_static_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("GameCube Controllers"));
+	wxStaticBoxSizer* const gamecube_static_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("GameCube Controllers"));
 	wxFlexGridSizer* const gamecube_flex_sizer = new wxFlexGridSizer(3, 5, 5);
 
 	wxStaticText* pad_labels[4];
@@ -101,8 +104,22 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
 			pad_type_choices[i]->Disable();
 
+		SIDevices selected_device = SConfig::GetInstance().m_SIDevice[i];
+
+#if defined(__LIBUSB__) || defined (_WIN32)
+		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		{
+			SI_GCAdapter::RefreshConnectedDevices();
+			if (SI_GCAdapter::GetDeviceType(i) != SIDEVICE_NONE)
+			{
+				pad_type_choices[i]->Disable();
+				selected_device = SI_GCAdapter::GetDeviceType(i);
+			}
+		}
+#endif
+
 		// Set the saved pad type as the default choice.
-		switch (SConfig::GetInstance().m_SIDevice[i])
+		switch (selected_device)
 		{
 		case SIDEVICE_GC_CONTROLLER:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[1]);
@@ -134,6 +151,36 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	}
 
 	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5);
+	gamecube_static_sizer->AddSpacer(5);
+
+	wxStaticBoxSizer* const gamecube_adapter_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("GameCube Adapter"));
+	wxBoxSizer* const gamecube_adapter_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+	wxCheckBox* const gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
+	gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
+
+	gamecube_adapter_sizer->Add(gamecube_adapter, 0, wxEXPAND);
+	gamecube_adapter_group->Add(gamecube_adapter_sizer, 0, wxEXPAND);
+	gamecube_static_sizer->Add(gamecube_adapter_group, 0, wxEXPAND);
+
+#if defined(__LIBUSB__) || defined (_WIN32)
+	if (!SI_GCAdapter::IsDetected())
+	{
+		if (!SI_GCAdapter::IsDriverDetected())
+			gamecube_adapter->SetLabelText(_("Driver Not Detected"));
+		else
+			gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
+		gamecube_adapter->SetValue(false);
+		gamecube_adapter->Disable();
+	}
+	else
+	{
+		gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
+		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			gamecube_adapter->Disable();
+	}
+#endif
+
 	return gamecube_static_sizer;
 }
 
