@@ -51,9 +51,9 @@ public:
 	{
 		vid[0] = vtx_desc.Hex & 0xFFFFFFFF;
 		vid[1] = vtx_desc.Hex >> 32;
-		vid[2] = vat.g0.Hex & ~VAT_0_FRACBITS;
-		vid[3] = vat.g1.Hex & ~VAT_1_FRACBITS;
-		vid[4] = vat.g2.Hex & ~VAT_2_FRACBITS;
+		vid[2] = vat.g0.Hex;
+		vid[3] = vat.g1.Hex;
+		vid[4] = vat.g2.Hex;
 		hash = CalculateHash();
 	}
 
@@ -117,8 +117,8 @@ public:
 	const PortableVertexDeclaration& GetNativeVertexDeclaration() const
 		{ return m_native_vtx_decl; }
 
-	void SetupRunVertices(const VAT& vat, int primitive, int const count);
-	int RunVertices(const VAT& vat, int primitive, int count, DataReader src, DataReader dst);
+	void SetupRunVertices(int primitive, int const count);
+	int RunVertices(int primitive, int count, DataReader src, DataReader dst);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;
@@ -133,6 +133,7 @@ private:
 	// GC vertex format
 	TVtxAttr m_VtxAttr;  // VAT decoded into easy format
 	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
+	VAT m_vat;
 
 	// PC vertex format
 	u32 m_native_components;

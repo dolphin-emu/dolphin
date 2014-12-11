@@ -119,6 +119,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	VertexLoader_TextCoord::Init();
 
 	m_VtxDesc = vtx_desc;
+	m_vat = vtx_attr;
 	SetVAT(vtx_attr);
 
 	#ifdef USE_VERTEX_LOADER_JIT
@@ -444,20 +445,9 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 }
 #endif
 
-void VertexLoader::SetupRunVertices(const VAT& vat, int primitive, int const count)
+void VertexLoader::SetupRunVertices(int primitive, int const count)
 {
 	m_numLoadedVertices += count;
-
-	// Load position and texcoord scale factors.
-	m_VtxAttr.PosFrac          = vat.g0.PosFrac;
-	m_VtxAttr.texCoord[0].Frac = vat.g0.Tex0Frac;
-	m_VtxAttr.texCoord[1].Frac = vat.g1.Tex1Frac;
-	m_VtxAttr.texCoord[2].Frac = vat.g1.Tex2Frac;
-	m_VtxAttr.texCoord[3].Frac = vat.g1.Tex3Frac;
-	m_VtxAttr.texCoord[4].Frac = vat.g2.Tex4Frac;
-	m_VtxAttr.texCoord[5].Frac = vat.g2.Tex5Frac;
-	m_VtxAttr.texCoord[6].Frac = vat.g2.Tex6Frac;
-	m_VtxAttr.texCoord[7].Frac = vat.g2.Tex7Frac;
 
 	posScale[0] = posScale[1] = posScale[2] = posScale[3] = fractionTable[m_VtxAttr.PosFrac];
 	if (m_native_components & VB_HAS_UVALL)
@@ -468,7 +458,7 @@ void VertexLoader::SetupRunVertices(const VAT& vat, int primitive, int const cou
 
 	// Prepare bounding box
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
-		BoundingBox::Prepare(vat, primitive, m_VtxDesc, m_native_vtx_decl);
+		BoundingBox::Prepare(m_vat, primitive, m_VtxDesc, m_native_vtx_decl);
 }
 
 void VertexLoader::ConvertVertices ( int count )
@@ -491,11 +481,11 @@ void VertexLoader::ConvertVertices ( int count )
 #endif
 }
 
-int VertexLoader::RunVertices(const VAT& vat, int primitive, int count, DataReader src, DataReader dst)
+int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataReader dst)
 {
 	dst.WritePointer(&g_vertex_manager_write_ptr);
 	src.WritePointer(&g_video_buffer_read_ptr);
-	SetupRunVertices(vat, primitive, count);
+	SetupRunVertices(primitive, count);
 	ConvertVertices(count);
 	return count;
 }
