@@ -104,22 +104,8 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
 			pad_type_choices[i]->Disable();
 
-		SIDevices selected_device = SConfig::GetInstance().m_SIDevice[i];
-
-#if defined(__LIBUSB__) || defined (_WIN32)
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
-		{
-			SI_GCAdapter::RefreshConnectedDevices();
-			if (SI_GCAdapter::GetDeviceType(i) != SIDEVICE_NONE)
-			{
-				pad_type_choices[i]->Disable();
-				selected_device = SI_GCAdapter::GetDeviceType(i);
-			}
-		}
-#endif
-
 		// Set the saved pad type as the default choice.
-		switch (selected_device)
+		switch (SConfig::GetInstance().m_SIDevice[i])
 		{
 		case SIDEVICE_GC_CONTROLLER:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[1]);

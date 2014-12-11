@@ -15,9 +15,6 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_DeviceGBA.h"
-#if defined(__LIBUSB__) || defined (_WIN32)
-#include "Core/HW/SI_GCAdapter.h"
-#endif
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 
@@ -57,6 +54,56 @@ enum
 	SI_COM_CSR         = 0x34,
 	SI_STATUS_REG      = 0x38,
 	SI_EXI_CLOCK_COUNT = 0x3C,
+};
+
+// SI Channel Output
+union USIChannelOut
+{
+	u32 Hex;
+	struct
+	{
+		u32 OUTPUT1 : 8;
+		u32 OUTPUT0 : 8;
+		u32 CMD     : 8;
+		u32         : 8;
+	};
+};
+
+// SI Channel Input High u32
+union USIChannelIn_Hi
+{
+	u32 Hex;
+	struct
+	{
+		u32 INPUT3   : 8;
+		u32 INPUT2   : 8;
+		u32 INPUT1   : 8;
+		u32 INPUT0   : 6;
+		u32 ERRLATCH : 1; // 0: no error  1: Error latched. Check SISR.
+		u32 ERRSTAT  : 1; // 0: no error  1: error on last transfer
+	};
+};
+
+// SI Channel Input Low u32
+union USIChannelIn_Lo
+{
+	u32 Hex;
+	struct
+	{
+		u32 INPUT7 : 8;
+		u32 INPUT6 : 8;
+		u32 INPUT5 : 8;
+		u32 INPUT4 : 8;
+	};
+};
+
+// SI Channel
+struct SSIChannel
+{
+	USIChannelOut   m_Out;
+	USIChannelIn_Hi m_InHi;
+	USIChannelIn_Lo m_InLo;
+	ISIDevice*      m_pDevice;
 };
 
 // SI Poll: Controls how often a device is polled
@@ -337,9 +384,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				g_Channel[1].m_pDevice->SendCommand(g_Channel[1].m_Out.Hex, g_Poll.EN1);
 				g_Channel[2].m_pDevice->SendCommand(g_Channel[2].m_Out.Hex, g_Poll.EN2);
 				g_Channel[3].m_pDevice->SendCommand(g_Channel[3].m_Out.Hex, g_Poll.EN3);
-#if defined(__LIBUSB__) || defined (_WIN32)
-				SI_GCAdapter::Output(g_Channel);
-#endif
+
 				g_StatusReg.WR = 0;
 				g_StatusReg.WRST0 = 0;
 				g_StatusReg.WRST1 = 0;
@@ -462,29 +507,6 @@ void UpdateDevices()
 	g_StatusReg.RDST2 = !!g_Channel[2].m_pDevice->GetData(g_Channel[2].m_InHi.Hex, g_Channel[2].m_InLo.Hex);
 	g_StatusReg.RDST3 = !!g_Channel[3].m_pDevice->GetData(g_Channel[3].m_InHi.Hex, g_Channel[3].m_InLo.Hex);
 
-	// Check for connected GC Adapter
-#if defined(__LIBUSB__) || defined (_WIN32)
-	if (SConfig::GetInstance().m_GameCubeAdapter)
-	{
-		g_StatusReg.RDST0 |= (SI_GCAdapter::GetDeviceType(0) != SIDEVICE_NONE);
-		g_StatusReg.RDST1 |= (SI_GCAdapter::GetDeviceType(1) != SIDEVICE_NONE);
-		g_StatusReg.RDST2 |= (SI_GCAdapter::GetDeviceType(2) != SIDEVICE_NONE);
-		g_StatusReg.RDST3 |= (SI_GCAdapter::GetDeviceType(3) != SIDEVICE_NONE);
-
-		for (int chan = 0; chan < MAX_SI_CHANNELS; chan++)
-		{
-			SIDevices connected_device = SI_GCAdapter::GetDeviceType(chan);
-			SIDevices configured_device = SConfig::GetInstance().m_SIDevice[chan];
-
-			if (connected_device != SIDEVICE_NONE)
-				ChangeDevice(connected_device, chan);
-			else
-				ChangeDevice(configured_device, chan);
-		}
-
-		SI_GCAdapter::Input(g_Channel);
-	}
-#endif
 	UpdateInterrupts();
 }
 

@@ -6,7 +6,6 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/SI_GCAdapter.h"
-#include "InputCommon/GCPadStatus.h"
 
 namespace SI_GCAdapter
 {
@@ -19,7 +18,7 @@ enum ControllerTypes
 
 static libusb_device_handle* s_handle = nullptr;
 static u8 s_controller_type[MAX_SI_CHANNELS] = { CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE };
-static u8 s_controller_last_rumble[4];
+static u8 s_controller_rumble[4];
 
 static std::mutex s_mutex;
 static u8 s_controller_payload[37];
@@ -60,7 +59,7 @@ void Init()
 	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 	{
 		s_controller_type[i] = CONTROLLER_NONE;
-		s_controller_last_rumble[i] = 0;
+		s_controller_rumble[i] = 0;
 	}
 
 	int ret = libusb_init(nullptr);
@@ -196,7 +195,7 @@ void Shutdown()
 	s_handle = nullptr;
 }
 
-void Input(SerialInterface::SSIChannel* g_Channel)
+void Input(int chan, GCPadStatus* pad)
 {
 	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
@@ -215,60 +214,43 @@ void Input(SerialInterface::SSIChannel* g_Channel)
 	}
 	else
 	{
-		for (int chan = 0; chan < MAX_SI_CHANNELS; chan++)
+		u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
+		if (type != CONTROLLER_NONE && s_controller_type[chan] == CONTROLLER_NONE)
+			NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, controller_payload_copy[1 + (9 * chan)]);
+
+		s_controller_type[chan] = type;
+
+		if (s_controller_type[chan] != CONTROLLER_NONE)
 		{
-			u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
-			if (type != CONTROLLER_NONE && s_controller_type[chan] == CONTROLLER_NONE)
-				NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, controller_payload_copy[1 + (9 * chan)]);
+			pad->button = controller_payload_copy[1 + (9 * chan) + 1] << 8;
 
-			s_controller_type[chan] = type;
+			u8 b = controller_payload_copy[1 + (9 * chan) + 2];
+			if (b & (1 << 0)) pad->button |= PAD_BUTTON_START;
+			if (b & (1 << 1)) pad->button |= PAD_TRIGGER_Z;
+			if (b & (1 << 2)) pad->button |= PAD_TRIGGER_R;
+			if (b & (1 << 3)) pad->button |= PAD_TRIGGER_L;
 
-			if (s_controller_type[chan] != CONTROLLER_NONE)
-			{
-				g_Channel[chan].m_InHi.Hex = 0;
-				g_Channel[chan].m_InLo.Hex = 0;
-				for (int j = 0; j < 4; j++)
-				{
-					g_Channel[chan].m_InHi.Hex |= (controller_payload_copy[2 + chan + j + (8 * chan) + 0] << (8 * (3 - j)));
-					g_Channel[chan].m_InLo.Hex |= (controller_payload_copy[2 + chan + j + (8 * chan) + 4] << (8 * (3 - j)));
-				}
-
-				u8 buttons_0 = (g_Channel[chan].m_InHi.Hex >> 28) & 0x0f;
-				u8 buttons_1 = (g_Channel[chan].m_InHi.Hex >> 24) & 0x0f;
-				u8 buttons_2 = (g_Channel[chan].m_InHi.Hex >> 20) & 0x0f;
-				u8 buttons_3 = (g_Channel[chan].m_InHi.Hex >> 16) & 0x0f;
-				g_Channel[chan].m_InHi.Hex = buttons_3 << 28 | buttons_1 << 24 | (buttons_2) << 20 | buttons_0 << 16 | (g_Channel[chan].m_InHi.Hex & 0x0000ffff);
-
-				if (type == CONTROLLER_WIRED || type == CONTROLLER_WIRELESS)
-					g_Channel[chan].m_InHi.Hex |= (PAD_USE_ORIGIN << 16);
-			}
+			pad->stickX = controller_payload_copy[1 + (9 * chan) + 3];
+			pad->stickY = controller_payload_copy[1 + (9 * chan) + 4];
+			pad->substickX = controller_payload_copy[1 + (9 * chan) + 5];
+			pad->substickY = controller_payload_copy[1 + (9 * chan) + 6];
+			pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
+			pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
 		}
 	}
 }
 
-void Output(SerialInterface::SSIChannel* g_Channel)
+void Output(int chan, u8 rumble)
 {
 	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
-	bool rumble_update = false;
-	u8 current_rumble[4] = { 0, 0, 0, 0 };
-
-	for (int chan = 0; chan < MAX_SI_CHANNELS; chan++)
+	// Skip over rumble commands if it has not changed or the controller is wireless
+	if (rumble != s_controller_rumble[chan] && s_controller_type[chan] != CONTROLLER_WIRELESS)
 	{
-		// Skip over rumble commands if the controller is wireless
-		if (s_controller_type[chan] != CONTROLLER_WIRELESS)
-			current_rumble[chan] = g_Channel[chan].m_Out.Hex & 0xff;
+		s_controller_rumble[chan] = rumble;
 
-		if (current_rumble[chan] != s_controller_last_rumble[chan])
-			rumble_update = true;
-
-		s_controller_last_rumble[chan] = current_rumble[chan];
-	}
-
-	if (rumble_update)
-	{
-		unsigned char rumble[5] = { 0x11, current_rumble[0], current_rumble[1], current_rumble[2], current_rumble[3] };
+		unsigned char rumble[5] = { 0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2], s_controller_rumble[3] };
 		int size = 0;
 		libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 0);
 

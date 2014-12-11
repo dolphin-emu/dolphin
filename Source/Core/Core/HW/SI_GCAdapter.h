@@ -6,14 +6,15 @@
 
 #include "Common/Thread.h"
 #include "Core/HW/SI.h"
+#include "InputCommon/GCPadStatus.h"
 
 namespace SI_GCAdapter
 {
 
 void Init();
 void Shutdown();
-void Input(SerialInterface::SSIChannel* g_Channel);
-void Output(SerialInterface::SSIChannel* g_Channel);
+void Input(int chan, GCPadStatus* pad);
+void Output(int chan, u8 rumble);
 SIDevices GetDeviceType(int channel);
 void RefreshConnectedDevices();
 bool IsDetected();
