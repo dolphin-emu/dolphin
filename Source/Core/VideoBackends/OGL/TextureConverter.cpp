@@ -222,6 +222,8 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	// attach render buffer as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
 
+	OpenGL_BindAttributelessVAO();
+
 	// set source texture
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, srcTexture);
@@ -361,6 +363,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	}
 
 	g_renderer->ResetAPIState(); // reset any game specific settings
+
+	OpenGL_BindAttributelessVAO();
 
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
