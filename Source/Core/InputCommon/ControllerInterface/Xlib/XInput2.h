@@ -98,8 +98,7 @@ private:
 	void UpdateCursor();
 
 public:
-	bool UpdateInput() override;
-	bool UpdateOutput() override;
+	void UpdateInput() override;
 
 	KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid);
 	~KeyboardMouse();

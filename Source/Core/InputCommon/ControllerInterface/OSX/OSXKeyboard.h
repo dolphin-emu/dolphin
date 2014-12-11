@@ -53,8 +53,7 @@ private:
 	};
 
 public:
-	bool UpdateInput();
-	bool UpdateOutput();
+	void UpdateInput() override;
 
 	Keyboard(IOHIDDeviceRef device, std::string name, int index, void *window);
 

@@ -5,10 +5,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstdio>
-#include <locale.h>
-#ifdef __APPLE__
-	#include <xlocale.h>
-#endif
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
@@ -160,15 +156,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	out.SetBuffer(text);
 	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-#ifndef ANDROID
-	locale_t locale;
-	locale_t old_locale;
-	if (is_writing_shadercode)
-	{
-		locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
-		old_locale = uselocale(locale); // Apply the locale for this thread
-	}
-#endif
 
 	if (is_writing_shadercode)
 		text[sizeof(text) - 1] = 0x7C;  // canary
@@ -261,11 +248,20 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox)
 	{
-		out.Write(
-			"layout(std140, binding = 3) buffer BBox {\n"
-			"\tint4 bbox_data;\n"
-			"};\n"
-		);
+		if (ApiType == API_OPENGL)
+		{
+			out.Write(
+				"layout(std140, binding = 3) buffer BBox {\n"
+				"\tint4 bbox_data;\n"
+				"};\n"
+				);
+		}
+		else
+		{
+			out.Write(
+				"globallycoherent RWBuffer<int> bbox_data : register(u2);\n"
+				);
+		}
 	}
 
 	GenerateVSOutputStruct(out, ApiType);
@@ -582,12 +578,24 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
 	{
 		uid_data->bounding_box = true;
-		out.Write(
-			"\tif(bbox_data.x > int(gl_FragCoord.x)) atomicMin(bbox_data.x, int(gl_FragCoord.x));\n"
-			"\tif(bbox_data.y < int(gl_FragCoord.x)) atomicMax(bbox_data.y, int(gl_FragCoord.x));\n"
-			"\tif(bbox_data.z > int(gl_FragCoord.y)) atomicMin(bbox_data.z, int(gl_FragCoord.y));\n"
-			"\tif(bbox_data.w < int(gl_FragCoord.y)) atomicMax(bbox_data.w, int(gl_FragCoord.y));\n"
-		);
+		if (ApiType == API_OPENGL)
+		{
+			out.Write(
+				"\tif(bbox_data.x > int(gl_FragCoord.x)) atomicMin(bbox_data.x, int(gl_FragCoord.x));\n"
+				"\tif(bbox_data.y < int(gl_FragCoord.x)) atomicMax(bbox_data.y, int(gl_FragCoord.x));\n"
+				"\tif(bbox_data.z > int(gl_FragCoord.y)) atomicMin(bbox_data.z, int(gl_FragCoord.y));\n"
+				"\tif(bbox_data.w < int(gl_FragCoord.y)) atomicMax(bbox_data.w, int(gl_FragCoord.y));\n"
+				);
+		}
+		else
+		{
+			out.Write(
+				"\tif(bbox_data[0] > int(rawpos.x)) InterlockedMin(bbox_data[0], int(rawpos.x));\n"
+				"\tif(bbox_data[1] < int(rawpos.x)) InterlockedMax(bbox_data[1], int(rawpos.x));\n"
+				"\tif(bbox_data[2] > int(rawpos.y)) InterlockedMin(bbox_data[2], int(rawpos.y));\n"
+				"\tif(bbox_data[3] < int(rawpos.y)) InterlockedMax(bbox_data[3], int(rawpos.y));\n"
+				);
+		}
 	}
 
 	out.Write("}\n");
@@ -596,11 +604,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
-
-#ifndef ANDROID
-		uselocale(old_locale); // restore locale
-		freelocale(locale);
-#endif
 	}
 }
 

@@ -157,15 +157,15 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 	if (g_has_rift && hmd)
 	{
 		// we can only call GetEyePose between BeginFrame and EndFrame
-		g_ovr_lock.lock();
 #ifdef OCULUSSDK042
+		g_ovr_lock.lock();
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#else
-		g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
-		g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
-#endif
 		g_ovr_lock.unlock();
+#else
+		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#endif
 		//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
 		//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{

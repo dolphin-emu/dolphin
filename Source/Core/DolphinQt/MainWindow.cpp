@@ -261,16 +261,6 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	m_game_tracker->setEnabled(is_not_initialized);
 }
 
-bool DMainWindow::RenderWidgetHasFocus()
-{
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-		return isActiveWindow();
-	else if (m_render_widget != nullptr)
-		return m_render_widget->isActiveWindow();
-	else
-		return false;
-}
-
 // Update all the icons used in DMainWindow with fresh ones from
 // "Resources". Call this function after changing the icon theme.
 void DMainWindow::UpdateIcons()

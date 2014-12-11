@@ -64,68 +64,18 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 		return;
 	}
 
-	// if we are on the next input cycle, update output and input
-	// if we can get a lock
-	static int _last_numPAD = 4;
-	if (_numPAD <= _last_numPAD)
-	{
-		g_controller_interface.UpdateOutput();
-		g_controller_interface.UpdateInput();
-	}
-	_last_numPAD = _numPAD;
-
 	// get input
 	((GCPad*)s_config.controllers[_numPAD])->GetInput(_pPADStatus);
 }
 
-// __________________________________________________________________________________________________
-// Function: Rumble
-// Purpose:  Pad rumble!
-// input:    _numPad    - Which pad to rumble.
-//           _uType     - Command type (Stop=0, Rumble=1, Stop Hard=2).
-//           _uStrength - Strength of the Rumble
-// output:   none
-//
-void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+void Rumble(u8 _numPAD, const ControlState strength)
 {
 	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
-	if (lk.owns_lock())
-	{
-		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
-		// set rumble
-		if (1 == _uType && _uStrength > 2)
-		{
-			((GCPad*)s_config.controllers[ _numPAD ])->SetOutput(255);
-		}
-		else
-		{
-			((GCPad*)s_config.controllers[ _numPAD ])->SetOutput(0);
-		}
-	}
-}
+	if (!lk.owns_lock())
+		return;
 
-// __________________________________________________________________________________________________
-// Function: Motor
-// Purpose:  For devices with constant Force feedback
-// input:    _numPAD    - The pad to operate on
-//           _uType     - 06 = Motor On, 04 = Motor Off
-//           _uStrength - 00 = Left Strong, 127 = Left Weak, 128 = Right Weak, 255 = Right Strong
-// output:   none
-//
-void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
-{
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
-	if (lk.owns_lock())
-	{
-		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
-		// set rumble
-		if (_uType == 6)
-		{
-			((GCPad*)s_config.controllers[ _numPAD ])->SetMotor(_uStrength);
-		}
-	}
+	((GCPad*)s_config.controllers[ _numPAD ])->SetOutput(strength);
 }
 
 bool GetMicButton(u8 pad)

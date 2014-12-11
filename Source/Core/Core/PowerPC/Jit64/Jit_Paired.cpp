@@ -77,13 +77,13 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	switch (inst.SUBOP10)
 	{
 	case 40: //neg
-		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), fpr.R(b), M((void*)&psSignBits));
+		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), fpr.R(b), M(psSignBits));
 		break;
 	case 136: //nabs
-		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), fpr.R(b), M((void*)&psSignBits));
+		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), fpr.R(b), M(psSignBits));
 		break;
 	case 264: //abs
-		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), fpr.R(b), M((void*)&psAbsMask));
+		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), fpr.R(b), M(psAbsMask));
 		break;
 	}
 
@@ -372,12 +372,12 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 		case 30: //nmsub
 			MULPD(XMM0, fpr.R(a));
 			SUBPD(XMM0, fpr.R(b));
-			PXOR(XMM0, M((void*)&psSignBits));
+			PXOR(XMM0, M(psSignBits));
 			break;
 		case 31: //nmadd
 			MULPD(XMM0, fpr.R(a));
 			ADDPD(XMM0, fpr.R(b));
-			PXOR(XMM0, M((void*)&psSignBits));
+			PXOR(XMM0, M(psSignBits));
 			break;
 		default:
 			_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");

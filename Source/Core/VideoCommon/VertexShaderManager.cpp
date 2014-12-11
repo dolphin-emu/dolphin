@@ -541,7 +541,7 @@ static float PHackValue(std::string sValue)
 
 void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
-	float fhackvalue1 = 0, fhackvalue2 = FLT_EPSILON; // hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
+	float fhackvalue1 = 0, fhackvalue2 = 0;
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
 	const char *sTemp[2];
 
@@ -1285,6 +1285,8 @@ void VertexShaderManager::SetProjectionConstants()
 
 			float HudWidth, HudHeight, HudThickness, HudDistance, HudUp, CameraForward, AimDistance;
 
+			g_fProjectionMatrix[14] = 0.0f;
+			g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON; // hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
 			// 2D Screen
 			if (vr_widest_3d_HFOV <= 0)
 			{

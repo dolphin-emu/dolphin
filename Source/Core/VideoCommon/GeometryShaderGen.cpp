@@ -3,10 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include <locale.h>
-#ifdef __APPLE__
-	#include <xlocale.h>
-#endif
 
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
@@ -26,15 +22,6 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	out.SetBuffer(text);
 	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-#ifndef ANDROID
-	locale_t locale;
-	locale_t old_locale;
-	if (is_writing_shadercode)
-	{
-		locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
-		old_locale = uselocale(locale); // Apply the locale for this thread
-	}
-#endif
 
 	if (is_writing_shadercode)
 		text[sizeof(text) - 1] = 0x7C;  // canary
@@ -115,11 +102,6 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	{
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("GeometryShader generator - buffer too small, canary has been eaten!");
-
-#ifndef ANDROID
-		uselocale(old_locale); // restore locale
-		freelocale(locale);
-#endif
 	}
 }
 

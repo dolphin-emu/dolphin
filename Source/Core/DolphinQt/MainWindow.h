@@ -27,7 +27,7 @@ public:
 	~DMainWindow();
 
 	// DRenderWidget
-	bool RenderWidgetHasFocus();
+	bool RenderWidgetHasFocus() const { return m_render_widget->isActiveWindow(); }
 	DRenderWidget* GetRenderWidget() { return m_render_widget.get(); }
 
 signals:
@@ -65,7 +65,7 @@ private:
 	QString ShowFileDialog();
 	void DoStartPause();
 
-	std::unique_ptr<DRenderWidget> m_render_widget; // TODO: just create this once and reuse it
+	std::unique_ptr<DRenderWidget> m_render_widget;
 	bool m_isStopping = false;
 };
 

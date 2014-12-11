@@ -9,19 +9,6 @@ namespace WiimoteEmu
 {
 
 static const u8 nunchuk_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
-/* Default calibration for the nunchuk. It should be written to 0x20 - 0x3f of the
-   extension register. 0x80 is the neutral x and y accelerators and 0xb3 is the
-   neutral z accelerometer that is adjusted for gravity. */
-static const u8 nunchuk_calibration[] =
-{
-	0x80, 0x80, 0x80, 0x00, // accelerometer x, y, z neutral
-	0xb3, 0xb3, 0xb3, 0x00, //  x, y, z g-force values
-
-	// 0x80 = analog stick x and y axis center
-	0xff, 0x00, 0x80,
-	0xff, 0x00, 0x80,
-	0xec, 0x41 // checksum on the last two bytes
-};
 
 static const u8 nunchuk_button_bitmasks[] =
 {
@@ -51,9 +38,6 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg, int index) : Attachment(_trans(
 	m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
 	m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
-	// set up register
-	// calibration
-	memcpy(&calibration, nunchuk_calibration, sizeof(nunchuk_calibration));
 	// id
 	memcpy(&id, nunchuk_id, sizeof(nunchuk_id));
 
@@ -67,37 +51,27 @@ void Nunchuk::GetState(u8* const data)
 	ncdata->bt.hex = 0;
 
 	// stick
-	double state[2];
-	m_stick->GetState(&state[0], &state[1]);
-
-	nu_cal &cal = *(nu_cal*)&reg.calibration;
-	nu_js cal_js[2];
-	cal_js[0] = cal.jx;
-	cal_js[1] = cal.jy;
-
-	for (int i = 0; i < 2; i++)
-	{
-		double &s = state[i];
-		nu_js c = cal_js[i];
-		if (s < 0)
-			s = s * abs(c.min - c.center) + c.center;
-		else if (s > 0)
-			s = s * abs(c.max - c.center) + c.center;
-		else
-			s = c.center;
-	}
-
-	ncdata->jx = u8(trim(state[0]));
-	ncdata->jy = u8(trim(state[1]));
-
+	double jx, jy;
+	m_stick->GetState(&jx, &jy);
 	HydraTLayer::GetNunchuk(m_index, &ncdata->jx, &ncdata->jy, &ncdata->bt);
 
-	if (ncdata->jx != cal.jx.center || ncdata->jy != cal.jy.center)
+	ncdata->jx = u8(STICK_CENTER + jx * STICK_RADIUS);
+	ncdata->jy = u8(STICK_CENTER + jy * STICK_RADIUS);
+
+	// Some terribly coded games check whether to move with a check like
+	//
+	//     if (x != 0 && y != 0)
+	//         do_movement(x, y);
+	//
+	// With keyboard controls, these games break if you simply hit
+	// of the axes. Adjust this if you're hitting one of the axes so that
+	// we slightly tweak the other axis.
+	if (ncdata->jx != STICK_CENTER || ncdata->jy != STICK_CENTER)
 	{
-		if (ncdata->jy == cal.jy.center)
-			ncdata->jy = cal.jy.center + 1;
-		if (ncdata->jx == cal.jx.center)
-			ncdata->jx = cal.jx.center + 1;
+		if (ncdata->jx == STICK_CENTER)
+			++ncdata->jx;
+		if (ncdata->jy == STICK_CENTER)
+			++ncdata->jy;
 	}
 
 	AccelData accel;
@@ -116,25 +90,23 @@ void Nunchuk::GetState(u8* const data)
 	// flip the button bits :/
 	ncdata->bt.hex ^= 0x03;
 
-	accel_cal& calib = *(accel_cal*)&reg.calibration;
+	u16 accel_x = (u16)(accel.x * ACCEL_RANGE + ACCEL_ZERO_G);
+	u16 accel_y = (u16)(accel.y * ACCEL_RANGE + ACCEL_ZERO_G);
+	u16 accel_z = (u16)(accel.z * ACCEL_RANGE + ACCEL_ZERO_G);
 
-	u16 x = (u16)(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	u16 y = (u16)(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	u16 z = (u16)(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+	if (accel_x > 1024)
+		accel_x = 1024;
+	if (accel_y > 1024)
+		accel_y = 1024;
+	if (accel_z > 1024)
+		accel_z = 1024;
 
-	if (x > 1024)
-		x = 1024;
-	if (y > 1024)
-		y = 1024;
-	if (z > 1024)
-		z = 1024;
-
-	ncdata->ax = x & 0xFF;
-	ncdata->ay = y & 0xFF;
-	ncdata->az = z & 0xFF;
-	ncdata->passthrough_data.acc_x_lsb = x >> 8 & 0x3;
-	ncdata->passthrough_data.acc_y_lsb = y >> 8 & 0x3;
-	ncdata->passthrough_data.acc_z_lsb = z >> 8 & 0x3;
+	ncdata->ax = accel_x & 0xFF;
+	ncdata->ay = accel_y & 0xFF;
+	ncdata->az = accel_z & 0xFF;
+	ncdata->passthrough_data.acc_x_lsb = accel_x >> 8 & 0x3;
+	ncdata->passthrough_data.acc_y_lsb = accel_y >> 8 & 0x3;
+	ncdata->passthrough_data.acc_z_lsb = accel_z >> 8 & 0x3;
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)

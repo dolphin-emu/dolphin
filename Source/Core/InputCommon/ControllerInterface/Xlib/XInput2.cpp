@@ -208,7 +208,7 @@ void KeyboardMouse::UpdateCursor()
 	m_state.cursor.y = win_y / (float)win_attribs.height * 2 - 1;
 }
 
-bool KeyboardMouse::UpdateInput()
+void KeyboardMouse::UpdateInput()
 {
 	XFlush(m_display);
 
@@ -282,13 +282,6 @@ bool KeyboardMouse::UpdateInput()
 	m_state.axis.y *= MOUSE_AXIS_SMOOTHING;
 	m_state.axis.y += delta_y;
 	m_state.axis.y /= MOUSE_AXIS_SMOOTHING+1.0f;
-
-	return true;
-}
-
-bool KeyboardMouse::UpdateOutput()
-{
-	return true;
 }
 
 std::string KeyboardMouse::GetName() const

@@ -42,10 +42,6 @@ static const u8 eeprom_data_0[] = {
 	// assuming last 2 bytes are checksum
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00, // messing up the checksum on purpose
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,
-	// Accelerometer
-	// 0g x,y,z, 1g x,y,z, idk, last byte is a checksum
-	0x80, 0x80, 0x80, 0x00, 0x9A, 0x9A, 0x9A, 0x00, 0x40, 0xE3,
-	0x80, 0x80, 0x80, 0x00, 0x9A, 0x9A, 0x9A, 0x00, 0x40, 0xE3,
 };
 
 static const u8 motion_plus_id[] = { 0x00, 0x00, 0xA6, 0x20, 0x00, 0x05 };
@@ -408,11 +404,10 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 
 	wm_accel& accel = *(wm_accel*)(data + rptf.accel);
 	wm_buttons& core = *(wm_buttons*)(data + rptf.core);
-	accel_cal& calib = *(accel_cal*)&m_eeprom[0x16];
 
-	u16 x = (u16)(m_accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	u16 y = (u16)(m_accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	u16 z = (u16)(m_accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+	u16 x = (u16)(m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G);
+	u16 y = (u16)(m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G);
+	u16 z = (u16)(m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G);
 
 	if (x > 1024)
 		x = 1024;
@@ -770,7 +765,6 @@ void Wiimote::Update()
 	// send data report
 	if (rptf_size)
 	{
-		WiimoteEmu::Spy(this, data, rptf_size);
 		Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, rptf_size);
 	}
 }

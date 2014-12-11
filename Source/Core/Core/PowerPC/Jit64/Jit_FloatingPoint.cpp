@@ -209,7 +209,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 				ADDSD(XMM0, fpr.R(b));
 		}
 		if (inst.SUBOP5 == 31) //nmadd
-			PXOR(XMM0, M((void*)&(packed ? psSignBits2 : psSignBits)));
+			PXOR(XMM0, M(packed ? psSignBits2 : psSignBits));
 	}
 
 	fpr.BindToRegister(d, !single);
@@ -252,13 +252,13 @@ void Jit64::fsign(UGeckoInstruction inst)
 	case 40:  // fnegx
 		// We can cheat and not worry about clobbering the top half by using masks
 		// that don't modify the top half.
-		PXOR(fpr.RX(d), M((void*)&psSignBits));
+		PXOR(fpr.RX(d), M(psSignBits));
 		break;
 	case 264: // fabsx
-		PAND(fpr.RX(d), M((void*)&psAbsMask));
+		PAND(fpr.RX(d), M(psAbsMask));
 		break;
 	case 136: // fnabs
-		POR(fpr.RX(d), M((void*)&psSignBits));
+		POR(fpr.RX(d), M(psSignBits));
 		break;
 	default:
 		PanicAlert("fsign bleh");
@@ -463,7 +463,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 	// The upper 32 bits of the result are set to 0xfff80000,
 	// except for -0.0 where they are set to 0xfff80001 (TODO).
 
-	MOVAPD(XMM0, M(&half_qnan_and_s32_max));
+	MOVAPD(XMM0, M(half_qnan_and_s32_max));
 	MINSD(XMM0, fpr.R(b));
 	switch (inst.SUBOP10)
 	{

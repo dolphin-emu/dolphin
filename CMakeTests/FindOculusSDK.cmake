@@ -15,6 +15,8 @@ if (NOT OCULUSSDK_FOUND)
 		/usr/local/include/ovr-0.4.3/LibOVR/Include
 		/usr/local/include/ovr-0.4.4/LibOVR/Include
 		/usr/local/include
+		Externals/LibOVR/Include
+		Externals/
 	)
 
 	find_path(OCULUSSDK_SRC_DIR NAMES OVR_CAPI_GL.h
@@ -25,6 +27,8 @@ if (NOT OCULUSSDK_FOUND)
 		/usr/local/include/ovr-0.4.3/LibOVR/Src
 		/usr/local/include/ovr-0.4.4/LibOVR/Src
 		/usr/local/include
+		Externals/LibOVR/Src
+		Externals/
 	)
 
 	if(OCULUSSDK_INCLUDE_DIR AND OCULUSSDK_SRC_DIR)

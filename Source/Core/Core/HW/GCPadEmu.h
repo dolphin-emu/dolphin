@@ -14,8 +14,7 @@ public:
 
 	GCPad(const unsigned int index);
 	void GetInput(GCPadStatus* const pad);
-	void SetOutput(const u8 on);
-	void SetMotor(const u8 on);
+	void SetOutput(const ControlState strength);
 
 	bool GetMicButton() const;
 

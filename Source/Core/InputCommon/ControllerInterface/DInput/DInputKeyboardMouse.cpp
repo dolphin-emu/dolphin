@@ -30,17 +30,6 @@ static const struct
 #include "InputCommon/ControllerInterface/DInput/NamedKeys.h" // NOLINT
 };
 
-static const struct
-{
-	const BYTE        code;
-	const char* const name;
-} named_lights[] =
-{
-	{ VK_NUMLOCK, "NUM LOCK" },
-	{ VK_CAPITAL, "CAPS LOCK" },
-	{ VK_SCROLL, "SCROLL LOCK" }
-};
-
 // lil silly
 static HWND hwnd;
 
@@ -102,16 +91,11 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIREC
 	m_last_update = GetTickCount();
 
 	ZeroMemory(&m_state_in, sizeof(m_state_in));
-	ZeroMemory(m_state_out, sizeof(m_state_out));
-	ZeroMemory(&m_current_state_out, sizeof(m_current_state_out));
 
 	// KEYBOARD
 	// add keys
 	for (u8 i = 0; i < sizeof(named_keys)/sizeof(*named_keys); ++i)
 		AddInput(new Key(i, m_state_in.keyboard[named_keys[i].code]));
-	// add lights
-	for (u8 i = 0; i < sizeof(named_lights)/sizeof(*named_lights); ++i)
-		AddOutput(new Light(i));
 
 	// MOUSE
 	// get caps
@@ -155,7 +139,7 @@ void GetMousePos(ControlState* const x, ControlState* const y)
 	*y = (ControlState)point.y / (ControlState)win_height * 2 - 1;
 }
 
-bool KeyboardMouse::UpdateInput()
+void KeyboardMouse::UpdateInput()
 {
 	DIMOUSESTATE2 tmp_mouse;
 
@@ -191,50 +175,7 @@ bool KeyboardMouse::UpdateInput()
 
 		// update mouse cursor
 		GetMousePos(&m_state_in.cursor.x, &m_state_in.cursor.y);
-
-		return true;
 	}
-
-	return false;
-}
-
-bool KeyboardMouse::UpdateOutput()
-{
-	class KInput : public INPUT
-	{
-	public:
-		KInput( const unsigned char key, const bool up = false )
-		{
-			memset( this, 0, sizeof(*this) );
-			type = INPUT_KEYBOARD;
-			ki.wVk = key;
-
-			if (up)
-				ki.dwFlags = KEYEVENTF_KEYUP;
-		}
-	};
-
-	std::vector< KInput > kbinputs;
-	for (unsigned int i = 0; i < sizeof(m_state_out)/sizeof(*m_state_out); ++i)
-	{
-		bool want_on = false;
-		if (m_state_out[i])
-			want_on = m_state_out[i] > GetTickCount() % 255 ; // light should flash when output is 0.5
-
-		// lights are set to their original state when output is zero
-		if (want_on ^ m_current_state_out[i])
-		{
-			kbinputs.push_back(KInput(named_lights[i].code));       // press
-			kbinputs.push_back(KInput(named_lights[i].code, true)); // release
-
-			m_current_state_out[i] ^= 1;
-		}
-	}
-
-	if (kbinputs.size())
-		return ( kbinputs.size() == SendInput( (UINT)kbinputs.size(), &kbinputs[0], sizeof( kbinputs[0] ) ) );
-	else
-		return true;
 }
 
 std::string KeyboardMouse::GetName() const
@@ -280,11 +221,6 @@ std::string KeyboardMouse::Cursor::GetName() const
 	return tmpstr;
 }
 
-std::string KeyboardMouse::Light::GetName() const
-{
-	return named_lights[m_index].name;
-}
-
 // get/set state
 ControlState KeyboardMouse::Key::GetState() const
 {
@@ -304,11 +240,6 @@ ControlState KeyboardMouse::Axis::GetState() const
 ControlState KeyboardMouse::Cursor::GetState() const
 {
 	return std::max(0.0, ControlState(m_axis) / (m_positive ? 1.0 : -1.0));
-}
-
-void KeyboardMouse::Light::SetState(const ControlState state)
-{
-	//state_out[m_index] = (unsigned char)(state * 255);
 }
 
 }

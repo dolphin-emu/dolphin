@@ -39,9 +39,6 @@ private:
 	};
 
 public:
-	bool UpdateInput() { return true; }
-	bool UpdateOutput() { return true; }
-
 	Touchscreen(int padID);
 	~Touchscreen() {}
 
