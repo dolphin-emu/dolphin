@@ -57,25 +57,6 @@ public:
 		hash = CalculateHash();
 	}
 
-	bool operator < (const VertexLoaderUID &other) const
-	{
-		// This is complex because of speed.
-		if (vid[0] < other.vid[0])
-			return true;
-		else if (vid[0] > other.vid[0])
-			return false;
-
-		for (int i = 1; i < 5; ++i)
-		{
-			if (vid[i] < other.vid[i])
-				return true;
-			else if (vid[i] > other.vid[i])
-				return false;
-		}
-
-		return false;
-	}
-
 	bool operator == (const VertexLoaderUID& rh) const
 	{
 		return hash == rh.hash && std::equal(vid, vid + sizeof(vid) / sizeof(vid[0]), rh.vid);
@@ -100,6 +81,17 @@ private:
 		return h;
 	}
 };
+
+namespace std
+{
+template <> struct hash<VertexLoaderUID>
+{
+	size_t operator()(const VertexLoaderUID& uid) const
+	{
+		return uid.GetHash();
+	}
+};
+}
 
 // ARMTODO: This should be done in a better way
 #ifndef _M_GENERIC

@@ -28,7 +28,7 @@ class SWVertexLoader
 
 	bool m_TexGenSpecialCase;
 
-	std::map<VertexLoaderUID, std::unique_ptr<VertexLoader>> m_VertexLoaderMap;
+	std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoader>> m_VertexLoaderMap;
 	std::vector<u8> m_LoadedVertices;
 	VertexLoader* m_CurrentLoader;
 

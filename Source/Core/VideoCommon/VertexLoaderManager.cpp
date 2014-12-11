@@ -23,20 +23,6 @@
 
 static NativeVertexFormat* s_current_vtx_fmt;
 
-namespace std
-{
-
-template <>
-struct hash<VertexLoaderUID>
-{
-	size_t operator()(const VertexLoaderUID& uid) const
-	{
-		return uid.GetHash();
-	}
-};
-
-}
-
 typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoader>> VertexLoaderMap;
 
 namespace VertexLoaderManager
