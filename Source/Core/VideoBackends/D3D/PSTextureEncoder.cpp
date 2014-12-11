@@ -1083,21 +1083,20 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	if (SetStaticShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
 #endif
 	{
-		D3D::context->VSSetShader(m_vShader, nullptr, 0);
+		D3D::stateman->SetVertexShader(m_vShader);
 
 		D3D::stateman->PushBlendState(m_efbEncodeBlendState);
 		D3D::stateman->PushDepthState(m_efbEncodeDepthState);
 		D3D::stateman->PushRasterizerState(m_efbEncodeRastState);
-		D3D::stateman->Apply();
 
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2), FLOAT(numBlocksY));
 		D3D::context->RSSetViewports(1, &vp);
 
-		D3D::context->IASetInputLayout(m_quadLayout);
-		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D::stateman->SetInputLayout(m_quadLayout);
+		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		UINT stride = sizeof(QuadVertex);
 		UINT offset = 0;
-		D3D::context->IASetVertexBuffers(0, 1, &m_quad, &stride, &offset);
+		D3D::stateman->SetVertexBuffer(m_quad, stride, offset);
 
 		EFBRectangle fullSrcRect;
 		fullSrcRect.left = 0;
@@ -1117,8 +1116,6 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		params.TexBottom = float(targetRect.bottom) / g_renderer->GetTargetHeight();
 		D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
 
-		D3D::context->VSSetConstantBuffers(0, 1, &m_encodeParams);
-
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
 		ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
@@ -1128,12 +1125,14 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 			// expecting the blurred edges around multisampled shapes.
 			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
-		D3D::context->PSSetConstantBuffers(0, 1, &m_encodeParams);
-		D3D::context->PSSetShaderResources(0, 1, &pEFB);
-		D3D::context->PSSetSamplers(0, 1, &m_efbSampler);
+		D3D::stateman->SetVertexConstants(m_encodeParams);
+		D3D::stateman->SetPixelConstants(m_encodeParams);
+		D3D::stateman->SetTexture(0, pEFB);
+		D3D::stateman->SetSampler(0, m_efbSampler);
 
 		// Encode!
 
+		D3D::stateman->Apply();
 		D3D::context->Draw(4, 0);
 
 		// Copy to staging buffer
@@ -1143,22 +1142,21 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 		// Clean up state
 
-		IUnknown* nullDummy = nullptr;
-
-		D3D::context->PSSetSamplers(0, 1, (ID3D11SamplerState**)&nullDummy);
-		D3D::context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
-		D3D::context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
-
 		D3D::context->OMSetRenderTargets(0, nullptr, nullptr);
 
-		D3D::context->VSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
+		D3D::stateman->SetSampler(0, nullptr);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetPixelConstants(nullptr);
+		D3D::stateman->SetVertexConstants(nullptr);
+
+		D3D::stateman->SetPixelShader(nullptr);
+		D3D::stateman->SetVertexBuffer(nullptr, 0, 0);
 
 		D3D::stateman->PopRasterizerState();
 		D3D::stateman->PopDepthState();
 		D3D::stateman->PopBlendState();
 
-		D3D::context->PSSetShader(nullptr, nullptr, 0);
-		D3D::context->VSSetShader(nullptr, nullptr, 0);
+		D3D::stateman->Apply();
 
 		// Transfer staging buffer to GameCube/Wii RAM
 
@@ -1276,7 +1274,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEControl::PixelF
 	{
 		if (it->second)
 		{
-			D3D::context->PSSetShader(it->second, nullptr, 0);
+			D3D::stateman->SetPixelShader(it->second);
 			return true;
 		}
 		else
@@ -1436,7 +1434,7 @@ bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
 	if (m_generatorSlot != UINT(-1))
 		m_linkageArray[m_generatorSlot] = m_generatorClass[generatorNum];
 
-	D3D::context->PSSetShader(m_dynamicShader,
+	D3D::stateman->SetPixelShaderDynamic(m_dynamicShader,
 		m_linkageArray.empty() ? nullptr : &m_linkageArray[0],
 		(UINT)m_linkageArray.size());
 
