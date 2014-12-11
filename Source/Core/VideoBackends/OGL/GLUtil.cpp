@@ -143,4 +143,7 @@ void OpenGL_DeleteAttributelessVAO()
 {
 	glDeleteVertexArrays(1, &attributelessVAO);
 	glDeleteBuffers(1, &attributelessVBO);
+
+	attributelessVAO = 0;
+	attributelessVBO = 0;
 }
