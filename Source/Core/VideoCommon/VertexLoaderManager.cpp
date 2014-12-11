@@ -14,7 +14,6 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
