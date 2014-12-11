@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 
@@ -58,7 +60,7 @@ private:
 	bool m_FrameEnded;
 	FifoFrameInfo m_CurrentFrame;
 	std::vector<u8> m_FifoData;
-	u8 *m_Ram;
-	u8 *m_ExRam;
+	std::vector<u8> m_Ram;
+	std::vector<u8> m_ExRam;
 	FifoRecordAnalyzer m_RecordAnalyzer;
 };
