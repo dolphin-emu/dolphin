@@ -7,13 +7,6 @@
 #include "Common/Thread.h"
 #include "Core/HW/SI.h"
 
-struct libusb_device_handle;
-struct libusb_device_descriptor;
-struct libusb_config_descriptor;
-struct libusb_interface_descriptor;
-struct libusb_endpoint_descriptor;
-struct libusb_transfer;
-
 namespace SI_GCAdapter
 {
 

@@ -10,41 +10,57 @@
 
 namespace SI_GCAdapter
 {
+enum ControllerTypes
+{
+	CONTROLLER_NONE = 0,
+	CONTROLLER_WIRED = 1,
+	CONTROLLER_WIRELESS = 2
+};
 
-static libusb_device_handle* handle = nullptr;
-static bool controller_connected[MAX_SI_CHANNELS] = { false, false, false, false };
-static u8 controller_payload[37];
-static u8 controller_last_rumble[4];
-static int controller_payload_size = 0;
+static libusb_device_handle* s_handle = nullptr;
+static u8 s_controller_type[MAX_SI_CHANNELS] = { CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE };
+static u8 s_controller_last_rumble[4];
 
-static std::thread adapter_thread;
-static bool adapter_thread_running;
+static std::mutex s_mutex;
+static u8 s_controller_payload[37];
+static int s_controller_payload_size = 0;
 
-static bool libusb_driver_not_supported = false;
+static std::thread s_adapter_thread;
+static Common::Flag s_adapter_thread_running;
 
-static u8 endpoint_in = 0;
-static u8 endpoint_out = 0;
+static bool s_libusb_driver_not_supported = false;
+
+static u8 s_endpoint_in = 0;
+static u8 s_endpoint_out = 0;
 
 void Read()
 {
-	while (adapter_thread_running)
+	while (s_adapter_thread_running.IsSet())
 	{
-		libusb_interrupt_transfer(handle, endpoint_in, controller_payload, sizeof(controller_payload), &controller_payload_size, 0);
+		u8 controller_payload_swap[37];
+
+		libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload, sizeof(controller_payload_swap), &s_controller_payload_size, 0);
+
+		{
+		std::lock_guard<std::mutex> lk(s_mutex);
+		std::swap(controller_payload_swap, s_controller_payload);
+		}
+
 		Common::YieldCPU();
 	}
 }
 
 void Init()
 {
-	if (handle != nullptr)
+	if (s_handle != nullptr)
 		return;
 
-	libusb_driver_not_supported = false;
+	s_libusb_driver_not_supported = false;
 
 	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 	{
-		controller_connected[i] = false;
-		controller_last_rumble[i] = 0;
+		s_controller_type[i] = CONTROLLER_NONE;
+		s_controller_last_rumble[i] = 0;
 	}
 
 	int ret = libusb_init(nullptr);
@@ -76,7 +92,7 @@ void Init()
 
 				u8 bus = libusb_get_bus_number(device);
 				u8 port = libusb_get_device_address(device);
-				ret = libusb_open(device, &handle);
+				ret = libusb_open(device, &s_handle);
 				if (ret)
 				{
 					if (ret == LIBUSB_ERROR_ACCESS)
@@ -102,13 +118,13 @@ void Init()
 					{
 						ERROR_LOG(SERIALINTERFACE, "libusb_open failed to open device with error = %d", ret);
 						if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
-							libusb_driver_not_supported = true;
+							s_libusb_driver_not_supported = true;
 					}
 					Shutdown();
 				}
-				else if ((ret = libusb_kernel_driver_active(handle, 0)) == 1)
+				else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
 				{
-					if ((ret = libusb_detach_kernel_driver(handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+					if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 					{
 						ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
 						Shutdown();
@@ -119,7 +135,7 @@ void Init()
 					ERROR_LOG(SERIALINTERFACE, "libusb_kernel_driver_active error ret = %d", ret);
 					Shutdown();
 				}
-				else if ((ret = libusb_claim_interface(handle, 0)))
+				else if ((ret = libusb_claim_interface(s_handle, 0)))
 				{
 					ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
 					Shutdown();
@@ -138,21 +154,21 @@ void Init()
 							{
 								const libusb_endpoint_descriptor *endpoint = &interface->endpoint[e];
 								if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)
-									endpoint_in = endpoint->bEndpointAddress;
+									s_endpoint_in = endpoint->bEndpointAddress;
 								else
-									endpoint_out = endpoint->bEndpointAddress;
+									s_endpoint_out = endpoint->bEndpointAddress;
 							}
 						}
 					}
 
 					int tmp = 0;
 					unsigned char payload = 0x13;
-					libusb_interrupt_transfer(handle, endpoint_out, &payload, sizeof(payload), &tmp, 0);
+					libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 0);
 
 					RefreshConnectedDevices();
 
-					adapter_thread_running = true;
-					adapter_thread = std::thread(Read);
+					s_adapter_thread_running.Set(true);
+					s_adapter_thread = std::thread(Read);
 				}
 			}
 		}
@@ -163,61 +179,67 @@ void Init()
 
 void Shutdown()
 {
-	if (handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
-	if (adapter_thread_running)
+	if (s_adapter_thread_running.TestAndClear())
 	{
-		adapter_thread_running = false;
-		adapter_thread.join();
+		s_adapter_thread.join();
 	}
 
-	libusb_close(handle);
-	libusb_driver_not_supported = false;
+	libusb_close(s_handle);
+	s_libusb_driver_not_supported = false;
 
 	for (int i = 0; i < MAX_SI_CHANNELS; i++)
-		controller_connected[i] = false;
+		s_controller_type[i] = CONTROLLER_NONE;
 
-	handle = nullptr;
+	s_handle = nullptr;
 }
 
 void Input(SerialInterface::SSIChannel* g_Channel)
 {
-	if (handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
-	if (controller_payload_size != 0x25 || controller_payload[0] != 0x21)
+	u8 controller_payload_copy[37];
+
 	{
-		ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d)", controller_payload_size);
+	std::lock_guard<std::mutex> lk(s_mutex);
+	std::copy(std::begin(s_controller_payload), std::end(s_controller_payload), std::begin(controller_payload_copy));
+	}
+
+	if (s_controller_payload_size != sizeof(controller_payload_copy) || controller_payload_copy[0] != LIBUSB_DT_HID)
+	{
+		ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d)", s_controller_payload_size);
 		Shutdown();
 	}
 	else
 	{
 		for (int chan = 0; chan < MAX_SI_CHANNELS; chan++)
 		{
-			bool connected = (controller_payload[1 + (9 * chan)] > 0);
-			if (connected && !controller_connected[chan])
-				NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, controller_payload[1 + (9 * chan)]);
+			u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
+			if (type != CONTROLLER_NONE && s_controller_type[chan] == CONTROLLER_NONE)
+				NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, controller_payload_copy[1 + (9 * chan)]);
 
-			controller_connected[chan] = connected;
+			s_controller_type[chan] = type;
 
-			if (controller_connected[chan])
+			if (s_controller_type[chan] != CONTROLLER_NONE)
 			{
 				g_Channel[chan].m_InHi.Hex = 0;
 				g_Channel[chan].m_InLo.Hex = 0;
 				for (int j = 0; j < 4; j++)
 				{
-					g_Channel[chan].m_InHi.Hex |= (controller_payload[2 + chan + j + (8 * chan) + 0] << (8 * (3 - j)));
-					g_Channel[chan].m_InLo.Hex |= (controller_payload[2 + chan + j + (8 * chan) + 4] << (8 * (3 - j)));
+					g_Channel[chan].m_InHi.Hex |= (controller_payload_copy[2 + chan + j + (8 * chan) + 0] << (8 * (3 - j)));
+					g_Channel[chan].m_InLo.Hex |= (controller_payload_copy[2 + chan + j + (8 * chan) + 4] << (8 * (3 - j)));
 				}
 
-				u8 buttons_0 = ((g_Channel[chan].m_InHi.Hex >> 24) & 0xf0) >> 4;
+				u8 buttons_0 = (g_Channel[chan].m_InHi.Hex >> 28) & 0x0f;
 				u8 buttons_1 = (g_Channel[chan].m_InHi.Hex >> 24) & 0x0f;
-				u8 buttons_2 = ((g_Channel[chan].m_InHi.Hex >> 16) & 0xf0) >> 4;
+				u8 buttons_2 = (g_Channel[chan].m_InHi.Hex >> 20) & 0x0f;
 				u8 buttons_3 = (g_Channel[chan].m_InHi.Hex >> 16) & 0x0f;
 				g_Channel[chan].m_InHi.Hex = buttons_3 << 28 | buttons_1 << 24 | (buttons_2) << 20 | buttons_0 << 16 | (g_Channel[chan].m_InHi.Hex & 0x0000ffff);
 
-				if (controller_payload[1 + (9 * chan)] == 0x10)
+				if (type == CONTROLLER_WIRED || type == CONTROLLER_WIRELESS)
 					g_Channel[chan].m_InHi.Hex |= (PAD_USE_ORIGIN << 16);
 			}
 		}
@@ -226,24 +248,29 @@ void Input(SerialInterface::SSIChannel* g_Channel)
 
 void Output(SerialInterface::SSIChannel* g_Channel)
 {
-	if (handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
 	bool rumble_update = false;
+	u8 current_rumble[4] = { 0, 0, 0, 0 };
+
 	for (int chan = 0; chan < MAX_SI_CHANNELS; chan++)
 	{
-		u8 current_rumble = g_Channel[chan].m_Out.Hex & 0xff;
-		if (current_rumble != controller_last_rumble[chan])
+		// Skip over rumble commands if the controller is wireless
+		if (s_controller_type[chan] != CONTROLLER_WIRELESS)
+			current_rumble[chan] = g_Channel[chan].m_Out.Hex & 0xff;
+
+		if (current_rumble[chan] != s_controller_last_rumble[chan])
 			rumble_update = true;
 
-		controller_last_rumble[chan] = current_rumble;
+		s_controller_last_rumble[chan] = current_rumble[chan];
 	}
 
 	if (rumble_update)
 	{
-		unsigned char rumble[5] = { 0x11, static_cast<u8>(g_Channel[0].m_Out.Hex & 0xff), static_cast<u8>(g_Channel[1].m_Out.Hex & 0xff), static_cast<u8>(g_Channel[2].m_Out.Hex & 0xff), static_cast<u8>(g_Channel[3].m_Out.Hex & 0xff) };
+		unsigned char rumble[5] = { 0x11, current_rumble[0], current_rumble[1], current_rumble[2], current_rumble[3] };
 		int size = 0;
-		libusb_interrupt_transfer(handle, endpoint_out, rumble, sizeof(rumble), &size, 0);
+		libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 0);
 
 		if (size != 0x05)
 		{
@@ -255,24 +282,31 @@ void Output(SerialInterface::SSIChannel* g_Channel)
 
 SIDevices GetDeviceType(int channel)
 {
-	if (handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return SIDEVICE_NONE;
 
-	if (controller_connected[channel])
+	switch (s_controller_type[channel])
+	{
+	case CONTROLLER_WIRED:
 		return SIDEVICE_GC_CONTROLLER;
-	else
+	case CONTROLLER_WIRELESS:
+		return SIDEVICE_GC_CONTROLLER;
+	default:
 		return SIDEVICE_NONE;
+	}
 }
 
 void RefreshConnectedDevices()
 {
-	if (handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
 	int size = 0;
-	libusb_interrupt_transfer(handle, endpoint_in, controller_payload, sizeof(controller_payload), &size, 0);
+	u8 refresh_controller_payload[37];
 
-	if (size != 0x25 || controller_payload[0] != 0x21)
+	libusb_interrupt_transfer(s_handle, s_endpoint_in, refresh_controller_payload, sizeof(refresh_controller_payload), &size, 0);
+
+	if (size != sizeof(refresh_controller_payload) || refresh_controller_payload[0] != LIBUSB_DT_HID)
 	{
 		WARN_LOG(SERIALINTERFACE, "error reading payload (size: %d)", size);
 		Shutdown();
@@ -281,23 +315,23 @@ void RefreshConnectedDevices()
 	{
 		for (int chan = 0; chan < MAX_SI_CHANNELS; chan++)
 		{
-			bool connected = (controller_payload[1 + (9 * chan)] > 0);
-			if (connected && !controller_connected[chan])
-				NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, controller_payload[1 + (9 * chan)]);
+			u8 type = refresh_controller_payload[1 + (9 * chan)] >> 4;
+			if (type != CONTROLLER_NONE && s_controller_type[chan] == CONTROLLER_NONE)
+				NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, refresh_controller_payload[1 + (9 * chan)]);
 
-			controller_connected[chan] = connected;
+			s_controller_type[chan] = type;
 		}
 	}
 }
 
 bool IsDetected()
 {
-	return handle != nullptr;
+	return s_handle != nullptr;
 }
 
 bool IsDriverDetected()
 {
-	return !libusb_driver_not_supported;
+	return !s_libusb_driver_not_supported;
 }
 
 } // end of namespace SI_GCAdapter
