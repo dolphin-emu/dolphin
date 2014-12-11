@@ -14,6 +14,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
@@ -156,8 +157,8 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	{
 		if (++skip_objects_count >= SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start)
 		{
-			DataSkip((u32)size);
-			return true;
+			//Skip Object
+			return size;
 		}
 	}
 
@@ -172,7 +173,6 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.update)
 		{
 			SConfig::GetInstance().m_LocalCoreStartupParameter.done = false;
-			u8* data;
 			size_t num_render_skip_data;
 			bool manual_skip_drawing;
 			for (int render_skip_entry = 0; render_skip_entry < SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries; render_skip_entry++)
@@ -184,11 +184,10 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 				num_render_skip_data = e.size();
 
 				//Make a copy of the video_buffer_read_ptr, which will be used to see if the data matches.
-				data = g_video_buffer_read_ptr;
 				manual_skip_drawing = true;
 				for (int d = 0; d < num_render_skip_data; d++)
 				{
-					if (*data++ != e.at(d))
+					if (src.Peek<u8>(d) != e.at(d))
 					{
 						//Data didn't match, try next entry.
 						manual_skip_drawing = false;
@@ -198,8 +197,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 				//Data stream matched the entry, skip rendering it.
 				if (manual_skip_drawing)
 				{
-					DataSkip((u32)size);
-					return true;
+					return size;
 				}
 			}
 		}
