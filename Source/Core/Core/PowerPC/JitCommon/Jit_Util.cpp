@@ -296,8 +296,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		registersInUse[reg_value] = false;
 	}
-	if (!jit->js.memcheck &&
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
 #ifdef ENABLE_MEM_CHECK
