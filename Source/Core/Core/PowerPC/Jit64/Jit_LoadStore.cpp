@@ -420,9 +420,11 @@ void Jit64::stXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	bool update = !!(inst.SUBOP10 & 32);
 	bool byte_reverse = !!(inst.SUBOP10 & 512);
-	FALLBACK_IF(!a || (update && a == s) || (update && js.memcheck && a == b));
+	FALLBACK_IF(update && (!a || a == s || (js.memcheck && a == b)));
 
-	gpr.Lock(a, b, s);
+	gpr.Lock(b, s);
+	if (a)
+		gpr.Lock(a);
 
 	if (update)
 	{
@@ -430,14 +432,15 @@ void Jit64::stXx(UGeckoInstruction inst)
 		ADD(32, gpr.R(a), gpr.R(b));
 		MOV(32, R(RSCRATCH2), gpr.R(a));
 	}
-	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+	else if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
 		LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 	}
 	else
 	{
-		MOV(32, R(RSCRATCH2), gpr.R(a));
-		ADD(32, R(RSCRATCH2), gpr.R(b));
+		MOV(32, R(RSCRATCH2), gpr.R(b));
+		if (a)
+			ADD(32, R(RSCRATCH2), gpr.R(a));
 	}
 
 	int accessSize;
