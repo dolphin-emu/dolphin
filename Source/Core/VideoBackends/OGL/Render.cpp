@@ -714,6 +714,8 @@ void Renderer::Init()
 		"	ocol0 = c;\n"
 		"}\n");
 
+	OpenGL_CreateAttributelessVAO();
+
 	// creating buffers
 	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
 	glGenVertexArrays(1, &s_ShowEFBCopyRegions_VAO);

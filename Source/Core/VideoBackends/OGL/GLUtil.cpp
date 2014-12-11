@@ -115,12 +115,14 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 	return programID;
 }
 
-static void CreateAttributelessVAO()
+void OpenGL_CreateAttributelessVAO()
 {
 	glGenVertexArrays(1, &attributelessVAO);
+	_dbg_assert_msg_(VIDEO, attributelessVAO != 0, "Attributeless VAO should have been created successfully.")
 
 	// In a compatibility context, we require a valid, bound array buffer.
 	glGenBuffers(1, &attributelessVBO);
+	_dbg_assert_msg_(VIDEO, attributelessVBO != 0, "Attributeless VBO should have been created successfully.")
 
 	// Initialize the buffer with nothing.
 	glBindBuffer(GL_ARRAY_BUFFER, attributelessVBO);
@@ -132,16 +134,14 @@ static void CreateAttributelessVAO()
 
 void OpenGL_BindAttributelessVAO()
 {
-	if (attributelessVAO == 0)
-		CreateAttributelessVAO();
-
+	_dbg_assert_msg_(VIDEO, attributelessVAO != 0, "Attributeless VAO should have already been created.")
 	glBindVertexArray(attributelessVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, attributelessVBO);
 }
 
 void OpenGL_DeleteAttributelessVAO()
 {
-	if (attributelessVAO)
+	_dbg_assert_msg_(VIDEO, attributelessVAO != 0, "Attributeless VAO should have already been created.")
+	if (attributelessVAO != 0)
 	{
 		glDeleteVertexArrays(1, &attributelessVAO);
 		glDeleteBuffers(1, &attributelessVBO);
