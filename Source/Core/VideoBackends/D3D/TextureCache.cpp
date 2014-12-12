@@ -156,6 +156,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		else
 			D3D::SetPointCopySampler();
 
+		// if texture is currently in use, it needs to be temporarily unset
+		u32 textureSlotMask = D3D::stateman->UnsetTexture(texture->GetSRV());
+		D3D::stateman->Apply();
+
 		D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
 
 		// Create texture copy
@@ -168,6 +172,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 		g_renderer->RestoreAPIState();
+
+		// Restore old texture in all previously used slots, if any
+		while (textureSlotMask)
+		{
+			unsigned long index;
+			_BitScanForward(&index, textureSlotMask);
+			D3D::stateman->SetTexture(index, texture->GetSRV());
+			textureSlotMask &= ~(1 << index);
+		}
 	}
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)

@@ -199,6 +199,22 @@ void StateManager::Apply()
 	m_dirtyFlags = 0;
 }
 
+u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
+{
+	u32 mask = 0;
+
+	for (u32 index = 0; index < 8; ++index)
+	{
+		if (m_current.textures[index] == srv)
+		{
+			SetTexture(index, nullptr);
+			mask |= 1 << index;
+		}
+	}
+
+	return mask;
+}
+
 }  // namespace D3D
 
 ID3D11SamplerState* StateCache::Get(SamplerState state)
