@@ -588,8 +588,10 @@ void FramebufferManager::ConfigureRift()
 	}
 #endif
 #else
-	cfg.OGL.Disp = glXGetCurrentDisplay();
-	//cfg.OGL.Win = glXGetCurrentDrawable();
+	cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->dpy;
+#ifdef OCULUSSDK043
+	cfg.OGL.Win = glXGetCurrentDrawable();
+#endif
 #endif
 	int caps = 0;
 	if (g_Config.bChromatic)
