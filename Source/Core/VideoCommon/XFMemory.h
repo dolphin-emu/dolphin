@@ -6,6 +6,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/DataReader.h"
 
 
 // Lighting
@@ -273,6 +274,6 @@ struct XFMemory
 
 extern XFMemory xfmem;
 
-void LoadXFReg(u32 transferSize, u32 address);
+void LoadXFReg(u32 transferSize, u32 address, DataReader src);
 void LoadIndexedXF(u32 val, int array);
 void PreprocessIndexedXF(u32 val, int refarray);

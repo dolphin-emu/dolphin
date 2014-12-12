@@ -132,19 +132,19 @@ static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 	return loader;
 }
 
-bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, bool skip_drawing)
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing)
 {
 	if (!count)
-		return true;
+		return 0;
 
 	CPState* state = &g_main_cp_state;
 	static u16 skip_objects_count = 0;
 
 	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
 
-	size_t size = count * loader->GetVertexSize();
-	if (buf_size < size)
-		return false;
+	int size = count * loader->GetVertexSize();
+	if ((int)src.size() < size)
+		return -1;
 
 	if (g_new_frame_tracker_for_object_skip)
 	{
@@ -156,16 +156,15 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 	{
 		if (++skip_objects_count >= SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start)
 		{
-			DataSkip((u32)size);
-			return true;
+			//Skip Object
+			return size;
 		}
 	}
 
 	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
 	{
 		// if cull mode is CULL_ALL, ignore triangles and quads
-		DataSkip((u32)size);
-		return true;
+		return size;
 	}
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries)
@@ -173,7 +172,6 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.update)
 		{
 			SConfig::GetInstance().m_LocalCoreStartupParameter.done = false;
-			u8* data;
 			size_t num_render_skip_data;
 			bool manual_skip_drawing;
 			for (int render_skip_entry = 0; render_skip_entry < SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries; render_skip_entry++)
@@ -185,11 +183,10 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 				num_render_skip_data = e.size();
 
 				//Make a copy of the video_buffer_read_ptr, which will be used to see if the data matches.
-				data = g_video_buffer_read_ptr;
 				manual_skip_drawing = true;
 				for (int d = 0; d < num_render_skip_data; d++)
 				{
-					if (*data++ != e.at(d))
+					if (src.Peek<u8>(d) != e.at(d))
 					{
 						//Data didn't match, try next entry.
 						manual_skip_drawing = false;
@@ -199,8 +196,7 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 				//Data stream matched the entry, skip rendering it.
 				if (manual_skip_drawing)
 				{
-					DataSkip((u32)size);
-					return true;
+					return size;
 				}
 			}
 		}
@@ -214,16 +210,18 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, 
 		VertexManager::Flush();
 	s_current_vtx_fmt = native;
 
-	VertexManager::PrepareForAdditionalData(primitive, count,
+	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
 			loader->GetNativeVertexDeclaration().stride);
 
-	loader->RunVertices(state->vtx_attr[vtx_attr_group], primitive, count);
+	count = loader->RunVertices(state->vtx_attr[vtx_attr_group], primitive, count, src, dst);
 
 	IndexGenerator::AddIndices(primitive, count);
 
+	VertexManager::FlushData(count, loader->GetNativeVertexDeclaration().stride);
+
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	return true;
+	return size;
 }
 
 int GetVertexSize(int vtx_attr_group, bool preprocess)
