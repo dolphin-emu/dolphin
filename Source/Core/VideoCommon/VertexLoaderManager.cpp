@@ -75,7 +75,7 @@ void AppendListToString(std::string *dest)
 	{
 		entry e;
 		map_entry.second->AppendToString(&e.text);
-		e.num_verts = map_entry.second->GetNumLoadedVerts();
+		e.num_verts = map_entry.second->m_numLoadedVertices;
 		entries.push_back(e);
 		total_size += e.text.size() + 1;
 	}
@@ -111,14 +111,14 @@ static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoader>(loader);
 
 			// search for a cached native vertex format
-			const PortableVertexDeclaration& format = loader->GetNativeVertexDeclaration();
+			const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
 			auto& native = s_native_vertex_map[format];
 			if (!native)
 			{
 				auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
 				native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
 				native->Initialize(format);
-				native->m_components = loader->GetNativeComponents();
+				native->m_components = loader->m_native_components;
 			}
 			loader->m_native_vertex_format = native.get();
 
@@ -141,7 +141,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
 	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
 
-	int size = count * loader->GetVertexSize();
+	int size = count * loader->m_VertexSize;
 	if ((int)src.size() < size)
 		return -1;
 
@@ -157,13 +157,13 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	s_current_vtx_fmt = loader->m_native_vertex_format;
 
 	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
-			loader->GetNativeVertexDeclaration().stride);
+			loader->m_native_vtx_decl.stride);
 
 	count = loader->RunVertices(primitive, count, src, dst);
 
 	IndexGenerator::AddIndices(primitive, count);
 
-	VertexManager::FlushData(count, loader->GetNativeVertexDeclaration().stride);
+	VertexManager::FlushData(count, loader->m_native_vtx_decl.stride);
 
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
@@ -172,7 +172,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
 int GetVertexSize(int vtx_attr_group, bool preprocess)
 {
-	return RefreshLoader(vtx_attr_group, preprocess ? &g_preprocess_cp_state : &g_main_cp_state)->GetVertexSize();
+	return RefreshLoader(vtx_attr_group, preprocess ? &g_preprocess_cp_state : &g_main_cp_state)->m_VertexSize;
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()

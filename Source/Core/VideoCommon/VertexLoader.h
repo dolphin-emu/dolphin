@@ -102,31 +102,26 @@ public:
 	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
 	~VertexLoader();
 
-	int GetVertexSize() const {return m_VertexSize;}
-	u32 GetNativeComponents() const { return m_native_components; }
-	const PortableVertexDeclaration& GetNativeVertexDeclaration() const
-		{ return m_native_vtx_decl; }
-
 	void SetupRunVertices(int primitive, int const count);
 	int RunVertices(int primitive, int count, DataReader src, DataReader dst);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;
-	int GetNumLoadedVerts() const { return m_numLoadedVertices; }
 
-	NativeVertexFormat* m_native_vertex_format; // used by VertexLoaderManager to cache the NativeVertexFormat objects
+	// per loader public state
+	int m_VertexSize;      // number of bytes of a raw GC vertex
+	PortableVertexDeclaration m_native_vtx_decl;
+	u32 m_native_components;
+
+	// used by VertexLoaderManager
+	NativeVertexFormat* m_native_vertex_format;
+	int m_numLoadedVertices;
 
 private:
-	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
-
 	// GC vertex format
 	TVtxAttr m_VtxAttr;  // VAT decoded into easy format
 	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
 	VAT m_vat;
-
-	// PC vertex format
-	u32 m_native_components;
-	PortableVertexDeclaration m_native_vtx_decl;
 
 #ifndef USE_VERTEX_LOADER_JIT
 	// Pipeline.
@@ -135,9 +130,6 @@ private:
 #endif
 
 	const u8 *m_compiledCode;
-
-	int m_numLoadedVertices;
-
 
 	void SetVAT(const VAT& vat);
 

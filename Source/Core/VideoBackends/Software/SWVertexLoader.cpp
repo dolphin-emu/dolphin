@@ -46,7 +46,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		m_VertexLoaderMap[uid] = std::unique_ptr<VertexLoader>(m_CurrentLoader);
 	}
 
-	m_VertexSize = m_CurrentLoader->GetVertexSize();
+	m_VertexSize = m_CurrentLoader->m_VertexSize;
 	m_CurrentVat = &g_main_cp_state.vtx_attr[m_attributeIndex];
 
 
@@ -168,7 +168,7 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec)
 
 void SWVertexLoader::LoadVertex()
 {
-	const PortableVertexDeclaration& vdec = m_CurrentLoader->GetNativeVertexDeclaration();
+	const PortableVertexDeclaration& vdec = m_CurrentLoader->m_native_vtx_decl;
 
 	// reserve memory for the destination of the vertex loader
 	m_LoadedVertices.resize(vdec.stride + 4);
@@ -180,7 +180,7 @@ void SWVertexLoader::LoadVertex()
 		DataReader(g_video_buffer_read_ptr, nullptr), // src
 		DataReader(m_LoadedVertices.data(), m_LoadedVertices.data() + m_LoadedVertices.size()) // dst
 	);
-	g_video_buffer_read_ptr = old + m_CurrentLoader->GetVertexSize();
+	g_video_buffer_read_ptr = old + m_CurrentLoader->m_VertexSize;
 
 	// parse the videocommon format to our own struct format (m_Vertex)
 	ParseVertex(vdec);
