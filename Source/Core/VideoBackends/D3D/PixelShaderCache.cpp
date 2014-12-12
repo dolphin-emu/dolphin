@@ -424,7 +424,7 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 class PixelShaderCacheInserter : public LinearDiskCacheReader<PixelShaderUid, u8>
 {
 public:
-	void Read(const PixelShaderUid &key, const u8 *value, u32 value_size)
+	void Read(const PixelShaderUid &key, const u8* value, u32 value_size)
 	{
 		PixelShaderCache::InsertByteCode(key, value, value_size);
 	}

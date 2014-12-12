@@ -41,7 +41,7 @@ ID3D11Buffer* gscbuf = nullptr;
 class GeometryShaderCacheInserter : public LinearDiskCacheReader<GeometryShaderUid, u8>
 {
 public:
-	void Read(const GeometryShaderUid &key, const u8 *value, u32 value_size)
+	void Read(const GeometryShaderUid &key, const u8* value, u32 value_size)
 	{
 		GeometryShaderCache::InsertByteCode(key, value, value_size);
 	}
