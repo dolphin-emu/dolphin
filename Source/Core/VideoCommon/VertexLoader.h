@@ -8,9 +8,7 @@
 // Metroid Prime: P I16-flt N I16-s16 T0 I16-u16 T1 i16-flt
 
 #include <algorithm>
-#include <memory>
 #include <string>
-#include <unordered_map>
 
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
@@ -116,8 +114,7 @@ public:
 	void AppendToString(std::string *dest) const;
 	int GetNumLoadedVerts() const { return m_numLoadedVertices; }
 
-	NativeVertexFormat* GetNativeVertexFormat();
-	static void ClearNativeVertexFormatCache() { s_native_vertex_map.clear(); }
+	NativeVertexFormat* m_native_vertex_format; // used by VertexLoaderManager to cache the NativeVertexFormat objects
 
 private:
 	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
@@ -141,8 +138,6 @@ private:
 
 	int m_numLoadedVertices;
 
-	NativeVertexFormat* m_native_vertex_format;
-	static std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> s_native_vertex_map;
 
 	void SetVAT(const VAT& vat);
 

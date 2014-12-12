@@ -21,13 +21,16 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 
-static NativeVertexFormat* s_current_vtx_fmt;
 
-typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoader>> VertexLoaderMap;
 
 namespace VertexLoaderManager
 {
 
+typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
+static NativeVertexFormatMap s_native_vertex_map;
+static NativeVertexFormat* s_current_vtx_fmt;
+
+typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoader>> VertexLoaderMap;
 static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
@@ -46,7 +49,7 @@ void Shutdown()
 {
 	std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 	s_vertex_loader_map.clear();
-	VertexLoader::ClearNativeVertexFormatCache();
+	s_native_vertex_map.clear();
 }
 
 namespace
@@ -106,6 +109,19 @@ static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 		{
 			loader = new VertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
 			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoader>(loader);
+
+			// search for a cached native vertex format
+			const PortableVertexDeclaration& format = loader->GetNativeVertexDeclaration();
+			auto& native = s_native_vertex_map[format];
+			if (!native)
+			{
+				auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
+				native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+				native->Initialize(format);
+				native->m_components = loader->GetNativeComponents();
+			}
+			loader->m_native_vertex_format = native.get();
+
 			INCSTAT(stats.numVertexLoaders);
 		}
 		state->vertex_loaders[vtx_attr_group] = loader;
@@ -135,12 +151,10 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return size;
 	}
 
-	NativeVertexFormat* native = loader->GetNativeVertexFormat();
-
 	// If the native vertex format changed, force a flush.
-	if (native != s_current_vtx_fmt)
+	if (loader->m_native_vertex_format != s_current_vtx_fmt)
 		VertexManager::Flush();
-	s_current_vtx_fmt = native;
+	s_current_vtx_fmt = loader->m_native_vertex_format;
 
 	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
 			loader->GetNativeVertexDeclaration().stride);
