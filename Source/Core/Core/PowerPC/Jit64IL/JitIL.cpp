@@ -683,6 +683,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (code_block.m_memory_exception)
 	{
+		b->memoryException = true;
 		ibuild.EmitISIException(ibuild.EmitIntConst(em_address));
 	}
 
@@ -707,10 +708,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 void JitIL::EnableBlockLink()
 {
 	jo.enableBlocklink = true;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-	{
-		// TODO: support block linking with MMU
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking)
 		jo.enableBlocklink = false;
-	}
 }
