@@ -32,7 +32,7 @@ static bool s_libusb_driver_not_supported = false;
 static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
 
-void Read()
+static void Read()
 {
 	while (s_adapter_thread_running.IsSet())
 	{
@@ -222,13 +222,23 @@ void Input(int chan, GCPadStatus* pad)
 
 		if (s_controller_type[chan] != CONTROLLER_NONE)
 		{
-			pad->button = controller_payload_copy[1 + (9 * chan) + 1] << 8;
+			u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
+			u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 
-			u8 b = controller_payload_copy[1 + (9 * chan) + 2];
-			if (b & (1 << 0)) pad->button |= PAD_BUTTON_START;
-			if (b & (1 << 1)) pad->button |= PAD_TRIGGER_Z;
-			if (b & (1 << 2)) pad->button |= PAD_TRIGGER_R;
-			if (b & (1 << 3)) pad->button |= PAD_TRIGGER_L;
+			if (b1 & (1 << 0)) pad->button |= PAD_BUTTON_A;
+			if (b1 & (1 << 1)) pad->button |= PAD_BUTTON_B;
+			if (b1 & (1 << 2)) pad->button |= PAD_BUTTON_X;
+			if (b1 & (1 << 2)) pad->button |= PAD_BUTTON_Y;
+
+			if (b1 & (1 << 4)) pad->button |= PAD_BUTTON_LEFT;
+			if (b1 & (1 << 5)) pad->button |= PAD_BUTTON_RIGHT;
+			if (b1 & (1 << 6)) pad->button |= PAD_BUTTON_DOWN;
+			if (b1 & (1 << 7)) pad->button |= PAD_BUTTON_UP;
+
+			if (b2 & (1 << 0)) pad->button |= PAD_BUTTON_START;
+			if (b2 & (1 << 1)) pad->button |= PAD_TRIGGER_Z;
+			if (b2 & (1 << 2)) pad->button |= PAD_TRIGGER_R;
+			if (b2 & (1 << 3)) pad->button |= PAD_TRIGGER_L;
 
 			pad->stickX = controller_payload_copy[1 + (9 * chan) + 3];
 			pad->stickY = controller_payload_copy[1 + (9 * chan) + 4];
@@ -240,15 +250,15 @@ void Input(int chan, GCPadStatus* pad)
 	}
 }
 
-void Output(int chan, u8 rumble)
+void Output(int chan, u8 rumble_command)
 {
 	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
 	// Skip over rumble commands if it has not changed or the controller is wireless
-	if (rumble != s_controller_rumble[chan] && s_controller_type[chan] != CONTROLLER_WIRELESS)
+	if (rumble_command != s_controller_rumble[chan] && s_controller_type[chan] != CONTROLLER_WIRELESS)
 	{
-		s_controller_rumble[chan] = rumble;
+		s_controller_rumble[chan] = rumble_command;
 
 		unsigned char rumble[5] = { 0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2], s_controller_rumble[3] };
 		int size = 0;
