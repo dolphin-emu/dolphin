@@ -476,6 +476,8 @@ struct ZeldaAudioRenderer::VPB
 
 	enum SamplesSourceType
 	{
+		// Simple square wave at 50% amplitude and 16KHz.
+		SRC_SQUARE_WAVE = 0,
 		// Samples stored in ARAM at a rate of 16 samples/9 bytes, AFC encoded,
 		// at an arbitrary sample rate (resampling is applied).
 		SRC_AFC_HQ_FROM_ARAM = 9,
@@ -751,6 +753,11 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 
 	switch (vpb->samples_source_type)
 	{
+		case VPB::SRC_SQUARE_WAVE:
+			for (size_t i = 0; i < buffer->size(); ++i)
+				(*buffer)[i] = (i & 1) ? 0x4000 : 0xC000;
+			break;
+
 		case VPB::SRC_AFC_HQ_FROM_ARAM:
 			DownloadAFCSamplesFromARAM(raw_input_samples.data() + 4, vpb,
 			                           NeededRawSamplesCount(*vpb));
@@ -978,7 +985,7 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 {
 	u32 addr = vpb->GetCurrentARAMAddr();
 	u8* src = (u8*)DSP::GetARAMPtr() + addr;
-	vpb->SetCurrentARAMAddr(addr + block_count * vpb->samples_source_type);
+	vpb->SetCurrentARAMAddr(addr + (u32)block_count * vpb->samples_source_type);
 
 	for (size_t b = 0; b < block_count; ++b)
 	{
