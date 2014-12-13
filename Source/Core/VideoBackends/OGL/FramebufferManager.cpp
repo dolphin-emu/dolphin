@@ -153,17 +153,17 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	}
 	else
 	{
-		m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+		m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
 		GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
 
 		glBindTexture(m_textureType, m_efbColor);
-		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
 
 		glBindTexture(m_textureType, m_efbDepth);
-		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, false);
 
 		glBindTexture(m_textureType, m_efbColorSwap);
-		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
 		glBindTexture(m_textureType, 0);
 
 		// Although we are able to access the multisampled texture directly, we don't do it everywhere.
@@ -189,8 +189,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// Bind resolved textures to resolved framebuffer.
 		glGenFramebuffers(1, &m_resolvedFramebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_resolvedColorTexture, 0);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_resolvedDepthTexture, 0);
+		FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, resolvedType, m_resolvedColorTexture, 0);
+		FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, resolvedType, m_resolvedDepthTexture, 0);
 	}
 
 	// Create XFB framebuffer; targets will be created elsewhere.
@@ -209,8 +209,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// Bind target textures to EFB framebuffer.
 	glGenFramebuffers(1, &m_efbFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_efbColor, 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_efbDepth, 0);
+	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
+	FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
 
 	if (g_has_vr920)
 	{
@@ -261,9 +261,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// This will lead to sample shading, but it's the only way to not loose
 		// the values of each sample.
 		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, ivec3(pos, 0), gl_SampleID);\n"
+			"	return texelFetch(samp9, pos, gl_SampleID);\n"
 			"}\n";
 	}
 	else
@@ -272,11 +272,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		std::stringstream samples;
 		samples << m_msaaSamples;
 		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
 			"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 			"	for(int i=0; i<" + samples.str() + "; i++)\n"
-			"		color += texelFetch(samp9, ivec3(pos, 0), i);\n"
+			"		color += texelFetch(samp9, pos, i);\n"
 			"	return color / " + samples.str() + ";\n"
 			"}\n";
 	}
@@ -444,6 +444,21 @@ void FramebufferManager::SetFramebuffer(GLuint fb)
 	glBindFramebuffer(GL_FRAMEBUFFER, fb != 0 ? fb : GetEFBFramebuffer());
 }
 
+void FramebufferManager::FramebufferTexture(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+{
+	if (textarget == GL_TEXTURE_2D_ARRAY || textarget == GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
+	{
+		if (m_EFBLayers > 1)
+			glFramebufferTexture(target, attachment, texture, level);
+		else
+			glFramebufferTextureLayer(target, attachment, texture, level, 0);
+	}
+	else
+	{
+		glFramebufferTexture2D(target, attachment, textarget, texture, level);
+	}
+}
+
 void FramebufferManager::SwapAsyncFrontBuffers()
 {
 	if (m_msaaSamples <= 1)
@@ -481,7 +496,7 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 	src_texture = m_efbColor;
 	m_efbColor = m_efbColorSwap;
 	m_efbColorSwap = src_texture;
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_efbColor, 0);
+	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
 
 	glViewport(0,0, m_targetWidth, m_targetHeight);
 	glActiveTexture(GL_TEXTURE0 + 9);
@@ -513,7 +528,7 @@ void XFBSource::CopyEFB(float Gamma)
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
 	// Bind texture.
-	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+	FramebufferManager::FramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, texture, 0);
 
 	glBlitFramebuffer(
 		0, 0, texWidth, texHeight,
@@ -570,6 +585,9 @@ void FramebufferManager::ConfigureRift()
 		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
 	}
 #endif
+#else
+	cfg.OGL.Disp = glXGetCurrentDisplay();
+	cfg.OGL.Win = glXGetCurrentDrawable();
 #endif
 	int caps = 0;
 	if (g_Config.bChromatic)

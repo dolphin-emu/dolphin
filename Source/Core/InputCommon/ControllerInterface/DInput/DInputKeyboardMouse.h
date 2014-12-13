@@ -76,19 +76,8 @@ private:
 		const bool m_positive;
 	};
 
-	class Light : public Output
-	{
-	public:
-		std::string GetName() const;
-		Light(u8 index) : m_index(index) {}
-		void SetState(ControlState state);
-	private:
-		const u8 m_index;
-	};
-
 public:
-	bool UpdateInput();
-	bool UpdateOutput();
+	void UpdateInput() override;
 
 	KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
 	~KeyboardMouse();
@@ -103,8 +92,6 @@ private:
 
 	DWORD         m_last_update;
 	State         m_state_in;
-	unsigned char m_state_out[3];         // NUM CAPS SCROLL
-	bool          m_current_state_out[3]; // NUM CAPS SCROLL
 };
 
 }

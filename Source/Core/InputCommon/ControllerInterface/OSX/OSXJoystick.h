@@ -72,8 +72,6 @@ private:
 	};
 
 public:
-	bool UpdateInput();
-
 	Joystick(IOHIDDeviceRef device, std::string name, int index);
 	~Joystick();
 

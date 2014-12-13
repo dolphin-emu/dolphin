@@ -149,19 +149,19 @@ namespace HotkeysXInput
 		}
 		if (IsVRSettingsXInput(XInput_State, VR_CAMERA_FORWARD))
 		{
-			VertexShaderManager::TranslateView(0.0f, freeLookSpeed);
+			VertexShaderManager::TranslateView(0.0f, freeLookSpeed * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), -freeLookSpeed * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 		}
 		else if (IsVRSettingsXInput(XInput_State, VR_CAMERA_BACKWARD)) 
 		{
-			VertexShaderManager::TranslateView(0.0f, -freeLookSpeed);
+			VertexShaderManager::TranslateView(0.0f, -freeLookSpeed * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), freeLookSpeed * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 		}
 		if (IsVRSettingsXInput(XInput_State, VR_CAMERA_UP)) 
 		{
-			VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed / 2);
+			VertexShaderManager::TranslateView(0.0f, -(freeLookSpeed / 2) * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), (-freeLookSpeed / 2) * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 		}
 		else if (IsVRSettingsXInput(XInput_State, VR_CAMERA_DOWN)) 
 		{
-			VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed / 2);
+			VertexShaderManager::TranslateView(0.0f, (freeLookSpeed / 2) * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), (freeLookSpeed / 2) * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 		}
 		if (IsVRSettingsXInput(XInput_State, VR_CAMERA_LEFT)) 
 		{

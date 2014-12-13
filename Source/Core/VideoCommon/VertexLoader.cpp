@@ -45,6 +45,10 @@ int colElements[2];
 GC_ALIGNED128(float posScale[4]);
 GC_ALIGNED64(float tcScale[8][2]);
 
+// This pointer is used as the source/dst for all fixed function loader calls
+u8* g_video_buffer_read_ptr;
+u8* g_vertex_manager_write_ptr;
+
 static const float fractionTable[32] = {
 	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
 	1.0f / (1U << 4), 1.0f / (1U << 5), 1.0f / (1U << 6), 1.0f / (1U << 7),
@@ -91,11 +95,17 @@ static void LOADERDECL TexMtx_Write_Float2()
 
 static void LOADERDECL TexMtx_Write_Float4()
 {
+#if _M_SSE >= 0x200
+	__m128 output = _mm_cvtsi32_ss(_mm_castsi128_ps(_mm_setzero_si128()), s_curtexmtx[s_texmtxwrite++]);
+	_mm_storeu_ps((float*)g_vertex_manager_write_ptr, _mm_shuffle_ps(output, output, 0x45 /* 1, 1, 0, 1 */));
+	g_vertex_manager_write_ptr += sizeof(float) * 4;
+#else
 	DataWrite(0.f);
 	DataWrite(0.f);
 	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 	// Just to fill out with 0.
 	DataWrite(0.f);
+#endif
 }
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
@@ -481,10 +491,13 @@ void VertexLoader::ConvertVertices ( int count )
 #endif
 }
 
-void VertexLoader::RunVertices(const VAT& vat, int primitive, int const count)
+int VertexLoader::RunVertices(const VAT& vat, int primitive, int count, DataReader src, DataReader dst)
 {
+	dst.WritePointer(&g_vertex_manager_write_ptr);
+	src.WritePointer(&g_video_buffer_read_ptr);
 	SetupRunVertices(vat, primitive, count);
 	ConvertVertices(count);
+	return count;
 }
 
 void VertexLoader::SetVAT(const VAT& vat)

@@ -60,7 +60,6 @@ class JitBase : public CPUCoreBase
 protected:
 	struct JitOptions
 	{
-		bool optimizeStack;
 		bool enableBlocklink;
 		bool optimizeGatherPipe;
 		bool accurateSinglePrecision;

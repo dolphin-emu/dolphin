@@ -13,6 +13,7 @@
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -43,6 +44,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
@@ -211,10 +213,6 @@ static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 static void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
-}
-static void GLAPIENTRY FramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
-{
-	glFramebufferTextureLayer(target, attachment, texture, level, 0);
 }
 
 static void InitDriverInfo()
@@ -480,11 +478,6 @@ Renderer::Renderer()
 		glClearDepthf = ClearDepthf;
 	}
 
-	if (GLExtensions::Version() < 320 || GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
-	{
-		glFramebufferTexture = FramebufferTexture;
-	}
-
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
@@ -512,15 +505,17 @@ Renderer::Renderer()
 		if (strstr(g_ogl_config.glsl_version, "3.0"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
+			g_ogl_config.bSupportsAEP = false;
+			g_Config.backend_info.bSupportsStereoscopy = false;
 		}
 		else
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
+			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
+			g_Config.backend_info.bSupportsStereoscopy = g_ogl_config.bSupportsAEP;
 		}
-		// TODO: OpenGL ES 3.1 provides the necessary features as extensions.
-		g_Config.backend_info.bSupportsStereoscopy = false;
 	}
 	else
 	{
@@ -547,6 +542,9 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 		}
+
+		// Desktop OpenGL can't have the Android Extension Pack
+		g_ogl_config.bSupportsAEP = false;
 	}
 
 	if (GLExtensions::Supports("GL_KHR_debug"))
@@ -814,6 +812,8 @@ void Renderer::DrawDebugInfo()
 
 	if (SConfig::GetInstance().m_ShowInputDisplay)
 		debug_info += Movie::GetInputDisplay();
+
+	debug_info += Profiler::ToString();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
@@ -1561,7 +1561,7 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 void Renderer::AsyncTimewarpDraw()
 {
 #ifdef HAVE_OCULUSSDK
-	auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+	auto frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 	g_ovr_lock.unlock();
 
 	if (0 == frameTime.TimewarpPointSeconds) {
@@ -1733,8 +1733,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 #else
-			g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
-			g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
+			ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+			ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #endif
 		}
 		g_first_rift_frame = false;
@@ -1872,15 +1872,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-			while (Core::ShouldAddTimewarpFrame())
+			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
-				auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
-				if (0 == frameTime.TimewarpPointSeconds) {
-					ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
-				}
-				else {
-					ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
-				}
+				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
+
+				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
+
 				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 			}
 
@@ -2188,6 +2185,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			FramebufferManager::ConfigureRift();
 		}
+
+		//To do: Probably not the right place for these.  Why do they update for D3D automatically, but not for OpenGL?
+		g_ActiveConfig.iExtraFrames = g_Config.iExtraFrames;
+		g_ActiveConfig.iExtraVideoLoops = g_Config.iExtraVideoLoops;
+		g_ActiveConfig.iExtraVideoLoopsDivider = g_Config.iExtraVideoLoopsDivider;
+		g_ActiveConfig.fTimeWarpTweak = g_Config.fTimeWarpTweak;
 	}
 #endif
 
@@ -2226,6 +2229,82 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	// Invalidate EFB cache
 	ClearEFBCache();
+
+	// Opcode Replay Buffer Code.  This enables the capture of all the Video Opcodes that occur during a frame,
+	// and then plays them back with new headtracking information.  Allows ways to easily set headtracking at 75fps
+	// for various games.  In Alpha right now, will crash many games/cause corruption.
+	static int extra_video_loops_count = 0;
+	static int real_frame_count = 0;
+	if (g_ActiveConfig.iExtraVideoLoops)
+	{
+		if (g_ActiveConfig.bPullUp20fps)
+		{
+			if (real_frame_count % 4 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 3;
+			}
+		}
+
+		if (g_ActiveConfig.bPullUp30fps)
+		{
+			if (real_frame_count % 2 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 1;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+		}
+
+		if (g_ActiveConfig.bPullUp60fps)
+		{
+			g_ActiveConfig.iExtraVideoLoops = 1;
+			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
+		}
+
+		if ((g_timewarped_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
+		{
+			g_timewarped_frame = false;
+			++real_frame_count;
+			extra_video_loops_count = 0;
+		}
+		else
+		{
+			if (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider)
+			{
+				g_timewarped_frame = true;
+				++extra_video_loops_count;
+				skipped_opcode_replay_count = 0;
+
+				for (int i = 0; i < timewarp_log.size(); ++i)
+				{
+					if (!cached_ram_location.at(i))
+					{
+						OpcodeDecoder_Run(timewarp_log.at(i), nullptr, display_list_log.at(i));
+					}
+				}
+			}
+			else
+			{
+				++skipped_opcode_replay_count;
+			}
+			timewarp_log.clear();
+			timewarp_log.resize(0);
+			display_list_log.clear();
+			display_list_log.resize(0);
+			cached_ram_location.clear();
+			cached_ram_location.resize(0);
+		}
+	}
+	else
+	{
+		g_timewarped_frame = true; //Don't log frames
+	}
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing

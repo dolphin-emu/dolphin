@@ -5,14 +5,11 @@
 #include <cassert>
 #include <cmath>
 #include <cstdio>
-#include <locale.h>
-#ifdef __APPLE__
-	#include <xlocale.h>
-#endif
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ConstantManager.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
@@ -159,15 +156,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	out.SetBuffer(text);
 	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-#ifndef ANDROID
-	locale_t locale;
-	locale_t old_locale;
-	if (is_writing_shadercode)
-	{
-		locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
-		old_locale = uselocale(locale); // Apply the locale for this thread
-	}
-#endif
 
 	if (is_writing_shadercode)
 		text[sizeof(text) - 1] = 0x7C;  // canary
@@ -260,11 +248,20 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox)
 	{
-		out.Write(
-			"layout(std140, binding = 3) buffer BBox {\n"
-			"\tint4 bbox_data;\n"
-			"};\n"
-		);
+		if (ApiType == API_OPENGL)
+		{
+			out.Write(
+				"layout(std140, binding = 3) buffer BBox {\n"
+				"\tint bbox_data[4];\n"
+				"};\n"
+				);
+		}
+		else
+		{
+			out.Write(
+				"globallycoherent RWBuffer<int> bbox_data : register(u2);\n"
+				);
+		}
 	}
 
 	GenerateVSOutputStruct(out, ApiType);
@@ -581,12 +578,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
 	{
 		uid_data->bounding_box = true;
+		const char* atomic_op = ApiType == API_OPENGL ? "atomic" : "Interlocked";
 		out.Write(
-			"\tif(bbox_data.x > int(gl_FragCoord.x)) atomicMin(bbox_data.x, int(gl_FragCoord.x));\n"
-			"\tif(bbox_data.y < int(gl_FragCoord.x)) atomicMax(bbox_data.y, int(gl_FragCoord.x));\n"
-			"\tif(bbox_data.z > int(gl_FragCoord.y)) atomicMin(bbox_data.z, int(gl_FragCoord.y));\n"
-			"\tif(bbox_data.w < int(gl_FragCoord.y)) atomicMax(bbox_data.w, int(gl_FragCoord.y));\n"
-		);
+			"\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n"
+			"\tif(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n"
+			"\tif(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n"
+			"\tif(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
+			atomic_op, atomic_op, atomic_op, atomic_op);
 	}
 
 	out.Write("}\n");
@@ -595,11 +593,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
-
-#ifndef ANDROID
-		uselocale(old_locale); // restore locale
-		freelocale(locale);
-#endif
 	}
 }
 
@@ -981,10 +974,10 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 
 	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
-	// This outputted if statement is not like 'if(!(cond))' for a reason.
-	// Qualcomm's v95 drivers produce incorrect code using logical not
-	// Checking against false produces the correct code.
-	out.Write("\tif(( ");
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENNEGATEDBOOLEAN))
+		out.Write("\tif(( ");
+	else
+		out.Write("\tif(!( ");
 
 	uid_data->alpha_test_comp0 = bpmem.alpha_test.comp0;
 	uid_data->alpha_test_comp1 = bpmem.alpha_test.comp1;
@@ -999,7 +992,11 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	// Lookup the second component from the alpha function table
 	compindex = bpmem.alpha_test.comp1;
 	out.Write(tevAlphaFuncsTable[compindex], alphaRef[1]);
-	out.Write(") == false) {\n");
+
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENNEGATEDBOOLEAN))
+		out.Write(") == false) {\n");
+	else
+		out.Write(")) {\n");
 
 	out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)

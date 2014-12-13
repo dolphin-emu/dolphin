@@ -52,6 +52,9 @@ VideoConfig::VideoConfig()
 	// VR
 	fScale = 1.0f;
 	fLeanBackAngle = 0;
+	bPullUp20fps = false;
+	bPullUp30fps = false;
+	bPullUp60fps = false;
 	bEnableVR = true;
 	bAsynchronousTimewarp = false;
 	bLowPersistence = true;
@@ -68,8 +71,10 @@ VideoConfig::VideoConfig()
 	bOverdrive = true;
 	bHqDistortion = false;
 	iVRPlayer = 0;
-	iMinExtraFrames = DEFAULT_VR_MIN_EXTRA_FRAMES;
-	iMaxExtraFrames = DEFAULT_VR_MAX_EXTRA_FRAMES;
+	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
+	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
+	iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
+	iExtraVideoLoopsDivider = DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER;
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
@@ -186,8 +191,13 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("Overdrive", &bOverdrive, true);
 	vr->Get("HQDistortion", &bHqDistortion, false);
 	vr->Get("Player", &iVRPlayer, 0);
-	vr->Get("MinExtraFrames", &iMinExtraFrames, DEFAULT_VR_MIN_EXTRA_FRAMES);
-	vr->Get("MaxExtraFrames", &iMaxExtraFrames, DEFAULT_VR_MAX_EXTRA_FRAMES);
+	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
+	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
+	vr->Get("NumExtraVideoLoops", &iExtraVideoLoops, DEFAULT_VR_EXTRA_VIDEO_LOOPS);
+	vr->Get("NumExtraVideoLoopsDivider", &iExtraVideoLoopsDivider, DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER);
+	vr->Get("PullUp20fps", &bPullUp20fps, false);
+	vr->Get("PullUp30fps", &bPullUp30fps, false);
+	vr->Get("PullUp60fps", &bPullUp60fps, false);
 }
 
 
@@ -468,8 +478,13 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
 	vr->Set("Player", iVRPlayer);
-	vr->Set("MinExtraFrames", iMinExtraFrames);
-	vr->Set("MaxExtraFrames", iMaxExtraFrames);
+	vr->Set("TimewarpTweak", fTimeWarpTweak);
+	vr->Set("NumExtraFrames", iExtraFrames);
+	vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
+	vr->Set("NumExtraVideoLoopsDivider", iExtraVideoLoopsDivider);
+	vr->Set("PullUp20fps", bPullUp20fps);
+	vr->Set("PullUp30fps", bPullUp30fps);
+	vr->Set("PullUp60fps", bPullUp60fps);
 
 	iniFile.Save(ini_file);
 }

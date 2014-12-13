@@ -71,7 +71,7 @@ class PadSettingSpin : public PadSetting
 {
 public:
 	PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const _setting)
-		: PadSetting(new wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition,
+		: PadSetting(new wxSpinCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition,
 					    wxSize(54, -1), 0, _setting->low, _setting->high, (int)(_setting->value * 100)))
 		, setting(_setting) {}
 
@@ -133,7 +133,7 @@ class ExtensionButton : public wxButton
 {
 public:
 	ExtensionButton(wxWindow* const parent, ControllerEmu::Extension* const ext)
-		: wxButton(parent, -1, _("Configure"), wxDefaultPosition)
+		: wxButton(parent, wxID_ANY, _("Configure"), wxDefaultPosition)
 		, extension(ext) {}
 
 	ControllerEmu::Extension* const extension;
@@ -223,7 +223,7 @@ private:
 class InputConfigDialog : public wxDialog
 {
 public:
-	InputConfigDialog(wxWindow* const parent, InputConfig& config, const std::string& name, const int tab_num = 0);
+	InputConfigDialog(wxWindow* const parent, InputConfig& config, const wxString& name, const int tab_num = 0);
 	//~InputConfigDialog();
 
 	bool Destroy() override;

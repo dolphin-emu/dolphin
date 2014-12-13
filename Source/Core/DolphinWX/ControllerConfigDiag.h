@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <map>
 #include <wx/dialog.h>
 #include <wx/event.h>
@@ -11,12 +12,13 @@
 
 class InputConfig;
 class wxButton;
+class wxStaticBoxSizer;
 class wxWindow;
 
-class WiimoteConfigDiag : public wxDialog
+class ControllerConfigDiag : public wxDialog
 {
 public:
-	WiimoteConfigDiag(wxWindow* const parent, InputConfig& config);
+	ControllerConfigDiag(wxWindow* const parent);
 
 	void RefreshRealWiimotes(wxCommandEvent& event);
 
@@ -59,9 +61,19 @@ public:
 	}
 
 private:
-	void Cancel(wxCommandEvent& event);
+	wxStaticBoxSizer* CreateGamecubeSizer();
+	wxStaticBoxSizer* CreateWiimoteConfigSizer();
+	wxStaticBoxSizer* CreateBalanceBoardSizer();
+	wxStaticBoxSizer* CreateRealWiimoteSizer();
+	wxStaticBoxSizer* CreateGeneralWiimoteSettingsSizer();
 
-	InputConfig& m_config;
+	void Cancel(wxCommandEvent& event);
+	void OnGameCubePortChanged(wxCommandEvent& event);
+	void OnGameCubeConfigButton(wxCommandEvent& event);
+
+	std::map<wxWindowID, unsigned int> m_gc_port_choice_ids;
+	std::map<wxWindowID, unsigned int> m_gc_port_config_ids;
+	static const std::array<wxString, 7> m_gc_pad_type_strs;
 
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
 	unsigned int m_orig_wiimote_sources[MAX_BBMOTES];

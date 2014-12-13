@@ -108,8 +108,15 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
 	if (single)
 	{
-		fpr.BindToRegister(s, true, false);
-		ConvertDoubleToSingle(XMM0, fpr.RX(s));
+		if (jit->js.op->fprIsStoreSafe[s])
+		{
+			CVTSD2SS(XMM0, fpr.R(s));
+		}
+		else
+		{
+			fpr.BindToRegister(s, true, false);
+			ConvertDoubleToSingle(XMM0, fpr.RX(s));
+		}
 		MOVD_xmm(R(RSCRATCH), XMM0);
 	}
 	else

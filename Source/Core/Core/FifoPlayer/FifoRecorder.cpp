@@ -23,8 +23,8 @@ FifoRecorder::FifoRecorder() :
 	m_SkipNextData(true),
 	m_SkipFutureData(true),
 	m_FrameEnded(false),
-	m_Ram(nullptr),
-	m_ExRam(nullptr)
+	m_Ram(Memory::RAM_SIZE),
+	m_ExRam(Memory::EXRAM_SIZE)
 {
 }
 
@@ -38,15 +38,10 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 	sMutex.lock();
 
 	delete m_File;
-	delete []m_Ram;
-	delete []m_ExRam;
 
 	m_File = new FifoDataFile;
-
-	m_Ram = new u8[Memory::RAM_SIZE];
-	m_ExRam = new u8[Memory::EXRAM_SIZE];
-	memset(m_Ram, 0, Memory::RAM_SIZE);
-	memset(m_ExRam, 0, Memory::EXRAM_SIZE);
+	std::fill(m_Ram.begin(), m_Ram.end(), 0);
+	std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
 
 	m_File->SetIsWii(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
 

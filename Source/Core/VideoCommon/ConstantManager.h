@@ -42,7 +42,7 @@ struct VertexShaderConstants
 	float4 transformmatrices[64];
 	float4 normalmatrices[32];
 	float4 posttransformmatrices[64];
-	float4 depthparams;
+	float4 pixelcentercorrection;
 	float4 stereoparams;
 };
 

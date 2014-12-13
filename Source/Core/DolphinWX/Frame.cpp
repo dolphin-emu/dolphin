@@ -259,8 +259,7 @@ EVT_MENU(IDM_TOGGLE_DUMPAUDIO, CFrame::OnToggleDumpAudio)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
 EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
-EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnConfigPAD)
-EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnConfigWiimote)
+EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
 EVT_MENU(IDM_CONFIG_VR, CFrame::OnConfigVR)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
 
@@ -1236,17 +1235,17 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
 				SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity = 1.0f;
 			else if (IsHotkey(event, HK_FREELOOK_UP))
-				VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed);
+				VertexShaderManager::TranslateView(0.0f, -(freeLookSpeed / 2) * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), (-freeLookSpeed / 2) * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 			else if (IsHotkey(event, HK_FREELOOK_DOWN))
-				VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed);
+				VertexShaderManager::TranslateView(0.0f, (freeLookSpeed / 2) * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), (freeLookSpeed / 2) * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 			else if (IsHotkey(event, HK_FREELOOK_LEFT))
 				VertexShaderManager::TranslateView(freeLookSpeed, 0.0f);
 			else if (IsHotkey(event, HK_FREELOOK_RIGHT))
 				VertexShaderManager::TranslateView(-freeLookSpeed, 0.0f);
 			else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
-				VertexShaderManager::TranslateView(0.0f, freeLookSpeed);
+				VertexShaderManager::TranslateView(0.0f, freeLookSpeed * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), -freeLookSpeed * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 			else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
-				VertexShaderManager::TranslateView(0.0f, -freeLookSpeed);
+				VertexShaderManager::TranslateView(0.0f, -freeLookSpeed * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), freeLookSpeed * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 			else if (IsHotkey(event, HK_FREELOOK_RESET))
 			{
 				VertexShaderManager::ResetView();

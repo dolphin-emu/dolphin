@@ -19,14 +19,14 @@ template <>
 __forceinline void LOG_TEX<1>()
 {
 	// warning: mapping buffer should be disabled to use this
-	// PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-1]);
+	// PRIM_LOG("tex: %f, ", ((float*)g_vertex_manager_write_ptr)[-1]);
 }
 
 template <>
 __forceinline void LOG_TEX<2>()
 {
 	// warning: mapping buffer should be disabled to use this
-	// PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
+	// PRIM_LOG("tex: %f %f, ", ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);
 }
 
 static void LOADERDECL TexCoord_Read_Dummy()
@@ -50,12 +50,14 @@ template <typename T, int N>
 void LOADERDECL TexCoord_ReadDirect()
 {
 	auto const scale = tcScale[tcIndex][0];
-	DataWriter dst;
-	DataReader src;
+	DataReader dst(g_vertex_manager_write_ptr, nullptr);
+	DataReader src(g_video_buffer_read_ptr, nullptr);
 
 	for (int i = 0; i != N; ++i)
 		dst.Write(TCScale(src.Read<T>(), scale));
 
+	dst.WritePointer(&g_vertex_manager_write_ptr);
+	src.WritePointer(&g_video_buffer_read_ptr);
 	LOG_TEX<N>();
 
 	++tcIndex;
@@ -70,11 +72,12 @@ void LOADERDECL TexCoord_ReadIndex()
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
 	                + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + tcIndex]));
 	auto const scale = tcScale[tcIndex][0];
-	DataWriter dst;
+	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
 	for (int i = 0; i != N; ++i)
 		dst.Write(TCScale(Common::FromBigEndian(data[i]), scale));
 
+	dst.WritePointer(&g_vertex_manager_write_ptr);
 	LOG_TEX<N>();
 	++tcIndex;
 }

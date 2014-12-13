@@ -60,6 +60,7 @@ private:
 			FLAG_SIZE_F32 = (1 << 5),
 			FLAG_SIZE_F64 = (1 << 6),
 			FLAG_REVERSE  = (1 << 7),
+			FLAG_EXTEND   = (1 << 8),
 		};
 
 		u32 m_fastmem_size;
@@ -178,7 +179,9 @@ public:
 	void subfic(UGeckoInstruction _inst);
 	void cntlzwx(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
+	void cmpl(UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
+	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
 	void mulhwux(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);

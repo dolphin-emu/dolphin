@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "Common/Atomic.h"
+#include "Common/Profiler.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -16,6 +17,7 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
+#include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
@@ -32,6 +34,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -257,7 +260,7 @@ Renderer::~Renderer()
 
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-		Core::ShouldAddTimewarpFrame();
+		//Core::ShouldAddTimewarpFrame();
 	}
 #endif
 	g_first_rift_frame = true;
@@ -549,10 +552,9 @@ void Renderer::SetViewport()
 	Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
 	Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
-	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-										0.f,  // (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-										1.f); //  xfmem.viewport.farZ / 16777216.0f;
+		std::max(0.0f, std::min(1.0f, (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f)),
+		std::max(0.0f, std::min(1.0f, xfmem.viewport.farZ / 16777216.0f)));
 	D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -761,13 +763,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
-			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 #ifdef OCULUSSDK042
 			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 #else
-			g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
-			g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
+			ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+			ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
 #endif
 		}
 		g_first_rift_frame = false;
@@ -935,17 +937,23 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-			while (Core::ShouldAddTimewarpFrame())
+
+			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.
+			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
-				auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
-				if (0 == frameTime.TimewarpPointSeconds) {
-					ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
-				}
-				else {
-					ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
-				}
+				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
+				//const ovrTexture* new_eye_texture = new ovrTexture(FramebufferManager::m_eye_texture[0].Texture);
+				//ovrD3D11Texture new_eye_texture;
+				//memcpy((void*)&new_eye_texture, &FramebufferManager::m_eye_texture[0], sizeof(ovrD3D11Texture));
+
+				//ovrPosef new_eye_poses[2];
+				//memcpy((void*)&new_eye_poses, g_eye_poses, sizeof(ovrPosef)*2);
+
+				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
+
 				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 			}
+
 		}
 		else
 		{
@@ -1078,6 +1086,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToStringProj());
 	}
 
+	std::string profile_output = Profiler::ToString();
+	if (!profile_output.empty())
+	{
+		D3D::font.DrawTextScaled(0, 44, 20, 0.0f, 0xFF00FFFF, profile_output);
+	}
+
 	OSD::DrawMessages();
 	D3D::EndFrame();
 
@@ -1139,7 +1153,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 	}
 #endif
 
@@ -1249,11 +1263,88 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), clear_col);
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture(eye)->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 	}
+
 	// begin next frame
 	RestoreAPIState();
 	D3D::BeginFrame();
 	FramebufferManager::RenderToEye(0);
 	SetViewport();
+
+	// Opcode Replay Buffer Code.  This enables the capture of all the Video Opcodes that occur during a frame,
+	// and then plays them back with new headtracking information.  Allows ways to easily set headtracking at 75fps
+	// for various games.  In Alpha right now, will crash many games/cause corruption.
+	static int extra_video_loops_count = 0;
+	static int real_frame_count = 0;
+	if (g_ActiveConfig.iExtraVideoLoops)
+	{
+		if (g_ActiveConfig.bPullUp20fps)
+		{
+			if (real_frame_count % 4 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 3;
+			}
+		}
+
+		if (g_ActiveConfig.bPullUp30fps)
+		{
+			if (real_frame_count % 2 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 1;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+		}
+
+		if (g_ActiveConfig.bPullUp60fps)
+		{
+			g_ActiveConfig.iExtraVideoLoops = 1;
+			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
+		}
+
+		if ((g_timewarped_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
+		{
+			g_timewarped_frame = false;
+			++real_frame_count;
+			extra_video_loops_count = 0;
+		}
+		else
+		{
+			if (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider)
+			{
+				g_timewarped_frame = true;
+				++extra_video_loops_count;
+				skipped_opcode_replay_count = 0;
+
+				for (int i = 0; i < timewarp_log.size(); ++i)
+				{
+						if (!cached_ram_location.at(i))
+						{
+							OpcodeDecoder_Run(timewarp_log.at(i), nullptr, display_list_log.at(i));
+						}
+				}
+			}
+			else
+			{
+				++skipped_opcode_replay_count;
+			}
+			timewarp_log.clear();
+			timewarp_log.resize(0);
+			display_list_log.clear();
+			display_list_log.resize(0);
+			cached_ram_location.clear();
+			cached_ram_location.resize(0);
+		}
+	}
+	else
+	{
+		g_timewarped_frame = true; //Don't log frames
+	}
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
@@ -1489,6 +1580,45 @@ void Renderer::SetInterlacingMode()
 int Renderer::GetMaxTextureSize()
 {
 	return DX11::D3D::GetMaxTextureSize();
+}
+
+u16 Renderer::BBoxRead(int index)
+{
+	// Here we get the min/max value of the truncated position of the upscaled framebuffer.
+	// So we have to correct them to the unscaled EFB sizes.
+	int value = BBox::Get(index);
+
+	if (index < 2)
+	{
+		// left/right
+		value = value * EFB_WIDTH / s_target_width;
+	}
+	else
+	{
+		// up/down
+		value = value * EFB_HEIGHT / s_target_height;
+	}
+	if (index & 1)
+		value++; // fix max values to describe the outer border
+
+	return value;
+}
+
+void Renderer::BBoxWrite(int index, u16 _value)
+{
+	int value = _value; // u16 isn't enough to multiply by the efb width
+	if (index & 1)
+		value--;
+	if (index < 2)
+	{
+		value = value * s_target_width / EFB_WIDTH;
+	}
+	else
+	{
+		value = value * s_target_height / EFB_HEIGHT;
+	}
+
+	BBox::Set(index, value);
 }
 
 }  // namespace DX11

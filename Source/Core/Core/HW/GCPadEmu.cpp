@@ -125,16 +125,9 @@ void GCPad::GetInput(GCPadStatus* const pad)
 		pad->analogB = 0xFF;
 }
 
-void GCPad::SetMotor(const u8 on)
+void GCPad::SetOutput(const ControlState strength)
 {
-	// map 0..255 to -1.0..1.0
-	ControlState force = on / 127.5 - 1;
-	m_rumble->controls[0]->control_ref->State(force);
-}
-
-void GCPad::SetOutput(const u8 on)
-{
-	m_rumble->controls[0]->control_ref->State(on);
+	m_rumble->controls[0]->control_ref->State(strength);
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)

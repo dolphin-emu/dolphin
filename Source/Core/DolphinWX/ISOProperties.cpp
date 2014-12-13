@@ -76,6 +76,7 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/RmObjAddEdit.h"
+#include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/resources/isoprop_disc.xpm"
@@ -141,20 +142,23 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	bool IsWiiDisc = DiscIO::IsVolumeWiiDisc(OpenISO);
 	if (IsWiiDisc)
 	{
-		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
+		for (int group = 0; group < 4; group++)
 		{
-			WiiPartition temp;
-			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, 0, i)) != nullptr)
+			for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 			{
-				if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
+				WiiPartition temp;
+				if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
 				{
-					temp.FileSystem->GetFileList(temp.Files);
-					WiiDisc.push_back(temp);
+					if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
+					{
+						temp.FileSystem->GetFileList(temp.Files);
+						WiiDisc.push_back(temp);
+					}
 				}
-			}
-			else
-			{
-				break;
+				else
+				{
+					break;
+				}
 			}
 		}
 	}
@@ -596,6 +600,21 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	// Remove Object
 	wxBoxSizer* const sRmObjs = new wxBoxSizer(wxVERTICAL);
+
+	wxStaticBoxSizer * const sbObjRemovalRange = new wxStaticBoxSizer(wxVERTICAL, m_RmObjPage, _("Object Range Removal"));
+	sRmObjs->Add(sbObjRemovalRange, 0, wxEXPAND | wxALL, 5);
+	wxGridBagSizer *sbObjRemovalRangeGrid = new wxGridBagSizer();
+	sbObjRemovalRange->Add(sbObjRemovalRangeGrid, 0, wxEXPAND);
+
+	sbObjRemovalRangeGrid->Add(new wxStaticText(m_RmObjPage, wxID_ANY, _("From:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sbObjRemovalRangeGrid->Add(new wxStaticText(m_RmObjPage, wxID_ANY, _("To:")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	//To Do: Save to INI or Make Game Specific?
+	//wxSpinCtrlDouble* ObjectRemovalEnd = new wxSpinCtrlDouble(m_RmObjPage, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_SCREEN_HEIGHT, 0.1);
+	U32Setting* ObjectRemovalStart = new U32Setting(m_RmObjPage, _("Removal Start"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start, 0, 100000);
+	U32Setting* ObjectRemovalEnd = new U32Setting(m_RmObjPage, _("Removal End"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end, 0, 100000);
+	sbObjRemovalRangeGrid->Add(ObjectRemovalStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	sbObjRemovalRangeGrid->Add(ObjectRemovalEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
+
 	RmObjs = new wxCheckListBox(m_RmObjPage, ID_RMOBJS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_RmObjs, wxLB_HSCROLL);
 	wxBoxSizer* const sRmObjsButtons = new wxBoxSizer(wxHORIZONTAL);
 	EditRmObj = new wxButton(m_RmObjPage, ID_EDITRMOBJ, _("Edit..."));

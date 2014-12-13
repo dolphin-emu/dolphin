@@ -251,6 +251,8 @@ struct SCoreStartupParameter
 
 	//Remove Layer
 	std::vector<SkipEntry> render_skip_entries;
+	u32 skip_objects_end = 0;
+	u32 skip_objects_start = 0;
 	size_t num_render_skip_entries = 0;
 	volatile bool update = true;
 	volatile bool done = true;

@@ -3,10 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include <locale.h>
-#ifdef __APPLE__
-	#include <xlocale.h>
-#endif
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -66,15 +62,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	out.SetBuffer(text);
 	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-#ifndef ANDROID
-	locale_t locale;
-	locale_t old_locale;
-	if (is_writing_shadercode)
-	{
-		locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
-		old_locale = uselocale(locale); // Apply the locale for this thread
-	}
-#endif
 
 	if (is_writing_shadercode)
 		text[sizeof(text) - 1] = 0x7C;  // canary
@@ -405,7 +392,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	//if not early z culling will improve speed
 	if (api_type == API_D3D)
 	{
-		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
+		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
 	}
 	else // OGL
 	{
@@ -430,7 +417,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// which in turn can be critical if it happens for clear quads.
 	// Hence, we compensate for this pixel center difference so that primitives
 	// get rasterized correctly.
-	out.Write("o.pos.xy = o.pos.xy - " I_DEPTHPARAMS".zw;\n");
+	out.Write("o.pos.xy = o.pos.xy - " I_PIXELCENTERCORRECTION".xy;\n");
 
 	if (api_type == API_OPENGL)
 	{
@@ -465,11 +452,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	{
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
-
-#ifndef ANDROID
-		uselocale(old_locale); // restore locale
-		freelocale(locale);
-#endif
 	}
 }
 

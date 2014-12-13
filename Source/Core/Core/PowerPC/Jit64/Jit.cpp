@@ -173,7 +173,6 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 
 void Jit64::Init()
 {
-	jo.optimizeStack = true;
 	EnableBlockLink();
 
 	jo.optimizeGatherPipe = true;
@@ -695,7 +694,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SetJumpTarget(extException);
 				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
 				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+				TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 				FixupBranch noCPInt = J_CC(CC_Z, true);
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
@@ -723,7 +722,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				ABI_PushRegistersAndAdjustStack({}, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack({}, 0);
-				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+				TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 
 				WriteExit(ops[i].address);

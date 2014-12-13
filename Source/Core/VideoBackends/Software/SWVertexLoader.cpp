@@ -13,7 +13,6 @@
 #include "VideoBackends/Software/TransformUnit.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"
@@ -286,20 +285,20 @@ void SWVertexLoader::LoadTexMtx(SWVertexLoader *vertexLoader, InputVertexData *v
 
 void SWVertexLoader::LoadPosition(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
 {
-	VertexManager::s_pCurBufferPointer = (u8*)&vertex->position;
+	g_vertex_manager_write_ptr = (u8*)&vertex->position;
 	vertexLoader->m_positionLoader();
 }
 
 void SWVertexLoader::LoadNormal(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused)
 {
-	VertexManager::s_pCurBufferPointer = (u8*)&vertex->normal;
+	g_vertex_manager_write_ptr = (u8*)&vertex->normal;
 	vertexLoader->m_normalLoader();
 }
 
 void SWVertexLoader::LoadColor(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
 {
 	u32 color;
-	VertexManager::s_pCurBufferPointer = (u8*)&color;
+	g_vertex_manager_write_ptr = (u8*)&color;
 	colIndex = index;
 	vertexLoader->m_colorLoader[index]();
 
@@ -309,7 +308,7 @@ void SWVertexLoader::LoadColor(SWVertexLoader *vertexLoader, InputVertexData *ve
 
 void SWVertexLoader::LoadTexCoord(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index)
 {
-	VertexManager::s_pCurBufferPointer = (u8*)&vertex->texCoords[index];
+	g_vertex_manager_write_ptr = (u8*)&vertex->texCoords[index];
 	tcIndex = index;
 	vertexLoader->m_texCoordLoader[index]();
 }

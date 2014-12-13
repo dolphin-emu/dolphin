@@ -963,14 +963,27 @@ VEX_RMI_TEST(RORX)
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
 			{ \
-				emitter->Name(r.reg, RAX, R(RAX)); \
-				emitter->Name(RAX, RAX, R(r.reg)); \
-				emitter->Name(RAX, r.reg, MatR(R12)); \
+				emitter->Name(r.reg, XMM0, R(XMM0)); \
+				emitter->Name(XMM0, XMM0, R(r.reg)); \
+				emitter->Name(XMM0, r.reg, MatR(R12)); \
 				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name + ", " + regset.out_name  + " " \
 				                  #Name " " + regset.out_name + ", " + regset.out_name + ", " + r.name + " " \
 				                  #Name " " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12] "); \
 			} \
 	}
+
+AVX_RRM_TEST(VANDPS,  "dqword")
+AVX_RRM_TEST(VANDPD,  "dqword")
+AVX_RRM_TEST(VANDNPS, "dqword")
+AVX_RRM_TEST(VANDNPD, "dqword")
+AVX_RRM_TEST(VORPS,   "dqword")
+AVX_RRM_TEST(VORPD,   "dqword")
+AVX_RRM_TEST(VXORPS,  "dqword")
+AVX_RRM_TEST(VXORPD,  "dqword")
+AVX_RRM_TEST(VPAND,   "dqword")
+AVX_RRM_TEST(VPANDN,  "dqword")
+AVX_RRM_TEST(VPOR,    "dqword")
+AVX_RRM_TEST(VPXOR,   "dqword")
 
 #define FMA_TEST(Name, P, packed) \
 	AVX_RRM_TEST(Name ## 132 ## P ## S, packed ? "dqword" : "dword") \

@@ -33,6 +33,7 @@ public:
 	u64 GetTimeElapsed();
 
 	static u32 GetTimeMs();
+	static u64 GetTimeUs();
 
 private:
 	u64 m_LastTime;

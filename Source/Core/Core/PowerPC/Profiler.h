@@ -16,7 +16,7 @@
 
 #define PROFILER_QUERY_PERFORMANCE_COUNTER(pt) \
 	MOV(64, R(ABI_PARAM1), Imm64((u64) pt)); \
-	CALL((const void*) QueryPerformanceCounter)
+	ABI_CallFunction((const void*) QueryPerformanceCounter)
 
 // block->ticCounter += block->ticStop - block->ticStart
 #define PROFILER_UPDATE_TIME(block) \

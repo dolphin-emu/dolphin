@@ -1123,14 +1123,14 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	WxUtils::Launch(wikiUrl);
 }
 
-void CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
+bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
 {
 	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
 	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
 				m_currentFilename.c_str(), (int)m_currentItem+1,
 				(int)m_numberItem, text.c_str())));
 
-	((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
+	return ((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
 }
 
 void CGameListCtrl::OnMultiCompressISO(wxCommandEvent& /*event*/)
@@ -1162,6 +1162,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			1000,
 			this,
 			wxPD_APP_MODAL |
+			wxPD_CAN_ABORT |
 			wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
 			wxPD_SMOOTH
 			);
@@ -1235,9 +1236,9 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	Update();
 }
 
-void CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
+bool CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
 {
-	((wxProgressDialog*)arg)->
+	return ((wxProgressDialog*)arg)->
 		Update((int)(percent*1000), StrToWxStr(text));
 }
 
@@ -1300,6 +1301,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 		1000,
 		this,
 		wxPD_APP_MODAL |
+		wxPD_CAN_ABORT |
 		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
 		wxPD_SMOOTH
 		);

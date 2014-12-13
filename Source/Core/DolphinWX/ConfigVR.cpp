@@ -109,8 +109,9 @@ void CConfigVR::CreateGUIControls()
 			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale,
 				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale:"));
+			
+			spin_scale->SetToolTip(wxGetTranslation(scale_desc));
 			label->SetToolTip(wxGetTranslation(scale_desc));
-
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_scale);
 		}
@@ -120,6 +121,7 @@ void CConfigVR::CreateGUIControls()
 				wxGetTranslation(lean_desc), -180.0f, 180.0f, 1.0f);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Lean back angle:"));
 
+			spin_lean->SetToolTip(wxGetTranslation(lean_desc));
 			label->SetToolTip(wxGetTranslation(lean_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_lean);
@@ -128,32 +130,61 @@ void CConfigVR::CreateGUIControls()
 		{
 			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
 
-			szr_vr->Add(new wxStaticText(page_vr, -1, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iVRPlayer);
 		}
-		// Synchronous Timewarp extra frames per frame
 		{
-			U32Setting *num = new U32Setting(page_vr, _("Min exta frames:"), vconfig.iMinExtraFrames, 0, 89);
-			RegisterControl(num, lean_desc);
-			num->SetValue(vconfig.iMinExtraFrames);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Min exta frames:"));
+			U32Setting* spin_replay_buffer = new U32Setting(page_vr, _("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
+			RegisterControl(spin_replay_buffer, replaybuffer_desc);
+			spin_replay_buffer->SetToolTip(replaybuffer_desc);
+			spin_replay_buffer->SetValue(vconfig.iExtraVideoLoops);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frames:"));
 
-			label->SetToolTip(wxGetTranslation(lean_desc));
+			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(num);
+			szr_vr->Add(spin_replay_buffer);
 		}
 		{
-			U32Setting *num = new U32Setting(page_vr, _("Max exta frames:"), vconfig.iMaxExtraFrames, 0, 89);
-			RegisterControl(num, lean_desc);
-			num->SetValue(vconfig.iMaxExtraFrames);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Max exta frames:"));
+			U32Setting* spin_replay_buffer_divider = new U32Setting(page_vr, _("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
+			RegisterControl(spin_replay_buffer_divider, replaybuffer_desc);
+			spin_replay_buffer_divider->SetToolTip(replaybuffer_desc);
+			spin_replay_buffer_divider->SetValue(vconfig.iExtraVideoLoopsDivider);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frame Divider:"));
 
-			label->SetToolTip(wxGetTranslation(lean_desc));
+			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(num);
+			szr_vr->Add(spin_replay_buffer_divider);
+
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps), 1, wxALIGN_CENTER_VERTICAL, 0);
+		}
+		// Synchronous Timewarp extra frames per frame
+		{
+			U32Setting* spin_extra_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
+			RegisterControl(spin_extra_frames, extraframes_desc);
+			spin_extra_frames->SetToolTip(extraframes_desc);
+			spin_extra_frames->SetValue(vconfig.iExtraFrames);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Timewarped Frames:"));
+
+			label->SetToolTip(wxGetTranslation(extraframes_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_extra_frames);
+		}
+		{
+			SettingNumber* const spin_timewarp_tweak = CreateNumber(page_vr, vconfig.fTimeWarpTweak, _("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
+			RegisterControl(spin_timewarp_tweak, timewarptweak_desc);
+			spin_timewarp_tweak->SetToolTip(timewarptweak_desc);
+			spin_timewarp_tweak->SetValue(vconfig.fTimeWarpTweak);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Timewarp VSync Tweak:"));
+
+			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_timewarp_tweak);
 		}
 
 		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
@@ -320,7 +351,8 @@ void CConfigVR::CreateGUIControls()
 
 	const wxString pageNames[] =
 	{
-		_("VR Hotkeys")
+		_("VR Hotkeys"),
+		_("VR Instructions")
 	};
 
 	const wxString VRText[] =
@@ -368,7 +400,7 @@ void CConfigVR::CreateGUIControls()
 
 	button_already_clicked = false; //Used to determine whether a button has already been clicked.  If it has, don't allow more buttons to be clicked.
 
-	for (int j = 0; j < 1; ++j)
+	for (int j = 0; j < 2; ++j)
 	{
 		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
 		Notebook->AddPage(Page, pageNames[j]);
@@ -472,6 +504,47 @@ void CConfigVR::CreateGUIControls()
 			sPage->Add(vr_camera_controls_box, 0, wxEXPAND | wxALL, 5);
 			Page->SetSizer(sPage);
 		}
+
+		if (j == 1)
+		{
+			//Create "Device" box, and all buttons/options within it/
+			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Instructions"));
+
+			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,  
+				_("Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
+				"guide to help.\n\nDirect mode is working, but the performance is poor.  It is recommended to run in "
+				"extended mode!\n\nOpenGL mode is currently undergoing a merge with Dolphin's native stereoscopic rendering "
+				"code, and complete VR support is not finished (IPD, Convergence, Scale, etc. are not all automatically "
+				"implemented).  It is left enabled for experimentation, but the seperation and convergence will have to be "
+				"set manually for each game.  The experience is much better in most games with Direct3D right now, so try that "
+				"first.\n\nIn the 'Config' tab, 'Framelimit' should be set to match your Rift's refresh rate (most likely "
+				"75fps).  Games will run 25% too fast, but this will avoid judder. The Rift can be set to run at 60hz from "
+				"your AMD/Nvidia control panel and still run with low persistence, but flickering can be seen in bright scenes.\n\n"
+				"Under Graphics->Hacks->EFB Copies, 'Disable' and 'Remove Blank EFB Copy Box' should be checked for most games.\n\n"
+				"Right-clicking on each game will give you the options to adjust VR settings, and remove rendered objects. "
+				"Objects such as fake 16:9 bars can be removed from the game.  Some games already have object removal codes, "
+				"so make sure to check them if you would like the object removed.  You can find your own codes by starting "
+				"with an 8-bit code and clicking the up button until the object disappears.  Then move to 16bit, add two zeros "
+				"to the right side of your 8bit code, and continue hitting the up button until the object disappears again. "
+				"Continue until you have a long enough code for it to be unique.\n\nSome games run at 30fps as opposed to 60fps. "
+				"There is a 1:2 pullup (timewarp) feature that can be enabled to fake a frame rate of 60fps. To enable this, "
+				"go to the 'VR' tab and change 'Extra Timewarped Frames' to 1.  Setting this to 2 will insert two extra frames, "
+				"so PAL games that run at 25fps will have head tracking at 75fps, and N64 games that run at 20fps (e.g. Zelda: OoT) "
+				"will have head-tracking at 60fps. Make sure this is set to zero if running a 60fps game.\n\nTake time to set "
+				"the VR-Hotkeys. You can create combinations for XInput by right clicking on the buttons. Remember you can also set "
+				"a the gamecube/wii controller emulation to not happen during a certain button press, so setting freelook to 'Left "
+				"Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. The "
+				"freelook step size varies per game, so play with the 'Freelook Sensitivity' option to set it right for your game.\n\n"
+				"Enjoy and watch for new updates, because we're making progress fast!"));
+
+			instruction_box->Wrap(630);
+
+			device_sbox->Add(instruction_box, wxEXPAND | wxALL);
+
+			wxBoxSizer* const sPage = new wxBoxSizer(wxVERTICAL);
+			sPage->Add(device_sbox, 0, wxEXPAND | wxALL, 5);
+			Page->SetSizer(sPage);
+		}
 	}
 
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
@@ -505,9 +578,14 @@ SettingRadioButton* CConfigVR::CreateRadioButton(wxWindow* parent, const wxStrin
 
 SettingNumber* CConfigVR::CreateNumber(wxWindow* parent, float &setting, const wxString& description, float min, float max, float inc, long style)
 {
+	//TODO: Find why it won't compile on Linux here
+#ifdef _WIN32
 	SettingNumber* const sn = new SettingNumber(parent, wxString(), setting, min, max, inc, style);
 	RegisterControl(sn, description);
 	return sn;
+#else
+	return nullptr;
+#endif
 }
 
 /* Use this to register descriptions for controls which have NOT been created using the Create* functions from above */

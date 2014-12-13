@@ -9,8 +9,11 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 	DEFAULT_VR_HUD_3D_CLOSER = 0.5f,
 	DEFAULT_VR_CAMERA_FORWARD = 0.0f, DEFAULT_VR_CAMERA_PITCH = 0.0f, DEFAULT_VR_AIM_DISTANCE = 7.0f, 
 	DEFAULT_VR_SCREEN_HEIGHT = 2.0f, DEFAULT_VR_SCREEN_DISTANCE = 1.5f, DEFAULT_VR_SCREEN_THICKNESS = 0.5f, 
-	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f;
-const int DEFAULT_VR_MIN_EXTRA_FRAMES = 0, DEFAULT_VR_MAX_EXTRA_FRAMES = 2;
+	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f,
+	DEFAULT_VR_TIMEWARP_TWEAK = 0;
+const int DEFAULT_VR_EXTRA_FRAMES = 0;
+const int DEFAULT_VR_EXTRA_VIDEO_LOOPS = 0;
+const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
@@ -39,6 +42,7 @@ Error, Oculus SDK 0.3.x is no longer supported
 #include <mutex>
 
 #include "Common/MathUtil.h"
+#include "VideoCommon/DataReader.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -56,10 +60,18 @@ extern bool g_force_vr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;
+extern bool g_new_frame_tracker_for_object_skip;
 extern Matrix44 g_head_tracking_matrix;
 extern float g_head_tracking_position[3];
 extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
 extern const char *g_hmd_device_name;
+
+//Opcode Replay Buffer
+extern std::vector<DataReader> timewarp_log;
+extern std::vector<bool> display_list_log;
+extern std::vector<bool> cached_ram_location;
+extern bool g_timewarped_frame;
+extern int skipped_opcode_replay_count;
 
 extern std::mutex g_ovr_lock;
 extern volatile u32 g_drawn_vr;

@@ -15,6 +15,7 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
 void ClearDebugProj();
@@ -35,10 +36,17 @@ bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
+bool g_new_frame_tracker_for_object_skip = true;
 Matrix44 g_head_tracking_matrix;
 float g_head_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
+
+std::vector<DataReader> timewarp_log;
+std::vector<bool> display_list_log;
+std::vector<bool> cached_ram_location;
+bool g_timewarped_frame = false;
+int skipped_opcode_replay_count = 0;
 
 #ifdef _WIN32
 static char hmd_device_name[MAX_PATH] = "";
@@ -48,6 +56,7 @@ void NewVRFrame()
 {
 	g_new_tracking_frame = true;
 	g_new_frame_tracker_for_efb_skip = true;
+	g_new_frame_tracker_for_object_skip = true;
 	ClearDebugProj();
 }
 
@@ -154,15 +163,15 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 	if (g_has_rift && hmd)
 	{
 		// we can only call GetEyePose between BeginFrame and EndFrame
-		g_ovr_lock.lock();
 #ifdef OCULUSSDK042
+		g_ovr_lock.lock();
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#else
-		g_eye_poses[ovrEye_Left] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Left);
-		g_eye_poses[ovrEye_Right] = ovrHmd_GetHmdPosePerEye(hmd, ovrEye_Right);
-#endif
 		g_ovr_lock.unlock();
+#else
+		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#endif
 		//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
 		//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{
@@ -174,8 +183,8 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
 			*yaw = -RADIANS_TO_DEGREES(ya);   // should be degrees right
 			*x = pose.Translation.x;
-			*y = pose.Translation.y;
-			*z = pose.Translation.z;
+			*y = (pose.Translation.y * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) - (pose.Translation.z * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			*z = (pose.Translation.z * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) + (pose.Translation.y * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 		}
 	}
 	else

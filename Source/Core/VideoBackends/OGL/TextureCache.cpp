@@ -226,7 +226,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	glGenFramebuffers(1, &entry->framebuffer);
 	FramebufferManager::SetFramebuffer(entry->framebuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, entry->texture, 0);
+	FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, entry->texture, 0);
 
 	SetStage();
 

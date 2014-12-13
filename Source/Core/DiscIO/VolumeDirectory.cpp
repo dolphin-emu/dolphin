@@ -112,7 +112,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 		_dbg_assert_(DVDINTERFACE, fileIter->first <= _Offset);
 		u64 fileOffset = _Offset - fileIter->first;
 
-		PlainFileReader* reader = PlainFileReader::Create(fileIter->second);
+		std::unique_ptr<PlainFileReader> reader(PlainFileReader::Create(fileIter->second));
 		if (reader == nullptr)
 			return false;
 
@@ -139,8 +139,6 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 			_dbg_assert_(DVDINTERFACE, fileIter->first >= _Offset);
 			PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
 		}
-
-		delete reader;
 	}
 
 	return true;

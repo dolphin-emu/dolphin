@@ -30,14 +30,14 @@ namespace
 }
 
 CheatSearchTab::CheatSearchTab(wxWindow* const parent)
-	: wxPanel(parent, -1)
+	: wxPanel(parent)
 {
 	// first scan button
-	m_btn_init_scan = new wxButton(this, -1, _("New Scan"));
+	m_btn_init_scan = new wxButton(this, wxID_ANY, _("New Scan"));
 	m_btn_init_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::StartNewSearch, this);
 
 	// next scan button
-	m_btn_next_scan = new wxButton(this, -1, _("Next Scan"));
+	m_btn_next_scan = new wxButton(this, wxID_ANY, _("Next Scan"));
 	m_btn_next_scan->Bind(wxEVT_BUTTON, &CheatSearchTab::FilterCheatSearchResults, this);
 	m_btn_next_scan->Disable();
 
@@ -46,16 +46,16 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
 	// Listbox for search results (shown in monospace font).
-	m_lbox_search_results = new wxListBox(this, -1);
+	m_lbox_search_results = new wxListBox(this, wxID_ANY);
 	wxFont list_font = m_lbox_search_results->GetFont();
 	list_font.SetFamily(wxFONTFAMILY_TELETYPE);
 	m_lbox_search_results->SetFont(list_font);
 
 	// Result count
-	m_label_results_count = new wxStaticText(this, -1, _("Count:"));
+	m_label_results_count = new wxStaticText(this, wxID_ANY, _("Count:"));
 
 	// create AR code button
-	wxButton* const button_cheat_search_copy_address = new wxButton(this, -1, _("Create AR Code"));
+	wxButton* const button_cheat_search_copy_address = new wxButton(this, wxID_ANY, _("Create AR Code"));
 	button_cheat_search_copy_address->Bind(wxEVT_BUTTON, &CheatSearchTab::CreateARCode, this);
 
 	// results groupbox
@@ -65,12 +65,12 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	sizer_cheat_search_results->Add(button_cheat_search_copy_address, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
 
 	// Search value radio buttons
-	m_value_x_radiobtn.rad_oldvalue = new wxRadioButton(this, -1, _("Previous Value"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	m_value_x_radiobtn.rad_uservalue = new wxRadioButton(this, -1, "");
+	m_value_x_radiobtn.rad_oldvalue = new wxRadioButton(this, wxID_ANY, _("Previous Value"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	m_value_x_radiobtn.rad_uservalue = new wxRadioButton(this, wxID_ANY, "");
 	m_value_x_radiobtn.rad_oldvalue->SetValue(true);
 
 	// search value textbox
-	m_textctrl_value_x = new wxTextCtrl(this, -1, "0x0", wxDefaultPosition, wxSize(96,-1));
+	m_textctrl_value_x = new wxTextCtrl(this, wxID_ANY, "0x0", wxDefaultPosition, wxSize(96, -1));
 	m_textctrl_value_x->Bind(wxEVT_SET_FOCUS, &CheatSearchTab::ApplyFocus, this);
 
 	wxBoxSizer* const sizer_cheat_filter_text = new wxBoxSizer(wxHORIZONTAL);
@@ -93,7 +93,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 		//_("Between"),
 	};
 
-	m_search_type = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize, sizeof(searches)/sizeof(*searches), searches);
+	m_search_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizeof(searches) / sizeof(*searches), searches);
 	m_search_type->Select(0);
 
 	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, _("Search Filter"));

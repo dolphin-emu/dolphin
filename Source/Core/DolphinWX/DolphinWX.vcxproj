@@ -114,7 +114,7 @@
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
     <ClCompile Include="PostProcessingConfigDiag.cpp" />
-    <ClCompile Include="WiimoteConfigDiag.cpp" />
+    <ClCompile Include="ControllerConfigDiag.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
@@ -164,7 +164,7 @@
     <ClInclude Include="TASInputDlg.h" />
     <ClInclude Include="VideoConfigDiag.h" />
     <ClInclude Include="PostProcessingConfigDiag.h" />
-    <ClInclude Include="WiimoteConfigDiag.h" />
+    <ClInclude Include="ControllerConfigDiag.h" />
     <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
   </ItemGroup>

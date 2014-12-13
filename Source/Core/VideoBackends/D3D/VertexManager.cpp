@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
@@ -9,6 +10,7 @@
 #include "VideoBackends/D3D/VertexManager.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/IndexGenerator.h"
@@ -218,7 +220,10 @@ void VertexManager::vFlush(bool useDstAlpha)
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
 	}
-
+	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
+	{
+		D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(), nullptr);
+	}
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
 
 	PrepareDrawBuffers(stride);

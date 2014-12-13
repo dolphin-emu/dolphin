@@ -83,7 +83,7 @@ void CRmObjAddEdit::CreateGUIControls(int _selection)
 	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(_("Object Removal Code")));
 
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
-	sgEntry->Add(EditRmObjType, wxGBPosition(0, 0), wxGBSpan(2, 4), wxEXPAND|wxALL, 5);
+	sgEntry->Add(EditRmObjType, wxGBPosition(0, 0), wxGBSpan(2, 5), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EditRmObjValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sgEntry->Add(EditRmObjValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(BruteForceUp, wxGBPosition(2, 2), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
@@ -102,18 +102,18 @@ void CRmObjAddEdit::SaveRmObjData(wxCommandEvent& event)
 {
 	if (!UpdateTempEntryData(itCurEntry))
 		return;
-
-	for (int i = 0; i < rmObjCodes.size(); ++i)
-	{
-		if (rmObjCodes.at(i).name == WxStrToStr(EditRmObjName->GetValue()))
-		{
-			wxMessageBox(_("Name is already in use.  Please choose a unique name."), _("Error"));
-			return;
-		}
-	}
 		
 	if (selection == -1)
 	{
+		for (int i = 0; i < rmObjCodes.size(); ++i)
+		{
+			if (rmObjCodes.at(i).name == WxStrToStr(EditRmObjName->GetValue()))
+			{
+				wxMessageBox(_("Name is already in use.  Please choose a unique name."), _("Error"));
+				return;
+			}
+		}
+
 		RmObjEngine::RmObj newRmObj;
 		newRmObj.name = WxStrToStr(EditRmObjName->GetValue());
 		newRmObj.entries = tempEntries;
