@@ -209,8 +209,7 @@ void Input(int chan, GCPadStatus* pad)
 
 	if (s_controller_payload_size != sizeof(controller_payload_copy) || controller_payload_copy[0] != LIBUSB_DT_HID)
 	{
-		ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d)", s_controller_payload_size);
-		Shutdown();
+		ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", s_controller_payload_size, controller_payload_copy[0]);
 	}
 	else
 	{
@@ -228,7 +227,7 @@ void Input(int chan, GCPadStatus* pad)
 			if (b1 & (1 << 0)) pad->button |= PAD_BUTTON_A;
 			if (b1 & (1 << 1)) pad->button |= PAD_BUTTON_B;
 			if (b1 & (1 << 2)) pad->button |= PAD_BUTTON_X;
-			if (b1 & (1 << 2)) pad->button |= PAD_BUTTON_Y;
+			if (b1 & (1 << 3)) pad->button |= PAD_BUTTON_Y;
 
 			if (b1 & (1 << 4)) pad->button |= PAD_BUTTON_LEFT;
 			if (b1 & (1 << 5)) pad->button |= PAD_BUTTON_RIGHT;
