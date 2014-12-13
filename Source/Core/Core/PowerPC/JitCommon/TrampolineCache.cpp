@@ -65,26 +65,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, B
 	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
 
 	int dataRegSize = info.operandSize == 8 ? 64 : 32;
-
-	if (dataReg == ABI_PARAM1)
-	{
-		if (addrReg == ABI_PARAM2)
-		{
-			XCHG(dataRegSize, R(ABI_PARAM1), R(ABI_PARAM2));
-		}
-		else
-		{
-			MOV(dataRegSize, R(ABI_PARAM2), R(dataReg));
-			MOV(32, R(ABI_PARAM1), R(addrReg));
-		}
-	}
-	else
-	{
-		if (addrReg != ABI_PARAM1)
-			MOV(32, R(ABI_PARAM1), R(addrReg));
-		if (dataReg != ABI_PARAM2)
-			MOV(dataRegSize, R(ABI_PARAM2), R(dataReg));
-	}
+	MOVTwo(dataRegSize, ABI_PARAM1, addrReg, ABI_PARAM2, dataReg);
 
 	if (info.displacement)
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
