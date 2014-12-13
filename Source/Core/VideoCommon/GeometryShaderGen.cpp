@@ -41,7 +41,9 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	out.Write("//Geometry Shader for 3D stereoscopy\n");
 
+	uid_data->vr = g_ActiveConfig.iStereoMode >= STEREO_OCULUS;
 	uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
+
 	if (ApiType == API_OPENGL)
 	{
 		// Insert layout parameters
@@ -87,7 +89,14 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	out.Write("\t\tf = o[i];\n");
 	out.Write("\t\tfloat4 pos = o[i].pos;\n");
 
-	if (g_ActiveConfig.iStereoMode > 0)
+	if (g_ActiveConfig.iStereoMode >= STEREO_OCULUS)
+	{
+		// StereoParams[l] = camera shift in game units * projection[0][0]
+		// StereoParams[l+2] = offaxis shift from Oculus projection[0][2]
+		out.Write("\t\t f.clipPos.x = o[i].clipPos.x + " I_STEREOPARAMS"[l] - " I_STEREOPARAMS"[l+2] * o[i].clipPos.w;\n");
+		out.Write("\t\t pos.x = o[i].pos.x + " I_STEREOPARAMS"[l] - " I_STEREOPARAMS"[l+2] * o[i].pos.w;\n");
+	}
+	else if (g_ActiveConfig.iStereoMode > 0)
 	{
 		// For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
 		// to the depth of the vertex. We retrieve the depth value from the w-component of the projected
