@@ -32,7 +32,7 @@ static bool s_libusb_driver_not_supported = false;
 static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
 
-void Read()
+static void Read()
 {
 	while (s_adapter_thread_running.IsSet())
 	{
@@ -240,15 +240,15 @@ void Input(int chan, GCPadStatus* pad)
 	}
 }
 
-void Output(int chan, u8 rumble)
+void Output(int chan, u8 rumble_enabled)
 {
 	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
 	// Skip over rumble commands if it has not changed or the controller is wireless
-	if (rumble != s_controller_rumble[chan] && s_controller_type[chan] != CONTROLLER_WIRELESS)
+	if (rumble_enabled != s_controller_rumble[chan] && s_controller_type[chan] != CONTROLLER_WIRELESS)
 	{
-		s_controller_rumble[chan] = rumble;
+		s_controller_rumble[chan] = rumble_enabled;
 
 		unsigned char rumble[5] = { 0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2], s_controller_rumble[3] };
 		int size = 0;
