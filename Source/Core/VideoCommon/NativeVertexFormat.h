@@ -44,14 +44,6 @@ enum
 	VB_HAS_UVTEXMTXSHIFT=13,
 };
 
-#ifdef WIN32
-#define LOADERDECL __cdecl
-#else
-#define LOADERDECL
-#endif
-
-typedef void (LOADERDECL *TPipelineFunction)();
-
 enum VarType
 {
 	VAR_UNSIGNED_BYTE,  // GX_U8  = 0

@@ -2,7 +2,7 @@
 
 #include "Common/Common.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderBase.h"
 
 // Needs to be included later because it defines a TEST macro that conflicts
 // with a TEST method definition in x64Emitter.h.
@@ -93,7 +93,7 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZ)
 	m_vtx_attr.g0.PosElements = 1;  // XYZ
 	m_vtx_attr.g0.PosFormat = 4;    // Float
 
-	VertexLoader* loader = new VertexLoader(m_vtx_desc, m_vtx_attr);
+	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
 	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
 	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_VertexSize);
@@ -118,7 +118,7 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZ)
 	// Test that scale does nothing for floating point inputs.
 	Input(1.0f); Input(2.0f); Input(4.0f);
 	m_vtx_attr.g0.PosFrac = 1;
-	loader = new VertexLoader(m_vtx_desc, m_vtx_attr);
+	loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 	count = loader->RunVertices(7, 1, src, dst);
 	src.Skip(1 * loader->m_VertexSize);
 	dst.Skip(count * loader->m_native_vtx_decl.stride);
@@ -132,7 +132,7 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 	m_vtx_attr.g0.PosElements = 0;  // XY
 	m_vtx_attr.g0.PosFormat = 2;    // U16
 
-	VertexLoader* loader = new VertexLoader(m_vtx_desc, m_vtx_attr);
+	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
 	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
 	ASSERT_EQ(2 * sizeof (u16), (u32)loader->m_VertexSize);
@@ -159,7 +159,7 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 	// Test that scale works on U16 inputs.
 	Input<u16>(42); Input<u16>(24);
 	m_vtx_attr.g0.PosFrac = 1;
-	loader = new VertexLoader(m_vtx_desc, m_vtx_attr);
+	loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 	count = loader->RunVertices(7, 1, src, dst);
 	src.Skip(1 * loader->m_VertexSize);
 	dst.Skip(count * loader->m_native_vtx_decl.stride);
@@ -173,18 +173,19 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZSpeed)
 	m_vtx_attr.g0.PosElements = 1;  // XYZ
 	m_vtx_attr.g0.PosFormat = 4;    // Float
 
-	VertexLoader loader(m_vtx_desc, m_vtx_attr);
+	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
-	ASSERT_EQ(3 * sizeof (float), (u32)loader.m_native_vtx_decl.stride);
-	ASSERT_EQ(3 * sizeof (float), (u32)loader.m_VertexSize);
+	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
+	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_VertexSize);
 
 	for (int i = 0; i < 1000; ++i)
 	{
 		ResetPointers();
-		int count = loader.RunVertices(7, 100000, src, dst);
-		src.Skip(100000 * loader.m_VertexSize);
-		dst.Skip(count * loader.m_native_vtx_decl.stride);
+		int count = loader->RunVertices(7, 100000, src, dst);
+		src.Skip(100000 * loader->m_VertexSize);
+		dst.Skip(count * loader->m_native_vtx_decl.stride);
 	}
+	delete loader;
 }
 
 TEST_F(VertexLoaderTest, PositionDirectU16XYSpeed)
@@ -193,18 +194,19 @@ TEST_F(VertexLoaderTest, PositionDirectU16XYSpeed)
 	m_vtx_attr.g0.PosElements = 0;  // XY
 	m_vtx_attr.g0.PosFormat = 2;    // U16
 
-	VertexLoader loader(m_vtx_desc, m_vtx_attr);
+	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
-	ASSERT_EQ(3 * sizeof (float), (u32)loader.m_native_vtx_decl.stride);
-	ASSERT_EQ(2 * sizeof (u16), (u32)loader.m_VertexSize);
+	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
+	ASSERT_EQ(2 * sizeof (u16), (u32)loader->m_VertexSize);
 
 	for (int i = 0; i < 1000; ++i)
 	{
 		ResetPointers();
-		int count = loader.RunVertices(7, 100000, src, dst);
-		src.Skip(100000 * loader.m_VertexSize);
-		dst.Skip(count * loader.m_native_vtx_decl.stride);
+		int count = loader->RunVertices(7, 100000, src, dst);
+		src.Skip(100000 * loader->m_VertexSize);
+		dst.Skip(count * loader->m_native_vtx_decl.stride);
 	}
+	delete loader;
 }
 
 TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
@@ -257,15 +259,16 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 	m_vtx_attr.g2.Tex7CoordElements = 1;  // ST
 	m_vtx_attr.g2.Tex7CoordFormat = 4;    // Float
 
-	VertexLoader loader(m_vtx_desc, m_vtx_attr);
+	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
 	// This test is only done 100x in a row since it's ~20x slower using the
 	// current vertex loader implementation.
 	for (int i = 0; i < 100; ++i)
 	{
 		ResetPointers();
-		int count = loader.RunVertices(7, 100000, src, dst);
-		src.Skip(100000 * loader.m_VertexSize);
-		dst.Skip(count * loader.m_native_vtx_decl.stride);
+		int count = loader->RunVertices(7, 100000, src, dst);
+		src.Skip(100000 * loader->m_VertexSize);
+		dst.Skip(count * loader->m_native_vtx_decl.stride);
 	}
+	delete loader;
 }

@@ -15,7 +15,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -30,7 +30,7 @@ typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVert
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
 
-typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoader>> VertexLoaderMap;
+typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoaderBase>> VertexLoaderMap;
 static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
@@ -93,9 +93,9 @@ void MarkAllDirty()
 	g_preprocess_cp_state.attr_dirty = BitSet32::AllTrue(8);
 }
 
-static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
+static VertexLoaderBase* RefreshLoader(int vtx_attr_group, CPState* state)
 {
-	VertexLoader* loader;
+	VertexLoaderBase* loader;
 	if (state->attr_dirty[vtx_attr_group])
 	{
 		VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
@@ -107,8 +107,8 @@ static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 		}
 		else
 		{
-			loader = new VertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoader>(loader);
+			loader = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
+			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoaderBase>(loader);
 
 			// search for a cached native vertex format
 			const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
@@ -139,7 +139,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
 	CPState* state = &g_main_cp_state;
 
-	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
+	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, state);
 
 	int size = count * loader->m_VertexSize;
 	if ((int)src.size() < size)
