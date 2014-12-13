@@ -227,8 +227,14 @@ void ZeldaUCode::RunPendingCommands()
 				sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
 			m_renderer.SetSineTable(std::move(sine_table));
 
+			u16* afc_coeffs_ptr = (u16*)HLEMemory_Get_Pointer(Read32());
+			std::array<s16, 0x20> afc_coeffs;
+			for (size_t i = 0; i < 0x20; ++i)
+				afc_coeffs[i] = Common::swap16(afc_coeffs_ptr[i]);
+			m_renderer.SetAfcCoeffs(std::move(afc_coeffs));
+
 			SendCommandAck(CommandAck::STANDARD, sync);
-			Read32(); Read32();
+			Read32();
 			break;
 		}
 
@@ -278,13 +284,6 @@ void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
 
 void ZeldaUCode::RenderAudio()
 {
-#if 0
-	WARN_LOG(DSPHLE, "RenderAudio() frame %d/%d voice %d/%d (sync to %d)",
-	         m_rendering_curr_frame, m_rendering_requested_frames,
-	         m_rendering_curr_voice, m_rendering_voices_per_frame,
-	         m_sync_max_voice_id);
-#endif
-
 	if (!RenderingInProgress())
 	{
 		WARN_LOG(DSPHLE, "Trying to render audio while no rendering should be happening.");
@@ -421,7 +420,10 @@ struct ZeldaAudioRenderer::VPB
 	u16 current_pos_frac;
 
 	u16 unk_31;
-	u16 unk_32;
+
+	// Number of remaining decoded AFC samples in the VPB internal buffer (see
+	// VPB[0x58]) that haven't been output yet.
+	u16 afc_remaining_decoded_samples;
 
 	// Value used as the constant sample value if VPB[6] (use_constant_sample)
 	// is set. Reset to the last sample value after each round of resampling.
@@ -441,8 +443,11 @@ struct ZeldaAudioRenderer::VPB
 	u16 samples_before_loop;
 
 	u16 unk_37;
-	u16 unk_38;
-	u16 unk_39;
+
+	// Current address used to stream samples for the ARAM sample source types.
+	u16 current_aram_addr_h;
+	u16 current_aram_addr_l;
+	DEFINE_32BIT_ACCESSOR(current_aram_addr, CurrentARAMAddr)
 
 	// Remaining number of samples to load before considering the voice
 	// rendering complete and setting the done flag. Note that this is an
@@ -454,21 +459,40 @@ struct ZeldaAudioRenderer::VPB
 
 	// Stores the last 4 resampled input samples after each frame, so that they
 	// can be used for future linear interpolation.
-	u16 resample_buffer[4];
+	s16 resample_buffer[4];
 
-	u16 unk[0x80 - 0x40];
+	// TODO: document and implement.
+	s16 prev_input_samples[0x18];
+
+	// Values from the last decoded AFC block. The last two values are
+	// especially important since AFC decoding - as a variant of ADPCM -
+	// requires the two latest sample values to be able to decode future
+	// samples.
+	s16 afc_remaining_samples[0x10];
+	s16* AFCYN2() { return &afc_remaining_samples[0xE]; }
+	s16* AFCYN1() { return &afc_remaining_samples[0xF]; }
+
+	u16 unk_68_80[0x80 - 0x68];
 
 	enum SamplesSourceType
 	{
+		// Samples stored in ARAM at a rate of 16 samples/9 bytes, AFC encoded,
+		// at an arbitrary sample rate (resampling is applied).
+		SRC_AFC_HQ_FROM_ARAM = 9,
 		// Samples stored in MRAM at an arbitrary sample rate (resampling is
 		// applied, unlike PCM16_FROM_MRAM_RAW).
 		SRC_PCM16_FROM_MRAM = 33,
 	};
 	u16 samples_source_type;
 
-	u16 unk_81;
-	u16 unk_82;
-	u16 unk_83;
+	// If non zero, indicates that the sound should loop.
+	u16 is_looping;
+
+	// For AFC looping voices, the values of the last 2 samples before the
+	// start of the loop, in order to be able to decode samples after looping.
+	s16 loop_yn1;
+	s16 loop_yn2;
+
 	u16 unk_84;
 
 	// If true, ramp down quickly to a volume of zero, and end the voice (by
@@ -480,21 +504,23 @@ struct ZeldaAudioRenderer::VPB
 
 	// Base address used to download samples data after the loop point of the
 	// voice has been reached.
-	u16 dma_loop_address_h;
-	u16 dma_loop_address_l;
-	DEFINE_32BIT_ACCESSOR(dma_loop_address, DMALoopAddress)
+	u16 loop_address_h;
+	u16 loop_address_l;
+	DEFINE_32BIT_ACCESSOR(loop_address, LoopAddress)
 
 	// Offset (in number of raw samples) of the start of the loop area in the
 	// voice. Note: some sample sources only use the _h part of this.
+	//
+	// TODO: rename to length? confusion with remaining_length...
 	u16 loop_start_position_h;
 	u16 loop_start_position_l;
 	DEFINE_32BIT_ACCESSOR(loop_start_position, LoopStartPosition)
 
 	// Base address used to download samples data before the loop point of the
 	// voice has been reached.
-	u16 dma_base_address_h;
-	u16 dma_base_address_l;
-	DEFINE_32BIT_ACCESSOR(dma_base_address, DMABaseAddress)
+	u16 base_address_h;
+	u16 base_address_l;
+	DEFINE_32BIT_ACCESSOR(base_address, BaseAddress)
 
 	u16 padding[SIZE_IN_WORDS];
 };
@@ -653,6 +679,11 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 		}
 	}
 
+	// By then the VPB has been reset, unless we're in the "constant sample" /
+	// silence mode.
+	if (!vpb.use_constant_sample)
+		vpb.reset_vpb = false;
+
 	StoreVPB(voice_id, vpb);
 }
 
@@ -720,13 +751,17 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 
 	switch (vpb->samples_source_type)
 	{
+		case VPB::SRC_AFC_HQ_FROM_ARAM:
+			DownloadAFCSamplesFromARAM(raw_input_samples.data() + 4, vpb,
+			                           NeededRawSamplesCount(*vpb));
+			Resample(vpb, raw_input_samples.data(), buffer);
+			break;
+
 		case VPB::SRC_PCM16_FROM_MRAM:
-		{
 			DownloadRawSamplesFromMRAM(raw_input_samples.data() + 4, vpb,
 			                           NeededRawSamplesCount(*vpb));
 			Resample(vpb, raw_input_samples.data(), buffer);
 			break;
-		}
 
 		default:
 			ERROR_LOG(DSPHLE, "Using an unknown/unimplemented sample source: %04x", vpb->samples_source_type);
@@ -789,7 +824,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(
 		s16* dst, VPB* vpb, u16 requested_samples_count)
 {
-	u32 addr = vpb->GetDMABaseAddress() + vpb->current_position_h * sizeof (u16);
+	u32 addr = vpb->GetBaseAddress() + vpb->current_position_h * sizeof (u16);
 	s16* src_ptr = (s16*)HLEMemory_Get_Pointer(addr);
 
 	if (requested_samples_count > vpb->GetRemainingLength())
@@ -818,12 +853,175 @@ void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(
 		{
 			for (u16 i = 0; i < vpb->samples_before_loop; ++i)
 				*dst++ = Common::swap16(*src_ptr++);
-			vpb->SetDMABaseAddress(vpb->GetDMALoopAddress());
-			src_ptr = (s16*)HLEMemory_Get_Pointer(vpb->GetDMALoopAddress());
+			vpb->SetBaseAddress(vpb->GetLoopAddress());
+			src_ptr = (s16*)HLEMemory_Get_Pointer(vpb->GetLoopAddress());
 			for (u16 i = vpb->samples_before_loop; i < requested_samples_count; ++i)
 				*dst++ = Common::swap16(*src_ptr++);
 			vpb->current_position_h = requested_samples_count - vpb->samples_before_loop;
 		}
+	}
+}
+
+void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(
+		s16* dst, VPB* vpb, u16 requested_samples_count)
+{
+	if (vpb->reset_vpb)
+	{
+		*vpb->AFCYN1() = 0;
+		*vpb->AFCYN2() = 0;
+		vpb->afc_remaining_decoded_samples = 0;
+		vpb->SetRemainingLength(vpb->GetLoopStartPosition());
+		vpb->SetCurrentARAMAddr(vpb->GetBaseAddress());
+	}
+
+	if (vpb->done)
+	{
+		for (u16 i = 0; i < requested_samples_count; ++i)
+			dst[i] = 0;
+		return;
+	}
+
+	// Try several things until we have output enough samples.
+	while (true)
+	{
+		// Try to push currently cached/already decoded samples.
+		u16 remaining_to_output = std::min(vpb->afc_remaining_decoded_samples,
+		                                   requested_samples_count);
+		for (size_t i = 0x10 - remaining_to_output; i < 0x10; ++i)
+			*dst++ = vpb->afc_remaining_samples[i];
+
+		vpb->afc_remaining_decoded_samples -= remaining_to_output;
+		requested_samples_count -= remaining_to_output;
+
+		if (requested_samples_count == 0)
+		{
+			return;  // We have output everything we needed.
+		}
+		else if (requested_samples_count <= vpb->GetRemainingLength())
+		{
+			// Each AFC block is 16 samples.
+			u16 requested_blocks_count = (requested_samples_count + 0xF) >> 4;
+			u16 decoded_samples_count = requested_blocks_count << 4;
+
+			if (decoded_samples_count < vpb->GetRemainingLength())
+			{
+				vpb->afc_remaining_decoded_samples =
+					decoded_samples_count - requested_samples_count;
+				vpb->SetRemainingLength(vpb->GetRemainingLength() - decoded_samples_count);
+			}
+			else
+			{
+				vpb->afc_remaining_decoded_samples =
+					vpb->GetRemainingLength() - requested_samples_count;
+				vpb->SetRemainingLength(0);
+			}
+
+			DecodeAFC(vpb, dst, requested_blocks_count);
+
+			for (size_t i = 0; i < 0x10; ++i)
+				vpb->afc_remaining_samples[i] = dst[decoded_samples_count - 0x10 + i];
+
+			return;
+		}
+		else
+		{
+			// More samples asked than available. Either complete the sound, or
+			// start looping.
+			if (vpb->GetRemainingLength())  // Skip if we cannot load anything.
+			{
+				requested_samples_count -= vpb->GetRemainingLength();
+				u16 requested_blocks_count = (vpb->GetRemainingLength() + 0xF) >> 4;
+				DecodeAFC(vpb, dst, requested_blocks_count);
+				dst += vpb->GetRemainingLength();
+			}
+
+			if (!vpb->is_looping)
+			{
+				vpb->done = true;
+				for (size_t i = 0; i < requested_samples_count; ++i)
+					*dst++ = 0;
+				return;
+			}
+			else
+			{
+				// We need to loop. Compute the new position, decode a block,
+				// and loop back to the beginning of the download logic.
+
+				// Use the fact that the sample source number also represents
+				// the number of bytes per 16 samples.
+				u32 loop_off_in_bytes =
+					(vpb->GetLoopAddress() >> 4) * vpb->samples_source_type;
+				u32 loop_start_addr = vpb->GetBaseAddress() + loop_off_in_bytes;
+				vpb->SetCurrentARAMAddr(loop_start_addr);
+
+				*vpb->AFCYN2() = vpb->loop_yn2;
+				*vpb->AFCYN1() = vpb->loop_yn1;
+
+				DecodeAFC(vpb, vpb->afc_remaining_samples, 1);
+
+				// Realign and recompute the number of internally cached
+				// samples and the current position.
+				vpb->afc_remaining_decoded_samples =
+					0x10 - (vpb->GetLoopAddress() & 0xF);
+
+				u32 remaining_length = vpb->GetLoopStartPosition();
+				remaining_length -= vpb->afc_remaining_decoded_samples;
+				remaining_length -= vpb->GetLoopAddress();
+				vpb->SetRemainingLength(remaining_length);
+				continue;
+			}
+		}
+	}
+}
+
+void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
+{
+	u32 addr = vpb->GetCurrentARAMAddr();
+	u8* src = (u8*)DSP::GetARAMPtr() + addr;
+	vpb->SetCurrentARAMAddr(addr + block_count * vpb->samples_source_type);
+
+	for (size_t b = 0; b < block_count; ++b)
+	{
+		s16 nibbles[16];
+		s16 delta = 1 << ((*src >> 4) & 0xF);
+		s16 idx = (*src & 0xF);
+		src++;
+
+		if (vpb->samples_source_type == VPB::SRC_AFC_HQ_FROM_ARAM)
+		{
+			for (size_t i = 0; i < 16; i += 2)
+			{
+				nibbles[i + 0] = *src >> 4;
+				nibbles[i + 1] = *src & 0xF;
+				src++;
+			}
+			for (auto& nibble : nibbles)
+			{
+				if (nibble >= 8)
+					nibble = nibble - 16;
+				nibble <<= 11;
+			}
+		}
+		else
+		{
+			// TODO: LQ samples.
+		}
+
+		s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();
+		for (size_t i = 0; i < 16; ++i)
+		{
+			s32 sample = delta * nibbles[i] +
+				yn1 * m_afc_coeffs[idx * 2] +
+				yn2 * m_afc_coeffs[idx * 2 + 1];
+			sample >>= 11;
+			MathUtil::Clamp(&sample, -0x8000, 0x7fff);
+			*dst++ = (s16)sample;
+			yn2 = yn1;
+			yn1 = sample;
+		}
+
+		*vpb->AFCYN2() = yn2;
+		*vpb->AFCYN1() = yn1;
 	}
 }
 

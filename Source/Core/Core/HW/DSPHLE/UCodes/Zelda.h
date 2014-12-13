@@ -17,6 +17,7 @@ public:
 
 	void SetSineTable(std::array<s16, 0x80>&& sine_table) { m_sine_table = sine_table; }
 	void SetResamplingCoeffs(std::array<s16, 0x100>&& coeffs) { m_resampling_coeffs = coeffs; }
+	void SetAfcCoeffs(std::array<s16, 0x20>&& coeffs) { m_afc_coeffs = coeffs; }
 	void SetVPBBaseAddress(u32 addr) { m_vpb_base_addr = addr; }
 	void SetOutputVolume(u16 volume) { m_output_volume = volume; }
 	void SetOutputLeftBufferAddr(u32 addr) { m_output_lbuf_addr = addr; }
@@ -139,6 +140,12 @@ private:
 	// Downloads samples from MRAM while handling appropriate length / looping
 	// behavior.
 	void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
+
+	// Download AFC encoded samples from ARAM and decode them. Handles looping
+	// and other parameters appropriately.
+	void DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
+	void DecodeAFC(VPB* vpb, s16* dst, size_t block_count);
+	std::array<s16, 0x20> m_afc_coeffs;
 };
 
 class ZeldaUCode : public UCodeInterface
