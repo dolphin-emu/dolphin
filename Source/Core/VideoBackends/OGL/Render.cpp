@@ -1007,12 +1007,23 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	u32 cacheRectIdx = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_WIDTH
 	                 + (x / EFB_CACHE_RECT_SIZE);
 
-	// Get the rectangular target region containing the EFB pixel
 	EFBRectangle efbPixelRc;
-	efbPixelRc.left = (x / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
-	efbPixelRc.top = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
-	efbPixelRc.right = std::min(efbPixelRc.left + EFB_CACHE_RECT_SIZE, (u32)EFB_WIDTH);
-	efbPixelRc.bottom = std::min(efbPixelRc.top + EFB_CACHE_RECT_SIZE, (u32)EFB_HEIGHT);
+
+	if (type == PEEK_COLOR || type == PEEK_Z)
+	{
+		// Get the rectangular target region containing the EFB pixel
+		efbPixelRc.left = (x / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
+		efbPixelRc.top = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
+		efbPixelRc.right = std::min(efbPixelRc.left + EFB_CACHE_RECT_SIZE, (u32)EFB_WIDTH);
+		efbPixelRc.bottom = std::min(efbPixelRc.top + EFB_CACHE_RECT_SIZE, (u32)EFB_HEIGHT);
+	}
+	else
+	{
+		efbPixelRc.left = x;
+		efbPixelRc.top = y;
+		efbPixelRc.right = x+1;
+		efbPixelRc.bottom = y+1;
+	}
 
 	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
 	u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
