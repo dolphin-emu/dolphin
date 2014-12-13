@@ -42,6 +42,12 @@ float g_head_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
 
+std::vector<DataReader> timewarp_log;
+std::vector<bool> display_list_log;
+std::vector<bool> cached_ram_location;
+bool g_timewarped_frame = false;
+int skipped_opcode_replay_count = 0;
+
 #ifdef _WIN32
 static char hmd_device_name[MAX_PATH] = "";
 #endif

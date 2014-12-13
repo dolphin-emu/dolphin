@@ -29,6 +29,7 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
 
 
@@ -128,6 +129,16 @@ void OpcodeDecoder_Init()
 
 void OpcodeDecoder_Shutdown()
 {
+	if (g_has_hmd)
+	{
+		g_timewarped_frame = true;
+		timewarp_log.clear();
+		timewarp_log.resize(0);
+		display_list_log.clear();
+		display_list_log.resize(0);
+		cached_ram_location.clear();
+		cached_ram_location.resize(0);
+	}
 }
 
 template <bool is_preprocess>
@@ -135,6 +146,21 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 {
 	u32 totalCycles = 0;
 	u8* opcodeStart;
+
+	if (!g_timewarped_frame && g_has_hmd && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
+	{
+		timewarp_log.push_back(src);
+		display_list_log.push_back(in_display_list);
+		if ((unsigned int)src.end > 0x80000000)
+		{
+			cached_ram_location.push_back(true);
+		}
+		else
+		{
+			cached_ram_location.push_back(false);
+		}
+	}
+
 	while (true)
 	{
 		src.WritePointer(&opcodeStart);

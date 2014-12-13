@@ -59,7 +59,8 @@ public:
 		buffer += sizeof(T) * data;
 	}
 
-private:
+//To-Do: Probably shouldn't make these non-private...
+//private:
 	u8* __restrict buffer;
 	u8* end;
 };

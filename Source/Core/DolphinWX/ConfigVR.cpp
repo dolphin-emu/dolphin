@@ -130,11 +130,38 @@ void CConfigVR::CreateGUIControls()
 		{
 			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
 
-			szr_vr->Add(new wxStaticText(page_vr, -1, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Player wearing HMD:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iVRPlayer);
+		}
+		{
+			U32Setting* spin_replay_buffer = new U32Setting(page_vr, _("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
+			RegisterControl(spin_replay_buffer, replaybuffer_desc);
+			spin_replay_buffer->SetToolTip(replaybuffer_desc);
+			spin_replay_buffer->SetValue(vconfig.iExtraVideoLoops);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frames:"));
+
+			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_replay_buffer);
+		}
+		{
+			U32Setting* spin_replay_buffer_divider = new U32Setting(page_vr, _("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
+			RegisterControl(spin_replay_buffer_divider, replaybuffer_desc);
+			spin_replay_buffer_divider->SetToolTip(replaybuffer_desc);
+			spin_replay_buffer_divider->SetValue(vconfig.iExtraVideoLoopsDivider);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frame Divider:"));
+
+			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_replay_buffer_divider);
+
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps), 1, wxALIGN_CENTER_VERTICAL, 0);
 		}
 		// Synchronous Timewarp extra frames per frame
 		{

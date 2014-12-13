@@ -139,6 +139,9 @@ struct VideoConfig final
 	// VR global
 	float fScale;
 	float fLeanBackAngle;
+	bool bPullUp20fps;
+	bool bPullUp30fps;
+	bool bPullUp60fps;
 	bool bAsynchronousTimewarp;
 	bool bEnableVR;
 	bool bLowPersistence;
@@ -157,6 +160,8 @@ struct VideoConfig final
 	int iVRPlayer;
 	float fTimeWarpTweak;
 	u32 iExtraFrames;
+	u32 iExtraVideoLoops;
+	u32 iExtraVideoLoopsDivider;
 
 	// VR
 	float fUnitsPerMetre;
