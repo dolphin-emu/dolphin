@@ -59,6 +59,11 @@ public:
 		SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
 		event.Skip();
 	}
+	void OnGameCubeAdapter(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
+		event.Skip();
+	}
 
 private:
 	wxStaticBoxSizer* CreateGamecubeSizer();

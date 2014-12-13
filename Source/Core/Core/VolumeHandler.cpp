@@ -67,20 +67,16 @@ u32 Read32(u64 _Offset)
 bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength)
 {
 	if (g_pVolume != nullptr && ptr)
-	{
-		g_pVolume->Read(_dwOffset, _dwLength, ptr);
-		return true;
-	}
+		return g_pVolume->Read(_dwOffset, _dwLength, ptr);
+
 	return false;
 }
 
-bool RAWReadToPtr( u8* ptr, u64 _dwOffset, u64 _dwLength )
+bool RAWReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength)
 {
 	if (g_pVolume != nullptr && ptr)
-	{
-		g_pVolume->RAWRead(_dwOffset, _dwLength, ptr);
-		return true;
-	}
+		return g_pVolume->RAWRead(_dwOffset, _dwLength, ptr);
+
 	return false;
 }
 

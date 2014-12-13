@@ -42,6 +42,7 @@ struct JitBlock
 	int runCount;  // for profiling.
 
 	bool invalid;
+	bool memoryException;
 
 	struct LinkData
 	{
