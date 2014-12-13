@@ -36,14 +36,8 @@
 #define LOADERDECL
 #endif
 
-typedef void (LOADERDECL *TPipelineFunction)();
-
-// They are used for the communication with the loader functions
-extern int tcIndex;
-extern int colIndex;
-extern int colElements[2];
-GC_ALIGNED128(extern float posScale[4]);
-GC_ALIGNED64(extern float tcScale[8][2]);
+class VertexLoader;
+typedef void (LOADERDECL *TPipelineFunction)(VertexLoader* loader);
 
 // ARMTODO: This should be done in a better way
 #ifndef _M_GENERIC
@@ -53,12 +47,32 @@ class VertexLoader : public VertexLoaderBase
 #endif
 {
 public:
+	// This class need a 16 byte alignment. As this is broken on
+	// MSVC right now (Dec 2014), we use custom allocation.
+	void* operator new (size_t size);
+	void operator delete (void *p);
+
 	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
 	~VertexLoader();
 
 	int RunVertices(int primitive, int count, DataReader src, DataReader dst) override;
 	std::string GetName() const override { return "OldLoader"; }
 	bool IsInitialized() override { return true; } // This vertex loader supports all formats
+
+	// They are used for the communication with the loader functions
+	// Duplicated (4x and 2x respectively) and used in SSE code in the vertex loader JIT
+	GC_ALIGNED128(float m_posScale[4]);
+	GC_ALIGNED64(float m_tcScale[8][2]);
+	int m_tcIndex;
+	int m_colIndex;
+	int m_colElements[2];
+
+	// Matrix components are first in GC format but later in PC format - we need to store it temporarily
+	// when decoding each vertex.
+	u8 m_curposmtx;
+	u8 m_curtexmtx[8];
+	int m_texmtxwrite;
+	int m_texmtxread;
 
 private:
 #ifndef USE_VERTEX_LOADER_JIT
