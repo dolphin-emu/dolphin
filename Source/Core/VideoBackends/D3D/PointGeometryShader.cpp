@@ -6,6 +6,7 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/PointGeometryShader.h"
 #include "VideoCommon/VertexShaderGen.h"
 
@@ -217,8 +218,8 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 			DEBUG_LOG(VIDEO, "Point params: size %f, texOffset %f, vpWidth %f, vpHeight %f",
 				pointSize, texOffset, vpWidth, vpHeight);
 
-			D3D::context->GSSetShader(shaderIt->second, nullptr, 0);
-			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
+			D3D::stateman->SetGeometryShader(shaderIt->second);
+			D3D::stateman->SetGeometryConstants(m_paramsBuffer);
 
 			return true;
 		}

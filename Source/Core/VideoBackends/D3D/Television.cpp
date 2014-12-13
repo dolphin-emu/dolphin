@@ -7,6 +7,7 @@
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
@@ -150,7 +151,7 @@ void Television::Render()
 		MathUtil::Rectangle<int> sourceRc(0, 0, int(m_curWidth), int(m_curHeight));
 		MathUtil::Rectangle<float> destRc(-1.f, 1.f, 1.f, -1.f);
 
-		D3D::context->PSSetSamplers(0, 1, &m_samplerState);
+		D3D::stateman->SetSampler(0, m_samplerState);
 
 		D3D::drawShadedTexSubQuad(
 			m_yuyvTextureSRV, &sourceRc,

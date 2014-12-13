@@ -347,9 +347,8 @@ static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
 	case AlphaTest::GREATER: return alpha > ref;
 	case AlphaTest::EQUAL:   return alpha == ref;
 	case AlphaTest::NEQUAL:  return alpha != ref;
+	default: return true;
 	}
-
-	return true;
 }
 
 static bool TevAlphaTest(int alpha)
@@ -363,8 +362,8 @@ static bool TevAlphaTest(int alpha)
 	case 1: return comp0 || comp1;   // or
 	case 2: return comp0 ^ comp1;    // xor
 	case 3: return !(comp0 ^ comp1); // xnor
+	default: return true;
 	}
-	return true;
 }
 
 static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
@@ -385,8 +384,9 @@ static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
 			return (coord % (16 << 7));
 		case ITW_0:
 			return 0;
+		default:
+			return 0;
 	}
-	return 0;
 }
 
 void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)

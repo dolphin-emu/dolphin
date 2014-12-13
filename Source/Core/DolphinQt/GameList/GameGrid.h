@@ -30,8 +30,8 @@ public:
 
 	virtual void SetViewStyle(GameListStyle newStyle);
 
-	virtual void AddGame(GameFile* item);
-	virtual void RemoveGame(GameFile* item);
+	virtual void AddGame(GameFile* gameItem);
+	virtual void RemoveGame(GameFile* gameItem);
 
 signals:
 	void StartGame();

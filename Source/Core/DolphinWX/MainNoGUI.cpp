@@ -47,12 +47,8 @@ void Host_RefreshDSPDebuggerWindow() {}
 static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
-	switch (Id)
-	{
-		case WM_USER_STOP:
-			running = false;
-			break;
-	}
+	if (Id == WM_USER_STOP)
+		running = false;
 }
 
 static void* s_window_handle;

@@ -974,10 +974,10 @@ static unsigned ICmpInverseOp(unsigned op)
 		return ICmpSgt;
 	case ICmpSge:
 		return ICmpSlt;
+	default:
+		PanicAlert("Bad opcode");
+		return Nop;
 	}
-
-	PanicAlert("Bad opcode");
-	return Nop;
 }
 
 InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2)

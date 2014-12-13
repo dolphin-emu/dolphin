@@ -814,6 +814,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (code_block.m_memory_exception)
 	{
+		b->memoryException = true;
 		// Address of instruction could not be translated
 		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC));
 
@@ -859,12 +860,8 @@ BitSet32 Jit64::CallerSavedRegistersInUse()
 void Jit64::EnableBlockLink()
 {
 	jo.enableBlocklink = true;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-	{
-		// TODO: support block linking with MMU
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking)
 		jo.enableBlocklink = false;
-	}
 }
 
 void Jit64::EnableOptimization()
