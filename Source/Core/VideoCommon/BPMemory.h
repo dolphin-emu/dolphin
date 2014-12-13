@@ -959,6 +959,9 @@ union AlphaTest
 			if ((comp0 == ALWAYS && comp1 == ALWAYS) || (comp0 == NEVER && comp1 == NEVER))
 				return PASS;
 			break;
+
+		default:
+			return UNDETERMINED;
 		}
 		return UNDETERMINED;
 	}

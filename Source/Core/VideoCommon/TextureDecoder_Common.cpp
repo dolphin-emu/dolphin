@@ -571,6 +571,9 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 				case 7:
 					color = MakeRGBA(red2, green2, blue2, 0);
 					break;
+				default:
+					color = 0;
+					break;
 			}
 
 			*((u32*)dst) = color;
