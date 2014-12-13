@@ -473,22 +473,30 @@ static void SetNoResponse(u32 channel)
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
 	u8 channel = (u8)(userdata >> 32);
+	SIDevices device = (SIDevices)(u32)userdata;
 
-	g_Channel[channel].m_Out.Hex = 0;
-	g_Channel[channel].m_InHi.Hex = 0;
-	g_Channel[channel].m_InLo.Hex = 0;
+	// Skip redundant (spammed) device changes
+	if (GetDeviceType(channel) != device)
+	{
+		g_Channel[channel].m_Out.Hex = 0;
+		g_Channel[channel].m_InHi.Hex = 0;
+		g_Channel[channel].m_InLo.Hex = 0;
 
-	SetNoResponse(channel);
+		SetNoResponse(channel);
 
-	AddDevice((SIDevices)(u32)userdata, channel);
+		AddDevice(device, channel);
+	}
 }
 
 void ChangeDevice(SIDevices device, int channel)
 {
 	// Called from GUI, so we need to make it thread safe.
 	// Let the hardware see no device for .5b cycles
-	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
-	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
+	if (GetDeviceType(channel) != device)
+	{
+		CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
+		CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
+	}
 }
 
 void UpdateDevices()
