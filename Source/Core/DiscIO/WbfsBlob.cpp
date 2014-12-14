@@ -130,7 +130,11 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 		File::IOFile& data_file = SeekToCluster(offset, &read_size);
 		read_size = (read_size > nbytes) ? nbytes : read_size;
 
-		data_file.ReadBytes(out_ptr, read_size);
+		if (!data_file.ReadBytes(out_ptr, read_size))
+		{
+			data_file.Clear();
+			return false;
+		}
 
 		out_ptr += read_size;
 		nbytes -= read_size;
