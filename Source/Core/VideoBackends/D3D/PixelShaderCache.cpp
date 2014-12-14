@@ -35,6 +35,7 @@ ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
+ID3D11PixelShader* s_AnaglyphProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
@@ -51,40 +52,53 @@ const char clear_program_code[] = {
 // TODO: Find some way to avoid having separate shaders for non-MSAA and MSAA...
 const char color_copy_program_code[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2D Tex0 : register(t0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	"in float2 uv0 : TEXCOORD0){\n"
+	"in float3 uv0 : TEXCOORD0){\n"
 	"ocol0 = Tex0.Sample(samp0,uv0);\n"
+	"}\n"
+};
+
+const char anaglyph_program_code[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+	"void main(\n"
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
+	"in float3 uv0 : TEXCOORD0){\n"
+	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0.0));\n"
+	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1));\n"
+	"ocol0 = float4(pow(0.7 * c0.g + 0.3 * c0.b, 1.5), c1.gba);"
 	"}\n"
 };
 
 // TODO: Improve sampling algorithm!
 const char color_copy_program_code_msaa[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	"in float2 uv0 : TEXCOORD0){\n"
-	"int width, height, samples;\n"
-	"Tex0.GetDimensions(width, height, samples);\n"
+	"in float3 uv0 : TEXCOORD0){\n"
+	"int width, height, slices, samples;\n"
+	"Tex0.GetDimensions(width, height, slices, samples);\n"
 	"ocol0 = 0;\n"
 	"for(int i = 0; i < samples; ++i)\n"
-	"	ocol0 += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"	ocol0 += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"ocol0 /= samples;\n"
 	"}\n"
 };
 
 const char color_matrix_program_code[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2D Tex0 : register(t0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
+	"in float3 uv0 : TEXCOORD0){\n"
 	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
 	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
@@ -93,17 +107,17 @@ const char color_matrix_program_code[] = {
 
 const char color_matrix_program_code_msaa[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
-	"int width, height, samples;\n"
-	"Tex0.GetDimensions(width, height, samples);\n"
+	"in float3 uv0 : TEXCOORD0){\n"
+	"int width, height, slices, samples;\n"
+	"Tex0.GetDimensions(width, height, slices, samples);\n"
 	"float4 texcol = 0;\n"
 	"for(int i = 0; i < samples; ++i)\n"
-	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"	texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"texcol /= samples;\n"
 	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
@@ -112,12 +126,12 @@ const char color_matrix_program_code_msaa[] = {
 
 const char depth_matrix_program[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2D Tex0 : register(t0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
+	" in float3 uv0 : TEXCOORD0){\n"
 	"	float4 texcol = Tex0.Sample(samp0,uv0);\n"
 
 	// 255.99998474121 = 16777215/16777216*256
@@ -147,17 +161,17 @@ const char depth_matrix_program[] = {
 
 const char depth_matrix_program_msaa[] = {
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
-	" in float2 uv0 : TEXCOORD0){\n"
-	"	int width, height, samples;\n"
-	"	Tex0.GetDimensions(width, height, samples);\n"
+	" in float3 uv0 : TEXCOORD0){\n"
+	"	int width, height, slices, samples;\n"
+	"	Tex0.GetDimensions(width, height, slices, samples);\n"
 	"	float4 texcol = 0;\n"
 	"	for(int i = 0; i < samples; ++i)\n"
-	"		texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"	texcol /= samples;\n"
 
 	// 255.99998474121 = 16777215/16777216*256
@@ -385,6 +399,11 @@ ID3D11PixelShader* PixelShaderCache::GetClearProgram()
 	return s_ClearProgram;
 }
 
+ID3D11PixelShader* PixelShaderCache::GetAnaglyphProgram()
+{
+	return s_AnaglyphProgram;
+}
+
 ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 {
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
@@ -405,7 +424,7 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 class PixelShaderCacheInserter : public LinearDiskCacheReader<PixelShaderUid, u8>
 {
 public:
-	void Read(const PixelShaderUid &key, const u8 *value, u32 value_size)
+	void Read(const PixelShaderUid &key, const u8* value, u32 value_size)
 	{
 		PixelShaderCache::InsertByteCode(key, value, value_size);
 	}
@@ -423,6 +442,11 @@ void PixelShaderCache::Init()
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
 	CHECK(s_ClearProgram!=nullptr, "Create clear pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
+
+	// used for anaglyph stereoscopy
+	s_AnaglyphProgram = D3D::CompileAndCreatePixelShader(anaglyph_program_code);
+	CHECK(s_AnaglyphProgram != nullptr, "Create anaglyph pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_AnaglyphProgram, "anaglyph pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram[0] = D3D::CompileAndCreatePixelShader(color_copy_program_code);
@@ -484,6 +508,7 @@ void PixelShaderCache::Shutdown()
 	SAFE_RELEASE(pscbuf);
 
 	SAFE_RELEASE(s_ClearProgram);
+	SAFE_RELEASE(s_AnaglyphProgram);
 	for (int i = 0; i < 2; ++i)
 	{
 		SAFE_RELEASE(s_ColorCopyProgram[i]);

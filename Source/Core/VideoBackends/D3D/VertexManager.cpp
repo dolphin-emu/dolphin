@@ -5,6 +5,7 @@
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexManager.h"
@@ -139,11 +140,15 @@ void VertexManager::Draw(u32 stride)
 	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
 		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D::stateman->SetGeometryConstants(VertexShaderCache::GetConstantBuffer());
+		D3D::stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetActiveShader() : nullptr);
 
 		D3D::stateman->Apply();
 		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
 		INCSTAT(stats.thisFrame.numDrawCalls);
+
+		D3D::stateman->SetGeometryShader(nullptr);
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
@@ -213,10 +218,21 @@ void VertexManager::vFlush(bool useDstAlpha)
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
 	}
+
+	if (g_ActiveConfig.iStereoMode > 0)
+	{
+		if (!GeometryShaderCache::SetShader(components))
+		{
+			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
+			return;
+		}
+	}
+
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
 	{
 		D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(), nullptr);
 	}
+
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
 
 	PrepareDrawBuffers(stride);

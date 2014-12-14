@@ -49,7 +49,8 @@ enum StereoMode
 	STEREO_OFF = 0,
 	STEREO_SBS,
 	STEREO_TAB,
-	STEREO_ANAGLYPH
+	STEREO_ANAGLYPH,
+	STEREO_3DVISION
 };
 
 // NEVER inherit from this class.
@@ -151,6 +152,7 @@ struct VideoConfig final
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsOversizedViewports;
 		bool bSupportsStereoscopy;
+		bool bSupports3DVision;
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 		bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in VideoCommon
 		bool bSupportsBBox;

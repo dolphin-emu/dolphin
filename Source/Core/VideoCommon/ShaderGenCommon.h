@@ -14,6 +14,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 /**
  * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GeneratePixelShader)
@@ -217,6 +219,44 @@ private:
 	std::map<UidT,std::string> m_shaders;
 	std::vector<UidT> m_uids;
 };
+
+template<class T>
+static void DefineOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
+{
+	object.Write("  %s %s", type, name);
+	if (var_index != -1)
+		object.Write("%d", var_index);
+
+	if (api_type == API_D3D && strlen(semantic) > 0)
+	{
+		if (semantic_index != -1)
+			object.Write(" : %s%d", semantic, semantic_index);
+		else
+			object.Write(" : %s", semantic);
+	}
+
+	object.Write(";\n");
+}
+
+template<class T>
+static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
+{
+	object.Write("struct VS_OUTPUT {\n");
+
+	DefineOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
+	DefineOutputStructMember(object, api_type, "float4", "colors_", 0, "COLOR", 0);
+	DefineOutputStructMember(object, api_type, "float4", "colors_", 1, "COLOR", 1);
+
+	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+		DefineOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
+
+	DefineOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
+
+	if (g_ActiveConfig.bEnablePixelLighting)
+		DefineOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
+
+	object.Write("};\n");
+}
 
 // Constant variable names
 #define I_COLORS        "color"

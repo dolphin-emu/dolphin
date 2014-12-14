@@ -60,7 +60,7 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 class VertexShaderCacheInserter : public LinearDiskCacheReader<VertexShaderUid, u8>
 {
 public:
-	void Read(const VertexShaderUid &key, const u8 *value, u32 value_size)
+	void Read(const VertexShaderUid &key, const u8* value, u32 value_size)
 	{
 		D3DBlob* blob = new D3DBlob(value_size, value);
 		VertexShaderCache::InsertByteCode(key, blob);
@@ -73,15 +73,15 @@ const char simple_shader_code[] = {
 	"struct VSOUTPUT\n"
 	"{\n"
 	"float4 vPosition : POSITION;\n"
-	"float2 vTexCoord : TEXCOORD0;\n"
+	"float3 vTexCoord : TEXCOORD0;\n"
 	"float  vTexCoord1 : TEXCOORD1;\n"
 	"};\n"
-	"VSOUTPUT main(float4 inPosition : POSITION,float3 inTEX0 : TEXCOORD0)\n"
+	"VSOUTPUT main(float4 inPosition : POSITION,float4 inTEX0 : TEXCOORD0)\n"
 	"{\n"
 	"VSOUTPUT OUT;\n"
 	"OUT.vPosition = inPosition;\n"
-	"OUT.vTexCoord = inTEX0.xy;\n"
-	"OUT.vTexCoord1 = inTEX0.z;\n"
+	"OUT.vTexCoord = inTEX0.xyz;\n"
+	"OUT.vTexCoord1 = inTEX0.w;\n"
 	"return OUT;\n"
 	"}\n"
 };

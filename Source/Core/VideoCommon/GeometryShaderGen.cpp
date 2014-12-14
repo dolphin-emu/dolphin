@@ -52,25 +52,62 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
-	GenerateVSOutputStruct(out, ApiType);
+	GenerateVSOutputStruct<T>(out, ApiType);
 
-	out.Write("centroid in VS_OUTPUT o[3];\n");
-	out.Write("centroid out VS_OUTPUT f;\n");
+	if (ApiType == API_OPENGL)
+	{
+		out.Write("centroid in VS_OUTPUT o[3];\n");
+		out.Write("centroid out VS_OUTPUT vs;\n");
+		out.Write("flat out int layer;\n");
 
-	out.Write("flat out int layer;\n");
+		out.Write("void main()\n{\n");
+	}
+	else // D3D
+	{
+		out.Write("struct GS_OUTPUT {\n");
+		out.Write("\tVS_OUTPUT vs;\n");
+		out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
+		out.Write("};\n");
 
-	out.Write("void main()\n{\n");
+		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
+		{
+			out.Write("[maxvertexcount(3)]\n[instance(%d)]\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
+			out.Write("void main(triangle VS_OUTPUT o[3], inout TriangleStream<GS_OUTPUT> Output, in uint InstanceID : SV_GSInstanceID)\n{\n");
+		}
+		else
+		{
+			out.Write("[maxvertexcount(6)]\n");
+			out.Write("void main(triangle VS_OUTPUT o[3], inout TriangleStream<GS_OUTPUT> Output)\n{\n");
+		}
+
+		out.Write("\tGS_OUTPUT gs;\n");
+	}
+
+	out.Write("\tVS_OUTPUT f;\n");
 
 	// If the GPU supports invocation we don't need a for loop and can simply use the
 	// invocation identifier to determine which layer we're rendering.
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
-		out.Write("\tint l = gl_InvocationID;\n");
+	{
+		if (ApiType == API_OPENGL)
+			out.Write("\tint eye = gl_InvocationID;\n");
+		else
+			out.Write("\tint eye = InstanceID;\n");
+	}
 	else
-		out.Write("\tfor (int l = 0; l < %d; ++l) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
+		out.Write("\tfor (int eye = 0; eye < %d; ++eye) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
 	out.Write("\tfor (int i = 0; i < 3; ++i) {\n");
-	out.Write("\t\tlayer = l;\n");
-	out.Write("\t\tgl_Layer = l;\n");
+
+	// Select the output layer
+	if (ApiType == API_OPENGL)
+	{
+		out.Write("\t\tgl_Layer = eye;\n");
+		out.Write("\t\tlayer = eye;\n");
+	}
+	else
+		out.Write("\t\tgs.layer = eye;\n");
+
 	out.Write("\t\tf = o[i];\n");
 	out.Write("\t\tfloat4 pos = o[i].pos;\n");
 
@@ -83,15 +120,28 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 		// the depth value. This results in objects at a distance smaller than the convergence
 		// distance to seemingly appear in front of the screen.
 		// This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
-		out.Write("\t\tf.clipPos.x = o[i].clipPos.x + " I_STEREOPARAMS"[l] * (o[i].clipPos.w - " I_STEREOPARAMS"[2]);\n");
-		out.Write("\t\tpos.x = o[i].pos.x + " I_STEREOPARAMS"[l] * (o[i].pos.w - " I_STEREOPARAMS"[2]);\n");
+		out.Write("\t\tf.clipPos.x = o[i].clipPos.x + " I_STEREOPARAMS"[eye] * (o[i].clipPos.w - " I_STEREOPARAMS"[2]);\n");
+		out.Write("\t\tpos.x = o[i].pos.x + " I_STEREOPARAMS"[eye] * (o[i].pos.w - " I_STEREOPARAMS"[2]);\n");
 	}
 
 	out.Write("\t\tf.pos.x = pos.x;\n");
-	out.Write("\t\tgl_Position = pos;\n");
-	out.Write("\t\tEmitVertex();\n");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\t\tgl_Position = pos;\n");
+
+	out.Write("\t\t%s = f;\n", (ApiType == API_OPENGL) ? "vs" : "gs.vs");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\t\tEmitVertex();\n");
+	else
+		out.Write("\t\tOutput.Append(gs);\n");
+
 	out.Write("\t}\n");
-	out.Write("\tEndPrimitive();\n");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\tEndPrimitive();\n");
+	else
+		out.Write("\tOutput.RestartStrip();\n");
 
 	if (!g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\t}\n");
