@@ -14,11 +14,12 @@ class cInterfaceGLX : public cInterfaceBase
 {
 private:
 	cX11Window XWindow;
-	Display *dpy, *dpy_offscreen;
+	Display *dpy_offscreen;
 	Window win, win_offscreen;
 	GLXContext ctx, ctx_offscreen;
 	XVisualInfo *vi;
 public:
+	Display *dpy;
 	friend class cX11Window;
 	void SwapInterval(int Interval) override;
 	void Swap() override;

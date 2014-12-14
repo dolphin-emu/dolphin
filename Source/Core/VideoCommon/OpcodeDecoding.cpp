@@ -151,7 +151,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 	{
 		timewarp_log.push_back(src);
 		display_list_log.push_back(in_display_list);
-		if ((unsigned int)src.end > 0x80000000)
+		if ((uintptr_t)src.end > 0x80000000)
 		{
 			cached_ram_location.push_back(true);
 		}
