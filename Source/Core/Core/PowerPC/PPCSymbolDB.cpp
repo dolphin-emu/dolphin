@@ -63,7 +63,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 		// already got it, let's just update name, checksum & size to be sure.
 		Symbol *tempfunc = &iter->second;
 		tempfunc->name = name;
-		tempfunc->hash = SignatureDB::ComputeCodeChecksum(startAddr, startAddr + size);
+		tempfunc->hash = SignatureDB::ComputeCodeChecksum(startAddr, startAddr + size - 4);
 		tempfunc->type = type;
 		tempfunc->size = size;
 	}
@@ -235,7 +235,16 @@ bool PPCSymbolDB::LoadMap(const std::string& filename)
 
 		u32 address, vaddress, size, unknown;
 		char name[512];
-		sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
+		// some entries in the table have a function name followed by " (entry of " followed by a container name, followed by ")"
+		// instead of a space followed by a number followed by a space followed by a name
+		if (strlen(line) > 27 && line[27] != ' ' && strstr(line, "(entry of "))
+		{
+			sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
+		}
+		else
+		{
+			sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
+		}
 
 		const char *namepos = strstr(line, name);
 		if (namepos != nullptr) //would be odd if not :P
@@ -250,7 +259,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename)
 		}
 
 		// Check if this is a valid entry.
-		if (strcmp(name, ".text") != 0 || strcmp(name, ".init") != 0 || strlen(name) > 0)
+		if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
 		{
 			AddKnownSymbol(vaddress | 0x80000000, size, name); // ST_FUNCTION
 		}
