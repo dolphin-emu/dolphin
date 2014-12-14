@@ -754,6 +754,7 @@ void CCodeWindow::UpdateButtonStates()
 	GetMenuBar()->Enable(IDM_SAVEMAPFILE, Initialized);
 	GetMenuBar()->Enable(IDM_LOADMAPFILEAS, Initialized);
 	GetMenuBar()->Enable(IDM_SAVEMAPFILEAS, Initialized);
+	GetMenuBar()->Enable(IDM_LOADBADMAPFILE, Initialized);
 	GetMenuBar()->Enable(IDM_SAVEMAPFILEWITHCODES, Initialized);
 	GetMenuBar()->Enable(IDM_CREATESIGNATUREFILE, Initialized);
 	GetMenuBar()->Enable(IDM_APPENDSIGNATUREFILE, Initialized);

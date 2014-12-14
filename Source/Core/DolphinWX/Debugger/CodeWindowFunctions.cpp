@@ -155,8 +155,11 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 		_("Try to load this game's function names automatically - but doesn't check .map files stored on the disc image yet."));
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"),
 		_("Save the function names for each address to a .map file in your user settings map folder, named after the title id."));
+	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_LOADMAPFILEAS, _("Choose symbol map file to load..."),
 		_("Load any .map file containing the function names and addresses for this game."));
+	pSymbolsMenu->Append(IDM_LOADBADMAPFILE, _("Load &bad map file..."),
+		_("Try to load a .map file that might be from a slightly different version."));
 	pSymbolsMenu->Append(IDM_SAVEMAPFILEAS, _("Save symbol map &as..."),
 		_("Save the function names and addresses for this game as a .map file. If you want to open it in IDA pro, use the .idc script."));
 	pSymbolsMenu->AppendSeparator();
@@ -295,6 +298,23 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			if (!path.IsEmpty())
 			{
 				g_symbolDB.LoadMap(WxStrToStr(path));
+				Parent->StatusBarMessage("Loaded symbols from '%s'", path.c_str());
+			}
+			HLE::PatchFunctions();
+			NotifyMapLoaded();
+		}
+		break;
+	case IDM_LOADBADMAPFILE:
+		{
+			const wxString path = wxFileSelector(
+				_("Load bad map file"), File::GetUserPath(D_MAPS_IDX),
+				title_id_str + ".map", ".map",
+				"Dolphin Map File (*.map)|*.map|All files (*.*)|*.*",
+				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+
+			if (!path.IsEmpty())
+			{
+				g_symbolDB.LoadBadMap(WxStrToStr(path));
 				Parent->StatusBarMessage("Loaded symbols from '%s'", path.c_str());
 			}
 			HLE::PatchFunctions();
