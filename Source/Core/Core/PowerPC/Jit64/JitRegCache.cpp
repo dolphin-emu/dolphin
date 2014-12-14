@@ -253,7 +253,6 @@ void RegCache::DiscardRegContentsIfCached(size_t preg)
 	}
 }
 
-
 void GPRRegCache::SetImmediate32(size_t preg, u32 immValue)
 {
 	DiscardRegContentsIfCached(preg);

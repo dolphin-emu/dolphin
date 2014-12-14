@@ -419,7 +419,7 @@ void Jit64::DoMergedBranchCondition()
 
 	if (jumpInBlock)
 	{
-		BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.next_op };
+		BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, gpr, fpr, js.next_op };
 		branch_targets.insert(std::make_pair(destination, branchData));
 	}
 	else
@@ -476,7 +476,7 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 		if (jumpInBlock)
 		{
 			FixupBranch pBranch = J(true);
-			BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.next_op };
+			BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, gpr, fpr, js.next_op };
 			branch_targets.insert(std::make_pair(destination, branchData));
 		}
 		// IMPORTANT: we can't actually leave the block in this case!! A forward branch is still waiting around for

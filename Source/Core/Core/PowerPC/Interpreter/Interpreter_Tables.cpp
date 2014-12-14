@@ -181,7 +181,7 @@ static GekkoOPTemplate table31[] =
 	{954, Interpreter::extsbx,      {"extsbx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
 	{536, Interpreter::srwx,        {"srwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT, 1, 0, 0, 0}},
 	{792, Interpreter::srawx,       {"srawx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
-	{824, Interpreter::srawix,      {"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{824, Interpreter::srawix,      {"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{24,  Interpreter::slwx,        {"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT, 1, 0, 0, 0}},
 
 	{54,   Interpreter::dcbst,      {"dcbst",  OPTYPE_DCACHE, 0, 5, 0, 0, 0}},

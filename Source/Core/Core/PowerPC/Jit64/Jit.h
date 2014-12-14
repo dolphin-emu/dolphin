@@ -51,7 +51,6 @@ private:
 		Gen::FixupBranch sourceBranchCtr;
 		int downcountAmount;
 		int fifoBytesThisBlock;
-		bool firstFPInstructionFound;
 		GPRRegCache gpr;
 		FPURegCache fpr;
 		PPCAnalyst::CodeOp* sourceOp;

@@ -131,7 +131,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 	if (jumpInBlock)
 	{
-		BranchTarget branchData = { pConditionBranch, pCTRBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.op };
+		BranchTarget branchData = { pConditionBranch, pCTRBranch, js.downcountAmount, js.fifoBytesThisBlock, gpr, fpr, js.op };
 		branch_targets.insert(std::make_pair(destination, branchData));
 	}
 	else

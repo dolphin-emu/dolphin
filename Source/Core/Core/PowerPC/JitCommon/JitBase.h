@@ -85,7 +85,6 @@ protected:
 		int revertGprLoad;
 		int revertFprLoad;
 
-		bool firstFPInstructionFound;
 		bool isLastInstruction;
 		bool memcheck;
 		bool skipnext;

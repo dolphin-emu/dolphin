@@ -17,6 +17,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
 // Analyzes PowerPC code in memory to find functions
@@ -481,9 +482,6 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
 {
-	code->wantsCR0 = false;
-	code->wantsCR1 = false;
-
 	if (opinfo->flags & FL_USE_FPU)
 		block->m_fpa->any = true;
 
@@ -509,6 +507,15 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) ? true : false;
 	code->outputFPRF = (opinfo->flags & FL_SET_FPRF) ? true : false;
 	code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) ? true : false;
+
+	// in MMU mode, we can bail out at basically any load or store, so be extra careful
+	// if we change where we insert FIFO write exception checks, we need to change this too.
+	if (opinfo->flags & FL_LOADSTORE)
+	{
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU ||
+		    jit->js.fifoWriteAddresses.find(code->address) != jit->js.fifoWriteAddresses.end())
+			code->canEndBlock = true;
+	}
 
 	code->wantsCA = (opinfo->flags & FL_READ_CA) ? true : false;
 	code->outputCA = (opinfo->flags & FL_SET_CA) ? true : false;
@@ -582,11 +589,11 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		}
 	}
 
-	code->fregOut = -1;
+	code->fregsOut = BitSet32(0);
 	if (opinfo->flags & FL_OUT_FLOAT_D)
-		code->fregOut = code->inst.FD;
-	else if (opinfo->flags & FL_OUT_FLOAT_S)
-		code->fregOut = code->inst.FS;
+		code->fregsOut[code->inst.FD] = true;
+	if (opinfo->flags & FL_OUT_FLOAT_S)
+		code->fregsOut[code->inst.FS] = true;
 	code->fregsIn = BitSet32(0);
 	if (opinfo->flags & FL_IN_FLOAT_A)
 		code->fregsIn[code->inst.FA] = true;
@@ -598,6 +605,14 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->fregsIn[code->inst.FD] = true;
 	if (opinfo->flags & FL_IN_FLOAT_S)
 		code->fregsIn[code->inst.FS] = true;
+
+	// In MMU mode, memory operations can fail, so we need to add the outputs to the inputs (e.g. if a load fails
+	// and the "output" of the instruction is the original value).
+	if ((opinfo->flags & FL_LOADSTORE) && SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	{
+		code->fregsIn |= code->fregsOut;
+		code->regsIn |= code->regsOut;
+	}
 
 	switch (opinfo->type)
 	{
@@ -665,11 +680,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	CodeOp *code = buffer->codebuffer;
 
 	bool found_exit = false;
+	bool firstFPUInstFound = false;
 	u32 return_address = 0;
 	u32 numFollows = 0;
 	u32 num_inst = 0;
 
-	std::unordered_set<u32> branchTargets;
+	std::unordered_map<u32, bool> branchTargets;
 
 	for (u32 i = 0; i < blockSize; ++i)
 	{
@@ -698,13 +714,32 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			code[i].opinfo = opinfo;
 			code[i].address = address;
 			code[i].inst = inst;
-			code[i].branchTo = -1;
-			code[i].branchToIndex = -1;
 			code[i].skip = false;
 			code[i].isBranchTarget = HasOption(OPTION_FORWARD_JUMP) && branchTargets.count(address);
+			if (code[i].isBranchTarget)
+			{
+				// TODO: put any more state we need PPCAnalyst to know about from forward branches here.
+				firstFPUInstFound = branchTargets[address];
+			}
 			block->m_stats->numCycles += opinfo->numCycles;
 
 			SetInstructionStats(block, &code[i], opinfo, i);
+
+			if ((opinfo->flags & FL_USE_FPU) && !firstFPUInstFound)
+			{
+				firstFPUInstFound = true;
+				code[i].firstFPUInst = true;
+				code[i].canEndBlock = true;
+				// Similar to MMU loads/stores, these instructions can fail, so they can "output" their original values.
+				// There is a tricky aspect to this that makes it slightly different, however. MMU loads/stores can fail
+				// in the middle of execution, while FPU exceptions bail out before the instruction runs at all. This means
+				// marking the output as an input leads to the output being in fprInReg, even though preloading it into a
+				// register would be pointless here. This is actually fine though, because there are no previous float
+				// instructions in the block, so the "redundant preload" case will never actually be hit.
+				// FIXME: this logic fails slightly in the case of forward jumps...
+				code[i].regsIn |= code[i].regsOut;
+				code[i].fregsIn |= code[i].fregsOut;
+			}
 
 			bool follow = false;
 			u32 destination = 0;
@@ -772,7 +807,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 						else
 							destination = address + SignExt16(inst.BD << 2);
 						if (destination > address)
-							branchTargets.insert(destination);
+							branchTargets.insert({ destination, firstFPUInstFound });
 					}
 				}
 				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
@@ -841,44 +876,52 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Scan for flag dependencies; assume the next block (or any branch that can leave the block)
 	// wants flags, to be safe.
-	// TODO: optimize for forward jumps, instead of assuming all jumps are block exits.
-	bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
-	BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
+	// TODO: optimize for forward jumps, instead of assuming all jumps are block exits. This isn't
+	// wrong as-is, just terribly suboptimal, since it hasn't been updated for forward jumps. But doing
+	// so will require a nontrivial increase in the logic complexity here.
+	bool wantsFPRF = true, wantsCA = true;
+	BitSet32 fprInUse, gprInUse, gprInReg, fprInReg;
+	BitSet32 gprNeeded = BitSet32::AllTrue(32), fprNeeded = BitSet32::AllTrue(32);
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
-		bool opWantsCR0 = code[i].wantsCR0;
-		bool opWantsCR1 = code[i].wantsCR1;
+		// Determine whether this instruction needs to output carry and/or FPRF flags and propagate upwards
+		// accordingly.
 		bool opWantsFPRF = code[i].wantsFPRF;
 		bool opWantsCA = code[i].wantsCA;
-		code[i].wantsCR0 = wantsCR0 || code[i].canEndBlock;
-		code[i].wantsCR1 = wantsCR1 || code[i].canEndBlock;
-		code[i].wantsFPRF = wantsFPRF || code[i].canEndBlock;
-		code[i].wantsCA = wantsCA || code[i].canEndBlock;
-		wantsCR0 |= opWantsCR0 || code[i].canEndBlock;
-		wantsCR1 |= opWantsCR1 || code[i].canEndBlock;
-		wantsFPRF |= opWantsFPRF || code[i].canEndBlock;
-		wantsCA |= opWantsCA || code[i].canEndBlock;
-		wantsCR0 &= !code[i].outputCR0 || opWantsCR0;
-		wantsCR1 &= !code[i].outputCR1 || opWantsCR1;
+		bool canEndBlock = code[i].canEndBlock;
+		code[i].wantsFPRF = wantsFPRF || canEndBlock;
+		code[i].wantsCA = wantsCA || canEndBlock;
+		wantsFPRF |= opWantsFPRF || canEndBlock;
+		wantsCA |= opWantsCA || canEndBlock;
 		wantsFPRF &= !code[i].outputFPRF || opWantsFPRF;
 		wantsCA &= !code[i].outputCA || opWantsCA;
+
 		code[i].gprInUse = gprInUse;
 		code[i].fprInUse = fprInUse;
 		code[i].gprInReg = gprInReg;
-		code[i].fprInXmm = fprInXmm;
-		// TODO: if there's no possible endblocks or exceptions in between, tell the regcache
-		// we can throw away a register if it's going to be overwritten later.
+		code[i].fprInReg = fprInReg;
+		code[i].gprNeeded = gprNeeded;
+		code[i].fprNeeded = fprNeeded;
+
 		gprInUse |= code[i].regsIn;
 		gprInReg |= code[i].regsIn;
 		fprInUse |= code[i].fregsIn;
+		// Double stores are done from GPRs on x86, so we don't want to redundantly load them
+		// into float registers. TODO: ARM
 		if (strncmp(code[i].opinfo->opname, "stfd", 4))
-			fprInXmm |= code[i].fregsIn;
-		// For now, we need to count output registers as "used" though; otherwise the flush
-		// will result in a redundant store (e.g. store to regcache, then store again to
-		// the same location later).
-		gprInUse |= code[i].regsOut;
-		if (code[i].fregOut >= 0)
-			fprInUse[code[i].fregOut] = true;
+			fprInReg |= code[i].fregsIn;
+
+		// If the block can end here, we need all our registers.
+		if (canEndBlock)
+			gprNeeded = fprNeeded = BitSet32::AllTrue(32);
+		gprNeeded &= ~code[i].regsOut;
+		fprNeeded &= ~code[i].fregsOut;
+		gprNeeded |= code[i].regsIn;
+		fprNeeded |= code[i].fregsIn;
+
+		// Don't preload registers that are going to be clobbered later.
+		gprInReg &= gprNeeded;
+		fprInReg &= fprNeeded;
 	}
 
 	// Forward scan, for flags that need the other direction for calculation.
@@ -892,17 +935,17 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		code[i].fprIsSingle = fprIsSingle;
 		code[i].fprIsDuplicated = fprIsDuplicated;
 		code[i].fprIsStoreSafe = fprIsStoreSafe;
-		if (code[i].fregOut >= 0)
+		if (code[i].fregsOut)
 		{
-			fprIsSingle[code[i].fregOut] = false;
-			fprIsDuplicated[code[i].fregOut] = false;
-			fprIsStoreSafe[code[i].fregOut] = false;
+			fprIsSingle &= ~code[i].fregsOut;
+			fprIsDuplicated &= ~code[i].fregsOut;
+			fprIsStoreSafe &= ~code[i].fregsOut;
 			// Single, duplicated, and doesn't need PPC_FP.
 			if (code[i].opinfo->type == OPTYPE_SINGLEFP)
 			{
-				fprIsSingle[code[i].fregOut] = true;
-				fprIsDuplicated[code[i].fregOut] = true;
-				fprIsStoreSafe[code[i].fregOut] = true;
+				fprIsSingle |= code[i].fregsOut;
+				fprIsDuplicated |= code[i].fregsOut;
+				fprIsStoreSafe |= code[i].fregsOut;
 			}
 			// Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
 			// TODO: if we go directly from a load to store, skip conversion entirely?
@@ -910,14 +953,14 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			// for anything else, we can skip PPC_FP on a load too.
 			if (!strncmp(code[i].opinfo->opname, "lfs", 3))
 			{
-				fprIsSingle[code[i].fregOut] = true;
-				fprIsDuplicated[code[i].fregOut] = true;
+				fprIsSingle |= code[i].fregsOut;
+				fprIsDuplicated |= code[i].fregsOut;
 			}
 			// Paired are still floats, but the top/bottom halves may differ.
 			if (code[i].opinfo->type == OPTYPE_PS || code[i].opinfo->type == OPTYPE_LOADPS)
 			{
-				fprIsSingle[code[i].fregOut] = true;
-				fprIsStoreSafe[code[i].fregOut] = true;
+				fprIsSingle |= code[i].fregsOut;
+				fprIsStoreSafe |= code[i].fregsOut;
 			}
 			// Careful: changing the float mode in a block breaks this optimization, since
 			// a previous float op might have had had FTZ off while the later store has FTZ

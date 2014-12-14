@@ -89,8 +89,6 @@ using namespace PowerPC;
     conversion, movddup on non-paired singles, etc where possible.
   * Support loads/stores directly from xmm registers in jit_util and the backpatcher; this might
     help AMD a lot since gpr/xmm transfers are slower there.
-  * Smarter register allocation in general; maybe learn to drop values once we know they won't be
-    used again before being overwritten?
   * More flexible reordering; there's limits to how far we can go because of exception handling
     and such, but it's currently limited to integer ops only. This can definitely be made better.
 */
@@ -518,8 +516,6 @@ void Jit64::DoForwardBranches(u32 address)
 		ADD(32, PPCSTATE(downcount), Imm32(js.downcountAmount - branchData.downcountAmount));
 		// we have to assume the worst
 		js.fifoBytesThisBlock = std::max(branchData.fifoBytesThisBlock, js.fifoBytesThisBlock);
-		if (!branchData.firstFPInstructionFound)
-			js.firstFPInstructionFound = false;
 		branchData.gpr.ConvertRegCache(gpr);
 		branchData.fpr.ConvertRegCache(fpr);
 		++it;
@@ -589,7 +585,6 @@ void Jit64::Jit(u32 em_address)
 
 const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC)
 {
-	js.firstFPInstructionFound = false;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
@@ -726,7 +721,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (!ops[i].skip)
 		{
-			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+			if (ops[i].firstFPUInst)
 			{
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, PPCSTATE(msr), Imm32(1 << 13)); // Test FP enabled bit
@@ -743,7 +738,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 
 				SwitchToNearCode();
-				js.firstFPInstructionFound = true;
 			}
 
 			// Add an external exception check if the instruction writes to the FIFO.
@@ -810,7 +804,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			{
 				if (fpr.NumFreeRegisters() < 2)
 					break;
-				if (ops[i].fprInXmm[reg])
+				if (ops[i].fprInReg[reg])
 					fpr.BindToRegister(reg, true, false);
 			}
 
@@ -854,6 +848,16 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 				SwitchToNearCode();
 			}
+
+			// If we have a register that will never be used again, and we know it's going to be clobbered, throw it away.
+			// Make sure to handle the skipped op case right: otherwise this can break in cases where we optimized out an
+			// instruction that writes to a different register from the current output(s), e.g. mftb merging.
+			// Make sure not to put any exception checks or other possible exits after this; this optimization
+			// assumes all possible block exits for this instruction have already happened.
+			for (int j : ~ops[i + js.skipnext].gprNeeded)
+				gpr.DiscardRegContentsIfCached(j);
+			for (int j : ~ops[i + js.skipnext].fprNeeded)
+				fpr.DiscardRegContentsIfCached(j);
 
 			// If we have a register that will never be used again, flush it.
 			for (int j : ~ops[i].gprInUse)
