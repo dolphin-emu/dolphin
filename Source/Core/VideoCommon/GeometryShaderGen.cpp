@@ -59,6 +59,9 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 
 	if (ApiType == API_OPENGL)
 	{
+		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
+			out.Write("#define InstanceID gl_InvocationID\n");
+
 		out.Write("centroid in VS_OUTPUT o[3];\n");
 		out.Write("centroid out VS_OUTPUT vs;\n");
 		out.Write("flat out int layer;\n");
@@ -91,12 +94,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	// If the GPU supports invocation we don't need a for loop and can simply use the
 	// invocation identifier to determine which layer we're rendering.
 	if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
-	{
-		if (ApiType == API_OPENGL)
-			out.Write("\tint eye = gl_InvocationID;\n");
-		else
-			out.Write("\tint eye = InstanceID;\n");
-	}
+		out.Write("\tint eye = InstanceID;\n");
 	else
 		out.Write("\tfor (int eye = 0; eye < %d; ++eye) {\n", g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
 
