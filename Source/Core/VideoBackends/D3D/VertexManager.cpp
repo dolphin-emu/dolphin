@@ -141,7 +141,7 @@ void VertexManager::Draw(u32 stride)
 	{
 		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
-		D3D::stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetActiveShader() : nullptr);
+		D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
 
 		D3D::stateman->Apply();
 		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
@@ -219,13 +219,10 @@ void VertexManager::vFlush(bool useDstAlpha)
 		return;
 	}
 
-	if (g_ActiveConfig.iStereoMode > 0)
+	if (!GeometryShaderCache::SetShader(current_primitive_type))
 	{
-		if (!GeometryShaderCache::SetShader(components))
-		{
-			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
-			return;
-		}
+		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
+		return;
 	}
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)

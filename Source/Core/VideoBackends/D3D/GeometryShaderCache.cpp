@@ -186,14 +186,14 @@ void GeometryShaderCache::Shutdown()
 	g_gs_disk_cache.Close();
 }
 
-bool GeometryShaderCache::SetShader(u32 components)
+bool GeometryShaderCache::SetShader(u32 primitive_type)
 {
 	GeometryShaderUid uid;
-	GetGeometryShaderUid(uid, components, API_D3D);
+	GetGeometryShaderUid(uid, primitive_type, API_D3D);
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
 		ShaderCode code;
-		GenerateGeometryShaderCode(code, components, API_D3D);
+		GenerateGeometryShaderCode(code, primitive_type, API_D3D);
 		geometry_uid_checker.AddToIndexAndCheck(code, uid, "Geometry", "g");
 	}
 
@@ -222,7 +222,7 @@ bool GeometryShaderCache::SetShader(u32 components)
 
 	// Need to compile a new shader
 	ShaderCode code;
-	GenerateGeometryShaderCode(code, components, API_D3D);
+	GenerateGeometryShaderCode(code, primitive_type, API_D3D);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode))

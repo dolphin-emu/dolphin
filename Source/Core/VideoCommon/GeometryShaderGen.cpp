@@ -12,7 +12,7 @@
 static char text[16384];
 
 template<class T>
-static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiType)
+static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE ApiType)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	geometry_shader_uid_data dummy_data;
@@ -26,8 +26,7 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	if (is_writing_shadercode)
 		text[sizeof(text) - 1] = 0x7C;  // canary
 
-	out.Write("//Geometry Shader for 3D stereoscopy\n");
-
+	uid_data->primitive_type = primitive_type;
 	uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 	if (ApiType == API_OPENGL)
 	{
@@ -156,12 +155,12 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 	}
 }
 
-void GetGeometryShaderUid(GeometryShaderUid& object, u32 components, API_TYPE ApiType)
+void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYPE ApiType)
 {
-	GenerateGeometryShader<GeometryShaderUid>(object, components, ApiType);
+	GenerateGeometryShader<GeometryShaderUid>(object, primitive_type, ApiType);
 }
 
-void GenerateGeometryShaderCode(ShaderCode& object, u32 components, API_TYPE ApiType)
+void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType)
 {
-	GenerateGeometryShader<ShaderCode>(object, components, ApiType);
+	GenerateGeometryShader<ShaderCode>(object, primitive_type, ApiType);
 }
