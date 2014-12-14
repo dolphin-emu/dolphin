@@ -129,6 +129,7 @@ void OpenGL_CreateAttributelessVAO()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
 
 	// We must also define vertex attribute 0.
+	glBindVertexArray(attributelessVAO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 }
 
