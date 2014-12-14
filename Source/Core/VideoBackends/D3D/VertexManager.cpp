@@ -12,7 +12,6 @@
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/MainBase.h"
@@ -121,10 +120,6 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertexBufferSize);
 	ADDSTAT(stats.thisFrame.bytesIndexStreamed, indexBufferSize);
 }
-
-static const float LINE_PT_TEX_OFFSETS[8] = {
-	0.f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.f, 1.f, 1.f
-};
 
 void VertexManager::Draw(u32 stride)
 {

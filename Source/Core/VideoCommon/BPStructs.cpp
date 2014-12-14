@@ -129,7 +129,6 @@ static void BPWritten(const BPCmd& bp)
 		GeometryShaderManager::SetViewportChanged();
 		return;
 	case BPMEM_LINEPTWIDTH: // Line Width
-		SetLineWidth();
 		GeometryShaderManager::SetLinePtWidthChanged();
 		return;
 	case BPMEM_ZMODE: // Depth Control

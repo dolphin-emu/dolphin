@@ -398,7 +398,7 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 {
 	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
 	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
-	GetGeometryShaderUid(uid->guid, components, API_OPENGL);
+	GetGeometryShaderUid(uid->guid, primitive_type, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
