@@ -34,6 +34,7 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -404,7 +405,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
-		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
+		D3D::stateman->SetPixelConstants(0, access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture(eye)->GetRTV(), nullptr);
 		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture(eye)->GetSRV(),
@@ -937,7 +938,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 
-//#if 0
 			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
@@ -949,15 +949,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				//ovrPosef new_eye_poses[2];
 				//memcpy((void*)&new_eye_poses, g_eye_poses, sizeof(ovrPosef)*2);
 
-				//Call Actual Headposition Function Again.
-				//NewTimewarpedFrame();
-				//VertexShaderManager::SetProjectionConstants();
-
 				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
 
 				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 			}
-//#endif
 
 		}
 		else
@@ -1268,11 +1263,88 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), clear_col);
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture(eye)->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 	}
+
 	// begin next frame
 	RestoreAPIState();
 	D3D::BeginFrame();
 	FramebufferManager::RenderToEye(0);
 	SetViewport();
+
+	// Opcode Replay Buffer Code.  This enables the capture of all the Video Opcodes that occur during a frame,
+	// and then plays them back with new headtracking information.  Allows ways to easily set headtracking at 75fps
+	// for various games.  In Alpha right now, will crash many games/cause corruption.
+	static int extra_video_loops_count = 0;
+	static int real_frame_count = 0;
+	if (g_ActiveConfig.iExtraVideoLoops)
+	{
+		if (g_ActiveConfig.bPullUp20fps)
+		{
+			if (real_frame_count % 4 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 3;
+			}
+		}
+
+		if (g_ActiveConfig.bPullUp30fps)
+		{
+			if (real_frame_count % 2 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 1;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+		}
+
+		if (g_ActiveConfig.bPullUp60fps)
+		{
+			g_ActiveConfig.iExtraVideoLoops = 1;
+			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
+		}
+
+		if ((g_timewarped_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
+		{
+			g_timewarped_frame = false;
+			++real_frame_count;
+			extra_video_loops_count = 0;
+		}
+		else
+		{
+			if (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider)
+			{
+				g_timewarped_frame = true;
+				++extra_video_loops_count;
+				skipped_opcode_replay_count = 0;
+
+				for (int i = 0; i < timewarp_log.size(); ++i)
+				{
+						if (!cached_ram_location.at(i))
+						{
+							OpcodeDecoder_Run(timewarp_log.at(i), nullptr, display_list_log.at(i));
+						}
+				}
+			}
+			else
+			{
+				++skipped_opcode_replay_count;
+			}
+			timewarp_log.clear();
+			timewarp_log.resize(0);
+			display_list_log.clear();
+			display_list_log.resize(0);
+			cached_ram_location.clear();
+			cached_ram_location.resize(0);
+		}
+	}
+	else
+	{
+		g_timewarped_frame = true; //Don't log frames
+	}
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
@@ -1303,15 +1375,12 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	gx_state.raster.wireframe = g_ActiveConfig.bWireFrame;
 	D3D::stateman->PushRasterizerState(gx_state_cache.Get(gx_state.raster));
 
-	ID3D11SamplerState* samplerstate[8];
 	for (unsigned int stage = 0; stage < 8; stage++)
 	{
+		// TODO: cache SamplerState directly, not d3d object
 		gx_state.sampler[stage].max_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-		samplerstate[stage] = gx_state_cache.Get(gx_state.sampler[stage]);
+		D3D::stateman->SetSampler(stage, gx_state_cache.Get(gx_state.sampler[stage]));
 	}
-	D3D::context->PSSetSamplers(0, 8, samplerstate);
-
-	D3D::stateman->Apply();
 
 	if (bUseDstAlpha)
 	{
@@ -1320,12 +1389,14 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		SetLogicOpMode();
 	}
 
-	ID3D11Buffer* const_buffers[2] = {PixelShaderCache::GetConstantBuffer(), VertexShaderCache::GetConstantBuffer()};
-	D3D::context->PSSetConstantBuffers(0, 1 + g_ActiveConfig.bEnablePixelLighting, const_buffers);
-	D3D::context->VSSetConstantBuffers(0, 1, const_buffers+1);
+	ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
+	ID3D11Buffer* pixelConstants = PixelShaderCache::GetConstantBuffer();
 
-	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), nullptr, 0);
-	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), nullptr, 0);
+	D3D::stateman->SetPixelConstants(pixelConstants, g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
+	D3D::stateman->SetVertexConstants(vertexConstants);
+
+	D3D::stateman->SetPixelShader(PixelShaderCache::GetActiveShader());
+	D3D::stateman->SetVertexShader(VertexShaderCache::GetActiveShader());
 }
 
 void Renderer::RestoreState()
@@ -1342,8 +1413,6 @@ void Renderer::ApplyCullDisable()
 
 	ID3D11RasterizerState* raststate = gx_state_cache.Get(rast);
 	D3D::stateman->PushRasterizerState(raststate);
-
-	D3D::stateman->Apply();
 }
 
 void Renderer::RestoreCull()

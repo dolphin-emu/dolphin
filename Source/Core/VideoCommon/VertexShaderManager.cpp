@@ -1166,6 +1166,15 @@ void VertexShaderManager::SetProjectionConstants()
 			proj_right.data[1 * 4 + 1] = rift_right.M[1][1] * SignOf(proj_right.data[1 * 4 + 1]) * fRightHeightHack;
 			proj_right.data[0 * 4 + 2] = rift_right.M[0][2] * SignOf(proj_right.data[0 * 4 + 0]) - fRightHack;
 			proj_right.data[1 * 4 + 2] = rift_right.M[1][2] * SignOf(proj_right.data[1 * 4 + 1]) - fUpHack;
+			constants.stereoparams[0] = proj_left.data[0 * 4 + 0];
+			constants.stereoparams[1] = proj_right.data[0 * 4 + 0];
+			constants.stereoparams[2] = proj_left.data[0 * 4 + 2];
+			constants.stereoparams[3] = proj_right.data[0 * 4 + 2];
+			if (g_ActiveConfig.backend_info.bSupportsStereoscopy)
+			{
+				proj_left.data[0 * 4 + 2] = 0;
+			}
+
 			if (debug_newScene)
 			{
 				ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
@@ -1458,7 +1467,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
 #ifdef HAVE_OCULUSSDK
-		if (g_has_rift && !bTelescopeHUD && !g_is_skybox && !(g_ActiveConfig.iStereoMode>0))
+		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
 		{
 #ifdef OCULUSSDK042
 			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
@@ -1477,30 +1486,40 @@ void VertexShaderManager::SetProjectionConstants()
 #endif
 		}
 #endif
-		Matrix44::Translate(eye_pos_matrix_left, posLeft);
-		Matrix44::Translate(eye_pos_matrix_right, posRight);
-
 		Matrix44 view_matrix_left, view_matrix_right;
-		Matrix44::Multiply(eye_pos_matrix_left, look_matrix, view_matrix_left);
-		Matrix44::Multiply(eye_pos_matrix_right, look_matrix, view_matrix_right);
+		if (g_ActiveConfig.backend_info.bSupportsStereoscopy)
+		{
+			Matrix44::Set(view_matrix_left, look_matrix.data);
 
+			Matrix44::Translate(eye_pos_matrix_right, posRight);
+			Matrix44::Multiply(eye_pos_matrix_right, look_matrix, view_matrix_right);
+		}
+		else
+		{
+			Matrix44::Translate(eye_pos_matrix_left, posLeft);
+			Matrix44::Translate(eye_pos_matrix_right, posRight);
+
+			Matrix44::Multiply(eye_pos_matrix_left, look_matrix, view_matrix_left);
+			Matrix44::Multiply(eye_pos_matrix_right, look_matrix, view_matrix_right);
+		}
 		Matrix44 final_matrix_left, final_matrix_right;
 		Matrix44::Multiply(proj_left, view_matrix_left, final_matrix_left);
 		Matrix44::Multiply(proj_right, view_matrix_right, final_matrix_right);
 		if (flipped_x < 0)
-		if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			// flip all the x axis values, except x squared (data[0])
 			//Needed for Action Girlz Racing, Backyard Baseball
 			final_matrix_left.data[1] *= -1;
 			final_matrix_left.data[2] *= -1;
 			final_matrix_left.data[3] *= -1;
+			constants.stereoparams[2] *= -1;
 			final_matrix_left.data[4] *= -1;
 			final_matrix_left.data[8] *= -1;
 			final_matrix_left.data[12] *= -1;
 			final_matrix_right.data[1] *= -1;
 			final_matrix_right.data[2] *= -1;
 			final_matrix_right.data[3] *= -1;
+			constants.stereoparams[3] *= -1;
 			final_matrix_right.data[4] *= -1;
 			final_matrix_right.data[8] *= -1;
 			final_matrix_right.data[12] *= -1;
@@ -1533,12 +1552,21 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
-		if (g_ActiveConfig.iStereoMode > 0)
+		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 		{
-			float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
-			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
-			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-			constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+			constants.stereoparams[0] *= posLeft[0];
+			constants.stereoparams[1] *= posRight[0];
+			//constants.stereoparams[2] = 0;
+			//constants.stereoparams[3] = 0;
+			if (debug_newScene)
+			{
+				ERROR_LOG(VR, "F=[%8.4f %8.4f %8.4f   %8.4f]", final_matrix_left.data[0 * 4 + 0], final_matrix_left.data[0 * 4 + 1], final_matrix_left.data[0 * 4 + 2], final_matrix_left.data[0 * 4 + 3]);
+				ERROR_LOG(VR, "F=[%8.4f %8.4f %8.4f   %8.4f]", final_matrix_left.data[1 * 4 + 0], final_matrix_left.data[1 * 4 + 1], final_matrix_left.data[1 * 4 + 2], final_matrix_left.data[1 * 4 + 3]);
+				ERROR_LOG(VR, "F=[%8.4f %8.4f %8.4f   %8.4f]", final_matrix_left.data[2 * 4 + 0], final_matrix_left.data[2 * 4 + 1], final_matrix_left.data[2 * 4 + 2], final_matrix_left.data[2 * 4 + 3]);
+				ERROR_LOG(VR, "F={%8.4f %8.4f %8.4f   %8.4f}", final_matrix_left.data[3 * 4 + 0], final_matrix_left.data[3 * 4 + 1], final_matrix_left.data[3 * 4 + 2], final_matrix_left.data[3 * 4 + 3]);
+				ERROR_LOG(VR, "StereoParams: %8.4f, %8.4f", constants.stereoparams[0], constants.stereoparams[2]);
+				ERROR_LOG(VR, "eye_x = %8.4f", g_eye_render_desc[0].HmdToEyeViewOffset.x);
+			}
 		}
 		else
 		{

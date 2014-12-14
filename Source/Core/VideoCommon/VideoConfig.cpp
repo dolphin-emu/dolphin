@@ -52,6 +52,9 @@ VideoConfig::VideoConfig()
 	// VR
 	fScale = 1.0f;
 	fLeanBackAngle = 0;
+	bPullUp20fps = false;
+	bPullUp30fps = false;
+	bPullUp60fps = false;
 	bEnableVR = true;
 	bAsynchronousTimewarp = false;
 	bLowPersistence = true;
@@ -70,6 +73,8 @@ VideoConfig::VideoConfig()
 	iVRPlayer = 0;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
+	iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
+	iExtraVideoLoopsDivider = DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER;
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
@@ -188,6 +193,11 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
+	vr->Get("NumExtraVideoLoops", &iExtraVideoLoops, DEFAULT_VR_EXTRA_VIDEO_LOOPS);
+	vr->Get("NumExtraVideoLoopsDivider", &iExtraVideoLoopsDivider, DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER);
+	vr->Get("PullUp20fps", &bPullUp20fps, false);
+	vr->Get("PullUp30fps", &bPullUp30fps, false);
+	vr->Get("PullUp60fps", &bPullUp60fps, false);
 }
 
 
@@ -470,6 +480,11 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("Player", iVRPlayer);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);
+	vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
+	vr->Set("NumExtraVideoLoopsDivider", iExtraVideoLoopsDivider);
+	vr->Set("PullUp20fps", bPullUp20fps);
+	vr->Set("PullUp30fps", bPullUp30fps);
+	vr->Set("PullUp60fps", bPullUp60fps);
 
 	iniFile.Save(ini_file);
 }

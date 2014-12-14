@@ -16,6 +16,7 @@ struct geometry_shader_uid_data
 	u32 stereo : 1;
 	u32 numTexGens : 4;
 	u32 pixel_lighting : 1;
+	u32 vr : 1;
 };
 
 #pragma pack()
