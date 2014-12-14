@@ -13,6 +13,7 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
@@ -71,11 +72,14 @@ void SHADER::SetProgramVariables()
 
 		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
 		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
+		GLint GSBlock_id = glGetUniformBlockIndex(glprogid, "GSBlock");
 
 		if (PSBlock_id != -1)
 			glUniformBlockBinding(glprogid, PSBlock_id, 1);
 		if (VSBlock_id != -1)
 			glUniformBlockBinding(glprogid, VSBlock_id, 2);
+		if (GSBlock_id != -1)
+			glUniformBlockBinding(glprogid, GSBlock_id, 3);
 
 		// Bind Texture Sampler
 		for (int a = 0; a <= 9; ++a)
@@ -133,7 +137,7 @@ void SHADER::Bind()
 
 void ProgramShaderCache::UploadConstants()
 {
-	if (PixelShaderManager::dirty || VertexShaderManager::dirty)
+	if (PixelShaderManager::dirty || VertexShaderManager::dirty || GeometryShaderManager::dirty)
 	{
 		auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
@@ -143,14 +147,20 @@ void ProgramShaderCache::UploadConstants()
 		memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
 			&VertexShaderManager::constants, sizeof(VertexShaderConstants));
 
+		memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) + ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+			&GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+
 		s_buffer->Unmap(s_ubo_buffer_size);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
 					sizeof(PixelShaderConstants));
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer, buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
 					sizeof(VertexShaderConstants));
+		glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer, buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) + ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+					sizeof(GeometryShaderConstants));
 
 		PixelShaderManager::dirty = false;
 		VertexShaderManager::dirty = false;
+		GeometryShaderManager::dirty = false;
 
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
 	}
@@ -419,7 +429,7 @@ void ProgramShaderCache::Init()
 	// then the UBO will fail.
 	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &s_ubo_align);
 
-	s_ubo_buffer_size = ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) + ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align);
+	s_ubo_buffer_size = ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) + ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align) + ROUND_UP(sizeof(GeometryShaderConstants), s_ubo_align);
 
 	// We multiply by *4*4 because we need to get down to basic machine units.
 	// So multiply by four to get how many floats we have from vec4s

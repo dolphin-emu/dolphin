@@ -43,11 +43,12 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	// uniforms
 	if (ApiType == API_OPENGL)
-		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+		out.Write("layout(std140%s) uniform GSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 3" : "");
 	else
-		out.Write("cbuffer VSBlock {\n");
-	out.Write(s_shader_uniforms);
-	out.Write("};\n");
+		out.Write("cbuffer GSBlock {\n");
+	out.Write(
+		"\tfloat4 " I_STEREOPARAMS";\n"
+		"};\n");
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;

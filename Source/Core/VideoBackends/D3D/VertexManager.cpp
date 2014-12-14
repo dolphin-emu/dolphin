@@ -140,7 +140,7 @@ void VertexManager::Draw(u32 stride)
 	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
 		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		D3D::stateman->SetGeometryConstants(VertexShaderCache::GetConstantBuffer());
+		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
 		D3D::stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetActiveShader() : nullptr);
 
 		D3D::stateman->Apply();

@@ -28,6 +28,7 @@
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -187,6 +188,7 @@ void VideoBackend::Video_Prepare()
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
+	GeometryShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
 	BBox::Init();
@@ -205,6 +207,7 @@ void VideoBackend::Shutdown()
 		// VideoCommon
 		Fifo_Shutdown();
 		CommandProcessor::Shutdown();
+		GeometryShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
 		VertexShaderManager::Shutdown();
 		OpcodeDecoder_Shutdown();

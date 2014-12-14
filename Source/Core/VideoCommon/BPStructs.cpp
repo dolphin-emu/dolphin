@@ -14,6 +14,7 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -125,6 +126,7 @@ static void BPWritten(const BPCmd& bp)
 	case BPMEM_SCISSOROFFSET: // Scissor Offset
 		SetScissor();
 		VertexShaderManager::SetViewportChanged();
+		GeometryShaderManager::SetViewportChanged();
 		return;
 	case BPMEM_LINEPTWIDTH: // Line Width
 		SetLineWidth();

@@ -2,6 +2,7 @@
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Debugger.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/MainBase.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -223,6 +224,7 @@ void VertexManager::Flush()
 	// set global constants
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
+	GeometryShaderManager::SetConstants();
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
 	                   bpmem.dstalpha.enable &&

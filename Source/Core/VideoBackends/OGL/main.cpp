@@ -65,6 +65,7 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/LookUpTables.h"
@@ -202,6 +203,7 @@ void VideoBackend::Video_Prepare()
 	IndexGenerator::Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
+	GeometryShaderManager::Init();
 	ProgramShaderCache::Init();
 	g_texture_cache = new TextureCache();
 	g_sampler_cache = new SamplerCache();
@@ -243,6 +245,7 @@ void VideoBackend::Video_Cleanup()
 		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
+		GeometryShaderManager::Shutdown();
 		delete g_perf_query;
 		g_perf_query = nullptr;
 		delete g_vertex_manager;

@@ -25,6 +25,7 @@ public:
 	static ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader();
 
 	static ID3D11GeometryShader* GetActiveShader() { return last_entry->shader; }
+	static ID3D11Buffer* &GetConstantBuffer();
 
 private:
 	struct GSCacheEntry
