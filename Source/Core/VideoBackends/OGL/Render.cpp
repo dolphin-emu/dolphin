@@ -743,6 +743,8 @@ void Renderer::Shutdown()
 
 	delete m_post_processor;
 	m_post_processor = nullptr;
+
+	OpenGL_DeleteAttributelessVAO();
 }
 
 void Renderer::Init()
@@ -768,6 +770,8 @@ void Renderer::Init()
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
 		"}\n");
+
+	OpenGL_CreateAttributelessVAO();
 
 	// creating buffers
 	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);

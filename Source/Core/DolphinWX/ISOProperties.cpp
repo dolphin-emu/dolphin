@@ -543,7 +543,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_GPUDeterminism.Add(_("auto"));
 	arrayStringFor_GPUDeterminism.Add(_("none"));
 	arrayStringFor_GPUDeterminism.Add(_("fake-completion"));
-	GPUDeterminism = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_GPUDeterminism);
+	GPUDeterminism = new wxChoice(m_GameConfig, ID_GPUDETERMINISM, wxDefaultPosition, wxDefaultSize, arrayStringFor_GPUDeterminism);
 	sGPUDeterminism->Add(GPUDeterminismText);
 	sGPUDeterminism->Add(GPUDeterminism);
 
