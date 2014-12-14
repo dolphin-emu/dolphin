@@ -23,6 +23,8 @@ public:
 
 	static void SetViewportChanged();
 	static void SetProjectionChanged();
+	static void SetLinePtWidthChanged();
+	static void SetTexCoordChanged(u8 texmapid);
 
 	static GeometryShaderConstants constants;
 	static bool dirty;

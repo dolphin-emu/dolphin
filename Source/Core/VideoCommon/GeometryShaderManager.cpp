@@ -5,6 +5,7 @@
 #include <cfloat>
 #include <cmath>
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -12,7 +13,11 @@
 #include "VideoCommon/XFMemory.h"
 
 // track changes
-static bool s_projection_changed, s_viewport_changed;
+static bool s_projection_changed, s_viewport_changed, s_lineptwidth_changed;
+
+static const float LINE_PT_TEX_OFFSETS[8] = {
+	0.f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.f, 1.f, 1.f
+};
 
 GeometryShaderConstants GeometryShaderManager::constants;
 bool GeometryShaderManager::dirty;
@@ -32,6 +37,16 @@ void GeometryShaderManager::Dirty()
 {
 	s_projection_changed = true;
 	s_viewport_changed = true;
+	s_lineptwidth_changed = true;
+
+	SetTexCoordChanged(0);
+	SetTexCoordChanged(1);
+	SetTexCoordChanged(2);
+	SetTexCoordChanged(3);
+	SetTexCoordChanged(4);
+	SetTexCoordChanged(5);
+	SetTexCoordChanged(6);
+	SetTexCoordChanged(7);
 
 	dirty = true;
 }
@@ -39,6 +54,20 @@ void GeometryShaderManager::Dirty()
 // Syncs the shader constant buffers with xfmem
 void GeometryShaderManager::SetConstants()
 {
+	if (s_lineptwidth_changed)
+	{
+		constants.lineptwidth[0] = bpmem.lineptwidth.linesize / 6.f;
+		constants.lineptwidth[1] = bpmem.lineptwidth.pointsize / 6.f;
+		constants.lineptwidth[2] = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+		constants.lineptwidth[3] = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+	}
+
+	if (s_viewport_changed)
+	{
+		constants.viewport[0] = 2.0f * xfmem.viewport.wd;
+		constants.viewport[1] = -2.0f * xfmem.viewport.ht;
+	}
+
 	if (s_projection_changed)
 	{
 		s_projection_changed = false;
@@ -67,6 +96,18 @@ void GeometryShaderManager::SetViewportChanged()
 void GeometryShaderManager::SetProjectionChanged()
 {
 	s_projection_changed = true;
+}
+
+void GeometryShaderManager::SetLinePtWidthChanged()
+{
+	s_lineptwidth_changed = true;
+}
+
+void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
+{
+	TCoordInfo& tc = bpmem.texcoords[texmapid];
+	constants.texoffsetflags[texmapid] = tc.s.line_offset + tc.s.point_offset * 2;
+	dirty = true;
 }
 
 void GeometryShaderManager::DoState(PointerWrap &p)

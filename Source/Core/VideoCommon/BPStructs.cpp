@@ -130,6 +130,7 @@ static void BPWritten(const BPCmd& bp)
 		return;
 	case BPMEM_LINEPTWIDTH: // Line Width
 		SetLineWidth();
+		GeometryShaderManager::SetLinePtWidthChanged();
 		return;
 	case BPMEM_ZMODE: // Depth Control
 		PRIM_LOG("zmode: test=%d, func=%d, upd=%d", (int)bpmem.zmode.testenable,
@@ -572,7 +573,10 @@ static void BPWritten(const BPCmd& bp)
 	case BPMEM_SU_SSIZE+14:
 	case BPMEM_SU_TSIZE+14:
 		if (bp.changes)
+		{
 			PixelShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
+			GeometryShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
+		}
 		return;
 	// ------------------------
 	// BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS, DiagLoad, Min Filter, Mag Filter, Wrap T, S

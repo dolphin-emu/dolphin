@@ -47,9 +47,12 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("cbuffer GSBlock {\n");
 	out.Write(
 		"\tfloat4 " I_STEREOPARAMS";\n"
+		"\tfloat4 " I_LINEPTWIDTH";\n"
+		"\tfloat4 " I_VIEWPORT";\n"
+		"\tuint " I_TEXOFFSETFLAGS"[8];\n"
 		"};\n");
 
-	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
+	uid_data->numTexGens = bpmem.genMode.numtexgens;
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
 	GenerateVSOutputStruct<T>(out, ApiType);
