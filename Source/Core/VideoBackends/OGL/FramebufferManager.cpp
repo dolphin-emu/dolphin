@@ -373,6 +373,8 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
 	g_renderer->ResetAPIState();
 
+	OpenGL_BindAttributelessVAO();
+
 	GLuint src_texture = 0;
 
 	// We aren't allowed to render and sample the same texture in one draw call,
