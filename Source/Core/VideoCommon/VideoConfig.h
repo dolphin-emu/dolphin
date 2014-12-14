@@ -62,6 +62,7 @@ struct VideoConfig final
 	void LoadVR(const std::string& ini_file);
 	void GameIniLoad();
 	void GameIniSave();
+	void GameIniReset();
 	void VerifyValidity();
 	void Save(const std::string& ini_file);
 	void SaveVR(const std::string& ini_file);

@@ -35,6 +35,7 @@ public:
 protected:
 
 	void Event_ClickSave(wxCommandEvent&);
+	void Event_ClickReset(wxCommandEvent&);
 
 	// Enables/disables UI elements depending on current config
 	void OnUpdateUI(wxUpdateUIEvent& ev)
