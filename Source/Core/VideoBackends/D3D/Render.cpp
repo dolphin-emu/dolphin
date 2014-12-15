@@ -1252,11 +1252,6 @@ void Renderer::SetDitherMode()
 	// TODO: Set dither mode to bpmem.blendmode.dither
 }
 
-void Renderer::SetLineWidth()
-{
-	// TODO
-}
-
 void Renderer::SetSamplerState(int stage, int texindex)
 {
 	const FourTexUnits &tex = bpmem.tex[texindex];

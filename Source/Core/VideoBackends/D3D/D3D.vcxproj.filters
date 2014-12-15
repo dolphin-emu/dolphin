@@ -33,9 +33,6 @@
     <ClCompile Include="GeometryShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="LineGeometryShader.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="NativeVertexFormat.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -97,9 +94,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="GeometryShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="LineGeometryShader.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="PerfQuery.h">

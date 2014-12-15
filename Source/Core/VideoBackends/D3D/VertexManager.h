@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "VideoBackends/D3D/LineGeometryShader.h"
 #include "VideoBackends/D3D/PointGeometryShader.h"
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -40,7 +39,6 @@ private:
 	enum { MAX_BUFFER_COUNT = 2 };
 	ID3D11Buffer* m_buffers[MAX_BUFFER_COUNT];
 
-	LineGeometryShader m_lineShader;
 	PointGeometryShader m_pointShader;
 
 	std::vector<u8> LocalVBuffer;

@@ -49,14 +49,12 @@ void VertexManager::CreateDeviceObjects()
 	m_currentBuffer = 0;
 	m_bufferCursor = MAX_BUFFER_SIZE;
 
-	m_lineShader.Init();
 	m_pointShader.Init();
 }
 
 void VertexManager::DestroyDeviceObjects()
 {
 	m_pointShader.Shutdown();
-	m_lineShader.Shutdown();
 
 	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
 	{
@@ -147,28 +145,16 @@ void VertexManager::Draw(u32 stride)
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
-		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
-		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-		float vpWidth = 2.0f * xfmem.viewport.wd;
-		float vpHeight = -2.0f * xfmem.viewport.ht;
+		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
+		D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
 
-		bool texOffsetEnable[8];
+		D3D::stateman->Apply();
+		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
-		for (int i = 0; i < 8; ++i)
-			texOffsetEnable[i] = bpmem.texcoords[i].s.line_offset;
+		INCSTAT(stats.thisFrame.numDrawCalls);
 
-		if (m_lineShader.SetShader(components, lineWidth,
-			texOffset, vpWidth, vpHeight, texOffsetEnable))
-		{
-			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-			D3D::stateman->Apply();
-			D3D::context->DrawIndexed(indices, startIndex, baseVertex);
-
-			INCSTAT(stats.thisFrame.numDrawCalls);
-
-			D3D::stateman->SetGeometryShader(nullptr);
-		}
+		D3D::stateman->SetGeometryShader(nullptr);
 	}
 	else //if (current_primitive_type == PRIMITIVE_POINTS)
 	{

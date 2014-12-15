@@ -1371,7 +1371,6 @@ void BPReload()
 	// note that PixelShaderManager is already covered since it has its own DoState.
 	SetGenerationMode();
 	SetScissor();
-	SetLineWidth();
 	SetDepthMode();
 	SetLogicOpMode();
 	SetDitherMode();

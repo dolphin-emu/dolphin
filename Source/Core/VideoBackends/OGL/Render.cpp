@@ -881,9 +881,6 @@ void Renderer::DrawDebugInfo()
 		GLsizei count = static_cast<GLsizei>(stats.efb_regions.size() * 2*6);
 		glDrawArrays(GL_LINES, 0, count);
 
-		// Restore Line Size
-		SetLineWidth();
-
 		// Clear stored regions
 		stats.efb_regions.clear();
 	}
@@ -1899,17 +1896,6 @@ void Renderer::SetDitherMode()
 		glEnable(GL_DITHER);
 	else
 		glDisable(GL_DITHER);
-}
-
-void Renderer::SetLineWidth()
-{
-	float fratio = xfmem.viewport.wd != 0 ?
-		((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
-	if (bpmem.lineptwidth.linesize > 0)
-		// scale by ratio of widths
-		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f);
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && bpmem.lineptwidth.pointsize > 0)
-		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)
