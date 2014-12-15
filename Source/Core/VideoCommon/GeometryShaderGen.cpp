@@ -27,6 +27,8 @@ static const char* primitives_d3d[] =
 	"triangle"
 };
 
+template<class T> static inline void EmitVertex(T& out, const char *vertex, API_TYPE ApiType);
+
 template<class T>
 static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE ApiType)
 {
