@@ -50,5 +50,5 @@ struct GeometryShaderConstants
 	float4 stereoparams;
 	float4 lineptwidth;
 	float4 viewport;
-	u32 texoffsetflags[8];
+	s32 texoffsetflags[8];
 };

@@ -75,7 +75,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		"\tfloat4 " I_STEREOPARAMS";\n"
 		"\tfloat4 " I_LINEPTWIDTH";\n"
 		"\tfloat4 " I_VIEWPORT";\n"
-		"\tuint " I_TEXOFFSETFLAGS"[8];\n"
+		"\tint " I_TEXOFFSETFLAGS"[8];\n"
 		"};\n");
 
 	uid_data->numTexGens = bpmem.genMode.numtexgens;
