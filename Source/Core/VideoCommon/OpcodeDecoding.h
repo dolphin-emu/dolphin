@@ -43,4 +43,4 @@ void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
 
 template <bool is_preprocess = false>
-u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list);
+u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool recursive_call = false);

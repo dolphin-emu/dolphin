@@ -44,9 +44,23 @@ const char *g_hmd_device_name = nullptr;
 
 std::vector<DataReader> timewarp_log;
 std::vector<bool> display_list_log;
+std::vector<bool> is_preprocess_log;
 std::vector<bool> cached_ram_location;
 bool g_timewarped_frame = false;
 int skipped_opcode_replay_count = 0;
+
+//std::vector<u8*> s_pCurBufferPointer_log;
+//std::vector<u8*> s_pBaseBufferPointer_log;
+//std::vector<u8*> s_pEndBufferPointer_log;
+
+//std::vector<u32> CPBase_log;
+//std::vector<u32> CPEnd_log;
+//std::vector<u32> CPHiWatermark_log;
+//std::vector<u32> CPLoWatermark_log;
+//std::vector<u32> CPReadWriteDistance_log;
+//std::vector<u32> CPWritePointer_log;
+//std::vector<u32> CPReadPointer_log;
+//std::vector<u32> CPBreakpoint_log;
 
 #ifdef _WIN32
 static char hmd_device_name[MAX_PATH] = "";

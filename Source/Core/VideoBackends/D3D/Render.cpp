@@ -1275,7 +1275,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if (g_ActiveConfig.iExtraVideoLoops)
+	if (g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps)
 	{
 		if (g_ActiveConfig.bPullUp20fps)
 		{
@@ -1323,16 +1323,62 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 				for (int i = 0; i < timewarp_log.size(); ++i)
 				{
-						if (!cached_ram_location.at(i))
-						{
-							OpcodeDecoder_Run(timewarp_log.at(i), nullptr, display_list_log.at(i));
-						}
+					//VertexManager::s_pCurBufferPointer = s_pCurBufferPointer_log.at(i);
+					//VertexManager::s_pEndBufferPointer = s_pEndBufferPointer_log.at(i);
+					//VertexManager::s_pBaseBufferPointer = s_pBaseBufferPointer_log.at(i);
+
+					//if (i == 0)
+					//{
+						//SCPFifoStruct &fifo = CommandProcessor::fifo;
+
+						//fifo.CPBase = CPBase_log.at(i);
+						//fifo.CPEnd = CPEnd_log.at(i);
+						//fifo.CPHiWatermark = CPHiWatermark_log.at(i);
+						//fifo.CPLoWatermark = CPLoWatermark_log.at(i);
+						//fifo.CPReadWriteDistance = CPReadWriteDistance_log.at(i);
+						//fifo.CPWritePointer = CPWritePointer_log.at(i);
+						//fifo.CPReadPointer = CPReadPointer_log.at(i);
+						//fifo.CPBreakpoint = CPBreakpoint_log.at(i);
+					//}
+
+					if (is_preprocess_log.at(i))
+					{
+						OpcodeDecoder_Run<true>(timewarp_log.at(i), nullptr, display_list_log.at(i));
+					}
+					else
+					{
+						OpcodeDecoder_Run<false>(timewarp_log.at(i), nullptr, display_list_log.at(i));
+					}
 				}
 			}
 			else
 			{
 				++skipped_opcode_replay_count;
 			}
+			//CPBase_log.resize(0);
+			//CPEnd_log.resize(0);
+			//CPHiWatermark_log.resize(0);
+			//CPLoWatermark_log.resize(0);
+			//CPReadWriteDistance_log.resize(0);
+			//CPWritePointer_log.resize(0);
+			//CPReadPointer_log.resize(0);
+			//CPBreakpoint_log.resize(0);
+			//CPBase_log.clear();
+			//CPEnd_log.clear();
+			//CPHiWatermark_log.clear();
+			//CPLoWatermark_log.clear();
+			//CPReadWriteDistance_log.clear();
+			//CPWritePointer_log.clear();
+			//CPReadPointer_log.clear();
+			//CPBreakpoint_log.clear();
+			//s_pCurBufferPointer_log.clear();
+			//s_pCurBufferPointer_log.resize(0);
+			//s_pEndBufferPointer_log.clear();
+			//s_pEndBufferPointer_log.resize(0);
+			//s_pBaseBufferPointer_log.clear();
+			//s_pBaseBufferPointer_log.resize(0);
+			is_preprocess_log.clear();
+			is_preprocess_log.resize(0);
 			timewarp_log.clear();
 			timewarp_log.resize(0);
 			display_list_log.clear();
