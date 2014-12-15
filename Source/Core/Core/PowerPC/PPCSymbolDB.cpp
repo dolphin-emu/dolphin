@@ -195,16 +195,16 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 	}
 }
 
-// The use case for handling bad map files is when you have a game with a map file on the disc, 
+// The use case for handling bad map files is when you have a game with a map file on the disc,
 // but you can't tell whether that map file is for the particular release version used in that game,
 // or when you know that the map file is not for that build, but perhaps half the functions in the
-// map file are still at the correct locations. Which are both common situations. It will load any 
-// function names and addresses that have a BLR before the start and at the end, but ignore any that 
-// don't, and then tell you how many were good and how many it ignored. That way you either find out 
-// it is all good and use it, find out it is partly good and use the good part, or find out that only 
-// a handful of functions lined up by coincidence and then you can clear the symbols. In the future I 
-// want to make it smarter, so it checks that there are no BLRs in the middle of the function 
-// (by checking the code length), and also make it cope with added functions in the middle or work 
+// map file are still at the correct locations. Which are both common situations. It will load any
+// function names and addresses that have a BLR before the start and at the end, but ignore any that
+// don't, and then tell you how many were good and how many it ignored. That way you either find out
+// it is all good and use it, find out it is partly good and use the good part, or find out that only
+// a handful of functions lined up by coincidence and then you can clear the symbols. In the future I
+// want to make it smarter, so it checks that there are no BLRs in the middle of the function
+// (by checking the code length), and also make it cope with added functions in the middle or work
 // based on the order of the functions and their approximate length. Currently that process has to be
 // done manually and is very tedious.
 // The use case for separate handling of map files that aren't bad is that you usually want to also
