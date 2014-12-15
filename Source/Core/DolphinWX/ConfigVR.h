@@ -74,6 +74,15 @@ private:
 	wxString OldLabel;
 	VRDialog* m_vr_dialog;
 
+	SettingCheckBox* checkbox_pullup20_timewarp;
+	SettingCheckBox* checkbox_pullup30_timewarp;
+	SettingCheckBox* checkbox_pullup60_timewarp;
+	SettingCheckBox* checkbox_pullup20;
+	SettingCheckBox* checkbox_pullup30;
+	SettingCheckBox* checkbox_pullup60;
+
+	void OnPullupCheckbox(wxCommandEvent& event);
+
 	void OnOk(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void SetDevice(wxCommandEvent& event);

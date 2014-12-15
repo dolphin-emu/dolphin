@@ -159,9 +159,18 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(spin_replay_buffer_divider);
 
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps), 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps), 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps), 1, wxALIGN_CENTER_VERTICAL, 0);
+			checkbox_pullup20 = CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
+			checkbox_pullup30 = CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
+			checkbox_pullup60 = CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
+			szr_vr->Add(checkbox_pullup20, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_pullup30, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_pullup60, 1, wxALIGN_CENTER_VERTICAL, 0);
+			checkbox_pullup20->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
+			checkbox_pullup30->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
+			checkbox_pullup60->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
+			checkbox_pullup20->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp);
+			checkbox_pullup30->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp);
+			checkbox_pullup60->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp);
 		}
 		// Synchronous Timewarp extra frames per frame
 		{
@@ -185,6 +194,21 @@ void CConfigVR::CreateGUIControls()
 			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_timewarp_tweak);
+
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Timewarp Pull-Up:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			checkbox_pullup20_timewarp = CreateCheckBox(page_vr, _("Timewarp 20fps to 75fps"), wxGetTranslation(pullup20timewarp_desc), vconfig.bPullUp20fpsTimewarp);
+			checkbox_pullup30_timewarp = CreateCheckBox(page_vr, _("Timewarp 30fps to 75fps"), wxGetTranslation(pullup30timewarp_desc), vconfig.bPullUp30fpsTimewarp);
+			checkbox_pullup60_timewarp = CreateCheckBox(page_vr, _("Timewarp 60fps to 75fps"), wxGetTranslation(pullup60timewarp_desc), vconfig.bPullUp60fpsTimewarp);
+			szr_vr->Add(checkbox_pullup20_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_pullup30_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_pullup60_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
+			checkbox_pullup20_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
+			checkbox_pullup30_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
+			checkbox_pullup60_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
+			checkbox_pullup20_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+			checkbox_pullup30_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+			checkbox_pullup60_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+
 		}
 
 		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
@@ -646,6 +670,20 @@ void CConfigVR::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const siz
 
 	// Store description text object for later lookup
 	desc_texts.insert(std::pair<wxWindow*, wxStaticText*>(page, desc_text));
+}
+
+// On Checkbox Click
+void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
+{
+	checkbox_pullup20->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
+	checkbox_pullup30->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
+	checkbox_pullup60->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
+
+	checkbox_pullup20_timewarp->Enable(!(checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()));
+	checkbox_pullup30_timewarp->Enable(!(checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()));
+	checkbox_pullup60_timewarp->Enable(!(checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()));
+
+	event.Skip();
 }
 
 //Poll devices available and put them in the device combo box.

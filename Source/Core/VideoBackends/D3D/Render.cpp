@@ -938,6 +938,42 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 
+			static int real_frame_count_for_timewarp = 0;
+
+			if (g_ActiveConfig.bPullUp20fpsTimewarp)
+			{
+				if (real_frame_count_for_timewarp % 4 == 1)
+				{
+					g_ActiveConfig.iExtraFrames = 2;
+				}
+				else
+				{
+					g_ActiveConfig.iExtraFrames = 3;
+				}
+			}
+
+			if (g_ActiveConfig.bPullUp30fpsTimewarp)
+			{
+				if (real_frame_count_for_timewarp % 2 == 1)
+				{
+					g_ActiveConfig.iExtraFrames = 1;
+				}
+				else
+				{
+					g_ActiveConfig.iExtraFrames = 2;
+				}
+			}
+
+			if (g_ActiveConfig.bPullUp60fpsTimewarp)
+			{
+				if (real_frame_count_for_timewarp % 4 == 0)
+					g_ActiveConfig.iExtraFrames = 1;
+				else
+					g_ActiveConfig.iExtraFrames = 0;
+			}
+
+			++real_frame_count_for_timewarp;
+
 			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
