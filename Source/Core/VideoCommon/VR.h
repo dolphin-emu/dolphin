@@ -70,8 +70,22 @@ extern const char *g_hmd_device_name;
 extern std::vector<DataReader> timewarp_log;
 extern std::vector<bool> display_list_log;
 extern std::vector<bool> cached_ram_location;
+extern std::vector<bool> is_preprocess_log;
 extern bool g_timewarped_frame;
 extern int skipped_opcode_replay_count;
+
+//extern std::vector<u8*> s_pCurBufferPointer_log;
+//extern std::vector<u8*> s_pBaseBufferPointer_log;
+//extern std::vector<u8*> s_pEndBufferPointer_log;
+
+//extern std::vector<u32> CPBase_log;
+//extern std::vector<u32> CPEnd_log;
+//extern std::vector<u32> CPHiWatermark_log;
+//extern std::vector<u32> CPLoWatermark_log;
+//extern std::vector<u32> CPReadWriteDistance_log;
+//extern std::vector<u32> CPWritePointer_log;
+//extern std::vector<u32> CPReadPointer_log;
+//extern std::vector<u32> CPBreakpoint_log;
 
 extern std::mutex g_ovr_lock;
 extern volatile u32 g_drawn_vr;

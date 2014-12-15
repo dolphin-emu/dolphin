@@ -2246,7 +2246,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if (g_ActiveConfig.iExtraVideoLoops)
+	if (g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps)
 	{
 		if (g_ActiveConfig.bPullUp20fps)
 		{
@@ -2294,9 +2294,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 				for (int i = 0; i < timewarp_log.size(); ++i)
 				{
-					if (!cached_ram_location.at(i))
+					if (is_preprocess_log.at(i))
 					{
-						OpcodeDecoder_Run(timewarp_log.at(i), nullptr, display_list_log.at(i));
+						OpcodeDecoder_Run<true>(timewarp_log.at(i), nullptr, display_list_log.at(i));
+					}
+					else
+					{
+						OpcodeDecoder_Run<false>(timewarp_log.at(i), nullptr, display_list_log.at(i));
 					}
 				}
 			}
@@ -2304,6 +2308,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			{
 				++skipped_opcode_replay_count;
 			}
+			is_preprocess_log.clear();
+			is_preprocess_log.resize(0);
 			timewarp_log.clear();
 			timewarp_log.resize(0);
 			display_list_log.clear();
