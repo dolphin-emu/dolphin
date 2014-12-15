@@ -42,9 +42,6 @@
     <ClCompile Include="PixelShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="PointGeometryShader.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="PSTextureEncoder.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -100,9 +97,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="PixelShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="PointGeometryShader.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="PSTextureEncoder.h">

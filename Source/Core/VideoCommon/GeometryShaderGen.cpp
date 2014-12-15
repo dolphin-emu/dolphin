@@ -140,6 +140,12 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("\t\toffset = float2(0, -" I_LINEPTWIDTH"[0] / " I_VIEWPORT".y);\n");
 		out.Write("\t}\n");
 	}
+	else if (primitive_type == PRIMITIVE_POINTS)
+	{
+		// Offset from center to upper right vertex
+		// Lerp PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
+		out.Write("float2 offset = float2(" I_LINEPTWIDTH"[1] / " I_VIEWPORT".x, -" I_LINEPTWIDTH"[1] / " I_VIEWPORT".y) * o[0].pos.w;\n");
+	}
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
@@ -186,11 +192,37 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 
 		for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
 		{
-			out.Write("\tr.tex%d.x += " I_LINEPTWIDTH"[2] * (" I_TEXOFFSETFLAGS"[%d] % 2);\n", i, i);
+			out.Write("\tr.tex%d.x += " I_LINEPTWIDTH"[2] * (" I_TEXOFFSETFLAGS"[%d] & 0x01);\n", i, i);
 		}
 
 		EmitVertex<T>(out, "l", ApiType);
 		EmitVertex<T>(out, "r", ApiType);
+	}
+	else if (primitive_type == PRIMITIVE_POINTS)
+	{
+		out.Write("VS_OUTPUT ll = f;\n");
+		out.Write("VS_OUTPUT lr = f;\n");
+		out.Write("VS_OUTPUT ul = f;\n");
+		out.Write("VS_OUTPUT ur = f;\n");
+
+		out.Write("ll.pos.xy += float2(-1,-1) * offset;\n");
+		out.Write("lr.pos.xy += float2(1,-1) * offset;\n");
+		out.Write("ul.pos.xy += float2(-1,1) * offset;\n");
+		out.Write("ur.pos.xy += offset;\n");
+
+		out.Write("float2 texOffset = float2(" I_LINEPTWIDTH"[3], " I_LINEPTWIDTH"[3]);\n");
+
+		for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
+		{
+			out.Write("ll.tex%d.xy += float2(0,1) * texOffset * (" I_TEXOFFSETFLAGS"[%d] & 0x10);\n", i, i);
+			out.Write("lr.tex%d.xy += texOffset * (" I_TEXOFFSETFLAGS"[%d] & 0x10);\n", i, i);
+			out.Write("ur.tex%d.xy += float2(1,0) * texOffset * (" I_TEXOFFSETFLAGS"[%d] & 0x10);\n", i, i);
+		}
+
+		EmitVertex<T>(out, "ll", ApiType);
+		EmitVertex<T>(out, "lr", ApiType);
+		EmitVertex<T>(out, "ul", ApiType);
+		EmitVertex<T>(out, "ur", ApiType);
 	}
 	else
 	{
