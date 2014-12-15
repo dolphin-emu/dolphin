@@ -197,13 +197,15 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 
 // This one can load both leftover map files on game discs (like Zelda), and mapfiles
 // produced by SaveSymbolMap below.
-bool PPCSymbolDB::LoadMap(const std::string& filename)
+// bad=true means carefully load map files that might not be from exactly the right version
+bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 {
 	File::IOFile f(filename, "r");
 	if (!f)
 		return false;
 
 	bool started = false;
+	int good_count = 0, bad_count = 0;
 
 	char line[512];
 	while (fgets(line, 512, f.GetHandle()))
@@ -261,96 +263,24 @@ bool PPCSymbolDB::LoadMap(const std::string& filename)
 		// Check if this is a valid entry.
 		if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
 		{
-			AddKnownSymbol(vaddress | 0x80000000, size, name); // ST_FUNCTION
-		}
-	}
-
-	Index();
-	return true;
-}
-
-// Carefully load map files that might not be from exactly the right version
-bool PPCSymbolDB::LoadBadMap(const std::string& filename)
-{
-	File::IOFile f(filename, "r");
-	if (!f)
-		return false;
-
-	bool started = false;
-	int good_count = 0, bad_count = 0;
-
-	char line[512];
-	while (fgets(line, 512, f.GetHandle()))
-	{
-		if (strlen(line) < 4)
-			continue;
-
-		char temp[256];
-		sscanf(line, "%255s", temp);
-
-		if (strcmp(temp, "UNUSED") == 0) continue;
-		if (strcmp(temp, ".text") == 0)  { started = true; continue; };
-		if (strcmp(temp, ".init") == 0)  { started = true; continue; };
-		if (strcmp(temp, "Starting") == 0) continue;
-		if (strcmp(temp, "extab") == 0) continue;
-		if (strcmp(temp, ".ctors") == 0) break; //uh?
-		if (strcmp(temp, ".dtors") == 0) break;
-		if (strcmp(temp, ".rodata") == 0) continue;
-		if (strcmp(temp, ".data") == 0) continue;
-		if (strcmp(temp, ".sbss") == 0) continue;
-		if (strcmp(temp, ".sdata") == 0) continue;
-		if (strcmp(temp, ".sdata2") == 0) continue;
-		if (strcmp(temp, "address") == 0)  continue;
-		if (strcmp(temp, "-----------------------") == 0)  continue;
-		if (strcmp(temp, ".sbss2") == 0) break;
-		if (temp[1] == ']') continue;
-
-		if (!started) continue;
-
-		u32 address, vaddress, size, unknown;
-		char name[512];
-		// some entries in the table have a function name followed by " (entry of " followed by a container name, followed by ")"
-		// instead of a space followed by a number followed by a space followed by a name
-		if (strlen(line) > 27 && line[27] != ' ' && strstr(line, "(entry of "))
-		{
-			sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
-		}
-		else
-		{
-			sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
-		}
-
-		const char *namepos = strstr(line, name);
-		if (namepos != nullptr) //would be odd if not :P
-			strcpy(name, namepos);
-		name[strlen(name) - 1] = 0;
-
-		// we want the function names only .... TODO: or do we really? aren't we wasting information here?
-		for (size_t i = 0; i < strlen(name); i++)
-		{
-			if (name[i] == ' ') name[i] = 0x00;
-			if (name[i] == '(') name[i] = 0x00;
-		}
-
-		// Check if this is a valid entry.
-		if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
-		{
 			vaddress |= 0x80000000;
-			// check for BLR before function
-			u32 opcode = Memory::Read_Instruction(vaddress - 4);
-			if (opcode == 0x4e800020)
+			bool good = !bad;
+			if (!good)
 			{
-				// check for BLR at end of function
-				opcode = Memory::Read_Instruction(vaddress + size - 4);
+				// check for BLR before function
+				u32 opcode = Memory::Read_Instruction(vaddress - 4);
 				if (opcode == 0x4e800020)
 				{
-					AddKnownSymbol(vaddress, size, name); // ST_FUNCTION
-					++good_count;
+					// check for BLR at end of function
+					opcode = Memory::Read_Instruction(vaddress + size - 4);
+					if (opcode == 0x4e800020)
+						good = true;
 				}
-				else
-				{
-					++bad_count;
-				}
+			}
+			if (good)
+			{
+				++good_count;
+				AddKnownSymbol(vaddress | 0x80000000, size, name); // ST_FUNCTION
 			}
 			else
 			{
@@ -360,7 +290,8 @@ bool PPCSymbolDB::LoadBadMap(const std::string& filename)
 	}
 
 	Index();
-	PanicAlertT("Loaded %d good functions, ignored %d bad functions", good_count, bad_count);
+	if (bad)
+		PanicAlertT("Loaded %d good functions, ignored %d bad functions", good_count, bad_count);
 	return true;
 }
 

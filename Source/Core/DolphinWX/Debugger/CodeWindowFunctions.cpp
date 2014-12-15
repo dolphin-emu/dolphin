@@ -314,7 +314,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 			if (!path.IsEmpty())
 			{
-				g_symbolDB.LoadBadMap(WxStrToStr(path));
+				g_symbolDB.LoadMap(WxStrToStr(path), true);
 				Parent->StatusBarMessage("Loaded symbols from '%s'", WxStrToStr(path).c_str());
 			}
 			HLE::PatchFunctions();
