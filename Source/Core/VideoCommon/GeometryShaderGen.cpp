@@ -73,9 +73,8 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("cbuffer GSBlock {\n");
 	out.Write(
 		"\tfloat4 " I_STEREOPARAMS";\n"
-		"\tfloat4 " I_LINEPTWIDTH";\n"
-		"\tfloat4 " I_VIEWPORT";\n"
-		"\tint " I_TEXOFFSETFLAGS"[8];\n"
+		"\tfloat4 " I_LINEPTPARAMS";\n"
+		"\tint4 " I_TEXOFFSET";\n"
 		"};\n");
 
 	uid_data->numTexGens = bpmem.genMode.numtexgens;
@@ -130,21 +129,21 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("\tfloat2 to = abs(o[1].pos.xy - o[0].pos.xy);\n");
 		// FIXME: What does real hardware do when line is at a 45-degree angle?
 		// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
-		out.Write("\tif (" I_VIEWPORT".y * to.y > " I_VIEWPORT".x * to.x) {\n");
+		out.Write("\tif (" I_LINEPTPARAMS".y * to.y > " I_LINEPTPARAMS".x * to.x) {\n");
 		// Line is more tall. Extend geometry left and right.
 		// Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
-		out.Write("\t\toffset = float2(" I_LINEPTWIDTH"[0] / " I_VIEWPORT".x, 0);\n");
+		out.Write("\t\toffset = float2(" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".x, 0);\n");
 		out.Write("\t} else {\n");
 		// Line is more wide. Extend geometry up and down.
 		// Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
-		out.Write("\t\toffset = float2(0, -" I_LINEPTWIDTH"[0] / " I_VIEWPORT".y);\n");
+		out.Write("\t\toffset = float2(0, -" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".y);\n");
 		out.Write("\t}\n");
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
 		// Offset from center to upper right vertex
 		// Lerp PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
-		out.Write("float2 offset = float2(" I_LINEPTWIDTH"[1] / " I_VIEWPORT".x, -" I_LINEPTWIDTH"[1] / " I_VIEWPORT".y) * o[0].pos.w;\n");
+		out.Write("float2 offset = float2(" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".x, -" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".y) * o[0].pos.w;\n");
 	}
 
 	if (g_ActiveConfig.iStereoMode > 0)
@@ -190,34 +189,43 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("\tl.pos.xy -= offset * l.pos.w;\n");
 		out.Write("\tr.pos.xy += offset * r.pos.w;\n");
 
+		out.Write("\tif (" I_TEXOFFSET"[2] != 0) {\n");
+		out.Write("\tfloat texOffset = 1.0 / float(" I_TEXOFFSET"[2]);\n");
+
 		for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
 		{
-			out.Write("\tr.tex%d.x += " I_LINEPTWIDTH"[2] * (" I_TEXOFFSETFLAGS"[%d] & 0x01);\n", i, i);
+			out.Write("\tif (((" I_TEXOFFSET"[0] >> %d) & 0x1) != 0)\n", i);
+			out.Write("\t\tr.tex%d.x += texOffset;\n", i);
 		}
+		out.Write("\t}\n");
 
 		EmitVertex<T>(out, "l", ApiType);
 		EmitVertex<T>(out, "r", ApiType);
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
-		out.Write("VS_OUTPUT ll = f;\n");
-		out.Write("VS_OUTPUT lr = f;\n");
-		out.Write("VS_OUTPUT ul = f;\n");
-		out.Write("VS_OUTPUT ur = f;\n");
+		out.Write("\tVS_OUTPUT ll = f;\n");
+		out.Write("\tVS_OUTPUT lr = f;\n");
+		out.Write("\tVS_OUTPUT ul = f;\n");
+		out.Write("\tVS_OUTPUT ur = f;\n");
 
-		out.Write("ll.pos.xy += float2(-1,-1) * offset;\n");
-		out.Write("lr.pos.xy += float2(1,-1) * offset;\n");
-		out.Write("ul.pos.xy += float2(-1,1) * offset;\n");
-		out.Write("ur.pos.xy += offset;\n");
+		out.Write("\tll.pos.xy += float2(-1,-1) * offset;\n");
+		out.Write("\tlr.pos.xy += float2(1,-1) * offset;\n");
+		out.Write("\tul.pos.xy += float2(-1,1) * offset;\n");
+		out.Write("\tur.pos.xy += offset;\n");
 
-		out.Write("float2 texOffset = float2(" I_LINEPTWIDTH"[3], " I_LINEPTWIDTH"[3]);\n");
+		out.Write("\tif (" I_TEXOFFSET"[3] != 0) {\n");
+		out.Write("\tfloat2 texOffset = float2(1.0 / float(" I_TEXOFFSET"[3]), 1.0 / float(" I_TEXOFFSET"[3]));\n");
 
 		for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
 		{
-			out.Write("ll.tex%d.xy += float2(0,1) * texOffset * (" I_TEXOFFSETFLAGS"[%d] & 0x10);\n", i, i);
-			out.Write("lr.tex%d.xy += texOffset * (" I_TEXOFFSETFLAGS"[%d] & 0x10);\n", i, i);
-			out.Write("ur.tex%d.xy += float2(1,0) * texOffset * (" I_TEXOFFSETFLAGS"[%d] & 0x10);\n", i, i);
+			out.Write("\tif (((" I_TEXOFFSET"[1] >> %d) & 0x1) != 0) {\n", i);
+			out.Write("\t\tll.tex%d.xy += float2(0,1) * texOffset;\n", i);
+			out.Write("\t\tlr.tex%d.xy += texOffset;\n", i);
+			out.Write("\t\tur.tex%d.xy += float2(1,0) * texOffset;\n", i);
+			out.Write("\t}\n");
 		}
+		out.Write("\t}\n");
 
 		EmitVertex<T>(out, "ll", ApiType);
 		EmitVertex<T>(out, "lr", ApiType);
