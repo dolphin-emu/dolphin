@@ -6,6 +6,8 @@
 #include "VideoBackends/OGL/GLInterface/WGL.h"
 
 #include "VideoCommon/VR920.h"
+#else
+#include "VideoBackends/OGL/GLInterface/GLX.h"
 #endif
 
 #include "Common/CommonFuncs.h"
@@ -487,6 +489,8 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
 	g_renderer->ResetAPIState();
 
+	OpenGL_BindAttributelessVAO();
+
 	GLuint src_texture = 0;
 
 	// We aren't allowed to render and sample the same texture in one draw call,
@@ -586,8 +590,10 @@ void FramebufferManager::ConfigureRift()
 	}
 #endif
 #else
-	cfg.OGL.Disp = glXGetCurrentDisplay();
+	cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->dpy;
+#ifdef OCULUSSDK043
 	cfg.OGL.Win = glXGetCurrentDrawable();
+#endif
 #endif
 	int caps = 0;
 	if (g_Config.bChromatic)

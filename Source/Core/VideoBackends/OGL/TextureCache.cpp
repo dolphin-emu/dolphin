@@ -249,6 +249,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	{
 		FramebufferManager::SetFramebuffer(framebuffer);
 
+		OpenGL_BindAttributelessVAO();
+
 		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, read_texture);
 

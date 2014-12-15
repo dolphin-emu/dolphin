@@ -543,7 +543,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_GPUDeterminism.Add(_("auto"));
 	arrayStringFor_GPUDeterminism.Add(_("none"));
 	arrayStringFor_GPUDeterminism.Add(_("fake-completion"));
-	GPUDeterminism = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_GPUDeterminism);
+	GPUDeterminism = new wxChoice(m_GameConfig, ID_GPUDETERMINISM, wxDefaultPosition, wxDefaultSize, arrayStringFor_GPUDeterminism);
 	sGPUDeterminism->Add(GPUDeterminismText);
 	sGPUDeterminism->Add(GPUDeterminism);
 
@@ -685,7 +685,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_MakerID = new wxTextCtrl(m_Information, ID_MAKERID, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_RevisionText = new wxStaticText(m_Information, wxID_ANY, _("Revision:"));
 	m_Revision = new wxTextCtrl(m_Information, ID_REVISION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-	wxStaticText* const m_DateText = new wxStaticText(m_Information, wxID_ANY, _("Date:"));
+	wxStaticText* const m_DateText = new wxStaticText(m_Information, wxID_ANY, _("Build Date:"));
 	m_Date = new wxTextCtrl(m_Information, ID_DATE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_FSTText = new wxStaticText(m_Information, wxID_ANY, _("FST Size:"));
 	m_FST = new wxTextCtrl(m_Information, ID_FST, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);

@@ -206,7 +206,7 @@ bool cInterfaceGLX::MakeCurrentOffscreen()
 	if (dpy_offscreen && win_offscreen && ctx_offscreen)
 		success = glXMakeCurrent(dpy_offscreen, win_offscreen, ctx_offscreen) ? true : false;
 	else
-		success = glXMakeCurrent(dpy,win,ctx) ? true : false;
+		return MakeCurrent();
 	if (success)
 	{
 		// Grab the swap interval function pointer
@@ -221,7 +221,10 @@ bool cInterfaceGLX::ClearCurrent()
 }
 
 bool cInterfaceGLX::ClearCurrentOffscreen() {
-	return glXMakeCurrent(dpy_offscreen, None, nullptr);
+	if(dpy_offscreen)
+		return glXMakeCurrent(dpy_offscreen, None, nullptr);
+	else
+		return ClearCurrent();
 }
 
 

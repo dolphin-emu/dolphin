@@ -381,6 +381,43 @@ void VideoConfig::GameIniSave()
 	g_SavedConfig = *this;
 }
 
+void VideoConfig::GameIniReset()
+{
+	// Load game ini
+	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
+	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
+
+	IniFile GameIniDefault;
+	GameIniDefault.Load(GameIniFileDefault);
+	if (GameIniFileDefaultRevisionSpecific != "")
+		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
+
+#define LOAD_DEFAULT(section, key, var, def) do { \
+			decltype(var) temp = var; \
+			if (GameIniDefault.GetIfExists(section, key, &var)) \
+				var = temp; \
+			else \
+				var = def; \
+	 	} while (0)
+
+	LOAD_DEFAULT("VR", "Disable3D", bDisable3D, false);
+	LOAD_DEFAULT("VR", "UnitsPerMetre", fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
+	LOAD_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
+	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
+	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
+	LOAD_DEFAULT("VR", "HudThickness", fHudThickness, DEFAULT_VR_HUD_THICKNESS);
+	LOAD_DEFAULT("VR", "Hud3DCloser", fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
+	LOAD_DEFAULT("VR", "CameraForward", fCameraForward, DEFAULT_VR_CAMERA_FORWARD);
+	LOAD_DEFAULT("VR", "CameraPitch", fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
+	LOAD_DEFAULT("VR", "AimDistance", fAimDistance, DEFAULT_VR_AIM_DISTANCE);
+	LOAD_DEFAULT("VR", "ScreenHeight", fScreenHeight, DEFAULT_VR_SCREEN_HEIGHT);
+	LOAD_DEFAULT("VR", "ScreenDistance", fScreenDistance, DEFAULT_VR_SCREEN_DISTANCE);
+	LOAD_DEFAULT("VR", "ScreenThickness", fScreenThickness, DEFAULT_VR_SCREEN_THICKNESS);
+	LOAD_DEFAULT("VR", "ScreenUp", fScreenUp, DEFAULT_VR_SCREEN_UP);
+	LOAD_DEFAULT("VR", "ScreenRight", fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
+	LOAD_DEFAULT("VR", "ScreenPitch", fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
+}
+
 void VideoConfig::VerifyValidity()
 {
 	// TODO: Check iMaxAnisotropy value
