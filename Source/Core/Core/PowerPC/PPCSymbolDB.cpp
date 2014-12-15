@@ -195,6 +195,23 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 	}
 }
 
+// The use case for handling bad map files is when you have a game with a map file on the disc, 
+// but you can't tell whether that map file is for the particular release version used in that game,
+// or when you know that the map file is not for that build, but perhaps half the functions in the
+// map file are still at the correct locations. Which are both common situations. It will load any 
+// function names and addresses that have a BLR before the start and at the end, but ignore any that 
+// don't, and then tell you how many were good and how many it ignored. That way you either find out 
+// it is all good and use it, find out it is partly good and use the good part, or find out that only 
+// a handful of functions lined up by coincidence and then you can clear the symbols. In the future I 
+// want to make it smarter, so it checks that there are no BLRs in the middle of the function 
+// (by checking the code length), and also make it cope with added functions in the middle or work 
+// based on the order of the functions and their approximate length. Currently that process has to be
+// done manually and is very tedious.
+// The use case for separate handling of map files that aren't bad is that you usually want to also
+// load names that aren't functions(if included in the map file) without them being rejected as invalid.
+// You can see discussion about these kinds of issues here : https://forums.oculus.com/viewtopic.php?f=42&t=11241&start=580
+// https://m2k2.taigaforum.com/post/metroid_prime_hacking_help_25.html#metroid_prime_hacking_help_25
+
 // This one can load both leftover map files on game discs (like Zelda), and mapfiles
 // produced by SaveSymbolMap below.
 // bad=true means carefully load map files that might not be from exactly the right version
@@ -204,14 +221,22 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 	if (!f)
 		return false;
 
-	bool started = false;
+	// four columns are used in American Mensa Academy map files and perhaps other games
+	bool started = false, four_columns = false;
 	int good_count = 0, bad_count = 0;
 
 	char line[512];
 	while (fgets(line, 512, f.GetHandle()))
 	{
-		if (strlen(line) < 4)
+		size_t length = strlen(line);
+		if (length < 4)
 			continue;
+
+		if (length == 34 && strcmp(line, "  address  Size   address  offset\n") == 0)
+		{
+			four_columns = true;
+			continue;
+		}
 
 		char temp[256];
 		sscanf(line, "%255s", temp);
@@ -235,13 +260,53 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 
 		if (!started) continue;
 
-		u32 address, vaddress, size, unknown;
-		char name[512];
+		u32 address, vaddress, size, offset, unknown;
+		char name[512], container[512];
+		if (four_columns)
+		{
+			// sometimes there is no unknown number, and sometimes it is because it is an entry of something else
+			if (length > 37 && line[37]==' ')
+			{
+				unknown = 0;
+				sscanf(line, "%08x %08x %08x %08x %511s", &address, &size, &vaddress, &offset, name);
+				char *s = strstr(line, "(entry of ");
+				if (s)
+				{
+					sscanf(s + 10, "%511s", container);
+					char *s2 = (strchr(container, ')'));
+					if (s2 && container[0]!='.')
+					{
+						s2[0] = '\0';
+						strcat(container, "::");
+						strcat(container, name);
+						strcpy(name, container);
+					}
+				}
+			}
+			else
+			{
+				sscanf(line, "%08x %08x %08x %08x %i %511s", &address, &size, &vaddress, &offset, &unknown, name);
+			}
+		}
 		// some entries in the table have a function name followed by " (entry of " followed by a container name, followed by ")"
 		// instead of a space followed by a number followed by a space followed by a name
-		if (strlen(line) > 27 && line[27] != ' ' && strstr(line, "(entry of "))
+		else if (length > 27 && line[27] != ' ' && strstr(line, "(entry of "))
 		{
+			unknown = 0;
 			sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
+			char *s = strstr(line, "(entry of ");
+			if (s)
+			{
+				sscanf(s + 10, "%511s", container);
+				char *s2 = (strchr(container, ')'));
+				if (s2 && container[0] != '.')
+				{
+					s2[0] = '\0';
+					strcat(container, "::");
+					strcat(container, name);
+					strcpy(name, container);
+				}
+			}
 		}
 		else
 		{
