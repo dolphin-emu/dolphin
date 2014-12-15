@@ -120,8 +120,6 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("\tGS_OUTPUT gs;\n");
 	}
 
-	out.Write("\tVS_OUTPUT f;\n");
-
 	if (primitive_type == PRIMITIVE_LINES)
 	{
 		// GameCube/Wii's line drawing algorithm is a little quirky. It does not
