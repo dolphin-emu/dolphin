@@ -11,6 +11,8 @@
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/VideoInterface.h"
+#include "VideoCommon/VR.h"
+#include "VideoCommon/VideoConfig.h"
 
 // UGLINESS
 #include "Core/PowerPC/PowerPC.h"
@@ -48,7 +50,13 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	float aid_sample_rate = m_input_sample_rate + offset;
 	if (consider_framelimit && framelimit > 1)
 	{
-		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+		// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
+		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
+		// back to 100% speed, it must be slowed down by 25%
+		if (g_has_hmd && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
+			aid_sample_rate = aid_sample_rate * (framelimit - 1) * 4 / VideoInterface::TargetRefreshRate;
+		else
+			aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
 	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );
