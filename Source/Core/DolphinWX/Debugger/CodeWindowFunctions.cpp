@@ -156,7 +156,7 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"),
 		_("Save the function names for each address to a .map file in your user settings map folder, named after the title id."));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_LOADMAPFILEAS, _("Choose symbol map file to load..."),
+	pSymbolsMenu->Append(IDM_LOADMAPFILEAS, _("Load &other map file..."),
 		_("Load any .map file containing the function names and addresses for this game."));
 	pSymbolsMenu->Append(IDM_LOADBADMAPFILE, _("Load &bad map file..."),
 		_("Try to load a .map file that might be from a slightly different version."));
@@ -176,9 +176,9 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 		_("Create a .dsy file that can be used to recognise these same functions in other games."));
 	pSymbolsMenu->Append(IDM_APPENDSIGNATUREFILE, _("Append to &existing signature file..."),
 		_("Add any named functions missing from a .dsy file, so it can also recognise these additional functions in other games."));
-	pSymbolsMenu->Append(IDM_COMBINESIGNATUREFILES, _("Combine &2 signature files..."),
+	pSymbolsMenu->Append(IDM_COMBINESIGNATUREFILES, _("Combine two signature files..."),
 		_("Make a new .dsy file which can recognise more functions, by combining two existing files. The first input file has priority."));
-	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _("&Use signature file..."),
+	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _("Apply signat&ure file..."),
 		_("Must use Generate symbol map first! Recognise names of any standard library functions used in multiple games, by loading them from a .dsy file."));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _("&Patch HLE functions"));
