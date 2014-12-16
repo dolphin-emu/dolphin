@@ -615,7 +615,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		(target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO
 	};
 
-	if (bpmem.blendmode.logicopenable && !forceUpdate)
+	if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable && !forceUpdate)
 		return;
 
 	if (bpmem.blendmode.subtract)
@@ -1234,7 +1234,7 @@ void Renderer::SetLogicOpMode()
 		D3D11_BLEND_ONE//15
 	};
 
-	if (bpmem.blendmode.logicopenable)
+	if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
 	{
 		gx_state.blend.blend_enable = true;
 		gx_state.blend.blend_op = d3dLogicOps[bpmem.blendmode.logicmode];
