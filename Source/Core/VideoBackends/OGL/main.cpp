@@ -139,7 +139,7 @@ static void InitBackendInfo()
 	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu dependent and must be set in renderer
 	//g_Config.backend_info.bSupportsEarlyZ = true; // is gpu dependent and must be set in renderer
 	g_Config.backend_info.bSupportsOversizedViewports = true;
-	g_Config.backend_info.bSupportsStereoscopy = true;
+	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = false;
 
 	g_Config.backend_info.Adapters.clear();

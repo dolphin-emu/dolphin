@@ -498,7 +498,7 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 			g_ogl_config.bSupportsAEP = false;
-			g_Config.backend_info.bSupportsStereoscopy = false;
+			g_Config.backend_info.bSupportsGeometryShaders = false;
 		}
 		else
 		{
@@ -506,7 +506,7 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
-			g_Config.backend_info.bSupportsStereoscopy = g_ogl_config.bSupportsAEP;
+			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
 		}
 	}
 	else
@@ -522,13 +522,13 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
-			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
+			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
-			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
+			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
 		}
 		else
 		{
@@ -565,7 +565,7 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsStereoscopy)
+	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsGeometryShaders)
 		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
 
 	if (!bSuccess)

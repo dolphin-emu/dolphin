@@ -214,7 +214,7 @@ void VideoConfig::VerifyValidity()
 	// TODO: Check iMaxAnisotropy value
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
-	if (!backend_info.bSupportsStereoscopy) iStereoMode = 0;
+	if (!backend_info.bSupportsGeometryShaders) iStereoMode = 0;
 }
 
 void VideoConfig::Save(const std::string& ini_file)
