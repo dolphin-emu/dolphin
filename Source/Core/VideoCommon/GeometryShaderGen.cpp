@@ -27,7 +27,7 @@ static const char* primitives_d3d[] =
 	"triangle"
 };
 
-template<class T> static inline void EmitVertex(T& out, const char *vertex, API_TYPE ApiType);
+template<class T> static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType);
 
 template<class T>
 static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE ApiType)
@@ -124,20 +124,20 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		// GameCube/Wii's line drawing algorithm is a little quirky. It does not
 		// use the correct line caps. Instead, the line caps are vertical or
 		// horizontal depending the slope of the line.
-
-		out.Write("\tfloat2 offset;\n");
-		out.Write("\tfloat2 to = abs(o[1].pos.xy - o[0].pos.xy);\n");
-		// FIXME: What does real hardware do when line is at a 45-degree angle?
-		// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
-		out.Write("\tif (" I_LINEPTPARAMS".y * to.y > " I_LINEPTPARAMS".x * to.x) {\n");
-		// Line is more tall. Extend geometry left and right.
-		// Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
-		out.Write("\t\toffset = float2(" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".x, 0);\n");
-		out.Write("\t} else {\n");
-		// Line is more wide. Extend geometry up and down.
-		// Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
-		out.Write("\t\toffset = float2(0, -" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".y);\n");
-		out.Write("\t}\n");
+		out.Write(
+			"\tfloat2 offset;\n"
+			"\tfloat2 to = abs(o[1].pos.xy - o[0].pos.xy);\n"
+			// FIXME: What does real hardware do when line is at a 45-degree angle?
+			// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
+			"\tif (" I_LINEPTPARAMS".y * to.y > " I_LINEPTPARAMS".x * to.x) {\n"
+			// Line is more tall. Extend geometry left and right.
+			// Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
+			"\t\toffset = float2(" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".x, 0);\n"
+			"\t} else {\n"
+			// Line is more wide. Extend geometry up and down.
+			// Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
+			"\t\toffset = float2(0, -" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".y);\n"
+			"\t}\n");
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
@@ -168,7 +168,9 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("\tlayer = eye;\n");
 		}
 		else
+		{
 			out.Write("\tgs.layer = eye;\n");
+		}
 
 		// For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
 		// to the depth of the vertex. We retrieve the depth value from the w-component of the projected
@@ -183,11 +185,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 
 	if (primitive_type == PRIMITIVE_LINES)
 	{
-		out.Write("\tVS_OUTPUT l = f;\n");
-		out.Write("\tVS_OUTPUT r = f;\n");
+		out.Write("\tVS_OUTPUT l = f;\n"
+		          "\tVS_OUTPUT r = f;\n");
 
-		out.Write("\tl.pos.xy -= offset * l.pos.w;\n");
-		out.Write("\tr.pos.xy += offset * r.pos.w;\n");
+		out.Write("\tl.pos.xy -= offset * l.pos.w;\n"
+		          "\tr.pos.xy += offset * r.pos.w;\n");
 
 		out.Write("\tif (" I_TEXOFFSET"[2] != 0) {\n");
 		out.Write("\tfloat texOffset = 1.0 / float(" I_TEXOFFSET"[2]);\n");
@@ -204,15 +206,15 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
-		out.Write("\tVS_OUTPUT ll = f;\n");
-		out.Write("\tVS_OUTPUT lr = f;\n");
-		out.Write("\tVS_OUTPUT ul = f;\n");
-		out.Write("\tVS_OUTPUT ur = f;\n");
+		out.Write("\tVS_OUTPUT ll = f;\n"
+		          "\tVS_OUTPUT lr = f;\n"
+		          "\tVS_OUTPUT ul = f;\n"
+		          "\tVS_OUTPUT ur = f;\n");
 
-		out.Write("\tll.pos.xy += float2(-1,-1) * offset;\n");
-		out.Write("\tlr.pos.xy += float2(1,-1) * offset;\n");
-		out.Write("\tul.pos.xy += float2(-1,1) * offset;\n");
-		out.Write("\tur.pos.xy += offset;\n");
+		out.Write("\tll.pos.xy += float2(-1,-1) * offset;\n"
+		          "\tlr.pos.xy += float2(1,-1) * offset;\n"
+		          "\tul.pos.xy += float2(-1,1) * offset;\n"
+		          "\tur.pos.xy += offset;\n");
 
 		out.Write("\tif (" I_TEXOFFSET"[3] != 0) {\n");
 		out.Write("\tfloat2 texOffset = float2(1.0 / float(" I_TEXOFFSET"[3]), 1.0 / float(" I_TEXOFFSET"[3]));\n");
@@ -245,7 +247,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		out.Write("\toutput.RestartStrip();\n");
 
 	if (g_ActiveConfig.iStereoMode > 0 && !g_ActiveConfig.backend_info.bSupportsGSInstancing)
-			out.Write("\t}\n");
+		out.Write("\t}\n");
 
 	out.Write("}\n");
 
@@ -257,7 +259,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 }
 
 template<class T>
-static inline void EmitVertex(T& out, const char *vertex, API_TYPE ApiType)
+static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType)
 {
 	if (ApiType == API_OPENGL)
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
