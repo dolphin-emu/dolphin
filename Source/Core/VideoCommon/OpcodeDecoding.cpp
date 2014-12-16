@@ -74,20 +74,25 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 	}
 }
 
-static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
+static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opcodereplay_frame, bool in_display_list, bool recursive_call)
 {
 	// TODO(Omega): Maybe dump FIFO to file on this error
 	PanicAlert(
 	    "GFX FIFO: Unknown Opcode (0x%x @ %p, preprocessing=%s).\n"
 	    "This means one of the following:\n"
+		"* The opcode replay buffer is enabled, which is currently buggy\n"
 	    "* The emulated GPU got desynced, disabling dual core can help\n"
 	    "* Command stream corrupted by some spurious memory bug\n"
 	    "* This really is an unknown opcode (unlikely)\n"
 	    "* Some other sort of bug\n\n"
-	    "Dolphin will now likely crash or hang. Enjoy." ,
+	    "Dolphin will now likely crash or hang. \n"
+		"(timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
 	    cmd_byte,
 	    buffer,
-	    preprocess ? "yes" : "no");
+	    preprocess ? "yes" : "no",
+		g_opcodereplay_frame ? "yes" : "no",
+		in_display_list ? "yes" : "no",
+		recursive_call ? "yes" : "no");
 
 	{
 		SCPFifoStruct &fifo = CommandProcessor::fifo;
@@ -131,13 +136,13 @@ void OpcodeDecoder_Shutdown()
 {
 	if (g_has_hmd)
 	{
-		g_timewarped_frame = true;
+		g_opcodereplay_frame = true;
+		is_preprocess_log.clear();
+		is_preprocess_log.resize(0);
 		timewarp_log.clear();
 		timewarp_log.resize(0);
 		display_list_log.clear();
 		display_list_log.resize(0);
-		cached_ram_location.clear();
-		cached_ram_location.resize(0);
 	}
 }
 
@@ -155,13 +160,13 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 	//		"Loop: (0x%x, 0x%x, timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
 	//		src.buffer,
 	//		src.end,
-	//		g_timewarped_frame ? "yes" : "no",
+	//		g_opcodereplay_frame ? "yes" : "no",
 	//		in_display_list ? "yes" : "no",
 	//		recursive_call ? "yes" : "no"
 	//		);
 	//}
 
-	if (!g_timewarped_frame && g_has_hmd && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
+	if (!g_opcodereplay_frame && g_has_hmd && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
 	{
 		timewarp_log.push_back(src);
 		display_list_log.push_back(in_display_list);
@@ -344,7 +349,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 			}
 			else
 			{
-				UnknownOpcode(cmd_byte, opcodeStart, is_preprocess);
+				UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcodereplay_frame, in_display_list, recursive_call);
 				totalCycles += 1;
 			}
 			break;

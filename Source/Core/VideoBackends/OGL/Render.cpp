@@ -2294,10 +2294,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (real_frame_count % 4 == 1)
 			{
 				g_ActiveConfig.iExtraVideoLoops = 2;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
 			else
 			{
 				g_ActiveConfig.iExtraVideoLoops = 3;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
 		}
 
@@ -2306,22 +2308,35 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (real_frame_count % 2 == 1)
 			{
 				g_ActiveConfig.iExtraVideoLoops = 1;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
 			else
 			{
 				g_ActiveConfig.iExtraVideoLoops = 2;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
+
 		}
 
 		if (g_ActiveConfig.bPullUp60fps)
 		{
+			//if (real_frame_count % 4 == 0)
+			//{
+			//	g_ActiveConfig.iExtraVideoLoops = 1;
+			//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+			//}
+			//else
+			//{
+			//	g_ActiveConfig.iExtraVideoLoops = 0;
+			//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+			//}
 			g_ActiveConfig.iExtraVideoLoops = 1;
 			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
 		}
 
-		if ((g_timewarped_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
+		if ((g_opcodereplay_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
 		{
-			g_timewarped_frame = false;
+			g_opcodereplay_frame = false;
 			++real_frame_count;
 			extra_video_loops_count = 0;
 		}
@@ -2329,12 +2344,30 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			if (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider)
 			{
-				g_timewarped_frame = true;
+				g_opcodereplay_frame = true;
 				++extra_video_loops_count;
 				skipped_opcode_replay_count = 0;
 
 				for (int i = 0; i < timewarp_log.size(); ++i)
 				{
+					//VertexManager::s_pCurBufferPointer = s_pCurBufferPointer_log.at(i);
+					//VertexManager::s_pEndBufferPointer = s_pEndBufferPointer_log.at(i);
+					//VertexManager::s_pBaseBufferPointer = s_pBaseBufferPointer_log.at(i);
+
+					//if (i == 0)
+					//{
+					//SCPFifoStruct &fifo = CommandProcessor::fifo;
+
+					//fifo.CPBase = CPBase_log.at(i);
+					//fifo.CPEnd = CPEnd_log.at(i);
+					//fifo.CPHiWatermark = CPHiWatermark_log.at(i);
+					//fifo.CPLoWatermark = CPLoWatermark_log.at(i);
+					//fifo.CPReadWriteDistance = CPReadWriteDistance_log.at(i);
+					//fifo.CPWritePointer = CPWritePointer_log.at(i);
+					//fifo.CPReadPointer = CPReadPointer_log.at(i);
+					//fifo.CPBreakpoint = CPBreakpoint_log.at(i);
+					//}
+
 					if (is_preprocess_log.at(i))
 					{
 						OpcodeDecoder_Run<true>(timewarp_log.at(i), nullptr, display_list_log.at(i));
@@ -2349,19 +2382,39 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			{
 				++skipped_opcode_replay_count;
 			}
+			//CPBase_log.resize(0);
+			//CPEnd_log.resize(0);
+			//CPHiWatermark_log.resize(0);
+			//CPLoWatermark_log.resize(0);
+			//CPReadWriteDistance_log.resize(0);
+			//CPWritePointer_log.resize(0);
+			//CPReadPointer_log.resize(0);
+			//CPBreakpoint_log.resize(0);
+			//CPBase_log.clear();
+			//CPEnd_log.clear();
+			//CPHiWatermark_log.clear();
+			//CPLoWatermark_log.clear();
+			//CPReadWriteDistance_log.clear();
+			//CPWritePointer_log.clear();
+			//CPReadPointer_log.clear();
+			//CPBreakpoint_log.clear();
+			//s_pCurBufferPointer_log.clear();
+			//s_pCurBufferPointer_log.resize(0);
+			//s_pEndBufferPointer_log.clear();
+			//s_pEndBufferPointer_log.resize(0);
+			//s_pBaseBufferPointer_log.clear();
+			//s_pBaseBufferPointer_log.resize(0);
 			is_preprocess_log.clear();
 			is_preprocess_log.resize(0);
 			timewarp_log.clear();
 			timewarp_log.resize(0);
 			display_list_log.clear();
 			display_list_log.resize(0);
-			cached_ram_location.clear();
-			cached_ram_location.resize(0);
 		}
 	}
 	else
 	{
-		g_timewarped_frame = true; //Don't log frames
+		g_opcodereplay_frame = true; //Don't log frames
 	}
 }
 

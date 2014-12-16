@@ -66,6 +66,8 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 
 namespace SystemTimers
@@ -117,7 +119,14 @@ static void DSPCallback(u64 userdata, int cyclesLate)
 static void AudioDMACallback(u64 userdata, int cyclesLate)
 {
 	int fields = VideoInterface::GetNumFields();
-	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
+	int period;
+	// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
+	// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
+	// back to 100% speed, it must be slowed down by 25%
+	if (g_has_hmd && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
+		period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 40 * fields);
+	else
+		period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
@@ -228,7 +237,9 @@ static void ThrottleCallback(u64 last_time, int cyclesLate)
 		last_time = time - max_fallback;
 	}
 	else if (frame_limiter && diff > 0)
+	{
 		Common::SleepCurrentThread(diff);
+	}
 	CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1);
 }
 

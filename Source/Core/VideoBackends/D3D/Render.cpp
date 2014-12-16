@@ -1318,10 +1318,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (real_frame_count % 4 == 1)
 			{
 				g_ActiveConfig.iExtraVideoLoops = 2;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
 			else
 			{
 				g_ActiveConfig.iExtraVideoLoops = 3;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
 		}
 
@@ -1330,22 +1332,35 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			if (real_frame_count % 2 == 1)
 			{
 				g_ActiveConfig.iExtraVideoLoops = 1;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
 			else
 			{
 				g_ActiveConfig.iExtraVideoLoops = 2;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
+				
 		}
 
 		if (g_ActiveConfig.bPullUp60fps)
 		{
+			//if (real_frame_count % 4 == 0)
+			//{
+			//	g_ActiveConfig.iExtraVideoLoops = 1;
+			//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+			//}
+			//else
+			//{
+			//	g_ActiveConfig.iExtraVideoLoops = 0;
+			//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+			//}
 			g_ActiveConfig.iExtraVideoLoops = 1;
 			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
 		}
 
-		if ((g_timewarped_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
+		if ((g_opcodereplay_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
 		{
-			g_timewarped_frame = false;
+			g_opcodereplay_frame = false;
 			++real_frame_count;
 			extra_video_loops_count = 0;
 		}
@@ -1353,7 +1368,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			if (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider)
 			{
-				g_timewarped_frame = true;
+				g_opcodereplay_frame = true;
 				++extra_video_loops_count;
 				skipped_opcode_replay_count = 0;
 
@@ -1419,13 +1434,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			timewarp_log.resize(0);
 			display_list_log.clear();
 			display_list_log.resize(0);
-			cached_ram_location.clear();
-			cached_ram_location.resize(0);
 		}
 	}
 	else
 	{
-		g_timewarped_frame = true; //Don't log frames
+		g_opcodereplay_frame = true; //Don't log frames
 	}
 }
 
