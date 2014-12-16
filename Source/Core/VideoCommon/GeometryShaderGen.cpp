@@ -87,18 +87,24 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 			out.Write("#define InstanceID gl_InvocationID\n");
 
-		out.Write("centroid in VS_OUTPUT o[%d];\n", vertex_in);
-		out.Write("centroid out VS_OUTPUT vs;\n");
+		out.Write("in VertexData {\n");
+		out.Write("\tcentroid VS_OUTPUT o;\n");
+		out.Write("} vs[%d];\n", vertex_in);
+
+		out.Write("out VertexData {\n");
+		out.Write("\tcentroid VS_OUTPUT o;\n");
 
 		if (g_ActiveConfig.iStereoMode > 0)
-			out.Write("flat out int layer;\n");
+			out.Write("\tflat int layer;\n");
+
+		out.Write("} ps;\n");
 
 		out.Write("void main()\n{\n");
 	}
 	else // D3D
 	{
-		out.Write("struct GS_OUTPUT {\n");
-		out.Write("\tVS_OUTPUT vs;\n");
+		out.Write("struct VertexData {\n");
+		out.Write("\tVS_OUTPUT o;\n");
 
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
@@ -108,25 +114,36 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		{
 			out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out, g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
-			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<GS_OUTPUT> output, in uint InstanceID : SV_GSInstanceID)\n{\n", primitives_d3d[primitive_type], vertex_in);
+			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<VertexData> output, in uint InstanceID : SV_GSInstanceID)\n{\n", primitives_d3d[primitive_type], vertex_in);
 		}
 		else
 		{
 			out.Write("[maxvertexcount(%d)]\n", g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
-			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<GS_OUTPUT> output)\n{\n", primitives_d3d[primitive_type], vertex_in);
+			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<VertexData> output)\n{\n", primitives_d3d[primitive_type], vertex_in);
 		}
 
-		out.Write("\tGS_OUTPUT gs;\n");
+		out.Write("\tVertexData ps;\n");
 	}
 
 	if (primitive_type == PRIMITIVE_LINES)
 	{
+		if (ApiType == API_OPENGL)
+		{
+			out.Write("\tVS_OUTPUT start = vs[0].o;\n");
+			out.Write("\tVS_OUTPUT end = vs[1].o;\n");
+		}
+		else
+		{
+			out.Write("\tVS_OUTPUT start = o[0];\n");
+			out.Write("\tVS_OUTPUT end = o[1];\n");
+		}
+
 		// GameCube/Wii's line drawing algorithm is a little quirky. It does not
 		// use the correct line caps. Instead, the line caps are vertical or
 		// horizontal depending the slope of the line.
 		out.Write(
 			"\tfloat2 offset;\n"
-			"\tfloat2 to = abs(o[1].pos.xy - o[0].pos.xy);\n"
+			"\tfloat2 to = abs(end.pos.xy - start.pos.xy);\n"
 			// FIXME: What does real hardware do when line is at a 45-degree angle?
 			// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
 			"\tif (" I_LINEPTPARAMS".y * to.y > " I_LINEPTPARAMS".x * to.x) {\n"
@@ -141,9 +158,14 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
+		if (ApiType == API_OPENGL)
+			out.Write("\tVS_OUTPUT point = vs[0].o;\n");
+		else
+			out.Write("\tVS_OUTPUT point = o[0];\n");
+
 		// Offset from center to upper right vertex
 		// Lerp PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
-		out.Write("float2 offset = float2(" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".x, -" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".y) * o[0].pos.w;\n");
+		out.Write("float2 offset = float2(" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".x, -" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".y) * point.pos.w;\n");
 	}
 
 	if (g_ActiveConfig.iStereoMode > 0)
@@ -157,20 +179,18 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	}
 
 	out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
-	out.Write("\tVS_OUTPUT f = o[i];\n");
+
+	if (ApiType == API_OPENGL)
+		out.Write("\tVS_OUTPUT f = vs[i].o;\n");
+	else
+		out.Write("\tVS_OUTPUT f = o[i];\n");
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
 		// Select the output layer
+		out.Write("\tps.layer = eye;\n");
 		if (ApiType == API_OPENGL)
-		{
 			out.Write("\tgl_Layer = eye;\n");
-			out.Write("\tlayer = eye;\n");
-		}
-		else
-		{
-			out.Write("\tgs.layer = eye;\n");
-		}
 
 		// For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
 		// to the depth of the vertex. We retrieve the depth value from the w-component of the projected
@@ -179,8 +199,8 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		// the depth value. This results in objects at a distance smaller than the convergence
 		// distance to seemingly appear in front of the screen.
 		// This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
-		out.Write("\tf.clipPos.x += " I_STEREOPARAMS"[eye] * (o[i].clipPos.w - " I_STEREOPARAMS"[2]);\n");
-		out.Write("\tf.pos.x += " I_STEREOPARAMS"[eye] * (o[i].pos.w - " I_STEREOPARAMS"[2]);\n");
+		out.Write("\tf.clipPos.x += " I_STEREOPARAMS"[eye] * (f.clipPos.w - " I_STEREOPARAMS"[2]);\n");
+		out.Write("\tf.pos.x += " I_STEREOPARAMS"[eye] * (f.pos.w - " I_STEREOPARAMS"[2]);\n");
 	}
 
 	if (primitive_type == PRIMITIVE_LINES)
@@ -264,12 +284,12 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
 
-	out.Write("\t%s = %s;\n", (ApiType == API_OPENGL) ? "vs" : "gs.vs", vertex);
+	out.Write("\tps.o = %s;\n", vertex);
 
 	if (ApiType == API_OPENGL)
 		out.Write("\tEmitVertex();\n");
 	else
-		out.Write("\toutput.Append(gs);\n");
+		out.Write("\toutput.Append(ps);\n");
 }
 
 void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYPE ApiType)

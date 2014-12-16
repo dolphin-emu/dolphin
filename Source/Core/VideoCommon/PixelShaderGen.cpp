@@ -316,11 +316,14 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// As a workaround, we interpolate at the centroid of the coveraged pixel, which
 		// is always inside the primitive.
 		// Without MSAA, this flag is defined to have no effect.
-		out.Write("centroid in VS_OUTPUT vs;\n");
-
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
+		out.Write("in VertexData {\n");
+		out.Write("\tcentroid VS_OUTPUT o;\n");
+
 		if (g_ActiveConfig.iStereoMode > 0)
-			out.Write("flat in int layer;\n");
+			out.Write("\tflat int layer;\n");
+
+		out.Write("};\n");
 
 		out.Write("void main()\n{\n");
 
@@ -328,18 +331,18 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Let's set up attributes
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
-			out.Write("\tfloat3 uv%d = vs.tex%d;\n", i, i);
+			out.Write("\tfloat3 uv%d = o.tex%d;\n", i, i);
 		}
-		out.Write("\tfloat4 clipPos = vs.clipPos;\n");
+		out.Write("\tfloat4 clipPos = o.clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
-			out.Write("\tfloat4 Normal = vs.Normal;\n");
+			out.Write("\tfloat4 Normal = o.Normal;\n");
 		}
 
 		// On Mali, global variables must be initialized as constants.
 		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 colors_0 = vs.colors_0;\n");
-		out.Write("\tfloat4 colors_1 = vs.colors_1;\n");
+		out.Write("\tfloat4 colors_0 = o.colors_0;\n");
+		out.Write("\tfloat4 colors_1 = o.colors_1;\n");
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}
