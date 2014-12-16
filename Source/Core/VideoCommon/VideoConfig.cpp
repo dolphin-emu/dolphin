@@ -67,7 +67,11 @@ VideoConfig::VideoConfig()
 	bPositionTracking = true;
 	bChromatic = true;
 	bTimewarp = true;
+#ifdef OCULUSSDK043
 	bVignette = false;
+#else
+	bVignette = true;
+#endif
 	bNoRestore = false;
 	bFlipVertical = false;
 	bSRGB = false;
