@@ -50,48 +50,45 @@ namespace HotkeysXInput
 		if (xinput_dev)
 		{
 			// get inputs from xinput device
-			std::vector<ciface::Core::Device::Input*>::const_iterator
-				i = xinput_dev->Inputs().begin(),
-				e = xinput_dev->Inputs().end();
 
-			u16 button_states;
-			bool binary_trigger_l;
-			bool binary_trigger_r;
-			bool binary_axis_l_x_pos;
-			bool binary_axis_l_x_neg;
-			bool binary_axis_l_y_pos;
-			bool binary_axis_l_y_neg;
-			bool binary_axis_r_x_pos;
-			bool binary_axis_r_x_neg;
-			bool binary_axis_r_y_pos;
-			bool binary_axis_r_y_neg;
+			u16 button_states = 0;
+			bool binary_trigger_l = false;
+			bool binary_trigger_r = false;
+			bool binary_axis_l_x_pos = false;
+			bool binary_axis_l_x_neg = false;
+			bool binary_axis_l_y_pos = false;
+			bool binary_axis_l_y_neg = false;
+			bool binary_axis_r_x_pos = false;
+			bool binary_axis_r_x_neg = false;
+			bool binary_axis_r_y_pos = false;
+			bool binary_axis_r_y_neg = false;
 
-			for (i; i != e; ++i)
+			for (auto input: xinput_dev->Inputs())
 			{
-				std::string control_name = (*i)->GetName();
+				std::string control_name = input->GetName();
 
 				if (control_name == "Button A")
-					button_states = (*i)->GetStates();
+					button_states = input->GetStates();
 				else if (control_name == "Trigger L")
-					binary_trigger_l = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_trigger_l = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Trigger R")
-					binary_trigger_r = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_trigger_r = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Left X+")
-					binary_axis_l_x_pos = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_l_x_pos = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Left X-")
-					binary_axis_l_x_neg = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_l_x_neg = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Left Y+")
-					binary_axis_l_y_pos = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_l_y_pos = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Left Y-")
-					binary_axis_l_y_neg = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_l_y_neg = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Right X+")
-					binary_axis_r_x_pos = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_r_x_pos = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Right X-")
-					binary_axis_r_x_neg = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_r_x_neg = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Right Y+")
-					binary_axis_r_y_pos = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_r_y_pos = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 				else if (control_name == "Right Y-")
-					binary_axis_r_y_neg = ((*i)->GetState() > XINPUT_ANALOG_THRESHOLD);
+					binary_axis_r_y_neg = (input->GetState() > XINPUT_ANALOG_THRESHOLD);
 			}
 
 			u32 full_controller_state =
