@@ -259,7 +259,10 @@ void VideoBackend::Shutdown()
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
-	GLInterface->ShutdownOffscreen();
+	if(g_ActiveConfig.bAsynchronousTimewarp)
+		GLInterface->ShutdownOffscreen();
+	else
+		GLInterface->Shutdown();
 }
 
 void VideoBackend::ShutdownOtherThread()
@@ -293,7 +296,10 @@ void VideoBackend::Video_Cleanup()
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = nullptr;
-		GLInterface->ClearCurrentOffscreen();
+		if(g_ActiveConfig.bAsynchronousTimewarp)
+			GLInterface->ClearCurrentOffscreen();
+		else
+			GLInterface->ClearCurrent();
 		SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
 		ShutdownVR();
 	}

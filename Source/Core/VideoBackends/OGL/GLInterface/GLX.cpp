@@ -203,8 +203,8 @@ bool cInterfaceGLX::MakeCurrent()
 bool cInterfaceGLX::MakeCurrentOffscreen()
 {
 	bool success;
-	if (dpy_offscreen && win_offscreen && ctx_offscreen)
-		success = glXMakeCurrent(dpy_offscreen, win_offscreen, ctx_offscreen) ? true : false;
+	if (dpy_offscreen && ctx_offscreen)
+		success = glXMakeCurrent(dpy_offscreen, win, ctx_offscreen) ? true : false;
 	else
 		return MakeCurrent();
 	if (success)
@@ -243,11 +243,11 @@ void cInterfaceGLX::Shutdown()
 void cInterfaceGLX::ShutdownOffscreen()
 {
 	XWindow.DestroyXWindow();
-		if (ctx_offscreen)
-		{
-			glXDestroyContext(dpy_offscreen, ctx_offscreen);
-			XCloseDisplay(dpy_offscreen);
-			ctx_offscreen = nullptr;
-		}
+	if (ctx_offscreen)
+	{
+		glXDestroyContext(dpy_offscreen, ctx_offscreen);
+		XCloseDisplay(dpy_offscreen);
+		ctx_offscreen = nullptr;
+	}
 }
 

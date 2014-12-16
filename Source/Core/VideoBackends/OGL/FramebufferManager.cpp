@@ -590,7 +590,7 @@ void FramebufferManager::ConfigureRift()
 	}
 #endif
 #else
-	cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->dpy;
+	cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->getDisplay();
 #ifdef OCULUSSDK043
 	cfg.OGL.Win = glXGetCurrentDrawable();
 #endif
