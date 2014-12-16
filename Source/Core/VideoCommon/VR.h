@@ -71,7 +71,7 @@ extern std::vector<DataReader> timewarp_log;
 extern std::vector<bool> display_list_log;
 extern std::vector<bool> cached_ram_location;
 extern std::vector<bool> is_preprocess_log;
-extern bool g_timewarped_frame;
+extern bool g_opcodereplay_frame;
 extern int skipped_opcode_replay_count;
 
 //extern std::vector<u8*> s_pCurBufferPointer_log;

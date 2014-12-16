@@ -46,7 +46,7 @@ std::vector<DataReader> timewarp_log;
 std::vector<bool> display_list_log;
 std::vector<bool> is_preprocess_log;
 std::vector<bool> cached_ram_location;
-bool g_timewarped_frame = false;
+bool g_opcodereplay_frame = false;
 int skipped_opcode_replay_count = 0;
 
 //std::vector<u8*> s_pCurBufferPointer_log;
