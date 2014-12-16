@@ -57,40 +57,36 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, B
 	const u8* trampoline = GetCodePtr();
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
+	registersInUse[addrReg] = true;
+	registersInUse[dataReg] = false;
 
 	// It's a read. Easy.
 	// RSP alignment here is 8 due to the call.
 	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
 
-	if (addrReg != ABI_PARAM1)
-		MOV(32, R(ABI_PARAM1), R(addrReg));
+	int dataRegSize = info.operandSize == 8 ? 64 : 32;
+	MOVTwo(dataRegSize, ABI_PARAM1, addrReg, ABI_PARAM2, dataReg);
 
 	if (info.displacement)
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 
 	switch (info.operandSize)
 	{
+	case 8:
+		CALL((void *)&Memory::Read_U64_Val);
+		break;
 	case 4:
-		CALL((void *)&Memory::Read_U32);
+		CALL((void *)&Memory::Read_U32_Val);
 		break;
 	case 2:
-		CALL((void *)&Memory::Read_U16);
-		SHL(32, R(ABI_RETURN), Imm8(16));
+		CALL(info.signExtend ? (void *)&Memory::Read_S16_Val : (void *)&Memory::Read_U16_Val);
 		break;
 	case 1:
-		CALL((void *)&Memory::Read_U8);
+		CALL(info.signExtend ? (void *)&Memory::Read_S8_Val : (void *)&Memory::Read_U8_Val);
 		break;
 	}
 
-	if (info.signExtend && info.operandSize == 1)
-	{
-		// Need to sign extend value from Read_U8.
-		MOVSX(32, 8, dataReg, R(ABI_RETURN));
-	}
-	else if (dataReg != EAX)
-	{
-		MOV(32, R(dataReg), R(ABI_RETURN));
-	}
+	MOV(dataRegSize, R(dataReg), R(ABI_RETURN));
 
 	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
 	RET();

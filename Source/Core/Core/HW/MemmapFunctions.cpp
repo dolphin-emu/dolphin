@@ -57,10 +57,12 @@ GXPeekZ
 // ----------------
 
 // Overloaded byteswap functions, for use within the templated functions below.
-inline u8 bswap(u8 val)   {return val;}
-inline u16 bswap(u16 val) {return Common::swap16(val);}
-inline u32 bswap(u32 val) {return Common::swap32(val);}
-inline u64 bswap(u64 val) {return Common::swap64(val);}
+inline u8 bswap(u8 val)   { return val; }
+inline s8 bswap(s8 val)   { return val; }
+inline u16 bswap(u16 val) { return Common::swap16(val); }
+inline s16 bswap(s16 val) { return Common::swap16(val); }
+inline u32 bswap(u32 val) { return Common::swap32(val); }
+inline u64 bswap(u64 val) { return Common::swap64(val); }
 // =================
 
 
@@ -89,8 +91,8 @@ static u32 EFB_Read(const u32 addr)
 
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
-template <typename T>
-inline void ReadFromHardware(T &_var, const u32 em_address, Memory::XCheckTLBFlag flag)
+template <typename T, typename U>
+inline void ReadFromHardware(U &_var, const u32 em_address, Memory::XCheckTLBFlag flag)
 {
 	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
 	if ((em_address & 0xC8000000) == 0xC8000000)
@@ -98,7 +100,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, Memory::XCheckTLBFla
 		if (em_address < 0xcc000000)
 			_var = EFB_Read(em_address);
 		else
-			_var = mmio_mapping->Read<T>(em_address);
+			_var = (T)mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
 	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||
 		((em_address & 0xF0000000) == 0xC0000000) ||
@@ -447,6 +449,42 @@ float Read_F32(const u32 _Address)
 
 	cvt.i = Read_U32(_Address);
 	return cvt.d;
+}
+
+u32 Read_U8_Val(u32 address, u32 val)
+{
+	ReadFromHardware<u8>(val, address, FLAG_READ);
+	return val;
+}
+
+u32 Read_S8_Val(u32 address, u32 val)
+{
+	ReadFromHardware<s8>(val, address, FLAG_READ);
+	return val;
+}
+
+u32 Read_U16_Val(u32 address, u32 val)
+{
+	ReadFromHardware<u16>(val, address, FLAG_READ);
+	return val;
+}
+
+u32 Read_S16_Val(u32 address, u32 val)
+{
+	ReadFromHardware<s16>(val, address, FLAG_READ);
+	return val;
+}
+
+u32 Read_U32_Val(u32 address, u32 val)
+{
+	ReadFromHardware<u32>(val, address, FLAG_READ);
+	return val;
+}
+
+u64 Read_U64_Val(u32 address, u64 val)
+{
+	ReadFromHardware<u64>(val, address, FLAG_READ);
+	return val;
 }
 
 u32 Read_U8_ZX(const u32 _Address)
