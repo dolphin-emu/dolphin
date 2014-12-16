@@ -74,6 +74,10 @@ private:
 	wxString OldLabel;
 	VRDialog* m_vr_dialog;
 
+	U32Setting* spin_extra_frames;
+	U32Setting* spin_replay_buffer_divider;
+	U32Setting* spin_replay_buffer;
+	SettingNumber* spin_timewarp_tweak;
 	SettingCheckBox* checkbox_pullup20_timewarp;
 	SettingCheckBox* checkbox_pullup30_timewarp;
 	SettingCheckBox* checkbox_pullup60_timewarp;

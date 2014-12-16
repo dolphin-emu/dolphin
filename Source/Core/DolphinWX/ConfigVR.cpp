@@ -137,7 +137,7 @@ void CConfigVR::CreateGUIControls()
 			choice_vr->Select(vconfig.iVRPlayer);
 		}
 		{
-			U32Setting* spin_replay_buffer = new U32Setting(page_vr, _("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
+			spin_replay_buffer = new U32Setting(page_vr, _("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
 			RegisterControl(spin_replay_buffer, replaybuffer_desc);
 			spin_replay_buffer->SetToolTip(replaybuffer_desc);
 			spin_replay_buffer->SetValue(vconfig.iExtraVideoLoops);
@@ -146,9 +146,10 @@ void CConfigVR::CreateGUIControls()
 			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_replay_buffer);
+			spin_replay_buffer->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 		}
 		{
-			U32Setting* spin_replay_buffer_divider = new U32Setting(page_vr, _("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
+			spin_replay_buffer_divider = new U32Setting(page_vr, _("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
 			RegisterControl(spin_replay_buffer_divider, replaybuffer_desc);
 			spin_replay_buffer_divider->SetToolTip(replaybuffer_desc);
 			spin_replay_buffer_divider->SetValue(vconfig.iExtraVideoLoopsDivider);
@@ -157,6 +158,7 @@ void CConfigVR::CreateGUIControls()
 			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_replay_buffer_divider);
+			spin_replay_buffer_divider->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20 = CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
@@ -174,7 +176,7 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Synchronous Timewarp extra frames per frame
 		{
-			U32Setting* spin_extra_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
+			spin_extra_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
 			RegisterControl(spin_extra_frames, extraframes_desc);
 			spin_extra_frames->SetToolTip(extraframes_desc);
 			spin_extra_frames->SetValue(vconfig.iExtraFrames);
@@ -183,13 +185,15 @@ void CConfigVR::CreateGUIControls()
 			label->SetToolTip(wxGetTranslation(extraframes_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_extra_frames);
+			spin_extra_frames->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 		}
 		{
-			SettingNumber* const spin_timewarp_tweak = CreateNumber(page_vr, vconfig.fTimeWarpTweak, _("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
+			spin_timewarp_tweak = CreateNumber(page_vr, vconfig.fTimeWarpTweak, _("Timewarp VSync Tweak:"), -1.0f, 1.0f, 0.0001f);
 			RegisterControl(spin_timewarp_tweak, timewarptweak_desc);
 			spin_timewarp_tweak->SetToolTip(timewarptweak_desc);
 			spin_timewarp_tweak->SetValue(vconfig.fTimeWarpTweak);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Timewarp VSync Tweak:"));
+			spin_timewarp_tweak->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
 			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -675,6 +679,11 @@ void CConfigVR::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const siz
 // On Checkbox Click
 void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 {
+	spin_replay_buffer->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
+	spin_replay_buffer_divider->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
+	spin_extra_frames->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
+	spin_timewarp_tweak->Enable(!checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
+
 	checkbox_pullup20->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
 	checkbox_pullup30->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
 	checkbox_pullup60->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
