@@ -1882,7 +1882,7 @@ void Renderer::SetLogicOpMode()
 		GL_SET
 	};
 
-	if (bpmem.blendmode.logicopenable)
+	if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
