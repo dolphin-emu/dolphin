@@ -25,3 +25,4 @@ typedef ShaderUid<geometry_shader_uid_data> GeometryShaderUid;
 
 void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType);
 void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYPE ApiType);
+bool IsPassthroughGeometryShader(GeometryShaderUid& object);

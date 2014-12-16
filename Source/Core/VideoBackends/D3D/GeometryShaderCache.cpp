@@ -28,6 +28,7 @@ GeometryShaderCache::GSCache GeometryShaderCache::GeometryShaders;
 const GeometryShaderCache::GSCacheEntry* GeometryShaderCache::last_entry;
 GeometryShaderUid GeometryShaderCache::last_uid;
 UidChecker<GeometryShaderUid,ShaderCode> GeometryShaderCache::geometry_uid_checker;
+const GeometryShaderCache::GSCacheEntry GeometryShaderCache::pass_entry;
 
 ID3D11GeometryShader* ClearGeometryShader = nullptr;
 ID3D11GeometryShader* CopyGeometryShader = nullptr;
@@ -203,11 +204,19 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
-			return (last_entry->shader != nullptr);
+			return true;
 		}
 	}
 
 	last_uid = uid;
+
+	// Check if the shader is a pass-through shader
+	if (IsPassthroughGeometryShader(uid))
+	{
+		// Return the default pass-through shader
+		last_entry = &pass_entry;
+		return true;
+	}
 
 	// Check if the shader is already in the cache
 	GSCache::iterator iter;

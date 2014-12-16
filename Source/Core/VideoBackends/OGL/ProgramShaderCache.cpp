@@ -211,7 +211,8 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 	ShaderCode gcode;
 	GenerateVertexShaderCode(vcode, components, API_OPENGL);
 	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
-	GenerateGeometryShaderCode(gcode, primitive_type, API_OPENGL);
+	if (!IsPassthroughGeometryShader(uid.guid))
+		GenerateGeometryShaderCode(gcode, primitive_type, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{

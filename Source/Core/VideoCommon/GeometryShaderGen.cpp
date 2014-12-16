@@ -281,3 +281,9 @@ void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE
 {
 	GenerateGeometryShader<ShaderCode>(object, primitive_type, ApiType);
 }
+
+bool IsPassthroughGeometryShader(GeometryShaderUid& object)
+{
+	geometry_shader_uid_data* uid_data = object.GetUidData<geometry_shader_uid_data>();
+	return uid_data->primitive_type == PRIMITIVE_TRIANGLES && !uid_data->stereo;
+}
