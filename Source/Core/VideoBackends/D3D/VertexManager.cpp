@@ -141,6 +141,7 @@ void VertexManager::Draw(u32 stride)
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
+		((DX11::Renderer*)g_renderer)->ApplyCullDisable();
 		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
 		D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
@@ -151,9 +152,11 @@ void VertexManager::Draw(u32 stride)
 		INCSTAT(stats.thisFrame.numDrawCalls);
 
 		D3D::stateman->SetGeometryShader(nullptr);
+		((DX11::Renderer*)g_renderer)->RestoreCull();
 	}
 	else //if (current_primitive_type == PRIMITIVE_POINTS)
 	{
+		((DX11::Renderer*)g_renderer)->ApplyCullDisable();
 		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
 		D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
@@ -164,6 +167,7 @@ void VertexManager::Draw(u32 stride)
 		INCSTAT(stats.thisFrame.numDrawCalls);
 
 		D3D::stateman->SetGeometryShader(nullptr);
+		((DX11::Renderer*)g_renderer)->RestoreCull();
 	}
 }
 
