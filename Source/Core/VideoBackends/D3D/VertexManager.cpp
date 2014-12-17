@@ -126,49 +126,28 @@ void VertexManager::Draw(u32 stride)
 	u32 baseVertex = m_vertexDrawOffset / stride;
 	u32 startIndex = m_indexDrawOffset / sizeof(u16);
 
-	if (current_primitive_type == PRIMITIVE_TRIANGLES)
+	switch (current_primitive_type)
 	{
-		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
-		D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
-
-		D3D::stateman->Apply();
-		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
-
-		INCSTAT(stats.thisFrame.numDrawCalls);
-
-		D3D::stateman->SetGeometryShader(nullptr);
+		case PRIMITIVE_POINTS:
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+			((DX11::Renderer*)g_renderer)->ApplyCullDisable();
+			break;
+		case PRIMITIVE_LINES:
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			((DX11::Renderer*)g_renderer)->ApplyCullDisable();
+			break;
+		case PRIMITIVE_TRIANGLES:
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			break;
 	}
-	else if (current_primitive_type == PRIMITIVE_LINES)
-	{
-		((DX11::Renderer*)g_renderer)->ApplyCullDisable();
-		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
-		D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
 
-		D3D::stateman->Apply();
-		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
+	D3D::stateman->Apply();
+	D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
-		INCSTAT(stats.thisFrame.numDrawCalls);
+	INCSTAT(stats.thisFrame.numDrawCalls);
 
-		D3D::stateman->SetGeometryShader(nullptr);
+	if (current_primitive_type != PRIMITIVE_TRIANGLES)
 		((DX11::Renderer*)g_renderer)->RestoreCull();
-	}
-	else //if (current_primitive_type == PRIMITIVE_POINTS)
-	{
-		((DX11::Renderer*)g_renderer)->ApplyCullDisable();
-		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-		D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
-		D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
-
-		D3D::stateman->Apply();
-		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
-
-		INCSTAT(stats.thisFrame.numDrawCalls);
-
-		D3D::stateman->SetGeometryShader(nullptr);
-		((DX11::Renderer*)g_renderer)->RestoreCull();
-	}
 }
 
 void VertexManager::vFlush(bool useDstAlpha)
