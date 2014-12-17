@@ -38,7 +38,7 @@ static void Read()
 	{
 		u8 controller_payload_swap[37];
 
-		libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload, sizeof(controller_payload_swap), &s_controller_payload_size, 0);
+		libusb_interrupt_transfer(s_handle, s_endpoint_in, controller_payload_swap, sizeof(controller_payload_swap), &s_controller_payload_size, 0);
 
 		{
 		std::lock_guard<std::mutex> lk(s_mutex);
