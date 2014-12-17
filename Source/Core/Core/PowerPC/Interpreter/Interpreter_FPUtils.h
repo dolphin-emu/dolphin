@@ -55,6 +55,13 @@ inline void UpdateFPSCR()
 
 inline double ForceSingle(double _x)
 {
+	if (FPSCR.NI && std::abs(_x) < std::numeric_limits<float>::min())
+	{
+		// PPC first flushes then rounds, x86 does it the other way around,
+		// so do it by hand.
+		return copysign(0, _x);
+	}
+
 	// convert to float...
 	float x = (float) _x;
 	if (!cpu_info.bFlushToZero && FPSCR.NI)
