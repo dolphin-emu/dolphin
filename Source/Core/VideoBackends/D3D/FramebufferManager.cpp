@@ -64,6 +64,7 @@ FramebufferManager::FramebufferManager()
 {
 	for (int eye = 0; eye < 2; ++eye)
 	{
+		m_efb.m_frontBuffer[eye] = nullptr;
 		// init to null
 	}
 	if (g_has_hmd)
@@ -93,6 +94,27 @@ FramebufferManager::FramebufferManager()
 	HRESULT hr;
 
 	m_EFBLayers = m_efb.slices = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, sample_desc.Quality);
+		for (int eye=0; eye<2; ++eye)
+		{
+			hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
+			CHECK(hr == S_OK, "create Oculus Rift eye texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
+			m_efb.m_frontBuffer[eye] = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, false);
+			CHECK(m_efb.m_frontBuffer[eye] != nullptr, "create Oculus Rift eye texture (size: %dx%d)", target_width, target_height);
+			SAFE_RELEASE(buf);
+		}
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[0]->GetTex(), "Left eye color texture");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[0]->GetSRV(), "Left eye color texture shader resource view");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[0]->GetRTV(), "Left eye color texture render target view");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetTex(), "Right eye color texture");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetSRV(), "Right eye color texture shader resource view");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetRTV(), "Right eye color texture render target view");
+	}
+#endif
 
 	// EFB color texture - primary render target
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, target_width, target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
@@ -187,11 +209,14 @@ FramebufferManager::FramebufferManager()
 		m_eye_texture[0].D3D11.Header.RenderViewport.Pos.y = 0;
 		m_eye_texture[0].D3D11.Header.RenderViewport.Size.w = Renderer::GetTargetWidth();
 		m_eye_texture[0].D3D11.Header.RenderViewport.Size.h = Renderer::GetTargetHeight();
+		m_eye_texture[0].D3D11.pTexture = m_efb.m_frontBuffer[0]->GetTex();
+		m_eye_texture[0].D3D11.pSRView = m_efb.m_frontBuffer[0]->GetSRV();
 		m_eye_texture[1] = m_eye_texture[0];
-		m_eye_texture[0].D3D11.pTexture = m_efb.color_tex->GetTex();
-		m_eye_texture[1].D3D11.pTexture = m_efb.color_tex->GetTex();
-		m_eye_texture[0].D3D11.pSRView = m_efb.color_tex->GetSRV();
-		m_eye_texture[1].D3D11.pSRView = m_efb.color_tex->GetSRV();
+		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
+		{
+			m_eye_texture[1].D3D11.pTexture = m_efb.m_frontBuffer[1]->GetTex();
+			m_eye_texture[1].D3D11.pSRView = m_efb.m_frontBuffer[1]->GetSRV();
+		}
 #endif
 	}
 
@@ -224,6 +249,8 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(m_efb.depth_staging_buf);
 	SAFE_RELEASE(m_efb.depth_read_texture);
 	SAFE_RELEASE(m_efb.resolved_depth_tex);
+	SAFE_RELEASE(m_efb.m_frontBuffer[0]);
+	SAFE_RELEASE(m_efb.m_frontBuffer[1]);
 }
 
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma)

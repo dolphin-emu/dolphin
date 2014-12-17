@@ -921,12 +921,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
 		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-		FramebufferManager::m_eye_texture[0].D3D11.pTexture = read_texture->GetTex();
-		FramebufferManager::m_eye_texture[0].D3D11.pSRView = read_texture->GetSRV();
 
-		read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-		FramebufferManager::m_eye_texture[1].D3D11.pTexture = read_texture->GetTex();
-		FramebufferManager::m_eye_texture[1].D3D11.pSRView = read_texture->GetSRV();
+		D3D11_VIEWPORT Vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetTargetWidth(), (float)Renderer::GetTargetHeight());
+
+		// Render to left eye
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
+		D3D::context->RSSetViewports(1, &Vp);
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+		// Render to right eye
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), nullptr);
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
 
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);

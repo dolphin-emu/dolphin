@@ -112,6 +112,7 @@ private:
 
 	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
+public:
 	static struct Efb
 	{
 		D3DTexture2D* color_tex;
@@ -125,6 +126,8 @@ private:
 
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;
+
+		D3DTexture2D* m_frontBuffer[2];
 
 		int slices;
 	} m_efb;
