@@ -7,7 +7,6 @@
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/XFMemory.h"
 
 // TODO should be reordered
 #define SHADER_POSITION_ATTRIB  0
@@ -64,5 +63,3 @@ typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
-void GenerateVSOutputStruct(ShaderCode& object, API_TYPE api_type);
-void GenerateVSOutputStruct(ShaderGeneratorInterface& object, API_TYPE api_type);

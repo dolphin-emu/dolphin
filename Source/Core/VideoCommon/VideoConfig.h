@@ -50,6 +50,7 @@ enum StereoMode
 	STEREO_SBS,
 	STEREO_TAB,
 	STEREO_ANAGLYPH,
+	STEREO_3DVISION,
 	STEREO_OCULUS,
 	STEREO_VR920,
 };
@@ -213,6 +214,7 @@ struct VideoConfig final
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsOversizedViewports;
 		bool bSupportsStereoscopy;
+		bool bSupports3DVision;
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 		bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in VideoCommon
 		bool bSupportsBBox;

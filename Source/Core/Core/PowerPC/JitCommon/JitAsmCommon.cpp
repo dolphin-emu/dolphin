@@ -444,7 +444,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	const u8* loadPairedFloatTwo = AlignCode4();
 	if (jit->js.memcheck)
 	{
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 64, 0, QUANTIZED_REGS_TO_SAVE, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 64, 0, QUANTIZED_REGS_TO_SAVE, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 		ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
 		MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));
 	}
@@ -464,7 +464,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	const u8* loadPairedFloatOne = AlignCode4();
 	if (jit->js.memcheck)
 	{
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 32, 0, QUANTIZED_REGS_TO_SAVE, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 32, 0, QUANTIZED_REGS_TO_SAVE, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 		MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
 		UNPCKLPS(XMM0, M(m_one));
 	}
@@ -486,7 +486,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	if (jit->js.memcheck)
 	{
 		// TODO: Support not swapping in safeLoadToReg to avoid bswapping twice
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 		ROR(16, R(RSCRATCH_EXTRA), Imm8(8));
 	}
 	else
@@ -512,7 +512,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedU8One = AlignCode4();
 	if (jit->js.memcheck)
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 8, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 8, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 	else
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0); // RSCRATCH_EXTRA = 0x000000xx
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
@@ -525,7 +525,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	if (jit->js.memcheck)
 	{
 		// TODO: Support not swapping in safeLoadToReg to avoid bswapping twice
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 		ROR(16, R(RSCRATCH_EXTRA), Imm8(8));
 	}
 	else
@@ -551,7 +551,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedS8One = AlignCode4();
 	if (jit->js.memcheck)
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 8, 0, QUANTIZED_REGS_TO_SAVE_LOAD, true, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 8, 0, QUANTIZED_REGS_TO_SAVE_LOAD, true, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 	else
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0, true);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
@@ -563,7 +563,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	const u8* loadPairedU16Two = AlignCode4();
 	// TODO: Support not swapping in (un)safeLoadToReg to avoid bswapping twice
 	if (jit->js.memcheck)
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 32, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 32, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 	else
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 32, 0, false);
 	ROL(32, R(RSCRATCH_EXTRA), Imm8(16));
@@ -585,7 +585,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedU16One = AlignCode4();
 	if (jit->js.memcheck)
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 	else
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, false);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));
@@ -596,7 +596,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedS16Two = AlignCode4();
 	if (jit->js.memcheck)
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 32, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 32, 0, QUANTIZED_REGS_TO_SAVE_LOAD, false, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 	else
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 32, 0, false);
 	ROL(32, R(RSCRATCH_EXTRA), Imm8(16));
@@ -618,7 +618,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedS16One = AlignCode4();
 	if (jit->js.memcheck)
-		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, true, SAFE_LOADSTORE_NO_PROLOG);
+		SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), 16, 0, QUANTIZED_REGS_TO_SAVE_LOAD, true, SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG);
 	else
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, true);
 	CVTSI2SS(XMM0, R(RSCRATCH_EXTRA));

@@ -15,43 +15,6 @@
 static char text[16768];
 
 template<class T>
-static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
-{
-	object.Write("  %s %s", type, name);
-	if (var_index != -1)
-		object.Write("%d", var_index);
-
-	if (api_type == API_OPENGL)
-		object.Write(";\n");
-	else // D3D
-	{
-		if (semantic_index != -1)
-			object.Write(" : %s%d;\n", semantic, semantic_index);
-		else
-			object.Write(" : %s;\n", semantic);
-	}
-}
-
-template<class T>
-static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
-{
-	object.Write("struct VS_OUTPUT {\n");
-	DefineVSOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
-	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 0, "COLOR", 0);
-	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 1, "COLOR", 1);
-
-	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		DefineVSOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
-
-	DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
-
-	if (g_ActiveConfig.bEnablePixelLighting)
-		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
-
-	object.Write("};\n");
-}
-
-template<class T>
 static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
@@ -79,7 +42,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	out.Write(s_shader_uniforms);
 	out.Write("};\n");
 
-	GenerateVSOutputStruct(out, api_type);
+	GenerateVSOutputStruct<T>(out, api_type);
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->components = components;
@@ -463,14 +426,4 @@ void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_ty
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type)
 {
 	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
-}
-
-void GenerateVSOutputStruct(ShaderCode& object, API_TYPE api_type)
-{
-	GenerateVSOutputStruct<ShaderCode>(object, api_type);
-}
-
-void GenerateVSOutputStruct(ShaderGeneratorInterface& object, API_TYPE api_type)
-{
-	// Ignore unknown types
 }
