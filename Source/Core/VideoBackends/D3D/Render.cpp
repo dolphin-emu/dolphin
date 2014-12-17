@@ -1360,6 +1360,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (g_ActiveConfig.bAsynchronousTimewarp)
 			g_ovr_lock.unlock();
 	}
+	else
+	{
+		// VR Clear screen before every frame
+		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
+		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+	}
 
 	// begin next frame
 	RestoreAPIState();
