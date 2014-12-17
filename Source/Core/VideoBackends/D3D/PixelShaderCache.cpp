@@ -432,7 +432,7 @@ public:
 
 void PixelShaderCache::Init()
 {
-	unsigned int cbsize = ((sizeof(PixelShaderConstants))&(~0xf))+0x10; // must be a multiple of 16
+	unsigned int cbsize = ROUND_UP(sizeof(PixelShaderConstants), 16); // must be a multiple of 16
 	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	D3D::device->CreateBuffer(&cbdesc, nullptr, &pscbuf);
 	CHECK(pscbuf!=nullptr, "Create pixel shader constant buffer");

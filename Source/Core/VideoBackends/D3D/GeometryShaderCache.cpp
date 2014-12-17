@@ -132,7 +132,7 @@ const char copy_shader_code[] = {
 
 void GeometryShaderCache::Init()
 {
-	unsigned int gbsize = ((sizeof(GeometryShaderConstants))&(~0xf)) + 0x10; // must be a multiple of 16
+	unsigned int gbsize = ROUND_UP(sizeof(GeometryShaderConstants), 16); // must be a multiple of 16
 	D3D11_BUFFER_DESC gbdesc = CD3D11_BUFFER_DESC(gbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	HRESULT hr = D3D::device->CreateBuffer(&gbdesc, nullptr, &gscbuf);
 	CHECK(hr == S_OK, "Create geometry shader constant buffer (size=%u)", gbsize);
