@@ -88,8 +88,6 @@ void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
 
 void GeometryShaderManager::DoState(PointerWrap &p)
 {
-	p.Do(dirty);
-
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		// Reload current state from global GPU state

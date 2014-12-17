@@ -317,13 +317,20 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// is always inside the primitive.
 		// Without MSAA, this flag is defined to have no effect.
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
-		out.Write("in VertexData {\n");
-		out.Write("\tcentroid VS_OUTPUT o;\n");
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		{
+			out.Write("in VertexData {\n");
+			out.Write("\tcentroid VS_OUTPUT o;\n");
 
-		if (g_ActiveConfig.iStereoMode > 0)
-			out.Write("\tflat int layer;\n");
+			if (g_ActiveConfig.iStereoMode > 0)
+				out.Write("\tflat int layer;\n");
 
-		out.Write("};\n");
+			out.Write("};\n");
+		}
+		else
+		{
+			out.Write("centroid in VS_OUTPUT o;\n");
+		}
 
 		out.Write("void main()\n{\n");
 

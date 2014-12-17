@@ -72,9 +72,16 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
-		out.Write("out VertexData {\n"
-		          "\tcentroid VS_OUTPUT o;\n"
-		          "};\n");
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		{
+			out.Write("out VertexData {\n"
+			          "\tcentroid VS_OUTPUT o;\n"
+			          "};\n");
+		}
+		else
+		{
+			out.Write("centroid out VS_OUTPUT o; \n");
+		}
 
 		out.Write("void main()\n{\n");
 	}
