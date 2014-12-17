@@ -80,10 +80,25 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		}
 		else
 		{
-			out.Write("centroid out VS_OUTPUT o; \n");
+			// Let's set up attributes
+			for (size_t i = 0; i < 8; ++i)
+			{
+				if (i < xfmem.numTexGen.numTexGens)
+				{
+					out.Write("centroid out float3 uv%d;\n", i);
+				}
+			}
+			out.Write("centroid out float4 clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+				out.Write("centroid out float4 Normal;\n");
+			out.Write("centroid out float4 colors_02;\n");
+			out.Write("centroid out float4 colors_12;\n");
 		}
 
 		out.Write("void main()\n{\n");
+
+		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
 	{
@@ -369,6 +384,19 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	if (api_type == API_OPENGL)
 	{
+		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		{
+			// TODO: Pass structs between shader stages even if geometry shaders
+			// are not supported, however that will break GL 3.0 and 3.1 support.
+			for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
+			out.Write("clipPos = o.clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+				out.Write("Normal = o.Normal;\n");
+			out.Write("colors_02 = o.colors_0;\n");
+			out.Write("colors_12 = o.colors_1;\n");
+		}
+
 		out.Write("gl_Position = o.pos;\n");
 	}
 	else // D3D
