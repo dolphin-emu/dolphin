@@ -1888,11 +1888,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 
-			static int real_frame_count_2 = 0;
+			static int real_frame_count_for_timewarp = 0;
 
 			if (g_ActiveConfig.bPullUp20fpsTimewarp)
 			{
-				if (real_frame_count_2 % 4 == 1)
+				if (real_frame_count_for_timewarp % 4 == 1)
 				{
 					g_ActiveConfig.iExtraFrames = 2;
 				}
@@ -1901,10 +1901,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 					g_ActiveConfig.iExtraFrames = 3;
 				}
 			}
-
-			if (g_ActiveConfig.bPullUp30fpsTimewarp)
+			else if (g_ActiveConfig.bPullUp30fpsTimewarp)
 			{
-				if (real_frame_count_2 % 2 == 1)
+				if (real_frame_count_for_timewarp % 2 == 1)
 				{
 					g_ActiveConfig.iExtraFrames = 1;
 				}
@@ -1913,16 +1912,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 					g_ActiveConfig.iExtraFrames = 2;
 				}
 			}
-
-			if (g_ActiveConfig.bPullUp60fpsTimewarp)
+			else if (g_ActiveConfig.bPullUp60fpsTimewarp)
 			{
-				if (real_frame_count_2 % 4 == 0)
+				if (real_frame_count_for_timewarp % 4 == 0)
 					g_ActiveConfig.iExtraFrames = 1;
 				else
 					g_ActiveConfig.iExtraFrames = 0;
 			}
+			else if (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps)
+			{
+				g_ActiveConfig.iExtraFrames = 0;
+			}
 
-			++real_frame_count_2;
+			++real_frame_count_for_timewarp;
 
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
@@ -2287,7 +2289,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if (g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps)
+	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
 	{
 		if (g_ActiveConfig.bPullUp20fps)
 		{
@@ -2302,8 +2304,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
 		}
-
-		if (g_ActiveConfig.bPullUp30fps)
+		else if (g_ActiveConfig.bPullUp30fps)
 		{
 			if (real_frame_count % 2 == 1)
 			{
@@ -2315,10 +2316,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				g_ActiveConfig.iExtraVideoLoops = 2;
 				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
-
 		}
-
-		if (g_ActiveConfig.bPullUp60fps)
+		else if (g_ActiveConfig.bPullUp60fps)
 		{
 			//if (real_frame_count % 4 == 0)
 			//{
