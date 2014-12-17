@@ -124,13 +124,14 @@ void OpenGL_CreateAttributelessVAO()
 	glGenBuffers(1, &attributelessVBO);
 	_dbg_assert_msg_(VIDEO, attributelessVBO != 0, "Attributeless VBO should have been created successfully.")
 
-	// Initialize the buffer with nothing.
+	// Initialize the buffer with nothing.  16 floats is an arbitrary size that may work around driver issues.
 	glBindBuffer(GL_ARRAY_BUFFER, attributelessVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat), nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, nullptr, GL_STATIC_DRAW);
 
 	// We must also define vertex attribute 0.
 	glBindVertexArray(attributelessVAO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glEnableVertexAttribArray(0);
 }
 
 void OpenGL_BindAttributelessVAO()
