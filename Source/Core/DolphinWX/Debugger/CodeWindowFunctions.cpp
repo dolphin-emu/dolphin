@@ -146,11 +146,22 @@ void CCodeWindow::Save()
 void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 {
 	wxMenu *pSymbolsMenu = new wxMenu;
-	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _("&Clear symbols"));
-	pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _("&Generate symbol map"));
+	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _("&Clear symbols"),
+		_("Remove names from all functions and variables."));
+	pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _("&Generate symbol map"),
+		_("Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ names for other functions."));
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_LOADMAPFILE, _("&Load symbol map"));
-	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"));
+	pSymbolsMenu->Append(IDM_LOADMAPFILE, _("&Load symbol map"),
+		_("Try to load this game's function names automatically - but doesn't check .map files stored on the disc image yet."));
+	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"),
+		_("Save the function names for each address to a .map file in your user settings map folder, named after the title id."));
+	pSymbolsMenu->AppendSeparator();
+	pSymbolsMenu->Append(IDM_LOADMAPFILEAS, _("Load &other map file..."),
+		_("Load any .map file containing the function names and addresses for this game."));
+	pSymbolsMenu->Append(IDM_LOADBADMAPFILE, _("Load &bad map file..."),
+		_("Try to load a .map file that might be from a slightly different version."));
+	pSymbolsMenu->Append(IDM_SAVEMAPFILEAS, _("Save symbol map &as..."),
+		_("Save the function names and addresses for this game as a .map file. If you want to open it in IDA pro, use the .idc script."));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
 		_("Save the entire disassembled code. This may take a several seconds"
@@ -161,8 +172,14 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 		);
 
 	pSymbolsMenu->AppendSeparator();
-	pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _("&Create signature file..."));
-	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _("&Use signature file..."));
+	pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _("&Create signature file..."),
+		_("Create a .dsy file that can be used to recognise these same functions in other games."));
+	pSymbolsMenu->Append(IDM_APPENDSIGNATUREFILE, _("Append to &existing signature file..."),
+		_("Add any named functions missing from a .dsy file, so it can also recognise these additional functions in other games."));
+	pSymbolsMenu->Append(IDM_COMBINESIGNATUREFILES, _("Combine two signature files..."),
+		_("Make a new .dsy file which can recognise more functions, by combining two existing files. The first input file has priority."));
+	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _("Apply signat&ure file..."),
+		_("Must use Generate symbol map first! Recognise names of any standard library functions used in multiple games, by loading them from a .dsy file."));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _("&Patch HLE functions"));
 	pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _("&Rename symbols from file..."));
@@ -222,9 +239,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 	if (!Core::IsRunning()) return;
 
-	std::string existing_map_file, writable_map_file;
+	std::string existing_map_file, writable_map_file, title_id_str;
 	bool map_exists = CBoot::FindMapFile(&existing_map_file,
-	                                     &writable_map_file);
+	                                     &writable_map_file,
+	                                     &title_id_str);
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
@@ -240,6 +258,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			db.Apply(&g_symbolDB);
 			Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
+			db.List();
 		}
 		else
 		{
@@ -268,8 +287,54 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
+	case IDM_LOADMAPFILEAS:
+		{
+			const wxString path = wxFileSelector(
+				_("Load map file"), File::GetUserPath(D_MAPS_IDX),
+				title_id_str + ".map", ".map",
+				"Dolphin Map File (*.map)|*.map|All files (*.*)|*.*",
+				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+
+			if (!path.IsEmpty())
+			{
+				g_symbolDB.LoadMap(WxStrToStr(path));
+				Parent->StatusBarMessage("Loaded symbols from '%s'", WxStrToStr(path).c_str());
+			}
+			HLE::PatchFunctions();
+			NotifyMapLoaded();
+		}
+		break;
+	case IDM_LOADBADMAPFILE:
+		{
+			const wxString path = wxFileSelector(
+				_("Load bad map file"), File::GetUserPath(D_MAPS_IDX),
+				title_id_str + ".map", ".map",
+				"Dolphin Map File (*.map)|*.map|All files (*.*)|*.*",
+				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+
+			if (!path.IsEmpty())
+			{
+				g_symbolDB.LoadMap(WxStrToStr(path), true);
+				Parent->StatusBarMessage("Loaded symbols from '%s'", WxStrToStr(path).c_str());
+			}
+			HLE::PatchFunctions();
+			NotifyMapLoaded();
+		}
+		break;
 	case IDM_SAVEMAPFILE:
 		g_symbolDB.SaveMap(writable_map_file);
+		break;
+	case IDM_SAVEMAPFILEAS:
+		{
+			const wxString path = wxFileSelector(
+				_("Save map file as"), File::GetUserPath(D_MAPS_IDX),
+				title_id_str + ".map", ".map",
+				"Dolphin Map File (*.map)|*.map|All files (*.*)|*.*",
+				wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
+
+			if (!path.IsEmpty())
+				g_symbolDB.SaveMap(WxStrToStr(path));
+		}
 		break;
 	case IDM_SAVEMAPFILEWITHCODES:
 		g_symbolDB.SaveMap(writable_map_file, true);
@@ -323,14 +388,43 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
 				wxString path = wxFileSelector(
-					_("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
-					"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_SAVE,
+					_("Save signature as"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
+					"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_SAVE | wxFD_OVERWRITE_PROMPT,
 					this);
 				if (!path.IsEmpty())
 				{
 					SignatureDB db;
 					db.Initialize(&g_symbolDB, prefix);
 					db.Save(WxStrToStr(path));
+					db.List();
+				}
+			}
+		}
+		break;
+	case IDM_APPENDSIGNATUREFILE:
+		{
+			wxTextEntryDialog input_prefix(
+				this,
+				_("Only export symbols with prefix:\n(Blank for all symbols)"),
+				wxGetTextFromUserPromptStr,
+				wxEmptyString);
+
+			if (input_prefix.ShowModal() == wxID_OK)
+			{
+				std::string prefix(WxStrToStr(input_prefix.GetValue()));
+
+				wxString path = wxFileSelector(
+					_("Append signature to"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
+					"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_SAVE,
+					this);
+				if (!path.IsEmpty())
+				{
+					SignatureDB db;
+					db.Initialize(&g_symbolDB, prefix);
+					db.List();
+					db.Load(WxStrToStr(path));
+					db.Save(WxStrToStr(path));
+					db.List();
 				}
 			}
 		}
@@ -338,7 +432,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_USESIGNATUREFILE:
 		{
 			wxString path = wxFileSelector(
-				_("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
+				_("Apply signature file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
 				"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 				this);
 			if (!path.IsEmpty())
@@ -346,9 +440,38 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				SignatureDB db;
 				db.Load(WxStrToStr(path));
 				db.Apply(&g_symbolDB);
+				db.List();
+				NotifyMapLoaded();
 			}
 		}
-		NotifyMapLoaded();
+		break;
+	case IDM_COMBINESIGNATUREFILES:
+		{
+			wxString path1 = wxFileSelector(
+				_("Choose priority input file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
+				"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+				this);
+			if (!path1.IsEmpty())
+			{
+				SignatureDB db;
+				wxString path2 = wxFileSelector(
+					_("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
+					"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+					this);
+				if (!path2.IsEmpty())
+				{
+					db.Load(WxStrToStr(path2));
+					db.Load(WxStrToStr(path1));
+
+					path2 = wxFileSelector(
+						_("Save combined output file as"), File::GetSysDirectory(), wxEmptyString, ".dsy",
+						"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_SAVE | wxFD_OVERWRITE_PROMPT,
+						this);
+					db.Save(WxStrToStr(path2));
+					db.List();
+				}
+			}
+		}
 		break;
 	case IDM_PATCHHLEFUNCTIONS:
 		HLE::PatchFunctions();

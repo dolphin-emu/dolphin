@@ -67,7 +67,8 @@ void CBoot::UpdateDebugger_MapLoaded()
 }
 
 bool CBoot::FindMapFile(std::string* existing_map_file,
-                        std::string* writable_map_file)
+                        std::string* writable_map_file,
+                        std::string* title_id)
 {
 	std::string title_id_str;
 	size_t name_begin_index;
@@ -108,6 +109,9 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 
 	if (writable_map_file)
 		*writable_map_file = File::GetUserPath(D_MAPS_IDX) + title_id_str + ".map";
+
+	if (title_id)
+		*title_id = title_id_str;
 
 	bool found = false;
 	static const std::string maps_directories[] = {

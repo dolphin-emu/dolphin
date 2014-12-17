@@ -34,7 +34,7 @@ public:
 
 	void FillInCallers();
 
-	bool LoadMap(const std::string& filename);
+	bool LoadMap(const std::string& filename, bool bad = false);
 	bool SaveMap(const std::string& filename, bool WithCodes = false) const;
 
 	void PrintCalls(u32 funcAddr) const;
