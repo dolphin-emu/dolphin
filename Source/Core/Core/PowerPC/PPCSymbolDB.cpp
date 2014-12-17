@@ -356,7 +356,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 
 	Index();
 	if (bad)
-		PanicAlertT("Loaded %d good functions, ignored %d bad functions", good_count, bad_count);
+		SuccessAlertT("Loaded %d good functions, ignored %d bad functions.", good_count, bad_count);
 	return true;
 }
 
