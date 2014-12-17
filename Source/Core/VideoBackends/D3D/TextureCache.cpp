@@ -174,13 +174,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		g_renderer->RestoreAPIState();
 
 		// Restore old texture in all previously used slots, if any
-		while (textureSlotMask)
-		{
-			unsigned long index;
-			_BitScanForward(&index, textureSlotMask);
-			D3D::stateman->SetTexture(index, texture->GetSRV());
-			textureSlotMask &= ~(1 << index);
-		}
+		D3D::stateman->SetTextureByMask(textureSlotMask, texture->GetSRV());
 	}
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)

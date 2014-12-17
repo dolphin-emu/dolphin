@@ -215,6 +215,17 @@ u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
 	return mask;
 }
 
+void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceView* srv)
+{
+	while (textureSlotMask)
+	{
+		unsigned long index;
+		_BitScanForward(&index, textureSlotMask);
+		SetTexture(index, srv);
+		textureSlotMask &= ~(1 << index);
+	}
+}
+
 }  // namespace D3D
 
 ID3D11SamplerState* StateCache::Get(SamplerState state)
