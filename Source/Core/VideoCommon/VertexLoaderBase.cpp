@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <vector>
+
 #include "Common/StringUtil.h"
 
 #include "VideoCommon/VertexLoader.h"
@@ -124,9 +126,67 @@ void VertexLoaderBase::AppendToString(std::string *dest) const
 	dest->append(StringFromFormat(" - %i v\n", m_numLoadedVertices));
 }
 
+// a hacky implementation to compare two vertex loaders
+class VertexLoaderTester : public VertexLoaderBase
+{
+public:
+	VertexLoaderTester(VertexLoaderBase* _a, VertexLoaderBase* _b, const TVtxDesc& vtx_desc, const VAT& vtx_attr)
+	: VertexLoaderBase(vtx_desc, vtx_attr)
+	{
+		a = _a;
+		b = _b;
+		m_initialized = a && b && a->IsInitialized() && b->IsInitialized();
+		m_initialized = m_initialized && (a->m_VertexSize == b->m_VertexSize);
+		m_initialized = m_initialized && (a->m_native_vtx_decl.stride == b->m_native_vtx_decl.stride);
+	}
+	~VertexLoaderTester()
+	{
+		delete a;
+		delete b;
+	}
+
+	int RunVertices(int primitive, int count, DataReader src, DataReader dst) override
+	{
+		buffer_a.resize(count * a->m_native_vtx_decl.stride);
+		buffer_b.resize(count * b->m_native_vtx_decl.stride);
+
+		int count_a = a->RunVertices(primitive, count, src, DataReader(buffer_a.data(), buffer_a.data()+buffer_a.size()));
+		int count_b = b->RunVertices(primitive, count, src, DataReader(buffer_b.data(), buffer_b.data()+buffer_b.size()));
+
+		if (count_a != count_b)
+			ERROR_LOG(VIDEO, "Both vertexloaders have loaded a different amount of vertices.");
+
+		if (memcmp(buffer_a.data(), buffer_b.data(), std::min(count_a, count_b)))
+			ERROR_LOG(VIDEO, "Both vertexloaders have loaded different data.");
+
+		u8* dstptr;
+		dst.WritePointer(&dstptr);
+		memcpy(dstptr, buffer_a.data(), count_a);
+		return count_a;
+	}
+	std::string GetName() const override { return "CompareLoader"; }
+	bool IsInitialized() override { return m_initialized; }
+
+private:
+	VertexLoaderBase *a, *b;
+	bool m_initialized;
+	std::vector<u8> buffer_a, buffer_b;
+};
+
 VertexLoaderBase* VertexLoaderBase::CreateVertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
 {
 	VertexLoaderBase* loader;
+
+#if 0
+	// first try: Any new VertexLoader vs the old one
+	loader = new VertexLoaderTester(
+			new VertexLoader(vtx_desc, vtx_attr), // the software one
+			new VertexLoader(vtx_desc, vtx_attr), // the new one to compare
+			vtx_desc, vtx_attr);
+	if (loader->IsInitialized())
+		return loader;
+	delete loader;
+#endif
 
 	// last try: The old VertexLoader
 	loader = new VertexLoader(vtx_desc, vtx_attr);
