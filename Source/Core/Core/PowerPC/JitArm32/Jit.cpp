@@ -24,8 +24,6 @@
 
 using namespace ArmGen;
 
-static int CODE_SIZE = 1024*1024*32;
-
 void JitArm::Init()
 {
 	AllocCodeSpace(CODE_SIZE);

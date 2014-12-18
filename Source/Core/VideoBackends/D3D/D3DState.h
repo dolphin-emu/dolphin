@@ -218,6 +218,10 @@ public:
 		m_pending.geometryShader = shader;
 	}
 
+	// removes currently set texture from all slots, returns mask of previously bound slots
+	u32 UnsetTexture(ID3D11ShaderResourceView* srv);
+	void SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceView* srv);
+
 	// call this immediately before any drawing operation or to explicitly apply pending resource state changes
 	void Apply();
 

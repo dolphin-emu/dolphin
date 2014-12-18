@@ -47,17 +47,17 @@ public:
 	void Shutdown() { FreeCodeSpace(); m_enabled = false; }
 };
 
+static const int CODE_SIZE = 1024 * 1024 * 32;
+
+// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
+// mostly exception handling, so give it a whole bunch more space if the MMU is on.
+static const int FARCODE_SIZE = 1024 * 1024 * 8;
+static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
-	static const int CODE_SIZE = 1024 * 1024 * 32;
-
-	// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
-	// mostly exception handling, so give it a whole bunch more space if the MMU is on.
-	static const int FARCODE_SIZE = 1024 * 1024 * 8;
-	static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
-
 	FarCodeCache farcode;
 	u8* nearcode; // Backed up when we switch to far code.
 
