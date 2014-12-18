@@ -17,7 +17,8 @@ TMetroidLayer g_metroid_layer;
 bool g_metroid_scan_visor = false, g_metroid_scan_visor_active = false, 
 g_metroid_xray_visor = false, g_metroid_thermal_visor = false,
 g_metroid_map_screen = false, g_metroid_inventory = false,
-g_metroid_dark_visor = false, g_metroid_echo_visor = false, g_metroid_morphball_active = false;
+g_metroid_dark_visor = false, g_metroid_echo_visor = false, g_metroid_morphball_active = false,
+g_metroid_is_demo1 = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0;
 int g_zelda_normal_count = 0, g_zelda_effect_count = 0;
 
@@ -50,6 +51,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Dark Visor Effect";
 	case METROID_ECHO_EFFECT:
 		return "Echo Visor Effect";
+	case METROID_GUN:
+		return "Gun";
 	case METROID_MAP_OR_HINT:
 		return "Map or Hint";
 	case METROID_HELMET:
@@ -106,6 +109,10 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Scan Visor";
 	case METROID_SHADOW_2D:
 		return "Shadow 2D";
+	case METROID_SHADOWS:
+		return "World Shadows";
+	case METROID_BODY_SHADOWS:
+		return "Body Shadows";
 	case METROID_THERMAL_EFFECT:
 		return "Thermal Effect";
 	case METROID_THERMAL_EFFECT_GUN:
@@ -297,7 +304,20 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	if (layer == 2)
 		g_metroid_dark_visor = false;
 
-	if (f == 409600 && v == 6500)
+	if (v == h && v < 100 && h < 100 && layer == 0)
+	{
+		result = METROID_SHADOWS;
+	}
+	else if (v == h && v == 5500 && layer == 1)
+	{
+		result = METROID_BODY_SHADOWS;
+	}
+	else if (f == 300 && v == 5500)
+	{
+		g_metroid_is_demo1 = true;
+		result = METROID_GUN;
+	}
+	else if (f == 409600 && v == 6500)
 	{
 		if (h == 8055)
 		{
@@ -343,6 +363,13 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 				{
 					result = METROID_DARK_CENTRAL;
 				}
+				else if (g_metroid_is_demo1)
+				{
+					if (g_metroid_morphball_active)
+						result = METROID_MORPHBALL_MAP_OR_HINT;
+					else
+						result = METROID_HELMET;
+				}
 				else
 				{
 					result = METROID_HUD;
@@ -357,6 +384,11 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 					result = METROID_RADAR_DOT;
 				else if (g_metroid_dark_visor)
 					result = METROID_HELMET;
+				else if (g_metroid_is_demo1)
+				{
+					result = METROID_HUD;
+					g_metroid_morphball_active = false;
+				}
 				else
 					result = METROID_VISOR_RADAR_HINT;
 				break;
@@ -377,6 +409,10 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 					result = METROID_HUD;
 					g_metroid_scan_visor_active = false;
 				}
+				else if (g_metroid_is_demo1)
+				{
+					result = METROID_VISOR_RADAR_HINT;
+				}
 				else if (h == 8243)
 				{
 					result = METROID_RADAR_DOT;
@@ -395,7 +431,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 					result = METROID_SCAN_HOLOGRAM;
 				else if (g_metroid_xray_visor || g_metroid_thermal_visor)
 					result = METROID_HELMET;
-				else if (g_metroid_dark_visor)
+				else if (g_metroid_dark_visor || g_metroid_is_demo1)
 					result = METROID_RADAR_DOT;
 				else if (g_metroid_scan_visor_active)
 					result = METROID_UNKNOWN_HUD;
@@ -407,6 +443,8 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 			case 5:
 				if (g_metroid_dark_visor)
 					result = METROID_MAP_OR_HINT;
+				else if (g_metroid_is_demo1)
+					result = METROID_MAP;
 				else if (h == 8243 && !g_metroid_scan_visor_active)
 					result = METROID_HELMET;
 				else
@@ -443,7 +481,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 		result = METROID_MAP_LEGEND;
 		g_metroid_map_screen = true;
 	}
-	else if (f == 75000 && v == 4958)
+	else if (f == 75000 && (v == 4958 || v == 4522))
 	{
 		result = METROID_MORPHBALL_WORLD;
 		vr_widest_3d_HFOV = abs(hfov);
@@ -790,6 +828,10 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 {
 	switch (g_metroid_layer)
 	{
+	case METROID_SHADOWS:
+	case METROID_BODY_SHADOWS:
+		*bStuckToHead = false;
+		//*bHide = true;
 	case METROID_ECHO_EFFECT:
 		*bStuckToHead = true;
 		*fHeightHack = 3.0f;
@@ -877,6 +919,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_MORPHBALL_WORLD:
 	case METROID_XRAY_WORLD:
 	case METROID_THERMAL_GUN_AND_DOOR:
+	case METROID_GUN:
 	case METROID_RETICLE:
 	case METROID_SCAN_ICONS:
 	case METROID_SCAN_CROSS:
