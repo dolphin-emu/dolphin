@@ -434,17 +434,17 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 }
 #endif
 
-void VertexLoader::SetupRunVertices(int primitive, int const count)
+int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataReader dst)
 {
+	dst.WritePointer(&g_vertex_manager_write_ptr);
+	src.WritePointer(&g_video_buffer_read_ptr);
+
 	m_numLoadedVertices += count;
 
 	// Prepare bounding box
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
 		BoundingBox::Prepare(m_vat, primitive, m_VtxDesc, m_native_vtx_decl);
-}
 
-void VertexLoader::ConvertVertices ( int count )
-{
 #ifdef USE_VERTEX_LOADER_JIT
 	if (count > 0)
 	{
@@ -461,13 +461,6 @@ void VertexLoader::ConvertVertices ( int count )
 		PRIM_LOG("\n");
 	}
 #endif
-}
 
-int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataReader dst)
-{
-	dst.WritePointer(&g_vertex_manager_write_ptr);
-	src.WritePointer(&g_video_buffer_read_ptr);
-	SetupRunVertices(primitive, count);
-	ConvertVertices(count);
 	return count;
 }

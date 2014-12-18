@@ -82,8 +82,6 @@ private:
 #endif
 
 	void CompileVertexTranslator();
-	void ConvertVertices(int count);
-	void SetupRunVertices(int primitive, int const count);
 
 	void WriteCall(TPipelineFunction);
 
