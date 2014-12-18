@@ -115,8 +115,8 @@ static inline void GenerateGeometryShader(T& out, u32 components, API_TYPE ApiTy
 
 	if (g_ActiveConfig.iStereoMode >= STEREO_OCULUS)
 	{
-		// StereoParams[l] = camera shift in game units * projection[0][0]
-		// StereoParams[l+2] = offaxis shift from Oculus projection[0][2]
+		// StereoParams[eye] = camera shift in game units * projection[0][0]
+		// StereoParams[eye+2] = offaxis shift from Oculus projection[0][2]
 		out.Write("\t\tf.clipPos.x = o[i].clipPos.x + " I_STEREOPARAMS"[eye] - " I_STEREOPARAMS"[eye+2] * o[i].clipPos.w;\n");
 		out.Write("\t\tpos.x = o[i].pos.x + " I_STEREOPARAMS"[eye] - " I_STEREOPARAMS"[eye+2] * o[i].pos.w;\n");
 	}
