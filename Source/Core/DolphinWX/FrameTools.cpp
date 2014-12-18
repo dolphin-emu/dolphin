@@ -606,18 +606,18 @@ void CFrame::InitBitmaps()
 {
 	auto const dir = StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
-	m_Bitmaps[Toolbar_FileOpen  ].LoadFile(dir + "open.png",       wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Refresh   ].LoadFile(dir + "refresh.png",    wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Browse    ].LoadFile(dir + "browse.png",     wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Play      ].LoadFile(dir + "play.png",       wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Stop      ].LoadFile(dir + "stop.png",       wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Pause     ].LoadFile(dir + "pause.png",      wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigMain].LoadFile(dir + "config.png",     wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigGFX ].LoadFile(dir + "graphics.png",   wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigDSP ].LoadFile(dir + "dsp.png",        wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Controller].LoadFile(dir + "classic.png",    wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Screenshot].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_FullScreen].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_FileOpen   ].LoadFile(dir + "open.png",       wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Refresh    ].LoadFile(dir + "refresh.png",    wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Browse     ].LoadFile(dir + "browse.png",     wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Play       ].LoadFile(dir + "play.png",       wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Stop       ].LoadFile(dir + "stop.png",       wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Pause      ].LoadFile(dir + "pause.png",      wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigMain ].LoadFile(dir + "config.png",     wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigGFX  ].LoadFile(dir + "graphics.png",   wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigAudio].LoadFile(dir + "audio.png",      wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Controller ].LoadFile(dir + "classic.png",    wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Screenshot ].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_FullScreen ].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
 
 	// Update in case the bitmap has been updated
 	if (m_ToolBar != nullptr)
