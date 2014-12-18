@@ -159,13 +159,13 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
 		if (ApiType == API_OPENGL)
-			out.Write("\tVS_OUTPUT point = vs[0].o;\n");
+			out.Write("\tVS_OUTPUT center = vs[0].o;\n");
 		else
-			out.Write("\tVS_OUTPUT point = o[0];\n");
+			out.Write("\tVS_OUTPUT center = o[0];\n");
 
 		// Offset from center to upper right vertex
 		// Lerp PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
-		out.Write("float2 offset = float2(" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".x, -" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".y) * point.pos.w;\n");
+		out.Write("\tfloat2 offset = float2(" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".x, -" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".y) * center.pos.w;\n");
 	}
 
 	if (g_ActiveConfig.iStereoMode > 0)
