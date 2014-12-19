@@ -465,7 +465,8 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
-	g_Config.backend_info.bSupportsGeometryShaders = (GLExtensions::Version() >= 320);
+	g_Config.backend_info.bSupportsGeometryShaders = (GLExtensions::Version() >= 320) &&
+			!DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS);
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
