@@ -22,7 +22,6 @@ namespace DX11
 union RasterizerState
 {
 	BitField<0, 2, D3D11_CULL_MODE> cull_mode;
-	BitField<2, 1, u32> wireframe;
 
 	u32 packed;
 };

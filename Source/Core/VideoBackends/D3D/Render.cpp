@@ -255,7 +255,6 @@ Renderer::Renderer(void *&window_handle)
 	gx_state.zmode.func = ZMode::NEVER;
 
 	gx_state.raster.cull_mode = D3D11_CULL_NONE;
-	gx_state.raster.wireframe = false;
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
