@@ -266,10 +266,7 @@ static void InitDriverInfo()
 	{
 		case DriverDetails::VENDOR_QUALCOMM:
 		{
-			if (std::string::npos != srenderer.find("Adreno (TM) 3"))
-				driver = DriverDetails::DRIVER_QUALCOMM_3XX;
-			else
-				driver = DriverDetails::DRIVER_QUALCOMM_2XX;
+			driver = DriverDetails::DRIVER_QUALCOMM;
 			double glVersion;
 			sscanf(g_ogl_config.gl_version, "OpenGL ES %lg V@%lg", &glVersion, &version);
 		}
@@ -278,28 +275,20 @@ static void InitDriverInfo()
 			// Currently the Mali-T line has two families in it.
 			// Mali-T6xx and Mali-T7xx
 			// These two families are similar enough that they share bugs in their drivers.
-			if (std::string::npos != srenderer.find("Mali-T"))
-			{
-				driver = DriverDetails::DRIVER_ARM_MIDGARD;
-				// Mali drivers provide no way to explicitly find out what video driver is running.
-				// This is similar to how we can't find the Nvidia driver version in Windows.
-				// Good thing is that ARM introduces a new video driver about once every two years so we can
-				// find the driver version by the features it exposes.
-				// r2p0 - No OpenGL ES 3.0 support (We don't support this)
-				// r3p0 - OpenGL ES 3.0 support
-				// r4p0 - Supports 'GL_EXT_shader_pixel_local_storage' extension.
+			//
+			// Mali drivers provide no way to explicitly find out what video driver is running.
+			// This is similar to how we can't find the Nvidia driver version in Windows.
+			// Good thing is that ARM introduces a new video driver about once every two years so we can
+			// find the driver version by the features it exposes.
+			// r2p0 - No OpenGL ES 3.0 support (We don't support this)
+			// r3p0 - OpenGL ES 3.0 support
+			// r4p0 - Supports 'GL_EXT_shader_pixel_local_storage' extension.
 
-				if (GLExtensions::Supports("GL_EXT_shader_pixel_local_storage"))
-					version = 400;
-				else
-					version = 300;
-			}
-			else if (std::string::npos != srenderer.find("Mali-4") ||
-			         std::string::npos != srenderer.find("Mali-3") ||
-			         std::string::npos != srenderer.find("Mali-2"))
-			{
-				driver = DriverDetails::DRIVER_ARM_UTGARD;
-			}
+			driver = DriverDetails::DRIVER_ARM;
+			if (GLExtensions::Supports("GL_EXT_shader_pixel_local_storage"))
+				version = 400;
+			else
+				version = 300;
 		break;
 		case DriverDetails::VENDOR_MESA:
 		{
