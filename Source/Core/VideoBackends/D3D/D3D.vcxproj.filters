@@ -33,9 +33,6 @@
     <ClCompile Include="GeometryShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="LineGeometryShader.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="NativeVertexFormat.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -43,9 +40,6 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="PixelShaderCache.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="PointGeometryShader.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="PSTextureEncoder.cpp">
@@ -99,16 +93,10 @@
     <ClInclude Include="GeometryShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="LineGeometryShader.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="PerfQuery.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="PixelShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="PointGeometryShader.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="PSTextureEncoder.h">

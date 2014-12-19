@@ -476,6 +476,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
+	g_Config.backend_info.bSupportsGeometryShaders = (GLExtensions::Version() >= 320);
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -498,7 +499,7 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 			g_ogl_config.bSupportsAEP = false;
-			g_Config.backend_info.bSupportsStereoscopy = false;
+			g_Config.backend_info.bSupportsGeometryShaders = false;
 		}
 		else
 		{
@@ -506,7 +507,7 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
-			g_Config.backend_info.bSupportsStereoscopy = g_ogl_config.bSupportsAEP;
+			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
 		}
 	}
 	else
@@ -522,13 +523,13 @@ Renderer::Renderer()
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
-			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
+			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
 		}
 		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
-			g_Config.backend_info.bSupportsStereoscopy = false; // geometry shaders are only supported on glsl150+
+			g_Config.backend_info.bSupportsGeometryShaders = false; // geometry shaders are only supported on glsl150+
 		}
 		else
 		{
@@ -565,7 +566,7 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsStereoscopy)
+	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsGeometryShaders)
 		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
 
 	if (!bSuccess)
@@ -880,9 +881,6 @@ void Renderer::DrawDebugInfo()
 		glBindVertexArray(s_ShowEFBCopyRegions_VAO);
 		GLsizei count = static_cast<GLsizei>(stats.efb_regions.size() * 2*6);
 		glDrawArrays(GL_LINES, 0, count);
-
-		// Restore Line Size
-		SetLineWidth();
 
 		// Clear stored regions
 		stats.efb_regions.clear();
@@ -1899,17 +1897,6 @@ void Renderer::SetDitherMode()
 		glEnable(GL_DITHER);
 	else
 		glDisable(GL_DITHER);
-}
-
-void Renderer::SetLineWidth()
-{
-	float fratio = xfmem.viewport.wd != 0 ?
-		((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
-	if (bpmem.lineptwidth.linesize > 0)
-		// scale by ratio of widths
-		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f);
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && bpmem.lineptwidth.pointsize > 0)
-		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)

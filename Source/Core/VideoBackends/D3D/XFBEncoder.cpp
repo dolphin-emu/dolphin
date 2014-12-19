@@ -282,6 +282,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	D3D::stateman->SetPixelShader(m_pShader);
 	D3D::stateman->SetVertexShader(m_vShader);
+	D3D::stateman->SetGeometryShader(nullptr);
 
 	D3D::stateman->PushBlendState(m_xfbEncodeBlendState);
 	D3D::stateman->PushDepthState(m_xfbEncodeDepthState);

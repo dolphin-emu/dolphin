@@ -7,6 +7,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -110,6 +111,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 			VertexManager::Flush();
 			VertexShaderManager::SetViewportChanged();
 			PixelShaderManager::SetViewportChanged();
+			GeometryShaderManager::SetViewportChanged();
 
 			nextAddress = XFMEM_SETVIEWPORT + 6;
 			break;
@@ -123,6 +125,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
 		case XFMEM_SETPROJECTION+6:
 			VertexManager::Flush();
 			VertexShaderManager::SetProjectionChanged();
+			GeometryShaderManager::SetProjectionChanged();
 
 			nextAddress = XFMEM_SETPROJECTION + 7;
 			break;

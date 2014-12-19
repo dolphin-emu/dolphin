@@ -16,11 +16,13 @@ struct geometry_shader_uid_data
 	u32 stereo : 1;
 	u32 numTexGens : 4;
 	u32 pixel_lighting : 1;
+	u32 primitive_type : 2;
 };
 
 #pragma pack()
 
 typedef ShaderUid<geometry_shader_uid_data> GeometryShaderUid;
 
-void GenerateGeometryShaderCode(ShaderCode& object, u32 components, API_TYPE ApiType);
-void GetGeometryShaderUid(GeometryShaderUid& object, u32 components, API_TYPE ApiType);
+void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType);
+void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYPE ApiType);
+bool IsPassthroughGeometryShader(GeometryShaderUid& object);

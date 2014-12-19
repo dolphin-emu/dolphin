@@ -2,6 +2,7 @@
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Debugger.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/MainBase.h"
 #include "VideoCommon/NativeVertexFormat.h"

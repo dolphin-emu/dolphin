@@ -17,6 +17,8 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderGen.h"
+#include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -26,6 +28,7 @@ GeometryShaderCache::GSCache GeometryShaderCache::GeometryShaders;
 const GeometryShaderCache::GSCacheEntry* GeometryShaderCache::last_entry;
 GeometryShaderUid GeometryShaderCache::last_uid;
 UidChecker<GeometryShaderUid,ShaderCode> GeometryShaderCache::geometry_uid_checker;
+const GeometryShaderCache::GSCacheEntry GeometryShaderCache::pass_entry;
 
 ID3D11GeometryShader* ClearGeometryShader = nullptr;
 ID3D11GeometryShader* CopyGeometryShader = nullptr;
@@ -36,6 +39,22 @@ ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return Cle
 ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return CopyGeometryShader; }
 
 ID3D11Buffer* gscbuf = nullptr;
+
+ID3D11Buffer* &GeometryShaderCache::GetConstantBuffer()
+{
+	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
+	if (GeometryShaderManager::dirty)
+	{
+		D3D11_MAPPED_SUBRESOURCE map;
+		D3D::context->Map(gscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		memcpy(map.pData, &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+		D3D::context->Unmap(gscbuf, 0);
+		GeometryShaderManager::dirty = false;
+
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(GeometryShaderConstants));
+	}
+	return gscbuf;
+}
 
 // this class will load the precompiled shaders into our cache
 class GeometryShaderCacheInserter : public LinearDiskCacheReader<GeometryShaderUid, u8>
@@ -113,6 +132,12 @@ const char copy_shader_code[] = {
 
 void GeometryShaderCache::Init()
 {
+	unsigned int gbsize = ROUND_UP(sizeof(GeometryShaderConstants), 16); // must be a multiple of 16
+	D3D11_BUFFER_DESC gbdesc = CD3D11_BUFFER_DESC(gbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	HRESULT hr = D3D::device->CreateBuffer(&gbdesc, nullptr, &gscbuf);
+	CHECK(hr == S_OK, "Create geometry shader constant buffer (size=%u)", gbsize);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)gscbuf, "geometry shader constant buffer used to emulate the GX pipeline");
+
 	// used when drawing clear quads
 	ClearGeometryShader = D3D::CompileAndCreateGeometryShader(clear_shader_code);
 	CHECK(ClearGeometryShader != nullptr, "Create clear geometry shader");
@@ -152,6 +177,8 @@ void GeometryShaderCache::Clear()
 
 void GeometryShaderCache::Shutdown()
 {
+	SAFE_RELEASE(gscbuf);
+
 	SAFE_RELEASE(ClearGeometryShader);
 	SAFE_RELEASE(CopyGeometryShader);
 
@@ -160,14 +187,14 @@ void GeometryShaderCache::Shutdown()
 	g_gs_disk_cache.Close();
 }
 
-bool GeometryShaderCache::SetShader(u32 components)
+bool GeometryShaderCache::SetShader(u32 primitive_type)
 {
 	GeometryShaderUid uid;
-	GetGeometryShaderUid(uid, components, API_D3D);
+	GetGeometryShaderUid(uid, primitive_type, API_D3D);
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
 		ShaderCode code;
-		GenerateGeometryShaderCode(code, components, API_D3D);
+		GenerateGeometryShaderCode(code, primitive_type, API_D3D);
 		geometry_uid_checker.AddToIndexAndCheck(code, uid, "Geometry", "g");
 	}
 
@@ -177,11 +204,19 @@ bool GeometryShaderCache::SetShader(u32 components)
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
-			return (last_entry->shader != nullptr);
+			return true;
 		}
 	}
 
 	last_uid = uid;
+
+	// Check if the shader is a pass-through shader
+	if (IsPassthroughGeometryShader(uid))
+	{
+		// Return the default pass-through shader
+		last_entry = &pass_entry;
+		return true;
+	}
 
 	// Check if the shader is already in the cache
 	GSCache::iterator iter;
@@ -196,7 +231,7 @@ bool GeometryShaderCache::SetShader(u32 components)
 
 	// Need to compile a new shader
 	ShaderCode code;
-	GenerateGeometryShaderCode(code, components, API_D3D);
+	GenerateGeometryShaderCode(code, primitive_type, API_D3D);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode))
