@@ -75,8 +75,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("out VertexData {\n"
-			          "\tcentroid out VS_OUTPUT o;\n"
-			          "};\n");
+			          "\tcentroid %s VS_OUTPUT o;\n"
+					  "};\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
 		}
 		else
 		{
