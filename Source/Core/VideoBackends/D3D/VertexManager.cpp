@@ -6,6 +6,7 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexManager.h"
@@ -137,74 +138,67 @@ void VertexManager::Draw(u32 stride)
 	u32 baseVertex = m_vertexDrawOffset / stride;
 	u32 startIndex = m_indexDrawOffset / sizeof(u16);
 
-	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
-		if (eye)
-		{
-			FramebufferManager::SwapRenderEye();
-			memcpy(VertexShaderManager::constants.projection, VertexShaderManager::constants_eye_projection[FramebufferManager::m_current_eye], 4 * 16);
-			VertexShaderManager::dirty = true;
-			ID3D11Buffer* const_buffers[1] = { VertexShaderCache::GetConstantBuffer() };
-			D3D::context->VSSetConstantBuffers(0, 1, const_buffers);
-		}
-		if (current_primitive_type == PRIMITIVE_TRIANGLES)
-		{
-			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			D3D::stateman->Apply();
+		D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D::stateman->SetGeometryConstants(VertexShaderCache::GetConstantBuffer());
+		D3D::stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetActiveShader() : nullptr);
 
+		D3D::stateman->Apply();
+		D3D::context->DrawIndexed(indices, startIndex, baseVertex);
+
+		INCSTAT(stats.thisFrame.numDrawCalls);
+
+		D3D::stateman->SetGeometryShader(nullptr);
+	}
+	else if (current_primitive_type == PRIMITIVE_LINES)
+	{
+		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
+		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
+
+		bool texOffsetEnable[8];
+
+		for (int i = 0; i < 8; ++i)
+			texOffsetEnable[i] = bpmem.texcoords[i].s.line_offset;
+
+		if (m_lineShader.SetShader(components, lineWidth,
+			texOffset, vpWidth, vpHeight, texOffsetEnable))
+		{
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+			D3D::stateman->Apply();
 			D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
 			INCSTAT(stats.thisFrame.numDrawCalls);
+
+			D3D::stateman->SetGeometryShader(nullptr);
 		}
-		else if (current_primitive_type == PRIMITIVE_LINES)
+	}
+	else //if (current_primitive_type == PRIMITIVE_POINTS)
+	{
+		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
+		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
+
+		bool texOffsetEnable[8];
+
+		for (int i = 0; i < 8; ++i)
+			texOffsetEnable[i] = bpmem.texcoords[i].s.point_offset;
+
+		if (m_pointShader.SetShader(components, pointSize,
+			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
-			float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-			float vpWidth = 2.0f * xfmem.viewport.wd;
-			float vpHeight = -2.0f * xfmem.viewport.ht;
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-			bool texOffsetEnable[8];
+			D3D::stateman->Apply();
+			D3D::context->DrawIndexed(indices, startIndex, baseVertex);
 
-			for (int i = 0; i < 8; ++i)
-				texOffsetEnable[i] = bpmem.texcoords[i].s.line_offset;
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			if (m_lineShader.SetShader(components, lineWidth,
-				texOffset, vpWidth, vpHeight, texOffsetEnable))
-			{
-				D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-				D3D::stateman->Apply();
-				D3D::context->DrawIndexed(indices, startIndex, baseVertex);
-
-				INCSTAT(stats.thisFrame.numDrawCalls);
-
-				D3D::stateman->SetGeometryShader(nullptr);
-			}
-		}
-		else //if (current_primitive_type == PRIMITIVE_POINTS)
-		{
-			float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
-			float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
-			float vpWidth = 2.0f * xfmem.viewport.wd;
-			float vpHeight = -2.0f * xfmem.viewport.ht;
-
-			bool texOffsetEnable[8];
-
-			for (int i = 0; i < 8; ++i)
-				texOffsetEnable[i] = bpmem.texcoords[i].s.point_offset;
-
-			if (m_pointShader.SetShader(components, pointSize,
-				texOffset, vpWidth, vpHeight, texOffsetEnable))
-			{
-				D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-
-				D3D::stateman->Apply();
-				D3D::context->DrawIndexed(indices, startIndex, baseVertex);
-
-				INCSTAT(stats.thisFrame.numDrawCalls);
-
-				D3D::stateman->SetGeometryShader(nullptr);
-			}
+			D3D::stateman->SetGeometryShader(nullptr);
 		}
 	}
 }
@@ -225,22 +219,26 @@ void VertexManager::vFlush(bool useDstAlpha)
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
 	}
+
+	if (g_ActiveConfig.iStereoMode > 0)
+	{
+		if (!GeometryShaderCache::SetShader(components))
+		{
+			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
+			return;
+		}
+	}
+
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
 	{
 		D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(), nullptr);
 	}
+
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
 
 	PrepareDrawBuffers(stride);
 
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
-
-	// Each eye needs its own projection matrix
-	if (FramebufferManager::m_stereo3d)
-	{
-		memcpy(VertexShaderManager::constants.projection, VertexShaderManager::constants_eye_projection[FramebufferManager::m_current_eye], 4 * 16);
-		VertexShaderManager::dirty = true;
-	}
 	g_renderer->ApplyState(useDstAlpha);
 
 	Draw(stride);

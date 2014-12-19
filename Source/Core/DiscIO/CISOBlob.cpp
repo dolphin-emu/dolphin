@@ -66,7 +66,10 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 			u64 const file_off = CISO_HEADER_SIZE + m_ciso_map[block] * (u64)m_block_size + data_offset;
 
 			if (!(m_file.Seek(file_off, SEEK_SET) && m_file.ReadArray(out_ptr, bytes_to_read)))
+			{
+				m_file.Clear();
 				return false;
+			}
 		}
 		else
 		{

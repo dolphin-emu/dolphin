@@ -100,7 +100,7 @@ static const char EFB_ENCODE_PS[] =
 	"} Params;\n"
 "}\n"
 
-"Texture2D EFBTexture : register(t0);\n"
+"Texture2DArray EFBTexture : register(t0);\n"
 "sampler EFBSampler : register(s0);\n"
 
 // Constants
@@ -183,7 +183,7 @@ static const char EFB_ENCODE_PS[] =
 "float4 Fetch_0(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
+	"float4 result = EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0));\n"
 	"result.a = 1.0;\n"
 	"return result;\n"
 "}\n"
@@ -191,13 +191,13 @@ static const char EFB_ENCODE_PS[] =
 "float4 Fetch_1(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"return EFBTexture.Sample(EFBSampler, texCoord);\n"
+	"return EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0));\n"
 "}\n"
 
 "float4 Fetch_2(float2 coord)\n"
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
-	"float4 result = EFBTexture.Sample(EFBSampler, texCoord);\n"
+	"float4 result = EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0));\n"
 	"result.a = 1.0;\n"
 	"return result;\n"
 "}\n"
@@ -206,7 +206,7 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
 
-	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, texCoord).r;\n"
+	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, float3(texCoord.xy, 0.0)).r;\n"
 	"uint4 bytes = uint4(\n"
 		"(depth24 >> 16) & 0xFF,\n" // r
 		"(depth24 >> 8) & 0xFF,\n"  // g
@@ -1033,7 +1033,6 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf)
 {
-	int eye = 0;
 	if (!m_ready) // Make sure we initialized OK
 		return 0;
 
@@ -1120,11 +1119,11 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
 		ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
-			FramebufferManager::GetEFBDepthTexture(eye)->GetSRV() :
+			FramebufferManager::GetEFBDepthTexture()->GetSRV() :
 			// FIXME: Instead of resolving EFB, it would be better to pick out a
 			// single sample from each pixel. The game may break if it isn't
 			// expecting the blurred edges around multisampled shapes.
-			FramebufferManager::GetResolvedEFBColorTexture(eye)->GetSRV();
+			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
 		D3D::stateman->SetVertexConstants(m_encodeParams);
 		D3D::stateman->SetPixelConstants(m_encodeParams);
@@ -1182,8 +1181,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 	g_renderer->RestoreAPIState();
 	D3D::context->OMSetRenderTargets(1,
-		&FramebufferManager::GetEFBColorTexture(eye)->GetRTV(),
-		FramebufferManager::GetEFBDepthTexture(eye)->GetDSV());
+		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
+		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	return encodeSize;
 }

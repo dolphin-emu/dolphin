@@ -16,6 +16,7 @@
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/Globals.h"
 #include "VideoBackends/D3D/PerfQuery.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
@@ -79,7 +80,8 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsOversizedViewports = false;
-	g_Config.backend_info.bSupportsStereoscopy = false; // TODO: not implemented
+	g_Config.backend_info.bSupportsStereoscopy = true;
+	g_Config.backend_info.bSupports3DVision = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -118,11 +120,17 @@ void InitBackendInfo()
 
 				g_Config.backend_info.AAModes.push_back(samples);
 			}
+
 			bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
+
 			// Requires the earlydepthstencil attribute (only available in shader model 5)
 			g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
+
 			// Requires full UAV functionality (only available in shader model 5)
 			g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
+
+			// Requires the instance attribute (only available in shader model 5)
+			g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
 		}
 		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
@@ -180,6 +188,7 @@ void VideoBackend::Video_Prepare()
 	g_perf_query = new PerfQuery;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
+	GeometryShaderCache::Init();
 	D3D::InitUtils();
 
 	// VideoCommon
@@ -223,6 +232,7 @@ void VideoBackend::Shutdown()
 		D3D::ShutdownUtils();
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		GeometryShaderCache::Shutdown();
 		BBox::Shutdown();
 
 		delete g_perf_query;

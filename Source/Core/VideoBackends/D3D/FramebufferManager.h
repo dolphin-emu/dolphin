@@ -59,7 +59,7 @@ namespace DX11 {
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(D3DTexture2D *_tex) : tex(_tex) {}
+	XFBSource(D3DTexture2D *_tex, int slices) : tex(_tex), m_slices(slices) {}
 	~XFBSource() { tex->Release(); }
 
 	void Draw(const MathUtil::Rectangle<int> &sourcerc,
@@ -68,6 +68,7 @@ struct XFBSource : public XFBSourceBase
 	void CopyEFB(float Gamma) override;
 
 	D3DTexture2D* const tex;
+	const int m_slices;
 };
 
 class FramebufferManager : public FramebufferManagerBase
@@ -76,26 +77,23 @@ public:
 	FramebufferManager();
 	~FramebufferManager();
 
-	static D3DTexture2D* &GetEFBColorTexture(int eye);
-	static ID3D11Texture2D* &GetEFBColorStagingBuffer(int eye);
+	static D3DTexture2D* &GetEFBColorTexture();
+	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
 
-	static D3DTexture2D* &GetEFBDepthTexture(int eye);
-	static D3DTexture2D* &GetEFBDepthReadTexture(int eye);
-	static ID3D11Texture2D* &GetEFBDepthStagingBuffer(int eye);
+	static D3DTexture2D* &GetEFBDepthTexture();
+	static D3DTexture2D* &GetEFBDepthReadTexture();
+	static ID3D11Texture2D* &GetEFBDepthStagingBuffer();
 
-	static D3DTexture2D* &GetResolvedEFBColorTexture(int eye);
-	static D3DTexture2D* &GetResolvedEFBDepthTexture(int eye);
+	static D3DTexture2D* &GetResolvedEFBColorTexture();
+	static D3DTexture2D* &GetResolvedEFBDepthTexture();
 
-	static D3DTexture2D* &GetEFBColorTempTexture(int eye) { return m_efb[eye].color_temp_tex; }
-	static void SwapReinterpretTexture(int eye)
+	static D3DTexture2D* &GetEFBColorTempTexture() { return m_efb.color_temp_tex; }
+	static void SwapReinterpretTexture()
 	{
-		D3DTexture2D* swaptex = GetEFBColorTempTexture(eye);
-		m_efb[eye].color_temp_tex = GetEFBColorTexture(eye);
-		m_efb[eye].color_tex = swaptex;
+		D3DTexture2D* swaptex = GetEFBColorTempTexture();
+		m_efb.color_temp_tex = GetEFBColorTexture();
+		m_efb.color_tex = swaptex;
 	}
-
-	static void RenderToEye(int eye);
-	static void SwapRenderEye();
 
 	static void SwapAsyncFrontBuffers();
 
@@ -106,7 +104,7 @@ public:
 #endif
 	//static volatile GLuint m_frontBuffer[2];
 	static bool m_stereo3d;
-	static int m_eye_count, m_current_eye;
+	static int m_eye_count;
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
@@ -114,6 +112,7 @@ private:
 
 	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
+public:
 	static struct Efb
 	{
 		D3DTexture2D* color_tex;
@@ -127,7 +126,11 @@ private:
 
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;
-	} m_efb[2];
+
+		D3DTexture2D* m_frontBuffer[2];
+
+		int slices;
+	} m_efb;
 };
 
 }  // namespace DX11

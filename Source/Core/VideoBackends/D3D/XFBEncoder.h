@@ -30,7 +30,7 @@ public:
 	void Init();
 	void Shutdown();
 
-	void Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma, int eye);
+	void Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma);
 
 private:
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="UserMacros">
-    <QTDIRDefault>$(ExternalsDir)Qt\Qt5.3.1\5.3\msvc2013_64_opengl\</QTDIRDefault>
+    <QTDIRDefault>$(ExternalsDir)Qt\Qt5.4.0\5.4\msvc2013_64_opengl\</QTDIRDefault>
     <QTDIR Condition="Exists('$(QTDIRDefault)') And '$(QTDIR)'==''">$(QTDIRDefault)</QTDIR>
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
     <QtDirValid>false</QtDirValid>
@@ -125,7 +125,7 @@
   
   <!--Copy the needed dlls-->
   <ItemGroup>
-    <IcuDlls Include="icudt52;icuin52;icuuc52" />
+    <IcuDlls Include="icudt53;icuin53;icuuc53" />
     <QtLibNames Include="@(IcuDlls);Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
     <QtDlls Include="@(QtLibNames -> '$(QtBinDir)%(Identity).dll')" />
     <!--Filter plugins to copy based on the observation that all debug versions end in "d"-->

@@ -30,6 +30,9 @@
     <ClCompile Include="FramebufferManager.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryShaderCache.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
     <ClCompile Include="LineGeometryShader.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -91,6 +94,9 @@
       <Filter>D3D</Filter>
     </ClInclude>
     <ClInclude Include="FramebufferManager.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="LineGeometryShader.h">
