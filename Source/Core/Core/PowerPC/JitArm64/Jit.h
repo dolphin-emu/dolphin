@@ -68,6 +68,12 @@ public:
 
 	// Force break
 	void Break(UGeckoInstruction inst);
+	
+	// Load
+	void lwz(UGeckoInstruction inst);
+	void lwzu(UGeckoInstruction inst);
+	void lwzx(UGeckoInstruction inst);
+	void lwzux(UGeckoInstruction inst);
 
 	// Branch
 	void sc(UGeckoInstruction inst);

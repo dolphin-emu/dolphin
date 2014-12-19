@@ -65,8 +65,8 @@ static GekkoOPTemplate primarytable[] =
 	{28, &JitArm64::arith_imm},                 //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 	{29, &JitArm64::arith_imm},                 //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
-	{32, &JitArm64::FallBackToInterpreter},     //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{33, &JitArm64::FallBackToInterpreter},     //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{32, &JitArm64::lwz},     //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{33, &JitArm64::lwzu},     //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{34, &JitArm64::FallBackToInterpreter},     //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{35, &JitArm64::FallBackToInterpreter},     //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{40, &JitArm64::FallBackToInterpreter},     //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
@@ -208,8 +208,8 @@ static GekkoOPTemplate table31[] =
 	{1014, &JitArm64::FallBackToInterpreter},   //"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
-	{23,  &JitArm64::FallBackToInterpreter},    //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &JitArm64::FallBackToInterpreter},    //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{23,  &JitArm64::lwzx},    //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{55,  &JitArm64::lwzux},    //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
 	{279, &JitArm64::FallBackToInterpreter},    //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
