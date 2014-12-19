@@ -72,10 +72,11 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
-		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
-		if (g_ActiveConfig.iStereoMode > 0)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("centroid out VS_OUTPUT o;\n");
+			out.Write("out VertexData {\n"
+			          "\tcentroid VS_OUTPUT o;\n"
+			          "};\n");
 		}
 		else
 		{
@@ -87,7 +88,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 					out.Write("centroid out float3 uv%d;\n", i);
 				}
 			}
-
 			out.Write("centroid out float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 				out.Write("centroid out float4 Normal;\n");
@@ -97,7 +97,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		out.Write("void main()\n{\n");
 
-		if (g_ActiveConfig.iStereoMode <= 0)
+		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
@@ -384,21 +384,15 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	if (api_type == API_OPENGL)
 	{
-		if (g_ActiveConfig.iStereoMode <= 0)
+		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			// Bit ugly here
-			// TODO: Make pretty
-			// Will look better when we bind uniforms in GLSL 1.3
-			// clipPos/w needs to be done in pixel shader, not here
-
+			// TODO: Pass structs between shader stages even if geometry shaders
+			// are not supported, however that will break GL 3.0 and 3.1 support.
 			for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
-
 			out.Write("clipPos = o.clipPos;\n");
-
 			if (g_ActiveConfig.bEnablePixelLighting)
 				out.Write("Normal = o.Normal;\n");
-
 			out.Write("colors_02 = o.colors_0;\n");
 			out.Write("colors_12 = o.colors_1;\n");
 		}

@@ -17,6 +17,7 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/MetroidVR.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
@@ -1046,8 +1047,10 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
-		constants.stereoparams[0] = constants.stereoparams[1] = 0;
-		constants.stereoparams[2] = constants.stereoparams[3] = 0;
+		GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
+		GeometryShaderManager::constants.stereoparams[2] = GeometryShaderManager::constants.stereoparams[3] = 0;
+		GeometryShaderManager::dirty = true;
+		dirty = true;
 	}
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
 	else if (g_has_hmd && g_ActiveConfig.bEnableVR && !bFullscreenLayer)
@@ -1187,11 +1190,11 @@ void VertexShaderManager::SetProjectionConstants()
 			proj_right.data[1 * 4 + 1] = rift_right.M[1][1] * SignOf(proj_right.data[1 * 4 + 1]) * fRightHeightHack;
 			proj_right.data[0 * 4 + 2] = rift_right.M[0][2] * SignOf(proj_right.data[0 * 4 + 0]) - fRightHack;
 			proj_right.data[1 * 4 + 2] = rift_right.M[1][2] * SignOf(proj_right.data[1 * 4 + 1]) - fUpHack;
-			constants.stereoparams[0] = proj_left.data[0 * 4 + 0];
-			constants.stereoparams[1] = proj_right.data[0 * 4 + 0];
-			constants.stereoparams[2] = proj_left.data[0 * 4 + 2];
-			constants.stereoparams[3] = proj_right.data[0 * 4 + 2];
-			if (g_ActiveConfig.backend_info.bSupportsStereoscopy)
+			GeometryShaderManager::constants.stereoparams[0] = proj_left.data[0 * 4 + 0];
+			GeometryShaderManager::constants.stereoparams[1] = proj_right.data[0 * 4 + 0];
+			GeometryShaderManager::constants.stereoparams[2] = proj_left.data[0 * 4 + 2];
+			GeometryShaderManager::constants.stereoparams[3] = proj_right.data[0 * 4 + 2];
+			if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 			{
 				proj_left.data[0 * 4 + 2] = 0;
 			}
@@ -1508,7 +1511,7 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 #endif
 		Matrix44 view_matrix_left, view_matrix_right;
-		if (g_ActiveConfig.backend_info.bSupportsStereoscopy)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			Matrix44::Set(view_matrix_left, look_matrix.data);
 
@@ -1533,14 +1536,14 @@ void VertexShaderManager::SetProjectionConstants()
 			final_matrix_left.data[1] *= -1;
 			final_matrix_left.data[2] *= -1;
 			final_matrix_left.data[3] *= -1;
-			constants.stereoparams[2] *= -1;
+			GeometryShaderManager::constants.stereoparams[2] *= -1;
 			final_matrix_left.data[4] *= -1;
 			final_matrix_left.data[8] *= -1;
 			final_matrix_left.data[12] *= -1;
 			final_matrix_right.data[1] *= -1;
 			final_matrix_right.data[2] *= -1;
 			final_matrix_right.data[3] *= -1;
-			constants.stereoparams[3] *= -1;
+			GeometryShaderManager::constants.stereoparams[3] *= -1;
 			final_matrix_right.data[4] *= -1;
 			final_matrix_right.data[8] *= -1;
 			final_matrix_right.data[12] *= -1;
@@ -1575,25 +1578,26 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
 		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
 		{
-			constants.stereoparams[0] *= posLeft[0];
-			constants.stereoparams[1] *= posRight[0];
+			GeometryShaderManager::constants.stereoparams[0] *= posLeft[0];
+			GeometryShaderManager::constants.stereoparams[1] *= posRight[0];
 			if (debug_newScene)
 			{
 				DEBUG_LOG(VR, "F=[%8.4f %8.4f %8.4f   %8.4f]", final_matrix_left.data[0 * 4 + 0], final_matrix_left.data[0 * 4 + 1], final_matrix_left.data[0 * 4 + 2], final_matrix_left.data[0 * 4 + 3]);
 				DEBUG_LOG(VR, "F=[%8.4f %8.4f %8.4f   %8.4f]", final_matrix_left.data[1 * 4 + 0], final_matrix_left.data[1 * 4 + 1], final_matrix_left.data[1 * 4 + 2], final_matrix_left.data[1 * 4 + 3]);
 				DEBUG_LOG(VR, "F=[%8.4f %8.4f %8.4f   %8.4f]", final_matrix_left.data[2 * 4 + 0], final_matrix_left.data[2 * 4 + 1], final_matrix_left.data[2 * 4 + 2], final_matrix_left.data[2 * 4 + 3]);
 				DEBUG_LOG(VR, "F={%8.4f %8.4f %8.4f   %8.4f}", final_matrix_left.data[3 * 4 + 0], final_matrix_left.data[3 * 4 + 1], final_matrix_left.data[3 * 4 + 2], final_matrix_left.data[3 * 4 + 3]);
-				DEBUG_LOG(VR, "StereoParams: %8.4f, %8.4f", constants.stereoparams[0], constants.stereoparams[2]);
+				DEBUG_LOG(VR, "StereoParams: %8.4f, %8.4f", GeometryShaderManager::constants.stereoparams[0], GeometryShaderManager::constants.stereoparams[2]);
 				DEBUG_LOG(VR, "eye_x = %8.4f", g_eye_render_desc[0].HmdToEyeViewOffset.x);
 			}
 		}
 		else
 		{
-			constants.stereoparams[0] = constants.stereoparams[1] = 0;
+			GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
 		}
-
+		GeometryShaderManager::dirty = true;
+		dirty = true;
 	}
-	else if (bFreeLookChanged && xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_RENDER_TO_TEXTURE)
+	else if (bFreeLookChanged && xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type)
 	{
 		Matrix44 mtxA;
 		Matrix44 mtxB;
@@ -1613,18 +1617,6 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
-
-		if (g_ActiveConfig.iStereoMode > 0 && xfmem.projection.type == GX_PERSPECTIVE)
-		{
-			float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
-			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
-			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-			constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
-		}
-		else
-		{
-			constants.stereoparams[0] = constants.stereoparams[1] = 0;
-		}
 
 		dirty = true;
 	}

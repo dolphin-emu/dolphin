@@ -146,6 +146,9 @@
     <ClCompile Include="GeometryShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryShaderManager.cpp">
+      <Filter>Shader Managers</Filter>
+    </ClCompile>
     <ClCompile Include="VR.cpp" />
     <ClCompile Include="VR920.cpp" />
     <ClCompile Include="MetroidVR.cpp" />
@@ -286,6 +289,9 @@
     </ClInclude>
     <ClInclude Include="GeometryShaderGen.h">
       <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryShaderManager.h">
+      <Filter>Shader Managers</Filter>
     </ClInclude>
     <ClInclude Include="VR.h" />
     <ClInclude Include="VR920.h" />

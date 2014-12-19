@@ -1555,13 +1555,14 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	}
 
 	ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
-	ID3D11Buffer* pixelConstants = PixelShaderCache::GetConstantBuffer();
 
-	D3D::stateman->SetPixelConstants(pixelConstants, g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
+	D3D::stateman->SetPixelConstants(PixelShaderCache::GetConstantBuffer(), g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
 	D3D::stateman->SetVertexConstants(vertexConstants);
+	D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
 
 	D3D::stateman->SetPixelShader(PixelShaderCache::GetActiveShader());
 	D3D::stateman->SetVertexShader(VertexShaderCache::GetActiveShader());
+	D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
 }
 
 void Renderer::RestoreState()
@@ -1700,11 +1701,6 @@ void Renderer::SetLogicOpMode()
 void Renderer::SetDitherMode()
 {
 	// TODO: Set dither mode to bpmem.blendmode.dither
-}
-
-void Renderer::SetLineWidth()
-{
-	// TODO
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)

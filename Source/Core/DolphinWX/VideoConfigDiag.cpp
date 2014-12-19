@@ -469,7 +469,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - stereoscopy
 
-	if (vconfig.backend_info.bSupportsStereoscopy)
+	if (vconfig.backend_info.bSupportsGeometryShaders)
 	{
 		wxFlexGridSizer* const szr_stereo = new wxFlexGridSizer(2, 5, 5);
 
@@ -478,7 +478,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		const wxString stereo_choices_na[] = { "Off", "Side-by-Side", "Top-and-Bottom", "Anaglyph", "N/A", "Oculus", "VR920" };
 #else
 		const wxString stereo_choices[] = { "Off", "Side-by-Side", "Top-and-Bottom", "Anaglyph", "Nvidia 3D Vision", "Oculus" };
-		const wxString stereo_choices_na = { "Off", "Side-by-Side", "Top-and-Bottom", "Anaglyph", "N/A", "Oculus" };
+		const wxString stereo_choices_na[] = { "Off", "Side-by-Side", "Top-and-Bottom", "Anaglyph", "N/A", "Oculus" };
 #endif
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Stereoscopic 3D Mode:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		if (vconfig.backend_info.bSupports3DVision)

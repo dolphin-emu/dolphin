@@ -279,7 +279,10 @@ static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
 #define I_PIXELCENTERCORRECTION "cpixelcenter"
-#define I_STEREOPARAMS          "cstereo"
+
+#define I_STEREOPARAMS  "cstereo"
+#define I_LINEPTPARAMS  "clinept"
+#define I_TEXOFFSET     "ctexoffset"
 
 static const char s_shader_uniforms[] =
 	"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
@@ -290,5 +293,4 @@ static const char s_shader_uniforms[] =
 	"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
 	"\tfloat4 " I_NORMALMATRICES"[32];\n"
 	"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-	"\tfloat4 " I_PIXELCENTERCORRECTION";\n"
-	"\tfloat4 " I_STEREOPARAMS";\n";
+	"\tfloat4 " I_PIXELCENTERCORRECTION";\n";
