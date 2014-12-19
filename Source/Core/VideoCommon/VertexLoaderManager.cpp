@@ -138,19 +138,12 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return 0;
 
 	CPState* state = &g_main_cp_state;
-	static u16 skip_objects_count = 0;
 
 	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
 
 	int size = count * loader->GetVertexSize();
 	if ((int)src.size() < size)
 		return -1;
-
-	if (g_new_frame_tracker_for_object_skip)
-	{
-		skip_objects_count = 0;
-		g_new_frame_tracker_for_object_skip = false;
-	}
 
 	if (skip_objects_count < SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end)
 	{
