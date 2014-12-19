@@ -320,7 +320,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("in VertexData {\n");
-			out.Write("\tcentroid VS_OUTPUT o;\n");
+			out.Write("\tcentroid in VS_OUTPUT o;\n");
 
 			if (g_ActiveConfig.iStereoMode > 0)
 				out.Write("\tflat int layer;\n");
