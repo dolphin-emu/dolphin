@@ -138,6 +138,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return 0;
 
 	CPState* state = &g_main_cp_state;
+	SCoreStartupParameter &m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
 
@@ -145,9 +146,9 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if ((int)src.size() < size)
 		return -1;
 
-	if (skip_objects_count < SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end)
+	if (skip_objects_count < m_LocalCoreStartupParameter.skip_objects_end)
 	{
-		if (++skip_objects_count >= SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start)
+		if (++skip_objects_count >= m_LocalCoreStartupParameter.skip_objects_start)
 		{
 			//Skip Object
 			return size;
@@ -160,40 +161,36 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return size;
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries)
+	if (m_LocalCoreStartupParameter.num_render_skip_entries)
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.update)
+		if (m_LocalCoreStartupParameter.update)
 		{
-			SConfig::GetInstance().m_LocalCoreStartupParameter.done = false;
+			m_LocalCoreStartupParameter.done = false;
 			size_t num_render_skip_data;
-			bool manual_skip_drawing;
-			for (int render_skip_entry = 0; render_skip_entry < SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries; render_skip_entry++)
+			for (int render_skip_entry = 0; render_skip_entry < m_LocalCoreStartupParameter.num_render_skip_entries; render_skip_entry++)
 			{
-				//Find which entry we're on
-				SkipEntry e = SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.at(render_skip_entry);
-
 				//Find number of data chunks in entry
-				num_render_skip_data = e.size();
+				num_render_skip_data = m_LocalCoreStartupParameter.render_skip_entries[render_skip_entry].size();
 
-				//Make a copy of the video_buffer_read_ptr, which will be used to see if the data matches.
-				manual_skip_drawing = true;
 				for (int d = 0; d < num_render_skip_data; d++)
 				{
-					if (src.Peek<u8>(d) != e.at(d))
+					if (src.Peek<u8>(d) != m_LocalCoreStartupParameter.render_skip_entries[render_skip_entry][d])
 					{
 						//Data didn't match, try next entry.
-						manual_skip_drawing = false;
 						break;
 					}
-				}
-				//Data stream matched the entry, skip rendering it.
-				if (manual_skip_drawing)
-				{
-					return size;
+					else
+					{
+						if (d == (num_render_skip_data - 1))
+						{
+							//Data stream matched the entry, skip rendering it.
+							return size;
+						}
+					}
 				}
 			}
 		}
-		SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
+		m_LocalCoreStartupParameter.done = true;
 	}
 
 	NativeVertexFormat* native = loader->GetNativeVertexFormat();
