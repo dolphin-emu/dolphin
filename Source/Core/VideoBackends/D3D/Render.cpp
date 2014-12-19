@@ -1084,10 +1084,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	gx_state.blend.use_dst_alpha = bUseDstAlpha;
 	D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
-
 	D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));
-
-	gx_state.raster.wireframe = g_ActiveConfig.bWireFrame;
 	D3D::stateman->PushRasterizerState(gx_state_cache.Get(gx_state.raster));
 
 	for (unsigned int stage = 0; stage < 8; stage++)

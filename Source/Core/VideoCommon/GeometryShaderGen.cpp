@@ -49,18 +49,19 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	const unsigned int vertex_out = primitive_type == PRIMITIVE_TRIANGLES ? 3 : 4;
 
 	uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
+	uid_data->wireframe = g_ActiveConfig.bWireFrame;
 	if (ApiType == API_OPENGL)
 	{
 		// Insert layout parameters
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		{
 			out.Write("layout(%s, invocations = %d) in;\n", primitives_ogl[primitive_type], g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
-			out.Write("layout(triangle_strip, max_vertices = %d) out;\n", vertex_out);
+			out.Write("layout(%s_strip, max_vertices = %d) out;\n", g_ActiveConfig.bWireFrame ? "line" : "triangle", vertex_out);
 		}
 		else
 		{
 			out.Write("layout(%s) in;\n", primitives_ogl[primitive_type]);
-			out.Write("layout(triangle_strip, max_vertices = %d) out;\n", g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
+			out.Write("layout(%s_strip, max_vertices = %d) out;\n", g_ActiveConfig.bWireFrame ? "line" : "triangle", g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
 		}
 	}
 
@@ -114,12 +115,12 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		{
 			out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out, g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
-			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<VertexData> output, in uint InstanceID : SV_GSInstanceID)\n{\n", primitives_d3d[primitive_type], vertex_in);
+			out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output, in uint InstanceID : SV_GSInstanceID)\n{\n", primitives_d3d[primitive_type], vertex_in, g_ActiveConfig.bWireFrame ? "Line" : "Triangle");
 		}
 		else
 		{
 			out.Write("[maxvertexcount(%d)]\n", g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
-			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<VertexData> output)\n{\n", primitives_d3d[primitive_type], vertex_in);
+			out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output)\n{\n", primitives_d3d[primitive_type], vertex_in, g_ActiveConfig.bWireFrame ? "Line" : "Triangle");
 		}
 
 		out.Write("\tVertexData ps;\n");
@@ -305,5 +306,5 @@ void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE
 bool IsPassthroughGeometryShader(GeometryShaderUid& object)
 {
 	geometry_shader_uid_data* uid_data = object.GetUidData<geometry_shader_uid_data>();
-	return uid_data->primitive_type == PRIMITIVE_TRIANGLES && !uid_data->stereo;
+	return uid_data->primitive_type == PRIMITIVE_TRIANGLES && !uid_data->stereo && !uid_data->wireframe;
 }
