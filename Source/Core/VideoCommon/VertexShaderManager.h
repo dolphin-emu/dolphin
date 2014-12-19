@@ -7,6 +7,20 @@
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 
+enum ViewportType {
+	VIEW_FULLSCREEN = 0,
+	VIEW_LETTERBOXED,
+	VIEW_HUD_ELEMENT,
+	VIEW_SKYBOX,
+	VIEW_PLAYER_1,
+	VIEW_PLAYER_2,
+	VIEW_PLAYER_3,
+	VIEW_PLAYER_4,
+	VIEW_OFFSCREEN,
+	VIEW_RENDER_TO_TEXTURE,
+};
+extern enum ViewportType g_viewport_type, g_old_viewport_type;
+
 class PointerWrap;
 
 void UpdateProjectionHack(int iParams[], std::string sParams[]);

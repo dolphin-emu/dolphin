@@ -544,7 +544,7 @@ void Renderer::SetViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	float X, Y, Wd, Ht;
-	if (!g_has_hmd)
+	if (g_viewport_type == VIEW_RENDER_TO_TEXTURE || !g_has_hmd)
 	{
 		X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
 		Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
@@ -1244,6 +1244,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		}
 	}
 #endif
+
+	// VR layer debugging, sometimes layers need to flash.
+	g_Config.iFlashState++;
+	if (g_Config.iFlashState >= 10)
+		g_Config.iFlashState = 0;
 
 	// Enable configuration changes
 	UpdateActiveConfig();
