@@ -132,7 +132,8 @@ namespace RmObjEngine
 		if (Core::IsRunning())
 			while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false) {}
 
-		SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.clear();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.clear();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_skip_data_bytes.clear();
 
 		for (const RmObj& rmobject : rmobjects)
 		{
@@ -144,6 +145,9 @@ namespace RmObjEngine
 					u64 value_add_upper = entry.value_upper;
 					SkipEntry skipEntry;
 					int size = GetRmObjTypeCharLength(entry.type) >> 1;
+
+					//Save the size of each entry, so it doesn't have to be calculated over and over during the rendering loop.
+					SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_skip_data_bytes.push_back(size);
 
 					if (size > 8) 
 					{
@@ -161,11 +165,11 @@ namespace RmObjEngine
 					}
 					
 
-					SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.push_back(skipEntry);
+					SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.push_back(skipEntry);
 				}
 			}
 		}
-		SConfig::GetInstance().m_LocalCoreStartupParameter.num_render_skip_entries = SConfig::GetInstance().m_LocalCoreStartupParameter.render_skip_entries.size();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_removal_codes = SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.size();
 		SConfig::GetInstance().m_LocalCoreStartupParameter.update = true;
 	}
 

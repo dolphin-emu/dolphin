@@ -250,10 +250,11 @@ struct SCoreStartupParameter
 	u32 iVRSettingsXInputMapping[NUM_VR_HOTKEYS];
 
 	//Remove Layer
-	std::vector<SkipEntry> render_skip_entries;
+	std::vector<SkipEntry> object_removal_codes;
 	u32 skip_objects_end = 0;
 	u32 skip_objects_start = 0;
-	size_t num_render_skip_entries = 0;
+	size_t num_object_removal_codes = 0;
+	std::vector<int> num_object_skip_data_bytes;
 	volatile bool update = true;
 	volatile bool done = true;
 

@@ -161,27 +161,26 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return size;
 	}
 
-	if (m_LocalCoreStartupParameter.num_render_skip_entries)
+	// Object Removal Code code
+	if (m_LocalCoreStartupParameter.num_object_removal_codes)
 	{
 		if (m_LocalCoreStartupParameter.update)
 		{
+			// Set lock so codes can be enabled/disabled in game without crashes.
 			m_LocalCoreStartupParameter.done = false;
-			size_t num_render_skip_data;
-			for (int render_skip_entry = 0; render_skip_entry < m_LocalCoreStartupParameter.num_render_skip_entries; render_skip_entry++)
+			for (int current_object_removal_code = 0; current_object_removal_code < m_LocalCoreStartupParameter.num_object_removal_codes; current_object_removal_code++)
 			{
-				//Find number of data chunks in entry
-				num_render_skip_data = m_LocalCoreStartupParameter.render_skip_entries[render_skip_entry].size();
-
-				for (int d = 0; d < num_render_skip_data; d++)
+				//SkipEntry skip_entry = m_LocalCoreStartupParameter.object_removal_codes[current_object_removal_code];
+				for (int d = 0; d < m_LocalCoreStartupParameter.num_object_skip_data_bytes[current_object_removal_code]; d++)
 				{
-					if (src.Peek<u8>(d) != m_LocalCoreStartupParameter.render_skip_entries[render_skip_entry][d])
+					if (src.Peek<u8, false>(d) != m_LocalCoreStartupParameter.object_removal_codes[current_object_removal_code][d])
 					{
-						//Data didn't match, try next entry.
+						//Data didn't match, try next object_removal_code
 						break;
 					}
 					else
 					{
-						if (d == (num_render_skip_data - 1))
+						if (d == (m_LocalCoreStartupParameter.num_object_skip_data_bytes[current_object_removal_code] - 1))
 						{
 							//Data stream matched the entry, skip rendering it.
 							return size;
