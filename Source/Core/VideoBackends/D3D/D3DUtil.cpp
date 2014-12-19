@@ -350,6 +350,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 
 	D3D::stateman->SetPixelShader(m_pshader);
 	D3D::stateman->SetVertexShader(m_vshader);
+	D3D::stateman->SetGeometryShader(nullptr);
 
 	D3D::stateman->SetInputLayout(m_InputLayout);
 	D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

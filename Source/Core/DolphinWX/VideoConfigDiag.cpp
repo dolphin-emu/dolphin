@@ -469,7 +469,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// - stereoscopy
 
-	if (vconfig.backend_info.bSupportsStereoscopy)
+	if (vconfig.backend_info.bSupportsGeometryShaders)
 	{
 		wxFlexGridSizer* const szr_stereo = new wxFlexGridSizer(2, 5, 5);
 

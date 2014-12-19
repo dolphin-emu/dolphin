@@ -317,16 +317,20 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// is always inside the primitive.
 		// Without MSAA, this flag is defined to have no effect.
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
-		if (g_ActiveConfig.iStereoMode > 0)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("centroid in VS_OUTPUT vs;\n");
-			out.Write("flat in int layer;\n");
+			out.Write("in VertexData {\n");
+			out.Write("\tcentroid VS_OUTPUT o;\n");
+
+			if (g_ActiveConfig.iStereoMode > 0)
+				out.Write("\tflat int layer;\n");
+
+			out.Write("};\n");
 		}
 		else
 		{
 			out.Write("centroid in float4 colors_02;\n");
 			out.Write("centroid in float4 colors_12;\n");
-
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
@@ -342,25 +346,25 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		out.Write("void main()\n{\n");
 
-		if (g_ActiveConfig.iStereoMode > 0)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
 			{
-				out.Write("\tfloat3 uv%d = vs.tex%d;\n", i, i);
+				out.Write("\tfloat3 uv%d = o.tex%d;\n", i, i);
 			}
-			out.Write("\tfloat4 clipPos = vs.clipPos;\n");
+			out.Write("\tfloat4 clipPos = o.clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("\tfloat4 Normal = vs.Normal;\n");
+				out.Write("\tfloat4 Normal = o.Normal;\n");
 			}
 		}
 
 		// On Mali, global variables must be initialized as constants.
 		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 colors_0 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "vs.colors_0" : "colors_02");
-		out.Write("\tfloat4 colors_1 = %s;\n", (g_ActiveConfig.iStereoMode > 0) ? "vs.colors_1" : "colors_12");
+		out.Write("\tfloat4 colors_0 = %s;\n", g_ActiveConfig.backend_info.bSupportsGeometryShaders ? "o.colors_0" : "colors_02");
+		out.Write("\tfloat4 colors_1 = %s;\n", g_ActiveConfig.backend_info.bSupportsGeometryShaders ? "o.colors_1" : "colors_12");
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}

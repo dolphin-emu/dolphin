@@ -139,7 +139,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("StereoSeparation", &iStereoSeparation, 20);
 	enhancements->Get("StereoConvergence", &iStereoConvergence, 20);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
-	if (g_has_rift && backend_info.bSupportsStereoscopy)
+	if (g_has_rift && backend_info.bSupportsGeometryShaders)
 		iStereoMode = STEREO_OCULUS;
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
@@ -437,7 +437,7 @@ void VideoConfig::VerifyValidity()
 		iStereoMode = STEREO_VR920;
 	else if (iStereoMode == STEREO_OCULUS || iStereoMode == STEREO_VR920)
 		iStereoMode = 0;
-	if (!backend_info.bSupportsStereoscopy) iStereoMode = 0;
+	if (!backend_info.bSupportsGeometryShaders) iStereoMode = 0;
 }
 
 void VideoConfig::Save(const std::string& ini_file)

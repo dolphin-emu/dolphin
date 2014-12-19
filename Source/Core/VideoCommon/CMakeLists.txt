@@ -10,6 +10,7 @@ set(SRCS	BoundingBox.cpp
 			FPSCounter.cpp
 			FramebufferManagerBase.cpp
 			GeometryShaderGen.cpp
+			GeometryShaderManager.cpp
 			HiresTextures.cpp
 			ImageWrite.cpp
 			IndexGenerator.cpp

@@ -1084,6 +1084,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 #endif
 	{
 		D3D::stateman->SetVertexShader(m_vShader);
+		D3D::stateman->SetGeometryShader(nullptr);
 
 		D3D::stateman->PushBlendState(m_efbEncodeBlendState);
 		D3D::stateman->PushDepthState(m_efbEncodeDepthState);
