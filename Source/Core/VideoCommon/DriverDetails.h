@@ -45,8 +45,7 @@ namespace DriverDetails
 		DRIVER_ARM_MIDGARD,  // Official Mali driver
 		DRIVER_ARM_UTGARD,   // Official Mali driver
 		DRIVER_LIMA,         // OSS Mali driver
-		DRIVER_QUALCOMM_3XX, // Official Adreno driver 3xx
-		DRIVER_QUALCOMM_2XX, // Official Adreno driver 2xx
+		DRIVER_QUALCOMM,     // Official Adreno driver
 		DRIVER_FREEDRENO,    // OSS Adreno driver
 		DRIVER_IMGTEC,       // OSS PowerVR driver
 		DRIVER_VIVANTE,      // Official vivante driver
