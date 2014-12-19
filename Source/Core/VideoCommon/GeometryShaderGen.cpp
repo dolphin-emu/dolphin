@@ -7,7 +7,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -301,10 +300,4 @@ void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYP
 void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType)
 {
 	GenerateGeometryShader<ShaderCode>(object, primitive_type, ApiType);
-}
-
-bool IsPassthroughGeometryShader(GeometryShaderUid& object)
-{
-	geometry_shader_uid_data* uid_data = object.GetUidData<geometry_shader_uid_data>();
-	return uid_data->primitive_type == PRIMITIVE_TRIANGLES && !uid_data->stereo && !uid_data->wireframe;
 }

@@ -211,7 +211,7 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
 	last_uid = uid;
 
 	// Check if the shader is a pass-through shader
-	if (IsPassthroughGeometryShader(uid))
+	if (uid.GetUidData()->IsPassthrough())
 	{
 		// Return the default pass-through shader
 		last_entry = &pass_entry;
