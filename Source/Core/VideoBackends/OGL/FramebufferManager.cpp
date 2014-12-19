@@ -99,17 +99,17 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	}
 	else
 	{
-		m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
+		m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 		GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
 
 		glBindTexture(m_textureType, m_efbColor);
-		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 
 		glBindTexture(m_textureType, m_efbDepth);
-		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, false);
+		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 
 		glBindTexture(m_textureType, m_efbColorSwap);
-		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+		glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 		glBindTexture(m_textureType, 0);
 
 		// Although we are able to access the multisampled texture directly, we don't do it everywhere.
@@ -180,25 +180,50 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// msaa + sample shading available, so just fetch the sample
 		// This will lead to sample shading, but it's the only way to not loose
 		// the values of each sample.
-		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, pos, gl_SampleID);\n"
-			"}\n";
+		if (m_EFBLayers > 1)
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	return texelFetch(samp9, ivec3(pos, 0), gl_SampleID);\n"
+				"}\n";
+		}
+		else
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	return texelFetch(samp9, pos, gl_SampleID);\n"
+				"}\n";
+		}
 	}
 	else
 	{
 		// msaa without sample shading: calculate the mean value of the pixel
 		std::stringstream samples;
 		samples << m_msaaSamples;
-		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
-			"	for(int i=0; i<" + samples.str() + "; i++)\n"
-			"		color += texelFetch(samp9, pos, i);\n"
-			"	return color / " + samples.str() + ";\n"
-			"}\n";
+		if (m_EFBLayers > 1)
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
+				"	for(int i=0; i<" + samples.str() + "; i++)\n"
+				"		color += texelFetch(samp9, ivec3(pos, 0), i);\n"
+				"	return color / " + samples.str() + ";\n"
+				"}\n";
+		}
+		else
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
+				"	for(int i=0; i<" + samples.str() + "; i++)\n"
+				"		color += texelFetch(samp9, pos, i);\n"
+				"	return color / " + samples.str() + ";\n"
+				"}\n";
+		}
 	}
 
 	std::string ps_rgba6_to_rgb8 = sampler +
