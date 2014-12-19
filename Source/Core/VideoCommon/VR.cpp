@@ -36,7 +36,7 @@ bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
-bool g_new_frame_tracker_for_object_skip = true;
+u32 skip_objects_count = 0;
 Matrix44 g_head_tracking_matrix;
 float g_head_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
@@ -70,7 +70,7 @@ void NewVRFrame()
 {
 	g_new_tracking_frame = true;
 	g_new_frame_tracker_for_efb_skip = true;
-	g_new_frame_tracker_for_object_skip = true;
+	skip_objects_count = 0;
 	ClearDebugProj();
 }
 

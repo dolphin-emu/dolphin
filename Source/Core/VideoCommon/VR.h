@@ -60,7 +60,7 @@ extern bool g_force_vr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;
-extern bool g_new_frame_tracker_for_object_skip;
+extern u32 skip_objects_count;
 extern Matrix44 g_head_tracking_matrix;
 extern float g_head_tracking_position[3];
 extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
