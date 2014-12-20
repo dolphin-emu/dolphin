@@ -15,7 +15,7 @@ CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID, const st
 {
 	for (WII_SSL& ssl : _SSL)
 	{
-		memset(&ssl, 0, sizeof(WII_SSL));
+		ssl.active = false;
 	}
 }
 
@@ -33,9 +33,6 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
 			x509_crt_free(&ssl.cacert);
 			x509_crt_free(&ssl.clicert);
 
-			memset(&ssl.ctx, 0, sizeof(ssl_context));
-			memset(&ssl.session, 0, sizeof(ssl_session));
-			memset(&ssl.entropy, 0, sizeof(entropy_context));
 			ssl.hostname.clear();
 
 			ssl.active = false;
@@ -145,8 +142,6 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			int ret = ssl_init(&ssl->ctx);
 			if (ret)
 			{
-				// Cleanup possibly dirty ctx
-				memset(&ssl->ctx, 0, sizeof(ssl_context));
 				goto _SSL_NEW_ERROR;
 			}
 
@@ -159,8 +154,6 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			if (ret)
 			{
 				ssl_free(&ssl->ctx);
-				// Cleanup possibly dirty ctx
-				memset(&ssl->ctx, 0, sizeof(ssl_context));
 				entropy_free(&ssl->entropy);
 				goto _SSL_NEW_ERROR;
 			}
@@ -213,9 +206,6 @@ _SSL_NEW_ERROR:
 			x509_crt_free(&ssl->cacert);
 			x509_crt_free(&ssl->clicert);
 
-			memset(&ssl->ctx, 0, sizeof(ssl_context));
-			memset(&ssl->session, 0, sizeof(ssl_session));
-			memset(&ssl->entropy, 0, sizeof(entropy_context));
 			ssl->hostname.clear();
 
 			ssl->active = false;
@@ -294,8 +284,6 @@ _SSL_NEW_ERROR:
 			{
 				x509_crt_free(&ssl->clicert);
 				pk_free(&ssl->pk);
-				memset(&ssl->clicert, 0, sizeof(x509_crt));
-				memset(&ssl->pk, 0, sizeof(pk_context));
 				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 			}
 			else
@@ -329,8 +317,6 @@ _SSL_NEW_ERROR:
 			WII_SSL* ssl = &_SSL[sslID];
 			x509_crt_free(&ssl->clicert);
 			pk_free(&ssl->pk);
-			memset(&ssl->clicert, 0, sizeof(x509_crt));
-			memset(&ssl->pk, 0, sizeof(pk_context));
 
 			ssl_set_own_cert(&ssl->ctx, nullptr, nullptr);
 			Memory::Write_U32(SSL_OK, _BufferIn);
