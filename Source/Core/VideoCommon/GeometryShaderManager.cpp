@@ -19,6 +19,8 @@ static const int LINE_PT_TEX_OFFSETS[8] = {
 GeometryShaderConstants GeometryShaderManager::constants;
 bool GeometryShaderManager::dirty;
 
+static bool s_projection_changed;
+
 void GeometryShaderManager::Init()
 {
 	memset(&constants, 0, sizeof(constants));
@@ -42,6 +44,28 @@ void GeometryShaderManager::Dirty()
 	dirty = true;
 }
 
+void GeometryShaderManager::SetConstants()
+{
+	if (s_projection_changed && g_ActiveConfig.iStereoMode > 0)
+	{
+		s_projection_changed = false;
+
+		if (xfmem.projection.type == GX_PERSPECTIVE)
+		{
+			float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+			constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+			constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+			constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+		}
+		else
+		{
+			constants.stereoparams[0] = constants.stereoparams[1] = 0;
+		}
+
+		dirty = true;
+	}
+}
+
 void GeometryShaderManager::SetViewportChanged()
 {
 	constants.lineptparams[0] = 2.0f * xfmem.viewport.wd;
@@ -51,19 +75,7 @@ void GeometryShaderManager::SetViewportChanged()
 
 void GeometryShaderManager::SetProjectionChanged()
 {
-	if (g_ActiveConfig.iStereoMode > 0 && xfmem.projection.type == GX_PERSPECTIVE)
-	{
-		float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
-		constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
-		constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-		constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
-	}
-	else
-	{
-		constants.stereoparams[0] = constants.stereoparams[1] = 0;
-	}
-
-	dirty = true;
+	s_projection_changed = true;
 }
 
 void GeometryShaderManager::SetLinePtWidthChanged()
