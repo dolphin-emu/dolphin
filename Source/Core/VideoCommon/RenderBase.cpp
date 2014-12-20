@@ -12,16 +12,19 @@
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 // ---------------------------------------------------------------------------------------------
 
+#include <cinttypes>
 #include <cmath>
 #include <string>
 
 #include "Common/Atomic.h"
+#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/Movie.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 
 #include "VideoCommon/AVIDump.h"
@@ -386,6 +389,47 @@ void Renderer::DrawDebugText()
 	//and then the text
 	g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
 	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
+}
+
+std::string Renderer::GetDebugText()
+{
+	// Draw various messages on the screen, like FPS, statistics, etc.
+	std::string debug_info;
+
+	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
+	{
+		std::string fps = "";
+		if (g_ActiveConfig.bShowFPS)
+			debug_info += StringFromFormat("FPS: %d", g_renderer->m_fps_counter.m_fps);
+
+		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
+			debug_info += " - ";
+		if (SConfig::GetInstance().m_ShowFrameCount)
+		{
+			debug_info += StringFromFormat("Frame: %llu", (unsigned long long) Movie::g_currentFrame);
+			if (Movie::IsPlayingInput())
+				debug_info += StringFromFormat(" / %llu", (unsigned long long) Movie::g_totalFrames);
+		}
+
+		debug_info += "\n";
+	}
+
+	if (SConfig::GetInstance().m_ShowLag)
+		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+
+	if (SConfig::GetInstance().m_ShowInputDisplay)
+		debug_info += Movie::GetInputDisplay();
+
+	debug_info += Profiler::ToString();
+
+
+	if (g_ActiveConfig.bOverlayStats)
+		debug_info += Statistics::ToString();
+
+	if (g_ActiveConfig.bOverlayProjStats)
+		debug_info += Statistics::ToStringProj();
+
+	return debug_info;
 }
 
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)

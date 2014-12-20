@@ -8,13 +8,11 @@
 #include <strsafe.h>
 #include <unordered_map>
 
-#include "Common/Profiler.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-#include "Core/Movie.h"
 
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
@@ -914,53 +912,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
 	D3D::context->RSSetViewports(1, &vp);
 
-	// Finish up the current frame, print some stats
-	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
-	{
-		std::string fps = "";
-		if (g_ActiveConfig.bShowFPS)
-			fps = StringFromFormat("FPS: %d", m_fps_counter.m_fps);
-
-		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
-			fps += " - ";
-		if (SConfig::GetInstance().m_ShowFrameCount)
-		{
-			fps += StringFromFormat("Frame: %d", Movie::g_currentFrame);
-			if (Movie::IsPlayingInput())
-				fps += StringFromFormat(" / %d", Movie::g_totalFrames);
-		}
-
-		fps += "\n";
-
-		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
-	}
-
-	if (SConfig::GetInstance().m_ShowLag)
-	{
-		std::string lag = StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
-		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
-	}
-
-	if (SConfig::GetInstance().m_ShowInputDisplay)
-	{
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Movie::GetInputDisplay());
-	}
 	Renderer::DrawDebugText();
-
-	if (g_ActiveConfig.bOverlayStats)
-	{
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToString());
-	}
-	else if (g_ActiveConfig.bOverlayProjStats)
-	{
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToStringProj());
-	}
-
-	std::string profile_output = Profiler::ToString();
-	if (!profile_output.empty())
-	{
-		D3D::font.DrawTextScaled(0, 44, 20, 0.0f, 0xFF00FFFF, profile_output);
-	}
+	std::string debug_info = GetDebugText();
+	if (debug_info != "")
+		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, debug_info);
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
