@@ -417,9 +417,6 @@ void Renderer::DrawDebugText()
 	if (g_ActiveConfig.bOverlayProjStats)
 		final_cyan += Statistics::ToStringProj();
 
-	// Render a shadow
-	g_renderer->RenderText(final_cyan, 21, 21, 0xDD000000);
-	g_renderer->RenderText(final_yellow, 21, 21, 0xDD000000);
 	//and then the text
 	g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
 	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);

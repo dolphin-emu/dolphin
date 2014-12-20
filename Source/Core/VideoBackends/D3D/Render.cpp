@@ -275,6 +275,7 @@ Renderer::~Renderer()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
+	D3D::font.DrawTextScaled((float)(left+1), (float)(top+1), 20.f, 0.0f, color & 0xFF000000, text);
 	D3D::font.DrawTextScaled((float)left, (float)top, 20.f, 0.0f, color, text);
 }
 
