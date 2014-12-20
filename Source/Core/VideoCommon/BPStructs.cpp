@@ -24,7 +24,7 @@
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 using namespace BPFunctions;
 
@@ -205,6 +205,8 @@ static void BPWritten(const BPCmd& bp)
 			// The bottom right is within the rectangle
 			// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
 
+			bool new_frame_just_rendered = false;
+
 			u32 destAddr = bpmem.copyTexDest << 5;
 
 			EFBRectangle srcRect;
@@ -255,12 +257,19 @@ static void BPWritten(const BPCmd& bp)
 				u32 width = bpmem.copyMipMapStrideChannels << 4;
 
 				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
+				new_frame_just_rendered = true;
 			}
 
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
 			{
 				ClearScreen(srcRect);
+			}
+
+			//Render Extra Headtracking Frames for VR.
+			if (new_frame_just_rendered && g_has_hmd)
+			{
+				OpcodeReplayBuffer();
 			}
 
 			return;

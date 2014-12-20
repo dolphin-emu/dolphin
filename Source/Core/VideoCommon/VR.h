@@ -55,6 +55,7 @@ void ShutdownVR();
 void NewVRFrame();
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z);
 void UpdateHeadTrackingIfNeeded();
+void OpcodeReplayBuffer();
 
 extern bool g_force_vr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920;
