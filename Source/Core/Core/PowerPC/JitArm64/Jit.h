@@ -13,13 +13,12 @@
 #include "Core/PowerPC/JitArm64/JitAsm.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#define PPCSTATE_OFF(elem) ((s64)&PowerPC::ppcState.elem - (s64)&PowerPC::ppcState)
+#define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
 static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
 
-using namespace Arm64Gen;
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
 {
 public:
@@ -117,9 +116,10 @@ private:
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
-	void ComputeRC(u32 d);
+	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0);
+	void ComputeRC(u32 imm, int crf = 0);
 
 	typedef u32 (*Operation)(u32, u32);
-	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, ARM64Reg, ArithOption), bool Rc = false);
+	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, ArithOption), bool Rc = false);
 };
 
