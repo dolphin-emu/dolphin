@@ -39,6 +39,7 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
 
 // TODO: Move these out of here.
@@ -558,7 +559,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	// TODO: merge more generic parts into VideoCommon
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
 
-	if (XFBWrited)
+	if (XFBWrited && !g_opcodereplay_frame)
 		g_renderer->m_fps_counter.Update();
 
 	frameCount++;
@@ -569,6 +570,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	// New frame
 	stats.ResetFrame();
 
-	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
+	Core::Callback_VideoCopiedToXFB((XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) && !g_opcodereplay_frame);
 	XFBWrited = false;
 }
