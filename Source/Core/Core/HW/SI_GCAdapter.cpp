@@ -38,7 +38,7 @@ static void Read()
 	{
 		u8 controller_payload_swap[37];
 
-		libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload, sizeof(controller_payload_swap), &s_controller_payload_size, 0);
+		libusb_interrupt_transfer(s_handle, s_endpoint_in, controller_payload_swap, sizeof(controller_payload_swap), &s_controller_payload_size, 0);
 
 		{
 		std::lock_guard<std::mutex> lk(s_mutex);
@@ -164,8 +164,6 @@ void Init()
 					unsigned char payload = 0x13;
 					libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 0);
 
-					RefreshConnectedDevices();
-
 					s_adapter_thread_running.Set(true);
 					s_adapter_thread = std::thread(Read);
 				}
@@ -267,50 +265,6 @@ void Output(int chan, u8 rumble_command)
 		{
 			WARN_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
 			Shutdown();
-		}
-	}
-}
-
-SIDevices GetDeviceType(int channel)
-{
-	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
-		return SIDEVICE_NONE;
-
-	switch (s_controller_type[channel])
-	{
-	case CONTROLLER_WIRED:
-		return SIDEVICE_GC_CONTROLLER;
-	case CONTROLLER_WIRELESS:
-		return SIDEVICE_GC_CONTROLLER;
-	default:
-		return SIDEVICE_NONE;
-	}
-}
-
-void RefreshConnectedDevices()
-{
-	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
-		return;
-
-	int size = 0;
-	u8 refresh_controller_payload[37];
-
-	libusb_interrupt_transfer(s_handle, s_endpoint_in, refresh_controller_payload, sizeof(refresh_controller_payload), &size, 0);
-
-	if (size != sizeof(refresh_controller_payload) || refresh_controller_payload[0] != LIBUSB_DT_HID)
-	{
-		WARN_LOG(SERIALINTERFACE, "error reading payload (size: %d)", size);
-		Shutdown();
-	}
-	else
-	{
-		for (int chan = 0; chan < MAX_SI_CHANNELS; chan++)
-		{
-			u8 type = refresh_controller_payload[1 + (9 * chan)] >> 4;
-			if (type != CONTROLLER_NONE && s_controller_type[chan] == CONTROLLER_NONE)
-				NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1, refresh_controller_payload[1 + (9 * chan)]);
-
-			s_controller_type[chan] = type;
 		}
 	}
 }
