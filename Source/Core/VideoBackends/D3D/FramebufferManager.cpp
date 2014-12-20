@@ -6,6 +6,7 @@
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
@@ -180,14 +181,6 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 
 	*width = targetSource.right - targetSource.left;
 	*height = targetSource.bottom - targetSource.top;
-}
-
-void XFBSource::Draw(const MathUtil::Rectangle<int> &sourcerc,
-	const MathUtil::Rectangle<float> &drawrc) const
-{
-	D3D::drawShadedTexSubQuad(tex->GetSRV(), &sourcerc,
-		texWidth, texHeight, &drawrc, PixelShaderCache::GetColorCopyProgram(false),
-		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 }
 
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)

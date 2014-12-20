@@ -52,6 +52,9 @@ public:
 	static bool CheckForResize();
 
 	int GetMaxTextureSize() override;
+
+private:
+	void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture, u32 src_width, u32 src_height, float Gamma);
 };
 
 }
