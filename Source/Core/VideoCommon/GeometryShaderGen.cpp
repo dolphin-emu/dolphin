@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/VertexShaderGen.h"
@@ -91,17 +92,28 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 			out.Write("#define InstanceID gl_InvocationID\n");
 
-		out.Write("in VertexData {\n");
-		out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "in");
-		out.Write("} vs[%d];\n", vertex_in);
+		if (DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS))
+		{
+			out.Write("centroid in VS_OUTPUT o[%d];\n", vertex_in);
+			out.Write("centroid out VS_OUTPUT ps;\n");
 
-		out.Write("out VertexData {\n");
-		out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
+			if (g_ActiveConfig.iStereoMode > 0)
+				out.Write("flat out int layer;\n");
+		}
+		else
+		{
+			out.Write("in VertexData {\n");
+			out.Write("\tcentroid%s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : " in");
+			out.Write("} vs[%d];\n", vertex_in);
 
-		if (g_ActiveConfig.iStereoMode > 0)
-			out.Write("\tflat int layer;\n");
+			out.Write("out VertexData {\n");
+			out.Write("\tcentroid%s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : " out");
 
-		out.Write("} ps;\n");
+			if (g_ActiveConfig.iStereoMode > 0)
+				out.Write("\tflat int layer;\n");
+
+			out.Write("} ps;\n");
+		}
 
 		out.Write("void main()\n{\n");
 	}
@@ -187,7 +199,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 
 	out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
-	if (ApiType == API_OPENGL)
+	if (ApiType == API_OPENGL && !DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS))
 		out.Write("\tVS_OUTPUT f = vs[i].o;\n");
 	else
 		out.Write("\tVS_OUTPUT f = o[i];\n");
@@ -195,7 +207,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
 		// Select the output layer
-		out.Write("\tps.layer = eye;\n");
+		if (ApiType == API_OPENGL && DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS))
+			out.Write("\tlayer = eye;\n");
+		else
+			out.Write("\tps.layer = eye;\n");
+
 		if (ApiType == API_OPENGL)
 			out.Write("\tgl_Layer = eye;\n");
 
@@ -291,7 +307,10 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool
 	if (ApiType == API_OPENGL)
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
 
-	out.Write("\tps.o = %s;\n", vertex);
+	if (ApiType == API_OPENGL && DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS))
+		out.Write("\tps = %s;\n", vertex);
+	else
+		out.Write("\tps.o = %s;\n", vertex);
 
 	if (ApiType == API_OPENGL)
 		out.Write("\tEmitVertex();\n");

@@ -211,7 +211,8 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components
 	ShaderCode gcode;
 	GenerateVertexShaderCode(vcode, components, API_OPENGL);
 	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
-	if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && !uid.guid.GetUidData()->IsPassthrough())
+	if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && (!uid.guid.GetUidData()->IsPassthrough() ||
+			DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS)))
 		GenerateGeometryShaderCode(gcode, primitive_type, API_OPENGL);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)

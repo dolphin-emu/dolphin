@@ -319,13 +319,23 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("in VertexData {\n");
-			out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "in");
+			if (DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS))
+			{
+				out.Write("centroid in VS_OUTPUT ps;\n");
 
-			if (g_ActiveConfig.iStereoMode > 0)
-				out.Write("\tflat int layer;\n");
+				if (g_ActiveConfig.iStereoMode > 0)
+					out.Write("flat in int layer;\n");
+			}
+			else
+			{
+				out.Write("in VertexData {\n");
+				out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "in");
 
-			out.Write("};\n");
+				if (g_ActiveConfig.iStereoMode > 0)
+					out.Write("\tflat int layer;\n");
+
+				out.Write("};\n");
+			}
 		}
 		else
 		{
@@ -348,6 +358,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
+			if (DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS))
+				out.Write("\tVS_OUTPUT o = ps;\n");
+
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
