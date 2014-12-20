@@ -357,7 +357,9 @@ struct ZeldaAudioRenderer::VPB
 	// If non zero, reset some value in the VPB when processing it.
 	u16 reset_vpb;
 
-	u16 unk_05;
+	// If non zero, tells PCM8/PCM16 sample sources that the end of the voice
+	// has been reached and looping should be considered if enabled.
+	u16 end_reached;
 
 	// If non zero, input samples to this VPB will be the fixed value from
 	// VPB[33] (constant_sample_value). This is used when a voice is being
@@ -482,6 +484,9 @@ struct ZeldaAudioRenderer::VPB
 		// Simple saw wave at 100% amplitude and frequency controlled via the
 		// resampling ratio.
 		SRC_SAW_WAVE = 1,
+		// Samples stored in ARAM in PCM8 format, at an arbitrary sampling rate
+		// (resampling is applied).
+		SRC_PCM8_FROM_ARAM = 8,
 		// Samples stored in ARAM at a rate of 16 samples/9 bytes, AFC encoded,
 		// at an arbitrary sample rate (resampling is applied).
 		SRC_AFC_HQ_FROM_ARAM = 9,
@@ -548,9 +553,6 @@ void ZeldaAudioRenderer::PrepareFrame()
 	// uses this AFAICT. PanicAlert to help me find places that use this.
 	if (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0)
 		PanicAlert("Zelda HLE using back mixing buffers");
-
-	m_buf_back_left.fill(0);
-	m_buf_back_right.fill(0);
 
 	// TODO: Dolby/reverb mixing here.
 
@@ -791,6 +793,12 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 			break;
 		}
 
+		case VPB::SRC_PCM8_FROM_ARAM:
+			DownloadPCM8SamplesFromARAM(raw_input_samples.data() + 4, vpb,
+			                            NeededRawSamplesCount(*vpb));
+			Resample(vpb, raw_input_samples.data(), buffer);
+			break;
+
 		case VPB::SRC_AFC_HQ_FROM_ARAM:
 			DownloadAFCSamplesFromARAM(raw_input_samples.data() + 4, vpb,
 			                           NeededRawSamplesCount(*vpb));
@@ -861,44 +869,52 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 	vpb->current_pos_frac = pos & 0xFFF;
 }
 
-void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(
+void ZeldaAudioRenderer::DownloadPCM8SamplesFromARAM(
 		s16* dst, VPB* vpb, u16 requested_samples_count)
 {
-	u32 addr = vpb->GetBaseAddress() + vpb->current_position_h * sizeof (u16);
-	s16* src_ptr = (s16*)HLEMemory_Get_Pointer(addr);
-
-	if (requested_samples_count > vpb->GetRemainingLength())
+	if (vpb->done)
 	{
-		s16 last_sample = 0;
-		for (u16 i = 0; i < vpb->GetRemainingLength(); ++i)
-			*dst++ = last_sample = Common::swap16(*src_ptr++);
-		for (u16 i = vpb->GetRemainingLength(); i < requested_samples_count; ++i)
-			*dst++ = last_sample;
-
-		vpb->current_position_h += vpb->GetRemainingLength();
-		vpb->SetRemainingLength(0);
-		vpb->done = true;
+		for (u16 i = 0; i < requested_samples_count; ++i)
+			dst[i] = 0;
+		return;
 	}
-	else
+
+	if (!vpb->reset_vpb)
 	{
-		vpb->SetRemainingLength(vpb->GetRemainingLength() - requested_samples_count);
-		vpb->samples_before_loop = vpb->loop_start_position_h - vpb->current_position_h;
-		if (requested_samples_count <= vpb->samples_before_loop)
+		vpb->end_reached = false;
+	}
+	while (requested_samples_count)
+	{
+		if (vpb->end_reached)
 		{
-			for (u16 i = 0; i < requested_samples_count; ++i)
-				*dst++ = Common::swap16(*src_ptr++);
-			vpb->current_position_h += requested_samples_count;
+			vpb->end_reached = false;
+			if (!vpb->is_looping)
+			{
+				for (u16 i = 0; i < requested_samples_count; ++i)
+					dst[i] = 0;
+				vpb->done = true;
+				break;
+			}
+			vpb->SetCurrentPosition(vpb->GetLoopAddress());
 		}
-		else
-		{
-			for (u16 i = 0; i < vpb->samples_before_loop; ++i)
-				*dst++ = Common::swap16(*src_ptr++);
-			vpb->SetBaseAddress(vpb->GetLoopAddress());
-			src_ptr = (s16*)HLEMemory_Get_Pointer(vpb->GetLoopAddress());
-			for (u16 i = vpb->samples_before_loop; i < requested_samples_count; ++i)
-				*dst++ = Common::swap16(*src_ptr++);
-			vpb->current_position_h = requested_samples_count - vpb->samples_before_loop;
-		}
+
+		vpb->SetRemainingLength(
+				vpb->GetLoopStartPosition() - vpb->GetCurrentPosition());
+		vpb->SetCurrentARAMAddr(
+				vpb->GetBaseAddress() + vpb->GetCurrentPosition());
+
+		s8* src_ptr = (s8*)DSP::GetARAMPtr() + vpb->GetCurrentARAMAddr();
+		u16 samples_to_download = std::min(vpb->GetRemainingLength(),
+		                                   (u32)requested_samples_count);
+
+		for (u16 i = 0; i < samples_to_download; ++i)
+			*dst++ = *src_ptr++ << 8;
+
+		vpb->SetRemainingLength(vpb->GetRemainingLength() - samples_to_download);
+		vpb->SetCurrentARAMAddr(vpb->GetCurrentARAMAddr() + samples_to_download);
+		requested_samples_count -= samples_to_download;
+		if (!vpb->GetRemainingLength())
+			vpb->end_reached = true;
 	}
 }
 
@@ -1065,8 +1081,50 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 	}
 }
 
+void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(
+		s16* dst, VPB* vpb, u16 requested_samples_count)
+{
+	u32 addr = vpb->GetBaseAddress() + vpb->current_position_h * sizeof (u16);
+	s16* src_ptr = (s16*)HLEMemory_Get_Pointer(addr);
+
+	if (requested_samples_count > vpb->GetRemainingLength())
+	{
+		s16 last_sample = 0;
+		for (u16 i = 0; i < vpb->GetRemainingLength(); ++i)
+			*dst++ = last_sample = Common::swap16(*src_ptr++);
+		for (u16 i = vpb->GetRemainingLength(); i < requested_samples_count; ++i)
+			*dst++ = last_sample;
+
+		vpb->current_position_h += vpb->GetRemainingLength();
+		vpb->SetRemainingLength(0);
+		vpb->done = true;
+	}
+	else
+	{
+		vpb->SetRemainingLength(vpb->GetRemainingLength() - requested_samples_count);
+		vpb->samples_before_loop = vpb->loop_start_position_h - vpb->current_position_h;
+		if (requested_samples_count <= vpb->samples_before_loop)
+		{
+			for (u16 i = 0; i < requested_samples_count; ++i)
+				*dst++ = Common::swap16(*src_ptr++);
+			vpb->current_position_h += requested_samples_count;
+		}
+		else
+		{
+			for (u16 i = 0; i < vpb->samples_before_loop; ++i)
+				*dst++ = Common::swap16(*src_ptr++);
+			vpb->SetBaseAddress(vpb->GetLoopAddress());
+			src_ptr = (s16*)HLEMemory_Get_Pointer(vpb->GetLoopAddress());
+			for (u16 i = vpb->samples_before_loop; i < requested_samples_count; ++i)
+				*dst++ = Common::swap16(*src_ptr++);
+			vpb->current_position_h = requested_samples_count - vpb->samples_before_loop;
+		}
+	}
+}
+
 void ZeldaAudioRenderer::DoState(PointerWrap& p)
 {
+	// TODO(delroth): Add all the state here.
 	p.Do(m_output_lbuf_addr);
 	p.Do(m_output_rbuf_addr);
 }

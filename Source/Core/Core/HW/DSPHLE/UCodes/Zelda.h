@@ -121,15 +121,19 @@ private:
 	// Coefficients used for resampling.
 	std::array<s16, 0x100> m_resampling_coeffs{};
 
-	// Downloads samples from MRAM while handling appropriate length / looping
-	// behavior.
-	void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
+	// Downloads PCM8 encoded samples from ARAM. Handles looping and other
+	// parameters appropriately.
+	void DownloadPCM8SamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
 
-	// Download AFC encoded samples from ARAM and decode them. Handles looping
+	// Downloads AFC encoded samples from ARAM and decode them. Handles looping
 	// and other parameters appropriately.
 	void DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
 	void DecodeAFC(VPB* vpb, s16* dst, size_t block_count);
 	std::array<s16, 0x20> m_afc_coeffs{};
+
+	// Downloads samples from MRAM while handling appropriate length / looping
+	// behavior.
+	void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
 };
 
 class ZeldaUCode : public UCodeInterface
