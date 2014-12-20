@@ -27,13 +27,4 @@ public:
 	bool IOCtlV(u32 _CommandAddress) override;
 
 	int GetCmdDelay(u32) override;
-
-private:
-
-	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
-
-	DiscIO::IFileSystem* m_pFileSystem;
-	u32 m_ErrorStatus;
-	// This flag seems to only be reset with poweron/off, not sure
-	u32 m_CoverStatus;
 };
