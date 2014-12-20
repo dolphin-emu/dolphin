@@ -118,6 +118,8 @@ void VideoConfig::Load(const std::string& ini_file)
 	// triplicated for each video backend.
 	if (bEnableShaderDebugging)
 		OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
+
+	VerifyValidity();
 }
 
 void VideoConfig::GameIniLoad()
