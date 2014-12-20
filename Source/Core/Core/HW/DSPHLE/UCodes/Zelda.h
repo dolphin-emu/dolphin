@@ -88,14 +88,14 @@ private:
 
 	// Mixing buffers.
 	typedef std::array<s16, 0x50> MixingBuffer;
-	MixingBuffer m_buf_front_left;
-	MixingBuffer m_buf_front_right;
-	MixingBuffer m_buf_back_left;
-	MixingBuffer m_buf_back_right;
-	MixingBuffer m_buf_front_left_reverb;
-	MixingBuffer m_buf_front_right_reverb;
-	MixingBuffer m_buf_back_left_reverb;
-	MixingBuffer m_buf_back_right_reverb;
+	MixingBuffer m_buf_front_left{};
+	MixingBuffer m_buf_front_right{};
+	MixingBuffer m_buf_back_left{};
+	MixingBuffer m_buf_back_right{};
+	MixingBuffer m_buf_front_left_reverb{};
+	MixingBuffer m_buf_front_right_reverb{};
+	MixingBuffer m_buf_back_left_reverb{};
+	MixingBuffer m_buf_back_right_reverb{};
 
 	// Base address where VPBs are stored linearly in RAM.
 	u32 m_vpb_base_addr;
@@ -104,7 +104,7 @@ private:
 
 	// Sine table transferred from MRAM. Contains sin(x) values for x in
 	// [0.0;pi/4] (sin(x) in [1.0;0.0]), in 1.15 fixed format.
-	std::array<s16, 0x80> m_sine_table;
+	std::array<s16, 0x80> m_sine_table{};
 
 	// Fills up a buffer with the input samples for a voice, represented by its
 	// VPB.
@@ -121,22 +121,6 @@ private:
 	// Coefficients used for resampling.
 	std::array<s16, 0x100> m_resampling_coeffs{};
 
-	// If non zero, base MRAM address for sound data transfers from ARAM. On
-	// the Wii, this points to some MRAM location since there is no ARAM to be
-	// used. If zero, use the top of ARAM.
-	u32 m_aram_base_addr = 0;
-	void* GetARAMPtr() const;
-
-	// Downloads PCM encoded samples from ARAM. Handles looping and other
-	// parameters appropriately.
-	template <typename T> void DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
-
-	// Downloads AFC encoded samples from ARAM and decode them. Handles looping
-	// and other parameters appropriately.
-	void DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
-	void DecodeAFC(VPB* vpb, s16* dst, size_t block_count);
-	std::array<s16, 0x20> m_afc_coeffs{};
-
 	// Downloads samples from MRAM while handling appropriate length / looping
 	// behavior.
 	void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
@@ -145,7 +129,7 @@ private:
 	// and other parameters appropriately.
 	void DownloadAFCSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
 	void DecodeAFC(VPB* vpb, s16* dst, size_t block_count);
-	std::array<s16, 0x20> m_afc_coeffs;
+	std::array<s16, 0x20> m_afc_coeffs{};
 };
 
 class ZeldaUCode : public UCodeInterface
@@ -192,12 +176,12 @@ private:
 	// these sync mails contain 16 bit values that are used as bitfields to
 	// control voice skipping on a voice per voice level.
 	u32 m_sync_max_voice_id = 0;
-	std::array<u32, 256> m_sync_voice_skip_flags;
+	std::array<u32, 256> m_sync_voice_skip_flags{};
 
 	// Command buffer (circular queue with r/w indices). Filled by HandleMail
 	// when the state machine is in WRITING_CMD state. Commands get executed
 	// when entering WAITING state and we are not rendering audio.
-	std::array<u32, 64> m_cmd_buffer;
+	std::array<u32, 64> m_cmd_buffer{};
 	u32 m_read_offset = 0;
 	u32 m_write_offset = 0;
 	u32 m_pending_commands_count = 0;
