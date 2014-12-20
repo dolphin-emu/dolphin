@@ -97,6 +97,8 @@ public:
 
 	// LoadStore
 	void icbi(UGeckoInstruction inst);
+	void lXX(UGeckoInstruction inst);
+	void stX(UGeckoInstruction inst);
 
 private:
 	Arm64GPRCache gpr;
@@ -114,6 +116,9 @@ private:
 	bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
 	void InitBackpatch();
 	u32 EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem, bool do_padding, Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr);
+	// Loadstore routines
+	void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
+	void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
 
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
 
