@@ -9,6 +9,8 @@
 #include "VideoBackends/Software/CPMemLoader.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 
+#include "VideoCommon/VertexLoader.h"
+
 class PointerWrap;
 class SetupUnit;
 
@@ -18,34 +20,20 @@ class SWVertexLoader
 
 	VAT* m_CurrentVat;
 
-	TPipelineFunction m_positionLoader;
-	TPipelineFunction m_normalLoader;
-	TPipelineFunction m_colorLoader[2];
-	TPipelineFunction m_texCoordLoader[8];
-
 	InputVertexData m_Vertex;
 
-	typedef void (*AttributeLoader)(SWVertexLoader*, InputVertexData*, u8);
-	struct AttrLoaderCall
-	{
-		AttributeLoader loader;
-		u8 index;
-	};
-	AttrLoaderCall m_AttributeLoaders[1+8+1+1+2+8];
-	int m_NumAttributeLoaders;
-	void AddAttributeLoader(AttributeLoader loader, u8 index=0);
-
-	// attribute loader functions
-	static void LoadPosMtx(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
-	static void LoadTexMtx(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
-	static void LoadPosition(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
-	static void LoadNormal(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 unused);
-	static void LoadColor(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
-	static void LoadTexCoord(SWVertexLoader *vertexLoader, InputVertexData *vertex, u8 index);
+	void ParseVertex(const PortableVertexDeclaration& vdec);
 
 	SetupUnit *m_SetupUnit;
 
 	bool m_TexGenSpecialCase;
+
+	std::map<VertexLoaderUID, std::unique_ptr<VertexLoader>> m_VertexLoaderMap;
+	std::vector<u8> m_LoadedVertices;
+	VertexLoader* m_CurrentLoader;
+
+	u8 m_attributeIndex;
+	u8 m_primitiveType;
 
 public:
 	SWVertexLoader();

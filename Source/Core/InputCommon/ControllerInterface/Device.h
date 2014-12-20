@@ -100,10 +100,7 @@ public:
 	virtual std::string GetName() const = 0;
 	virtual int GetId() const = 0;
 	virtual std::string GetSource() const = 0;
-	virtual bool UpdateInput() = 0;
-	virtual bool UpdateOutput() = 0;
-
-	virtual void ClearInputState();
+	virtual void UpdateInput() {}
 
 	const std::vector<Input*>& Inputs() const { return m_inputs; }
 	const std::vector<Output*>& Outputs() const { return m_outputs; }

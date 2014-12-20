@@ -35,6 +35,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="D3DBase.cpp" />
     <ClCompile Include="D3DBlob.cpp" />
     <ClCompile Include="D3DShader.cpp" />
@@ -42,12 +43,11 @@
     <ClCompile Include="D3DTexture.cpp" />
     <ClCompile Include="D3DUtil.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
-    <ClCompile Include="LineGeometryShader.cpp" />
+    <ClCompile Include="GeometryShaderCache.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NativeVertexFormat.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
     <ClCompile Include="PixelShaderCache.cpp" />
-    <ClCompile Include="PointGeometryShader.cpp" />
     <ClCompile Include="PSTextureEncoder.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Television.cpp" />
@@ -57,6 +57,7 @@
     <ClCompile Include="XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="D3DBase.h" />
     <ClInclude Include="D3DBlob.h" />
     <ClInclude Include="D3DShader.h" />
@@ -64,12 +65,11 @@
     <ClInclude Include="D3DTexture.h" />
     <ClInclude Include="D3DUtil.h" />
     <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="GeometryShaderCache.h" />
     <ClInclude Include="Globals.h" />
-    <ClInclude Include="LineGeometryShader.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="PixelShaderCache.h" />
-    <ClInclude Include="PointGeometryShader.h" />
     <ClInclude Include="PSTextureEncoder.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Television.h" />

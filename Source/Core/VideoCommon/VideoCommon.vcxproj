@@ -60,6 +60,8 @@
     <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="RenderBase.cpp" />
     <ClCompile Include="Statistics.cpp" />
+    <ClCompile Include="GeometryShaderGen.cpp" />
+    <ClCompile Include="GeometryShaderManager.cpp" />
     <ClCompile Include="TextureCacheBase.cpp" />
     <ClCompile Include="TextureConversionShader.cpp" />
     <ClCompile Include="VertexLoader.cpp" />
@@ -110,11 +112,14 @@
     <ClInclude Include="RenderBase.h" />
     <ClInclude Include="ShaderGenCommon.h" />
     <ClInclude Include="Statistics.h" />
+    <ClInclude Include="GeometryShaderGen.h" />
+    <ClInclude Include="GeometryShaderManager.h" />
     <ClInclude Include="TextureCacheBase.h" />
     <ClInclude Include="TextureConversionShader.h" />
     <ClInclude Include="TextureDecoder.h" />
     <ClInclude Include="VertexLoader.h" />
     <ClInclude Include="VertexLoaderManager.h" />
+    <ClInclude Include="VertexLoaderUtils.h" />
     <ClInclude Include="VertexLoader_Color.h" />
     <ClInclude Include="VertexLoader_Normal.h" />
     <ClInclude Include="VertexLoader_Position.h" />

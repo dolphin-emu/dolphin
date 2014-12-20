@@ -1,22 +1,8 @@
-set(LIBS	core
-			uicommon
-			${LZO}
-			${GTK2_LIBRARIES})
-
-if(NOT ANDROID)
-	link_directories(${CMAKE_PREFIX_PATH}/lib)
-else()
-	set(LIBS ${LIBS} png iconv)
-endif()
-
-if(LIBAV_FOUND)
-	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})
-endif()
-
 set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
 	ConfigMain.cpp
+	ControllerConfigDiag.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
@@ -60,29 +46,29 @@ set(GUI_SRCS
 	TASInputDlg.cpp
 	VideoConfigDiag.cpp
 	WXInputBase.cpp
-	WiimoteConfigDiag.cpp
 	WxUtils.cpp)
 
+set(NOGUI_SRCS MainNoGUI.cpp)
+
+if(USE_X11)
+	set(GUI_SRCS ${GUI_SRCS} X11Utils.cpp)
+	set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
+endif()
+
 set(WXLIBS ${wxWidgets_LIBRARIES} dl)
+
+list(APPEND LIBS core uicommon)
+
+if(ANDROID)
+	list(APPEND LIBS png)
+endif()
 
 set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
 
-set(NOGUI_SRCS MainNoGUI.cpp)
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	# Link against OS X system frameworks.
-	list(APPEND LIBS
-		${APPKIT_LIBRARY}
-		${AU_LIBRARY}
-		${COREAUDIO_LIBRARY}
-		${COREFUND_LIBRARY}
-		${CORESERV_LIBRARY}
-		${IOK_LIBRARY}
-		${FORCEFEEDBACK}
-		)
 	if(wxWidgets_FOUND)
-		list(APPEND LIBS
+		list(APPEND WXLIBS
 			${APPSERV_LIBRARY}
 			${COCOA_LIBRARY}
 			)
@@ -94,11 +80,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
-        ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
-	set(LIBS ${LIBS} usbhid)
-endif()
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(DOLPHIN_EXE_BASE Dolphin)
 else()
@@ -106,10 +87,6 @@ else()
 endif()
 
 set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
-
-if(USE_UPNP)
-  set(LIBS  ${LIBS} miniupnpc)
-endif()
 
 include(FindGettext)
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
@@ -130,10 +107,10 @@ if(ANDROID)
 	"-Wl,--no-whole-archive"
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}/
+		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}/
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
@@ -145,7 +122,7 @@ if(ANDROID)
 	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
 elseif(wxWidgets_FOUND)
 	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
-	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS} ${LLVM_LIBRARIES})
+	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
@@ -181,7 +158,7 @@ elseif(wxWidgets_FOUND)
 				COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
 				VERBATIM
 				)
-			add_custom_target(CopyDataIntoBundle ALL
+			add_custom_target(CopyDataIntoBundleWx ALL
 				DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
 				)
 		endif()
@@ -219,7 +196,7 @@ elseif(wxWidgets_FOUND)
 				${CMAKE_SOURCE_DIR}/Data/Sys
 				VERBATIM
 				)
-			add_custom_target(CopyTranslationsIntoBundle ALL
+			add_custom_target(CopyTranslationsIntoBundleWx ALL
 				DEPENDS ${BUNDLE_PATH}/Contents/Resources/en.lproj
 				)
 		endif()

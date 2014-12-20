@@ -47,13 +47,14 @@ namespace OGL
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(GLuint tex) : texture(tex) {}
+	XFBSource(GLuint tex, int layers) : texture(tex), m_layers(layers) {}
 	~XFBSource();
 
 	void CopyEFB(float Gamma) override;
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
 
 	const GLuint texture;
+	const int m_layers;
 };
 
 class FramebufferManager : public FramebufferManagerBase
@@ -74,6 +75,7 @@ public:
 	static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer; }
 
 	static void SetFramebuffer(GLuint fb);
+	static void FramebufferTexture(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 
 	// If in MSAA mode, this will perform a resolve of the specified rectangle, and return the resolve target as a texture ID.
 	// Thus, this call may be expensive. Don't repeat it unnecessarily.
@@ -100,7 +102,6 @@ private:
 	static int m_msaaSamples;
 
 	static GLenum m_textureType;
-
 	static GLuint m_efbFramebuffer;
 	static GLuint m_xfbFramebuffer;
 	static GLuint m_efbColor;

@@ -66,7 +66,7 @@ private:
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.
 IBlobReader* CreateBlobReader(const std::string& filename);
 
-typedef void (*CompressCB)(const std::string& text, float percent, void* arg);
+typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
 
 bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u32 sub_type = 0, int sector_size = 16384,
 		CompressCB callback = nullptr, void *arg = nullptr);

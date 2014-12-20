@@ -3,6 +3,7 @@
 #include <vector>
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 
 class NativeVertexFormat;
 class PointerWrap;
@@ -31,21 +32,14 @@ public:
 	// needs to be virtual for DX11's dtor
 	virtual ~VertexManager();
 
-	static u8 *s_pCurBufferPointer;
-	static u8 *s_pBaseBufferPointer;
-	static u8 *s_pEndBufferPointer;
-
-	static u32 GetRemainingSize();
-	static void PrepareForAdditionalData(int primitive, u32 count, u32 stride);
-	static u32 GetRemainingIndices(int primitive);
+	static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride);
+	static void FlushData(u32 count, u32 stride);
 
 	static void Flush();
 
 	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
 
 	static void DoState(PointerWrap& p);
-	virtual void CreateDeviceObjects(){}
-	virtual void DestroyDeviceObjects(){}
 
 protected:
 	virtual void vDoState(PointerWrap& p) {  }
@@ -54,12 +48,20 @@ protected:
 
 	virtual void ResetBuffer(u32 stride) = 0;
 
+	static u8* s_pCurBufferPointer;
+	static u8* s_pBaseBufferPointer;
+	static u8* s_pEndBufferPointer;
+
+	static u32 GetRemainingSize();
+	static u32 GetRemainingIndices(int primitive);
+
 private:
 	static bool IsFlushed;
 
-	//virtual void Draw(u32 stride, bool alphapass) = 0;
-	// temp
 	virtual void vFlush(bool useDstAlpha) = 0;
+
+	virtual void CreateDeviceObjects() {}
+	virtual void DestroyDeviceObjects() {}
 };
 
 extern VertexManager *g_vertex_manager;

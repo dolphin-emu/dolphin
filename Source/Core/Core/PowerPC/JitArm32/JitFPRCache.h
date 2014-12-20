@@ -45,4 +45,6 @@ public:
 	void Flush(FlushMode mode = FLUSH_ALL);
 	ArmGen::ARMReg R0(u32 preg, bool preLoad = true); // Returns a cached register
 	ArmGen::ARMReg R1(u32 preg, bool preLoad = true);
+
+	void StoreFromRegister(u32 preg);
 };

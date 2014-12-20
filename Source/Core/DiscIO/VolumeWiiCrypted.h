@@ -27,7 +27,7 @@ public:
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
 	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
 	bool GetTitleID(u8* _pBuffer) const override;
-	void GetTMD(u8* _pBuffer, u32* _sz) const override;
+	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
 	std::vector<std::string> GetNames() const override;
@@ -40,6 +40,8 @@ public:
 
 	bool SupportsIntegrityCheck() const override { return true; }
 	bool CheckIntegrity() const override;
+
+	bool ChangePartition(u64 offset) override;
 
 private:
 	std::unique_ptr<IBlobReader> m_pReader;

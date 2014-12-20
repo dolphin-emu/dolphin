@@ -36,9 +36,12 @@ public:
 	// If writable_map_file is not nullptr, it is set to the path to where a map
 	// file should be saved.
 	//
+	// If title_id is not nullptr, it is set to the title id
+	//
 	// Returns true if a map file exists, false if none could be found.
 	static bool FindMapFile(std::string* existing_map_file,
-	                        std::string* writable_map_file);
+	                        std::string* writable_map_file,
+	                        std::string* title_id = nullptr);
 
 private:
 	static void RunFunction(u32 _iAddr);

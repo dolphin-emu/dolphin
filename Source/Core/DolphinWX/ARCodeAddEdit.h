@@ -22,7 +22,7 @@ class CARCodeAddEdit : public wxDialog
 {
 public:
 	CARCodeAddEdit(int _selection, wxWindow* parent,
-		wxWindowID id = 1,
+		wxWindowID id = wxID_ANY,
 		const wxString& title = _("Edit ActionReplay Code"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,

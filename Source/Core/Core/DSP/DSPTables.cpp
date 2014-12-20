@@ -270,7 +270,7 @@ const DSPOPCTemplate opcodes[] =
 
 	//c-d
 	{"MULC",     0xc000, 0xe700, DSPInterpreter::mulc,    &DSPEmitter::mulc,   1, 2, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false, false, true}, // $prod = $acS.m * $axS.h
-	{"CMPAR",    0xc100, 0xe700, DSPInterpreter::cmpar,   &DSPEmitter::cmpar,  1, 2, {{P_ACC,  1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800}},                            true, false, false, false, true}, // FLAGS($acS - axR.h)
+	{"CMPAR",    0xc100, 0xe700, DSPInterpreter::cmpar,   &DSPEmitter::cmpar,  1, 2, {{P_ACC,  1, 0, 11, 0x0800},   {P_REG1A, 1, 0, 12, 0x1000}},                            true, false, false, false, true}, // FLAGS($acS - axR.h)
 	{"MULCMVZ",  0xc200, 0xe600, DSPInterpreter::mulcmvz, &DSPEmitter::mulcmvz,1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR.hm, $acR.l, $prod = $prod.hm, 0, $acS.m * $axS.h
 	{"MULCAC",   0xc400, 0xe600, DSPInterpreter::mulcac,  &DSPEmitter::mulcac, 1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR, $prod = $acR + $prod, $acS.m * $axS.h
 	{"MULCMV",   0xc600, 0xe600, DSPInterpreter::mulcmv,  &DSPEmitter::mulcmv, 1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR, $prod = $prod, $acS.m * $axS.h

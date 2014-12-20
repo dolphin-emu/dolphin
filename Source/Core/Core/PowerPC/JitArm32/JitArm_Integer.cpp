@@ -723,6 +723,14 @@ void JitArm::cntlzwx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	u32 a = inst.RA, s = inst.RS;
 
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, __builtin_clz(gpr.GetImm(s)));
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(a), 0);
+		return;
+	}
+
 	gpr.BindToRegister(a, a == s);
 	ARMReg RA = gpr.R(a);
 	ARMReg RS = gpr.R(s);
@@ -817,10 +825,34 @@ void JitArm::cmp (UGeckoInstruction inst)
 
 	gpr.Unlock(rA);
 }
+
+void JitArm::cmpl(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int crf = inst.CRFD;
+	u32 a = inst.RA, b = inst.RB;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		ComputeRC(gpr.GetImm(a) - gpr.GetImm(b), crf);
+		return;
+	}
+	else if (gpr.IsImm(b) && !gpr.GetImm(b))
+	{
+		ComputeRC(gpr.R(a), crf);
+		return;
+	}
+
+	FALLBACK_IF(true);
+}
+
 void JitArm::cmpi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
+
 	u32 a = inst.RA;
 	int crf = inst.CRFD;
 	if (gpr.IsImm(a))
@@ -830,10 +862,15 @@ void JitArm::cmpi(UGeckoInstruction inst)
 	}
 	ARMReg rA = gpr.GetReg();
 	ARMReg RA = gpr.R(a);
+	bool negated = false;
+	Operand2 off;
 
-	if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 256)
+	if (TryMakeOperand2_AllowNegation(inst.SIMM_16, off, &negated))
 	{
-		SUB(rA, RA, inst.SIMM_16);
+		if (negated)
+			ADD(rA, RA, off);
+		else
+			SUB(rA, RA, off);
 	}
 	else
 	{
@@ -845,10 +882,40 @@ void JitArm::cmpi(UGeckoInstruction inst)
 	gpr.Unlock(rA);
 }
 
+void JitArm::cmpli(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	u32 a = inst.RA;
+	int crf = inst.CRFD;
+
+	if (gpr.IsImm(a))
+	{
+		ComputeRC(gpr.GetImm(a) - inst.UIMM, crf);
+		return;
+	}
+
+	if (!inst.UIMM)
+	{
+		ComputeRC(gpr.R(a), crf);
+		return;
+	}
+
+	FALLBACK_IF(true);
+}
+
 void JitArm::negx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
+
+	if (gpr.IsImm(inst.RA))
+	{
+		gpr.SetImmediate(inst.RD, ~gpr.GetImm(inst.RA) + 1);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(inst.RD), 0);
+		return;
+	}
 
 	gpr.BindToRegister(inst.RD, inst.RD == inst.RA);
 	ARMReg RD = gpr.R(inst.RD);
@@ -870,13 +937,50 @@ void JitArm::rlwimix(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RS = gpr.R(inst.RS);
+	int a = inst.RA, s = inst.RS;
+	if (gpr.IsImm(s) && inst.MB <= inst.ME)
+	{
+		u32 imm = _rotl(gpr.GetImm(s), inst.SH) & mask;
+		imm >>= 31 - inst.ME;
+		ARMReg rA = gpr.GetReg();
+
+		MOVI2R(rA, imm);
+		BFI(gpr.R(a), rA, 31 - inst.ME, inst.ME - inst.MB + 1);
+		if (inst.Rc)
+			ComputeRC(gpr.R(a));
+
+		gpr.Unlock(rA);
+		return;
+	}
+
+	ARMReg RA = gpr.R(a);
+	ARMReg RS = gpr.R(s);
+
+	if (inst.SH == 0 && inst.MB <= inst.ME)
+	{
+		if (inst.ME != 31)
+		{
+			ARMReg rA = gpr.GetReg();
+			LSR(rA, RS, 31 - inst.ME);
+			BFI(RA, rA, 31 - inst.ME, inst.ME - inst.MB + 1);
+			gpr.Unlock(rA);
+		}
+		else
+		{
+			BFI(RA, RS, 0, inst.ME - inst.MB + 1);
+		}
+		if (inst.Rc)
+			ComputeRC(RA);
+
+		return;
+	}
+
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
+	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+
 	MOVI2R(rA, mask);
 
-	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
 	BIC (rB, RA, rA); // RA & ~mask
 	AND (rA, rA, Shift);
 	ORR(RA, rB, rA);
@@ -892,13 +996,62 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
+	if (gpr.IsImm(inst.RS))
+	{
+		gpr.SetImmediate(inst.RA, _rotl(gpr.GetImm(inst.RS), inst.SH) & mask);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(inst.RA), 0);
+		return;
+	}
+
+	gpr.BindToRegister(inst.RA, inst.RA == inst.RS);
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RS = gpr.R(inst.RS);
 	ARMReg rA = gpr.GetReg();
-	MOVI2R(rA, mask);
+	bool inverse = false;
+	bool fit_op = false;
+	Operand2 op2;
+	fit_op = TryMakeOperand2_AllowInverse(mask, op2, &inverse);
 
-	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
-	AND(RA, rA, Shift);
+	if (!inst.SH && fit_op)
+	{
+		if (inverse)
+			BIC(RA, RS, op2);
+		else
+			AND(RA, RS, op2);
+	}
+	else if (!inst.SH && inst.ME == 31)
+	{
+		UBFX(RA, RS, 0, inst.ME - inst.MB + 1);
+	}
+	else if (!inst.SH && inst.MB == 0)
+	{
+		LSR(RA, RS, 31 - inst.ME);
+		LSL(RA, RA, 31 - inst.ME);
+	}
+	else if (inst.SH == 16 && inst.MB >= 16 && inst.ME == 31)
+	{
+		UBFX(RA, RS, 16, 32 - inst.MB);
+	}
+	else if (inst.SH == 16 && inst.MB == 0 && inst.ME == 15)
+	{
+		LSL(RA, RS, 16);
+	}
+	else if (fit_op)
+	{
+		Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+		MOV(RA, Shift);
+		if (inverse)
+			BIC(RA, RA, op2);
+		else
+			AND(RA, RA, op2);
+	}
+	else
+	{
+		MOVI2R(rA, mask);
+		Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+		AND(RA, rA, Shift);
+	}
 
 	if (inst.Rc)
 		ComputeRC(RA);
@@ -939,9 +1092,19 @@ void JitArm::srawix(UGeckoInstruction inst)
 	int s = inst.RS;
 	int amount = inst.SH;
 
-	gpr.BindToRegister(a, a == s);
-	if (amount != 0)
+	if (gpr.IsImm(s))
 	{
+		s32 imm = (s32)gpr.GetImm(s);
+		gpr.SetImmediate(a, imm >> amount);
+
+		if (amount != 0 && (imm < 0) && (imm << (32 - amount)))
+			ComputeCarry(true);
+		else
+			ComputeCarry(false);
+	}
+	else if (amount != 0)
+	{
+		gpr.BindToRegister(a, a == s);
 		ARMReg RA = gpr.R(a);
 		ARMReg RS = gpr.R(s);
 		ARMReg tmp = gpr.GetReg();
@@ -963,6 +1126,7 @@ void JitArm::srawix(UGeckoInstruction inst)
 	}
 	else
 	{
+		gpr.BindToRegister(a, a == s);
 		ARMReg RA = gpr.R(a);
 		ARMReg RS = gpr.R(s);
 		MOV(RA, RS);

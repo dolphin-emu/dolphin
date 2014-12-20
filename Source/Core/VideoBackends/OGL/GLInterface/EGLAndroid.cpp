@@ -16,8 +16,8 @@ EGLNativeWindowType cInterfaceEGLAndroid::InitializePlatform(EGLNativeWindowType
 	eglGetConfigAttrib(egl_dpy, config, EGL_NATIVE_VISUAL_ID, &format);
 	ANativeWindow_setBuffersGeometry(host_window, 0, 0, format);
 
-	int none, width, height;
-	Host_GetRenderWindowSize(none, none, width, height);
+	const int width = ANativeWindow_getWidth(host_window);
+	const int height = ANativeWindow_getHeight(host_window);
 	GLInterface->SetBackBufferDimensions(width, height);
 
 	return host_window;

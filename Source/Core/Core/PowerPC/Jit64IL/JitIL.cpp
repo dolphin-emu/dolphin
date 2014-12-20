@@ -243,12 +243,9 @@ namespace JitILProfiler
 
 void JitIL::Init()
 {
-	jo.optimizeStack = true;
 	EnableBlockLink();
 
-	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
-	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = false;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
@@ -527,10 +524,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
 
-	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+	u32 nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -687,6 +683,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (code_block.m_memory_exception)
 	{
+		b->memoryException = true;
 		ibuild.EmitISIException(ibuild.EmitIntConst(em_address));
 	}
 
@@ -711,10 +708,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 void JitIL::EnableBlockLink()
 {
 	jo.enableBlocklink = true;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-	{
-		// TODO: support block linking with MMU
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking)
 		jo.enableBlocklink = false;
-	}
 }

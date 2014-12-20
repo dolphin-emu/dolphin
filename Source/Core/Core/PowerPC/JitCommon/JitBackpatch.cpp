@@ -6,7 +6,6 @@
 
 #include "disasm.h"
 
-#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 using namespace Gen;
@@ -86,9 +85,25 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		else
 			bswapNopCount = 2;
 
+		int totalSize = info.instructionSize + bswapNopCount;
+		if (info.operandSize == 2 && !info.byteSwap)
+		{
+			if ((codePtr[totalSize] & 0xF0) == 0x40)
+			{
+				++totalSize;
+			}
+			if (codePtr[totalSize] != 0xc1 || codePtr[totalSize + 2] != 0x10)
+			{
+				PanicAlert("BackPatch: didn't find expected shift %p", codePtr);
+				return nullptr;
+			}
+			info.signExtend = (codePtr[totalSize + 1] & 0x10) != 0;
+			totalSize += 3;
+		}
+
 		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
-		int padding = info.instructionSize + bswapNopCount - BACKPATCH_SIZE;
+		int padding = totalSize - BACKPATCH_SIZE;
 		if (padding > 0)
 		{
 			emitter.NOP(padding);

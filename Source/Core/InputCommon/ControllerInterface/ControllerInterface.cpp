@@ -98,9 +98,6 @@ void ControllerInterface::Shutdown()
 		for (ciface::Core::Device::Output* o : d->Outputs())
 			o->SetState(0);
 
-		// Update output
-		d->UpdateOutput();
-
 		// Delete device
 		delete d;
 	}
@@ -135,52 +132,15 @@ void ControllerInterface::Shutdown()
 //
 // Update input for all devices, return true if all devices returned successful
 //
-bool ControllerInterface::UpdateInput(const bool force)
+void ControllerInterface::UpdateInput()
 {
 	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
-	if (force)
-		lk.lock();
-	else if (!lk.try_lock())
-		return false;
-
-	size_t ok_count = 0;
+	if (!lk.try_lock())
+		return;
 
 	for (ciface::Core::Device* d : m_devices)
-	{
-		if (d->UpdateInput())
-			++ok_count;
-		//else
-		// disabled. it might be causing problems
-			//(*d)->ClearInputState();
-	}
-
-	return (m_devices.size() == ok_count);
-}
-
-//
-// UpdateOutput
-//
-// Update output for all devices, return true if all devices returned successful
-//
-bool ControllerInterface::UpdateOutput(const bool force)
-{
-	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
-
-	if (force)
-		lk.lock();
-	else if (!lk.try_lock())
-		return false;
-
-	size_t ok_count = 0;
-
-	for (ciface::Core::Device* d : m_devices)
-	{
-		if (d->UpdateOutput())
-			++ok_count;
-	}
-
-	return (m_devices.size() == ok_count);
+		d->UpdateInput();
 }
 
 //
@@ -299,14 +259,9 @@ ciface::Core::Device::Control* ControllerInterface::OutputReference::Detect(cons
 
 		// this loop is to make stuff like flashing keyboard LEDs work
 		while (ms > (slept += 10))
-		{
-			// TODO: improve this to update more than just the default device's output
-			device->UpdateOutput();
 			Common::SleepCurrentThread(10);
-		}
 
 		State(0);
-		device->UpdateOutput();
 	}
 	return nullptr;
 }

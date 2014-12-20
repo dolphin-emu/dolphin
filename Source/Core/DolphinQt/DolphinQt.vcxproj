@@ -49,7 +49,7 @@
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <!--QRC and UI files are handled automatically-->
@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
+    <QtUi Include="GameList\*.ui" />
   </ItemGroup>
   <!--MOC files need to be listed. Perhaps scan for Q_OBJECT in the future? (like automoc)-->
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
@@ -66,6 +67,10 @@
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="SystemInfo.h" />
     <QtMoc Include="VideoInterface\RenderWidget.h" />
+    <QtMoc Include="GameList\GameFile.h" />
+    <QtMoc Include="GameList\GameGrid.h" />
+    <QtMoc Include="GameList\GameTracker.h" />
+    <QtMoc Include="GameList\GameTree.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
@@ -73,6 +78,13 @@
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SystemInfo.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameGrid.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameTree.cpp" />
+    <ClCompile Include="GameList\GameFile.cpp" />
+    <ClCompile Include="GameList\GameGrid.cpp" />
+    <ClCompile Include="GameList\GameTracker.cpp" />
+    <ClCompile Include="GameList\GameTree.cpp" />
     <ClCompile Include="SystemInfo.cpp" />
     <ClCompile Include="Utils\Resources.cpp" />
     <ClCompile Include="Utils\Utils.cpp" />
@@ -155,6 +167,10 @@
     <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameList\GameFile.h" />
+    <ClInclude Include="GameList\GameGrid.h" />
+    <ClInclude Include="GameList\GameTracker.h" />
+    <ClInclude Include="GameList\GameTree.h" />
     <ClInclude Include="Utils\Resources.h" />
     <ClInclude Include="Utils\Utils.h" />
     <ClInclude Include="VideoInterface\RenderWidget.h" />

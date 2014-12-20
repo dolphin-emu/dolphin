@@ -48,6 +48,27 @@ private:
 	ArmFPRCache fpr;
 
 	PPCAnalyst::CodeBuffer code_buffer;
+	struct BackPatchInfo
+	{
+		enum
+		{
+			FLAG_STORE    = (1 << 0),
+			FLAG_LOAD     = (1 << 1),
+			FLAG_SIZE_8   = (1 << 2),
+			FLAG_SIZE_16  = (1 << 3),
+			FLAG_SIZE_32  = (1 << 4),
+			FLAG_SIZE_F32 = (1 << 5),
+			FLAG_SIZE_F64 = (1 << 6),
+			FLAG_REVERSE  = (1 << 7),
+			FLAG_EXTEND   = (1 << 8),
+		};
+
+		u32 m_fastmem_size;
+		u32 m_fastmem_trouble_inst_offset;
+		u32 m_slowmem_size;
+	};
+	// The key is the flags
+	std::map<u32, BackPatchInfo> m_backpatch_info;
 
 	void DoDownCount();
 
@@ -57,7 +78,19 @@ private:
 
 	ArmGen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
+	void BeginTimeProfile(JitBlock* b);
+	void EndTimeProfile(JitBlock* b);
+
 	bool BackPatch(SContext* ctx);
+	bool DisasmLoadStore(const u8* ptr, u32* flags, ArmGen::ARMReg* rD, ArmGen::ARMReg* V1);
+	// Initializes the information that backpatching needs
+	// This is required so we know the backpatch routine sizes and trouble offsets
+	void InitBackpatch();
+
+	// Returns the trouble instruction offset
+	// Zero if it isn't a fastmem routine
+	u32 EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, bool do_padding, ArmGen::ARMReg RS, ArmGen::ARMReg V1 = ArmGen::ARMReg::INVALID_REG);
+
 public:
 	JitArm() : code_buffer(32000) {}
 	~JitArm() {}
@@ -114,13 +147,8 @@ public:
 	void GetCarryAndClear(ArmGen::ARMReg reg);
 	void FinalizeCarry(ArmGen::ARMReg reg);
 
-	// TODO: This shouldn't be here
-	void UnsafeStoreFromReg(ArmGen::ARMReg dest, ArmGen::ARMReg value, int accessSize, s32 offset);
-	void SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 offsetReg, int accessSize, s32 offset);
-
-	void UnsafeLoadToReg(ArmGen::ARMReg dest, ArmGen::ARMReg addr, int accessSize, s32 offsetReg, s32 offset);
-	void SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse);
-
+	void SafeStoreFromReg(s32 dest, u32 value, s32 offsetReg, int accessSize, s32 offset);
+	void SafeLoadToReg(ArmGen::ARMReg dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse, bool update);
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
@@ -151,7 +179,9 @@ public:
 	void subfic(UGeckoInstruction _inst);
 	void cntlzwx(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
+	void cmpl(UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
+	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
 	void mulhwux(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);

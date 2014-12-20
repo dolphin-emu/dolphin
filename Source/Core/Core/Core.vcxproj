@@ -144,6 +144,13 @@
     <ClCompile Include="HW\SI_DeviceGBA.cpp" />
     <ClCompile Include="HW\SI_DeviceGCController.cpp" />
     <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp" />
+    <ClCompile Include="HW\SI_GCAdapter.cpp">
+      <!--
+      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
+      which is hit in libusb.h.
+      -->
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="HW\Sram.cpp" />
     <ClCompile Include="HW\StreamADPCM.cpp" />
     <ClCompile Include="HW\SystemTimers.cpp" />
@@ -173,7 +180,7 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
-      which is hit in libusb.h (and this is the only file which uses that header).
+      which is hit in libusb.h.
       -->
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -184,6 +191,7 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="IPC_HLE\WII_Socket.cpp" />
+    <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
@@ -237,7 +245,6 @@
     <ClCompile Include="PowerPC\SignatureDB.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
-    <ClCompile Include="x64MemTools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionReplay.h" />
@@ -342,6 +349,7 @@
     <ClInclude Include="HW\SI_DeviceGBA.h" />
     <ClInclude Include="HW\SI_DeviceGCController.h" />
     <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h" />
+    <ClInclude Include="HW\SI_GCAdapter.h" />
     <ClInclude Include="HW\Sram.h" />
     <ClInclude Include="HW\StreamADPCM.h" />
     <ClInclude Include="HW\SystemTimers.h" />
@@ -380,6 +388,7 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h" />
     <ClInclude Include="IPC_HLE\WII_Socket.h" />
+    <ClInclude Include="MachineContext.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />
     <ClInclude Include="NetPlayClient.h" />
@@ -400,7 +409,6 @@
     <ClInclude Include="PowerPC\JitILCommon\IR.h" />
     <ClInclude Include="PowerPC\JitILCommon\JitILBase.h" />
     <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h" />
-    <ClInclude Include="PowerPC\JitCommon\JitBackpatch.h" />
     <ClInclude Include="PowerPC\JitCommon\JitBase.h" />
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h" />

@@ -21,7 +21,6 @@ int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
 
 GLenum FramebufferManager::m_textureType;
-
 GLuint FramebufferManager::m_efbFramebuffer;
 GLuint FramebufferManager::m_xfbFramebuffer;
 GLuint FramebufferManager::m_efbColor;
@@ -72,33 +71,36 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_efbDepth = glObj[1];
 	m_efbColorSwap = glObj[2];
 
+	m_EFBLayers = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+
 	// OpenGL MSAA textures are a different kind of texture type and must be allocated
 	// with a different function, so we create them separately.
 	if (m_msaaSamples <= 1)
 	{
-		m_textureType = GL_TEXTURE_2D;
+		m_textureType = GL_TEXTURE_2D_ARRAY;
 
 		glBindTexture(m_textureType, m_efbColor);
 		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
 		glBindTexture(m_textureType, m_efbDepth);
 		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(m_textureType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+		glTexImage3D(m_textureType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
 		glBindTexture(m_textureType, m_efbColorSwap);
 		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	}
 	else
 	{
 		m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
+		GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
 
 		glBindTexture(m_textureType, m_efbColor);
 		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
@@ -118,23 +120,23 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_resolvedColorTexture = glObj[0];
 		m_resolvedDepthTexture = glObj[1];
 
-		glBindTexture(GL_TEXTURE_2D, m_resolvedColorTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(resolvedType, m_resolvedColorTexture);
+		glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage3D(resolvedType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-		glBindTexture(GL_TEXTURE_2D, m_resolvedDepthTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+		glBindTexture(resolvedType, m_resolvedDepthTexture);
+		glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage3D(resolvedType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
 		// Bind resolved textures to resolved framebuffer.
 		glGenFramebuffers(1, &m_resolvedFramebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_resolvedColorTexture, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_resolvedDepthTexture, 0);
+		FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, resolvedType, m_resolvedColorTexture, 0);
+		FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, resolvedType, m_resolvedDepthTexture, 0);
 	}
 
 	// Create XFB framebuffer; targets will be created elsewhere.
@@ -143,8 +145,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// Bind target textures to EFB framebuffer.
 	glGenFramebuffers(1, &m_efbFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
+	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
+	FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
 
 	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
@@ -168,9 +170,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	{
 		// non-msaa, so just fetch the pixel
 		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, pos, 0);\n"
+			"	return texelFetch(samp9, ivec3(pos, 0), 0);\n"
 			"}\n";
 	}
 	else if (g_ogl_config.bSupportSampleShading)
@@ -341,6 +343,21 @@ void FramebufferManager::SetFramebuffer(GLuint fb)
 	glBindFramebuffer(GL_FRAMEBUFFER, fb != 0 ? fb : GetEFBFramebuffer());
 }
 
+void FramebufferManager::FramebufferTexture(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+{
+	if (textarget == GL_TEXTURE_2D_ARRAY || textarget == GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
+	{
+		if (m_EFBLayers > 1)
+			glFramebufferTexture(target, attachment, texture, level);
+		else
+			glFramebufferTextureLayer(target, attachment, texture, level, 0);
+	}
+	else
+	{
+		glFramebufferTexture2D(target, attachment, textarget, texture, level);
+	}
+}
+
 // Apply AA if enabled
 GLuint FramebufferManager::ResolveAndGetRenderTarget(const EFBRectangle &source_rect)
 {
@@ -356,6 +373,8 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
 	g_renderer->ResetAPIState();
 
+	OpenGL_BindAttributelessVAO();
+
 	GLuint src_texture = 0;
 
 	// We aren't allowed to render and sample the same texture in one draw call,
@@ -365,7 +384,7 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 	src_texture = m_efbColor;
 	m_efbColor = m_efbColorSwap;
 	m_efbColorSwap = src_texture;
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
+	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
 
 	glViewport(0,0, m_targetWidth, m_targetHeight);
 	glActiveTexture(GL_TEXTURE0 + 9);
@@ -397,7 +416,7 @@ void XFBSource::CopyEFB(float Gamma)
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
 	// Bind texture.
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	FramebufferManager::FramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, texture, 0);
 
 	glBlitFramebuffer(
 		0, 0, texWidth, texHeight,
@@ -419,11 +438,11 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glGenTextures(1, &texture);
 
 	glActiveTexture(GL_TEXTURE0 + 9);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, target_width, target_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-	return new XFBSource(texture);
+	return new XFBSource(texture, m_EFBLayers);
 }
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)

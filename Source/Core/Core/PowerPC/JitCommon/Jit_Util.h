@@ -29,7 +29,7 @@ namespace MMIO { class Mapping; }
 #define PPCSTATE(x) MDisp(RPPCSTATE, \
 	(int) ((char *) &PowerPC::ppcState.x - (char *) &PowerPC::ppcState) - 0x80)
 // In case you want to disable the ppcstate register:
-// #define PPCSTATE(x) M((void*) &PowerPC::ppcState.x)
+// #define PPCSTATE(x) M(&PowerPC::ppcState.x)
 #define PPCSTATE_LR PPCSTATE(spr[SPR_LR])
 #define PPCSTATE_CTR PPCSTATE(spr[SPR_CTR])
 #define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])
@@ -47,17 +47,17 @@ public:
 	void Shutdown() { FreeCodeSpace(); m_enabled = false; }
 };
 
+static const int CODE_SIZE = 1024 * 1024 * 32;
+
+// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
+// mostly exception handling, so give it a whole bunch more space if the MMU is on.
+static const int FARCODE_SIZE = 1024 * 1024 * 8;
+static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
-	static const int CODE_SIZE = 1024 * 1024 * 32;
-
-	// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
-	// mostly exception handling, so give it a whole bunch more space if the MMU is on.
-	static const int FARCODE_SIZE = 1024 * 1024 * 8;
-	static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
-
 	FarCodeCache farcode;
 	u8* nearcode; // Backed up when we switch to far code.
 
@@ -130,7 +130,7 @@ public:
 	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg, u8), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg, u8),
 	            Gen::X64Reg regOp, Gen::OpArg arg1, Gen::OpArg arg2, u8 imm);
 
-	void ForceSinglePrecisionS(Gen::X64Reg xmm);
+	void ForceSinglePrecisionS(Gen::X64Reg output, Gen::X64Reg input);
 	void ForceSinglePrecisionP(Gen::X64Reg output, Gen::X64Reg input);
 	void Force25BitPrecision(Gen::X64Reg output, Gen::OpArg input, Gen::X64Reg tmp);
 

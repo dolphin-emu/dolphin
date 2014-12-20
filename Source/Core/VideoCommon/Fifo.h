@@ -17,7 +17,6 @@ extern bool g_bSkipCurrentFrame;
 // and can change at runtime.
 extern bool g_use_deterministic_gpu_thread;
 extern std::atomic<u8*> g_video_buffer_write_ptr_xthread;
-extern u8* g_video_buffer_pp_read_ptr;
 
 void Fifo_Init();
 void Fifo_Shutdown();
@@ -37,6 +36,7 @@ enum SyncGPUReason
 	SYNC_GPU_WRAPAROUND,
 	SYNC_GPU_EFB_POKE,
 	SYNC_GPU_PERFQUERY,
+	SYNC_GPU_BBOX,
 	SYNC_GPU_SWAP,
 	SYNC_GPU_AUX_SPACE,
 };

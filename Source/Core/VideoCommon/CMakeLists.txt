@@ -9,6 +9,8 @@ set(SRCS	BoundingBox.cpp
 			Fifo.cpp
 			FPSCounter.cpp
 			FramebufferManagerBase.cpp
+			GeometryShaderGen.cpp
+			GeometryShaderManager.cpp
 			HiresTextures.cpp
 			ImageWrite.cpp
 			IndexGenerator.cpp

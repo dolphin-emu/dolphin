@@ -96,6 +96,13 @@ u16 Read_U16(const u32 _Address);
 u32 Read_U32(const u32 _Address);
 u64 Read_U64(const u32 _Address);
 
+u32 Read_S8_Val(u32 address, u32 val);
+u32 Read_U8_Val(u32 address, u32 val);
+u32 Read_S16_Val(u32 address, u32 val);
+u32 Read_U16_Val(u32 address, u32 val);
+u32 Read_U32_Val(u32 address, u32 val);
+u64 Read_U64_Val(u32 address, u64 val);
+
 // Useful helper functions, used by ARM JIT
 float Read_F32(const u32 _Address);
 double Read_F64(const u32 _Address);

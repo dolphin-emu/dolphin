@@ -227,6 +227,22 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Increase Frame limit"),
 		_("Decrease Frame limit"),
 
+		_("Freelook Increase Speed"),
+		_("Freelook Decrease Speed"),
+		_("Freelook Reset Speed"),
+		_("Freelook Move Up"),
+		_("Freelook Move Down"),
+		_("Freelook Move Left"),
+		_("Freelook Move Right"),
+		_("Freelook Zoom In"),
+		_("Freelook Zoom Out"),
+		_("Freelook Reset"),
+
+		_("Increase Stereocopy Separation"),
+		_("Decrease Stereocopy Separation"),
+		_("Increase Stereocopy Convergence"),
+		_("Decrease Stereocopy Convergence"),
+
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),
 		_("Load State Slot 3"),
@@ -290,7 +306,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 
 	for (int j = 0; j < 2; j++)
 	{
-		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
+		wxPanel *Page = new wxPanel(Notebook);
 		Notebook->AddPage(Page, pageNames[j]);
 
 		wxGridBagSizer *sHotkeys = new wxGridBagSizer();

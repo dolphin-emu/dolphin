@@ -3,10 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include <locale.h>
-#ifdef __APPLE__
-	#include <xlocale.h>
-#endif
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
@@ -19,43 +15,6 @@
 static char text[16768];
 
 template<class T>
-static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
-{
-	object.Write("  %s %s", type, name);
-	if (var_index != -1)
-		object.Write("%d", var_index);
-
-	if (api_type == API_OPENGL)
-		object.Write(";\n");
-	else // D3D
-	{
-		if (semantic_index != -1)
-			object.Write(" : %s%d;\n", semantic, semantic_index);
-		else
-			object.Write(" : %s;\n", semantic);
-	}
-}
-
-template<class T>
-static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
-{
-	object.Write("struct VS_OUTPUT {\n");
-	DefineVSOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
-	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 0, "COLOR", 0);
-	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 1, "COLOR", 1);
-
-	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		DefineVSOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
-
-	DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
-
-	if (g_ActiveConfig.bEnablePixelLighting)
-		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
-
-	object.Write("};\n");
-}
-
-template<class T>
 static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
@@ -66,15 +25,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	out.SetBuffer(text);
 	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-#ifndef ANDROID
-	locale_t locale;
-	locale_t old_locale;
-	if (is_writing_shadercode)
-	{
-		locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
-		old_locale = uselocale(locale); // Apply the locale for this thread
-	}
-#endif
 
 	if (is_writing_shadercode)
 		text[sizeof(text) - 1] = 0x7C;  // canary
@@ -89,19 +39,10 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
 	else
 		out.Write("cbuffer VSBlock {\n");
-	out.Write(
-		"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
-		"\tfloat4 " I_PROJECTION"[4];\n"
-		"\tint4 " I_MATERIALS"[4];\n"
-		"\tLight " I_LIGHTS"[8];\n"
-		"\tfloat4 " I_TEXMATRICES"[24];\n"
-		"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_NORMALMATRICES"[32];\n"
-		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_DEPTHPARAMS";\n"
-		"};\n");
+	out.Write(s_shader_uniforms);
+	out.Write("};\n");
 
-	GenerateVSOutputStruct(out, api_type);
+	GenerateVSOutputStruct<T>(out, api_type);
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->components = components;
@@ -131,22 +72,33 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
-		// Let's set up attributes
-		for (size_t i = 0; i < 8; ++i)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			if (i < xfmem.numTexGen.numTexGens)
-			{
-				out.Write("centroid out  float3 uv%d;\n", i);
-			}
+			out.Write("out VertexData {\n"
+			          "\tcentroid %s VS_OUTPUT o;\n"
+					  "};\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
 		}
-		out.Write("centroid out   float4 clipPos;\n");
-		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("centroid out   float4 Normal;\n");
-
-		out.Write("centroid out   float4 colors_02;\n");
-		out.Write("centroid out   float4 colors_12;\n");
+		else
+		{
+			// Let's set up attributes
+			for (size_t i = 0; i < 8; ++i)
+			{
+				if (i < xfmem.numTexGen.numTexGens)
+				{
+					out.Write("centroid out float3 uv%d;\n", i);
+				}
+			}
+			out.Write("centroid out float4 clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+				out.Write("centroid out float4 Normal;\n");
+			out.Write("centroid out float4 colors_02;\n");
+			out.Write("centroid out float4 colors_12;\n");
+		}
 
 		out.Write("void main()\n{\n");
+
+		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
 	{
@@ -172,8 +124,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (components & VB_HAS_POSMTXIDX)
 			out.Write("  int posmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
+
+		out.Write("VS_OUTPUT o;\n");
 	}
-	out.Write("VS_OUTPUT o;\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
@@ -402,7 +355,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	//if not early z culling will improve speed
 	if (api_type == API_D3D)
 	{
-		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
+		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
 	}
 	else // OGL
 	{
@@ -427,41 +380,35 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// which in turn can be critical if it happens for clear quads.
 	// Hence, we compensate for this pixel center difference so that primitives
 	// get rasterized correctly.
-	out.Write("o.pos.xy = o.pos.xy - " I_DEPTHPARAMS".zw;\n");
+	out.Write("o.pos.xy = o.pos.xy - " I_PIXELCENTERCORRECTION".xy;\n");
 
 	if (api_type == API_OPENGL)
 	{
-		// Bit ugly here
-		// TODO: Make pretty
-		// Will look better when we bind uniforms in GLSL 1.3
-		// clipPos/w needs to be done in pixel shader, not here
+		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		{
+			// TODO: Pass structs between shader stages even if geometry shaders
+			// are not supported, however that will break GL 3.0 and 3.1 support.
+			for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
+			out.Write("clipPos = o.clipPos;\n");
+			if (g_ActiveConfig.bEnablePixelLighting)
+				out.Write("Normal = o.Normal;\n");
+			out.Write("colors_02 = o.colors_0;\n");
+			out.Write("colors_12 = o.colors_1;\n");
+		}
 
-		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-			out.Write(" uv%d.xyz =  o.tex%d;\n", i, i);
-		out.Write("  clipPos = o.clipPos;\n");
-
-		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("  Normal = o.Normal;\n");
-
-		out.Write("colors_02 = o.colors_0;\n");
-		out.Write("colors_12 = o.colors_1;\n");
 		out.Write("gl_Position = o.pos;\n");
-		out.Write("}\n");
 	}
 	else // D3D
 	{
-		out.Write("return o;\n}\n");
+		out.Write("return o;\n");
 	}
+	out.Write("}\n");
 
 	if (is_writing_shadercode)
 	{
 		if (text[sizeof(text) - 1] != 0x7C)
 			PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
-
-#ifndef ANDROID
-		uselocale(old_locale); // restore locale
-		freelocale(locale);
-#endif
 	}
 }
 
@@ -473,9 +420,4 @@ void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_ty
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type)
 {
 	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
-}
-
-void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type)
-{
-	GenerateVSOutputStruct<ShaderCode>(object, api_type);
 }

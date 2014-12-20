@@ -9,6 +9,7 @@ set(SRCS	ActionReplay.cpp
 			ec_wii.cpp
 			GeckoCodeConfig.cpp
 			GeckoCode.cpp
+			MemTools.cpp
 			Movie.cpp
 			NetPlayClient.cpp
 			NetPlayServer.cpp
@@ -176,7 +177,6 @@ set(SRCS	ActionReplay.cpp
 
 if(_M_X86)
 	set(SRCS ${SRCS}
-			x64MemTools.cpp
 			PowerPC/Jit64IL/IR_X86.cpp
 			PowerPC/Jit64IL/JitIL.cpp
 			PowerPC/Jit64IL/JitIL_Tables.cpp
@@ -198,7 +198,6 @@ if(_M_X86)
 			PowerPC/JitCommon/TrampolineCache.cpp)
 elseif(_M_ARM_32)
 	set(SRCS ${SRCS}
-			ArmMemTools.cpp
 			PowerPC/JitArm32/Jit.cpp
 			PowerPC/JitArm32/JitAsm.cpp
 			PowerPC/JitArm32/JitArm_BackPatch.cpp
@@ -236,6 +235,7 @@ set(LIBS
 	inputcommon
 	${LZO}
 	sfml-network
+	sfml-system
 	videoogl
 	videosoftware
 	z
@@ -244,7 +244,8 @@ set(LIBS
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
+	        	       	HW/SI_GCAdapter.cpp)
 endif(LIBUSB_FOUND)
 
 set(LIBS ${LIBS} ${POLARSSL_LIBRARY})

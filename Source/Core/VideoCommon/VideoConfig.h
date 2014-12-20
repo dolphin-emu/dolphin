@@ -44,6 +44,15 @@ enum EFBScale
 	SCALE_4X,
 };
 
+enum StereoMode
+{
+	STEREO_OFF = 0,
+	STEREO_SBS,
+	STEREO_TAB,
+	STEREO_ANAGLYPH,
+	STEREO_3DVISION
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -71,6 +80,10 @@ struct VideoConfig final
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
+	int iStereoMode;
+	int iStereoSeparation;
+	int iStereoConvergence;
+	bool bStereoSwapEyes;
 
 	// Information
 	bool bShowFPS;
@@ -92,9 +105,6 @@ struct VideoConfig final
 	bool bDumpEFBTarget;
 	bool bUseFFV1;
 	bool bFreeLook;
-	bool bAnaglyphStereo;
-	int iAnaglyphStereoSeparation;
-	int iAnaglyphFocalAngle;
 	bool bBorderlessFullscreen;
 
 	// Hacks
@@ -114,6 +124,11 @@ struct VideoConfig final
 	bool bFastDepthCalc;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
+
+	// Stereoscopy
+	bool bStereoMonoEFBDepth;
+	int iStereoSeparationPercent;
+	int iStereoConvergencePercent;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
@@ -136,8 +151,12 @@ struct VideoConfig final
 		bool bSupportsDualSourceBlend;
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsOversizedViewports;
+		bool bSupportsGeometryShaders;
+		bool bSupports3DVision;
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 		bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in VideoCommon
+		bool bSupportsBBox;
+		bool bSupportsGSInstancing; // Needed by GeometryShaderGen, so must stay in VideoCommon
 	} backend_info;
 
 	// Utility

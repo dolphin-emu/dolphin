@@ -57,7 +57,6 @@ public:
 	virtual void SetDepthMode() = 0;
 	virtual void SetLogicOpMode() = 0;
 	virtual void SetDitherMode() = 0;
-	virtual void SetLineWidth() = 0;
 	virtual void SetSamplerState(int stage,int texindex) = 0;
 	virtual void SetInterlacingMode() = 0;
 	virtual void SetViewport() = 0;
@@ -83,6 +82,8 @@ public:
 	static const TargetRectangle& GetTargetRectangle() { return target_rc; }
 	static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
 
+	// Use this to convert a single target rectangle to two stereo rectangles
+	static void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc, TargetRectangle& rightRc);
 
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
 	static int EFBToScaledX(int x);
@@ -103,6 +104,9 @@ public:
 	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma = 1.0f);
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
+
+	virtual u16 BBoxRead(int index) = 0;
+	virtual void BBoxWrite(int index, u16 value) = 0;
 
 	// What's the real difference between these? Too similar names.
 	virtual void ResetAPIState() = 0;

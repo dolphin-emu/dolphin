@@ -48,6 +48,8 @@ endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
+# Libraries to link
+set(LIBS)
 
 # Set up paths
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
@@ -248,10 +250,10 @@ if(APPLE)
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
 	# features can be used, not the minimum required version to run.
-	set(OSX_MIN_VERSION "10.7")
+	set(OSX_MIN_VERSION "10.9")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.7.sdk")
-	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk")
+	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.9.sdk")
+	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
 	if(EXISTS "${SYSROOT_PATH}/")
 		set(TARGET_SYSROOT ${SYSROOT_PATH})
 	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
@@ -411,6 +413,7 @@ if(NOT ANDROID)
 		set(HAS_LLVM 1)
 
 		include_directories(${LLVM_INCLUDE_DIRS})
+		list(APPEND LIBS ${LLVM_LIBRARIES})
 
 		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 	endif()
@@ -456,6 +459,10 @@ if(NOT ANDROID)
 	endif()
 	if(ENCODE_FRAMEDUMPS)
 		check_libav()
+		if(LIBAV_FOUND)
+			LIST(APPEND LIBS ${LIBAV_LIBRARIES})
+		endif()
+
 	endif()
 
 	set(CMAKE_REQUIRED_LIBRARIES portaudio)
@@ -535,6 +542,7 @@ else()
 	include_directories(Externals/LZO)
 	set(LZO lzo2)
 endif()
+list(APPEND LIBS ${LZO})
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	check_lib(PNG png png.h QUIET)
@@ -592,16 +600,15 @@ if(LIBUSB_FOUND)
 	include_directories(${LIBUSB_INCLUDE_DIR})
 endif(LIBUSB_FOUND)
 
-set(SFML_FIND_VERSION TRUE)
-set(SFML_FIND_VERSION_MAJOR 1)
-set(SFML_FIND_VERSION_MINOR 5)
+set(SFML_REQD_VERSION 2.1)
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
-	include(FindSFML OPTIONAL)
+	find_package(SFML ${SFML_REQD_VERSION} COMPONENTS network system)
 endif()
-if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION_MAJOR
+if(SFML_FOUND)
 	message("Using shared SFML")
 else()
-	message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
+	message("Using static SFML ${SFML_REQD_VERSION} from Externals")
+	add_definitions(-DSFML_STATIC)
 	add_subdirectory(Externals/SFML)
 	include_directories(BEFORE Externals/SFML/include)
 endif()
@@ -619,6 +626,7 @@ if(USE_UPNP)
 		include_directories(Externals/miniupnpc/src)
 	endif()
 	add_definitions(-DUSE_UPNP)
+	list(APPEND LIBS miniupnpc)
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
@@ -649,6 +657,12 @@ if (ANDROID)
 	message("Using static iconv from Externals")
 	include_directories(Externals/libiconv-1.14/include)
 	add_subdirectory(Externals/libiconv-1.14)
+	list(APPEND LIBS iconv)
+else()
+	find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
+	find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
+	list(APPEND LIBS ${ICONV_LIBRARIES})
+	mark_as_advanced(ICONV_INCLUDE_DIR ICONV_LIBRARIES)
 endif()
 
 if(ENABLE_QT)
@@ -695,6 +709,7 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 			include(FindGTK2)
 			if(GTK2_FOUND)
 				include_directories(${GTK2_INCLUDE_DIRS})
+				list(APPEND LIBS ${GTK2_LIBRARIES})
 			else()
 				message(FATAL_ERROR "GTK is required to build the WX UI. Please install the GTK development libraries.")
 			endif()
@@ -733,6 +748,23 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX AND NOT ANDROID)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
+   ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+	set(LIBS ${LIBS} usbhid)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# Link against OS X system frameworks.
+	list(APPEND LIBS
+		${APPKIT_LIBRARY}
+		${AU_LIBRARY}
+		${COREAUDIO_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOK_LIBRARY}
+		${FORCEFEEDBACK}
+		)
+endif()
 
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header

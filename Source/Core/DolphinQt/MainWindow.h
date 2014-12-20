@@ -9,6 +9,7 @@
 
 #include "Core/Core.h"
 
+#include "DolphinQt/GameList/GameTracker.h"
 #include "DolphinQt/VideoInterface/RenderWidget.h"
 
 // Predefinitions
@@ -26,8 +27,7 @@ public:
 	~DMainWindow();
 
 	// DRenderWidget
-	void RenderWidgetSize(int& x_pos, int& y_pos, int& w, int& h);
-	bool RenderWidgetHasFocus();
+	bool RenderWidgetHasFocus() const { return m_render_widget->isActiveWindow(); }
 	DRenderWidget* GetRenderWidget() { return m_render_widget.get(); }
 
 signals:
@@ -43,6 +43,9 @@ private slots:
 	void OnPlay();
 	void OnStop();
 
+	// View menu
+	void OnGameListStyleChanged();
+
 	// Help menu
 	void OnOpenWebsite();
 	void OnOpenDocs();
@@ -55,6 +58,7 @@ private slots:
 
 private:
 	std::unique_ptr<Ui::DMainWindow> m_ui;
+	DGameTracker* m_game_tracker;
 
 	// Emulation
 	QString RequestBootFilename();

@@ -33,7 +33,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	: wxDialog(parent, id, title, position, size, style)
 	, selection(_selection)
 {
-	Bind(wxEVT_BUTTON, &CARCodeAddEdit::SaveCheatData, this);
+	Bind(wxEVT_BUTTON, &CARCodeAddEdit::SaveCheatData, this, wxID_OK);
 
 	ActionReplay::ARCode tempEntries;
 	wxString currentName = _("Insert name here..");

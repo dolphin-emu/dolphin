@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 
 #define GX_NOP                      0x00
 
@@ -40,5 +41,6 @@ extern bool g_bRecordFifoData;
 
 void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
-u32 OpcodeDecoder_Run(u8* end, bool in_display_list);
-void OpcodeDecoder_Preprocess(u8* end, bool in_display_list);
+
+template <bool is_preprocess = false>
+u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list);

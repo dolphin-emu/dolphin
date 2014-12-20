@@ -69,7 +69,7 @@ static const unsigned char s_master_key_korean[16] = {
 	0x13,0xf2,0xfe,0xfb,0xba,0x4c,0x9b,0x7e
 };
 
-static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum, bool Korean);
+static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum);
 EDiscType GetDiscType(IBlobReader& _rReader);
 
 IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionGroup, u32 _VolumeNum)
@@ -89,10 +89,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 
 		case DISC_TYPE_WII_CONTAINER:
 		{
-			u8 region;
-			pReader->Read(0x3,1,&region);
-
-			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, _PartitionGroup, 0, _VolumeNum, region == 'K');
+			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, _PartitionGroup, 0, _VolumeNum);
 
 			if (pVolume == nullptr)
 			{
@@ -140,7 +137,32 @@ bool IsVolumeWadFile(const IVolume *_rVolume)
 	return (Common::swap32(MagicWord) == 0x00204973 || Common::swap32(MagicWord) == 0x00206962);
 }
 
-static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum, bool Korean)
+void VolumeKeyForParition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
+{
+	CBlobBigEndianReader Reader(_rReader);
+
+	u8 SubKey[16];
+	_rReader.Read(offset + 0x1bf, 16, SubKey);
+
+	u8 IV[16];
+	memset(IV, 0, 16);
+	_rReader.Read(offset + 0x44c, 8, IV);
+
+	bool usingKoreanKey = false;
+	// Issue: 6813
+	// Magic value is at partition's offset + 0x1f1 (1byte)
+	// If encrypted with the Korean key, the magic value would be 1
+	// Otherwise it is zero
+	if (Reader.Read8(0x3) == 'K' && Reader.Read8(offset + 0x1f1) == 1)
+		usingKoreanKey = true;
+
+	aes_context AES_ctx;
+	aes_setkey_dec(&AES_ctx, (usingKoreanKey ? s_master_key_korean : s_master_key), 128);
+
+	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey);
+}
+
+static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum)
 {
 	CBlobBigEndianReader Reader(_rReader);
 
@@ -184,32 +206,11 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 	{
 		const SPartition& rPartition = PartitionGroup[_PartitionGroup].PartitionsVec.at(i);
 
-		if (rPartition.Type == _VolumeType || i == _VolumeNum)
+		if ((rPartition.Type == _VolumeType && (int)_VolumeNum == -1) || i == _VolumeNum)
 		{
-			u8 SubKey[16];
-			_rReader.Read(rPartition.Offset + 0x1bf, 16, SubKey);
-
-			u8 IV[16];
-			memset(IV, 0, 16);
-			_rReader.Read(rPartition.Offset + 0x44c, 8, IV);
-
-			bool usingKoreanKey = false;
-			// Issue: 6813
-			// Magic value is at partition's offset + 0x1f1 (1byte)
-			// If encrypted with the Korean key, the magic value would be 1
-			// Otherwise it is zero
-			if (Korean && Reader.Read8(rPartition.Offset + 0x1f1) == 1)
-				usingKoreanKey = true;
-
-			aes_context AES_ctx;
-			aes_setkey_dec(&AES_ctx, (usingKoreanKey ? s_master_key_korean : s_master_key), 128);
-
 			u8 VolumeKey[16];
-			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey);
-
-			// -1 means the caller just wanted the partition with matching type
-			if ((int)_VolumeNum == -1 || i == _VolumeNum)
-				return new CVolumeWiiCrypted(&_rReader, rPartition.Offset, VolumeKey);
+			VolumeKeyForParition(_rReader, rPartition.Offset, VolumeKey);
+			return new CVolumeWiiCrypted(&_rReader, rPartition.Offset, VolumeKey);
 		}
 	}
 

@@ -348,10 +348,10 @@ protected:
 	inline void Write32(u32 value) {*(u32*)code = value; code+=4;}
 
 public:
-	ARMXEmitter() : code(0), startcode(0), lastCacheFlushEnd(0) {
+	ARMXEmitter() : code(nullptr), startcode(nullptr), lastCacheFlushEnd(nullptr) {
 		condition = CC_AL << 28;
 	}
-	ARMXEmitter(u8 *code_ptr) {
+	ARMXEmitter(u8* code_ptr) {
 		code = code_ptr;
 		lastCacheFlushEnd = code_ptr;
 		startcode = code_ptr;
@@ -384,6 +384,10 @@ public:
 
 	// Hint instruction
 	void YIELD();
+
+	// System
+	void MRC(u32 coproc, u32 opc1, ARMReg Rt, u32 CRn, u32 CRm, u32 opc2 = 0);
+	void MCR(u32 coproc, u32 opc1, ARMReg Rt, u32 CRn, u32 CRm, u32 opc2 = 0);
 
 	// Do nothing
 	void NOP(int count = 1); //nop padding - TODO: fast nop slides, for amd and intel (check their manuals)

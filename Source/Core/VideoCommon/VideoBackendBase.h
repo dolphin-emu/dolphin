@@ -89,6 +89,7 @@ public:
 
 	virtual u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) = 0;
 	virtual u32 Video_GetQueryResult(PerfQueryType type) = 0;
+	virtual u16 Video_GetBoundingBox(int index) = 0;
 
 	virtual void Video_AddMessage(const std::string& msg, unsigned int milliseconds) = 0;
 	virtual void Video_ClearMessages() = 0;
@@ -137,6 +138,7 @@ class VideoBackendHardware : public VideoBackend
 
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) override;
 	u32 Video_GetQueryResult(PerfQueryType type) override;
+	u16 Video_GetBoundingBox(int index) override;
 
 	void Video_AddMessage(const std::string& pstr, unsigned int milliseconds) override;
 	void Video_ClearMessages() override;

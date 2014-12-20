@@ -32,7 +32,7 @@ static PortableVertexDeclaration vertexDecl;
 // Gets the pointer to the current buffer position
 void LOADERDECL SetVertexBufferPosition()
 {
-	bufferPos = VertexManager::s_pCurBufferPointer;
+	bufferPos = g_vertex_manager_write_ptr;
 }
 
 // Prepares the bounding box for new primitive data

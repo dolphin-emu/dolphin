@@ -38,17 +38,17 @@ static const wxString wxstr_name(wxTRANSLATE("Name: ")),
 	wxstr_creator(wxTRANSLATE("Creator: "));
 
 CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
-	: wxPanel(parent, -1)
+	: wxPanel(parent)
 {
-	m_listbox_gcodes = new wxCheckListBox(this, -1);
+	m_listbox_gcodes = new wxCheckListBox(this, wxID_ANY);
 	m_listbox_gcodes->Bind(wxEVT_LISTBOX, &CodeConfigPanel::UpdateInfoBox, this);
 	m_listbox_gcodes->Bind(wxEVT_CHECKLISTBOX, &CodeConfigPanel::ToggleCode, this);
 
-	m_infobox.label_name = new wxStaticText(this, -1, wxGetTranslation(wxstr_name));
-	m_infobox.label_creator = new wxStaticText(this, -1, wxGetTranslation(wxstr_creator));
-	m_infobox.label_notes = new wxStaticText(this, -1, wxGetTranslation(wxstr_notes));
-	m_infobox.textctrl_notes = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(64, -1), wxTE_MULTILINE | wxTE_READONLY);
-	m_infobox.listbox_codes = new wxListBox(this, -1, wxDefaultPosition, wxSize(-1, 64));
+	m_infobox.label_name = new wxStaticText(this, wxID_ANY, wxGetTranslation(wxstr_name));
+	m_infobox.label_creator = new wxStaticText(this, wxID_ANY, wxGetTranslation(wxstr_creator));
+	m_infobox.label_notes = new wxStaticText(this, wxID_ANY, wxGetTranslation(wxstr_notes));
+	m_infobox.textctrl_notes = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(64, -1), wxTE_MULTILINE | wxTE_READONLY);
+	m_infobox.listbox_codes = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 64));
 
 	// TODO: buttons to add/edit codes
 
@@ -62,7 +62,7 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 
 	// button sizer
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
-	btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	btn_download = new wxButton(this, wxID_ANY, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
 	btn_download->Enable(false);
 	btn_download->Bind(wxEVT_BUTTON, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
@@ -172,20 +172,20 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 	}
 
 	sf::Http::Request req;
-	req.SetURI("/txt.php?txt=" + gameid);
+	req.setUri("/txt.php?txt=" + gameid);
 
 	sf::Http http;
-	http.SetHost("geckocodes.org");
+	http.setHost("geckocodes.org");
 
-	const sf::Http::Response resp = http.SendRequest(req, 5.0f);
+	const sf::Http::Response resp = http.sendRequest(req, sf::seconds(5));
 
-	if (sf::Http::Response::Ok == resp.GetStatus())
+	if (sf::Http::Response::Ok == resp.getStatus())
 	{
 		// temp vector containing parsed codes
 		std::vector<GeckoCode> gcodes;
 
 		// parse the codes
-		std::istringstream ss(resp.GetBody());
+		std::istringstream ss(resp.getBody());
 
 		std::string line;
 

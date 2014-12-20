@@ -296,8 +296,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		registersInUse[reg_value] = false;
 	}
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
 #ifdef ENABLE_MEM_CHECK
@@ -333,7 +332,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 			}
-			else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address) && accessSize != 64)
+			else if (MMIO::IsMMIOAddress(address) && accessSize != 64)
 			{
 				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
 				              address, accessSize, signExtend);
@@ -548,7 +547,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	reg_value = FixImmediate(accessSize, reg_value);
 
 	// TODO: support byte-swapped non-immediate fastmem stores
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
+	if (!jit->js.memcheck &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
 		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
@@ -667,13 +666,17 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address
 		MOV(accessSize, MDisp(RMEM, address & 0x3FFFFFFF), R(reg));
 }
 
-void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm)
+void EmuCodeBlock::ForceSinglePrecisionS(X64Reg output, X64Reg input)
 {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
 	{
-		CVTSD2SS(xmm, R(xmm));
-		CVTSS2SD(xmm, R(xmm));
+		CVTSD2SS(input, R(input));
+		CVTSS2SD(output, R(input));
+	}
+	else if (output != input)
+	{
+		MOVAPD(output, R(input));
 	}
 }
 
@@ -786,18 +789,22 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, OpArg input, X64Reg tmp)
 		// mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
 		if (input.IsSimpleReg() && cpu_info.bAVX)
 		{
-			VPAND(tmp, input.GetSimpleReg(), M((void*)&psRoundBit));
-			VPAND(output, input.GetSimpleReg(), M((void*)&psMantissaTruncate));
+			VPAND(tmp, input.GetSimpleReg(), M(psRoundBit));
+			VPAND(output, input.GetSimpleReg(), M(psMantissaTruncate));
 			PADDQ(output, R(tmp));
 		}
 		else
 		{
 			if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
 				MOVAPD(output, input);
-			avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M((void*)&psRoundBit), true, true);
-			PAND(output, M((void*)&psMantissaTruncate));
+			avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M(psRoundBit), true, true);
+			PAND(output, M(psMantissaTruncate));
 			PADDQ(output, R(tmp));
 		}
+	}
+	else if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+	{
+		MOVAPD(output, input);
 	}
 }
 
@@ -834,7 +841,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 	MOVSD(XMM1, R(src));
 
 	// Grab Exponent
-	PAND(XMM1, M((void *)&double_exponent));
+	PAND(XMM1, M(&double_exponent));
 	PSRLQ(XMM1, 52);
 	MOVD_xmm(R(RSCRATCH), XMM1);
 
@@ -854,15 +861,15 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	// xmm1 = fraction | 0x0010000000000000
 	MOVSD(XMM1, R(src));
-	PAND(XMM1, M((void *)&double_fraction));
-	POR(XMM1, M((void *)&double_explicit_top_bit));
+	PAND(XMM1, M(&double_fraction));
+	POR(XMM1, M(&double_explicit_top_bit));
 
 	// fraction >> shift
 	PSRLQ(XMM1, R(XMM0));
 
 	// OR the sign bit in.
 	MOVSD(XMM0, R(src));
-	PAND(XMM0, M((void *)&double_sign_bit));
+	PAND(XMM0, M(&double_sign_bit));
 	PSRLQ(XMM0, 32);
 	POR(XMM1, R(XMM0));
 
@@ -875,12 +882,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	// We want bits 0, 1
 	MOVSD(XMM1, R(src));
-	PAND(XMM1, M((void *)&double_top_two_bits));
+	PAND(XMM1, M(&double_top_two_bits));
 	PSRLQ(XMM1, 32);
 
 	// And 5 through to 34
 	MOVSD(XMM0, R(src));
-	PAND(XMM0, M((void *)&double_bottom_bits));
+	PAND(XMM0, M(&double_bottom_bits));
 	PSRLQ(XMM0, 29);
 
 	// OR them togther
@@ -893,41 +900,56 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 #else // MORE_ACCURATE_DOUBLETOSINGLE
 
+static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0xffffffffffffffff, 0x7fffffffffffffff);
+static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xffffffffffbfffff);
+static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0xffffffffffffffff, 0xfff7ffffffffffff);
+
+// Smallest positive double that results in a normalized single.
+static const double GC_ALIGNED16(min_norm_single) = std::numeric_limits<float>::min();
+
 void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 {
 	// Most games have flush-to-zero enabled, which causes the single -> double -> single process here to be lossy.
 	// This is a problem when games use float operations to copy non-float data.
 	// Changing the FPU mode is very expensive, so we can't do that.
-	// Here, check to see if the exponent is small enough that it will result in a denormal, and pass it to the x87 unit
+	// Here, check to see if the source is small enough that it will result in a denormal, and pass it to the x87 unit
 	// if it is.
-	MOVQ_xmm(R(RSCRATCH), src);
-	SHR(64, R(RSCRATCH), Imm8(55));
-	// Exponents 0x369 <= x <= 0x380 are denormal. This code accepts the range 0x368 <= x <= 0x387
-	// to save an instruction, since diverting a few more floats to the slow path can't hurt much.
-	SUB(8, R(RSCRATCH), Imm8(0x6D));
-	CMP(8, R(RSCRATCH), Imm8(0x3));
-	FixupBranch x87Conversion = J_CC(CC_BE, true);
+	avx_op(&XEmitter::VPAND, &XEmitter::PAND, XMM0, R(src), M(&double_sign_bit), true, true);
+	UCOMISD(XMM0, M(&min_norm_single));
+	FixupBranch nanConversion = J_CC(CC_P, true);
+	FixupBranch denormalConversion = J_CC(CC_B, true);
 	CVTSD2SS(dst, R(src));
 
 	SwitchToFarCode();
-	SetJumpTarget(x87Conversion);
+	SetJumpTarget(nanConversion);
+	MOVQ_xmm(R(RSCRATCH), src);
+	// Put the quiet bit into CF.
+	BT(64, R(RSCRATCH), Imm8(51));
+	CVTSD2SS(dst, R(src));
+	FixupBranch continue1 = J_CC(CC_C, true);
+	// Clear the quiet bit of the SNaN, which was 0 (signalling) but got set to 1 (quiet) by conversion.
+	ANDPS(dst, M(&single_qnan_bit));
+	FixupBranch continue2 = J(true);
+
+	SetJumpTarget(denormalConversion);
 	MOVSD(M(&temp64), src);
 	FLD(64, M(&temp64));
 	FSTP(32, M(&temp32));
 	MOVSS(dst, M(&temp32));
-	FixupBranch continue1 = J(true);
+	FixupBranch continue3 = J(true);
 	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
+	SetJumpTarget(continue3);
 	// We'd normally need to MOVDDUP here to put the single in the top half of the output register too, but
 	// this function is only used to go directly to a following store, so we omit the MOVDDUP here.
 }
 #endif // MORE_ACCURATE_DOUBLETOSINGLE
 
+// Converting single->double is a bit easier because all single denormals are double normals.
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
 {
-	// If the input isn't denormal, just do things the simple way -- otherwise, go through the x87 unit, which has
-	// flush-to-zero off.
 	X64Reg gprsrc = src_is_gpr ? src : RSCRATCH;
 	if (src_is_gpr)
 	{
@@ -936,28 +958,24 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	else
 	{
 		if (dst != src)
-			MOVAPD(dst, R(src));
-		MOVD_xmm(RSCRATCH, R(src));
+			MOVAPS(dst, R(src));
+		MOVD_xmm(R(RSCRATCH), src);
 	}
-	// A sneaky hack: floating-point zero is rather common and we don't want to confuse it for denormals and
-	// needlessly send it through the slow path. If we subtract 1 before doing the comparison, it turns
-	// float-zero into 0xffffffff (skipping the slow path). This results in a single non-denormal being sent
-	// through the slow path (0x00800000), but the performance effects of that should be negligible.
-	SUB(32, R(gprsrc), Imm8(1));
-	TEST(32, R(gprsrc), Imm32(0x7f800000));
-	FixupBranch x87Conversion = J_CC(CC_Z, true);
+
+	UCOMISS(dst, R(dst));
 	CVTSS2SD(dst, R(dst));
+	FixupBranch nanConversion = J_CC(CC_P, true);
 
 	SwitchToFarCode();
-	SetJumpTarget(x87Conversion);
-	MOVSS(M(&temp32), dst);
-	FLD(32, M(&temp32));
-	FSTP(64, M(&temp64));
-	MOVSD(dst, M(&temp64));
-	FixupBranch continue1 = J(true);
+	SetJumpTarget(nanConversion);
+	TEST(32, R(gprsrc), Imm32(0x00400000));
+	FixupBranch continue1 = J_CC(CC_NZ, true);
+	ANDPD(dst, M(&double_qnan_bit));
+	FixupBranch continue2 = J(true);
 	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
 	MOVDDUP(dst, R(dst));
 }
 
@@ -980,7 +998,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 	{
 		MOVQ_xmm(R(RSCRATCH), xmm);
 		SHR(64, R(RSCRATCH), Imm8(63)); // Get the sign bit; almost all the branches need it.
-		PTEST(xmm, M((void*)psDoubleExp));
+		PTEST(xmm, M(psDoubleExp));
 		FixupBranch maxExponent = J_CC(CC_C);
 		FixupBranch zeroExponent = J_CC(CC_Z);
 
@@ -989,7 +1007,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 		continue1 = J();
 
 		SetJumpTarget(maxExponent);
-		PTEST(xmm, M((void*)psDoubleFrac));
+		PTEST(xmm, M(psDoubleFrac));
 		FixupBranch notNAN = J_CC(CC_Z);
 
 		// Max exponent + mantissa: PPC_FPCLASS_QNAN
@@ -1017,10 +1035,10 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 	else
 	{
 		MOVQ_xmm(R(RSCRATCH), xmm);
-		TEST(64, R(RSCRATCH), M((void*)psDoubleExp));
+		TEST(64, R(RSCRATCH), M(psDoubleExp));
 		FixupBranch zeroExponent = J_CC(CC_Z);
-		AND(64, R(RSCRATCH), M((void*)psDoubleNoSign));
-		CMP(64, R(RSCRATCH), M((void*)psDoubleExp));
+		AND(64, R(RSCRATCH), M(psDoubleNoSign));
+		CMP(64, R(RSCRATCH), M(psDoubleExp));
 		FixupBranch nan = J_CC(CC_G); // This works because if the sign bit is set, RSCRATCH is negative
 		FixupBranch infinity = J_CC(CC_E);
 		MOVQ_xmm(R(RSCRATCH), xmm);

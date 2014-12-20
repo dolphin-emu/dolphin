@@ -62,17 +62,21 @@ namespace D3D
 						ID3D11PixelShader* PShader,
 						ID3D11VertexShader* VShader,
 						ID3D11InputLayout* layout,
-						float Gamma = 1.0f);
+						ID3D11GeometryShader* GShader = nullptr,
+						float Gamma = 1.0f,
+						u32 slice = 0);
 	void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 							const MathUtil::Rectangle<int>* rSource,
 							int SourceWidth,
 							int SourceHeight,
 							const MathUtil::Rectangle<float>* rDest,
 							ID3D11PixelShader* PShader,
-							ID3D11VertexShader* Vshader,
+							ID3D11VertexShader* VShader,
 							ID3D11InputLayout* layout,
-							float Gamma = 1.0f);
-	void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout);
+							ID3D11GeometryShader* GShader = nullptr,
+							float Gamma = 1.0f,
+							u32 slice = 0);
+	void drawClearQuad(u32 Color, float z);
 	void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2);
 }
 

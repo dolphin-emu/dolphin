@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>992</width>
-    <height>592</height>
+    <width>990</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,8 +31,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>992</width>
-     <height>21</height>
+     <width>990</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="mnuFile">
@@ -60,6 +60,16 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <widget class="QMenu" name="mnuListStyle">
+     <property name="title">
+      <string>&amp;List style</string>
+     </property>
+     <addaction name="actionListView"/>
+     <addaction name="actionTreeView"/>
+     <addaction name="actionGridView"/>
+     <addaction name="actionIconView"/>
+    </widget>
+    <addaction name="mnuListStyle"/>
    </widget>
    <widget class="QMenu" name="mnuHelp">
     <property name="title">
@@ -79,11 +89,11 @@
     </property>
    </widget>
    <addaction name="mnuFile"/>
+   <addaction name="mnuView"/>
    <addaction name="mnuEmulation"/>
    <addaction name="mnuMovie"/>
    <addaction name="mnuOptions"/>
    <addaction name="mnuTools"/>
-   <addaction name="mnuView"/>
    <addaction name="mnuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -151,10 +161,42 @@
   </action>
   <action name="actionAboutQt">
    <property name="text">
-    <string>About Qt</string>
+    <string>About &amp;Qt</string>
    </property>
    <property name="menuRole">
     <enum>QAction::AboutQtRole</enum>
+   </property>
+  </action>
+  <action name="actionListView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;List view</string>
+   </property>
+  </action>
+  <action name="actionTreeView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Tree view</string>
+   </property>
+  </action>
+  <action name="actionGridView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Grid view</string>
+   </property>
+  </action>
+  <action name="actionIconView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Icon view</string>
    </property>
   </action>
  </widget>

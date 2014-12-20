@@ -56,15 +56,30 @@ private:
 		std::string name;
 		std::string revision;
 
-		sf::SocketTCP socket;
+		std::unique_ptr<sf::TcpSocket> socket;
 		u32 ping;
 		u32 current_game;
+
+		// VS2013 does not generate the right constructors here automatically
+		//  like GCC does, so we implement them manually
+		Client() = default;
+		Client(const Client& other) = delete;
+		Client(Client&& other)
+			: pid(other.pid), name(std::move(other.name)), revision(std::move(other.revision)),
+			socket(std::move(other.socket)), ping(other.ping), current_game(other.current_game)
+		{
+		}
+
+		bool operator==(const Client& other) const
+		{
+			return this == &other;
+		}
 	};
 
 	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
-	unsigned int OnConnect(sf::SocketTCP& socket);
-	unsigned int OnDisconnect(sf::SocketTCP& socket);
-	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
+	unsigned int OnConnect(std::unique_ptr<sf::TcpSocket>& socket);
+	unsigned int OnDisconnect(Client& player);
+	unsigned int OnData(sf::Packet& packet, Client& player);
 	void UpdatePadMapping();
 	void UpdateWiimoteMapping();
 
@@ -80,7 +95,7 @@ private:
 	PadMapping      m_pad_map[4];
 	PadMapping      m_wiimote_map[4];
 
-	std::map<sf::SocketTCP, Client> m_players;
+	std::list<Client> m_players;
 
 	struct
 	{
@@ -91,9 +106,9 @@ private:
 
 	std::string m_selected_game;
 
-	sf::SocketTCP m_socket;
+	sf::TcpListener m_socket;
 	std::thread m_thread;
-	sf::Selector<sf::SocketTCP> m_selector;
+	sf::SocketSelector m_selector;
 
 #ifdef USE_UPNP
 	static void mapPortThread(const u16 port);

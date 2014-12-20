@@ -98,7 +98,7 @@ namespace ButtonManager
 				delete bind.second;
 			_inputbinds.clear();
 		}
-		void AddBind(sBind *bind) { _inputbinds[std::make_pair(bind->_padID, bind->_buttontype)] = bind; }
+		void AddBind(sBind* bind) { _inputbinds[std::make_pair(bind->_padID, bind->_buttontype)] = bind; }
 		void PressEvent(int button, int action);
 		void AxisEvent(int axis, float value);
 		bool ButtonValue(int padID, ButtonType button);

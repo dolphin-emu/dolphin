@@ -21,20 +21,20 @@
 wxDEFINE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
 
 CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
-	: wxDialog(parent, -1, _("Create AR Code"))
+	: wxDialog(parent, wxID_ANY, _("Create AR Code"))
 	, m_code_address(address)
 {
-	wxStaticText* const label_name = new wxStaticText(this, -1, _("Name: "));
-	m_textctrl_name = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(256,-1));
+	wxStaticText* const label_name = new wxStaticText(this, wxID_ANY, _("Name: "));
+	m_textctrl_name = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(256, -1));
 
-	wxStaticText* const label_code = new wxStaticText(this, -1, _("Code: "));
-	m_textctrl_code = new wxTextCtrl(this, -1, wxString::Format("0x%08x", address));
+	wxStaticText* const label_code = new wxStaticText(this, wxID_ANY, _("Code: "));
+	m_textctrl_code = new wxTextCtrl(this, wxID_ANY, wxString::Format("0x%08x", address));
 	m_textctrl_code->Disable();
 
-	wxStaticText* const label_value = new wxStaticText(this, -1, _("Value: "));
-	m_textctrl_value = new wxTextCtrl(this, -1, "0");
+	wxStaticText* const label_value = new wxStaticText(this, wxID_ANY, _("Value: "));
+	m_textctrl_value = new wxTextCtrl(this, wxID_ANY, "0");
 
-	m_checkbox_use_hex = new wxCheckBox(this, -1, _("Use Hex"));
+	m_checkbox_use_hex = new wxCheckBox(this, wxID_ANY, _("Use Hex"));
 	m_checkbox_use_hex->SetValue(true);
 
 	wxBoxSizer* const sizer_value_label = new wxBoxSizer(wxHORIZONTAL);

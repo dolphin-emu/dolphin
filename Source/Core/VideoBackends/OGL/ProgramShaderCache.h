@@ -7,6 +7,7 @@
 #include "Common/LinearDiskCache.h"
 #include "Core/ConfigManager.h"
 #include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/VertexShaderGen.h"
 
@@ -18,10 +19,11 @@ class SHADERUID
 public:
 	VertexShaderUid vuid;
 	PixelShaderUid puid;
+	GeometryShaderUid guid;
 
 	SHADERUID() {}
 
-	SHADERUID(const SHADERUID& r) : vuid(r.vuid), puid(r.puid) {}
+	SHADERUID(const SHADERUID& r) : vuid(r.vuid), puid(r.puid), guid(r.guid) {}
 
 	bool operator <(const SHADERUID& r) const
 	{
@@ -34,12 +36,18 @@ public:
 		if (vuid < r.vuid)
 			return true;
 
+		if (r.vuid < vuid)
+			return false;
+
+		if (guid < r.guid)
+			return true;
+
 		return false;
 	}
 
 	bool operator ==(const SHADERUID& r) const
 	{
-		return puid == r.puid && vuid == r.vuid;
+		return puid == r.puid && vuid == r.vuid && guid == r.guid;
 	}
 };
 
@@ -52,9 +60,9 @@ struct SHADER
 		glDeleteProgram(glprogid);
 		glprogid = 0;
 	}
-	GLuint glprogid; // opengl program id
+	GLuint glprogid; // OpenGL program id
 
-	std::string strvprog, strpprog;
+	std::string strvprog, strpprog, strgprog;
 
 	void SetProgramVariables();
 	void SetProgramBindings();
@@ -80,10 +88,10 @@ public:
 
 	static PCacheEntry GetShaderProgram();
 	static GLuint GetCurrentProgram();
-	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
-	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
+	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
 
-	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode);
+	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode, const char* gcode = nullptr);
 	static GLuint CompileSingleShader(GLuint type, const char *code);
 	static void UploadConstants();
 
@@ -104,6 +112,7 @@ private:
 
 	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
 	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
+	static UidChecker<GeometryShaderUid,ShaderCode> geometry_uid_checker;
 
 	static u32 s_ubo_buffer_size;
 	static s32 s_ubo_align;

@@ -77,13 +77,13 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	switch (inst.SUBOP10)
 	{
 	case 40: //neg
-		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), fpr.R(b), M((void*)&psSignBits));
+		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), fpr.R(b), M(psSignBits));
 		break;
 	case 136: //nabs
-		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), fpr.R(b), M((void*)&psSignBits));
+		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), fpr.R(b), M(psSignBits));
 		break;
 	case 264: //abs
-		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), fpr.R(b), M((void*)&psAbsMask));
+		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), fpr.R(b), M(psAbsMask));
 		break;
 	}
 
@@ -124,6 +124,7 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff);
 	FALLBACK_IF(inst.Rc);
 
+	bool round_input = !jit->js.op->fprIsSingle[inst.FC];
 	switch (inst.SUBOP5)
 	{
 	case 18: // div
@@ -136,7 +137,7 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 		tri_op(inst.FD, inst.FA, inst.FB, true, &XEmitter::VADDPD, &XEmitter::ADDPD, inst);
 		break;
 	case 25: // mul
-		tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::VMULPD, &XEmitter::MULPD, inst, true);
+		tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::VMULPD, &XEmitter::MULPD, inst, round_input);
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
@@ -187,6 +188,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	int d = inst.FD;
 	int a = inst.FA;
 	int c = inst.FC;
+	bool round_input = !jit->js.op->fprIsSingle[c];
 	fpr.Lock(a, c, d);
 	switch (inst.SUBOP5)
 	{
@@ -199,7 +201,8 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	default:
 		PanicAlert("ps_muls WTF!!!");
 	}
-	Force25BitPrecision(XMM0, R(XMM0), XMM1);
+	if (round_input)
+		Force25BitPrecision(XMM0, R(XMM0), XMM1);
 	MULPD(XMM0, fpr.R(a));
 	fpr.BindToRegister(d, false);
 	ForceSinglePrecisionP(fpr.RX(d), XMM0);
@@ -306,6 +309,7 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	int c = inst.FC;
 	int d = inst.FD;
 	bool fma = cpu_info.bFMA && !Core::g_want_determinism;
+	bool round_input = !jit->js.op->fprIsSingle[c];
 	fpr.Lock(a,b,c,d);
 
 	if (fma)
@@ -314,16 +318,21 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	if (inst.SUBOP5 == 14)
 	{
 		MOVDDUP(XMM0, fpr.R(c));
-		Force25BitPrecision(XMM0, R(XMM0), XMM1);
+		if (round_input)
+			Force25BitPrecision(XMM0, R(XMM0), XMM1);
 	}
 	else if (inst.SUBOP5 == 15)
 	{
 		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, fpr.R(c), fpr.R(c), 3);
-		Force25BitPrecision(XMM0, R(XMM0), XMM1);
+		if (round_input)
+			Force25BitPrecision(XMM0, R(XMM0), XMM1);
 	}
 	else
 	{
-		Force25BitPrecision(XMM0, fpr.R(c), XMM1);
+		if (round_input)
+			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
+		else
+			MOVAPD(XMM0, fpr.R(c));
 	}
 
 	if (fma)
@@ -363,12 +372,12 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 		case 30: //nmsub
 			MULPD(XMM0, fpr.R(a));
 			SUBPD(XMM0, fpr.R(b));
-			PXOR(XMM0, M((void*)&psSignBits));
+			PXOR(XMM0, M(psSignBits));
 			break;
 		case 31: //nmadd
 			MULPD(XMM0, fpr.R(a));
 			ADDPD(XMM0, fpr.R(b));
-			PXOR(XMM0, M((void*)&psSignBits));
+			PXOR(XMM0, M(psSignBits));
 			break;
 		default:
 			_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");
@@ -386,7 +395,6 @@ void Jit64::ps_cmpXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	FloatCompare(inst, !!(inst.SUBOP10 & 64));
 }

@@ -14,6 +14,8 @@ private:
 	void GenerateCommon();
 
 public:
+	const u8* m_increment_profile_counter;
+
 	void Init()
 	{
 		AllocCodeSpace(8192);

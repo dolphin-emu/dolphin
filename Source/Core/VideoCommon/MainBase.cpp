@@ -1,6 +1,7 @@
 #include "Common/Event.h"
 #include "Core/ConfigManager.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
@@ -24,6 +25,11 @@ static Common::Event s_efbAccessReadyEvent;
 
 static Common::Flag s_perfQueryRequested;
 static Common::Event s_perfQueryReadyEvent;
+
+static Common::Flag s_BBoxRequested;
+static Common::Event s_BBoxReadyEvent;
+static int s_BBoxIndex;
+static u16 s_BBoxResult;
 
 static volatile struct
 {
@@ -217,6 +223,39 @@ u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 	return g_perf_query->GetQueryResult(type);
 }
 
+u16 VideoBackendHardware::Video_GetBoundingBox(int index)
+{
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+		return BoundingBox::coords[index];
+
+	SyncGPU(SYNC_GPU_BBOX);
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	{
+		s_BBoxReadyEvent.Reset();
+		if (s_FifoShuttingDown.IsSet())
+			return 0;
+		s_BBoxIndex = index;
+		s_BBoxRequested.Set();
+		s_BBoxReadyEvent.Wait();
+		return s_BBoxResult;
+	}
+	else
+	{
+		return g_renderer->BBoxRead(index);
+	}
+}
+
+static void VideoFifo_CheckBBoxRequest()
+{
+	if (s_BBoxRequested.IsSet())
+	{
+		s_BBoxResult = g_renderer->BBoxRead(s_BBoxIndex);
+		s_BBoxRequested.Clear();
+		s_BBoxReadyEvent.Set();
+	}
+}
+
 void VideoBackendHardware::InitializeShared()
 {
 	VideoCommon_Init();
@@ -292,6 +331,7 @@ void VideoFifo_CheckAsyncRequest()
 	VideoFifo_CheckSwapRequest();
 	VideoFifo_CheckEFBAccess();
 	VideoFifo_CheckPerfQueryRequest();
+	VideoFifo_CheckBBoxRequest();
 }
 
 void VideoBackendHardware::Video_GatherPipeBursted()

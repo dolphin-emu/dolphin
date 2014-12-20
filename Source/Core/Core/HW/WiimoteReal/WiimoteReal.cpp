@@ -37,21 +37,18 @@ Wiimote* g_wiimotes[MAX_BBMOTES];
 WiimoteScanner g_wiimote_scanner;
 
 Wiimote::Wiimote()
-	: index()
+	: m_index()
 	, m_last_input_report()
 	, m_channel(0)
 	, m_rumble_state()
 	, m_need_prepare()
-{
-	InitInternal();
-}
+{}
 
-Wiimote::~Wiimote()
+void Wiimote::Shutdown()
 {
 	StopThread();
 	ClearReadQueue();
 	m_write_reports.Clear();
-	TeardownInternal();
 }
 
 // to be called from CPU thread
@@ -61,12 +58,9 @@ void Wiimote::WriteReport(Report rpt)
 	{
 		bool const new_rumble_state = (rpt[2] & 0x1) != 0;
 
+		// If this is a rumble report and the rumble state didn't change, ignore.
 		if (WM_RUMBLE == rpt[1] && new_rumble_state == m_rumble_state)
-		{
-			// If this is a rumble report and the rumble state didn't change, ignore
-			//ERROR_LOG(WIIMOTE, "Ignoring rumble report.");
 			return;
-		}
 
 		m_rumble_state = new_rumble_state;
 	}
@@ -139,7 +133,7 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
 		if (hidp->type == HID_TYPE_SET_REPORT)
 		{
 			u8 handshake_ok = HID_HANDSHAKE_SUCCESS;
-			Core::Callback_WiimoteInterruptChannel(index, channel, &handshake_ok, sizeof(handshake_ok));
+			Core::Callback_WiimoteInterruptChannel(m_index, channel, &handshake_ok, sizeof(handshake_ok));
 		}
 	}
 }
@@ -158,7 +152,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 
 	auto const data = static_cast<const u8*>(_data);
 	Report rpt(data, data + size);
-	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetConfig()->controllers[index];
+	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetConfig()->controllers[m_index];
 
 	// Convert output DATA packets to SET_REPORT packets.
 	// Nintendo Wiimotes work without this translation, but 3rd
@@ -201,12 +195,12 @@ bool Wiimote::Read()
 	if (result > 0 && m_channel > 0)
 	{
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 &&
-		    index == WIIMOTE_BALANCE_BOARD)
+		    m_index == WIIMOTE_BALANCE_BOARD)
 		{
-			static sf::SocketUDP Socket;
-			Socket.Send((char*)rpt.data(),
+			static sf::UdpSocket Socket;
+			Socket.send((char*)rpt.data(),
 			            rpt.size(),
-			            sf::IPAddress::LocalHost,
+			            sf::IpAddress::LocalHost,
 		                SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
 		}
 
@@ -217,7 +211,7 @@ bool Wiimote::Read()
 	}
 	else if (0 == result)
 	{
-		ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wiimote %d.", index + 1);
+		ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wiimote %d.", m_index + 1);
 		DisconnectInternal();
 	}
 
@@ -234,10 +228,10 @@ bool Wiimote::Write()
 
 		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 && index == WIIMOTE_BALANCE_BOARD)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort > 0 && m_index == WIIMOTE_BALANCE_BOARD)
 			{
-				static sf::SocketUDP Socket;
-				Socket.Send((char*)rpt.data(), rpt.size(), sf::IPAddress::LocalHost, SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
+				static sf::UdpSocket Socket;
+				Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost, SConfig::GetInstance().m_LocalCoreStartupParameter.iBBDumpPort);
 			}
 			IOWrite(rpt.data(), rpt.size());
 
@@ -289,7 +283,7 @@ void Wiimote::Update()
 {
 	if (!IsConnected())
 	{
-		HandleWiimoteDisconnect(index);
+		HandleWiimoteDisconnect(m_index);
 		return;
 	}
 
@@ -299,14 +293,14 @@ void Wiimote::Update()
 	// Send the report
 	if (!rpt.empty() && m_channel > 0)
 	{
-		Core::Callback_WiimoteInterruptChannel(index, m_channel,
+		Core::Callback_WiimoteInterruptChannel(m_index, m_channel,
 			rpt.data(), (u32)rpt.size());
 	}
 }
 
 void Wiimote::Prepare(int _index)
 {
-	index = _index;
+	m_index = _index;
 	m_need_prepare = true;
 }
 
@@ -316,7 +310,7 @@ bool Wiimote::PrepareOnThread()
 	u8 static const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REPORT_MODE, 0, WM_REPORT_CORE};
 
 	// Set the active LEDs and turn on rumble.
-	u8 static const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_LEDS, u8(WIIMOTE_LED_1 << (index%WIIMOTE_BALANCE_BOARD) | 0x1)};
+	u8 static const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_LEDS, u8(WIIMOTE_LED_1 << (m_index%WIIMOTE_BALANCE_BOARD) | 0x1)};
 
 	// Turn off rumble
 	u8 static const rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_RUMBLE, 0};
@@ -334,6 +328,7 @@ bool Wiimote::PrepareOnThread()
 void Wiimote::EmuStart()
 {
 	DisableDataReporting();
+	EnablePowerAssertionInternal();
 }
 
 void Wiimote::EmuStop()
@@ -343,11 +338,13 @@ void Wiimote::EmuStop()
 	DisableDataReporting();
 
 	NOTICE_LOG(WIIMOTE, "Stopping Wiimote data reporting.");
+
+	DisablePowerAssertionInternal();
 }
 
 void Wiimote::EmuResume()
 {
-	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetConfig()->controllers[index];
+	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetConfig()->controllers[m_index];
 
 	m_last_input_report.clear();
 
@@ -358,6 +355,8 @@ void Wiimote::EmuResume()
 	QueueReport(WM_REPORT_MODE, &rpt, sizeof(rpt));
 
 	NOTICE_LOG(WIIMOTE, "Resuming Wiimote data reporting.");
+
+	EnablePowerAssertionInternal();
 }
 
 void Wiimote::EmuPause()
@@ -371,6 +370,8 @@ void Wiimote::EmuPause()
 	QueueReport(WM_REPORT_MODE, &rpt, sizeof(rpt));
 
 	NOTICE_LOG(WIIMOTE, "Pausing Wiimote data reporting.");
+
+	DisablePowerAssertionInternal();
 }
 
 static unsigned int CalculateConnectedWiimotes()
@@ -500,8 +501,6 @@ void Wiimote::StopThread()
 	IOWakeup();
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
-#if defined(__APPLE__)
-#endif
 }
 
 void Wiimote::SetReady()
@@ -546,7 +545,7 @@ void Wiimote::ThreadFunc()
 			m_need_prepare = false;
 			if (!PrepareOnThread())
 			{
-				ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.", index + 1);
+				ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.", m_index + 1);
 				break;
 			}
 		}

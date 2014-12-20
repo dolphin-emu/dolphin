@@ -21,9 +21,7 @@ namespace HLE
 	enum
 	{
 		HLE_TYPE_GENERIC = 0,    // Miscellaneous function
-		HLE_TYPE_MEMORY  = 1,    // Memory operation
-		HLE_TYPE_FP      = 2,    // Floating Point operation
-		HLE_TYPE_DEBUG   = 3,    // Debug output function
+		HLE_TYPE_DEBUG   = 1,    // Debug output function
 	};
 
 	void PatchFunctions();

@@ -4,8 +4,10 @@
 
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/PSTextureEncoder.h"
 #include "VideoBackends/D3D/TextureCache.h"
@@ -29,7 +31,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
+	D3D::stateman->SetTexture(stage, texture->GetSRV());
 }
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
@@ -143,7 +145,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 		}
-		D3D::context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
+		D3D::stateman->SetPixelConstants(efbcopycbuf[cbufid]);
 
 		const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		// TODO: try targetSource.asRECT();
@@ -155,6 +157,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		else
 			D3D::SetPointCopySampler();
 
+		// if texture is currently in use, it needs to be temporarily unset
+		u32 textureSlotMask = D3D::stateman->UnsetTexture(texture->GetSRV());
+		D3D::stateman->Apply();
+
 		D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
 
 		// Create texture copy
@@ -162,11 +168,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
 			&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 			(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
-			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
+			(g_Config.iStereoMode > 0) ? GeometryShaderCache::GetCopyGeometryShader() : nullptr);
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 		g_renderer->RestoreAPIState();
+
+		// Restore old texture in all previously used slots, if any
+		D3D::stateman->SetTextureByMask(textureSlotMask, texture->GetSRV());
 	}
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)
@@ -191,7 +201,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 {
 	return new TCacheEntry(D3DTexture2D::Create(scaled_tex_w, scaled_tex_h,
 		(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
-		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM));
+		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, FramebufferManager::GetEFBLayers()));
 }
 
 TextureCache::TextureCache()

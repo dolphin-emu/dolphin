@@ -32,6 +32,7 @@ class VideoSoftware : public VideoBackend
 
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) override;
 	u32 Video_GetQueryResult(PerfQueryType type) override;
+	u16 Video_GetBoundingBox(int index) override;
 
 	void Video_AddMessage(const std::string& msg, unsigned int milliseconds) override;
 	void Video_ClearMessages() override;

@@ -43,18 +43,18 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
 	is_connected = false;
 
-	if (m_socket.Connect(port, address, 5) == sf::Socket::Done)
+	if (m_socket.connect(address, port, sf::seconds(5)) == sf::Socket::Done)
 	{
 		// send connect message
 		sf::Packet spac;
 		spac << NETPLAY_VERSION;
 		spac << netplay_dolphin_ver;
 		spac << name;
-		m_socket.Send(spac);
+		m_socket.send(spac);
 
 		sf::Packet rpac;
 		// TODO: make this not hang
-		m_socket.Receive(rpac);
+		m_socket.receive(rpac);
 		MessageId error;
 		rpac >> error;
 
@@ -76,7 +76,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 				PanicAlertT("The server sent an unknown error message!");
 				break;
 			}
-			m_socket.Close();
+			m_socket.disconnect();
 		}
 		else
 		{
@@ -96,7 +96,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 			//PanicAlertT("Connection successful: assigned player id: %d", m_pid);
 			is_connected = true;
 
-			m_selector.Add(m_socket);
+			m_selector.add(m_socket);
 			m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
 		}
 	}
@@ -286,7 +286,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			spac << ping_key;
 
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-			m_socket.Send(spac);
+			m_socket.send(spac);
 		}
 		break;
 
@@ -319,10 +319,10 @@ void NetPlayClient::ThreadFunc()
 {
 	while (m_do_loop)
 	{
-		if (m_selector.Wait(0.01f))
+		if (m_selector.wait(sf::milliseconds(10)))
 		{
 			sf::Packet rpac;
-			switch (m_socket.Receive(rpac))
+			switch (m_socket.receive(rpac))
 			{
 			case sf::Socket::Done :
 				OnData(rpac);
@@ -340,7 +340,7 @@ void NetPlayClient::ThreadFunc()
 		}
 	}
 
-	m_socket.Close();
+	m_socket.disconnect();
 
 	return;
 }
@@ -403,7 +403,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 	spac << msg;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.Send(spac);
+	m_socket.send(spac);
 }
 
 // called from ---CPU--- thread
@@ -416,7 +416,7 @@ void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus
 	spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.Send(spac);
+	m_socket.send(spac);
 }
 
 // called from ---CPU--- thread
@@ -433,7 +433,7 @@ void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiim
 	}
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.Send(spac);
+	m_socket.send(spac);
 }
 
 // called from ---GUI--- thread
@@ -448,7 +448,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 	spac << (char *)&g_NetPlaySettings;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.Send(spac);
+	m_socket.send(spac);
 
 	if (m_is_running)
 	{
@@ -751,7 +751,7 @@ void NetPlayClient::Stop()
 	{
 		sf::Packet spac;
 		spac << (MessageId)NP_MSG_STOP_GAME;
-		m_socket.Send(spac);
+		m_socket.send(spac);
 	}
 }
 
@@ -835,16 +835,6 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 		return false;
 }
 
-bool CSIDevice_GCSteeringWheel::NetPlay_GetInput(u8 numPAD, GCPadStatus* PadStatus)
-{
-	return false;
-}
-
-bool CSIDevice_DanceMat::NetPlay_GetInput(u8 numPAD, GCPadStatus* PadStatus)
-{
-	return false;
-}
-
 // called from ---CPU--- thread
 // so all players' games get the same time
 u32 CEXIIPL::NetPlay_GetGCTime()
@@ -867,16 +857,6 @@ u8 CSIDevice_GCController::NetPlay_InGamePadToLocalPad(u8 numPAD)
 		return netplay_client->InGamePadToLocalPad(numPAD);
 	else
 		return numPAD;
-}
-
-u8 CSIDevice_GCSteeringWheel::NetPlay_InGamePadToLocalPad(u8 numPAD)
-{
-	return CSIDevice_GCController::NetPlay_InGamePadToLocalPad(numPAD);
-}
-
-u8 CSIDevice_DanceMat::NetPlay_InGamePadToLocalPad(u8 numPAD)
-{
-	return CSIDevice_GCController::NetPlay_InGamePadToLocalPad(numPAD);
 }
 
 bool NetPlay::IsNetPlayRunning()

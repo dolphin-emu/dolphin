@@ -18,7 +18,6 @@ import android.util.Log;
 public final class CPUHelper
 {
 	private int revision;
-	private int architecture;
 	private int variant;
 	private int numCores;
 	private String implementerID = "N/A";
@@ -80,15 +79,6 @@ public final class CPUHelper
 		return revision;
 	}
 
-	/**
-	 * Gets the architecture number of the CPU.
-	 * 
-	 * @return the architecture number of the CPU.
-	 */
-	public int getArchitecture()
-	{
-		return architecture;
-	}
 
 	/**
 	 * Gets the CPU variant number.
@@ -171,6 +161,13 @@ public final class CPUHelper
 	}
 
 	/**
+	 * Whether or not this CPU is using the ARM64 architecture.
+	 *
+	 * @return true if this CPU uses the ARM64 architecture; false otherwise.
+	 */
+	public static boolean isARM64() { return Build.CPU_ABI.contains("arm64"); }
+
+	/**
 	 * Whether or not this CPU is using the x86 architecture.
 	 * 
 	 * @return true if this CPU uses the x86 architecture; false otherwise.
@@ -216,11 +213,6 @@ public final class CPUHelper
 				else if (line.contains("CPU implementer\t:"))
 				{
 					this.implementerID = parseArmID(Integer.decode(parseLine(line)));
-				}
-				// Intentional lack of "\t:" sometimes the tab isn't present.
-				else if (line.contains("CPU architecture"))
-				{
-					this.architecture = Integer.decode(parseLine(line));
 				}
 				else if (line.contains("CPU part\t:"))
 				{
@@ -270,6 +262,9 @@ public final class CPUHelper
 		
 			case 0x4D:
 				return "Freescale Semiconductor Inc.";
+
+			case 0x4E:
+				return "Nvidia Corporation";
 
 			case 0x51:
 				return "Qualcomm Inc.";

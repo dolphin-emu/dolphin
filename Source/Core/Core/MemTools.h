@@ -9,7 +9,7 @@
 
 namespace EMM
 {
-	typedef u32 EAddr;
+	extern const bool g_exception_handlers_supported;
 	void InstallExceptionHandler();
 	void UninstallExceptionHandler();
 }

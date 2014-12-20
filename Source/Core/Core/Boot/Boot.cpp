@@ -67,7 +67,8 @@ void CBoot::UpdateDebugger_MapLoaded()
 }
 
 bool CBoot::FindMapFile(std::string* existing_map_file,
-                        std::string* writable_map_file)
+                        std::string* writable_map_file,
+                        std::string* title_id)
 {
 	std::string title_id_str;
 	size_t name_begin_index;
@@ -108,6 +109,9 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 
 	if (writable_map_file)
 		*writable_map_file = File::GetUserPath(D_MAPS_IDX) + title_id_str + ".map";
+
+	if (title_id)
+		*title_id = title_id_str;
 
 	bool found = false;
 	static const std::string maps_directories[] = {
@@ -225,14 +229,12 @@ bool CBoot::BootUp()
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
-		u32 _TMDsz = 0x208;
-		u8* _pTMD = new u8[_TMDsz];
-		pVolume->GetTMD(_pTMD, &_TMDsz);
-		if (_TMDsz)
+		u32 tmd_size;
+		std::unique_ptr<u8[]> tmd_buf = pVolume->GetTMD(&tmd_size);
+		if (tmd_size)
 		{
-			WII_IPC_HLE_Interface::ES_DIVerify(_pTMD, _TMDsz);
+			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buf.get(), tmd_size);
 		}
-		delete []_pTMD;
 
 
 		_StartupPara.bWii = VolumeHandler::IsWii();

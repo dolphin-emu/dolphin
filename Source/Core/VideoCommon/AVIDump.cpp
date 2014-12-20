@@ -28,7 +28,7 @@
 #include <vfw.h>
 #include <winerror.h>
 
-#include "Core/ConfigManager.h" // for EuRGB60
+#include "Core/ConfigManager.h" // for PAL60
 #include "Core/CoreTiming.h"
 
 static HWND s_emu_wnd;

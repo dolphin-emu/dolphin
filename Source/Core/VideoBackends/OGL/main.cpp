@@ -48,6 +48,7 @@ Make AA apply instantly during gameplay if possible
 #include "Core/Core.h"
 #include "Core/Host.h"
 
+#include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
@@ -64,6 +65,7 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/LookUpTables.h"
@@ -137,6 +139,8 @@ static void InitBackendInfo()
 	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu dependent and must be set in renderer
 	//g_Config.backend_info.bSupportsEarlyZ = true; // is gpu dependent and must be set in renderer
 	g_Config.backend_info.bSupportsOversizedViewports = true;
+	g_Config.backend_info.bSupportsGeometryShaders = true;
+	g_Config.backend_info.bSupports3DVision = false;
 
 	g_Config.backend_info.Adapters.clear();
 
@@ -199,12 +203,14 @@ void VideoBackend::Video_Prepare()
 	IndexGenerator::Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
+	GeometryShaderManager::Init();
 	ProgramShaderCache::Init();
 	g_texture_cache = new TextureCache();
 	g_sampler_cache = new SamplerCache();
 	Renderer::Init();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
+	BoundingBox::Init();
 
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
@@ -229,6 +235,7 @@ void VideoBackend::Video_Cleanup()
 		// The following calls are NOT Thread Safe
 		// And need to be called from the video thread
 		Renderer::Shutdown();
+		BoundingBox::Shutdown();
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
 		delete g_sampler_cache;
@@ -238,6 +245,7 @@ void VideoBackend::Video_Cleanup()
 		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
+		GeometryShaderManager::Shutdown();
 		delete g_perf_query;
 		g_perf_query = nullptr;
 		delete g_vertex_manager;

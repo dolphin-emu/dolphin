@@ -260,8 +260,7 @@ EVT_MENU(IDM_TOGGLE_DUMPAUDIO, CFrame::OnToggleDumpAudio)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
 EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
-EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnConfigPAD)
-EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnConfigWiimote)
+EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
 
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
@@ -748,23 +747,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
-void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
-{
-#ifdef __WXGTK__
-	if (!wxIsMainThread())
-		wxMutexGuiEnter();
-#endif
-	wxRect client_rect = m_RenderParent->GetClientRect();
-	width = client_rect.width;
-	height = client_rect.height;
-	x = client_rect.x;
-	y = client_rect.y;
-#ifdef __WXGTK__
-	if (!wxIsMainThread())
-		wxMutexGuiLeave();
-#endif
-}
-
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (!Core::IsRunning() ||
@@ -853,17 +835,32 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		(SConfig::GetInstance().m_ListJap &&
 		SConfig::GetInstance().m_ListUsa  &&
 		SConfig::GetInstance().m_ListPal  &&
+		SConfig::GetInstance().m_ListAustralia &&
 		SConfig::GetInstance().m_ListFrance &&
+		SConfig::GetInstance().m_ListGermany &&
 		SConfig::GetInstance().m_ListItaly &&
 		SConfig::GetInstance().m_ListKorea &&
+		SConfig::GetInstance().m_ListNetherlands &&
+		SConfig::GetInstance().m_ListRussia &&
+		SConfig::GetInstance().m_ListSpain &&
 		SConfig::GetInstance().m_ListTaiwan &&
 		SConfig::GetInstance().m_ListUnknown)))
 	{
-		SConfig::GetInstance().m_ListGC      = SConfig::GetInstance().m_ListWii =
-		SConfig::GetInstance().m_ListWad     = SConfig::GetInstance().m_ListJap =
-		SConfig::GetInstance().m_ListUsa     = SConfig::GetInstance().m_ListPal =
-		SConfig::GetInstance().m_ListFrance  = SConfig::GetInstance().m_ListItaly =
-		SConfig::GetInstance().m_ListKorea   = SConfig::GetInstance().m_ListTaiwan =
+		SConfig::GetInstance().m_ListGC =
+		SConfig::GetInstance().m_ListWii =
+		SConfig::GetInstance().m_ListWad =
+		SConfig::GetInstance().m_ListJap =
+		SConfig::GetInstance().m_ListUsa =
+		SConfig::GetInstance().m_ListPal =
+		SConfig::GetInstance().m_ListAustralia =
+		SConfig::GetInstance().m_ListFrance =
+		SConfig::GetInstance().m_ListGermany =
+		SConfig::GetInstance().m_ListItaly =
+		SConfig::GetInstance().m_ListKorea =
+		SConfig::GetInstance().m_ListNetherlands =
+		SConfig::GetInstance().m_ListRussia =
+		SConfig::GetInstance().m_ListSpain =
+		SConfig::GetInstance().m_ListTaiwan =
 		SConfig::GetInstance().m_ListUnknown = true;
 
 		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
@@ -872,9 +869,14 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_LISTJAP)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTUSA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTPAL)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTAUSTRALIA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTFRANCE)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTGERMANY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTITALY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTKOREA)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTNETHERLANDS)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTRUSSIA)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTSPAIN)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTTAIWAN)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_UNK)->Check(true);
 
@@ -972,6 +974,17 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_SELECT_STATE_SLOT_10: return IDM_SELECTSLOT10;
 	case HK_SAVE_STATE_SLOT_SELECTED: return IDM_SAVESELECTEDSLOT;
 	case HK_LOAD_STATE_SLOT_SELECTED: return IDM_LOADSELECTEDSLOT;
+
+	case HK_FREELOOK_INCREASE_SPEED: return IDM_FREELOOK_INCREASE_SPEED;
+	case HK_FREELOOK_DECREASE_SPEED: return IDM_FREELOOK_DECREASE_SPEED;
+	case HK_FREELOOK_RESET_SPEED: return IDM_FREELOOK_RESET_SPEED;
+	case HK_FREELOOK_LEFT: return IDM_FREELOOK_LEFT;
+	case HK_FREELOOK_RIGHT: return IDM_FREELOOK_RIGHT;
+	case HK_FREELOOK_UP: return IDM_FREELOOK_UP;
+	case HK_FREELOOK_DOWN: return IDM_FREELOOK_DOWN;
+	case HK_FREELOOK_ZOOM_IN: return IDM_FREELOOK_ZOOM_IN;
+	case HK_FREELOOK_ZOOM_OUT: return IDM_FREELOOK_ZOOM_OUT;
+	case HK_FREELOOK_RESET: return IDM_FREELOOK_RESET;
 	}
 
 	return -1;
@@ -1109,6 +1122,26 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			State::Load(g_saveSlot);
 		}
+		else if (IsHotkey(event, HK_INCREASE_SEPARATION))
+		{
+			if (++g_Config.iStereoSeparation > 100)
+				g_Config.iStereoSeparation = 100;
+		}
+		else if (IsHotkey(event, HK_DECREASE_SEPARATION))
+		{
+			if (--g_Config.iStereoSeparation < 0)
+				g_Config.iStereoSeparation = 0;
+		}
+		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+		{
+			if (++g_Config.iStereoConvergence > 500)
+				g_Config.iStereoConvergence = 500;
+		}
+		else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
+		{
+			if (--g_Config.iStereoConvergence < 0)
+				g_Config.iStereoConvergence = 0;
+		}
 
 		else
 		{
@@ -1161,45 +1194,35 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Actually perform the wiimote connection or disconnection
 		if (WiimoteId >= 0)
 		{
-			bool connect = !GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
-			ConnectWiimote(WiimoteId, connect);
+			wxCommandEvent evt;
+			evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
+			OnConnectWiimote(evt);
 		}
 
-		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
+		if (g_Config.bFreeLook)
 		{
 			static float debugSpeed = 1.0f;
-			switch (event.GetKeyCode())
-			{
-			case '9':
-				debugSpeed /= 2.0f;
-				break;
-			case '0':
+
+			if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
 				debugSpeed *= 2.0f;
-				break;
-			case 'W':
-				VertexShaderManager::TranslateView(0.0f, debugSpeed);
-				break;
-			case 'S':
-				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-				break;
-			case 'A':
-				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-				break;
-			case 'D':
-				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-				break;
-			case 'Q':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
-				break;
-			case 'E':
+			else if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+				debugSpeed /= 2.0f;
+			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
+				debugSpeed = 1.0f;
+			else if (IsHotkey(event, HK_FREELOOK_UP))
 				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
-				break;
-			case 'R':
+			else if (IsHotkey(event, HK_FREELOOK_DOWN))
+				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_LEFT))
+				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+			else if (IsHotkey(event, HK_FREELOOK_RIGHT))
+				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+			else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
+				VertexShaderManager::TranslateView(0.0f, debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
+				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_RESET))
 				VertexShaderManager::ResetView();
-				break;
-			default:
-				break;
-			}
 		}
 	}
 	else

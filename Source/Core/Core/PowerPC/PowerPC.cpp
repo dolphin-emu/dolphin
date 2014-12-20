@@ -118,14 +118,22 @@ void Init(int cpu_core)
 	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
-	ppcState.dtlb_last = 0;
-	memset(ppcState.dtlb_va, 0, sizeof(ppcState.dtlb_va));
-	memset(ppcState.dtlb_pa, 0, sizeof(ppcState.dtlb_pa));
-	ppcState.itlb_last = 0;
-	memset(ppcState.itlb_va, 0, sizeof(ppcState.itlb_va));
-	memset(ppcState.itlb_pa, 0, sizeof(ppcState.itlb_pa));
 	ppcState.pagetable_base = 0;
 	ppcState.pagetable_hashmask = 0;
+
+	for (int tlb = 0; tlb < 2; tlb++)
+	{
+		for (int set = 0; set < 64; set++)
+		{
+			for (int way = 0; way < 2; way++)
+			{
+				ppcState.tlb[tlb][set][way].flags = TLB_FLAG_INVALID;
+				ppcState.tlb[tlb][set][way].paddr = 0;
+				ppcState.tlb[tlb][set][way].pte = 0;
+				ppcState.tlb[tlb][set][way].tag = 0;
+			}
+		}
+	}
 
 	ResetRegisters();
 	PPCTables::InitTables(cpu_core);

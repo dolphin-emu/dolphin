@@ -97,7 +97,10 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 
 		// Following details from http://wiibrew.org/wiki/Wiimote#Speaker
 		sample_rate_dividend = 6000000;
-		volume_divisor = 0x40;
+
+		// 0 - 127
+		// TODO: does it go beyond 127 for format == 0x40?
+		volume_divisor = 0x7F;
 	}
 	else
 	{

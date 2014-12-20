@@ -72,21 +72,13 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 	u32 result = 0;
 
 	if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
-	{
 		result = m_results[PQG_ZCOMP_ZCOMPLOC];
-	}
 	else if (type == PQ_ZCOMP_INPUT || type == PQ_ZCOMP_OUTPUT)
-	{
 		result = m_results[PQG_ZCOMP];
-	}
 	else if (type == PQ_BLEND_INPUT)
-	{
 		result = m_results[PQG_ZCOMP] + m_results[PQG_ZCOMP_ZCOMPLOC];
-	}
 	else if (type == PQ_EFB_COPY_CLOCKS)
-	{
 		result = m_results[PQG_EFB_COPY_CLOCKS];
-	}
 
 	return result / 4;
 }

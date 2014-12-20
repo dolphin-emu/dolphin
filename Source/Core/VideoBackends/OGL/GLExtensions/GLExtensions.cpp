@@ -1536,6 +1536,12 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawRangeElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glMultiDrawElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
 
+	// EXT_draw_elements_base_vertex
+	GLFUNC_SUFFIX(glDrawElementsBaseVertex,          EXT, "GL_EXT_draw_elements_base_vertex !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glDrawElementsInstancedBaseVertex, EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glDrawRangeElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex VERSION_GLES3 !GL_ARB_draw_elements_base_vertex"),
+	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_ARB_draw_elements_base_vertex"),
+
 	// ARB_sample_shading
 	GLFUNC_REQUIRES(glMinSampleShadingARB, "GL_ARB_sample_shading"),
 
@@ -1570,6 +1576,9 @@ const GLFunc gl_function_array[] =
 	// ARB_buffer_storage
 	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage"),
 	GLFUNC_REQUIRES(glNamedBufferStorageEXT, "GL_ARB_buffer_storage GL_EXT_direct_state_access"),
+
+	// EXT_geometry_shader
+	GLFUNC_SUFFIX(glFramebufferTexture, EXT, "GL_EXT_geometry_shader !VERSION_3_2"),
 };
 
 namespace GLExtensions
@@ -1892,17 +1901,20 @@ namespace GLExtensions
 		// Grab a few functions for initial checking
 		// We need them to grab the extension list
 		// Also to check if there is an error grabbing the version
-		// If it fails then the user's drivers don't support GL 3.0
 		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
 			return false;
 		if (GetFuncAddress("glGetString", (void**)&glGetString) == nullptr)
-			return false;
-		if (GetFuncAddress("glGetStringi", (void**)&glGetStringi) == nullptr)
 			return false;
 		if (GetFuncAddress("glGetError", (void**)&glGetError) == nullptr)
 			return false;
 
 		InitVersion();
+
+		// We need to use glGetStringi to get the extension list
+		// if we are using GLES3 or a GL version greater than 2.1
+		if (_GLVersion > 210 && GetFuncAddress("glGetStringi", (void**)&glGetStringi) == nullptr)
+			return false;
+
 		InitExtensionList();
 
 		return InitFunctionPointers();

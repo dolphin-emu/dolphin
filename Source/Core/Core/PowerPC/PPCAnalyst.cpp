@@ -560,6 +560,22 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->regsIn[code->inst.RS] = true;
 		block->m_gpa->SetInputRegister(code->inst.RS, index);
 	}
+	if (code->inst.OPCD == 46) // lmw
+	{
+		for (int iReg = code->inst.RD; iReg < 32; ++iReg)
+		{
+			code->regsOut[iReg] = true;
+			block->m_gpa->SetOutputRegister(iReg, index);
+		}
+	}
+	else if (code->inst.OPCD == 47) //stmw
+	{
+		for (int iReg = code->inst.RS; iReg < 32; ++iReg)
+		{
+			code->regsIn[iReg] = true;
+			block->m_gpa->SetInputRegister(iReg, index);
+		}
+	}
 
 	code->fregOut = -1;
 	if (opinfo->flags & FL_OUT_FLOAT_D)
@@ -632,7 +648,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT))
 	{
-		if (!Memory::TranslateAddress(address, Memory::FLAG_OPCODE))
+		if (!Memory::TranslateAddress(address, Memory::FLAG_NO_EXCEPTION))
 		{
 			// Memory exception occurred during instruction fetch
 			block->m_memory_exception = true;
@@ -827,10 +843,48 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		// the same location later).
 		gprInUse |= code[i].regsOut;
 		if (code[i].fregOut >= 0)
-		{
 			fprInUse[code[i].fregOut] = true;
-			if (strncmp(code[i].opinfo->opname, "stfd", 4))
-				fprInXmm[code[i].fregOut] = true;
+	}
+
+	// Forward scan, for flags that need the other direction for calculation.
+	BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
+	for (u32 i = 0; i < block->m_num_instructions; i++)
+	{
+		code[i].fprIsSingle = fprIsSingle;
+		code[i].fprIsDuplicated = fprIsDuplicated;
+		code[i].fprIsStoreSafe = fprIsStoreSafe;
+		if (code[i].fregOut >= 0)
+		{
+			fprIsSingle[code[i].fregOut] = false;
+			fprIsDuplicated[code[i].fregOut] = false;
+			fprIsStoreSafe[code[i].fregOut] = false;
+			// Single, duplicated, and doesn't need PPC_FP.
+			if (code[i].opinfo->type == OPTYPE_SINGLEFP)
+			{
+				fprIsSingle[code[i].fregOut] = true;
+				fprIsDuplicated[code[i].fregOut] = true;
+				fprIsStoreSafe[code[i].fregOut] = true;
+			}
+			// Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
+			// TODO: if we go directly from a load to store, skip conversion entirely?
+			// TODO: if we go directly from a load to a float instruction, and the value isn't used
+			// for anything else, we can skip PPC_FP on a load too.
+			if (!strncmp(code[i].opinfo->opname, "lfs", 3))
+			{
+				fprIsSingle[code[i].fregOut] = true;
+				fprIsDuplicated[code[i].fregOut] = true;
+			}
+			// Paired are still floats, but the top/bottom halves may differ.
+			if (code[i].opinfo->type == OPTYPE_PS || code[i].opinfo->type == OPTYPE_LOADPS)
+			{
+				fprIsSingle[code[i].fregOut] = true;
+				fprIsStoreSafe[code[i].fregOut] = true;
+			}
+			// Careful: changing the float mode in a block breaks this optimization, since
+			// a previous float op might have had had FTZ off while the later store has FTZ
+			// on. So, discard all information we have.
+			if (!strncmp(code[i].opinfo->opname, "mtfs", 4))
+				fprIsStoreSafe = BitSet32(0);
 		}
 	}
 	return address;

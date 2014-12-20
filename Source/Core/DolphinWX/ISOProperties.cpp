@@ -130,20 +130,23 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	bool IsWiiDisc = DiscIO::IsVolumeWiiDisc(OpenISO);
 	if (IsWiiDisc)
 	{
-		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
+		for (int group = 0; group < 4; group++)
 		{
-			WiiPartition temp;
-			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, 0, i)) != nullptr)
+			for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 			{
-				if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
+				WiiPartition temp;
+				if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
 				{
-					temp.FileSystem->GetFileList(temp.Files);
-					WiiDisc.push_back(temp);
+					if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
+					{
+						temp.FileSystem->GetFileList(temp.Files);
+						WiiDisc.push_back(temp);
+					}
 				}
-			}
-			else
-			{
-				break;
+				else
+				{
+					break;
+				}
 			}
 		}
 	}
@@ -196,17 +199,32 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	m_GameID->SetValue(StrToWxStr(OpenISO->GetUniqueID()));
 	switch (OpenISO->GetCountry())
 	{
+	case DiscIO::IVolume::COUNTRY_AUSTRALIA:
+		m_Country->SetValue(_("AUSTRALIA"));
+		break;
 	case DiscIO::IVolume::COUNTRY_EUROPE:
 		m_Country->SetValue(_("EUROPE"));
 		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(_("FRANCE"));
 		break;
+	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
+		m_Country->SetValue(_("INTERNATIONAL"));
+		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(_("ITALY"));
 		break;
+	case DiscIO::IVolume::COUNTRY_GERMANY:
+		m_Country->SetValue(_("GERMANY"));
+		break;
+	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
+		m_Country->SetValue(_("NETHERLANDS"));
+		break;
 	case DiscIO::IVolume::COUNTRY_RUSSIA:
 		m_Country->SetValue(_("RUSSIA"));
+		break;
+	case DiscIO::IVolume::COUNTRY_SPAIN:
+		m_Country->SetValue(_("SPAIN"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(_("USA"));
@@ -238,9 +256,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			m_Lang->Disable();
 		}
 		break;
-	case DiscIO::IVolume::COUNTRY_SDK:
-		m_Country->SetValue(_("No Country (SDK)"));
-		break;
+	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:
 		m_Country->SetValue(_("UNKNOWN"));
 		break;
@@ -402,6 +418,16 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "BlockMerging"));
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
 
+	wxBoxSizer* const sGPUDeterminism = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const GPUDeterminismText = new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core: "));
+	arrayStringFor_GPUDeterminism.Add(_("Not Set"));
+	arrayStringFor_GPUDeterminism.Add(_("auto"));
+	arrayStringFor_GPUDeterminism.Add(_("none"));
+	arrayStringFor_GPUDeterminism.Add(_("fake-completion"));
+	GPUDeterminism = new wxChoice(m_GameConfig, ID_GPUDETERMINISM, wxDefaultPosition, wxDefaultSize, arrayStringFor_GPUDeterminism);
+	sGPUDeterminism->Add(GPUDeterminismText);
+	sGPUDeterminism->Add(GPUDeterminism);
+
 	// Wii Console
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Wii", "Widescreen"));
 
@@ -430,6 +456,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(BlockMerging, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND|wxALL, 5);
 
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
@@ -503,7 +530,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_MakerID = new wxTextCtrl(m_Information, ID_MAKERID, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_RevisionText = new wxStaticText(m_Information, wxID_ANY, _("Revision:"));
 	m_Revision = new wxTextCtrl(m_Information, ID_REVISION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-	wxStaticText* const m_DateText = new wxStaticText(m_Information, wxID_ANY, _("Date:"));
+	wxStaticText* const m_DateText = new wxStaticText(m_Information, wxID_ANY, _("Build Date:"));
 	m_Date = new wxTextCtrl(m_Information, ID_DATE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_FSTText = new wxStaticText(m_Information, wxID_ANY, _("FST Size:"));
 	m_FST = new wxTextCtrl(m_Information, ID_FST, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
@@ -1049,6 +1076,19 @@ void CISOProperties::LoadGameConfig()
 
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
+	sTemp = "";
+	if (!GameIniLocal.GetIfExists("Core", "GPUDeterminismMode", &sTemp))
+		GameIniDefault.GetIfExists("Core", "GPUDeterminismMode", &sTemp);
+
+	if (sTemp == "")
+		GPUDeterminism->SetSelection(0);
+	else if (sTemp == "auto")
+		GPUDeterminism->SetSelection(1);
+	else if (sTemp == "none")
+		GPUDeterminism->SetSelection(2);
+	else if (sTemp == "fake-completion")
+		GPUDeterminism->SetSelection(3);
+
 	PatchList_Load();
 	ActionReplayList_Load();
 	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
@@ -1113,6 +1153,18 @@ bool CISOProperties::SaveGameConfig()
 
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
 	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
+
+	std::string tmp;
+	if (GPUDeterminism->GetSelection() == 0)
+		tmp = "Not Set";
+	else if (GPUDeterminism->GetSelection() == 1)
+		tmp = "auto";
+	else if (GPUDeterminism->GetSelection() == 2)
+		tmp = "none";
+	else if (GPUDeterminism->GetSelection() == 3)
+		tmp = "fake-completion";
+
+	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
 
 	PatchList_Save();
 	ActionReplayList_Save();
@@ -1328,7 +1380,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		break;
 	case ID_REMOVEPATCH:
 		onFrame.erase(onFrame.begin() + Patches->GetSelection());
-		Patches->Delete(Cheats->GetSelection());
+		Patches->Delete(Patches->GetSelection());
 		break;
 	}
 

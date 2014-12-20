@@ -18,10 +18,6 @@
 // ----------
 #pragma once
 
-#ifdef _WIN32
-#include <winnt.h>
-#endif
-
 #include "Common/x64ABI.h"
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
@@ -37,7 +33,6 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
-#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
@@ -152,7 +147,7 @@ public:
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
 		          bool Rc = false, bool carry = false);
 	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg),
-	               void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS = false);
+	               void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool packed = false, bool roundRHS = false);
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
 	// OPCODES

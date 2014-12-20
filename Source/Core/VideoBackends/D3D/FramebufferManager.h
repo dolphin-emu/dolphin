@@ -45,7 +45,7 @@ namespace DX11 {
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(D3DTexture2D *_tex) : tex(_tex) {}
+	XFBSource(D3DTexture2D *_tex, int slices) : tex(_tex), m_slices(slices) {}
 	~XFBSource() { tex->Release(); }
 
 	void Draw(const MathUtil::Rectangle<int> &sourcerc,
@@ -54,6 +54,7 @@ struct XFBSource : public XFBSourceBase
 	void CopyEFB(float Gamma) override;
 
 	D3DTexture2D* const tex;
+	const int m_slices;
 };
 
 class FramebufferManager : public FramebufferManagerBase
@@ -99,6 +100,8 @@ private:
 
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;
+
+		int slices;
 	} m_efb;
 };
 

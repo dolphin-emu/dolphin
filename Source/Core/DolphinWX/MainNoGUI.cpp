@@ -46,12 +46,8 @@ void Host_RefreshDSPDebuggerWindow() {}
 static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
-	switch (Id)
-	{
-		case WM_USER_STOP:
-			running = false;
-			break;
-	}
+	if (Id == WM_USER_STOP)
+		running = false;
 }
 
 static void* s_window_handle;
@@ -70,14 +66,6 @@ void Host_UpdateDisasmDialog(){}
 void Host_UpdateMainFrame()
 {
 	updateMainFrameEvent.Set();
-}
-
-void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
-{
-	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
-	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
-	width = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth;
-	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
 }
 
 void Host_RequestRenderWindowSize(int width, int height) {}
@@ -109,7 +97,7 @@ void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "VideoBackends/OGL/GLInterface/X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 
 class PlatformX11 : public Platform
 {

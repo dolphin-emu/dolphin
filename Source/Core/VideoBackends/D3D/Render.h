@@ -19,7 +19,6 @@ public:
 	void SetDepthMode() override;
 	void SetLogicOpMode() override;
 	void SetDitherMode() override;
-	void SetLineWidth() override;
 	void SetSamplerState(int stage,int texindex) override;
 	void SetInterlacingMode() override;
 	void SetViewport() override;
@@ -34,6 +33,8 @@ public:
 	void RenderText(const std::string& text, int left, int top, u32 color) override;
 
 	u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
+	u16 BBoxRead(int index) override;
+	void BBoxWrite(int index, u16 value) override;
 
 	void ResetAPIState() override;
 	void RestoreAPIState() override;

@@ -880,9 +880,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			}
 		}
 
-		char *opcode = nullptr;
-		opcode = strtok(ptr, " ");
-		char *opcode_ext = nullptr;
+		char* opcode = strtok(ptr, " ");
+		char* opcode_ext = nullptr;
 
 		u32 params_count = 0;
 		u32 params_count_ext = 0;
