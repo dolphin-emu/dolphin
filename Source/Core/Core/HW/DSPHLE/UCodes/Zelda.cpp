@@ -549,6 +549,9 @@ void ZeldaAudioRenderer::PrepareFrame()
 	if (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0)
 		PanicAlert("Zelda HLE using back mixing buffers");
 
+	m_buf_back_left.fill(0);
+	m_buf_back_right.fill(0);
+
 	// TODO: Dolby/reverb mixing here.
 
 	m_prepared = true;
