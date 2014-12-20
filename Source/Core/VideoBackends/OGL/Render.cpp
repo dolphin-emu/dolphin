@@ -556,9 +556,6 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsGeometryShaders)
-		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
-
 	if (!bSuccess)
 	{
 		// Not all needed extensions are supported, so we have to stop here.
