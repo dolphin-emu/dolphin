@@ -722,11 +722,8 @@ void Renderer::Init()
 }
 
 // Create On-Screen-Messages
-void Renderer::DrawDebugInfo()
+void Renderer::ShowEfbCopyRegions()
 {
-	// Reset viewport for drawing text
-	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
-
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Set Line Size
@@ -843,14 +840,6 @@ void Renderer::DrawDebugInfo()
 
 		// Clear stored regions
 		stats.efb_regions.clear();
-	}
-
-	std::string debug_info = GetDebugText();
-	if (!debug_info.empty())
-	{
-		// Render a shadow, and then the text.
-		Renderer::RenderText(debug_info, 21, 21, 0xDD000000);
-		Renderer::RenderText(debug_info, 20, 20, 0xFF00FFFF);
 	}
 }
 
@@ -1682,7 +1671,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		DrawDebugInfo();
+		// Reset viewport for drawing text
+		glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+
+		ShowEfbCopyRegions();
 		DrawDebugText();
 
 		// Do our OSD callbacks

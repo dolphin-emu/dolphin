@@ -913,9 +913,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	D3D::context->RSSetViewports(1, &vp);
 
 	Renderer::DrawDebugText();
-	std::string debug_info = GetDebugText();
-	if (debug_info != "")
-		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, debug_info);
 
 	OSD::DrawMessages();
 	D3D::EndFrame();

@@ -96,7 +96,6 @@ public:
 	// Random utilities
 	static void SetScreenshot(const std::string& filename);
 	static void DrawDebugText();
-	static std::string GetDebugText();
 
 	virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
 
