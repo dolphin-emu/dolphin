@@ -223,6 +223,7 @@ elseif(_M_ARM_64)
 	         PowerPC/JitArm64/JitAsm.cpp
 	         PowerPC/JitArm64/JitArm64Cache.cpp
 	         PowerPC/JitArm64/JitArm64_RegCache.cpp
+	         PowerPC/JitArm64/JitArm64_BackPatch.cpp
 	         PowerPC/JitArm64/JitArm64_Branch.cpp
 	         PowerPC/JitArm64/JitArm64_Integer.cpp
 	         PowerPC/JitArm64/JitArm64_LoadStore.cpp

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "Common/Arm64Emitter.h"
 
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -11,6 +13,7 @@
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitAsm.h"
+#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define PPCSTATE_OFF(elem) ((s64)&PowerPC::ppcState.elem - (s64)&PowerPC::ppcState)
@@ -31,11 +34,9 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return nullptr; }
-
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 
-	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
 	void ClearCache();
 
@@ -105,6 +106,14 @@ private:
 	JitArm64AsmRoutineManager asm_routines;
 
 	PPCAnalyst::CodeBuffer code_buffer;
+
+	// The key is the backpatch flags
+	std::map<u32, BackPatchInfo> m_backpatch_info;
+
+	// Backpatching routines
+	bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
+	void InitBackpatch();
+	u32 EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem, bool do_padding, Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr);
 
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
 

@@ -25,6 +25,7 @@ void JitArm64::Init()
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
+	InitBackpatch();
 }
 
 void JitArm64::ClearCache()
@@ -278,6 +279,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
 		}
+
 		if (!ops[i].skip)
 		{
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
