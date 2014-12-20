@@ -529,7 +529,7 @@ void ExecuteCommand(u32 _Address)
 	// Ensure replies happen in order
 	const s64 ticks_until_last_reply = last_reply_time - CoreTiming::GetTicks();
 	if (ticks_until_last_reply > 0)
-		result.reply_delay_ticks = ticks_until_last_reply;
+		result.reply_delay_ticks += ticks_until_last_reply;
 	last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
 
 	if (result.send_reply)
