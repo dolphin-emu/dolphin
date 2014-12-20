@@ -12,8 +12,6 @@
 
 using namespace Arm64Gen;
 
-static int CODE_SIZE = 1024*1024*32;
-
 void JitArm64::Init()
 {
 	AllocCodeSpace(CODE_SIZE);
