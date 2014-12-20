@@ -15,8 +15,6 @@ void Init();
 void Shutdown();
 void Input(int chan, GCPadStatus* pad);
 void Output(int chan, u8 rumble_command);
-SIDevices GetDeviceType(int channel);
-void RefreshConnectedDevices();
 bool IsDetected();
 bool IsDriverDetected();
 
