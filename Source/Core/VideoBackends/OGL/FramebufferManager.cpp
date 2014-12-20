@@ -531,7 +531,7 @@ void XFBSource::CopyEFB(float Gamma)
 
 }
 
-XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height)
+XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
 {
 	GLuint texture;
 
@@ -540,9 +540,9 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-	return new XFBSource(texture, m_EFBLayers);
+	return new XFBSource(texture, layers);
 }
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)

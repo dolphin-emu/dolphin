@@ -75,7 +75,7 @@ protected:
 	static unsigned int m_EFBLayers;
 
 private:
-	virtual XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) = 0;
+	virtual XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) = 0;
 	// TODO: figure out why OGL is different for this guy
 	virtual void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) = 0;
 
