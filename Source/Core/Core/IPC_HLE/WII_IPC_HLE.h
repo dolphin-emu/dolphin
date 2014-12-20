@@ -8,8 +8,16 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/HW/SystemTimers.h"
+
 class IWII_IPC_HLE_Device;
 class PointerWrap;
+
+struct IPCCommandResult
+{
+	bool send_reply;
+	u64 reply_delay_ticks;
+};
 
 enum IPCCommandType : u32
 {
@@ -25,6 +33,10 @@ enum IPCCommandType : u32
 	// Reference: http://wiibrew.org/wiki/IOS
 	IPC_REP_ASYNC  = 8
 };
+
+static const u32 IPC_DEFAULT_DELAY = SystemTimers::GetTicksPerSecond() / 4000;	// 250 us
+static const IPCCommandResult IPC_NO_REPLY = { false, 0 };
+static const IPCCommandResult IPC_DEFAULT_REPLY = { true, IPC_DEFAULT_DELAY };
 
 namespace WII_IPC_HLE_Interface
 {

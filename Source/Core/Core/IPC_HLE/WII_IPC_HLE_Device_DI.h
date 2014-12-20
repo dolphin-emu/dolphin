@@ -20,11 +20,13 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_di();
 
-	bool Open(u32 _CommandAddress, u32 _Mode) override;
-	bool Close(u32 _CommandAddress, bool _bForce) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	bool IOCtl(u32 _CommandAddress) override;
-	bool IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-	int GetCmdDelay(u32) override;
+private:
+
+	u64 CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress);
 };

@@ -25,22 +25,22 @@ CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string&
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 {}
 
-bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
+IPCCommandResult CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 {
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 {
 	u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize = Memory::Read_U32(_CommandAddress + 0x14);
@@ -66,10 +66,10 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 	                                         BufferOut, BufferOutSize, false);
 	Memory::Write_U32(result.interrupt_type, _CommandAddress + 0x4);
 	// TODO: Don't discard result.ticks_until_completion
-	return true;
+	return { true, GetCmdDelay(_CommandAddress) };
 }
 
-bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 {
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
@@ -111,10 +111,10 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
+u64 CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 {
 	u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
 	u32 Command  = Memory::Read_U32(BufferIn) >> 24;
