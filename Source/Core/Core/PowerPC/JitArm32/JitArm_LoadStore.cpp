@@ -352,7 +352,7 @@ void JitArm::SafeLoadToReg(ARMReg dest, s32 addr, s32 offsetReg, int accessSize,
 
 	EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
-			!(is_immediate && Memory::IsRAMAddress(imm_addr)), dest);
+			true, dest);
 
 	if (update)
 		MOV(gpr.R(addr), rA);
