@@ -86,8 +86,8 @@ void ZeldaUCode::HandleMail(u32 mail)
 		{
 			if ((mail >> 16) != 0xCDD1)
 			{
-				ERROR_LOG(DSPHLE, "Rendering end mail without prefix CDD1: %08x",
-				          mail);
+				PanicAlert("Rendering end mail without prefix CDD1: %08x",
+				           mail);
 			}
 
 			switch (mail & 0xFFFF)
@@ -536,6 +536,15 @@ void ZeldaAudioRenderer::PrepareFrame()
 	m_buf_front_left.fill(0);
 	m_buf_front_right.fill(0);
 
+	ApplyVolumeInPlace_1_15(&m_buf_back_left, 0x6784);
+	ApplyVolumeInPlace_1_15(&m_buf_back_right, 0x6784);
+
+	// TODO: Back left and back right should have a filter applied to them,
+	// then get mixed into front left and front right. In practice, TWW never
+	// uses this AFAICT. PanicAlert to help me find places that use this.
+	if (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0)
+		PanicAlert("Zelda HLE using back mixing buffers");
+
 	// TODO: Dolby/reverb mixing here.
 
 	m_prepared = true;
@@ -554,9 +563,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 
 	// TODO: In place effects.
 
-	// TODO: IIR.filter.
-
-	// TODO: Loop, etc.
+	// TODO: IIR filter.
 
 	if (vpb.use_dolby_volume)
 	{
@@ -771,7 +778,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 			break;
 
 		default:
-			ERROR_LOG(DSPHLE, "Using an unknown/unimplemented sample source: %04x", vpb->samples_source_type);
+			PanicAlert("Using an unknown/unimplemented sample source: %04x", vpb->samples_source_type);
 			buffer->fill(0);
 			return;
 	}
