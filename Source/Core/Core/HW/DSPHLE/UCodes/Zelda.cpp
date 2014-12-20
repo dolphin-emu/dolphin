@@ -476,8 +476,12 @@ struct ZeldaAudioRenderer::VPB
 
 	enum SamplesSourceType
 	{
-		// Simple square wave at 50% amplitude and 16KHz.
+		// Simple square wave at 50% amplitude and frequency controlled via the
+		// resampling ratio.
 		SRC_SQUARE_WAVE = 0,
+		// Simple saw wave at 100% amplitude and frequency controlled via the
+		// resampling ratio.
+		SRC_SAW_WAVE = 1,
 		// Samples stored in ARAM at a rate of 16 samples/9 bytes, AFC encoded,
 		// at an arbitrary sample rate (resampling is applied).
 		SRC_AFC_HQ_FROM_ARAM = 9,
@@ -769,6 +773,18 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 				pos += vpb->resampling_ratio;
 			}
 			vpb->current_pos_frac = (pos >> 1) & 0xFFFF;
+			break;
+		}
+
+		case VPB::SRC_SAW_WAVE:
+		{
+			u32 pos = vpb->current_pos_frac;
+			for (size_t i = 0; i < buffer->size(); ++i)
+			{
+				(*buffer)[i] = pos & 0xFFFF;
+				pos += (vpb->resampling_ratio) >> 1;
+			}
+			vpb->current_pos_frac = pos & 0xFFFF;
 			break;
 		}
 
