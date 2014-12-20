@@ -260,7 +260,6 @@ Renderer::Renderer(void *&window_handle)
 	gx_state.zmode.func = ZMode::NEVER;
 
 	gx_state.raster.cull_mode = D3D11_CULL_NONE;
-	gx_state.raster.wireframe = false;
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -1401,10 +1400,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	gx_state.blend.use_dst_alpha = bUseDstAlpha;
 	D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
-
 	D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));
-
-	gx_state.raster.wireframe = g_ActiveConfig.bWireFrame;
 	D3D::stateman->PushRasterizerState(gx_state_cache.Get(gx_state.raster));
 
 	for (unsigned int stage = 0; stage < 8; stage++)
