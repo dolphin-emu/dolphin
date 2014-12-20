@@ -761,9 +761,16 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 	switch (vpb->samples_source_type)
 	{
 		case VPB::SRC_SQUARE_WAVE:
+		{
+			u32 pos = vpb->current_pos_frac << 1;
 			for (size_t i = 0; i < buffer->size(); ++i)
-				(*buffer)[i] = (i & 1) ? 0x4000 : 0xC000;
+			{
+				(*buffer)[i] = ((pos >> 16) & 1) ? 0x4000 : 0xC000;
+				pos += vpb->resampling_ratio;
+			}
+			vpb->current_pos_frac = (pos >> 1) & 0xFFFF;
 			break;
+		}
 
 		case VPB::SRC_AFC_HQ_FROM_ARAM:
 			DownloadAFCSamplesFromARAM(raw_input_samples.data() + 4, vpb,
