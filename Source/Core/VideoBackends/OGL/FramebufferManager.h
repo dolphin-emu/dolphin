@@ -68,7 +68,7 @@ public:
 	static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc);
 	static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc);
 
-	static GLuint GetEFBFramebuffer() { return m_efbFramebuffer[0]; }
+	static GLuint GetEFBFramebuffer(unsigned int layer = 0) { return (layer < m_EFBLayers) ? m_efbFramebuffer[layer] : m_efbFramebuffer[m_EFBLayers - 1]; }
 	static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
 
 	// Resolved framebuffer is only used in MSAA mode.

@@ -509,17 +509,20 @@ void XFBSource::CopyEFB(float Gamma)
 	g_renderer->ResetAPIState();
 
 	// Copy EFB data to XFB and restore render target again
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
-	// Bind texture.
-	FramebufferManager::FramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, texture, 0);
+	for (int i = 0; i < m_layers; i++)
+	{
+		// Bind EFB and texture layer
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer(i));
+		glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0, i);
 
-	glBlitFramebuffer(
-		0, 0, texWidth, texHeight,
-		0, 0, texWidth, texHeight,
-		GL_COLOR_BUFFER_BIT, GL_NEAREST
-	);
+		glBlitFramebuffer(
+			0, 0, texWidth, texHeight,
+			0, 0, texWidth, texHeight,
+			GL_COLOR_BUFFER_BIT, GL_NEAREST
+		);
+	}
 
 	// Return to EFB.
 	FramebufferManager::SetFramebuffer(0);
