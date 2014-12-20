@@ -7,7 +7,6 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -27,7 +26,8 @@ static const char* primitives_d3d[] =
 	"triangle"
 };
 
-template<class T> static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType);
+template<class T> static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+template<class T> static inline void EndPrimitive(T& out, API_TYPE ApiType);
 
 template<class T>
 static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE ApiType)
@@ -46,7 +46,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 
 	uid_data->primitive_type = primitive_type;
 	const unsigned int vertex_in = primitive_type + 1;
-	const unsigned int vertex_out = primitive_type == PRIMITIVE_TRIANGLES ? 3 : 4;
+	unsigned int vertex_out = primitive_type == PRIMITIVE_TRIANGLES ? 3 : 4;
+
+	uid_data->wireframe = g_ActiveConfig.bWireFrame;
+	if (g_ActiveConfig.bWireFrame)
+		vertex_out++;
 
 	uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 	if (ApiType == API_OPENGL)
@@ -55,12 +59,12 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		{
 			out.Write("layout(%s, invocations = %d) in;\n", primitives_ogl[primitive_type], g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
-			out.Write("layout(triangle_strip, max_vertices = %d) out;\n", vertex_out);
+			out.Write("layout(%s_strip, max_vertices = %d) out;\n", g_ActiveConfig.bWireFrame ? "line" : "triangle", vertex_out);
 		}
 		else
 		{
 			out.Write("layout(%s) in;\n", primitives_ogl[primitive_type]);
-			out.Write("layout(triangle_strip, max_vertices = %d) out;\n", g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
+			out.Write("layout(%s_strip, max_vertices = %d) out;\n", g_ActiveConfig.bWireFrame ? "line" : "triangle", g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
 		}
 	}
 
@@ -114,12 +118,12 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		{
 			out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out, g_ActiveConfig.iStereoMode > 0 ? 2 : 1);
-			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<VertexData> output, in uint InstanceID : SV_GSInstanceID)\n{\n", primitives_d3d[primitive_type], vertex_in);
+			out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output, in uint InstanceID : SV_GSInstanceID)\n{\n", primitives_d3d[primitive_type], vertex_in, g_ActiveConfig.bWireFrame ? "Line" : "Triangle");
 		}
 		else
 		{
 			out.Write("[maxvertexcount(%d)]\n", g_ActiveConfig.iStereoMode > 0 ? vertex_out * 2 : vertex_out);
-			out.Write("void main(%s VS_OUTPUT o[%d], inout TriangleStream<VertexData> output)\n{\n", primitives_d3d[primitive_type], vertex_in);
+			out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output)\n{\n", primitives_d3d[primitive_type], vertex_in, g_ActiveConfig.bWireFrame ? "Line" : "Triangle");
 		}
 
 		out.Write("\tVertexData ps;\n");
@@ -178,6 +182,9 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("\tfor (int eye = 0; eye < 2; ++eye) {\n");
 	}
 
+	if (g_ActiveConfig.bWireFrame)
+		out.Write("\tVS_OUTPUT first;\n");
+
 	out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
 	if (ApiType == API_OPENGL)
@@ -221,7 +228,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		}
 		out.Write("\t}\n");
 
-		EmitVertex<T>(out, "l", ApiType);
+		EmitVertex<T>(out, "l", ApiType, true);
 		EmitVertex<T>(out, "r", ApiType);
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
@@ -249,22 +256,19 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		}
 		out.Write("\t}\n");
 
-		EmitVertex<T>(out, "ll", ApiType);
+		EmitVertex<T>(out, "ll", ApiType, true);
 		EmitVertex<T>(out, "lr", ApiType);
 		EmitVertex<T>(out, "ul", ApiType);
 		EmitVertex<T>(out, "ur", ApiType);
 	}
 	else
 	{
-		EmitVertex<T>(out, "f", ApiType);
+		EmitVertex<T>(out, "f", ApiType, true);
 	}
 
 	out.Write("\t}\n");
 
-	if (ApiType == API_OPENGL)
-		out.Write("\tEndPrimitive();\n");
-	else
-		out.Write("\toutput.RestartStrip();\n");
+	EndPrimitive<T>(out, ApiType);
 
 	if (g_ActiveConfig.iStereoMode > 0 && !g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\t}\n");
@@ -279,8 +283,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 }
 
 template<class T>
-static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType)
+static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex)
 {
+	if (g_ActiveConfig.bWireFrame && first_vertex)
+		out.Write("\tif (i == 0) first = %s;\n", vertex);
+
 	if (ApiType == API_OPENGL)
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
 
@@ -291,6 +298,17 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType)
 	else
 		out.Write("\toutput.Append(ps);\n");
 }
+template<class T>
+static inline void EndPrimitive(T& out, API_TYPE ApiType)
+{
+	if (g_ActiveConfig.bWireFrame)
+		EmitVertex<T>(out, "first", ApiType);
+
+	if (ApiType == API_OPENGL)
+		out.Write("\tEndPrimitive();\n");
+	else
+		out.Write("\toutput.RestartStrip();\n");
+}
 
 void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYPE ApiType)
 {
@@ -300,10 +318,4 @@ void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYP
 void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType)
 {
 	GenerateGeometryShader<ShaderCode>(object, primitive_type, ApiType);
-}
-
-bool IsPassthroughGeometryShader(GeometryShaderUid& object)
-{
-	geometry_shader_uid_data* uid_data = object.GetUidData<geometry_shader_uid_data>();
-	return uid_data->primitive_type == PRIMITIVE_TRIANGLES && !uid_data->stereo;
 }
