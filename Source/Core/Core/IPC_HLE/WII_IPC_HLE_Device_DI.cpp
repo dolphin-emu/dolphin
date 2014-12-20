@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/VolumeHandler.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
@@ -65,8 +66,11 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 	DVDCommandResult result = ExecuteCommand(command_0, command_1, command_2,
 	                                         BufferOut, BufferOutSize, false);
 	Memory::Write_U32(result.interrupt_type, _CommandAddress + 0x4);
-	// TODO: Don't discard result.ticks_until_completion
-	return { true, GetCmdDelay(_CommandAddress) };
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+		result.ticks_until_completion = 0;	// An optional hack to speed up loading times
+
+	return { true, result.ticks_until_completion };
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
@@ -112,43 +116,4 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 	return IPC_DEFAULT_REPLY;
-}
-
-u64 CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
-{
-	u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
-	u32 Command  = Memory::Read_U32(BufferIn) >> 24;
-
-	// Hacks below
-
-	switch (Command)
-	{
-	case DVDLowRead:
-	case DVDLowUnencryptedRead:
-	{
-		u32 const Size = Memory::Read_U32(BufferIn + 0x04);
-		// Delay depends on size of read, that makes sense, right?
-		// More than ~1150K "bytes / sec" hangs NSMBWii on boot.
-		// Less than ~800K "bytes / sec" hangs DKCR randomly (ok, probably not true)
-		return SystemTimers::GetTicksPerSecond() / 975000 * Size;
-	}
-
-	case DVDLowClearCoverInterrupt:
-		// Less than ~1/155th of a second hangs Oregon Trail at "loading wheel".
-		// More than ~1/140th of a second hangs Resident Evil Archives: Resident Evil Zero.
-		return SystemTimers::GetTicksPerSecond() / 146;
-
-	// case DVDLowAudioBufferConfig:
-	// case DVDLowInquiry:
-	// case DVDLowReadDiskID:
-	// case DVDLowWaitForCoverClose:
-	// case DVDLowGetCoverReg:
-	// case DVDLowGetCoverStatus:
-	// case DVDLowReset:
-	// case DVDLowClosePartition:
-	default:
-		// random numbers here!
-		// More than ~1/2000th of a second hangs DKCR with DSP HLE, maybe.
-		return SystemTimers::GetTicksPerSecond() / 15000;
-	}
 }

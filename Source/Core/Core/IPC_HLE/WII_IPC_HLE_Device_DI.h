@@ -25,8 +25,4 @@ public:
 
 	IPCCommandResult IOCtl(u32 _CommandAddress) override;
 	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
-
-private:
-
-	u64 CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress);
 };
