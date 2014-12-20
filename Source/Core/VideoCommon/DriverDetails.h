@@ -42,14 +42,12 @@ namespace DriverDetails
 		DRIVER_R600,         // OSS Radeon
 		DRIVER_INTEL,        // Official Intel
 		DRIVER_I965,         // OSS Intel
-		DRIVER_ARM_MIDGARD,  // Official Mali driver
-		DRIVER_ARM_UTGARD,   // Official Mali driver
+		DRIVER_ARM,          // Official Mali driver
 		DRIVER_LIMA,         // OSS Mali driver
-		DRIVER_QUALCOMM_3XX, // Official Adreno driver 3xx
-		DRIVER_QUALCOMM_2XX, // Official Adreno driver 2xx
+		DRIVER_QUALCOMM,     // Official Adreno driver
 		DRIVER_FREEDRENO,    // OSS Adreno driver
-		DRIVER_IMGTEC,       // OSS PowerVR driver
-		DRIVER_VIVANTE,      // Official vivante driver
+		DRIVER_IMGTEC,       // Official PowerVR driver
+		DRIVER_VIVANTE,      // Official Vivante driver
 		DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 	};
 
@@ -202,6 +200,15 @@ namespace DriverDetails
 		// Broken on Windows Intel
 		// if (cond == false)
 		BUG_BROKENNEGATEDBOOLEAN,
+		// Bug: Intel's Windows driver breaks interface blocks that contain structs.
+		// Affected devices: Intel (Windows)
+		// Started Version: -1
+		// Ended Version: -1
+		// We need interface blocks to make the geometry shader optional and we need structs to make
+		// assignment easier in the geometry shader stage. However Intel's Windows drivers don't seem
+		// to be able handle this combination.
+		// TODO: Find affected versions.
+		BUG_INTELBROKENINTERFACEBLOCKS,
 
 	};
 
