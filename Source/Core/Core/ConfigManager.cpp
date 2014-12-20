@@ -312,6 +312,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("CPUCore", m_LocalCoreStartupParameter.iCPUCore);
 	core->Set("Fastmem", m_LocalCoreStartupParameter.bFastmem);
 	core->Set("CPUThread", m_LocalCoreStartupParameter.bCPUThread);
+	core->Set("DSPThread", m_LocalCoreStartupParameter.bDSPThread);
 	core->Set("DSPHLE", m_LocalCoreStartupParameter.bDSPHLE);
 	core->Set("SkipIdle", m_LocalCoreStartupParameter.bSkipIdle);
 	core->Set("DefaultISO", m_LocalCoreStartupParameter.m_strDefaultISO);
@@ -538,6 +539,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_INTERPRETER);
 #endif
 	core->Get("Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
+	core->Get("DSPThread",         &m_LocalCoreStartupParameter.bDSPThread,    false);
 	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.bDSPHLE,       true);
 	core->Get("CPUThread",         &m_LocalCoreStartupParameter.bCPUThread,    true);
 	core->Get("SkipIdle",          &m_LocalCoreStartupParameter.bSkipIdle,     true);
