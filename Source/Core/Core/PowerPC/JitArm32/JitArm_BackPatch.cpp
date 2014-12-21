@@ -26,7 +26,8 @@ bool JitArm::DisasmLoadStore(const u8* ptr, u32* flags, ARMReg* rD, ARMReg* V1)
 
 	switch (op)
 	{
-		case 0x58: // STR
+		case 0b01011000: // STR(imm)
+		case 0b01111000: // STR(register)
 		{
 			*flags |=
 				BackPatchInfo::FLAG_STORE |
@@ -34,7 +35,8 @@ bool JitArm::DisasmLoadStore(const u8* ptr, u32* flags, ARMReg* rD, ARMReg* V1)
 			*rD = (ARMReg)(prev_inst & 0xF);
 		}
 		break;
-		case 0x59: // LDR
+		case 0b01011001: // LDR(imm)
+		case 0b01111001: // LDR(register)
 		{
 			*flags |=
 				BackPatchInfo::FLAG_LOAD |
@@ -44,7 +46,8 @@ bool JitArm::DisasmLoadStore(const u8* ptr, u32* flags, ARMReg* rD, ARMReg* V1)
 				*flags |= BackPatchInfo::FLAG_REVERSE;
 		}
 		break;
-		case 0x1D: // LDRH
+		case 0b00011101: // LDRH(imm)
+		case 0b00011001: // LDRH(register)
 		{
 			*flags |=
 				BackPatchInfo::FLAG_LOAD |
@@ -54,14 +57,16 @@ bool JitArm::DisasmLoadStore(const u8* ptr, u32* flags, ARMReg* rD, ARMReg* V1)
 				*flags |= BackPatchInfo::FLAG_REVERSE;
 		}
 		break;
-		case 0x45 + 0x18: // LDRB
+		case 0b01011101: // LDRB(imm)
+		case 0b01111101: // LDRB(register)
 		{
 			*flags |=
 				BackPatchInfo::FLAG_LOAD |
 				BackPatchInfo::FLAG_SIZE_8;
 		}
 		break;
-		case 0x5C: // STRB
+		case 0b01011100: // STRB(imm)
+		case 0b01111100: // STRB(register)
 		{
 			*flags |=
 				BackPatchInfo::FLAG_STORE |
@@ -69,7 +74,8 @@ bool JitArm::DisasmLoadStore(const u8* ptr, u32* flags, ARMReg* rD, ARMReg* V1)
 			*rD = (ARMReg)((inst >> 12) & 0xF);
 		}
 		break;
-		case 0x1C: // STRH
+		case 0b00011100: // STRH(imm)
+		case 0b00011000: // STRH(register)
 		{
 			*flags |=
 				BackPatchInfo::FLAG_STORE |
@@ -201,7 +207,7 @@ bool JitArm::BackPatch(SContext* ctx)
 
 	if (!DisasmLoadStore(codePtr, &flags, &rD, &V1))
 	{
-		printf("Invalid backpatch at location 0x%08lx(0x%08x)\n", ctx->CTX_PC, Value);
+		WARN_LOG(DYNA_REC, "Invalid backpatch at location 0x%08lx(0x%08x)", ctx->CTX_PC, Value);
 		exit(0);
 	}
 
@@ -226,11 +232,11 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 		ARMReg temp2 = R10;
 		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 		emit->BIC(temp, addr, mask);
-		emit->ADD(temp, temp, R8);
 
 		if (flags & BackPatchInfo::FLAG_STORE &&
 		    flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))
 		{
+			emit->ADD(temp, temp, R8);
 			NEONXEmitter nemit(emit);
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
@@ -249,8 +255,9 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 		else if (flags & BackPatchInfo::FLAG_LOAD &&
 		         flags & (BackPatchInfo::FLAG_SIZE_F32 | BackPatchInfo::FLAG_SIZE_F64))
 		{
-			NEONXEmitter nemit(emit);
 
+			emit->ADD(temp, temp, R8);
+			NEONXEmitter nemit(emit);
 			trouble_offset = (emit->GetCodePtr() - code_base) / 4;
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
@@ -275,22 +282,22 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 			trouble_offset = (emit->GetCodePtr() - code_base) / 4;
 
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				emit->STR(temp2, temp);
+				emit->STR(temp2, R8, temp);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				emit->STRH(temp2, temp);
+				emit->STRH(temp2, R8, temp);
 			else
-				emit->STRB(RS, temp);
+				emit->STRB(RS, R8, temp);
 		}
 		else
 		{
 			trouble_offset = (emit->GetCodePtr() - code_base) / 4;
 
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				emit->LDR(RS, temp); // 5
+				emit->LDR(RS, R8, temp); // 5
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				emit->LDRH(RS, temp);
+				emit->LDRH(RS, R8, temp);
 			else if (flags & BackPatchInfo::FLAG_SIZE_8)
-				emit->LDRB(RS, temp);
+				emit->LDRB(RS, R8, temp);
 
 
 			if (!(flags & BackPatchInfo::FLAG_REVERSE))
