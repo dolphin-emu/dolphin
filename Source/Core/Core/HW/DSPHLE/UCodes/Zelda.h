@@ -24,6 +24,7 @@ public:
 	void SetOutputVolume(u16 volume) { m_output_volume = volume; }
 	void SetOutputLeftBufferAddr(u32 addr) { m_output_lbuf_addr = addr; }
 	void SetOutputRightBufferAddr(u32 addr) { m_output_rbuf_addr = addr; }
+	void SetARAMBaseAddr(u32 addr) { m_aram_base_addr = addr; }
 
 	void DoState(PointerWrap& p);
 
@@ -144,6 +145,12 @@ private:
 	// Coefficients used for resampling.
 	std::array<s16, 0x100> m_resampling_coeffs{};
 
+	// If non zero, base MRAM address for sound data transfers from ARAM. On
+	// the Wii, this points to some MRAM location since there is no ARAM to be
+	// used. If zero, use the top of ARAM.
+	u32 m_aram_base_addr = 0;
+	void* GetARAMPtr() const;
+
 	// Downloads PCM8 encoded samples from ARAM. Handles looping and other
 	// parameters appropriately.
 	void DownloadPCM8SamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
@@ -181,6 +188,11 @@ public:
 	void Update() override;
 
 	void DoState(PointerWrap &p) override;
+
+	bool IsWiiDAC() const
+	{
+		return m_crc == 0xd643001f;
+	}
 
 private:
 	// UCode state machine. The control flow in the Zelda UCode family is quite
