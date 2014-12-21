@@ -53,6 +53,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 		return new AXUCode(dsphle, crc);
 
 	case 0x86840740: // Zelda WW - US
+	case 0x6CA33A6D: // Zelda TP GC - US
 		return new ZeldaUCode(dsphle, crc);
 
 	case 0x2ea36ce6: // Some Wii demos

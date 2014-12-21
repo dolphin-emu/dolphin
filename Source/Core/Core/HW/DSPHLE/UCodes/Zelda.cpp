@@ -15,7 +15,8 @@
 // * Super Mario Sunshine (type ????, CRC ????)
 // * The Legend of Zelda: Four Swords Adventures (type ????, CRC ????)
 // * The Legend of Zelda: The Wind Waker (type DAC, CRC 86840740)
-// * The Legend of Zelda: Twilight Princess (type ????, CRC ????)
+// * The Legend of Zelda: Twilight Princess / GC (type DAC, CRC 6CA33A6D)
+// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
