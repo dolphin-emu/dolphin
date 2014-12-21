@@ -6,10 +6,10 @@
     android:installLocation="auto">
 
     <uses-sdk
-        android:minSdkVersion="17"
+        android:minSdkVersion="18"
         android:targetSdkVersion="21" />
 
-    <uses-feature android:glEsVersion="0x00020000" />
+    <uses-feature android:glEsVersion="0x00030000" />
 
     <uses-feature android:name="android.hardware.screen.landscape" />
 

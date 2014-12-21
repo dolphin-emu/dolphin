@@ -56,7 +56,6 @@ void DrawMessages()
 
 		alpha <<= 24;
 
-		g_renderer->RenderText(it->str, left + 1, top + 1, 0x000000 | alpha);
 		g_renderer->RenderText(it->str, left, top, 0xffff30 | alpha);
 		top += 15;
 

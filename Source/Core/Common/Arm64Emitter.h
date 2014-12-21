@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/ArmCommon.h"
+#include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
 #include "Common/Common.h"
 
@@ -292,14 +293,15 @@ private:
 	void EncodeLoadRegisterInst(u32 bitop, ARM64Reg Rt, u32 imm);
 	void EncodeLoadStoreExcInst(u32 instenc, ARM64Reg Rs, ARM64Reg Rt2, ARM64Reg Rn, ARM64Reg Rt);
 	void EncodeLoadStorePairedInst(u32 op, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, u32 imm);
-	void EncodeLoadStoreIndexedInst(u32 op, u32 op2, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
+	void EncodeLoadStoreIndexedInst(u32 op, u32 op2, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 	void EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount pos);
 	void EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend);
 	void EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd);
 	void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
+	void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
 
 protected:
 	inline void Write32(u32 value)
@@ -524,15 +526,15 @@ public:
 	void LDNP(ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, u32 imm);
 
 	// Load/Store register (immediate indexed)
-	void STRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void LDRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void LDRSB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void STRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void LDRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void LDRSH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void STR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void LDR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
-	void LDRSW(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm);
+	void STRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDRSB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void STRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDRSH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void STR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDRSW(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
 	// Load/Store register (register offset)
 	void STRB(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
@@ -551,8 +553,16 @@ public:
 	void LDPSW(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 	void STP(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 
+	// Address of label/page PC-relative
+	void ADR(ARM64Reg Rd, s32 imm);
+	void ADRP(ARM64Reg Rd, s32 imm);
+
 	// Wrapper around MOVZ+MOVK
 	void MOVI2R(ARM64Reg Rd, u64 imm, bool optimize = true);
+
+	// ABI related
+	void ABI_PushRegisters(BitSet32 registers);
+	void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
 };
 
 class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>

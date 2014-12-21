@@ -39,7 +39,6 @@ void Jit64AsmRoutineManager::Generate()
 
 	// Two statically allocated registers.
 	MOV(64, R(RMEM), Imm64((u64)Memory::base));
-	MOV(64, R(RCODE_POINTERS), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 	MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
 	const u8* outerLoop = GetCodePtr();
@@ -85,6 +84,9 @@ void Jit64AsmRoutineManager::Generate()
 			dispatcherNoCheck = GetCodePtr();
 			MOV(32, R(RSCRATCH), PPCSTATE(pc));
 
+			u64 icache = (u64)jit->GetBlockCache()->iCache.data();
+			u64 icacheVmem = (u64)jit->GetBlockCache()->iCacheVMEM.data();
+			u64 icacheEx = (u64)jit->GetBlockCache()->iCacheEx.data();
 			u32 mask = 0;
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
@@ -95,16 +97,31 @@ void Jit64AsmRoutineManager::Generate()
 			TEST(32, R(RSCRATCH), Imm32(mask));
 			no_mem = J_CC(CC_NZ);
 			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCache.data()));
-			MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+
+			if (icache <= INT_MAX)
+			{
+				MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icache));
+			}
+			else
+			{
+				MOV(64, R(RSCRATCH2), Imm64(icache));
+				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+			}
 
 			exit_mem = J();
 			SetJumpTarget(no_mem);
 			TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
 			FixupBranch no_vmem = J_CC(CC_Z);
 			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheVMEM.data()));
-			MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+			if (icacheVmem <= INT_MAX)
+			{
+				MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheVmem));
+			}
+			else
+			{
+				MOV(64, R(RSCRATCH2), Imm64(icacheVmem));
+				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+			}
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
 			SetJumpTarget(no_vmem);
@@ -113,8 +130,16 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(RSCRATCH), Imm32(JIT_ICACHEEX_MASK));
-				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheEx.data()));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+
+				if (icacheEx <= INT_MAX)
+				{
+					MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheEx));
+				}
+				else
+				{
+					MOV(64, R(RSCRATCH2), Imm64(icacheEx));
+					MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+				}
 
 				SetJumpTarget(no_exram);
 			}
@@ -124,8 +149,17 @@ void Jit64AsmRoutineManager::Generate()
 
 			TEST(32, R(RSCRATCH), R(RSCRATCH));
 			FixupBranch notfound = J_CC(CC_L);
-				//grab from list and jump to it
-				JMPptr(MComplex(RCODE_POINTERS, RSCRATCH, 8, 0));
+			//grab from list and jump to it
+			u64 codePointers = (u64)jit->GetBlockCache()->GetCodePointers();
+			if (codePointers <= INT_MAX)
+			{
+				JMPptr(MScaled(RSCRATCH, 8, (s32)codePointers));
+			}
+			else
+			{
+				MOV(64, R(RSCRATCH2), Imm64(codePointers));
+				JMPptr(MComplex(RSCRATCH2, RSCRATCH, 8, 0));
+			}
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit

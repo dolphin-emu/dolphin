@@ -998,7 +998,7 @@ void VertexShaderManager::SetProjectionConstants()
 		g_fProjectionMatrix[13] = 0.0f;
 
 		g_fProjectionMatrix[14] = 0.0f;
-		g_fProjectionMatrix[15] = 1.0f;
+		g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON; // hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
 
 		SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 		SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
@@ -1618,7 +1618,20 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
 
-		dirty = true;
+		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			if (xfmem.projection.type == GX_PERSPECTIVE)
+			{
+				float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+				GeometryShaderManager::constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+				GeometryShaderManager::constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+				GeometryShaderManager::constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+			}
+			else
+			{
+				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
+			}
+		}
 	}
 	else
 	{
@@ -1634,6 +1647,20 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
+		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			if (xfmem.projection.type == GX_PERSPECTIVE)
+			{
+				float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+				GeometryShaderManager::constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+				GeometryShaderManager::constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+				GeometryShaderManager::constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+			}
+			else
+			{
+				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
+			}
+		}
 	}
 	dirty = true;
 }

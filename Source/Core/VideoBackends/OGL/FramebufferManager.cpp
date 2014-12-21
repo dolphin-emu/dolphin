@@ -30,7 +30,7 @@ int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
 
 GLenum FramebufferManager::m_textureType;
-GLuint FramebufferManager::m_efbFramebuffer;
+GLuint* FramebufferManager::m_efbFramebuffer;
 GLuint FramebufferManager::m_xfbFramebuffer;
 GLuint FramebufferManager::m_efbColor;
 GLuint FramebufferManager::m_efbDepth;
@@ -42,7 +42,7 @@ GLuint FramebufferManager::m_frontBuffer[2];
 GLuint FramebufferManager::m_eyeFramebuffer[2];
 
 // Only used in MSAA mode.
-GLuint FramebufferManager::m_resolvedFramebuffer;
+GLuint* FramebufferManager::m_resolvedFramebuffer;
 GLuint FramebufferManager::m_resolvedColorTexture;
 GLuint FramebufferManager::m_resolvedDepthTexture;
 
@@ -58,12 +58,10 @@ int FramebufferManager::m_eye_count = 1;
 
 FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples)
 {
-	m_efbFramebuffer = 0;
 	m_xfbFramebuffer = 0;
 	m_efbColor = 0;
 	m_efbDepth = 0;
 	m_efbColorSwap = 0;
-	m_resolvedFramebuffer = 0;
 	m_resolvedColorTexture = 0;
 	m_resolvedDepthTexture = 0;
 	m_eyeFramebuffer[0] = 0;
@@ -114,6 +112,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_efbColorSwap = glObj[2];
 
 	m_EFBLayers = (g_has_hmd || g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
+	m_efbFramebuffer = new GLuint[m_EFBLayers]();
+	m_resolvedFramebuffer = new GLuint[m_EFBLayers]();
 
 	if (g_has_rift)
 	{
@@ -155,18 +155,38 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	}
 	else
 	{
-		m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
 		GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
 
-		glBindTexture(m_textureType, m_efbColor);
-		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+		// Only use a layered multisample texture if needed. Some drivers
+		// slow down significantly with single-layered multisample textures.
+		if (m_EFBLayers > 1)
+		{
+			m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 
-		glBindTexture(m_textureType, m_efbDepth);
-		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, false);
+			glBindTexture(m_textureType, m_efbColor);
+			glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
 
-		glBindTexture(m_textureType, m_efbColorSwap);
-		glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
-		glBindTexture(m_textureType, 0);
+			glBindTexture(m_textureType, m_efbDepth);
+			glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+
+			glBindTexture(m_textureType, m_efbColorSwap);
+			glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, false);
+			glBindTexture(m_textureType, 0);
+		}
+		else
+		{
+			m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
+
+			glBindTexture(m_textureType, m_efbColor);
+			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+
+			glBindTexture(m_textureType, m_efbDepth);
+			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, false);
+
+			glBindTexture(m_textureType, m_efbColorSwap);
+			glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
+			glBindTexture(m_textureType, 0);
+		}
 
 		// Although we are able to access the multisampled texture directly, we don't do it everywhere.
 		// The old way is to "resolve" this multisampled texture by copying it into a non-sampled texture.
@@ -189,10 +209,18 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		glTexImage3D(resolvedType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
 		// Bind resolved textures to resolved framebuffer.
-		glGenFramebuffers(1, &m_resolvedFramebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer);
+		glGenFramebuffers(m_EFBLayers, m_resolvedFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[0]);
 		FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, resolvedType, m_resolvedColorTexture, 0);
 		FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, resolvedType, m_resolvedDepthTexture, 0);
+
+		// Bind all the other layers as separate FBOs for blitting.
+		for (unsigned int i = 1; i < m_EFBLayers; i++)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[i]);
+			glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_resolvedColorTexture, 0, i);
+			glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_resolvedDepthTexture, 0, i);
+		}
 	}
 
 	// Create XFB framebuffer; targets will be created elsewhere.
@@ -209,8 +237,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	}
 
 	// Bind target textures to EFB framebuffer.
-	glGenFramebuffers(1, &m_efbFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
+	glGenFramebuffers(m_EFBLayers, m_efbFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[0]);
 	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
 	FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
 
@@ -236,6 +264,20 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 			m_eye_texture[1].OGL.TexId = m_frontBuffer[1];
 #endif
 	}
+	// Bind all the other layers as separate FBOs for blitting.
+	for (unsigned int i = 1; i < m_EFBLayers; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[i]);
+		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_efbColor, 0, i);
+		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_efbDepth, 0, i);
+	}
+
+	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
+	glViewport(0, 0, m_targetWidth, m_targetHeight);
+	glScissor(0, 0, m_targetWidth, m_targetHeight);
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClearDepthf(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	// reinterpret pixel format
 	char vs[] =
@@ -262,25 +304,50 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// msaa + sample shading available, so just fetch the sample
 		// This will lead to sample shading, but it's the only way to not loose
 		// the values of each sample.
-		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, pos, gl_SampleID);\n"
-			"}\n";
+		if (m_EFBLayers > 1)
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	return texelFetch(samp9, ivec3(pos, 0), gl_SampleID);\n"
+				"}\n";
+		}
+		else
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	return texelFetch(samp9, pos, gl_SampleID);\n"
+				"}\n";
+		}
 	}
 	else
 	{
 		// msaa without sample shading: calculate the mean value of the pixel
 		std::stringstream samples;
 		samples << m_msaaSamples;
-		sampler =
-			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
-			"	for(int i=0; i<" + samples.str() + "; i++)\n"
-			"		color += texelFetch(samp9, pos, i);\n"
-			"	return color / " + samples.str() + ";\n"
-			"}\n";
+		if (m_EFBLayers > 1)
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
+				"	for(int i=0; i<" + samples.str() + "; i++)\n"
+				"		color += texelFetch(samp9, ivec3(pos, 0), i);\n"
+				"	return color / " + samples.str() + ";\n"
+				"}\n";
+		}
+		else
+		{
+			sampler =
+				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
+				"vec4 sampleEFB(ivec2 pos) {\n"
+				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
+				"	for(int i=0; i<" + samples.str() + "; i++)\n"
+				"		color += texelFetch(samp9, pos, i);\n"
+				"	return color / " + samples.str() + ";\n"
+				"}\n";
+		}
 	}
 
 	std::string ps_rgba6_to_rgb8 = sampler +
@@ -335,13 +402,15 @@ FramebufferManager::~FramebufferManager()
 
 	// Note: OpenGL deletion functions silently ignore parameters of "0".
 
-	glObj[0] = m_efbFramebuffer;
-	glObj[1] = m_resolvedFramebuffer;
-	glObj[2] = m_xfbFramebuffer;
-	glDeleteFramebuffers(3, glObj);
-	m_efbFramebuffer = 0;
+	glDeleteFramebuffers(m_EFBLayers, m_efbFramebuffer);
+	glDeleteFramebuffers(m_EFBLayers, m_resolvedFramebuffer);
+	delete [] m_efbFramebuffer;
+	delete [] m_resolvedFramebuffer;
+	m_efbFramebuffer = nullptr;
+	m_resolvedFramebuffer = nullptr;
+
+	glDeleteFramebuffers(1, &m_xfbFramebuffer);
 	m_xfbFramebuffer = 0;
-	m_resolvedFramebuffer = 0;
 	glDeleteFramebuffers(2, m_eyeFramebuffer);
 	m_eyeFramebuffer[0] = 0;
 	m_eyeFramebuffer[1] = 0;
@@ -384,16 +453,19 @@ GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc)
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer);
-		glBlitFramebuffer(
-			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
-			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
-			GL_COLOR_BUFFER_BIT, GL_NEAREST
-			);
+		for (unsigned int i = 0; i < m_EFBLayers; i++)
+		{
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer[i]);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer[i]);
+			glBlitFramebuffer(
+				targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
+				targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
+				GL_COLOR_BUFFER_BIT, GL_NEAREST
+				);
+		}
 
 		// Return to EFB.
-		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[0]);
 
 		return m_resolvedColorTexture;
 	}
@@ -413,16 +485,19 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc)
 		targetRc.ClampLL(0, 0, m_targetWidth, m_targetHeight);
 
 		// Resolve.
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer);
-		glBlitFramebuffer(
-			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
-			targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
-			GL_DEPTH_BUFFER_BIT, GL_NEAREST
-			);
+		for (unsigned int i = 0; i < m_EFBLayers; i++)
+		{
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer[i]);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer[i]);
+			glBlitFramebuffer(
+				targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
+				targetRc.left, targetRc.top, targetRc.right, targetRc.bottom,
+				GL_DEPTH_BUFFER_BIT, GL_NEAREST
+				);
+		}
 
 		// Return to EFB.
-		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[0]);
 
 		return m_resolvedDepthTexture;
 	}

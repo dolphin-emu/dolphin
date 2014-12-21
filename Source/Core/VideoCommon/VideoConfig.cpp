@@ -171,6 +171,8 @@ void VideoConfig::Load(const std::string& ini_file)
 	// triplicated for each video backend.
 	if (bEnableShaderDebugging)
 		OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
+
+	VerifyValidity();
 }
 
 void VideoConfig::LoadVR(const std::string& ini_file)
@@ -481,13 +483,18 @@ void VideoConfig::VerifyValidity()
 	// TODO: Check iMaxAnisotropy value
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
+
 	if (g_has_rift)
 		iStereoMode = STEREO_OCULUS;
 	else if (g_has_vr920)
 		iStereoMode = STEREO_VR920;
 	else if (iStereoMode == STEREO_OCULUS || iStereoMode == STEREO_VR920)
 		iStereoMode = 0;
-	if (!backend_info.bSupportsGeometryShaders) iStereoMode = 0;
+	if (iStereoMode > 0 && !backend_info.bSupportsGeometryShaders)
+	{
+		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
+		iStereoMode = 0;
+	}
 }
 
 void VideoConfig::Save(const std::string& ini_file)

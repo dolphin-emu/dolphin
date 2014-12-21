@@ -3,7 +3,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:0.12.+'
+		classpath 'com.android.tools.build:gradle:1.0.0+'
 	}
 }
 apply plugin: 'android'
@@ -25,7 +25,7 @@ android {
 		into 'lib/'
 	}
 
-	tasks.withType(Compile) {
+	tasks.withType(JavaCompile) {
 		compileTask -> compileTask.dependsOn(nativeLibsToJar)
 	}
 
@@ -79,8 +79,9 @@ android {
 		// Signed by debug key disallowing distribution on Play Store.
 		// Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
 		debug {
-			packageNameSuffix '.debug'
+			applicationIdSuffix ".debug"
 			versionNameSuffix '-debug'
+			jniDebuggable true
 		}
 	}
 }

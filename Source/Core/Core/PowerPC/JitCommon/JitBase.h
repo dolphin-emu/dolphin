@@ -39,8 +39,6 @@
 #define RSCRATCH_EXTRA RCX
 // RMEM points to the start of emulated memory.
 #define RMEM RBX
-// RCODE_POINTERS does what it says.
-#define RCODE_POINTERS R15
 // RPPCSTATE points to ppcState + 0x80.  It's offset because we want to be able
 // to address as much as possible in a one-byte offset form.
 #define RPPCSTATE RBP
