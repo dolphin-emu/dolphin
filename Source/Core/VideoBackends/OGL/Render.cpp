@@ -1271,26 +1271,10 @@ void Renderer::SetViewport()
 
 	// TODO: ceil, floor or just cast to int?
 	float X, Y, Width, Height;
-	if (!g_has_hmd)
-	{
-		X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
-		Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
-		Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
-		Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-	}
-	else
-	{
-		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
-		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
-		//X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		//Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		//Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		//Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		X = 0.0f; Y = 0.0f; Width = (float)GetTargetWidth(); Height = (float)GetTargetHeight();
-	}
-
-	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-	float GLFar = xfmem.viewport.farZ / 16777216.0f;
+	X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
+	Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
+	Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
 	if (Width < 0)
 	{
 		X += Width;
@@ -1301,6 +1285,22 @@ void Renderer::SetViewport()
 		Y += Height;
 		Height *= -1;
 	}
+	g_requested_viewport = EFBRectangle((int)X, (int)Y, (int)Width, (int)Height);
+
+	if (g_viewport_type != VIEW_RENDER_TO_TEXTURE && g_has_hmd && g_ActiveConfig.bEnableVR)
+	{
+		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
+		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
+		//X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		//Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		X = 0.0f; Y = 0.0f; Width = (float)GetTargetWidth(); Height = (float)GetTargetHeight();
+	}
+	g_rendered_viewport = EFBRectangle((int)X, (int)Y, (int)Width, (int)Height);
+
+	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+	float GLFar = xfmem.viewport.farZ / 16777216.0f;
 
 	// Update the view port
 	if (g_ogl_config.bSupportViewportFloat)
@@ -1315,7 +1315,7 @@ void Renderer::SetViewport()
 			return static_cast<GLint>(ceilf(f));
 		};
 		glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
-		NOTICE_LOG(VR, "glViewport(%d, %d,   %d, %d)", ceil(X), ceil(Y), ceil(Width), ceil(Height));
+		INFO_LOG(VR, "glViewport(%d, %d,   %d, %d)", ceil(X), ceil(Y), ceil(Width), ceil(Height));
 	}
 	glDepthRangef(GLNear, GLFar);
 	//NOTICE_LOG(VR, "gDepthRangef(%f, %f)", GLNear, GLFar);

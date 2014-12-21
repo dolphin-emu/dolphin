@@ -541,24 +541,10 @@ void Renderer::SetViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	float X, Y, Wd, Ht;
-	if (g_viewport_type == VIEW_RENDER_TO_TEXTURE || !g_has_hmd)
-	{
-		X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
-		Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
-		Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
-		Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-	}
-	else
-	{
-		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
-		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
-		//X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		//Y = (xfmem.viewport.yOrig + xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		//Wd = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		//Ht = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		X = 0.0f; Y = 0.0f; Wd = (float)GetTargetWidth(); Ht = (float)GetTargetHeight();
-	}
-
+	X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
+	Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
+	Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
 	if (Wd < 0.0f)
 	{
 		X += Wd;
@@ -569,12 +555,25 @@ void Renderer::SetViewport()
 		Y += Ht;
 		Ht = -Ht;
 	}
+	g_requested_viewport = EFBRectangle((int)X, (int)Y, (int)Wd, (int)Ht);
+
+	if (g_viewport_type != VIEW_RENDER_TO_TEXTURE && g_has_hmd && g_ActiveConfig.bEnableVR)
+	{
+		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
+		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
+		//X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Y = (xfmem.viewport.yOrig + xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		//Wd = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Ht = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		X = 0.0f; Y = 0.0f; Wd = (float)GetTargetWidth(); Ht = (float)GetTargetHeight();
+	}
 
 	// In D3D, the viewport rectangle must fit within the render target.
 	X = (X >= 0.f) ? X : 0.f;
 	Y = (Y >= 0.f) ? Y : 0.f;
 	Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
 	Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
+	g_rendered_viewport = EFBRectangle((int)X, (int)Y, (int)Wd, (int)Ht);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
 		std::max(0.0f, std::min(1.0f, (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f)),

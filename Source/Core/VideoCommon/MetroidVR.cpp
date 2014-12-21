@@ -615,6 +615,17 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 			g_metroid_dark_visor = false;
 		}
 	}
+	else if (layer == 3)
+	{
+		if (l == -32000 && n == -409600)
+		{
+			result = METROID_SCAN_DARKEN;
+		}
+		else
+		{
+			result = METROID_UNKNOWN_2D;
+		}
+	}
 	else if (layer == 4 && l == -32000 && n == -100 && f == 100)
 		result = METROID_SCAN_BOX;
 	else
@@ -880,6 +891,8 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		*bFullscreenLayer = true;
 		break;
 	case METROID_SCAN_BOX:
+		*bStuckToHead = true;
+		*fUpHack = 0.14f;
 		*bHide = true;
 		break;
 	case METROID_SCAN_HIGHLIGHTER:
@@ -888,23 +901,28 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		// Force the highlighter to almost line up with the object.
 		// This only works correctly on DK1!!!
 		*bStuckToHead = true;
-		//bFullscreenLayer = false;
-		*fHeightHack = 3.0f;
-		*fWidthHack = 1.8f;
-		*fUpHack = 0.14f;
+		*bFullscreenLayer = true;
+		*fHeightHack = 448.0f / 528.0f;
+		*fWidthHack = 1.01f;
+		*fUpHack = 0.16f;
+		*fRightHack = 0.015f;
+
+		// Old DK1 settings which probably no longer make sense
+		//*fHeightHack = 3.0f;
+		//*fWidthHack = 1.8f;
+		//*fUpHack = 0.14f;
 		// Should actually be about 0.38, but hard to look at then.
-		*fRightHack = -0.36f;
+		//*fRightHack = -0.36f;
 		break;
 	case METROID_SCAN_RETICLE:
 		// Because of the way EFB copies work in VR,
 		// the scan cursor ends up in the corner of the screen.
 		// So make it bigger and easier to see.
-		*fHeightHack = 1.5f;
-		*fWidthHack = 1.5f;
+		*fHeightHack = 1.0f;
+		*fWidthHack = 1.0f;
 		*bStuckToHead = true;
 		*fUpHack = 0.14f;
-		// Should actually be about 0.38, but hard to look at then.
-		*fRightHack = -0.35f;
+		*fRightHack = 0.01f;
 		break;
 	case METROID_MORPHBALL_HUD:
 	case METROID_MORPHBALL_MAP_OR_HINT:

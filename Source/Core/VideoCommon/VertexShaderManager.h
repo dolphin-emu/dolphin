@@ -56,4 +56,6 @@ public:
 	static bool dirty;
 };
 
-extern EFBRectangle g_final_screen_region;
+void ScaleRequestedToRendered(EFBRectangle *src);
+extern EFBRectangle g_final_screen_region, g_requested_viewport, g_rendered_viewport;
+extern bool debug_newScene;
