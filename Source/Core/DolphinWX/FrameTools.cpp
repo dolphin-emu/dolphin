@@ -235,7 +235,7 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_DSP_EMULATOR, _("&Audio Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
 	if (g_pCodeWindow)
@@ -559,19 +559,19 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
 
-	WxUtils::AddToolbarButton(ToolBar, wxID_OPEN,               _("Open"),        m_Bitmaps[Toolbar_FileOpen],   _("Open file..."));
-	WxUtils::AddToolbarButton(ToolBar, wxID_REFRESH,            _("Refresh"),     m_Bitmaps[Toolbar_Refresh],    _("Refresh game list"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_BROWSE,              _("Browse"),      m_Bitmaps[Toolbar_Browse],     _("Browse for an ISO directory..."));
+	WxUtils::AddToolbarButton(ToolBar, wxID_OPEN,               _("Open"),        m_Bitmaps[Toolbar_FileOpen],    _("Open file..."));
+	WxUtils::AddToolbarButton(ToolBar, wxID_REFRESH,            _("Refresh"),     m_Bitmaps[Toolbar_Refresh],     _("Refresh game list"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_BROWSE,              _("Browse"),      m_Bitmaps[Toolbar_Browse],      _("Browse for an ISO directory..."));
 	ToolBar->AddSeparator();
-	WxUtils::AddToolbarButton(ToolBar, IDM_PLAY,                _("Play"),        m_Bitmaps[Toolbar_Play],       _("Play"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_STOP,                _("Stop"),        m_Bitmaps[Toolbar_Stop],       _("Stop"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN,   _("FullScr"),     m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT,          _("ScrShot"),     m_Bitmaps[Toolbar_Screenshot], _("Take Screenshot"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_PLAY,                _("Play"),        m_Bitmaps[Toolbar_Play],        _("Play"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_STOP,                _("Stop"),        m_Bitmaps[Toolbar_Stop],        _("Stop"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN,   _("FullScr"),     m_Bitmaps[Toolbar_FullScreen],  _("Toggle Fullscreen"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT,          _("ScrShot"),     m_Bitmaps[Toolbar_Screenshot],  _("Take Screenshot"));
 	ToolBar->AddSeparator();
-	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],  _("Graphics settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR, _("Audio"),       m_Bitmaps[Toolbar_ConfigDSP],  _("Audio settings"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS,  _("Controllers"), m_Bitmaps[Toolbar_Controller], _("Controller settings"));
+	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,        _("Config"),      m_Bitmaps[Toolbar_ConfigMain],  _("Configure..."));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,  _("Graphics"),    m_Bitmaps[Toolbar_ConfigGFX],   _("Graphics settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_AUDIO,        _("Audio"),       m_Bitmaps[Toolbar_ConfigAudio], _("Audio settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS,  _("Controllers"), m_Bitmaps[Toolbar_Controller],  _("Controller settings"));
 }
 
 
@@ -1335,7 +1335,7 @@ void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED (event))
 		g_video_backend->ShowConfig(this);
 }
 
-void CFrame::OnConfigDSP(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigAudio(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
 	ConfigMain.SetSelectedTab(CConfigMain::ID_AUDIOPAGE);

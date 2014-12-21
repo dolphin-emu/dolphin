@@ -189,7 +189,7 @@ private:
 		Toolbar_FullScreen,
 		Toolbar_ConfigMain,
 		Toolbar_ConfigGFX,
-		Toolbar_ConfigDSP,
+		Toolbar_ConfigAudio,
 		Toolbar_Controller,
 		EToolbar_Max
 	};
@@ -291,7 +291,7 @@ private:
 
 	void OnConfigMain(wxCommandEvent& event); // Options
 	void OnConfigGFX(wxCommandEvent& event);
-	void OnConfigDSP(wxCommandEvent& event);
+	void OnConfigAudio(wxCommandEvent& event);
 	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
 
