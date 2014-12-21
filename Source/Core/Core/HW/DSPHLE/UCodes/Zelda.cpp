@@ -575,7 +575,7 @@ struct ReverbPB
 
 	// Coefficients for an 8-tap filter applied to each reverb buffer before
 	// adding its data to the destination.
-	s16 filter_coefs[8];
+	s16 filter_coeffs[8];
 };
 #pragma pack(pop)
 
@@ -675,7 +675,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 			{
 				s32 sample = 0;
 				for (u16 j = 0; j < 8; ++j)
-					sample += (s32)buffer[i + j] * rpb.filter_coefs[j];
+					sample += (s32)buffer[i + j] * rpb.filter_coeffs[j];
 				sample >>= 15;
 				MathUtil::Clamp(&sample, -0x8000, 0x7fff);
 				buffer[i] = sample;
@@ -1321,7 +1321,35 @@ void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(
 
 void ZeldaAudioRenderer::DoState(PointerWrap& p)
 {
-	// TODO(delroth): Add all the state here.
+	p.Do(m_prepared);
+
 	p.Do(m_output_lbuf_addr);
 	p.Do(m_output_rbuf_addr);
+	p.Do(m_output_volume);
+
+	p.Do(m_buf_front_left);
+	p.Do(m_buf_front_right);
+	p.Do(m_buf_back_left);
+	p.Do(m_buf_back_right);
+	p.Do(m_buf_front_left_reverb);
+	p.Do(m_buf_front_right_reverb);
+	p.Do(m_buf_back_left_reverb);
+	p.Do(m_buf_back_right_reverb);
+	p.Do(m_buf_unk0_reverb);
+	p.Do(m_buf_unk1_reverb);
+
+	p.Do(m_resampling_coeffs);
+	p.Do(m_const_patterns);
+	p.Do(m_sine_table);
+	p.Do(m_afc_coeffs);
+
+	p.Do(m_vpb_base_addr);
+
+	p.Do(m_reverb_pb_base_addr);
+	p.Do(m_reverb_pb_frames_count);
+	p.Do(m_buf_unk0_reverb_last8);
+	p.Do(m_buf_unk1_reverb_last8);
+	p.Do(m_buf_front_left_reverb_last8);
+	p.Do(m_buf_front_right_reverb_last8);
+
 }
