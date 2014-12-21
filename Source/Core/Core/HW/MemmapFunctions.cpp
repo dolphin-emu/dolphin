@@ -13,7 +13,7 @@
 // If not, see http://www.gnu.org/licenses/
 
 // Official Git repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// https://github.com/dolphin-emu/dolphin
 
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
