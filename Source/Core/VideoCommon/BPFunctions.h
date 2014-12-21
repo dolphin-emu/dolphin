@@ -26,7 +26,7 @@ void SetColorMask();
 void CopyEFB(u32 dstAddr, const EFBRectangle& srcRect,
              unsigned int dstFormat, PEControl::PixelFormat srcFormat,
              bool isIntensity, bool scaleByHalf);
-void ClearScreen(const EFBRectangle &rc);
+void ClearScreen(const EFBRectangle &rc, bool new_frame_just_rendered);
 void OnPixelFormatChange();
 void SetInterlacingMode(const BPCmd &bp);
 }

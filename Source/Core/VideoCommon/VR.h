@@ -72,6 +72,7 @@ extern std::vector<DataReader> timewarp_log;
 extern std::vector<bool> display_list_log;
 extern std::vector<bool> cached_ram_location;
 extern std::vector<bool> is_preprocess_log;
+extern bool opcode_replay_enabled;
 extern bool g_opcodereplay_frame;
 extern int skipped_opcode_replay_count;
 

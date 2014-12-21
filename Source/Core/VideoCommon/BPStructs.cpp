@@ -263,7 +263,7 @@ static void BPWritten(const BPCmd& bp)
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
 			{
-				ClearScreen(srcRect);
+				ClearScreen(srcRect, new_frame_just_rendered);
 			}
 
 			//Render Extra Headtracking Frames for VR.

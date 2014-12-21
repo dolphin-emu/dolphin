@@ -47,6 +47,7 @@ std::vector<DataReader> timewarp_log;
 std::vector<bool> display_list_log;
 std::vector<bool> is_preprocess_log;
 std::vector<bool> cached_ram_location;
+bool opcode_replay_enabled = false;
 bool g_opcodereplay_frame = false;
 int skipped_opcode_replay_count = 0;
 
@@ -255,6 +256,7 @@ void OpcodeReplayBuffer()
 	static int real_frame_count = 0;
 	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
 	{
+		opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
 		{
 			if (real_frame_count % 4 == 1)
@@ -377,6 +379,7 @@ void OpcodeReplayBuffer()
 	}
 	else
 	{
+		opcode_replay_enabled = false;
 		g_opcodereplay_frame = true; //Don't log frames
 	}
 }
