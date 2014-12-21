@@ -73,6 +73,8 @@ public:
 	u8 m_curtexmtx[8];
 	int m_texmtxwrite;
 	int m_texmtxread;
+	bool m_vertexSkip;
+	int m_skippedVertices;
 
 private:
 #ifndef USE_VERTEX_LOADER_JIT

@@ -93,6 +93,7 @@ void LOADERDECL Pos_ReadIndex(VertexLoader* loader)
 	static_assert(N <= 3, "N > 3 is not sane!");
 
 	auto const index = DataRead<I>();
+	loader->m_vertexSkip = index == std::numeric_limits<I>::max();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
 	auto const scale = loader->m_posScale[0];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
@@ -119,6 +120,7 @@ void LOADERDECL Pos_ReadIndex_SSSE3(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 	auto const index = DataRead<I>();
+	loader->m_vertexSkip = index == std::numeric_limits<I>::max();
 	const T* pData = (const T*)(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
 	Vertex_Read_SSSE3<T, three, true>(pData, *(__m128*)loader->m_posScale);
 	LOG_VTX();

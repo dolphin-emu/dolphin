@@ -92,6 +92,17 @@ static void LOADERDECL TexMtx_Write_Float4(VertexLoader* loader)
 #endif
 }
 
+static void LOADERDECL SkipVertex(VertexLoader* loader)
+{
+	if (loader->m_vertexSkip)
+	{
+		// reset the output buffer
+		g_vertex_manager_write_ptr -= loader->m_native_vtx_decl.stride;
+
+		loader->m_skippedVertices++;
+	}
+}
+
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 : VertexLoaderBase(vtx_desc, vtx_attr)
 {
@@ -393,6 +404,12 @@ void VertexLoader::CompileVertexTranslator()
 		nat_offset += 4;
 	}
 
+	// indexed position formats may skip a the vertex
+	if (m_VtxDesc.Position & 2)
+	{
+		WriteCall(SkipVertex);
+	}
+
 	m_native_components = components;
 	m_native_vtx_decl.stride = nat_offset;
 
@@ -440,6 +457,7 @@ int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataRead
 	src.WritePointer(&g_video_buffer_read_ptr);
 
 	m_numLoadedVertices += count;
+	m_skippedVertices = 0;
 
 	// Prepare bounding box
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
@@ -462,5 +480,5 @@ int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataRead
 	}
 #endif
 
-	return count;
+	return count - m_skippedVertices;
 }
