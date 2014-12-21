@@ -16,6 +16,7 @@ public:
 	void FinalizeFrame();
 
 	void SetSineTable(std::array<s16, 0x80>&& sine_table) { m_sine_table = sine_table; }
+	void SetConstPatterns(std::array<s16, 0x100>&& patterns) { m_const_patterns = patterns; }
 	void SetResamplingCoeffs(std::array<s16, 0x100>&& coeffs) { m_resampling_coeffs = coeffs; }
 	void SetAfcCoeffs(std::array<s16, 0x20>&& coeffs) { m_afc_coeffs = coeffs; }
 	void SetVPBBaseAddress(u32 addr) { m_vpb_base_addr = addr; }
@@ -124,6 +125,9 @@ private:
 	// Sine table transferred from MRAM. Contains sin(x) values for x in
 	// [0.0;pi/4] (sin(x) in [1.0;0.0]), in 1.15 fixed format.
 	std::array<s16, 0x80> m_sine_table{};
+
+	// Const patterns used for some voice samples source. 4 x 0x40 samples.
+	std::array<s16, 0x100> m_const_patterns{};
 
 	// Fills up a buffer with the input samples for a voice, represented by its
 	// VPB.
