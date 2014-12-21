@@ -226,7 +226,10 @@ void ZeldaUCode::RunPendingCommands()
 				resampling_coeffs[i] = Common::swap16(data_ptr[i]);
 			m_renderer.SetResamplingCoeffs(std::move(resampling_coeffs));
 
-			// TODO: 0x100 more words here to figure out.
+			std::array<s16, 0x100> const_patterns;
+			for (size_t i = 0; i < 0x100; ++i)
+				const_patterns[i] = Common::swap16(data_ptr[0x100 + i]);
+			m_renderer.SetConstPatterns(std::move(const_patterns));
 
 			std::array<s16, 0x80> sine_table;
 			for (size_t i = 0; i < 0x80; ++i)
@@ -491,6 +494,15 @@ struct ZeldaAudioRenderer::VPB
 		// Simple saw wave at 100% amplitude and frequency controlled via the
 		// resampling ratio.
 		SRC_SAW_WAVE = 1,
+
+		// Breaking the numerical ordering for these, but they are all related.
+		// Simple pattern stored in the data downloaded by command 01. Playback
+		// frequency is controlled by the resampling ratio.
+		SRC_CONST_PATTERN_0 = 7,
+		SRC_CONST_PATTERN_1 = 4,
+		SRC_CONST_PATTERN_2 = 11,
+		SRC_CONST_PATTERN_3 = 12,
+
 		// Samples stored in ARAM in PCM8 format, at an arbitrary sampling rate
 		// (resampling is applied).
 		SRC_PCM8_FROM_ARAM = 8,
@@ -945,6 +957,36 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 				pos += (vpb->resampling_ratio) >> 1;
 			}
 			vpb->current_pos_frac = pos & 0xFFFF;
+			break;
+		}
+
+		case VPB::SRC_CONST_PATTERN_0:
+		case VPB::SRC_CONST_PATTERN_1:
+		case VPB::SRC_CONST_PATTERN_2:
+		case VPB::SRC_CONST_PATTERN_3:
+		{
+			const u16 PATTERN_SIZE = 0x40;
+
+			std::map<u16, u16> samples_source_to_pattern = {
+				{ VPB::SRC_CONST_PATTERN_0, 0 },
+				{ VPB::SRC_CONST_PATTERN_1, 1 },
+				{ VPB::SRC_CONST_PATTERN_2, 2 },
+				{ VPB::SRC_CONST_PATTERN_3, 3 },
+			};
+			u16 pattern_idx = samples_source_to_pattern[vpb->samples_source_type];
+			u16 pattern_offset = pattern_idx * PATTERN_SIZE;
+			s16* pattern = m_const_patterns.data() + pattern_offset;
+
+			u32 pos = vpb->current_pos_frac << 6;  // log2(PATTERN_SIZE)
+			u32 step = vpb->resampling_ratio << 5;
+
+			for (size_t i = 0; i < buffer->size(); ++i)
+			{
+				(*buffer)[i] = pattern[pos >> 16];
+				pos = (pos + step) % (PATTERN_SIZE << 16);
+			}
+
+			vpb->current_pos_frac = pos >> 6;
 			break;
 		}
 
