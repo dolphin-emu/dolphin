@@ -81,8 +81,8 @@ static const struct
 	{ "FreelookZoomOut",      83 /* 'S' */,       4 /* wxMOD_SHIFT */ },
 	{ "FreelookReset",        82 /* 'R' */,       4 /* wxMOD_SHIFT */ },
 
-	{ "IncreaseSeparation",  0,                   0 /* wxMOD_NONE */ },
-	{ "DecreaseSeparation",  0,                   0 /* wxMOD_NONE */ },
+	{ "IncreaseDepth",       0,                   0 /* wxMOD_NONE */ },
+	{ "DecreaseDepth",       0,                   0 /* wxMOD_NONE */ },
 	{ "IncreaseConvergence", 0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseConvergence", 0,                   0 /* wxMOD_NONE */ },
 

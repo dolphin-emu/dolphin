@@ -167,7 +167,7 @@ protected:
 
 	void Event_StereoSep(wxCommandEvent &ev)
 	{
-		vconfig.iStereoSeparation = ev.GetInt();
+		vconfig.iStereoDepth = ev.GetInt();
 
 		ev.Skip();
 	}

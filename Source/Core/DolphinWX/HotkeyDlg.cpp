@@ -238,10 +238,10 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Freelook Zoom Out"),
 		_("Freelook Reset"),
 
-		_("Increase Stereocopy Separation"),
-		_("Decrease Stereocopy Separation"),
-		_("Increase Stereocopy Convergence"),
-		_("Decrease Stereocopy Convergence"),
+		_("Increase Depth"),
+		_("Decrease Depth"),
+		_("Increase Convergence"),
+		_("Decrease Convergence"),
 
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),
