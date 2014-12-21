@@ -222,6 +222,8 @@ void ZeldaUCode::RunPendingCommands()
 				resampling_coeffs[i] = Common::swap16(data_ptr[i]);
 			m_renderer.SetResamplingCoeffs(std::move(resampling_coeffs));
 
+			// TODO: 0x100 more words here to figure out.
+
 			std::array<s16, 0x80> sine_table;
 			for (size_t i = 0; i < 0x80; ++i)
 				sine_table[i] = Common::swap16(data_ptr[0x200 + i]);
@@ -233,8 +235,9 @@ void ZeldaUCode::RunPendingCommands()
 				afc_coeffs[i] = Common::swap16(afc_coeffs_ptr[i]);
 			m_renderer.SetAfcCoeffs(std::move(afc_coeffs));
 
+			m_renderer.SetReverbPBBaseAddress(Read32());
+
 			SendCommandAck(CommandAck::STANDARD, sync);
-			Read32();
 			break;
 		}
 
@@ -268,7 +271,7 @@ void ZeldaUCode::RunPendingCommands()
 
 void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
 {
-	u32 ack_mail;
+	u32 ack_mail = 0;
 	switch (ack_type)
 	{
 	case CommandAck::STANDARD: ack_mail = DSP_SYNC; break;
@@ -535,6 +538,29 @@ struct ZeldaAudioRenderer::VPB
 
 	u16 padding[SIZE_IN_WORDS];
 };
+
+struct ReverbPB
+{
+	// If zero, skip this reverb PB.
+	u16 enabled;
+	// Size of the circular buffer in MRAM, expressed in number of 0x50 samples
+	// blocks (0xA0 bytes).
+	u16 circular_buffer_size;
+	// Base address of the circular buffer in MRAM.
+	u16 circular_buffer_base_h;
+	u16 circular_buffer_base_l;
+
+	struct Destination
+	{
+		u16 buffer_id;  // See VPB::Channel::id.
+		u16 volume;     // 1.15 format.
+	};
+	Destination dest[2];
+
+	// Coefficients for an 8-tap filter applied to each reverb buffer before
+	// adding its data to the destination.
+	s16 filter_coefs[8];
+};
 #pragma pack(pop)
 
 void ZeldaAudioRenderer::PrepareFrame()
@@ -554,9 +580,144 @@ void ZeldaAudioRenderer::PrepareFrame()
 	if (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0)
 		PanicAlert("Zelda HLE using back mixing buffers");
 
-	// TODO: Dolby/reverb mixing here.
+	// Add reverb data from previous frame.
+	ApplyReverb(false);
+	AddBuffersWithVolume(m_buf_front_left_reverb.data(),
+	                     m_buf_back_left_reverb.data(),
+	                     0x50, 0x7FFF);
+	AddBuffersWithVolume(m_buf_front_right_reverb.data(),
+	                     m_buf_back_left_reverb.data(),
+	                     0x50, 0xB820);
+	AddBuffersWithVolume(m_buf_front_left_reverb.data(),
+	                     m_buf_back_right_reverb.data() + 0x28,
+	                     0x28, 0xB820);
+	AddBuffersWithVolume(m_buf_front_right_reverb.data(),
+	                     m_buf_back_left_reverb.data() + 0x28,
+	                     0x28, 0x7FFF);
+	m_buf_back_left_reverb.fill(0);
+	m_buf_back_right_reverb.fill(0);
 
 	m_prepared = true;
+}
+
+void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
+{
+	if (!m_reverb_pb_base_addr)
+	{
+		PanicAlert("Trying to apply reverb without available parameters.");
+		return;
+	}
+
+	// Each of the 4 RPBs maps to one of these buffers.
+	MixingBuffer* reverb_buffers[4] = {
+		&m_buf_unk0_reverb,
+		&m_buf_unk1_reverb,
+		&m_buf_front_left_reverb,
+		&m_buf_front_right_reverb,
+	};
+	std::array<s16, 8>* last8_samples_buffers[4] = {
+		&m_buf_unk0_reverb_last8,
+		&m_buf_unk1_reverb_last8,
+		&m_buf_front_left_reverb_last8,
+		&m_buf_front_right_reverb_last8,
+	};
+
+	u16* rpb_base_ptr = (u16*)HLEMemory_Get_Pointer(m_reverb_pb_base_addr);
+	for (u16 rpb_idx = 0; rpb_idx < 4; ++rpb_idx)
+	{
+		ReverbPB rpb;
+		u16* rpb_raw_ptr = reinterpret_cast<u16*>(&rpb);
+		for (size_t i = 0; i < sizeof (ReverbPB) / 2; ++i)
+			rpb_raw_ptr[i] = Common::swap16(rpb_base_ptr[rpb_idx * sizeof (ReverbPB) / 2 + i]);
+
+		if (!rpb.enabled)
+			continue;
+
+		u16 mram_buffer_idx = m_reverb_pb_frames_count[rpb_idx];
+
+		u32 mram_addr = ((rpb.circular_buffer_base_h << 16) |
+						 rpb.circular_buffer_base_l) +
+						 mram_buffer_idx * 0x50 * sizeof (s16);
+		s16* mram_ptr = (s16*)HLEMemory_Get_Pointer(mram_addr);
+
+		if (!post_rendering)
+		{
+			// 8 more samples because of the filter order. The first 8 samples
+			// are the last 8 samples of the previous frame.
+			std::array<s16, 0x58> buffer;
+			for (u16 i = 0; i < 8; ++i)
+				buffer[i] = (*last8_samples_buffers[rpb_idx])[i];
+
+			for (u16 i = 0; i < 0x50; ++i)
+				buffer[8 + i] = Common::swap16(mram_ptr[i]);
+
+			for (u16 i = 0; i < 8; ++i)
+				(*last8_samples_buffers[rpb_idx])[i] = buffer[0x50 + i];
+
+			// Filter the buffer using provided coefficients.
+			for (u16 i = 0; i < 0x50; ++i)
+			{
+				s32 sample = 0;
+				for (u16 j = 0; j < 8; ++j)
+					sample += (s32)buffer[i + j] * rpb.filter_coefs[j];
+				sample >>= 15;
+				MathUtil::Clamp(&sample, -0x8000, 0x7fff);
+				buffer[i] = sample;
+			}
+
+			for (const auto& dest : rpb.dest)
+			{
+				if (dest.buffer_id == 0)
+					continue;
+
+				MixingBuffer* dest_buffer = BufferForID(dest.buffer_id);
+				if (!dest_buffer)
+				{
+					PanicAlert("RPB mixing to an unknown buffer: %04x", dest.buffer_id);
+					continue;
+				}
+				AddBuffersWithVolume(dest_buffer->data(), buffer.data(),
+				                     0x50, dest.volume);
+			}
+
+			// TODO: If "enabled" & 2, the filtering should be done post and
+			// not pre mixing.
+			if (rpb.enabled & 2)
+				PanicAlert("RPB wants post filtering.");
+
+			for (u16 i = 0; i < 0x50; ++i)
+				(*reverb_buffers[rpb_idx])[i] = buffer[i];
+		}
+		else
+		{
+			MixingBuffer* buffer = reverb_buffers[rpb_idx];
+
+			// Upload the reverb data to RAM.
+			for (auto sample : *buffer)
+				*mram_ptr++ = Common::swap16(sample);
+
+			mram_buffer_idx = (mram_buffer_idx + 1) % rpb.circular_buffer_size;
+			m_reverb_pb_frames_count[rpb_idx] = mram_buffer_idx;
+		}
+	}
+}
+
+ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
+{
+	switch (buffer_id)
+	{
+		case 0x0D00: return &m_buf_front_left;
+		case 0x0D60: return &m_buf_front_right;
+		case 0x0F40: return &m_buf_back_left;
+		case 0x0CA0: return &m_buf_back_right;
+		case 0x0E80: return &m_buf_front_left_reverb;
+		case 0x0EE0: return &m_buf_front_right_reverb;
+		case 0x0C00: return &m_buf_back_left_reverb;
+		case 0x0C50: return &m_buf_back_right_reverb;
+		case 0x0DC0: return &m_buf_unk0_reverb;
+		case 0x0E20: return &m_buf_unk1_reverb;
+		default: return nullptr;
+	}
 }
 
 void ZeldaAudioRenderer::AddVoice(u16 voice_id)
@@ -656,18 +817,6 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 				vpb.done = true;
 		}
 
-		// Map buffer "IDs"/addresses to our emulated buffers.
-		std::map<u16, MixingBuffer*> buffers = {
-			{ 0x0D00, &m_buf_front_left },
-			{ 0x0D60, &m_buf_front_right },
-			{ 0x0F40, &m_buf_back_left },
-			{ 0x0CA0, &m_buf_back_right },
-			{ 0x0E80, &m_buf_front_left_reverb },
-			{ 0x0EE0, &m_buf_front_right_reverb },
-			{ 0x0C00, &m_buf_back_left_reverb },
-			{ 0x0C50, &m_buf_back_right_reverb },
-		};
-
 		for (auto& channel : vpb.channels)
 		{
 			if (!channel.id)
@@ -683,10 +832,10 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 			if (!channel.current_volume && !volume_step)
 				continue;
 
-			MixingBuffer* dst_buffer = buffers[channel.id];
+			MixingBuffer* dst_buffer = BufferForID(channel.id);
 			if (!dst_buffer)
 			{
-				ERROR_LOG(DSPHLE, "Mixing to an unmapped buffer: %04x", channel.id);
+				PanicAlert("Mixing to an unmapped buffer: %04x", channel.id);
 				continue;
 			}
 
@@ -723,6 +872,8 @@ void ZeldaAudioRenderer::FinalizeFrame()
 	m_output_rbuf_addr += sizeof (u16) * (u32)m_buf_front_right.size();
 
 	// TODO: Some more Dolby mixing.
+
+	ApplyReverb(true);
 
 	m_prepared = false;
 }

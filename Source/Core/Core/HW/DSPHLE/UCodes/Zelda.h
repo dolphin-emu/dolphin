@@ -19,6 +19,7 @@ public:
 	void SetResamplingCoeffs(std::array<s16, 0x100>&& coeffs) { m_resampling_coeffs = coeffs; }
 	void SetAfcCoeffs(std::array<s16, 0x20>&& coeffs) { m_afc_coeffs = coeffs; }
 	void SetVPBBaseAddress(u32 addr) { m_vpb_base_addr = addr; }
+	void SetReverbPBBaseAddress(u32 addr) { m_reverb_pb_base_addr = addr; }
 	void SetOutputVolume(u16 volume) { m_output_volume = volume; }
 	void SetOutputLeftBufferAddr(u32 addr) { m_output_lbuf_addr = addr; }
 	void SetOutputRightBufferAddr(u32 addr) { m_output_rbuf_addr = addr; }
@@ -76,6 +77,18 @@ private:
 		return vol;
 	}
 
+	// Does not use std::array because it needs to be able to process partial
+	// buffers. Volume is in 1.15 format.
+	void AddBuffersWithVolume(s16* dst, const s16* src, size_t count, u16 vol)
+	{
+		while (count--)
+		{
+			s32 vol_src = ((s32)*src++ * (s32)vol) >> 15;
+			MathUtil::Clamp(&vol_src, -0x8000, 0x7fff);
+			*dst++ += vol_src;
+		}
+	}
+
 	// Whether the frame needs to be prepared or not.
 	bool m_prepared = false;
 
@@ -96,6 +109,12 @@ private:
 	MixingBuffer m_buf_front_right_reverb{};
 	MixingBuffer m_buf_back_left_reverb{};
 	MixingBuffer m_buf_back_right_reverb{};
+	MixingBuffer m_buf_unk0_reverb{};
+	MixingBuffer m_buf_unk1_reverb{};
+
+	// Maps a buffer "ID" (really, their address in the DSP DRAM...) to our
+	// buffers. Returns nullptr if no match is found.
+	MixingBuffer* BufferForID(u16 buffer_id);
 
 	// Base address where VPBs are stored linearly in RAM.
 	u32 m_vpb_base_addr;
@@ -134,6 +153,17 @@ private:
 	// Downloads samples from MRAM while handling appropriate length / looping
 	// behavior.
 	void DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requested_samples_count);
+
+	// Applies the reverb effect to Dolby mixed voices based on a set of
+	// per-buffer parameters. Is called twice: once before frame rendering and
+	// once after.
+	void ApplyReverb(bool post_rendering);
+	std::array<u16, 4> m_reverb_pb_frames_count{};
+	std::array<s16, 8> m_buf_unk0_reverb_last8{};
+	std::array<s16, 8> m_buf_unk1_reverb_last8{};
+	std::array<s16, 8> m_buf_front_left_reverb_last8{};
+	std::array<s16, 8> m_buf_front_right_reverb_last8{};
+	u32 m_reverb_pb_base_addr = 0;
 };
 
 class ZeldaUCode : public UCodeInterface
