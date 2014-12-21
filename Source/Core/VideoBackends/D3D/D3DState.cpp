@@ -407,7 +407,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
 	if (it != m_raster.end())
 		return it->second;
 
-	D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(state.wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID,
+	D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID,
 		state.cull_mode,
 		false, 0, 0.f, 0, true, true, false, false);
 

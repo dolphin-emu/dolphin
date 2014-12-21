@@ -8,13 +8,11 @@
 #include <strsafe.h>
 #include <unordered_map>
 
-#include "Common/Profiler.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-#include "Core/Movie.h"
 
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
@@ -255,7 +253,6 @@ Renderer::Renderer(void *&window_handle)
 	gx_state.zmode.func = ZMode::NEVER;
 
 	gx_state.raster.cull_mode = D3D11_CULL_NONE;
-	gx_state.raster.wireframe = false;
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -278,6 +275,7 @@ Renderer::~Renderer()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
+	D3D::font.DrawTextScaled((float)(left+1), (float)(top+1), 20.f, 0.0f, color & 0xFF000000, text);
 	D3D::font.DrawTextScaled((float)left, (float)top, 20.f, 0.0f, color, text);
 }
 
@@ -915,53 +913,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
 	D3D::context->RSSetViewports(1, &vp);
 
-	// Finish up the current frame, print some stats
-	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
-	{
-		std::string fps = "";
-		if (g_ActiveConfig.bShowFPS)
-			fps = StringFromFormat("FPS: %d", m_fps_counter.m_fps);
-
-		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
-			fps += " - ";
-		if (SConfig::GetInstance().m_ShowFrameCount)
-		{
-			fps += StringFromFormat("Frame: %d", Movie::g_currentFrame);
-			if (Movie::IsPlayingInput())
-				fps += StringFromFormat(" / %d", Movie::g_totalFrames);
-		}
-
-		fps += "\n";
-
-		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
-	}
-
-	if (SConfig::GetInstance().m_ShowLag)
-	{
-		std::string lag = StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
-		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
-	}
-
-	if (SConfig::GetInstance().m_ShowInputDisplay)
-	{
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Movie::GetInputDisplay());
-	}
 	Renderer::DrawDebugText();
-
-	if (g_ActiveConfig.bOverlayStats)
-	{
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToString());
-	}
-	else if (g_ActiveConfig.bOverlayProjStats)
-	{
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToStringProj());
-	}
-
-	std::string profile_output = Profiler::ToString();
-	if (!profile_output.empty())
-	{
-		D3D::font.DrawTextScaled(0, 44, 20, 0.0f, 0xFF00FFFF, profile_output);
-	}
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
@@ -1084,10 +1036,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	gx_state.blend.use_dst_alpha = bUseDstAlpha;
 	D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
-
 	D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));
-
-	gx_state.raster.wireframe = g_ActiveConfig.bWireFrame;
 	D3D::stateman->PushRasterizerState(gx_state_cache.Get(gx_state.raster));
 
 	for (unsigned int stage = 0; stage < 8; stage++)

@@ -223,6 +223,7 @@ void VertexManager::Flush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
+	GeometryShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&

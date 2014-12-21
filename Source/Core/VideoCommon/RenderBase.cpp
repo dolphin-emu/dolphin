@@ -12,16 +12,19 @@
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 // ---------------------------------------------------------------------------------------------
 
+#include <cinttypes>
 #include <cmath>
 #include <string>
 
 #include "Common/Atomic.h"
+#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/Movie.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 
 #include "VideoCommon/AVIDump.h"
@@ -286,6 +289,39 @@ void Renderer::SetScreenshot(const std::string& filename)
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
+	std::string final_yellow, final_cyan;
+
+	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
+	{
+		std::string fps = "";
+		if (g_ActiveConfig.bShowFPS)
+			final_cyan += StringFromFormat("FPS: %d", g_renderer->m_fps_counter.m_fps);
+
+		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
+			final_cyan += " - ";
+		if (SConfig::GetInstance().m_ShowFrameCount)
+		{
+			final_cyan += StringFromFormat("Frame: %llu", (unsigned long long) Movie::g_currentFrame);
+			if (Movie::IsPlayingInput())
+				final_cyan += StringFromFormat(" / %llu", (unsigned long long) Movie::g_totalFrames);
+		}
+
+		final_cyan += "\n";
+		final_yellow += "\n";
+	}
+
+	if (SConfig::GetInstance().m_ShowLag)
+	{
+		final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+		final_yellow += "\n";
+	}
+
+	if (SConfig::GetInstance().m_ShowInputDisplay)
+	{
+		final_cyan += Movie::GetInputDisplay();
+		final_yellow += "\n";
+	}
+
 	// OSD Menu messages
 	if (OSDChoice > 0)
 	{
@@ -293,96 +329,94 @@ void Renderer::DrawDebugText()
 		OSDChoice = -OSDChoice;
 	}
 
-	if ((u32)OSDTime <= Common::Timer::GetTimeMs())
-		return;
-
-	const char* res_text = "";
-	switch (g_ActiveConfig.iEFBScale)
+	if ((u32)OSDTime > Common::Timer::GetTimeMs())
 	{
-	case SCALE_AUTO:
-		res_text = "Auto (fractional)";
-		break;
-	case SCALE_AUTO_INTEGRAL:
-		res_text = "Auto (integral)";
-		break;
-	case SCALE_1X:
-		res_text = "Native";
-		break;
-	case SCALE_1_5X:
-		res_text = "1.5x";
-		break;
-	case SCALE_2X:
-		res_text = "2x";
-		break;
-	case SCALE_2_5X:
-		res_text = "2.5x";
-		break;
-	case SCALE_3X:
-		res_text = "3x";
-		break;
-	case SCALE_4X:
-		res_text = "4x";
-		break;
+
+		const char* res_text = "";
+		switch (g_ActiveConfig.iEFBScale)
+		{
+		case SCALE_AUTO:
+			res_text = "Auto (fractional)";
+			break;
+		case SCALE_AUTO_INTEGRAL:
+			res_text = "Auto (integral)";
+			break;
+		case SCALE_1X:
+			res_text = "Native";
+			break;
+		case SCALE_1_5X:
+			res_text = "1.5x";
+			break;
+		case SCALE_2X:
+			res_text = "2x";
+			break;
+		case SCALE_2_5X:
+			res_text = "2.5x";
+			break;
+		case SCALE_3X:
+			res_text = "3x";
+			break;
+		case SCALE_4X:
+			res_text = "4x";
+			break;
+		}
+
+		const char* ar_text = "";
+		switch (g_ActiveConfig.iAspectRatio)
+		{
+		case ASPECT_AUTO:
+			ar_text = "Auto";
+			break;
+		case ASPECT_FORCE_16_9:
+			ar_text = "16:9";
+			break;
+		case ASPECT_FORCE_4_3:
+			ar_text = "4:3";
+			break;
+		case ASPECT_STRETCH:
+			ar_text = "Stretch";
+			break;
+		}
+
+		const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
+			(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
+
+		// The rows
+		const std::string lines[] =
+		{
+			std::string("Internal Resolution: ") + res_text,
+			std::string("Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
+			std::string("Copy EFB: ") + efbcopy_text,
+			std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
+		};
+
+		enum { lines_count = sizeof(lines)/sizeof(*lines) };
+
+		// The latest changed setting in yellow
+		for (int i = 0; i != lines_count; ++i)
+		{
+			if (OSDChoice == -i - 1)
+				final_yellow += lines[i];
+			final_yellow += '\n';
+		}
+
+		// The other settings in cyan
+		for (int i = 0; i != lines_count; ++i)
+		{
+			if (OSDChoice != -i - 1)
+				final_cyan += lines[i];
+			final_cyan += '\n';
+		}
 	}
 
-	const char* ar_text = "";
-	switch (g_ActiveConfig.iAspectRatio)
-	{
-	case ASPECT_AUTO:
-		ar_text = "Auto";
-		break;
-	case ASPECT_FORCE_16_9:
-		ar_text = "16:9";
-		break;
-	case ASPECT_FORCE_4_3:
-		ar_text = "4:3";
-		break;
-	case ASPECT_STRETCH:
-		ar_text = "Stretch";
-		break;
-	}
+	final_cyan += Profiler::ToString();
 
-	const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
-		(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
+	if (g_ActiveConfig.bOverlayStats)
+		final_cyan += Statistics::ToString();
 
-	// The rows
-	const std::string lines[] =
-	{
-		std::string("3: Internal Resolution: ") + res_text,
-		std::string("4: Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
-		std::string("5: Copy EFB: ") + efbcopy_text,
-		std::string("6: Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-	};
+	if (g_ActiveConfig.bOverlayProjStats)
+		final_cyan += Statistics::ToStringProj();
 
-	enum { lines_count = sizeof(lines)/sizeof(*lines) };
-
-	std::string final_yellow, final_cyan;
-
-	// If there is more text than this we will have a collision
-	if (g_ActiveConfig.bShowFPS)
-	{
-		final_yellow = final_cyan = "\n\n";
-	}
-
-	// The latest changed setting in yellow
-	for (int i = 0; i != lines_count; ++i)
-	{
-		if (OSDChoice == -i - 1)
-			final_yellow += lines[i];
-		final_yellow += '\n';
-	}
-
-	// The other settings in cyan
-	for (int i = 0; i != lines_count; ++i)
-	{
-		if (OSDChoice != -i - 1)
-			final_cyan += lines[i];
-		final_cyan += '\n';
-	}
-
-	// Render a shadow
-	g_renderer->RenderText(final_cyan, 21, 21, 0xDD000000);
-	g_renderer->RenderText(final_yellow, 21, 21, 0xDD000000);
 	//and then the text
 	g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
 	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);

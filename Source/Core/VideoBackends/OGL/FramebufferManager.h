@@ -68,11 +68,11 @@ public:
 	static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc);
 	static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc);
 
-	static GLuint GetEFBFramebuffer() { return m_efbFramebuffer; }
+	static GLuint GetEFBFramebuffer() { return m_efbFramebuffer[0]; }
 	static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
 
 	// Resolved framebuffer is only used in MSAA mode.
-	static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer; }
+	static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer[0]; }
 
 	static void SetFramebuffer(GLuint fb);
 	static void FramebufferTexture(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
@@ -102,14 +102,14 @@ private:
 	static int m_msaaSamples;
 
 	static GLenum m_textureType;
-	static GLuint m_efbFramebuffer;
+	static GLuint* m_efbFramebuffer;
 	static GLuint m_xfbFramebuffer;
 	static GLuint m_efbColor;
 	static GLuint m_efbDepth;
 	static GLuint m_efbColorSwap;// will be hot swapped with m_efbColor when reinterpreting EFB pixel formats
 
 	// Only used in MSAA mode, TODO: try to avoid them
-	static GLuint m_resolvedFramebuffer;
+	static GLuint* m_resolvedFramebuffer;
 	static GLuint m_resolvedColorTexture;
 	static GLuint m_resolvedDepthTexture;
 

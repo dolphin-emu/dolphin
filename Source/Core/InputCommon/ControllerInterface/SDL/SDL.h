@@ -98,32 +98,6 @@ private:
 		std::string GetName() const override;
 		void SetState(ControlState state) override;
 	};
-
-	class SineEffect : public HapticEffect
-	{
-	public:
-		SineEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
-		std::string GetName() const override;
-		void SetState(ControlState state) override;
-	};
-
-#ifdef SDL_HAPTIC_SQUARE
-	class SquareEffect : public HapticEffect
-	{
-	public:
-		SquareEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
-		std::string GetName() const;
-		void SetState(ControlState state);
-	};
-#endif // defined(SDL_HAPTIC_SQUARE)
-
-	class TriangleEffect : public HapticEffect
-	{
-	public:
-		TriangleEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
-		std::string GetName() const override;
-		void SetState(ControlState state) override;
-	};
 #endif
 
 public:

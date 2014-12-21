@@ -154,7 +154,8 @@ static void InitBackendInfo()
 
 void VideoBackend::ShowConfig(void *_hParent)
 {
-	InitBackendInfo();
+	if (!s_BackendInitialized)
+		InitBackendInfo();
 	Host_ShowVideoConfig(_hParent, GetDisplayName(), "gfx_opengl");
 }
 

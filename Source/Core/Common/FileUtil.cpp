@@ -322,8 +322,9 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	char buffer[BSIZE];
 
 	// Open input file
-	FILE *input = fopen(srcFilename.c_str(), "rb");
-	if (!input)
+	std::ifstream input;
+	OpenFStream(input, srcFilename, std::ifstream::in | std::ifstream::binary);
+	if (!input.is_open())
 	{
 		ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s",
 				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
@@ -331,51 +332,39 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	}
 
 	// open output file
-	FILE *output = fopen(destFilename.c_str(), "wb");
-	if (!output)
+	File::IOFile output(destFilename, "wb");
+
+	if (!output.IsOpen())
 	{
-		fclose(input);
 		ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s",
 				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
 		return false;
 	}
 
 	// copy loop
-	while (!feof(input))
+	while (!input.eof())
 	{
 		// read input
-		int rnum = fread(buffer, sizeof(char), BSIZE, input);
-		if (rnum != BSIZE)
+		input.read(buffer, BSIZE);
+		if (!input)
 		{
-			if (ferror(input) != 0)
-			{
-				ERROR_LOG(COMMON,
-						"Copy: failed reading from source, %s --> %s: %s",
-						srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
-				goto bail;
-			}
+			ERROR_LOG(COMMON,
+					"Copy: failed reading from source, %s --> %s: %s",
+					srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+			return false;
 		}
 
 		// write output
-		int wnum = fwrite(buffer, sizeof(char), rnum, output);
-		if (wnum != rnum)
+		if (!output.WriteBytes(buffer, BSIZE))
 		{
 			ERROR_LOG(COMMON,
 					"Copy: failed writing to output, %s --> %s: %s",
 					srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
-			goto bail;
+			return false;
 		}
 	}
-	// close files
-	fclose(input);
-	fclose(output);
+
 	return true;
-bail:
-	if (input)
-		fclose(input);
-	if (output)
-		fclose(output);
-	return false;
 #endif
 }
 

@@ -29,7 +29,8 @@ D3DTexture2D* &FramebufferManager::GetResolvedEFBColorTexture()
 {
 	if (g_ActiveConfig.iMultisampleMode)
 	{
-		D3D::context->ResolveSubresource(m_efb.resolved_color_tex->GetTex(), 0, m_efb.color_tex->GetTex(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+		for (int i = 0; i < m_efb.slices; i++)
+			D3D::context->ResolveSubresource(m_efb.resolved_color_tex->GetTex(), D3D11CalcSubresource(0, i, 1), m_efb.color_tex->GetTex(), D3D11CalcSubresource(0, i, 1), DXGI_FORMAT_R8G8B8A8_UNORM);
 		return m_efb.resolved_color_tex;
 	}
 	else
@@ -40,8 +41,9 @@ D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
 {
 	if (g_ActiveConfig.iMultisampleMode)
 	{
-		D3D::context->ResolveSubresource(m_efb.resolved_color_tex->GetTex(), 0, m_efb.color_tex->GetTex(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
-		return m_efb.resolved_color_tex;
+		for (int i = 0; i < m_efb.slices; i++)
+			D3D::context->ResolveSubresource(m_efb.resolved_depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), m_efb.depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), DXGI_FORMAT_R8G8B8A8_UNORM);
+		return m_efb.resolved_depth_tex;
 	}
 	else
 		return m_efb.depth_tex;
