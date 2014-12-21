@@ -42,7 +42,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	out.Write(s_shader_uniforms);
 	out.Write("};\n");
 
-	GenerateVSOutputStruct<T>(out, api_type);
+	out.Write("struct VS_OUTPUT {\n");
+	GenerateVSOutputMembers<T>(out, api_type);
+	out.Write("};\n");
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->components = components;
@@ -74,9 +76,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("out VertexData {\n"
-			          "\tcentroid %s VS_OUTPUT o;\n"
-					  "};\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
+			out.Write("out VertexData {\n");
+			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+			out.Write("} o;\n");
 		}
 		else
 		{
