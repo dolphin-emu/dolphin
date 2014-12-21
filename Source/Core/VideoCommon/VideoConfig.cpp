@@ -231,18 +231,9 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "wideScreenHack", bWidescreenHack);
 	CHECK_SETTING("Video_Settings", "AspectRatio", iAspectRatio);
 	CHECK_SETTING("Video_Settings", "Crop", bCrop);
-	if (!g_has_hmd)
-	{
-		CHECK_SETTING("Video_Settings", "UseXFB", bUseXFB);
-		CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
-		CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-	}
-	else
-	{
-		CHECK_SETTING("Video_Settings_VR", "UseXFB", bUseXFB);
-		CHECK_SETTING("Video_Settings_VR", "UseRealXFB", bUseRealXFB);
-		CHECK_SETTING("Video_Settings_VR", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-	}
+	CHECK_SETTING("Video_Settings", "UseXFB", bUseXFB);
+	CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
+	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
@@ -277,6 +268,46 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 	CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
 
+	if (g_has_hmd)
+	{
+		CHECK_SETTING("Video_Settings_VR", "UseXFB", bUseXFB);
+		CHECK_SETTING("Video_Settings_VR", "UseRealXFB", bUseRealXFB);
+		CHECK_SETTING("Video_Settings_VR", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
+		CHECK_SETTING("Video_Settings_VR", "HiresTextures", bHiresTextures);
+		CHECK_SETTING("Video_Settings_VR", "EnablePixelLighting", bEnablePixelLighting);
+		CHECK_SETTING("Video_Settings_VR", "FastDepthCalc", bFastDepthCalc);
+		CHECK_SETTING("Video_Settings_VR", "MSAA", iMultisampleMode);
+		int tmp = -9000;
+		CHECK_SETTING("Video_Settings_VR", "EFBScale", tmp); // integral
+		if (tmp != -9000)
+		{
+			if (tmp != SCALE_FORCE_INTEGRAL)
+			{
+				iEFBScale = tmp;
+			}
+			else // Round down to multiple of native IR
+			{
+				switch (iEFBScale)
+				{
+				case SCALE_AUTO:
+					iEFBScale = SCALE_AUTO_INTEGRAL;
+					break;
+				case SCALE_1_5X:
+					iEFBScale = SCALE_1X;
+					break;
+				case SCALE_2_5X:
+					iEFBScale = SCALE_2X;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		CHECK_SETTING("Video_Settings_VR", "DstAlphaPass", bDstAlphaPass);
+		CHECK_SETTING("Video_Settings_VR", "DisableFog", bDisableFog);
+	}
+
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
@@ -289,17 +320,14 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Stereoscopy", "StereoSeparationPercent", iStereoSeparationPercent);
 	CHECK_SETTING("Video_Stereoscopy", "StereoConvergencePercent", iStereoConvergencePercent);
 
-	if (!g_has_hmd)
-	{
-		CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
-		CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
-		CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
-		CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
-		CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
-		CHECK_SETTING("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
-		CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-	}
-	else
+	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
+	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
+	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
+	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
+	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
+	CHECK_SETTING("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
+	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
+	if (g_has_hmd)
 	{
 		CHECK_SETTING("Video_Hacks_VR", "EFBAccessEnable", bEFBAccessEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyEnable", bEFBCopyEnable);
