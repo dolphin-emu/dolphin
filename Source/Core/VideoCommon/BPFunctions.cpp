@@ -114,12 +114,58 @@ void CopyEFB(u32 dstAddr, const EFBRectangle& srcRect,
 		- convert the RGBA8 color to RGBA6/RGB8/RGB565 and convert it to RGBA8 again
 		- convert the Z24 depth value to Z16 and back to Z24
 */
-void ClearScreen(const EFBRectangle &rc)
+void ClearScreen(const EFBRectangle &rc, bool frame_just_rendered)
 {
+	static bool colorEnable_replay[2] = { (bpmem.blendmode.colorupdate != 0), (bpmem.blendmode.colorupdate != 0) };
+	static bool alphaEnable_replay[2] = { (bpmem.blendmode.alphaupdate != 0), (bpmem.blendmode.alphaupdate != 0) };
+	static bool zEnable_replay[2] = { (bpmem.zmode.updateenable != 0), (bpmem.zmode.updateenable != 0) };
+	static u32 pixel_format_replay[2] = { bpmem.zcontrol.pixel_format, bpmem.zcontrol.pixel_format };
+	static u32 color_replay[2] = { (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB, (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB };
+	static u32 z_replay[2] = { bpmem.clearZValue, bpmem.clearZValue };
+
 	bool colorEnable = (bpmem.blendmode.colorupdate != 0);
 	bool alphaEnable = (bpmem.blendmode.alphaupdate != 0);
 	bool zEnable = (bpmem.zmode.updateenable != 0);
-	auto pixel_format = bpmem.zcontrol.pixel_format;
+	u32 pixel_format = bpmem.zcontrol.pixel_format;
+
+	// Log and Replay Clear Calls, because they are not properly captured/played by the replay buffer.
+	// The "Clear Frame" for the beginning of each frame actually happens at the end of the real/opcode replay frame.
+	// This causes the call meant for the next real frame to be used for the replay frame.
+
+	// To Do: Optimize this better.  Do some games use more than 2 clear calls that might need to also be unwound?
+	// Is the second unwind just a workaround for a bigger bug somewhere else in the replay buffer?
+	if (g_has_hmd && opcode_replay_enabled)
+	{
+		if (g_opcodereplay_frame && frame_just_rendered)
+		{
+			colorEnable_replay[0] = colorEnable;
+			alphaEnable_replay[0] = alphaEnable;
+			zEnable_replay[0] = zEnable;
+			pixel_format_replay[0] = pixel_format;
+		}
+		else if (!g_opcodereplay_frame && !frame_just_rendered)
+		{
+			colorEnable_replay[1] = colorEnable;
+			alphaEnable_replay[1] = alphaEnable;
+			zEnable_replay[1] = zEnable;
+			pixel_format_replay[1] = pixel_format;
+		}
+		else if (!g_opcodereplay_frame && frame_just_rendered)
+		{
+			colorEnable = colorEnable_replay[0];
+			alphaEnable = alphaEnable_replay[0];
+			zEnable = zEnable_replay[0];
+			pixel_format = pixel_format_replay[0];
+		}
+		else //g_opcodereplay_frame && !frame_just_rendered
+		{
+			colorEnable = colorEnable_replay[1];
+			alphaEnable = alphaEnable_replay[1];
+			zEnable = zEnable_replay[1];
+			pixel_format = pixel_format_replay[1];
+		}
+	}
+
 
 	// (1): Disable unused color channels
 	if (pixel_format == PEControl::RGB8_Z24 ||
@@ -133,6 +179,32 @@ void ClearScreen(const EFBRectangle &rc)
 	{
 		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		u32 z = bpmem.clearZValue;
+
+		if (g_has_hmd && opcode_replay_enabled)
+		{
+			if (g_opcodereplay_frame && frame_just_rendered)
+			{
+				color_replay[0] = color;
+				z_replay[0] = z;
+			}
+			else if (!g_opcodereplay_frame && !frame_just_rendered)
+			{
+				color_replay[1] = color;
+				z_replay[1] = z;
+			}
+			else if (!g_opcodereplay_frame && frame_just_rendered)
+			{
+				color = color_replay[0];
+				z = z_replay[0];
+			}
+			else //g_opcodereplay_frame && !frame_just_rendered
+			{
+				color = color_replay[1];
+				z = z_replay[1];
+			}
+		}
+
+
 
 		// (2) drop additional accuracy
 		if (pixel_format == PEControl::RGBA6_Z24)
