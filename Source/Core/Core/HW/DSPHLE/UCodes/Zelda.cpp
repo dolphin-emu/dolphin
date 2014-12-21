@@ -173,12 +173,15 @@ void ZeldaUCode::RunPendingCommands()
 
 	while (m_pending_commands_count)
 	{
-		m_pending_commands_count--;
-
 		u32 cmd_mail = Read32();
+		if (!(cmd_mail & 0x80000000))
+			continue;
+
 		u32 command = (cmd_mail >> 24) & 0x7f;
 		u32 sync = cmd_mail >> 16;
 		u32 extra_data = cmd_mail & 0xFFFF;
+
+		m_pending_commands_count--;
 
 		switch (command)
 		{
