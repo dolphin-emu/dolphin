@@ -208,18 +208,17 @@ static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags
 		}
 
 		if (!view->view_ptr)
-			goto bail;
+		{
+			// Argh! ERROR! Free what we grabbed so far so we can try again.
+			MemoryMap_Shutdown(views, i+1, flags, arena);
+			return false;
+		}
 
 		if (view->out_ptr)
 			*(view->out_ptr) = (u8*) view->view_ptr;
 	}
 
 	return true;
-
-bail:
-	// Argh! ERROR! Free what we grabbed so far so we can try again.
-	MemoryMap_Shutdown(views, i+1, flags, arena);
-	return false;
 }
 
 static u32 MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flags)

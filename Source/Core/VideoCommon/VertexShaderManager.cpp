@@ -69,6 +69,7 @@ float vr_widest_3d_VFOV = 0;
 float vr_widest_3d_zNear = 0;
 float vr_widest_3d_zFar = 0;
 EFBRectangle g_final_screen_region = EFBRectangle(0, 0, 640, 528);
+EFBRectangle g_requested_viewport = EFBRectangle(0, 0, 640, 528), g_rendered_viewport = EFBRectangle(0, 0, 640, 528);
 enum ViewportType g_viewport_type = VIEW_FULLSCREEN, g_old_viewport_type = VIEW_FULLSCREEN;
 enum SplitScreenType {
 	SS_FULLSCREEN = 0,
@@ -84,6 +85,16 @@ enum SplitScreenType {
 };
 enum SplitScreenType g_splitscreen_type = SS_FULLSCREEN, g_old_splitscreen_type = SS_FULLSCREEN;
 bool g_is_skybox = false;
+
+void ScaleRequestedToRendered(EFBRectangle *src)
+{
+	float m = (float)g_rendered_viewport.GetWidth() / g_requested_viewport.GetWidth();
+	src->left = (int)(0.5f+(src->left - g_requested_viewport.left)*m + g_rendered_viewport.left);
+	src->right = (int)(0.5f + (src->right - g_requested_viewport.left)*m + g_rendered_viewport.left);
+	m = (float)g_rendered_viewport.GetHeight() / g_requested_viewport.GetHeight();
+	src->top = (int)(0.5f + (src->top - g_requested_viewport.top)*m + g_rendered_viewport.top);
+	src->bottom = (int)(0.5f + (src->bottom - g_requested_viewport.top)*m + g_rendered_viewport.top);
+}
 
 const char *GetViewportTypeName(ViewportType v)
 {
@@ -156,10 +167,13 @@ void SetViewportType(Viewport &v)
 	// Power of two square viewport in the corner of the screen means we are rendering to a texture,
 	// usually a shadow texture from the POV of the light, that will be drawn multitextured onto 3D objects.
 	// Note this is a temporary rendering to the backbuffer that will be cleared or overwritten after reading.
+	//if (width == height
+	//	&& (width == 32 || width == 64 || width == 128 || width == 256)
+	//	&& ((left == 0 && top == 0) || (left == 0 && top == screen_height - height)
+	//	|| (left == screen_width - width && top == 0) || (left == screen_width - width && top == screen_height - height)))
 	if (width == height
 		&& (width == 32 || width == 64 || width == 128 || width == 256)
-		&& ((left == 0 && top == 0) || (left == 0 && top == screen_height - height)
-		|| (left == screen_width - width && top == 0) || (left == screen_width - width && top == screen_height - height)))
+		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width))
 	{
 		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
 	}
@@ -998,7 +1012,7 @@ void VertexShaderManager::SetProjectionConstants()
 		g_fProjectionMatrix[13] = 0.0f;
 
 		g_fProjectionMatrix[14] = 0.0f;
-		g_fProjectionMatrix[15] = 1.0f;
+		g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON; // hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
 
 		SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 		SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
@@ -1033,27 +1047,55 @@ void VertexShaderManager::SetProjectionConstants()
 
 	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre * fScaleHack / g_ActiveConfig.fScale;
 
+	if (bHide)
+	{
+		// If we are supposed to hide the layer, zero out the projection matrix
+		memset(constants.projection, 0, 4 * 16);
+		memset(constants_eye_projection[0], 0, 2 * 4 * 16);
+		memset(GeometryShaderManager::constants.stereoparams, 0, 4 * 4);
+		GeometryShaderManager::dirty = true;
+	}
 	// don't do anything fancy for rendering to a texture
 	// render exactly as we are told, and in mono
-	if (g_viewport_type == VIEW_RENDER_TO_TEXTURE)
+	else if (g_viewport_type == VIEW_RENDER_TO_TEXTURE)
 	{
 		Matrix44 correctedMtx;
 		Matrix44::Set(correctedMtx, g_fProjectionMatrix);
 
-		// If we are supposed to hide the layer, zero out the projection matrix
-		if (bHide) {
-			memset(correctedMtx.data, 0, 16 * sizeof(correctedMtx.data[0]));
-		}
 		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
 		GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
 		GeometryShaderManager::constants.stereoparams[2] = GeometryShaderManager::constants.stereoparams[3] = 0;
 		GeometryShaderManager::dirty = true;
-		dirty = true;
+	}
+	// This was already copied from the fullscreen EFB.
+	// Which makes it already correct for the HMD's FOV.
+	// But we still need to correct it for the difference between the requested and rendered viewport.
+	// Don't add any stereoscopy because that was already done when copied.
+	else if (g_has_hmd && g_ActiveConfig.bEnableVR && bFullscreenLayer)
+	{
+		Matrix44 projMtx, scale_matrix, correctedMtx;
+		Matrix44::Set(projMtx, g_fProjectionMatrix);
+
+		projMtx.data[0 * 4 + 0] = projMtx.data[0 * 4 + 0] * fWidthHack;
+		projMtx.data[1 * 4 + 1] = projMtx.data[1 * 4 + 1] * fHeightHack;
+		projMtx.data[0 * 4 + 3] = projMtx.data[0 * 4 + 3] + fRightHack;
+		projMtx.data[1 * 4 + 3] = projMtx.data[1 * 4 + 3] + fUpHack;
+
+		Matrix44::LoadIdentity(scale_matrix);
+
+		Matrix44::Multiply(scale_matrix, projMtx, correctedMtx);
+
+		memcpy(constants.projection, correctedMtx.data, 4 * 16);
+		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
+		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
+		GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
+		GeometryShaderManager::constants.stereoparams[2] = GeometryShaderManager::constants.stereoparams[3] = 0;
+		GeometryShaderManager::dirty = true;
 	}
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
-	else if (g_has_hmd && g_ActiveConfig.bEnableVR && !bFullscreenLayer)
+	else if (g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		float *p = rawProjection;
 		// near clipping plane in game units
@@ -1618,7 +1660,20 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
 
-		dirty = true;
+		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			if (xfmem.projection.type == GX_PERSPECTIVE)
+			{
+				float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+				GeometryShaderManager::constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+				GeometryShaderManager::constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+				GeometryShaderManager::constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+			}
+			else
+			{
+				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
+			}
+		}
 	}
 	else
 	{
@@ -1634,6 +1689,20 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
+		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			if (xfmem.projection.type == GX_PERSPECTIVE)
+			{
+				float offset = (g_ActiveConfig.iStereoSeparation / 1000.0f) * (g_ActiveConfig.iStereoSeparationPercent / 100.0f);
+				GeometryShaderManager::constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+				GeometryShaderManager::constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+				GeometryShaderManager::constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercent / 100.0f);
+			}
+			else
+			{
+				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
+			}
+		}
 	}
 	dirty = true;
 }

@@ -13,14 +13,12 @@
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Movie.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
@@ -563,9 +561,6 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (g_Config.iStereoMode > 0 && !g_Config.backend_info.bSupportsGeometryShaders)
-		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
-
 	if (!bSuccess)
 	{
 		// Not all needed extensions are supported, so we have to stop here.
@@ -775,40 +770,8 @@ void Renderer::Init()
 }
 
 // Create On-Screen-Messages
-void Renderer::DrawDebugInfo()
+void Renderer::ShowEfbCopyRegions()
 {
-	// Reset viewport for drawing text
-	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
-
-	// Draw various messages on the screen, like FPS, statistics, etc.
-	std::string debug_info;
-
-	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
-	{
-		std::string fps = "";
-		if (g_ActiveConfig.bShowFPS)
-			debug_info += StringFromFormat("FPS: %d", m_fps_counter.m_fps);
-
-		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
-			debug_info += " - ";
-		if (SConfig::GetInstance().m_ShowFrameCount)
-		{
-			debug_info += StringFromFormat("Frame: %llu", (unsigned long long) Movie::g_currentFrame);
-			if (Movie::IsPlayingInput())
-				debug_info += StringFromFormat(" / %llu", (unsigned long long) Movie::g_totalFrames);
-		}
-
-		debug_info += "\n";
-	}
-
-	if (SConfig::GetInstance().m_ShowLag)
-		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
-
-	if (SConfig::GetInstance().m_ShowInputDisplay)
-		debug_info += Movie::GetInputDisplay();
-
-	debug_info += Profiler::ToString();
-
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Set Line Size
@@ -925,19 +888,6 @@ void Renderer::DrawDebugInfo()
 
 		// Clear stored regions
 		stats.efb_regions.clear();
-	}
-
-	if (g_ActiveConfig.bOverlayStats)
-		debug_info += Statistics::ToString();
-
-	if (g_ActiveConfig.bOverlayProjStats)
-		debug_info += Statistics::ToStringProj();
-
-	if (!debug_info.empty())
-	{
-		// Render a shadow, and then the text.
-		Renderer::RenderText(debug_info, 21, 21, 0xDD000000);
-		Renderer::RenderText(debug_info, 20, 20, 0xFF00FFFF);
 	}
 }
 
@@ -1321,26 +1271,10 @@ void Renderer::SetViewport()
 
 	// TODO: ceil, floor or just cast to int?
 	float X, Y, Width, Height;
-	if (!g_has_hmd)
-	{
-		X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
-		Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
-		Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
-		Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-	}
-	else
-	{
-		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
-		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
-		//X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		//Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		//Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		//Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		X = 0.0f; Y = 0.0f; Width = (float)GetTargetWidth(); Height = (float)GetTargetHeight();
-	}
-
-	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-	float GLFar = xfmem.viewport.farZ / 16777216.0f;
+	X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
+	Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
+	Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
 	if (Width < 0)
 	{
 		X += Width;
@@ -1351,6 +1285,22 @@ void Renderer::SetViewport()
 		Y += Height;
 		Height *= -1;
 	}
+	g_requested_viewport = EFBRectangle((int)X, (int)Y, (int)Width, (int)Height);
+
+	if (g_viewport_type != VIEW_RENDER_TO_TEXTURE && g_has_hmd && g_ActiveConfig.bEnableVR)
+	{
+		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
+		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
+		//X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		//Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		X = 0.0f; Y = 0.0f; Width = (float)GetTargetWidth(); Height = (float)GetTargetHeight();
+	}
+	g_rendered_viewport = EFBRectangle((int)X, (int)Y, (int)Width, (int)Height);
+
+	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+	float GLFar = xfmem.viewport.farZ / 16777216.0f;
 
 	// Update the view port
 	if (g_ogl_config.bSupportViewportFloat)
@@ -1365,7 +1315,7 @@ void Renderer::SetViewport()
 			return static_cast<GLint>(ceilf(f));
 		};
 		glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
-		NOTICE_LOG(VR, "glViewport(%d, %d,   %d, %d)", ceil(X), ceil(Y), ceil(Width), ceil(Height));
+		INFO_LOG(VR, "glViewport(%d, %d,   %d, %d)", ceil(X), ceil(Y), ceil(Width), ceil(Height));
 	}
 	glDepthRangef(GLNear, GLFar);
 	//NOTICE_LOG(VR, "gDepthRangef(%f, %f)", GLNear, GLFar);
@@ -2153,7 +2103,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		DrawDebugInfo();
+		// Reset viewport for drawing text
+		glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+
+		ShowEfbCopyRegions();
 		DrawDebugText();
 
 		// Do our OSD callbacks
@@ -2170,9 +2123,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
 		glClearColor(0, 0, 0, 0);
-		// glClearColor(0.f, 0.f, 0.f, 1.f);
 		glClearDepth(1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	// VR
 	//g_texture_cache->ClearRenderTargets();
@@ -2305,9 +2257,6 @@ void Renderer::RestoreAPIState()
 	SetBlendMode(true);
 	SetLogicOpMode();
 	SetViewport();
-
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-		glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);

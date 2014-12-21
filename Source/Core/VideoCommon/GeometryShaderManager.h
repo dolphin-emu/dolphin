@@ -18,6 +18,7 @@ public:
 	static void Shutdown();
 	static void DoState(PointerWrap &p);
 
+	static void SetConstants();
 	static void SetViewportChanged();
 	static void SetProjectionChanged();
 	static void SetLinePtWidthChanged();

@@ -258,7 +258,7 @@ EVT_MENU(IDM_TOGGLE_DUMPFRAMES, CFrame::OnToggleDumpFrames)
 EVT_MENU(IDM_TOGGLE_DUMPAUDIO, CFrame::OnToggleDumpAudio)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
-EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
+EVT_MENU(IDM_CONFIG_AUDIO, CFrame::OnConfigAudio)
 EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
 EVT_MENU(IDM_CONFIG_VR, CFrame::OnConfigVR)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
@@ -392,8 +392,8 @@ CFrame::CFrame(wxFrame* parent,
 	m_Panel = new wxPanel(this, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 
 	m_GameListCtrl = new CGameListCtrl(m_Panel, wxID_ANY,
-			wxDefaultPosition, wxDefaultSize,
-			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
+	        wxDefaultPosition, wxDefaultSize,
+	        wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
 	m_GameListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CFrame::OnGameListCtrl_ItemActivated, this);
 
 	wxBoxSizer *sizerPanel = new wxBoxSizer(wxHORIZONTAL);
@@ -1042,6 +1042,7 @@ bool TASInputHasFocus()
 	}
 	return false;
 }
+
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
