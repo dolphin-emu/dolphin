@@ -207,8 +207,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// non-msaa, so just fetch the pixel
 		sampler =
 			"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, ivec3(pos, 0), 0);\n"
+			"vec4 sampleEFB(ivec3 pos) {\n"
+			"	return texelFetch(samp9, pos, 0);\n"
 			"}\n";
 	}
 	else if (g_ogl_config.bSupportSampleShading)
@@ -220,16 +220,16 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
-				"	return texelFetch(samp9, ivec3(pos, 0), gl_SampleID);\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
+				"	return texelFetch(samp9, pos, gl_SampleID);\n"
 				"}\n";
 		}
 		else
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
-				"	return texelFetch(samp9, pos, gl_SampleID);\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
+				"	return texelFetch(samp9, pos.xy, gl_SampleID);\n"
 				"}\n";
 		}
 	}
@@ -242,10 +242,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
 				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 				"	for(int i=0; i<" + samples.str() + "; i++)\n"
-				"		color += texelFetch(samp9, ivec3(pos, 0), i);\n"
+				"		color += texelFetch(samp9, pos, 0), i);\n"
 				"	return color / " + samples.str() + ";\n"
 				"}\n";
 		}
@@ -253,10 +253,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
 				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 				"	for(int i=0; i<" + samples.str() + "; i++)\n"
-				"		color += texelFetch(samp9, pos, i);\n"
+				"		color += texelFetch(samp9, pos.xy, i);\n"
 				"	return color / " + samples.str() + ";\n"
 				"}\n";
 		}
@@ -266,7 +266,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src6 = ivec4(round(sampleEFB(ivec2(gl_FragCoord.xy)) * 63.f));\n"
+		"	ivec4 src6 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xyz)) * 63.f));\n"
 		"	ivec4 dst8;\n"
 		"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
 		"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
@@ -279,7 +279,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src8 = ivec4(round(sampleEFB(ivec2(gl_FragCoord.xy)) * 255.f));\n"
+		"	ivec4 src8 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xyz)) * 255.f));\n"
 		"	ivec4 dst6;\n"
 		"	dst6.r = src8.r >> 2;\n"
 		"	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
@@ -288,8 +288,26 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	ocol0 = float4(dst6) / 63.f;\n"
 		"}";
 
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str());
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str());
+	std::stringstream vertices;
+	vertices << m_EFBLayers * 3;
+	std::string gs = sampler +
+		"layout(triangles) in;\n"
+		"layout(triangle_strip, max_vertices = " + vertices.str() + ") out;\n"
+		"void main()\n"
+		"{\n"
+		"	int layers = textureSize(samp9, 0).z;\n"
+		"	for (int layer = 0; layer < layers; ++layer) {\n"
+		"		for (int i = 0; i < 3; ++i) {\n"
+		"			gl_Position = vec4(gl_in[i].gl_Position.xy, layer, 1.0);\n"
+		"			gl_Layer = layer;\n"
+		"			EmitVertex();\n"
+		"		}\n"
+		"		EndPrimitive();\n"
+		"	}\n"
+		"}\n";
+
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
 }
 
 FramebufferManager::~FramebufferManager()
