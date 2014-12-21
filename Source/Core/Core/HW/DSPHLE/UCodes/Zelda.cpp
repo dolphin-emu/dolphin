@@ -10,7 +10,7 @@
 // * Mario Kart: Double Dash!! (type ????, CRC ????)
 // * Pikmin (type ????, CRC ????)
 // * Pikmin 2 (type ????, CRC ????)
-// * Super Mario Galaxy (type ????, CRC ????)
+// * Super Mario Galaxy (type Wii-DAC, CRC D643001F)
 // * Super Mario Galaxy 2 (type ????, CRC ????)
 // * Super Mario Sunshine (type ????, CRC ????)
 // * The Legend of Zelda: Four Swords Adventures (type ????, CRC ????)
@@ -191,7 +191,6 @@ void ZeldaUCode::RunPendingCommands()
 		case 0x0A:
 		case 0x0B:
 		case 0x0C:
-		case 0x0E:
 		case 0x0F:
 			// NOP commands. Log anyway in case we encounter a new version
 			// where these are not NOPs anymore.
@@ -265,6 +264,16 @@ void ZeldaUCode::RunPendingCommands()
 		// Command 0D: TODO: find a name and implement.
 		case 0x0D:
 			WARN_LOG(DSPHLE, "CMD0D: %08x", Read32());
+			SendCommandAck(CommandAck::STANDARD, sync);
+			break;
+
+		// Command 0E: Sets the base address of the ARAM for Wii UCodes. Used
+		// because the Wii does not have an ARAM, so it simulates it with MRAM
+		// and DMAs.
+		case 0x0E:
+			if (!IsWiiDAC())
+				PanicAlert("Setting base ARAM addr on non Wii DAC.");
+			m_renderer.SetARAMBaseAddr(Read32());
 			SendCommandAck(CommandAck::STANDARD, sync);
 			break;
 
@@ -1066,6 +1075,14 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
 	vpb->current_pos_frac = pos & 0xFFF;
 }
 
+void* ZeldaAudioRenderer::GetARAMPtr() const
+{
+	if (m_aram_base_addr)
+		return HLEMemory_Get_Pointer(m_aram_base_addr);
+	else
+		return DSP::GetARAMPtr();
+}
+
 void ZeldaAudioRenderer::DownloadPCM8SamplesFromARAM(
 		s16* dst, VPB* vpb, u16 requested_samples_count)
 {
@@ -1100,7 +1117,7 @@ void ZeldaAudioRenderer::DownloadPCM8SamplesFromARAM(
 		vpb->SetCurrentARAMAddr(
 				vpb->GetBaseAddress() + vpb->GetCurrentPosition());
 
-		s8* src_ptr = (s8*)DSP::GetARAMPtr() + vpb->GetCurrentARAMAddr();
+		s8* src_ptr = (s8*)GetARAMPtr() + vpb->GetCurrentARAMAddr();
 		u16 samples_to_download = std::min(vpb->GetRemainingLength(),
 		                                   (u32)requested_samples_count);
 
@@ -1230,7 +1247,7 @@ void ZeldaAudioRenderer::DownloadAFCSamplesFromARAM(
 void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 {
 	u32 addr = vpb->GetCurrentARAMAddr();
-	u8* src = (u8*)DSP::GetARAMPtr() + addr;
+	u8* src = (u8*)GetARAMPtr() + addr;
 	vpb->SetCurrentARAMAddr(addr + (u32)block_count * vpb->samples_source_type);
 
 	for (size_t b = 0; b < block_count; ++b)
