@@ -25,7 +25,7 @@ SetCompressor /SOLID lzma
 !define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
 ; License page
-!insertmacro MUI_PAGE_LICENSE "..\License.txt"
+!insertmacro MUI_PAGE_LICENSE "..\license.txt"
 ; Components page
 !insertmacro MUI_PAGE_COMPONENTS
 ; Directory page
