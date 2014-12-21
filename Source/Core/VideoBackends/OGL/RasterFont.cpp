@@ -118,11 +118,12 @@ static const u8 rasters[CHAR_COUNT][CHAR_HEIGHT] = {
 
 static const char *s_vertexShaderSrc =
 	"uniform vec2 charSize;\n"
+	"uniform vec2 offset;"
 	"in vec2 rawpos;\n"
 	"in vec2 tex0;\n"
 	"out vec2 uv0;\n"
 	"void main(void) {\n"
-	"	gl_Position = vec4(rawpos,0,1);\n"
+	"	gl_Position = vec4(rawpos + offset,0,1);\n"
 	"	uv0 = tex0 * charSize;\n"
 	"}\n";
 
@@ -166,7 +167,8 @@ RasterFont::RasterFont()
 	glUniform2f(glGetUniformLocation(s_shader.glprogid,"charSize"), 1.0f / GLfloat(CHAR_COUNT), 1.0f);
 	uniform_color_id = glGetUniformLocation(s_shader.glprogid,"color");
 	glUniform4f(uniform_color_id, 1.0f, 1.0f, 1.0f, 1.0f);
-	cached_color = -1;
+	uniform_offset_id = glGetUniformLocation(s_shader.glprogid, "offset");
+	glUniform2f(uniform_offset_id, 0.0f, 0.0f);
 
 	// generate VBO & VAO
 	glGenBuffers(1, &VBO);
@@ -263,13 +265,13 @@ void RasterFont::printMultilineText(const std::string& text, double start_x, dou
 
 	s_shader.Bind();
 
-	if (color != cached_color)
-	{
-		glUniform4f(uniform_color_id, GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);
-		cached_color = color;
-	}
+	// shadows
+	glUniform2f(uniform_offset_id, 2.0f / GLfloat(bbWidth), -2.0f / GLfloat(bbHeight));
+	glUniform4f(uniform_color_id, 0.0f, 0.0f, 0.0f, GLfloat((color>>24)&0xff)/255.f);
+	glDrawArrays(GL_TRIANGLES, 0, usage/4);
 
-	glActiveTexture(GL_TEXTURE0+8);
+	glUniform2f(uniform_offset_id, 0.0f, 0.0f);
+	glUniform4f(uniform_color_id, GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
 }
 

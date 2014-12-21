@@ -12,14 +12,12 @@
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Movie.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
@@ -721,40 +719,8 @@ void Renderer::Init()
 }
 
 // Create On-Screen-Messages
-void Renderer::DrawDebugInfo()
+void Renderer::ShowEfbCopyRegions()
 {
-	// Reset viewport for drawing text
-	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
-
-	// Draw various messages on the screen, like FPS, statistics, etc.
-	std::string debug_info;
-
-	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
-	{
-		std::string fps = "";
-		if (g_ActiveConfig.bShowFPS)
-			debug_info += StringFromFormat("FPS: %d", m_fps_counter.m_fps);
-
-		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
-			debug_info += " - ";
-		if (SConfig::GetInstance().m_ShowFrameCount)
-		{
-			debug_info += StringFromFormat("Frame: %llu", (unsigned long long) Movie::g_currentFrame);
-			if (Movie::IsPlayingInput())
-				debug_info += StringFromFormat(" / %llu", (unsigned long long) Movie::g_totalFrames);
-		}
-
-		debug_info += "\n";
-	}
-
-	if (SConfig::GetInstance().m_ShowLag)
-		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
-
-	if (SConfig::GetInstance().m_ShowInputDisplay)
-		debug_info += Movie::GetInputDisplay();
-
-	debug_info += Profiler::ToString();
-
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Set Line Size
@@ -871,19 +837,6 @@ void Renderer::DrawDebugInfo()
 
 		// Clear stored regions
 		stats.efb_regions.clear();
-	}
-
-	if (g_ActiveConfig.bOverlayStats)
-		debug_info += Statistics::ToString();
-
-	if (g_ActiveConfig.bOverlayProjStats)
-		debug_info += Statistics::ToStringProj();
-
-	if (!debug_info.empty())
-	{
-		// Render a shadow, and then the text.
-		Renderer::RenderText(debug_info, 21, 21, 0xDD000000);
-		Renderer::RenderText(debug_info, 20, 20, 0xFF00FFFF);
 	}
 }
 
@@ -1715,7 +1668,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		DrawDebugInfo();
+		// Reset viewport for drawing text
+		glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+
+		ShowEfbCopyRegions();
 		DrawDebugText();
 
 		// Do our OSD callbacks

@@ -25,7 +25,7 @@ private:
 	u32 VAO;
 	u32 texture;
 	u32 uniform_color_id;
-	u32 cached_color;
+	u32 uniform_offset_id;
 };
 
 }
