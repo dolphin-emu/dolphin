@@ -151,9 +151,9 @@ private:
 	u32 m_aram_base_addr = 0;
 	void* GetARAMPtr() const;
 
-	// Downloads PCM8 encoded samples from ARAM. Handles looping and other
+	// Downloads PCM encoded samples from ARAM. Handles looping and other
 	// parameters appropriately.
-	void DownloadPCM8SamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
+	template <typename T> void DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count);
 
 	// Downloads AFC encoded samples from ARAM and decode them. Handles looping
 	// and other parameters appropriately.
