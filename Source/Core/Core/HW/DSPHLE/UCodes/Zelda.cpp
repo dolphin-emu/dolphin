@@ -503,7 +503,6 @@ struct ZeldaAudioRenderer::VPB
 		// Simple saw wave at 100% amplitude and frequency controlled via the
 		// resampling ratio.
 		SRC_SAW_WAVE = 1,
-
 		// Breaking the numerical ordering for these, but they are all related.
 		// Simple pattern stored in the data downloaded by command 01. Playback
 		// frequency is controlled by the resampling ratio.
@@ -511,13 +510,15 @@ struct ZeldaAudioRenderer::VPB
 		SRC_CONST_PATTERN_1 = 4,
 		SRC_CONST_PATTERN_2 = 11,
 		SRC_CONST_PATTERN_3 = 12,
-
 		// Samples stored in ARAM in PCM8 format, at an arbitrary sampling rate
 		// (resampling is applied).
 		SRC_PCM8_FROM_ARAM = 8,
 		// Samples stored in ARAM at a rate of 16 samples/9 bytes, AFC encoded,
 		// at an arbitrary sample rate (resampling is applied).
 		SRC_AFC_HQ_FROM_ARAM = 9,
+		// Samples stored in ARAM in PCM16 format, at an arbitrary sampling
+		// rate (resampling is applied).
+		SRC_PCM16_FROM_ARAM = 16,
 		// Samples stored in MRAM at an arbitrary sample rate (resampling is
 		// applied, unlike PCM16_FROM_MRAM_RAW).
 		SRC_PCM16_FROM_MRAM = 33,
@@ -621,6 +622,8 @@ void ZeldaAudioRenderer::PrepareFrame()
 	                     0x28, 0x7FFF);
 	m_buf_back_left_reverb.fill(0);
 	m_buf_back_right_reverb.fill(0);
+
+	// TODO: Prepare patterns 2/3 - they are not constant unlike 0/1.
 
 	m_prepared = true;
 }
@@ -1000,14 +1003,20 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 		}
 
 		case VPB::SRC_PCM8_FROM_ARAM:
-			DownloadPCM8SamplesFromARAM(raw_input_samples.data() + 4, vpb,
-			                            NeededRawSamplesCount(*vpb));
+			DownloadPCMSamplesFromARAM<s8>(raw_input_samples.data() + 4, vpb,
+			                               NeededRawSamplesCount(*vpb));
 			Resample(vpb, raw_input_samples.data(), buffer);
 			break;
 
 		case VPB::SRC_AFC_HQ_FROM_ARAM:
 			DownloadAFCSamplesFromARAM(raw_input_samples.data() + 4, vpb,
 			                           NeededRawSamplesCount(*vpb));
+			Resample(vpb, raw_input_samples.data(), buffer);
+			break;
+
+		case VPB::SRC_PCM16_FROM_ARAM:
+			DownloadPCMSamplesFromARAM<s16>(raw_input_samples.data() + 4, vpb,
+			                                NeededRawSamplesCount(*vpb));
 			Resample(vpb, raw_input_samples.data(), buffer);
 			break;
 
@@ -1083,8 +1092,8 @@ void* ZeldaAudioRenderer::GetARAMPtr() const
 		return DSP::GetARAMPtr();
 }
 
-void ZeldaAudioRenderer::DownloadPCM8SamplesFromARAM(
-		s16* dst, VPB* vpb, u16 requested_samples_count)
+template <typename T>
+void ZeldaAudioRenderer::DownloadPCMSamplesFromARAM(s16* dst, VPB* vpb, u16 requested_samples_count)
 {
 	if (vpb->done)
 	{
@@ -1093,10 +1102,15 @@ void ZeldaAudioRenderer::DownloadPCM8SamplesFromARAM(
 		return;
 	}
 
-	if (!vpb->reset_vpb)
+	if (vpb->reset_vpb)
 	{
-		vpb->end_reached = false;
+		vpb->SetRemainingLength(
+				vpb->GetLoopStartPosition() - vpb->GetCurrentPosition());
+		vpb->SetCurrentARAMAddr(
+				vpb->GetBaseAddress() + vpb->GetCurrentPosition() * sizeof (T));
 	}
+
+	vpb->end_reached = false;
 	while (requested_samples_count)
 	{
 		if (vpb->end_reached)
@@ -1110,22 +1124,21 @@ void ZeldaAudioRenderer::DownloadPCM8SamplesFromARAM(
 				break;
 			}
 			vpb->SetCurrentPosition(vpb->GetLoopAddress());
+			vpb->SetRemainingLength(
+					vpb->GetLoopStartPosition() - vpb->GetCurrentPosition());
+			vpb->SetCurrentARAMAddr(
+					vpb->GetBaseAddress() + vpb->GetCurrentPosition() * sizeof (T));
 		}
 
-		vpb->SetRemainingLength(
-				vpb->GetLoopStartPosition() - vpb->GetCurrentPosition());
-		vpb->SetCurrentARAMAddr(
-				vpb->GetBaseAddress() + vpb->GetCurrentPosition());
-
-		s8* src_ptr = (s8*)GetARAMPtr() + vpb->GetCurrentARAMAddr();
+		T* src_ptr = (T*)((u8*)GetARAMPtr() + vpb->GetCurrentARAMAddr());
 		u16 samples_to_download = std::min(vpb->GetRemainingLength(),
 		                                   (u32)requested_samples_count);
 
 		for (u16 i = 0; i < samples_to_download; ++i)
-			*dst++ = *src_ptr++ << 8;
+			*dst++ = Common::FromBigEndian<T>(*src_ptr++) << (16 - 8 * sizeof (T));
 
 		vpb->SetRemainingLength(vpb->GetRemainingLength() - samples_to_download);
-		vpb->SetCurrentARAMAddr(vpb->GetCurrentARAMAddr() + samples_to_download);
+		vpb->SetCurrentARAMAddr(vpb->GetCurrentARAMAddr() + samples_to_download * sizeof (T));
 		requested_samples_count -= samples_to_download;
 		if (!vpb->GetRemainingLength())
 			vpb->end_reached = true;
