@@ -882,6 +882,7 @@ ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
 		case 0x0DC0: return &m_buf_unk0_reverb;
 		case 0x0E20: return &m_buf_unk1_reverb;
 		case 0x09A0: return &m_buf_unk0;  // Used by the GC IPL as a reverb dest.
+		case 0x0FA0: return &m_buf_unk1;  // Used by the GC IPL as a mixing dest.
 		default: return nullptr;
 	}
 }
@@ -1508,6 +1509,7 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
 	p.Do(m_buf_unk0_reverb);
 	p.Do(m_buf_unk1_reverb);
 	p.Do(m_buf_unk0);
+	p.Do(m_buf_unk1);
 
 	p.Do(m_resampling_coeffs);
 	p.Do(m_const_patterns);
