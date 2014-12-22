@@ -83,6 +83,10 @@ public:
 	void extsXx(UGeckoInstruction inst);
 	void cntlzwx(UGeckoInstruction inst);
 	void negx(UGeckoInstruction inst);
+	void cmp(UGeckoInstruction inst);
+	void cmpl(UGeckoInstruction inst);
+	void cmpi(UGeckoInstruction inst);
+	void cmpli(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
