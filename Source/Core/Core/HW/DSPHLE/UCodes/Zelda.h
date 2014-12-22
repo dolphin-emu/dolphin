@@ -127,7 +127,7 @@ private:
 	// Base address where VPBs are stored linearly in RAM.
 	u32 m_vpb_base_addr;
 	void FetchVPB(u16 voice_id, VPB* vpb);
-	void StoreVPB(u16 voice_id, const VPB& vpb);
+	void StoreVPB(u16 voice_id, VPB* vpb);
 
 	// Sine table transferred from MRAM. Contains sin(x) values for x in
 	// [0.0;pi/4] (sin(x) in [1.0;0.0]), in 1.15 fixed format.
