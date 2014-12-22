@@ -28,6 +28,7 @@ set(SRCS	BoundingBox.cpp
 			TextureConversionShader.cpp
 			TextureDecoder_Common.cpp
 			VertexLoader.cpp
+			VertexLoaderBase.cpp
 			VertexLoaderManager.cpp
 			VertexLoader_Color.cpp
 			VertexLoader_Normal.cpp

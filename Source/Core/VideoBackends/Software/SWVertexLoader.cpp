@@ -13,12 +13,8 @@
 #include "VideoBackends/Software/TransformUnit.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 
-#include "VideoCommon/VertexLoader.h"
-#include "VideoCommon/VertexLoader_Color.h"
-#include "VideoCommon/VertexLoader_Normal.h"
-#include "VideoCommon/VertexLoader_Position.h"
-#include "VideoCommon/VertexLoader_TextCoord.h"
-#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexLoaderBase.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 SWVertexLoader::SWVertexLoader() :
 	m_VertexSize(0)
@@ -42,11 +38,11 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 	if (!m_CurrentLoader)
 	{
-		m_CurrentLoader = new VertexLoader(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
-		m_VertexLoaderMap[uid] = std::unique_ptr<VertexLoader>(m_CurrentLoader);
+		m_CurrentLoader = VertexLoaderBase::CreateVertexLoader(g_main_cp_state.vtx_desc, g_main_cp_state.vtx_attr[m_attributeIndex]);
+		m_VertexLoaderMap[uid] = std::unique_ptr<VertexLoaderBase>(m_CurrentLoader);
 	}
 
-	m_VertexSize = m_CurrentLoader->GetVertexSize();
+	m_VertexSize = m_CurrentLoader->m_VertexSize;
 	m_CurrentVat = &g_main_cp_state.vtx_attr[m_attributeIndex];
 
 
@@ -168,7 +164,7 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec)
 
 void SWVertexLoader::LoadVertex()
 {
-	const PortableVertexDeclaration& vdec = m_CurrentLoader->GetNativeVertexDeclaration();
+	const PortableVertexDeclaration& vdec = m_CurrentLoader->m_native_vtx_decl;
 
 	// reserve memory for the destination of the vertex loader
 	m_LoadedVertices.resize(vdec.stride + 4);
@@ -176,11 +172,11 @@ void SWVertexLoader::LoadVertex()
 	// convert the vertex from the gc format to the videocommon (hardware optimized) format
 	u8* old = g_video_buffer_read_ptr;
 	m_CurrentLoader->RunVertices(
-		g_main_cp_state.vtx_attr[m_attributeIndex], m_primitiveType, 1,
+		m_primitiveType, 1,
 		DataReader(g_video_buffer_read_ptr, nullptr), // src
 		DataReader(m_LoadedVertices.data(), m_LoadedVertices.data() + m_LoadedVertices.size()) // dst
 	);
-	g_video_buffer_read_ptr = old + m_CurrentLoader->GetVertexSize();
+	g_video_buffer_read_ptr = old + m_CurrentLoader->m_VertexSize;
 
 	// parse the videocommon format to our own struct format (m_Vertex)
 	ParseVertex(vdec);

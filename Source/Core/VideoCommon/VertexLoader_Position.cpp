@@ -71,10 +71,10 @@ float PosScale(float val, float scale)
 }
 
 template <typename T, int N>
-void LOADERDECL Pos_ReadDirect()
+void LOADERDECL Pos_ReadDirect(VertexLoader* loader)
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
-	auto const scale = posScale[0];
+	auto const scale = loader->m_posScale[0];;
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 	DataReader src(g_video_buffer_read_ptr, nullptr);
 
@@ -87,14 +87,15 @@ void LOADERDECL Pos_ReadDirect()
 }
 
 template <typename I, typename T, int N>
-void LOADERDECL Pos_ReadIndex()
+void LOADERDECL Pos_ReadIndex(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 	static_assert(N <= 3, "N > 3 is not sane!");
 
 	auto const index = DataRead<I>();
+	loader->m_vertexSkip = index == std::numeric_limits<I>::max();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
-	auto const scale = posScale[0];
+	auto const scale = loader->m_posScale[0];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
 	for (int i = 0; i < 3; ++i)
@@ -106,21 +107,22 @@ void LOADERDECL Pos_ReadIndex()
 
 #if _M_SSE >= 0x301
 template <typename T, bool three>
-void LOADERDECL Pos_ReadDirect_SSSE3()
+void LOADERDECL Pos_ReadDirect_SSSE3(VertexLoader* loader)
 {
 	const T* pData = reinterpret_cast<const T*>(DataGetPosition());
-	Vertex_Read_SSSE3<T, three, true>(pData, *(__m128*)posScale);
+	Vertex_Read_SSSE3<T, three, true>(pData, *(__m128*)loader->m_posScale);
 	DataSkip<(2 + three) * sizeof(T)>();
 	LOG_VTX();
 }
 
 template <typename I, typename T, bool three>
-void LOADERDECL Pos_ReadIndex_SSSE3()
+void LOADERDECL Pos_ReadIndex_SSSE3(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 	auto const index = DataRead<I>();
+	loader->m_vertexSkip = index == std::numeric_limits<I>::max();
 	const T* pData = (const T*)(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
-	Vertex_Read_SSSE3<T, three, true>(pData, *(__m128*)posScale);
+	Vertex_Read_SSSE3<T, three, true>(pData, *(__m128*)loader->m_posScale);
 	LOG_VTX();
 }
 #endif
