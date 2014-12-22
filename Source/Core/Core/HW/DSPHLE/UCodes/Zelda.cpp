@@ -814,16 +814,22 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 			for (u16 i = 0; i < 8; ++i)
 				(*last8_samples_buffers[rpb_idx])[i] = buffer[0x50 + i];
 
-			// Filter the buffer using provided coefficients.
-			for (u16 i = 0; i < 0x50; ++i)
-			{
-				s32 sample = 0;
-				for (u16 j = 0; j < 8; ++j)
-					sample += (s32)buffer[i + j] * rpb.filter_coeffs[j];
-				sample >>= 15;
-				MathUtil::Clamp(&sample, -0x8000, 0x7fff);
-				buffer[i] = sample;
-			}
+			auto ApplyFilter = [&]() {
+				// Filter the buffer using provided coefficients.
+				for (u16 i = 0; i < 0x50; ++i)
+				{
+					s32 sample = 0;
+					for (u16 j = 0; j < 8; ++j)
+						sample += (s32)buffer[i + j] * rpb.filter_coeffs[j];
+					sample >>= 15;
+					MathUtil::Clamp(&sample, -0x8000, 0x7fff);
+					buffer[i] = sample;
+				}
+			};
+
+			// LSB set -> pre-filtering.
+			if (rpb.enabled & 1)
+				ApplyFilter();
 
 			for (const auto& dest : rpb.dest)
 			{
@@ -840,10 +846,9 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 				                     0x50, dest.volume);
 			}
 
-			// TODO: If "enabled" & 2, the filtering should be done post and
-			// not pre mixing.
+			// LSB not set, bit 1 set -> post-filtering.
 			if (rpb.enabled & 2)
-				PanicAlert("RPB wants post filtering.");
+				ApplyFilter();
 
 			for (u16 i = 0; i < 0x50; ++i)
 				(*reverb_buffers[rpb_idx])[i] = buffer[i];
@@ -876,6 +881,7 @@ ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
 		case 0x0C50: return &m_buf_back_right_reverb;
 		case 0x0DC0: return &m_buf_unk0_reverb;
 		case 0x0E20: return &m_buf_unk1_reverb;
+		case 0x09A0: return &m_buf_unk0;  // Used by the GC IPL as a reverb dest.
 		default: return nullptr;
 	}
 }
@@ -1501,6 +1507,7 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
 	p.Do(m_buf_back_right_reverb);
 	p.Do(m_buf_unk0_reverb);
 	p.Do(m_buf_unk1_reverb);
+	p.Do(m_buf_unk0);
 
 	p.Do(m_resampling_coeffs);
 	p.Do(m_const_patterns);

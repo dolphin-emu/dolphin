@@ -117,6 +117,7 @@ private:
 	MixingBuffer m_buf_back_right_reverb{};
 	MixingBuffer m_buf_unk0_reverb{};
 	MixingBuffer m_buf_unk1_reverb{};
+	MixingBuffer m_buf_unk0{};
 
 	// Maps a buffer "ID" (really, their address in the DSP DRAM...) to our
 	// buffers. Returns nullptr if no match is found.
