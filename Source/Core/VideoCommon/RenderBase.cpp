@@ -604,6 +604,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	// New frame
 	stats.ResetFrame();
 
-	Core::Callback_VideoCopiedToXFB((XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) && !g_opcodereplay_frame);
+	Core::Callback_VideoCopiedToXFB((XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) && (!g_opcodereplay_frame || !opcode_replay_enabled));
 	XFBWrited = false;
 }
