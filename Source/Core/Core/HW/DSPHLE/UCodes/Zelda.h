@@ -198,6 +198,10 @@ private:
 	// list and explanation.
 	u32 m_flags;
 
+	// Different mail handlers for different protocols.
+	void HandleMailDefault(u32 mail);
+	void HandleMailLight(u32 mail);
+
 	// UCode state machine. The control flow in the Zelda UCode family is quite
 	// complex, using interrupt handlers heavily to handle incoming messages
 	// which, depending on the type, get handled immediately or are queued in a
