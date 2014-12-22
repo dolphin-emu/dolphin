@@ -27,19 +27,23 @@ enum ZeldaUCodeFlag
 	// If set, only consider 4 of the 6 non-Dolby mixing outputs. Early
 	// versions of the Zelda UCode only had 4.
 	FOUR_MIXING_DESTS = 0x00000008,
+
+	// Handle smaller VPBs that are missing their 0x40-0x80 area. Very early
+	// versions of the Zelda UCode used 0x80 sized VPBs.
+	TINY_VPB = 0x00000010,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
+	// GameCube IPL/BIOS, NTSC.
+	{ 0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB },
+	// GameCube IPL/BIOS, PAL.
+	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
 	// The Legend of Zelda: Twilight Princess / GC.
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
 	// Super Mario Galaxy.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
-	// GameCube IPL/BIOS, PAL.
-	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
-	// GameCube IPL/BIOS, NTSC.
-	{ 0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
 
 	// TODO: Other games that use this UCode (exhaustive list):
 	// * Animal Crossing (type ????, CRC ????)
@@ -494,9 +498,6 @@ void ZeldaUCode::RenderAudio()
 #pragma pack(push, 1)
 struct ZeldaAudioRenderer::VPB
 {
-	static const u16 SIZE_IN_WORDS = 0xC0;
-	static const u16 RW_SIZE_IN_WORDS = 0x80;
-
 	// If zero, skip processing this voice.
 	u16 enabled;
 
@@ -700,7 +701,55 @@ struct ZeldaAudioRenderer::VPB
 	u16 base_address_l;
 	DEFINE_32BIT_ACCESSOR(base_address, BaseAddress)
 
-	u16 padding[SIZE_IN_WORDS];
+	u16 padding[0xC0];
+
+	// These next two functions are terrible hacks used in order to support two
+	// different VPB sizes.
+
+	// Transforms from an NTSC-IPL type 0x80-sized VPB to a full size VPB.
+	void Uncompress()
+	{
+		u16* words = (u16*)this;
+		// RO part of the VPB is from 0x40-0x80 instead of 0x80-0xC0.
+		for (int i = 0; i < 0x40; ++i)
+		{
+			words[0x80 + i] = words[0x40 + i];
+			words[0x40 + i] = 0;
+		}
+		// AFC decoded samples are offset by 0x28.
+		for (int i = 0; i < 0x10; ++i)
+		{
+			words[0x58 + i] = words[0x30 + i];
+			words[0x30 + i] = 0;
+		}
+		// Most things are offset by 0x18 because no Dolby mixing.
+		for (int i = 0; i < 0x18; ++i)
+		{
+			words[0x30 + i] = words[0x18 + i];
+			words[0x18 + i] = 0;
+		}
+	}
+
+	// Transforms from a full size VPB to an NTSC-IPL 0x80-sized VPB.
+	void Compress()
+	{
+		u16* words = (u16*)this;
+		for (int i = 0; i < 0x18; ++i)
+		{
+			words[0x18 + i] = words[0x30 + i];
+			words[0x30 + i] = 0;
+		}
+		for (int i = 0; i < 0x10; ++i)
+		{
+			words[0x30 + i] = words[0x58 + i];
+			words[0x58 + i] = 0;
+		}
+		for (int i = 0; i < 0x40; ++i)
+		{
+			words[0x40 + i] = words[0x80 + i];
+			words[0x80 + i] = 0;
+		}
+	}
 };
 
 struct ReverbPB
@@ -1026,7 +1075,7 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 	if (!vpb.use_constant_sample)
 		vpb.reset_vpb = false;
 
-	StoreVPB(voice_id, vpb);
+	StoreVPB(voice_id, &vpb);
 }
 
 void ZeldaAudioRenderer::FinalizeFrame()
@@ -1058,20 +1107,32 @@ void ZeldaAudioRenderer::FetchVPB(u16 voice_id, VPB* vpb)
 	u16* vpb_words = (u16*)vpb;
 	u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
 
-	size_t base_idx = voice_id * VPB::SIZE_IN_WORDS;
-	for (size_t i = 0; i < VPB::SIZE_IN_WORDS; ++i)
+	// A few versions of the UCode have VPB of size 0x80 (vs. the standard
+	// 0xC0). The whole 0x40-0x80 part is gone. Handle that by moving things
+	// around.
+	size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
+
+	size_t base_idx = voice_id * vpb_size;
+	for (size_t i = 0; i < vpb_size; ++i)
 		vpb_words[i] = Common::swap16(ram_vpbs[base_idx + i]);
+
+	if (m_flags & TINY_VPB)
+		vpb->Uncompress();
 }
 
-void ZeldaAudioRenderer::StoreVPB(u16 voice_id, const VPB& vpb)
+void ZeldaAudioRenderer::StoreVPB(u16 voice_id, VPB* vpb)
 {
-	const u16* vpb_words = (const u16*)&vpb;
+	u16* vpb_words = (u16*)vpb;
 	u16* ram_vpbs = (u16*)HLEMemory_Get_Pointer(m_vpb_base_addr);
 
-	size_t base_idx = voice_id * VPB::SIZE_IN_WORDS;
+	size_t vpb_size = (m_flags & TINY_VPB) ? 0x80 : 0xC0;
+	size_t base_idx = voice_id * vpb_size;
+
+	if (m_flags & TINY_VPB)
+		vpb->Compress();
 
 	// Only the first 0x80 words are transferred back - the rest is read-only.
-	for (size_t i = 0; i < VPB::RW_SIZE_IN_WORDS; ++i)
+	for (size_t i = 0; i < vpb_size - 0x40; ++i)
 		ram_vpbs[base_idx + i] = Common::swap16(vpb_words[i]);
 }
 
