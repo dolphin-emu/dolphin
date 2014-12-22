@@ -15,6 +15,7 @@ public:
 	void AddVoice(u16 voice_id);
 	void FinalizeFrame();
 
+	void SetFlags(u32 flags) { m_flags = flags; }
 	void SetSineTable(std::array<s16, 0x80>&& sine_table) { m_sine_table = sine_table; }
 	void SetConstPatterns(std::array<s16, 0x100>&& patterns) { m_const_patterns = patterns; }
 	void SetResamplingCoeffs(std::array<s16, 0x100>&& coeffs) { m_resampling_coeffs = coeffs; }
@@ -30,6 +31,9 @@ public:
 
 private:
 	struct VPB;
+
+	// See Zelda.cpp for the list of possible flags.
+	u32 m_flags;
 
 	// Utility functions for audio operations.
 
@@ -189,12 +193,11 @@ public:
 
 	void DoState(PointerWrap &p) override;
 
-	bool IsWiiDAC() const
-	{
-		return m_crc == 0xd643001f;
-	}
-
 private:
+	// Flags that alter the behavior of the UCode. See Zelda.cpp for complete
+	// list and explanation.
+	u32 m_flags;
+
 	// UCode state machine. The control flow in the Zelda UCode family is quite
 	// complex, using interrupt handlers heavily to handle incoming messages
 	// which, depending on the type, get handled immediately or are queued in a
