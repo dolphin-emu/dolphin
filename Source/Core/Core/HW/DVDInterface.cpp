@@ -628,6 +628,13 @@ DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
 	DVDCommandResult result;
 	result.ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
+	if (!g_bDiscInside)
+	{
+		g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
+		result.interrupt_type = INT_DEINT;
+		return result;
+	}
+
 	if (!DVDRead(DVD_offset, output_address, DVD_length, raw))
 		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 
@@ -811,86 +818,77 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 
 	// DMA Read from Disc. Only seems to be used through direct access, not WII_IPC
 	case 0xA8:
-		if (g_bDiscInside)
+		switch (command_0 & 0xFF)
 		{
-			switch (command_0 & 0xFF)
+		case 0x00: // Read Sector
 			{
-			case 0x00: // Read Sector
+				u64 iDVDOffset = (u64)command_1 << 2;
+
+				INFO_LOG(DVDINTERFACE, "Read: DVDOffset=%08" PRIx64 ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
+					        iDVDOffset, output_address, command_2, output_length);
+
+				if (GCAM)
 				{
-					u64 iDVDOffset = (u64)command_1 << 2;
-
-					INFO_LOG(DVDINTERFACE, "Read: DVDOffset=%08" PRIx64 ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
-					         iDVDOffset, output_address, command_2, output_length);
-
-					if (GCAM)
+					if (iDVDOffset & 0x80000000) // read request to hardware buffer
 					{
-						if (iDVDOffset & 0x80000000) // read request to hardware buffer
+						switch (iDVDOffset)
 						{
-							switch (iDVDOffset)
-							{
-							case 0x80000000:
-								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (80000000)");
-								for (u32 i = 0; i < output_length; i += 4)
-									Memory::Write_U32(0, output_address + i);
-								break;
-							case 0x80000040:
-								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (2) (80000040)");
-								for (u32 i = 0; i < output_length; i += 4)
-									Memory::Write_U32(~0, output_address + i);
-								Memory::Write_U32(0x00000020, output_address); // DIMM SIZE, LE
-								Memory::Write_U32(0x4743414D, output_address + 4); // GCAM signature
-								break;
-							case 0x80000120:
-								ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000120)");
-								for (u32 i = 0; i < output_length; i += 4)
-									Memory::Write_U32(0x01010101, output_address + i);
-								break;
-							case 0x80000140:
-								ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000140)");
-								for (u32 i = 0; i < output_length; i += 4)
-									Memory::Write_U32(0x01010101, output_address + i);
-								break;
-							case 0x84000020:
-								ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (1) (84000020)");
-								for (u32 i = 0; i < output_length; i += 4)
-									Memory::Write_U32(0x00000000, output_address + i);
-								break;
-							default:
-								ERROR_LOG(DVDINTERFACE, "GC-AM: UNKNOWN MEDIA BOARD LOCATION %" PRIx64, iDVDOffset);
-								break;
-							}
-							break;
-						}
-						else if ((iDVDOffset == 0x1f900000) || (iDVDOffset == 0x1f900020))
-						{
-							ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD COMM AREA (1f900020)");
-							u8* source = media_buffer + iDVDOffset - 0x1f900000;
-							Memory::CopyToEmu(output_address, source, output_length);
+						case 0x80000000:
+							ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (80000000)");
 							for (u32 i = 0; i < output_length; i += 4)
-								ERROR_LOG(DVDINTERFACE, "GC-AM: %08x", Memory::Read_U32(output_address + i));
+								Memory::Write_U32(0, output_address + i);
+							break;
+						case 0x80000040:
+							ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (2) (80000040)");
+							for (u32 i = 0; i < output_length; i += 4)
+								Memory::Write_U32(~0, output_address + i);
+							Memory::Write_U32(0x00000020, output_address); // DIMM SIZE, LE
+							Memory::Write_U32(0x4743414D, output_address + 4); // GCAM signature
+							break;
+						case 0x80000120:
+							ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000120)");
+							for (u32 i = 0; i < output_length; i += 4)
+								Memory::Write_U32(0x01010101, output_address + i);
+							break;
+						case 0x80000140:
+							ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000140)");
+							for (u32 i = 0; i < output_length; i += 4)
+								Memory::Write_U32(0x01010101, output_address + i);
+							break;
+						case 0x84000020:
+							ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (1) (84000020)");
+							for (u32 i = 0; i < output_length; i += 4)
+								Memory::Write_U32(0x00000000, output_address + i);
+							break;
+						default:
+							ERROR_LOG(DVDINTERFACE, "GC-AM: UNKNOWN MEDIA BOARD LOCATION %" PRIx64, iDVDOffset);
 							break;
 						}
+						break;
 					}
-
-					result = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length);
+					else if ((iDVDOffset == 0x1f900000) || (iDVDOffset == 0x1f900020))
+					{
+						ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD COMM AREA (1f900020)");
+						u8* source = media_buffer + iDVDOffset - 0x1f900000;
+						Memory::CopyToEmu(output_address, source, output_length);
+						for (u32 i = 0; i < output_length; i += 4)
+							ERROR_LOG(DVDINTERFACE, "GC-AM: %08x", Memory::Read_U32(output_address + i));
+						break;
+					}
 				}
-				break;
 
-			case 0x40: // Read DiscID
-				INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
-				result = ExecuteReadCommand(0, output_address, command_2, output_length);
-				break;
-
-			default:
-				ERROR_LOG(DVDINTERFACE, "Unknown read subcommand: %08x", command_0);
-				break;
+				result = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length);
 			}
-		}
-		else
-		{
-			// there is no disc to read
-			g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
-			result.interrupt_type = INT_DEINT;
+			break;
+
+		case 0x40: // Read DiscID
+			INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
+			result = ExecuteReadCommand(0, output_address, command_2, output_length);
+			break;
+
+		default:
+			ERROR_LOG(DVDINTERFACE, "Unknown read subcommand: %08x", command_0);
+			break;
 		}
 		break;
 
