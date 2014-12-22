@@ -577,7 +577,8 @@ void CFrame::OnClose(wxCloseEvent& event)
 	else
 	{
 		// Close the log window now so that its settings are saved
-		m_LogWindow->Close();
+		if (m_LogWindow)
+			m_LogWindow->Close();
 		m_LogWindow = nullptr;
 	}
 
