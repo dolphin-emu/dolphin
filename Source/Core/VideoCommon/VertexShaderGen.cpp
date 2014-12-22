@@ -78,7 +78,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		{
 			out.Write("out VertexData {\n");
 			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
-			out.Write("} o;\n");
+			out.Write("} vs;\n");
 		}
 		else
 		{
@@ -98,9 +98,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		}
 
 		out.Write("void main()\n{\n");
-
-		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
 	{
@@ -126,9 +123,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (components & VB_HAS_POSMTXIDX)
 			out.Write("  int posmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
-
-		out.Write("VS_OUTPUT o;\n");
 	}
+
+	out.Write("VS_OUTPUT o;\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
@@ -386,7 +383,11 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	if (api_type == API_OPENGL)
 	{
-		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		{
+			AssignVSOutputMembers(out, "vs", "o");
+		}
+		else
 		{
 			// TODO: Pass interface blocks between shader stages even if geometry shaders
 			// are not supported, however that will require at least OpenGL 3.2 support.
