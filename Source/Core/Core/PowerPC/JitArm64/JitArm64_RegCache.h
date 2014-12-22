@@ -144,6 +144,7 @@ public:
 	{
 		for (T reg : {args...})
 		{
+			FlushByHost(reg);
 			LockRegister(reg);
 		}
 	}
@@ -155,6 +156,7 @@ public:
 	{
 		for (T reg : {args...})
 		{
+			FlushByHost(reg);
 			UnlockRegister(reg);
 		}
 	}
@@ -171,6 +173,9 @@ protected:
 
 	// Unlock a register
 	void UnlockRegister(ARM64Reg host_reg);
+
+	// Flushes a guest register by host provided
+	virtual void FlushByHost(ARM64Reg host_reg) = 0;
 
 	// Get available host registers
 	u32 GetUnlockedRegisterCount();
@@ -208,12 +213,21 @@ public:
 	// Gets the immediate that a register is set to
 	u32 GetImm(u32 reg) { return m_guest_registers[reg].GetImm(); }
 
+	void BindToRegister(u32 preg, bool do_load);
+
+	void StoreRegister(u32 preg) { FlushRegister(preg, false); }
+
+	BitSet32 GetCallerSavedUsed();
+
 protected:
 	// Get the order of the host registers
 	void GetAllocationOrder();
 
 	// Flushes the most stale register
 	void FlushMostStaleRegister();
+
+	// Flushes a guest register by host provided
+	void FlushByHost(ARM64Reg host_reg) override;
 
 	// Our guest GPRs
 	// PowerPC has 32 GPRs
@@ -228,7 +242,7 @@ private:
 			reg.IncrementLastUsed();
 	}
 
-	void FlushRegister(u32 preg);
+	void FlushRegister(u32 preg, bool maintain_state);
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -248,6 +262,9 @@ protected:
 
 	// Flushes the most stale register
 	void FlushMostStaleRegister();
+
+	// Flushes a guest register by host provided
+	void FlushByHost(ARM64Reg host_reg) override;
 
 	// Our guest FPRs
 	// Gekko has 32 paired registers(32x2)

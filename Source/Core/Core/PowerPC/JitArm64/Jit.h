@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "Common/Arm64Emitter.h"
 
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -11,6 +13,7 @@
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitAsm.h"
+#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define PPCSTATE_OFF(elem) ((s64)&PowerPC::ppcState.elem - (s64)&PowerPC::ppcState)
@@ -31,11 +34,9 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return nullptr; }
-
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 
-	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
 	void ClearCache();
 
@@ -96,6 +97,8 @@ public:
 
 	// LoadStore
 	void icbi(UGeckoInstruction inst);
+	void lXX(UGeckoInstruction inst);
+	void stX(UGeckoInstruction inst);
 
 private:
 	Arm64GPRCache gpr;
@@ -106,14 +109,26 @@ private:
 
 	PPCAnalyst::CodeBuffer code_buffer;
 
+	// The key is the backpatch flags
+	std::map<u32, BackPatchInfo> m_backpatch_info;
+
+	// Backpatching routines
+	bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
+	void InitBackpatch();
+	u32 EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem, bool do_padding, Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr);
+	// Loadstore routines
+	void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
+	void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
+
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
 
 	void DoDownCount();
 
 	// Exits
 	void WriteExit(u32 destination);
-	void WriteExceptionExit(ARM64Reg dest);
-	void WriteExitDestInR(ARM64Reg dest);
+	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
+	void WriteExceptionExit();
+	void WriteExitDestInR(Arm64Gen::ARM64Reg dest);
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
