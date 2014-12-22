@@ -388,8 +388,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	{
 		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			// TODO: Pass structs between shader stages even if geometry shaders
-			// are not supported, however that will break GL 3.0 and 3.1 support.
+			// TODO: Pass interface blocks between shader stages even if geometry shaders
+			// are not supported, however that will require at least OpenGL 3.2 support.
 			for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
 			out.Write("clipPos = o.clipPos;\n");

@@ -200,14 +200,6 @@ namespace DriverDetails
 		// Broken on Windows Intel
 		// if (cond == false)
 		BUG_BROKENNEGATEDBOOLEAN,
-		// Bug: Intel's Windows driver can't pass structs between shader stages.
-		// Affected devices: Intel (Windows)
-		// Started Version: -1
-		// Ended Version: -1
-		// We need structs to make assignment easier in the geometry shader stage. However Intel's
-		// Windows drivers don't seem to be able handle passing them between shader stages.
-		// TODO: Find affected versions.
-		BUG_INTELBROKENSTRUCTS,
 
 	};
 
