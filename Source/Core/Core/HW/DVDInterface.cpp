@@ -628,14 +628,6 @@ DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
 	DVDCommandResult result;
 	result.ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
-	// Is this check needed?
-	if (output_address == 0)
-	{
-		PanicAlert("DVDLowRead : _BufferOut == 0");
-		result.interrupt_type = INT_DEINT;
-		return result;
-	}
-
 	if (raw)
 	{
 		// We must make sure it is in a valid area! (#001 check)
