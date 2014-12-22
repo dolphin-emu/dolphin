@@ -35,8 +35,11 @@
 
 DSPLLE::DSPLLE()
 {
-	m_bIsRunning = false;
+	m_bIsRunning.Clear();
+	{
+	std::lock_guard<std::mutex> lk(m_csDSPCycleCountActive);
 	m_cycle_count = 0;
+	}
 }
 
 static Common::Event dspEvent;
@@ -88,9 +91,14 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
 
-	while (dsp_lle->m_bIsRunning)
+	while (dsp_lle->m_bIsRunning.IsSet())
 	{
-		int cycles = (int)dsp_lle->m_cycle_count;
+		int cycles = 0;
+		{
+		std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPCycleCountActive);
+		cycles = (int)dsp_lle->m_cycle_count;
+		}
+
 		if (cycles > 0)
 		{
 			std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPThreadActive);
@@ -102,7 +110,10 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 			{
 				DSPInterpreter::RunCyclesThread(cycles);
 			}
-			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
+			{
+			std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPCycleCountActive);
+			dsp_lle->m_cycle_count = 0;
+			}
 		}
 		else
 		{
@@ -163,7 +174,7 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 {
 	m_bWii = bWii;
 	m_bDSPThread = true;
-	if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || Core::g_want_determinism || !bDSPThread)
+	if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || Core::g_want_determinism || !bDSPThread || !dspjit)
 		m_bDSPThread = false;
 	requestDisableThread = false;
 
@@ -177,12 +188,13 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 	g_dsp.cpu_ram = Memory::base;
 	DSPCore_Reset();
 
-	m_bIsRunning = true;
-
 	InitInstructionTable();
 
 	if (m_bDSPThread)
+	{
+		m_bIsRunning.Set(true);
 		m_hDSPThread = std::thread(dsp_thread, this);
+	}
 
 	Host_RefreshDSPDebuggerWindow();
 
@@ -192,9 +204,9 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 void DSPLLE::DSP_StopSoundStream()
 {
 	DSPInterpreter::Stop();
-	m_bIsRunning = false;
 	if (m_bDSPThread)
 	{
+		m_bIsRunning.Clear();
 		ppcEvent.Set();
 		dspEvent.Set();
 		m_hDSPThread.join();
@@ -210,17 +222,8 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
 	DSPInterpreter::WriteCR(_uFlag);
 
-	// Check if the CPU has set an external interrupt (CR_EXTERNAL_INT)
-	// and immediately process it, if it has.
 	if (_uFlag & 2)
 	{
-		if (m_bDSPThread)
-		{
-			// External interrupt pending: this is the zelda ucode.
-			// Disable the DSP thread because there is no performance gain.
-			requestDisableThread = true;
-		}
-
 		if (!m_bDSPThread)
 		{
 			DSPCore_CheckExternalInterrupt();
@@ -228,6 +231,10 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 		}
 		else
 		{
+			// External interrupt pending: this is the zelda ucode.
+			// Disable the DSP thread because there is no performance gain.
+			requestDisableThread = true;
+
 			DSPCore_SetExternalInterrupt(true);
 		}
 
@@ -338,9 +345,11 @@ void DSPLLE::DSP_Update(int cycles)
 	{
 		// Wait for dsp thread to complete its cycle. Note: this logic should be thought through.
 		ppcEvent.Wait();
-		Common::AtomicStore(m_cycle_count, dsp_cycles);
+		{
+		std::lock_guard<std::mutex> lk(m_csDSPCycleCountActive);
+		m_cycle_count += dsp_cycles;
+		}
 		dspEvent.Set();
-
 	}
 }
 
