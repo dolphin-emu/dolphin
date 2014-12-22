@@ -379,6 +379,15 @@ void OpcodeReplayBuffer()
 	}
 	else
 	{
+		if (opcode_replay_enabled)
+		{
+			is_preprocess_log.clear();
+			is_preprocess_log.resize(0);
+			timewarp_log.clear();
+			timewarp_log.resize(0);
+			display_list_log.clear();
+			display_list_log.resize(0);
+		}
 		opcode_replay_enabled = false;
 		g_opcodereplay_frame = true; //Don't log frames
 	}
