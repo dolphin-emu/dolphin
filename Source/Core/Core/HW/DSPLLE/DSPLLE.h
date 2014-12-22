@@ -36,8 +36,9 @@ private:
 
 	std::thread m_hDSPThread;
 	std::mutex m_csDSPThreadActive;
+	std::mutex m_csDSPCycleCountActive;
 	bool m_bWii;
 	bool m_bDSPThread;
-	bool m_bIsRunning;
-	volatile u32 m_cycle_count;
+	Common::Flag m_bIsRunning;
+	u32 m_cycle_count;
 };

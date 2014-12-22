@@ -57,7 +57,7 @@ __forceinline void ReadIndirect(const T* data)
 template <typename T, int N>
 struct Normal_Direct
 {
-	static void LOADERDECL function()
+	static void LOADERDECL function(VertexLoader* loader)
 	{
 		auto const source = reinterpret_cast<const T*>(DataGetPosition());
 		ReadIndirect<T, N * 3>(source);
@@ -81,7 +81,7 @@ __forceinline void Normal_Index_Offset()
 template <typename I, typename T, int N>
 struct Normal_Index
 {
-	static void LOADERDECL function()
+	static void LOADERDECL function(VertexLoader* loader)
 	{
 		Normal_Index_Offset<I, T, N, 0>();
 	}
@@ -92,7 +92,7 @@ struct Normal_Index
 template <typename I, typename T>
 struct Normal_Index_Indices3
 {
-	static void LOADERDECL function()
+	static void LOADERDECL function(VertexLoader* loader)
 	{
 		Normal_Index_Offset<I, T, 1, 0>();
 		Normal_Index_Offset<I, T, 1, 1>();
@@ -106,7 +106,7 @@ struct Normal_Index_Indices3
 template <typename T, int N>
 struct Normal_Direct_SSSE3
 {
-	static void LOADERDECL function()
+	static void LOADERDECL function(VertexLoader* loader)
 	{
 		const T* pData = reinterpret_cast<const T*>(DataGetPosition());
 		const float frac = 1. / float(1u << (sizeof(T) * 8 - std::is_signed<T>::value - 1));
@@ -136,7 +136,7 @@ __forceinline void Normal_Index_Offset_SSSE3()
 template <typename I, typename T, int N>
 struct Normal_Index_SSSE3
 {
-	static void LOADERDECL function()
+	static void LOADERDECL function(VertexLoader* loader)
 	{
 		Normal_Index_Offset_SSSE3<I, T, N, 0>();
 	}
@@ -147,7 +147,7 @@ struct Normal_Index_SSSE3
 template <typename I, typename T>
 struct Normal_Index_Indices3_SSSE3
 {
-	static void LOADERDECL function()
+	static void LOADERDECL function(VertexLoader* loader)
 	{
 		Normal_Index_Offset_SSSE3<I, T, 1, 0>();
 		Normal_Index_Offset_SSSE3<I, T, 1, 1>();
