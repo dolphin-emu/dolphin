@@ -19,6 +19,10 @@ enum ZeldaUCodeFlag
 	// Multiply by two the computed Dolby positional volumes. Some UCodes do
 	// not do that (Zelda TWW for example), others do (Zelda TP, SMG).
 	MAKE_DOLBY_LOUDER = 0x00000002,
+
+	// Light version of the UCode: no Dolby mixing, different synchronization
+	// protocol, etc.
+	LIGHT_PROTOCOL = 0x00000004,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
@@ -28,11 +32,12 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
 	// Super Mario Galaxy.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
+	// GameCube IPL/BIOS.
+	{ 0x6BA3B3EA, LIGHT_PROTOCOL },
 
 	// TODO: Other games that use this UCode (exhaustive list):
 	// * Animal Crossing (type ????, CRC ????)
 	// * Donkey Kong Jungle Beat (type ????, CRC ????)
-	// * IPL (type ????, CRC ????)
 	// * Luigi's Mansion (type ????, CRC ????)
 	// * Mario Kart: Double Dash!! (type ????, CRC ????)
 	// * Pikmin (type ????, CRC ????)
@@ -46,15 +51,22 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
 	: UCodeInterface(dsphle, crc)
 {
-	m_mail_handler.PushMail(DSP_INIT, true);
-	m_mail_handler.PushMail(0xF3551111); // handshake
-
 	auto it = UCODE_FLAGS.find(crc);
 	if (it == UCODE_FLAGS.end())
 		PanicAlert("No flags definition found for Zelda CRC %08x", crc);
 
 	m_flags = it->second;
 	m_renderer.SetFlags(m_flags);
+
+	if (m_flags & LIGHT_PROTOCOL)
+	{
+		m_mail_handler.PushMail(0x88881111);
+	}
+	else
+	{
+		m_mail_handler.PushMail(DSP_INIT, true);
+		m_mail_handler.PushMail(0xF3551111); // handshake
+	}
 }
 
 ZeldaUCode::~ZeldaUCode()
@@ -108,6 +120,14 @@ void ZeldaUCode::HandleMail(u32 mail)
 		return;
 	}
 
+	if (m_flags & LIGHT_PROTOCOL)
+		HandleMailLight(mail);
+	else
+		HandleMailDefault(mail);
+}
+
+void ZeldaUCode::HandleMailDefault(u32 mail)
+{
 	switch (m_mail_current_state)
 	{
 	case MailState::WAITING:
@@ -183,6 +203,65 @@ void ZeldaUCode::HandleMail(u32 mail)
 			SetMailState(MailState::WAITING);
 			RunPendingCommands();
 		}
+		break;
+
+	case MailState::HALTED:
+		WARN_LOG(DSPHLE, "Received mail %08x while we're halted.", mail);
+		break;
+	}
+}
+
+void ZeldaUCode::HandleMailLight(u32 mail)
+{
+	switch (m_mail_current_state)
+	{
+	case MailState::WAITING:
+		if (!(mail & 0x80000000))
+			PanicAlert("Mail received in waiting state has MSB=0: %08x", mail);
+
+		// Start of a command. We have to hardcode the number of mails required
+		// for each command - the alternative is to rewrite command handling as
+		// an asynchronous procedure, and we wouldn't want that, would we?
+		Write32(mail);
+		switch ((mail >> 24) & 0x7F)
+		{
+		case 0: m_mail_expected_cmd_mails = 0; break;
+		case 1: m_mail_expected_cmd_mails = 4; break;
+		case 2: m_mail_expected_cmd_mails = 2; break;
+		default:
+			PanicAlert("Received unknown command in light protocol: %08x", mail);
+			break;
+		}
+		if (m_mail_expected_cmd_mails)
+		{
+			SetMailState(MailState::WRITING_CMD);
+		}
+		else
+		{
+			m_pending_commands_count += 1;
+			RunPendingCommands();
+		}
+		break;
+
+	case MailState::WRITING_CMD:
+		Write32(mail);
+		if (--m_mail_expected_cmd_mails == 0)
+		{
+			m_pending_commands_count += 1;
+			SetMailState(MailState::WAITING);
+			RunPendingCommands();
+		}
+		break;
+
+	case MailState::RENDERING:
+		if (mail != 0)
+			PanicAlert("Sync mail is not zero: %08x", mail);
+
+		// No per-voice syncing in the light protocol.
+		m_sync_max_voice_id = 0xFFFFFFFF;
+		m_sync_voice_skip_flags.fill(0xFFFFFFFF);
+		RenderAudio();
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 		break;
 
 	case MailState::HALTED:
@@ -286,7 +365,16 @@ void ZeldaUCode::RunPendingCommands()
 
 			m_rendering_curr_frame = 0;
 			m_rendering_curr_voice = 0;
-			RenderAudio();
+
+			if (m_flags & LIGHT_PROTOCOL)
+			{
+				SendCommandAck(CommandAck::STANDARD, m_rendering_requested_frames);
+				SetMailState(MailState::RENDERING);
+			}
+			else
+			{
+				RenderAudio();
+			}
 			return;
 
 		// Command 0D: TODO: find a name and implement.
@@ -315,17 +403,25 @@ void ZeldaUCode::RunPendingCommands()
 
 void ZeldaUCode::SendCommandAck(CommandAck ack_type, u16 sync_value)
 {
-	u32 ack_mail = 0;
-	switch (ack_type)
+	if (m_flags & LIGHT_PROTOCOL)
 	{
-	case CommandAck::STANDARD: ack_mail = DSP_SYNC; break;
-	case CommandAck::DONE_RENDERING: ack_mail = DSP_FRAME_END; break;
+		// The light protocol uses the address of the command handler in the
+		// DSP code instead of the command id... go figure.
+		sync_value = 2 * ((sync_value >> 8) & 0x7F) + 0x62;
+		m_mail_handler.PushMail(0x80000000 | sync_value);
 	}
-	m_mail_handler.PushMail(ack_mail, true);
-
-	if (ack_type == CommandAck::STANDARD)
+	else
 	{
-		m_mail_handler.PushMail(0xF3550000 | sync_value);
+		u32 ack_mail = 0;
+		switch (ack_type)
+		{
+		case CommandAck::STANDARD: ack_mail = DSP_SYNC; break;
+		case CommandAck::DONE_RENDERING: ack_mail = DSP_FRAME_END; break;
+		}
+		m_mail_handler.PushMail(ack_mail, true);
+
+		if (ack_type == CommandAck::STANDARD)
+			m_mail_handler.PushMail(0xF3550000 | sync_value);
 	}
 }
 
@@ -358,7 +454,8 @@ void ZeldaUCode::RenderAudio()
 			m_rendering_curr_voice++;
 		}
 
-		SendCommandAck(CommandAck::STANDARD, 0xFF00 | m_rendering_curr_frame);
+		if (!(m_flags & LIGHT_PROTOCOL))
+			SendCommandAck(CommandAck::STANDARD, 0xFF00 | m_rendering_curr_frame);
 
 		m_renderer.FinalizeFrame();
 
@@ -367,8 +464,15 @@ void ZeldaUCode::RenderAudio()
 		m_rendering_curr_frame++;
 	}
 
-	SendCommandAck(CommandAck::DONE_RENDERING, 0);
-	m_cmd_can_execute = false;  // Block command execution until ACK is received.
+	if (!(m_flags & LIGHT_PROTOCOL))
+	{
+		SendCommandAck(CommandAck::DONE_RENDERING, 0);
+		m_cmd_can_execute = false;  // Block command execution until ACK is received.
+	}
+	else
+	{
+		SetMailState(MailState::WAITING);
+	}
 }
 
 // Utility to define 32 bit accessors/modifiers methods based on two 16 bit
