@@ -62,7 +62,7 @@ TextureCache::TextureCache()
 	if (g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTexture::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
-	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+	SetHash64Function();
 
 	invalidate_texture_cache_requested = false;
 }
@@ -110,7 +110,6 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			if (g_ActiveConfig.bHiresTextures)
 				HiresTexture::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
-			SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
 			invalidate_texture_cache_requested = false;
