@@ -23,6 +23,10 @@ enum ZeldaUCodeFlag
 	// Light version of the UCode: no Dolby mixing, different synchronization
 	// protocol, etc.
 	LIGHT_PROTOCOL = 0x00000004,
+
+	// If set, only consider 4 of the 6 non-Dolby mixing outputs. Early
+	// versions of the Zelda UCode only had 4.
+	FOUR_MIXING_DESTS = 0x00000008,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
@@ -32,8 +36,10 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
 	// Super Mario Galaxy.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
-	// GameCube IPL/BIOS.
-	{ 0x6BA3B3EA, LIGHT_PROTOCOL },
+	// GameCube IPL/BIOS, PAL.
+	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
+	// GameCube IPL/BIOS, NTSC.
+	{ 0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
 
 	// TODO: Other games that use this UCode (exhaustive list):
 	// * Animal Crossing (type ????, CRC ????)
@@ -973,44 +979,45 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 	{
 		// TODO: Store input samples if requested by the VPB.
 
+		int num_channels = (m_flags & FOUR_MIXING_DESTS) ? 4 : 6;
 		if (vpb.end_requested)
 		{
 			bool all_mute = true;
-			for (auto& channel : vpb.channels)
+			for (int i = 0; i < num_channels; ++i)
 			{
-				channel.target_volume = channel.current_volume / 2;
-				all_mute &= (channel.target_volume == 0);
+				vpb.channels[i].target_volume = vpb.channels[i].current_volume / 2;
+				all_mute &= (vpb.channels[i].target_volume == 0);
 			}
 			if (all_mute)
 				vpb.done = true;
 		}
 
-		for (auto& channel : vpb.channels)
+		for (int i = 0; i < num_channels; ++i)
 		{
-			if (!channel.id)
+			if (!vpb.channels[i].id)
 				continue;
 
-			s16 volume_delta = channel.target_volume - channel.current_volume;
+			s16 volume_delta = vpb.channels[i].target_volume - vpb.channels[i].current_volume;
 			s32 volume_step = (volume_delta << 16) / (s32)input_samples.size();  // In 1.31 format.
 
 			// TODO: The last value of each channel structure is used to
 			// determine whether a channel should be skipped or not. Not
 			// implemented yet.
 
-			if (!channel.current_volume && !volume_step)
+			if (!vpb.channels[i].current_volume && !volume_step)
 				continue;
 
-			MixingBuffer* dst_buffer = BufferForID(channel.id);
+			MixingBuffer* dst_buffer = BufferForID(vpb.channels[i].id);
 			if (!dst_buffer)
 			{
-				PanicAlert("Mixing to an unmapped buffer: %04x", channel.id);
+				PanicAlert("Mixing to an unmapped buffer: %04x", vpb.channels[i].id);
 				continue;
 			}
 
 			s32 new_volume = AddBuffersWithVolumeRamp(
-					dst_buffer, input_samples, channel.current_volume << 16,
+					dst_buffer, input_samples, vpb.channels[i].current_volume << 16,
 					volume_step);
-			channel.current_volume = new_volume >> 16;
+			vpb.channels[i].current_volume = new_volume >> 16;
 		}
 	}
 
