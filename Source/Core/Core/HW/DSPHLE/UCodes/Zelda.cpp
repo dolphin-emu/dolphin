@@ -2,32 +2,59 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// Games that use this UCode (exhaustive list):
-// * Animal Crossing (type ????, CRC ????)
-// * Donkey Kong Jungle Beat (type ????, CRC ????)
-// * IPL (type ????, CRC ????)
-// * Luigi's Mansion (type ????, CRC ????)
-// * Mario Kart: Double Dash!! (type ????, CRC ????)
-// * Pikmin (type ????, CRC ????)
-// * Pikmin 2 (type ????, CRC ????)
-// * Super Mario Galaxy (type Wii-DAC, CRC D643001F)
-// * Super Mario Galaxy 2 (type ????, CRC ????)
-// * Super Mario Sunshine (type ????, CRC ????)
-// * The Legend of Zelda: Four Swords Adventures (type ????, CRC ????)
-// * The Legend of Zelda: The Wind Waker (type DAC, CRC 86840740)
-// * The Legend of Zelda: Twilight Princess / GC (type DAC, CRC 6CA33A6D)
-// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
-
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
+
+// These flags modify the behavior of the HLE implementation based on the UCode
+// version. When introducing a new flag, please recheck the behavior of each
+// UCode version.
+enum ZeldaUCodeFlag
+{
+	// UCode for Wii where no ARAM is present. Instead of using ARAM, DMAs from
+	// MRAM are used to transfer sound data.
+	NO_ARAM = 0x00000001,
+
+	// Multiply by two the computed Dolby positional volumes. Some UCodes do
+	// not do that (Zelda TWW for example), others do (Zelda TP, SMG).
+	MAKE_DOLBY_LOUDER = 0x00000002,
+};
+
+static const std::map<u32, u32> UCODE_FLAGS = {
+	// The Legend of Zelda: The Wind Waker.
+	{ 0x86840740, 0 },
+	// The Legend of Zelda: Twilight Princess / GC.
+	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
+	// Super Mario Galaxy.
+	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
+
+	// TODO: Other games that use this UCode (exhaustive list):
+	// * Animal Crossing (type ????, CRC ????)
+	// * Donkey Kong Jungle Beat (type ????, CRC ????)
+	// * IPL (type ????, CRC ????)
+	// * Luigi's Mansion (type ????, CRC ????)
+	// * Mario Kart: Double Dash!! (type ????, CRC ????)
+	// * Pikmin (type ????, CRC ????)
+	// * Pikmin 2 (type ????, CRC ????)
+	// * Super Mario Galaxy 2 (type ????, CRC ????)
+	// * Super Mario Sunshine (type ????, CRC ????)
+	// * The Legend of Zelda: Four Swords Adventures (type ????, CRC ????)
+	// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
+};
 
 ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
 	: UCodeInterface(dsphle, crc)
 {
 	m_mail_handler.PushMail(DSP_INIT, true);
 	m_mail_handler.PushMail(0xF3551111); // handshake
+
+	auto it = UCODE_FLAGS.find(crc);
+	if (it == UCODE_FLAGS.end())
+		PanicAlert("No flags definition found for Zelda CRC %08x", crc);
+
+	m_flags = it->second;
+	m_renderer.SetFlags(m_flags);
 }
 
 ZeldaUCode::~ZeldaUCode()
@@ -50,6 +77,7 @@ u32 ZeldaUCode::GetUpdateMs()
 
 void ZeldaUCode::DoState(PointerWrap &p)
 {
+	p.Do(m_flags);
 	p.Do(m_mail_current_state);
 	p.Do(m_mail_expected_cmd_mails);
 
@@ -271,7 +299,7 @@ void ZeldaUCode::RunPendingCommands()
 		// because the Wii does not have an ARAM, so it simulates it with MRAM
 		// and DMAs.
 		case 0x0E:
-			if (!IsWiiDAC())
+			if (!(m_flags & NO_ARAM))
 				PanicAlert("Setting base ARAM addr on non Wii DAC.");
 			m_renderer.SetARAMBaseAddr(Read32());
 			SendCommandAck(CommandAck::STANDARD, sync);
@@ -779,11 +807,12 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 		s16 front_volume = m_sine_table[vpb.GetDolbyVoiceY() ^ 0x7F];
 
 		// Compute volume for each quadrant.
+		u16 shift_factor = (m_flags & MAKE_DOLBY_LOUDER) ? 15 : 16;
 		s16 quadrant_volumes[4] = {
-			(s16)((left_volume * front_volume) >> 16),
-			(s16)((left_volume * back_volume) >> 16),
-			(s16)((right_volume * front_volume) >> 16),
-			(s16)((right_volume * back_volume) >> 16),
+			(s16)((left_volume * front_volume) >> shift_factor),
+			(s16)((left_volume * back_volume) >> shift_factor),
+			(s16)((right_volume * front_volume) >> shift_factor),
+			(s16)((right_volume * back_volume) >> shift_factor),
 		};
 
 		// Compute the volume delta for each sample to match the difference
@@ -791,19 +820,19 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 		s16 delta = vpb.dolby_volume_target - vpb.dolby_volume_current;
 		s16 volume_deltas[4];
 		for (size_t i = 0; i < 4; ++i)
-			volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> 16;
+			volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> shift_factor;
 
 		// Apply master volume to each quadrant.
 		for (size_t i = 0; i < 4; ++i)
-			quadrant_volumes[i] = (quadrant_volumes[i] * vpb.dolby_volume_current) >> 16;
+			quadrant_volumes[i] = (quadrant_volumes[i] * vpb.dolby_volume_current) >> shift_factor;
 
 		// Compute reverb volume and ramp deltas.
 		s16 reverb_volumes[4], reverb_volume_deltas[4];
-		s16 reverb_volume_factor = (vpb.dolby_volume_current * vpb.dolby_reverb_factor) >> 15;
+		s16 reverb_volume_factor = (vpb.dolby_volume_current * vpb.dolby_reverb_factor) >> (shift_factor - 1);
 		for (size_t i = 0; i < 4; ++i)
 		{
-			reverb_volumes[i] = (quadrant_volumes[i] * reverb_volume_factor) >> 15;
-			reverb_volume_deltas[i] = (volume_deltas[i] * vpb.dolby_reverb_factor) >> 16;
+			reverb_volumes[i] = (quadrant_volumes[i] * reverb_volume_factor) >> shift_factor;
+			reverb_volume_deltas[i] = (volume_deltas[i] * vpb.dolby_reverb_factor) >> shift_factor;
 		}
 
 		struct {
@@ -1351,6 +1380,7 @@ void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(
 
 void ZeldaAudioRenderer::DoState(PointerWrap& p)
 {
+	p.Do(m_flags);
 	p.Do(m_prepared);
 
 	p.Do(m_output_lbuf_addr);
@@ -1373,9 +1403,10 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
 	p.Do(m_sine_table);
 	p.Do(m_afc_coeffs);
 
+	p.Do(m_aram_base_addr);
 	p.Do(m_vpb_base_addr);
-
 	p.Do(m_reverb_pb_base_addr);
+
 	p.Do(m_reverb_pb_frames_count);
 	p.Do(m_buf_unk0_reverb_last8);
 	p.Do(m_buf_unk1_reverb_last8);
