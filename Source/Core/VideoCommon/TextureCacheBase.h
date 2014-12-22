@@ -120,7 +120,7 @@ protected:
 	static size_t temp_size;
 
 private:
-	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
+	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 
 	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height);

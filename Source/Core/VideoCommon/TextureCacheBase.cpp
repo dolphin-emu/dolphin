@@ -263,9 +263,8 @@ void TextureCache::ClearRenderTargets()
 	}
 }
 
-void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
+void TextureCache::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
-	std::string filename;
 	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
@@ -273,20 +272,11 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 	if (!File::Exists(szDir) || !File::IsDirectory(szDir))
 		File::CreateDir(szDir);
 
-	// For compatibility with old texture packs, don't print the LOD index for level 0.
-	 // TODO: TLUT format should actually be stored in filename? :/
-	if (level == 0)
+	if (level > 0)
 	{
-		filename = StringFromFormat("%s/%s_%08x_%i.png", szDir.c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
-			(u32)(entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF);
+		basename += StringFromFormat("_mip%i", level);
 	}
-	else
-	{
-		filename = StringFromFormat("%s/%s_%08x_%i_mip%i.png", szDir.c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
-				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF, level);
-	}
+	std::string filename = szDir + "/" + basename + ".png";
 
 	if (!File::Exists(filename))
 		entry->Save(filename, level);
@@ -507,8 +497,17 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	else
 		entry->type = TCET_NORMAL;
 
+	std::string basename = "";
 	if (g_ActiveConfig.bDumpTextures && !hires_tex)
-		DumpTexture(entry, 0);
+	{
+		basename = HiresTexture::GenBaseName(
+			src_data, texture_size,
+			&texMem[tlutaddr], palette_size,
+			width, height,
+			texformat
+		);
+		DumpTexture(entry, basename, 0);
+	}
 
 	u32 level = 1;
 	// load mips - TODO: Loading mipmaps from tmem is untested!
@@ -543,7 +542,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				entry->Load(mip_width, mip_height, expanded_mip_width, level);
 
 				if (g_ActiveConfig.bDumpTextures)
-					DumpTexture(entry, level);
+					DumpTexture(entry, basename, level);
 			}
 		}
 		else if (using_custom_lods)

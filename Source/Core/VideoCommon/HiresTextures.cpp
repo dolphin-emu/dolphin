@@ -80,7 +80,7 @@ void HiresTexture::Init(const std::string& gameCode)
 	}
 }
 
-HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format)
+std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format)
 {
 	u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	u64 tlut_hash = 0;
@@ -90,9 +90,14 @@ HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const
 		tlut_hash = GetHashHiresTexture(tlut, (int)tlut_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		hash ^= tlut_hash;
 	}
+	return StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32)hash, (u16)format);
+}
+
+HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format)
+{
+	std::string base_filename = GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format);
 
 	HiresTexture* ret = nullptr;
-	std::string base_filename = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32)hash, format);
 	for (int level = 0;; level++)
 	{
 		std::string filename = base_filename;
