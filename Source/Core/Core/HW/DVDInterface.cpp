@@ -628,29 +628,6 @@ DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
 	DVDCommandResult result;
 	result.ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
-	if (raw)
-	{
-		// We must make sure it is in a valid area! (#001 check)
-		// * 0x00000000 - 0x00014000 (limit of older IOS versions)
-		// * 0x460a0000 - 0x460a0008
-		// * 0x7ed40000 - 0x7ed40008
-		u32 DVD_offset_32 = (u32)(DVD_offset >> 2);
-		// Are these checks correct? They seem to mix 32-bit offsets and 8-bit lengths
-		if (!((DVD_offset_32 > 0x00000000 && DVD_offset_32 < 0x00014000) ||
-		      (((DVD_offset_32 + DVD_length) > 0x00000000) && (DVD_offset_32 + DVD_length) < 0x00014000) ||
-		      (DVD_offset_32 > 0x460a0000 && DVD_offset_32 < 0x460a0008) ||
-		      (((DVD_offset_32 + DVD_length) > 0x460a0000) && (DVD_offset_32 + DVD_length) < 0x460a0008) ||
-		      (DVD_offset_32 > 0x7ed40000 && DVD_offset_32 < 0x7ed40008) ||
-		      (((DVD_offset_32 + DVD_length) > 0x7ed40000) && (DVD_offset_32 + DVD_length) < 0x7ed40008)))
-		{
-			WARN_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: trying to read out of bounds @ %09" PRIx64, DVD_offset);
-			g_ErrorCode = ERROR_READY | ERROR_BLOCK_OOB;
-			// Should cause software to call DVDLowRequestError
-			result.interrupt_type = INT_BRKINT;
-			return result;
-		}
-	}
-
 	if (!DVDRead(DVD_offset, output_address, DVD_length, raw))
 		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 
@@ -784,7 +761,29 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 	// Probably only used by Wii
 	case DVDLowUnencryptedRead:
 		INFO_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
-		result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true);
+
+		// We must make sure it is in a valid area! (#001 check)
+		// Are these checks correct? They seem to mix 32-bit offsets and 8-bit lengths
+		// * 0x00000000 - 0x00014000 (limit of older IOS versions)
+		// * 0x460a0000 - 0x460a0008
+		// * 0x7ed40000 - 0x7ed40008
+		if (((command_2 > 0x00000000 && command_2 < 0x00014000) ||
+			(((command_2 + command_1) > 0x00000000) && (command_2 + command_1) < 0x00014000) ||
+			(command_2 > 0x460a0000 && command_2 < 0x460a0008) ||
+			(((command_2 + command_1) > 0x460a0000) && (command_2 + command_1) < 0x460a0008) ||
+			(command_2 > 0x7ed40000 && command_2 < 0x7ed40008) ||
+			(((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
+		{
+			result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true);
+		}
+		else
+		{
+			WARN_LOG(DVDINTERFACE, "DVDLowUnencryptedRead: trying to read out of bounds @ %09" PRIx64, (u64)command_2 << 2);
+			g_ErrorCode = ERROR_READY | ERROR_BLOCK_OOB;
+			// Should cause software to call DVDLowRequestError
+			result.interrupt_type = INT_BRKINT;
+		}
+
 		break;
 
 	// Probably only used by Wii
