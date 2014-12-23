@@ -251,6 +251,8 @@ static int insertDisc;
 void EjectDiscCallback(u64 userdata, int cyclesLate);
 void InsertDiscCallback(u64 userdata, int cyclesLate);
 
+void SetLidOpen(bool _bOpen);
+
 void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
@@ -363,7 +365,7 @@ static void DTKStreamingCallback(u64 userdata, int cyclesLate)
 void Init()
 {
 	m_DISR.Hex        = 0;
-	m_DICVR.Hex       = 0;
+	m_DICVR.Hex       = 1; // Disc Channel relies on cover being open when no disc is inserted
 	m_DICMDBUF[0].Hex = 0;
 	m_DICMDBUF[1].Hex = 0;
 	m_DICMDBUF[2].Hex = 0;
@@ -403,6 +405,9 @@ void Shutdown()
 
 void SetDiscInside(bool _DiscInside)
 {
+	if (g_bDiscInside != _DiscInside)
+		SetLidOpen(!_DiscInside);
+
 	g_bDiscInside = _DiscInside;
 }
 
@@ -419,7 +424,6 @@ void EjectDiscCallback(u64 userdata, int cyclesLate)
 {
 	// Empty the drive
 	SetDiscInside(false);
-	SetLidOpen();
 	VolumeHandler::EjectVolume();
 }
 
@@ -434,7 +438,6 @@ void InsertDiscCallback(u64 userdata, int cyclesLate)
 		VolumeHandler::SetVolumeName(SavedFileName);
 		PanicAlertT("Invalid file");
 	}
-	SetLidOpen(false);
 	SetDiscInside(VolumeHandler::IsValid());
 	delete _FileName;
 }
@@ -462,11 +465,6 @@ void SetLidOpen(bool _bOpen)
 	m_DICVR.CVR = _bOpen ? 1 : 0;
 
 	GenerateDIInterrupt(INT_CVRINT);
-}
-
-bool IsLidOpen()
-{
-	return (m_DICVR.CVR == 1);
 }
 
 bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool raw)
