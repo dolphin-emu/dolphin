@@ -31,11 +31,16 @@ enum ZeldaUCodeFlag
 	// Handle smaller VPBs that are missing their 0x40-0x80 area. Very early
 	// versions of the Zelda UCode used 0x80 sized VPBs.
 	TINY_VPB = 0x00000010,
+
+	// If set, interpret non-Dolby mixing parameters as step/current volume
+	// instead of target/current volume.
+	VOLUME_EXPLICIT_STEP = 0x00000020,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
 	// GameCube IPL/BIOS, NTSC.
-	{ 0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB },
+	{ 0x24B22038, LIGHT_PROTOCOL | FOUR_MIXING_DESTS | TINY_VPB |
+	              VOLUME_EXPLICIT_STEP },
 	// GameCube IPL/BIOS, PAL.
 	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
 	// The Legend of Zelda: The Wind Waker.
@@ -1046,7 +1051,14 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 			if (!vpb.channels[i].id)
 				continue;
 
-			s16 volume_delta = vpb.channels[i].target_volume - vpb.channels[i].current_volume;
+			// Some UCode versions provide the delta directly instead of
+			// providing a target volume.
+			s16 volume_delta;
+			if (m_flags & VOLUME_EXPLICIT_STEP)
+				volume_delta = (vpb.channels[i].target_volume << 16);
+			else
+				volume_delta = vpb.channels[i].target_volume - vpb.channels[i].current_volume;
+
 			s32 volume_step = (volume_delta << 16) / (s32)input_samples.size();  // In 1.31 format.
 
 			// TODO: The last value of each channel structure is used to
