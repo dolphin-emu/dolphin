@@ -597,8 +597,8 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 			LogInfo("--------");
 			for (int i=0; i < num_bytes; ++i)
 			{
-				Memory::Write_U32(Memory::Read_U32(addr_src + i), addr_dest + i);
-				LogInfo("Wrote %08x to address %08x", Memory::Read_U32(addr_src + i), addr_dest + i);
+				Memory::Write_U8(Memory::Read_U8(addr_src + i), addr_dest + i);
+				LogInfo("Wrote %08x to address %08x", Memory::ReadUnchecked_U8(addr_src + i), addr_dest + i);
 			}
 			LogInfo("--------");
 			return true;
