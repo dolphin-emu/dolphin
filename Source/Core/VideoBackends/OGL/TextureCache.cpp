@@ -400,7 +400,7 @@ void TextureCache::CompileShaders()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
-	const char *GProgram = (g_ActiveConfig.iStereoMode > 0) ?
+	const char *GProgram = FramebufferManager::GetEFBLayers() > 1 ?
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = 6) out;\n"
 		"in vec3 v_uv0[3];\n"
@@ -421,7 +421,7 @@ void TextureCache::CompileShaders()
 		"}\n" : nullptr;
 
 	const char* prefix = (GProgram == nullptr) ? "f" : "v";
-	const char* depth_layer = (g_ActiveConfig.bStereoMonoEFBDepth) ? "0" : "f_uv0.z";
+	const char* depth_layer = (g_ActiveConfig.bStereoMonoEFBDepth) ? "0.0" : "f_uv0.z";
 
 	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), pColorMatrixProg, GProgram);
 	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), StringFromFormat(pDepthMatrixProg, depth_layer).c_str(), GProgram);
