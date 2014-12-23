@@ -44,26 +44,24 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	// GameCube IPL/BIOS, PAL.
 	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
 	// Pikmin 1 GC NTSC.
+	// Anilam Crossing.
 	{ 0x4BE6A5CB, LIGHT_PROTOCOL },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
-	// The Legend of Zelda: Four Swords Adventure.
+	// The Legend of Zelda: Four Swords Adventures.
 	{ 0x2FCDF1EC, MAKE_DOLBY_LOUDER },
 	// The Legend of Zelda: Twilight Princess / GC.
+	// Donkey Kong Jungle Beat.
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
 	// Super Mario Galaxy.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
 
 	// TODO: Other games that use this UCode (exhaustive list):
-	// * Animal Crossing (type ????, CRC ????)
-	// * Donkey Kong Jungle Beat (type ????, CRC ????)
 	// * Luigi's Mansion (type ????, CRC ????)
 	// * Mario Kart: Double Dash!! (type ????, CRC ????)
-	// * Pikmin (type ????, CRC ????)
 	// * Pikmin 2 (type ????, CRC ????)
 	// * Super Mario Galaxy 2 (type ????, CRC ????)
 	// * Super Mario Sunshine (type ????, CRC ????)
-	// * The Legend of Zelda: Four Swords Adventures (type ????, CRC ????)
 	// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
 };
 
@@ -76,6 +74,8 @@ ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
 
 	m_flags = it->second;
 	m_renderer.SetFlags(m_flags);
+
+	WARN_LOG(DSPHLE, "Zelda UCode loaded, crc=%08x, flags=%08x", crc, m_flags);
 
 	if (m_flags & LIGHT_PROTOCOL)
 	{
