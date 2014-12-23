@@ -192,8 +192,14 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	// reinterpret pixel format
-	char vs[] =
+	const char* vs = m_EFBLayers > 1 ?
 		"void main(void) {\n"
+		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+		"}\n" :
+		"flat out int layer;\n"
+		"void main(void) {\n"
+		"	layer = 0;\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
@@ -263,10 +269,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	}
 
 	std::string ps_rgba6_to_rgb8 = sampler +
+		"flat in int layer;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src6 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xyz)) * 63.f));\n"
+		"	ivec4 src6 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 63.f));\n"
 		"	ivec4 dst8;\n"
 		"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
 		"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
@@ -276,10 +283,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"}";
 
 	std::string ps_rgb8_to_rgba6 = sampler +
+		"flat in int layer;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src8 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xyz)) * 255.f));\n"
+		"	ivec4 src8 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 255.f));\n"
 		"	ivec4 dst6;\n"
 		"	dst6.r = src8.r >> 2;\n"
 		"	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
@@ -288,18 +296,20 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	ocol0 = float4(dst6) / 63.f;\n"
 		"}";
 
-	std::stringstream vertices;
+	std::stringstream vertices, layers;
 	vertices << m_EFBLayers * 3;
+	layers << m_EFBLayers;
 	std::string gs = sampler +
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = " + vertices.str() + ") out;\n"
+		"flat out int layer;\n"
 		"void main()\n"
 		"{\n"
-		"	int layers = textureSize(samp9, 0).z;\n"
-		"	for (int layer = 0; layer < layers; ++layer) {\n"
+		"	for (int j = 0; j < " + layers.str() + "; ++j) {\n"
 		"		for (int i = 0; i < 3; ++i) {\n"
-		"			gl_Position = vec4(gl_in[i].gl_Position.xy, layer, 1.0);\n"
-		"			gl_Layer = layer;\n"
+		"			layer = j;\n"
+		"			gl_Layer = j;\n"
+		"			gl_Position = gl_in[i].gl_Position;\n"
 		"			EmitVertex();\n"
 		"		}\n"
 		"		EndPrimitive();\n"
