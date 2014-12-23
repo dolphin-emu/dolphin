@@ -45,6 +45,8 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
+	// The Legend of Zelda: Four Swords Adventure.
+	{ 0x2FCDF1EC, MAKE_DOLBY_LOUDER },
 	// The Legend of Zelda: Twilight Princess / GC.
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
 	// Super Mario Galaxy.
