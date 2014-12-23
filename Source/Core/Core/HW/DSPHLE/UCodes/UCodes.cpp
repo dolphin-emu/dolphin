@@ -57,6 +57,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 	case 0xd643001f: // Super Mario Galaxy - US
 	case 0x6ba3b3ea: // GC IPL - PAL
 	case 0x24b22038: // GC IPL - US
+	case 0x2fcdf1ec: // Zelda FSA - US
 		return new ZeldaUCode(dsphle, crc);
 
 	case 0x2ea36ce6: // Some Wii demos
