@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#define HACK_LOG INFO_LOG
+
 #include <cfloat>
 #include <cmath>
 #include <sstream>
@@ -133,7 +135,7 @@ void ClearDebugProj() { //VR
 	debug_newScene = debug_nextScene;
 	if (debug_newScene)
 	{
-		INFO_LOG(VR, "***** New scene *****");
+		HACK_LOG(VR, "***** New scene *****");
 		// General VR hacks
 		vr_widest_3d_projNum = -1;
 		vr_widest_3d_HFOV = 0;
@@ -363,13 +365,13 @@ void SetViewportType(Viewport &v)
 void DoLogViewport(int j, Viewport &v)
 {
 	//VR
-	INFO_LOG(VR, "  Viewport %d: %s (%g,%g) %gx%g; near=%g (%g), far=%g (%g)", j, GetViewportTypeName(g_viewport_type), v.xOrig - v.wd - 342, v.yOrig + v.ht - 342, 2 * v.wd, -2 * v.ht, (v.farZ - v.zRange) / 16777216.0f, v.farZ - v.zRange, v.farZ / 16777216.0f, v.farZ);
-	INFO_LOG(VR, "      copyTexSrc (%d,%d) %dx%d", g_final_screen_region.left, g_final_screen_region.top, g_final_screen_region.GetWidth(), g_final_screen_region.GetHeight());
+	HACK_LOG(VR, "  Viewport %d: %s (%g,%g) %gx%g; near=%g (%g), far=%g (%g)", j, GetViewportTypeName(g_viewport_type), v.xOrig - v.wd - 342, v.yOrig + v.ht - 342, 2 * v.wd, -2 * v.ht, (v.farZ - v.zRange) / 16777216.0f, v.farZ - v.zRange, v.farZ / 16777216.0f, v.farZ);
+	HACK_LOG(VR, "      copyTexSrc (%d,%d) %dx%d", g_final_screen_region.left, g_final_screen_region.top, g_final_screen_region.GetWidth(), g_final_screen_region.GetHeight());
 }
 
 void DoLogProj(int j, float p[], const char *s) { //VR
 	if (j == g_ActiveConfig.iSelectedLayer)
-		INFO_LOG(VR, "** SELECTED LAYER:");
+		HACK_LOG(VR, "** SELECTED LAYER:");
 	if (p[6] != 0) { // orthographic projection
 		//float right = p[0]-(p[0]*p[1]);
 		//float left = right - 2/p[0];
@@ -380,21 +382,21 @@ void DoLogProj(int j, float p[], const char *s) { //VR
 		float top = bottom + 2 / p[2];
 		float zfar = p[5] / p[4];
 		float znear = (1 + p[4] * zfar) / p[4];
-		INFO_LOG(VR, "%d: 2D: %s (%g, %g) to (%g, %g); z: %g to %g  [%g, %g]", j, s, left, top, right, bottom, znear, zfar, p[4], p[5]);
+		HACK_LOG(VR, "%d: 2D: %s (%g, %g) to (%g, %g); z: %g to %g  [%g, %g]", j, s, left, top, right, bottom, znear, zfar, p[4], p[5]);
 	}
 	else if (p[0] != 0 || p[2] != 0) { // perspective projection
 		float f = p[5] / p[4];
 		float n = f*p[4] / (p[4] - 1);
 		if (p[1] != 0.0f || p[3] != 0.0f) {
-			INFO_LOG(VR, "%d: %s OFF-AXIS Perspective: 2n/w=%.2f A=%.2f; 2n/h=%.2f B=%.2f; n=%.2f f=%.2f", j, s, p[0], p[1], p[2], p[3], p[4], p[5]);
-			INFO_LOG(VR, "	HFOV: %.2f    VFOV: %.2f   Aspect Ratio: 16:%.1f", 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f, 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f, 16 / (2 / p[0])*(2 / p[2]));
+			HACK_LOG(VR, "%d: %s OFF-AXIS Perspective: 2n/w=%.2f A=%.2f; 2n/h=%.2f B=%.2f; n=%.2f f=%.2f", j, s, p[0], p[1], p[2], p[3], p[4], p[5]);
+			HACK_LOG(VR, "	HFOV: %.2f    VFOV: %.2f   Aspect Ratio: 16:%.1f", 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f, 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f, 16 / (2 / p[0])*(2 / p[2]));
 		}
 		else {
-			INFO_LOG(VR, "%d: %s HFOV: %.2fdeg; VFOV: %.2fdeg; Aspect Ratio: 16:%.1f; near:%f, far:%f", j, s, 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f, 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f, 16 / (2 / p[0])*(2 / p[2]), n, f);
+			HACK_LOG(VR, "%d: %s HFOV: %.2fdeg; VFOV: %.2fdeg; Aspect Ratio: 16:%.1f; near:%f, far:%f", j, s, 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f, 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f, 16 / (2 / p[0])*(2 / p[2]), n, f);
 		}
 	}
 	else { // invalid
-		INFO_LOG(VR, "%d: %s ZERO", j, s);
+		HACK_LOG(VR, "%d: %s ZERO", j, s);
 	}
 }
 

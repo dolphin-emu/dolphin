@@ -49,6 +49,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Dark Visor Central";
 	case METROID_DARK_EFFECT:
 		return "Dark Visor Effect";
+	case METROID_DARK_VISOR_HUD:
+		return "Dark Visor HUD";
 	case METROID_ECHO_EFFECT:
 		return "Echo Visor Effect";
 	case METROID_GUN:
@@ -300,9 +302,6 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	//	int n = Round100(znear);
 	int f = Round100(zfar);
 	TMetroidLayer result;
-	// In Dark Visor layer 2 would be 2D not 3D
-	if (layer == 2)
-		g_metroid_dark_visor = false;
 
 	if (v == h && v < 100 && h < 100 && layer == 0)
 	{
@@ -406,7 +405,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 				}
 				else if (g_metroid_dark_visor)
 				{
-					result = METROID_HUD;
+					result = METROID_DARK_VISOR_HUD;
 					g_metroid_scan_visor_active = false;
 				}
 				else if (g_metroid_is_demo1)
@@ -572,16 +571,43 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 {
 	TMetroidLayer result;
 	int l = Round100(left);
+	int r = Round100(right);
+	int t = Round100(top);
 	int n = Round100(znear);
 	int f = Round100(zfar);
-	if (layer == 1)
+	if (layer == 0)
+	{
+		g_metroid_dark_visor = false;
+		if (l == 0 && r == 32000 && t == 22400 && n == -100 && f == 100)
+		{
+			g_metroid_map_screen = true;
+			g_metroid_morphball_active = false;
+			g_metroid_scan_visor = false;
+			g_metroid_echo_visor = false;
+			result = METROID_MAP_0;
+		}
+		else
+		{
+			result = METROID_UNKNOWN_2D;
+		}
+	}
+	else if (layer == 1)
 	{
 		g_metroid_dark_visor = false;
 		if (l == -32000 && n == -409600)
 		{
-			result = METROID_SCAN_HIGHLIGHTER;
-			g_metroid_scan_visor = true;
-			g_metroid_echo_visor = false;
+			if (g_metroid_map_screen)
+			{
+				result = METROID_MAP_1;
+				g_metroid_scan_visor = false;
+				g_metroid_echo_visor = false;
+			}
+			else
+			{
+				result = METROID_SCAN_HIGHLIGHTER;
+				g_metroid_scan_visor = true;
+				g_metroid_echo_visor = false;
+			}
 		}
 		else if (l == 0 && n == -409600)
 		{
@@ -609,6 +635,14 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 			g_metroid_scan_visor_active = false;
 			g_metroid_morphball_active = false;
 		}
+		else if (l == -32000 && t == 22400 && n == -409600)
+		{
+			result = METROID_MAP_2;
+			g_metroid_dark_visor = false;
+			g_metroid_scan_visor = false;
+			g_metroid_scan_visor_active = false;
+			g_metroid_morphball_active = false;
+		}
 		else
 		{
 			result = METROID_UNKNOWN_2D;
@@ -621,6 +655,14 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 		{
 			result = METROID_SCAN_DARKEN;
 		}
+		else if (l == 0 && n == -409600)
+		{
+			result = METROID_DARK_EFFECT;
+			g_metroid_dark_visor = true;
+			g_metroid_scan_visor = false;
+			g_metroid_scan_visor_active = false;
+			g_metroid_morphball_active = false;
+		}
 		else
 		{
 			result = METROID_UNKNOWN_2D;
@@ -628,6 +670,8 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 	}
 	else if (layer == 4 && l == -32000 && n == -100 && f == 100)
 		result = METROID_SCAN_BOX;
+	else if (layer == 5 && l == -32000 && t == 22400 && n == -409600 && g_metroid_map_screen)
+		result = METROID_MAP_NORTH;
 	else
 		result = METROID_UNKNOWN_2D;
 	return result;
@@ -641,8 +685,9 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 	int f = Round100(zfar);
 	TMetroidLayer result;
 	// In Dark Visor layer 2 would be 2D not 3D
-	if (layer == 2)
-		g_metroid_dark_visor = false;
+	// (not necessarily, when I tested I found layer 3 was the 2D dark visor)
+	//if (layer == 2)
+	//	g_metroid_dark_visor = false;
 
 	if (f == 409600 && v == 6500)
 	{
@@ -652,20 +697,26 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 			case 1:
 				if (g_metroid_morphball_active)
 					result = METROID_MORPHBALL_HUD;
-				else if (g_metroid_dark_visor && layer == 1)
+				else if (g_metroid_map_screen)
+					result = METROID_MAP_MAP;
+				else if (g_metroid_dark_visor && (layer == 1 || layer == 2))
 					result = METROID_DARK_CENTRAL;
 				else
 					result = METROID_HELMET;
 				break;
 			case 2:
+				g_metroid_inventory = false;
 				if (g_metroid_morphball_active)
 					result = METROID_MORPHBALL_MAP_OR_HINT;
+				else if (g_metroid_map_screen)
+					result = METROID_MAP_LEGEND;
 				else if (g_metroid_dark_visor)
 					result = METROID_HELMET;
 				else
 					result = METROID_HUD;
 				break;
 			case 3:
+				g_metroid_map_screen = false;
 				// visor
 				if (g_metroid_morphball_active)
 				{
@@ -674,7 +725,7 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 				}
 				else if (g_metroid_dark_visor)
 				{
-					result = METROID_HUD;
+					result = METROID_DARK_VISOR_HUD;
 					g_metroid_scan_visor_active = false;
 				}
 				else if (h == 8243)
@@ -743,6 +794,7 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 	else if (f == 75000)
 	{
 		++g_metroid_normal_count;
+		g_metroid_map_screen = false;
 		switch (g_metroid_normal_count)
 		{
 		case 1:
@@ -762,8 +814,17 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 			// because it is locked to your helmet, not the world.
 			if (g_metroid_scan_visor)
 				result = METROID_SCAN_RETICLE;
+			else if (g_metroid_dark_visor)
+				result = METROID_UNKNOWN_WORLD;
 			else
 				result = METROID_RETICLE;
+			break;
+		case 3:
+			// The dark visor uses the normal reticle, but there is an UNKNOWN world layer before it
+			if (g_metroid_dark_visor)
+				result = METROID_RETICLE;
+			else
+				result = METROID_UNKNOWN_WORLD;
 			break;
 		default:
 			result = METROID_UNKNOWN_WORLD;
@@ -772,7 +833,15 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 	}
 	else
 	{
-		result = METROID_UNKNOWN;
+		if (f == 409600 && layer == 4 && g_metroid_map_screen)
+		{
+			result = METROID_INVENTORY_SAMUS;
+			g_metroid_inventory = true;
+		}
+		else
+		{
+			result = METROID_UNKNOWN;
+		}
 	}
 	return result;
 }
@@ -845,10 +914,11 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		//*bHide = true;
 	case METROID_ECHO_EFFECT:
 		*bStuckToHead = true;
-		*fHeightHack = 3.0f;
-		*fWidthHack = 1.85f;
-		*fUpHack = 0.15f;
-		*fRightHack = -0.4f;
+		*bFullscreenLayer = true;
+		*fHeightHack = 448.0f / 528.0f;
+		*fWidthHack = 1.0f;
+		*fUpHack = 0.0f;
+		*fRightHack = 0.0f;
 		*fScaleHack = 0.5;
 		break;
 	case METROID_THERMAL_EFFECT:
@@ -871,14 +941,16 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		break;
 	case METROID_DARK_EFFECT:
 		*bStuckToHead = true;
-		*fHeightHack = 3.0f;
-		*fWidthHack = 1.85f;
-		*fUpHack = 0.15f;
-		*fRightHack = -0.4f;
-		*fScaleHack = 0.5f;
+		*bFullscreenLayer = true;
+		*fHeightHack = 448.0f / 528.0f;
+		*fWidthHack = 1.0f;
+		*fUpHack = 0.0f;
+		*fRightHack = 0.0f;
 		break;
 	case METROID_DARK_CENTRAL:
 		*bStuckToHead = true;
+		*fWidthHack = 0.79f;
+		*fHeightHack = 0.79f;
 		break;
 	case METROID_VISOR_DIRT:
 		// todo: move to helmet depth (hard with a 2D layer)
@@ -904,7 +976,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		*bFullscreenLayer = true;
 		*fHeightHack = 448.0f / 528.0f;
 		*fWidthHack = 1.01f;
-		*fUpHack = 0.16f;
+		*fUpHack = 0.1588f;
 		*fRightHack = 0.015f;
 
 		// Old DK1 settings which probably no longer make sense
@@ -964,35 +1036,41 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_XRAY_HUD:
 		*bStuckToHead = false;
 		*fScaleHack = 30;
-		*fWidthHack = 0.78f;
-		*fHeightHack = 0.78f;
+		*fWidthHack = 0.79f;
+		*fHeightHack = 0.79f;
 		break;
 	case METROID_UNKNOWN_HUD:
 	case METROID_HUD:
 		*bStuckToHead = true;
 		*fScaleHack = 30;
-		*fWidthHack = 0.78f;
-		*fHeightHack = 0.78f;
+		*fWidthHack = 0.79f;
+		*fHeightHack = 0.79f;
+		break;
+	case METROID_DARK_VISOR_HUD:
+		*bStuckToHead = true;
+		*fScaleHack = 5;
+		*fWidthHack = 0.79f;
+		*fHeightHack = 0.79f;
 		break;
 	case METROID_VISOR_RADAR_HINT:
 	case METROID_RADAR_DOT:
 		*bStuckToHead = true;
 		*fScaleHack = 32;
-		*fWidthHack = 0.78f;
-		*fHeightHack = 0.78f;
+		*fWidthHack = 0.79f;
+		*fHeightHack = 0.79f;
 		break;
 	case METROID_MAP_OR_HINT:
 	case METROID_MAP:
 		*bStuckToHead = true;
 		*fScaleHack = 30;
-		*fWidthHack = 0.78f;
-		*fHeightHack = 0.78f;
+		*fWidthHack = 0.79f;
+		*fHeightHack = 0.79f;
 		break;
 	case METROID_HELMET:
 		*bStuckToHead = true;
 		*fScaleHack = 100; // 1/100
 		*fWidthHack = 1.7f;
-		*fHeightHack = 1.5f;
+		*fHeightHack = 1.7f;
 		break;
 	case METROID_SCAN_TEXT:
 		// the text box (and side boxes) seen when scanning
