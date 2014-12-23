@@ -44,8 +44,10 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	// GameCube IPL/BIOS, PAL.
 	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
 	// Pikmin 1 GC NTSC.
-	// Anilam Crossing.
+	// Animal Crossing.
 	{ 0x4BE6A5CB, LIGHT_PROTOCOL },
+	// Luigi's Mansion.
+	{ 0x42F64AC4, LIGHT_PROTOCOL },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
 	// The Legend of Zelda: Four Swords Adventures.
@@ -57,7 +59,6 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
 
 	// TODO: Other games that use this UCode (exhaustive list):
-	// * Luigi's Mansion (type ????, CRC ????)
 	// * Mario Kart: Double Dash!! (type ????, CRC ????)
 	// * Pikmin 2 (type ????, CRC ????)
 	// * Super Mario Galaxy 2 (type ????, CRC ????)
