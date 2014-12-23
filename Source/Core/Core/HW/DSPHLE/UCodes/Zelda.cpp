@@ -59,10 +59,12 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
 
 	// TODO: Other games that use this UCode (exhaustive list):
+	// * Link's Crossbow Training
 	// * Mario Kart: Double Dash!! (type ????, CRC ????)
 	// * Pikmin 2 (type ????, CRC ????)
 	// * Super Mario Galaxy 2 (type ????, CRC ????)
 	// * Super Mario Sunshine (type ????, CRC ????)
+	// * The Legend of Zelda: Collector's Edition
 	// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
 };
 
@@ -652,6 +654,9 @@ struct ZeldaAudioRenderer::VPB
 		// Simple saw wave at 100% amplitude and frequency controlled via the
 		// resampling ratio.
 		SRC_SAW_WAVE = 1,
+		// Same "square" wave as SRC_SQUARE_WAVE but using a 0.25 duty cycle
+		// instead of 0.5.
+		SRC_SQUARE_WAVE_25PCT = 3,
 		// Breaking the numerical ordering for these, but they are all related.
 		// Simple pattern stored in the data downloaded by command 01. Playback
 		// frequency is controlled by the resampling ratio.
@@ -1175,14 +1180,22 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 	switch (vpb->samples_source_type)
 	{
 		case VPB::SRC_SQUARE_WAVE:
+		case VPB::SRC_SQUARE_WAVE_25PCT:
 		{
-			u32 pos = vpb->current_pos_frac << 1;
+			u32 shift;
+			if (vpb->samples_source_type == VPB::SRC_SQUARE_WAVE)
+				shift = 1;
+			else
+				shift = 2;
+			u32 mask = (1 << shift) - 1;
+
+			u32 pos = vpb->current_pos_frac << shift;
 			for (size_t i = 0; i < buffer->size(); ++i)
 			{
-				(*buffer)[i] = ((pos >> 16) & 1) ? 0x4000 : 0xC000;
+				(*buffer)[i] = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
 				pos += vpb->resampling_ratio;
 			}
-			vpb->current_pos_frac = (pos >> 1) & 0xFFFF;
+			vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
 			break;
 		}
 
