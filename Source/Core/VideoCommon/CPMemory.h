@@ -45,13 +45,6 @@ enum
 	FORMAT_32B_8888 = 5,
 };
 
-enum
-{
-	VAT_0_FRACBITS = 0x3e0001f0,
-	VAT_1_FRACBITS = 0x07c3e1f0,
-	VAT_2_FRACBITS = 0xf87c3e1f,
-};
-
 #pragma pack(4)
 union TVtxDesc
 {
@@ -239,7 +232,7 @@ struct VAT
 	UVAT_group2 g2;
 };
 
-class VertexLoader;
+class VertexLoaderBase;
 
 // STATE_TO_SAVE
 struct CPState final
@@ -254,7 +247,7 @@ struct CPState final
 
 	// Attributes that actually belong to VertexLoaderManager:
 	BitSet32 attr_dirty;
-	VertexLoader* vertex_loaders[8];
+	VertexLoaderBase* vertex_loaders[8];
 };
 
 class PointerWrap;

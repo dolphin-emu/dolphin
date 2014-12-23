@@ -13,15 +13,24 @@ using namespace Arm64Gen;
 
 void JitArm64AsmRoutineManager::Generate()
 {
+	// This value is all of the callee saved registers that we are required to save.
+	// According to the AACPS64 we need to save R19 ~ R30.
+	const u32 ALL_CALLEE_SAVED = 0x7FF80000;
+	BitSet32 regs_to_save(ALL_CALLEE_SAVED);
 	enterCode = GetCodePtr();
 
-	SUB(SP, SP, 16);
-	STR(INDEX_UNSIGNED, X30, SP, 0);
+	ABI_PushRegisters(regs_to_save);
 
 	MOVI2R(X29, (u64)&PowerPC::ppcState);
+	FixupBranch to_dispatcher = B();
 
+	// If we align the dispatcher to a page then we can load its location with one ADRP instruction
+	AlignCodePage();
 	dispatcher = GetCodePtr();
-	printf("Dispatcher is %p\n", dispatcher);
+	WARN_LOG(DYNA_REC, "Dispatcher is %p\n", dispatcher);
+
+	SetJumpTarget(to_dispatcher);
+
 	// Downcount Check
 	// The result of slice decrementation should be in flags if somebody jumped here
 	// IMPORTANT - We jump on negative, not carry!!!
@@ -77,8 +86,7 @@ void JitArm64AsmRoutineManager::Generate()
 
 	SetJumpTarget(Exit);
 
-	LDR(INDEX_UNSIGNED, X30, SP, 0);
-	ADD(SP, SP, 16);
+	ABI_PopRegisters(regs_to_save);
 	RET(X30);
 
 	FlushIcache();

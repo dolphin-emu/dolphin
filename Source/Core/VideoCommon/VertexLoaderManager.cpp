@@ -15,33 +15,22 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 
-static NativeVertexFormat* s_current_vtx_fmt;
 
-namespace std
-{
-
-template <>
-struct hash<VertexLoaderUID>
-{
-	size_t operator()(const VertexLoaderUID& uid) const
-	{
-		return uid.GetHash();
-	}
-};
-
-}
-
-typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoader>> VertexLoaderMap;
 
 namespace VertexLoaderManager
 {
 
+typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
+static NativeVertexFormatMap s_native_vertex_map;
+static NativeVertexFormat* s_current_vtx_fmt;
+
+typedef std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoaderBase>> VertexLoaderMap;
 static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
@@ -60,7 +49,7 @@ void Shutdown()
 {
 	std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 	s_vertex_loader_map.clear();
-	VertexLoader::ClearNativeVertexFormatCache();
+	s_native_vertex_map.clear();
 }
 
 namespace
@@ -86,7 +75,7 @@ void AppendListToString(std::string *dest)
 	{
 		entry e;
 		map_entry.second->AppendToString(&e.text);
-		e.num_verts = map_entry.second->GetNumLoadedVerts();
+		e.num_verts = map_entry.second->m_numLoadedVertices;
 		entries.push_back(e);
 		total_size += e.text.size() + 1;
 	}
@@ -104,9 +93,9 @@ void MarkAllDirty()
 	g_preprocess_cp_state.attr_dirty = BitSet32::AllTrue(8);
 }
 
-static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
+static VertexLoaderBase* RefreshLoader(int vtx_attr_group, CPState* state)
 {
-	VertexLoader* loader;
+	VertexLoaderBase* loader;
 	if (state->attr_dirty[vtx_attr_group])
 	{
 		VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
@@ -118,8 +107,21 @@ static VertexLoader* RefreshLoader(int vtx_attr_group, CPState* state)
 		}
 		else
 		{
-			loader = new VertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoader>(loader);
+			loader = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
+			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoaderBase>(loader);
+
+			// search for a cached native vertex format
+			const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
+			auto& native = s_native_vertex_map[format];
+			if (!native)
+			{
+				auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
+				native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+				native->Initialize(format);
+				native->m_components = loader->m_native_components;
+			}
+			loader->m_native_vertex_format = native.get();
+
 			INCSTAT(stats.numVertexLoaders);
 		}
 		state->vertex_loaders[vtx_attr_group] = loader;
@@ -137,9 +139,9 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
 	CPState* state = &g_main_cp_state;
 
-	VertexLoader* loader = RefreshLoader(vtx_attr_group, state);
+	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, state);
 
-	int size = count * loader->GetVertexSize();
+	int size = count * loader->m_VertexSize;
 	if ((int)src.size() < size)
 		return -1;
 
@@ -149,21 +151,19 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return size;
 	}
 
-	NativeVertexFormat* native = loader->GetNativeVertexFormat();
-
 	// If the native vertex format changed, force a flush.
-	if (native != s_current_vtx_fmt)
+	if (loader->m_native_vertex_format != s_current_vtx_fmt)
 		VertexManager::Flush();
-	s_current_vtx_fmt = native;
+	s_current_vtx_fmt = loader->m_native_vertex_format;
 
 	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
-			loader->GetNativeVertexDeclaration().stride);
+			loader->m_native_vtx_decl.stride);
 
-	count = loader->RunVertices(state->vtx_attr[vtx_attr_group], primitive, count, src, dst);
+	count = loader->RunVertices(primitive, count, src, dst);
 
 	IndexGenerator::AddIndices(primitive, count);
 
-	VertexManager::FlushData(count, loader->GetNativeVertexDeclaration().stride);
+	VertexManager::FlushData(count, loader->m_native_vtx_decl.stride);
 
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
@@ -172,7 +172,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
 int GetVertexSize(int vtx_attr_group, bool preprocess)
 {
-	return RefreshLoader(vtx_attr_group, preprocess ? &g_preprocess_cp_state : &g_main_cp_state)->GetVertexSize();
+	return RefreshLoader(vtx_attr_group, preprocess ? &g_preprocess_cp_state : &g_main_cp_state)->m_VertexSize;
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()

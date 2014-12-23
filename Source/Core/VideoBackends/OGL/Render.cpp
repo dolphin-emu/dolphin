@@ -43,7 +43,6 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"

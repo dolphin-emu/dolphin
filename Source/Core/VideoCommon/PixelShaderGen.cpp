@@ -252,7 +252,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write(
 				"layout(std140, binding = 3) buffer BBox {\n"
-				"\tint bbox_data[4];\n"
+				"\tint4 bbox_data;\n"
 				"};\n"
 				);
 		}

@@ -29,9 +29,9 @@ __forceinline void LOG_TEX<2>()
 	// PRIM_LOG("tex: %f %f, ", ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);
 }
 
-static void LOADERDECL TexCoord_Read_Dummy()
+static void LOADERDECL TexCoord_Read_Dummy(VertexLoader* loader)
 {
-	tcIndex++;
+	loader->m_tcIndex++;
 }
 
 template <typename T>
@@ -47,9 +47,9 @@ float TCScale(float val, float scale)
 }
 
 template <typename T, int N>
-void LOADERDECL TexCoord_ReadDirect()
+void LOADERDECL TexCoord_ReadDirect(VertexLoader* loader)
 {
-	auto const scale = tcScale[tcIndex][0];
+	auto const scale = loader->m_tcScale[loader->m_tcIndex][0];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 	DataReader src(g_video_buffer_read_ptr, nullptr);
 
@@ -60,18 +60,18 @@ void LOADERDECL TexCoord_ReadDirect()
 	src.WritePointer(&g_video_buffer_read_ptr);
 	LOG_TEX<N>();
 
-	++tcIndex;
+	++loader->m_tcIndex;
 }
 
 template <typename I, typename T, int N>
-void LOADERDECL TexCoord_ReadIndex()
+void LOADERDECL TexCoord_ReadIndex(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
-	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
-	                + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + tcIndex]));
-	auto const scale = tcScale[tcIndex][0];
+	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + loader->m_tcIndex]
+	                + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + loader->m_tcIndex]));
+	auto const scale = loader->m_tcScale[loader->m_tcIndex][0];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
 	for (int i = 0; i != N; ++i)
@@ -79,32 +79,32 @@ void LOADERDECL TexCoord_ReadIndex()
 
 	dst.WritePointer(&g_vertex_manager_write_ptr);
 	LOG_TEX<N>();
-	++tcIndex;
+	++loader->m_tcIndex;
 }
 
 #if _M_SSE >= 0x301
 template <typename T>
-void LOADERDECL TexCoord_ReadDirect2_SSSE3()
+void LOADERDECL TexCoord_ReadDirect2_SSSE3(VertexLoader* loader)
 {
 	const T* pData = reinterpret_cast<const T*>(DataGetPosition());
-	__m128 scale = _mm_castsi128_ps(_mm_loadl_epi64((__m128i*)tcScale[tcIndex]));
+	__m128 scale = _mm_castsi128_ps(_mm_loadl_epi64((__m128i*)loader->m_tcScale[loader->m_tcIndex]));
 	Vertex_Read_SSSE3<T, false, false>(pData, scale);
 	DataSkip<2 * sizeof(T)>();
 	LOG_TEX<2>();
-	tcIndex++;
+	loader->m_tcIndex++;
 }
 
 template <typename I, typename T>
-void LOADERDECL TexCoord_ReadIndex2_SSSE3()
+void LOADERDECL TexCoord_ReadIndex2_SSSE3(VertexLoader* loader)
 {
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
-	const T* pData = (const T*)(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex] + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + tcIndex]));
-	__m128 scale = _mm_castsi128_ps(_mm_loadl_epi64((__m128i*)tcScale[tcIndex]));
+	const T* pData = (const T*)(cached_arraybases[ARRAY_TEXCOORD0 + loader->m_tcIndex] + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + loader->m_tcIndex]));
+	__m128 scale = _mm_castsi128_ps(_mm_loadl_epi64((__m128i*)loader->m_tcScale[loader->m_tcIndex]));
 	Vertex_Read_SSSE3<T, false, false>(pData, scale);
 	LOG_TEX<2>();
-	tcIndex++;
+	loader->m_tcIndex++;
 }
 #endif
 

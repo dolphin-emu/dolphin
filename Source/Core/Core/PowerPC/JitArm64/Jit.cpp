@@ -12,8 +12,6 @@
 
 using namespace Arm64Gen;
 
-static int CODE_SIZE = 1024*1024*32;
-
 void JitArm64::Init()
 {
 	AllocCodeSpace(CODE_SIZE);
@@ -27,6 +25,8 @@ void JitArm64::Init()
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
+	InitBackpatch();
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 }
 
 void JitArm64::ClearCache()
@@ -151,6 +151,25 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest)
 	BR(EncodeRegTo64(dest));
 }
 
+void JitArm64::WriteExceptionExit()
+{
+	DoDownCount();
+
+	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
+	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+		MOVI2R(XA, (u64)&PowerPC::CheckExceptions);
+		BLR(XA);
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
+
+	MOVI2R(XA, (u64)asm_routines.dispatcher);
+	BR(XA);
+
+	gpr.Unlock(WA);
+}
+
 void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 {
 	STR(INDEX_UNSIGNED, Reg, X29, PPCSTATE_OFF(pc));
@@ -261,6 +280,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
 		}
+
 		if (!ops[i].skip)
 		{
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
@@ -270,6 +290,10 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			}
 
 			JitArm64Tables::CompileInstruction(ops[i]);
+
+			// If we have a register that will never be used again, flush it.
+			for (int j : ~ops[i].gprInUse)
+				gpr.StoreRegister(j);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{

@@ -646,7 +646,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		return address;
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT))
+	bool virtualAddr = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT);
+	if (virtualAddr)
 	{
 		if (!Memory::TranslateAddress(address, Memory::FLAG_NO_EXCEPTION))
 		{
@@ -789,7 +790,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		else
 		{
 			// ISI exception or other critical memory exception occured (game over)
-			ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
+			// We can continue on in MMU mode though, so don't spam this error in that case.
+			if (!virtualAddr)
+				ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
 			break;
 		}
 	}

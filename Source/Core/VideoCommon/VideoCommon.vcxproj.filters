@@ -119,6 +119,9 @@
     <ClCompile Include="VertexLoader.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
+    <ClCompile Include="VertexLoaderBase.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
     <ClCompile Include="VertexLoader_Color.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
@@ -261,6 +264,9 @@
       <Filter>Vertex Loading</Filter>
     </ClInclude>
     <ClInclude Include="VertexLoader.h">
+      <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLoaderBase.h">
       <Filter>Vertex Loading</Filter>
     </ClInclude>
     <ClInclude Include="VertexLoader_Color.h">
