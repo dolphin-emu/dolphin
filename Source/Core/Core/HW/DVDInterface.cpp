@@ -690,7 +690,7 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 	// Only seems to be used from WII_IPC, not through direct access
 	case DVDLowReadDiskID:
 		INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
-		result = ExecuteReadCommand(0, output_address, command_1, output_length, true);
+		result = ExecuteReadCommand(0, output_address, 0x20, output_length, true);
 		break;
 
 	// Only seems to be used from WII_IPC, not through direct access
@@ -881,7 +881,7 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 
 		case 0x40: // Read DiscID
 			INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
-			result = ExecuteReadCommand(0, output_address, command_2, output_length);
+			result = ExecuteReadCommand(0, output_address, 0x20, output_length);
 			break;
 
 		default:
