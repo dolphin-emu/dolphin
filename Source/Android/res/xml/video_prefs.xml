@@ -57,6 +57,38 @@
             android:summary="@string/disable_fog_descrip"
             android:title="@string/disable_fog"/>
 
+		<PreferenceScreen
+			android:title="@string/stereoscopy"
+			android:key="StereoscopyScreen"
+			android:summary="@string/stereoscopy_descrip">
+
+			<ListPreference
+				android:entries="@array/stereoscopyEntries"
+				android:entryValues="@array/stereoscopyValues"
+				android:key="stereoscopyMode"
+				android:summary="@string/stereoscopy_mode_descrip"
+				android:title="@string/stereoscopy_mode"/>
+
+			<org.dolphinemu.dolphinemu.utils.SliderPreference
+				android:defaultValue="20"
+				android:key="stereoDepth"
+				android:max="100"
+				android:summary="@string/sterescopy_depth_descrip"
+				android:title="@string/sterescopy_depth" />
+
+			<org.dolphinemu.dolphinemu.utils.SliderPreference
+				android:defaultValue="20"
+				android:key="stereoConvergence"
+				android:max="500"
+				android:summary="@string/convergence_descrip"
+				android:title="@string/convergence" />
+
+			<CheckBoxPreference
+				android:defaultValue="false"
+				android:key="stereoSwapEyes"
+				android:summary="@string/swap_eyes_descrip"
+				android:title="@string/swap_eyes"/>
+		</PreferenceScreen>
     </PreferenceScreen>
 
     <!-- Video Hacks -->
