@@ -5,7 +5,10 @@
 #include <libusb.h>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/SI_GCAdapter.h"
+#include "Core/HW/SystemTimers.h"
 
 namespace SI_GCAdapter
 {
@@ -16,6 +19,7 @@ enum ControllerTypes
 	CONTROLLER_WIRELESS = 2
 };
 
+static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
 static u8 s_controller_type[MAX_SI_CHANNELS] = { CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE };
 static u8 s_controller_rumble[4];
@@ -32,6 +36,8 @@ static libusb_context* s_libusb_context = nullptr;
 
 static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
+
+static u64 s_last_init = 0;
 
 static void Read()
 {
@@ -54,6 +60,14 @@ void Init()
 {
 	if (s_handle != nullptr)
 		return;
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
+			return;
+
+		s_last_init = CoreTiming::GetTicks();
+	}
 
 	s_libusb_driver_not_supported = false;
 
@@ -167,6 +181,7 @@ void Init()
 
 					s_adapter_thread_running.Set(true);
 					s_adapter_thread = std::thread(Read);
+					s_detected = true;
 				}
 			}
 		}
@@ -205,8 +220,16 @@ void Shutdown()
 
 void Input(int chan, GCPadStatus* pad)
 {
-	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (!SConfig::GetInstance().m_GameCubeAdapter)
 		return;
+
+	if (s_handle == nullptr)
+	{
+		if (s_detected)
+			Init();
+		else
+			return;
+	}
 
 	u8 controller_payload_copy[37];
 
@@ -217,7 +240,8 @@ void Input(int chan, GCPadStatus* pad)
 
 	if (s_controller_payload_size != sizeof(controller_payload_copy) || controller_payload_copy[0] != LIBUSB_DT_HID)
 	{
-		ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", s_controller_payload_size, controller_payload_copy[0]);
+		INFO_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", s_controller_payload_size, controller_payload_copy[0]);
+		Shutdown();
 	}
 	else
 	{
@@ -273,7 +297,7 @@ void Output(int chan, u8 rumble_command)
 
 		if (size != 0x05)
 		{
-			WARN_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
+			INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
 			Shutdown();
 		}
 	}
