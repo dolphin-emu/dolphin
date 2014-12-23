@@ -43,6 +43,8 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	              VOLUME_EXPLICIT_STEP },
 	// GameCube IPL/BIOS, PAL.
 	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
+	// Pikmin 1 GC NTSC.
+	{ 0x4BE6A5CB, LIGHT_PROTOCOL },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
 	// The Legend of Zelda: Four Swords Adventure.
@@ -945,6 +947,7 @@ ZeldaAudioRenderer::MixingBuffer* ZeldaAudioRenderer::BufferForID(u16 buffer_id)
 		case 0x0E20: return &m_buf_unk1_reverb;
 		case 0x09A0: return &m_buf_unk0;  // Used by the GC IPL as a reverb dest.
 		case 0x0FA0: return &m_buf_unk1;  // Used by the GC IPL as a mixing dest.
+		case 0x0B00: return &m_buf_unk2;  // Used by Pikmin 1 as a mixing dest.
 		default: return nullptr;
 	}
 }
@@ -1592,6 +1595,7 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
 	p.Do(m_buf_unk1_reverb);
 	p.Do(m_buf_unk0);
 	p.Do(m_buf_unk1);
+	p.Do(m_buf_unk2);
 
 	p.Do(m_resampling_coeffs);
 	p.Do(m_const_patterns);

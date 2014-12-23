@@ -58,6 +58,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 	case 0x6ba3b3ea: // GC IPL - PAL
 	case 0x24b22038: // GC IPL - US
 	case 0x2fcdf1ec: // Zelda FSA - US
+	case 0x4be6a5cb: // Pikmin 1 GC - US
 		return new ZeldaUCode(dsphle, crc);
 
 	case 0x2ea36ce6: // Some Wii demos
