@@ -280,8 +280,14 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	// reinterpret pixel format
-	char vs[] =
+	const char* vs = m_EFBLayers > 1 ?
 		"void main(void) {\n"
+		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+		"}\n" :
+		"flat out int layer;\n"
+		"void main(void) {\n"
+		"	layer = 0;\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
@@ -295,8 +301,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// non-msaa, so just fetch the pixel
 		sampler =
 			"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-			"vec4 sampleEFB(ivec2 pos) {\n"
-			"	return texelFetch(samp9, ivec3(pos, 0), 0);\n"
+			"vec4 sampleEFB(ivec3 pos) {\n"
+			"	return texelFetch(samp9, pos, 0);\n"
 			"}\n";
 	}
 	else if (g_ogl_config.bSupportSampleShading)
@@ -308,16 +314,16 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
-				"	return texelFetch(samp9, ivec3(pos, 0), gl_SampleID);\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
+				"	return texelFetch(samp9, pos, gl_SampleID);\n"
 				"}\n";
 		}
 		else
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
-				"	return texelFetch(samp9, pos, gl_SampleID);\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
+				"	return texelFetch(samp9, pos.xy, gl_SampleID);\n"
 				"}\n";
 		}
 	}
@@ -330,10 +336,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
 				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 				"	for(int i=0; i<" + samples.str() + "; i++)\n"
-				"		color += texelFetch(samp9, ivec3(pos, 0), i);\n"
+				"		color += texelFetch(samp9, pos, 0), i);\n"
 				"	return color / " + samples.str() + ";\n"
 				"}\n";
 		}
@@ -341,20 +347,21 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		{
 			sampler =
 				"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-				"vec4 sampleEFB(ivec2 pos) {\n"
+				"vec4 sampleEFB(ivec3 pos) {\n"
 				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 				"	for(int i=0; i<" + samples.str() + "; i++)\n"
-				"		color += texelFetch(samp9, pos, i);\n"
+				"		color += texelFetch(samp9, pos.xy, i);\n"
 				"	return color / " + samples.str() + ";\n"
 				"}\n";
 		}
 	}
 
 	std::string ps_rgba6_to_rgb8 = sampler +
+		"flat in int layer;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src6 = ivec4(round(sampleEFB(ivec2(gl_FragCoord.xy)) * 63.f));\n"
+		"	ivec4 src6 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 63.f));\n"
 		"	ivec4 dst8;\n"
 		"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
 		"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
@@ -364,10 +371,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"}";
 
 	std::string ps_rgb8_to_rgba6 = sampler +
+		"flat in int layer;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src8 = ivec4(round(sampleEFB(ivec2(gl_FragCoord.xy)) * 255.f));\n"
+		"	ivec4 src8 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 255.f));\n"
 		"	ivec4 dst6;\n"
 		"	dst6.r = src8.r >> 2;\n"
 		"	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
@@ -376,8 +384,28 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	ocol0 = float4(dst6) / 63.f;\n"
 		"}";
 
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str());
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str());
+	std::stringstream vertices, layers;
+	vertices << m_EFBLayers * 3;
+	layers << m_EFBLayers;
+	std::string gs = sampler +
+		"layout(triangles) in;\n"
+		"layout(triangle_strip, max_vertices = " + vertices.str() + ") out;\n"
+		"flat out int layer;\n"
+		"void main()\n"
+		"{\n"
+		"	for (int j = 0; j < " + layers.str() + "; ++j) {\n"
+		"		for (int i = 0; i < 3; ++i) {\n"
+		"			layer = j;\n"
+		"			gl_Layer = j;\n"
+		"			gl_Position = gl_in[i].gl_Position;\n"
+		"			EmitVertex();\n"
+		"		}\n"
+		"		EndPrimitive();\n"
+		"	}\n"
+		"}\n";
+
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
 }
 
 FramebufferManager::~FramebufferManager()

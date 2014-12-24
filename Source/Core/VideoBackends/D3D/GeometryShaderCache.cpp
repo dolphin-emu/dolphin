@@ -12,6 +12,7 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/Globals.h"
 
@@ -35,8 +36,8 @@ ID3D11GeometryShader* CopyGeometryShader = nullptr;
 
 LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
 
-ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return ClearGeometryShader; }
-ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return CopyGeometryShader; }
+ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return (FramebufferManager::GetEFBLayers() > 1) ? ClearGeometryShader: nullptr; }
+ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return (FramebufferManager::GetEFBLayers() > 1) ? CopyGeometryShader : nullptr; }
 
 ID3D11Buffer* gscbuf = nullptr;
 
