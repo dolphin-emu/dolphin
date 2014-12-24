@@ -808,7 +808,7 @@ void ZeldaAudioRenderer::PrepareFrame()
 	// TODO: Back left and back right should have a filter applied to them,
 	// then get mixed into front left and front right. In practice, TWW never
 	// uses this AFAICT. PanicAlert to help me find places that use this.
-	if (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0)
+	if (!(m_flags & LIGHT_PROTOCOL) && (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0))
 		PanicAlert("Zelda HLE using back mixing buffers");
 
 	// Add reverb data from previous frame.
