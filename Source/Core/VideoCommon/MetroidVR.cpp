@@ -972,7 +972,8 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		*fHeightHack = 448.0f / 528.0f;
 		*fWidthHack = 1.0f;
 		*fUpHack = 0.0f;
-		*fRightHack = 0.01f;
+		*fRightHack = 0.0f;
+		// only left eye will line up for distant objects
 		break;
 	case METROID_XRAY_EFFECT:
 		*bStuckToHead = true;

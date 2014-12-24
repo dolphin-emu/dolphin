@@ -1,4 +1,4 @@
-Dolphin VR 4.0-3628
+Dolphin VR 4.0-5285
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2 (my contributions are GPL v2+)
 
@@ -7,32 +7,66 @@ See the website for non-VR related help, and the Wiki for game specific informat
 Don't both the official Dolphin devs with VR questions or issues, they don't know.
 
 The VR branch: https://github.com/CarlKenner/dolphin/tree/VR-Hydra
-Disscusion of the VR branch: https://developer.oculusvr.com/forums/
+Disscusion of the VR branch: https://forums.oculus.com/viewtopic.php?f=42&t=11241
+
+## 
+Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
+guide to help.
+
+Direct mode is working, but the performance on many games is poor. It is recommended to run in 
+extended mode! If you do run in Direct Mode, make sure Aero is enabled.
+
+In the 'Config' tab, 'Framelimit' should be set to match your Rift's refresh rate (most likely 75fps). 
+Games will run 25% too fast, but this will avoid judder. There are two options available to bring the game frame rate back down 
+normal speed. The first is the 'Opcode Replay Buffer', which rerenders game frames so headtracking runs at 75fps forcing 
+the game to maintain its normal speed.  This feature only currently works in around 50% of games, but is the preferred 
+method.  Synchronous timewarp smudges the image to fake head-tracking at a higher rate.  This can be tried if 'Opcode Replay Buffer' fails 
+but sometimes introduces artifacts and may judder depending on the game. As a last resort, the the Rift can be 
+set to run at 60hz from your AMD/Nvidia control panel and still run with low persistence, but flickering can be seen 
+in bright scenes. Different games run at differnet frame-rates, so choose the correct opcode replay/timewarp setting for the game.
+
+Under Graphics->Hacks->EFB Copies, 'Disable' and 'Remove Blank EFB Copy Box' can fix many games 
+that display black, or large black boxes that can't be removed by the 'Object Removal Codes. It can also cause 
+corruption in some games, so try it both ways.
+
+Right-clicking on each game will give you the options to adjust VR settings, and remove rendered objects. 
+Objects such as fake 16:9 bars can be removed from the game.  Some games already have object removal codes, 
+so make sure to check them if you would like the object removed.  You can find your own codes by starting 
+with an 8-bit code and clicking the up button until the object disappears.  Then move to 16bit, add two zeros 
+to the right side of your 8bit code, and continue hitting the up button until the object disappears again. 
+Continue until you have a long enough code for it to be unique.
+
+There are also AR codes that disable culling for a small amount of games.  Make sure 
+to check the AR codes to see if this is an option for the game you are playing.
+
+Take time to set the VR-Hotkeys. You can create combinations for XInput by right clicking on the buttons. Remember you can also set 
+a the gamecube/wii controller emulation to not happen during a certain button press, so setting freelook to 'Left 
+Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. The 
+freelook step size varies per game, so play with the 'Freelook Sensitivity' option to set it right for your game.
+Enjoy and watch for new updates, because we're making progress fast!
+
 
 How to run:
 
 Optional: Copy sixense_x64.dll, iweardrv.dll, and iwrstdrv.dll into your Dolphin directory.
 
-Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.2 runtime installed.
-Set the Rift Display Mode to "Extend Desktop to the HMD", or it won't work!
+Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.4 runtime installed.
+Both Direct and Extended modes work now.
 Dolphin performs best if it is the only monitor connected to the desktop, but that
 also makes the menus more difficult to use.
 Plug the Rift in, turn it on, and make sure the service is running and not paused,
 and if using DK1 make sure legacy DK1 support is turned off (this is not a legacy application),
 before launching Dolphin.
 
-Only Direct3D and OpenGL renderers will work. But Direct3D still has graphical glitches.
+Only Direct3D and OpenGL renderers will work. Direct3D is recommended.
 In Graphics, turn off Render To Main Window.
 In the Graphics options Enhancements tab set the internal resolution to a multiple
-of the native. 1x Native is much too blurry, I use 2.5x Native for my DK1.
+of the native. 1x Native is much too blurry, 2x or 2.5x are good choices.
 Lower resoultions are faster but blurrier.
-Anti-aliasing is working now.
-Post-Processing has no effect and is not implemented.
+Anti-aliasing is apparently not working anymore.
 eXternal Frame Buffer is always disabled regardless of what you choose.
-Turning Free-Look on in the Advanced tab allows you to walk around with Shift+WASD.
 The OnScreen Display or debug information doesn't work in VR mode, so don't bother.
-An Asynchronous Timewarp option is now available for OpenGL ONLY, but is very buggy.
-It can only be changed before playing, not during play. In D3D it has no effect.
+The Asynchronous Timewarp option doesn't work any more (since SDK 0.4.3).
 
 Choose a game and click the Play button to start. Acknowledge the warning, then put 
 on the Rift. Keep the mouse over the Rift's window, and click to focus input.
@@ -201,12 +235,17 @@ Orientation/motion sensing is messed up: make sure base is straight with cables 
 Hands are swapped: The nunchuk should be the controller that says LT (or q7) on the triggers, so hold that one in your left hand.
 Joystick is messed up: dock then undock both controllers, then disconnect and reconnect the extension in Wiimote settings.
 
+## The following compatability lists are out of date.
+
 ## VR Compatability for GameCube games:
 These games have been tested, and had their defaults set to the correct scale.
 They are listed in order of compatability from working best to most broken.
 Games not listed have not been tested, need to have the scale set manually, and might or might not work.
 
+Metroid Prime (but not the "Player's Choice version" 1.02)
+Metroid Prime 2 (dark visor isn't fully functional)
 Zelda: Wind Waker (dot in middle of screen)
+
 Animal Crossing GameCube (near-clipping when turning head)
 Bomberman Generation (angled camera)
 Mario Party 4 (working, angled camera)
@@ -227,8 +266,6 @@ Tony Hawks Pro 4 (some intros missing head-tracking)
 Four Swords Adventures (z-fighting, letterboxing)
 Mario Kart Double Dash (dirty screen)
 Soul Calibur 2 (HUD is ocluded by world behind it)
-Metroid Prime (lots of culling, skybox is wrong depth)
-Metroid Prime 2 Echoes GameCube (lots of culling, scan cursor in top left)
 F-Zero GX (sort of works, resets)
 Resident Evil 4 (intro weirdness, playable)
 Zelda Collector's Edition: Wind Waker Demo (larger, sometimes distorted)
