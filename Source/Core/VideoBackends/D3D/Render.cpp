@@ -739,31 +739,24 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			TargetRectangle drawRc;
 
-			if (g_ActiveConfig.bUseRealXFB)
-			{
-				drawRc = targetRc;
-			}
-			else
-			{
-				// use virtual xfb with offset
-				int xfbHeight = xfbSource->srcHeight;
-				int xfbWidth = xfbSource->srcWidth;
-				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+			// use virtual xfb with offset
+			int xfbHeight = xfbSource->srcHeight;
+			int xfbWidth = xfbSource->srcWidth;
+			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
-				drawRc.top = targetRc.bottom - (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
-				drawRc.bottom = targetRc.bottom - hOffset * targetRc.GetHeight() / fbHeight;
-				drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / fbStride) / 2;
-				drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / fbStride) / 2;
+			drawRc.top = targetRc.bottom - (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
+			drawRc.bottom = targetRc.bottom - hOffset * targetRc.GetHeight() / fbHeight;
+			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / fbStride) / 2;
+			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / fbStride) / 2;
 
-				// The following code disables auto stretch.  Kept for reference.
-				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)s_backbuffer_height;
-				//float hScale = (float)fbWidth / (float)s_backbuffer_width;
-				//drawRc.top *= vScale;
-				//drawRc.bottom *= vScale;
-				//drawRc.left *= hScale;
-				//drawRc.right *= hScale;
-			}
+			// The following code disables auto stretch.  Kept for reference.
+			// scale draw area for a 1 to 1 pixel mapping with the draw target
+			//float vScale = (float)fbHeight / (float)s_backbuffer_height;
+			//float hScale = (float)fbWidth / (float)s_backbuffer_width;
+			//drawRc.top *= vScale;
+			//drawRc.bottom *= vScale;
+			//drawRc.left *= hScale;
+			//drawRc.right *= hScale;
 
 			TargetRectangle sourceRc = xfbSource->sourceRc;
 			sourceRc.right -= fbStride - fbWidth;
