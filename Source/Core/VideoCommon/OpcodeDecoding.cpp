@@ -349,7 +349,10 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 			}
 			else
 			{
-				UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcodereplay_frame, in_display_list, recursive_call);
+				if (!g_ActiveConfig.bOpcodeWarningDisable)
+				{
+					UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcodereplay_frame, in_display_list, recursive_call);
+				}
 				totalCycles += 1;
 			}
 			break;
