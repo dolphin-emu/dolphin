@@ -101,6 +101,9 @@ private:
 
 		int slices;
 	} m_efb;
+
+	static unsigned int m_target_width;
+	static unsigned int m_target_height;
 };
 
 }  // namespace DX11
