@@ -1535,7 +1535,8 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 				nibbles[i + 0] = (*src >> 6) & 3;
 				nibbles[i + 1] = (*src >> 4) & 3;
 				nibbles[i + 2] = (*src >> 2) & 3;
-				nibbles[i + 3] = (*src >> 6) & 3;
+				nibbles[i + 3] = (*src >> 0) & 3;
+				src++;
 			}
 			for (auto& nibble : nibbles)
 			{
