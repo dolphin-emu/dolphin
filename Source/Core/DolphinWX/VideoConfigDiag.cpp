@@ -411,7 +411,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			choice_ppshader->AppendString(StrToWxStr(shader));
 		}
 
-		if (vconfig.sPostProcessingShader.empty())
+		if (vconfig.sPostProcessingShader.empty() || vconfig.iStereoMode == STEREO_ANAGLYPH)
 			choice_ppshader->Select(0);
 		else
 			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
@@ -453,19 +453,22 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		wxFlexGridSizer* const szr_stereo = new wxFlexGridSizer(2, 5, 5);
 
-		const wxString stereo_choices[] = { "Off", "Side-by-Side", "Top-and-Bottom", "Anaglyph", "Nvidia 3D Vision" };
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Stereoscopic 3D Mode:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_stereo->Add(CreateChoice(page_enh, vconfig.iStereoMode, wxGetTranslation(stereo_3d_desc), vconfig.backend_info.bSupports3DVision ? 5 : 4, stereo_choices));
+
+		const wxString stereo_choices[] = { "Off", "Side-by-Side", "Top-and-Bottom", "Anaglyph", "Nvidia 3D Vision" };
+		wxChoice* stereo_choice = CreateChoice(page_enh, vconfig.iStereoMode, wxGetTranslation(stereo_3d_desc), vconfig.backend_info.bSupports3DVision ? ArraySize(stereo_choices) : ArraySize(stereo_choices) - 1, stereo_choices);
+		stereo_choice->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_StereoMode, this);
+		szr_stereo->Add(stereo_choice);
 
 		wxSlider* const sep_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoDepth, 0, 100, wxDefaultPosition, wxDefaultSize);
-		sep_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoSep, this);
+		sep_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoDepth, this);
 		RegisterControl(sep_slider, wxGetTranslation(stereo_depth_desc));
 
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Depth:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(sep_slider, 0, wxEXPAND | wxRIGHT);
 
 		wxSlider* const conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergence, 0, 500, wxDefaultPosition, wxDefaultSize);
-		conv_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoFoc, this);
+		conv_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoConvergence, this);
 		RegisterControl(conv_slider, wxGetTranslation(stereo_convergence_desc));
 
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Convergence:")), 1, wxALIGN_CENTER_VERTICAL, 0);
