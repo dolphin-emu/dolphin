@@ -664,6 +664,9 @@ struct ZeldaAudioRenderer::VPB
 		SRC_CONST_PATTERN_1 = 4,
 		SRC_CONST_PATTERN_2 = 11,
 		SRC_CONST_PATTERN_3 = 12,
+		// Samples stored in ARAM at a rate of 16 samples/5 bytes, AFC encoded,
+		// at an arbitrary sample rate (resampling is applied).
+		SRC_AFC_LQ_FROM_ARAM = 5,
 		// Samples stored in ARAM in PCM8 format, at an arbitrary sampling rate
 		// (resampling is applied).
 		SRC_PCM8_FROM_ARAM = 8,
@@ -1248,6 +1251,7 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
 			break;
 
 		case VPB::SRC_AFC_HQ_FROM_ARAM:
+		case VPB::SRC_AFC_LQ_FROM_ARAM:
 			DownloadAFCSamplesFromARAM(raw_input_samples.data() + 4, vpb,
 			                           NeededRawSamplesCount(*vpb));
 			Resample(vpb, raw_input_samples.data(), buffer);
@@ -1520,13 +1524,25 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
 			for (auto& nibble : nibbles)
 			{
 				if (nibble >= 8)
-					nibble = nibble - 16;
+					nibble -= 16;
 				nibble <<= 11;
 			}
 		}
 		else
 		{
-			// TODO: LQ samples.
+			for (size_t i = 0; i < 16; i += 4)
+			{
+				nibbles[i + 0] = (*src >> 6) & 3;
+				nibbles[i + 1] = (*src >> 4) & 3;
+				nibbles[i + 2] = (*src >> 2) & 3;
+				nibbles[i + 3] = (*src >> 6) & 3;
+			}
+			for (auto& nibble : nibbles)
+			{
+				if (nibble >= 2)
+					nibble -= 4;
+				nibble <<= 13;
+			}
 		}
 
 		s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();
