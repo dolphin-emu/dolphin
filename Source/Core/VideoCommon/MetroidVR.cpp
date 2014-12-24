@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <cmath>
@@ -18,7 +18,8 @@ bool g_metroid_scan_visor = false, g_metroid_scan_visor_active = false,
 g_metroid_xray_visor = false, g_metroid_thermal_visor = false,
 g_metroid_map_screen = false, g_metroid_inventory = false,
 g_metroid_dark_visor = false, g_metroid_echo_visor = false, g_metroid_morphball_active = false,
-g_metroid_is_demo1 = false;
+g_metroid_is_demo1 = false,
+g_metroid_cinematic = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0;
 int g_zelda_normal_count = 0, g_zelda_effect_count = 0;
 
@@ -45,6 +46,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 	{
 	case METROID_BACKGROUND_3D:
 		return "Background 3D";
+	case METROID_CINEMATIC_WORLD:
+		return "Cinematic World";
 	case METROID_BLACK_BARS:
 		return "Black Bars";
 	case METROID_DARK_CENTRAL:
@@ -254,6 +257,10 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 			result = METROID_MAP_2;
 			g_metroid_xray_visor = false;
 		}
+		else if (l == -32000 && t == 22400 && n == -409600 && f == 409600 && g_metroid_cinematic)
+		{
+			result = METROID_BLACK_BARS;
+		}
 		else if (l == -32000 && n == -409600 && f == 409600)
 		{
 			result = METROID_VISOR_DIRT;
@@ -264,6 +271,10 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 			g_metroid_dark_visor = false;
 			g_metroid_xray_visor = false;
 		}
+	}
+	else if (l == -32000 && t == 22400 && n == -409600 && f == 409600 && g_metroid_cinematic)
+	{
+		result = METROID_BLACK_BARS;
 	}
 	else if (l == -320)
 	{
@@ -332,6 +343,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	}
 	else if (f == 409600 && v == 6500)
 	{
+		g_metroid_cinematic = false; 
 		if (h == 8055)
 		{
 			g_metroid_morphball_active = false;
@@ -505,6 +517,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 		g_metroid_map_screen = false;
 		g_metroid_scan_visor = false;
 		g_metroid_inventory = false;
+		g_metroid_cinematic = false;
 	}
 	else if (f == 75000 && v == 5021)
 	{
@@ -518,9 +531,11 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 		g_metroid_map_screen = false;
 		g_metroid_scan_visor = false;
 		g_metroid_inventory = false;
+		g_metroid_cinematic = false;
 	}
 	else if (f == 75000 && h == 7327)
 	{
+		g_metroid_cinematic = false;
 		++g_metroid_normal_count;
 		g_metroid_map_screen = false;
 		g_metroid_inventory = false;
@@ -576,7 +591,8 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	}
 	else
 	{
-		result = METROID_UNKNOWN;
+		g_metroid_cinematic = true;
+		result = METROID_CINEMATIC_WORLD;
 	}
 	return result;
 }
@@ -932,7 +948,6 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_SHADOWS:
 	case METROID_BODY_SHADOWS:
 		*bStuckToHead = false;
-		//*bHide = true;
 		break;
 	case METROID_ECHO_EFFECT:
 		*bStuckToHead = true;
@@ -944,22 +959,28 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		*fScaleHack = 0.5;
 		break;
 	case METROID_THERMAL_EFFECT:
+		*bStuckToHead = true;
+		*bFullscreenLayer = true;
+		*fHeightHack = 448.0f / 528.0f;
+		*fWidthHack = 1.0f;
+		*fUpHack = 0.16f;
+		*fRightHack = 0.0f;
+		break;
 	case METROID_THERMAL_EFFECT_GUN:
 		*bStuckToHead = true;
-		*fHeightHack = 4.2f;
-		*fWidthHack = 2.1f;
-		*fUpHack = 0;
-		*fRightHack = -0.4f;
-		*fScaleHack = 0.01f;
+		*bFullscreenLayer = true;
+		*fHeightHack = 448.0f / 528.0f;
+		*fWidthHack = 1.0f;
+		*fUpHack = 0.0f;
+		*fRightHack = 0.01f;
 		break;
-
 	case METROID_XRAY_EFFECT:
 		*bStuckToHead = true;
-		*fHeightHack = 6.0f;
-		*fWidthHack = 3.0f;
-		*fUpHack = 0;
-		*fRightHack = -0.5f;
-		*fScaleHack = 0.01f;
+		*bFullscreenLayer = true;
+		*fHeightHack = 402.0f / 528.0f;
+		*fWidthHack = 1.0f;
+		*fUpHack = 0.38f;
+		*fRightHack = 0.01f;
 		break;
 	case METROID_DARK_EFFECT:
 		*bStuckToHead = true;
@@ -1028,6 +1049,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		break;
 	case METROID_UNKNOWN:
 	case METROID_WORLD:
+	case METROID_CINEMATIC_WORLD:
 	case METROID_MORPHBALL_WORLD:
 	case METROID_XRAY_WORLD:
 	case METROID_THERMAL_GUN_AND_DOOR:
