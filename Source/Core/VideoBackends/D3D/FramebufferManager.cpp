@@ -172,7 +172,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, layers), layers);
 }
 
-void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)
+void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height)
 {
 	*width = m_target_width;
 	*height = m_target_height;

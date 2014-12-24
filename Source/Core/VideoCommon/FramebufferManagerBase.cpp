@@ -146,7 +146,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 		m_virtualXFBList.splice(m_virtualXFBList.begin(), m_virtualXFBList, vxfb);
 
 	unsigned int target_width, target_height;
-	g_framebuffer_manager->GetTargetSize(&target_width, &target_height, sourceRc);
+	g_framebuffer_manager->GetTargetSize(&target_width, &target_height);
 
 	// recreate if needed
 	if (vxfb->xfbSource && (vxfb->xfbSource->texWidth != target_width || vxfb->xfbSource->texHeight != target_height))
@@ -233,7 +233,7 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
 	}
 }
 
-int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, unsigned int backbuffer_width)
+int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x)
 {
 	if (g_ActiveConfig.RealXFBEnabled())
 		return x;
@@ -241,7 +241,7 @@ int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, unsigned int backbuffe
 	return x * (int)Renderer::GetTargetRectangle().GetWidth() / (int)FramebufferManagerBase::LastXfbWidth();
 }
 
-int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height)
+int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y)
 {
 	if (g_ActiveConfig.RealXFBEnabled())
 		return y;
