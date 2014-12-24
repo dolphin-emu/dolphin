@@ -168,8 +168,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
 			&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 			(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
-			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
-			(g_Config.iStereoMode > 0) ? GeometryShaderCache::GetCopyGeometryShader() : nullptr);
+			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
