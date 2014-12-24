@@ -146,7 +146,7 @@ private:
 		bool s_hires_textures;
 		bool s_copy_cache_enable;
 		bool s_stereo_3d;
-		bool s_mono_efb_depth;
+		bool s_efb_mono_depth;
 	} backup_config;
 };
 

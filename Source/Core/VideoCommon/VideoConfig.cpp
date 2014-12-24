@@ -40,7 +40,7 @@ VideoConfig::VideoConfig()
 	backend_info.bSupportsExclusiveFullscreen = false;
 
 	// Game-specific stereoscopy settings
-	bStereoMonoEFBDepth = false;
+	bStereoEFBMonoDepth = false;
 	iStereoDepthPercentage = 100;
 	iStereoConvergencePercentage = 100;
 }
@@ -189,7 +189,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "StereoConvergence", iStereoConvergence);
 	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
 
-	CHECK_SETTING("Video_Stereoscopy", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
+	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepthPercentage", iStereoDepthPercentage);
 	CHECK_SETTING("Video_Stereoscopy", "StereoConvergencePercentage", iStereoConvergencePercentage);
 

@@ -126,7 +126,7 @@ struct VideoConfig final
 	int iSaveTargetId; // TODO: Should be dropped
 
 	// Stereoscopy
-	bool bStereoMonoEFBDepth;
+	bool bStereoEFBMonoDepth;
 	int iStereoSeparationPercent;
 	int iStereoConvergencePercent;
 	int iStereoDepthPercentage;
