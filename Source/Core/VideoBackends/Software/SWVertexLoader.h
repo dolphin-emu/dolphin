@@ -9,7 +9,7 @@
 #include "VideoBackends/Software/CPMemLoader.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 
-#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderBase.h"
 
 class PointerWrap;
 class SetupUnit;
@@ -28,9 +28,9 @@ class SWVertexLoader
 
 	bool m_TexGenSpecialCase;
 
-	std::map<VertexLoaderUID, std::unique_ptr<VertexLoader>> m_VertexLoaderMap;
+	std::unordered_map<VertexLoaderUID, std::unique_ptr<VertexLoaderBase>> m_VertexLoaderMap;
 	std::vector<u8> m_LoadedVertices;
-	VertexLoader* m_CurrentLoader;
+	VertexLoaderBase* m_CurrentLoader;
 
 	u8 m_attributeIndex;
 	u8 m_primitiveType;

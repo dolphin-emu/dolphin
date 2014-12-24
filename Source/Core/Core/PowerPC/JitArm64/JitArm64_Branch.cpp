@@ -116,9 +116,6 @@ void JitArm64::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 
-	gpr.Flush(FlushMode::FLUSH_ALL);
-	fpr.Flush(FlushMode::FLUSH_ALL);
-
 	ARM64Reg WA = gpr.GetReg();
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
@@ -154,6 +151,10 @@ void JitArm64::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
+
+	gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+
 	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -161,7 +162,12 @@ void JitArm64::bcx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	WriteExit(js.compilerPC + 4);
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush(FlushMode::FLUSH_ALL);
+		fpr.Flush(FlushMode::FLUSH_ALL);
+		WriteExit(js.compilerPC + 4);
+	}
 }
 
 void JitArm64::bcctrx(UGeckoInstruction inst)
@@ -207,9 +213,6 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 
-	gpr.Flush(FlushMode::FLUSH_ALL);
-	fpr.Flush(FlushMode::FLUSH_ALL);
-
 	ARM64Reg WA = gpr.GetReg();
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
@@ -243,6 +246,9 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 		gpr.Unlock(WB);
 	}
 
+	gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+
 	WriteExitDestInR(WA);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -250,5 +256,10 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	WriteExit(js.compilerPC + 4);
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush(FlushMode::FLUSH_ALL);
+		fpr.Flush(FlushMode::FLUSH_ALL);
+		WriteExit(js.compilerPC + 4);
+	}
 }

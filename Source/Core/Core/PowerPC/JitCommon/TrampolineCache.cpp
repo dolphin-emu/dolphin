@@ -86,7 +86,8 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, B
 		break;
 	}
 
-	MOV(dataRegSize, R(dataReg), R(ABI_RETURN));
+	if (dataReg != ABI_RETURN)
+		MOV(dataRegSize, R(dataReg), R(ABI_RETURN));
 
 	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
 	RET();

@@ -135,9 +135,6 @@ void JitArm64::twx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 
-	gpr.Flush(FlushMode::FLUSH_ALL);
-	fpr.Flush(FlushMode::FLUSH_ALL);
-
 	s32 a = inst.RA;
 
 	ARM64Reg WA = gpr.GetReg();
@@ -178,6 +175,9 @@ void JitArm64::twx(UGeckoInstruction inst)
 		SetJumpTarget(fixup);
 	}
 
+	gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+
 	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
 	ORR(WA, WA, 24, 0); // Same as WA | EXCEPTION_PROGRAM
 	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
@@ -189,5 +189,10 @@ void JitArm64::twx(UGeckoInstruction inst)
 
 	SetJumpTarget(dont_trap);
 
-	WriteExit(js.compilerPC + 4);
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush(FlushMode::FLUSH_ALL);
+		fpr.Flush(FlushMode::FLUSH_ALL);
+		WriteExit(js.compilerPC + 4);
+	}
 }

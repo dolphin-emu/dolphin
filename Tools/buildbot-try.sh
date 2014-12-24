@@ -7,7 +7,7 @@ opt_file=$HOME/.buildbot/options
 
 if ! [ -f "$opt_file" ]; then
     echo >&2 "error: no .buildbot/options configuration file found"
-    echo >&2 "Read the docs: http://code.google.com/p/dolphin-emu/wiki/BuildbotTry"
+    echo >&2 "Read the docs: https://wiki.dolphin-emu.org/index.php?title=Buildbot"
     exit 1
 fi
 

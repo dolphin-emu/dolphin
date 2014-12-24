@@ -30,7 +30,7 @@ static TVtxDesc vertexDesc;
 static PortableVertexDeclaration vertexDecl;
 
 // Gets the pointer to the current buffer position
-void LOADERDECL SetVertexBufferPosition()
+void LOADERDECL SetVertexBufferPosition(VertexLoader* loader)
 {
 	bufferPos = g_vertex_manager_write_ptr;
 }
@@ -76,7 +76,7 @@ void Prepare(const VAT & vat, int primitive, const TVtxDesc & vtxDesc, const Por
 }
 
 // Updates the bounding box
-void LOADERDECL Update()
+void LOADERDECL Update(VertexLoader* loader)
 {
 	if (!active)
 		return;

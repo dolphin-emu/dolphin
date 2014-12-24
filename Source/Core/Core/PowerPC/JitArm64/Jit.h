@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "Common/Arm64Emitter.h"
 
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -11,15 +13,15 @@
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitArm64/JitAsm.h"
+#include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#define PPCSTATE_OFF(elem) ((s64)&PowerPC::ppcState.elem - (s64)&PowerPC::ppcState)
+#define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
 // Some asserts to make sure we will be able to load everything
 static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
 static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
 
-using namespace Arm64Gen;
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
 {
 public:
@@ -31,11 +33,9 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return nullptr; }
-
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 
-	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
 	void ClearCache();
 
@@ -83,6 +83,10 @@ public:
 	void extsXx(UGeckoInstruction inst);
 	void cntlzwx(UGeckoInstruction inst);
 	void negx(UGeckoInstruction inst);
+	void cmp(UGeckoInstruction inst);
+	void cmpl(UGeckoInstruction inst);
+	void cmpi(UGeckoInstruction inst);
+	void cmpli(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
@@ -96,6 +100,8 @@ public:
 
 	// LoadStore
 	void icbi(UGeckoInstruction inst);
+	void lXX(UGeckoInstruction inst);
+	void stX(UGeckoInstruction inst);
 
 private:
 	Arm64GPRCache gpr;
@@ -106,20 +112,33 @@ private:
 
 	PPCAnalyst::CodeBuffer code_buffer;
 
+	// The key is the backpatch flags
+	std::map<u32, BackPatchInfo> m_backpatch_info;
+
+	// Backpatching routines
+	bool DisasmLoadStore(const u8* ptr, u32* flags, Arm64Gen::ARM64Reg* reg);
+	void InitBackpatch();
+	u32 EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem, bool do_padding, Arm64Gen::ARM64Reg RS, Arm64Gen::ARM64Reg addr);
+	// Loadstore routines
+	void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
+	void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
+
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
 
 	void DoDownCount();
 
 	// Exits
 	void WriteExit(u32 destination);
-	void WriteExceptionExit(ARM64Reg dest);
-	void WriteExitDestInR(ARM64Reg dest);
+	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
+	void WriteExceptionExit();
+	void WriteExitDestInR(Arm64Gen::ARM64Reg dest);
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
-	void ComputeRC(u32 d);
+	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0);
+	void ComputeRC(u32 imm, int crf = 0);
 
 	typedef u32 (*Operation)(u32, u32);
-	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, ARM64Reg, ArithOption), bool Rc = false);
+	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, ArithOption), bool Rc = false);
 };
 
