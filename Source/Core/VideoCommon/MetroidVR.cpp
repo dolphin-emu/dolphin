@@ -45,6 +45,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 	{
 	case METROID_BACKGROUND_3D:
 		return "Background 3D";
+	case METROID_BLACK_BARS:
+		return "Black Bars";
 	case METROID_DARK_CENTRAL:
 		return "Dark Visor Central";
 	case METROID_DARK_EFFECT:
@@ -109,6 +111,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Scan Text Box";
 	case METROID_SCAN_VISOR:
 		return "Scan Visor";
+	case METROID_SCREEN_FADE:
+		return "Screen Fade";
 	case METROID_SHADOW_2D:
 		return "Shadow 2D";
 	case METROID_SHADOWS:
@@ -174,6 +178,8 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 
 	TMetroidLayer result;
 	int l = Round100(left);
+	int t = Round100(top);
+	int r = Round100(right);
 	int n = Round100(znear);
 	int f = Round100(zfar);
 	if (layer == 0 && g_metroid_map_screen && l == 0 && n == -100)
@@ -206,7 +212,7 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 			result = METROID_MAP_1;
 			g_metroid_map_screen = true;
 		}
-		else if (l == 0 && n == -409600)
+		else if (l == 0 && t != 44800 && n == -409600)
 		{
 			result = METROID_THERMAL_EFFECT;
 			g_metroid_thermal_visor = true;
@@ -233,7 +239,7 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 			g_metroid_morphball_active = false;
 			g_metroid_thermal_visor = false;
 		}
-		else if (l == 0 && n == -409600)
+		else if (l == 0 && t == 0 && r == 64000 && n == -409600)
 		{
 			result = METROID_THERMAL_EFFECT;
 			g_metroid_thermal_visor = true;
@@ -268,6 +274,8 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 	{
 		if (g_metroid_map_screen)
 			result = METROID_MAP_NORTH;
+		else if (layer == 4 && !g_metroid_scan_visor)
+			result = METROID_BLACK_BARS;
 		else
 			result = METROID_SCAN_DARKEN;
 	}
@@ -302,6 +310,12 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	//	int n = Round100(znear);
 	int f = Round100(zfar);
 	TMetroidLayer result;
+
+	if (layer == 2)
+	{
+		// would be a 2D layer if it was still the map screen.
+		g_metroid_map_screen = false;
+	}
 
 	if (v == h && v < 100 && h < 100 && layer == 0)
 	{
@@ -908,10 +922,18 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 {
 	switch (g_metroid_layer)
 	{
+	case METROID_BLACK_BARS:
+		*bHide = true;
+		break;
+	case METROID_SCREEN_FADE:
+		*bFullscreenLayer = true;
+		*bStuckToHead = true;
+		break;
 	case METROID_SHADOWS:
 	case METROID_BODY_SHADOWS:
 		*bStuckToHead = false;
 		//*bHide = true;
+		break;
 	case METROID_ECHO_EFFECT:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
