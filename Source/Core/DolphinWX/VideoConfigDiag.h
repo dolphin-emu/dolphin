@@ -309,6 +309,7 @@ static wxString replaybuffer_desc = wxTRANSLATE("How many extra frames to render
 static wxString pullup20_desc = wxTRANSLATE("Make headtracking work at 75fps for a 20fps game. Enable this on 20fps games to fix judder.\nIf unsure, leave this unchecked.");
 static wxString pullup30_desc = wxTRANSLATE("Make headtracking work at 75fps for a 30fps game. Enable this on 30fps games to fix judder.\nIf unsure, leave this unchecked.");
 static wxString pullup60_desc = wxTRANSLATE("Make headtracking work at 75fps for a 60fps game. Enable this on 60fps games to fix judder.\nIf unsure, leave this unchecked.");
+static wxString opcodewarning_desc = wxTRANSLATE("Turn off Opcode Warnings.  Will ignore errors in the Opcode Replay Buffer, allowing many games with minor problems to be played.  This should be turned on if trying to play a game with Opcode Replay enabled. Once all the bugs in the Opcode Buffer are fixed, this option will be removed!");
 static wxString pullup20timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 20fps game. Enable this on 20fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
 static wxString pullup30timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 30fps game. Enable this on 30fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
 static wxString pullup60timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 60fps game. Enable this on 60fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");

@@ -55,6 +55,7 @@ VideoConfig::VideoConfig()
 	bPullUp20fps = false;
 	bPullUp30fps = false;
 	bPullUp60fps = false;
+	bOpcodeWarningDisable = false;
 	bPullUp20fpsTimewarp = false;
 	bPullUp30fpsTimewarp = false;
 	bPullUp60fpsTimewarp = false;
@@ -205,6 +206,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("PullUp20fps", &bPullUp20fps, false);
 	vr->Get("PullUp30fps", &bPullUp30fps, false);
 	vr->Get("PullUp60fps", &bPullUp60fps, false);
+	vr->Get("OpcodeWarningDisable", &bOpcodeWarningDisable, false);
 	vr->Get("PullUp20fpsTimewarp", &bPullUp20fpsTimewarp, false);
 	vr->Get("PullUp30fpsTimewarp", &bPullUp30fpsTimewarp, false);
 	vr->Get("PullUp60fpsTimewarp", &bPullUp60fpsTimewarp, false);
@@ -587,6 +589,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("PullUp20fps", bPullUp20fps);
 	vr->Set("PullUp30fps", bPullUp30fps);
 	vr->Set("PullUp60fps", bPullUp60fps);
+	vr->Set("OpcodeWarningDisable", bOpcodeWarningDisable);
 	vr->Set("PullUp20fpsTimewarp", bPullUp20fpsTimewarp);
 	vr->Set("PullUp30fpsTimewarp", bPullUp30fpsTimewarp);
 	vr->Set("PullUp60fpsTimewarp", bPullUp60fpsTimewarp);

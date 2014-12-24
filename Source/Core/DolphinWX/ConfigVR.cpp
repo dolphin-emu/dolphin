@@ -161,12 +161,16 @@ void CConfigVR::CreateGUIControls()
 			spin_replay_buffer_divider->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			// Used for spacing for now.
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20 = CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
 			checkbox_pullup30 = CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
 			checkbox_pullup60 = CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
+			SettingCheckBox* checkbox_disable_warnings = CreateCheckBox(page_vr, _("Disable Opcode Warnings"), wxGetTranslation(opcodewarning_desc), vconfig.bOpcodeWarningDisable);
 			szr_vr->Add(checkbox_pullup20, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_pullup30, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_pullup60, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_disable_warnings, 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup30->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup60->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
