@@ -178,8 +178,50 @@ void VertexManager::vFlush(bool useDstAlpha)
 	}
 
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
+	u32 indices = IndexGenerator::GetIndexLen();
 
 	PrepareDrawBuffers(stride);
+
+	if (!bpmem.genMode.zfreeze && indices >= 3)
+	{
+		float vtx[9];
+		float out[12];
+
+		// Lookup vertices of the last rendered triangle and software-transform them
+		// This allows us to determine the depth slope, which will be used if zfreeze
+		// is enabled in the following flush.
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			const int base_index = GetIndexBuffer()[indices - 3 + i];
+			u8* vtx_ptr = &((u8*)GetVertexBuffer())[base_index * stride];
+			vtx[0 + i * 3] = ((float*)vtx_ptr)[0];
+			vtx[1 + i * 3] = ((float*)vtx_ptr)[1];
+			vtx[2 + i * 3] = ((float*)vtx_ptr)[2];
+
+			VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4]);
+
+			// viewport offset ignored because we only look at coordinate differences.
+			out[0 + i * 4] = out[0 + i * 4] / out[3 + i * 4] * xfmem.viewport.wd;
+			out[1 + i * 4] = out[1 + i * 4] / out[3 + i * 4] * xfmem.viewport.ht;
+			out[2 + i * 4] = out[2 + i * 4] / out[3 + i * 4] * xfmem.viewport.zRange + xfmem.viewport.farZ;
+		}
+		float dx31 = out[8] - out[0];
+		float dx12 = out[0] - out[4];
+		float dy12 = out[1] - out[5];
+		float dy31 = out[9] - out[1];
+
+		float DF31 = out[10] - out[2];
+		float DF21 = out[6] - out[2];
+		float a = DF31 * -dy12 - DF21 * dy31;
+		float b = dx31 * DF21 + dx12 * DF31;
+		float c = -dx12 * dy31 - dx31 * -dy12;
+
+		float slope_dfdx = -a / c;
+		float slope_dfdy = -b / c;
+		float slope_f0 = out[2];
+
+		PixelShaderManager::SetZSlopeChanged(slope_dfdx, slope_dfdy, slope_f0);
+	}
 
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);

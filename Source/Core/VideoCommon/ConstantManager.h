@@ -23,6 +23,7 @@ struct PixelShaderConstants
 	int4 fogcolor;
 	int4 fogi;
 	float4 fogf[2];
+	float4 zslope;
 };
 
 struct VertexShaderConstants
