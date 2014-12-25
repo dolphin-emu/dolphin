@@ -228,6 +228,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		"\tint4 " I_FOGCOLOR";\n"
 		"\tint4 " I_FOGI";\n"
 		"\tfloat4 " I_FOGF"[2];\n"
+		"\tfloat4 " I_ZSLOPE";\n"
 		"};\n");
 
 	if (g_ActiveConfig.bEnablePixelLighting)
@@ -267,7 +268,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	GenerateVSOutputStruct<T>(out, ApiType);
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
 
 	if (forced_early_z)
 	{
@@ -541,10 +542,20 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	uid_data->fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
 	uid_data->early_ztest = bpmem.UseEarlyDepthTest();
 	uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
+	uid_data->zfreeze = bpmem.genMode.zfreeze;
 
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
-		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+	{
+		if (bpmem.genMode.zfreeze)
+		{
+			out.Write("\tdepth = " I_ZSLOPE".z + " I_ZSLOPE".x * (clipPos.x / clipPos.w) + " I_ZSLOPE".y * (clipPos.y / clipPos.w);\n");
+		}
+		else
+		{
+			out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+		}
+	}
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
 	// theoretical final depth value is used for fog calculation, though, so we have to emulate ztextures anyway
@@ -558,7 +569,16 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
-		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+	{
+		if (bpmem.genMode.zfreeze)
+		{
+			out.Write("\tdepth = " I_ZSLOPE".z + " I_ZSLOPE".x * (clipPos.x / clipPos.w) + " I_ZSLOPE".y * (clipPos.y / clipPos.w);\n");
+		}
+		else
+		{
+			out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+		}
+	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{
