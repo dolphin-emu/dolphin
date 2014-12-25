@@ -758,8 +758,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			//drawRc.left *= hScale;
 			//drawRc.right *= hScale;
 
-			TargetRectangle sourceRc = xfbSource->sourceRc;
-			sourceRc.right -= fbStride - fbWidth;
+			TargetRectangle sourceRc;
+			sourceRc.left = 0;
+			sourceRc.top = 0;
+			sourceRc.right = (int)xfbSource->texWidth;
+			sourceRc.bottom = (int)xfbSource->texHeight;
 
 			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
 		}

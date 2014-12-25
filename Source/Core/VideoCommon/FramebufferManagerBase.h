@@ -24,6 +24,7 @@ struct XFBSourceBase
 	unsigned int texWidth;
 	unsigned int texHeight;
 
+	// TODO: only used by OGL
 	TargetRectangle sourceRc;
 };
 
