@@ -79,7 +79,7 @@ void ReadGC(const std::string& filename)
 	if (!OpenISO)
 		return;
 
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
+	if (!DiscIO::IsVolumeWadFile(OpenISO))
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 
