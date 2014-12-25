@@ -93,8 +93,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("centroid out float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 				out.Write("centroid out float4 Normal;\n");
-			out.Write("centroid out float4 colors_02;\n");
-			out.Write("centroid out float4 colors_12;\n");
+			out.Write("centroid out float4 colors_0;\n");
+			out.Write("centroid out float4 colors_1;\n");
 		}
 
 		out.Write("void main()\n{\n");
@@ -396,8 +396,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("clipPos = o.clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 				out.Write("Normal = o.Normal;\n");
-			out.Write("colors_02 = o.colors_0;\n");
-			out.Write("colors_12 = o.colors_1;\n");
+			out.Write("colors_0 = o.colors_0;\n");
+			out.Write("colors_1 = o.colors_1;\n");
 		}
 
 		out.Write("gl_Position = o.pos;\n");
