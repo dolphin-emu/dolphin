@@ -690,6 +690,24 @@ void VertexShaderManager::ResetView()
 	bProjectionChanged = true;
 }
 
+void VertexShaderManager::TransformToClipSpace(const float* data, float *out)
+{
+	const float *world_matrix = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
+	const float *proj_matrix = &g_fProjectionMatrix[0];
+
+	float t[3];
+	t[0] = data[0] * world_matrix[0] + data[1] * world_matrix[1] + data[2] * world_matrix[2] + world_matrix[3];
+	t[1] = data[0] * world_matrix[4] + data[1] * world_matrix[5] + data[2] * world_matrix[6] + world_matrix[7];
+	t[2] = data[0] * world_matrix[8] + data[1] * world_matrix[9] + data[2] * world_matrix[10] + world_matrix[11];
+
+	// TODO: this requires g_fProjectionMatrix to be up to date, which is not really a good design decision.
+
+	out[0] = t[0] * proj_matrix[0] + t[1] * proj_matrix[1] + t[2] * proj_matrix[2] + proj_matrix[3];
+	out[1] = t[0] * proj_matrix[4] + t[1] * proj_matrix[5] + t[2] * proj_matrix[6] + proj_matrix[7];
+	out[2] = t[0] * proj_matrix[8] + t[1] * proj_matrix[9] + t[2] * proj_matrix[10] + proj_matrix[11];
+	out[3] = t[0] * proj_matrix[12] + t[1] * proj_matrix[13] + t[2] * proj_matrix[14] + proj_matrix[15];
+}
+
 void VertexShaderManager::DoState(PointerWrap &p)
 {
 	p.Do(g_fProjectionMatrix);

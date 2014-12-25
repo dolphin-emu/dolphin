@@ -21,8 +21,9 @@
 #define C_FOGCOLOR      (C_INDTEXMTX + 6)   //27
 #define C_FOGI          (C_FOGCOLOR + 1)    //28
 #define C_FOGF          (C_FOGI + 1)        //29
+#define C_ZSLOPE        (C_FOGF + 1)        //30
 
-#define C_PENVCONST_END (C_FOGF + 2)
+#define C_PENVCONST_END (C_ZSLOPE + 2)
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
@@ -62,6 +63,7 @@ struct pixel_shader_uid_data
 	u32 forced_early_z : 1;
 	u32 early_ztest : 1;
 	u32 bounding_box : 1;
+	u32 zfreeze : 1;
 
 	u32 texMtxInfo_n_projection : 8; // 8x1 bit
 	u32 tevindref_bi0 : 3;
