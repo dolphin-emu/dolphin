@@ -217,10 +217,19 @@ void VideoConfig::VerifyValidity()
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
 
-	if (iStereoMode > 0 && !backend_info.bSupportsGeometryShaders)
+	if (iStereoMode > 0)
 	{
-		OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
-		iStereoMode = 0;
+		if (!backend_info.bSupportsGeometryShaders)
+		{
+			OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.", 10000);
+			iStereoMode = 0;
+		}
+
+		if (bUseRealXFB)
+		{
+			OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning off stereoscopy.", 10000);
+			iStereoMode = 0;
+		}
 	}
 }
 

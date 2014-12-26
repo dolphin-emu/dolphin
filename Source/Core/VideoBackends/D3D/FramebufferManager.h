@@ -48,8 +48,6 @@ struct XFBSource : public XFBSourceBase
 	XFBSource(D3DTexture2D *_tex, int slices) : tex(_tex), m_slices(slices) {}
 	~XFBSource() { tex->Release(); }
 
-	void Draw(const MathUtil::Rectangle<int> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc) const override;
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
 	void CopyEFB(float Gamma) override;
 
@@ -82,8 +80,8 @@ public:
 	}
 
 private:
-	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
-	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) override;
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
+	void GetTargetSize(unsigned int *width, unsigned int *height) override;
 
 	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
@@ -103,6 +101,9 @@ private:
 
 		int slices;
 	} m_efb;
+
+	static unsigned int m_target_width;
+	static unsigned int m_target_height;
 };
 
 }  // namespace DX11

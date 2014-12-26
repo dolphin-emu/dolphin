@@ -509,17 +509,20 @@ void XFBSource::CopyEFB(float Gamma)
 	g_renderer->ResetAPIState();
 
 	// Copy EFB data to XFB and restore render target again
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
-	// Bind texture.
-	FramebufferManager::FramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, texture, 0);
+	for (int i = 0; i < m_layers; i++)
+	{
+		// Bind EFB and texture layer
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer(i));
+		glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0, i);
 
-	glBlitFramebuffer(
-		0, 0, texWidth, texHeight,
-		0, 0, texWidth, texHeight,
-		GL_COLOR_BUFFER_BIT, GL_NEAREST
-	);
+		glBlitFramebuffer(
+			0, 0, texWidth, texHeight,
+			0, 0, texWidth, texHeight,
+			GL_COLOR_BUFFER_BIT, GL_NEAREST
+		);
+	}
 
 	// Return to EFB.
 	FramebufferManager::SetFramebuffer(0);
@@ -528,7 +531,7 @@ void XFBSource::CopyEFB(float Gamma)
 
 }
 
-XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height)
+XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
 {
 	GLuint texture;
 
@@ -537,12 +540,12 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-	return new XFBSource(texture, m_EFBLayers);
+	return new XFBSource(texture, layers);
 }
 
-void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)
+void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height)
 {
 	*width = m_targetWidth;
 	*height = m_targetHeight;

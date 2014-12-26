@@ -68,7 +68,7 @@ public:
 	static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc);
 	static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc);
 
-	static GLuint GetEFBFramebuffer() { return m_efbFramebuffer[0]; }
+	static GLuint GetEFBFramebuffer(unsigned int layer = 0) { return (layer < m_EFBLayers) ? m_efbFramebuffer[layer] : m_efbFramebuffer[m_EFBLayers - 1]; }
 	static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
 
 	// Resolved framebuffer is only used in MSAA mode.
@@ -92,8 +92,8 @@ public:
 	static void ReinterpretPixelData(unsigned int convtype);
 
 private:
-	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
-	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) override;
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
+	void GetTargetSize(unsigned int *width, unsigned int *height) override;
 
 	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
