@@ -288,7 +288,6 @@ Renderer::~Renderer()
 
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-		//Core::ShouldAddTimewarpFrame();
 	}
 #endif
 	g_first_rift_frame = true;
@@ -957,7 +956,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			// Let OVR do distortion rendering, Present and flush/sync.
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			Common::AtomicIncrement(g_drawn_vr);
 
+			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
 
 			if (g_ActiveConfig.bPullUp20fpsTimewarp)
@@ -1010,6 +1011,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
 
 				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+				Common::AtomicIncrement(g_drawn_vr);
 			}
 
 		}

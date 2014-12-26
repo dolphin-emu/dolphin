@@ -705,7 +705,6 @@ void Renderer::Shutdown()
 		glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ElementArrayBufferBinding);
 		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &ArrayBufferBinding);
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-		Common::AtomicIncrement(g_drawn_vr);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
 		glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
 	}
@@ -1533,7 +1532,7 @@ void Renderer::AsyncTimewarpDraw()
 	//SuspendThread(thread_handle);
 #endif
 	ovrHmd_EndFrame(hmd, g_front_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-	Core::ShouldAddTimewarpFrame();
+	Common::AtomicIncrement(g_drawn_vr);
 #ifdef _WIN32
 	//ResumeThread(thread_handle);
 #endif
@@ -1823,7 +1822,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			Common::AtomicIncrement(g_drawn_vr);
 
+			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
 
 			if (g_ActiveConfig.bPullUp20fpsTimewarp)
@@ -1869,6 +1870,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
 
 				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+				Common::AtomicIncrement(g_drawn_vr);
 			}
 
 			//glBindVertexArray(VertexArrayBinding);

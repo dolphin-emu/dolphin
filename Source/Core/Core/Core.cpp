@@ -823,7 +823,7 @@ void UpdateTitle()
 
 	float FPS = (float) (Common::AtomicLoad(s_drawn_frame) * 1000.0 / ElapseTime);
 	float VPS = (float) (s_drawn_video * 1000.0 / ElapseTime);
-	float VRPS = s_vr_fps;
+	float VRPS = (float) (Common::AtomicLoad(g_drawn_vr) * 1000.0 / ElapseTime);
 	float Speed = (float) (s_drawn_video * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
