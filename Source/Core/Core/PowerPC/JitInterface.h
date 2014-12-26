@@ -36,6 +36,9 @@ namespace JitInterface
 
 	void ClearSafe();
 
+	// Set up any internal data necessary upon a graphics quantization register change
+	void SetGQR(int index, u32 gqr);
+
 	// If "forced" is true, a recompile is being requested on code that hasn't been modified.
 	void InvalidateICache(u32 address, u32 size, bool forced);
 

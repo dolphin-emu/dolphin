@@ -25,6 +25,7 @@ public:
 	void Init() override {}
 	void Shutdown() override {}
 	void ClearCache() override {}
+	void SetGQR(int index, u32 gqr) override {}
 	void Run() override {}
 	void SingleStep() override {}
 	const char *GetName() override { return nullptr; }

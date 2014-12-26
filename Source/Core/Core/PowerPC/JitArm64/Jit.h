@@ -39,6 +39,8 @@ public:
 
 	void ClearCache();
 
+	void SetGQR(int index, u32 gqr);
+
 	CommonAsmRoutinesBase *GetAsmRoutines()
 	{
 		return &asm_routines;

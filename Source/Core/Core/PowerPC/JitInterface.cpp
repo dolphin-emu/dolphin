@@ -44,7 +44,11 @@ namespace JitInterface
 	void DoState(PointerWrap &p)
 	{
 		if (jit && p.GetMode() == PointerWrap::MODE_READ)
+		{
 			jit->GetBlockCache()->Clear();
+			for (int i = 0; i < 8; i++)
+				jit->SetGQR(i, GQR(i));
+		}
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
@@ -199,6 +203,11 @@ namespace JitInterface
 		// TODO: There's probably a better way to handle this situation.
 		if (jit)
 			jit->GetBlockCache()->Clear();
+	}
+	void SetGQR(int index, u32 gqr)
+	{
+		if (jit)
+			jit->SetGQR(index, gqr);
 	}
 
 	void InvalidateICache(u32 address, u32 size, bool forced)

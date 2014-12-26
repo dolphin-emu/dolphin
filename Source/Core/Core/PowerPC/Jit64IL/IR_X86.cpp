@@ -1590,13 +1590,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			// Hence, we need to mask out the unused bits. The layout of the GQR register is
 			// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
 			// 0b0011111100000111, or 0x3F07.
-			Jit->MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-			Jit->AND(32, R(RSCRATCH2), M(((char *)&GQR(quantreg)) + 2));
-			Jit->MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
-			Jit->OR(32, R(RSCRATCH), Imm8(w << 3));
+			Jit->MOV(32, R(RSCRATCH), Imm32(0x3F07));
+			Jit->AND(32, R(RSCRATCH), M(((char *)&GQR(quantreg)) + 2));
+			Jit->MOVZX(32, 8, RSCRATCH_EXTRA, R(RSCRATCH));
+			Jit->OR(32, R(RSCRATCH_EXTRA), Imm8(w << 3));
+			Jit->SHR(32, R(RSCRATCH), Imm8(8));
 
-			Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
+			Jit->MOV(32, R(RSCRATCH2), regLocForInst(RI, getOp1(I)));
+			Jit->CALLptr(MScaled(RSCRATCH_EXTRA, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1641,13 +1642,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			regSpill(RI, RSCRATCH);
 			regSpill(RI, RSCRATCH2);
 			u32 quantreg = *I >> 24;
-			Jit->MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-			Jit->AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + quantreg]));
-			Jit->MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+			Jit->MOV(32, R(RSCRATCH), Imm32(0x3F07));
+			Jit->AND(32, R(RSCRATCH), PPCSTATE(spr[SPR_GQR0 + quantreg]));
+			Jit->MOVZX(32, 8, RSCRATCH_EXTRA, R(RSCRATCH));
+			Jit->SHR(32, R(RSCRATCH), Imm8(8));
 
-			Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp2(I)));
+			Jit->MOV(32, R(RSCRATCH2), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
+			Jit->CALLptr(MScaled(RSCRATCH_EXTRA, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)

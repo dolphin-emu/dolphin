@@ -113,6 +113,14 @@ const u8 *XEmitter::AlignCode16()
 	return code;
 }
 
+const u8 *XEmitter::AlignCode64()
+{
+	int c = int((u64)code & 63);
+	if (c)
+		ReserveCodeSpace(64-c);
+	return code;
+}
+
 const u8 *XEmitter::AlignCodePage()
 {
 	int c = int((u64)code & 4095);

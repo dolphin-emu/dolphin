@@ -35,16 +35,14 @@ public:
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to write to.
-	// In: XMM0: Bottom two 32-bit slots hold the pair of floats to be written.
+	// In: XMM0: Bottom two 32-bit slots hold the float(s) to be written.
 	// Out: Nothing.
 	// Trashes: all three RSCRATCH
 	const u8 **pairedStoreQuantized;
 
-	// In: array index: GQR to use.
-	// In: ECX: Address to write to.
-	// In: XMM0: Bottom 32-bit slot holds the float to be written.
-	const u8 **singleStoreQuantized;
-
+	// Current function pointers: get updated as GQRs are modified
+	const u8 **pairedLoadQuantizeFunc;
+	const u8 **pairedStoreQuantizeFunc;
 };
 
 class CommonAsmRoutines : public CommonAsmRoutinesBase, public EmuCodeBlock
@@ -52,7 +50,7 @@ class CommonAsmRoutines : public CommonAsmRoutinesBase, public EmuCodeBlock
 protected:
 	void GenQuantizedLoads();
 	void GenQuantizedStores();
-	void GenQuantizedSingleStores();
+	void ReserveQuantizeTableSpace();
 
 public:
 	void GenFifoWrite(int size);

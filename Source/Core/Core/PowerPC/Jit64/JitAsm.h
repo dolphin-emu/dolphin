@@ -34,7 +34,7 @@ public:
 		m_stack_top = stack_top;
 		AllocCodeSpace(8192);
 		Generate();
-		WriteProtect();
+		//WriteProtect();
 	}
 
 	void Shutdown()

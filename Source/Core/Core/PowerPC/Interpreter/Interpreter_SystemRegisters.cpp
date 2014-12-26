@@ -10,8 +10,10 @@
 #include "Common/FPURoundMode.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 
 /*
 
@@ -315,6 +317,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 	case SPR_GQR0 + 5:
 	case SPR_GQR0 + 6:
 	case SPR_GQR0 + 7:
+		JitInterface::SetGQR(iIndex - SPR_GQR0, rSPR(iIndex));
 		break;
 
 	case SPR_DMAL:
