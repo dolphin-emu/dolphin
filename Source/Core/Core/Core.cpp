@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -194,6 +194,7 @@ bool Init()
 		// The Emu Thread was stopped, synchronize with it.
 		s_emu_thread.join();
 	}
+#ifdef OCULUSSDK042
 	if (s_vr_thread.joinable())
 	{
 		if (IsRunning())
@@ -207,6 +208,7 @@ bool Init()
 		// The VR Thread was stopped, synchronize with it.
 		s_vr_thread.join();
 	}
+#endif
 
 	Core::UpdateWantDeterminism(/*initial*/ true);
 
@@ -347,6 +349,8 @@ static void FifoPlayerThread()
 	return;
 }
 
+#ifdef OCULUSSDK042
+// VR Asynchronous Timewarp Thread
 void VRThread()
 {
 	Common::SetCurrentThreadName("VR Thread");
@@ -390,6 +394,7 @@ void VRThread()
 
 	NOTICE_LOG(VR, "[VR Thread] Stopping VR Thread");
 }
+#endif
 
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
@@ -410,6 +415,7 @@ void EmuThread()
 	HW::Init();
 
 	// Initialize backend, and optionally VR thread for asynchronous timewarp rendering
+#ifdef OCULUSSDK042
 	if (core_parameter.bAsynchronousTimewarp && g_video_backend->Video_CanDoAsync())
 	{
 		if (!g_video_backend->Initialize(nullptr))
@@ -437,6 +443,7 @@ void EmuThread()
 		}
 	}
 	else
+#endif
 	{
 		if (!g_video_backend->Initialize(s_window_handle))
 		{
@@ -514,11 +521,13 @@ void EmuThread()
 		cpuThreadFunc = CpuThread;
 
 	// 	On VR Thread: g_video_backend->Video_PrepareOtherThread();
+#ifdef OCULUSSDK042
 	if (g_Config.bAsynchronousTimewarp)
 	{
 		s_nonvr_thread_ready.Set();
 		s_vr_thread_ready.Wait();
 	}
+#endif
 
 	// ENTER THE VIDEO THREAD LOOP
 	if (core_parameter.bCPUThread)
@@ -575,6 +584,7 @@ void EmuThread()
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
+#ifdef OCULUSSDK042
 	if (g_Config.bAsynchronousTimewarp)
 	{
 		// Tell the VR Thread to stop
@@ -582,6 +592,7 @@ void EmuThread()
 		s_stop_vr_thread = true;
 		s_vr_thread_ready.Wait();
 	}
+#endif
 
 	if (core_parameter.bCPUThread)
 	{
@@ -604,11 +615,13 @@ void EmuThread()
 	Wiimote::Shutdown();
 
 	// Oculus Rift VR thread
+#ifdef OCULUSSDK042
 	if (g_Config.bAsynchronousTimewarp)
 	{
 		s_stop_vr_thread = true;
 		s_vr_thread.join();
 	}
+#endif
 	g_video_backend->Shutdown();
 
 	AudioCommon::ShutdownSoundStream();

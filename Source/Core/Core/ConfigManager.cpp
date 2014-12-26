@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -349,7 +349,9 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 	display->Set("ForceNTSCJ", m_LocalCoreStartupParameter.bForceNTSCJ);
 
 	IniFile::Section* vr = ini.GetOrCreateSection("VR");
+#ifdef OCULUSSDK042
 	vr->Set("AsynchronousTimewarp", m_LocalCoreStartupParameter.bAsynchronousTimewarp);
+#endif
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -617,7 +619,11 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 	display->Get("ForceNTSCJ",           &m_LocalCoreStartupParameter.bForceNTSCJ,             false);
 
 	IniFile::Section* vr = ini.GetOrCreateSection("VR");
+#ifdef OCULUSSDK042
 	vr->Get("AsynchronousTimewarp",      &m_LocalCoreStartupParameter.bAsynchronousTimewarp,   false);
+#else
+	m_LocalCoreStartupParameter.bAsynchronousTimewarp = false;
+#endif
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)

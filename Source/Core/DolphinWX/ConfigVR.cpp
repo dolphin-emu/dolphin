@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -233,7 +233,9 @@ void CConfigVR::CreateGUIControls()
 		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
 		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
+#ifdef OCULUSSDK042
 		szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bAsynchronousTimewarp));
+#endif
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

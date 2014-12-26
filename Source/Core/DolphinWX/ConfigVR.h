@@ -43,7 +43,9 @@ protected:
 		// Things which shouldn't be changed during emulation
 		if (Core::IsRunning())
 		{
+#ifdef OCULUSSDK042
 			async_timewarp_checkbox->Disable();
+#endif
 		}
 		ev.Skip();
 	}
