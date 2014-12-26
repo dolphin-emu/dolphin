@@ -186,10 +186,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "}\n\n");
 
 	// rounding + casting to integer at once in a single function
-	out.Write("int  iround(float  x) { return int (round(x)); }\n"
-	          "int2 iround(float2 x) { return int2(round(x)); }\n"
-	          "int3 iround(float3 x) { return int3(round(x)); }\n"
-	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
+	out.Write("int  iround(float  x) { return int (floor(x + 0.5)); }\n"
+	          "int2 iround(float2 x) { return int2(floor(x + float2(0.5))); }\n"
+	          "int3 iround(float3 x) { return int3(floor(x + float3(0.5))); }\n"
+	          "int4 iround(float4 x) { return int4(floor(x + float4(0.5))); }\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
