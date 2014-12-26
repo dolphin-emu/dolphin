@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -285,6 +285,7 @@ EVT_MENU(IDM_MENU_INSTALLWAD, CFrame::OnInstallWAD)
 EVT_MENU(IDM_LIST_INSTALLWAD, CFrame::OnInstallWAD)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
 EVT_MENU(IDM_FIFOPLAYER, CFrame::OnFifoPlayer)
+EVT_MENU(IDM_DEBUGGER, CFrame::OnDebugger)
 
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)

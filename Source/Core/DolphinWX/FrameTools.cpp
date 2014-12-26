@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -261,6 +261,9 @@ wxMenuBar* CFrame::CreateMenu()
 	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU, "Dummy string to keep wxw happy"));
 
 	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
+
+	toolsMenu->AppendCheckItem(IDM_DEBUGGER, _("Debugger"));
+	toolsMenu->Enable(IDM_DEBUGGER, !UseDebugger);
 
 	toolsMenu->AppendSeparator();
 	wxMenu* wiimoteMenu = new wxMenu;
@@ -1655,6 +1658,61 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED (event))
 	else
 	{
 		m_FifoPlayerDlg = new FifoPlayerDlg(this);
+	}
+}
+
+void CFrame::OnDebugger(wxCommandEvent& WXUNUSED(event))
+{
+	if (!UseDebugger)
+	{
+		UseDebugger = true;
+		this->Maximize(true);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODEWINDOW);
+		LoadIniPerspectives();
+		g_pCodeWindow->Load();
+
+		wxMenuBar *menu = GetMenuBar();
+		wxMenu* toolsMenu = menu->GetMenu(GetMenuBar()->FindMenu(_("&Tools")));
+		toolsMenu->Enable(IDM_DEBUGGER, false);
+		wxMenu* pOptionsMenu = menu->GetMenu(menu->FindMenu(_("&Options")));
+		pOptionsMenu->AppendSeparator();
+		g_pCodeWindow->CreateMenuOptions(pOptionsMenu);
+		g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, menu);
+		wxMenu* viewMenu = menu->GetMenu(menu->FindMenu(_("&View")));
+		viewMenu->AppendSeparator();
+		viewMenu->Check(IDM_LOGWINDOW, g_pCodeWindow->bShowOnStart[0]);
+		const wxString MenuText[] = {
+			wxTRANSLATE("&Registers"),
+			wxTRANSLATE("&Watch"),
+			wxTRANSLATE("&Breakpoints"),
+			wxTRANSLATE("&Memory"),
+			wxTRANSLATE("&JIT"),
+			wxTRANSLATE("&Sound"),
+			wxTRANSLATE("&Video")
+		};
+		for (int i = IDM_REGISTERWINDOW; i <= IDM_VIDEOWINDOW; i++)
+		{
+			viewMenu->AppendCheckItem(i, wxGetTranslation(MenuText[i - IDM_REGISTERWINDOW]));
+			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOGWINDOW]);
+		}
+
+		// Create toolbar
+		RecreateToolbar();
+		if (!SConfig::GetInstance().m_InterfaceToolbar) DoToggleToolbar(false);
+		// Commit
+		m_Mgr->Update();
+
+		if (g_pCodeWindow->AutomaticStart())
+		{
+			BootGame("");
+		}
+
+		// Load perspective
+		DoLoadPerspective();
+		// Update controls
+		UpdateGUI();
+		if (g_pCodeWindow)
+			g_pCodeWindow->UpdateButtonStates();
 	}
 }
 

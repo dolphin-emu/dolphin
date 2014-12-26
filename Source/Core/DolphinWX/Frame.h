@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -326,6 +326,7 @@ private:
 	void OnLoadWiiMenu(wxCommandEvent& event);
 	void OnInstallWAD(wxCommandEvent& event);
 	void OnFifoPlayer(wxCommandEvent& event);
+	void OnDebugger(wxCommandEvent& event);
 	void OnConnectWiimote(wxCommandEvent& event);
 	void GameListChanged(wxCommandEvent& event);
 
