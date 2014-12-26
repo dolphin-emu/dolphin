@@ -22,7 +22,6 @@ public:
 protected:
 	virtual void ResetBuffer(u32 stride) override;
 	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
-	u8* GetVertexBuffer() { return &LocalVBuffer[0]; }
 
 private:
 
