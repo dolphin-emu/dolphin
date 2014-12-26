@@ -57,7 +57,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
 	if (js.op->wantsCA)
 	{
 		// Be careful: a breakpoint kills flags in between instructions
-		if (js.next_op->wantsCAInFlags && !js.next_inst_bp)
+		if (!js.isLastInstruction && js.next_op->wantsCAInFlags && !js.next_inst_bp)
 		{
 			if (cond == CC_C || cond == CC_NC)
 			{
@@ -86,7 +86,7 @@ void Jit64::FinalizeCarry(bool ca)
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		if (js.next_op->wantsCAInFlags)
+		if (!js.isLastInstruction && js.next_op->wantsCAInFlags && !js.next_inst_bp)
 		{
 			if (ca)
 				STC();
