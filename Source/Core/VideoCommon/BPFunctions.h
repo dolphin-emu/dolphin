@@ -18,6 +18,7 @@ namespace BPFunctions
 void FlushPipeline();
 void SetGenerationMode();
 void SetScissor();
+void SetLineWidth();
 void SetDepthMode();
 void SetBlendMode();
 void SetDitherMode();

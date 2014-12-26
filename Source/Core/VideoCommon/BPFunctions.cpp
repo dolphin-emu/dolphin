@@ -62,6 +62,11 @@ void SetScissor()
 	g_renderer->SetScissorRect(rc);
 }
 
+void SetLineWidth()
+{
+	g_renderer->SetLineWidth();
+}
+
 void SetDepthMode()
 {
 	g_renderer->SetDepthMode();
