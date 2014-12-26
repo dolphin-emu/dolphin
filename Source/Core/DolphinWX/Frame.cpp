@@ -1415,8 +1415,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			// Previous layer
 			case 'B':
 				g_Config.iSelectedLayer--;
-				if (g_Config.iSelectedLayer < 0)
-					g_Config.iSelectedLayer = -1;
+				if (g_Config.iSelectedLayer < -1)
+					g_Config.iSelectedLayer = -2;
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
 				debug_nextScene = true;
 				break;

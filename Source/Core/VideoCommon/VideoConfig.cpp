@@ -365,7 +365,7 @@ void VideoConfig::GameIniLoad()
 	bDisable3D = false;
 	bHudFullscreen = false;
 	bHudOnTop = false;
-	iSelectedLayer = -1;
+	iSelectedLayer = -2;
 	iFlashState = 0;
 
 
