@@ -42,15 +42,11 @@ public:
 	GLuint m_last_vao;
 protected:
 	virtual void ResetBuffer(u32 stride) override;
-	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
-	u8* GetVertexBuffer() { return &LocalVBuffer[0]; }
+
 private:
 	void Draw(u32 stride);
 	void vFlush(bool useDstAlpha) override;
 	void PrepareDrawBuffers(u32 stride);
-
-	std::vector<u8> LocalVBuffer;
-	std::vector<u16> LocalIBuffer;
 };
 
 }
