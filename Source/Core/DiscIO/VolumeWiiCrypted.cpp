@@ -14,6 +14,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeGC.h"
@@ -68,6 +69,8 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 {
 	if (m_pReader == nullptr)
 		return(false);
+
+	FileMon::FindFilename(_ReadOffset);
 
 	while (_Length > 0)
 	{
