@@ -7,6 +7,11 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
+// Uncomment this to have a strict version of the HLE implementation, which
+// PanicAlerts on recoverable unknown behaviors instead of silently ignoring
+// them.  Recommended for development.
+// #define STRICT_ZELDA_HLE 1
+
 // These flags modify the behavior of the HLE implementation based on the UCode
 // version. When introducing a new flag, please recheck the behavior of each
 // UCode version.
@@ -808,8 +813,10 @@ void ZeldaAudioRenderer::PrepareFrame()
 	// TODO: Back left and back right should have a filter applied to them,
 	// then get mixed into front left and front right. In practice, TWW never
 	// uses this AFAICT. PanicAlert to help me find places that use this.
+#ifdef STRICT_ZELDA_HLE
 	if (!(m_flags & LIGHT_PROTOCOL) && (m_buf_back_left[0] != 0 || m_buf_back_right[0] != 0))
 		PanicAlert("Zelda HLE using back mixing buffers");
+#endif
 
 	// Add reverb data from previous frame.
 	ApplyReverb(false);
@@ -837,7 +844,9 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 {
 	if (!m_reverb_pb_base_addr)
 	{
+#ifdef STRICT_ZELDA_HLE
 		PanicAlert("Trying to apply reverb without available parameters.");
+#endif
 		return;
 	}
 
@@ -912,7 +921,9 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
 				MixingBuffer* dest_buffer = BufferForID(dest.buffer_id);
 				if (!dest_buffer)
 				{
+#ifdef STRICT_ZELDA_HLE
 					PanicAlert("RPB mixing to an unknown buffer: %04x", dest.buffer_id);
+#endif
 					continue;
 				}
 				AddBuffersWithVolume(dest_buffer->data(), buffer.data(),
@@ -1085,7 +1096,9 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
 			MixingBuffer* dst_buffer = BufferForID(vpb.channels[i].id);
 			if (!dst_buffer)
 			{
+#ifdef STRICT_ZELDA_HLE
 				PanicAlert("Mixing to an unmapped buffer: %04x", vpb.channels[i].id);
+#endif
 				continue;
 			}
 
