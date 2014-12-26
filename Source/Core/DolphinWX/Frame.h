@@ -62,6 +62,8 @@ class CRenderFrame : public wxFrame
 		bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
 
 	private:
+		wxWindow* m_WindowedParent;
+		long m_WindowedStyle;
 		void OnDropFiles(wxDropFilesEvent& event);
 		static bool IsValidSavestateDropped(const std::string& filepath);
 		#ifdef _WIN32
@@ -89,9 +91,9 @@ public:
 	void* GetRenderHandle()
 	{
 		#if defined(HAVE_X11) && HAVE_X11
-			return reinterpret_cast<void*>(X11Utils::XWindowFromHandle(m_RenderParent->GetHandle()));
+			return reinterpret_cast<void*>(X11Utils::XWindowFromHandle(m_RenderFrame->GetHandle()));
 		#else
-			return reinterpret_cast<void*>(m_RenderParent->GetHandle());
+			return reinterpret_cast<void*>(m_RenderFrame->GetHandle());
 		#endif
 	}
 
@@ -127,7 +129,6 @@ public:
 	void UpdateTitle(const std::string &str);
 
 	const CGameListCtrl *GetGameListCtrl() const;
-	virtual wxMenuBar* GetMenuBar() const override;
 
 #ifdef __WXGTK__
 	Common::Event panic_event;
@@ -197,11 +198,9 @@ private:
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
-	wxMenuBar* m_menubar_shadow;
-
 	void PopulateToolbar(wxToolBar* toolBar);
 	void RecreateToolbar();
-	wxMenuBar* CreateMenu();
+	void CreateMenu();
 
 	// Utility
 	wxString GetMenuLabel(int Id);
@@ -234,7 +233,6 @@ private:
 	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
 			const wxString& title = "",
 			wxWindow * = nullptr);
-	wxString AuiFullscreen, AuiCurrent;
 	void AddPane();
 	void UpdateCurrentPerspective();
 	void SaveIniPerspectives();

@@ -92,6 +92,8 @@ Display *XDisplayFromHandle(void *Handle)
 CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
 		const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
+	, m_WindowedParent(parent)
+	, m_WindowedStyle(style)
 {
 	// Give it an icon
 	wxIcon IconTemp;
@@ -204,23 +206,31 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 
 bool CRenderFrame::ShowFullScreen(bool show, long style)
 {
-#if defined WIN32
-	if (show && !g_Config.bBorderlessFullscreen)
+	if (show)
 	{
+		// Backup the windowed parent and style.
+		m_WindowedParent = GetParent();
+		m_WindowedStyle = GetWindowStyle();
+
+#if defined WIN32
 		// OpenGL requires the pop-up style to activate exclusive mode.
-		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
-	}
+		if (!g_Config.bBorderlessFullscreen)
+			SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
 #endif
+		Reparent(nullptr);
+	}
 
 	bool result = wxTopLevelWindow::ShowFullScreen(show, style);
 
-#if defined WIN32
 	if (!show)
 	{
-		// Restore the default style.
-		SetWindowStyle((GetWindowStyle() & ~wxPOPUP_WINDOW) | wxDEFAULT_FRAME_STYLE);
-	}
+		// Restore the windowed parent and style.
+		Reparent(m_WindowedParent);
+
+#if defined WIN32
+		SetWindowStyle(m_WindowedStyle);
 #endif
+	}
 
 	return result;
 }
@@ -352,7 +362,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
 	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bGameLoading(false), m_bClosing(false), m_confirmStop(false), m_menubar_shadow(nullptr)
+	, m_bGameLoading(false), m_bClosing(false), m_confirmStop(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
@@ -381,10 +391,7 @@ CFrame::CFrame(wxFrame* parent,
 		GetStatusBar()->Hide();
 
 	// Give it a menu bar
-	wxMenuBar* menubar_active = CreateMenu();
-	SetMenuBar(menubar_active);
-	// Create a menubar to service requests while the real menubar is hidden from the screen
-	m_menubar_shadow = CreateMenu();
+	CreateMenu();
 
 	// ---------------
 	// Main panel
@@ -411,7 +418,6 @@ CFrame::CFrame(wxFrame* parent,
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
 				.Name("Pane 1").Caption(_("Logging")).CaptionVisible(true)
 				.Layer(0).FloatingSize(wxSize(600, 350)).CloseButton(true).Hide());
-	AuiFullscreen = m_Mgr->SavePerspective();
 
 	// Create toolbar
 	RecreateToolbar();
@@ -483,10 +489,6 @@ CFrame::~CFrame()
 	ClosePages();
 
 	delete m_Mgr;
-
-	// This object is owned by us, not wxw
-	m_menubar_shadow->Destroy();
-	m_menubar_shadow = nullptr;
 }
 
 bool CFrame::RendererIsFullscreen()
@@ -1307,7 +1309,6 @@ void CFrame::OnMouse(wxMouseEvent& event)
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
 	if (g_Config.ExclusiveFullscreenEnabled() &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 		Core::GetState() == Core::CORE_PAUSE)
 	{
 		// A responsive renderer is required for exclusive fullscreen, but the
@@ -1333,65 +1334,18 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (!g_Config.ExclusiveFullscreenEnabled() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	else
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
 		// Therefore we don't exit fullscreen from here if we support exclusive mode.
-		m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
+		if (!g_Config.ExclusiveFullscreenEnabled())
+			m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
 	}
 #endif
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-	{
-		if (enable_fullscreen)
-		{
-			// Save the current mode before going to fullscreen
-			AuiCurrent = m_Mgr->SavePerspective();
-			m_Mgr->LoadPerspective(AuiFullscreen, true);
+	m_RenderFrame->Raise();
 
-			// Hide toolbar
-			DoToggleToolbar(false);
-
-			// Hide menubar (by having wxwidgets delete it)
-			SetMenuBar(nullptr);
-
-			// Hide the statusbar if enabled
-			if (GetStatusBar()->IsShown())
-			{
-				GetStatusBar()->Hide();
-				this->SendSizeEvent();
-			}
-		}
-		else
-		{
-			// Restore saved perspective
-			m_Mgr->LoadPerspective(AuiCurrent, true);
-
-			// Restore toolbar to the status it was at before going fullscreen.
-			DoToggleToolbar(SConfig::GetInstance().m_InterfaceToolbar);
-
-			// Recreate the menubar if needed.
-			if (wxFrame::GetMenuBar() == nullptr)
-			{
-				SetMenuBar(CreateMenu());
-			}
-
-			// Show statusbar if enabled
-			if (SConfig::GetInstance().m_InterfaceStatusbar)
-			{
-				GetStatusBar()->Show();
-				this->SendSizeEvent();
-			}
-		}
-	}
-	else
-	{
-		m_RenderFrame->Raise();
-	}
-
-	g_Config.bFullscreen = (!g_Config.ExclusiveFullscreenEnabled() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
+	g_Config.bFullscreen = (!g_Config.ExclusiveFullscreenEnabled()) ? false : enable_fullscreen;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const
