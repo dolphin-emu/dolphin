@@ -537,6 +537,14 @@ static void Do_ARAM_DMA()
 {
 	g_dspState.DSPControl.DMAState = 1;
 
+	if (g_ARAM.wii_mode)
+	{
+		ERROR_LOG(DSPINTERFACE, "ARAM DMA in Wii mode? CNT %08x  ARAM %08x  MRAM %08x  PC %08x",
+			g_arDMA.Cnt.Hex, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
+		return;
+	}
+
 	// ARAM DMA transfer rate has been measured on real hw
 	int ticksToTransfer = (g_arDMA.Cnt.count / 32) * 246;
 
@@ -551,7 +559,11 @@ static void Do_ARAM_DMA()
 	last_mmaddr = g_arDMA.MMAddr;
 	last_aram_dma_count = g_arDMA.Cnt.count;
 
-	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
+	// ARAM is mirrored every 64MB (verified on real HW)
+	g_arDMA.Cnt.count &= 0xffffffe0;
+	g_arDMA.ARAddr &= 0x03ffffe0;
+	g_arDMA.MMAddr &= 0x1fffffe0;
+
 	if (g_arDMA.Cnt.dir)
 	{
 		// ARAM -> MRAM
@@ -559,31 +571,31 @@ static void Do_ARAM_DMA()
 			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
 
 		// Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
-		g_arDMA.ARAddr &= 0x3ffffff;
-		g_arDMA.MMAddr &= 0x3ffffff;
-
 		if (g_arDMA.ARAddr < g_ARAM.size)
 		{
 			while (g_arDMA.Cnt.count)
 			{
+
 				// These are logically separated in code to show that a memory map has been set up
 				// See below in the write section for more information
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
-					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
+					std::copy_n(&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], 0x20, Memory::GetPointer(g_arDMA.MMAddr));
 				}
 				else if ((g_ARAM_Info.Hex & 0xf) == 4)
 				{
-					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
+					std::copy_n(&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], 0x20, Memory::GetPointer(g_arDMA.MMAddr));
 				}
 				else
 				{
-					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
+					std::copy_n(&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], 0x20, Memory::GetPointer(g_arDMA.MMAddr));
 				}
 
-				g_arDMA.MMAddr += 8;
-				g_arDMA.ARAddr += 8;
-				g_arDMA.Cnt.count -= 8;
+				g_arDMA.MMAddr += 0x20;
+				g_arDMA.ARAddr += 0x20;
+				g_arDMA.Cnt.count -= 0x20;
+				g_arDMA.ARAddr &= 0x03ffffe0;
+				g_arDMA.MMAddr &= 0x1fffffe0;
 			}
 		}
 		else
@@ -591,10 +603,12 @@ static void Do_ARAM_DMA()
 			// Assuming no external ARAM installed; returns zeroes on out of bounds reads (verified on real HW)
 			while (g_arDMA.Cnt.count)
 			{
-				Memory::Write_U64(0, g_arDMA.MMAddr);
-				g_arDMA.MMAddr += 8;
-				g_arDMA.ARAddr += 8;
-				g_arDMA.Cnt.count -= 8;
+				std::fill_n(Memory::GetPointer(g_arDMA.MMAddr), 0x20, 0);
+				g_arDMA.MMAddr += 0x20;
+				g_arDMA.ARAddr += 0x20;
+				g_arDMA.Cnt.count -= 0x20;
+				g_arDMA.ARAddr &= 0x03ffffe0;
+				g_arDMA.MMAddr &= 0x1fffffe0;
 			}
 		}
 	}
@@ -604,9 +618,6 @@ static void Do_ARAM_DMA()
 		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
 			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
 
-		// Incoming data into ARAM is mirrored every 64MB (verified on real HW)
-		g_arDMA.ARAddr &= 0x3ffffff;
-		g_arDMA.MMAddr &= 0x3ffffff;
 
 		if (g_arDMA.ARAddr < g_ARAM.size)
 		{
@@ -614,24 +625,26 @@ static void Do_ARAM_DMA()
 			{
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
-					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
+					std::copy_n(Memory::GetPointer(g_arDMA.MMAddr), 0x20, &g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask]);
 				}
 				else if ((g_ARAM_Info.Hex & 0xf) == 4)
 				{
 					if (g_arDMA.ARAddr < 0x400000)
 					{
-						*(u64*)&g_ARAM.ptr[(g_arDMA.ARAddr + 0x400000) & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
+						std::copy_n(Memory::GetPointer(g_arDMA.MMAddr), 0x20, &g_ARAM.ptr[(g_arDMA.ARAddr + 0x400000) & g_ARAM.mask]);
 					}
-					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
+					std::copy_n(Memory::GetPointer(g_arDMA.MMAddr), 0x20, &g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask]);
 				}
 				else
 				{
-					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
+					std::copy_n(Memory::GetPointer(g_arDMA.MMAddr), 0x20, &g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask]);
 				}
 
-				g_arDMA.MMAddr += 8;
-				g_arDMA.ARAddr += 8;
-				g_arDMA.Cnt.count -= 8;
+				g_arDMA.MMAddr += 0x20;
+				g_arDMA.ARAddr += 0x20;
+				g_arDMA.Cnt.count -= 0x20;
+				g_arDMA.ARAddr &= 0x03ffffe0;
+				g_arDMA.MMAddr &= 0x1fffffe0;
 			}
 		}
 		else
@@ -640,6 +653,8 @@ static void Do_ARAM_DMA()
 			g_arDMA.MMAddr += g_arDMA.Cnt.count;
 			g_arDMA.ARAddr += g_arDMA.Cnt.count;
 			g_arDMA.Cnt.count = 0;
+			g_arDMA.ARAddr &= 0x03ffffe0;
+			g_arDMA.MMAddr &= 0x1fffffe0;
 		}
 	}
 }
@@ -652,10 +667,7 @@ u8 ReadARAM(u32 _iAddress)
 	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
 	if (g_ARAM.wii_mode)
 	{
-		if (_iAddress & 0x10000000)
-			return g_ARAM.ptr[_iAddress & g_ARAM.mask];
-		else
-			return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
+		return Memory::Read_U8(_iAddress & 0x1fffffff);
 	}
 	else
 	{
@@ -667,7 +679,14 @@ void WriteARAM(u8 value, u32 _uAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
 	//TODO: verify this on WII
-	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
+	if (g_ARAM.wii_mode)
+	{
+		Memory::Write_U8(value, _uAddress & 0x1fffffff);
+	}
+	else
+	{
+		g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
+	}
 }
 
 u8 *GetARAMPtr()
