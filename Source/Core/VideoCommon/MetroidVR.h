@@ -61,7 +61,12 @@ typedef enum
 	METROID_UNKNOWN_2D,
 
 	ZELDA_UNKNOWN,
+	ZELDA_CREATE_MAP,
+	ZELDA_CREATE_SHADOW,
 	ZELDA_WORLD,
+	ZELDA_FISHING,
+	ZELDA_HAWKEYE,
+	ZELDA_HAWKEYE_HUD,
 	ZELDA_REFLECTION,
 	ZELDA_DARK_EFFECT,
 	ZELDA_DIALOG,
@@ -92,5 +97,5 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, float zfar);
 void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHide, bool *bFlashing,
-	float* fScaleHack, float *fWidthHack, float *fHeightHack, float *fUpHack, float *fRightHack);
+	float* fScaleHack, float *fWidthHack, float *fHeightHack, float *fUpHack, float *fRightHack, int *iTelescope);
 

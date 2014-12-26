@@ -169,13 +169,22 @@ void SetViewportType(Viewport &v)
 	// Power of two square viewport in the corner of the screen means we are rendering to a texture,
 	// usually a shadow texture from the POV of the light, that will be drawn multitextured onto 3D objects.
 	// Note this is a temporary rendering to the backbuffer that will be cleared or overwritten after reading.
+	// Twilighlight Princess GC uses square but non-power-of-2 textures: 216x216 and 384x384
+	// Metroid Prime 2 uses square textures in the bottom left corner but screen_height is wrong.
+	// So the relaxed rule is: square texture on any screen edge with size a multiple of 8
 	//if (width == height
 	//	&& (width == 32 || width == 64 || width == 128 || width == 256)
 	//	&& ((left == 0 && top == 0) || (left == 0 && top == screen_height - height)
 	//	|| (left == screen_width - width && top == 0) || (left == screen_width - width && top == screen_height - height)))
 	if (width == height
-		&& (width == 32 || width == 64 || width == 128 || width == 256)
+		&& (width == 1 || width == 2 || width == 4 || ((int)width % 8 == 0))
 		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width))
+	{
+		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
+	}
+	// Zelda Twilight Princess uses this strange viewport for rendering the Map Screen's coloured map highlights to a texture.
+	// I don't think it will break any other games, because it makes little sense as a real viewport.
+	else if (width == 457 && height == 341 && left == 0 && top == 0)
 	{
 		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
 	}
@@ -887,13 +896,13 @@ void VertexShaderManager::SetProjectionConstants()
 	bool bFullscreenLayer = g_ActiveConfig.bHudFullscreen && xfmem.projection.type != GX_PERSPECTIVE;
 	bool bFlashing = (debug_projNum - 1) == g_ActiveConfig.iSelectedLayer;
 	bool bStuckToHead = false, bHide = false;
-	int flipped_x = 1, flipped_y = 1;
+	int flipped_x = 1, flipped_y = 1, iTelescopeHack = -1;
 	float fScaleHack = 1, fWidthHack = 1, fHeightHack = 1, fUpHack = 0, fRightHack = 0;
 
 	if (g_ActiveConfig.iMetroidPrime)
 	{
 		GetMetroidPrimeValues(&bStuckToHead, &bFullscreenLayer, &bHide, &bFlashing, 
-			&fScaleHack, &fWidthHack, &fHeightHack, &fUpHack, &fRightHack);
+			&fScaleHack, &fWidthHack, &fHeightHack, &fUpHack, &fRightHack, &iTelescopeHack);
 	}
 
 	// VR: in split-screen, only draw VR player TODO: fix offscreen to render to a separate texture in VR 
@@ -905,7 +914,9 @@ void VertexShaderManager::SetProjectionConstants()
 	float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
 	float fLeftHeightHack = fHeightHack, fRightHeightHack = fHeightHack;
 	bool bHideLeft = bHide, bHideRight = bHide, bTelescopeHUD = false, bNoForward = false;
-	if (g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1 )
+	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1)
+		iTelescopeHack = g_ActiveConfig.iTelescopeEye;
+	if (iTelescopeHack)
 	{
 		bNoForward = true;
 		// Calculate telescope scale
@@ -928,20 +939,13 @@ void VertexShaderManager::SetProjectionConstants()
 			hmd_halftan = tan(DEGREES_TO_RADIANS(32.0f / 2))*3.0f / 4.0f;
 		}
 		telescope_scale = fabs(hmd_halftan / tan(DEGREES_TO_RADIANS(vr_widest_3d_VFOV) / 2));
-		if (xfmem.projection.type != GX_PERSPECTIVE)
-		{
-			bHideLeft = true; 
-			bHideRight = true;
-			bStuckToHead = true;
-			bTelescopeHUD = true;
-		}
-		if (g_ActiveConfig.iTelescopeEye & 1)
+		if (iTelescopeHack & 1)
 		{
 			fLeftWidthHack *= telescope_scale;
 			fLeftHeightHack *= telescope_scale;
 			bHideLeft = false;
 		}
-		if (g_ActiveConfig.iTelescopeEye & 2)
+		if (iTelescopeHack & 2)
 		{
 			fRightWidthHack *= telescope_scale;
 			fRightHeightHack *= telescope_scale;

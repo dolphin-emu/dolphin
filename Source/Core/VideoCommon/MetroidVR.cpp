@@ -22,6 +22,7 @@ g_metroid_is_demo1 = false,
 g_metroid_cinematic = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0;
 int g_zelda_normal_count = 0, g_zelda_effect_count = 0;
+bool g_zelda_hawkeye = false;
 
 extern float vr_widest_3d_HFOV, vr_widest_3d_VFOV, vr_widest_3d_zNear, vr_widest_3d_zFar;
 
@@ -33,6 +34,7 @@ void NewMetroidFrame()
 	g_metroid_normal_count = 0;
 	g_zelda_normal_count = 0;
 	g_zelda_effect_count = 0;
+	g_zelda_hawkeye = false;
 }
 
 int Round100(float x)
@@ -150,10 +152,20 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Screen Overlay";
 	case METROID_UNKNOWN_2D:
 		return "Unknown 2D";
+	case ZELDA_CREATE_MAP:
+		return "Zelda Create Map";
+	case ZELDA_CREATE_SHADOW:
+		return "Zelda Create Shadow";
 	case ZELDA_DARK_EFFECT:
 		return "Zelda Dark Effect";
 	case ZELDA_DIALOG:
 		return "Zelda Dialog";
+	case ZELDA_FISHING:
+		return "Zelda Fishing";
+	case ZELDA_HAWKEYE:
+		return "Zelda Hawkeye";
+	case ZELDA_HAWKEYE_HUD:
+		return "Zelda Hawkeye HUD";
 	case ZELDA_NEXT:
 		return "Zelda Next";
 	case ZELDA_REFLECTION:
@@ -880,15 +892,24 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar)
 {
 	TMetroidLayer result;
+	int l = Round100(left);
 	int r = Round100(right);
+	int t = Round100(top);
+	int b = Round100(bottom);
 	int n = Round100(znear);
 	int f = Round100(zfar);
 	if (r == 400 && f == 1000)
 	{
+		//5: 2D: **Screenspace effects** Unknown 2D (-0, 0) to (4, 4); z: -0 to 10  [-0.1, -1]
 		result = ZELDA_DARK_EFFECT;
+	}
+	else if (g_zelda_hawkeye)
+	{
+		result = ZELDA_HAWKEYE_HUD;
 	}
 	else if (r == 60800 && f == 10000)
 	{
+		// not sure what this was
 		result = ZELDA_UNKNOWN_EFFECT;
 	}
 	else if (r == 60800 && n == 10000000 && g_zelda_normal_count)
@@ -897,14 +918,26 @@ TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top,
 		switch (g_zelda_effect_count)
 		{
 		case 1:
+			//6: 2D : **Map on HUD** Unknown 2D (-0, 0) to(608, 448); z: 100000 to - 100000[5e-006, -0.5]
 			result = ZELDA_DIALOG;
 			break;
 		case 2:
+			//7: 2D: **HUD** Unknown 2D (-0, 0) to (608, 448); z: 100000 to -100000  [5e-006, -0.5]
 			result = ZELDA_NEXT;
 			break;
 		default:
 			result = ZELDA_UNKNOWN_2D;
 		}
+	}
+	else if (r == 1562090)
+	{
+		//1: 2D: **Render Map to texture** Unknown 2D (-15620.9, 15620.9) to (15620.9, -15620.9); z: -0 to 10000  [-0.0001, -1]
+		result = ZELDA_CREATE_MAP;
+	}
+	else if (l == -32000 && r == 32000 && t == 32000 && f == 1000000)
+	{
+		//2: 2D : **Render Shadow to texture** Unknown 2D (-320, 320) to(320, -320); z: 1.00007 to 10000[-0.00010001, -1.0001]
+		result = ZELDA_CREATE_SHADOW;
 	}
 	else
 	{
@@ -916,14 +949,33 @@ TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top,
 TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, float zfar)
 {
 	TMetroidLayer result;
+	int h = Round100(hfov);
+	int v = Round100(vfov);
+	int n = Round100(znear);
 
 	++g_zelda_normal_count;
 	switch (g_zelda_normal_count)
 	{
 	case 1:
-		result = ZELDA_WORLD;
+		//if (h == 2026 && v == 1500 && n == 500)
+			// 3: Zelda World HFOV: 20.26deg; VFOV: 15.00deg; Aspect Ratio: 16:11.8; near:5.000000, far:30000.001953
+			// This is probably wrong.
+			//result = ZELDA_FISHING;
+		if (v <= 5000 && v >= 590 && n == 3000)
+		{
+			// 3: Zelda World HFOV: 64.60deg; VFOV: 49.95deg; Aspect Ratio: 16:11.8; near:30.000002, far:30000.001953
+			result = ZELDA_HAWKEYE;
+			g_zelda_hawkeye = true;
+		}
+		else
+		{
+			// 3: **World** Unknown HFOV : 76.16deg; VFOV: 60.00deg; Aspect Ratio : 16 : 11.8; near:5.000000, far : 30000.001953
+			result = ZELDA_WORLD;
+			g_zelda_hawkeye = false;
+		}
 		break;
 	case 2:
+		//4: **WATER reflection** Unknown HFOV : 76.16deg; VFOV: 60.00deg; Aspect Ratio : 16 : 11.8; near:5.000000, far : 30000.001953
 		result = ZELDA_REFLECTION;
 		break;
 	default:
@@ -934,7 +986,7 @@ TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, 
 }
 
 void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHide, bool *bFlashing,
-	float* fScaleHack, float *fWidthHack, float *fHeightHack, float *fUpHack, float *fRightHack)
+	float* fScaleHack, float *fWidthHack, float *fHeightHack, float *fUpHack, float *fRightHack, int *iTelescope)
 {
 	switch (g_metroid_layer)
 	{
@@ -1138,20 +1190,33 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		// and make it bigger
 		*bStuckToHead = false;
 		break;
-
+	
+	case ZELDA_HAWKEYE:
+		*iTelescope = 3;
+		break;
+	case ZELDA_HAWKEYE_HUD:
+		*iTelescope = 3;
+		//*fScaleHack = 100.0f;
+		break;
+	case ZELDA_FISHING:
+		*iTelescope = 0;
+		break;
 	case ZELDA_UNKNOWN:
 	case ZELDA_WORLD:
 	case ZELDA_DIALOG:
 	case ZELDA_NEXT:
 	case ZELDA_UNKNOWN_2D:
 	case ZELDA_UNKNOWN_EFFECT:
+		*iTelescope = 0;
 		// render most things like normal
 		break;
 
 	case ZELDA_DARK_EFFECT:
+		*iTelescope = 0;
 		*bHide = true;
 		break;
 	case ZELDA_REFLECTION:
+		*iTelescope = 0;
 		*bHide = true;
 		break;
 
