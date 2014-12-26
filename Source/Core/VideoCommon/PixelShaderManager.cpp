@@ -112,7 +112,7 @@ void PixelShaderManager::SetConstants()
 		constants.zbias[1][1] = static_cast<u32>(xfmem.viewport.zRange);
 		dirty = true;
 		s_bViewPortChanged = false;
-	}	
+	}
 }
 
 void PixelShaderManager::SetTevColor(int index, int component, s32 value)

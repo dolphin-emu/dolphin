@@ -131,7 +131,6 @@ void VertexManager::vFlush(bool useDstAlpha)
 {
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
 	u32 stride  = nativeVertexFmt->GetVertexStride();
-	u32 indices = IndexGenerator::GetIndexLen();
 
 	if (m_last_vao != nativeVertexFmt->VAO)
 	{

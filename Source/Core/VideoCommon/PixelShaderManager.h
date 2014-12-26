@@ -50,7 +50,7 @@ public:
 	static bool dirty;
 
 	static bool s_bFogRangeAdjustChanged;
-	static bool s_bViewPortChanged;	
+	static bool s_bViewPortChanged;
 
 	// These colors aren't available from global BP state,
 	// hence we keep a copy of them around.

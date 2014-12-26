@@ -179,7 +179,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	}
 
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
-	
+
 	PrepareDrawBuffers(stride);
 
 	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() >= 3)
