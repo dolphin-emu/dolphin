@@ -13,9 +13,6 @@ struct XFBSourceBase
 {
 	virtual ~XFBSourceBase() {}
 
-	virtual void Draw(const MathUtil::Rectangle<int> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc) const {};
-
 	virtual void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) = 0;
 
 	virtual void CopyEFB(float Gamma) = 0;
@@ -52,8 +49,8 @@ public:
 	static unsigned int LastXfbWidth() { return s_last_xfb_width; }
 	static unsigned int LastXfbHeight() { return s_last_xfb_height; }
 
-	static int ScaleToVirtualXfbWidth(int x, unsigned int backbuffer_width);
-	static int ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height);
+	static int ScaleToVirtualXfbWidth(int x);
+	static int ScaleToVirtualXfbHeight(int y);
 
 	static unsigned int GetEFBLayers() { return m_EFBLayers; }
 
@@ -75,9 +72,9 @@ protected:
 	static unsigned int m_EFBLayers;
 
 private:
-	virtual XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) = 0;
+	virtual XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) = 0;
 	// TODO: figure out why OGL is different for this guy
-	virtual void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) = 0;
+	virtual void GetTargetSize(unsigned int *width, unsigned int *height) = 0;
 
 	static VirtualXFBListType::iterator FindVirtualXFB(u32 xfbAddr, u32 width, u32 height);
 

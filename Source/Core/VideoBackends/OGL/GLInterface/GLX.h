@@ -18,6 +18,7 @@ private:
 	Window win;//, win_offscreen;
 	GLXContext ctx, ctx_offscreen;
 	XVisualInfo *vi;
+	GLXFBConfig fbconfig;
 public:
 	const Display* getDisplay() {return dpy;};
 	friend class cX11Window;

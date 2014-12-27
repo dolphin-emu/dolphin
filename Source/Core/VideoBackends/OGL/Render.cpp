@@ -1378,6 +1378,22 @@ void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
 	ClearEFBCache();
 }
 
+void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width, int src_height)
+{
+	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+	{
+		TargetRectangle leftRc, rightRc;
+		ConvertStereoRectangle(dst, leftRc, rightRc);
+
+		m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
+		m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
+	}
+	else
+	{
+		m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height);
+	}
+}
+
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	if (convtype == 0 || convtype == 2)
@@ -1774,10 +1790,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= fbStride - fbWidth;
 
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-			// TODO: Virtual XFB stereoscopic 3D support.
-			m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
+			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
 	}
 #ifdef HAVE_OCULUSSDK
@@ -1913,21 +1926,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
-
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-		if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
-		{
-			TargetRectangle leftRc, rightRc;
-			ConvertStereoRectangle(flipped_trc, leftRc, rightRc);
-
-			m_post_processor->BlitFromTexture(targetRc, leftRc, tex, s_target_width, s_target_height, 0);
-			m_post_processor->BlitFromTexture(targetRc, rightRc, tex, s_target_width, s_target_height, 1);
-		}
-		else
-		{
-			m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
-		}
+		BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
 	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);

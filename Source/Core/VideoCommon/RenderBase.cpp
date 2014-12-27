@@ -138,7 +138,7 @@ int Renderer::EFBToScaledX(int x)
 	switch (g_ActiveConfig.iEFBScale)
 	{
 		case SCALE_AUTO: // fractional
-			return FramebufferManagerBase::ScaleToVirtualXfbWidth(x, s_backbuffer_width);
+			return FramebufferManagerBase::ScaleToVirtualXfbWidth(x);
 
 		default:
 			return x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
@@ -150,7 +150,7 @@ int Renderer::EFBToScaledY(int y)
 	switch (g_ActiveConfig.iEFBScale)
 	{
 		case SCALE_AUTO: // fractional
-			return FramebufferManagerBase::ScaleToVirtualXfbHeight(y, s_backbuffer_height);
+			return FramebufferManagerBase::ScaleToVirtualXfbHeight(y);
 
 		default:
 			return y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
@@ -182,8 +182,8 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	{
 		case SCALE_AUTO:
 		case SCALE_AUTO_INTEGRAL:
-			newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, framebuffer_width);
-			newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, framebuffer_height);
+			newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
+			newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
 
 			if (s_LastEFBScale == SCALE_AUTO_INTEGRAL)
 			{
