@@ -12,6 +12,7 @@ typedef enum
 	METROID_SHADOW_2D,
 	METROID_BODY_SHADOWS,
 	METROID_SCREEN_OVERLAY,
+	METROID_WII_WORLD,
 	METROID_WORLD,
 	METROID_XRAY_WORLD,
 	METROID_XRAY_EFFECT,
@@ -19,6 +20,7 @@ typedef enum
 	METROID_THERMAL_EFFECT_GUN,
 	METROID_GUN,
 	METROID_CINEMATIC_WORLD,
+	METROID_EFB_COPY,
 	METROID_BLACK_BARS,
 	METROID_SCREEN_FADE,
 	METROID_ECHO_EFFECT,
@@ -30,10 +32,12 @@ typedef enum
 	METROID_THERMAL_GUN_AND_DOOR,
 	METROID_SCAN_RETICLE,
 	METROID_RETICLE,
+	METROID_WII_RETICLE,
 	METROID_SCAN_ICONS,
 	METROID_SCAN_CROSS,
 	METROID_MORPHBALL_WORLD,
 	METROID_UNKNOWN_WORLD,
+	METROID_SCAN_CIRCLE,
 	METROID_SCAN_DARKEN,
 	METROID_HELMET,
 	METROID_HUD,
@@ -56,6 +60,7 @@ typedef enum
 	METROID_SCAN_VISOR,
 	METROID_SCAN_TEXT,
 	METROID_SCAN_HOLOGRAM,
+	METROID_VISOR,
 	METROID_UNKNOWN_VISOR,
 	METROID_UNKNOWN_HUD,
 	METROID_UNKNOWN_2D,
@@ -92,6 +97,8 @@ int Round100(float x);
 const char *MetroidLayerName(TMetroidLayer layer);
 TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float znear, float zfar);
+TMetroidLayer GetMetroidPrime1WiiLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
+TMetroidLayer GetMetroidPrime1WiiLayer(int layer, float hfov, float vfov, float znear, float zfar);
 TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float znear, float zfar);
 TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
