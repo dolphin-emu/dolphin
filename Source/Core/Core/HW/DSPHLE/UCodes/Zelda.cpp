@@ -51,29 +51,28 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	              VOLUME_EXPLICIT_STEP },
 	// GameCube IPL/BIOS, PAL.
 	{ 0x6BA3B3EA, LIGHT_PROTOCOL | FOUR_MIXING_DESTS },
+	// Luigi's Mansion.
+	{ 0x42F64AC4, LIGHT_PROTOCOL },
 	// Pikmin 1 GC NTSC.
 	// Animal Crossing.
 	{ 0x4BE6A5CB, LIGHT_PROTOCOL },
-	// Luigi's Mansion.
-	{ 0x42F64AC4, LIGHT_PROTOCOL },
 	// Super Mario Sunshine.
 	{ 0x56D36052, SYNC_PER_FRAME },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
 	// The Legend of Zelda: Four Swords Adventures.
+	// Mario Kart: Double Dash.
+	// Pikmin 2 GC NTSC.
 	{ 0x2FCDF1EC, MAKE_DOLBY_LOUDER },
 	// The Legend of Zelda: Twilight Princess / GC.
 	// Donkey Kong Jungle Beat.
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
 	// Super Mario Galaxy.
+	// Super Mario Galaxy 2.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
 
 	// TODO: Other games that use this UCode (exhaustive list):
 	// * Link's Crossbow Training
-	// * Mario Kart: Double Dash!! (type ????, CRC ????)
-	// * Pikmin 2 (type ????, CRC ????)
-	// * Super Mario Galaxy 2 (type ????, CRC ????)
-	// * Super Mario Sunshine (type ????, CRC ????)
 	// * The Legend of Zelda: Collector's Edition
 	// * The Legend of Zelda: Twilight Princess / Wii (type ????, CRC ????)
 };
