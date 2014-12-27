@@ -15,6 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Core/VolumeHandler.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
@@ -63,9 +64,12 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 	return File::IsDirectory(directoryName);
 }
 
-bool CVolumeDirectory::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+bool CVolumeDirectory::RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
-	return false;
+	if (VolumeHandler::IsWii())
+		return false;
+	else
+		return Read(_Offset, _Length, _pBuffer);
 }
 
 bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
