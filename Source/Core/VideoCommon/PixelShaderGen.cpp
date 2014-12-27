@@ -1029,16 +1029,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (per_pixel_depth)
-	{
-		if (bpmem.genMode.zfreeze)
-		{
-			out.Write("\tdepth = " I_ZSLOPE".z + " I_ZSLOPE".x * (clipPos.x / clipPos.w) + " I_ZSLOPE".y * (clipPos.y / clipPos.w);\n");
-		}
-		else
-		{
-			out.Write("\t\tdepth = 1.0;\n");
-		}
-	}
+		out.Write("\t\tdepth = 1.0;\n");
 
 	// ZCOMPLOC HACK:
 	// The only way to emulate alpha test + early-z is to force early-z in the shader.
