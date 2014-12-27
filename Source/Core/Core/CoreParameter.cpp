@@ -34,7 +34,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITILTimeProfiling(false), bJITILOutputIR(false),
   bFPRF(false),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
-  bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
+  bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
   bMergeBlocks(false), bEnableMemcardSaving(true),
   bDPL2Decoder(false), iLatency(14),
@@ -70,6 +70,7 @@ void SCoreStartupParameter::LoadDefaults()
 	iCPUCore = CORE_JIT64;
 	bCPUThread = false;
 	bSkipIdle = false;
+	bSyncGPUOnSkipIdleHack = true;
 	bRunCompareServer = false;
 	bDSPHLE = true;
 	bFastmem = true;

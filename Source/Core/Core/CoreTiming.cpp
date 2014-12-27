@@ -11,6 +11,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -443,13 +444,16 @@ void Idle()
 {
 	//DEBUG_LOG(POWERPC, "Idle");
 
-	//When the FIFO is processing data we must not advance because in this way
-	//the VI will be desynchronized. So, We are waiting until the FIFO finish and
-	//while we process only the events required by the FIFO.
-	while (g_video_backend->Video_IsPossibleWaitingSetDrawDone())
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack)
 	{
-		ProcessFifoWaitEvents();
-		Common::YieldCPU();
+		//When the FIFO is processing data we must not advance because in this way
+		//the VI will be desynchronized. So, We are waiting until the FIFO finish and
+		//while we process only the events required by the FIFO.
+		while (g_video_backend->Video_IsPossibleWaitingSetDrawDone())
+		{
+			ProcessFifoWaitEvents();
+			Common::YieldCPU();
+		}
 	}
 
 	idledCycles += PowerPC::ppcState.downcount;

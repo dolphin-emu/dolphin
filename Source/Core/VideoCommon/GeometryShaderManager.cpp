@@ -20,6 +20,7 @@ GeometryShaderConstants GeometryShaderManager::constants;
 bool GeometryShaderManager::dirty;
 
 static bool s_projection_changed;
+static bool s_viewport_changed;
 
 void GeometryShaderManager::Init()
 {
@@ -47,13 +48,21 @@ void GeometryShaderManager::Dirty()
 void GeometryShaderManager::SetConstants()
 {
 	s_projection_changed = false;
+
+	if (s_viewport_changed)
+	{
+		s_viewport_changed = false;
+
+		constants.lineptparams[0] = 2.0f * xfmem.viewport.wd;
+		constants.lineptparams[1] = -2.0f * xfmem.viewport.ht;
+
+		dirty = true;
+	}
 }
 
 void GeometryShaderManager::SetViewportChanged()
 {
-	constants.lineptparams[0] = 2.0f * xfmem.viewport.wd;
-	constants.lineptparams[1] = -2.0f * xfmem.viewport.ht;
-	dirty = true;
+	s_viewport_changed = true;
 }
 
 void GeometryShaderManager::SetProjectionChanged()
