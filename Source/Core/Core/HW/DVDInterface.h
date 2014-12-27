@@ -102,10 +102,6 @@ void SetDiscInside(bool _DiscInside);
 bool IsDiscInside();
 void ChangeDisc(const std::string& fileName);
 
-// Lid Functions
-void SetLidOpen(bool _bOpen = true);
-bool IsLidOpen();
-
 // DVD Access Functions
 bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool raw = false);
 extern bool g_bStream;

@@ -697,7 +697,7 @@ void drawClearQuad(u32 Color, float z)
 	}
 
 	stateman->SetVertexShader(VertexShaderCache::GetClearVertexShader());
-	stateman->SetGeometryShader(g_ActiveConfig.iStereoMode > 0 ? GeometryShaderCache::GetClearGeometryShader() : nullptr);
+	stateman->SetGeometryShader(GeometryShaderCache::GetClearGeometryShader());
 	stateman->SetPixelShader(PixelShaderCache::GetClearProgram());
 	stateman->SetInputLayout(VertexShaderCache::GetClearInputLayout());
 

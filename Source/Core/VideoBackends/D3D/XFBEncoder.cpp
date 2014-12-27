@@ -78,7 +78,7 @@ static const char XFB_ENCODE_PS[] =
 	"} Params;\n"
 "}\n"
 
-"Texture2D EFBTexture : register(t0);\n"
+"Texture2DArray EFBTexture : register(t0);\n"
 "sampler EFBSampler : register(s0);\n"
 
 // GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
@@ -92,7 +92,7 @@ static const char XFB_ENCODE_PS[] =
 "float3 SampleEFB(float2 coord)\n"
 "{\n"
 	"float2 texCoord = lerp(float2(Params.TexLeft,Params.TexTop), float2(Params.TexRight,Params.TexBottom), coord / float2(Params.Width,Params.Height));\n"
-	"return EFBTexture.Sample(EFBSampler, texCoord).rgb;\n"
+	"return EFBTexture.Sample(EFBSampler, float3(texCoord, 0)).rgb;\n"
 "}\n"
 
 "void main(out float4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 Coord : ENCODECOORD)\n"
@@ -311,7 +311,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
-	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetEFBColorTexture()->GetSRV();
+	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
 	D3D::stateman->SetVertexConstants(m_encodeParams);
 	D3D::stateman->SetPixelConstants(m_encodeParams);

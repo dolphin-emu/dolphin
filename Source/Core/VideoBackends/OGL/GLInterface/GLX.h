@@ -18,6 +18,7 @@ private:
 	Window win;
 	GLXContext ctx;
 	XVisualInfo *vi;
+	GLXFBConfig fbconfig;
 public:
 	friend class cX11Window;
 	void SwapInterval(int Interval) override;

@@ -284,6 +284,9 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
 std::string GetString(u32 em_address, size_t size)
 {
 	const char* ptr = reinterpret_cast<const char*>(GetPointer(em_address));
+	if (ptr == nullptr)
+		return "";
+
 	if (size == 0) // Null terminated string.
 	{
 		return std::string(ptr);

@@ -577,7 +577,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), nullptr);
 	D3D::SetPointCopySampler();
-	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+		pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
 	g_renderer->RestoreAPIState();
 
@@ -708,23 +709,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	// Prepare to copy the XFBs to our backbuffer
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+	TargetRectangle targetRc = GetTargetRectangle();
 
-	int X = GetTargetRectangle().left;
-	int Y = GetTargetRectangle().top;
-	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
-	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
-
-	// TODO: Redundant checks...
-	if (X < 0) X = 0;
-	if (Y < 0) Y = 0;
-	if (X > s_backbuffer_width) X = s_backbuffer_width;
-	if (Y > s_backbuffer_height) Y = s_backbuffer_height;
-	if (Width < 0) Width = 0;
-	if (Height < 0) Height = 0;
-	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
-	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
-	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -736,110 +722,58 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
 	{
 		// TODO: Television should be used to render Virtual XFB mode as well.
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight());
+		D3D::context->RSSetViewports(1, &vp);
+
 		s_television.Submit(xfbAddr, fbStride, fbWidth, fbHeight);
 		s_television.Render();
 	}
 	else if (g_ActiveConfig.bUseXFB)
 	{
-		const XFBSourceBase* xfbSource;
+		const XFBSource* xfbSource;
 
 		// draw each xfb source
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
-			xfbSource = xfbSourceList[i];
-			MathUtil::Rectangle<int> sourceRc;
+			xfbSource = (const XFBSource*)xfbSourceList[i];
 
+			TargetRectangle drawRc;
+
+			// use virtual xfb with offset
+			int xfbHeight = xfbSource->srcHeight;
+			int xfbWidth = xfbSource->srcWidth;
+			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+
+			drawRc.top = targetRc.bottom - (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
+			drawRc.bottom = targetRc.bottom - hOffset * targetRc.GetHeight() / fbHeight;
+			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / fbStride) / 2;
+			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / fbStride) / 2;
+
+			// The following code disables auto stretch.  Kept for reference.
+			// scale draw area for a 1 to 1 pixel mapping with the draw target
+			//float vScale = (float)fbHeight / (float)s_backbuffer_height;
+			//float hScale = (float)fbWidth / (float)s_backbuffer_width;
+			//drawRc.top *= vScale;
+			//drawRc.bottom *= vScale;
+			//drawRc.left *= hScale;
+			//drawRc.right *= hScale;
+
+			TargetRectangle sourceRc;
 			sourceRc.left = 0;
 			sourceRc.top = 0;
 			sourceRc.right = (int)xfbSource->texWidth;
 			sourceRc.bottom = (int)xfbSource->texHeight;
 
-			MathUtil::Rectangle<float> drawRc;
-
-			if (g_ActiveConfig.bUseRealXFB)
-			{
-				drawRc.top = 1;
-				drawRc.bottom = -1;
-				drawRc.left = -1;
-				drawRc.right = 1;
-			}
-			else
-			{
-				// use virtual xfb with offset
-				int xfbHeight = xfbSource->srcHeight;
-				int xfbWidth = xfbSource->srcWidth;
-				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-				drawRc.top = 1.0f - (2.0f * (hOffset) / (float)fbHeight);
-				drawRc.bottom = 1.0f - (2.0f * (hOffset + xfbHeight) / (float)fbHeight);
-				drawRc.left = -(xfbWidth / (float)fbStride);
-				drawRc.right = (xfbWidth / (float)fbStride);
-
-				// The following code disables auto stretch.  Kept for reference.
-				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)s_backbuffer_height;
-				//float hScale = (float)fbWidth / (float)s_backbuffer_width;
-				//drawRc.top *= vScale;
-				//drawRc.bottom *= vScale;
-				//drawRc.left *= hScale;
-				//drawRc.right *= hScale;
-			}
-
-			xfbSource->Draw(sourceRc, drawRc);
+			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
 		}
 	}
 	else
 	{
-		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+		TargetRectangle sourceRc = Renderer::ConvertEFBRectangle(rc);
 
 		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
 		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-
-		if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
-		{
-			TargetRectangle leftRc, rightRc;
-			ConvertStereoRectangle(GetTargetRectangle(), leftRc, rightRc);
-
-			D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)leftRc.left, (float)leftRc.top, (float)leftRc.GetWidth(), (float)leftRc.GetHeight());
-			D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)rightRc.left, (float)rightRc.top, (float)rightRc.GetWidth(), (float)rightRc.GetHeight());
-
-			D3D::context->RSSetViewports(1, &leftVp);
-			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
-
-			D3D::context->RSSetViewports(1, &rightVp);
-			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
-
-			D3D::context->RSSetViewports(1, &vp);
-		}
-		else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
-		{
-			if (!s_3d_vision_texture)
-				Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
-
-			D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
-			D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)(X + s_backbuffer_width), (float)Y, (float)Width, (float)Height);
-
-			// Render to staging texture which is double the width of the backbuffer
-			D3D::context->OMSetRenderTargets(1, &s_3d_vision_texture->GetRTV(), nullptr);
-
-			D3D::context->RSSetViewports(1, &leftVp);
-			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
-
-			D3D::context->RSSetViewports(1, &rightVp);
-			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
-
-			// Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
-			// recognize the signature and automatically include the right eye frame.
-			D3D11_BOX box = CD3D11_BOX(0, 0, 0, s_backbuffer_width, s_backbuffer_height, 1);
-			D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, s_3d_vision_texture->GetTex(), 0, &box);
-
-			D3D::context->RSSetViewports(1, &vp);
-			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
-		}
-		else
-		{
-			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), (g_Config.iStereoMode == STEREO_ANAGLYPH) ? PixelShaderCache::GetAnaglyphProgram() : PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma);
-		}
+		BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
 	}
 
 	// done with drawing the game stuff, good moment to save a screenshot
@@ -910,7 +844,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Reset viewport for drawing text
-	vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
 	D3D::context->RSSetViewports(1, &vp);
 
 	Renderer::DrawDebugText();
@@ -1276,6 +1210,55 @@ void Renderer::BBoxWrite(int index, u16 _value)
 	}
 
 	BBox::Set(index, value);
+}
+
+void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture, u32 src_width, u32 src_height, float Gamma)
+{
+	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+	{
+		TargetRectangle leftRc, rightRc;
+		ConvertStereoRectangle(dst, leftRc, rightRc);
+
+		D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)leftRc.left, (float)leftRc.top, (float)leftRc.GetWidth(), (float)leftRc.GetHeight());
+		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)rightRc.left, (float)rightRc.top, (float)rightRc.GetWidth(), (float)rightRc.GetHeight());
+
+		D3D::context->RSSetViewports(1, &leftVp);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+
+		D3D::context->RSSetViewports(1, &rightVp);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+	}
+	else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
+	{
+		if (!s_3d_vision_texture)
+			Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
+
+		D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
+		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)(dst.left + s_backbuffer_width), (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
+
+		// Render to staging texture which is double the width of the backbuffer
+		D3D::context->OMSetRenderTargets(1, &s_3d_vision_texture->GetRTV(), nullptr);
+
+		D3D::context->RSSetViewports(1, &leftVp);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+
+		D3D::context->RSSetViewports(1, &rightVp);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+
+		// Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
+		// recognize the signature and automatically include the right eye frame.
+		D3D11_BOX box = CD3D11_BOX(0, 0, 0, s_backbuffer_width, s_backbuffer_height, 1);
+		D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, s_3d_vision_texture->GetTex(), 0, &box);
+
+		// Restore render target to backbuffer
+		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+	}
+	else
+	{
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
+		D3D::context->RSSetViewports(1, &vp);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, (g_Config.iStereoMode == STEREO_ANAGLYPH) ? PixelShaderCache::GetAnaglyphProgram() : PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma);
+	}
 }
 
 }  // namespace DX11
