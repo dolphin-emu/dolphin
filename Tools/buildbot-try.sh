@@ -35,4 +35,4 @@ echo "Change author: $author"
 echo "Short rev: $shortrev"
 echo "Base rev: $baserev"
 
-git diff -r $baserev | buildbot try --properties=branchname=$branchname,author=$author,shortrev=$shortrev --diff=- -p1 --baserev $baserev $*
+git diff --binary -r $baserev | buildbot try --properties=branchname=$branchname,author=$author,shortrev=$shortrev --diff=- -p1 --baserev $baserev $*
