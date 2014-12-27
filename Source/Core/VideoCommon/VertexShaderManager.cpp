@@ -916,7 +916,7 @@ void VertexShaderManager::SetProjectionConstants()
 	bool bHideLeft = bHide, bHideRight = bHide, bTelescopeHUD = false, bNoForward = false;
 	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1)
 		iTelescopeHack = g_ActiveConfig.iTelescopeEye;
-	if (iTelescopeHack)
+	if (iTelescopeHack > 0)
 	{
 		bNoForward = true;
 		// Calculate telescope scale
