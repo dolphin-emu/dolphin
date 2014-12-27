@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "DiscIO/FileBlob.h"
+#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
 
@@ -111,12 +112,15 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	{
 		_dbg_assert_(DVDINTERFACE, fileIter->first <= _Offset);
 		u64 fileOffset = _Offset - fileIter->first;
+		const std::string fileName = fileIter->second;
 
-		std::unique_ptr<PlainFileReader> reader(PlainFileReader::Create(fileIter->second));
+		std::unique_ptr<PlainFileReader> reader(PlainFileReader::Create(fileName));
 		if (reader == nullptr)
 			return false;
 
 		u64 fileSize = reader->GetDataSize();
+
+		FileMon::CheckFile(fileName, fileSize);
 
 		if (fileOffset < fileSize)
 		{
