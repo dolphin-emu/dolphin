@@ -67,6 +67,8 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	// The Legend of Zelda: Twilight Princess / GC.
 	// Donkey Kong Jungle Beat.
 	{ 0x6CA33A6D, MAKE_DOLBY_LOUDER },
+	// The Legend of Zelda: Twilight Princess / Wii.
+	{ 0x6C3F6F94, NO_ARAM | MAKE_DOLBY_LOUDER },
 	// Super Mario Galaxy.
 	// Super Mario Galaxy 2.
 	{ 0xD643001F, NO_ARAM | MAKE_DOLBY_LOUDER },
@@ -1676,5 +1678,4 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
 	p.Do(m_buf_unk1_reverb_last8);
 	p.Do(m_buf_front_left_reverb_last8);
 	p.Do(m_buf_front_right_reverb_last8);
-
 }
