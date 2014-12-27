@@ -236,7 +236,8 @@ private:
 	// these sync mails contain 16 bit values that are used as bitfields to
 	// control voice skipping on a voice per voice level.
 	u32 m_sync_max_voice_id = 0;
-	std::array<u32, 256> m_sync_voice_skip_flags{};
+	std::array<u16, 256> m_sync_voice_skip_flags{};
+	bool m_sync_flags_second_half = false;
 
 	// Command buffer (circular queue with r/w indices). Filled by HandleMail
 	// when the state machine is in WRITING_CMD state. Commands get executed

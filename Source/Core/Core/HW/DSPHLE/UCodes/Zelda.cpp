@@ -40,6 +40,9 @@ enum ZeldaUCodeFlag
 	// If set, interpret non-Dolby mixing parameters as step/current volume
 	// instead of target/current volume.
 	VOLUME_EXPLICIT_STEP = 0x00000020,
+
+	// If set, handle synchronization per-frame instead of per-16-voices.
+	SYNC_PER_FRAME = 0x00000040,
 };
 
 static const std::map<u32, u32> UCODE_FLAGS = {
@@ -53,6 +56,8 @@ static const std::map<u32, u32> UCODE_FLAGS = {
 	{ 0x4BE6A5CB, LIGHT_PROTOCOL },
 	// Luigi's Mansion.
 	{ 0x42F64AC4, LIGHT_PROTOCOL },
+	// Super Mario Sunshine.
+	{ 0x56D36052, SYNC_PER_FRAME },
 	// The Legend of Zelda: The Wind Waker.
 	{ 0x86840740, 0 },
 	// The Legend of Zelda: Four Swords Adventures.
@@ -122,6 +127,7 @@ void ZeldaUCode::DoState(PointerWrap &p)
 
 	p.Do(m_sync_max_voice_id);
 	p.Do(m_sync_voice_skip_flags);
+	p.Do(m_sync_flags_second_half);
 
 	p.Do(m_cmd_buffer);
 	p.Do(m_read_offset);
@@ -214,11 +220,27 @@ void ZeldaUCode::HandleMailDefault(u32 mail)
 		break;
 
 	case MailState::RENDERING:
-		m_sync_max_voice_id = (((mail >> 16) & 0xF) + 1) << 4;
-		m_sync_voice_skip_flags[(mail >> 16) & 0xFF] = mail & 0xFFFF;
+		if (m_flags & SYNC_PER_FRAME)
+		{
+			int base = m_sync_flags_second_half ? 2 : 0;
+			m_sync_voice_skip_flags[base] = mail >> 16;
+			m_sync_voice_skip_flags[base + 1] = mail & 0xFFFF;
 
-		RenderAudio();
-		SetMailState(MailState::WAITING);
+			if (m_sync_flags_second_half)
+				m_sync_max_voice_id = 0xFFFF;
+
+			RenderAudio();
+			if (m_sync_flags_second_half)
+				SetMailState(MailState::WAITING);
+			m_sync_flags_second_half = !m_sync_flags_second_half;
+		}
+		else
+		{
+			m_sync_max_voice_id = (((mail >> 16) & 0xF) + 1) << 4;
+			m_sync_voice_skip_flags[(mail >> 16) & 0xFF] = mail & 0xFFFF;
+			RenderAudio();
+			SetMailState(MailState::WAITING);
+		}
 		break;
 
 	case MailState::WRITING_CMD:
@@ -286,7 +308,7 @@ void ZeldaUCode::HandleMailLight(u32 mail)
 
 		// No per-voice syncing in the light protocol.
 		m_sync_max_voice_id = 0xFFFFFFFF;
-		m_sync_voice_skip_flags.fill(0xFFFFFFFF);
+		m_sync_voice_skip_flags.fill(0xFFFF);
 		RenderAudio();
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 		break;
