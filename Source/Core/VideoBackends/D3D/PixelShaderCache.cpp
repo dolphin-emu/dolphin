@@ -69,15 +69,16 @@ const char anaglyph_program_code[] = {
 	"in float4 pos : SV_Position,\n"
 	"in float3 uv0 : TEXCOORD0){\n"
 	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0.0));\n"
-	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1));\n"
+	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1.0));\n"
 	"ocol0 = float4(pow(0.7 * c0.g + 0.3 * c0.b, 1.5), c1.gba);"
 	"}\n"
 };
 
 // TODO: Improve sampling algorithm!
 const char color_copy_program_code_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
@@ -85,9 +86,9 @@ const char color_copy_program_code_msaa[] = {
 	"int width, height, slices, samples;\n"
 	"Tex0.GetDimensions(width, height, slices, samples);\n"
 	"ocol0 = 0;\n"
-	"for(int i = 0; i < samples; ++i)\n"
+	"for(int i = 0; i < SAMPLES; ++i)\n"
 	"	ocol0 += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"ocol0 /= samples;\n"
+	"ocol0 /= SAMPLES;\n"
 	"}\n"
 };
 
@@ -106,8 +107,9 @@ const char color_matrix_program_code[] = {
 };
 
 const char color_matrix_program_code_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
@@ -116,9 +118,9 @@ const char color_matrix_program_code_msaa[] = {
 	"int width, height, slices, samples;\n"
 	"Tex0.GetDimensions(width, height, slices, samples);\n"
 	"float4 texcol = 0;\n"
-	"for(int i = 0; i < samples; ++i)\n"
+	"for(int i = 0; i < SAMPLES; ++i)\n"
 	"	texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"texcol /= samples;\n"
+	"texcol /= SAMPLES;\n"
 	"texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
@@ -160,8 +162,9 @@ const char depth_matrix_program[] = {
 };
 
 const char depth_matrix_program_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
 	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
@@ -170,9 +173,9 @@ const char depth_matrix_program_msaa[] = {
 	"	int width, height, slices, samples;\n"
 	"	Tex0.GetDimensions(width, height, slices, samples);\n"
 	"	float4 texcol = 0;\n"
-	"	for(int i = 0; i < samples; ++i)\n"
+	"	for(int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"	texcol /= samples;\n"
+	"	texcol /= SAMPLES;\n"
 
 	// 255.99998474121 = 16777215/16777216*256
 	"	float workspace = texcol.x * 255.99998474121;\n"
@@ -218,8 +221,9 @@ const char reint_rgba6_to_rgb8[] = {
 };
 
 const char reint_rgba6_to_rgb8_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"void main(\n"
 	"	out float4 ocol0 : SV_Target,\n"
 	"	in float4 pos : SV_Position,\n"
@@ -228,9 +232,9 @@ const char reint_rgba6_to_rgb8_msaa[] = {
 	"	int width, height, slices, samples;\n"
 	"	Tex0.GetDimensions(width, height, slices, samples);\n"
 	"	float4 texcol = 0;\n"
-	"	for (int i = 0; i < samples; ++i)\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"	texcol /= samples;\n"
+	"	texcol /= SAMPLES;\n"
 	"	int4 src6 = round(texcol * 63.f);\n"
 	"	int4 dst8;\n"
 	"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
@@ -260,8 +264,9 @@ const char reint_rgb8_to_rgba6[] = {
 };
 
 const char reint_rgb8_to_rgba6_msaa[] = {
+	"#define SAMPLES %d\n"
 	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, %d> Tex0 : register(t0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"void main(\n"
 	"	out float4 ocol0 : SV_Target,\n"
 	"	in float4 pos : SV_Position,\n"
@@ -270,9 +275,9 @@ const char reint_rgb8_to_rgba6_msaa[] = {
 	"	int width, height, slices, samples;\n"
 	"	Tex0.GetDimensions(width, height, slices, samples);\n"
 	"	float4 texcol = 0;\n"
-	"	for (int i = 0; i < samples; ++i)\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"	texcol /= samples;\n"
+	"	texcol /= SAMPLES;\n"
 	"	int4 src8 = round(texcol * 255.f);\n"
 	"	int4 dst6;\n"
 	"	dst6.r = src8.r >> 2;\n"
