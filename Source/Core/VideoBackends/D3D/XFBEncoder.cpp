@@ -92,7 +92,7 @@ static const char XFB_ENCODE_PS[] =
 "float3 SampleEFB(float2 coord)\n"
 "{\n"
 	"float2 texCoord = lerp(float2(Params.TexLeft,Params.TexTop), float2(Params.TexRight,Params.TexBottom), coord / float2(Params.Width,Params.Height));\n"
-	"return EFBTexture.Sample(EFBSampler, float3(texCoord, 0)).rgb;\n"
+	"return EFBTexture.Sample(EFBSampler, float3(texCoord, 0.0)).rgb;\n"
 "}\n"
 
 "void main(out float4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 Coord : ENCODECOORD)\n"
