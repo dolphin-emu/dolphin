@@ -354,6 +354,29 @@ public final class EGLHelper
 		return GLES30.glGetStringi(glEnum, index);
 	}
 
+	public boolean SupportsExtension(String extension)
+	{
+		int[] num_ext = new int[1];
+		GLES30.glGetIntegerv(GLES30.GL_NUM_EXTENSIONS, num_ext, 0);
+
+		for (int i = 0; i < num_ext[0]; ++i)
+		{
+			String ext = GLES30.glGetStringi(GLES30.GL_EXTENSIONS, i);
+			if (ext.equals(extension))
+				return true;
+		}
+		return false;
+	}
+
+	public int GetVersion()
+	{
+		int[] major = new int[1];
+		int[] minor = new int[1];
+		GLES30.glGetIntegerv(GLES30.GL_MAJOR_VERSION, major, 0);
+		GLES30.glGetIntegerv(GLES30.GL_MINOR_VERSION, minor, 0);
+		return major[0] * 100 + minor[0] * 10;
+	}
+
 	/**
 	 * Simplified call to {@link GL10#glGetIntegerv(int, int[], int)
 	 * 
