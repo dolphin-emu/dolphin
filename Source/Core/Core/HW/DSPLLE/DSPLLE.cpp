@@ -48,9 +48,9 @@ static bool requestDisableThread;
 
 void DSPLLE::DoState(PointerWrap &p)
 {
-	bool isHLE = false;
-	p.Do(isHLE);
-	if (isHLE != false && p.GetMode() == PointerWrap::MODE_READ)
+	bool is_hle = false;
+	p.Do(is_hle);
+	if (is_hle && p.GetMode() == PointerWrap::MODE_READ)
 	{
 		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
 		p.SetMode(PointerWrap::MODE_VERIFY);
@@ -87,7 +87,7 @@ void DSPLLE::DoState(PointerWrap &p)
 }
 
 // Regular thread
-void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
+void DSPLLE::DSPThread(DSPLLE* dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
 
@@ -101,7 +101,7 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 
 		if (cycles > 0)
 		{
-			std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPThreadActive);
+			std::lock_guard<std::mutex> dsp_thread_lock(dsp_lle->m_csDSPThreadActive);
 			if (dspjit)
 			{
 				DSPCore_RunCycles(cycles);
@@ -111,7 +111,7 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 				DSPInterpreter::RunCyclesThread(cycles);
 			}
 			{
-			std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPCycleCountActive);
+			std::lock_guard<std::mutex> cycle_count_lock(dsp_lle->m_csDSPCycleCountActive);
 			dsp_lle->m_cycle_count = 0;
 			}
 		}
@@ -193,7 +193,7 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 	if (m_bDSPThread)
 	{
 		m_bIsRunning.Set(true);
-		m_hDSPThread = std::thread(dsp_thread, this);
+		m_hDSPThread = std::thread(DSPThread, this);
 	}
 
 	Host_RefreshDSPDebuggerWindow();
@@ -250,18 +250,12 @@ u16 DSPLLE::DSP_ReadControlRegister()
 
 u16 DSPLLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
 {
-	if (_CPUMailbox)
-		return gdsp_mbox_read_h(GDSP_MBOX_CPU);
-	else
-		return gdsp_mbox_read_h(GDSP_MBOX_DSP);
+	return gdsp_mbox_read_h(_CPUMailbox ? GDSP_MBOX_CPU : GDSP_MBOX_DSP);
 }
 
 u16 DSPLLE::DSP_ReadMailBoxLow(bool _CPUMailbox)
 {
-	if (_CPUMailbox)
-		return gdsp_mbox_read_l(GDSP_MBOX_CPU);
-	else
-		return gdsp_mbox_read_l(GDSP_MBOX_DSP);
+	return gdsp_mbox_read_l(_CPUMailbox ? GDSP_MBOX_CPU : GDSP_MBOX_DSP);
 }
 
 void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
@@ -365,4 +359,3 @@ void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	else
 		m_csDSPThreadActive.unlock();
 }
-
