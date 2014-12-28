@@ -65,6 +65,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	Bind(wxEVT_BUTTON, &ControllerConfigDiag::Save, this, wxID_OK);
 	Bind(wxEVT_BUTTON, &ControllerConfigDiag::Cancel, this, wxID_CANCEL);
 
+	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
 	SetSizerAndFit(main_sizer);
 	Center();
 }
