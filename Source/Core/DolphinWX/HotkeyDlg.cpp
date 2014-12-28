@@ -219,6 +219,10 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Connect Wiimote 4"),
 		_("Connect Balance Board"),
 
+		_("Volume up"),
+		_("Volume down"),
+		_("Volume toggle mute"),
+
 		_("Toggle IR"),
 		_("Toggle Aspect Ratio"),
 		_("Toggle EFB Copies"),
