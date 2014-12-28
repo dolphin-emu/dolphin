@@ -12,24 +12,13 @@
 #include "disasm.h"
 
 #include "Common/CommonTypes.h"
+#include "Common/JitRegister.h"
 #include "Common/MemoryUtil.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #ifdef _WIN32
 #include <windows.h>
-#endif
-
-#if defined USE_OPROFILE && USE_OPROFILE
-#include <opagent.h>
-
-op_agent_t agent;
-#endif
-
-#if defined USE_VTUNE
-#include <jitprofiling.h>
-#pragma comment(lib, "libittnotify.lib")
-#pragma comment(lib, "jitprofiling.lib")
 #endif
 
 using namespace Gen;
@@ -47,9 +36,8 @@ using namespace Gen;
 			return;
 		}
 
-#if defined USE_OPROFILE && USE_OPROFILE
-		agent = op_open_agent();
-#endif
+		JitRegister::Init();
+
 		iCache.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheEx.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheVMEM.fill(JIT_ICACHE_INVALID_BYTE);
@@ -62,13 +50,8 @@ using namespace Gen;
 	{
 		num_blocks = 0;
 		m_initialized = false;
-#if defined USE_OPROFILE && USE_OPROFILE
-		op_close_agent(agent);
-#endif
 
-#ifdef USE_VTUNE
-		iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, nullptr);
-#endif
+		JitRegister::Shutdown();
 	}
 
 	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -164,27 +147,8 @@ using namespace Gen;
 			LinkBlockExits(block_num);
 		}
 
-#if defined USE_OPROFILE && USE_OPROFILE
-		char buf[100];
-		sprintf(buf, "EmuCode%x", b.originalAddress);
-		const u8* blockStart = blockCodePointers[block_num];
-		op_write_native_code(agent, buf, (uint64_t)blockStart,
-		                     blockStart, b.codeSize);
-#endif
-
-#ifdef USE_VTUNE
-		sprintf(b.blockName, "EmuCode_0x%08x", b.originalAddress);
-
-		iJIT_Method_Load jmethod = {0};
-		jmethod.method_id = iJIT_GetNewMethodID();
-		jmethod.class_file_name = "";
-		jmethod.source_file_name = __FILE__;
-		jmethod.method_load_address = (void*)blockCodePointers[block_num];
-		jmethod.method_size = b.codeSize;
-		jmethod.line_number_size = 0;
-		jmethod.method_name = b.blockName;
-		iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
-#endif
+		JitRegister::Register(blockCodePointers[block_num], b.codeSize,
+			"JIT_PPC", b.originalAddress);
 	}
 
 	const u8 **JitBaseBlockCache::GetCodePointers()
