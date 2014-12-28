@@ -31,6 +31,7 @@ struct VideoConfig
 	bool bSupportOGL31;
 	bool bSupportViewportFloat;
 	bool bSupportsAEP;
+	bool bSupportsDebug;
 
 	const char* gl_vendor;
 	const char* gl_renderer;
