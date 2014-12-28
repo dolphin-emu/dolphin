@@ -744,8 +744,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			int xfbWidth = xfbSource->srcWidth;
 			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
-			drawRc.top = targetRc.bottom - (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
-			drawRc.bottom = targetRc.bottom - hOffset * targetRc.GetHeight() / fbHeight;
+			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / fbHeight;
+			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
 			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / fbStride) / 2;
 			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / fbStride) / 2;
 
