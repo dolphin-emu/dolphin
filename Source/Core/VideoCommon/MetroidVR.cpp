@@ -22,6 +22,7 @@ g_metroid_is_demo1 = false,
 g_metroid_cinematic = false, g_metroid_menu = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0;
 int g_zelda_normal_count = 0, g_zelda_effect_count = 0;
+int g_metroid_vres = 448;
 bool g_zelda_hawkeye = false;
 
 extern float vr_widest_3d_HFOV, vr_widest_3d_VFOV, vr_widest_3d_zNear, vr_widest_3d_zFar;
@@ -210,9 +211,14 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 	TMetroidLayer result;
 	int l = Round100(left);
 	int t = Round100(top);
+	int b = Round100(bottom);
 	int r = Round100(right);
 	int n = Round100(znear);
 	int f = Round100(zfar);
+	if (abs(t) == 44800 || abs(b) == 44800)
+		g_metroid_vres = 448;
+	else if (abs(t) == 52800 || abs(b) == 52800)
+		g_metroid_vres = 528;
 	if (layer == 0 && (l == -88 || l == -87) && n == 0)
 	{
 		result = METROID_SHADOW_2D;
@@ -261,7 +267,7 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 			g_metroid_thermal_visor = false;
 			g_metroid_morphball_active = false;
 		}
-		else if (l == 0 && t != 44800 && n == -409600)
+		else if (l == 0 && t == 0 && n == -409600)
 		{
 			g_metroid_scan_visor = false;
 			g_metroid_has_thermal_effect = true;
@@ -391,6 +397,20 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 		g_metroid_morphball_active = false;
 		g_metroid_xray_visor = false;
 	}
+	else if (l == 0 && t == 0 && r == 64000 && n == -409600)
+	{
+		g_metroid_scan_visor = false;
+		g_metroid_has_thermal_effect = true;
+		if (g_metroid_thermal_visor)
+		{
+			result = METROID_THERMAL_EFFECT;
+		}
+		else
+		{
+			// On the PAL version, which renders shadows every frame, this shows up as layer 4
+			result = METROID_CHARGE_BEAM_EFFECT;
+		}
+	}
 	else if (g_metroid_inventory && l == 0 && r == 100 && t == 100 && n == -100 && f == 100)
 	{
 		result = METROID_INVENTORY_SAMUS_OUTLINE;
@@ -425,7 +445,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	{
 		result = METROID_SHADOWS;
 	}
-	else if (v == h && v == 5500 && layer == 1)
+	else if (v == h && v == 5500 && (layer == 1 || layer == 2))
 	{
 		result = METROID_BODY_SHADOWS;
 	}
@@ -729,10 +749,15 @@ TMetroidLayer GetMetroidPrime1WiiLayer2D(int layer, float left, float right, flo
 
 	TMetroidLayer result;
 	int l = Round100(left);
-	int t = Round100(top);
 	int r = Round100(right);
+	int t = Round100(top);
+	int b = Round100(bottom);
 	int n = Round100(znear);
 	int f = Round100(zfar);
+	if (abs(t) == 44800 || abs(b) == 44800)
+		g_metroid_vres = 448;
+	else if (abs(t) == 52800 || abs(b) == 52800)
+		g_metroid_vres = 528;
 	if (layer == 0 && g_metroid_map_screen && l == 0 && n == -100)
 	{
 		result = METROID_MAP_0;
@@ -762,7 +787,7 @@ TMetroidLayer GetMetroidPrime1WiiLayer2D(int layer, float left, float right, flo
 		{
 			result = METROID_EFB_COPY;
 		}
-		else if (l == 0 && t != 44800 && n == -409600)
+		else if (l == 0 && t == 0 && n == -409600)
 		{
 			result = METROID_THERMAL_EFFECT;
 			g_metroid_thermal_visor = true;
@@ -824,7 +849,7 @@ TMetroidLayer GetMetroidPrime1WiiLayer2D(int layer, float left, float right, flo
 		result = METROID_MORPHBALL_HUD;
 		g_metroid_morphball_active = true;
 	}
-	else if (l == -32000 && t == 22400 && n == -409600 && f == 409600)
+	else if (l == -32000 && (t == 22400 || t == 26400) && n == -409600 && f == 409600)
 	{
 		if (g_metroid_map_screen)
 			result = METROID_MAP_NORTH;
@@ -1140,12 +1165,17 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 	int l = Round100(left);
 	int r = Round100(right);
 	int t = Round100(top);
+	int b = Round100(bottom);
 	int n = Round100(znear);
 	int f = Round100(zfar);
+	if (abs(t) == 44800 || abs(b) == 44800)
+		g_metroid_vres = 448;
+	else if (abs(t) == 52800 || abs(b) == 52800)
+		g_metroid_vres = 528;
 	if (layer == 0)
 	{
 		g_metroid_dark_visor = false;
-		if (l == 0 && r == 32000 && t == 22400 && n == -100 && f == 100)
+		if (l == 0 && r == 32000 && (t == 22400 || t == 26400) && n == -100 && f == 100)
 		{
 			g_metroid_map_screen = true;
 			g_metroid_morphball_active = false;
@@ -1203,7 +1233,7 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 			g_metroid_scan_visor_active = false;
 			g_metroid_morphball_active = false;
 		}
-		else if (l == -32000 && t == 22400 && n == -409600)
+		else if (l == -32000 && (t == 22400 || t == 26400) && n == -409600)
 		{
 			result = METROID_MAP_2;
 			g_metroid_dark_visor = false;
@@ -1238,7 +1268,7 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 	}
 	else if (layer == 4 && l == -32000 && n == -100 && f == 100)
 		result = METROID_SCAN_BOX;
-	else if (layer == 5 && l == -32000 && t == 22400 && n == -409600 && g_metroid_map_screen)
+	else if (layer == 5 && l == -32000 && (t == 22400 || t == 26400) && n == -409600 && g_metroid_map_screen)
 		result = METROID_MAP_NORTH;
 	else
 		result = METROID_UNKNOWN_2D;
@@ -1533,7 +1563,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_ECHO_EFFECT:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
-		*fHeightHack = 448.0f / 528.0f;
+		*fHeightHack = (float)g_metroid_vres / 528.0f;
 		*fWidthHack = 1.0f;
 		*fUpHack = 0.0f;
 		*fRightHack = 0.0f;
@@ -1542,7 +1572,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_THERMAL_EFFECT:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
-		*fHeightHack = 448.0f / 528.0f;
+		*fHeightHack = (float)g_metroid_vres / 528.0f;
 		*fWidthHack = 1.0f;
 		*fUpHack = 0.0f;
 		*fRightHack = 0.0f;
@@ -1550,7 +1580,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_CHARGE_BEAM_EFFECT:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
-		*fHeightHack = 448.0f / 528.0f;
+		*fHeightHack = (float)g_metroid_vres / 528.0f;
 		*fWidthHack = 1.0f;
 		*fUpHack = 0.0f;
 		*fRightHack = 0.0f;
@@ -1558,7 +1588,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_THERMAL_EFFECT_GUN:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
-		*fHeightHack = 448.0f / 528.0f;
+		*fHeightHack = (float)g_metroid_vres / 528.0f;
 		*fWidthHack = 1.0f;
 		*fUpHack = 0.0f;
 		*fRightHack = 0.0f;
@@ -1567,15 +1597,24 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_XRAY_EFFECT:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
-		*fHeightHack = 402.0f / 528.0f;
+		if (g_metroid_vres == 528)
+		{
+			*fHeightHack = 1.0f;
+			*fUpHack = 0.0f;
+		}
+		else
+		{
+			// This isn't quite right, but I can't work out what it should be.
+			*fHeightHack = 402.0f / 528.0f;
+			*fUpHack = 0.38f;
+		}
 		*fWidthHack = 1.0f;
-		*fUpHack = 0.38f;
-		*fRightHack = 0.01f;
+		//*fRightHack = 0.01f;
 		break;
 	case METROID_DARK_EFFECT:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
-		*fHeightHack = 448.0f / 528.0f;
+		*fHeightHack = (float)g_metroid_vres / 528.0f;
 		*fWidthHack = 1.0f;
 		*fUpHack = 0.0f;
 		*fRightHack = 0.0f;

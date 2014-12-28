@@ -29,7 +29,7 @@
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
 
-#define HACK_LOG NOTICE_LOG
+#define HACK_LOG INFO_LOG
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
