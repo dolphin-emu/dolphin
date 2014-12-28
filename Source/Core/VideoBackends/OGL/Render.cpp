@@ -86,8 +86,8 @@ static RasterFont* s_pfont = nullptr;
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static int s_LastMultisampleMode = 0;
-
 static bool s_LastStereo = false;
+static bool s_last_xfb_mode = false;
 
 static u32 s_blendMode;
 
@@ -589,7 +589,9 @@ Renderer::Renderer()
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 	ApplySSAASettings();
+
 	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 	// Decide framebuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
@@ -1625,7 +1627,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	GLInterface->Update(); // just updates the render window position and the backbuffer size
 
-	bool xfbchanged = false;
+	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
 	if (FramebufferManagerBase::LastXfbWidth() != fbStride || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
@@ -1649,6 +1651,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode) || (s_LastStereo != (g_ActiveConfig.iStereoMode > 0)))
 	{
+		s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
+
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode || s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
@@ -1656,7 +1661,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 			ApplySSAASettings();
-			s_LastStereo = g_ActiveConfig.iStereoMode > 0;
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,

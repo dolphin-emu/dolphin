@@ -46,6 +46,7 @@ static Television s_television;
 
 static bool s_last_fullscreen_mode = false;
 static bool s_LastStereo = 0;
+static bool s_last_xfb_mode = false;
 
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
@@ -231,6 +232,7 @@ Renderer::Renderer(void *&window_handle)
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	s_last_fullscreen_mode = g_ActiveConfig.bFullscreen;
 	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
@@ -878,7 +880,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		}
 	}
 
-	bool xfbchanged = false;
+	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
 	if (FramebufferManagerBase::LastXfbWidth() != fbStride || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
@@ -900,6 +902,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_LastAA != g_ActiveConfig.iMultisampleMode ||
 		s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
 	{
+		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
 		PixelShaderCache::InvalidateMSAAShaders();
 
