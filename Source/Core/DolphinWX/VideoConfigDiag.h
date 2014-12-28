@@ -152,7 +152,7 @@ protected:
 		// Should we enable the configuration button?
 		PostProcessingShaderConfiguration postprocessing_shader;
 		postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
-		button_config_pp->Enable(postprocessing_shader.HasOptions());
+		button_config_pp->Enable(postprocessing_shader.HasOptions() && vconfig.iStereoMode != STEREO_ANAGLYPH);
 
 		ev.Skip();
 	}
@@ -165,16 +165,32 @@ protected:
 		ev.Skip();
 	}
 
-	void Event_StereoSep(wxCommandEvent &ev)
+	void Event_StereoDepth(wxCommandEvent &ev)
 	{
-		vconfig.iStereoSeparation = ev.GetInt();
+		vconfig.iStereoDepth = ev.GetInt();
 
 		ev.Skip();
 	}
 
-	void Event_StereoFoc(wxCommandEvent &ev)
+	void Event_StereoConvergence(wxCommandEvent &ev)
 	{
 		vconfig.iStereoConvergence = ev.GetInt();
+
+		ev.Skip();
+	}
+
+	void Event_StereoMode(wxCommandEvent &ev)
+	{
+		if (ev.GetInt() == STEREO_ANAGLYPH && vconfig.backend_info.PPShaders.size())
+		{
+			// Anaglyph overrides post-processing shaders
+			choice_ppshader->Select(0);
+			choice_ppshader->Enable(false);
+		}
+		else if (vconfig.backend_info.PPShaders.size())
+		{
+			choice_ppshader->Enable(true);
+		}
 
 		ev.Skip();
 	}
@@ -197,12 +213,6 @@ protected:
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
-
-		// PP Shaders
-		if (choice_ppshader)
-			choice_ppshader->Enable(vconfig.iStereoMode != STEREO_ANAGLYPH);
-		if (button_config_pp)
-			button_config_pp->Enable(vconfig.iStereoMode != STEREO_ANAGLYPH);
 
 		// Things which shouldn't be changed during emulation
 		if (Core::IsRunning())
