@@ -85,8 +85,8 @@ static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static int s_LastMultisampleMode = 0;
-static bool s_LastStereo = false;
+static int s_last_multisample_mode = 0;
+static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
 
 static u32 s_blendMode;
@@ -586,11 +586,11 @@ Renderer::Renderer()
 			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing "
 			);
 
-	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
-	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
+	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
+	s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
 	ApplySSAASettings();
 
-	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 	// Decide framebuffer size
@@ -607,7 +607,7 @@ Renderer::Renderer()
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	// Because of the fixed framebuffer size we need to disable the resolution
@@ -1641,25 +1641,25 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	bool WindowResized = false;
 	int W = (int)GLInterface->GetBackBufferWidth();
 	int H = (int)GLInterface->GetBackBufferHeight();
-	if (W != s_backbuffer_width || H != s_backbuffer_height || s_LastEFBScale != g_ActiveConfig.iEFBScale)
+	if (W != s_backbuffer_width || H != s_backbuffer_height || s_last_efb_scale != g_ActiveConfig.iEFBScale)
 	{
 		WindowResized = true;
 		s_backbuffer_width = W;
 		s_backbuffer_height = H;
-		s_LastEFBScale = g_ActiveConfig.iEFBScale;
+		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	}
 
-	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode) || (s_LastStereo != (g_ActiveConfig.iStereoMode > 0)))
+	if (xfbchanged || WindowResized || (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
 	{
-		s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode || s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 		{
-			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
-			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
+			s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
+			s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
 			ApplySSAASettings();
 
 			delete g_framebuffer_manager;

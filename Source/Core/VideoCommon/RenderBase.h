@@ -155,8 +155,8 @@ protected:
 
 	static TargetRectangle target_rc;
 
-	// can probably eliminate this static var
-	static int s_LastEFBScale;
+	// TODO: Can probably eliminate this static var.
+	static int s_last_efb_scale;
 
 	static bool XFBWrited;
 
