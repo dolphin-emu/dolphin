@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -24,6 +24,8 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VR.h"
+
+#define HACK_LOG INFO_LOG
 
 using namespace BPFunctions;
 
@@ -232,18 +234,18 @@ static void BPWritten(const BPCmd& bp)
 					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bCopyEFBToTexture)
 				{
 					if (debug_newScene)
-						INFO_LOG(VR, "VR Resized EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 
+						HACK_LOG(VR, "VR Resized EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 
 							srcRect.left, srcRect.top, srcRect.GetWidth(), srcRect.GetHeight(), destAddr,
 							PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
 							!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
 					ScaleRequestedToRendered(&srcRect);
 					if (debug_newScene)
-						INFO_LOG(VR, "    Resized to (%d, %d) %dx%d", srcRect.left, srcRect.top, srcRect.GetWidth(), srcRect.GetHeight());
+						HACK_LOG(VR, "    Resized to (%d, %d) %dx%d", srcRect.left, srcRect.top, srcRect.GetWidth(), srcRect.GetHeight());
 				}
 				else
 				{
 					if (debug_newScene)
-						INFO_LOG(VR, "Render to Texture EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 
+						HACK_LOG(VR, "Render to Texture EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 
 							srcRect.left, srcRect.top, srcRect.GetWidth(), srcRect.GetHeight(), destAddr,
 							PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
 							!!PE_copy.intensity_fmt, !!PE_copy.half_scale);

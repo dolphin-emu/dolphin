@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#define HACK_LOG INFO_LOG
-
 #include <cfloat>
 #include <cmath>
 #include <sstream>
@@ -30,6 +28,8 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
+
+#define HACK_LOG NOTICE_LOG
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 

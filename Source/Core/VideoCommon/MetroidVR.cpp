@@ -15,11 +15,11 @@
 
 TMetroidLayer g_metroid_layer;
 bool g_metroid_scan_visor = false, g_metroid_scan_visor_active = false, 
-g_metroid_xray_visor = false, g_metroid_thermal_visor = false,
+g_metroid_xray_visor = false, g_metroid_thermal_visor = false, g_metroid_has_thermal_effect = false,
 g_metroid_map_screen = false, g_metroid_inventory = false,
 g_metroid_dark_visor = false, g_metroid_echo_visor = false, g_metroid_morphball_active = false,
 g_metroid_is_demo1 = false,
-g_metroid_cinematic = false;
+g_metroid_cinematic = false, g_metroid_menu = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0;
 int g_zelda_normal_count = 0, g_zelda_effect_count = 0;
 bool g_zelda_hawkeye = false;
@@ -32,6 +32,9 @@ void NewMetroidFrame()
 {
 	g_metroid_wide_count = 0;
 	g_metroid_normal_count = 0;
+	g_metroid_has_thermal_effect = false;
+	g_metroid_menu = false;
+
 	g_zelda_normal_count = 0;
 	g_zelda_effect_count = 0;
 	g_zelda_hawkeye = false;
@@ -48,6 +51,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 	{
 	case METROID_BACKGROUND_3D:
 		return "Background 3D";
+	case METROID_CHARGE_BEAM_EFFECT:
+		return "Charge Beam Effect";
 	case METROID_CINEMATIC_WORLD:
 		return "Cinematic World";
 	case METROID_BLACK_BARS:
@@ -58,6 +63,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Dark Visor Effect";
 	case METROID_DARK_VISOR_HUD:
 		return "Dark Visor HUD";
+	case METROID_DIALOG:
+		return "Metroid Dialog";
 	case METROID_ECHO_EFFECT:
 		return "Echo Visor Effect";
 	case METROID_GUN:
@@ -70,6 +77,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "HUD";
 	case METROID_INVENTORY_SAMUS:
 		return "Inventory Samus";
+	case METROID_INVENTORY_SAMUS_OUTLINE:
+		return "Inventory Samus Outline";
 	case METROID_MAP:
 		return "Map";
 	case METROID_MAP_0:
@@ -196,7 +205,6 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 	if (layer == 0)
 	{
 		g_metroid_xray_visor = false;
-		g_metroid_thermal_visor = false;
 	}
 
 	TMetroidLayer result;
@@ -205,9 +213,22 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 	int r = Round100(right);
 	int n = Round100(znear);
 	int f = Round100(zfar);
-	if (layer == 0 && g_metroid_map_screen && l == 0 && n == -100)
+	if (layer == 0 && (l == -88 || l == -87) && n == 0)
+	{
+		result = METROID_SHADOW_2D;
+		g_metroid_morphball_active = true;
+		g_metroid_thermal_visor = false;
+	}
+	else if (layer == 0 && g_metroid_map_screen && l == 0 && n == -100)
 	{
 		result = METROID_MAP_0;
+		g_metroid_morphball_active = false;
+	}
+	else if (layer == 0 && l == 0 && (t == 44800 || t == 52800) && n == -409600 && f == 409600)
+	{
+		// actually it is the menu background
+		result = METROID_UNKNOWN_2D;
+		g_metroid_menu = true;
 	}
 	else if (layer == 1)
 	{
@@ -219,32 +240,56 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 			g_metroid_scan_visor = false;
 			g_metroid_scan_visor_active = false;
 			g_metroid_morphball_active = false;
+			g_metroid_thermal_visor = false;
 		}
 		else if (l == -32000 && n == -409600 && g_metroid_xray_visor)
 		{
 			result = METROID_VISOR_DIRT;
 			g_metroid_map_screen = false;
+			g_metroid_thermal_visor = false;
 		}
-		else if (l == -88 && n == 0)
+		else if ((l == -88 || l == -87) && n == 0)
 		{
 			result = METROID_SHADOW_2D;
 			g_metroid_morphball_active = true;
+			g_metroid_thermal_visor = false;
 		}
 		else if (l == -32000 && n == -409600)
 		{
 			result = METROID_MAP_1;
 			g_metroid_map_screen = true;
+			g_metroid_thermal_visor = false;
+			g_metroid_morphball_active = false;
 		}
 		else if (l == 0 && t != 44800 && n == -409600)
 		{
-			result = METROID_THERMAL_EFFECT;
-			g_metroid_thermal_visor = true;
 			g_metroid_scan_visor = false;
+			g_metroid_has_thermal_effect = true;
+			if (g_metroid_thermal_visor)
+			{
+				result = METROID_THERMAL_EFFECT;
+			}
+			else
+			{
+				result = METROID_CHARGE_BEAM_EFFECT;
+			}
+		}
+		else if (l = -1570)
+		{
+			// actually we know it is the menu's text
+			result = METROID_UNKNOWN_2D;
+			g_metroid_menu = true;
+			g_metroid_scan_visor = false;
+			g_metroid_thermal_visor = false;
+			g_metroid_xray_visor = false;
+			g_metroid_morphball_active = false;
+			g_metroid_inventory = false;
+			g_metroid_map_screen = false;
+			g_metroid_cinematic = false;
 		}
 		else
 		{
 			g_metroid_scan_visor = false;
-			g_metroid_echo_visor = false;
 			if (l == -105)
 				result = METROID_SHADOW_2D;
 			else
@@ -261,13 +306,20 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 			g_metroid_scan_visor_active = false;
 			g_metroid_morphball_active = false;
 			g_metroid_thermal_visor = false;
+			g_metroid_has_thermal_effect = false;
 		}
 		else if (l == 0 && t == 0 && r == 64000 && n == -409600)
 		{
-			result = METROID_THERMAL_EFFECT;
-			g_metroid_thermal_visor = true;
-			g_metroid_dark_visor = false;
-			g_metroid_scan_visor = false;
+			g_metroid_has_thermal_effect = true;
+			if (g_metroid_thermal_visor)
+			{
+				result = METROID_THERMAL_EFFECT;
+				g_metroid_thermal_visor = true;
+			}
+			else
+			{
+				result = METROID_CHARGE_BEAM_EFFECT;
+			}
 			g_metroid_scan_visor_active = false;
 			g_metroid_morphball_active = false;
 			g_metroid_xray_visor = false;
@@ -276,33 +328,41 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 		{
 			result = METROID_MAP_2;
 			g_metroid_xray_visor = false;
+			g_metroid_thermal_visor = false;
 		}
 		else if (l == -32000 && t == 22400 && n == -409600 && f == 409600 && g_metroid_cinematic)
 		{
 			result = METROID_BLACK_BARS;
+			g_metroid_thermal_visor = false;
 		}
 		else if (l == -32000 && n == -409600 && f == 409600)
 		{
 			result = METROID_VISOR_DIRT;
+		}
+		else if (l == -320)
+		{
+			// This happens when transitioning from Morphball to Combat visor,
+			// because the shadows are no longer rendered it ends up as an earlier layer
+			result = METROID_MORPHBALL_HUD;
+			g_metroid_morphball_active = true;
+			g_metroid_thermal_visor = false;
 		}
 		else
 		{
 			result = METROID_UNKNOWN_2D;
 			g_metroid_dark_visor = false;
 			g_metroid_xray_visor = false;
+			g_metroid_thermal_visor = false;
 		}
 	}
 	else if (l == -32000 && t == 22400 && n == -409600 && f == 409600 && g_metroid_cinematic)
 	{
 		result = METROID_BLACK_BARS;
-	}
-	else if (l == -320)
-	{
-		result = METROID_MORPHBALL_HUD;
-		g_metroid_morphball_active = true;
+		g_metroid_thermal_visor = false;
 	}
 	else if (l == -32000 && n == -409600 && f == 409600)
 	{
+		g_metroid_thermal_visor = false;
 		if (g_metroid_map_screen)
 			result = METROID_MAP_NORTH;
 		else if (layer == 4 && !g_metroid_scan_visor)
@@ -313,18 +373,32 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 	else if (l == -32000 && n == -100 && f == 100)
 	{
 		result = METROID_SCAN_BOX;
+		g_metroid_thermal_visor = false;
 	}
-	else if (l == 0 && n == -409600 && g_metroid_thermal_visor)
+	else if (l == -320)
+	{
+		result = METROID_MORPHBALL_HUD;
+		g_metroid_morphball_active = true;
+		g_metroid_thermal_visor = false;
+	}
+	else if (l == 0 && t == 0 && n == -409600 && g_metroid_has_thermal_effect)
 	{
 		result = METROID_THERMAL_EFFECT_GUN;
+		g_metroid_thermal_visor = true;
 		g_metroid_dark_visor = false;
 		g_metroid_scan_visor = false;
 		g_metroid_scan_visor_active = false;
 		g_metroid_morphball_active = false;
 		g_metroid_xray_visor = false;
 	}
+	else if (g_metroid_inventory && l == 0 && r == 100 && t == 100 && n == -100 && f == 100)
+	{
+		result = METROID_INVENTORY_SAMUS_OUTLINE;
+	}
 	else
+	{
 		result = METROID_UNKNOWN_2D;
+	}
 	return result;
 }
 
@@ -333,7 +407,6 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	if (layer == 0)
 	{
 		g_metroid_xray_visor = false;
-		g_metroid_thermal_visor = false;
 	}
 
 	int h = Round100(hfov);
@@ -383,6 +456,9 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 		}
 		else
 		{
+			// thermal visor normally has first helmet/visor layer at 6, but use 5 to be extra careful
+			if (layer < 5 || !g_metroid_has_thermal_effect)
+				g_metroid_thermal_visor = false;
 			++g_metroid_wide_count;
 			switch (g_metroid_wide_count)
 			{
@@ -403,10 +479,6 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 				else if (g_metroid_xray_visor || g_metroid_thermal_visor)
 				{
 					result = METROID_VISOR_RADAR_HINT;
-				}
-				else if (g_metroid_dark_visor && layer == 1)
-				{
-					result = METROID_DARK_CENTRAL;
 				}
 				else if (g_metroid_is_demo1)
 				{
@@ -430,10 +502,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 				else if (g_metroid_dark_visor)
 					result = METROID_HELMET;
 				else if (g_metroid_is_demo1)
-				{
 					result = METROID_HUD;
-					g_metroid_morphball_active = false;
-				}
 				else
 					result = METROID_VISOR_RADAR_HINT;
 				break;
@@ -509,6 +578,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	}
 	else if (f == 409600 && v == 5500)
 	{
+		g_metroid_thermal_visor = false;
 		if ((g_metroid_map_screen || g_metroid_inventory) && h == 7327)
 		{
 			result = METROID_INVENTORY_SAMUS;
@@ -523,8 +593,18 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	}
 	else if (f == 409600 && v == 5443)
 	{
-		result = METROID_MAP_LEGEND;
-		g_metroid_map_screen = true;
+		if (layer != 3 && !g_metroid_menu)
+		{
+			result = METROID_MAP_LEGEND;
+			g_metroid_map_screen = true;
+			g_metroid_thermal_visor = false;
+		}
+		else
+		{
+			// this is the main menu's memory card notification and corners
+			// or the question when you enter your ship
+			result = METROID_DIALOG;
+		}
 	}
 	else if (f == 75000 && (v == 4958 || v == 4522))
 	{
@@ -538,6 +618,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 		g_metroid_scan_visor = false;
 		g_metroid_inventory = false;
 		g_metroid_cinematic = false;
+		g_metroid_thermal_visor = false;
 	}
 	else if (f == 75000 && v == 5021)
 	{
@@ -550,6 +631,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 		g_metroid_morphball_active = false;
 		g_metroid_map_screen = false;
 		g_metroid_scan_visor = false;
+		g_metroid_thermal_visor = false;
 		g_metroid_inventory = false;
 		g_metroid_cinematic = false;
 	}
@@ -565,10 +647,7 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 		case 1:
 			if (g_metroid_xray_visor)
 			{
-				if (h == 8564)
-					result = METROID_WII_RETICLE;
-				else
-					result = METROID_RETICLE;
+				result = METROID_RETICLE;
 				g_metroid_morphball_active = false;
 				if (layer > 1)
 					g_metroid_scan_visor = false;
@@ -590,18 +669,13 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 				result = METROID_THERMAL_GUN_AND_DOOR;
 			else if (g_metroid_scan_visor)
 				result = METROID_SCAN_ICONS;
-			else if (h == 8564)
-				result = METROID_WII_RETICLE;
 			else
 				result = METROID_RETICLE;
 			break;
 		case 3:
 			if (g_metroid_thermal_visor)
 			{
-				if (h == 8564)
-					result = METROID_WII_RETICLE;
-				else
-					result = METROID_RETICLE;
+				result = METROID_RETICLE;
 			}
 			if (g_metroid_xray_visor)
 			{
@@ -622,9 +696,24 @@ TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float z
 	{
 		result = METROID_WII_WORLD;
 	}
+	else if (g_metroid_morphball_active && v >= 4958 && v < 5500)
+	{
+		result = METROID_MORPHBALL_WORLD;
+		vr_widest_3d_HFOV = abs(hfov);
+		vr_widest_3d_VFOV = abs(vfov);
+		vr_widest_3d_zNear = znear;
+		vr_widest_3d_zFar = zfar;
+		g_metroid_morphball_active = true;
+		g_metroid_map_screen = false;
+		g_metroid_scan_visor = false;
+		g_metroid_inventory = false;
+		g_metroid_cinematic = false;
+		g_metroid_thermal_visor = false;
+	}
 	else
 	{
 		g_metroid_cinematic = true;
+		g_metroid_thermal_visor = false;
 		result = METROID_CINEMATIC_WORLD;
 	}
 	return result;
@@ -1079,6 +1168,7 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 				result = METROID_MAP_1;
 				g_metroid_scan_visor = false;
 				g_metroid_echo_visor = false;
+				g_metroid_morphball_active = false;
 			}
 			else
 			{
@@ -1454,7 +1544,15 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		*bFullscreenLayer = true;
 		*fHeightHack = 448.0f / 528.0f;
 		*fWidthHack = 1.0f;
-		*fUpHack = 0.16f;
+		*fUpHack = 0.0f;
+		*fRightHack = 0.0f;
+		break;
+	case METROID_CHARGE_BEAM_EFFECT:
+		*bStuckToHead = true;
+		*bFullscreenLayer = true;
+		*fHeightHack = 448.0f / 528.0f;
+		*fWidthHack = 1.0f;
+		*fUpHack = 0.0f;
 		*fRightHack = 0.0f;
 		break;
 	case METROID_THERMAL_EFFECT_GUN:
@@ -1568,8 +1666,15 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_MAP_2:
 		*bStuckToHead = false;
 		*fScaleHack = 0.02f;
+		//*fHeightHack = 1.8f;
+		//*fWidthHack = 1.2f;
+		//*fUpHack = 0.1f;
 		break;
 
+	case METROID_DIALOG:
+		*bStuckToHead = false;
+		*fScaleHack = 5;
+		break;
 	case METROID_MAP_LEGEND:
 		*bStuckToHead = false;
 		*fScaleHack = 30;
@@ -1645,11 +1750,13 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		*fHeightHack = 1.2f;
 		break;
 	case METROID_INVENTORY_SAMUS:
-		// move the hologram inside the box when scanning ship
-		// and make it bigger
 		*bStuckToHead = false;
 		break;
-	
+	case METROID_INVENTORY_SAMUS_OUTLINE:
+		*bStuckToHead = true;
+		*bFullscreenLayer = true;
+		break;
+
 	case ZELDA_HAWKEYE:
 		*iTelescope = 3;
 		break;
