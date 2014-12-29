@@ -1295,6 +1295,17 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
 		m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
 		m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
 	}
+	else if (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER)
+	{
+		glDrawBuffer(GL_BACK_LEFT);
+		m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 0);
+
+		glDrawBuffer(GL_BACK_RIGHT);
+		m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height, 1);
+
+		// Thank you so much for supporting Quad-Buffering, the only sensible stereo mode.
+		glDrawBuffer(GL_BACK);
+	}
 	else
 	{
 		m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height);

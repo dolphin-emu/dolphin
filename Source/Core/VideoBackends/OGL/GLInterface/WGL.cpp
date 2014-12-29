@@ -80,13 +80,16 @@ bool cInterfaceWGL::Create(void *window_handle)
 	dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));
 #endif
 
+	const DWORD stereo_flag = (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) ? PFD_STEREO : 0;
+
 	PIXELFORMATDESCRIPTOR pfd =         // pfd Tells Windows How We Want Things To Be
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),  // Size Of This Pixel Format Descriptor
 		1,                              // Version Number
 		PFD_DRAW_TO_WINDOW |            // Format Must Support Window
 			PFD_SUPPORT_OPENGL |        // Format Must Support OpenGL
-			PFD_DOUBLEBUFFER,           // Must Support Double Buffering
+			PFD_DOUBLEBUFFER |          // Must Support Double Buffering
+			stereo_flag,                // Optionally Quad Buffering
 		PFD_TYPE_RGBA,                  // Request An RGBA Format
 		32,                             // Select Our Color Depth
 		0, 0, 0, 0, 0, 0,               // Color Bits Ignored

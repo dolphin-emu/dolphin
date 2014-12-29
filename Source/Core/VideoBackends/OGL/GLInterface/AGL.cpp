@@ -33,7 +33,15 @@ bool cInterfaceAGL::Create(void *window_handle)
 	s_backbuffer_width = size.width;
 	s_backbuffer_height = size.height;
 
-	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, NSOpenGLPFAAccelerated, 0 };
+	NSOpenGLPixelFormatAttribute attr[] = {
+			NSOpenGLPFADoubleBuffer,
+			NSOpenGLPFAOpenGLProfile,
+			NSOpenGLProfileVersion3_2Core,
+			NSOpenGLPFAAccelerated,
+			(g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) ?
+					NSOpenGLPFAStereo : (NSOpenGLPixelFormatAttribute)0,
+			0
+	};
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
 	if (fmt == nil)

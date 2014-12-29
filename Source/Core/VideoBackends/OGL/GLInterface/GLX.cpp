@@ -79,8 +79,10 @@ bool cInterfaceGLX::Create(void *window_handle)
 		GLX_DEPTH_SIZE      , 0,
 		GLX_STENCIL_SIZE    , 0,
 		GLX_DOUBLEBUFFER    , True,
+		GLX_STEREO          , (g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER) ? True : False,
 		None
 	};
+
 	int fbcount = 0;
 	GLXFBConfig* fbc = glXChooseFBConfig(dpy, screen, visual_attribs, &fbcount);
 	if (!fbc || !fbcount)
