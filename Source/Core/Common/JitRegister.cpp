@@ -72,18 +72,17 @@ void Shutdown()
 }
 
 void Register(const void* base_address, u32 code_size,
-	const char* name, u32 original_address)
+	const char* format, ...)
 {
 #if !(defined USE_OPROFILE && USE_OPROFILE) && !defined(USE_VTUNE)
 	if (!s_perf_map_file.IsOpen())
 		return;
 #endif
 
-	std::string symbol_name;
-	if (original_address)
-		symbol_name = StringFromFormat("%s_%x", name, original_address);
-	else
-		symbol_name = name;
+	va_list args;
+	va_start(args, format);
+	std::string symbol_name = StringFromFormatV(format, args);
+	va_end(args);
 
 #if defined USE_OPROFILE && USE_OPROFILE
 	op_write_native_code(s_agent, symbol_name.data(), (u64)base_address,

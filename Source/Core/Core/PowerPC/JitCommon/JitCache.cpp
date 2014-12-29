@@ -144,7 +144,7 @@ using namespace Gen;
 		}
 
 		JitRegister::Register(blockCodePointers[block_num], b.codeSize,
-			"JIT_PPC", b.originalAddress);
+			"JIT_PPC_%08x", b.originalAddress);
 	}
 
 	const u8 **JitBaseBlockCache::GetCodePointers()
