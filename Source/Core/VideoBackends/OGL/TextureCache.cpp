@@ -400,7 +400,7 @@ void TextureCache::CompileShaders()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
-	const char *GProgram = FramebufferManager::GetEFBLayers() > 1 ?
+	const char *GProgram = g_ActiveConfig.iStereoMode > 0 ?
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = 6) out;\n"
 		"in vec3 v_uv0[3];\n"
