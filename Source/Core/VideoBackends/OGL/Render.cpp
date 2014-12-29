@@ -1799,6 +1799,13 @@ void Renderer::SetDepthMode()
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 	}
+
+	if (bpmem.genMode.zfreeze)
+	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL);
+	}
 }
 
 void Renderer::SetLogicOpMode()

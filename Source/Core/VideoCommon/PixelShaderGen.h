@@ -62,6 +62,7 @@ struct pixel_shader_uid_data
 	u32 forced_early_z : 1;
 	u32 early_ztest : 1;
 	u32 bounding_box : 1;
+	u32 zfreeze : 1;
 
 	u32 texMtxInfo_n_projection : 8; // 8x1 bit
 	u32 tevindref_bi0 : 3;
