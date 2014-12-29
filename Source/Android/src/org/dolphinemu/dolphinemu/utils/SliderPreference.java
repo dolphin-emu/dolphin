@@ -40,8 +40,8 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 		LayoutInflater inflater = LayoutInflater.from(getContext());
 		LinearLayout layout = (LinearLayout)inflater.inflate(R.layout.slider_layout, null, false);
 
-		m_seekbar = (SeekBar)layout.getChildAt(0);
-		m_textview = (TextView)layout.getChildAt(1);
+		m_seekbar = (SeekBar)layout.findViewById(R.id.sliderSeekBar);
+		m_textview = (TextView)layout.findViewById(R.id.sliderTextView);
 
 		if (shouldPersist())
 			m_value = Integer.valueOf(getPersistedString(Integer.toString(m_value)));

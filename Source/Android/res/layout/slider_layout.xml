@@ -10,14 +10,14 @@
 	<SeekBar
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/seekBar"
+		android:id="@+id/sliderSeekBar"
 		/>
 
 	<TextView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		tools:text="Sample Text"
-		android:id="@+id/textView"
+		android:id="@+id/sliderTextView"
 		android:textStyle="bold"/>
 
 </LinearLayout>
