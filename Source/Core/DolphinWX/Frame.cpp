@@ -36,6 +36,8 @@
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
@@ -63,8 +65,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-
-#include "AudioCommon/AudioCommon.h"
 
 // Resources
 
