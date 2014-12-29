@@ -120,6 +120,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Scan Hologram";
 	case METROID_SCAN_ICONS:
 		return "Scan Icons";
+	case METROID_VISOR_BOOTUP:
+		return "Visor Boot-Up";
 	case METROID_VISOR_DIRT:
 		return "Visor Dirt";
 	case METROID_SCAN_RETICLE:
@@ -1183,7 +1185,12 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 			g_metroid_echo_visor = false;
 			result = METROID_MAP_0;
 		}
-		else
+		else if ((l == -75 || l == -76) && n == 0)
+		{
+			//0: 2D: Unknown (-0.758217, 0.902008) to (0.758217, -0.902008); z: -0 to 7.67479  [-0.130297, -1]
+			result = METROID_SHADOW_2D;
+		}
+		else 
 		{
 			result = METROID_UNKNOWN_2D;
 		}
@@ -1200,6 +1207,12 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 				g_metroid_echo_visor = false;
 				g_metroid_morphball_active = false;
 			}
+			else if (g_metroid_cinematic)
+			{
+				result = METROID_BLACK_BARS;
+				g_metroid_scan_visor = false;
+				g_metroid_scan_visor_active = false;
+			}
 			else
 			{
 				result = METROID_SCAN_HIGHLIGHTER;
@@ -1211,6 +1224,16 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 		{
 			result = METROID_ECHO_EFFECT;
 			g_metroid_echo_visor = true;
+			g_metroid_scan_visor = false;
+		}
+		else if ((l == -75 || l == -76) && n == 0)
+		{
+			result = METROID_SHADOW_2D;
+			g_metroid_scan_visor = false;
+		}
+		else if (l == -3200 && t == 3200)
+		{
+			result = METROID_SHADOW_2D;
 			g_metroid_scan_visor = false;
 		}
 		else
@@ -1233,13 +1256,31 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 			g_metroid_scan_visor_active = false;
 			g_metroid_morphball_active = false;
 		}
+		else if (l == -32000 && (t == 22400 || t == 26400) && n == -409600 && f == 409600 && g_metroid_cinematic)
+		{
+			result = METROID_BLACK_BARS;
+			g_metroid_thermal_visor = false;
+		}
+		else if (l == -32000 && t >= 18000 && t <= 26400 && n == -409600 && f == 409600 && g_metroid_cinematic)
+		{
+			result = METROID_SCREEN_OVERLAY;
+		}
 		else if (l == -32000 && (t == 22400 || t == 26400) && n == -409600)
 		{
-			result = METROID_MAP_2;
-			g_metroid_dark_visor = false;
-			g_metroid_scan_visor = false;
-			g_metroid_scan_visor_active = false;
-			g_metroid_morphball_active = false;
+			if (g_metroid_scan_visor)
+			{
+				result = METROID_SCREEN_OVERLAY;
+			}
+			else
+			{
+				result = METROID_MAP_2;
+				g_metroid_dark_visor = false;
+				g_metroid_morphball_active = false;
+			}
+		}
+		else if (l == -3200 && t == 3200)
+		{
+			result = METROID_SHADOW_2D;
 		}
 		else
 		{
@@ -1249,7 +1290,16 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 	}
 	else if (layer == 3)
 	{
-		if (l == -32000 && n == -409600)
+		if (l == -32000 && (t == 22400 || t == 26400) && n == -409600 && f == 409600 && g_metroid_cinematic)
+		{
+			result = METROID_BLACK_BARS;
+			g_metroid_thermal_visor = false;
+		}
+		else if (l == -32000 && t >= 18000 && t <= 26400 && n == -409600 && f == 409600 && g_metroid_cinematic)
+		{
+			result = METROID_SCREEN_OVERLAY;
+		}
+		else if (l == -32000 && n == -409600)
 		{
 			result = METROID_SCAN_DARKEN;
 		}
@@ -1260,16 +1310,45 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 			g_metroid_scan_visor = false;
 			g_metroid_scan_visor_active = false;
 			g_metroid_morphball_active = false;
+			g_metroid_cinematic = false;
+		}
+		else if (l == 0 && (t == 22400 || t == 26400) && r == 32000 && b == 0 && n == -100 && f == 100)
+		{
+			// 3: 2D : Unknown 2D (-0, 224) to(320, -0); z: -1 to 1[-0.5, -0.5]
+			result = METROID_VISOR_BOOTUP;
 		}
 		else
 		{
 			result = METROID_UNKNOWN_2D;
 		}
 	}
-	else if (layer == 4 && l == -32000 && n == -100 && f == 100)
+	else if ((layer == 4 || layer == 5 || layer == 6) && l == -32000 && n == -100 && f == 100)
 		result = METROID_SCAN_BOX;
 	else if (layer == 5 && l == -32000 && (t == 22400 || t == 26400) && n == -409600 && g_metroid_map_screen)
 		result = METROID_MAP_NORTH;
+	else if (l == -32000 && (t == 22400 || t == 26400) && n == -409600 && f == 409600 && g_metroid_cinematic)
+	{
+		result = METROID_BLACK_BARS;
+	}
+	else if ((layer == 4 || (layer == 5 && g_metroid_normal_count == 2)) && l == -32000 && (t == 22400 || t == 26400) && n == -409600 && f == 409600)
+	{
+		// while actively scanning in the fog
+		result = METROID_SCAN_DARKEN;
+	}
+	else if (l == -32000 && t >= 18000 && t <= 26400 && n == -409600 && f == 409600 && g_metroid_cinematic)
+	{
+		//NTSC: 4: 2D : Unknown 2D (-320, 180) to(320, -180); z: -4096 to 4096[-0.00012207, -0.5]
+		// untested on PAL
+		// This is used in the cinematic near the start when she jumps in the hole
+		result = METROID_SCREEN_OVERLAY;
+	}
+	else if ((layer == 6 || layer == 7) && l == -32000 && (t == 22400 || t == 26400) && n == -409600 && f == 409600)
+	{
+		//7: 2D : Unknown 2D (-320, 224) to(320, -224); z: -4096 to 4096[-0.00012207, -0.5]
+		// this is actually the round red damage indicators that show which direction you are being hurt from.
+		// Unfortunately, I can't think of a good way to incorporate head turn.
+		result = METROID_SCREEN_OVERLAY;
+	}
 	else
 		result = METROID_UNKNOWN_2D;
 	return result;
@@ -1287,7 +1366,15 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 	//if (layer == 2)
 	//	g_metroid_dark_visor = false;
 
-	if (f == 409600 && v == 6500)
+	if (layer == 1)
+		g_metroid_scan_visor = false;
+
+	if (v == h && layer <= 1)
+	{
+		// 1: Unknown 2D HFOV: 1.24deg; VFOV: 1.24deg; Aspect Ratio: 16:16.0; near:0.100000, far:1000.000000
+		result = METROID_SHADOWS;
+	}
+	else if (f == 409600 && v == 6500)
 	{
 		++g_metroid_wide_count;
 		switch (g_metroid_wide_count)
@@ -1330,6 +1417,7 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 				{
 					result = METROID_RADAR_DOT;
 					g_metroid_scan_visor_active = false;
+					g_metroid_scan_visor = false;
 				}
 				else if (h == 8055)
 				{
@@ -1389,23 +1477,29 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 		result = METROID_MAP_LEGEND;
 		g_metroid_map_screen = true;
 	}
-	else if (f == 75000)
+	else if (f == 75000 && (v == 4958 || v == 4522))
 	{
+		result = METROID_MORPHBALL_WORLD;
+		vr_widest_3d_HFOV = abs(hfov);
+		vr_widest_3d_VFOV = abs(vfov);
+		vr_widest_3d_zNear = znear;
+		vr_widest_3d_zFar = zfar;
+		g_metroid_morphball_active = true;
+		g_metroid_map_screen = false;
+		g_metroid_scan_visor = false;
+		g_metroid_inventory = false;
+		g_metroid_cinematic = false;
+	}
+	else if (f == 75000 && (h == 7327 || h == 8564))
+	{
+		g_metroid_cinematic = false;
 		++g_metroid_normal_count;
 		g_metroid_map_screen = false;
 		switch (g_metroid_normal_count)
 		{
 		case 1:
-			if (v == 4958)
-			{
-				result = METROID_MORPHBALL_WORLD;
-				g_metroid_morphball_active = true;
-			}
-			else
-			{
-				result = METROID_WORLD;
-				g_metroid_morphball_active = false;
-			}
+			result = METROID_WORLD;
+			g_metroid_morphball_active = false;
 			break;
 		case 2:
 			// The scan reticle needs to be handled differently
@@ -1429,17 +1523,31 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 			break;
 		}
 	}
+	else if (f == 409600 && layer == 4 && g_metroid_map_screen)
+	{
+		result = METROID_INVENTORY_SAMUS;
+		g_metroid_inventory = true;
+		g_metroid_cinematic = false;
+	}
+	else if (g_metroid_morphball_active && v >= 4958 && v < 5500)
+	{
+		result = METROID_MORPHBALL_WORLD;
+		vr_widest_3d_HFOV = abs(hfov);
+		vr_widest_3d_VFOV = abs(vfov);
+		vr_widest_3d_zNear = znear;
+		vr_widest_3d_zFar = zfar;
+		g_metroid_morphball_active = true;
+		g_metroid_map_screen = false;
+		g_metroid_scan_visor = false;
+		g_metroid_inventory = false;
+		g_metroid_cinematic = false;
+	}
 	else
 	{
-		if (f == 409600 && layer == 4 && g_metroid_map_screen)
-		{
-			result = METROID_INVENTORY_SAMUS;
-			g_metroid_inventory = true;
-		}
-		else
-		{
-			result = METROID_UNKNOWN;
-		}
+		g_metroid_cinematic = true;
+		g_metroid_scan_visor = false;
+		g_metroid_map_screen = false;
+		result = METROID_CINEMATIC_WORLD;
 	}
 	return result;
 }
@@ -1630,6 +1738,8 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		*bFullscreenLayer = false;
 		*fScaleHack = 2;
 		break;
+	case METROID_VISOR_BOOTUP:
+	case METROID_SCREEN_OVERLAY:
 	case METROID_SCAN_DARKEN:
 		*bStuckToHead = true;
 		*bFullscreenLayer = true;
