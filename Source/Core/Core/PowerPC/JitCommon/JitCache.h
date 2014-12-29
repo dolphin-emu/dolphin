@@ -57,10 +57,6 @@ struct JitBlock
 	u64 ticStart;   // for profiling - time.
 	u64 ticStop;    // for profiling - time.
 	u64 ticCounter; // for profiling - time.
-
-#ifdef USE_VTUNE
-	char blockName[32];
-#endif
 };
 
 typedef void (*CompiledCode)();

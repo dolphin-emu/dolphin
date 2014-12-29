@@ -62,6 +62,7 @@
     <ClInclude Include="GekkoDisassembler.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
+    <ClInclude Include="JitRegister.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MemArena.h" />
@@ -98,6 +99,7 @@
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
+    <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />

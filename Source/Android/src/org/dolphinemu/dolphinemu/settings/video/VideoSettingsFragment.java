@@ -121,6 +121,15 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			mainScreen.getPreference(0).setEnabled(true);
 			mainScreen.getPreference(1).setEnabled(true);
 			mainScreen.getPreference(3).setEnabled(true);
+
+			// Check if we support stereo
+			// If we support desktop GL then we must support at least OpenGL 3.2
+			// If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
+			if ((eglHelper.supportsOpenGL() && eglHelper.GetVersion() >= 320) ||
+			    (eglHelper.supportsGLES3() && eglHelper.GetVersion() >= 310 && eglHelper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
+				mainScreen.findPreference("StereoscopyScreen").setEnabled(true);
+			else
+				mainScreen.findPreference("StereoscopyScreen").setEnabled(false);
 		}
 
 		// Also set a listener, so that if someone changes the video backend, it will disable

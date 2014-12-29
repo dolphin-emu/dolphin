@@ -45,9 +45,9 @@ VideoConfig::VideoConfig()
 	backend_info.bSupportsExclusiveFullscreen = false;
 
 	// Game-specific stereoscopy settings
-	bStereoMonoEFBDepth = false;
-	iStereoSeparationPercent = 100;
-	iStereoConvergencePercent = 100;
+	bStereoEFBMonoDepth = false;
+	iStereoDepthPercentage = 100;
+	iStereoConvergencePercentage = 100;
 
 	// VR
 	fScale = 1.0f;
@@ -137,7 +137,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
 	enhancements->Get("StereoMode", &iStereoMode, 0);
-	enhancements->Get("StereoSeparation", &iStereoSeparation, 20);
+	enhancements->Get("StereoDepth", &iStereoDepth, 20);
 	enhancements->Get("StereoConvergence", &iStereoConvergence, 20);
 	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 	if (g_has_rift && backend_info.bSupportsGeometryShaders)
@@ -316,13 +316,13 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
 	CHECK_SETTING("Video_Enhancements", "StereoMode", iStereoMode);
-	CHECK_SETTING("Video_Enhancements", "StereoSeparation", iStereoSeparation);
+	CHECK_SETTING("Video_Enhancements", "StereoDepth", iStereoDepth);
 	CHECK_SETTING("Video_Enhancements", "StereoConvergence", iStereoConvergence);
 	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
 
-	CHECK_SETTING("Video_Stereoscopy", "StereoMonoEFBDepth", bStereoMonoEFBDepth);
-	CHECK_SETTING("Video_Stereoscopy", "StereoSeparationPercent", iStereoSeparationPercent);
-	CHECK_SETTING("Video_Stereoscopy", "StereoConvergencePercent", iStereoConvergencePercent);
+	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
+	CHECK_SETTING("Video_Stereoscopy", "StereoDepthPercentage", iStereoDepthPercentage);
+	CHECK_SETTING("Video_Stereoscopy", "StereoConvergencePercentage", iStereoConvergencePercentage);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
@@ -551,7 +551,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
 	enhancements->Set("PostProcessingShader", sPostProcessingShader);
 	enhancements->Set("StereoMode", iStereoMode);
-	enhancements->Set("StereoSeparation", iStereoSeparation);
+	enhancements->Set("StereoDepth", iStereoDepth);
 	enhancements->Set("StereoConvergence", iStereoConvergence);
 	enhancements->Set("StereoSwapEyes", bStereoSwapEyes);
 

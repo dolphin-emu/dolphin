@@ -44,12 +44,13 @@ static bool g_first_rift_frame = true;
 namespace DX11
 {
 
-static u32 s_LastAA = 0;
+static u32 s_last_multisample_mode = 0;
 
 static Television s_television;
 
 static bool s_last_fullscreen_mode = false;
-static bool s_LastStereo = 0;
+static bool s_last_stereo_mode = 0;
+static bool s_last_xfb_mode = false;
 
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
@@ -232,10 +233,11 @@ Renderer::Renderer(void *&window_handle)
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-	s_LastAA = g_ActiveConfig.iMultisampleMode;
-	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
+	s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	s_last_fullscreen_mode = g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled();
-	s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
@@ -859,8 +861,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			int xfbWidth = xfbSource->srcWidth;
 			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
-			drawRc.top = targetRc.bottom - (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
-			drawRc.bottom = targetRc.bottom - hOffset * targetRc.GetHeight() / fbHeight;
+			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / fbHeight;
+			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
 			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / fbStride) / 2;
 			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / fbStride) / 2;
 
@@ -1182,7 +1184,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 #endif		
 
-	bool xfbchanged = false;
+	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
 	if (FramebufferManagerBase::LastXfbWidth() != fbStride || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
@@ -1203,11 +1205,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (xfbchanged ||
 		windowResized ||
 		fullscreen_changed ||
-		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
-		s_LastAA != g_ActiveConfig.iMultisampleMode ||
-		s_LastStereo != (g_ActiveConfig.iStereoMode > 0))
+		s_last_efb_scale != g_ActiveConfig.iEFBScale ||
+		s_last_multisample_mode != g_ActiveConfig.iMultisampleMode ||
+		s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 	{
-		s_LastAA = g_ActiveConfig.iMultisampleMode;
+		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
+		s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
 		PixelShaderCache::InvalidateMSAAShaders();
 
 		if (windowResized || fullscreen_changed)
@@ -1235,8 +1238,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		s_LastStereo = g_ActiveConfig.iStereoMode > 0;
+		s_last_efb_scale = g_ActiveConfig.iEFBScale;
+		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);

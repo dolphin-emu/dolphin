@@ -6,6 +6,7 @@ set(SRCS BreakPoints.cpp
          GekkoDisassembler.cpp
          Hash.cpp
          IniFile.cpp
+         JitRegister.cpp
          MathUtil.cpp
          MemArena.cpp
          MemoryUtil.cpp

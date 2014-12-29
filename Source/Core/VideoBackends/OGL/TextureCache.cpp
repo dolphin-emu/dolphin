@@ -421,7 +421,7 @@ void TextureCache::CompileShaders()
 		"}\n" : nullptr;
 
 	const char* prefix = (GProgram == nullptr) ? "f" : "v";
-	const char* depth_layer = (g_ActiveConfig.bStereoMonoEFBDepth) ? "0.0" : "f_uv0.z";
+	const char* depth_layer = (g_ActiveConfig.bStereoEFBMonoDepth) ? "0.0" : "f_uv0.z";
 
 	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), pColorMatrixProg, GProgram);
 	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, StringFromFormat(VProgram, prefix, prefix).c_str(), StringFromFormat(pDepthMatrixProg, depth_layer).c_str(), GProgram);

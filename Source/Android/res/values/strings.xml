@@ -174,6 +174,16 @@
     <string name="force_texture_filtering_descrip">Force texture filtering even if the emulated game explicitly disabled it. Improves texture quality slightly but causes glitches in some games.</string>
     <string name="disable_fog">Disable Fog</string>
     <string name="disable_fog_descrip">Makes distant objects more visible by removing fog, thus increasing the overall detail. Disabling fog will break some games which rely on proper fog emulation.</string>
+    <string name="stereoscopy">Stereoscopy</string>
+    <string name="stereoscopy_descrip">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
+    <string name="stereoscopy_mode">Stereoscopy Mode</string>
+    <string name="stereoscopy_mode_descrip">Select the stereoscopic 3D mode.</string>
+    <string name="sterescopy_depth">Depthn</string>
+    <string name="sterescopy_depth_descrip">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
+    <string name="convergence">Convergence</string>
+    <string name="convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
+    <string name="swap_eyes">Swap Eyes</string>
+    <string name="swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
 
     <string name="hacks">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
