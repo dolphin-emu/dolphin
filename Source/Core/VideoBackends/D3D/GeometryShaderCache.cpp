@@ -36,8 +36,8 @@ ID3D11GeometryShader* CopyGeometryShader = nullptr;
 
 LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
 
-ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return (FramebufferManager::GetEFBLayers() > 1) ? ClearGeometryShader: nullptr; }
-ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return (FramebufferManager::GetEFBLayers() > 1) ? CopyGeometryShader : nullptr; }
+ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? ClearGeometryShader: nullptr; }
+ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? CopyGeometryShader : nullptr; }
 
 ID3D11Buffer* gscbuf = nullptr;
 
