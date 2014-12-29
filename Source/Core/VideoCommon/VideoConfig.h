@@ -135,8 +135,6 @@ struct VideoConfig final
 
 	// Stereoscopy
 	bool bStereoEFBMonoDepth;
-	int iStereoSeparationPercent;
-	int iStereoConvergencePercent;
 	int iStereoDepthPercentage;
 	int iStereoConvergencePercentage;
 

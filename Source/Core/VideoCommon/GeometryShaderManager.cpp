@@ -49,6 +49,7 @@ void GeometryShaderManager::SetConstants()
 {
 	s_projection_changed = false;
 
+
 	if (s_viewport_changed)
 	{
 		s_viewport_changed = false;
