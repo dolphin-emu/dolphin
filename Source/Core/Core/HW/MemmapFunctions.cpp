@@ -92,7 +92,7 @@ static u32 EFB_Read(const u32 addr)
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
 template <typename T, typename U>
-inline void ReadFromHardware(U &_var, const u32 em_address, Memory::XCheckTLBFlag flag)
+__forceinline void ReadFromHardware(U &_var, const u32 em_address, Memory::XCheckTLBFlag flag)
 {
 	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
 	if ((em_address & 0xC8000000) == 0xC8000000)
@@ -199,7 +199,7 @@ inline void ReadFromHardware(U &_var, const u32 em_address, Memory::XCheckTLBFla
 
 
 template <typename T>
-inline void WriteToHardware(u32 em_address, const T data, Memory::XCheckTLBFlag flag)
+__forceinline void WriteToHardware(u32 em_address, const T data, Memory::XCheckTLBFlag flag)
 {
 	// First, let's check for FIFO writes, since they are probably the most common
 	// reason we end up in this function:
@@ -742,7 +742,7 @@ void SDRUpdated()
 }
 
 
-static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
+static __forceinline u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
 	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
 	if (tlbe[0].tag == (vpa & ~0xfff) && !(tlbe[0].flags & TLB_FLAG_INVALID))
@@ -798,7 +798,7 @@ static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *p
 	return 0;
 }
 
-static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
+static __forceinline void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 {
 	if (_Flag == FLAG_NO_EXCEPTION)
 		return;
@@ -833,7 +833,7 @@ void InvalidateTLBEntry(u32 vpa)
 }
 
 // Page Address Translation
-static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
+static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 {
 	// TLB cache
 	u32 translatedAddress = 0;
