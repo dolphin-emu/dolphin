@@ -24,7 +24,7 @@ public:
 		long style = wxDEFAULT_DIALOG_STYLE);
 	virtual ~CConfigVR();
 
-	void SaveXInputBinary(int Id, bool KBM, u32 Key);
+	void SaveXInputBinary(int Id, bool KBM, bool DInput, u32 Key, u32 DInputExtra);
 
 	enum
 	{
@@ -105,7 +105,7 @@ private:
 	int g_Pressed, g_Modkey;
 
 	void SaveButtonMapping(int Id, bool KBM, int Key, int Modkey);
-	void SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapping = wxString());
+	void SetButtonText(int id, bool KBM, bool DInput, const wxString &keystr, const wxString &modkeystr = wxString(), const wxString &XInputMapping = wxString());
 	void DoGetButtons(int id);
 	void EndGetButtons();
 	void EndGetButtonsXInput();

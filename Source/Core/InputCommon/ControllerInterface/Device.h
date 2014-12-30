@@ -124,6 +124,8 @@ protected:
 			: m_low(*low), m_high(*high)
 		{}
 
+		bool IsDetectable() override { return false; }
+
 		ControlState GetState() const override
 		{
 			return (1 + m_high.GetState() - m_low.GetState()) / 2;

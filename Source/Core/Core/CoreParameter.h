@@ -239,16 +239,20 @@ struct SCoreStartupParameter
 	// Hotkeys
 	int iHotkey[NUM_HOTKEYS];
 	int iHotkeyModifier[NUM_HOTKEYS];
-	bool iHotkeyKBM[NUM_HOTKEYS];
-	u32 iHotkeyXInputMapping[NUM_HOTKEYS];
+	bool bHotkeyKBM[NUM_HOTKEYS];
+	bool bHotkeyDInput[NUM_HOTKEYS];
+	u32 iHotkeyDandXInputMapping[NUM_HOTKEYS];
+	u32 iHotkeyDInputMappingExtra[NUM_HOTKEYS];
 	bool bHotkeysXInput;
 	float fFreeLookSensitivity;
 
 	// VR Settings
 	int iVRSettings[NUM_VR_HOTKEYS];
 	int iVRSettingsModifier[NUM_VR_HOTKEYS];
-	bool iVRSettingsKBM[NUM_VR_HOTKEYS];
-	u32 iVRSettingsXInputMapping[NUM_VR_HOTKEYS];
+	bool bVRSettingsKBM[NUM_VR_HOTKEYS];
+	bool bVRSettingsDInput[NUM_VR_HOTKEYS];
+	u32 iVRSettingsDandXInputMapping[NUM_VR_HOTKEYS];
+	u32 iVRSettingsDInputMappingExtra[NUM_VR_HOTKEYS];
 
 	//Remove Layer
 	std::vector<SkipEntry> object_removal_codes;

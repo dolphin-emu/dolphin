@@ -76,10 +76,11 @@ void CConfigVR::UpdateGUI()
 	for (wxButton* button : m_Button_VRSettings)
 	{
 		SetButtonText(i,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[i],
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[i],
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[i],
 			WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
 			WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
-			HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]));
+			HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[i]));
 		++i;
 	}
 }
@@ -473,10 +474,11 @@ void CConfigVR::CreateGUIControls()
 			m_Button_VRSettings[i]->SetFont(m_SmallFont);
 			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key (assign space to clear).\nMiddle click to clear.\nRight click to choose XInput Combinations (if a gamepad is detected)"));
 			SetButtonText(i, 
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[i],
+				SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[i],
+				SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[i],
 				WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
 				WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]),
-				HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[i]));
+				HotkeysXInput::GetwxStringfromXInputIni(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[i]));
 
 			m_Button_VRSettings[i]->Bind(wxEVT_BUTTON, &CConfigVR::DetectControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_MIDDLE_DOWN, &CConfigVR::ClearControl, this);
@@ -838,8 +840,8 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 		if (g_Pressed == WXK_SPACE)
 		{
 			SaveButtonMapping(ClickedButton->GetId(), true, -1, 0);
-			SaveXInputBinary(ClickedButton->GetId(), true, 0);
-			SetButtonText(ClickedButton->GetId(), true, wxString());
+			SaveXInputBinary(ClickedButton->GetId(), true, false, 0, 0);
+			SetButtonText(ClickedButton->GetId(), true, false, wxString());
 		}
 		// Cancel and restore the old label if escape is hit.
 		else if (g_Pressed == WXK_ESCAPE)
@@ -865,13 +867,14 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 				if (tentativeHotkey == existingHotkey)
 				{
 					SaveButtonMapping(btn->GetId(), true, -1, 0); //TO DO: Should this set to true? Probably should be an if statement before this...
-					SetButtonText(btn->GetId(), true, wxString());
+					SetButtonText(btn->GetId(), true, false, wxString());
 				}
 			}
 
 			// Proceed to apply the binding to the selected button.
 			SetButtonText(ClickedButton->GetId(),
 				true,
+				false,
 				WxUtils::WXKeyToString(g_Pressed),
 				WxUtils::WXKeymodToString(g_Modkey));
 			SaveButtonMapping(ClickedButton->GetId(), true, g_Pressed, g_Modkey);
@@ -882,45 +885,159 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 }
 
 // Update the textbox for the buttons
-void CConfigVR::SetButtonText(int id, bool KBM, const wxString &keystr, const wxString &modkeystr, const wxString &XInputMapping)
+void CConfigVR::SetButtonText(int id, bool KBM, bool DInput, const wxString &keystr, const wxString &modkeystr, const wxString &XInputMapping)
 {
 	if (KBM == true)
 	{
 		m_Button_VRSettings[id]->SetLabel(modkeystr + keystr);
 	}
-	else 
+	else if (DInput == false)
 	{
 		wxString xinput_gui_string = "";
-		ciface::Core::DeviceQualifier dq;
-		for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
+		static const char* const xinput_strings[]
 		{
-			dq.FromDevice(d);
-			if (dq.source == "XInput")
+			"Button A",
+			"Button B",
+			"Button X",
+			"Button Y",
+			"Pad N",
+			"Pad S",
+			"Pad W",
+			"Pad E",
+			"Start",
+			"Back",
+			"Shoulder L",
+			"Shoulder R",
+			"Guide",
+			"Thumb L",
+			"Thumb R",
+			"Trigger L",
+			"Trigger R",
+			"Left X-",
+			"Left X+",
+			"Left Y+",
+			"Left Y-",
+			"Right X+",
+			"Right X-",
+			"Right Y+",
+			"Right Y-"
+		};
+		
+		for (int i = 0; i < 25; ++i)
+		{
+			if (HotkeysXInput::IsXInputButtonSet(xinput_strings[i], id))
 			{
-				for (ciface::Core::Device::Input* input : d->Inputs())
-				{
-					if (HotkeysXInput::IsXInputButtonSet(input->GetName(), id))
-					{
-						//Concat string
-						if (xinput_gui_string != ""){
-							xinput_gui_string += " && ";
-						}
-						xinput_gui_string += input->GetName();
-					}
+				//Concat string
+				if (xinput_gui_string != ""){
+					xinput_gui_string += " && ";
 				}
+				xinput_gui_string += xinput_strings[i];
 			}
 		}
 		m_Button_VRSettings[id]->SetLabel(xinput_gui_string);
+	}
+	else
+	{
+		wxString dinput_gui_string = "";
+		static const char* const dinput_strings_buttons[]
+		{
+			"Button 0",
+			"Button 1",
+			"Button 2",
+			"Button 3",
+			"Button 4",
+			"Button 5",
+			"Button 6",
+			"Button 7",
+			"Button 8",
+			"Button 9",
+			"Button 10",
+			"Button 11",
+			"Button 12",
+			"Button 13",
+			"Button 14",
+			"Button 15",
+			"Button 16",
+			"Button 17",
+			"Button 18",
+			"Button 19",
+			"Button 20",
+			"Button 21",
+			"Button 22",
+			"Button 23",
+			"Button 24",
+			"Button 25",
+			"Button 26",
+			"Button 27",
+			"Button 28",
+			"Button 29",
+			"Button 30",
+			"Button 31"
+		};
+
+		static const char* const dinput_strings_others[]
+		{
+			"Hat 0 N",
+			"Hat 0 S",
+			"Hat 0 W",
+			"Hat 0 E",
+			"Hat 1 N",
+			"Hat 1 S",
+			"Hat 1 W",
+			"Hat 1 E",
+			"Hat 2 N",
+			"Hat 2 S",
+			"Hat 2 W",
+			"Hat 2 E",
+			"Hat 3 N",
+			"Hat 3 S",
+			"Hat 3 W",
+			"Hat 3 E",
+			"Axis X-",
+			"Axis X+",
+			"Axis Y+",
+			"Axis Y-",
+			"Axis Z+",
+			"Axis Z-",
+			"Axis Zr+",
+			"Axis Zr-"
+		};
+
+		for (int i = 0; i < (sizeof(dinput_strings_buttons) / sizeof(dinput_strings_buttons[0])); ++i)
+		{
+			if (HotkeysXInput::IsDInputButtonSet(dinput_strings_buttons[i], id))
+			{
+				//Concat string
+				if (dinput_gui_string != ""){
+					dinput_gui_string += " && ";
+				}
+				dinput_gui_string += dinput_strings_buttons[i];
+			}
+		}
+
+		for (int i = 0; i < (sizeof(dinput_strings_others) / sizeof(dinput_strings_others[0])); ++i)
+		{
+			if (HotkeysXInput::IsDInputOthersSet(dinput_strings_others[i], id))
+			{
+				//Concat string
+				if (dinput_gui_string != ""){
+					dinput_gui_string += " && ";
+				}
+				dinput_gui_string += dinput_strings_others[i];
+			}
+		}
+
+		m_Button_VRSettings[id]->SetLabel(dinput_gui_string);
 	}
 }
 
 // Save keyboard key mapping
 void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id] = KBM;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[Id] = KBM;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] = Key;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[Id] = 0;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[Id] = 0;
 	int hk = -1;
 	switch (Id)
 	{
@@ -948,17 +1065,19 @@ void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 	}
 	if (hk > 0)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[hk] = KBM;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[hk] = KBM;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[hk] = Key;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[hk] = Modkey;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[hk] = 0;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[hk] = 0;
 	}
 }
 
-void CConfigVR::SaveXInputBinary(int Id, bool KBM, u32 Key)
+void CConfigVR::SaveXInputBinary(int Id, bool KBM, bool DInput, u32 Key, u32 DInputExtra)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id] = KBM;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[Id] = Key;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[Id] = KBM;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[Id] = DInput;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[Id] = Key;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[Id] = DInputExtra;
 	int hk = -1;
 	switch (Id)
 	{
@@ -986,8 +1105,10 @@ void CConfigVR::SaveXInputBinary(int Id, bool KBM, u32 Key)
 	}
 	if (hk > 0)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[hk] = KBM;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[hk] = Key;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[hk] = KBM;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyDInput[hk] = DInput;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[hk] = Key;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDInputMappingExtra[hk] = DInputExtra;
 	}
 }
 
@@ -1048,8 +1169,8 @@ void CConfigVR::ClearControl(wxEvent& event)
 
 	ClickedButton = (wxButton *)event.GetEventObject();
 	SaveButtonMapping(ClickedButton->GetId(), true, -1, 0);
-	SaveXInputBinary(ClickedButton->GetId(), true, 0);
-	SetButtonText(ClickedButton->GetId(), true, wxString());
+	SaveXInputBinary(ClickedButton->GetId(), true, false, 0, 0);
+	SetButtonText(ClickedButton->GetId(), true, false, wxString());
    
 }
 
@@ -1101,7 +1222,8 @@ void CConfigVR::DetectControl(wxCommandEvent& event)
 			{
 				OnButtonClick(event);
 			}
-			else if (default_device.source == "XInput") 
+			//If it's a DInput device that's not a Keyboard/Mouse or XInput Device
+			else if (default_device.source == "XInput" || default_device.source == "DInput") 
 			{
 				// Get the button
 				ClickedButton = (wxButton *)event.GetEventObject();
@@ -1124,8 +1246,21 @@ void CConfigVR::DetectControl(wxCommandEvent& event)
 					wxString expr;
 					GetExpressionForControlVR(expr, control_name);
 					ClickedButton->SetLabel(expr);
-					u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
-					SaveXInputBinary(ClickedButton->GetId(), false, xinput_binary);
+					if (default_device.source == "XInput")
+					{
+						u32 xinput_binary = HotkeysXInput::GetBinaryfromXInputIniStr(expr);
+						SaveXInputBinary(ClickedButton->GetId(), false, false, xinput_binary, 0);
+					}
+					else
+					{
+						u32 dinput_binary_other = 0;
+						u32 dinput_binary_buttons = HotkeysXInput::GetBinaryfromDInputIniStr(expr);
+						if (!dinput_binary_buttons)
+						{
+							dinput_binary_other = HotkeysXInput::GetBinaryfromDInputExtraIniStr(expr);
+						}
+						SaveXInputBinary(ClickedButton->GetId(), false, true, dinput_binary_buttons, dinput_binary_other);
+					}
 				}
 				else 
 				{
@@ -1238,14 +1373,14 @@ void VRDialog::OnCheckBox(wxCommandEvent& event)
 {
 	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
 	u32 single_button_mask = HotkeysXInput::GetBinaryfromXInputIniStr(checkbox->GetLabel());
-	u32 value = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[button_id];
+	u32 value = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id];
 	if (checkbox->IsChecked())
 		value |= single_button_mask;
 	else 
 		value &= ~single_button_mask;
 
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[button_id] = FALSE;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[button_id] = value;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[button_id] = FALSE;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id] = value;
 
 	event.Skip();
 }

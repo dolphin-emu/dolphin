@@ -53,8 +53,8 @@ void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] = Key;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id] = Modkey;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[Id] = true;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[Id] = 0;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[Id] = true;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[Id] = 0;
 	int vr = -1;
 	switch (Id)
 	{
@@ -82,10 +82,10 @@ void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 	}
 	if (vr > 0)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[vr] = true;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[vr] = true;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[vr] = Key;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[vr] = Modkey;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[vr] = 0;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[vr] = 0;
 	}
 }
 
