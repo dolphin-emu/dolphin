@@ -225,7 +225,7 @@ void VideoConfig::VerifyValidity()
 			iStereoMode = 0;
 		}
 
-		if (bUseRealXFB)
+		if (bUseXFB && bUseRealXFB)
 		{
 			OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning off stereoscopy.", 10000);
 			iStereoMode = 0;
