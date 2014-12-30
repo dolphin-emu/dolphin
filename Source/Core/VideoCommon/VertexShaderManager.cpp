@@ -873,9 +873,6 @@ void VertexShaderManager::SetConstants()
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
-		// VR adjust the projection matrix for the new kind of viewport
-		if (g_viewport_type != g_old_viewport_type && !bProjectionChanged)
-			SetProjectionConstants();
 
 		// Update projection if the viewport isn't 1:1 useable
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
@@ -883,6 +880,11 @@ void VertexShaderManager::SetConstants()
 			ViewportCorrectionMatrix(s_viewportCorrection);
 			if (!bProjectionChanged)
 				SetProjectionConstants();
+		} 
+		// VR adjust the projection matrix for the new kind of viewport
+		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged)
+		{
+			SetProjectionConstants();
 		}
 	}
 
