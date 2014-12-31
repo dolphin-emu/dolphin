@@ -110,7 +110,6 @@ using namespace Gen;
 	{
 		JitBlock &b = blocks[num_blocks];
 		b.invalid = false;
-		b.memoryException = false;
 		b.originalAddress = em_address;
 		b.linkData.clear();
 		num_blocks++; //commit the current block
@@ -132,11 +131,7 @@ using namespace Gen;
 
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 
-		// Blocks where a memory exception (ISI) occurred in the instruction fetch have to
-		// execute the ISI handler as the next instruction. These blocks cannot be
-		// linked to other blocks.  The block will be recompiled after the ISI is handled
-		// and so we do not link other blocks to it either.
-		if (block_link && !b.memoryException)
+		if (block_link)
 		{
 			for (const auto& e : b.linkData)
 			{
