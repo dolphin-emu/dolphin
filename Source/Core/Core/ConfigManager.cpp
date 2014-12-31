@@ -592,7 +592,7 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "KBM",
 			&m_LocalCoreStartupParameter.bHotkeyKBM[i], g_HKData[i].KBM);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "DInput",
-			&m_LocalCoreStartupParameter.bHotkeyKBM[i], g_HKData[i].DInput);
+			&m_LocalCoreStartupParameter.bHotkeyDInput[i], g_HKData[i].DInput);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "XInputMapping",
 			&m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[i], g_HKData[i].DandXInputMapping);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "DInputMappingExtra",
