@@ -115,12 +115,12 @@ folder by default, but there are various way to override this behavior:
   store the user directory in a local directory called "User" next to the
   Dolphin executable.
 * If the registry string value `LocalUserConfig` exists in
-  `HKEY_CURRENT_USER/Dolphin Emulator` and has the value **1**, Dolphin will
-  always start in portable mode.
+  `HKEY_CURRENT_USER/Software/Dolphin Emulator` and has the value **1**,
+  Dolphin will always start in portable mode.
 * If the registry string value `UserConfigPath` exists in
-  `HKEY_CURRENT_USER/Dolphin Emulator`, the user folders will be stored in the
-  directory given by that string. The other two methods will be prioritized
-  over this setting.
+  `HKEY_CURRENT_USER/Software/Dolphin Emulator`, the user folders will be
+  stored in the directory given by that string. The other two methods will be
+  prioritized over this setting.
 
 
 List of user folders:
