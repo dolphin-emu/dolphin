@@ -395,7 +395,83 @@ namespace HotkeysXInput
 		else if (ini_setting_str == "Right Y-")
 			return (1 << 19);
 
-		return -1;
+		//To Do: What should this return if this fails? 1 << 31 is a hack...
+		return 1 << 31;
+	}
+
+	u32 GetBinaryfromDInputIniStr(wxString ini_setting)
+	{
+
+		std::string ini_setting_str = std::string(ini_setting.mb_str());
+
+		if (ini_setting_str.find("Button") != std::string::npos)
+		{
+			std::string button_number = ini_setting_str.substr(ini_setting_str.size() - 2);
+			//remove_if(button_number.begin(), button_number.end(), isspace);
+			return 1 << std::stoi(button_number);
+		}
+
+		//To Do: What should this return if this fails? 1 << 31 is a hack...
+		return 1 << 31;
+	}
+
+
+	u32 GetBinaryfromDInputExtraIniStr(wxString ini_setting)
+	{
+
+		std::string ini_setting_str = std::string(ini_setting.mb_str());
+
+		if (ini_setting_str == "Hat 0 N")
+			return 1 << 0;
+		else if (ini_setting_str == "Hat 0 S")
+			return 1 << 1;
+		else if (ini_setting_str == "Hat 0 W")
+			return 1 << 2;
+		else if (ini_setting_str == "Hat 0 E")
+			return 1 << 3;
+		else if (ini_setting_str == "Hat 1 N")
+			return 1 << 4;
+		else if (ini_setting_str == "Hat 1 S")
+			return 1 << 5;
+		else if (ini_setting_str == "Hat 1 W")
+			return 1 << 6;
+		else if (ini_setting_str == "Hat 1 E")
+			return 1 << 7;
+		else if (ini_setting_str == "Hat 2 N")
+			return 1 << 8;
+		else if (ini_setting_str == "Hat 2 S")
+			return 1 << 9;
+		else if (ini_setting_str == "Hat 2 W")
+			return 1 << 10;
+		else if (ini_setting_str == "Hat 2 E")
+			return 1 << 11;
+		else if (ini_setting_str == "Hat 3 N")
+			return 1 << 12;
+		else if (ini_setting_str == "Hat 3 S")
+			return 1 << 13;
+		else if (ini_setting_str == "Hat 3 W")
+			return 1 << 14;
+		else if (ini_setting_str == "Hat 3 E")
+			return 1 << 15;
+		else if (ini_setting_str == "Axis X-")
+			return 1 << 16;
+		else if (ini_setting_str == "Axis X+")
+			return 1 << 17;
+		else if (ini_setting_str == "Axis Y+")
+			return 1 << 18;
+		else if (ini_setting_str == "Axis Y-")
+			return 1 << 19;
+		else if (ini_setting_str == "Axis Z+")
+			return 1 << 20;
+		else if (ini_setting_str == "Axis Z-")
+			return 1 << 21;
+		else if (ini_setting_str == "Axis Zr+")
+			return 1 << 22;
+		else if (ini_setting_str == "Axis Zr-")
+			return 1 << 23;
+
+		//To Do: What should this return if this fails? 1 << 31 is a hack...
+		return 1 << 31;
 	}
 
 	wxString GetwxStringfromXInputIni(u32 ini_setting)
@@ -458,23 +534,23 @@ namespace HotkeysXInput
 	//Take in ID of setting and Current XInput State, and compare to see if the right buttons are being pressed.
 	bool IsVRSettingsXInput(u32* XInput_State, int id)
 	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[id];
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
 		return (((*XInput_State & ini_setting) == ini_setting) &&
-			false == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[id]);
+			false == SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[id]);
 	}
 
 	//Take in ID of setting and Current XInput State, and compare to see if the right buttons are being pressed.
 	bool IsHotkeyXInput(u32* XInput_State, int id)
 	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[id];
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[id];
 		return (((*XInput_State & ini_setting) == ini_setting) &&
-			false == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[id]);
+			false == SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[id]);
 	}
 
 	//Take xinput_string and see if it is currently set in ini.
 	bool IsXInputButtonSet(wxString button_string, int id)
 	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsXInputMapping[id];
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
 		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
 
 		if ((xinput_value & ini_setting) == xinput_value)
@@ -484,12 +560,47 @@ namespace HotkeysXInput
 	}
 
 	//Take xinput_string and see if it is currently set in ini.
+	bool IsDInputButtonSet(wxString button_string, int id)
+	{
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
+		u32 dinput_value = GetBinaryfromDInputIniStr(button_string);
+
+		if ((dinput_value & ini_setting) == dinput_value)
+			return true;
+		else
+			return false;
+	}
+
+	bool IsDInputOthersSet(wxString button_string, int id)
+	{
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[id];
+		u32 dinput_value = GetBinaryfromDInputExtraIniStr(button_string);
+
+		if ((dinput_value & ini_setting) == dinput_value)
+			return true;
+		else
+			return false;
+	}
+
+	//Take xinput_string and see if it is currently set in ini.
 	bool IsHotkeyXInputButtonSet(wxString button_string, int id)
 	{
-		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyXInputMapping[id];
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[id];
 		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
 
 		if ((xinput_value & ini_setting) == xinput_value)
+			return true;
+		else
+			return false;
+	}
+
+	//Take xinput_string and see if it is currently set in ini.
+	bool IsHotkeyDInputButtonSet(wxString button_string, int id)
+	{
+		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
+		u32 dinput_value = GetBinaryfromDInputIniStr(button_string);
+
+		if ((dinput_value & ini_setting) == dinput_value)
 			return true;
 		else
 			return false;

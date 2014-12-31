@@ -900,7 +900,7 @@ static bool IsHotkey(wxKeyEvent &event, int Id)
 	return (event.GetKeyCode() != WXK_NONE &&
 			event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
 			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id] &&
-			true == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyKBM[Id]);
+			true == SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[Id]);
 }
 
 static bool IsVRSettingsKey(wxKeyEvent &event, int Id)
@@ -908,7 +908,7 @@ static bool IsVRSettingsKey(wxKeyEvent &event, int Id)
 	return (event.GetKeyCode() != WXK_NONE &&
 		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] &&
 		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] &&
-		true == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsKBM[Id]);
+		true == SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
