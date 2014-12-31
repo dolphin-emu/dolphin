@@ -96,12 +96,12 @@ u16 Read_U16(const u32 _Address);
 u32 Read_U32(const u32 _Address);
 u64 Read_U64(const u32 _Address);
 
-u32 Read_S8_Val(u32 address, u32 val);
-u32 Read_U8_Val(u32 address, u32 val);
-u32 Read_S16_Val(u32 address, u32 val);
-u32 Read_U16_Val(u32 address, u32 val);
-u32 Read_U32_Val(u32 address, u32 val);
-u64 Read_U64_Val(u32 address, u64 val);
+u32 Read_S8_Val(const u32 _Address, u32 _var);
+u32 Read_U8_Val(const u32 _Address, u32 _var);
+u32 Read_S16_Val(const u32 _Address, u32 _var);
+u32 Read_U16_Val(const u32 _Address, u32 _var);
+u32 Read_U32_Val(const u32 _Address, u32 _var);
+u64 Read_U64_Val(const u32 _Address, u64 _var);
 
 // Useful helper functions, used by ARM JIT
 float Read_F32(const u32 _Address);
@@ -111,17 +111,17 @@ double Read_F64(const u32 _Address);
 u32 Read_U8_ZX(const u32 _Address);
 u32 Read_U16_ZX(const u32 _Address);
 
-void Write_U8(const u8 _Data, const u32 _Address);
-void Write_U16(const u16 _Data, const u32 _Address);
-void Write_U32(const u32 _Data, const u32 _Address);
-void Write_U64(const u64 _Data, const u32 _Address);
+void Write_U8(const u8 _var, const u32 _Address);
+void Write_U16(const u16 _var, const u32 _Address);
+void Write_U32(const u32 _var, const u32 _Address);
+void Write_U64(const u64 _var, const u32 _Address);
 
-void Write_U16_Swap(const u16 _Data, const u32 _Address);
-void Write_U32_Swap(const u32 _Data, const u32 _Address);
-void Write_U64_Swap(const u64 _Data, const u32 _Address);
+void Write_U16_Swap(const u16 _var, const u32 _Address);
+void Write_U32_Swap(const u32 _var, const u32 _Address);
+void Write_U64_Swap(const u64 _var, const u32 _Address);
 
 // Useful helper functions, used by ARM JIT
-void Write_F64(const double _Data, const u32 _Address);
+void Write_F64(const double _var, const u32 _Address);
 
 std::string GetString(u32 em_address, size_t size = 0);
 
@@ -142,7 +142,7 @@ enum XCheckTLBFlag
 	FLAG_WRITE,
 	FLAG_OPCODE,
 };
-u32 TranslateAddress(u32 _Address, XCheckTLBFlag _Flag);
+template <const XCheckTLBFlag _Flag> u32 TranslateAddress(const u32 _Address);
 void InvalidateTLBEntry(u32 _Address);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
