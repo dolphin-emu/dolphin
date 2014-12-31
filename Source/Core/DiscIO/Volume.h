@@ -41,7 +41,7 @@ public:
 
 	virtual bool ChangePartition(u64 offset) { return false; }
 
-	// Increment CACHE_REVISION if values are changed (ISOFile.cpp)
+	// Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
 	enum ECountry
 	{
 		COUNTRY_EUROPE = 0,
