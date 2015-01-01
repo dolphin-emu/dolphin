@@ -111,9 +111,9 @@ public:
 		m_Log[type]->SetEnable(enable);
 	}
 
-	bool IsEnabled(LogTypes::LOG_TYPE type) const
+	bool IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level = LogTypes::LNOTICE) const
 	{
-		return m_Log[type]->IsEnabled();
+		return m_Log[type]->IsEnabled() && m_Log[type]->GetLevel() >= level;
 	}
 
 	std::string GetShortName(LogTypes::LOG_TYPE type) const

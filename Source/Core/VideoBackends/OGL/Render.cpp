@@ -15,6 +15,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -479,6 +480,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
+	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
@@ -527,17 +529,22 @@ Renderer::Renderer()
 		g_ogl_config.bSupportsAEP = false;
 	}
 
-	if (GLExtensions::Supports("GL_KHR_debug"))
+	if (g_ogl_config.bSupportsDebug)
 	{
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
-		glDebugMessageCallback( ErrorCallback, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
-	}
-	else if (GLExtensions::Supports("GL_ARB_debug_output"))
-	{
-		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
-		glDebugMessageCallbackARB( ErrorCallback, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
+		if (GLExtensions::Supports("GL_KHR_debug"))
+		{
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+			glDebugMessageCallback(ErrorCallback, nullptr);
+		}
+		else
+		{
+			glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+			glDebugMessageCallbackARB(ErrorCallback, nullptr);
+		}
+		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
+			glEnable(GL_DEBUG_OUTPUT);
+		else
+			glDisable(GL_DEBUG_OUTPUT);
 	}
 
 	int samples;
@@ -1418,6 +1425,14 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
+	if (g_ogl_config.bSupportsDebug)
+	{
+		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
+			glEnable(GL_DEBUG_OUTPUT);
+		else
+			glDisable(GL_DEBUG_OUTPUT);
+	}
+
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
