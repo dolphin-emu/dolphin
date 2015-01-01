@@ -84,7 +84,9 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	uid_data->numTexGens = bpmem.genMode.numtexgens;
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
-	GenerateVSOutputStruct<T>(out, ApiType);
+	out.Write("struct VS_OUTPUT {\n");
+	GenerateVSOutputMembers<T>(out, ApiType);
+	out.Write("};\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -92,11 +94,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("#define InstanceID gl_InvocationID\n");
 
 		out.Write("in VertexData {\n");
-		out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "in");
+		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid in");
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
+		GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
 
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write("\tflat int layer;\n");
@@ -133,8 +135,9 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	{
 		if (ApiType == API_OPENGL)
 		{
-			out.Write("\tVS_OUTPUT start = vs[0].o;\n");
-			out.Write("\tVS_OUTPUT end = vs[1].o;\n");
+			out.Write("\tVS_OUTPUT start, end;\n");
+			AssignVSOutputMembers(out, "start", "vs[0]");
+			AssignVSOutputMembers(out, "end", "vs[1]");
 		}
 		else
 		{
@@ -163,9 +166,14 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
 		if (ApiType == API_OPENGL)
-			out.Write("\tVS_OUTPUT center = vs[0].o;\n");
+		{
+			out.Write("\tVS_OUTPUT center;\n");
+			AssignVSOutputMembers(out, "center", "vs[0]");
+		}
 		else
+		{
 			out.Write("\tVS_OUTPUT center = o[0];\n");
+		}
 
 		// Offset from center to upper right vertex
 		// Lerp PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
@@ -188,9 +196,14 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
 	if (ApiType == API_OPENGL)
-		out.Write("\tVS_OUTPUT f = vs[i].o;\n");
+	{
+		out.Write("\tVS_OUTPUT f;\n");
+		AssignVSOutputMembers(out, "f", "vs[i]");
+	}
 	else
+	{
 		out.Write("\tVS_OUTPUT f = o[i];\n");
+	}
 
 	if (g_ActiveConfig.iStereoMode > 0)
 	{
@@ -289,9 +302,14 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool
 		out.Write("\tif (i == 0) first = %s;\n", vertex);
 
 	if (ApiType == API_OPENGL)
+	{
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
-
-	out.Write("\tps.o = %s;\n", vertex);
+		AssignVSOutputMembers(out, "ps", vertex);
+	}
+	else
+	{
+		out.Write("\tps.o = %s;\n", vertex);
+	}
 
 	if (ApiType == API_OPENGL)
 		out.Write("\tEmitVertex();\n");

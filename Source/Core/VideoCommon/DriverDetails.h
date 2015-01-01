@@ -200,15 +200,6 @@ namespace DriverDetails
 		// Broken on Windows Intel
 		// if (cond == false)
 		BUG_BROKENNEGATEDBOOLEAN,
-		// Bug: Intel's Windows driver breaks interface blocks that contain structs.
-		// Affected devices: Intel (Windows)
-		// Started Version: -1
-		// Ended Version: -1
-		// We need interface blocks to make the geometry shader optional and we need structs to make
-		// assignment easier in the geometry shader stage. However Intel's Windows drivers don't seem
-		// to be able handle this combination.
-		// TODO: Find affected versions.
-		BUG_INTELBROKENINTERFACEBLOCKS,
 
 	};
 
