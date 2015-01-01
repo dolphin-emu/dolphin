@@ -667,54 +667,48 @@ void SDRUpdated()
 static __forceinline u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
 	int tag = vpa >> HW_PAGE_INDEX_SHIFT;
-	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
-	if (tlbe[0].tag == tag && !(tlbe[0].flags & TLB_FLAG_INVALID))
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
+	if (tlbe->tag[0] == tag)
 	{
 		// Check if C bit requires updating
 		if (_Flag == FLAG_WRITE)
 		{
 			UPTE2 PTE2;
-			PTE2.Hex = tlbe[0].pte;
+			PTE2.Hex = tlbe->pte[0];
 			if (PTE2.C == 0)
 			{
 				PTE2.C = 1;
-				tlbe[0].pte = PTE2.Hex;
+				tlbe->pte[0] = PTE2.Hex;
 				return 0;
 			}
 		}
 
 		if (_Flag != FLAG_NO_EXCEPTION)
-		{
-			tlbe[0].flags |= TLB_FLAG_MOST_RECENT;
-			tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
-		}
+			tlbe->recent = 0;
 
-		*paddr = tlbe[0].paddr | (vpa & 0xfff);
+		*paddr = tlbe->paddr[0] | (vpa & 0xfff);
 
 		return 1;
 	}
-	if (tlbe[1].tag == tag && !(tlbe[1].flags & TLB_FLAG_INVALID))
+	if (tlbe->tag[1] == tag)
 	{
 		// Check if C bit requires updating
 		if (_Flag == FLAG_WRITE)
 		{
 			UPTE2 PTE2;
-			PTE2.Hex = tlbe[1].pte;
+			PTE2.Hex = tlbe->pte[1];
 			if (PTE2.C == 0)
 			{
 				PTE2.C = 1;
-				tlbe[1].pte = PTE2.Hex;
+				tlbe->pte[1] = PTE2.Hex;
 				return 0;
 			}
 		}
 
 		if (_Flag != FLAG_NO_EXCEPTION)
-		{
-			tlbe[1].flags |= TLB_FLAG_MOST_RECENT;
-			tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
-		}
+			tlbe->recent = 1;
 
-		*paddr = tlbe[1].paddr | (vpa & 0xfff);
+		*paddr = tlbe->paddr[1] | (vpa & 0xfff);
 
 		return 1;
 	}
@@ -726,39 +720,31 @@ static __forceinline void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, 
 	if (_Flag == FLAG_NO_EXCEPTION)
 		return;
 
-	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-	if ((tlbe[0].flags & TLB_FLAG_MOST_RECENT) == 0 || (tlbe[0].flags & TLB_FLAG_INVALID))
-	{
-		tlbe[0].flags = TLB_FLAG_MOST_RECENT;
-		tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
-		tlbe[0].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-		tlbe[0].pte = PTE2.Hex;
-		tlbe[0].tag = vpa >> HW_PAGE_INDEX_SHIFT;
-	}
-	else
-	{
-		tlbe[1].flags = TLB_FLAG_MOST_RECENT;
-		tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
-		tlbe[1].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-		tlbe[1].pte = PTE2.Hex;
-		tlbe[1].tag = vpa >> HW_PAGE_INDEX_SHIFT;
-	}
+	int tag = vpa >> HW_PAGE_INDEX_SHIFT;
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
+	int index = tlbe->recent == 0 && tlbe->tag[0] != TLB_TAG_INVALID;
+	tlbe->recent = index;
+	tlbe->paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
+	tlbe->pte[index] = PTE2.Hex;
+	tlbe->tag[index] = tag;
 }
 
 void InvalidateTLBEntry(u32 vpa)
 {
-	PowerPC::tlb_entry *tlbe = PowerPC::ppcState.tlb[0][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-	tlbe[0].flags |= TLB_FLAG_INVALID;
-	tlbe[1].flags |= TLB_FLAG_INVALID;
-	PowerPC::tlb_entry *tlbe_i = PowerPC::ppcState.tlb[1][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-	tlbe_i[0].flags |= TLB_FLAG_INVALID;
-	tlbe_i[1].flags |= TLB_FLAG_INVALID;
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[0][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	tlbe->tag[0] = TLB_TAG_INVALID;
+	tlbe->tag[1] = TLB_TAG_INVALID;
+	PowerPC::tlb_entry *tlbe_i = &PowerPC::ppcState.tlb[1][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	tlbe_i->tag[0] = TLB_TAG_INVALID;
+	tlbe_i->tag[1] = TLB_TAG_INVALID;
 }
 
 // Page Address Translation
 static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 {
 	// TLB cache
+	// This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't benefit
+	// much from optimization.
 	u32 translatedAddress = 0;
 	if (LookupTLBPageAddress(_Flag, _Address, &translatedAddress))
 		return translatedAddress;
