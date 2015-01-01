@@ -133,6 +133,9 @@
     <Filter Include="PowerPC\JitILCommon">
       <UniqueIdentifier>{827afa93-1a80-4835-93ae-b5516d95867f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ReliableUDPManager">
+      <UniqueIdentifier>{0e19bfa1-b091-4037-bb02-58b03b1d1d2d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -706,6 +709,14 @@
     <ClCompile Include="PowerPC\JitILCommon\IR.cpp">
       <Filter>PowerPC\JitILCommon</Filter>
     </ClCompile>
+    <ClCompile Include="HW\SI_GCAdapter.cpp" />
+    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp" />
+    <ClCompile Include="ReliableUDPManager\ReliableUDPConnection.cpp">
+      <Filter>ReliableUDPManager</Filter>
+    </ClCompile>
+    <ClCompile Include="ReliableUDPManager\ReliableUDPManager.cpp">
+      <Filter>ReliableUDPManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -715,7 +726,6 @@
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="Host.h" />
-    <ClCompile Include="MachineContext.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />
     <ClInclude Include="NetPlayClient.h" />
@@ -1200,6 +1210,14 @@
     </ClInclude>
     <ClInclude Include="PowerPC\JitILCommon\IR.h">
       <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_GCAdapter.h" />
+    <ClInclude Include="MachineContext.h" />
+    <ClInclude Include="ReliableUDPManager\ReliableUDPConnection.h">
+      <Filter>ReliableUDPManager</Filter>
+    </ClInclude>
+    <ClInclude Include="ReliableUDPManager\ReliableUDPManager.h">
+      <Filter>ReliableUDPManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

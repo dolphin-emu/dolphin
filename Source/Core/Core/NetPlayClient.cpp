@@ -17,6 +17,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 
+
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
 NetSettings g_NetPlaySettings;
@@ -36,25 +37,35 @@ NetPlayClient::~NetPlayClient()
 }
 
 // called from ---GUI--- thread
-NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name) : m_dialog(dialog), m_is_running(false), m_do_loop(true)
+NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name) : m_dialog(dialog), m_is_running(false), m_do_loop(true), m_serverID(0)
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
 
 	is_connected = false;
+	// -- Test
+	m_serverID = m_udpManager.Connect(address, port, 5);
 
-	if (m_socket.connect(address, port, sf::seconds(5)) == sf::Socket::Done)
+	//if (m_socket.connect(address, port, sf::seconds(5)) == sf::Socket::Done)
+	if (m_serverID != 0)
 	{
 		// send connect message
 		sf::Packet spac;
 		spac << NETPLAY_VERSION;
 		spac << netplay_dolphin_ver;
 		spac << name;
-		m_socket.send(spac);
+		
+		m_udpManager.SendMess(m_serverID, spac);
+		m_udpManager.Update();
 
 		sf::Packet rpac;
 		// TODO: make this not hang
-		m_socket.receive(rpac);
+		do
+		{
+			rpac.clear();
+			m_udpManager.Update();
+		} while (!m_udpManager.GrabMessage(m_serverID, rpac));
+
 		MessageId error;
 		rpac >> error;
 
@@ -76,7 +87,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 				PanicAlertT("The server sent an unknown error message!");
 				break;
 			}
-			m_socket.disconnect();
+			//m_socket.disconnect();
+			m_udpManager.Disconnect(m_serverID);
 		}
 		else
 		{
@@ -96,7 +108,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 			//PanicAlertT("Connection successful: assigned player id: %d", m_pid);
 			is_connected = true;
 
-			m_selector.add(m_socket);
+			//m_selector.add(m_socket);
 			m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
 		}
 	}
@@ -255,6 +267,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices) tmp;
 			packet >> tmp;
 			g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices) tmp;
+			double serverTime;
+			packet >> serverTime;
+			NETPLAY_INITIAL_GCTIME = (u64)serverTime;
 			}
 
 			m_dialog->OnMsgStartGame();
@@ -286,7 +301,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			spac << ping_key;
 
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-			m_socket.send(spac);
+			m_udpManager.SendMess(m_serverID,spac);
 		}
 		break;
 
@@ -317,31 +332,39 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 // called from ---NETPLAY--- thread
 void NetPlayClient::ThreadFunc()
 {
+	
 	while (m_do_loop)
 	{
-		if (m_selector.wait(sf::milliseconds(10)))
 		{
-			sf::Packet rpac;
-			switch (m_socket.receive(rpac))
-			{
-			case sf::Socket::Done :
-				OnData(rpac);
-				break;
-
-			//case sf::Socket::Disconnected :
-			default :
-				m_is_running = false;
-				NetPlay_Disable();
-				m_dialog->AppendChat("< LOST CONNECTION TO SERVER >");
-				PanicAlertT("Lost connection to server!");
-				m_do_loop = false;
-				break;
-			}
+			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+			m_udpManager.Update();
 		}
+		
+		
+		sf::Packet rpac;
+		if (m_udpManager.GrabMessage(m_serverID, rpac))
+		{
+			OnData(rpac);
+		}
+		
+
+		u16 dID;
+		if (m_udpManager.DisconnectList(dID))
+		{
+
+			m_is_running = false;
+			NetPlay_Disable();
+			m_dialog->AppendChat("< LOST CONNECTION TO SERVER >");
+			PanicAlertT("Lost connection to server!");
+			m_do_loop = false;
+			break;
+
+		}
+
 	}
 
-	m_socket.disconnect();
-
+	//m_socket.disconnect();
+	m_udpManager.Disconnect(m_serverID);
 	return;
 }
 
@@ -403,7 +426,7 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 	spac << msg;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.send(spac);
+	m_udpManager.SendMess(m_serverID, spac);
 }
 
 // called from ---CPU--- thread
@@ -416,7 +439,7 @@ void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus
 	spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.send(spac);
+	m_udpManager.SendMess(m_serverID, spac);
 }
 
 // called from ---CPU--- thread
@@ -433,7 +456,7 @@ void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiim
 	}
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.send(spac);
+	m_udpManager.SendMess(m_serverID, spac);
 }
 
 // called from ---GUI--- thread
@@ -448,7 +471,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 	spac << (char *)&g_NetPlaySettings;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	m_socket.send(spac);
+	m_udpManager.SendMess(m_serverID, spac);
 
 	if (m_is_running)
 	{
@@ -751,7 +774,8 @@ void NetPlayClient::Stop()
 	{
 		sf::Packet spac;
 		spac << (MessageId)NP_MSG_STOP_GAME;
-		m_socket.send(spac);
+		std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+		m_udpManager.SendMess(m_serverID, spac);
 	}
 }
 
@@ -842,7 +866,7 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
 	if (netplay_client)
-		return NETPLAY_INITIAL_GCTIME; // watev
+		return (u32) NETPLAY_INITIAL_GCTIME; // watev
 	else
 		return 0;
 }

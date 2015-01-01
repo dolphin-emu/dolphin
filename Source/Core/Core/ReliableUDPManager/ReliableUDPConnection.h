@@ -1,0 +1,102 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#pragma once
+
+#include <SFML/Network.hpp>
+#include "Common/CommonTypes.h"
+#include "Common/Timer.h"
+#include <queue>
+#include <map>
+#include <memory>
+
+class ReliableUDPConnection
+{
+public:
+	ReliableUDPConnection(std::shared_ptr<sf::UdpSocket> socket, sf::IpAddress adr, u16 port);
+	~ReliableUDPConnection();
+	
+	void StoreSend(sf::Packet& packet);
+	sf::Socket::Status Send(bool sendAck = true);
+	sf::Socket::Status SendUnreliable(sf::Packet& packet);
+
+	bool Receive(sf::Packet& packet);
+	bool GrabMessage(sf::Packet& packet);
+	
+	bool CheckIfAlive();
+	void Disconnect();
+
+	void ClearBuffers();
+	
+	sf::IpAddress GetAddress(){ return m_remoteAddress; };
+	unsigned short  GetPort(){ return m_remotePort; };
+
+	int AmountToSend(){ return (int) m_toBeSent.size();};
+	bool isReadyToSend(){ return (!m_toBeSent.empty() || !m_resend.empty()); }
+	
+	//function
+private:
+	bool WasRecieved(const u32& bitField, const u16& currentAck, const u16& ackCheck);
+	void UpdateBackUp(u16 ack, u32 bitfield);
+	int  IfWrappedConvertToNeg(int current, int previous, int max);
+
+	//variables
+private:
+
+	struct Palette
+	{
+		u16 packetOrder;
+		sf::Packet packet;
+
+		Palette()
+			:packetOrder(0)
+			, packet()
+		{}
+
+		Palette(u16 seq, sf::Packet pack)
+			:packetOrder(seq)
+			, packet(pack)
+		{}
+
+		bool operator< (const Palette& rhs) const
+		{
+			return packetOrder<rhs.packetOrder;
+		}
+
+	};
+
+	std::shared_ptr<sf::UdpSocket>	m_socket;
+	
+	sf::IpAddress	m_remoteAddress;
+	unsigned short	m_remotePort;
+	
+	u8				m_header;
+
+	//ack stuff for resending
+	u16				m_mySequenceNumber;
+
+	//ack stuff for to tell them what we havnt recieved
+	u16				m_theirSequenceNumber;
+	u32				m_missingBitField;
+	
+	
+	u16				m_expectedSequence;
+	u16				m_nextInOrder;
+
+	std::queue<sf::Packet>		m_toBeSent;
+	std::queue<sf::Packet>		m_recievedMess;
+
+	std::map <u16, Palette>		m_backupMess;
+	std::queue <Palette>		m_resend;
+	std::map<u16, sf::Packet>	m_bufferMess;
+	
+	//timer
+	Common::Timer				m_keepAlive;
+	Common::Timer				m_sendAck;
+	u64							m_ackTime;
+
+	float						m_disconnectTime;
+	bool						m_sentEmptyAck;
+
+};
