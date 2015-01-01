@@ -129,28 +129,31 @@ translateaddress:
 			_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
 			return;
 		}
-	
-		// MMU
+
+		// MMU: Do page table translation
+		u32 tlb_addr = TranslateAddress<flag>(em_address);
+		if (tlb_addr == 0)
+		{
+			if (flag == FLAG_READ)
+				GenerateDSIException(em_address, false);
+			return;
+		}
+
 		// Handle loads that cross page boundaries (ewwww)
-		if (sizeof(T) > 1 && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
+		// The alignment check isn't strictly necessary, but since this is a rare slow path, it provides a faster
+		// (1 instruction on x86) bailout.
+		if (sizeof(T) > 1 && (em_address & (sizeof(T) - 1)) && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
 		{
 			// This could be unaligned down to the byte level... hopefully this is rare, so doing it this
 			// way isn't too terrible.
 			// TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
 			// Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-			u32 tlb_addr = TranslateAddress<flag>(em_address);
 			u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
 			u32 tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
 			if (tlb_addr == 0 || tlb_addr_next_page == 0)
 			{
 				if (flag == FLAG_READ)
-				{
-					u32 exception_addr = tlb_addr == 0 ? em_address : em_address_next_page;
-					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-						PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", exception_addr, PC);
-					else
-						GenerateDSIException(exception_addr, false);
-				}
+					GenerateDSIException(em_address_next_page, false);
 				return;
 			}
 			_var = 0;
@@ -158,37 +161,14 @@ translateaddress:
 			{
 				if (addr == em_address_next_page)
 					tlb_addr = tlb_addr_next_page;
-				_var <<= 8;
-				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
-					_var |= m_pEXRAM[tlb_addr & EXRAM_MASK];
-				else
-					_var |= m_pRAM[tlb_addr & RAM_MASK];
+				_var = (_var << 8) | Memory::base[tlb_addr];
 			}
+			return;
 		}
 		else
 		{
-			u32 tlb_addr = TranslateAddress<flag>(em_address);
-			if (tlb_addr == 0)
-			{
-				if (flag == FLAG_READ)
-				{
-					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-						PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", em_address, PC);
-					else
-						GenerateDSIException(em_address, false);
-				}
-			}
-			else
-			{
-				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
-				{
-					_var = bswap((*(const T*)&m_pEXRAM[tlb_addr & EXRAM_MASK]));
-				}
-				else
-				{
-					_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
-				}
-			}
+			// The easy case!
+			_var = bswap(*(const T*)&Memory::base[tlb_addr]);
 		}
 	}
 }
@@ -255,7 +235,7 @@ __forceinline void WriteToHardware(u32 em_address, const T data)
 		*(T*)&m_pL1Cache[em_address & L1_CACHE_MASK] = bswap(data);
 		return;
 	}
-	else 
+	else
 	{
 translateaddress:
 		if (bFakeVMEM && (segment == 0x7 || segment == 0x4))
@@ -265,61 +245,40 @@ translateaddress:
 			return;
 		}
 
-		// MMU
+		// MMU: Do page table translation
+		u32 tlb_addr = TranslateAddress<flag>(em_address);
+		if (tlb_addr == 0)
+		{
+			if (flag == FLAG_WRITE)
+				GenerateDSIException(em_address, true);
+			return;
+		}
+
 		// Handle stores that cross page boundaries (ewwww)
-		if (sizeof(T) > 1 && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
+		if (sizeof(T) > 1 && (em_address & (sizeof(T) - 1)) && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
 		{
 			T val = bswap(data);
+
 			// We need to check both addresses before writing in case there's a DSI.
-			u32 tlb_addr = TranslateAddress<flag>(em_address);
 			u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
 			u32 tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
-			if (tlb_addr == 0 || tlb_addr_next_page == 0)
+			if (tlb_addr_next_page == 0)
 			{
 				if (flag == FLAG_WRITE)
-				{
-					u32 exception_addr = tlb_addr == 0 ? em_address : em_address_next_page;
-					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-						PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", exception_addr, PC);
-					else
-						GenerateDSIException(exception_addr, true);
-				}
+					GenerateDSIException(em_address_next_page, true);
 				return;
 			}
 			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++, val >>= 8)
 			{
 				if (addr == em_address_next_page)
 					tlb_addr = tlb_addr_next_page;
-				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
-					m_pEXRAM[tlb_addr & EXRAM_MASK] = (u8)val;
-				else
-					m_pRAM[tlb_addr & RAM_MASK] = (u8)val;
+				Memory::base[tlb_addr] = (u8)val;
 			}
 		}
 		else
 		{
-			u32 tlb_addr = TranslateAddress<flag>(em_address);
-			if (tlb_addr == 0)
-			{
-				if (flag == FLAG_WRITE)
-				{
-					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-						PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", em_address, PC);
-					else
-						GenerateDSIException(em_address, true);
-				}
-			}
-			else
-			{
-				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
-				{
-					*(T*)&m_pEXRAM[tlb_addr & EXRAM_MASK] = bswap(data);
-				}
-				else
-				{
-					*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
-				}
-			}
+			// The easy case!
+			*(T*)&Memory::base[tlb_addr] = bswap(data);
 		}
 	}
 }
@@ -361,53 +320,51 @@ u32 Read_Opcode(u32 _Address)
 	return PowerPC::ppcState.iCache.ReadInstruction(_Address);
 }
 
+static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
+{
 #ifdef ENABLE_MEM_CHECK
-#define MEMCHECK(write, size)\
-{\
-TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);\
-if (mc)\
-{\
-	mc->numHits++;\
-	mc->Action(&PowerPC::debug_interface, (u32)_var, _Address, write, size, PC);\
-}\
-}
-#else
-#define MEMCHECK(write, size)
+	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(address);
+	if (mc)
+	{
+		mc->numHits++;
+		mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
+	}
 #endif
-
-u8 Read_U8(const u32 _Address)
-{
-	u8 _var = 0;
-	ReadFromHardware<FLAG_READ, u8>(_var, _Address);
-	MEMCHECK(false, 1);
-	return (u8)_var;
 }
 
-u16 Read_U16(const u32 _Address)
+u8 Read_U8(const u32 address)
 {
-	u16 _var = 0;
-	ReadFromHardware<FLAG_READ, u16>(_var, _Address);
-	MEMCHECK(false, 2);
-	return (u16)_var;
+	u8 var = 0;
+	ReadFromHardware<FLAG_READ, u8>(var, address);
+	Memcheck(address, var, false, 1);
+	return (u8)var;
 }
 
-u32 Read_U32(const u32 _Address)
+u16 Read_U16(const u32 address)
 {
-	u32 _var = 0;
-	ReadFromHardware<FLAG_READ, u32>(_var, _Address);
-	MEMCHECK(false, 4);
-	return _var;
+	u16 var = 0;
+	ReadFromHardware<FLAG_READ, u16>(var, address);
+	Memcheck(address, var, false, 2);
+	return (u16)var;
 }
 
-u64 Read_U64(const u32 _Address)
+u32 Read_U32(const u32 address)
 {
-	u64 _var = 0;
-	ReadFromHardware<FLAG_READ, u64>(_var, _Address);
-	MEMCHECK(false, 8);
-	return _var;
+	u32 var = 0;
+	ReadFromHardware<FLAG_READ, u32>(var, address);
+	Memcheck(address, var, false, 4);
+	return var;
 }
 
-double Read_F64(const u32 _Address)
+u64 Read_U64(const u32 address)
+{
+	u64 var = 0;
+	ReadFromHardware<FLAG_READ, u64>(var, address);
+	Memcheck(address, (u32)var, false, 8);
+	return var;
+}
+
+double Read_F64(const u32 address)
 {
 	union
 	{
@@ -415,11 +372,11 @@ double Read_F64(const u32 _Address)
 		double d;
 	} cvt;
 
-	cvt.i = Read_U64(_Address);
+	cvt.i = Read_U64(address);
 	return cvt.d;
 }
 
-float Read_F32(const u32 _Address)
+float Read_F32(const u32 address)
 {
 	union
 	{
@@ -427,136 +384,136 @@ float Read_F32(const u32 _Address)
 		float d;
 	} cvt;
 
-	cvt.i = Read_U32(_Address);
+	cvt.i = Read_U32(address);
 	return cvt.d;
 }
 
-u32 Read_U8_Val(const u32 _Address, u32 _var)
+u32 Read_U8_Val(const u32 address, u32 var)
 {
-	ReadFromHardware<FLAG_READ, u8>(_var, _Address);
-	MEMCHECK(false, 1);
-	return _var;
+	ReadFromHardware<FLAG_READ, u8>(var, address);
+	Memcheck(address, var, false, 1);
+	return var;
 }
 
-u32 Read_S8_Val(const u32 _Address, u32 _var)
+u32 Read_S8_Val(const u32 address, u32 var)
 {
-	ReadFromHardware<FLAG_READ, s8>(_var, _Address);
-	MEMCHECK(false, 1);
-	return _var;
+	ReadFromHardware<FLAG_READ, s8>(var, address);
+	Memcheck(address, var, false, 1);
+	return var;
 }
 
-u32 Read_U16_Val(const u32 _Address, u32 _var)
+u32 Read_U16_Val(const u32 address, u32 var)
 {
-	ReadFromHardware<FLAG_READ, u16>(_var, _Address);
-	MEMCHECK(false, 2);
-	return _var;
+	ReadFromHardware<FLAG_READ, u16>(var, address);
+	Memcheck(address, var, false, 2);
+	return var;
 }
 
-u32 Read_S16_Val(const u32 _Address, u32 _var)
+u32 Read_S16_Val(const u32 address, u32 var)
 {
-	ReadFromHardware<FLAG_READ, s16>(_var, _Address);
-	MEMCHECK(false, 2);
-	return _var;
+	ReadFromHardware<FLAG_READ, s16>(var, address);
+	Memcheck(address, var, false, 2);
+	return var;
 }
 
-u32 Read_U32_Val(const u32 _Address, u32 _var)
+u32 Read_U32_Val(const u32 address, u32 var)
 {
-	ReadFromHardware<FLAG_READ, u32>(_var, _Address);
-	MEMCHECK(false, 4);
-	return _var;
+	ReadFromHardware<FLAG_READ, u32>(var, address);
+	Memcheck(address, var, false, 4);
+	return var;
 }
 
-u64 Read_U64_Val(const u32 _Address, u64 _var)
+u64 Read_U64_Val(const u32 address, u64 var)
 {
-	ReadFromHardware<FLAG_READ, u64>(_var, _Address);
-	MEMCHECK(false, 8);
-	return _var;
+	ReadFromHardware<FLAG_READ, u64>(var, address);
+	Memcheck(address, (u32)var, false, 8);
+	return var;
 }
 
-u32 Read_U8_ZX(const u32 _Address)
+u32 Read_U8_ZX(const u32 address)
 {
-	return (u32)Read_U8(_Address);
+	return (u32)Read_U8(address);
 }
 
-u32 Read_U16_ZX(const u32 _Address)
+u32 Read_U16_ZX(const u32 address)
 {
-	return (u32)Read_U16(_Address);
+	return (u32)Read_U16(address);
 }
 
-void Write_U8(const u8 _var, const u32 _Address)
+void Write_U8(const u8 var, const u32 address)
 {
-	MEMCHECK(true, 1);
-	WriteToHardware<FLAG_WRITE, u8>(_Address, _var);
+	Memcheck(address, var, true, 1);
+	WriteToHardware<FLAG_WRITE, u8>(address, var);
 }
 
-void Write_U16(const u16 _var, const u32 _Address)
+void Write_U16(const u16 var, const u32 address)
 {
-	MEMCHECK(true, 2);
-	WriteToHardware<FLAG_WRITE, u16>(_Address, _var);
+	Memcheck(address, var, true, 2);
+	WriteToHardware<FLAG_WRITE, u16>(address, var);
 }
-void Write_U16_Swap(const u16 _var, const u32 _Address)
+void Write_U16_Swap(const u16 var, const u32 address)
 {
-	MEMCHECK(true, 2);
-	Write_U16(Common::swap16(_var), _Address);
-}
-
-
-void Write_U32(const u32 _var, const u32 _Address)
-{
-	MEMCHECK(true, 4);
-	WriteToHardware<FLAG_WRITE, u32>(_Address, _var);
-}
-void Write_U32_Swap(const u32 _var, const u32 _Address)
-{
-	MEMCHECK(true, 4);
-	Write_U32(Common::swap32(_var), _Address);
+	Memcheck(address, var, true, 2);
+	Write_U16(Common::swap16(var), address);
 }
 
-void Write_U64(const u64 _var, const u32 _Address)
+
+void Write_U32(const u32 var, const u32 address)
 {
-	MEMCHECK(true, 8);
-	WriteToHardware<FLAG_WRITE, u64>(_Address, _var);
+	Memcheck(address, var, true, 4);
+	WriteToHardware<FLAG_WRITE, u32>(address, var);
 }
-void Write_U64_Swap(const u64 _var, const u32 _Address)
+void Write_U32_Swap(const u32 var, const u32 address)
 {
-	MEMCHECK(true, 8);
-	Write_U64(Common::swap64(_var), _Address);
+	Memcheck(address, var, true, 4);
+	Write_U32(Common::swap32(var), address);
 }
 
-void Write_F64(const double _var, const u32 _Address)
+void Write_U64(const u64 var, const u32 address)
+{
+	Memcheck(address, (u32)var, true, 8);
+	WriteToHardware<FLAG_WRITE, u64>(address, var);
+}
+void Write_U64_Swap(const u64 var, const u32 address)
+{
+	Memcheck(address, (u32)var, true, 8);
+	Write_U64(Common::swap64(var), address);
+}
+
+void Write_F64(const double var, const u32 address)
 {
 	union
 	{
 		u64 i;
 		double d;
 	} cvt;
-	cvt.d = _var;
-	Write_U64(cvt.i, _Address);
+	cvt.d = var;
+	Write_U64(cvt.i, address);
 }
-u8 ReadUnchecked_U8(const u32 _Address)
+u8 ReadUnchecked_U8(const u32 address)
 {
-	u8 _var = 0;
-	ReadFromHardware<FLAG_NO_EXCEPTION, u8>(_var, _Address);
-	return _var;
-}
-
-
-u32 ReadUnchecked_U32(const u32 _Address)
-{
-	u32 _var = 0;
-	ReadFromHardware<FLAG_NO_EXCEPTION, u32>(_var, _Address);
-	return _var;
-}
-
-void WriteUnchecked_U8(const u8 _iValue, const u32 _Address)
-{
-	WriteToHardware<FLAG_NO_EXCEPTION, u8>(_Address, _iValue);
+	u8 var = 0;
+	ReadFromHardware<FLAG_NO_EXCEPTION, u8>(var, address);
+	return var;
 }
 
 
-void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
+u32 ReadUnchecked_U32(const u32 address)
 {
-	WriteToHardware<FLAG_NO_EXCEPTION, u32>(_Address, _iValue);
+	u32 var = 0;
+	ReadFromHardware<FLAG_NO_EXCEPTION, u32>(var, address);
+	return var;
+}
+
+void WriteUnchecked_U8(const u8 var, const u32 address)
+{
+	WriteToHardware<FLAG_NO_EXCEPTION, u8>(address, var);
+}
+
+
+void WriteUnchecked_U32(const u32 var, const u32 address)
+{
+	WriteToHardware<FLAG_NO_EXCEPTION, u32>(address, var);
 }
 
 // *********************************************************************************
@@ -654,6 +611,13 @@ union UPTE2
 
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 {
+	// DSI exceptions are only supported in MMU mode.
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	{
+		PanicAlertT("Invalid %s to 0x%08x, PC = 0x%08x ", _bWrite ? "Write to" : "Read from", _EffectiveAddress, PC);
+		return;
+	}
+
 	if (_bWrite)
 		PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE | PPC_EXC_DSISR_STORE;
 	else

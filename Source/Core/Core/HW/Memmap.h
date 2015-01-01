@@ -91,37 +91,37 @@ u32 Read_Instruction(const u32 _Address);
 
 // For use by emulator
 
-u8  Read_U8(const u32 _Address);
-u16 Read_U16(const u32 _Address);
-u32 Read_U32(const u32 _Address);
-u64 Read_U64(const u32 _Address);
+u8  Read_U8(const u32 address);
+u16 Read_U16(const u32 address);
+u32 Read_U32(const u32 address);
+u64 Read_U64(const u32 address);
 
-u32 Read_S8_Val(const u32 _Address, u32 _var);
-u32 Read_U8_Val(const u32 _Address, u32 _var);
-u32 Read_S16_Val(const u32 _Address, u32 _var);
-u32 Read_U16_Val(const u32 _Address, u32 _var);
-u32 Read_U32_Val(const u32 _Address, u32 _var);
-u64 Read_U64_Val(const u32 _Address, u64 _var);
+u32 Read_S8_Val(const u32 address, u32 var);
+u32 Read_U8_Val(const u32 address, u32 var);
+u32 Read_S16_Val(const u32 address, u32 var);
+u32 Read_U16_Val(const u32 address, u32 var);
+u32 Read_U32_Val(const u32 address, u32 var);
+u64 Read_U64_Val(const u32 address, u64 var);
 
 // Useful helper functions, used by ARM JIT
-float Read_F32(const u32 _Address);
-double Read_F64(const u32 _Address);
+float Read_F32(const u32 address);
+double Read_F64(const u32 address);
 
 // used by JIT. Return zero-extended 32bit values
-u32 Read_U8_ZX(const u32 _Address);
-u32 Read_U16_ZX(const u32 _Address);
+u32 Read_U8_ZX(const u32 address);
+u32 Read_U16_ZX(const u32 address);
 
-void Write_U8(const u8 _var, const u32 _Address);
-void Write_U16(const u16 _var, const u32 _Address);
-void Write_U32(const u32 _var, const u32 _Address);
-void Write_U64(const u64 _var, const u32 _Address);
+void Write_U8(const u8 var, const u32 address);
+void Write_U16(const u16 var, const u32 address);
+void Write_U32(const u32 var, const u32 address);
+void Write_U64(const u64 var, const u32 address);
 
-void Write_U16_Swap(const u16 _var, const u32 _Address);
-void Write_U32_Swap(const u32 _var, const u32 _Address);
-void Write_U64_Swap(const u64 _var, const u32 _Address);
+void Write_U16_Swap(const u16 var, const u32 address);
+void Write_U32_Swap(const u32 var, const u32 address);
+void Write_U64_Swap(const u64 var, const u32 address);
 
 // Useful helper functions, used by ARM JIT
-void Write_F64(const double _var, const u32 _Address);
+void Write_F64(const double var, const u32 address);
 
 std::string GetString(u32 em_address, size_t size = 0);
 
