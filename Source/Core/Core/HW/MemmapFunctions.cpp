@@ -773,9 +773,6 @@ static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTL
 
 		u32 pteg_addr = ((hash & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 
-		if ((pteg_addr >> 28) == 1)
-			base_mem = Memory::m_pEXRAM;
-
 		for (int i = 0; i < 8; i++)
 		{
 			u32 pte = bswap(*(u32*)&base_mem[pteg_addr]);
