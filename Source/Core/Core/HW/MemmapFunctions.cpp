@@ -130,43 +130,35 @@ __forceinline void ReadFromHardware(U &_var, const u32 em_address, Memory::XChec
 		// Handle loads that cross page boundaries (ewwww)
 		if (sizeof(T) > 1 && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
 		{
-			_var = 0;
 			// This could be unaligned down to the byte level... hopefully this is rare, so doing it this
 			// way isn't too terrible.
 			// TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
 			// Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
 			u32 tlb_addr = TranslateAddress(em_address, flag);
+			u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
+			u32 tlb_addr_next_page = TranslateAddress(em_address_next_page, flag);
+			if (tlb_addr == 0 || tlb_addr_next_page == 0)
+			{
+				if (flag == FLAG_READ)
+				{
+					u32 exception_addr = tlb_addr == 0 ? em_address : em_address_next_page;
+					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+						PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", exception_addr, PC);
+					else
+						GenerateDSIException(exception_addr, false);
+				}
+				return;
+			}
+			_var = 0;
 			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
 			{
-				// Start of the new page... translate the address again!
-				if (!(addr & (HW_PAGE_SIZE-1)))
-					tlb_addr = TranslateAddress(addr, flag);
-				// Important: we need to generate the DSI on the first store that caused the fault, NOT
-				// the address of the start of the load.
-				if (tlb_addr == 0)
-				{
-					if (flag == FLAG_READ)
-					{
-						if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-							PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", em_address, PC);
-						else
-							GenerateDSIException(addr, false);
-						break;
-					}
-				}
+				if (addr == em_address_next_page)
+					tlb_addr = tlb_addr_next_page;
+				_var <<= 8;
+				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
+					_var |= m_pEXRAM[tlb_addr & EXRAM_MASK];
 				else
-				{
-					if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
-					{
-						_var <<= 8;
-						_var |= m_pEXRAM[tlb_addr & EXRAM_MASK];
-					}
-					else
-					{
-						_var <<= 8;
-						_var |= m_pRAM[tlb_addr & RAM_MASK];
-					}
-				}
+					_var |= m_pRAM[tlb_addr & RAM_MASK];
 			}
 		}
 		else
@@ -271,35 +263,30 @@ __forceinline void WriteToHardware(u32 em_address, const T data, Memory::XCheckT
 		if (sizeof(T) > 1 && (em_address & (HW_PAGE_SIZE-1)) > HW_PAGE_SIZE - sizeof(T))
 		{
 			T val = bswap(data);
+			// We need to check both addresses before writing in case there's a DSI.
 			u32 tlb_addr = TranslateAddress(em_address, flag);
-			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
+			u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
+			u32 tlb_addr_next_page = TranslateAddress(em_address_next_page, flag);
+			if (tlb_addr == 0 || tlb_addr_next_page == 0)
 			{
-				if (!(addr & (HW_PAGE_SIZE-1)))
-					tlb_addr = TranslateAddress(addr, flag);
-				if (tlb_addr == 0)
+				if (flag == FLAG_WRITE)
 				{
-					if (flag == FLAG_WRITE)
-					{
-						if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-							PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", em_address, PC);
-						else
-							GenerateDSIException(addr, true);
-						break;
-					}
-				}
-				else
-				{
-					if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
-					{
-						m_pEXRAM[tlb_addr & EXRAM_MASK] = (u8)val;
-						val >>= 8;
-					}
+					u32 exception_addr = tlb_addr == 0 ? em_address : em_address_next_page;
+					if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+						PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", exception_addr, PC);
 					else
-					{
-						m_pRAM[tlb_addr & RAM_MASK] = (u8)val;
-						val >>= 8;
-					}
+						GenerateDSIException(exception_addr, true);
 				}
+				return;
+			}
+			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++, val >>= 8)
+			{
+				if (addr == em_address_next_page)
+					tlb_addr = tlb_addr_next_page;
+				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
+					m_pEXRAM[tlb_addr & EXRAM_MASK] = (u8)val;
+				else
+					m_pRAM[tlb_addr & RAM_MASK] = (u8)val;
 			}
 		}
 		else
