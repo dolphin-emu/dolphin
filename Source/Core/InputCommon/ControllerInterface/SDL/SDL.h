@@ -72,7 +72,7 @@ private:
 	class HapticEffect : public Output
 	{
 	public:
-		HapticEffect(SDL_Haptic* haptic) : m_haptic(haptic), m_id(-1) {}
+		HapticEffect(SDL_Haptic* haptic) : m_effect(), m_haptic(haptic), m_id(-1) {}
 		~HapticEffect() { m_effect.type = 0; Update(); }
 
 	protected:
