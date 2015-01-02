@@ -61,6 +61,11 @@ const char color_copy_program_code[] = {
 	"}\n"
 };
 
+// Anaglyph Red-Cyan shader based on Dubois algorithm
+// Constants taken from the paper:
+// "Conversion of a Stereo Pair to Anaglyph with
+// the Least-Squares Projection Method"
+// Eric Dubois, March 2009
 const char anaglyph_program_code[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2DArray Tex0 : register(t0);\n"
@@ -68,9 +73,17 @@ const char anaglyph_program_code[] = {
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
 	"in float3 uv0 : TEXCOORD0){\n"
-	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0.0));\n"
-	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1.0));\n"
-	"ocol0 = float4(pow(0.7 * c0.g + 0.3 * c0.b, 1.5), c1.gba);"
+	"float3 l = Tex0.Sample(samp0, float3(uv0.xy, 0.0)).rgb;\n"
+	"float3 r = Tex0.Sample(samp0, float3(uv0.xy, 1.0)).rgb;\n"
+	"float3 lr = float3(0.437,0.449,0.164);\n"
+	"float3 lg = float3(-0.062,-0.062,-0.024);\n"
+	"float3 lb = float3(-0.048,-0.050,-0.017);\n"
+	"float3 rr = float3(-0.011,-0.032,-0.007);\n"
+	"float3 rg = float3(0.377,0.761,0.009);\n"
+	"float3 rb = float3(-0.026,-0.093,1.234);\n"
+	"float3 c0 = float3(dot(l, lr), dot(l, lg), dot(l, lb));\n"
+	"float3 c1 = float3(dot(r, rr), dot(r, rg), dot(r, rb));\n"
+	"ocol0 = float4(c0 + c1, 1.0);\n"
 	"}\n"
 };
 
