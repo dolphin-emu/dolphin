@@ -126,6 +126,10 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		// ramp effect
 		if (supported_effects & SDL_HAPTIC_RAMP)
 			AddOutput(new RampEffect(m_haptic));
+
+		// sine effect
+		if (supported_effects & SDL_HAPTIC_SINE)
+			AddOutput(new SineEffect(m_haptic));
 	}
 #endif
 
@@ -178,6 +182,11 @@ std::string Joystick::RampEffect::GetName() const
 	return "Ramp";
 }
 
+std::string Joystick::SineEffect::GetName() const
+{
+	return "Sine";
+}
+
 void Joystick::ConstantEffect::SetState(ControlState state)
 {
 	if (state)
@@ -207,6 +216,23 @@ void Joystick::RampEffect::SetState(ControlState state)
 	}
 
 	m_effect.ramp.start = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::SineEffect::SetState(ControlState state)
+{
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_SINE;
+		// 200 seems too weak, somebody with a lot of time could try out other values
+		m_effect.periodic.length = 250;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
 	Update();
 }
 #endif

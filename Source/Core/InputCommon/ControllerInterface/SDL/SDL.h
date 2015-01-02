@@ -98,6 +98,14 @@ private:
 		std::string GetName() const override;
 		void SetState(ControlState state) override;
 	};
+
+	class SineEffect : public HapticEffect
+	{
+	public:
+		SineEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
 #endif
 
 public:
