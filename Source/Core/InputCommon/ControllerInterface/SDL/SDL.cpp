@@ -130,6 +130,16 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		// sine effect
 		if (supported_effects & SDL_HAPTIC_SINE)
 			AddOutput(new SineEffect(m_haptic));
+
+		// leftright effect
+		if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
+		{
+			// some controllers have two rumble motors, SDL allows to control them seperatly through the LeftRight
+			// haptic effect. We should allow the user to use them seperatly, because there is no other use for it
+			// yet and both motors are different, usually a big stronger and slower one and a small weaker and faster one.
+			AddOutput(new LeftRightSmallEffect(m_haptic));
+			AddOutput(new LeftRightLargeEffect(m_haptic));
+		}
 	}
 #endif
 
@@ -187,6 +197,16 @@ std::string Joystick::SineEffect::GetName() const
 	return "Sine";
 }
 
+std::string Joystick::LeftRightSmallEffect::GetName() const
+{
+	return "SmallOnly";
+}
+
+std::string Joystick::LeftRightLargeEffect::GetName() const
+{
+	return "LargeOnly";
+}
+
 void Joystick::ConstantEffect::SetState(ControlState state)
 {
 	if (state)
@@ -233,6 +253,40 @@ void Joystick::SineEffect::SetState(ControlState state)
 	}
 
 	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::LeftRightLargeEffect::SetState(ControlState state)
+{
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_LEFTRIGHT;
+		// 200 seems too weak, somebody with a lot of time could try out other values
+		m_effect.leftright.length = 250;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	m_effect.leftright.large_magnitude = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::LeftRightSmallEffect::SetState(ControlState state)
+{
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_LEFTRIGHT;
+		// 200 seems too weak, somebody with a lot of time could try out other values
+		m_effect.leftright.length = 250;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	m_effect.leftright.small_magnitude = (Sint16)(state * 0x7FFF);
 	Update();
 }
 #endif

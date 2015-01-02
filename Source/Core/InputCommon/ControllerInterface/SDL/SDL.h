@@ -106,6 +106,22 @@ private:
 		std::string GetName() const override;
 		void SetState(ControlState state) override;
 	};
+
+	class LeftRightSmallEffect : public HapticEffect
+	{
+	public:
+		LeftRightSmallEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
+
+	class LeftRightLargeEffect : public HapticEffect
+	{
+	public:
+		LeftRightLargeEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
 #endif
 
 public:
