@@ -54,21 +54,13 @@ CVolumeWiiCrypted::~CVolumeWiiCrypted()
 	m_pBuffer = nullptr;
 }
 
-bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
-{
-	// HyperIris: hack for DVDLowUnencryptedRead
-	// Medal Of Honor Heroes 2 read this DVD offset for PartitionsInfo
-	// and, PartitionsInfo is not encrypted, let's read it directly.
-	if (!m_pReader->Read(_Offset, _Length, _pBuffer))
-		return(false);
-	else
-		return true;
-}
-
-bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
+bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
 	if (m_pReader == nullptr)
-		return(false);
+		return false;
+
+	if (!decrypt)
+		return m_pReader->Read(_ReadOffset, _Length, _pBuffer);
 
 	FileMon::FindFilename(_ReadOffset);
 
@@ -110,7 +102,7 @@ bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
 {
 	// Tik is at m_VolumeOffset size 0x2A4
 	// TitleID offset in tik is 0x1DC
-	return RAWRead(m_VolumeOffset + 0x1DC, 8, _pBuffer);
+	return Read(m_VolumeOffset + 0x1DC, 8, _pBuffer, false);
 }
 
 std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
@@ -119,8 +111,8 @@ std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
 	u32 tmd_size;
 	u32 tmd_address;
 
-	RAWRead(m_VolumeOffset + 0x2a4, sizeof(u32), (u8*)&tmd_size);
-	RAWRead(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmd_address);
+	Read(m_VolumeOffset + 0x2a4, sizeof(u32), (u8*)&tmd_size, false);
+	Read(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmd_address, false);
 	tmd_size = Common::swap32(tmd_size);
 	tmd_address = Common::swap32(tmd_address) << 2;
 
@@ -135,7 +127,7 @@ std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
 	}
 
 	std::unique_ptr<u8[]> buf{ new u8[tmd_size] };
-	RAWRead(m_VolumeOffset + tmd_address, tmd_size, buf.get());
+	Read(m_VolumeOffset + tmd_address, tmd_size, buf.get(), false);
 	*size = tmd_size;
 	return buf;
 }
@@ -147,7 +139,7 @@ std::string CVolumeWiiCrypted::GetUniqueID() const
 
 	char ID[7];
 
-	if (!Read(0, 6, (u8*)ID))
+	if (!Read(0, 6, (u8*)ID, false))
 		return std::string();
 
 	ID[6] = '\0';
@@ -174,7 +166,7 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 
 	char makerID[3];
 
-	if (!Read(0x4, 0x2, (u8*)&makerID))
+	if (!Read(0x4, 0x2, (u8*)&makerID, false))
 		return std::string();
 
 	makerID[2] = '\0';
@@ -201,7 +193,7 @@ std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
 
 	char name[0xFF] = {};
-	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name))
+	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name, true))
 		names.push_back(string_decoder(name));
 
 	return names;
@@ -214,7 +206,7 @@ u32 CVolumeWiiCrypted::GetFSTSize() const
 
 	u32 size;
 
-	if (!Read(0x428, 0x4, (u8*)&size))
+	if (!Read(0x428, 0x4, (u8*)&size, true))
 		return 0;
 
 	return size;
@@ -227,7 +219,7 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
 
 	char date[16];
 
-	if (!Read(0x2440, 0x10, (u8*)&date))
+	if (!Read(0x2440, 0x10, (u8*)&date, true))
 		return std::string();
 
 	date[10] = '\0';
@@ -255,7 +247,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
 {
 	// Get partition data size
 	u32 partSizeDiv4;
-	RAWRead(m_VolumeOffset + 0x2BC, 4, (u8*)&partSizeDiv4);
+	Read(m_VolumeOffset + 0x2BC, 4, (u8*)&partSizeDiv4, false);
 	u64 partDataSize = (u64)Common::swap32(partSizeDiv4) * 4;
 
 	u32 nClusters = (u32)(partDataSize / 0x8000);
@@ -292,7 +284,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
 			continue;
 
 		u8 clusterData[0x7C00];
-		if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData))
+		if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData, true))
 		{
 			NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
 			return false;
