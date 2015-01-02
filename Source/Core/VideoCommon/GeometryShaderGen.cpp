@@ -150,17 +150,16 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		// horizontal depending the slope of the line.
 		out.Write(
 			"\tfloat2 offset;\n"
-			"\tfloat2 to = abs(end.pos.xy - start.pos.xy);\n"
+			"\tfloat2 to = end.pos.xy - start.pos.xy;\n"
 			// FIXME: What does real hardware do when line is at a 45-degree angle?
-			// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
 			"\tif (" I_LINEPTPARAMS".y * to.y > " I_LINEPTPARAMS".x * to.x) {\n"
 			// Line is more tall. Extend geometry left and right.
 			// Lerp LineWidth/2 from [0..VpWidth] to [-1..1]
-			"\t\toffset = float2(" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".x, 0);\n"
+			"\t\toffset = float2(" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".x, 0.0);\n"
 			"\t} else {\n"
 			// Line is more wide. Extend geometry up and down.
 			// Lerp LineWidth/2 from [0..VpHeight] to [1..-1]
-			"\t\toffset = float2(0, -" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".y);\n"
+			"\t\toffset = float2(0.0, -" I_LINEPTPARAMS".z / " I_LINEPTPARAMS".y);\n"
 			"\t}\n");
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
