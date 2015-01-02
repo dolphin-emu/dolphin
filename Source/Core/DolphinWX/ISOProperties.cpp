@@ -41,6 +41,8 @@
 #include <wx/panel.h>
 #include <wx/progdlg.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
@@ -431,6 +433,25 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Wii Console
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Wii", "Widescreen"));
 
+	// Stereoscopy
+	wxBoxSizer* const sDepthPercentage = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const DepthPercentageText = new wxStaticText(m_GameConfig, wxID_ANY, _("Depth Percentage: "));
+	DepthPercentage = new wxSlider(m_GameConfig, ID_DEPTHPERCENTAGE, 100, 0, 200);
+	DepthPercentage->SetToolTip(_("This value is multiplied with the depth set in the graphics configuration."));
+	sDepthPercentage->Add(DepthPercentageText);
+	sDepthPercentage->Add(DepthPercentage);
+
+	wxBoxSizer* const sConvergenceMinimum = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const ConvergenceMinimumText = new wxStaticText(m_GameConfig, wxID_ANY, _("Convergence Minimum: "));
+	ConvergenceMinimum = new wxSpinCtrl(m_GameConfig, ID_CONVERGENCEMINIMUM);
+	ConvergenceMinimum->SetRange(0, INT32_MAX);
+	ConvergenceMinimum->SetToolTip(_("This value is added to the convergence value set in the graphics configuration."));
+	sConvergenceMinimum->Add(ConvergenceMinimumText);
+	sConvergenceMinimum->Add(ConvergenceMinimum);
+
+	MonoDepth = new wxCheckBox(m_GameConfig, ID_MONODEPTH, _("Monoscopic Shadows"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video_Stereoscopy", "StereoEFBMonoDepth"));
+	MonoDepth->SetToolTip(_("Use a single depth buffer for both eyes. Needed for a few games."));
+
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const EmuStateText = new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
 	arrayStringFor_EmuState.Add(_("Not Set"));
@@ -466,10 +487,17 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	}
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
 
+	wxStaticBoxSizer* const sbStereoOverrides =
+		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Stereoscopy"));
+	sbStereoOverrides->Add(sDepthPercentage);
+	sbStereoOverrides->Add(sConvergenceMinimum);
+	sbStereoOverrides->Add(MonoDepth);
+
 	wxStaticBoxSizer * const sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
+	sbGameConfig->Add(sbStereoOverrides, 0, wxEXPAND);
 	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
 	sEmuState->Add(EmuState, 0, wxEXPAND);
@@ -1042,6 +1070,7 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "BlockMerging", BlockMerging);
 	SetCheckboxValueFromGameini("Core", "DSPHLE", DSPHLE);
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
+	SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
 	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
 
@@ -1089,6 +1118,14 @@ void CISOProperties::LoadGameConfig()
 	else if (sTemp == "fake-completion")
 		GPUDeterminism->SetSelection(3);
 
+	IniFile::Section* default_stereoscopy = GameIniDefault.GetOrCreateSection("Video_Stereoscopy");
+	default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
+	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
+	DepthPercentage->SetValue(iTemp);
+	default_stereoscopy->Get("StereoConvergenceMinimum", &iTemp, 0);
+	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergenceMinimum", &iTemp);
+	ConvergenceMinimum->SetValue(iTemp);
+
 	PatchList_Load();
 	ActionReplayList_Load();
 	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
@@ -1130,6 +1167,7 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "BlockMerging", BlockMerging);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
 	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
+	SaveGameIniValueFrom3StateCheckbox("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
@@ -1165,6 +1203,10 @@ bool CISOProperties::SaveGameConfig()
 		tmp = "fake-completion";
 
 	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
+
+	int depth = DepthPercentage->GetValue() > 0 ? DepthPercentage->GetValue() : 100;
+	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
+	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoConvergenceMinimum", ConvergenceMinimum->GetValue(), 0);
 
 	PatchList_Save();
 	ActionReplayList_Save();
