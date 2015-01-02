@@ -73,6 +73,14 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	BitSet32 registersInUse = it->second;
 
+	u8* exceptionHandler = NULL;
+	if (jit->js.memcheck)
+	{
+		auto it2 = exceptionHandlerAtLoc.find(codePtr);
+		if (it2 != exceptionHandlerAtLoc.end())
+			exceptionHandler = it2->second;
+	}
+
 	if (!info.isMemoryWrite)
 	{
 		XEmitter emitter(codePtr);
@@ -101,7 +109,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			totalSize += 3;
 		}
 
-		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
+		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse, exceptionHandler);
 		emitter.CALL((void *)trampoline);
 		int padding = totalSize - BACKPATCH_SIZE;
 		if (padding > 0)
@@ -113,14 +121,14 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 	else
 	{
 		// TODO: special case FIFO writes. Also, support 32-bit mode.
-		auto it2 = pcAtLoc.find(codePtr);
-		if (it2 == pcAtLoc.end())
+		auto it3 = pcAtLoc.find(codePtr);
+		if (it3 == pcAtLoc.end())
 		{
 			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
 			return nullptr;
 		}
 
-		u32 pc = it2->second;
+		u32 pc = it3->second;
 
 		u8 *start;
 		if (info.byteSwap || info.hasImmediate)
@@ -154,7 +162,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			start = codePtr - bswapSize;
 		}
 		XEmitter emitter(start);
-		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
+		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, exceptionHandler, pc);
 		emitter.CALL((void *)trampoline);
 		ptrdiff_t padding = (codePtr - emitter.GetCodePtr()) + info.instructionSize;
 		if (padding > 0)

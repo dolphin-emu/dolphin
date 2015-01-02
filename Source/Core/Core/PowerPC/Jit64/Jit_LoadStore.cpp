@@ -246,19 +246,19 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 
 	gpr.Lock(a, b, d);
+	if (update && storeAddress)
+		gpr.BindToRegister(a, true, true);
 	gpr.BindToRegister(d, js.memcheck, true);
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
+	// We need to save the (usually scratch) address register for the update.
 	if (update && storeAddress)
-	{
-		// We need to save the (usually scratch) address register for the update.
 		registersInUse[RSCRATCH2] = true;
-	}
+
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
 	if (update && storeAddress)
 	{
-		gpr.BindToRegister(a, true, true);
-		MEMCHECK_START(false)
+		MEMCHECK_START
 		MOV(32, gpr.R(a), opAddress);
 		MEMCHECK_END
 	}
@@ -266,7 +266,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// TODO: support no-swap in SafeLoadToReg instead
 	if (byte_reversed)
 	{
-		MEMCHECK_START(false)
+		MEMCHECK_START
 		BSWAP(accessSize, gpr.RX(d));
 		MEMCHECK_END
 	}
@@ -372,7 +372,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			else
 			{
 				gpr.KillImmediate(a, true, true);
-				MEMCHECK_START(false)
+				MEMCHECK_START
 				ADD(32, gpr.R(a), Imm32((u32)offset));
 				MEMCHECK_END
 			}
@@ -404,7 +404,7 @@ void Jit64::stX(UGeckoInstruction inst)
 
 		if (update)
 		{
-			MEMCHECK_START(false)
+			MEMCHECK_START
 			ADD(32, gpr.R(a), Imm32((u32)offset));
 			MEMCHECK_END
 		}
@@ -425,12 +425,9 @@ void Jit64::stXx(UGeckoInstruction inst)
 	gpr.Lock(a, b, s);
 
 	if (update)
-	{
 		gpr.BindToRegister(a, true, true);
-		ADD(32, gpr.R(a), gpr.R(b));
-		MOV(32, R(RSCRATCH2), gpr.R(a));
-	}
-	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+
+	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
 		LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 	}
@@ -462,7 +459,10 @@ void Jit64::stXx(UGeckoInstruction inst)
 
 	if (gpr.R(s).IsImm())
 	{
-		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		BitSet32 registersInUse = CallerSavedRegistersInUse();
+		if (update)
+			registersInUse[RSCRATCH2] = true;
+		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, registersInUse, byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 	else
 	{
@@ -477,14 +477,16 @@ void Jit64::stXx(UGeckoInstruction inst)
 			gpr.BindToRegister(s, true, false);
 			reg_value = gpr.RX(s);
 		}
-		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		BitSet32 registersInUse = CallerSavedRegistersInUse();
+		if (update)
+			registersInUse[RSCRATCH2] = true;
+		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, registersInUse, byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 
-	if (update && js.memcheck)
+	if (update)
 	{
-		// revert the address change if an exception occurred
-		MEMCHECK_START(true)
-		SUB(32, gpr.R(a), gpr.R(b));
+		MEMCHECK_START
+		MOV(32, gpr.R(a), R(RSCRATCH2));
 		MEMCHECK_END;
 	}
 

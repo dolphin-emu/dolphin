@@ -178,6 +178,7 @@ void Jit64::Init()
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	js.fastmemLoadStore = NULL;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
@@ -612,6 +613,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
+		js.fastmemLoadStore = NULL;
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
@@ -761,19 +763,28 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
-			// If we have a register that will never be used again, flush it.
-			for (int j : ~ops[i].gprInUse)
-				gpr.StoreFromRegister(j);
-			for (int j : ~ops[i].fprInUse)
-				fpr.StoreFromRegister(j);
-
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch memException = J_CC(CC_NZ, true);
+				// If we have a fastmem loadstore, we can omit the exception check and let fastmem handle it.
+				FixupBranch memException;
+				if (!js.fastmemLoadStore)
+				{
+					TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+					memException = J_CC(CC_NZ, true);
+				}
 
 				SwitchToFarCode();
-				SetJumpTarget(memException);
+				if (!js.fastmemLoadStore)
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = NULL;
+					SetJumpTarget(memException);
+				}
+				else
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
+					// the fastmem trampoline is jumping here, so we need to pop the return stack
+					ADD(64, R(RSP), Imm8(8));
+				}
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
@@ -784,6 +795,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 				SwitchToNearCode();
 			}
+
+			// If we have a register that will never be used again, flush it.
+			for (int j : ~ops[i].gprInUse)
+				gpr.StoreFromRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreFromRegister(j);
 
 			if (opinfo->flags & FL_LOADSTORE)
 				++jit->js.numLoadStoreInst;

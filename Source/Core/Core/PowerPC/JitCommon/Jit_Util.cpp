@@ -307,6 +307,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 
 		registersInUseAtLoc[mov] = registersInUse;
+		jit->js.fastmemLoadStore = mov;
 	}
 	else
 	{
@@ -349,7 +350,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
-				MEMCHECK_START(false)
+				MEMCHECK_START
 				if (signExtend && accessSize < 32)
 				{
 					// Need to sign extend values coming from the Read_U* functions.
@@ -399,7 +400,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			}
 			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
-			MEMCHECK_START(false)
+			MEMCHECK_START
 			if (signExtend && accessSize < 32)
 			{
 				// Need to sign extend values coming from the Read_U* functions.
@@ -565,6 +566,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
 		registersInUseAtLoc[mov] = registersInUse;
 		pcAtLoc[mov] = jit->js.compilerPC;
+		jit->js.fastmemLoadStore = mov;
 		return;
 	}
 

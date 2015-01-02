@@ -12,16 +12,14 @@
 
 namespace MMIO { class Mapping; }
 
-// If inv is true, invert the check (i.e. skip over the associated code if an exception hits,
-// instead of skipping over the code if an exception isn't hit).
-#define MEMCHECK_START(inv) \
+#define MEMCHECK_START \
 	Gen::FixupBranch memException; \
-	if (jit->js.memcheck) \
+	if (jit->js.memcheck && !jit->js.fastmemLoadStore) \
 	{ TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
-	memException = J_CC((inv) ? Gen::CC_Z : Gen::CC_NZ, true); }
+	memException = J_CC(Gen::CC_NZ, true); }
 
 #define MEMCHECK_END \
-	if (jit->js.memcheck) \
+	if (jit->js.memcheck && !jit->js.fastmemLoadStore) \
 	SetJumpTarget(memException);
 
 // We offset by 0x80 because the range of one byte memory offsets is
@@ -141,4 +139,5 @@ public:
 protected:
 	std::unordered_map<u8 *, BitSet32> registersInUseAtLoc;
 	std::unordered_map<u8 *, u32> pcAtLoc;
+	std::unordered_map<u8 *, u8 *> exceptionHandlerAtLoc;
 };
