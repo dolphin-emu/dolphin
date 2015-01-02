@@ -182,6 +182,11 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	PrepareDrawBuffers(stride);
 
+	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() >= 3)
+	{
+		CalculateZSlope(stride);
+	}
+
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
 

@@ -48,6 +48,7 @@ void PixelShaderManager::Dirty()
 	SetDestAlpha();
 	SetZTextureBias();
 	SetViewportChanged();
+	SetZSlope(0, 0, 1);
 	SetIndTexScaleChanged(false);
 	SetIndTexScaleChanged(true);
 	SetIndMatrixChanged(0);
@@ -166,6 +167,15 @@ void PixelShaderManager::SetViewportChanged()
 {
 	s_bViewPortChanged = true;
 	s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
+}
+
+void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0)
+{
+	constants.zslope[0] = dfdx;
+	constants.zslope[1] = dfdy;
+	constants.zslope[2] = f0;
+	constants.zslope[3] = 0;
+	dirty = true;
 }
 
 void PixelShaderManager::SetIndTexScaleChanged(bool high)

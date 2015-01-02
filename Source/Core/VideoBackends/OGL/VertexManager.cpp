@@ -140,6 +140,11 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	PrepareDrawBuffers(stride);
 
+	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() >= 3)
+	{
+		CalculateZSlope(stride);
+	}
+
 	// Makes sure we can actually do Dual source blending
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
