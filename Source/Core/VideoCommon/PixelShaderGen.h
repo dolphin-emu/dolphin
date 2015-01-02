@@ -20,8 +20,8 @@
 #define C_INDTEXMTX     (C_INDTEXSCALE + 2) //21
 #define C_FOGCOLOR      (C_INDTEXMTX + 6)   //27
 #define C_FOGI          (C_FOGCOLOR + 1)    //28
-#define C_FOGF          (C_FOGI + 2)        //29
-#define C_ZSLOPE        (C_FOGF + 1)        //31
+#define C_FOGF          (C_FOGI + 1)        //29
+#define C_ZSLOPE        (C_FOGF + 2)        //31
 #define C_EFBSCALE      (C_ZSLOPE + 1)      //32
 
 #define C_PENVCONST_END (C_EFBSCALE + 1)
