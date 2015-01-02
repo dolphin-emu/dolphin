@@ -18,7 +18,7 @@
 namespace OGL
 {
 
-static char s_vertex_workaround_shader[] =
+static const char s_vertex_workaround_shader[] =
 	"in vec4 rawpos;\n"
 	"out vec2 uv0;\n"
 	"uniform vec4 src_rect;\n"
@@ -27,7 +27,7 @@ static char s_vertex_workaround_shader[] =
 	"	uv0 = rawpos.zw * src_rect.zw + src_rect.xy;\n"
 	"}\n";
 
-static char s_vertex_shader[] =
+static const char s_vertex_shader[] =
 	"out vec2 uv0;\n"
 	"uniform vec4 src_rect;\n"
 	"void main(void) {\n"
@@ -41,7 +41,7 @@ static char s_vertex_shader[] =
 // "Conversion of a Stereo Pair to Anaglyph with
 // the Least-Squares Projection Method"
 // Eric Dubois, March 2009
-static char s_anaglyph_shader[] =
+static const char s_anaglyph_shader[] =
 	"void main() {\n"
 	"	vec4 c0 = SampleLayer(0);\n"
 	"	vec4 c1 = SampleLayer(1);\n"
