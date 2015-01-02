@@ -145,11 +145,8 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if ((int)src.size() < size)
 		return -1;
 
-	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
-	{
-		// if cull mode is CULL_ALL, ignore triangles and quads
+	if (skip_drawing)
 		return size;
-	}
 
 	// If the native vertex format changed, force a flush.
 	if (loader->m_native_vertex_format != s_current_vtx_fmt)
