@@ -785,8 +785,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				else
 				{
 					exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
-					// the fastmem trampoline is jumping here, so we need to pop the return stack
-					ADD(64, R(RSP), Imm8(8));
 				}
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);

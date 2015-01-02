@@ -83,7 +83,6 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	if (!info.isMemoryWrite)
 	{
-		XEmitter emitter(codePtr);
 		int bswapNopCount;
 		if (info.byteSwap || info.operandSize == 1)
 			bswapNopCount = 0;
@@ -109,9 +108,11 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			totalSize += 3;
 		}
 
-		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse, exceptionHandler);
-		emitter.CALL((void *)trampoline);
+		XEmitter emitter(codePtr);
 		int padding = totalSize - BACKPATCH_SIZE;
+		u8* returnPtr = codePtr + 5 + padding;
+		const u8* trampoline = trampolines.GenerateReadTrampoline(info, registersInUse, exceptionHandler, returnPtr);
+		emitter.JMP(trampoline, true);
 		if (padding > 0)
 		{
 			emitter.NOP(padding);
@@ -162,9 +163,10 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			start = codePtr - bswapSize;
 		}
 		XEmitter emitter(start);
-		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, exceptionHandler, pc);
-		emitter.CALL((void *)trampoline);
-		ptrdiff_t padding = (codePtr - emitter.GetCodePtr()) + info.instructionSize;
+		ptrdiff_t padding = (codePtr - (start + 5)) + info.instructionSize;
+		u8* returnPtr = start + 5 + padding;
+		const u8* trampoline = trampolines.GenerateWriteTrampoline(info, registersInUse, exceptionHandler, returnPtr, pc);
+		emitter.JMP(trampoline, true);
 		if (padding > 0)
 		{
 			emitter.NOP(padding);
