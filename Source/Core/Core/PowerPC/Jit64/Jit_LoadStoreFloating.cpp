@@ -72,7 +72,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		registersInUse[RSCRATCH2] = true;
 	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
 
-	MEMCHECK_START
+	MemoryExceptionCheck();
 	if (single)
 	{
 		ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
@@ -84,7 +84,6 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 	}
 	if (update && js.memcheck)
 		MOV(32, gpr.R(a), addr);
-	MEMCHECK_END
 	fpr.UnlockAll();
 	gpr.UnlockAll();
 }
@@ -141,9 +140,8 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 			else
 			{
 				gpr.KillImmediate(a, true, true);
-				MEMCHECK_START
+				MemoryExceptionCheck();
 				ADD(32, gpr.R(a), Imm32((u32)imm));
-				MEMCHECK_END
 			}
 		}
 		fpr.UnlockAll();
@@ -187,9 +185,8 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
 	if (update)
 	{
-		MEMCHECK_START
+		MemoryExceptionCheck();
 		MOV(32, gpr.R(a), R(RSCRATCH2));
-		MEMCHECK_END
 	}
 
 	fpr.UnlockAll();

@@ -13,6 +13,16 @@
 
 using namespace Gen;
 
+void EmuCodeBlock::MemoryExceptionCheck()
+{
+	if (jit->js.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
+	{
+		TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
+		jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
+		jit->js.fixupExceptionHandler = true;
+	}
+}
+
 void EmuCodeBlock::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
 {
 	if (cpu_info.bMOVBE)
@@ -350,7 +360,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
-				MEMCHECK_START
+				MemoryExceptionCheck();
 				if (signExtend && accessSize < 32)
 				{
 					// Need to sign extend values coming from the Read_U* functions.
@@ -360,7 +370,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				{
 					MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 				}
-				MEMCHECK_END
 			}
 		}
 		else
@@ -400,7 +409,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			}
 			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
-			MEMCHECK_START
+			MemoryExceptionCheck();
 			if (signExtend && accessSize < 32)
 			{
 				// Need to sign extend values coming from the Read_U* functions.
@@ -410,7 +419,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 			}
-			MEMCHECK_END
 
 			if (farcode.Enabled())
 			{

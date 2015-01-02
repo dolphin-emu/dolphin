@@ -73,7 +73,12 @@ protected:
 		int downcountAmount;
 		u32 numLoadStoreInst;
 		u32 numFloatingPointInst;
+		// If this is set, we need to generate an exception handler for the fastmem load.
 		u8* fastmemLoadStore;
+		// If this is set, a load or store already prepared a jump to the exception handler for us,
+		// so just fixup that branch instead of testing for a DSI again.
+		bool fixupExceptionHandler;
+		Gen::FixupBranch exceptionHandler;
 
 		bool firstFPInstructionFound;
 		bool isLastInstruction;

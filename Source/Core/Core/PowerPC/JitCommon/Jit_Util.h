@@ -12,16 +12,6 @@
 
 namespace MMIO { class Mapping; }
 
-#define MEMCHECK_START \
-	Gen::FixupBranch memException; \
-	if (jit->js.memcheck && !jit->js.fastmemLoadStore) \
-	{ TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
-	memException = J_CC(Gen::CC_NZ, true); }
-
-#define MEMCHECK_END \
-	if (jit->js.memcheck && !jit->js.fastmemLoadStore) \
-	SetJumpTarget(memException);
-
 // We offset by 0x80 because the range of one byte memory offsets is
 // -0x80..0x7f.
 #define PPCSTATE(x) MDisp(RPPCSTATE, \
@@ -58,6 +48,8 @@ class EmuCodeBlock : public Gen::X64CodeBlock
 public:
 	FarCodeCache farcode;
 	u8* nearcode; // Backed up when we switch to far code.
+
+	void MemoryExceptionCheck();
 
 	// Simple functions to switch between near and far code emitting
 	void SwitchToFarCode()
