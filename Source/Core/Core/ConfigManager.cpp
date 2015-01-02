@@ -70,8 +70,8 @@ static const struct
 	{ "IncreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 
-	{ "FreelookIncreaseSpeed",49 /* '1' */,       4 /* wxMOD_SHIFT */ },
-	{ "FreelookDecreaseSpeed",50 /* '2' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookDecreaseSpeed",49 /* '1' */,       4 /* wxMOD_SHIFT */ },
+	{ "FreelookIncreaseSpeed",50 /* '2' */,       4 /* wxMOD_SHIFT */ },
 	{ "FreelookResetSpeed",   70 /* 'F' */,       4 /* wxMOD_SHIFT */ },
 	{ "FreelookUp",           69 /* 'E' */,       4 /* wxMOD_SHIFT */ },
 	{ "FreelookDown",         81 /* 'Q' */,       4 /* wxMOD_SHIFT */ },
