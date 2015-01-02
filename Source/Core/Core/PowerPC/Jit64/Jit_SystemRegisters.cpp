@@ -112,6 +112,41 @@ void Jit64::ClearCRFieldBit(int field, int bit)
 	// We don't need to set bit 32; the cases where that's needed only come up when setting bits, not clearing.
 }
 
+void Jit64::SetCRFieldBit(int field, int bit)
+{
+	MOV(64, R(RSCRATCH), PPCSTATE(cr_val[field]));
+	if (bit != CR_GT_BIT)
+	{
+		TEST(64, R(RSCRATCH), R(RSCRATCH));
+		FixupBranch dont_clear_gt = J_CC(CC_NZ);
+		BTS(64, R(RSCRATCH), Imm8(63));
+		SetJumpTarget(dont_clear_gt);
+	}
+
+	switch (bit)
+	{
+	case CR_SO_BIT:
+		BTS(64, PPCSTATE(cr_val[field]), Imm8(61));
+		break;
+
+	case CR_EQ_BIT:
+		SHR(64, R(RSCRATCH), Imm8(32));
+		SHL(64, R(RSCRATCH), Imm8(32));
+		break;
+
+	case CR_GT_BIT:
+		BTR(64, PPCSTATE(cr_val[field]), Imm8(63));
+		break;
+
+	case CR_LT_BIT:
+		BTS(64, PPCSTATE(cr_val[field]), Imm8(62));
+		break;
+	}
+
+	BTS(64, R(RSCRATCH), Imm8(32));
+	MOV(64, PPCSTATE(cr_val[field]), R(RSCRATCH));
+}
+
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
 	switch (bit)
@@ -503,6 +538,13 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
 	{
 		ClearCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
+		return;
+	}
+
+	// Special case: crset
+	if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 289)
+	{
+		SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3));
 		return;
 	}
 
