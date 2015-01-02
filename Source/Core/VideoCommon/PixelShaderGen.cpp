@@ -342,7 +342,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			out.Write("centroid in float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("centroid in float4 Normal;\n");
+				out.Write("centroid in float3 Normal;\n");
+				out.Write("centroid in float3 WorldPos;\n");
 			}
 		}
 
@@ -371,7 +372,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			out.Write(",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
 		out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write(",\n  in centroid float4 Normal : TEXCOORD%d", numTexgen + 1);
+		{
+			out.Write(",\n  in centroid float3 Normal : TEXCOORD%d", numTexgen + 1);
+			out.Write(",\n  in centroid float3 WorldPos : TEXCOORD%d", numTexgen + 2);
+		}
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
@@ -389,7 +393,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
 		out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
-		out.Write("\tfloat3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
+		out.Write("\tfloat3 pos = WorldPos;\n");
 
 		out.Write("\tint4 lacc;\n"
 				"\tfloat3 ldir, h;\n"
