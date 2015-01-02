@@ -1040,6 +1040,12 @@ void Renderer::SetGenerationMode()
 void Renderer::SetDepthMode()
 {
 	gx_state.zmode = bpmem.zmode;
+	if (bpmem.genMode.zfreeze)
+	{
+		gx_state.zmode.testenable = true;
+		gx_state.zmode.updateenable = false;
+		gx_state.zmode.func = ZMode::LEQUAL;
+	}	
 }
 
 void Renderer::SetLogicOpMode()
