@@ -1823,6 +1823,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
 		}
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		// Reset viewport for drawing text
+		glViewport(400, 400, GLInterface->GetBackBufferWidth()-400, GLInterface->GetBackBufferHeight()-400);
+		ShowEfbCopyRegions();
+		DrawDebugText();
+		// Do our OSD callbacks
+		OSD::DoCallbacks(OSD::OSD_ONFRAME);
+		OSD::DrawMessages();
+
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
 

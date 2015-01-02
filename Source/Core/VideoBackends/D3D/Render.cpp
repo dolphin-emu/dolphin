@@ -775,6 +775,7 @@ void Renderer::AsyncTimewarpDraw()
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
+	// VR - before the first frame we need ovrHmd_BeginFrame, and we need to configure the tracking
 #ifdef HAVE_OCULUSSDK
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
 	{
@@ -802,6 +803,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 #endif
 
+	// With frame skipping (or if the GC/Wii didn't draw anything), return without drawing anything
+	// but if we are recording an .avi file, save the frame to disk again to maintain the right frame rate.
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
 		if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
@@ -811,6 +814,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		return;
 	}
 
+	// Check what XFB we are supposed to draw
+	// VR - currently we never use the XFB and bUseXFB is forced to false in VR mode
 	u32 xfbCount = 0;
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
@@ -904,9 +909,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
 		D3D::context->RSSetViewports(1, &Vp);
 		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+
 		// Render to right eye
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), nullptr);
 		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+		// Reset viewport for drawing text
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(400.0f, 400.0f, Renderer::GetTargetWidth() - 400.0f, Renderer::GetTargetHeight() - 400.0f);
+		D3D::context->RSSetViewports(1, &vp);
+		Renderer::DrawDebugText();
+		OSD::DrawMessages();
 
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
@@ -997,9 +1008,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		}
 		else
 		{
-			// VR TODO
-			// Wait for OpenGL to finish drawing the commands we have given it,
-			// and when finished, swap the back buffer textures to the front buffer textures
+			// VR TODO - Direct3D Asynchronous timewarp
 		}
 	}
 #endif
@@ -1079,13 +1088,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		bLastFrameDumped = false;
 	}
 
-	// Reset viewport for drawing text
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
-	D3D::context->RSSetViewports(1, &vp);
+	if (!g_has_rift)
+	{
+		// Reset viewport for drawing text
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
+		D3D::context->RSSetViewports(1, &vp);
 
-	Renderer::DrawDebugText();
+		Renderer::DrawDebugText();
 
-	OSD::DrawMessages();
+		OSD::DrawMessages();
+	}
 	D3D::EndFrame();
 
 	TextureCache::Cleanup();
