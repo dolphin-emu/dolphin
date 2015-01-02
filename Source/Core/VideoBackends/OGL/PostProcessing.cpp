@@ -43,17 +43,15 @@ static char s_vertex_shader[] =
 // Eric Dubois, March 2009
 static char s_anaglyph_shader[] =
 	"void main() {\n"
-	"	vec3 l = SampleLayer(0).rgb;\n"
-	"	vec3 r = SampleLayer(1).rgb;\n"
-	"	vec3 lr = vec3(0.437,0.449,0.164);\n"
-	"	vec3 lg = vec3(-0.062,-0.062,-0.024);\n"
-	"	vec3 lb = vec3(-0.048,-0.050,-0.017);\n"
-	"	vec3 rr = vec3(-0.011,-0.032,-0.007);\n"
-	"	vec3 rg = vec3(0.377,0.761,0.009);\n"
-	"	vec3 rb = vec3(-0.026,-0.093,1.234);\n"
-	"	vec3 c0 = vec3(dot(l, lr), dot(l, lg), dot(l, lb));\n"
-	"	vec3 c1 = vec3(dot(r, rr), dot(r, rg), dot(r, rb));\n"
-	"	SetOutput(vec4(c0 + c1, SampleLayer(0).a));\n"
+	"	vec4 c0 = SampleLayer(0);\n"
+	"	vec4 c1 = SampleLayer(1);\n"
+	"	mat3 l = mat3( 0.437, 0.449, 0.164,\n"
+	"	              -0.062,-0.062,-0.024,\n"
+	"	              -0.048,-0.050,-0.017);\n"
+	"	mat3 r = mat3(-0.011,-0.032,-0.007,\n"
+	"	               0.377, 0.761, 0.009,\n"
+	"	              -0.026,-0.093, 1.234);\n"
+	"	SetOutput(vec4(c0.rgb * l + c1.rgb * r, c0.a));\n"
 	"}\n";
 
 static const char s_default_shader[] = "void main() { SetOutput(Sample()); }\n";
