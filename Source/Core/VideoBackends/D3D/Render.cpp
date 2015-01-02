@@ -33,6 +33,7 @@
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -234,6 +235,7 @@ Renderer::Renderer(void *&window_handle)
 	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+	PixelShaderManager::SetEfbScaleChanged();
 
 	SetupDeviceObjects();
 
@@ -934,6 +936,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+
+		PixelShaderManager::SetEfbScaleChanged();
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 

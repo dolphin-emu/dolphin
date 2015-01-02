@@ -144,6 +144,7 @@ template<class T> static inline void WriteTevRegular(T& out, const char* compone
 template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data);
+template<class T> static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType);
 
 template<class T>
 static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
@@ -229,6 +230,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		"\tint4 " I_FOGI";\n"
 		"\tfloat4 " I_FOGF"[2];\n"
 		"\tfloat4 " I_ZSLOPE";\n"
+		"\tfloat4 " I_EFBSCALE";\n"
 		"};\n");
 
 	if (g_ActiveConfig.bEnablePixelLighting)
@@ -544,14 +546,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
 	{
-		if (bpmem.genMode.zfreeze)
-		{
-			out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * rawpos.x + " I_ZSLOPE".y * rawpos.y) / float(0xffffff);\n");
-		}
-		else
-		{
-			out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
-		}
+		WritePerPixelDepth<T>(out, uid_data, ApiType);
 	}
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
@@ -567,14 +562,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
 	{
-		if (bpmem.genMode.zfreeze)
-		{
-			out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * rawpos.x + " I_ZSLOPE".y * rawpos.y) / float(0xffffff);\n");
-		}
-		else
-		{
-			out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
-		}
+		WritePerPixelDepth<T>(out, uid_data, ApiType);
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
@@ -1114,6 +1102,29 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 	out.Write("\tint ifog = iround(fog * 256.0);\n");
 	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
+
+template<class T>
+static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType)
+{
+	if (bpmem.genMode.zfreeze)
+	{
+		out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
+		out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
+
+		out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE".xy;\n");
+
+		// Opengl has reversed vertical screenspace coordiantes
+		if(ApiType == API_OPENGL)
+			out.Write("\tscreenpos.y = %i - screenpos.y - 1;\n", EFB_HEIGHT);
+
+		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xffffff);\n");
+	}
+	else
+	{
+		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+	}
+}
+
 
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {

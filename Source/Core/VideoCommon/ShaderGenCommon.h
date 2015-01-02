@@ -286,6 +286,7 @@ static inline void AssignVSOutputMembers(T& object, const char* a, const char* b
 #define I_FOGI          "cfogi"
 #define I_FOGF          "cfogf"
 #define I_ZSLOPE        "czslope"
+#define I_EFBSCALE      "cefbscale"
 
 #define I_POSNORMALMATRIX       "cpnmtx"
 #define I_PROJECTION            "cproj"
