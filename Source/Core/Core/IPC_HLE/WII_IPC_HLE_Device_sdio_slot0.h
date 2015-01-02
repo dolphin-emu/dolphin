@@ -16,10 +16,11 @@ public:
 
 	virtual void DoState(PointerWrap& p) override;
 
-	bool Open(u32 _CommandAddress, u32 _Mode) override;
-	bool Close(u32 _CommandAddress, bool _bForce) override;
-	bool IOCtl(u32 _CommandAddress) override;
-	bool IOCtlV(u32 _CommandAddress) override;
+	IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+
+	IPCCommandResult IOCtl(u32 _CommandAddress) override;
+	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 	static void EnqueueReply(u32 CommandAddress, u32 ReturnValue);
 	void EventNotify();
