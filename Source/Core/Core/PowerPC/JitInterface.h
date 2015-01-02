@@ -28,9 +28,6 @@ namespace JitInterface
 	// Memory Utilities
 	bool HandleFault(uintptr_t access_address, SContext* ctx);
 
-	// used by JIT to read instructions
-	u32 ReadOpcodeJIT(const u32 _Address);
-
 	// Clearing CodeCache
 	void ClearCache();
 

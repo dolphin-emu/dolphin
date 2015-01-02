@@ -646,17 +646,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		return address;
 	}
 
-	bool virtualAddr = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT);
-	if (virtualAddr)
-	{
-		if (!Memory::TranslateAddress(address, Memory::FLAG_NO_EXCEPTION))
-		{
-			// Memory exception occurred during instruction fetch
-			block->m_memory_exception = true;
-			return address;
-		}
-	}
-
 	CodeOp *code = buffer->codebuffer;
 
 	bool found_exit = false;
@@ -666,7 +655,20 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	for (u32 i = 0; i < blockSize; ++i)
 	{
-		UGeckoInstruction inst = JitInterface::ReadOpcodeJIT(address);
+		u32 translated_address = address;
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
+		    (address & Memory::ADDR_MASK_MEM1))
+		{
+			translated_address = Memory::TranslateAddress(address, Memory::FLAG_OPCODE);
+			if (!translated_address)
+			{
+				if (i == 0)
+					block->m_memory_exception = true;
+				break;
+			}
+		}
+
+		UGeckoInstruction inst = PowerPC::ppcState.iCache.ReadInstruction(translated_address);
 
 		if (inst.hex != 0)
 		{
@@ -789,10 +791,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		}
 		else
 		{
-			// ISI exception or other critical memory exception occured (game over)
-			// We can continue on in MMU mode though, so don't spam this error in that case.
-			if (!virtualAddr)
-				ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
+			ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
 			break;
 		}
 	}

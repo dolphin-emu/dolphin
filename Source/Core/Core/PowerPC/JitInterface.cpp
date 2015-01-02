@@ -36,7 +36,6 @@
 #include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
 #endif
 
-static bool bFakeVMEM = false;
 bool bMMU = false;
 
 namespace JitInterface
@@ -49,7 +48,6 @@ namespace JitInterface
 	CPUCoreBase *InitJitCore(int core)
 	{
 		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-		bFakeVMEM = !bMMU;
 
 		CPUCoreBase *ptr = nullptr;
 		switch (core)
@@ -205,27 +203,6 @@ namespace JitInterface
 	{
 		if (jit)
 			jit->GetBlockCache()->InvalidateICache(address, size, forced);
-	}
-
-	u32 ReadOpcodeJIT(u32 _Address)
-	{
-		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
-		{
-			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
-			if (_Address == 0)
-			{
-				return 0;
-			}
-		}
-
-		u32 inst;
-		// Bypass the icache for the external interrupt exception handler
-		// -- this is stupid, should respect HID0
-		if ( (_Address & 0x0FFFFF00) == 0x00000500 )
-			inst = Memory::ReadUnchecked_U32(_Address);
-		else
-			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
-		return inst;
 	}
 
 	void CompileExceptionCheck(ExceptionType type)
