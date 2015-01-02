@@ -17,7 +17,7 @@ function GetGitExe()
 	catch (e)
 	{}
 
-	for (var gitexe in {"git.cmd":1, "git":1, "git.bat":1, "E:\\Program Files(x86)\\Git\\cmd\\git.exe": 1 })
+	for (var gitexe in {"git.cmd":1, "git":1, "git.bat":1 })
 	{
 		try
 		{
