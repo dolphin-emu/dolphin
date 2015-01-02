@@ -546,7 +546,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		if (bpmem.genMode.zfreeze)
 		{
-			out.Write("\tdepth = " I_ZSLOPE".z + " I_ZSLOPE".x * (clipPos.x / clipPos.w) + " I_ZSLOPE".y * (clipPos.y / clipPos.w);\n");
+			out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * rawpos.x + " I_ZSLOPE".y * rawpos.y) / float(0xffffff);\n");
 		}
 		else
 		{
@@ -569,7 +569,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		if (bpmem.genMode.zfreeze)
 		{
-			out.Write("\tdepth = " I_ZSLOPE".z + " I_ZSLOPE".x * (clipPos.x / clipPos.w) + " I_ZSLOPE".y * (clipPos.y / clipPos.w);\n");
+			out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * rawpos.x + " I_ZSLOPE".y * rawpos.y) / float(0xffffff);\n");
 		}
 		else
 		{

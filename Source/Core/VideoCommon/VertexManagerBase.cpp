@@ -259,11 +259,12 @@ void VertexManager::CalculateZSlope(u32 stride)
 
 		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4]);
 
-		// viewport offset ignored because we only look at coordinate differences.
-		out[0 + i * 4] = out[0 + i * 4] / out[3 + i * 4] * xfmem.viewport.wd;
-		out[1 + i * 4] = out[1 + i * 4] / out[3 + i * 4] * xfmem.viewport.ht;
+		// Transform to Screenspace
+		out[0 + i * 4] = out[0 + i * 4] / out[3 + i * 4] * xfmem.viewport.wd + (xfmem.viewport.xOrig - 342);
+		out[1 + i * 4] = out[1 + i * 4] / out[3 + i * 4] * xfmem.viewport.ht + (xfmem.viewport.yOrig - 342);
 		out[2 + i * 4] = out[2 + i * 4] / out[3 + i * 4] * xfmem.viewport.zRange + xfmem.viewport.farZ;
 	}
+
 	float dx31 = out[8] - out[0];
 	float dx12 = out[0] - out[4];
 	float dy12 = out[1] - out[5];
@@ -277,7 +278,7 @@ void VertexManager::CalculateZSlope(u32 stride)
 
 	float slope_dfdx = -a / c;
 	float slope_dfdy = -b / c;
-	float slope_f0 = out[2];
+	float slope_f0 = out[2] - (out[0] * slope_dfdx + out[1] * slope_dfdy);
 
 	PixelShaderManager::SetZSlope(slope_dfdx, slope_dfdy, slope_f0);
 }
