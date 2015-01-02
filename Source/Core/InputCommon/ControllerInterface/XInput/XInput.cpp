@@ -257,9 +257,9 @@ void Device::Motor::SetState(ControlState state)
 	m_parent->UpdateMotors();
 }
 
-u16 Device::Button::GetStates() const
+u32 Device::Button::GetStates() const
 {
-	return (u16) m_buttons;
+	return (u32) m_buttons;
 }
 
 }

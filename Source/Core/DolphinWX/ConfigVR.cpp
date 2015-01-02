@@ -1038,6 +1038,7 @@ void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] = Key;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[Id] = 0;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[Id] = 0;
 	int hk = -1;
 	switch (Id)
 	{
@@ -1069,6 +1070,7 @@ void CConfigVR::SaveButtonMapping(int Id, bool KBM, int Key, int Modkey)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[hk] = Key;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[hk] = Modkey;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDandXInputMapping[hk] = 0;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyDInputMappingExtra[hk] = 0;
 	}
 }
 
