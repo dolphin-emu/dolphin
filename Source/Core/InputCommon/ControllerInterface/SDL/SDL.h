@@ -122,6 +122,14 @@ private:
 		std::string GetName() const override;
 		void SetState(ControlState state) override;
 	};
+
+	class TriangleEffect : public HapticEffect
+	{
+	public:
+		TriangleEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
 #endif
 
 public:
