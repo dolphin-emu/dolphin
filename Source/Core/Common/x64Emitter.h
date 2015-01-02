@@ -888,7 +888,7 @@ public:
 	void ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2);
 
 	// Helper method for the above, or can be used separately.
-	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2);
+	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset, Gen::X64Reg dst2, Gen::X64Reg src2);
 
 	// Saves/restores the registers and adjusts the stack to be aligned as
 	// required by the ABI, where the previous alignment was as specified.

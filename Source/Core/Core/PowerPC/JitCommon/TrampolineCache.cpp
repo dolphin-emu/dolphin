@@ -48,10 +48,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, B
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
 	int dataRegSize = info.operandSize == 8 ? 64 : 32;
-	MOVTwo(dataRegSize, ABI_PARAM1, addrReg, ABI_PARAM2, dataReg);
-
-	if (info.displacement)
-		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
+	MOVTwo(dataRegSize, ABI_PARAM1, addrReg, info.displacement, ABI_PARAM2, dataReg);
 
 	switch (info.operandSize)
 	{
@@ -102,8 +99,13 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, 
 
 	if (info.hasImmediate)
 	{
-		if (addrReg != ABI_PARAM2)
-			MOV(64, R(ABI_PARAM2), R(addrReg));
+		if (addrReg != ABI_PARAM2 && info.displacement)
+			LEA(32, ABI_PARAM2, MDisp(addrReg, info.displacement));
+		else if (addrReg != ABI_PARAM2)
+			MOV(32, R(ABI_PARAM2), R(addrReg));
+		else if (info.displacement)
+			ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
+
 		// we have to swap back the immediate to pass it to the write functions
 		switch (info.operandSize)
 		{
@@ -123,11 +125,8 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, 
 	}
 	else
 	{
-		MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg);
-	}
-	if (info.displacement)
-	{
-		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
+		int dataRegSize = info.operandSize == 8 ? 64 : 32;
+		MOVTwo(dataRegSize, ABI_PARAM2, addrReg, info.displacement, ABI_PARAM1, dataReg);
 	}
 
 	switch (info.operandSize)
