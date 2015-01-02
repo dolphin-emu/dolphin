@@ -98,79 +98,79 @@ __forceinline void ReadFromHardware(U &_var, const u32 em_address)
 	int segment = em_address >> 28;
 	// Quick check for an address that can't meet any of the following conditions,
 	// to speed up the MMU path.
-	if (BitSet32(0xCFC)[segment])
-		goto translateaddress;
-	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
-	if ((em_address & 0xC8000000) == 0xC8000000)
+	if (!BitSet32(0xCFC)[segment])
 	{
-		if (em_address < 0xcc000000)
-			_var = EFB_Read(em_address);
-		else
-			_var = (T)mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
-	}
-	else if (segment == 0x8 || segment == 0xC || segment == 0x0)
-	{
-		_var = bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
-	}
-	else if (m_pEXRAM && (segment == 0x9 || segment == 0xD || segment == 0x1))
-	{
-		_var = bswap((*(const T*)&m_pEXRAM[em_address & EXRAM_MASK]));
-	}
-	else if (segment == 0xE && (em_address < (0xE0000000+L1_CACHE_SIZE)))
-	{
-		_var = bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
-	}
-	else
-	{
-translateaddress:
-		if (bFakeVMEM && (segment == 0x7 || segment == 0x4))
+		// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
+		if ((em_address & 0xC8000000) == 0xC8000000)
 		{
-			// fake VMEM
-			_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
+			if (em_address < 0xcc000000)
+				_var = EFB_Read(em_address);
+			else
+				_var = (T)mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
 			return;
 		}
+		else if (segment == 0x8 || segment == 0xC || segment == 0x0)
+		{
+			_var = bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
+			return;
+		}
+		else if (m_pEXRAM && (segment == 0x9 || segment == 0xD || segment == 0x1))
+		{
+			_var = bswap((*(const T*)&m_pEXRAM[em_address & EXRAM_MASK]));
+			return;
+		}
+		else if (segment == 0xE && (em_address < (0xE0000000 + L1_CACHE_SIZE)))
+		{
+			_var = bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
+			return;
+		}
+	}
 
-		// MMU: Do page table translation
-		u32 tlb_addr = TranslateAddress<flag>(em_address);
-		if (tlb_addr == 0)
+	if (bFakeVMEM && (segment == 0x7 || segment == 0x4))
+	{
+		// fake VMEM
+		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
+		return;
+	}
+
+	// MMU: Do page table translation
+	u32 tlb_addr = TranslateAddress<flag>(em_address);
+	if (tlb_addr == 0)
+	{
+		if (flag == FLAG_READ)
+			GenerateDSIException(em_address, false);
+		return;
+	}
+
+	// Handle loads that cross page boundaries (ewwww)
+	// The alignment check isn't strictly necessary, but since this is a rare slow path, it provides a faster
+	// (1 instruction on x86) bailout.
+	if (sizeof(T) > 1 && (em_address & (sizeof(T) - 1)) && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
+	{
+		// This could be unaligned down to the byte level... hopefully this is rare, so doing it this
+		// way isn't too terrible.
+		// TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
+		// Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
+		u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
+		u32 tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
+		if (tlb_addr == 0 || tlb_addr_next_page == 0)
 		{
 			if (flag == FLAG_READ)
-				GenerateDSIException(em_address, false);
+				GenerateDSIException(em_address_next_page, false);
 			return;
 		}
-
-		// Handle loads that cross page boundaries (ewwww)
-		// The alignment check isn't strictly necessary, but since this is a rare slow path, it provides a faster
-		// (1 instruction on x86) bailout.
-		if (sizeof(T) > 1 && (em_address & (sizeof(T) - 1)) && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
+		_var = 0;
+		for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
 		{
-			// This could be unaligned down to the byte level... hopefully this is rare, so doing it this
-			// way isn't too terrible.
-			// TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
-			// Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
-			u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-			u32 tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
-			if (tlb_addr == 0 || tlb_addr_next_page == 0)
-			{
-				if (flag == FLAG_READ)
-					GenerateDSIException(em_address_next_page, false);
-				return;
-			}
-			_var = 0;
-			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
-			{
-				if (addr == em_address_next_page)
-					tlb_addr = tlb_addr_next_page;
-				_var = (_var << 8) | Memory::base[tlb_addr];
-			}
-			return;
+			if (addr == em_address_next_page)
+				tlb_addr = tlb_addr_next_page;
+			_var = (_var << 8) | Memory::base[tlb_addr];
 		}
-		else
-		{
-			// The easy case!
-			_var = bswap(*(const T*)&Memory::base[tlb_addr]);
-		}
+		return;
 	}
+
+	// The easy case!
+	_var = bswap(*(const T*)&Memory::base[tlb_addr]);
 }
 
 
@@ -180,107 +180,104 @@ __forceinline void WriteToHardware(u32 em_address, const T data)
 	int segment = em_address >> 28;
 	// Quick check for an address that can't meet any of the following conditions,
 	// to speed up the MMU path.
-	if (BitSet32(0xCFC)[segment])
-		goto translateaddress;
-	// First, let's check for FIFO writes, since they are probably the most common
-	// reason we end up in this function:
-	if ((em_address & 0xFFFFF000) == 0xCC008000)
+	if (!BitSet32(0xCFC)[segment])
 	{
-		switch (sizeof(T))
+		// First, let's check for FIFO writes, since they are probably the most common
+		// reason we end up in this function:
+		if ((em_address & 0xFFFFF000) == 0xCC008000)
 		{
-		case 1: GPFifo::Write8((u8)data, em_address); return;
-		case 2: GPFifo::Write16((u16)data, em_address); return;
-		case 4: GPFifo::Write32((u32)data, em_address); return;
-		case 8: GPFifo::Write64((u64)data, em_address); return;
-		}
-	}
-	if ((em_address & 0xC8000000) == 0xC8000000)
-	{
-		if (em_address < 0xcc000000)
-		{
-			int x = (em_address & 0xfff) >> 2;
-			int y = (em_address >> 12) & 0x3ff;
-
-			// TODO figure out a way to send data without falling into the template trap
-			if (em_address & 0x00400000)
+			switch (sizeof(T))
 			{
-				g_video_backend->Video_AccessEFB(POKE_Z, x, y, (u32)data);
-				DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", (u32)data, x, y);
+			case 1: GPFifo::Write8((u8)data, em_address); return;
+			case 2: GPFifo::Write16((u16)data, em_address); return;
+			case 4: GPFifo::Write32((u32)data, em_address); return;
+			case 8: GPFifo::Write64((u64)data, em_address); return;
+			}
+		}
+		if ((em_address & 0xC8000000) == 0xC8000000)
+		{
+			if (em_address < 0xcc000000)
+			{
+				int x = (em_address & 0xfff) >> 2;
+				int y = (em_address >> 12) & 0x3ff;
+
+				// TODO figure out a way to send data without falling into the template trap
+				if (em_address & 0x00400000)
+				{
+					g_video_backend->Video_AccessEFB(POKE_Z, x, y, (u32)data);
+					DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", (u32)data, x, y);
+				}
+				else
+				{
+					g_video_backend->Video_AccessEFB(POKE_COLOR, x, y, (u32)data);
+					DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", (u32)data, x, y);
+				}
+				return;
 			}
 			else
 			{
-				g_video_backend->Video_AccessEFB(POKE_COLOR, x, y,(u32)data);
-				DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", (u32)data, x, y);
-			}
-			return;
-		}
-		else
-		{
-			mmio_mapping->Write(em_address, data);
-			return;
-		}
-	}
-	else if (segment == 0x8 || segment == 0xC || segment == 0x0)
-	{
-		*(T*)&m_pRAM[em_address & RAM_MASK] = bswap(data);
-		return;
-	}
-	else if (m_pEXRAM && (segment == 0x9 || segment == 0xD || segment == 0x1))
-	{
-		*(T*)&m_pEXRAM[em_address & EXRAM_MASK] = bswap(data);
-		return;
-	}
-	else if (segment == 0xE && (em_address < (0xE0000000+L1_CACHE_SIZE)))
-	{
-		*(T*)&m_pL1Cache[em_address & L1_CACHE_MASK] = bswap(data);
-		return;
-	}
-	else
-	{
-translateaddress:
-		if (bFakeVMEM && (segment == 0x7 || segment == 0x4))
-		{
-			// fake VMEM
-			*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
-			return;
-		}
-
-		// MMU: Do page table translation
-		u32 tlb_addr = TranslateAddress<flag>(em_address);
-		if (tlb_addr == 0)
-		{
-			if (flag == FLAG_WRITE)
-				GenerateDSIException(em_address, true);
-			return;
-		}
-
-		// Handle stores that cross page boundaries (ewwww)
-		if (sizeof(T) > 1 && (em_address & (sizeof(T) - 1)) && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
-		{
-			T val = bswap(data);
-
-			// We need to check both addresses before writing in case there's a DSI.
-			u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-			u32 tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
-			if (tlb_addr_next_page == 0)
-			{
-				if (flag == FLAG_WRITE)
-					GenerateDSIException(em_address_next_page, true);
+				mmio_mapping->Write(em_address, data);
 				return;
 			}
-			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++, val >>= 8)
-			{
-				if (addr == em_address_next_page)
-					tlb_addr = tlb_addr_next_page;
-				Memory::base[tlb_addr] = (u8)val;
-			}
 		}
-		else
+		else if (segment == 0x8 || segment == 0xC || segment == 0x0)
 		{
-			// The easy case!
-			*(T*)&Memory::base[tlb_addr] = bswap(data);
+			*(T*)&m_pRAM[em_address & RAM_MASK] = bswap(data);
+			return;
+		}
+		else if (m_pEXRAM && (segment == 0x9 || segment == 0xD || segment == 0x1))
+		{
+			*(T*)&m_pEXRAM[em_address & EXRAM_MASK] = bswap(data);
+			return;
+		}
+		else if (segment == 0xE && (em_address < (0xE0000000 + L1_CACHE_SIZE)))
+		{
+			*(T*)&m_pL1Cache[em_address & L1_CACHE_MASK] = bswap(data);
+			return;
 		}
 	}
+
+	if (bFakeVMEM && (segment == 0x7 || segment == 0x4))
+	{
+		// fake VMEM
+		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
+		return;
+	}
+
+	// MMU: Do page table translation
+	u32 tlb_addr = TranslateAddress<flag>(em_address);
+	if (tlb_addr == 0)
+	{
+		if (flag == FLAG_WRITE)
+			GenerateDSIException(em_address, true);
+		return;
+	}
+
+	// Handle stores that cross page boundaries (ewwww)
+	if (sizeof(T) > 1 && (em_address & (sizeof(T) - 1)) && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
+	{
+		T val = bswap(data);
+
+		// We need to check both addresses before writing in case there's a DSI.
+		u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
+		u32 tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
+		if (tlb_addr_next_page == 0)
+		{
+			if (flag == FLAG_WRITE)
+				GenerateDSIException(em_address_next_page, true);
+			return;
+		}
+		for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++, val >>= 8)
+		{
+			if (addr == em_address_next_page)
+				tlb_addr = tlb_addr_next_page;
+			Memory::base[tlb_addr] = (u8)val;
+		}
+		return;
+	}
+
+	// The easy case!
+	*(T*)&Memory::base[tlb_addr] = bswap(data);
 }
 // =====================
 
