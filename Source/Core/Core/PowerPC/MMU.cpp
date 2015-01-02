@@ -155,12 +155,6 @@ __forceinline static T ReadFromHardware(const u32 em_address)
 		}
 	}
 
-	if (Memory::bFakeVMEM && performTranslation && (segment == 0x7 || segment == 0x4))
-	{
-		// fake VMEM
-		return bswap((*(const T*)&Memory::m_pFakeVMEM[em_address & Memory::FAKEVMEM_MASK]));
-	}
-
 	if (!performTranslation)
 	{
 		if (flag == FLAG_READ && (em_address & 0xF8000000) == 0x08000000)
@@ -284,13 +278,6 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 		}
 	}
 
-	if (Memory::bFakeVMEM && performTranslation && (segment == 0x7 || segment == 0x4))
-	{
-		// fake VMEM
-		*(T*)&Memory::m_pFakeVMEM[em_address & Memory::FAKEVMEM_MASK] = bswap(data);
-		return;
-	}
-
 	if (!performTranslation)
 	{
 		if (flag == FLAG_WRITE && (em_address & 0xFFFFF000) == 0x0C008000)
@@ -396,7 +383,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 	if (UReg_MSR(MSR).IR)
 	{
 		// TODO: Use real translation.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & Memory::ADDR_MASK_MEM1))
+		if (address & Memory::ADDR_MASK_MEM1)
 		{
 			u32 tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
 			if (tlb_addr == 0)
@@ -419,11 +406,6 @@ TryReadInstResult TryReadInstruction(u32 address)
 			else if (segment == 0x9 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
 			{
 				address = address & 0x3FFFFFFF;
-			}
-			else if (Memory::bFakeVMEM && (segment == 0x7 || segment == 0x4))
-			{
-				u32 hex = bswap((*(const u32*)&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]));
-				return TryReadInstResult{ true, true, hex };
 			}
 			else
 			{
@@ -649,8 +631,6 @@ bool HostIsRAMAddress(u32 address)
 			return true;
 		else if (Memory::m_pEXRAM && (segment == 0x9 || segment == 0xD) && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
 			return true;
-		else if (Memory::bFakeVMEM && (segment == 0x7 || segment == 0x4))
-			return true;
 		else if (segment == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
 			return true;
 
@@ -866,13 +846,6 @@ union UPTE2
 
 static void GenerateDSIException(u32 effectiveAddress, bool write)
 {
-	// DSI exceptions are only supported in MMU mode.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-	{
-		PanicAlertT("Invalid %s to 0x%08x, PC = 0x%08x ", write ? "Write to" : "Read from", effectiveAddress, PC);
-		return;
-	}
-
 	if (effectiveAddress)
 		PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE | PPC_EXC_DSISR_STORE;
 	else

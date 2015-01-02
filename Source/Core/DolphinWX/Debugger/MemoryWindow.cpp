@@ -47,7 +47,6 @@ enum
 	IDM_SETVALBUTTON,
 	IDM_DUMP_MEMORY,
 	IDM_DUMP_MEM2,
-	IDM_DUMP_FAKEVMEM,
 	IDM_VALBOX,
 	IDM_U8,
 	IDM_U16,
@@ -64,7 +63,6 @@ BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
 	EVT_BUTTON(IDM_DUMP_MEMORY,     CMemoryWindow::OnDumpMemory)
 	EVT_BUTTON(IDM_DUMP_MEM2,       CMemoryWindow::OnDumpMem2)
-	EVT_BUTTON(IDM_DUMP_FAKEVMEM,   CMemoryWindow::OnDumpFakeVMEM)
 	EVT_CHECKBOX(IDM_U8,            CMemoryWindow::U8)
 	EVT_CHECKBOX(IDM_U16,           CMemoryWindow::U16)
 	EVT_CHECKBOX(IDM_U32,           CMemoryWindow::U32)
@@ -99,9 +97,6 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->AddSpacer(5);
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("&Dump MRAM")));
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("&Dump EXRAM")));
-
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("&Dump FakeVMEM")));
 
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
 
@@ -271,12 +266,6 @@ void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
 	{
 		DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), DSP::GetARAMPtr(), DSP::ARAM_SIZE);
 	}
-}
-
-// Write fake vmem to file
-void CMemoryWindow::OnDumpFakeVMEM( wxCommandEvent& event )
-{
-	DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), Memory::m_pFakeVMEM, Memory::FAKEVMEM_SIZE);
 }
 
 void CMemoryWindow::U8(wxCommandEvent& event)

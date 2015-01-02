@@ -172,7 +172,6 @@ struct SCoreStartupParameter
 	bool bRunCompareServer;
 	bool bRunCompareClient;
 
-	bool bMMU;
 	bool bDCBZOFF;
 	int iBBDumpPort;
 	bool bSyncGPU;

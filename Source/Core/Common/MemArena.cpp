@@ -167,8 +167,6 @@ u8* MemArena::FindMemoryBase()
 #define SKIP(a_flags, b_flags) \
 	if (!(a_flags & MV_WII_ONLY) && (b_flags & MV_WII_ONLY)) \
 		continue; \
-	if (!(a_flags & MV_FAKE_VMEM) && (b_flags & MV_FAKE_VMEM)) \
-		continue; \
 
 static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
