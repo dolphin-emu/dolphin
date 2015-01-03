@@ -257,8 +257,8 @@ void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
 void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF);
-DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
-	u32 DVD_length, u32 output_length, bool decrypt);
+void ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length,
+                        u32 output_length, bool decrypt, DVDCommandResult* result);
 
 u64 SimulateDiscReadTime(u64 offset, u32 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
@@ -602,33 +602,31 @@ void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF)
 		Memory::Write_U32(value, output_address);
 }
 
-DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
-                                    u32 DVD_length, u32 output_length, bool decrypt)
+void ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length,
+                        u32 output_length, bool decrypt, DVDCommandResult* result)
 {
+	if (!g_bDiscInside)
+	{
+		g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
+		result->interrupt_type = INT_DEINT;
+		return;
+	}
+
 	if (DVD_length > output_length)
 	{
 		WARN_LOG(DVDINTERFACE, "Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
 		DVD_length = output_length;
 	}
 
-	DVDCommandResult result;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
-		result.ticks_until_completion = 0;	// An optional hack to speed up loading times
+		result->ticks_until_completion = 0;	// An optional hack to speed up loading times
 	else
-		result.ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
-
-	if (!g_bDiscInside)
-	{
-		g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
-		result.interrupt_type = INT_DEINT;
-		return result;
-	}
+		result->ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
 	if (!DVDRead(DVD_offset, output_address, DVD_length, decrypt))
 		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 
-	result.interrupt_type = INT_TCINT;
-	return result;
+	result->interrupt_type = INT_TCINT;
 }
 
 DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
@@ -681,13 +679,13 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 	// Only seems to be used from WII_IPC, not through direct access
 	case DVDLowReadDiskID:
 		INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
-		result = ExecuteReadCommand(0, output_address, 0x20, output_length, false);
+		ExecuteReadCommand(0, output_address, 0x20, output_length, false, &result);
 		break;
 
 	// Only used from WII_IPC. This is the only read command that decrypts data
 	case DVDLowRead:
 		INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
-		result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true);
+		ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true, &result);
 		break;
 
 	// Probably only used by Wii
@@ -766,7 +764,7 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 			(command_2 > 0x7ed40000 && command_2 < 0x7ed40008) ||
 			(((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
 		{
-			result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, false);
+			ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, false, &result);
 		}
 		else
 		{
@@ -862,13 +860,13 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 					}
 				}
 
-				result = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false);
+				ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false, &result);
 			}
 			break;
 
 		case 0x40: // Read DiscID
 			INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
-			result = ExecuteReadCommand(0, output_address, 0x20, output_length, false);
+			ExecuteReadCommand(0, output_address, 0x20, output_length, false, &result);
 			break;
 
 		default:
