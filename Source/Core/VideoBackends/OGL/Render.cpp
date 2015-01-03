@@ -2278,6 +2278,10 @@ void Renderer::RestoreAPIState()
 		glBindVertexArray(vm->m_last_vao);
 
 	TextureCache::SetStage();
+	if (g_ActiveConfig.bDisableNearClipping)
+		glEnable(GL_DEPTH_CLAMP);
+	else
+		glDisable(GL_DEPTH_CLAMP);
 }
 
 void Renderer::SetGenerationMode()

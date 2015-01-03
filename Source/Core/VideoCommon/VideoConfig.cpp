@@ -74,6 +74,7 @@ VideoConfig::VideoConfig()
 	bSRGB = false;
 	bOverdrive = true;
 	bHqDistortion = false;
+	bDisableNearClipping = true;
 	iVRPlayer = 0;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
@@ -198,6 +199,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("sRGB", &bSRGB, false);
 	vr->Get("Overdrive", &bOverdrive, true);
 	vr->Get("HQDistortion", &bHqDistortion, false);
+	vr->Get("DisableNearClipping", &bDisableNearClipping, true);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
@@ -590,6 +592,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("sRGB", bSRGB);
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
+	vr->Set("DisableNearClipping", bDisableNearClipping);
 	vr->Set("Player", iVRPlayer);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);

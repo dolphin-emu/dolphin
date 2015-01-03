@@ -340,3 +340,4 @@ static wxString srgb_desc = wxTRANSLATE("\"Assume input images are in sRGB gamma
 static wxString overdrive_desc = wxTRANSLATE("Try to fix true black smearing by overdriving brightness transitions.\n\nIf unsure, leave this unchecked.");
 static wxString hqdistortion_desc = wxTRANSLATE("\"High-quality sampling of distortion buffer for anti-aliasing\".\n\nIf unsure, leave this unchecked.");
 static wxString hudontop_desc = wxTRANSLATE("Always draw the HUD on top of everything else.\nUse this when you can't see the HUD because the world is covering it up.\n\nIf unsure, leave this unchecked.");
+static wxString nearclip_desc = wxTRANSLATE("Always draw things which are close to the camera.\nOnly works in OpenGL.\nThis fixes the problem of things disappearing when you move your head close.\n\nIf unsure, leave this checked.");

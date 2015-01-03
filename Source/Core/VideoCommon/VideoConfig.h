@@ -163,6 +163,7 @@ struct VideoConfig final
 	bool bSRGB;
 	bool bOverdrive;
 	bool bHqDistortion;
+	bool bDisableNearClipping;
 	int iVRPlayer;
 	float fTimeWarpTweak;
 	u32 iExtraFrames;
