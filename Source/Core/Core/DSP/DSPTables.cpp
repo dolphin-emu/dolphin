@@ -261,11 +261,11 @@ const DSPOPCTemplate opcodes[] =
 	{"MULMV",    0x9600, 0xf600, DSPInterpreter::mulmv,   &DSPEmitter::mulmv,  1, 3, {{P_REG18, 1, 0, 11, 0x0800},  {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR = $prod; $prod = $axS.l * $axS.h
 
 	//a-b
-	{"MULX",     0xa000, 0xe700, DSPInterpreter::mulx,    &DSPEmitter::mulx,   1, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}},                           true, false, false, false, true}, // $prod = $ax0.S * $ax1.T
+	{"MULX",     0xa000, 0xe700, DSPInterpreter::mulx,    &DSPEmitter::mulx,   1, 2, {{P_REGM18, 1, 0, 12, 0x1000}, {P_REGM19, 1, 0, 11, 0x0800}},                           true, false, false, false, true}, // $prod = $ax0.S * $ax1.T
 	{"ABS",      0xa100, 0xf700, DSPInterpreter::abs,     &DSPEmitter::abs,    1, 1, {{P_ACC,    1, 0, 11, 0x0800}},                                                         true, false, false, false, true}, // $acD = abs($acD)
-	{"MULXMVZ",  0xa200, 0xe600, DSPInterpreter::mulxmvz, &DSPEmitter::mulxmvz,1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR.hm = $prod.hm; $acR.l = 0; $prod = $ax0.S * $ax1.T
-	{"MULXAC",   0xa400, 0xe600, DSPInterpreter::mulxac,  &DSPEmitter::mulxac, 1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR += $prod; $prod = $ax0.S * $ax1.T
-	{"MULXMV",   0xa600, 0xe600, DSPInterpreter::mulxmv,  &DSPEmitter::mulxmv, 1, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR = $prod; $prod = $ax0.S * $ax1.T
+	{"MULXMVZ",  0xa200, 0xe600, DSPInterpreter::mulxmvz, &DSPEmitter::mulxmvz,1, 3, {{P_REGM18, 1, 0, 12, 0x1000}, {P_REGM19, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR.hm = $prod.hm; $acR.l = 0; $prod = $ax0.S * $ax1.T
+	{"MULXAC",   0xa400, 0xe600, DSPInterpreter::mulxac,  &DSPEmitter::mulxac, 1, 3, {{P_REGM18, 1, 0, 12, 0x1000}, {P_REGM19, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR += $prod; $prod = $ax0.S * $ax1.T
+	{"MULXMV",   0xa600, 0xe600, DSPInterpreter::mulxmv,  &DSPEmitter::mulxmv, 1, 3, {{P_REGM18, 1, 0, 12, 0x1000}, {P_REGM19, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR = $prod; $prod = $ax0.S * $ax1.T
 	{"TST",      0xb100, 0xf700, DSPInterpreter::tst,     &DSPEmitter::tst,    1, 1, {{P_ACC,    1, 0, 11, 0x0800}},                                                         true, false, false, false, true}, // FLAGS($acR)
 
 	//c-d
@@ -276,10 +276,10 @@ const DSPOPCTemplate opcodes[] =
 	{"MULCMV",   0xc600, 0xe600, DSPInterpreter::mulcmv,  &DSPEmitter::mulcmv, 1, 3, {{P_ACCM, 1, 0, 12, 0x1000},   {P_REG1A, 1, 0, 11, 0x0800},  {P_ACC, 1, 0, 8, 0x0100}}, true, false, false, false, true}, // $acR, $prod = $prod, $acS.m * $axS.h
 
 	//e
-	{"MADDX",    0xe000, 0xfc00, DSPInterpreter::maddx,   &DSPEmitter::maddx,  1, 2, {{P_REGM18, 1, 0, 8, 0x0200},  {P_REGM19, 1, 0, 7, 0x0100}},                            true, false, false, false, true}, // $prod += $ax0.S * $ax1.T
-	{"MSUBX",    0xe400, 0xfc00, DSPInterpreter::msubx,   &DSPEmitter::msubx,  1, 2, {{P_REGM18, 1, 0, 8, 0x0200},  {P_REGM19, 1, 0, 7, 0x0100}},                            true, false, false, false, true}, // $prod -= $ax0.S * $ax1.T
-	{"MADDC",    0xe800, 0xfc00, DSPInterpreter::maddc,   &DSPEmitter::maddc,  1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19, 1, 0, 7, 0x0100}},                             true, false, false, false, true}, // $prod += $acS.m * $axT.h
-	{"MSUBC",    0xec00, 0xfc00, DSPInterpreter::msubc,   &DSPEmitter::msubc,  1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19, 1, 0, 7, 0x0100}},                             true, false, false, false, true}, // $prod -= $acS.m * $axT.h
+	{"MADDX",    0xe000, 0xfc00, DSPInterpreter::maddx,   &DSPEmitter::maddx,  1, 2, {{P_REGM18, 1, 0, 9, 0x0200},  {P_REGM19, 1, 0, 8, 0x0100}},                            true, false, false, false, true}, // $prod += $ax0.S * $ax1.T
+	{"MSUBX",    0xe400, 0xfc00, DSPInterpreter::msubx,   &DSPEmitter::msubx,  1, 2, {{P_REGM18, 1, 0, 9, 0x0200},  {P_REGM19, 1, 0, 8, 0x0100}},                            true, false, false, false, true}, // $prod -= $ax0.S * $ax1.T
+	{"MADDC",    0xe800, 0xfc00, DSPInterpreter::maddc,   &DSPEmitter::maddc,  1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19,  1, 0, 8, 0x0100}},                            true, false, false, false, true}, // $prod += $acS.m * $axT.h
+	{"MSUBC",    0xec00, 0xfc00, DSPInterpreter::msubc,   &DSPEmitter::msubc,  1, 2, {{P_ACCM,   1, 0, 9, 0x0200},  {P_REG19,  1, 0, 8, 0x0100}},                            true, false, false, false, true}, // $prod -= $acS.m * $axT.h
 
 	//f
 	{"LSL16",    0xf000, 0xfe00, DSPInterpreter::lsl16,   &DSPEmitter::lsl16,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false, false, true}, // $acR <<= 16
@@ -325,10 +325,10 @@ const DSPOPCTemplate opcodes_ext[] =
 	{"LDAXM",  0x00cb, 0x00cf, DSPInterpreter::Ext::ldaxm,  &DSPEmitter::ldaxm,  1, 2, {{P_AX, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, false, false, false, false, false}, // $axR.h = MEM[$arS++]; $axR.l = MEM[$ar3]; $ar3 += $ix3
 	{"LDAXNM", 0x00cf, 0x00cf, DSPInterpreter::Ext::ldaxnm, &DSPEmitter::ldaxnm, 1, 2, {{P_AX, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 5, 0x0020}}, false, false, false, false, false}, // $axR.h = MEM[$arS]; $axR.l = MEM[$ar3]; $arS += $ixS; $ar3 += $ix3
 
-	{"LD",     0x00c0, 0x00cc, DSPInterpreter::Ext::ld,   &DSPEmitter::ld,   1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS++]; $ax1.R = MEM[$ar3++]
-	{"LDN",    0x00c4, 0x00cc, DSPInterpreter::Ext::ldn,  &DSPEmitter::ldn,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS]; $ax1.R = MEM[$ar3++]; $arS += $ixS
-	{"LDM",    0x00c8, 0x00cc, DSPInterpreter::Ext::ldm,  &DSPEmitter::ldm,  1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS++]; $ax1.R = MEM[$ar3]; $ar3 += $ix3
-	{"LDNM",   0x00cc, 0x00cc, DSPInterpreter::Ext::ldnm, &DSPEmitter::ldnm, 1, 3, {{P_REGM18, 1, 0, 4, 0x0020}, {P_REGM19, 1, 0, 3, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS]; $ax1.R = MEM[$ar3]; $arS += $ixS; $ar3 += $ix3
+	{"LD",     0x00c0, 0x00cc, DSPInterpreter::Ext::ld,   &DSPEmitter::ld,   1, 3, {{P_REGM18, 1, 0, 5, 0x0020}, {P_REGM19, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS++]; $ax1.R = MEM[$ar3++]
+	{"LDN",    0x00c4, 0x00cc, DSPInterpreter::Ext::ldn,  &DSPEmitter::ldn,  1, 3, {{P_REGM18, 1, 0, 5, 0x0020}, {P_REGM19, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS]; $ax1.R = MEM[$ar3++]; $arS += $ixS
+	{"LDM",    0x00c8, 0x00cc, DSPInterpreter::Ext::ldm,  &DSPEmitter::ldm,  1, 3, {{P_REGM18, 1, 0, 5, 0x0020}, {P_REGM19, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS++]; $ax1.R = MEM[$ar3]; $ar3 += $ix3
+	{"LDNM",   0x00cc, 0x00cc, DSPInterpreter::Ext::ldnm, &DSPEmitter::ldnm, 1, 3, {{P_REGM18, 1, 0, 5, 0x0020}, {P_REGM19, 1, 0, 4, 0x0010}, {P_PRG, 1, 0, 0, 0x0003}}, false, false, false, false, false}, // $ax0.D = MEM[$arS]; $ax1.R = MEM[$ar3]; $arS += $ixS; $ar3 += $ix3
 };
 
 const int opcodes_size = sizeof(opcodes) / sizeof(DSPOPCTemplate);
