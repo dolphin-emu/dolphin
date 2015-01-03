@@ -284,9 +284,9 @@ __forceinline void WriteToHardware(u32 em_address, const T data)
 
 static void GenerateISIException(u32 effective_address);
 
-u32 Read_Opcode(u32 _Address)
+u32 Read_Opcode(u32 address)
 {
-	if (_Address == 0x00000000)
+	if (address == 0x00000000)
 	{
 		// FIXME use assert?
 		PanicAlert("Program tried to read an opcode from [00000000]. It has crashed.");
@@ -294,22 +294,22 @@ u32 Read_Opcode(u32 _Address)
 	}
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
-		(_Address & ADDR_MASK_MEM1))
+		(address & ADDR_MASK_MEM1))
 	{
 		// TODO: Check for MSR instruction address translation flag before translating
-		u32 tlb_addr = TranslateAddress<FLAG_OPCODE>(_Address);
+		u32 tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
 		if (tlb_addr == 0)
 		{
-			GenerateISIException(_Address);
+			GenerateISIException(address);
 			return 0;
 		}
 		else
 		{
-			_Address = tlb_addr;
+			address = tlb_addr;
 		}
 	}
 
-	return PowerPC::ppcState.iCache.ReadInstruction(_Address);
+	return PowerPC::ppcState.iCache.ReadInstruction(address);
 }
 
 static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
@@ -553,21 +553,21 @@ union UPTE2
 	u32 Hex;
 };
 
-static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
+static void GenerateDSIException(u32 effectiveAddress, bool write)
 {
 	// DSI exceptions are only supported in MMU mode.
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
-		PanicAlertT("Invalid %s to 0x%08x, PC = 0x%08x ", _bWrite ? "Write to" : "Read from", _EffectiveAddress, PC);
+		PanicAlertT("Invalid %s to 0x%08x, PC = 0x%08x ", write ? "Write to" : "Read from", effectiveAddress, PC);
 		return;
 	}
 
-	if (_bWrite)
+	if (effectiveAddress)
 		PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE | PPC_EXC_DSISR_STORE;
 	else
 		PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE;
 
-	PowerPC::ppcState.spr[SPR_DAR] = _EffectiveAddress;
+	PowerPC::ppcState.spr[SPR_DAR] = effectiveAddress;
 
 	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
 }
@@ -614,14 +614,14 @@ enum TLBLookupResult
 	TLB_UPDATE_C
 };
 
-static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
+static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32 *paddr)
 {
 	int tag = vpa >> HW_PAGE_INDEX_SHIFT;
-	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
 	if (tlbe->tag[0] == tag)
 	{
 		// Check if C bit requires updating
-		if (_Flag == FLAG_WRITE)
+		if (flag == FLAG_WRITE)
 		{
 			UPTE2 PTE2;
 			PTE2.Hex = tlbe->pte[0];
@@ -633,7 +633,7 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag _F
 			}
 		}
 
-		if (_Flag != FLAG_NO_EXCEPTION)
+		if (flag != FLAG_NO_EXCEPTION)
 			tlbe->recent = 0;
 
 		*paddr = tlbe->paddr[0] | (vpa & 0xfff);
@@ -643,7 +643,7 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag _F
 	if (tlbe->tag[1] == tag)
 	{
 		// Check if C bit requires updating
-		if (_Flag == FLAG_WRITE)
+		if (flag == FLAG_WRITE)
 		{
 			UPTE2 PTE2;
 			PTE2.Hex = tlbe->pte[1];
@@ -655,7 +655,7 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag _F
 			}
 		}
 
-		if (_Flag != FLAG_NO_EXCEPTION)
+		if (flag != FLAG_NO_EXCEPTION)
 			tlbe->recent = 1;
 
 		*paddr = tlbe->paddr[1] | (vpa & 0xfff);
@@ -665,13 +665,13 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag _F
 	return TLB_NOTFOUND;
 }
 
-static __forceinline void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
+static __forceinline void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
 {
-	if (_Flag == FLAG_NO_EXCEPTION)
+	if (flag == FLAG_NO_EXCEPTION)
 		return;
 
-	int tag = vpa >> HW_PAGE_INDEX_SHIFT;
-	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
+	int tag = address >> HW_PAGE_INDEX_SHIFT;
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
 	int index = tlbe->recent == 0 && tlbe->tag[0] != TLB_TAG_INVALID;
 	tlbe->recent = index;
 	tlbe->paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
@@ -679,33 +679,33 @@ static __forceinline void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, 
 	tlbe->tag[index] = tag;
 }
 
-void InvalidateTLBEntry(u32 vpa)
+void InvalidateTLBEntry(u32 address)
 {
-	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[0][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[0][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
 	tlbe->tag[0] = TLB_TAG_INVALID;
 	tlbe->tag[1] = TLB_TAG_INVALID;
-	PowerPC::tlb_entry *tlbe_i = &PowerPC::ppcState.tlb[1][(vpa >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	PowerPC::tlb_entry *tlbe_i = &PowerPC::ppcState.tlb[1][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
 	tlbe_i->tag[0] = TLB_TAG_INVALID;
 	tlbe_i->tag[1] = TLB_TAG_INVALID;
 }
 
 // Page Address Translation
-static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
+static __forceinline u32 TranslatePageAddress(const u32 address, const XCheckTLBFlag flag)
 {
 	// TLB cache
 	// This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't benefit
 	// much from optimization.
 	u32 translatedAddress = 0;
-	TLBLookupResult res = LookupTLBPageAddress(_Flag, _Address, &translatedAddress);
+	TLBLookupResult res = LookupTLBPageAddress(flag , address, &translatedAddress);
 	if (res == TLB_FOUND)
 		return translatedAddress;
 
-	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)];
+	u32 sr = PowerPC::ppcState.sr[EA_SR(address)];
 
-	u32 offset = EA_Offset(_Address);        // 12 bit
-	u32 page_index = EA_PageIndex(_Address); // 16 bit
+	u32 offset = EA_Offset(address);        // 12 bit
+	u32 page_index = EA_PageIndex(address); // 16 bit
 	u32 VSID = SR_VSID(sr);                  // 24 bit
-	u32 api = EA_API(_Address);              //  6 bit (part of page_index)
+	u32 api = EA_API(address);              //  6 bit (part of page_index)
 
 	// Direct access to the fastmem Arena
 	// FIXME: is this the best idea for clean code?
@@ -734,7 +734,7 @@ static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTL
 				PTE2.Hex = bswap((*(u32*)&base_mem[(pteg_addr + 4)]));
 
 				// set the access bits
-				switch (_Flag)
+				switch (flag)
 				{
 				case FLAG_NO_EXCEPTION: break;
 				case FLAG_READ:     PTE2.R = 1; break;
@@ -742,12 +742,12 @@ static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTL
 				case FLAG_OPCODE:   PTE2.R = 1; break;
 				}
 
-				if (_Flag != FLAG_NO_EXCEPTION)
+				if (flag != FLAG_NO_EXCEPTION)
 					*(u32*)&base_mem[(pteg_addr + 4)] = bswap(PTE2.Hex);
 
 				// We already updated the TLB entry if this was caused by a C bit.
 				if (res != TLB_UPDATE_C)
-					UpdateTLBEntry(_Flag, PTE2, _Address);
+					UpdateTLBEntry(flag, PTE2, address);
 
 				return (PTE2.RPN << 12) | offset;
 			}
@@ -793,7 +793,7 @@ static inline bool CheckAddrBats(const u32 addr, u32* result, u32 batu, u32 spr)
 }
 
 // Block Address Translation
-static u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
+static u32 TranslateBlockAddress(const u32 address, const XCheckTLBFlag flag)
 {
 	u32 result = 0;
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -802,22 +802,22 @@ static u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
 	// Check for enhanced mode (secondary BAT enable) using 8 BATs
 	bool enhanced_bats = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && HID4.SBE;
 
-	if (_Flag != FLAG_OPCODE)
+	if (flag != FLAG_OPCODE)
 	{
-		if (!CheckAddrBats(addr, &result, batu, SPR_DBAT0U) && enhanced_bats)
-			CheckAddrBats(addr, &result, batu, SPR_DBAT4U);
+		if (!CheckAddrBats(address, &result, batu, SPR_DBAT0U) && enhanced_bats)
+			CheckAddrBats(address, &result, batu, SPR_DBAT4U);
 	}
 	else
 	{
-		if (!CheckAddrBats(addr, &result, batu, SPR_IBAT0U) && enhanced_bats)
-			CheckAddrBats(addr, &result, batu, SPR_IBAT4U);
+		if (!CheckAddrBats(address, &result, batu, SPR_IBAT0U) && enhanced_bats)
+			CheckAddrBats(address, &result, batu, SPR_IBAT4U);
 	}
 	return result;
 }
 
 // Translate effective address using BAT or PAT.  Returns 0 if the address cannot be translated.
-template <const XCheckTLBFlag _Flag>
-u32 TranslateAddress(const u32 _Address)
+template <const XCheckTLBFlag flag>
+u32 TranslateAddress(const u32 address)
 {
 	// Check MSR[IR] bit before translating instruction addresses.  Rogue Leader clears IR and DR??
 	//if ((_Flag == FLAG_OPCODE) && !(MSR & (1 << (31 - 26)))) return _Address;
@@ -829,15 +829,15 @@ u32 TranslateAddress(const u32 _Address)
 	// so only do it where it's really needed.
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bBAT)
 	{
-		u32 tlb_addr = TranslateBlockAddress(_Address, _Flag);
+		u32 tlb_addr = TranslateBlockAddress(address, flag);
 		if (tlb_addr)
 			return tlb_addr;
 	}
-	return TranslatePageAddress(_Address, _Flag);
+	return TranslatePageAddress(address, flag);
 }
 
-template u32 TranslateAddress<Memory::FLAG_NO_EXCEPTION>(const u32 _Address);
-template u32 TranslateAddress<Memory::FLAG_READ>(const u32 _Address);
-template u32 TranslateAddress<Memory::FLAG_WRITE>(const u32 _Address);
-template u32 TranslateAddress<Memory::FLAG_OPCODE>(const u32 _Address);
+template u32 TranslateAddress<Memory::FLAG_NO_EXCEPTION>(const u32 address);
+template u32 TranslateAddress<Memory::FLAG_READ>(const u32 address);
+template u32 TranslateAddress<Memory::FLAG_WRITE>(const u32 address);
+template u32 TranslateAddress<Memory::FLAG_OPCODE>(const u32 address);
 } // namespace

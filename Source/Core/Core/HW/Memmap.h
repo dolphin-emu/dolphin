@@ -74,19 +74,19 @@ void Clear();
 bool AreMemoryBreakpointsActivated();
 
 // ONLY for use by GUI
-u8 ReadUnchecked_U8(const u32 _Address);
-u32 ReadUnchecked_U32(const u32 _Address);
+u8 ReadUnchecked_U8(const u32 address);
+u32 ReadUnchecked_U32(const u32 address);
 
-void WriteUnchecked_U8(const u8 _Data, const u32 _Address);
-void WriteUnchecked_U32(const u32 _Data, const u32 _Address);
+void WriteUnchecked_U8(const u8 var, const u32 address);
+void WriteUnchecked_U32(const u32 var, const u32 address);
 
-bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false, bool allow_fake_vmem = false);
+bool IsRAMAddress(const u32 address, bool allow_locked_cache = false, bool allow_fake_vmem = false);
 
 // used by interpreter to read instructions, uses iCache
-u32 Read_Opcode(const u32 _Address);
+u32 Read_Opcode(const u32 address);
 // this is used by Debugger a lot.
 // For now, just reads from memory!
-u32 Read_Instruction(const u32 _Address);
+u32 Read_Instruction(const u32 address);
 
 
 // For use by emulator
@@ -118,13 +118,13 @@ void Write_F64(const double var, const u32 address);
 
 std::string GetString(u32 em_address, size_t size = 0);
 
-u8* GetPointer(const u32 _Address);
-void DMA_LCToMemory(const u32 _iMemAddr, const u32 _iCacheAddr, const u32 _iNumBlocks);
-void DMA_MemoryToLC(const u32 _iCacheAddr, const u32 _iMemAddr, const u32 _iNumBlocks);
+u8* GetPointer(const u32 address);
+void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks);
+void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks);
 void CopyFromEmu(void* data, u32 address, size_t size);
 void CopyToEmu(u32 address, const void* data, size_t size);
-void Memset(const u32 _Address, const u8 _Data, const u32 _iLength);
-void ClearCacheLine(const u32 _Address); // Zeroes 32 bytes; address should be 32-byte-aligned
+void Memset(const u32 address, const u8 var, const u32 length);
+void ClearCacheLine(const u32 address); // Zeroes 32 bytes; address should be 32-byte-aligned
 
 // TLB functions
 void SDRUpdated();
@@ -135,8 +135,8 @@ enum XCheckTLBFlag
 	FLAG_WRITE,
 	FLAG_OPCODE,
 };
-template <const XCheckTLBFlag _Flag> u32 TranslateAddress(const u32 _Address);
-void InvalidateTLBEntry(u32 _Address);
+template <const XCheckTLBFlag flag> u32 TranslateAddress(const u32 address);
+void InvalidateTLBEntry(u32 address);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
 }
