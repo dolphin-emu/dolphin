@@ -82,6 +82,9 @@ protected:
 		bool carryFlagInverted;
 		bool next_inst_bp;
 
+		std::array<bool, 8> immediateGQR;
+		std::array<u32, 8> immediateGQRVal;
+
 		int fifoBytesThisBlock;
 
 		PPCAnalyst::BlockStats st;
