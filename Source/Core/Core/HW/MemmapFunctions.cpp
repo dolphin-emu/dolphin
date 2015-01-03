@@ -92,8 +92,8 @@ static u32 EFB_Read(const u32 addr)
 
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
-template <XCheckTLBFlag flag, typename T, typename U>
-__forceinline void ReadFromHardware(U &_var, const u32 em_address)
+template <XCheckTLBFlag flag, typename T>
+__forceinline T ReadFromHardware(const u32 em_address)
 {
 	int segment = em_address >> 28;
 	// Quick check for an address that can't meet any of the following conditions,
@@ -104,33 +104,28 @@ __forceinline void ReadFromHardware(U &_var, const u32 em_address)
 		if ((em_address & 0xC8000000) == 0xC8000000)
 		{
 			if (em_address < 0xcc000000)
-				_var = EFB_Read(em_address);
+				return EFB_Read(em_address);
 			else
-				_var = (T)mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
-			return;
+				return (T)mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
 		}
 		else if (segment == 0x8 || segment == 0xC || segment == 0x0)
 		{
-			_var = bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
-			return;
+			return bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
 		}
 		else if (m_pEXRAM && (segment == 0x9 || segment == 0xD || segment == 0x1))
 		{
-			_var = bswap((*(const T*)&m_pEXRAM[em_address & EXRAM_MASK]));
-			return;
+			return bswap((*(const T*)&m_pEXRAM[em_address & EXRAM_MASK]));
 		}
 		else if (segment == 0xE && (em_address < (0xE0000000 + L1_CACHE_SIZE)))
 		{
-			_var = bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
-			return;
+			return bswap((*(const T*)&m_pL1Cache[em_address & L1_CACHE_MASK]));
 		}
 	}
 
 	if (bFakeVMEM && (segment == 0x7 || segment == 0x4))
 	{
 		// fake VMEM
-		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
-		return;
+		return bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
 	}
 
 	// MMU: Do page table translation
@@ -139,7 +134,7 @@ __forceinline void ReadFromHardware(U &_var, const u32 em_address)
 	{
 		if (flag == FLAG_READ)
 			GenerateDSIException(em_address, false);
-		return;
+		return 0;
 	}
 
 	// Handle loads that cross page boundaries (ewwww)
@@ -157,20 +152,20 @@ __forceinline void ReadFromHardware(U &_var, const u32 em_address)
 		{
 			if (flag == FLAG_READ)
 				GenerateDSIException(em_address_next_page, false);
-			return;
+			return 0;
 		}
-		_var = 0;
+		T var = 0;
 		for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
 		{
 			if (addr == em_address_next_page)
 				tlb_addr = tlb_addr_next_page;
-			_var = (_var << 8) | Memory::base[tlb_addr];
+			var = (var << 8) | Memory::base[tlb_addr];
 		}
-		return;
+		return var;
 	}
 
 	// The easy case!
-	_var = bswap(*(const T*)&Memory::base[tlb_addr]);
+	return bswap(*(const T*)&Memory::base[tlb_addr]);
 }
 
 
@@ -331,32 +326,28 @@ static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
 
 u8 Read_U8(const u32 address)
 {
-	u8 var = 0;
-	ReadFromHardware<FLAG_READ, u8>(var, address);
+	u8 var = ReadFromHardware<FLAG_READ, u8>(address);
 	Memcheck(address, var, false, 1);
 	return (u8)var;
 }
 
 u16 Read_U16(const u32 address)
 {
-	u16 var = 0;
-	ReadFromHardware<FLAG_READ, u16>(var, address);
+	u16 var = ReadFromHardware<FLAG_READ, u16>(address);
 	Memcheck(address, var, false, 2);
 	return (u16)var;
 }
 
 u32 Read_U32(const u32 address)
 {
-	u32 var = 0;
-	ReadFromHardware<FLAG_READ, u32>(var, address);
+	u32 var = ReadFromHardware<FLAG_READ, u32>(address);
 	Memcheck(address, var, false, 4);
 	return var;
 }
 
 u64 Read_U64(const u32 address)
 {
-	u64 var = 0;
-	ReadFromHardware<FLAG_READ, u64>(var, address);
+	u64 var = ReadFromHardware<FLAG_READ, u64>(address);
 	Memcheck(address, (u32)var, false, 8);
 	return var;
 }
@@ -383,48 +374,6 @@ float Read_F32(const u32 address)
 
 	cvt.i = Read_U32(address);
 	return cvt.d;
-}
-
-u32 Read_U8_Val(const u32 address, u32 var)
-{
-	ReadFromHardware<FLAG_READ, u8>(var, address);
-	Memcheck(address, var, false, 1);
-	return var;
-}
-
-u32 Read_S8_Val(const u32 address, u32 var)
-{
-	ReadFromHardware<FLAG_READ, s8>(var, address);
-	Memcheck(address, var, false, 1);
-	return var;
-}
-
-u32 Read_U16_Val(const u32 address, u32 var)
-{
-	ReadFromHardware<FLAG_READ, u16>(var, address);
-	Memcheck(address, var, false, 2);
-	return var;
-}
-
-u32 Read_S16_Val(const u32 address, u32 var)
-{
-	ReadFromHardware<FLAG_READ, s16>(var, address);
-	Memcheck(address, var, false, 2);
-	return var;
-}
-
-u32 Read_U32_Val(const u32 address, u32 var)
-{
-	ReadFromHardware<FLAG_READ, u32>(var, address);
-	Memcheck(address, var, false, 4);
-	return var;
-}
-
-u64 Read_U64_Val(const u32 address, u64 var)
-{
-	ReadFromHardware<FLAG_READ, u64>(var, address);
-	Memcheck(address, (u32)var, false, 8);
-	return var;
 }
 
 u32 Read_U8_ZX(const u32 address)
@@ -489,16 +438,14 @@ void Write_F64(const double var, const u32 address)
 }
 u8 ReadUnchecked_U8(const u32 address)
 {
-	u8 var = 0;
-	ReadFromHardware<FLAG_NO_EXCEPTION, u8>(var, address);
+	u8 var = ReadFromHardware<FLAG_NO_EXCEPTION, u8>(address);
 	return var;
 }
 
 
 u32 ReadUnchecked_U32(const u32 address)
 {
-	u32 var = 0;
-	ReadFromHardware<FLAG_NO_EXCEPTION, u32>(var, address);
+	u32 var = ReadFromHardware<FLAG_NO_EXCEPTION, u32>(address);
 	return var;
 }
 

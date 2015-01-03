@@ -66,7 +66,12 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 	}
 
 	fpr.Lock(d);
-	fpr.BindToRegister(d, js.memcheck || !single);
+	if (js.memcheck && single)
+	{
+		fpr.StoreFromRegister(d);
+		js.revertFprLoad = d;
+	}
+	fpr.BindToRegister(d, !single);
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	if (update && js.memcheck)
 		registersInUse[RSCRATCH2] = true;

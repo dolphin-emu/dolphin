@@ -42,39 +42,58 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, B
 	const u8* trampoline = GetCodePtr();
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
-	registersInUse[addrReg] = true;
-	registersInUse[dataReg] = false;
+	int stack_offset = 0;
+	bool push_param1 = registersInUse[ABI_PARAM1];
 
-	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+	if (push_param1)
+	{
+		PUSH(ABI_PARAM1);
+		stack_offset = 8;
+		registersInUse[ABI_PARAM1] = 0;
+	}
 
 	int dataRegSize = info.operandSize == 8 ? 64 : 32;
-	MOVTwo(dataRegSize, ABI_PARAM1, addrReg, info.displacement, ABI_PARAM2, dataReg);
+	if (addrReg != ABI_PARAM1 && info.displacement)
+		LEA(32, ABI_PARAM1, MDisp(addrReg, info.displacement));
+	else if (addrReg != ABI_PARAM1)
+		MOV(32, R(ABI_PARAM1), R(addrReg));
+	else if (info.displacement)
+		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
+
+	ABI_PushRegistersAndAdjustStack(registersInUse, stack_offset);
 
 	switch (info.operandSize)
 	{
 	case 8:
-		CALL((void *)&Memory::Read_U64_Val);
+		CALL((void *)&Memory::Read_U64);
 		break;
 	case 4:
-		CALL((void *)&Memory::Read_U32_Val);
+		CALL((void *)&Memory::Read_U32);
 		break;
 	case 2:
-		CALL(info.signExtend ? (void *)&Memory::Read_S16_Val : (void *)&Memory::Read_U16_Val);
+		CALL((void *)&Memory::Read_U16);
 		break;
 	case 1:
-		CALL(info.signExtend ? (void *)&Memory::Read_S8_Val : (void *)&Memory::Read_U8_Val);
+		CALL((void *)&Memory::Read_U8);
 		break;
 	}
 
-	if (dataReg != ABI_RETURN)
-		MOV(dataRegSize, R(dataReg), R(ABI_RETURN));
+	ABI_PopRegistersAndAdjustStack(registersInUse, stack_offset);
 
-	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+	if (push_param1)
+		POP(ABI_PARAM1);
+
 	if (exceptionHandler)
 	{
 		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
 		J_CC(CC_NZ, exceptionHandler);
 	}
+
+	if (info.signExtend)
+		MOVSX(dataRegSize, info.operandSize * 8, dataReg, R(ABI_RETURN));
+	else if (dataReg != ABI_RETURN || info.operandSize < 4)
+		MOVZX(dataRegSize, info.operandSize * 8, dataReg, R(ABI_RETURN));
+
 	JMP(returnPtr, true);
 	return trampoline;
 }

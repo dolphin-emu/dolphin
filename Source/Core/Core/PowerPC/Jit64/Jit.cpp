@@ -615,6 +615,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.downcountAmount += opinfo->numCycles;
 		js.fastmemLoadStore = NULL;
 		js.fixupExceptionHandler = false;
+		js.revertGprLoad = -1;
+		js.revertFprLoad = -1;
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
@@ -787,8 +789,14 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 					exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
 				}
 
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
+				BitSet32 gprToFlush = BitSet32::AllTrue(32);
+				BitSet32 fprToFlush = BitSet32::AllTrue(32);
+				if (js.revertGprLoad >= 0)
+					gprToFlush[js.revertGprLoad] = false;
+				if (js.revertFprLoad >= 0)
+					fprToFlush[js.revertFprLoad] = false;
+				gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
+				fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.

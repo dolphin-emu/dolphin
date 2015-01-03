@@ -246,9 +246,23 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 
 	gpr.Lock(a, b, d);
+
 	if (update && storeAddress)
 		gpr.BindToRegister(a, true, true);
-	gpr.BindToRegister(d, js.memcheck, true);
+
+	// A bit of an evil hack here. We need to retain the original value of this register for the
+	// exception path, but we'd rather not needlessly pass it around if we don't have to, since
+	// the exception path is very rare. So we store the value in the regcache, let the load path
+	// clobber it, then restore the value in the exception path.
+	// TODO: no other load has to do this at the moment, since no other loads go directly to the
+	// target registers, but if that ever changes, we need to do it there too.
+	if (js.memcheck)
+	{
+		gpr.StoreFromRegister(d);
+		js.revertGprLoad = d;
+	}
+	gpr.BindToRegister(d, false, true);
+
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	// We need to save the (usually scratch) address register for the update.
 	if (update && storeAddress)
