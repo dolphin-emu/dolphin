@@ -713,52 +713,44 @@ static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTL
 
 	// hash function no 1 "xor" .360
 	u32 hash = (VSID ^ page_index);
+	u32 pte1 = bswap((VSID << 7) | api | PTE1_V);
 
 	for (int hash_func = 0; hash_func < 2; hash_func++)
 	{
+		// hash function no 2 "not" .360
 		if (hash_func == 1)
 		{
-			// hash function no 2 "not" .360
 			hash = ~hash;
+			pte1 |= PTE1_H << 24;
 		}
 
 		u32 pteg_addr = ((hash & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++, pteg_addr += 8)
 		{
-			u32 pte = bswap(*(u32*)&base_mem[pteg_addr]);
-			bool pteh = (pte & PTE1_H) == 0;
-
-			if (hash_func == 1)
-				pteh = !pteh;
-
-			if ((pte & PTE1_V) && pteh)
+			if (pte1 == *(u32*)&base_mem[pteg_addr])
 			{
-				if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte)))
+				UPTE2 PTE2;
+				PTE2.Hex = bswap((*(u32*)&base_mem[(pteg_addr + 4)]));
+
+				// set the access bits
+				switch (_Flag)
 				{
-					UPTE2 PTE2;
-					PTE2.Hex = bswap((*(u32*)&base_mem[(pteg_addr + 4)]));
-
-					// set the access bits
-					switch (_Flag)
-					{
-					case FLAG_NO_EXCEPTION: break;
-					case FLAG_READ:     PTE2.R = 1; break;
-					case FLAG_WRITE:    PTE2.R = 1; PTE2.C = 1; break;
-					case FLAG_OPCODE:   PTE2.R = 1; break;
-					}
-
-					if (_Flag != FLAG_NO_EXCEPTION)
-						*(u32*)&base_mem[(pteg_addr + 4)] = bswap(PTE2.Hex);
-
-					// We already updated the TLB entry if this was caused by a C bit.
-					if (res != TLB_UPDATE_C)
-						UpdateTLBEntry(_Flag, PTE2, _Address);
-
-					return (PTE2.RPN << 12) | offset;
+				case FLAG_NO_EXCEPTION: break;
+				case FLAG_READ:     PTE2.R = 1; break;
+				case FLAG_WRITE:    PTE2.R = 1; PTE2.C = 1; break;
+				case FLAG_OPCODE:   PTE2.R = 1; break;
 				}
+
+				if (_Flag != FLAG_NO_EXCEPTION)
+					*(u32*)&base_mem[(pteg_addr + 4)] = bswap(PTE2.Hex);
+
+				// We already updated the TLB entry if this was caused by a C bit.
+				if (res != TLB_UPDATE_C)
+					UpdateTLBEntry(_Flag, PTE2, _Address);
+
+				return (PTE2.RPN << 12) | offset;
 			}
-			pteg_addr += 8;
 		}
 	}
 	return 0;
