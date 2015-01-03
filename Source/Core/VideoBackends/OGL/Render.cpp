@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -16,6 +16,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -469,8 +470,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
-	g_Config.backend_info.bSupportsGeometryShaders = (GLExtensions::Version() >= 320) &&
-			!DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENINTERFACEBLOCKS);
+	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -486,6 +486,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
+	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
@@ -534,17 +535,22 @@ Renderer::Renderer()
 		g_ogl_config.bSupportsAEP = false;
 	}
 
-	if (GLExtensions::Supports("GL_KHR_debug"))
+	if (g_ogl_config.bSupportsDebug)
 	{
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
-		glDebugMessageCallback( ErrorCallback, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
-	}
-	else if (GLExtensions::Supports("GL_ARB_debug_output"))
-	{
-		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
-		glDebugMessageCallbackARB( ErrorCallback, nullptr );
-		glEnable( GL_DEBUG_OUTPUT );
+		if (GLExtensions::Supports("GL_KHR_debug"))
+		{
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+			glDebugMessageCallback(ErrorCallback, nullptr);
+		}
+		else
+		{
+			glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+			glDebugMessageCallbackARB(ErrorCallback, nullptr);
+		}
+		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
+			glEnable(GL_DEBUG_OUTPUT);
+		else
+			glDisable(GL_DEBUG_OUTPUT);
 	}
 
 	int samples;
@@ -1691,6 +1697,14 @@ void Renderer::AsyncTimewarpDraw()
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
+	if (g_ogl_config.bSupportsDebug)
+	{
+		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
+			glEnable(GL_DEBUG_OUTPUT);
+		else
+			glDisable(GL_DEBUG_OUTPUT);
+	}
+
 #ifdef HAVE_OCULUSSDK
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
 	{
@@ -2089,13 +2103,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	if (xfbchanged || WindowResized || (s_last_multisample_mode != g_ActiveConfig.iMultisampleMode) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
 	{
-		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_last_multisample_mode != g_ActiveConfig.iMultisampleMode || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 		{
+			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 			s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_last_multisample_mode);
 			ApplySSAASettings();

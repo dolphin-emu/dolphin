@@ -32,8 +32,7 @@ public:
 
 	static bool IsValidDirectory(const std::string& _rDirectory);
 
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
 
 	std::string GetUniqueID() const override;
 	void SetUniqueID(const std::string& _ID);

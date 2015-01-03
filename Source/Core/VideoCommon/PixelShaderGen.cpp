@@ -124,8 +124,8 @@ static const char *tevAInputTable[] =
 
 static const char *tevRasTable[] =
 {
-	"iround(colors_0 * 255.0)",
-	"iround(colors_1 * 255.0)",
+	"iround(col0 * 255.0)",
+	"iround(col1 * 255.0)",
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
@@ -264,7 +264,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 	}
 
-	GenerateVSOutputStruct<T>(out, ApiType);
+	out.Write("struct VS_OUTPUT {\n");
+	GenerateVSOutputMembers<T>(out, ApiType);
+	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
@@ -320,7 +322,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("in VertexData {\n");
-			out.Write("\tcentroid %s VS_OUTPUT o;\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "in");
+			GenerateVSOutputMembers<T>(out, ApiType, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid in");
 
 			if (g_ActiveConfig.iStereoMode > 0)
 				out.Write("\tflat int layer;\n");
@@ -329,8 +331,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 		else
 		{
-			out.Write("centroid in float4 colors_02;\n");
-			out.Write("centroid in float4 colors_12;\n");
+			out.Write("centroid in float4 colors_0;\n");
+			out.Write("centroid in float4 colors_1;\n");
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
@@ -348,23 +350,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			// compute window position if needed because binding semantic WPOS is not widely supported
-			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
-			{
-				out.Write("\tfloat3 uv%d = o.tex%d;\n", i, i);
-			}
-			out.Write("\tfloat4 clipPos = o.clipPos;\n");
-			if (g_ActiveConfig.bEnablePixelLighting)
-			{
-				out.Write("\tfloat4 Normal = o.Normal;\n");
-			}
+				out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
 		}
-
-		// On Mali, global variables must be initialized as constants.
-		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 colors_0 = %s;\n", g_ActiveConfig.backend_info.bSupportsGeometryShaders ? "o.colors_0" : "colors_02");
-		out.Write("\tfloat4 colors_1 = %s;\n", g_ActiveConfig.backend_info.bSupportsGeometryShaders ? "o.colors_1" : "colors_12");
 
 		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}
@@ -407,13 +395,22 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				"\tfloat3 ldir, h;\n"
 				"\tfloat dist, dist2, attn;\n");
 
+		// On GLSL, input variables must not be assigned to.
+		// This is why we declare these variables locally instead.
+		out.Write("\tfloat4 col0, col1;\n");
+
 		// TODO: Our current constant usage code isn't able to handle more than one buffer.
 		//       So we can't mark the VS constant as used here. But keep them here as reference.
 		//out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
 		uid_data->components = components;
-		GenerateLightingShader<T>(out, uid_data->lighting, components, "colors_", "colors_");
+		GenerateLightingShader<T>(out, uid_data->lighting, components, "colors_", "col");
+	}
+	else
+	{
+		out.Write("\tfloat4 col0 = colors_0;\n");
+		out.Write("\tfloat4 col1 = colors_1;\n");
 	}
 
 	// HACK to handle cases where the tex gen is not enabled

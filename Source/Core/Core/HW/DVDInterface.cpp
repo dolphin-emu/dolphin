@@ -258,7 +258,7 @@ void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
 void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF);
 DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
-	u32 DVD_length, u32 output_length, bool raw = false);
+	u32 DVD_length, u32 output_length, bool decrypt);
 
 u64 SimulateDiscReadTime(u64 offset, u32 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
@@ -328,7 +328,7 @@ static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 
 		u8 tempADPCM[NGCADPCM::ONE_BLOCK_SIZE];
 		// TODO: What if we can't read from AudioPos?
-		VolumeHandler::ReadToPtr(tempADPCM, AudioPos, sizeof(tempADPCM));
+		VolumeHandler::ReadToPtr(tempADPCM, AudioPos, sizeof(tempADPCM), false);
 		AudioPos += sizeof(tempADPCM);
 		NGCADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
 		samples_processed += NGCADPCM::SAMPLES_PER_BLOCK;
@@ -467,12 +467,9 @@ void SetLidOpen(bool _bOpen)
 	GenerateDIInterrupt(INT_CVRINT);
 }
 
-bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool raw)
+bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool decrypt)
 {
-	if (raw)
-		return VolumeHandler::RAWReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
-	else
-		return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
+		return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength, decrypt);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -615,7 +612,7 @@ void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF)
 }
 
 DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
-                                    u32 DVD_length, u32 output_length, bool raw)
+                                    u32 DVD_length, u32 output_length, bool decrypt)
 {
 	if (DVD_length > output_length)
 	{
@@ -633,7 +630,7 @@ DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
 		return result;
 	}
 
-	if (!DVDRead(DVD_offset, output_address, DVD_length, raw))
+	if (!DVDRead(DVD_offset, output_address, DVD_length, decrypt))
 		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 
 	result.interrupt_type = INT_TCINT;
@@ -690,13 +687,13 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 	// Only seems to be used from WII_IPC, not through direct access
 	case DVDLowReadDiskID:
 		INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
-		result = ExecuteReadCommand(0, output_address, 0x20, output_length, true);
+		result = ExecuteReadCommand(0, output_address, 0x20, output_length, false);
 		break;
 
-	// Only seems to be used from WII_IPC, not through direct access
+	// Only used from WII_IPC. This is the only read command that decrypts data
 	case DVDLowRead:
 		INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
-		result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length);
+		result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true);
 		break;
 
 	// Probably only used by Wii
@@ -744,6 +741,7 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 
 		// Less than ~1/155th of a second hangs Oregon Trail at "loading wheel".
 		// More than ~1/140th of a second hangs Resident Evil Archives: Resident Evil Zero.
+		// (Might not be true anymore since the other speeds were completely redone in December 2014)
 		result.ticks_until_completion = SystemTimers::GetTicksPerSecond() / 146;
 		break;
 
@@ -779,7 +777,7 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 			(command_2 > 0x7ed40000 && command_2 < 0x7ed40008) ||
 			(((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
 		{
-			result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true);
+			result = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, false);
 		}
 		else
 		{
@@ -875,13 +873,13 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 					}
 				}
 
-				result = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length);
+				result = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false);
 			}
 			break;
 
 		case 0x40: // Read DiscID
 			INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
-			result = ExecuteReadCommand(0, output_address, 0x20, output_length);
+			result = ExecuteReadCommand(0, output_address, 0x20, output_length, false);
 			break;
 
 		default:

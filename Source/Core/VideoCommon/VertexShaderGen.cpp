@@ -42,7 +42,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	out.Write(s_shader_uniforms);
 	out.Write("};\n");
 
-	GenerateVSOutputStruct<T>(out, api_type);
+	out.Write("struct VS_OUTPUT {\n");
+	GenerateVSOutputMembers<T>(out, api_type);
+	out.Write("};\n");
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->components = components;
@@ -74,9 +76,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("out VertexData {\n"
-			          "\tcentroid %s VS_OUTPUT o;\n"
-					  "};\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? "" : "out");
+			out.Write("out VertexData {\n");
+			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+			out.Write("} vs;\n");
 		}
 		else
 		{
@@ -91,14 +93,11 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("centroid out float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 				out.Write("centroid out float4 Normal;\n");
-			out.Write("centroid out float4 colors_02;\n");
-			out.Write("centroid out float4 colors_12;\n");
+			out.Write("centroid out float4 colors_0;\n");
+			out.Write("centroid out float4 colors_1;\n");
 		}
 
 		out.Write("void main()\n{\n");
-
-		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-			out.Write("VS_OUTPUT o;\n");
 	}
 	else // D3D
 	{
@@ -124,9 +123,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (components & VB_HAS_POSMTXIDX)
 			out.Write("  int posmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
-
-		out.Write("VS_OUTPUT o;\n");
 	}
+
+	out.Write("VS_OUTPUT o;\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
@@ -384,17 +383,21 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	if (api_type == API_OPENGL)
 	{
-		if (!g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			// TODO: Pass structs between shader stages even if geometry shaders
-			// are not supported, however that will break GL 3.0 and 3.1 support.
+			AssignVSOutputMembers(out, "vs", "o");
+		}
+		else
+		{
+			// TODO: Pass interface blocks between shader stages even if geometry shaders
+			// are not supported, however that will require at least OpenGL 3.2 support.
 			for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
 			out.Write("clipPos = o.clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
 				out.Write("Normal = o.Normal;\n");
-			out.Write("colors_02 = o.colors_0;\n");
-			out.Write("colors_12 = o.colors_1;\n");
+			out.Write("colors_0 = o.colors_0;\n");
+			out.Write("colors_1 = o.colors_1;\n");
 		}
 
 		out.Write("gl_Position = o.pos;\n");

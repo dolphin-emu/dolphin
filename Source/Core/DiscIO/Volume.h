@@ -18,8 +18,9 @@ public:
 	IVolume() {}
 	virtual ~IVolume() {}
 
-	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
-	virtual bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
+	// decrypt parameter must be false if not reading a Wii disc
+	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const = 0;
+
 	virtual bool GetTitleID(u8*) const { return false; }
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const
 	{
