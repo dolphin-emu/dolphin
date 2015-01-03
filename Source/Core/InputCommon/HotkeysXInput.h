@@ -12,8 +12,8 @@ namespace HotkeysXInput
 {
 
 	void Update();
-	void OnXInputPoll(u32* XInput_State); // XInput
-	bool IsVRSettingsXInput(u32* XInput_State, int Id);
+	void OnXInputPoll(u32* XInput_State, u32* DInput_State_Extra, bool DInput); // XInput
+	bool IsVRSettingsXInput(u32* XInput_State, u32* DInput_State_Extra, bool DInput, int Id);
 	bool IsHotkeyXInput(u32* XInput_State, int Id);
 	u32 GetBinaryfromXInputIniStr(wxString ini_setting);
 	u32 GetBinaryfromDInputIniStr(wxString ini_setting);

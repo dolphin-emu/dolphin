@@ -71,7 +71,7 @@ public:
 				return 0.0;
 		}
 
-		virtual u16 GetStates() const
+		virtual u32 GetStates() const
 		{
 			return NULL;
 		}
