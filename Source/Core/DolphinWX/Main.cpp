@@ -199,7 +199,7 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, "P", "perf_dir",
-			"Directory for Lionux perf perf-$pid.map file",
+			"Directory for Linux perf perf-$pid.map file",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
