@@ -406,39 +406,12 @@ void Jit64::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
-	// USES_CR
 	int d = inst.RD;
+	gpr.FlushLockX(RSCRATCH_EXTRA);
+	CALL((void *)asm_routines.mfcr);
+	gpr.Lock(d);
 	gpr.BindToRegister(d, false, true);
-	XOR(32, gpr.R(d), gpr.R(d));
-
-	X64Reg cr_val = RSCRATCH2;
-	// we only need to zero the high bits of RSCRATCH once
-	XOR(32, R(RSCRATCH), R(RSCRATCH));
-	for (int i = 0; i < 8; i++)
-	{
-		static const u8 m_flagTable[8] = {0x0,0x1,0x8,0x9,0x0,0x1,0x8,0x9};
-		if (i != 0)
-			SHL(32, gpr.R(d), Imm8(4));
-
-		MOV(64, R(cr_val), PPCSTATE(cr_val[i]));
-
-		// EQ: Bits 31-0 == 0; set flag bit 1
-		TEST(32, R(cr_val), R(cr_val));
-		SETcc(CC_Z, R(RSCRATCH));
-		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), RSCRATCH, SCALE_2, 0));
-
-		// GT: Value > 0; set flag bit 2
-		TEST(64, R(cr_val), R(cr_val));
-		SETcc(CC_G, R(RSCRATCH));
-		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), RSCRATCH, SCALE_4, 0));
-
-		// SO: Bit 61 set; set flag bit 0
-		// LT: Bit 62 set; set flag bit 3
-		SHR(64, R(cr_val), Imm8(61));
-		MOVZX(32, 8, RSCRATCH, MDisp(cr_val, (u32)(u64)m_flagTable));
-		OR(32, gpr.R(d), R(RSCRATCH));
-	}
-
+	MOV(32, gpr.R(d), R(RSCRATCH));
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
