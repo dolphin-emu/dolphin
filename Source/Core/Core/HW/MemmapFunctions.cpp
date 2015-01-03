@@ -607,8 +607,14 @@ void SDRUpdated()
 	PowerPC::ppcState.pagetable_hashmask = ((xx<<10)|0x3ff);
 }
 
+enum TLBLookupResult
+{
+	TLB_FOUND,
+	TLB_NOTFOUND,
+	TLB_UPDATE_C
+};
 
-static __forceinline u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
+static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
 	int tag = vpa >> HW_PAGE_INDEX_SHIFT;
 	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[_Flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
@@ -623,7 +629,7 @@ static __forceinline u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u
 			{
 				PTE2.C = 1;
 				tlbe->pte[0] = PTE2.Hex;
-				return 0;
+				return TLB_UPDATE_C;
 			}
 		}
 
@@ -632,7 +638,7 @@ static __forceinline u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u
 
 		*paddr = tlbe->paddr[0] | (vpa & 0xfff);
 
-		return 1;
+		return TLB_FOUND;
 	}
 	if (tlbe->tag[1] == tag)
 	{
@@ -645,7 +651,7 @@ static __forceinline u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u
 			{
 				PTE2.C = 1;
 				tlbe->pte[1] = PTE2.Hex;
-				return 0;
+				return TLB_UPDATE_C;
 			}
 		}
 
@@ -654,9 +660,9 @@ static __forceinline u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u
 
 		*paddr = tlbe->paddr[1] | (vpa & 0xfff);
 
-		return 1;
+		return TLB_FOUND;
 	}
-	return 0;
+	return TLB_NOTFOUND;
 }
 
 static __forceinline void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
@@ -690,7 +696,8 @@ static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTL
 	// This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't benefit
 	// much from optimization.
 	u32 translatedAddress = 0;
-	if (LookupTLBPageAddress(_Flag, _Address, &translatedAddress))
+	TLBLookupResult res = LookupTLBPageAddress(_Flag, _Address, &translatedAddress);
+	if (res == TLB_FOUND)
 		return translatedAddress;
 
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)];
@@ -744,7 +751,9 @@ static __forceinline u32 TranslatePageAddress(const u32 _Address, const XCheckTL
 					if (_Flag != FLAG_NO_EXCEPTION)
 						*(u32*)&base_mem[(pteg_addr + 4)] = bswap(PTE2.Hex);
 
-					UpdateTLBEntry(_Flag, PTE2, _Address);
+					// We already updated the TLB entry if this was caused by a C bit.
+					if (res != TLB_UPDATE_C)
+						UpdateTLBEntry(_Flag, PTE2, _Address);
 
 					return (PTE2.RPN << 12) | offset;
 				}
