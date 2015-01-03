@@ -19,9 +19,9 @@
 
 using namespace Gen;
 
-void TrampolineCache::Init()
+void TrampolineCache::Init(int size)
 {
-	AllocCodeSpace(8 * 1024 * 1024);
+	AllocCodeSpace(size);
 }
 
 void TrampolineCache::ClearCodeSpace()

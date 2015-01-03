@@ -183,7 +183,7 @@ void Jit64::Init()
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
 
-	trampolines.Init();
+	trampolines.Init(js.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 
 	// BLR optimization has the same consequences as block linking, as well as
@@ -494,9 +494,10 @@ void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
 	    farcode.GetSpaceLeft() < 0x10000 ||
-		blocks.IsFull() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
-		m_clear_cache_asap)
+	    trampolines.GetSpaceLeft() < 0x10000 ||
+	    blocks.IsFull() ||
+	    SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
+	    m_clear_cache_asap)
 	{
 		ClearCache();
 	}
