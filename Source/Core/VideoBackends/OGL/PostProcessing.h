@@ -28,7 +28,6 @@ public:
 
 private:
 	bool m_initialized;
-	bool m_anaglyph;
 	SHADER m_shader;
 	GLuint m_uniform_resolution;
 	GLuint m_uniform_src_rect;

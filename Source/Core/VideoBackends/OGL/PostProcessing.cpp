@@ -36,29 +36,10 @@ static const char s_vertex_shader[] =
 	"	uv0 = rawpos * src_rect.zw + src_rect.xy;\n"
 	"}\n";
 
-// Anaglyph Red-Cyan shader based on Dubois algorithm
-// Constants taken from the paper:
-// "Conversion of a Stereo Pair to Anaglyph with
-// the Least-Squares Projection Method"
-// Eric Dubois, March 2009
-static const char s_anaglyph_shader[] =
-	"void main() {\n"
-	"	vec4 c0 = SampleLayer(0);\n"
-	"	vec4 c1 = SampleLayer(1);\n"
-	"	mat3 l = mat3( 0.437, 0.449, 0.164,\n"
-	"	              -0.062,-0.062,-0.024,\n"
-	"	              -0.048,-0.050,-0.017);\n"
-	"	mat3 r = mat3(-0.011,-0.032,-0.007,\n"
-	"	               0.377, 0.761, 0.009,\n"
-	"	              -0.026,-0.093, 1.234);\n"
-	"	SetOutput(vec4(c0.rgb * l + c1.rgb * r, c0.a));\n"
-	"}\n";
-
 static const char s_default_shader[] = "void main() { SetOutput(Sample()); }\n";
 
 OpenGLPostProcessing::OpenGLPostProcessing()
 	: m_initialized(false)
-	, m_anaglyph(false)
 {
 	CreateHeader();
 
@@ -183,8 +164,7 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 void OpenGLPostProcessing::ApplyShader()
 {
 	// shader didn't changed
-	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader &&
-			((g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH) == m_anaglyph))
+	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader)
 		return;
 
 	m_shader.Destroy();
@@ -192,9 +172,7 @@ void OpenGLPostProcessing::ApplyShader()
 
 	// load shader code
 	std::string code = "";
-	if (g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH)
-		code = s_anaglyph_shader;
-	else if (g_ActiveConfig.sPostProcessingShader != "")
+	if (g_ActiveConfig.sPostProcessingShader != "")
 		code = m_config.LoadShader();
 
 	if (code == "")
@@ -244,7 +222,6 @@ void OpenGLPostProcessing::ApplyShader()
 		std::string glsl_name = "option_" + it.first;
 		m_uniform_bindings[it.first] = glGetUniformLocation(m_shader.glprogid, glsl_name.c_str());
 	}
-	m_anaglyph = g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH;
 	m_initialized = true;
 }
 

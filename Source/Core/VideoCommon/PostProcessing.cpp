@@ -30,14 +30,16 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 		shader = g_ActiveConfig.sPostProcessingShader;
 	m_current_shader = shader;
 
+	const std::string sub_dir = (g_Config.iStereoMode == STEREO_ANAGLYPH) ? ANAGLYPH_DIR DIR_SEP : "";
+
 	// loading shader code
 	std::string code;
-	std::string path = File::GetUserPath(D_SHADERS_IDX) + shader + ".glsl";
+	std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
 	if (!File::Exists(path))
 	{
 		// Fallback to shared user dir
-		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + shader + ".glsl";
+		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
 	}
 
 	if (!File::ReadFileToString(path, code))

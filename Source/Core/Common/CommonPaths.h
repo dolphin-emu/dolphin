@@ -74,6 +74,7 @@
 #define WII_SYSCONF_DIR     "shared2" DIR_SEP "sys"
 #define WII_WC24CONF_DIR    "shared2" DIR_SEP "wc24"
 #define THEMES_DIR          "Themes"
+#define ANAGLYPH_DIR        "Anaglyph"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
