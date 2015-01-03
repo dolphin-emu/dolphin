@@ -544,18 +544,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				DVDCommandResult result = ExecuteCommand(
 					m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex, m_DICMDBUF[2].Hex,
 					m_DIMAR.Hex, m_DILENGTH.Hex, true);
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
-				{
-					// Make sure fast disc speed performs "instant" reads; in addition
-					// to being used to speed up games, fast disc speed is used as a
-					// workaround for crashes in Star Wars Rogue Leader.
-					TransferComplete(result.interrupt_type, 0);
-				}
-				else
-				{
-					// The transfer is finished after a delay
-					CoreTiming::ScheduleEvent((int)result.ticks_until_completion, tc, result.interrupt_type);
-				}
+
+				// The transfer is finished after a delay
+				CoreTiming::ScheduleEvent((int)result.ticks_until_completion, tc, result.interrupt_type);
 			}
 		})
 	);
@@ -621,7 +612,10 @@ DVDCommandResult ExecuteReadCommand(u64 DVD_offset, u32 output_address,
 	}
 
 	DVDCommandResult result;
-	result.ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+		result.ticks_until_completion = 0;	// An optional hack to speed up loading times
+	else
+		result.ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
 	if (!g_bDiscInside)
 	{

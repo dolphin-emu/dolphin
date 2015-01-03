@@ -67,9 +67,6 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 	                                         BufferOut, BufferOutSize, false);
 	Memory::Write_U32(result.interrupt_type, _CommandAddress + 0x4);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
-		result.ticks_until_completion = 0;	// An optional hack to speed up loading times
-
 	return { true, result.ticks_until_completion };
 }
 
