@@ -14,10 +14,10 @@ if(WIN32)
 				ControllerInterface/DInput/DInputKeyboardMouse.cpp
 				ControllerInterface/XInput/XInput.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation)
-	FIND_LIBRARY(CARBON_LIBRARY Carbon)
-	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+elseif(APPLE)
+	find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+	find_library(CARBON_LIBRARY Carbon)
+	find_library(COCOA_LIBRARY Cocoa)
 	set(SRCS	${SRCS}
 				ControllerInterface/OSX/OSX.mm
 				ControllerInterface/OSX/OSXKeyboard.mm

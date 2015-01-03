@@ -21,7 +21,7 @@ option(FASTLOG "Enable all logs" OFF)
 option(OPROFILING "Enable profiling" OFF)
 option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
 endif()
 ########################################
@@ -52,7 +52,7 @@ set(DOLPHIN_IS_STABLE FALSE)
 set(LIBS)
 
 # Set up paths
-if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+if(APPLE)
 	# The gettext module will install the translations unconditionally.
 	# Redirect the installation to a build directory where it does no harm.
 	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install-dummy)
@@ -145,7 +145,7 @@ endif()
 if(NOT ENABLE_GENERIC)
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
 	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	   ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	   APPLE)
 		if(_ARCH_64)
 			set(_M_X86 1)
 			set(_M_X86_64 1)
@@ -159,7 +159,7 @@ if(NOT ENABLE_GENERIC)
 		set(_M_ARM_32 1)
 		add_definitions(-D_M_ARM=1 -D_M_ARM_32=1)
 		add_definitions(-marm -march=armv7-a)
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
 		# This option only applies to 64bit ARM
 		set(_M_ARM 1)
 		set(_M_ARM_64 1)
@@ -531,7 +531,7 @@ else(ZLIB_FOUND)
 	include_directories(Externals/zlib)
 endif(ZLIB_FOUND)
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+if(NOT APPLE AND NOT ANDROID)
 	check_lib(LZO lzo2 lzo/lzo1x.h QUIET)
 endif()
 if(LZO_FOUND)
@@ -544,7 +544,7 @@ else()
 endif()
 list(APPEND LIBS ${LZO})
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+if(NOT APPLE AND NOT ANDROID)
 	check_lib(PNG png png.h QUIET)
 endif()
 if (PNG_FOUND)
@@ -557,7 +557,7 @@ else()
 endif()
 
 if(OPENAL_FOUND)
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if(NOT APPLE)
 		check_lib(SOUNDTOUCH SoundTouch soundtouch/SoundTouch.h QUIET)
 	endif()
 	if (SOUNDTOUCH_FOUND)
@@ -570,7 +570,7 @@ if(OPENAL_FOUND)
 endif()
 
 if(NOT ANDROID)
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if(NOT APPLE)
 		include(FindSDL2 OPTIONAL)
 	endif()
 	if(SDL2_FOUND)
@@ -579,7 +579,7 @@ if(NOT ANDROID)
 		include_directories(${SDL2_INCLUDE_DIR})
 	else(SDL2_FOUND)
 		# SDL2 not found, try SDL
-		if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		if(NOT APPLE)
 			include(FindSDL OPTIONAL)
 		endif()
 		if(SDL_FOUND)
@@ -601,7 +601,7 @@ if(LIBUSB_FOUND)
 endif(LIBUSB_FOUND)
 
 set(SFML_REQD_VERSION 2.1)
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+if(NOT APPLE AND NOT ANDROID)
 	find_package(SFML ${SFML_REQD_VERSION} COMPONENTS network system)
 endif()
 if(SFML_FOUND)
@@ -614,7 +614,7 @@ else()
 endif()
 
 if(USE_UPNP)
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+	if(NOT APPLE AND NOT ANDROID)
 		include(FindMiniupnpc)
 	endif()
 	if(MINIUPNP_FOUND AND MINIUPNPC_VERSION_1_7_OR_HIGHER)
@@ -629,7 +629,7 @@ if(USE_UPNP)
 	list(APPEND LIBS miniupnpc)
 endif()
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+if(NOT APPLE AND NOT ANDROID)
 	include(FindPolarSSL)
 endif()
 if(POLARSSL_FOUND AND POLARSSL_WORKS)
@@ -642,7 +642,7 @@ else()
 	include_directories(Externals/polarssl/include)
 endif()
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+if(NOT APPLE AND NOT ANDROID)
 	check_lib(SOIL SOIL SOIL/SOIL.h QUIET)
 endif()
 if(SOIL_FOUND)
@@ -724,15 +724,15 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 
 		# These definitions and includes are used when building dolphin against wx,
 		# not when building wx itself (see wxw3 CMakeLists.txt for that)
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		if(APPLE)
 			add_definitions(-D__WXOSX_COCOA__)
-		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 			add_definitions(-D__WXGTK__)
 
 			# Check for required libs
 			check_lib(GTHREAD2 gthread-2.0 glib/gthread.h REQUIRED)
 			check_lib(PANGOCAIRO pangocairo pango/pangocairo.h REQUIRED)
-		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		elseif(WIN32)
 			add_definitions(-D__WXMSW__)
 		else()
 			message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
@@ -748,12 +748,11 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX AND NOT ANDROID)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
-   ${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
 	set(LIBS ${LIBS} usbhid)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	# Link against OS X system frameworks.
 	list(APPEND LIBS
 		${APPKIT_LIBRARY}
@@ -809,13 +808,13 @@ add_subdirectory(Source)
 ########################################
 # Install shared data files
 #
-if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+if(NOT APPLE)
 	install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
 endif()
-if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin")
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	# Install the application icon and menu item
 	install(FILES Installer/dolphin-emu.xpm
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps)
