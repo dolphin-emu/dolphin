@@ -95,15 +95,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 
 	// PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find it.
-	if (accessSize == 8 && js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 954 &&
+	if (MergeAllowedNextInstruction() && accessSize == 8 && js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 954 &&
 	    js.next_inst.RS == inst.RD && js.next_inst.RA == inst.RD && !js.next_inst.Rc)
 	{
-		if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
-		{
-			js.downcountAmount++;
-			js.skipnext = true;
-			signExtend = true;
-		}
+		js.downcountAmount++;
+		js.skipnext = true;
+		signExtend = true;
 	}
 
 	// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
