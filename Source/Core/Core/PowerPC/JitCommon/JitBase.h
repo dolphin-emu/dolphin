@@ -73,6 +73,7 @@ protected:
 		int downcountAmount;
 		u32 numLoadStoreInst;
 		u32 numFloatingPointInst;
+		bool dualIssue;
 
 		bool firstFPInstructionFound;
 		bool isLastInstruction;
