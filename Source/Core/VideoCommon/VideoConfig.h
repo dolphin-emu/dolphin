@@ -172,6 +172,7 @@ struct VideoConfig final
 
 	// VR
 	float fUnitsPerMetre;
+	float fFreeLookSensitivity;
 	float fHudThickness;
 	float fHudDistance;
 	float fHud3DCloser;

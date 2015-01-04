@@ -1216,27 +1216,27 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		static float freeLookSpeed;
 
 		//Recalculate only when fUnitsPerMetre, fFreeLookSensitivity, or fScale changes.
-		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity != oldfFreeLookSensitivity))
+		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity))
 		{
-			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity;
 		}
-		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity != oldfFreeLookSensitivity)
+		else if (!g_has_hmd && g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity)
 		{
-			freeLookSpeed = 10 * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
+			freeLookSpeed = 10 * g_ActiveConfig.fFreeLookSensitivity;
 		}
 
 		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
-		oldfFreeLookSensitivity = SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
+		oldfFreeLookSensitivity = g_ActiveConfig.fFreeLookSensitivity;
 		oldfScale = g_ActiveConfig.fScale;
 
 		if (g_has_hmd || g_Config.bFreeLook)
 		{
 			if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
-				SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity *= 2.0f;
+				g_ActiveConfig.fFreeLookSensitivity *= 2.0f;
 			else if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
-				SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity /= 2.0f;
+				g_ActiveConfig.fFreeLookSensitivity /= 2.0f;
 			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
-				SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity = 1.0f;
+				g_ActiveConfig.fFreeLookSensitivity = 1.0f;
 			else if (IsHotkey(event, HK_FREELOOK_UP))
 				VertexShaderManager::TranslateView(0.0f, -(freeLookSpeed / 2) * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), (-freeLookSpeed / 2) * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
 			else if (IsHotkey(event, HK_FREELOOK_DOWN))
@@ -1504,14 +1504,14 @@ void CFrame::OnMouse(wxMouseEvent& event)
 			if (g_has_hmd)
 			{
 				VertexShaderManager::TranslateView(
-					(((event.GetX() - lastMouse[0]) / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity) / 7.0f,
-					(((event.GetY() - lastMouse[1]) / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity) / 7.0f);
+					(((event.GetX() - lastMouse[0]) / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity) / 7.0f,
+					(((event.GetY() - lastMouse[1]) / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity) / 7.0f);
 			}
 			else 
 			{
 				VertexShaderManager::TranslateView(
-					((event.GetX() - lastMouse[0]) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity) / 7.0f,
-					((event.GetY() - lastMouse[1]) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity) / 7.0f);
+					((event.GetX() - lastMouse[0]) * g_ActiveConfig.fFreeLookSensitivity) / 7.0f,
+					((event.GetY() - lastMouse[1]) * g_ActiveConfig.fFreeLookSensitivity) / 7.0f);
 			}
 			lastMouse[0] = event.GetX();
 			lastMouse[1] = event.GetY();
