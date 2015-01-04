@@ -66,6 +66,7 @@ protected:
 	{
 		u32 compilerPC;
 		u32 blockStart;
+		u32 blockEnd;
 		int instructionNumber;
 		int instructionsLeft;
 		int downcountAmount;

@@ -389,29 +389,49 @@ void Jit64::DoMergedBranchCondition()
 	js.skipInstructions = 1;
 	const UGeckoInstruction& next = js.op[1].inst;
 	int test_bit = 8 >> (next.BI & 3);
-	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
 	const u32 nextPC = js.op[1].address;
+	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
+	bool jumpInBlock = false;
+	u32 destination;
+	if (next.OPCD == 16 && cc && forwardJumps && !(test_bit & 1))
+	{
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
+		else
+			destination = nextPC + SignExt16(next.BD << 2);
+		jumpInBlock = destination > nextPC && destination < js.blockEnd;
+	}
+	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE) ^ jumpInBlock;
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
-	FixupBranch pDontBranch;
+	FixupBranch pBranch;
 	if (test_bit & 8)
-		pDontBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
+		pBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
 	else if (test_bit & 4)
-		pDontBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
+		pBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
 	else if (test_bit & 2)
-		pDontBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
+		pBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
 	else  // SO bit, do not branch (we don't emulate SO for cmp).
-		pDontBranch = J(true);
+		pBranch = J(true);
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
+	if (jumpInBlock)
+	{
+		BranchTarget branchData = { { pBranch }, 1, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
+		branch_targets.insert(std::make_pair(destination, branchData));
+	}
+	else
+	{
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-	DoMergedBranch();
+		DoMergedBranch();
 
-	SetJumpTarget(pDontBranch);
+		SetJumpTarget(pBranch);
+	}
 
-	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	if (!cc)
 	{
 		gpr.Flush();
 		fpr.Flush();
@@ -425,8 +445,20 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 	js.skipInstructions = 1;
 	const UGeckoInstruction& next = js.op[1].inst;
 	int test_bit = 8 >> (next.BI & 3);
-	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
 	const u32 nextPC = js.op[1].address;
+	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
+	bool jumpInBlock = false;
+	u32 destination;
+	if (next.OPCD == 16 && cc && forwardJumps)
+	{
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
+		else
+			destination = nextPC + SignExt16(next.BD << 2);
+		jumpInBlock = destination > nextPC && destination < js.blockEnd;
+	}
+	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -442,9 +474,27 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 
 	if (branch)
 	{
-		gpr.Flush();
-		fpr.Flush();
-		DoMergedBranch();
+		if (jumpInBlock)
+		{
+			FixupBranch pBranch = J(true);
+			BranchTarget branchData = { { pBranch }, 1, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
+			branch_targets.insert(std::make_pair(destination, branchData));
+		}
+		// IMPORTANT: we can't actually leave the block in this case!! A forward branch is still waiting around for
+		// its entry point. This -really- should be better optimized, but I don't think immediate branches are common
+		// anyways. Should we keep this feature around at all, given the possible complexity of interactions?
+		else if (!branch_targets.empty())
+		{
+			gpr.Flush(FLUSH_MAINTAIN_STATE);
+			fpr.Flush(FLUSH_MAINTAIN_STATE);
+			DoMergedBranch();
+		}
+		else
+		{
+			gpr.Flush();
+			fpr.Flush();
+			DoMergedBranch();
+		}
 	}
 	else if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
