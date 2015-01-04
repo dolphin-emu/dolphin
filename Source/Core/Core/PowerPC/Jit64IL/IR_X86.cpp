@@ -791,7 +791,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		case ShortIdleLoop:
 		case FPExceptionCheck:
 		case DSIExceptionCheck:
-		case ISIException:
 		case ExtExceptionCheck:
 		case BreakPointCheck:
 		case Int3:
@@ -2240,20 +2239,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->WriteExceptionExit();
 			Jit->SetJumpTarget(noMemException);
-			break;
-		}
-		case ISIException:
-		{
-			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-
-			// Address of instruction could not be translated
-			Jit->MOV(32, PPCSTATE(npc), Imm32(InstLoc));
-			Jit->OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI));
-
-			// Remove the invalid instruction from the icache, forcing a recompile
-			Jit->MOV(64, R(RSCRATCH), ImmPtr(jit->GetBlockCache()->GetICachePtr(InstLoc)));
-			Jit->MOV(32, MatR(RSCRATCH), Imm32(JIT_ICACHE_INVALID_WORD));
-			Jit->WriteExceptionExit();
 			break;
 		}
 		case ExtExceptionCheck:

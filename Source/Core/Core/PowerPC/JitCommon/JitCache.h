@@ -42,7 +42,6 @@ struct JitBlock
 	int runCount;  // for profiling.
 
 	bool invalid;
-	bool memoryException;
 
 	struct LinkData
 	{
@@ -121,6 +120,9 @@ class JitBaseBlockCache
 	void LinkBlock(int i);
 	void UnlinkBlock(int i);
 
+	u32* GetICachePtr(u32 addr);
+	void DestroyBlock(int block_num, bool invalidate);
+
 	// Virtual for overloaded
 	virtual void WriteLinkBlock(u8* location, const u8* address) = 0;
 	virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
@@ -148,17 +150,13 @@ public:
 	std::array<u8, JIT_ICACHEEX_SIZE> iCacheEx;
 	std::array<u8, JIT_ICACHE_SIZE>   iCacheVMEM;
 
-	u32* GetICachePtr(u32 addr);
-
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
 	int GetBlockNumberFromStartAddress(u32 em_address);
 
-	u32 GetOriginalFirstOp(int block_num);
 	CompiledCode GetCompiledCodeFromBlock(int block_num);
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
 	void InvalidateICache(u32 address, const u32 length, bool forced);
-	void DestroyBlock(int block_num, bool invalidate);
 };
 
 // x86 BlockCache
