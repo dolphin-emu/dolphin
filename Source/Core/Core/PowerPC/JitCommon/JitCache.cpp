@@ -65,6 +65,7 @@ using namespace Gen;
 			Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
 		jit->js.fifoWriteAddresses.clear();
+		jit->js.pairedQuantizeAddresses.clear();
 		for (int i = 0; i < num_blocks; i++)
 		{
 			DestroyBlock(i, false);
@@ -311,7 +312,10 @@ using namespace Gen;
 			if (!forced)
 			{
 				for (u32 i = address; i < address + length; i += 4)
+				{
 					jit->js.fifoWriteAddresses.erase(i);
+					jit->js.pairedQuantizeAddresses.erase(i);
+				}
 			}
 		}
 	}
