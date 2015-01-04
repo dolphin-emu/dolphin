@@ -191,8 +191,8 @@ void CommonAsmRoutines::GenMfcr()
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
-static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = { 3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-static const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = { 3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15 };
+const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = { 3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = { 3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15 };
 
 static const float GC_ALIGNED16(m_quantizeTableS[]) =
 {
@@ -257,7 +257,7 @@ static const float GC_ALIGNED16(m_255) = 255.0f;
 static const float GC_ALIGNED16(m_127) = 127.0f;
 static const float GC_ALIGNED16(m_m128) = -128.0f;
 
-static const float GC_ALIGNED16(m_one[]) = {1.0f, 0.0f, 0.0f, 0.0f};
+const float GC_ALIGNED16(m_one[]) = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 #define QUANTIZE_OVERFLOW_SAFE
 

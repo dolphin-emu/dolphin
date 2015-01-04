@@ -11,6 +11,7 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 
 using namespace Gen;
 
@@ -20,7 +21,6 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(!inst.RA);
 
 	s32 offset = inst.SIMM_12;
 	bool indexed = inst.OPCD == 4;
@@ -30,12 +30,75 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	int s = inst.FS;
 	int i = indexed ? inst.Ix : inst.I;
 	int w = indexed ? inst.Wx : inst.W;
+	FALLBACK_IF(!a);
 
 	gpr.Lock(a, b);
+	if (js.assumeNoPairedQuantize)
+	{
+		int storeOffset = 0;
+		gpr.BindToRegister(a, true, update);
+		X64Reg addr = gpr.RX(a);
+		if (update && js.memcheck)
+		{
+			addr = RSCRATCH2;
+			MOV(32, R(addr), gpr.R(a));
+		}
+		if (indexed)
+		{
+			if (update)
+			{
+				ADD(32, R(addr), gpr.R(b));
+			}
+			else
+			{
+				addr = RSCRATCH2;
+				if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+				{
+					LEA(32, addr, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				}
+				else
+				{
+					MOV(32, R(addr), gpr.R(b));
+					if (a)
+						ADD(32, R(addr), gpr.R(a));
+				}
+			}
+		}
+		else
+		{
+			if (update)
+				ADD(32, R(addr), Imm32(offset));
+			else
+				storeOffset = offset;
+		}
+
+		fpr.Lock(s);
+		if (w)
+		{
+			CVTSD2SS(XMM0, fpr.R(s));
+			MOVD_xmm(R(RSCRATCH), XMM0);
+		}
+		else
+		{
+			CVTPD2PS(XMM0, fpr.R(s));
+			MOVQ_xmm(R(RSCRATCH), XMM0);
+			ROL(64, R(RSCRATCH), Imm8(32));
+		}
+
+		BitSet32 registersInUse = CallerSavedRegistersInUse();
+		if (update && js.memcheck)
+			registersInUse[addr] = true;
+		SafeWriteRegToReg(RSCRATCH, addr, w ? 32 : 64, storeOffset, registersInUse);
+		MemoryExceptionCheck();
+		if (update && js.memcheck)
+			MOV(32, gpr.R(a), R(addr));
+		gpr.UnlockAll();
+		fpr.UnlockAll();
+		return;
+	}
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	if (update)
 		gpr.BindToRegister(a, true, true);
-	fpr.BindToRegister(s, true, false);
 	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
 	{
 		if (indexed)
@@ -92,7 +155,6 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(!inst.RA);
 
 	s32 offset = inst.SIMM_12;
 	bool indexed = inst.OPCD == 4;
@@ -102,8 +164,116 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	int s = inst.FS;
 	int i = indexed ? inst.Ix : inst.I;
 	int w = indexed ? inst.Wx : inst.W;
+	FALLBACK_IF(!a);
 
 	gpr.Lock(a, b);
+	if (js.assumeNoPairedQuantize)
+	{
+		s32 loadOffset = 0;
+		gpr.BindToRegister(a, true, update);
+		X64Reg addr = gpr.RX(a);
+		if (update && js.memcheck)
+		{
+			addr = RSCRATCH2;
+			MOV(32, R(addr), gpr.R(a));
+		}
+		if (indexed)
+		{
+			if (update)
+			{
+				ADD(32, R(addr), gpr.R(b));
+			}
+			else
+			{
+				addr = RSCRATCH2;
+				if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+				{
+					LEA(32, addr, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				}
+				else
+				{
+					MOV(32, R(addr), gpr.R(b));
+					if (a)
+						ADD(32, R(addr), gpr.R(a));
+				}
+			}
+		}
+		else
+		{
+			if (update)
+				ADD(32, R(addr), Imm32(offset));
+			else
+				loadOffset = offset;
+		}
+
+		fpr.Lock(s);
+		if (js.memcheck)
+		{
+			fpr.StoreFromRegister(s);
+			js.revertFprLoad = s;
+		}
+		fpr.BindToRegister(s, false);
+
+		// Let's mirror the JitAsmCommon code and assume all non-MMU loads go to RAM.
+		if (!js.memcheck)
+		{
+			if (w)
+			{
+				if (cpu_info.bSSSE3)
+				{
+					MOVD_xmm(XMM0, MComplex(RMEM, addr, SCALE_1, loadOffset));
+					PSHUFB(XMM0, M(pbswapShuffle1x4));
+					UNPCKLPS(XMM0, M(m_one));
+				}
+				else
+				{
+					LoadAndSwap(32, RSCRATCH, MComplex(RMEM, addr, SCALE_1, loadOffset));
+					MOVD_xmm(XMM0, R(RSCRATCH));
+					UNPCKLPS(XMM0, M(m_one));
+				}
+			}
+			else
+			{
+				if (cpu_info.bSSSE3)
+				{
+					MOVQ_xmm(XMM0, MComplex(RMEM, addr, SCALE_1, loadOffset));
+					PSHUFB(XMM0, M(pbswapShuffle2x4));
+				}
+				else
+				{
+					LoadAndSwap(64, RSCRATCH, MComplex(RMEM, addr, SCALE_1, loadOffset));
+					ROL(64, R(RSCRATCH), Imm8(32));
+					MOVQ_xmm(XMM0, R(RSCRATCH));
+				}
+			}
+			CVTPS2PD(fpr.RX(s), R(XMM0));
+		}
+		else
+		{
+			BitSet32 registersInUse = CallerSavedRegistersInUse();
+			registersInUse[fpr.RX(s) << 16] = false;
+			if (update)
+				registersInUse[addr] = true;
+			SafeLoadToReg(RSCRATCH, R(addr), w ? 32 : 64, loadOffset, registersInUse, false);
+			MemoryExceptionCheck();
+			if (w)
+			{
+				MOVD_xmm(XMM0, R(RSCRATCH));
+				UNPCKLPS(XMM0, M(m_one));
+			}
+			else
+			{
+				ROL(64, R(RSCRATCH), Imm8(32));
+				MOVQ_xmm(XMM0, R(RSCRATCH));
+			}
+			CVTPS2PD(fpr.RX(s), R(XMM0));
+			if (update)
+				MOV(32, gpr.R(a), R(addr));
+		}
+		gpr.UnlockAll();
+		fpr.UnlockAll();
+		return;
+	}
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	gpr.BindToRegister(a, true, update);
 	fpr.BindToRegister(s, false, true);

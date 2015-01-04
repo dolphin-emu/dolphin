@@ -6,6 +6,10 @@
 
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 
+extern const u8 GC_ALIGNED16(pbswapShuffle1x4[16]);
+extern const u8 GC_ALIGNED16(pbswapShuffle2x4[16]);
+extern const float GC_ALIGNED16(m_one[]);
+
 class CommonAsmRoutinesBase
 {
 public:

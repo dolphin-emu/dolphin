@@ -154,6 +154,9 @@ struct CodeBlock
 
 	// Did we have a memory_exception?
 	bool m_memory_exception;
+
+	// Which GQRs this block uses, if any.
+	BitSet8 m_gqr_used;
 };
 
 class PPCAnalyzer

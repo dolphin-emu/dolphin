@@ -83,6 +83,7 @@ protected:
 		int revertGprLoad;
 		int revertFprLoad;
 
+		bool assumeNoPairedQuantize;
 		bool firstFPInstructionFound;
 		bool isLastInstruction;
 		bool memcheck;
@@ -101,6 +102,7 @@ protected:
 		JitBlock *curBlock;
 
 		std::unordered_set<u32> fifoWriteAddresses;
+		std::unordered_set<u32> pairedQuantizeAddresses;
 	};
 
 	PPCAnalyst::CodeBlock code_block;

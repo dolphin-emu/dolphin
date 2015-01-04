@@ -15,6 +15,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
@@ -648,6 +649,27 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
 	branch_targets.clear();
+	js.assumeNoPairedQuantize = false;
+
+	if (code_block.m_gqr_used.Count() == 1 && js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+	{
+		int gqr;
+		for (int i = 0; i < 8; i++)
+			if (code_block.m_gqr_used[i])
+				gqr = i;
+		CMP(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm8(0));
+		FixupBranch failure = J_CC(CC_NZ, true);
+		SwitchToFarCode();
+		SetJumpTarget(failure);
+		MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+		ABI_PushRegistersAndAdjustStack({}, 0);
+		ABI_CallFunctionC((void *)&JitInterface::CompileExceptionCheck, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+		ABI_PopRegistersAndAdjustStack({}, 0);
+		WriteExceptionExit();
+		SwitchToNearCode();
+		js.assumeNoPairedQuantize = true;
+	}
+
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
