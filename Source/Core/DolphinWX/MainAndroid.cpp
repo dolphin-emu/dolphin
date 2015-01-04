@@ -94,6 +94,11 @@ bool Host_RendererHasFocus()
 	return true;
 }
 
+bool Host_RendererIsFullscreen()
+{
+	return false;
+}
+
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
 void Host_SetWiiMoteConnectionState(int _State) {}
