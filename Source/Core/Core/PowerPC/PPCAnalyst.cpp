@@ -217,8 +217,8 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
 	const GekkoOPInfo *a_info = a.opinfo;
 	const GekkoOPInfo *b_info = b.opinfo;
-	int a_flags = a_info->flags;
-	int b_flags = b_info->flags;
+	u32 a_flags = a_info->flags;
+	u32 b_flags = b_info->flags;
 	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
 		return false;
 	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
@@ -431,7 +431,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 			CodeOp &b = code[i + increment];
 			// Reorder integer compares, rlwinm., and carry-affecting ops
 			// (if we add more merged branch instructions, add them here!)
-			if ((type == REORDER_CROR && isCror(a)) || (type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
+			if ((type == REORDER_CROR && isCror(a)) || (type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || a.outputCR[0])))
 			{
 				// once we're next to a carry instruction, don't move away!
 				if (type == REORDER_CARRY && i != start)
@@ -476,30 +476,41 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
 {
-	code->wantsCR0 = false;
-	code->wantsCR1 = false;
-
 	if (opinfo->flags & FL_USE_FPU)
 		block->m_fpa->any = true;
 
 	if (opinfo->flags & FL_TIMER)
 		block->m_gpa->anyTimer = true;
 
-	// Does the instruction output CR0?
-	if (opinfo->flags & FL_RC_BIT)
-		code->outputCR0 = code->inst.hex & 1; //todo fix
-	else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
-		code->outputCR0 = true;
-	else
-		code->outputCR0 = (opinfo->flags & FL_SET_CR0) ? true : false;
-
-	// Does the instruction output CR1?
-	if (opinfo->flags & FL_RC_BIT_F)
-		code->outputCR1 = code->inst.hex & 1; //todo fix
-	else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
-		code->outputCR1 = true;
-	else
-		code->outputCR1 = (opinfo->flags & FL_SET_CR1) ? true : false;
+	code->wantsCR = BitSet8(0);
+	code->outputCR = BitSet8(0);
+	if ((opinfo->flags & FL_RC_BIT && (code->inst.hex & 1)) || (opinfo->flags & FL_SET_CR_0))
+		code->outputCR[0] = true;
+	if ((opinfo->flags & FL_RC_BIT_F && (code->inst.hex & 1)) || (opinfo->flags & FL_SET_CR_1))
+		code->outputCR[1] = true;
+	// mtcrf: this one is special and can modify multiple CR regs
+	if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 144)
+	{
+		for (int i = 0; i < 8; i++)
+			if (code->inst.CRM & (0x80 >> i))
+				code->outputCR[i] = true;
+	}
+	if (opinfo->flags & FL_SET_CR_D)
+		code->outputCR[code->inst.CRFD] = true;
+	if (opinfo->flags & FL_SET_CRB_D)
+		code->outputCR[code->inst.CRBD >> 2] = true;
+	if ((opinfo->flags & FL_READ_CRB_BI) && !(code->inst.BO & BO_DONT_CHECK_CONDITION))
+		code->wantsCR[code->inst.BI >> 2] = true;
+	if (opinfo->flags & FL_READ_CRB_AB)
+	{
+		code->wantsCR[code->inst.CRBA >> 2] = true;
+		code->wantsCR[code->inst.CRBB >> 2] = true;
+	}
+	if (opinfo->flags & FL_READ_CR_S)
+		code->wantsCR[code->inst.CRFS] = true;
+	// mfcr: this one is special and reads multiple CR regs
+	if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 19)
+		code->wantsCR = BitSet8::AllTrue(8);
 
 	code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) ? true : false;
 	code->outputFPRF = (opinfo->flags & FL_SET_FPRF) ? true : false;
@@ -580,8 +591,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	code->fregOut = -1;
 	if (opinfo->flags & FL_OUT_FLOAT_D)
 		code->fregOut = code->inst.FD;
-	else if (opinfo->flags & FL_OUT_FLOAT_S)
-		code->fregOut = code->inst.FS;
 	code->fregsIn = BitSet32(0);
 	if (opinfo->flags & FL_IN_FLOAT_A)
 		code->fregsIn[code->inst.FA] = true;
@@ -591,8 +600,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->fregsIn[code->inst.FC] = true;
 	if (opinfo->flags & FL_IN_FLOAT_D)
 		code->fregsIn[code->inst.FD] = true;
-	if (opinfo->flags & FL_IN_FLOAT_S)
-		code->fregsIn[code->inst.FS] = true;
 
 	switch (opinfo->type)
 	{
@@ -606,12 +613,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	case OPTYPE_DOUBLEFP:
 		break;
 	case OPTYPE_BRANCH:
-		if (code->inst.hex == 0x4e800020)
-		{
-			// For analysis purposes, we can assume that blr eats opinfo->flags.
-			code->outputCR0 = true;
-			code->outputCR1 = true;
-		}
 		break;
 	case OPTYPE_SYSTEM:
 	case OPTYPE_SYSTEMFP:
@@ -824,24 +825,16 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Scan for flag dependencies; assume the next block (or any branch that can leave the block)
 	// wants flags, to be safe.
-	bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
+	bool wantsFPRF = true, wantsCA = true;
 	BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
-		bool opWantsCR0 = code[i].wantsCR0;
-		bool opWantsCR1 = code[i].wantsCR1;
 		bool opWantsFPRF = code[i].wantsFPRF;
 		bool opWantsCA = code[i].wantsCA;
-		code[i].wantsCR0 = wantsCR0 || code[i].canEndBlock;
-		code[i].wantsCR1 = wantsCR1 || code[i].canEndBlock;
 		code[i].wantsFPRF = wantsFPRF || code[i].canEndBlock;
 		code[i].wantsCA = wantsCA || code[i].canEndBlock;
-		wantsCR0 |= opWantsCR0 || code[i].canEndBlock;
-		wantsCR1 |= opWantsCR1 || code[i].canEndBlock;
 		wantsFPRF |= opWantsFPRF || code[i].canEndBlock;
 		wantsCA |= opWantsCA || code[i].canEndBlock;
-		wantsCR0 &= !code[i].outputCR0 || opWantsCR0;
-		wantsCR1 &= !code[i].outputCR1 || opWantsCR1;
 		wantsFPRF &= !code[i].outputFPRF || opWantsFPRF;
 		wantsCA &= !code[i].outputCA || opWantsCA;
 		code[i].gprInUse = gprInUse;
