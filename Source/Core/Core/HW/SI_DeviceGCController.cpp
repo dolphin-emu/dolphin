@@ -25,7 +25,7 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNum
 	, m_LastButtonCombo(COMBO_NONE)
 {
 	memset(&m_Origin, 0, sizeof(SOrigin));
-	m_Origin.uCommand        = CMD_ORIGIN;
+	m_Origin.uButton         = 0x00;
 	m_Origin.uOriginStickX   = 0x80; // center
 	m_Origin.uOriginStickY   = 0x80;
 	m_Origin.uSubStickStickX = 0x80;
@@ -35,6 +35,23 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNum
 
 	// Dunno if we need to do this, game/lib should set it?
 	m_Mode                   = 0x03;
+
+#if defined(__LIBUSB__) || defined (_WIN32)
+	if (SI_GCAdapter::IsDetected())
+	{
+		GCPadStatus pad_origin;
+		memset(&pad_origin, 0, sizeof(pad_origin));
+		SI_GCAdapter::Input(ISIDevice::m_iDeviceNumber, &pad_origin);
+		m_Origin.uButton         = pad_origin.button;
+		m_Origin.uOriginStickX   = pad_origin.stickX;
+		m_Origin.uOriginStickY   = pad_origin.stickY;
+		m_Origin.uSubStickStickX = pad_origin.substickX;
+		m_Origin.uSubStickStickY = pad_origin.substickY;
+		m_Origin.uTrigger_L      = pad_origin.triggerLeft;
+		m_Origin.uTrigger_R      = pad_origin.triggerRight;
+	}
+#endif
+
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
