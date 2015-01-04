@@ -67,6 +67,7 @@ protected:
 		u32 compilerPC;
 		u32 next_compilerPC;
 		u32 blockStart;
+		u32 blockEnd;
 		UGeckoInstruction next_inst;  // for easy peephole opt.
 		int instructionNumber;
 		int instructionsLeft;
