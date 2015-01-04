@@ -135,7 +135,7 @@ wxMenuBar* CFrame::CreateMenu()
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
 	fileMenu->Append(wxID_OPEN, GetMenuLabel(HK_OPEN));
-	fileMenu->Append(IDM_CHANGEDISC, GetMenuLabel(HK_CHANGE_DISC));
+	fileMenu->Append(IDM_CHANGE_DISC, GetMenuLabel(HK_CHANGE_DISC));
 
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Drive..."), externalDrive);
@@ -167,8 +167,8 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
 	for (int i = 0; i < 10; i++)
-		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
-	skippingMenu->Check(IDM_FRAMESKIP0 + SConfig::GetInstance().m_FrameSkip, true);
+		skippingMenu->Append(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
+	skippingMenu->Check(IDM_FRAME_SKIP_0 + SConfig::GetInstance().m_FrameSkip, true);
 	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
 
 	emulationMenu->AppendSeparator();
@@ -178,56 +178,56 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu *saveMenu = new wxMenu;
 	wxMenu *loadMenu = new wxMenu;
 	wxMenu *slotSelectMenu = new wxMenu;
-	emulationMenu->Append(IDM_LOADSTATE, _("&Load State"), loadMenu);
-	emulationMenu->Append(IDM_SAVESTATE, _("Sa&ve State"), saveMenu);
-	emulationMenu->Append(IDM_SELECTSLOT, _("Select State slot"), slotSelectMenu);
+	emulationMenu->Append(IDM_LOAD_STATE, _("&Load State"), loadMenu);
+	emulationMenu->Append(IDM_SAVE_STATE, _("Sa&ve State"), saveMenu);
+	emulationMenu->Append(IDM_SELECT_SLOT, _("Select State slot"), slotSelectMenu);
 
-	saveMenu->Append(IDM_SAVESTATEFILE, GetMenuLabel(HK_SAVE_STATE_FILE));
-	saveMenu->Append(IDM_SAVESELECTEDSLOT, GetMenuLabel(HK_SAVE_STATE_SLOT_SELECTED));
-	saveMenu->Append(IDM_SAVEFIRSTSTATE, GetMenuLabel(HK_SAVE_FIRST_STATE));
-	loadMenu->Append(IDM_UNDOSAVESTATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
+	saveMenu->Append(IDM_SAVE_STATE_FILE, GetMenuLabel(HK_SAVE_STATE_FILE));
+	saveMenu->Append(IDM_SAVE_SELECTED_SLOT, GetMenuLabel(HK_SAVE_STATE_SLOT_SELECTED));
+	saveMenu->Append(IDM_SAVE_FIRST_STATE, GetMenuLabel(HK_SAVE_FIRST_STATE));
+	loadMenu->Append(IDM_UNDO_SAVE_STATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
 	saveMenu->AppendSeparator();
 
-	loadMenu->Append(IDM_LOADSTATEFILE,  GetMenuLabel(HK_LOAD_STATE_FILE));
-	loadMenu->Append(IDM_LOADSELECTEDSLOT, GetMenuLabel(HK_LOAD_STATE_SLOT_SELECTED));
-	loadMenu->Append(IDM_UNDOLOADSTATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
+	loadMenu->Append(IDM_LOAD_STATE_FILE,  GetMenuLabel(HK_LOAD_STATE_FILE));
+	loadMenu->Append(IDM_LOAD_SELECTED_SLOT, GetMenuLabel(HK_LOAD_STATE_SLOT_SELECTED));
+	loadMenu->Append(IDM_UNDO_LOAD_STATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
 
 	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
 	{
-		loadMenu->Append(IDM_LOADSLOT1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
-		saveMenu->Append(IDM_SAVESLOT1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
-		slotSelectMenu->Append(IDM_SELECTSLOT1 + i - 1, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i -1));
+		loadMenu->Append(IDM_LOAD_SLOT_1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
+		saveMenu->Append(IDM_SAVE_SLOT_1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
+		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i - 1, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i -1));
 	}
 
 	loadMenu->AppendSeparator();
 	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
-		loadMenu->Append(IDM_LOADLAST1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
+		loadMenu->Append(IDM_LOAD_LAST_1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
 
 	menubar->Append(emulationMenu, _("&Emulation"));
 
 	// Movie menu
 	wxMenu* movieMenu = new wxMenu;
 	movieMenu->Append(IDM_RECORD, GetMenuLabel(HK_START_RECORDING));
-	movieMenu->Append(IDM_PLAYRECORD, GetMenuLabel(HK_PLAY_RECORDING));
-	movieMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
-	movieMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
-	movieMenu->Append(IDM_TASINPUT, _("TAS Input"));
+	movieMenu->Append(IDM_PLAY_RECORD, GetMenuLabel(HK_PLAY_RECORDING));
+	movieMenu->Append(IDM_RECORD_EXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
+	movieMenu->Append(IDM_RECORD_READ_ONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
+	movieMenu->Append(IDM_TAS_INPUT, _("TAS Input"));
 	movieMenu->AppendSeparator();
-	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at End of Movie"));
-	movieMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
-	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show Lag Counter"));
-	movieMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
-	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show Frame Counter"));
-	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
-	movieMenu->Check(IDM_RECORDREADONLY, true);
-	movieMenu->AppendCheckItem(IDM_SHOWINPUTDISPLAY, _("Show Input Display"));
-	movieMenu->Check(IDM_SHOWINPUTDISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
+	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSE_MOVIE, _("Pause at End of Movie"));
+	movieMenu->Check(IDM_TOGGLE_PAUSE_MOVIE, SConfig::GetInstance().m_PauseMovie);
+	movieMenu->AppendCheckItem(IDM_SHOW_LAG, _("Show Lag Counter"));
+	movieMenu->Check(IDM_SHOW_LAG, SConfig::GetInstance().m_ShowLag);
+	movieMenu->AppendCheckItem(IDM_SHOW_FRAME_COUNT, _("Show Frame Counter"));
+	movieMenu->Check(IDM_SHOW_FRAME_COUNT, SConfig::GetInstance().m_ShowFrameCount);
+	movieMenu->Check(IDM_RECORD_READ_ONLY, true);
+	movieMenu->AppendCheckItem(IDM_SHOW_INPUT_DISPLAY, _("Show Input Display"));
+	movieMenu->Check(IDM_SHOW_INPUT_DISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
 	movieMenu->AppendSeparator();
-	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump Frames"));
-	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, SConfig::GetInstance().m_DumpFrames);
-	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump Audio"));
-	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMP_FRAMES, _("Dump Frames"));
+	movieMenu->Check(IDM_TOGGLE_DUMP_FRAMES, SConfig::GetInstance().m_DumpFrames);
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMP_AUDIO, _("Dump Audio"));
+	movieMenu->Check(IDM_TOGGLE_DUMP_AUDIO, SConfig::GetInstance().m_DumpAudio);
 	menubar->Append(movieMenu, _("&Movie"));
 
 	// Options menu
@@ -248,13 +248,13 @@ wxMenuBar* CFrame::CreateMenu()
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
-	toolsMenu->Append(IDM_IMPORTSAVE, _("Import Wii Save"));
-	toolsMenu->Append(IDM_EXPORTALLSAVE, _("Export All Wii Saves"));
+	toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save"));
+	toolsMenu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheats Manager"));
 
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
 
-	toolsMenu->Append(IDM_MENU_INSTALLWAD, _("Install WAD"));
+	toolsMenu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD"));
 	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU, "Dummy string to keep wxw happy"));
 
 	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
@@ -277,13 +277,13 @@ wxMenuBar* CFrame::CreateMenu()
 	viewMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _("Show &Statusbar"));
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendSeparator();
-	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _("Show &Log"));
-	viewMenu->AppendCheckItem(IDM_LOGCONFIGWINDOW, _("Show Log &Configuration"));
+	viewMenu->AppendCheckItem(IDM_LOG_WINDOW, _("Show &Log"));
+	viewMenu->AppendCheckItem(IDM_LOG_CONFIG_WINDOW, _("Show Log &Configuration"));
 	viewMenu->AppendSeparator();
 
 	if (g_pCodeWindow)
 	{
-		viewMenu->Check(IDM_LOGWINDOW, g_pCodeWindow->bShowOnStart[0]);
+		viewMenu->Check(IDM_LOG_WINDOW, g_pCodeWindow->bShowOnStart[0]);
 
 		const wxString MenuText[] = {
 			wxTRANSLATE("&Registers"),
@@ -295,64 +295,64 @@ wxMenuBar* CFrame::CreateMenu()
 			wxTRANSLATE("&Video")
 		};
 
-		for (int i = IDM_REGISTERWINDOW; i <= IDM_VIDEOWINDOW; i++)
+		for (int i = IDM_REGISTER_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
 		{
-			viewMenu->AppendCheckItem(i, wxGetTranslation(MenuText[i - IDM_REGISTERWINDOW]));
-			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOGWINDOW]);
+			viewMenu->AppendCheckItem(i, wxGetTranslation(MenuText[i - IDM_REGISTER_WINDOW]));
+			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOG_WINDOW]);
 		}
 
 		viewMenu->AppendSeparator();
 	}
 	else
 	{
-		viewMenu->Check(IDM_LOGWINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
-		viewMenu->Check(IDM_LOGCONFIGWINDOW, SConfig::GetInstance().m_InterfaceLogConfigWindow);
+		viewMenu->Check(IDM_LOG_WINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
+		viewMenu->Check(IDM_LOG_CONFIG_WINDOW, SConfig::GetInstance().m_InterfaceLogConfigWindow);
 	}
 
 	wxMenu *platformMenu = new wxMenu;
 	viewMenu->AppendSubMenu(platformMenu, _("Show Platforms"));
-	platformMenu->AppendCheckItem(IDM_LISTWII, _("Show Wii"));
-	platformMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
-	platformMenu->AppendCheckItem(IDM_LISTGC, _("Show GameCube"));
-	platformMenu->Check(IDM_LISTGC, SConfig::GetInstance().m_ListGC);
-	platformMenu->AppendCheckItem(IDM_LISTWAD, _("Show Wad"));
-	platformMenu->Check(IDM_LISTWAD, SConfig::GetInstance().m_ListWad);
+	platformMenu->AppendCheckItem(IDM_LIST_WII, _("Show Wii"));
+	platformMenu->Check(IDM_LIST_WII, SConfig::GetInstance().m_ListWii);
+	platformMenu->AppendCheckItem(IDM_LIST_GC, _("Show GameCube"));
+	platformMenu->Check(IDM_LIST_GC, SConfig::GetInstance().m_ListGC);
+	platformMenu->AppendCheckItem(IDM_LIST_WAD, _("Show Wad"));
+	platformMenu->Check(IDM_LIST_WAD, SConfig::GetInstance().m_ListWad);
 
 	wxMenu *regionMenu = new wxMenu;
 	viewMenu->AppendSubMenu(regionMenu, _("Show Regions"));
-	regionMenu->AppendCheckItem(IDM_LISTJAP, _("Show JAP"));
-	regionMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
-	regionMenu->AppendCheckItem(IDM_LISTPAL, _("Show PAL"));
-	regionMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
-	regionMenu->AppendCheckItem(IDM_LISTUSA, _("Show USA"));
-	regionMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
+	regionMenu->AppendCheckItem(IDM_LIST_JAP, _("Show JAP"));
+	regionMenu->Check(IDM_LIST_JAP, SConfig::GetInstance().m_ListJap);
+	regionMenu->AppendCheckItem(IDM_LIST_PAL, _("Show PAL"));
+	regionMenu->Check(IDM_LIST_PAL, SConfig::GetInstance().m_ListPal);
+	regionMenu->AppendCheckItem(IDM_LIST_USA, _("Show USA"));
+	regionMenu->Check(IDM_LIST_USA, SConfig::GetInstance().m_ListUsa);
 	regionMenu->AppendSeparator();
-	regionMenu->AppendCheckItem(IDM_LISTAUSTRALIA, _("Show Australia"));
-	regionMenu->Check(IDM_LISTAUSTRALIA, SConfig::GetInstance().m_ListAustralia);
-	regionMenu->AppendCheckItem(IDM_LISTFRANCE, _("Show France"));
-	regionMenu->Check(IDM_LISTFRANCE, SConfig::GetInstance().m_ListFrance);
-	regionMenu->AppendCheckItem(IDM_LISTGERMANY, _("Show Germany"));
-	regionMenu->Check(IDM_LISTGERMANY, SConfig::GetInstance().m_ListGermany);
-	regionMenu->AppendCheckItem(IDM_LISTINTERNATIONAL, _("Show International"));
-	regionMenu->Check(IDM_LISTINTERNATIONAL, SConfig::GetInstance().m_ListInternational);
-	regionMenu->AppendCheckItem(IDM_LISTITALY, _("Show Italy"));
-	regionMenu->Check(IDM_LISTITALY, SConfig::GetInstance().m_ListItaly);
-	regionMenu->AppendCheckItem(IDM_LISTKOREA, _("Show Korea"));
-	regionMenu->Check(IDM_LISTKOREA, SConfig::GetInstance().m_ListKorea);
-	regionMenu->AppendCheckItem(IDM_LISTNETHERLANDS, _("Show Netherlands"));
-	regionMenu->Check(IDM_LISTNETHERLANDS, SConfig::GetInstance().m_ListNetherlands);
-	regionMenu->AppendCheckItem(IDM_LISTRUSSIA, _("Show Russia"));
-	regionMenu->Check(IDM_LISTRUSSIA, SConfig::GetInstance().m_ListRussia);
-	regionMenu->AppendCheckItem(IDM_LISTSPAIN, _("Show Spain"));
-	regionMenu->Check(IDM_LISTSPAIN, SConfig::GetInstance().m_ListSpain);
-	regionMenu->AppendCheckItem(IDM_LISTTAIWAN, _("Show Taiwan"));
-	regionMenu->Check(IDM_LISTTAIWAN, SConfig::GetInstance().m_ListTaiwan);
-	regionMenu->AppendCheckItem(IDM_LIST_UNK, _("Show Unknown"));
-	regionMenu->Check(IDM_LIST_UNK, SConfig::GetInstance().m_ListUnknown);
+	regionMenu->AppendCheckItem(IDM_LIST_AUSTRALIA, _("Show Australia"));
+	regionMenu->Check(IDM_LIST_AUSTRALIA, SConfig::GetInstance().m_ListAustralia);
+	regionMenu->AppendCheckItem(IDM_LIST_FRANCE, _("Show France"));
+	regionMenu->Check(IDM_LIST_FRANCE, SConfig::GetInstance().m_ListFrance);
+	regionMenu->AppendCheckItem(IDM_LIST_GERMANY, _("Show Germany"));
+	regionMenu->Check(IDM_LIST_GERMANY, SConfig::GetInstance().m_ListGermany);
+	regionMenu->AppendCheckItem(IDM_LIST_INTERNATIONAL, _("Show International"));
+	regionMenu->Check(IDM_LIST_INTERNATIONAL, SConfig::GetInstance().m_ListInternational);
+	regionMenu->AppendCheckItem(IDM_LIST_ITALY, _("Show Italy"));
+	regionMenu->Check(IDM_LIST_ITALY, SConfig::GetInstance().m_ListItaly);
+	regionMenu->AppendCheckItem(IDM_LIST_KOREA, _("Show Korea"));
+	regionMenu->Check(IDM_LIST_KOREA, SConfig::GetInstance().m_ListKorea);
+	regionMenu->AppendCheckItem(IDM_LIST_NETHERLANDS, _("Show Netherlands"));
+	regionMenu->Check(IDM_LIST_NETHERLANDS, SConfig::GetInstance().m_ListNetherlands);
+	regionMenu->AppendCheckItem(IDM_LIST_RUSSIA, _("Show Russia"));
+	regionMenu->Check(IDM_LIST_RUSSIA, SConfig::GetInstance().m_ListRussia);
+	regionMenu->AppendCheckItem(IDM_LIST_SPAIN, _("Show Spain"));
+	regionMenu->Check(IDM_LIST_SPAIN, SConfig::GetInstance().m_ListSpain);
+	regionMenu->AppendCheckItem(IDM_LIST_TAIWAN, _("Show Taiwan"));
+	regionMenu->Check(IDM_LIST_TAIWAN, SConfig::GetInstance().m_ListTaiwan);
+	regionMenu->AppendCheckItem(IDM_LIST_UNKNOWN, _("Show Unknown"));
+	regionMenu->Check(IDM_LIST_UNKNOWN, SConfig::GetInstance().m_ListUnknown);
 
-	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _("Show Drives"));
-	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
-	viewMenu->Append(IDM_PURGECACHE, _("Purge Cache"));
+	viewMenu->AppendCheckItem(IDM_LIST_DRIVES, _("Show Drives"));
+	viewMenu->Check(IDM_LIST_DRIVES, SConfig::GetInstance().m_ListDrives);
+	viewMenu->Append(IDM_PURGE_CACHE, _("Purge Cache"));
 
 	wxMenu *columnsMenu = new wxMenu;
 	viewMenu->AppendSubMenu(columnsMenu, _("Select Columns"));
@@ -384,9 +384,9 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu* helpMenu = new wxMenu;
 	// Re-enable when there's something useful to display */
 	// helpMenu->Append(wxID_HELP, _("&Help"));
-	helpMenu->Append(IDM_HELPWEBSITE, _("Dolphin &Web Site"));
-	helpMenu->Append(IDM_HELPONLINEDOCS, _("Online &Documentation"));
-	helpMenu->Append(IDM_HELPGITHUB, _("Dolphin at &GitHub"));
+	helpMenu->Append(IDM_HELP_WEBSITE, _("Dolphin &Web Site"));
+	helpMenu->Append(IDM_HELP_ONLINE_DOCS, _("Online &Documentation"));
+	helpMenu->Append(IDM_HELP_GITHUB, _("Dolphin at &GitHub"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(wxID_ABOUT, _("&About..."));
 	menubar->Append(helpMenu, _("&Help"));
@@ -810,7 +810,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 	{
 		// The user just chose to record a movie, so that should take precedence
 		Movie::SetReadOnly(false);
-		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(false);
+		GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check(false);
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -843,7 +843,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 	{
 		// let's make the read-only flag consistent at the start of a movie.
 		Movie::SetReadOnly(true);
-		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
+		GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check(true);
 	}
 
 	if (Movie::PlayInput(WxStrToStr(path)))
@@ -1369,13 +1369,13 @@ void CFrame::OnHelp(wxCommandEvent& event)
 			frame.ShowModal();
 		}
 		break;
-	case IDM_HELPWEBSITE:
+	case IDM_HELP_WEBSITE:
 		WxUtils::Launch("https://dolphin-emu.org/");
 		break;
-	case IDM_HELPONLINEDOCS:
+	case IDM_HELP_ONLINE_DOCS:
 		WxUtils::Launch("https://dolphin-emu.org/docs/guides/");
 		break;
-	case IDM_HELPGITHUB:
+	case IDM_HELP_GITHUB:
 		WxUtils::Launch("https://github.com/dolphin-emu/dolphin/");
 		break;
 	}
@@ -1467,7 +1467,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 
 	switch (event.GetId())
 	{
-	case IDM_LIST_INSTALLWAD:
+	case IDM_LIST_INSTALL_WAD:
 	{
 		const GameListItem *iso = m_GameListCtrl->GetSelectedISO();
 		if (!iso)
@@ -1475,7 +1475,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 		fileName = iso->GetFileName();
 		break;
 	}
-	case IDM_MENU_INSTALLWAD:
+	case IDM_MENU_INSTALL_WAD:
 	{
 		wxString path = wxFileSelector(
 			_("Select a Wii WAD file to install"),
@@ -1611,7 +1611,7 @@ void CFrame::OnLoadLastState(wxCommandEvent& event)
 	if (Core::IsRunningAndStarted())
 	{
 		int id = event.GetId();
-		int slot = id - IDM_LOADLAST1 + 1;
+		int slot = id - IDM_LOAD_LAST_1 + 1;
 		State::LoadLastSaved(slot);
 	}
 }
@@ -1640,7 +1640,7 @@ void CFrame::OnLoadState(wxCommandEvent& event)
 	if (Core::IsRunningAndStarted())
 	{
 		int id = event.GetId();
-		int slot = id - IDM_LOADSLOT1 + 1;
+		int slot = id - IDM_LOAD_SLOT_1 + 1;
 		State::Load(slot);
 	}
 }
@@ -1650,14 +1650,14 @@ void CFrame::OnSaveState(wxCommandEvent& event)
 	if (Core::IsRunningAndStarted())
 	{
 		int id = event.GetId();
-		int slot = id - IDM_SAVESLOT1 + 1;
+		int slot = id - IDM_SAVE_SLOT_1 + 1;
 		State::Save(slot);
 	}
 }
 
 void CFrame::OnFrameSkip(wxCommandEvent& event)
 {
-	int amount = event.GetId() - IDM_FRAMESKIP0;
+	int amount = event.GetId() - IDM_FRAME_SKIP_0;
 
 	Movie::SetFrameSkipping((unsigned int)amount);
 	SConfig::GetInstance().m_FrameSkip = amount;
@@ -1665,7 +1665,7 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 
 void CFrame::OnSelectSlot(wxCommandEvent& event)
 {
-	g_saveSlot = event.GetId() - IDM_SELECTSLOT1 + 1;
+	g_saveSlot = event.GetId() - IDM_SELECT_SLOT_1 + 1;
 	Core::DisplayMessage(StringFromFormat("Selected slot %d", g_saveSlot), 1000);
 }
 
@@ -1722,8 +1722,8 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_RESET)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Movie::IsRecordingInput());
-	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
-	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Movie::IsMovieActive());
+	GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(!Initialized);
+	GetMenuBar()->FindItem(IDM_RECORD_EXPORT)->Enable(Movie::IsMovieActive());
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);
@@ -1737,10 +1737,10 @@ void CFrame::UpdateGUI()
 			GetMenuBar()->FindItem(GetCmdForHotkey(i))->SetItemLabel(GetMenuLabel(i));
 	}
 
-	GetMenuBar()->FindItem(IDM_LOADSTATE)->Enable(Initialized);
-	GetMenuBar()->FindItem(IDM_SAVESTATE)->Enable(Initialized);
+	GetMenuBar()->FindItem(IDM_LOAD_STATE)->Enable(Initialized);
+	GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
 	// Misc
-	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(Initialized);
+	GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
@@ -1788,7 +1788,7 @@ void CFrame::UpdateGUI()
 		}
 	}
 
-	GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Enable(Running || Paused);
+	GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Enable(Running || Paused);
 
 	if (!Initialized && !m_bGameLoading)
 	{
@@ -1801,7 +1801,7 @@ void CFrame::UpdateGUI()
 					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
@@ -1811,7 +1811,7 @@ void CFrame::UpdateGUI()
 					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
 			}
 			else
 			{
@@ -1820,7 +1820,7 @@ void CFrame::UpdateGUI()
 					m_ToolBar->EnableTool(IDM_PLAY, false);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 				GetMenuBar()->FindItem(IDM_RECORD)->Enable(false);
-				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(false);
+				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(false);
 			}
 		}
 
@@ -1837,7 +1837,7 @@ void CFrame::UpdateGUI()
 				m_ToolBar->EnableTool(IDM_PLAY, true);
 			GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 			GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-			GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
+			GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
 		}
 	}
 	else if (Initialized)
@@ -1879,58 +1879,58 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case IDM_LISTWII:
+	case IDM_LIST_WII:
 		SConfig::GetInstance().m_ListWii = event.IsChecked();
 		break;
-	case IDM_LISTGC:
+	case IDM_LIST_GC:
 		SConfig::GetInstance().m_ListGC = event.IsChecked();
 		break;
-	case IDM_LISTWAD:
+	case IDM_LIST_WAD:
 		SConfig::GetInstance().m_ListWad = event.IsChecked();
 		break;
-	case IDM_LISTJAP:
+	case IDM_LIST_JAP:
 		SConfig::GetInstance().m_ListJap = event.IsChecked();
 		break;
-	case IDM_LISTPAL:
+	case IDM_LIST_PAL:
 		SConfig::GetInstance().m_ListPal = event.IsChecked();
 		break;
-	case IDM_LISTUSA:
+	case IDM_LIST_USA:
 		SConfig::GetInstance().m_ListUsa = event.IsChecked();
 		break;
-	case IDM_LISTAUSTRALIA:
+	case IDM_LIST_AUSTRALIA:
 		SConfig::GetInstance().m_ListAustralia = event.IsChecked();
 		break;
-	case IDM_LISTFRANCE:
+	case IDM_LIST_FRANCE:
 		SConfig::GetInstance().m_ListFrance = event.IsChecked();
 		break;
-	case IDM_LISTGERMANY:
+	case IDM_LIST_GERMANY:
 		SConfig::GetInstance().m_ListGermany = event.IsChecked();
 		break;
-	case IDM_LISTITALY:
+	case IDM_LIST_ITALY:
 		SConfig::GetInstance().m_ListItaly = event.IsChecked();
 		break;
-	case IDM_LISTKOREA:
+	case IDM_LIST_KOREA:
 		SConfig::GetInstance().m_ListKorea = event.IsChecked();
 		break;
-	case IDM_LISTNETHERLANDS:
+	case IDM_LIST_NETHERLANDS:
 		SConfig::GetInstance().m_ListNetherlands = event.IsChecked();
 		break;
-	case IDM_LISTRUSSIA:
+	case IDM_LIST_RUSSIA:
 		SConfig::GetInstance().m_ListRussia = event.IsChecked();
 		break;
-	case IDM_LISTSPAIN:
+	case IDM_LIST_SPAIN:
 		SConfig::GetInstance().m_ListSpain = event.IsChecked();
 		break;
-	case IDM_LISTTAIWAN:
+	case IDM_LIST_TAIWAN:
 		SConfig::GetInstance().m_ListTaiwan = event.IsChecked();
 		break;
-	case IDM_LIST_UNK:
+	case IDM_LIST_UNKNOWN:
 		SConfig::GetInstance().m_ListUnknown = event.IsChecked();
 		break;
-	case IDM_LISTDRIVES:
+	case IDM_LIST_DRIVES:
 		SConfig::GetInstance().m_ListDrives = event.IsChecked();
 		break;
-	case IDM_PURGECACHE:
+	case IDM_PURGE_CACHE:
 		CFileSearch::XStringVector Directories;
 		Directories.push_back(File::GetUserPath(D_CACHE_IDX));
 		CFileSearch::XStringVector Extensions;
