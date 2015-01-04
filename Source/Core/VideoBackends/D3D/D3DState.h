@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -22,6 +22,7 @@ namespace DX11
 union RasterizerState
 {
 	BitField<0, 2, D3D11_CULL_MODE> cull_mode;
+	BitField<2, 1, u32> depth_clip_enable;
 
 	u32 packed;
 };

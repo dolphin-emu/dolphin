@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -411,7 +411,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
 
 	D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID,
 		state.cull_mode,
-		false, 0, 0.f, 0, true, true, false, false);
+		false, 0, 0.f, 0, state.depth_clip_enable, true, false, false);
 
 	ID3D11RasterizerState* res = nullptr;
 

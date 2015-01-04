@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -260,6 +260,7 @@ Renderer::Renderer(void *&window_handle)
 	gx_state.zmode.func = ZMode::NEVER;
 
 	gx_state.raster.cull_mode = D3D11_CULL_NONE;
+	gx_state.raster.depth_clip_enable = !g_ActiveConfig.bDisableNearClipping;
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -1297,6 +1298,7 @@ void Renderer::RestoreAPIState()
 	D3D::stateman->PopRasterizerState();
 	SetViewport();
 	BPFunctions::SetScissor();
+	gx_state.raster.depth_clip_enable = !g_ActiveConfig.bDisableNearClipping;
 }
 
 void Renderer::ApplyState(bool bUseDstAlpha)
