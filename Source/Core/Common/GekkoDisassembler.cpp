@@ -482,9 +482,9 @@ void GekkoDisassembler::bc(u32 in)
 	branch(in, "", (in & 2) ? 1 : 0, d);
 
 	if (in & 2)  // AA ?
-		m_operands = StringFromFormat("->0x%.8X", d);
+		m_operands = StringFromFormat("%s ->0x%.8X", m_operands.c_str(), d);
 	else
-		m_operands = StringFromFormat("->0x%.8X", *m_iaddr + d);
+		m_operands = StringFromFormat("%s ->0x%.8X", m_operands.c_str(), *m_iaddr + d);
 
 	m_type = PPCINSTR_BRANCH;
 	m_displacement = d;
