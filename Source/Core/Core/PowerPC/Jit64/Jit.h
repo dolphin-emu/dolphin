@@ -115,6 +115,7 @@ public:
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
+	bool MergeAllowedNextInstructions(int count);
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
 	void FinalizeCarry(Gen::CCFlags cond);
 	void FinalizeCarry(bool ca);

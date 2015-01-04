@@ -214,6 +214,9 @@ public:
 		// Reorder carry instructions next to their associated branches and pass
 		// carry flags in the x86 flags between them, instead of in XER.
 		OPTION_CARRY_MERGE = (1 << 5),
+
+		// Reorder cror instructions next to their associated fcmp.
+		OPTION_CROR_MERGE =  (1 << 6),
 	};
 
 
