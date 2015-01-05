@@ -63,7 +63,7 @@ namespace DX11
 		"Output o;\n"
 		"float3 light = float3(-0.2, -0.8, -0.3);\n"
 		// Change the position vector to be 4 units for proper matrix calculations.
-		"position.w = 1.0f;\n"
+		"position.w = 1.0;\n"
 
 		// Calculate the position of the vertex against the world, view, and projection matrices.
 		"o.position = mul(position, worldMatrix);\n"
@@ -71,11 +71,12 @@ namespace DX11
 		"o.position = mul(o.position, projectionMatrix);\n"
 
 		"normal = mul(normal, worldMatrix);\n"
-		"normal = normalize(mul(normal, viewMatrix));\n"
+		"normal = -normalize(mul(normal, viewMatrix));\n"
 
 		// calculate the colour and texture mapping
 		"o.color = float4(1, 0, 1, 1);\n"
 		"o.color = saturate(o.color * (0.2 + dot(light, normal)));\n"
+		"o.color.w = 1.0;\n"
 		"o.uv = float3(uv.x, uv.y, 0);\n"
 		"return o;\n"
 		"}\n"
@@ -129,7 +130,7 @@ namespace DX11
 			m_vertex_count = shapes[0].mesh.vertices.size();
 			m_index_count = shapes[0].mesh.indices.size();
 			m_vertices = new float[m_vertex_count];
-			m_indices = new int[m_index_count];
+			m_indices = new u16[m_index_count];
 			for (size_t i = 0; i < m_vertex_count; ++i)
 			{
 				m_vertices[i] = shapes[0].mesh.vertices[i];
@@ -203,7 +204,7 @@ namespace DX11
 		D3D::SetDebugObjectName(m_vertex_buffer, "AvatarDrawer vertex buffer");
 
 		// Create index buffer
-		bd = CD3D11_BUFFER_DESC(m_index_count * sizeof(int), D3D11_BIND_INDEX_BUFFER, D3D11_USAGE_DYNAMIC);
+		bd = CD3D11_BUFFER_DESC(m_index_count * sizeof(u16), D3D11_BIND_INDEX_BUFFER, D3D11_USAGE_DYNAMIC);
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		srd = { m_indices, 0, 0 };
 		hr = D3D::device->CreateBuffer(&bd, &srd, &m_index_buffer);
@@ -271,7 +272,8 @@ namespace DX11
 		// Create depth state
 
 		D3D11_DEPTH_STENCIL_DESC dsd = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		dsd.DepthEnable = FALSE;
+		dsd.DepthEnable = TRUE;
+		dsd.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 		hr = D3D::device->CreateDepthStencilState(&dsd, &m_avatar_depth_state);
 		CHECK(SUCCEEDED(hr), "AvatarDrawer depth state");
 		D3D::SetDebugObjectName(m_avatar_depth_state, "AvatarDrawer depth state");
@@ -279,7 +281,8 @@ namespace DX11
 		// Create rasterizer state
 
 		D3D11_RASTERIZER_DESC rd = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-		rd.CullMode = D3D11_CULL_NONE;
+		rd.CullMode = D3D11_CULL_BACK;
+		rd.FrontCounterClockwise = TRUE;
 		rd.DepthClipEnable = FALSE;
 		hr = D3D::device->CreateRasterizerState(&rd, &m_avatar_rast_state);
 		CHECK(SUCCEEDED(hr), "create AvatarDrawer rasterizer state");
@@ -373,8 +376,8 @@ namespace DX11
 		Matrix44::Translate(walk_matrix, pos);
 		Matrix44::Multiply(g_head_tracking_matrix, walk_matrix, view);
 		// projection matrix
-		ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], 0.1f, 1000.0f, true);
-		ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], 0.1f, 1000.0f, true);
+		ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], 0.1f, 10000.0f, true);
+		ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], 0.1f, 10000.0f, true);
 		Matrix44::Set(proj, rift_left.M[0]);
 		// remove the part that is different for each eye
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)

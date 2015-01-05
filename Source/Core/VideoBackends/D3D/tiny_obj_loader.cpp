@@ -339,7 +339,7 @@ std::string LoadMtl (
       // flush previous material.
       if (!material.name.empty())
       {
-          material_map.insert(std::pair<std::string, int>(material.name, materials.size()));
+          material_map.insert(std::pair<std::string, int>(material.name, (int)materials.size()));
           materials.push_back(material);
       }
 
@@ -483,7 +483,7 @@ std::string LoadMtl (
     }
   }
   // flush last material.
-  material_map.insert(std::pair<std::string, int>(material.name, materials.size()));
+  material_map.insert(std::pair<std::string, int>(material.name, (int)materials.size()));
   materials.push_back(material);
 
   return err.str();

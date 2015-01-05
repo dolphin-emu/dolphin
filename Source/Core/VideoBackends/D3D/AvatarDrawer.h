@@ -45,7 +45,7 @@ namespace DX11
 		ID3D11RasterizerState* m_avatar_rast_state;
 		ID3D11SamplerState* m_avatar_sampler;
 		float *m_vertices;
-		int *m_indices;
+		u16 *m_indices;
 		int m_vertex_count, m_index_count;
 		float hydra_size[3], hydra_mid[3];
 	};
