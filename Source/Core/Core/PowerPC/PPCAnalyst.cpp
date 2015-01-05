@@ -221,6 +221,10 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	int a_flags = a_info->flags;
 	int b_flags = b_info->flags;
 
+	// can't reorder around breakpoints
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+	    (PowerPC::breakpoints.IsAddressBreakPoint(a.address) || PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+		return false;
 	// can't reorder around branch targets, for now
 	if (a.isBranchTarget || b.isBranchTarget)
 		return false;
