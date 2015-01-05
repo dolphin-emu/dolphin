@@ -44,7 +44,7 @@ namespace HotkeysXInput
 			{
 				xinput_dev = d;
 			}
-			else if (d->GetSource() == "DInput")
+			else if (d->GetSource() == "DInput" && d->GetName() != "Keyboard Mouse")
 			{
 				dinput_dev = d;
 			}
@@ -651,7 +651,7 @@ namespace HotkeysXInput
 		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
 		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
 
-		if ((xinput_value & ini_setting) == xinput_value)
+		if (((xinput_value & ini_setting) == xinput_value) && xinput_value && ini_setting)
 			return true;
 		else
 			return false;
