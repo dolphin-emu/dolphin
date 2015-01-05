@@ -50,10 +50,20 @@ void Jit64::GenerateOverflow()
 	SetJumpTarget(exit);
 }
 
-bool Jit64::MergeAllowedNextInstruction()
+bool Jit64::MergeAllowedNextInstructions(int count)
 {
+	if (PowerPC::GetState() == PowerPC::CPU_STEPPING || js.instructionsLeft < count)
+		return false;
 	// Be careful: a breakpoint kills flags in between instructions
-	return PowerPC::GetState() != PowerPC::CPU_STEPPING && !js.isLastInstruction && !js.next_inst_bp && !js.next_op->isBranchTarget;
+	for (int i = 1; i <= count; i++)
+	{
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+			PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+			return false;
+		if (js.op[i].isBranchTarget)
+			return false;
+	}
+	return true;
 }
 
 void Jit64::FinalizeCarry(CCFlags cond)
@@ -62,7 +72,8 @@ void Jit64::FinalizeCarry(CCFlags cond)
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		if (MergeAllowedNextInstruction() && js.next_op->wantsCAInFlags)
+		// Not actually merging instructions, but the effect is equivalent (we can't have breakpoints/etc in between).
+		if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
 		{
 			if (cond == CC_C || cond == CC_NC)
 			{
@@ -91,7 +102,7 @@ void Jit64::FinalizeCarry(bool ca)
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		if (MergeAllowedNextInstruction() && js.next_op->wantsCAInFlags)
+		if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
 		{
 			if (ca)
 				STC();
@@ -336,10 +347,10 @@ bool Jit64::CheckMergedBranch(int crf)
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
 		return false;
 
-	if (!MergeAllowedNextInstruction())
+	if (!MergeAllowedNextInstructions(1))
 		return false;
 
-	const UGeckoInstruction& next = js.next_inst;
+	const UGeckoInstruction& next = js.op[1].inst;
 	return (((next.OPCD == 16 /* bcx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
@@ -351,33 +362,35 @@ bool Jit64::CheckMergedBranch(int crf)
 void Jit64::DoMergedBranch()
 {
 	// Code that handles successful PPC branching.
-	if (js.next_inst.OPCD == 16) // bcx
+	const UGeckoInstruction& next = js.op[1].inst;
+	const u32 nextPC = js.op[1].address;
+	if (next.OPCD == 16) // bcx
 	{
-		if (js.next_inst.LK)
-			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+		if (next.LK)
+			MOV(32, M(&LR), Imm32(nextPC + 4));
 
 		u32 destination;
-		if (js.next_inst.AA)
-			destination = SignExt16(js.next_inst.BD << 2);
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
 		else
-			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-		WriteExit(destination, js.next_inst.LK, js.next_compilerPC + 4);
+			destination = nextPC + SignExt16(next.BD << 2);
+		WriteExit(destination, next.LK, nextPC + 4);
 	}
-	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
+	else if ((next.OPCD == 19) && (next.SUBOP10 == 528)) // bcctrx
 	{
-		if (js.next_inst.LK)
-			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+		if (next.LK)
+			MOV(32, M(&LR), Imm32(nextPC + 4));
 		MOV(32, R(RSCRATCH), M(&CTR));
 		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-		WriteExitDestInRSCRATCH(js.next_inst.LK, js.next_compilerPC + 4);
+		WriteExitDestInRSCRATCH(next.LK, nextPC + 4);
 	}
-	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
+	else if ((next.OPCD == 19) && (next.SUBOP10 == 16)) // bclrx
 	{
 		MOV(32, R(RSCRATCH), M(&LR));
 		if (!m_enable_blr_optimization)
 			AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-		if (js.next_inst.LK)
-			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+		if (next.LK)
+			MOV(32, M(&LR), Imm32(nextPC + 4));
 		WriteBLRExit();
 	}
 	else
@@ -389,21 +402,23 @@ void Jit64::DoMergedBranch()
 void Jit64::DoMergedBranchCondition()
 {
 	js.downcountAmount++;
-	js.skipnext = true;
-	int test_bit = 8 >> (js.next_inst.BI & 3);
+	js.skipInstructions = 1;
+	const UGeckoInstruction& next = js.op[1].inst;
+	const u32 nextPC = js.op[1].address;
+	int test_bit = 8 >> (next.BI & 3);
 	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 	bool jumpInBlock = false;
 	u32 destination;
-	if (js.next_inst.OPCD == 16 && cc && forwardJumps && !(test_bit & 1))
+	if (next.OPCD == 16 && cc && forwardJumps && !(test_bit & 1))
 	{
-		if (js.next_inst.AA)
-			destination = SignExt16(js.next_inst.BD << 2);
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
 		else
-			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-		jumpInBlock = destination > js.next_compilerPC && destination < js.blockEnd;
+			destination = nextPC + SignExt16(next.BD << 2);
+		jumpInBlock = destination > nextPC && destination < js.blockEnd;
 	}
-	bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE) ^ jumpInBlock;
+	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE) ^ jumpInBlock;
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -419,7 +434,7 @@ void Jit64::DoMergedBranchCondition()
 
 	if (jumpInBlock)
 	{
-		BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.next_op };
+		BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
 		branch_targets.insert(std::make_pair(destination, branchData));
 	}
 	else
@@ -436,28 +451,30 @@ void Jit64::DoMergedBranchCondition()
 	{
 		gpr.Flush();
 		fpr.Flush();
-		WriteExit(js.next_compilerPC + 4);
+		WriteExit(nextPC + 4);
 	}
 }
 
 void Jit64::DoMergedBranchImmediate(s64 val)
 {
 	js.downcountAmount++;
-	js.skipnext = true;
-	int test_bit = 8 >> (js.next_inst.BI & 3);
+	js.skipInstructions = 1;
+	const UGeckoInstruction& next = js.op[1].inst;
+	const u32 nextPC = js.op[1].address;
+	int test_bit = 8 >> (next.BI & 3);
 	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 	bool jumpInBlock = false;
 	u32 destination;
-	if (js.next_inst.OPCD == 16 && cc && forwardJumps)
+	if (next.OPCD == 16 && cc && forwardJumps)
 	{
-		if (js.next_inst.AA)
-			destination = SignExt16(js.next_inst.BD << 2);
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
 		else
-			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-		jumpInBlock = destination > js.next_compilerPC && destination < js.blockEnd;
+			destination = nextPC + SignExt16(next.BD << 2);
+		jumpInBlock = destination > nextPC && destination < js.blockEnd;
 	}
-	bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE);
+	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -476,7 +493,7 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 		if (jumpInBlock)
 		{
 			FixupBranch pBranch = J(true);
-			BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.next_op };
+			BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
 			branch_targets.insert(std::make_pair(destination, branchData));
 		}
 		// IMPORTANT: we can't actually leave the block in this case!! A forward branch is still waiting around for
@@ -499,7 +516,7 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 	{
 		gpr.Flush();
 		fpr.Flush();
-		WriteExit(js.next_compilerPC + 4);
+		WriteExit(nextPC + 4);
 	}
 }
 

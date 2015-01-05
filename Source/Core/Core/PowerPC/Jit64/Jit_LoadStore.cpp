@@ -95,11 +95,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 
 	// PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find it.
-	if (MergeAllowedNextInstruction() && accessSize == 8 && js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 954 &&
-	    js.next_inst.RS == inst.RD && js.next_inst.RA == inst.RD && !js.next_inst.Rc)
+	if (MergeAllowedNextInstructions(1) && accessSize == 8 && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 954 &&
+	    js.op[1].inst.RS == inst.RD && js.op[1].inst.RA == inst.RD && !js.op[1].inst.Rc)
 	{
 		js.downcountAmount++;
-		js.skipnext = true;
+		js.skipInstructions = 1;
 		signExtend = true;
 	}
 
