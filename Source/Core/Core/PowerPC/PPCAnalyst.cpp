@@ -670,6 +670,15 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 		if (inst.hex != 0)
 		{
+			// Slight hack: the JIT block cache currently assumes all blocks end at the same place,
+			// but broken blocks due to page faults break this assumption. Avoid this by just ending
+			// all virtual memory instruction blocks at page boundaries.
+			// FIXME: improve the JIT block cache so we don't need to do this.
+			if (virtualAddr && i > 0 && (address & 0xfff) == 0)
+			{
+				break;
+			}
+
 			num_inst++;
 			memset(&code[i], 0, sizeof(CodeOp));
 			GekkoOPInfo *opinfo = GetOpInfo(inst);
