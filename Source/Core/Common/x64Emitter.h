@@ -322,6 +322,7 @@ public:
 	void ReserveCodeSpace(int bytes);
 	const u8 *AlignCode4();
 	const u8 *AlignCode16();
+	const u8 *AlignCode64();
 	const u8 *AlignCodePage();
 	const u8 *GetCodePtr() const;
 	u8 *GetWritableCodePtr();
@@ -889,6 +890,9 @@ public:
 
 	// Helper method for the above, or can be used separately.
 	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2);
+
+	// Helper to efficiently move a possibly-64-bit value to a destination register or memory location
+	void MOVImm64(Gen::OpArg dst, u64 src, Gen::X64Reg tmp = Gen::INVALID_REG);
 
 	// Saves/restores the registers and adjusts the stack to be aligned as
 	// required by the ABI, where the previous alignment was as specified.

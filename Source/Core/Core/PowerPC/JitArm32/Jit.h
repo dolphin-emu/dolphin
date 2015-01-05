@@ -94,6 +94,8 @@ public:
 
 	void ClearCache();
 
+	void SetGQR(int index, u32 gqr);
+
 	const u8 *GetDispatcher()
 	{
 		return asm_routines.dispatcher;

@@ -196,6 +196,8 @@ void Jit64::Init()
 
 	blocks.Init();
 	asm_routines.Init(m_stack ? (m_stack + STACK_SIZE) : nullptr);
+	for (int i = 0; i < 8; i++)
+		jit->SetGQR(i, GQR(i));
 
 	// important: do this *after* generating the global asm routines, because we can't use farcode in them.
 	// it'll crash because the farcode functions get cleared on JIT clears.
@@ -214,6 +216,18 @@ void Jit64::ClearCache()
 	farcode.ClearCodeSpace();
 	ClearCodeSpace();
 	m_clear_cache_asap = false;
+}
+
+void Jit64::SetGQR(int index, u32 gqr)
+{
+	int storeFunc = gqr & 7;
+	int loadFunc = (gqr >> 16) & 7;
+	asm_routines.pairedStoreQuantizeFunc[index] = asm_routines.pairedStoreQuantized[storeFunc];
+	asm_routines.pairedStoreQuantizeFunc[index + 8] = asm_routines.pairedStoreQuantized[storeFunc + 8];
+	asm_routines.pairedLoadQuantizeFunc[index] = asm_routines.pairedLoadQuantized[loadFunc];
+	asm_routines.pairedLoadQuantizeFunc[index + 8] = asm_routines.pairedLoadQuantized[loadFunc + 8];
+	GQRQuant(index, 0) = (gqr >>  8) & 0x3f;
+	GQRQuant(index, 1) = (gqr >> 24) & 0x3f;
 }
 
 void Jit64::Shutdown()

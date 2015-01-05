@@ -96,6 +96,12 @@ struct GC_ALIGNED64(PowerPCState)
 	std::tuple<> above_fits_in_first_0x100;
 #endif
 
+	// The quantization factors from the 8 GQR registers, kept updated.
+	// The function pointers associated with these are kept in JitAsmCommon, since
+	// they're host pointers and don't belong in PPCState.
+	// [0] = store, [1] = load
+	u8 gqrquant[8][2];
+
 	// The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
 	// but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
 	// Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
@@ -185,6 +191,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define SPRG2  PowerPC::ppcState.spr[SPR_SPRG2]
 #define SPRG3  PowerPC::ppcState.spr[SPR_SPRG3]
 #define GQR(x) PowerPC::ppcState.spr[SPR_GQR0+x]
+#define GQRQuant(x,i) PowerPC::ppcState.gqrquant[x][i]
 #define TL     PowerPC::ppcState.spr[SPR_TL]
 #define TU     PowerPC::ppcState.spr[SPR_TU]
 

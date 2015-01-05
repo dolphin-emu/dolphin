@@ -222,3 +222,30 @@ void XEmitter::ABI_CallFunctionA(int bits, const void *func, const Gen::OpArg &a
 	ABI_CallFunction(func);
 }
 
+void XEmitter::MOVImm64(Gen::OpArg dst, u64 src, Gen::X64Reg tmp)
+{
+	if (dst.IsSimpleReg())
+	{
+		if (src > std::numeric_limits<u32>::max())
+			MOV(64, dst, Imm64(src));
+		else
+			MOV(32, dst, Imm32((u32)src));
+	}
+	else
+	{
+		if (src > std::numeric_limits<u32>::max())
+		{
+			MOV(64, R(tmp), Imm64(src));
+			MOV(64, dst, R(tmp));
+		}
+		else if (src > std::numeric_limits<s32>::max())
+		{
+			MOV(32, R(tmp), Imm32((u32)src));
+			MOV(64, dst, R(tmp));
+		}
+		else
+		{
+			MOV(64, dst, Imm32((u32)src));
+		}
+	}
+}

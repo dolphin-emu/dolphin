@@ -35,6 +35,11 @@ void JitArm64::ClearCache()
 	blocks.Clear();
 }
 
+void JitArm64::SetGQR(int index, u32 gqr)
+{
+	// TODO: use this instead of the existing paired load/store code
+}
+
 void JitArm64::Shutdown()
 {
 	FreeCodeSpace();

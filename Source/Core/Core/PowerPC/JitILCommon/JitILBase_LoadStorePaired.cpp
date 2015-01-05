@@ -22,7 +22,7 @@ void JitILBase::psq_st(UGeckoInstruction inst)
 
 	val = ibuild.EmitLoadFReg(inst.RS);
 	val = ibuild.EmitCompactMRegToPacked(val);
-	ibuild.EmitStorePaired(val, addr, inst.I);
+	ibuild.EmitStorePaired(val, addr, inst.I | (inst.W << 3));
 }
 
 void JitILBase::psq_l(UGeckoInstruction inst)

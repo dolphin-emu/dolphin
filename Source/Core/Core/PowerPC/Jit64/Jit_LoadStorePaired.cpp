@@ -32,49 +32,34 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	int w = indexed ? inst.Wx : inst.W;
 
 	gpr.Lock(a, b);
-	gpr.FlushLockX(RSCRATCH_EXTRA);
 	if (update)
 		gpr.BindToRegister(a, true, true);
 	fpr.BindToRegister(s, true, false);
 	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
 	{
 		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+			LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 		else
-			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
+			LEA(32, RSCRATCH2, MDisp(gpr.RX(a), offset));
 	}
 	else
 	{
-		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
+		MOV(32, R(RSCRATCH2), gpr.R(a));
 		if (indexed)
-			ADD(32, R(RSCRATCH_EXTRA), gpr.R(b));
+			ADD(32, R(RSCRATCH2), gpr.R(b));
 		else if (offset)
-			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
+			ADD(32, R(RSCRATCH2), Imm32((u32)offset));
 	}
 	// In memcheck mode, don't update the address until the exception check
 	if (update && !js.memcheck)
-		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
-	// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
-	// Hence, we need to mask out the unused bits. The layout of the GQR register is
-	// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
-	// 0b0011111100000111, or 0x3F07.
-	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
-	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+		MOV(32, gpr.R(a), R(RSCRATCH2));
+	MOVZX(32, 8, RSCRATCH, PPCSTATE(gqrquant[i][0]));
 
-	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*8+disp32] without a base register!
 	if (w)
-	{
-		// One value
 		CVTSD2SS(XMM0, fpr.R(s));
-		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
-	}
 	else
-	{
-		// Pair of values
 		CVTPD2PS(XMM0, fpr.R(s));
-		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
-	}
+	CALLptr(M(&asm_routines.pairedStoreQuantizeFunc[i + w * 8]));
 
 	if (update && js.memcheck)
 	{
@@ -86,7 +71,6 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 		MEMCHECK_END
 	}
 	gpr.UnlockAll();
-	gpr.UnlockAllX();
 }
 
 void Jit64::psq_lXX(UGeckoInstruction inst)
@@ -105,37 +89,29 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	int w = indexed ? inst.Wx : inst.W;
 
 	gpr.Lock(a, b);
-	gpr.FlushLockX(RSCRATCH_EXTRA);
 	gpr.BindToRegister(a, true, update);
 	fpr.BindToRegister(s, false, true);
 	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
 	{
 		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+			LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 		else
-			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
+			LEA(32, RSCRATCH2, MDisp(gpr.RX(a), offset));
 	}
 	else
 	{
-		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
+		MOV(32, R(RSCRATCH2), gpr.R(a));
 		if (indexed)
-			ADD(32, R(RSCRATCH_EXTRA), gpr.R(b));
+			ADD(32, R(RSCRATCH2), gpr.R(b));
 		else if (offset)
-			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
+			ADD(32, R(RSCRATCH2), Imm32((u32)offset));
 	}
 	// In memcheck mode, don't update the address until the exception check
 	if (update && !js.memcheck)
-		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
-	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+		MOV(32, gpr.R(a), R(RSCRATCH2));
 
-	// Get the high part of the GQR register
-	OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
-	gqr.offset += 2;
-
-	AND(32, R(RSCRATCH2), gqr);
-	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
-
-	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
+	MOVZX(32, 8, RSCRATCH, PPCSTATE(gqrquant[i][1]));
+	CALLptr(M(&asm_routines.pairedLoadQuantizeFunc[i + w * 8]));
 
 	MEMCHECK_START(false)
 	CVTPS2PD(fpr.RX(s), R(XMM0));
@@ -149,5 +125,4 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	MEMCHECK_END
 
 	gpr.UnlockAll();
-	gpr.UnlockAllX();
 }

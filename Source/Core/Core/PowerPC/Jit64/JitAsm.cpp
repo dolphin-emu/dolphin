@@ -229,7 +229,7 @@ void Jit64AsmRoutineManager::GenerateCommon()
 
 	GenQuantizedLoads();
 	GenQuantizedStores();
-	GenQuantizedSingleStores();
+	ReserveQuantizeTableSpace();
 
 	//CMPSD(R(XMM0), M(&zero),
 	// TODO

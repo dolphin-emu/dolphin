@@ -81,6 +81,8 @@ public:
 
 	void ClearCache() override;
 
+	void SetGQR(int index, u32 gqr) override;
+
 	const u8 *GetDispatcher()
 	{
 		return asm_routines.dispatcher;

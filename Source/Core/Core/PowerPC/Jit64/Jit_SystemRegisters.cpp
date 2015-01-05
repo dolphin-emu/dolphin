@@ -174,8 +174,59 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	case SPR_GQR0 + 5:
 	case SPR_GQR0 + 6:
 	case SPR_GQR0 + 7:
-		// These are safe to do the easy way, see the bottom of this function.
-		break;
+	{
+		int gqr = iIndex - SPR_GQR0;
+		// Prepare the GQR function/quantization factor data.
+		// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
+		// Hence, we need to mask out the unused bits. The layout of the GQR register is
+		// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we need to make sure
+		// to mask out any unused bits in this part.
+		if (gpr.R(d).IsImm())
+		{
+			u32 imm = (u32)gpr.R(d).offset;
+			int storeFunc = imm & 7;
+			int loadFunc = (imm >> 16) & 7;
+			int storeQuant = (imm >> 8) & 0x3f;
+			int loadQuant = (imm >> 24) & 0x3f;
+			MOVImm64(M(&asm_routines.pairedStoreQuantizeFunc[gqr+0]), (u64)asm_routines.pairedStoreQuantized[storeFunc+0], RSCRATCH);
+			MOVImm64(M(&asm_routines.pairedStoreQuantizeFunc[gqr+8]), (u64)asm_routines.pairedStoreQuantized[storeFunc+8], RSCRATCH);
+			MOVImm64(M(&asm_routines.pairedLoadQuantizeFunc[gqr+0]), (u64)asm_routines.pairedLoadQuantized[loadFunc+0], RSCRATCH);
+			MOVImm64(M(&asm_routines.pairedLoadQuantizeFunc[gqr+8]), (u64)asm_routines.pairedLoadQuantized[loadFunc+8], RSCRATCH);
+			MOV(8, PPCSTATE(gqrquant[gqr][0]), Imm8(storeQuant));
+			MOV(8, PPCSTATE(gqrquant[gqr][1]), Imm8(loadQuant));
+		}
+		else
+		{
+			gpr.FlushLockX(RSCRATCH_EXTRA);
+			gpr.Lock(d);
+			gpr.BindToRegister(d, true, false);
+			MOV(32, R(RSCRATCH_EXTRA), gpr.R(d));
+			AND(32, R(RSCRATCH_EXTRA), Imm32(0x3f073f07));
+
+			MOVZX(32, 8, RSCRATCH2, R(RSCRATCH_EXTRA));
+			MOV(64, R(RSCRATCH), MScaled(RSCRATCH2, SCALE_8, (u32)(u64)(asm_routines.pairedStoreQuantized + 0)));
+			MOV(64, M(&asm_routines.pairedStoreQuantizeFunc[gqr + 0]), R(RSCRATCH));
+			MOV(64, R(RSCRATCH), MScaled(RSCRATCH2, SCALE_8, (u32)(u64)(asm_routines.pairedStoreQuantized + 8)));
+			MOV(64, M(&asm_routines.pairedStoreQuantizeFunc[gqr + 8]), R(RSCRATCH));
+
+			SHR(32, R(RSCRATCH_EXTRA), Imm8(8));
+			MOV(8, PPCSTATE(gqrquant[gqr][0]), R(RSCRATCH_EXTRA));
+
+			SHR(32, R(RSCRATCH_EXTRA), Imm8(8));
+			MOVZX(32, 8, RSCRATCH2, R(RSCRATCH_EXTRA));
+			MOV(64, R(RSCRATCH), MScaled(RSCRATCH2, SCALE_8, (u32)(u64)(asm_routines.pairedLoadQuantized + 0)));
+			MOV(64, M(&asm_routines.pairedLoadQuantizeFunc[gqr + 0]), R(RSCRATCH));
+			MOV(64, R(RSCRATCH), MScaled(RSCRATCH2, SCALE_8, (u32)(u64)(asm_routines.pairedLoadQuantized + 8)));
+			MOV(64, M(&asm_routines.pairedLoadQuantizeFunc[gqr + 8]), R(RSCRATCH));
+
+			SHR(32, R(RSCRATCH_EXTRA), Imm8(8));
+			MOV(8, PPCSTATE(gqrquant[gqr][1]), R(RSCRATCH_EXTRA));
+		}
+		MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+		return;
+	}
 
 	case SPR_XER:
 		gpr.Lock(d);

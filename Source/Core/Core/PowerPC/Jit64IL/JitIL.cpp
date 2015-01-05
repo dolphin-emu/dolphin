@@ -273,6 +273,11 @@ void JitIL::ClearCache()
 	ClearCodeSpace();
 }
 
+void JitIL::SetGQR(int index, u32 gqr)
+{
+	// TODO: use this instead of the existing paired load/store code
+}
+
 void JitIL::Shutdown()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)

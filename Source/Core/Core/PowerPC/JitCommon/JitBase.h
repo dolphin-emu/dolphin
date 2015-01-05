@@ -111,6 +111,8 @@ public:
 	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
 	virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
+
+	virtual void SetGQR(int index, u32 gqr) = 0;
 };
 
 class Jitx86Base : public JitBase, public EmuCodeBlock
