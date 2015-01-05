@@ -1667,7 +1667,7 @@ void CFrame::OnDebugger(wxCommandEvent& WXUNUSED(event))
 	{
 		UseDebugger = true;
 		this->Maximize(true);
-		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODEWINDOW);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODE_WINDOW);
 		LoadIniPerspectives();
 		g_pCodeWindow->Load();
 
@@ -1680,7 +1680,7 @@ void CFrame::OnDebugger(wxCommandEvent& WXUNUSED(event))
 		g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, menu);
 		wxMenu* viewMenu = menu->GetMenu(menu->FindMenu(_("&View")));
 		viewMenu->AppendSeparator();
-		viewMenu->Check(IDM_LOGWINDOW, g_pCodeWindow->bShowOnStart[0]);
+		viewMenu->Check(IDM_LOG_WINDOW, g_pCodeWindow->bShowOnStart[0]);
 		const wxString MenuText[] = {
 			wxTRANSLATE("&Registers"),
 			wxTRANSLATE("&Watch"),
@@ -1690,10 +1690,10 @@ void CFrame::OnDebugger(wxCommandEvent& WXUNUSED(event))
 			wxTRANSLATE("&Sound"),
 			wxTRANSLATE("&Video")
 		};
-		for (int i = IDM_REGISTERWINDOW; i <= IDM_VIDEOWINDOW; i++)
+		for (int i = IDM_REGISTER_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
 		{
-			viewMenu->AppendCheckItem(i, wxGetTranslation(MenuText[i - IDM_REGISTERWINDOW]));
-			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOGWINDOW]);
+			viewMenu->AppendCheckItem(i, wxGetTranslation(MenuText[i - IDM_REGISTER_WINDOW]));
+			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOG_WINDOW]);
 		}
 
 		// Create toolbar
