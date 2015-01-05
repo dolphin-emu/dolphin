@@ -224,7 +224,7 @@ bool BootCore(const std::string& _rFilename)
 
 #ifdef HAVE_OCULUSSDK
 	// If Oculus Rift is in Direct Mode, we must use Deterministic Dual Core for it not to randomly drop frames.
-	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop) && !g_force_vr)
 		StartUp.m_GPUDeterminismMode = GPU_DETERMINISM_FAKE_COMPLETION;
 	else
 #endif

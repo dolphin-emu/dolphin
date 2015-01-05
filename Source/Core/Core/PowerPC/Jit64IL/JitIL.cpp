@@ -489,14 +489,8 @@ void JitIL::Jit(u32 em_address)
 	{
 		ClearCache();
 	}
-	int block_num = blocks.AllocateBlock(em_address);
-	JitBlock *b = blocks.GetBlock(block_num);
-	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
-}
 
-const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
-{
-	int blockSize = code_buf->GetSize();
+	int blockSize = code_buffer.GetSize();
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
@@ -517,16 +511,32 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
+	// Analyze the block, collect all instructions it is made of (including inlining,
+	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
+	u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, blockSize);
+
+	if (code_block.m_memory_exception)
+	{
+		// Address of instruction could not be translated
+		NPC = nextPC;
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
+		PowerPC::CheckExceptions();
+		return;
+	}
+
+	int block_num = blocks.AllocateBlock(em_address);
+	JitBlock *b = blocks.GetBlock(block_num);
+	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+}
+
+const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC)
+{
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
-
-	// Analyze the block, collect all instructions it is made of (including inlining,
-	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -679,12 +689,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				HLEFunction(function);
 			}
 		}
-	}
-
-	if (code_block.m_memory_exception)
-	{
-		b->memoryException = true;
-		ibuild.EmitISIException(ibuild.EmitIntConst(em_address));
 	}
 
 	// Perform actual code generation
