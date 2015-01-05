@@ -93,23 +93,32 @@ void MarkAllDirty()
 	g_preprocess_cp_state.attr_dirty = BitSet32::AllTrue(8);
 }
 
-static VertexLoaderBase* RefreshLoader(int vtx_attr_group, CPState* state)
+static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
 {
+	CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
+
 	VertexLoaderBase* loader;
 	if (state->attr_dirty[vtx_attr_group])
 	{
+		// We are not allowed to create a native vertex format on preprocessing as this is on the wrong thread
+		bool check_for_native_format = !preprocess;
+
 		VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
 		std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 		VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
 		if (iter != s_vertex_loader_map.end())
 		{
 			loader = iter->second.get();
+			check_for_native_format &= !loader->m_native_vertex_format;
 		}
 		else
 		{
 			loader = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
 			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoaderBase>(loader);
-
+			INCSTAT(stats.numVertexLoaders);
+		}
+		if (check_for_native_format)
+		{
 			// search for a cached native vertex format
 			const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
 			auto& native = s_native_vertex_map[format];
@@ -121,8 +130,6 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, CPState* state)
 				native->m_components = loader->m_native_components;
 			}
 			loader->m_native_vertex_format = native.get();
-
-			INCSTAT(stats.numVertexLoaders);
 		}
 		state->vertex_loaders[vtx_attr_group] = loader;
 		state->attr_dirty[vtx_attr_group] = false;
@@ -137,9 +144,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (!count)
 		return 0;
 
-	CPState* state = &g_main_cp_state;
-
-	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, state);
+	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group);
 
 	int size = count * loader->m_VertexSize;
 	if ((int)src.size() < size)
@@ -172,7 +177,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
 int GetVertexSize(int vtx_attr_group, bool preprocess)
 {
-	return RefreshLoader(vtx_attr_group, preprocess ? &g_preprocess_cp_state : &g_main_cp_state)->m_VertexSize;
+	return RefreshLoader(vtx_attr_group, preprocess)->m_VertexSize;
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()
