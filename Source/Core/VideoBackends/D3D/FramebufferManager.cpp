@@ -8,6 +8,7 @@
 #endif
 
 #include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D/AvatarDrawer.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
@@ -22,6 +23,7 @@
 namespace DX11 {
 
 static XFBEncoder s_xfbEncoder;
+AvatarDrawer s_avatarDrawer;
 
 FramebufferManager::Efb FramebufferManager::m_efb;
 unsigned int FramebufferManager::m_target_width;
@@ -226,6 +228,7 @@ FramebufferManager::FramebufferManager()
 	}
 
 	s_xfbEncoder.Init();
+	s_avatarDrawer.Init();
 }
 
 FramebufferManager::~FramebufferManager()
@@ -245,6 +248,7 @@ FramebufferManager::~FramebufferManager()
 #endif
 
 	s_xfbEncoder.Shutdown();
+	s_avatarDrawer.Shutdown();
 
 	SAFE_RELEASE(m_efb.color_tex);
 	SAFE_RELEASE(m_efb.color_temp_tex);

@@ -164,6 +164,15 @@ struct VideoConfig final
 	bool bOverdrive;
 	bool bHqDistortion;
 	bool bDisableNearClipping;
+	bool bShowHands;
+	bool bShowFeet;
+	bool bShowController;
+	bool bShowSensorBar;
+	bool bShowGameCamera;
+	bool bShowGameFrustum;
+	bool bShowTrackingCamera;
+	bool bShowTrackingVolume;
+	bool bShowBaseStation;
 	int iVRPlayer;
 	float fTimeWarpTweak;
 	u32 iExtraFrames;

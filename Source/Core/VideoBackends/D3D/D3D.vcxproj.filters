@@ -67,6 +67,10 @@
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="AvatarDrawer.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="tiny_obj_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -129,5 +133,9 @@
     <ClInclude Include="BoundingBox.h">
       <Filter>Render</Filter>
     </ClInclude>
+    <ClInclude Include="AvatarDrawer.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
 </Project>

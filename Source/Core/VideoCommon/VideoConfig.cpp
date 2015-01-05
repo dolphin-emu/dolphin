@@ -75,6 +75,16 @@ VideoConfig::VideoConfig()
 	bOverdrive = true;
 	bHqDistortion = false;
 	bDisableNearClipping = true;
+	bShowHands = false;
+	bShowFeet = false;
+	bShowController = false;
+	bShowSensorBar = false;
+	bShowGameCamera = false;
+	bShowGameFrustum = false;
+	bShowTrackingCamera = false;
+	bShowTrackingVolume = false;
+	bShowBaseStation = false;
+
 	iVRPlayer = 0;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
@@ -200,6 +210,15 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("Overdrive", &bOverdrive, true);
 	vr->Get("HQDistortion", &bHqDistortion, false);
 	vr->Get("DisableNearClipping", &bDisableNearClipping, true);
+	vr->Get("ShowHands", &bShowHands, false);
+	vr->Get("ShowFeet", &bShowFeet, false);
+	vr->Get("ShowController", &bShowController, false);
+	vr->Get("ShowSensorBar", &bShowSensorBar, false);
+	vr->Get("ShowGameCamera", &bShowGameCamera, false);
+	vr->Get("ShowGameFrustum", &bShowGameFrustum, false);
+	vr->Get("ShowTrackingCamera", &bShowTrackingCamera, false);
+	vr->Get("ShowTrackingVolume", &bShowTrackingVolume, false);
+	vr->Get("ShowBaseStation", &bShowBaseStation, false);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
@@ -593,6 +612,15 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
 	vr->Set("DisableNearClipping", bDisableNearClipping);
+	vr->Set("ShowHands", bShowHands);
+	vr->Set("ShowFeet", bShowFeet);
+	vr->Set("ShowController", bShowController);
+	vr->Set("ShowSensorBar", bShowSensorBar);
+	vr->Set("ShowGameCamera", bShowGameCamera);
+	vr->Set("ShowGameFrustum", bShowGameFrustum);
+	vr->Set("ShowTrackingCamera", bShowTrackingCamera);
+	vr->Set("ShowTrackingVolume", bShowTrackingVolume);
+	vr->Set("ShowBaseStation", bShowBaseStation);
 	vr->Set("Player", iVRPlayer);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);

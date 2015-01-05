@@ -893,6 +893,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #ifdef HAVE_OCULUSSDK
 	else if (g_has_rift && g_ActiveConfig.bEnableVR)
 	{
+		DX11::s_avatarDrawer.Draw();
+
 		EFBRectangle sourceRc;
 		// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
 		sourceRc.left = 0;

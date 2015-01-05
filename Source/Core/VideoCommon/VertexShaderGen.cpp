@@ -42,11 +42,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	out.Write(s_shader_uniforms);
 	out.Write("};\n");
 
+	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
+
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, api_type);
+	GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens);
 	out.Write("};\n");
 
-	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data->components = components;
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
@@ -77,7 +78,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
+			GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "centroid" : "centroid out");
 			out.Write("} vs;\n");
 		}
 		else
@@ -85,7 +86,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			// Let's set up attributes
 			for (size_t i = 0; i < 8; ++i)
 			{
-				if (i < xfmem.numTexGen.numTexGens)
+				if (i < uid_data->numTexGens)
 				{
 					out.Write("centroid out float3 uv%d;\n", i);
 				}
