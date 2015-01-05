@@ -51,7 +51,7 @@ public:
 	CFrame *Parent;
 	wxMenuBar * GetMenuBar();
 	wxToolBar * GetToolBar();
-	wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
+	wxBitmap m_Bitmaps[Toolbar_Debug_Bitmap_Max];
 
 	bool UseInterpreter();
 	bool BootToPause();
@@ -104,8 +104,8 @@ public:
 
 	// Settings
 	bool bAutomaticStart; bool bBootToPause;
-	bool bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW + 1];
-	int iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
+	bool bShowOnStart[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW + 1];
+	int iNbAffiliation[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
 
 private:
 	void OnSymbolListChange(wxCommandEvent& event);

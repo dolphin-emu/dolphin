@@ -144,7 +144,7 @@ public:
 	wxToolBar *m_ToolBar;
 	// AUI
 	wxAuiManager *m_Mgr;
-	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
+	bool bFloatWindow[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
 
 	// Perspectives (Should find a way to make all of this private)
 	void DoAddPage(wxWindow *Win, int i, bool Float);
