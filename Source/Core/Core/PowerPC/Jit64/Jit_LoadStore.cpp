@@ -497,8 +497,8 @@ void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
-	// TODO: This doesn't handle rollback on DSI correctly
 	MOV(32, R(RSCRATCH2), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
 		ADD(32, R(RSCRATCH2), gpr.R(inst.RA));
@@ -515,8 +515,8 @@ void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
-	// TODO: This doesn't handle rollback on DSI correctly
 	for (int i = inst.RD; i < 32; i++)
 	{
 		if (inst.RA)

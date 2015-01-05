@@ -6,6 +6,7 @@
 #include "Common/MathUtil.h"
 
 #include "Core/HW/DSP.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
@@ -177,37 +178,41 @@ void Interpreter::lhzu(UGeckoInstruction _inst)
 	}
 }
 
-// FIXME: lmw should do a total rollback if a DSI occurs
 void Interpreter::lmw(UGeckoInstruction _inst)
 {
+	u32 temp[32];
 	u32 uAddress = Helper_Get_EA(_inst);
 	for (int iReg = _inst.RD; iReg <= 31; iReg++, uAddress += 4)
 	{
-		u32 TempReg = Memory::Read_U32(uAddress);
+		temp[iReg] = rGPR[iReg];
+		rGPR[iReg] = Memory::Read_U32(uAddress);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
-			PanicAlert("DSI exception in lmw");
-			NOTICE_LOG(POWERPC, "DSI exception in lmw");
+			// Restore register state on DSI and bail
+			for (int i = _inst.RD; i <= iReg; i++)
+				rGPR[i] = temp[i];
 			return;
-		}
-		else
-		{
-			rGPR[iReg] = TempReg;
 		}
 	}
 }
 
-// FIXME: stmw should do a total rollback if a DSI occurs
 void Interpreter::stmw(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA(_inst);
+	// check for DSI; rolling back is harder after we've already done writes, so just check beforehand.
+	if (!Memory::CheckValidAddr(uAddress, Memory::FLAG_WRITE))
+		return;
+	u32 oldPage = uAddress & ~(Memory::HW_PAGE_SIZE - 1);
+	u32 newPage = (uAddress + (32 - _inst.RS) * 4 - 1) & ~(Memory::HW_PAGE_SIZE - 1);
+	// check for DSI, using the address at the start of the page, so the correct DSI is generated
+	if (oldPage != newPage && !Memory::CheckValidAddr(newPage, Memory::FLAG_WRITE))
+		return;
 	for (int iReg = _inst.RS; iReg <= 31; iReg++, uAddress+=4)
 	{
 		Memory::Write_U32(rGPR[iReg], uAddress);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
-			PanicAlert("DSI exception in stmw");
-			NOTICE_LOG(POWERPC, "DSI exception in stmw");
+			PanicAlert("DSI exception in stmw; something went wrong.");
 			return;
 		}
 	}

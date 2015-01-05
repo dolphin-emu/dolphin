@@ -34,8 +34,6 @@
 namespace Memory
 {
 
-#define HW_PAGE_SIZE 4096
-
 // EFB RE
 /*
 GXPeekZ
@@ -197,6 +195,33 @@ __forceinline void ReadFromHardware(U &_var, const u32 em_address, Memory::XChec
 	}
 }
 
+bool CheckValidAddr(const u32 em_address, Memory::XCheckTLBFlag flag)
+{
+	if ((em_address & 0xFFFFF000) == 0xCC008000)
+		return true;
+	if ((em_address & 0xC8000000) == 0xC8000000)
+		return true;
+	if (((em_address & 0xF0000000) == 0x80000000) ||
+		((em_address & 0xF0000000) == 0xC0000000) ||
+		((em_address & 0xF0000000) == 0x00000000))
+		return true;
+	if (m_pEXRAM && (((em_address & 0xF0000000) == 0x90000000) ||
+		((em_address & 0xF0000000) == 0xD0000000) ||
+		((em_address & 0xF0000000) == 0x10000000)))
+		return true;
+	if ((em_address >= 0xE0000000) && (em_address < (0xE0000000 + L1_CACHE_SIZE)))
+		return true;
+	if ((bFakeVMEM && ((em_address & 0xF0000000) == 0x70000000)) ||
+		(bFakeVMEM && ((em_address & 0xF0000000) == 0x40000000)))
+		return true;
+
+	if (!TranslateAddress(em_address, flag))
+	{
+		GenerateDSIException(em_address, true);
+		return false;
+	}
+	return true;
+}
 
 template <typename T>
 __forceinline void WriteToHardware(u32 em_address, const T data, Memory::XCheckTLBFlag flag)
@@ -212,6 +237,7 @@ __forceinline void WriteToHardware(u32 em_address, const T data, Memory::XCheckT
 		case 4: GPFifo::Write32((u32)data, em_address); return;
 		case 8: GPFifo::Write64((u64)data, em_address); return;
 		}
+		return;
 	}
 	if ((em_address & 0xC8000000) == 0xC8000000)
 	{
