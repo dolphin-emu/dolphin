@@ -28,6 +28,7 @@ static std::thread s_adapter_thread;
 static Common::Flag s_adapter_thread_running;
 
 static bool s_libusb_driver_not_supported = false;
+static libusb_context* s_libusb_context = nullptr;
 
 static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
@@ -62,7 +63,7 @@ void Init()
 		s_controller_rumble[i] = 0;
 	}
 
-	int ret = libusb_init(nullptr);
+	int ret = libusb_init(&s_libusb_context);
 
 	if (ret)
 	{
@@ -176,7 +177,7 @@ void Init()
 
 void Shutdown()
 {
-	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (!SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
 	if (s_adapter_thread_running.TestAndClear())
@@ -184,13 +185,22 @@ void Shutdown()
 		s_adapter_thread.join();
 	}
 
-	libusb_close(s_handle);
-	s_libusb_driver_not_supported = false;
+	if (s_handle)
+	{
+		libusb_close(s_handle);
+		s_handle = nullptr;
+	}
 
 	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 		s_controller_type[i] = CONTROLLER_NONE;
 
-	s_handle = nullptr;
+	if (s_libusb_context)
+	{
+		libusb_exit(s_libusb_context);
+		s_libusb_context = nullptr;
+	}
+
+	s_libusb_driver_not_supported = false;
 }
 
 void Input(int chan, GCPadStatus* pad)
