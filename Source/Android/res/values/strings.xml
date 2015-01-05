@@ -178,7 +178,7 @@
     <string name="stereoscopy_descrip">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
     <string name="stereoscopy_mode">Stereoscopy Mode</string>
     <string name="stereoscopy_mode_descrip">Select the stereoscopic 3D mode.</string>
-    <string name="sterescopy_depth">Depthn</string>
+    <string name="sterescopy_depth">Depth</string>
     <string name="sterescopy_depth_descrip">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
     <string name="convergence">Convergence</string>
     <string name="convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
