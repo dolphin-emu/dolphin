@@ -71,18 +71,15 @@ void Shutdown()
 		s_perf_map_file.Close();
 }
 
-void Register(const void* base_address, u32 code_size,
-	const char* format, ...)
+void RegisterV(const void* base_address, u32 code_size,
+	const char* format, va_list args)
 {
 #if !(defined USE_OPROFILE && USE_OPROFILE) && !defined(USE_VTUNE)
 	if (!s_perf_map_file.IsOpen())
 		return;
 #endif
 
-	va_list args;
-	va_start(args, format);
 	std::string symbol_name = StringFromFormatV(format, args);
-	va_end(args);
 
 #if defined USE_OPROFILE && USE_OPROFILE
 	op_write_native_code(s_agent, symbol_name.data(), (u64)base_address,
