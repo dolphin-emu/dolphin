@@ -977,25 +977,19 @@ void Jit64::mullwx(UGeckoInstruction inst)
 	else
 	{
 		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, (d == a || d == b), true);
 		if (gpr.R(a).IsImm() || gpr.R(b).IsImm())
 		{
 			u32 imm = gpr.R(a).IsImm() ? (u32)gpr.R(a).offset : (u32)gpr.R(b).offset;
 			int src = gpr.R(a).IsImm() ? b : a;
+			gpr.BindToRegister(d, d == src, true);
 			MultiplyImmediate(imm, src, d, inst.OE);
-		}
-		else if (d == a)
-		{
-			IMUL(32, gpr.RX(d), gpr.R(b));
-		}
-		else if (d == b)
-		{
-			IMUL(32, gpr.RX(d), gpr.R(a));
 		}
 		else
 		{
-			MOV(32, gpr.R(d), gpr.R(b));
-			IMUL(32, gpr.RX(d), gpr.R(a));
+			gpr.BindToRegister(d, d == a || d == b, true);
+			if (d != a && d != b)
+				MOV(32, gpr.R(d), gpr.R(b));
+			IMUL(32, gpr.RX(d), gpr.R(d == a ? b : a));
 		}
 		if (inst.OE)
 			GenerateOverflow();
@@ -1011,6 +1005,9 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	bool sign = inst.SUBOP10 == 75;
+	// If unsigned, we can't use s32 immediates if the top bit is set.
+	bool imm_a = gpr.R(a).IsImm() && (sign || !(gpr.R(a).offset & 0x80000000));
+	bool imm_b = gpr.R(b).IsImm() && (sign || !(gpr.R(b).offset & 0x80000000));
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
@@ -1018,6 +1015,31 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 			gpr.SetImmediate32(d, (u32)((u64)(((s64)(s32)gpr.R(a).offset * (s64)(s32)gpr.R(b).offset)) >> 32));
 		else
 			gpr.SetImmediate32(d, (u32)((gpr.R(a).offset * gpr.R(b).offset) >> 32));
+	}
+	else if (imm_a || imm_b)
+	{
+		// This case is reasonably common in actual code, since mulhw is often used as part of a
+		// division by constant sequence.
+		gpr.Lock(a, b, d);
+		int src = imm_a ? b : a;
+		OpArg immsrc = gpr.R(imm_a ? a : b);
+		OpArg regsrc;
+
+		// Important: we have to bind this *after* getting the immediate, in case the immediate
+		// is also in the destination register and binding would destroy it.
+		gpr.BindToRegister(d, d == src);
+		if (sign)
+		{
+			MOVSX(64, 32, RSCRATCH, gpr.R(src));
+			regsrc = R(RSCRATCH);
+		}
+		else
+		{
+			gpr.BindToRegister(src, true, false);
+			regsrc = gpr.R(src);
+		}
+		IMUL(64, gpr.RX(d), regsrc, immsrc);
+		SHR(64, gpr.R(d), Imm8(32));
 	}
 	else if (sign)
 	{
@@ -1034,9 +1056,9 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 	{
 		// Not faster for signed because we'd need two movsx.
 		gpr.Lock(a, b, d);
+		gpr.BindToRegister(d, d == a || d == b, true);
 		// We need to bind everything to registers since the top 32 bits need to be zero.
 		int src = d == b ? a : b;
-		gpr.BindToRegister(d, d == a || d == b, true);
 		gpr.BindToRegister(src, true, false);
 		if (d != a && d != b)
 			MOV(32, gpr.R(d), gpr.R(a));
