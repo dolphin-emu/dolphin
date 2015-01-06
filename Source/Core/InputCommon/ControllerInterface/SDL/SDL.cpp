@@ -126,6 +126,18 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		// ramp effect
 		if (supported_effects & SDL_HAPTIC_RAMP)
 			AddOutput(new RampEffect(m_haptic));
+
+		// sine effect
+		if (supported_effects & SDL_HAPTIC_SINE)
+			AddOutput(new SineEffect(m_haptic));
+
+		// triangle effect
+		if (supported_effects & SDL_HAPTIC_TRIANGLE)
+			AddOutput(new TriangleEffect(m_haptic));
+
+		// left-right effect
+		if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
+			AddOutput(new LeftRightEffect(m_haptic));
 	}
 #endif
 
@@ -178,8 +190,24 @@ std::string Joystick::RampEffect::GetName() const
 	return "Ramp";
 }
 
+std::string Joystick::SineEffect::GetName() const
+{
+	return "Sine";
+}
+
+std::string Joystick::TriangleEffect::GetName() const
+{
+	return "Triangle";
+}
+
+std::string Joystick::LeftRightEffect::GetName() const
+{
+	return "LeftRight";
+}
+
 void Joystick::ConstantEffect::SetState(ControlState state)
 {
+	memset(&m_effect, 0, sizeof(m_effect));
 	if (state)
 	{
 		m_effect.type = SDL_HAPTIC_CONSTANT;
@@ -196,6 +224,7 @@ void Joystick::ConstantEffect::SetState(ControlState state)
 
 void Joystick::RampEffect::SetState(ControlState state)
 {
+	memset(&m_effect, 0, sizeof(m_effect));
 	if (state)
 	{
 		m_effect.type = SDL_HAPTIC_RAMP;
@@ -207,6 +236,69 @@ void Joystick::RampEffect::SetState(ControlState state)
 	}
 
 	m_effect.ramp.start = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::SineEffect::SetState(ControlState state)
+{
+	memset(&m_effect, 0, sizeof(m_effect));
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_SINE;
+		m_effect.periodic.period = 1000;
+		m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
+		m_effect.periodic.offset = 0;
+		m_effect.periodic.phase = 18000;
+		m_effect.periodic.length = SDL_HAPTIC_INFINITY;
+		m_effect.periodic.delay = 0;
+		m_effect.periodic.attack_length = 0;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	Update();
+}
+
+void Joystick::TriangleEffect::SetState(ControlState state)
+{
+	memset(&m_effect, 0, sizeof(m_effect));
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_TRIANGLE;
+		m_effect.periodic.period = 1000;
+		m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
+		m_effect.periodic.offset = 0;
+		m_effect.periodic.phase = 18000;
+		m_effect.periodic.length = SDL_HAPTIC_INFINITY;
+		m_effect.periodic.delay = 0;
+		m_effect.periodic.attack_length = 0;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	Update();
+}
+
+void Joystick::LeftRightEffect::SetState(ControlState state)
+{
+	memset(&m_effect, 0, sizeof(m_effect));
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_LEFTRIGHT;
+		m_effect.leftright.length = SDL_HAPTIC_INFINITY;
+		// max ranges tuned to 'feel' similar in magnitude to triangle/sine on xbox360 controller
+		m_effect.leftright.large_magnitude = (Uint16)(state * 0x4000);
+		m_effect.leftright.small_magnitude = (Uint16)(state * 0xFFFF);
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
 	Update();
 }
 #endif
