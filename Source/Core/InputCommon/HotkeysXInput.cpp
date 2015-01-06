@@ -632,8 +632,9 @@ namespace HotkeysXInput
 	{
 		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
 		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
+		bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[id];
 
-		if (((xinput_value & ini_setting) == xinput_value) && xinput_value && ini_setting)
+		if (((xinput_value & ini_setting) == xinput_value) && xinput_value && ini_setting && !dinput)
 			return true;
 		else
 			return false;
@@ -644,8 +645,9 @@ namespace HotkeysXInput
 	{
 		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
 		u32 dinput_value = GetBinaryfromDInputIniStr(button_string);
+		bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[id];
 
-		if ((dinput_value & ini_setting) == dinput_value)
+		if (((dinput_value & ini_setting) == dinput_value) && dinput_value && ini_setting && dinput)
 			return true;
 		else
 			return false;
@@ -655,8 +657,9 @@ namespace HotkeysXInput
 	{
 		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[id];
 		u32 dinput_value = GetBinaryfromDInputExtraIniStr(button_string);
+		bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[id];
 
-		if ((dinput_value & ini_setting) == dinput_value)
+		if ((dinput_value & ini_setting) == dinput_value && dinput)
 			return true;
 		else
 			return false;

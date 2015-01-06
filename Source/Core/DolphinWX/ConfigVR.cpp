@@ -1178,6 +1178,14 @@ void CConfigVR::ConfigControl(wxEvent& event)
 			count++;
 			break;
 		}
+		if (d->GetSource() == "DInput" && d->GetName() != "Keyboard Mouse")
+		{
+			m_vr_dialog = new VRDialog(this, ClickedButton->GetId());
+			m_vr_dialog->ShowModal();
+			m_vr_dialog->Destroy();
+			count++;
+			break;
+		}
 	}
 
 	if (count == 0)
@@ -1357,7 +1365,11 @@ VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 	: wxDialog(parent, wxID_ANY, _("Configure Control"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	wxBoxSizer* const input_szr1 = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* const input_szr2 = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const input_szr2 = new wxBoxSizer(wxVERTICAL); 
+	wxBoxSizer* const input_szr3 = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const input_szr4 = new wxBoxSizer(wxVERTICAL);
+	bool dinput_detected = false;
+	bool xinput_detected = false;
 
 	button_id = from_button;
 
@@ -1371,7 +1383,7 @@ VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 			for (ciface::Core::Device::Input* input : d->Inputs())
 			{
 				wxCheckBox  *XInputCheckboxes = new wxCheckBox(this, wxID_ANY, wxGetTranslation(StrToWxStr(input->GetName())), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-				XInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBox, this);
+				XInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBoxXInput, this);
 				if (HotkeysXInput::IsXInputButtonSet(input->GetName(), button_id))
 				{
 					XInputCheckboxes->SetValue(true);
@@ -1386,33 +1398,139 @@ VRDialog::VRDialog(CConfigVR* const parent, int from_button)
 				}
 				++i;
 			}
+			xinput_detected = true;
 		}
+		if (dq.source == "DInput" && d->GetName() != "Keyboard Mouse")
+		{
+			int i = 0;
+			for (ciface::Core::Device::Input* input : d->Inputs())
+			{
+				if ((input->IsDetectable()))
+				{
+					std::string input_string = input->GetName();
 
+					wxCheckBox  *DInputCheckboxes = new wxCheckBox(this, wxID_ANY, wxGetTranslation(StrToWxStr(input_string)), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+
+					if (input_string.find("Button") != std::string::npos)
+					{
+						DInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBoxDInputButtons, this);
+						if (HotkeysXInput::IsDInputButtonSet(input_string, button_id))
+						{
+							DInputCheckboxes->SetValue(true);
+						}
+						input_szr3->Add(DInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
+					}
+					else
+					{
+						DInputCheckboxes->Bind(wxEVT_CHECKBOX, &VRDialog::OnCheckBoxDInputOthers, this);
+						if (HotkeysXInput::IsDInputOthersSet(input_string, button_id))
+						{
+							DInputCheckboxes->SetValue(true);
+						}
+						input_szr4->Add(DInputCheckboxes, 1, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
+					}
+					++i;
+				}
+			}
+			dinput_detected = true;
+		}
 	}
 
-	wxBoxSizer* const horizontal_szr = new wxStaticBoxSizer(wxHORIZONTAL, this, "Input"); //Horizontal box to add both columns of checkboxes to.
-	horizontal_szr->Add(input_szr1, 1, wxEXPAND | wxALL, 5);
-	horizontal_szr->Add(input_szr2, 1, wxEXPAND | wxALL, 5);
-	wxBoxSizer* const vertical_szr = new wxBoxSizer(wxVERTICAL); //Horizontal box to add both columns of checkboxes to.
+	wxBoxSizer* const horizontal_szr = new wxStaticBoxSizer(wxHORIZONTAL, this, "XInput Combinations"); //Horizontal box to add both columns of checkboxes to.
+	wxBoxSizer* const vertical_szr = new wxBoxSizer(wxVERTICAL);
+
+	if (xinput_detected)
+	{
+		horizontal_szr->Add(input_szr1, 1, wxEXPAND | wxALL, 5);
+		horizontal_szr->Add(input_szr2, 1, wxEXPAND | wxALL, 5);
+	}
+	if (dinput_detected)
+	{
+		horizontal_szr->Add(input_szr3, 1, wxEXPAND | wxALL, 5);
+		horizontal_szr->Add(input_szr4, 1, wxEXPAND | wxALL, 5);
+	}
+
 	vertical_szr->Add(horizontal_szr, 1, wxEXPAND | wxALL, 5);
 	vertical_szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxDOWN, 5);
-
 	SetSizerAndFit(vertical_szr); // needed
+
 	SetFocus();
 }
 
-void VRDialog::OnCheckBox(wxCommandEvent& event)
+void VRDialog::OnCheckBoxXInput(wxCommandEvent& event)
 {
+	bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[button_id];
+
+	if (dinput)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id] = 0;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[button_id] = 0;
+	}
+
 	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
 	u32 single_button_mask = HotkeysXInput::GetBinaryfromXInputIniStr(checkbox->GetLabel());
 	u32 value = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id];
+
 	if (checkbox->IsChecked())
 		value |= single_button_mask;
 	else 
 		value &= ~single_button_mask;
 
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[button_id] = FALSE;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[button_id] = FALSE;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id] = value;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[button_id] = 0;
+
+	event.Skip();
+}
+
+void VRDialog::OnCheckBoxDInputButtons(wxCommandEvent& event)
+{
+	bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[button_id];
+
+	if (!dinput)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id] = 0;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[button_id] = 0;
+	}
+	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
+	u32 single_button_mask = HotkeysXInput::GetBinaryfromDInputIniStr(checkbox->GetLabel());
+	u32 value = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id];
+
+	if (checkbox->IsChecked())
+		value |= single_button_mask;
+	else
+		value &= ~single_button_mask;
+
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[button_id] = FALSE;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[button_id] = TRUE;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id] = value;
+
+	event.Skip();
+}
+
+void VRDialog::OnCheckBoxDInputOthers(wxCommandEvent& event)
+{
+	bool dinput = SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[button_id];
+
+	if (!dinput)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[button_id] = 0;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[button_id] = 0;
+	}
+
+	wxCheckBox* checkbox = (wxCheckBox*)event.GetEventObject();
+	u32 single_button_mask = HotkeysXInput::GetBinaryfromDInputExtraIniStr(checkbox->GetLabel());
+	u32 value = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[button_id];
+
+	if (checkbox->IsChecked())
+		value |= single_button_mask;
+	else
+		value &= ~single_button_mask;
+
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsKBM[button_id] = FALSE;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bVRSettingsDInput[button_id] = TRUE;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDInputMappingExtra[button_id] = value;
 
 	event.Skip();
 }
