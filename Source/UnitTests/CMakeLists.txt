@@ -1,5 +1,5 @@
 set(LIBS core gtest)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	list(APPEND LIBS ${FOUNDATION_LIBRARY} ${CORESERV_LIBRARY})
 endif()
 macro(add_dolphin_test target srcs)

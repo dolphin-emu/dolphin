@@ -14,7 +14,7 @@ elseif(WIN32)
 	set(LDLIBS ${WINSOCK2_LIBRARY} ${IPHLPAPI_LIBRARY} ${LDLIBS})
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+if(APPLE)
 	add_definitions(-DMACOSX -D_DARWIN_C_SOURCE)
 endif()
 

@@ -26,7 +26,7 @@ endif()
 
 if(WIN32)
     set(SRCS ${SRCS} GLInterface/WGL.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+elseif(APPLE)
     set(SRCS ${SRCS} GLInterface/AGL.cpp)
 elseif(USE_X11)
     if (NOT USE_EGL)
@@ -51,8 +51,7 @@ if(USE_EGL)
 	set(LIBS ${LIBS} EGL)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
-	${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
 	set(LIBS	${LIBS} usbhid)
 endif()
 

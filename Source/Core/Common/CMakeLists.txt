@@ -61,7 +61,7 @@ if(WIN32)
 endif(WIN32)
 
 set(LIBS "${CMAKE_THREAD_LIBS_INIT}")
-if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND (NOT ANDROID))
+if(NOT APPLE AND NOT ANDROID)
 	set(LIBS ${LIBS} rt)
 endif()
 
