@@ -131,5 +131,7 @@ public:
 	VRDialog(CConfigVR* const parent, int from_button);
 
 private:
-	void OnCheckBox(wxCommandEvent& event);
+	void OnCheckBoxXInput(wxCommandEvent& event);
+	void OnCheckBoxDInputButtons(wxCommandEvent& event);
+	void OnCheckBoxDInputOthers(wxCommandEvent& event);
 };
