@@ -1906,6 +1906,9 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 	case IDM_LIST_GERMANY:
 		SConfig::GetInstance().m_ListGermany = event.IsChecked();
 		break;
+	case IDM_LIST_INTERNATIONAL:
+		SConfig::GetInstance().m_ListInternational = event.IsChecked();
+		break;
 	case IDM_LIST_ITALY:
 		SConfig::GetInstance().m_ListItaly = event.IsChecked();
 		break;
