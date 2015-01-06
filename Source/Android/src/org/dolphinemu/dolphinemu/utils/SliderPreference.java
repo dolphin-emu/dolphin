@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -19,8 +18,6 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 {
 	private static final String androidns = "http://schemas.android.com/apk/res/android";
 
-	private Context m_context;
-
 	// SeekBar
 	private int m_max, m_value;
 	private SeekBar m_seekbar;
@@ -30,8 +27,7 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 
 	public SliderPreference(Context context, AttributeSet attrs)
 	{
-		super(context,attrs);
-		m_context = context;
+		super(context, attrs);
 
 		// Seekbar values
 		m_value = attrs.getAttributeIntValue(androidns, "defaultValue", 0);
@@ -41,11 +37,11 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 	@Override
 	protected View onCreateDialogView()
 	{
-		LayoutInflater inflater = LayoutInflater.from(m_context);
+		LayoutInflater inflater = LayoutInflater.from(getContext());
 		LinearLayout layout = (LinearLayout)inflater.inflate(R.layout.slider_layout, null, false);
 
-		m_seekbar = (SeekBar)layout.getChildAt(0);
-		m_textview = (TextView)layout.getChildAt(1);
+		m_seekbar = (SeekBar)layout.findViewById(R.id.sliderSeekBar);
+		m_textview = (TextView)layout.findViewById(R.id.sliderTextView);
 
 		if (shouldPersist())
 			m_value = Integer.valueOf(getPersistedString(Integer.toString(m_value)));
@@ -77,8 +73,8 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 	}
 
 	@Override
-	public void showDialog(Bundle state) {
-
+	public void showDialog(Bundle state)
+	{
 		super.showDialog(state);
 
 		Button positiveButton = ((AlertDialog) getDialog()).getButton(AlertDialog.BUTTON_POSITIVE);
@@ -86,7 +82,8 @@ public class SliderPreference extends DialogPreference implements SeekBar.OnSeek
 	}
 
 	@Override
-	public void onClick(View v) {
+	public void onClick(View v)
+	{
 		if (shouldPersist())
 		{
 			persistString(Integer.toString(m_seekbar.getProgress()));
