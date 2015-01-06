@@ -69,7 +69,7 @@ endif()
 set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	if(wxWidgets_FOUND)
 		list(APPEND WXLIBS
 			${APPSERV_LIBRARY}
@@ -83,7 +83,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
 	set(DOLPHIN_EXE_BASE Dolphin)
 else()
 	set(DOLPHIN_EXE_BASE dolphin-emu)
@@ -126,7 +126,7 @@ if(ANDROID)
 elseif(wxWidgets_FOUND)
 	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
 	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if(APPLE)
 		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
 

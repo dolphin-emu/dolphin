@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -323,7 +323,7 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.OutputWindow = wnd;
 	swap_chain_desc.SampleDesc.Count = 1;
 	swap_chain_desc.SampleDesc.Quality = 0;
-	swap_chain_desc.Windowed = !(g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled());
+	swap_chain_desc.Windowed = !(g_Config.bFullscreen && g_Config.ExclusiveFullscreenEnabled());
 
 	memset(&out_desc, 0, sizeof(out_desc));
 	output->GetDesc(&out_desc);

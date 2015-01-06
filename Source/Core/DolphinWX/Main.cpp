@@ -605,6 +605,11 @@ bool Host_RendererHasFocus()
 	return main_frame->RendererHasFocus();
 }
 
+bool Host_RendererIsFullscreen()
+{
+	return main_frame->RendererIsFullscreen();
+}
+
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 	CFrame::ConnectWiimote(wm_idx, connect);
