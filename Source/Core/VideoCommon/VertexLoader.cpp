@@ -4,8 +4,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
-#include "Common/x64ABI.h"
-#include "Common/x64Emitter.h"
 
 #include "Core/Host.h"
 
@@ -21,9 +19,6 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-
-#define COMPILED_CODE_SIZE 4096
-
 #ifndef _WIN32
 	#undef inline
 	#define inline
@@ -32,9 +27,6 @@
 // This pointer is used as the source/dst for all fixed function loader calls
 u8* g_video_buffer_read_ptr;
 u8* g_vertex_manager_write_ptr;
-
-using namespace Gen;
-
 
 void* VertexLoader::operator new (size_t size)
 {
@@ -106,19 +98,11 @@ static void LOADERDECL SkipVertex(VertexLoader* loader)
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 : VertexLoaderBase(vtx_desc, vtx_attr)
 {
-	m_compiledCode = nullptr;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
 	VertexLoader_TextCoord::Init();
 
-	#ifdef USE_VERTEX_LOADER_JIT
-	AllocCodeSpace(COMPILED_CODE_SIZE);
 	CompileVertexTranslator();
-	WriteProtect();
-	#else
-	m_numPipelineStages = 0;
-	CompileVertexTranslator();
-	#endif
 
 	// generate frac factors
 	m_posScale[0] = m_posScale[1] = m_posScale[2] = m_posScale[3] = 1.0f / (1U << m_VtxAttr.PosFrac);
@@ -129,55 +113,13 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 		m_colElements[i] = m_VtxAttr.color[i].Elements;
 }
 
-VertexLoader::~VertexLoader()
-{
-	#ifdef USE_VERTEX_LOADER_JIT
-	FreeCodeSpace();
-	#endif
-}
-
 void VertexLoader::CompileVertexTranslator()
 {
 	m_VertexSize = 0;
 	const TVtxAttr &vtx_attr = m_VtxAttr;
 
-#ifdef USE_VERTEX_LOADER_JIT
-	if (m_compiledCode)
-		PanicAlert("Trying to recompile a vertex translator");
-
-	m_compiledCode = GetCodePtr();
-	// We only use RAX (caller saved) and RBX (callee saved).
-	ABI_PushRegistersAndAdjustStack({RBX, RBP}, 8);
-
-	// save count
-	MOV(64, R(RBX), R(ABI_PARAM1));
-
-	// save loader
-	MOV(64, R(RBP), R(ABI_PARAM2));
-
-	// Start loop here
-	const u8 *loop_start = GetCodePtr();
-
-	// Reset component counters if present in vertex format only.
-	if (m_VtxDesc.Tex0Coord || m_VtxDesc.Tex1Coord || m_VtxDesc.Tex2Coord || m_VtxDesc.Tex3Coord ||
-		m_VtxDesc.Tex4Coord || m_VtxDesc.Tex5Coord || m_VtxDesc.Tex6Coord || m_VtxDesc.Tex7Coord)
-	{
-		WriteSetVariable(32, &m_tcIndex, Imm32(0));
-	}
-	if (m_VtxDesc.Color0 || m_VtxDesc.Color1)
-	{
-		WriteSetVariable(32, &m_colIndex, Imm32(0));
-	}
-	if (m_VtxDesc.Tex0MatIdx || m_VtxDesc.Tex1MatIdx || m_VtxDesc.Tex2MatIdx || m_VtxDesc.Tex3MatIdx ||
-		m_VtxDesc.Tex4MatIdx || m_VtxDesc.Tex5MatIdx || m_VtxDesc.Tex6MatIdx || m_VtxDesc.Tex7MatIdx)
-	{
-		WriteSetVariable(32, &m_texmtxwrite, Imm32(0));
-		WriteSetVariable(32, &m_texmtxread, Imm32(0));
-	}
-#else
 	// Reset pipeline
 	m_numPipelineStages = 0;
-#endif
 
 	// Get the pointer to this vertex's buffer data for the bounding box
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
@@ -412,44 +354,12 @@ void VertexLoader::CompileVertexTranslator()
 
 	m_native_components = components;
 	m_native_vtx_decl.stride = nat_offset;
-
-#ifdef USE_VERTEX_LOADER_JIT
-	// End loop here
-	SUB(64, R(RBX), Imm8(1));
-
-	J_CC(CC_NZ, loop_start);
-	ABI_PopRegistersAndAdjustStack({RBX, RBP}, 8);
-	RET();
-#endif
 }
 
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
-#ifdef USE_VERTEX_LOADER_JIT
-	MOV(64, R(ABI_PARAM1), R(RBP));
-	ABI_CallFunction((const void*)func);
-#else
 	m_PipelineStages[m_numPipelineStages++] = func;
-#endif
 }
-// ARMTODO: This should be done in a better way
-#ifndef _M_GENERIC
-void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
-{
-#ifdef USE_VERTEX_LOADER_JIT
-	MOV(64, R(RAX), Imm64((u64)address));
-	MOV(bits, dest, MatR(RAX));
-#endif
-}
-
-void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
-{
-#ifdef USE_VERTEX_LOADER_JIT
-	MOV(64, R(RAX), Imm64((u64)address));
-	MOV(bits, MatR(RAX), value);
-#endif
-}
-#endif
 
 int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataReader dst)
 {
@@ -463,12 +373,6 @@ int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataRead
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
 		BoundingBox::Prepare(m_vat, primitive, m_VtxDesc, m_native_vtx_decl);
 
-#ifdef USE_VERTEX_LOADER_JIT
-	if (count > 0)
-	{
-		((void (*)(int, VertexLoader* loader))(void*)m_compiledCode)(count, this);
-	}
-#else
 	for (int s = 0; s < count; s++)
 	{
 		m_tcIndex = 0;
@@ -478,7 +382,6 @@ int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataRead
 			m_PipelineStages[i](this);
 		PRIM_LOG("\n");
 	}
-#endif
 
 	return count - m_skippedVertices;
 }

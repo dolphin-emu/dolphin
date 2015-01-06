@@ -11,7 +11,6 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/x64Emitter.h"
 
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -26,10 +25,6 @@
 #include <tmmintrin.h>
 #endif
 
-#ifdef _M_X86
-#define USE_VERTEX_LOADER_JIT
-#endif
-
 #ifdef WIN32
 #define LOADERDECL __cdecl
 #else
@@ -39,12 +34,7 @@
 class VertexLoader;
 typedef void (LOADERDECL *TPipelineFunction)(VertexLoader* loader);
 
-// ARMTODO: This should be done in a better way
-#ifndef _M_GENERIC
-class VertexLoader : public Gen::X64CodeBlock, public VertexLoaderBase
-#else
 class VertexLoader : public VertexLoaderBase
-#endif
 {
 public:
 	// This class need a 16 byte alignment. As this is broken on
@@ -53,7 +43,6 @@ public:
 	void operator delete (void *p);
 
 	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
-	~VertexLoader();
 
 	int RunVertices(int primitive, int count, DataReader src, DataReader dst) override;
 	std::string GetName() const override { return "OldLoader"; }
@@ -77,22 +66,13 @@ public:
 	int m_skippedVertices;
 
 private:
-#ifndef USE_VERTEX_LOADER_JIT
 	// Pipeline.
 	TPipelineFunction m_PipelineStages[64];  // TODO - figure out real max. it's lower.
 	int m_numPipelineStages;
-#endif
 
 	void CompileVertexTranslator();
 
 	void WriteCall(TPipelineFunction);
-
-#ifndef _M_GENERIC
-	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
-	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
-#endif
-
-	const u8 *m_compiledCode;
 };
 
 #if _M_SSE >= 0x301
