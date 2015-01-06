@@ -8,7 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "ReliableUDPConnection.h"
 
-
+#include <random>
 class ReliableUDPManager
 {
 public:
@@ -46,7 +46,7 @@ private:
 	void RemoveConnectionStore(u16 ID);
 
 	std::map<u16, std::shared_ptr<ReliableUDPConnection>> m_IDtoConnection;
-	std::map<sf::IpAddress, std::shared_ptr<ReliableUDPConnection>> m_AddresstoConnection;
+	std::map<std::pair<int, unsigned short>, std::shared_ptr<ReliableUDPConnection>> m_AddresstoConnection;
 
 	std::queue<u16> m_newConnection;
 	std::queue<u16> m_disconnection;
@@ -56,4 +56,7 @@ private:
 	u16 m_id;
 	
 	u16 m_dropMess;
+
+	std::default_random_engine m_generator;
+	std::uniform_real_distribution<double> m_distribution;
 };

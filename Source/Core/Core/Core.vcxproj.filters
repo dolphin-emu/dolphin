@@ -717,6 +717,9 @@
     <ClCompile Include="ReliableUDPManager\ReliableUDPManager.cpp">
       <Filter>ReliableUDPManager</Filter>
     </ClCompile>
+    <ClCompile Include="ReliableUDPManager\ReliableUnitTest.cpp">
+      <Filter>ReliableUDPManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1217,6 +1220,9 @@
       <Filter>ReliableUDPManager</Filter>
     </ClInclude>
     <ClInclude Include="ReliableUDPManager\ReliableUDPManager.h">
+      <Filter>ReliableUDPManager</Filter>
+    </ClInclude>
+    <ClInclude Include="ReliableUDPManager\ReliableUnitTest.h">
       <Filter>ReliableUDPManager</Filter>
     </ClInclude>
   </ItemGroup>

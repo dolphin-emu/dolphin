@@ -16,7 +16,8 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
-
+//TODO REMVOE THIS
+#include "ReliableUDPManager\ReliableUnitTest.h"
 
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
@@ -41,12 +42,17 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
-
+	
+	/*sf::IpAddress adr(address);
+	ReliableUnitTest theTest(adr, false);
+	theTest.TestClient();
+	*/
 	is_connected = false;
 	// -- Test
 	m_serverID = m_udpManager.Connect(address, port, 5);
 
-	//if (m_socket.connect(address, port, sf::seconds(5)) == sf::Socket::Done)
+	
+
 	if (m_serverID != 0)
 	{
 		// send connect message

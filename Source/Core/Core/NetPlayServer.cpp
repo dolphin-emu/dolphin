@@ -10,6 +10,9 @@
 #include "Core/NetPlayServer.h"
 #include "InputCommon/GCPadStatus.h"
 
+//TODO GET RID OF THIS
+#include "ReliableUDPManager\ReliableUnitTest.h"
+
 u64 NETPLAY_INITIAL_GCTIME = 1272737767;
 
 NetPlayServer::~NetPlayServer()
@@ -31,6 +34,11 @@ NetPlayServer::~NetPlayServer()
 // called from ---GUI--- thread
 NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running(false), m_udpManager(port)
 {
+	/*sf::IpAddress ip("192.168.1.3");
+	ReliableUnitTest theTest(ip, true);
+	theTest.TestsServer();
+	*/
+	
 	memset(m_pad_map, -1, sizeof(m_pad_map));
 	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
 	
@@ -54,7 +62,7 @@ void NetPlayServer::ThreadFunc()
 		// -- update all our connections (fill our recieve buffer, drain our send buffer, find new connections, find disconnects.
 
 		{
-			std::lock_guard<std::recursive_mutex> lkg(m_crit.send);
+			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 			m_udpManager.Update();
 		}
 		
@@ -87,7 +95,7 @@ void NetPlayServer::ThreadFunc()
 			unsigned int error;
 			{
 				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-				
+			
 				error = OnConnect(newID);
 			}
 
@@ -102,13 +110,14 @@ void NetPlayServer::ThreadFunc()
 			}
 		}
 
+		
 		// -- Client sockets, check for new messages to recieve
 		for (auto it = m_players.begin(); it != m_players.end();)
 		{
 			// move iterator on immediately so client can be removed
 			Client& client = *it;
 			it++;
-				
+
 			sf::Packet rpac;
 			if (m_udpManager.GrabMessage(client.conID, rpac))
 			{
@@ -120,7 +129,7 @@ void NetPlayServer::ThreadFunc()
 				}
 			}
 		}
-
+		
 		// -- Check for any disconnections
 		u16 disCon;
 		if (m_udpManager.DisconnectList(disCon))
@@ -146,13 +155,16 @@ void NetPlayServer::ThreadFunc()
 unsigned int NetPlayServer::OnConnect(u16 ID)
 {
 	sf::Packet rpac;
-	// TODO: make this not hang / check if good packet
-	do
 	{
-		rpac.clear();
-		m_udpManager.Update();
-	} while (!m_udpManager.GrabMessage(ID, rpac));
+		std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+		// TODO: make this not hang / check if good packet
+		do
+		{
 
+			rpac.clear();
+			m_udpManager.Update();
+		} while (!m_udpManager.GrabMessage(ID, rpac));
+	}
 	std::string npver;
 	rpac >> npver;
 	// dolphin netplay version

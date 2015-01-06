@@ -12,6 +12,8 @@ ReliableUDPManager::ReliableUDPManager(unsigned short port)
 	, m_udpSocket(NULL)
 	, m_id(1)
 	, m_dropMess(0)
+	, m_generator((unsigned int) Common::Timer::GetTimeSinceJan1970)
+	, m_distribution(0.0, 1.0)
 {
 	m_udpSocket = std::make_shared<sf::UdpSocket>();
 	if (port != 0)
@@ -35,7 +37,9 @@ ReliableUDPManager::~ReliableUDPManager()
 	{
 		
 		itr->second->Disconnect();
-		m_AddresstoConnection.erase(itr->second->GetAddress());
+		//IpAndPort inp(itr->second->GetAddress().toInteger(), itr->second->GetPort());
+		std::pair<int, unsigned short> inp = std::make_pair(itr->second->GetAddress().toInteger(), itr->second->GetPort());
+		m_AddresstoConnection.erase(inp);
 		itr = m_IDtoConnection.erase(itr);
 
 	}
@@ -58,20 +62,21 @@ void ReliableUDPManager::Update()
 
 		if (stat == sf::Socket::Done)
 		{
-			auto itr = m_AddresstoConnection.find(ip);
-			if (itr == m_AddresstoConnection.end())
+			//IpAndPort inp(ip.toInteger(), port);
+			std::pair<int, unsigned short> inp = std::make_pair(ip.toInteger(), port);
+			auto itr = m_AddresstoConnection.find( inp );
+			if (m_listen && itr == m_AddresstoConnection.end())
 			{
 				//This is a new connection store it and start accepting packets
 				//Also store it as a new connection ID so the user can decide 
 				//if he wants it
-				//ReliableUDPConnection* newConn = new ReliableUDPConnection(m_udpSocket, ip, port);
 				std::shared_ptr<ReliableUDPConnection> newConn = std::make_shared<ReliableUDPConnection>(m_udpSocket, ip, port);
 				int id = StoreConnection(newConn);
 				m_newConnection.push(id);
 				newConn->Receive(pack);
 				newConn->Send();
 			}
-			else
+			else if (itr != m_AddresstoConnection.end())
 			{
 				itr->second->Receive(pack);
 			}
@@ -285,12 +290,14 @@ void ReliableUDPManager::ClearBuffer(u16 ID)
 
 u16 ReliableUDPManager::StoreConnection(std::shared_ptr<ReliableUDPConnection> connection)
 {
-	if (m_AddresstoConnection.find(connection->GetAddress()) == m_AddresstoConnection.end())
+	//IpAndPort inp(connection->GetAddress().toInteger(), connection->GetPort());
+	std::pair<int, unsigned short> inp = std::make_pair(connection->GetAddress().toInteger(), connection->GetPort());
+	if (m_AddresstoConnection.find(inp) == m_AddresstoConnection.end())
 	{
 		u16 id = m_id;
 
 		m_IDtoConnection[id] = connection;
-		m_AddresstoConnection[connection->GetAddress()] = connection;
+		m_AddresstoConnection[inp] = connection;
 
 		++m_id;
 		return id;
@@ -303,8 +310,9 @@ void ReliableUDPManager::RemoveConnectionStore(u16 ID)
 	auto itr = m_IDtoConnection.find(ID);
 	if (itr != m_IDtoConnection.end())
 	{
-			m_AddresstoConnection.erase(itr->second->GetAddress());
-			//delete itr->second;
-			m_IDtoConnection.erase(itr);
+		//IpAndPort inp(itr->second->GetAddress().toInteger(), itr->second->GetPort());
+		std::pair<int, unsigned short> inp = std::make_pair(itr->second->GetAddress().toInteger(), itr->second->GetPort());
+		m_AddresstoConnection.erase(inp);
+		m_IDtoConnection.erase(itr);
 	}
 }

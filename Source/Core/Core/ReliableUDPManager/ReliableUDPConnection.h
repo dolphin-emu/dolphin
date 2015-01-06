@@ -10,6 +10,7 @@
 #include <queue>
 #include <map>
 #include <memory>
+#include "Common/Thread.h"
 
 class ReliableUDPConnection
 {
@@ -61,11 +62,18 @@ private:
 
 		bool operator< (const Palette& rhs) const
 		{
-			return packetOrder<rhs.packetOrder;
+			return rhs.packetOrder< packetOrder;
 		}
 
 	};
-
+	/*
+	struct
+	{
+		std::recursive_mutex send;
+		// lock order
+		std::recursive_mutex recieve;
+	} m_crit;
+	*/
 	std::shared_ptr<sf::UdpSocket>	m_socket;
 	
 	sf::IpAddress	m_remoteAddress;
@@ -80,18 +88,21 @@ private:
 	u16				m_theirSequenceNumber;
 	u32				m_missingBitField;
 	
-	
+	u16				m_theirLastAck;
+
 	u16				m_expectedSequence;
 	u16				m_nextInOrder;
 
-	std::queue<sf::Packet>		m_toBeSent;
-	std::queue<sf::Packet>		m_recievedMess;
+	// -- buffers
+	std::queue<sf::Packet>			m_toBeSent;
+	std::queue<sf::Packet>			m_recievedMess;
 
-	std::map <u16, Palette>		m_backupMess;
-	std::queue <Palette>		m_resend;
-	std::map<u16, sf::Packet>	m_bufferMess;
+	std::map <u16, Palette>			m_backupMess;
 	
-	//timer
+	std::map<u16, sf::Packet>		m_bufferMess;
+	std::priority_queue<Palette>	m_resend;
+
+	// -- timer
 	Common::Timer				m_keepAlive;
 	Common::Timer				m_sendAck;
 	u64							m_ackTime;

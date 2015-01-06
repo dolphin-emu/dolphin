@@ -248,6 +248,7 @@
     <ClCompile Include="PowerPC\SignatureDB.cpp" />
     <ClCompile Include="ReliableUDPManager\ReliableUDPConnection.cpp" />
     <ClCompile Include="ReliableUDPManager\ReliableUDPManager.cpp" />
+    <ClCompile Include="ReliableUDPManager\ReliableUnitTest.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
   </ItemGroup>
@@ -428,6 +429,7 @@
     <ClInclude Include="PowerPC\SignatureDB.h" />
     <ClInclude Include="ReliableUDPManager\ReliableUDPConnection.h" />
     <ClInclude Include="ReliableUDPManager\ReliableUDPManager.h" />
+    <ClInclude Include="ReliableUDPManager\ReliableUnitTest.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="VolumeHandler.h" />
   </ItemGroup>
