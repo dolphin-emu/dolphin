@@ -159,9 +159,7 @@ public:
 		if (memcmp(buffer_a.data(), buffer_b.data(), std::min(count_a, count_b)))
 			ERROR_LOG(VIDEO, "Both vertexloaders have loaded different data.");
 
-		u8* dstptr;
-		dst.WritePointer(&dstptr);
-		memcpy(dstptr, buffer_a.data(), count_a);
+		memcpy(dst.GetPointer(), buffer_a.data(), count_a);
 		return count_a;
 	}
 	std::string GetName() const override { return "CompareLoader"; }

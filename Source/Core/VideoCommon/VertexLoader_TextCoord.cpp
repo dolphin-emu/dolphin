@@ -56,8 +56,8 @@ void LOADERDECL TexCoord_ReadDirect(VertexLoader* loader)
 	for (int i = 0; i != N; ++i)
 		dst.Write(TCScale(src.Read<T>(), scale));
 
-	dst.WritePointer(&g_vertex_manager_write_ptr);
-	src.WritePointer(&g_video_buffer_read_ptr);
+	g_vertex_manager_write_ptr = dst.GetPointer();
+	g_video_buffer_read_ptr = src.GetPointer();
 	LOG_TEX<N>();
 
 	++loader->m_tcIndex;
@@ -77,7 +77,7 @@ void LOADERDECL TexCoord_ReadIndex(VertexLoader* loader)
 	for (int i = 0; i != N; ++i)
 		dst.Write(TCScale(Common::FromBigEndian(data[i]), scale));
 
-	dst.WritePointer(&g_vertex_manager_write_ptr);
+	g_vertex_manager_write_ptr = dst.GetPointer();
 	LOG_TEX<N>();
 	++loader->m_tcIndex;
 }

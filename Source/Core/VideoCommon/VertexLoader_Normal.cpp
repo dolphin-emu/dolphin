@@ -50,7 +50,7 @@ __forceinline void ReadIndirect(const T* data)
 		dst.Write(FracAdjust(Common::FromBigEndian(data[i])));
 	}
 
-	dst.WritePointer(&g_vertex_manager_write_ptr);
+	g_vertex_manager_write_ptr = dst.GetPointer();
 	LOG_NORM();
 }
 

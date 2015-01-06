@@ -453,8 +453,8 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 
 int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataReader dst)
 {
-	dst.WritePointer(&g_vertex_manager_write_ptr);
-	src.WritePointer(&g_video_buffer_read_ptr);
+	g_vertex_manager_write_ptr = dst.GetPointer();
+	g_video_buffer_read_ptr = src.GetPointer();
 
 	m_numLoadedVertices += count;
 	m_skippedVertices = 0;
