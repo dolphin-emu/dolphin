@@ -119,6 +119,7 @@ public:
 	void OnRenderParentMove(wxMoveEvent& event);
 	bool RendererHasFocus();
 	bool UIHasFocus();
+	bool RendererIsFullscreen();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
@@ -329,7 +330,6 @@ private:
 
 	void OnGameListCtrl_ItemActivated(wxListEvent& event);
 	void OnRenderParentResize(wxSizeEvent& event);
-	bool RendererIsFullscreen();
 	void StartGame(const std::string& filename);
 	void OnChangeColumnsVisible(wxCommandEvent& event);
 

@@ -26,6 +26,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 static bool rendererHasFocus = true;
+static bool rendererIsFullscreen = false;
 static bool running = true;
 
 class Platform
@@ -87,6 +88,11 @@ bool Host_UIHasFocus()
 bool Host_RendererHasFocus()
 {
 	return rendererHasFocus;
+}
+
+bool Host_RendererIsFullscreen()
+{
+	return rendererIsFullscreen;
 }
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
@@ -158,7 +164,7 @@ class PlatformX11 : public Platform
 
 		if (fullscreen)
 		{
-			X11Utils::ToggleFullscreen(dpy, win);
+			rendererIsFullscreen = X11Utils::ToggleFullscreen(dpy, win);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 			XRRConfig->ToggleDisplayMode(True);
 #endif
@@ -246,6 +252,7 @@ class PlatformX11 : public Platform
 					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
 					     &borderDummy, &depthDummy);
+				rendererIsFullscreen = false;
 			}
 			usleep(100000);
 		}
