@@ -326,15 +326,15 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	}
 }
 
-bool Jit64::CheckMergedBranch(int crf)
+bool Jit64::CheckMergedBranch(int crf, int insts)
 {
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
 		return false;
 
-	if (!MergeAllowedNextInstructions(1))
+	if (!MergeAllowedNextInstructions(insts))
 		return false;
 
-	const UGeckoInstruction& next = js.op[1].inst;
+	const UGeckoInstruction& next = js.op[insts].inst;
 	return (((next.OPCD == 16 /* bcx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
@@ -343,11 +343,11 @@ bool Jit64::CheckMergedBranch(int crf)
 	         (next.BI >> 2) == crf);
 }
 
-void Jit64::DoMergedBranch()
+void Jit64::DoMergedBranch(int insts)
 {
 	// Code that handles successful PPC branching.
-	const UGeckoInstruction& next = js.op[1].inst;
-	const u32 nextPC = js.op[1].address;
+	const UGeckoInstruction& next = js.op[insts].inst;
+	const u32 nextPC = js.op[insts].address;
 	if (next.OPCD == 16) // bcx
 	{
 		if (next.LK)
