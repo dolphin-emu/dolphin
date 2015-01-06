@@ -57,6 +57,7 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 void UpdateHeadTrackingIfNeeded();
 void VR_GetProjectionHalfTan(float &hmd_halftan);
 void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar);
+void VR_GetEyePos(float *posLeft, float *posRight);
 
 void OpcodeReplayBuffer();
 

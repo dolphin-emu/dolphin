@@ -292,6 +292,38 @@ void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float zne
 	}
 }
 
+void VR_GetEyePos(float *posLeft, float *posRight)
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+#ifdef OCULUSSDK042
+		posLeft[0] = g_eye_render_desc[0].ViewAdjust.x;
+		posLeft[1] = g_eye_render_desc[0].ViewAdjust.y;
+		posLeft[2] = g_eye_render_desc[0].ViewAdjust.z;
+		posRight[0] = g_eye_render_desc[1].ViewAdjust.x;
+		posRight[1] = g_eye_render_desc[1].ViewAdjust.y;
+		posRight[2] = g_eye_render_desc[1].ViewAdjust.z;
+#else
+		posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x;
+		posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y;
+		posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z;
+		posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x;
+		posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y;
+		posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z;
+#endif
+	}
+	else
+#endif
+	{
+		// assume 62mm IPD
+		posLeft[0] = -0.031f;
+		posRight[0] = 0.031f;
+		posLeft[1] = posRight[1] = 0;
+		posLeft[2] = posRight[2] = 0;
+	}
+}
+
 void OpcodeReplayBuffer()
 {
 	// Opcode Replay Buffer Code.  This enables the capture of all the Video Opcodes that occur during a frame,

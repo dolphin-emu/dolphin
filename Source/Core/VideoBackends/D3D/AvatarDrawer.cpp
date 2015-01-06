@@ -376,9 +376,9 @@ namespace DX11
 		Matrix44::Translate(walk_matrix, pos);
 		Matrix44::Multiply(g_head_tracking_matrix, walk_matrix, view);
 		// projection matrix
-		ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], 0.1f, 10000.0f, true);
-		ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], 0.1f, 10000.0f, true);
-		Matrix44::Set(proj, rift_left.M[0]);
+		Matrix44 hmd_left, hmd_right;
+		VR_GetProjectionMatrices(hmd_left, hmd_right, 0.1f, 10000.0f);
+		Matrix44::Set(proj, hmd_left.data);
 		// remove the part that is different for each eye
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
@@ -391,33 +391,13 @@ namespace DX11
 		D3D::context->UpdateSubresource(m_vertex_shader_params, 0, nullptr, &params, 0, 0);
 
 		// update geometry shader buffer
-		GeometryShaderManager::constants.stereoparams[0] = rift_left.M[0][0];
-		GeometryShaderManager::constants.stereoparams[1] = rift_right.M[0][0];
-		GeometryShaderManager::constants.stereoparams[2] = rift_left.M[0][2];
-		GeometryShaderManager::constants.stereoparams[3] = rift_right.M[0][2];
+		GeometryShaderManager::constants.stereoparams[0] = hmd_left.data[0 * 4 + 0];
+		GeometryShaderManager::constants.stereoparams[1] = hmd_right.data[0 * 4 + 0];
+		GeometryShaderManager::constants.stereoparams[2] = hmd_left.data[0 * 4 + 2];
+		GeometryShaderManager::constants.stereoparams[3] = hmd_right.data[0 * 4 + 2];
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
-		const float UnitsPerMetre = 1.0f;
-#ifdef HAVE_OCULUSSDK
-		if (g_has_rift)
-		{
-#ifdef OCULUSSDK042
-			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
-			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
-			posLeft[2] = g_eye_render_desc[0].ViewAdjust.z * UnitsPerMetre;
-			posRight[0] = g_eye_render_desc[1].ViewAdjust.x * UnitsPerMetre;
-			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
-			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
-#else
-			posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x * UnitsPerMetre;
-			posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y * UnitsPerMetre;
-			posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z * UnitsPerMetre;
-			posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x * UnitsPerMetre;
-			posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y * UnitsPerMetre;
-			posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z * UnitsPerMetre;
-#endif
-		}
-#endif
+		VR_GetEyePos(posLeft, posRight);
 		GeometryShaderManager::constants.stereoparams[0] *= posLeft[0];
 		GeometryShaderManager::constants.stereoparams[1] *= posRight[0];
 		GeometryShaderManager::dirty = true;

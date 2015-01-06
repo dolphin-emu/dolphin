@@ -23,7 +23,7 @@
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
 
-#define HACK_LOG NOTICE_LOG
+#define HACK_LOG INFO_LOG
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
@@ -1165,7 +1165,7 @@ void VertexShaderManager::SetProjectionConstants()
 		GeometryShaderManager::constants.stereoparams[2] = GeometryShaderManager::constants.stereoparams[3] = 0;
 		return;
 	}
-	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
+	// VR HMD 3D projection matrix, needs to include head-tracking
 	else
 	{
 		float *p = rawProjection;
@@ -1250,17 +1250,17 @@ void VertexShaderManager::SetProjectionConstants()
 		float znear2 = (1 + hmd_left.data[2 * 4 + 2] * zfar) / hmd_left.data[2 * 4 + 2];
 		if (debug_newScene)
 		{
-			// yellow = Oculus's suggestion
-			WARN_LOG(VR, "O hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
-			WARN_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[0 * 4 + 0], hmd_left.data[0 * 4 + 1], hmd_left.data[0 * 4 + 2], hmd_left.data[0 * 4 + 3]);
-			WARN_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[1 * 4 + 0], hmd_left.data[1 * 4 + 1], hmd_left.data[1 * 4 + 2], hmd_left.data[1 * 4 + 3]);
-			WARN_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[2 * 4 + 0], hmd_left.data[2 * 4 + 1], hmd_left.data[2 * 4 + 2], hmd_left.data[2 * 4 + 3]);
-			WARN_LOG(VR, "O {%8.4f %8.4f %8.4f   %8.4f}", hmd_left.data[3 * 4 + 0], hmd_left.data[3 * 4 + 1], hmd_left.data[3 * 4 + 2], hmd_left.data[3 * 4 + 3]);
+			// yellow = HMD's suggestion
+			DEBUG_LOG(VR, "O hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
+			DEBUG_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[0 * 4 + 0], hmd_left.data[0 * 4 + 1], hmd_left.data[0 * 4 + 2], hmd_left.data[0 * 4 + 3]);
+			DEBUG_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[1 * 4 + 0], hmd_left.data[1 * 4 + 1], hmd_left.data[1 * 4 + 2], hmd_left.data[1 * 4 + 3]);
+			DEBUG_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[2 * 4 + 0], hmd_left.data[2 * 4 + 1], hmd_left.data[2 * 4 + 2], hmd_left.data[2 * 4 + 3]);
+			DEBUG_LOG(VR, "O {%8.4f %8.4f %8.4f   %8.4f}", hmd_left.data[3 * 4 + 0], hmd_left.data[3 * 4 + 1], hmd_left.data[3 * 4 + 2], hmd_left.data[3 * 4 + 3]);
 			// green = Game's suggestion
-			NOTICE_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-			NOTICE_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-			NOTICE_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-			NOTICE_LOG(VR, "G {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
+			INFO_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+			INFO_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+			INFO_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+			INFO_LOG(VR, "G {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
 		}
 		// red = my combination
 		proj_left.data[0 * 4 + 0] = hmd_left.data[0 * 4 + 0] * SignOf(proj_left.data[0 * 4 + 0]) * fLeftWidthHack; // h fov
@@ -1282,10 +1282,10 @@ void VertexShaderManager::SetProjectionConstants()
 
 		if (debug_newScene)
 		{
-			ERROR_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-			ERROR_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-			ERROR_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-			ERROR_LOG(VR, "VR {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
+			DEBUG_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+			DEBUG_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+			DEBUG_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+			DEBUG_LOG(VR, "VR {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
 		}
 
 		//VR Headtracking and leaning back compensation
@@ -1603,26 +1603,12 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
-#ifdef HAVE_OCULUSSDK
-		if (g_has_rift && !bTelescopeHUD && !g_is_skybox)
+		VR_GetEyePos(posLeft, posRight);
+		for (int i = 0; i < 3; ++i)
 		{
-#ifdef OCULUSSDK042
-			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
-			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
-			posLeft[2] = g_eye_render_desc[0].ViewAdjust.z * UnitsPerMetre;
-			posRight[0] = g_eye_render_desc[1].ViewAdjust.x * UnitsPerMetre;
-			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
-			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
-#else
-			posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x * UnitsPerMetre;
-			posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y * UnitsPerMetre;
-			posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z * UnitsPerMetre;
-			posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x * UnitsPerMetre;
-			posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y * UnitsPerMetre;
-			posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z * UnitsPerMetre;
-#endif
+			posLeft[i] *= UnitsPerMetre;
+			posRight[i] *= UnitsPerMetre;
 		}
-#endif
 		
 		Matrix44 view_matrix_left, view_matrix_right;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
