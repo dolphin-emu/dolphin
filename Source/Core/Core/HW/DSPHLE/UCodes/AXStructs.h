@@ -309,7 +309,7 @@ struct AXPBWii
 	PBSampleRateConverterWM remote_src;
 	PBInfImpulseResponseWM remote_iir;
 
-	u16 pad[12]; // align us, captain! (32B)
+	u16 padding[12]; // align us, captain! (32B)
 };
 
 // TODO: All these enums have changed a lot for Wii
