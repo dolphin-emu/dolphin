@@ -151,6 +151,44 @@ void CommonAsmRoutines::GenFres()
 	RET();
 }
 
+void CommonAsmRoutines::GenMfcr()
+{
+	// Input: none
+	// Output: RSCRATCH
+	// This function clobbers all three RSCRATCH.
+	X64Reg dst = RSCRATCH;
+	X64Reg tmp = RSCRATCH2;
+	X64Reg cr_val = RSCRATCH_EXTRA;
+	XOR(32, R(dst), R(dst));
+	// we only need to zero the high bits of tmp once
+	XOR(32, R(tmp), R(tmp));
+	for (int i = 0; i < 8; i++)
+	{
+		static const u32 m_flagTable[8] = { 0x0, 0x1, 0x8, 0x9, 0x0, 0x1, 0x8, 0x9 };
+		if (i != 0)
+			SHL(32, R(dst), Imm8(4));
+
+		MOV(64, R(cr_val), PPCSTATE(cr_val[i]));
+
+		// EQ: Bits 31-0 == 0; set flag bit 1
+		TEST(32, R(cr_val), R(cr_val));
+		// FIXME: is there a better way to do this without the partial register merging?
+		SETcc(CC_Z, R(tmp));
+		LEA(32, dst, MComplex(dst, tmp, SCALE_2, 0));
+
+		// GT: Value > 0; set flag bit 2
+		TEST(64, R(cr_val), R(cr_val));
+		SETcc(CC_G, R(tmp));
+		LEA(32, dst, MComplex(dst, tmp, SCALE_4, 0));
+
+		// SO: Bit 61 set; set flag bit 0
+		// LT: Bit 62 set; set flag bit 3
+		SHR(64, R(cr_val), Imm8(61));
+		OR(32, R(dst), MScaled(cr_val, SCALE_4, (u32)(u64)m_flagTable));
+	}
+	RET();
+}
+
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
 static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = { 3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };

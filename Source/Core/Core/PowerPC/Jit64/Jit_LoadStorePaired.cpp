@@ -78,12 +78,11 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 
 	if (update && js.memcheck)
 	{
-		MEMCHECK_START(false)
+		MemoryExceptionCheck();
 		if (indexed)
 			ADD(32, gpr.R(a), gpr.R(b));
 		else
 			ADD(32, gpr.R(a), Imm32((u32)offset));
-		MEMCHECK_END
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -137,7 +136,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 
 	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
 
-	MEMCHECK_START(false)
+	MemoryExceptionCheck();
 	CVTPS2PD(fpr.RX(s), R(XMM0));
 	if (update && js.memcheck)
 	{
@@ -146,7 +145,6 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 		else
 			ADD(32, gpr.R(a), Imm32((u32)offset));
 	}
-	MEMCHECK_END
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

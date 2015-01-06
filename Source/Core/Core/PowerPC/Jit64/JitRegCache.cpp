@@ -401,7 +401,7 @@ void FPURegCache::StoreRegister(size_t preg, OpArg newLoc)
 	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
 }
 
-void RegCache::Flush(FlushMode mode)
+void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
 {
 	for (unsigned int i = 0; i < xregs.size(); i++)
 	{
@@ -409,7 +409,7 @@ void RegCache::Flush(FlushMode mode)
 			PanicAlert("Someone forgot to unlock X64 reg %u", i);
 	}
 
-	for (unsigned int i = 0; i < regs.size(); i++)
+	for (unsigned int i : regsToFlush)
 	{
 		if (regs[i].locked)
 		{
