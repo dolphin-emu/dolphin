@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <memory>
+#include <unordered_map>
+
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/Software/CPMemLoader.h"
