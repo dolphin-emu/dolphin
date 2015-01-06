@@ -738,11 +738,6 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 	case DVDLowClearCoverInterrupt:
 		INFO_LOG(DVDINTERFACE, "DVDLowClearCoverInterrupt");
 		m_DICVR.CVRINT = 0;
-
-		// Less than ~1/155th of a second hangs Oregon Trail at "loading wheel".
-		// More than ~1/140th of a second hangs Resident Evil Archives: Resident Evil Zero.
-		// (Might not be true anymore since the other speeds were completely redone in December 2014)
-		result.ticks_until_completion = SystemTimers::GetTicksPerSecond() / 146;
 		break;
 
 	// Probably only used by Wii
