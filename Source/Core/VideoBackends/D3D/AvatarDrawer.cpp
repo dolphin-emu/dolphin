@@ -30,17 +30,6 @@ namespace DX11
 		float u, v;         // texture coordinates
 	};
 
-	union VertexShaderParams
-	{
-		struct
-		{
-			float world[16];
-			float view[16];
-			float projection[16];
-		};
-		// Constant buffers must be a multiple of 16 bytes in size
-	};
-
 	static const char AVATAR_DRAWER_VS[] =
 		"// dolphin-emu AvatarDrawer vertex shader\n"
 
@@ -49,6 +38,7 @@ namespace DX11
 		"matrix worldMatrix;\n"
 		"matrix viewMatrix;\n"
 		"matrix projectionMatrix;\n"
+		"float4 color;\n"
 		"}\n"
 
 		"struct Output\n"
@@ -74,9 +64,8 @@ namespace DX11
 		"normal = -normalize(mul(normal, viewMatrix));\n"
 
 		// calculate the colour and texture mapping
-		"o.color = float4(1, 0, 1, 1);\n"
-		"o.color = saturate(o.color * (0.2 + dot(light, normal)));\n"
-		"o.color.w = 1.0;\n"
+		"o.color = saturate(color * (0.2 + dot(light, normal)));\n"
+		"o.color.w = color.w;\n"
 		"o.uv = float3(uv.x, uv.y, 0);\n"
 		"return o;\n"
 		"}\n"
@@ -84,13 +73,6 @@ namespace DX11
 
 	static const char AVATAR_DRAWER_PS[] =
 		"// dolphin-emu AvatarDrawer pixel shader\n"
-
-		"cbuffer cbParams : register(b0)\n"
-		"{\n"
-		"matrix worldMatrix;\n"
-		"matrix viewMatrix;\n"
-		"matrix projectionMatrix;\n"
-		"}\n"
 
 		"void main(out float4 ocol0 : SV_Target, in float4 position : SV_Position, in float4 color : COLOR, "
 		"in float3 uv : TEXCOORD, in uint layer : SV_RenderTargetArrayIndex)\n"
@@ -313,6 +295,93 @@ namespace DX11
 		SAFE_RELEASE(m_vertex_shader_params);
 	}
 
+	void AvatarDrawer::DrawHydra(float *pos, ControllerStyle cs)
+	{
+		params.color[3] = 1.0f;
+		switch (cs)
+		{
+			case CS_HYDRA_LEFT:
+			case CS_HYDRA_RIGHT:
+			case CS_NES_LEFT:
+			case CS_NES_RIGHT:
+			case CS_SEGA_LEFT:
+			case CS_SEGA_RIGHT:
+			case CS_GENESIS_LEFT:
+			case CS_GENESIS_RIGHT:
+			case CS_TURBOGRAFX_LEFT:
+			case CS_TURBOGRAFX_RIGHT:
+				params.color[0] = 0.1f;
+				params.color[1] = 0.1f;
+				params.color[2] = 0.1f;
+				break;
+			case CS_GC_LEFT:
+			case CS_GC_RIGHT:
+				params.color[0] = 0.3f;
+				params.color[1] = 0.28f;
+				params.color[2] = 0.5f;
+				break;
+			case CS_WIIMOTE:
+			case CS_WIIMOTE_LEFT:
+			case CS_WIIMOTE_RIGHT:
+			case CS_CLASSIC_LEFT:
+			case CS_CLASSIC_RIGHT:
+			case CS_NUNCHUK:
+				params.color[0] = 1.0f;
+				params.color[1] = 1.0f;
+				params.color[2] = 1.0f;
+				break;
+			case CS_FAMICON_LEFT:
+			case CS_SNES_LEFT:
+				params.color[0] = 0.75f;
+				params.color[1] = 0.75f;
+				params.color[2] = 0.75f;
+				break;
+			case CS_FAMICON_RIGHT:
+			case CS_ARCADE_LEFT:
+			case CS_ARCADE_RIGHT:
+				params.color[0] = 0.4f;
+				params.color[1] = 0.0f;
+				params.color[2] = 0.0f;
+				break;
+
+			case CS_N64_LEFT:
+			case CS_N64_RIGHT:
+			case CS_SNES_RIGHT:
+			default:
+				params.color[0] = 0.5f;
+				params.color[0] = 0.5f;
+				params.color[0] = 0.5f;
+				break;
+		}
+		// world matrix
+		Matrix44 world, scale, location;
+		float v[3] = { 0.0025f, 0.0025f, 0.0025f };
+		Matrix44::Scale(scale, v);
+		float p[3];
+		for (int i = 0; i < 3; ++i)
+			p[i] = pos[i] - hydra_mid[i] * 0.0025f;
+		Matrix44::Translate(location, p);
+		Matrix44::Multiply(location, scale, world);
+		// copy matrices into buffer
+		memcpy(params.world, world.data, 16 * sizeof(float));
+		D3D::context->UpdateSubresource(m_vertex_shader_params, 0, nullptr, &params, 0, 0);
+
+		D3D::stateman->SetVertexConstants(m_vertex_shader_params);
+		D3D::stateman->SetPixelConstants(m_vertex_shader_params);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetSampler(0, m_avatar_sampler);
+
+		// Draw!
+		D3D::stateman->Apply();
+		D3D::context->DrawIndexed(m_index_count, 0, 0);
+
+		// Clean up state
+		D3D::stateman->SetSampler(0, nullptr);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetPixelConstants(nullptr);
+		D3D::stateman->SetVertexConstants(nullptr);
+	}
+
 	void AvatarDrawer::Draw()
 	{
 		if (!g_ActiveConfig.bShowController)
@@ -342,20 +411,31 @@ namespace DX11
 		D3D::stateman->SetVertexBuffer(m_vertex_buffer, stride, offset);
 		D3D::stateman->SetIndexBuffer(m_index_buffer);
 
+		D3D::context->OMSetRenderTargets(1,
+			&FramebufferManager::GetEFBColorTexture()->GetRTV(),
+			FramebufferManager::GetEFBDepthTexture()->GetDSV());
+
+		// update geometry shader buffer
+		Matrix44 hmd_left, hmd_right;
+		VR_GetProjectionMatrices(hmd_left, hmd_right, 0.1f, 10000.0f);
+		GeometryShaderManager::constants.stereoparams[0] = hmd_left.data[0 * 4 + 0];
+		GeometryShaderManager::constants.stereoparams[1] = hmd_right.data[0 * 4 + 0];
+		GeometryShaderManager::constants.stereoparams[2] = hmd_left.data[0 * 4 + 2];
+		GeometryShaderManager::constants.stereoparams[3] = hmd_right.data[0 * 4 + 2];
+		float posLeft[3] = { 0, 0, 0 };
+		float posRight[3] = { 0, 0, 0 };
+		VR_GetEyePos(posLeft, posRight);
+		GeometryShaderManager::constants.stereoparams[0] *= posLeft[0];
+		GeometryShaderManager::constants.stereoparams[1] *= posRight[0];
+		GeometryShaderManager::dirty = true;
+		GeometryShaderCache::GetConstantBuffer();
+
 		// Update Projection, View, and World matrices
-		VertexShaderParams params = { 0 };
-		Matrix44 proj, view, world;
+		Matrix44 proj, view;
 		Matrix44::LoadIdentity(proj);
 		Matrix44::LoadIdentity(view);
-		// world matrix
-		Matrix44 scale, location;
-		float v[3] = { 0.0025f, 0.0025f, 0.0025f };
-		Matrix44::Scale(scale, v);
-		float pos[3] = { 0, 0, -0.4f };
-		for (int i = 0; i < 3; ++i)
-			pos[i] += g_hydra.c[1].position[i] / 1000.0f - hydra_mid[i] * 0.0025f;
-		Matrix44::Translate(location, pos);
-		Matrix44::Multiply(location, scale, world);
+		float pos[3] = { 0, 0, 0 };
+
 		// view matrix
 		if (g_ActiveConfig.bPositionTracking)
 		{
@@ -376,8 +456,6 @@ namespace DX11
 		Matrix44::Translate(walk_matrix, pos);
 		Matrix44::Multiply(g_head_tracking_matrix, walk_matrix, view);
 		// projection matrix
-		Matrix44 hmd_left, hmd_right;
-		VR_GetProjectionMatrices(hmd_left, hmd_right, 0.1f, 10000.0f);
 		Matrix44::Set(proj, hmd_left.data);
 		// remove the part that is different for each eye
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
@@ -387,42 +465,17 @@ namespace DX11
 		// copy matrices into buffer
 		memcpy(params.projection, proj.data, 16 * sizeof(float));
 		memcpy(params.view, view.data, 16 * sizeof(float));
-		memcpy(params.world, world.data, 16 * sizeof(float));
-		D3D::context->UpdateSubresource(m_vertex_shader_params, 0, nullptr, &params, 0, 0);
 
-		// update geometry shader buffer
-		GeometryShaderManager::constants.stereoparams[0] = hmd_left.data[0 * 4 + 0];
-		GeometryShaderManager::constants.stereoparams[1] = hmd_right.data[0 * 4 + 0];
-		GeometryShaderManager::constants.stereoparams[2] = hmd_left.data[0 * 4 + 2];
-		GeometryShaderManager::constants.stereoparams[3] = hmd_right.data[0 * 4 + 2];
-		float posLeft[3] = { 0, 0, 0 };
-		float posRight[3] = { 0, 0, 0 };
-		VR_GetEyePos(posLeft, posRight);
-		GeometryShaderManager::constants.stereoparams[0] *= posLeft[0];
-		GeometryShaderManager::constants.stereoparams[1] *= posRight[0];
-		GeometryShaderManager::dirty = true;
-		GeometryShaderCache::GetConstantBuffer();
-
-
-		D3D::context->OMSetRenderTargets(1,
-			&FramebufferManager::GetEFBColorTexture()->GetRTV(),
-			FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
-		D3D::stateman->SetVertexConstants(m_vertex_shader_params);
-		D3D::stateman->SetPixelConstants(m_vertex_shader_params);
-		D3D::stateman->SetTexture(0, nullptr);
-		D3D::stateman->SetSampler(0, m_avatar_sampler);
-
-		// Draw!
-		D3D::stateman->Apply();
-		D3D::context->DrawIndexed(m_index_count, 0,  0);
-
-		// Clean up state
-
-		D3D::stateman->SetSampler(0, nullptr);
-		D3D::stateman->SetTexture(0, nullptr);
-		D3D::stateman->SetPixelConstants(nullptr);
-		D3D::stateman->SetVertexConstants(nullptr);
+		// Draw Left Razer Hydra
+		if (VR_GetLeftHydraPos(pos))
+		{
+			DrawHydra(pos, CS_HYDRA_LEFT);
+		}
+		// Draw Right Razer Hydra
+		if (VR_GetRightHydraPos(pos))
+		{
+			DrawHydra(pos, CS_GC_RIGHT);
+		}
 
 		D3D::stateman->SetPixelShader(nullptr);
 		D3D::stateman->SetVertexShader(nullptr);

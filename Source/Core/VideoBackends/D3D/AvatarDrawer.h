@@ -21,6 +21,51 @@ struct ID3D11SamplerState;
 namespace DX11
 {
 
+	typedef enum
+	{
+		CS_HYDRA_LEFT,
+		CS_HYDRA_RIGHT,
+		CS_WIIMOTE,
+		CS_NUNCHUK,
+		CS_WIIMOTE_LEFT,
+		CS_WIIMOTE_RIGHT,
+		CS_CLASSIC_LEFT,
+		CS_CLASSIC_RIGHT,
+		CS_GC_LEFT,
+		CS_GC_RIGHT,
+		CS_N64_LEFT,
+		CS_N64_RIGHT,
+		CS_SNES_LEFT,
+		CS_SNES_RIGHT,
+		CS_SNES_NTSC_RIGHT,
+		CS_NES_LEFT,
+		CS_NES_RIGHT,
+		CS_FAMICON_LEFT,
+		CS_FAMICON_RIGHT,
+		CS_SEGA_LEFT,
+		CS_SEGA_RIGHT,
+		CS_GENESIS_LEFT,
+		CS_GENESIS_RIGHT,
+		CS_TURBOGRAFX_LEFT,
+		CS_TURBOGRAFX_RIGHT,
+		CS_PCENGINE_LEFT,
+		CS_PCENGINE_RIGHT,
+		CS_ARCADE_LEFT,
+		CS_ARCADE_RIGHT
+	} ControllerStyle;
+
+	union VertexShaderParams
+	{
+		struct
+		{
+			float world[16];
+			float view[16];
+			float projection[16];
+			float color[4];
+		};
+		// Constant buffers must be a multiple of 16 bytes in size
+	};
+
 	class AvatarDrawer
 	{
 
@@ -33,6 +78,8 @@ namespace DX11
 		void Draw();
 
 	private:
+		void DrawHydra(float *pos, ControllerStyle cs);
+
 		ID3D11Buffer* m_vertex_shader_params;
 		ID3D11Buffer* m_vertex_buffer;
 		ID3D11Buffer* m_index_buffer;
@@ -44,6 +91,8 @@ namespace DX11
 		ID3D11DepthStencilState* m_avatar_depth_state;
 		ID3D11RasterizerState* m_avatar_rast_state;
 		ID3D11SamplerState* m_avatar_sampler;
+		VertexShaderParams params;
+
 		float *m_vertices;
 		u16 *m_indices;
 		int m_vertex_count, m_index_count;

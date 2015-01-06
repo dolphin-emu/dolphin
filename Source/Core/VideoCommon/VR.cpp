@@ -40,6 +40,7 @@ bool g_new_frame_tracker_for_efb_skip = true;
 u32 skip_objects_count = 0;
 Matrix44 g_head_tracking_matrix;
 float g_head_tracking_position[3];
+float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
 
@@ -322,6 +323,22 @@ void VR_GetEyePos(float *posLeft, float *posRight)
 		posLeft[1] = posRight[1] = 0;
 		posLeft[2] = posRight[2] = 0;
 	}
+}
+
+bool VR_GetLeftHydraPos(float *pos)
+{
+	pos[0] = -0.15f;
+	pos[1] = -0.30f;
+	pos[2] = -0.4f;
+	return true;
+}
+
+bool VR_GetRightHydraPos(float *pos)
+{
+	pos[0] = 0.15f;
+	pos[1] = -0.30f;
+	pos[2] = -0.4f;
+	return true;
 }
 
 void OpcodeReplayBuffer()
