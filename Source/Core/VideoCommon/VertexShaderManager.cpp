@@ -1,16 +1,10 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
 #include <cfloat>
 #include <cmath>
 #include <sstream>
-
-#ifdef HAVE_OCULUSSDK
-#include "Kernel/OVR_Types.h"
-#include "OVR_CAPI.h"
-#include "Kernel/OVR_Math.h"
-#endif
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -29,7 +23,7 @@
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
 
-#define HACK_LOG INFO_LOG
+#define HACK_LOG NOTICE_LOG
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
@@ -900,7 +894,19 @@ void VertexShaderManager::SetConstants()
 
 void VertexShaderManager::SetProjectionConstants()
 {
-	float *rawProjection = xfmem.projection.rawProjection;
+	// Transformations must be applied in the following order for VR:
+	// HUD
+	// camera forward
+	// camera pitch
+	// free look
+	// leaning back
+	// head position tracking
+	// head rotation tracking
+	// eye pos
+	// projection
+
+	///////////////////////////////////////////////////////
+	// First, identify any special layers and hacks
 
 	m_layer_on_top = false;
 	bool bFullscreenLayer = g_ActiveConfig.bHudFullscreen && xfmem.projection.type != GX_PERSPECTIVE;
@@ -931,23 +937,7 @@ void VertexShaderManager::SetProjectionConstants()
 		bNoForward = true;
 		// Calculate telescope scale
 		float hmd_halftan, telescope_scale;
-#ifdef HAVE_OCULUSSDK
-		if (g_has_rift)
-		{
-			hmd_halftan = fabs(g_eye_fov[0].LeftTan);
-			if (fabs(g_eye_fov[0].RightTan) > hmd_halftan)
-				hmd_halftan = fabs(g_eye_fov[0].RightTan);
-			if (fabs(g_eye_fov[0].UpTan) > hmd_halftan)
-				hmd_halftan = fabs(g_eye_fov[0].UpTan);
-			if (fabs(g_eye_fov[0].DownTan) > hmd_halftan)
-				hmd_halftan = fabs(g_eye_fov[0].DownTan);
-			//hmd_halftan;
-		}
-		else
-#endif
-		{
-			hmd_halftan = tan(DEGREES_TO_RADIANS(32.0f / 2))*3.0f / 4.0f;
-		}
+		VR_GetProjectionHalfTan(hmd_halftan);
 		telescope_scale = fabs(hmd_halftan / tan(DEGREES_TO_RADIANS(vr_widest_3d_VFOV) / 2));
 		if (iTelescopeHack & 1)
 		{
@@ -962,6 +952,11 @@ void VertexShaderManager::SetProjectionConstants()
 			bHideRight = false;
 		}
 	}
+
+	///////////////////////////////////////////////////////
+	// Second, set the original projection matrix and save its stats
+
+	float *rawProjection = xfmem.projection.rawProjection;
 
 	switch (xfmem.projection.type)
 	{
@@ -1062,8 +1057,24 @@ void VertexShaderManager::SetProjectionConstants()
 	}
 
 	PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
+	dirty = true;
+	GeometryShaderManager::dirty = true;
+
+	///////////////////////////////////////////////////////
+	// What happens last depends on what kind of rendering we are doing for this layer
+	// Hide: don't render anything
+	// Render to texture: render in 2D exactly the same as the real console would, for projection shadows etc.
+	// Free Look
+	// Normal emulation
+	// VR Fullscreen layer: render EFB copies or screenspace effects so they fill the full screen they were copied from
+	// VR: Render everything as part of a virtual world, there are a few separate alternatives here:
+	//     2D HUD as thick pane of glass floating in 3D space
+	//     3D HUD element as a 3D object attached to that pane of glass
+	//     3D world
 
 	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre * fScaleHack / g_ActiveConfig.fScale;
+
+	bHide = bHide && (bFlashing || (g_has_hmd && g_ActiveConfig.bEnableVR));
 
 	if (bHide)
 	{
@@ -1071,12 +1082,13 @@ void VertexShaderManager::SetProjectionConstants()
 		memset(constants.projection, 0, 4 * 16);
 		memset(constants_eye_projection[0], 0, 2 * 4 * 16);
 		memset(GeometryShaderManager::constants.stereoparams, 0, 4 * 4);
-		GeometryShaderManager::dirty = true;
+		return;
 	}
 	// don't do anything fancy for rendering to a texture
 	// render exactly as we are told, and in mono
 	else if (g_viewport_type == VIEW_RENDER_TO_TEXTURE)
 	{
+		// we aren't applying viewport correction, because Render To Texture never has a viewport larger than the framebufffer
 		Matrix44 correctedMtx;
 		Matrix44::Set(correctedMtx, g_fProjectionMatrix);
 
@@ -1085,13 +1097,54 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
 		GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
 		GeometryShaderManager::constants.stereoparams[2] = GeometryShaderManager::constants.stereoparams[3] = 0;
-		GeometryShaderManager::dirty = true;
+		return;
+	}
+	else if (!g_has_hmd || !g_ActiveConfig.bEnableVR)
+	{
+		Matrix44 mtxA;
+		Matrix44 mtxB;
+		Matrix44 viewMtx;
+
+		if (bFreeLookChanged && xfmem.projection.type == GX_PERSPECTIVE)
+		{
+			// use the freelook camera position, which should still be in metres even for non-VR so it is a consistent speed between games
+			float pos[3];
+			for (int i = 0; i < 3; ++i)
+				pos[i] = s_fViewTranslationVector[i] * UnitsPerMetre;
+			Matrix44::Translate(mtxA, pos);
+			Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
+			Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
+		}
+
+		Matrix44::Set(mtxB, g_fProjectionMatrix);
+		Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
+		Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
+
+		memcpy(constants.projection, mtxB.data, 4 * 16);
+		memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
+		memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
+
+		if (g_ActiveConfig.iStereoMode > 0)
+		{
+			if (xfmem.projection.type == GX_PERSPECTIVE)
+			{
+				float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) * (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+				GeometryShaderManager::constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
+				GeometryShaderManager::constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
+				GeometryShaderManager::constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercentage / 100.0f);
+			}
+			else
+			{
+				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
+			}
+		}
+		return;
 	}
 	// This was already copied from the fullscreen EFB.
 	// Which makes it already correct for the HMD's FOV.
 	// But we still need to correct it for the difference between the requested and rendered viewport.
 	// Don't add any stereoscopy because that was already done when copied.
-	else if (g_has_hmd && g_ActiveConfig.bEnableVR && bFullscreenLayer)
+	else if (bFullscreenLayer)
 	{
 		Matrix44 projMtx, scale_matrix, correctedMtx;
 		Matrix44::Set(projMtx, g_fProjectionMatrix);
@@ -1110,10 +1163,10 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
 		GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
 		GeometryShaderManager::constants.stereoparams[2] = GeometryShaderManager::constants.stereoparams[3] = 0;
-		GeometryShaderManager::dirty = true;
+		return;
 	}
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
-	else if (g_has_hmd && g_ActiveConfig.bEnableVR)
+	else
 	{
 		float *p = rawProjection;
 		// near clipping plane in game units
@@ -1177,121 +1230,103 @@ void VertexShaderManager::SetProjectionConstants()
 			g_fProjectionMatrix[9] = 0.0f;
 			g_fProjectionMatrix[10] = -znear / (zfar - znear);
 			g_fProjectionMatrix[11] = -zfar*znear / (zfar - znear);
-			if (debug_newScene)
-			{
-				if (xfmem.projection.type == GX_PERSPECTIVE)
-					DEBUG_LOG(VR, "3D HUD: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
-				else
-					DEBUG_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
-			}
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
-			// donkopunchstania suggested the GC GPU might round differently
-			// He had thus changed this to -(1 + epsilon) to fix clipping issues.
-			// I (neobrain) don't think his conjecture is true and thus reverted his change.
 			g_fProjectionMatrix[14] = -1.0f;
 			g_fProjectionMatrix[15] = 0.0f;
 
 		}
 
-		Matrix44 proj_left, proj_right;
+		Matrix44 proj_left, proj_right, hmd_left, hmd_right;
 		Matrix44::Set(proj_left, g_fProjectionMatrix);
 		Matrix44::Set(proj_right, g_fProjectionMatrix);
-		if (g_has_vr920)
-		{
-			// 32 degrees HFOV, 4:3 aspect ratio
-			proj_left.data[0 * 4 + 0] = 1.0f / tan(32.0f / 2.0f * 3.1415926535f / 180.0f);
-			proj_left.data[1 * 4 + 1] = 4.0f / 3.0f * proj_left.data[0 * 4 + 0];
-			proj_right.data[0 * 4 + 0] = 1.0f / tan(32.0f / 2.0f * 3.1415926535f / 180.0f);
-			proj_right.data[1 * 4 + 1] = 4.0f / 3.0f * proj_right.data[0 * 4 + 0];
-			if (debug_newScene)
-				INFO_LOG(VR, "Using VR920 FOV");
-		}
-#ifdef HAVE_OCULUSSDK
-		else if (g_has_rift)
-		{
-			if (debug_newScene)
-				INFO_LOG(VR, "g_has_rift");
-			ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, true);
-			ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], znear, zfar, true);
-			if (xfmem.projection.type != GX_PERSPECTIVE)
-			{
-				//proj_left.data[2 * 4 + 2] = rift_left.M[2][2];
-				//proj_left.data[2 * 4 + 3] = rift_left.M[2][3];
-				//proj_right.data[2 * 4 + 2] = rift_right.M[2][2];
-				//proj_right.data[2 * 4 + 3] = rift_right.M[2][3];
-			}
 
-			float hfov2 = 2 * atan(1.0f / rift_left.M[0][0])*180.0f / 3.1415926535f;
-			float vfov2 = 2 * atan(1.0f / rift_left.M[1][1])*180.0f / 3.1415926535f;
-			float zfar2 = rift_left.M[2][3] / rift_left.M[2][2];
-			float znear2 = (1 + rift_left.M[2][2] * zfar) / rift_left.M[2][2];
-			if (debug_newScene)
-			{
-				// yellow = Oculus's suggestion
-				DEBUG_LOG(VR, "O hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
-				DEBUG_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[0][0], rift_left.M[0][1], rift_left.M[0][2], rift_left.M[0][3]);
-				DEBUG_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[1][0], rift_left.M[1][1], rift_left.M[1][2], rift_left.M[1][3]);
-				DEBUG_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[2][0], rift_left.M[2][1], rift_left.M[2][2], rift_left.M[2][3]);
-				DEBUG_LOG(VR, "O {%8.4f %8.4f %8.4f   %8.4f}", rift_left.M[3][0], rift_left.M[3][1], rift_left.M[3][2], rift_left.M[3][3]);
-				// green = Game's suggestion
-				INFO_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-				INFO_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-				INFO_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-				INFO_LOG(VR, "G {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
-			}
-			// red = my combination
-			proj_left.data[0 * 4 + 0] = rift_left.M[0][0] * SignOf(proj_left.data[0 * 4 + 0]) * fLeftWidthHack; // h fov
-			proj_left.data[1 * 4 + 1] = rift_left.M[1][1] * SignOf(proj_left.data[1 * 4 + 1]) * fLeftHeightHack; // v fov
-			proj_left.data[0 * 4 + 2] = rift_left.M[0][2] * SignOf(proj_left.data[0 * 4 + 0]) - fRightHack; // h off-axis
-			proj_left.data[1 * 4 + 2] = rift_left.M[1][2] * SignOf(proj_left.data[1 * 4 + 1]) - fUpHack; // v off-axis
-			proj_right.data[0 * 4 + 0] = rift_right.M[0][0] * SignOf(proj_right.data[0 * 4 + 0]) * fRightWidthHack;
-			proj_right.data[1 * 4 + 1] = rift_right.M[1][1] * SignOf(proj_right.data[1 * 4 + 1]) * fRightHeightHack;
-			proj_right.data[0 * 4 + 2] = rift_right.M[0][2] * SignOf(proj_right.data[0 * 4 + 0]) - fRightHack;
-			proj_right.data[1 * 4 + 2] = rift_right.M[1][2] * SignOf(proj_right.data[1 * 4 + 1]) - fUpHack;
-			GeometryShaderManager::constants.stereoparams[0] = proj_left.data[0 * 4 + 0];
-			GeometryShaderManager::constants.stereoparams[1] = proj_right.data[0 * 4 + 0];
-			GeometryShaderManager::constants.stereoparams[2] = proj_left.data[0 * 4 + 2];
-			GeometryShaderManager::constants.stereoparams[3] = proj_right.data[0 * 4 + 2];
-			if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
-			{
-				proj_left.data[0 * 4 + 2] = 0;
-			}
+		VR_GetProjectionMatrices(hmd_left, hmd_right, znear, zfar);
 
-			if (debug_newScene)
-			{
-				DEBUG_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-				DEBUG_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-				DEBUG_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-				DEBUG_LOG(VR, "VR {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
-			}
+		float hfov2 = 2 * atan(1.0f / hmd_left.data[0 * 4 + 0])*180.0f / 3.1415926535f;
+		float vfov2 = 2 * atan(1.0f / hmd_left.data[1 * 4 + 1])*180.0f / 3.1415926535f;
+		float zfar2 = hmd_left.data[2 * 4 + 3] / hmd_left.data[2 * 4 + 2];
+		float znear2 = (1 + hmd_left.data[2 * 4 + 2] * zfar) / hmd_left.data[2 * 4 + 2];
+		if (debug_newScene)
+		{
+			// yellow = Oculus's suggestion
+			WARN_LOG(VR, "O hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
+			WARN_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[0 * 4 + 0], hmd_left.data[0 * 4 + 1], hmd_left.data[0 * 4 + 2], hmd_left.data[0 * 4 + 3]);
+			WARN_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[1 * 4 + 0], hmd_left.data[1 * 4 + 1], hmd_left.data[1 * 4 + 2], hmd_left.data[1 * 4 + 3]);
+			WARN_LOG(VR, "O [%8.4f %8.4f %8.4f   %8.4f]", hmd_left.data[2 * 4 + 0], hmd_left.data[2 * 4 + 1], hmd_left.data[2 * 4 + 2], hmd_left.data[2 * 4 + 3]);
+			WARN_LOG(VR, "O {%8.4f %8.4f %8.4f   %8.4f}", hmd_left.data[3 * 4 + 0], hmd_left.data[3 * 4 + 1], hmd_left.data[3 * 4 + 2], hmd_left.data[3 * 4 + 3]);
+			// green = Game's suggestion
+			NOTICE_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+			NOTICE_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+			NOTICE_LOG(VR, "G [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+			NOTICE_LOG(VR, "G {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
 		}
-#endif
-		//VR Headtracking
+		// red = my combination
+		proj_left.data[0 * 4 + 0] = hmd_left.data[0 * 4 + 0] * SignOf(proj_left.data[0 * 4 + 0]) * fLeftWidthHack; // h fov
+		proj_left.data[1 * 4 + 1] = hmd_left.data[1 * 4 + 1] * SignOf(proj_left.data[1 * 4 + 1]) * fLeftHeightHack; // v fov
+		proj_left.data[0 * 4 + 2] = hmd_left.data[0 * 4 + 2] * SignOf(proj_left.data[0 * 4 + 0]) - fRightHack; // h off-axis
+		proj_left.data[1 * 4 + 2] = hmd_left.data[1 * 4 + 2] * SignOf(proj_left.data[1 * 4 + 1]) - fUpHack; // v off-axis
+		proj_right.data[0 * 4 + 0] = hmd_right.data[0 * 4 + 0] * SignOf(proj_right.data[0 * 4 + 0]) * fRightWidthHack;
+		proj_right.data[1 * 4 + 1] = hmd_right.data[1 * 4 + 1] * SignOf(proj_right.data[1 * 4 + 1]) * fRightHeightHack;
+		proj_right.data[0 * 4 + 2] = hmd_right.data[0 * 4 + 2] * SignOf(proj_right.data[0 * 4 + 0]) - fRightHack;
+		proj_right.data[1 * 4 + 2] = hmd_right.data[1 * 4 + 2] * SignOf(proj_right.data[1 * 4 + 1]) - fUpHack;
+		GeometryShaderManager::constants.stereoparams[0] = proj_left.data[0 * 4 + 0];
+		GeometryShaderManager::constants.stereoparams[1] = proj_right.data[0 * 4 + 0];
+		GeometryShaderManager::constants.stereoparams[2] = proj_left.data[0 * 4 + 2];
+		GeometryShaderManager::constants.stereoparams[3] = proj_right.data[0 * 4 + 2];
+		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+		{
+			proj_left.data[0 * 4 + 2] = 0;
+		}
+
+		if (debug_newScene)
+		{
+			ERROR_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+			ERROR_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+			ERROR_LOG(VR, "VR [%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+			ERROR_LOG(VR, "VR {%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
+		}
+
+		//VR Headtracking and leaning back compensation
 		Matrix44 rotation_matrix;
+		Matrix44 lean_back_matrix;
+		Matrix44 camera_pitch_matrix;
 		if (bStuckToHead)
 		{
 			Matrix44::LoadIdentity(rotation_matrix);
+			Matrix44::LoadIdentity(lean_back_matrix);
+			Matrix44::LoadIdentity(camera_pitch_matrix);
 		}
 		else
 		{
-			UpdateHeadTrackingIfNeeded();
-			float extra_pitch;
+			// head tracking
+			if (g_ActiveConfig.bOrientationTracking)
+			{
+				UpdateHeadTrackingIfNeeded();
+				Matrix44::Set(rotation_matrix, g_head_tracking_matrix.data);
+			}
+			else
+			{
+				Matrix44::LoadIdentity(rotation_matrix);
+			}
+
+			Matrix33 pitch_matrix33;
+
+			// leaning back
+			float extra_pitch = -g_ActiveConfig.fLeanBackAngle;
+			Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
+			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
+
+			// camera pitch
 			if (xfmem.projection.type == GX_PERSPECTIVE || vr_widest_3d_HFOV > 0)
 				extra_pitch = g_ActiveConfig.fCameraPitch;
 			else
 				extra_pitch = g_ActiveConfig.fScreenPitch;
-			extra_pitch -= g_ActiveConfig.fLeanBackAngle;
-			Matrix33 pitch_matrix33;
 			Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
-			Matrix44 pitch_matrix;
-			Matrix44::LoadMatrix33(pitch_matrix, pitch_matrix33);
-			if (g_ActiveConfig.bOrientationTracking)
-				Matrix44::Multiply(g_head_tracking_matrix, pitch_matrix, rotation_matrix);
-			else
-				Matrix44::Set(rotation_matrix, pitch_matrix.data);
+			Matrix44::LoadMatrix33(camera_pitch_matrix, pitch_matrix33);
 		}
+
 		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
 		// (ActionGirlz even uses flipped matrices and non-flipped matrices in the same frame)
 		if (xfmem.projection.type == GX_PERSPECTIVE)
@@ -1326,52 +1361,66 @@ void VertexShaderManager::SetProjectionConstants()
 			}
 		}
 
-		Matrix44 walk_matrix, look_matrix;
+		// Position matrices
+		Matrix44 head_position_matrix, free_look_matrix, camera_forward_matrix;
 		if (bStuckToHead || g_is_skybox)
 		{
-			Matrix44::LoadIdentity(walk_matrix);
+			Matrix44::LoadIdentity(head_position_matrix);
+			Matrix44::LoadIdentity(free_look_matrix);
+			Matrix44::LoadIdentity(camera_forward_matrix);
 		}
 		else
 		{
 			float pos[3];
+			// head tracking
 			if (g_ActiveConfig.bPositionTracking)
 			{
-				float head[3];
 				for (int i = 0; i < 3; ++i)
-					head[i] = g_head_tracking_position[i] * UnitsPerMetre;
-				pos[0] = head[0];
-				pos[1] = head[1] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) + head[2] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
-				pos[2] = head[2] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) - head[1] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
+					pos[i] = g_head_tracking_position[i] * UnitsPerMetre;
+				Matrix44::Translate(head_position_matrix, pos);
+			}
+			else
+			{
+				Matrix44::LoadIdentity(head_position_matrix);
+			}
+
+			// freelook camera position
+			for (int i = 0; i < 3; ++i)
+				pos[i] = s_fViewTranslationVector[i] * UnitsPerMetre;
+			Matrix44::Translate(free_look_matrix, pos);
+
+			if (bNoForward)
+			{
+				Matrix44::LoadIdentity(camera_forward_matrix);
 			}
 			else
 			{
 				pos[0] = 0;
 				pos[1] = 0;
-				pos[2] = 0;
+				pos[2] = g_ActiveConfig.fCameraForward * UnitsPerMetre;
+				Matrix44::Translate(camera_forward_matrix, pos);
 			}
-			for (int i = 0; i < 3; ++i)
-				pos[i] += s_fViewTranslationVector[i] * UnitsPerMetre;
-			if (!bNoForward)
-				pos[2] += g_ActiveConfig.fCameraForward * UnitsPerMetre;
-			//static int x = 0;
-			//x++;
-			Matrix44::Translate(walk_matrix, pos);
-			//if (x>100)
-			//{
-			//	x = 0;
-			//	//			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
-			//	INFO_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
-			//}
 		}
 
+		Matrix44 look_matrix;
 		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
-			if (debug_newScene)
-				INFO_LOG(VR, "3D: do normally");
-			Matrix44::Multiply(rotation_matrix, walk_matrix, look_matrix);
+			// Transformations must be applied in the following order for VR:
+			// camera forward
+			// camera pitch
+			// free look
+			// leaning back
+			// head position tracking
+			// head rotation tracking
+			Matrix44 A, B;
+			Matrix44::Multiply(camera_pitch_matrix, camera_forward_matrix, A);
+			Matrix44::Multiply(free_look_matrix, A, B);
+			Matrix44::Multiply(lean_back_matrix, B, A);
+			Matrix44::Multiply(head_position_matrix, A, B);
+			Matrix44::Multiply(rotation_matrix, B, look_matrix);
 		}
 		else
-		if (xfmem.projection.type != GX_PERSPECTIVE || g_viewport_type == VIEW_HUD_ELEMENT || g_viewport_type == VIEW_OFFSCREEN)
+		//if (xfmem.projection.type != GX_PERSPECTIVE || g_viewport_type == VIEW_HUD_ELEMENT || g_viewport_type == VIEW_OFFSCREEN)
 		{
 			if (debug_newScene)
 				INFO_LOG(VR, "2D: hacky test");
@@ -1536,14 +1585,19 @@ void VertexShaderManager::SetProjectionConstants()
 					position[2] = -HudDistance - CameraForward;
 			}
 
-			Matrix44 scale_matrix, position_matrix, box_matrix, temp_matrix;
+			Matrix44 A, B, scale_matrix, position_matrix, box_matrix;
 			Matrix44::Scale(scale_matrix, scale);
 			Matrix44::Translate(position_matrix, position);
 
-			// order: scale, walk, rotate
-			Matrix44::Multiply(rotation_matrix, walk_matrix, temp_matrix);
+			// order: scale, position
 			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
-			Matrix44::Multiply(temp_matrix, box_matrix, look_matrix);
+
+			Matrix44::Multiply(camera_forward_matrix, box_matrix, B);
+			Matrix44::Multiply(camera_pitch_matrix, B, A);
+			Matrix44::Multiply(free_look_matrix, A, B);
+			Matrix44::Multiply(lean_back_matrix, B, A);
+			Matrix44::Multiply(head_position_matrix, A, B);
+			Matrix44::Multiply(rotation_matrix, B, look_matrix);
 		}
 
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;
@@ -1569,19 +1623,17 @@ void VertexShaderManager::SetProjectionConstants()
 #endif
 		}
 #endif
+		
 		Matrix44 view_matrix_left, view_matrix_right;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			Matrix44::Set(view_matrix_left, look_matrix.data);
-
-			Matrix44::Translate(eye_pos_matrix_right, posRight);
-			Matrix44::Multiply(eye_pos_matrix_right, look_matrix, view_matrix_right);
+			Matrix44::Set(view_matrix_right, view_matrix_left.data);
 		}
 		else
 		{
 			Matrix44::Translate(eye_pos_matrix_left, posLeft);
 			Matrix44::Translate(eye_pos_matrix_right, posRight);
-
 			Matrix44::Multiply(eye_pos_matrix_left, look_matrix, view_matrix_left);
 			Matrix44::Multiply(eye_pos_matrix_right, look_matrix, view_matrix_right);
 		}
@@ -1646,82 +1698,13 @@ void VertexShaderManager::SetProjectionConstants()
 				DEBUG_LOG(VR, "F=[%8.4f %8.4f %8.4f   %8.4f]", final_matrix_left.data[2 * 4 + 0], final_matrix_left.data[2 * 4 + 1], final_matrix_left.data[2 * 4 + 2], final_matrix_left.data[2 * 4 + 3]);
 				DEBUG_LOG(VR, "F={%8.4f %8.4f %8.4f   %8.4f}", final_matrix_left.data[3 * 4 + 0], final_matrix_left.data[3 * 4 + 1], final_matrix_left.data[3 * 4 + 2], final_matrix_left.data[3 * 4 + 3]);
 				DEBUG_LOG(VR, "StereoParams: %8.4f, %8.4f", GeometryShaderManager::constants.stereoparams[0], GeometryShaderManager::constants.stereoparams[2]);
-				DEBUG_LOG(VR, "eye_x = %8.4f", g_eye_render_desc[0].HmdToEyeViewOffset.x);
 			}
 		}
 		else
 		{
 			GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
 		}
-		GeometryShaderManager::dirty = true;
-		dirty = true;
 	}
-	else if (bFreeLookChanged && xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type)
-	{
-		Matrix44 mtxA;
-		Matrix44 mtxB;
-		Matrix44 viewMtx;
-
-		Matrix44::Translate(mtxA, s_fViewTranslationVector);
-		Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
-		Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
-		Matrix44::Set(mtxB, g_fProjectionMatrix);
-		Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
-		Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
-
-		// If we are supposed to hide the layer, zero out the projection matrix
-		if (bHide) {
-			memset(mtxB.data, 0, 16 * sizeof(mtxB.data[0]));
-		}
-		memcpy(constants.projection, mtxB.data, 4 * 16);
-		memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
-		memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
-
-		if (g_ActiveConfig.iStereoMode > 0)
-		{
-			if (xfmem.projection.type == GX_PERSPECTIVE)
-			{
-				float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) * (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
-				GeometryShaderManager::constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
-				GeometryShaderManager::constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-				GeometryShaderManager::constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercentage / 100.0f);
-			}
-			else
-			{
-				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
-			}
-		}
-	}
-	else
-	{
-		Matrix44 projMtx;
-		Matrix44::Set(projMtx, g_fProjectionMatrix);
-
-		Matrix44 correctedMtx;
-		Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-		// If we are supposed to hide the layer, zero out the projection matrix
-		if (bHide) {
-			memset(correctedMtx.data, 0, 16 * sizeof(correctedMtx.data[0]));
-		}
-		memcpy(constants.projection, correctedMtx.data, 4 * 16);
-		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
-		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
-		if (g_ActiveConfig.iStereoMode > 0)
-		{
-			if (xfmem.projection.type == GX_PERSPECTIVE)
-			{
-				float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) * (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
-				GeometryShaderManager::constants.stereoparams[0] = (g_ActiveConfig.bStereoSwapEyes) ? offset : -offset;
-				GeometryShaderManager::constants.stereoparams[1] = (g_ActiveConfig.bStereoSwapEyes) ? -offset : offset;
-				GeometryShaderManager::constants.stereoparams[2] = (g_ActiveConfig.iStereoConvergence / 10.0f) * (g_ActiveConfig.iStereoConvergencePercentage / 100.0f);
-			}
-			else
-			{
-				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
-			}
-		}
-	}
-	dirty = true;
 }
 //#pragma optimize("", on)
 
@@ -1857,6 +1840,7 @@ void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
 
 void VertexShaderManager::ScaleView(float scale)
 {
+	// keep the camera in the same virtual world location when scaling the virtual world
 	for (int i = 0; i < 3; i++)
 		s_fViewTranslationVector[i] *= scale;
 
@@ -1868,10 +1852,16 @@ void VertexShaderManager::ScaleView(float scale)
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::TranslateView(float x, float y, float z)
+// Moves the freelook camera a number of scaled metres relative to the current freelook camera direction
+void VertexShaderManager::TranslateView(float left_metres, float forward_metres, float down_metres)
 {
 	float result[3];
-	float vector[3] = { x,z,y };
+	float vector[3] = { left_metres, down_metres, forward_metres };
+
+	// use scaled metres in VR, or real metres otherwise
+	if (g_has_hmd)
+		for (int i = 0; i < 3; ++i)
+			vector[i] *= g_ActiveConfig.fScale;
 
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 

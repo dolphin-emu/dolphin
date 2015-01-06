@@ -195,6 +195,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Get("Scale", &fScale, 1.0f);
+	vr->Get("FreeLookSensitivity", &fFreeLookSensitivity, DEFAULT_VR_FREE_LOOK_SENSITIVITY);
 	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
 	vr->Get("EnableVR", &bEnableVR, true);
 	vr->Get("LowPersistence", &bLowPersistence, true);
@@ -372,7 +373,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
-	fFreeLookSensitivity = DEFAULT_VR_FREE_LOOK_SENSITIVITY;
 	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
 	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
 	fHud3DCloser = DEFAULT_VR_HUD_3D_CLOSER;
@@ -396,7 +396,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
 	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
-	CHECK_SETTING("VR", "FreeLookSensitivity", fFreeLookSensitivity);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
 	CHECK_SETTING("VR", "Hud3DCloser", fHud3DCloser);
@@ -449,7 +448,6 @@ void VideoConfig::GameIniSave()
 
 	SAVE_IF_NOT_DEFAULT("VR", "Disable3D", bDisable3D, false);
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
-	SAVE_IF_NOT_DEFAULT("VR", "FreeLookSensitivity", (float)fFreeLookSensitivity, DEFAULT_VR_FREE_LOOK_SENSITIVITY);
 	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
@@ -489,7 +487,6 @@ void VideoConfig::GameIniReset()
 
 	LOAD_DEFAULT("VR", "Disable3D", bDisable3D, false);
 	LOAD_DEFAULT("VR", "UnitsPerMetre", fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
-	LOAD_DEFAULT("VR", "FreeLookSensitivity", fFreeLookSensitivity, DEFAULT_VR_FREE_LOOK_SENSITIVITY);
 	LOAD_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
@@ -601,6 +598,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Set("Scale", fScale);
+	vr->Set("FreeLookSensitivity", fFreeLookSensitivity);
 	vr->Set("LeanBackAngle", fLeanBackAngle);
 	vr->Set("EnableVR", bEnableVR);
 	vr->Set("LowPersistence", bLowPersistence);
@@ -650,7 +648,6 @@ bool VideoConfig::IsVSync()
 bool VideoConfig::VRSettingsModified()
 {
 	return fUnitsPerMetre != g_SavedConfig.fUnitsPerMetre
-		|| fFreeLookSensitivity != g_SavedConfig.fFreeLookSensitivity
 		|| fHudThickness != g_SavedConfig.fHudThickness
 		|| fHudDistance != g_SavedConfig.fHudDistance
 		|| fHud3DCloser != g_SavedConfig.fHud3DCloser

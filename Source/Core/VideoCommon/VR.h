@@ -55,6 +55,9 @@ void ShutdownVR();
 void NewVRFrame();
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z);
 void UpdateHeadTrackingIfNeeded();
+void VR_GetProjectionHalfTan(float &hmd_halftan);
+void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar);
+
 void OpcodeReplayBuffer();
 
 extern bool g_force_vr;

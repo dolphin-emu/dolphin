@@ -103,7 +103,6 @@ private:
 	wxCheckBox *HudFullscreen;
 	wxCheckBox *HudOnTop;
 	wxSpinCtrlDouble* UnitsPerMetre;
-	wxSpinCtrlDouble* FreeLookSensitivity;
 	wxSpinCtrlDouble* HudDistance;
 	wxSpinCtrlDouble* HudThickness;
 	wxSpinCtrlDouble* Hud3DCloser;
@@ -152,7 +151,6 @@ private:
 		ID_HUD_FULLSCREEN,
 		ID_HUD_ON_TOP,
 		ID_UNITS_PER_METRE,
-		ID_FREE_LOOK_SENSITIVITY,
 		ID_HUD_DISTANCE,
 		ID_HUD_THICKNESS,
 		ID_HUD_3D_CLOSER,

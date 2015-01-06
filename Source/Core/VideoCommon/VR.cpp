@@ -199,8 +199,8 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
 			*yaw = -RADIANS_TO_DEGREES(ya);   // should be degrees right
 			*x = pose.Translation.x;
-			*y = (pose.Translation.y * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) - (pose.Translation.z * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
-			*z = (pose.Translation.z * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) + (pose.Translation.y * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			*y = pose.Translation.y;
+			*z = pose.Translation.z;
 		}
 	}
 	else
@@ -244,6 +244,51 @@ void UpdateHeadTrackingIfNeeded()
 		Matrix33::Multiply(r, yp, m);
 		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
 		g_new_tracking_frame = false;
+	}
+}
+
+void VR_GetProjectionHalfTan(float &hmd_halftan)
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		hmd_halftan = fabs(g_eye_fov[0].LeftTan);
+		if (fabs(g_eye_fov[0].RightTan) > hmd_halftan)
+			hmd_halftan = fabs(g_eye_fov[0].RightTan);
+		if (fabs(g_eye_fov[0].UpTan) > hmd_halftan)
+			hmd_halftan = fabs(g_eye_fov[0].UpTan);
+		if (fabs(g_eye_fov[0].DownTan) > hmd_halftan)
+			hmd_halftan = fabs(g_eye_fov[0].DownTan);
+	}
+	else
+#endif
+	{
+		hmd_halftan = tan(DEGREES_TO_RADIANS(32.0f / 2))*3.0f / 4.0f;
+	}
+}
+
+void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar)
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, true);
+		ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], znear, zfar, true);
+		Matrix44::Set(left_eye, rift_left.M[0]);
+		Matrix44::Set(right_eye, rift_right.M[0]);
+	}
+	else
+#endif
+	{
+		Matrix44::LoadIdentity(left_eye);
+		left_eye.data[10] = -znear / (zfar - znear);
+		left_eye.data[11] = -zfar*znear / (zfar - znear);
+		left_eye.data[14] = -1.0f;
+		left_eye.data[15] = 0.0f;
+		// 32 degrees HFOV, 4:3 aspect ratio
+		left_eye.data[0 * 4 + 0] = 1.0f / tan(32.0f / 2.0f * 3.1415926535f / 180.0f);
+		left_eye.data[1 * 4 + 1] = 4.0f / 3.0f * left_eye.data[0 * 4 + 0];
+		Matrix44::Set(right_eye, left_eye.data);
 	}
 }
 

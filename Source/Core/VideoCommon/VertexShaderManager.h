@@ -45,7 +45,7 @@ public:
 	static void SetProjectionChanged();
 	static void SetMaterialColorChanged(int index, u32 color);
 
-	static void TranslateView(float x, float y, float z = 0.0f);
+	static void TranslateView(float left_metres, float forward_metres, float down_metres = 0.0f);
 	static void RotateView(float x, float y);
 	static void ScaleView(float scale);
 	static void ResetView();
