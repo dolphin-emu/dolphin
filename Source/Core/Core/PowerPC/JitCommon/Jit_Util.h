@@ -50,6 +50,10 @@ static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
+	// A place to put all code that is very rarely called (<1% of the time) so it doesn't pollute the
+	// instruction cache. This shouldn't be used for any code that is taken a reasonable number of times,
+	// like branches or trampolines. Example uses include exception recovery code, denormal handling,
+	// and so on.
 	FarCodeCache farcode;
 	u8* nearcode; // Backed up when we switch to far code.
 

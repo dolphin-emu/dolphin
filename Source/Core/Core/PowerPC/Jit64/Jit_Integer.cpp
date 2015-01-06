@@ -342,15 +342,15 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	}
 }
 
-bool Jit64::CheckMergedBranch(int crf)
+bool Jit64::CheckMergedBranch(int crf, int inst)
 {
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
 		return false;
 
-	if (!MergeAllowedNextInstructions(1))
+	if (!MergeAllowedNextInstructions(inst))
 		return false;
 
-	const UGeckoInstruction& next = js.op[1].inst;
+	const UGeckoInstruction& next = js.op[inst].inst;
 	return (((next.OPCD == 16 /* bcx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
@@ -359,11 +359,11 @@ bool Jit64::CheckMergedBranch(int crf)
 	         (next.BI >> 2) == crf);
 }
 
-void Jit64::DoMergedBranch()
+void Jit64::DoMergedBranch(int inst)
 {
 	// Code that handles successful PPC branching.
-	const UGeckoInstruction& next = js.op[1].inst;
-	const u32 nextPC = js.op[1].address;
+	const UGeckoInstruction& next = js.op[inst].inst;
+	const u32 nextPC = js.op[inst].address;
 	if (next.OPCD == 16) // bcx
 	{
 		if (next.LK)
@@ -434,7 +434,7 @@ void Jit64::DoMergedBranchCondition()
 
 	if (jumpInBlock)
 	{
-		BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
+		BranchTarget branchData = { { pBranch }, 1, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
 		branch_targets.insert(std::make_pair(destination, branchData));
 	}
 	else
@@ -493,7 +493,7 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 		if (jumpInBlock)
 		{
 			FixupBranch pBranch = J(true);
-			BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
+			BranchTarget branchData = { { pBranch }, 1, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
 			branch_targets.insert(std::make_pair(destination, branchData));
 		}
 		// IMPORTANT: we can't actually leave the block in this case!! A forward branch is still waiting around for

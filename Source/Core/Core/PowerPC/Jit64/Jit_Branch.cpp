@@ -113,25 +113,28 @@ void Jit64::bcx(UGeckoInstruction inst)
 	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 	bool jumpInBlock = cc && forwardJumps && destination > js.compilerPC && destination < js.blockEnd;
+	int branchCount = 0;
+	FixupBranch branch[2];
 
-	FixupBranch pCTRBranch = { NULL, 0 }; // shut up uninitialized warnings
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
 		bool dir = jumpInBlock ^ !!(inst.BO & BO_BRANCH_IF_CTR_0);
 		SUB(32, PPCSTATE_CTR, Imm8(1));
-		pCTRBranch = J_CC(dir ? CC_NZ : CC_Z, true);
+		branch[branchCount++] = J_CC(dir ? CC_NZ : CC_Z, true);
 	}
 
 	FixupBranch pConditionBranch = { NULL, 0 };
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
 		bool dir = jumpInBlock ^ !(inst.BO_2 & BO_BRANCH_IF_TRUE);
-		pConditionBranch = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), dir);
+		branch[branchCount++] = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), dir);
 	}
 
 	if (jumpInBlock)
 	{
-		BranchTarget branchData = { pConditionBranch, pCTRBranch, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.op };
+		BranchTarget branchData = { {}, branchCount, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.op };
+		for (int i = 0; i < branchCount; i++)
+			branchData.sourceBranch[i] = branch[i];
 		branch_targets.insert(std::make_pair(destination, branchData));
 	}
 	else
@@ -143,10 +146,8 @@ void Jit64::bcx(UGeckoInstruction inst)
 		fpr.Flush(FLUSH_MAINTAIN_STATE);
 		WriteExit(destination, inst.LK, js.compilerPC + 4);
 
-		if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
-			SetJumpTarget(pConditionBranch);
-		if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
-			SetJumpTarget(pCTRBranch);
+		while (branchCount > 0)
+			SetJumpTarget(branch[--branchCount]);
 	}
 
 	if (!cc)

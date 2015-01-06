@@ -508,10 +508,8 @@ void Jit64::DoForwardBranches(u32 address)
 	for (auto it = begin; it != end;)
 	{
 		BranchTarget branchData = it->second;
-		if (!(branchData.sourceOp->inst.BO & BO_DONT_DECREMENT_FLAG))
-			SetJumpTarget(branchData.sourceBranchCtr);
-		if (!(branchData.sourceOp->inst.BO & BO_DONT_CHECK_CONDITION))
-			SetJumpTarget(branchData.sourceBranchCond);
+		for (int i = 0; i < branchData.branchCount; i++)
+			SetJumpTarget(branchData.sourceBranch[i]);
 		if (branchData.sourceOp->inst.LK)
 			MOV(32, PPCSTATE_LR, Imm32(branchData.sourceOp->address + 4)); // LR = PC + 4;
 		// revert the downcount amount difference

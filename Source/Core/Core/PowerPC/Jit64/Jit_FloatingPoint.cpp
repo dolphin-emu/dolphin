@@ -346,12 +346,10 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 	int output[4] = { CR_SO, CR_EQ, CR_GT, CR_LT };
 
 	// Merge neighboring fcmp and cror (the primary use of cror).
-	UGeckoInstruction next = js.op[1].inst;
-	if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
-	    MergeAllowedNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
-	    (next.CRBA >> 2) == crf && (next.CRBB >> 2) == crf && (next.CRBD >> 2) == crf)
+	UGeckoInstruction next = js.next_inst;
+	if (next.OPCD == 19 && next.SUBOP10 == 449 && (next.CRBA >> 2) == crf && (next.CRBB >> 2) == crf && (next.CRBD >> 2) == crf)
 	{
-		js.skipInstructions = 1;
+		js.skipnext = true;
 		js.downcountAmount++;
 		int dst = 3 - (next.CRBD & 3);
 		output[3 - (next.CRBD & 3)] &= ~(1 << dst);
