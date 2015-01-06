@@ -141,7 +141,7 @@ void CCodeView::ToggleBreakpoint(u32 address)
 	Refresh();
 
 	// Propagate back to the parent window to update the breakpoint list.
-	wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
+	wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
 	GetEventHandler()->AddPendingEvent(evt);
 }
 
@@ -311,7 +311,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			{
 				// Propagate back to the parent window and tell it
 				// to flip to the JIT tab for the current address.
-				wxCommandEvent jit_event(wxEVT_HOST_COMMAND, IDM_UPDATEJITPANE);
+				wxCommandEvent jit_event(wxEVT_HOST_COMMAND, IDM_UPDATE_JIT_PANE);
 				GetEventHandler()->AddPendingEvent(jit_event);
 			}
 			break;

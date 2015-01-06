@@ -44,7 +44,7 @@ namespace HotkeysXInput
 			{
 				xinput_dev = d;
 			}
-			else if (d->GetSource() == "DInput")
+			else if (d->GetSource() == "DInput" && d->GetName() != "Keyboard Mouse")
 			{
 				dinput_dev = d;
 			}
@@ -211,17 +211,17 @@ namespace HotkeysXInput
 		static float freeLookSpeed;
 
 		//Recalculate only when fUnitsPerMetre, fFreeLookSensitivity, or fScale changes.
-		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity != oldfFreeLookSensitivity))
+		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity))
 		{
-			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity;
 		}
-		else if (!g_has_hmd && SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity != oldfFreeLookSensitivity)
+		else if (!g_has_hmd && g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity)
 		{
-			freeLookSpeed = 10 * SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
+			freeLookSpeed = 10 * g_ActiveConfig.fFreeLookSensitivity;
 		}
 
 		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
-		oldfFreeLookSensitivity = SConfig::GetInstance().m_LocalCoreStartupParameter.fFreeLookSensitivity;
+		oldfFreeLookSensitivity = g_ActiveConfig.fFreeLookSensitivity;
 		oldfScale = g_ActiveConfig.fScale;
 
 
@@ -651,7 +651,7 @@ namespace HotkeysXInput
 		u32 ini_setting = SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsDandXInputMapping[id];
 		u32 xinput_value = GetBinaryfromXInputIniStr(button_string);
 
-		if ((xinput_value & ini_setting) == xinput_value)
+		if (((xinput_value & ini_setting) == xinput_value) && xinput_value && ini_setting)
 			return true;
 		else
 			return false;

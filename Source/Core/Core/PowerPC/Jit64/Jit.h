@@ -71,7 +71,7 @@ public:
 	// Jit!
 
 	void Jit(u32 em_address) override;
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
+	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b, u32 nextPC);
 
 	BitSet32 CallerSavedRegistersInUse();
 

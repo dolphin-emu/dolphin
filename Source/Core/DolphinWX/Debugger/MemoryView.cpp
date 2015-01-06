@@ -100,7 +100,7 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 		Refresh();
 
 		// Propagate back to the parent window to update the breakpoint list.
-		wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
+		wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
 		GetEventHandler()->AddPendingEvent(evt);
 	}
 
