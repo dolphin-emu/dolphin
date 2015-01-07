@@ -196,3 +196,90 @@ void JitArm64::twx(UGeckoInstruction inst)
 		WriteExit(js.compilerPC + 4);
 	}
 }
+
+void JitArm64::mfspr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+	switch (iIndex)
+	{
+	case SPR_XER:
+	case SPR_WPAR:
+	case SPR_DEC:
+	case SPR_TL:
+	case SPR_TU:
+		FALLBACK_IF(true);
+	default:
+		gpr.BindToRegister(inst.RD, false);
+		ARM64Reg RD = gpr.R(inst.RD);
+		LDR(INDEX_UNSIGNED, RD, X29, PPCSTATE_OFF(spr) + iIndex * 4);
+		break;
+	}
+}
+
+void JitArm64::mftb(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+	mfspr(inst);
+}
+
+void JitArm64::mtspr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+
+	switch (iIndex)
+	{
+	case SPR_DMAU:
+
+	case SPR_SPRG0:
+	case SPR_SPRG1:
+	case SPR_SPRG2:
+	case SPR_SPRG3:
+
+	case SPR_SRR0:
+	case SPR_SRR1:
+		// These are safe to do the easy way, see the bottom of this function.
+	break;
+
+	case SPR_LR:
+	case SPR_CTR:
+	case SPR_GQR0:
+	case SPR_GQR0 + 1:
+	case SPR_GQR0 + 2:
+	case SPR_GQR0 + 3:
+	case SPR_GQR0 + 4:
+	case SPR_GQR0 + 5:
+	case SPR_GQR0 + 6:
+	case SPR_GQR0 + 7:
+		// These are safe to do the easy way, see the bottom of this function.
+	break;
+	case SPR_XER:
+	{
+		FALLBACK_IF(true);
+		ARM64Reg RD = gpr.R(inst.RD);
+		ARM64Reg WA = gpr.GetReg();
+		ARM64Reg mask = gpr.GetReg();
+		MOVI2R(mask, 0xFF7F);
+		AND(WA, RD, mask, ArithOption(mask, ST_LSL, 0));
+		STRH(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_stringctrl));
+		UBFM(WA, RD, XER_CA_SHIFT, XER_CA_SHIFT);
+		STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		UBFM(WA, RD, XER_OV_SHIFT, 31); // Same as WA = RD >> XER_OV_SHIFT
+		STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_so_ov));
+		gpr.Unlock(WA, mask);
+	}
+	break;
+	default:
+		FALLBACK_IF(true);
+	}
+
+	// OK, this is easy.
+	ARM64Reg RD = gpr.R(inst.RD);
+	STR(INDEX_UNSIGNED, RD, X29,  PPCSTATE_OFF(spr) + iIndex * 4);
+}
