@@ -238,9 +238,17 @@ public:
 		m_shifttype = shift_type;
 		m_type = TYPE_SHIFTEDREG;
 		if (Is64Bit(Rd))
+		{
 			m_width = WIDTH_64BIT;
+			if (shift == 64)
+				m_shift = 0;
+		}
 		else
+		{
 			m_width = WIDTH_32BIT;
+			if (shift == 32)
+				m_shift = 0;
+		}
 	}
 	TypeSpecifier GetType() const
 	{
