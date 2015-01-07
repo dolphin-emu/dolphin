@@ -85,12 +85,6 @@ enum DIInterruptType
 	INT_CVRINT = 3,
 };
 
-struct DVDCommandResult
-{
-	DIInterruptType interrupt_type;
-	u64 ticks_until_completion;
-};
-
 void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
