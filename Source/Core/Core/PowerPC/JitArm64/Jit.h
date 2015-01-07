@@ -82,6 +82,7 @@ public:
 	// Integer
 	void arith_imm(UGeckoInstruction inst);
 	void boolX(UGeckoInstruction inst);
+	void addx(UGeckoInstruction inst);
 	void extsXx(UGeckoInstruction inst);
 	void cntlzwx(UGeckoInstruction inst);
 	void negx(UGeckoInstruction inst);
@@ -89,6 +90,14 @@ public:
 	void cmpl(UGeckoInstruction inst);
 	void cmpi(UGeckoInstruction inst);
 	void cmpli(UGeckoInstruction inst);
+	void rlwinmx(UGeckoInstruction inst);
+	void srawix(UGeckoInstruction inst);
+	void mullwx(UGeckoInstruction inst);
+	void addic(UGeckoInstruction inst);
+	void mulli(UGeckoInstruction inst);
+	void addzex(UGeckoInstruction inst);
+	void subfx(UGeckoInstruction inst);
+	void addcx(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
@@ -144,6 +153,8 @@ private:
 
 	void ComputeRC(Arm64Gen::ARM64Reg reg, int crf = 0);
 	void ComputeRC(u32 imm, int crf = 0);
+	void ComputeCarry(bool Carry);
+	void ComputeCarry();
 
 	typedef u32 (*Operation)(u32, u32);
 	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, ArithOption), bool Rc = false);
