@@ -1433,7 +1433,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
 		// Max unsigned value
 		// Set to ~ZR
 		ARM64Reg ZR = Is64Bit(Rd) ? SP : WSP;
-		ORN(Rd, Rd, ZR, ArithOption(ZR, ST_LSL, 0));
+		ORN(Rd, ZR, ZR, ArithOption(ZR, ST_LSL, 0));
 		return;
 	}
 
