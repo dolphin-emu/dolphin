@@ -76,7 +76,9 @@ enum ARM64Reg
 };
 
 inline bool Is64Bit(ARM64Reg reg) { return reg & 0x20; }
-inline bool Is128Bit(ARM64Reg reg) { return reg & 0xC0; }
+inline bool IsSingle(ARM64Reg reg) { return reg & 0x40; }
+inline bool IsDouble(ARM64Reg reg) { return reg & 0x80; }
+inline bool IsQuad(ARM64Reg reg) { return (reg & 0xC0) == 0xC0; }
 inline bool IsVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
 inline ARM64Reg DecodeReg(ARM64Reg reg) { return (ARM64Reg)(reg & 0x1F); }
 inline ARM64Reg EncodeRegTo64(ARM64Reg reg) { return (ARM64Reg)(reg | 0x20); }

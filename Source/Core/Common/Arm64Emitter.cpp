@@ -377,7 +377,7 @@ void ARM64XEmitter::EncodeLoadStoreExcInst(u32 instenc,
 void ARM64XEmitter::EncodeLoadStorePairedInst(u32 op, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, u32 imm)
 {
 	bool b64Bit = Is64Bit(Rt);
-	bool b128Bit = Is128Bit(Rt);
+	bool b128Bit = IsQuad(Rt);
 	bool bVec = IsVector(Rt);
 
 	if (b128Bit)
