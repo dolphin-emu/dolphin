@@ -249,7 +249,7 @@ void JitIL::Init()
 	jo.accurateSinglePrecision = false;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
-	trampolines.Init();
+	trampolines.Init(js.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 	blocks.Init();
 	asm_routines.Init(nullptr);

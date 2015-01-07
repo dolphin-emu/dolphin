@@ -13,6 +13,16 @@
 
 using namespace Gen;
 
+void EmuCodeBlock::MemoryExceptionCheck()
+{
+	if (jit->js.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
+	{
+		TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
+		jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
+		jit->js.fixupExceptionHandler = true;
+	}
+}
+
 void EmuCodeBlock::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
 {
 	if (cpu_info.bMOVBE)
@@ -292,10 +302,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, B
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
-	if (!jit->js.memcheck)
-	{
-		registersInUse[reg_value] = false;
-	}
+	registersInUse[reg_value] = false;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
@@ -307,6 +314,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 
 		registersInUseAtLoc[mov] = registersInUse;
+		jit->js.fastmemLoadStore = mov;
 	}
 	else
 	{
@@ -349,7 +357,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
-				MEMCHECK_START(false)
+				MemoryExceptionCheck();
 				if (signExtend && accessSize < 32)
 				{
 					// Need to sign extend values coming from the Read_U* functions.
@@ -359,7 +367,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				{
 					MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 				}
-				MEMCHECK_END
 			}
 		}
 		else
@@ -399,7 +406,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			}
 			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
-			MEMCHECK_START(false)
+			MemoryExceptionCheck();
 			if (signExtend && accessSize < 32)
 			{
 				// Need to sign extend values coming from the Read_U* functions.
@@ -409,7 +416,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 			}
-			MEMCHECK_END
 
 			if (farcode.Enabled())
 			{
@@ -547,8 +553,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	reg_value = FixImmediate(accessSize, reg_value);
 
 	// TODO: support byte-swapped non-immediate fastmem stores
-	if (!jit->js.memcheck &&
-	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
 		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
 #ifdef ENABLE_MEM_CHECK
@@ -566,6 +571,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
 		registersInUseAtLoc[mov] = registersInUse;
 		pcAtLoc[mov] = jit->js.compilerPC;
+		jit->js.fastmemLoadStore = mov;
 		return;
 	}
 

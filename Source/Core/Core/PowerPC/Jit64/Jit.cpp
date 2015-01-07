@@ -178,11 +178,12 @@ void Jit64::Init()
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	js.fastmemLoadStore = NULL;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
 
-	trampolines.Init();
+	trampolines.Init(js.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 
 	// BLR optimization has the same consequences as block linking, as well as
@@ -493,9 +494,10 @@ void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
 	    farcode.GetSpaceLeft() < 0x10000 ||
-		blocks.IsFull() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
-		m_clear_cache_asap)
+	    trampolines.GetSpaceLeft() < 0x10000 ||
+	    blocks.IsFull() ||
+	    SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
+	    m_clear_cache_asap)
 	{
 		ClearCache();
 	}
@@ -612,6 +614,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
+		js.fastmemLoadStore = NULL;
+		js.fixupExceptionHandler = false;
+		js.revertGprLoad = -1;
+		js.revertFprLoad = -1;
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
@@ -761,22 +767,37 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
-			// If we have a register that will never be used again, flush it.
-			for (int j : ~ops[i].gprInUse)
-				gpr.StoreFromRegister(j);
-			for (int j : ~ops[i].fprInUse)
-				fpr.StoreFromRegister(j);
-
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch memException = J_CC(CC_NZ, true);
+				// If we have a fastmem loadstore, we can omit the exception check and let fastmem handle it.
+				FixupBranch memException;
+				_assert_msg_(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
+					"Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!", ops[i].address);
+				if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
+				{
+					TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+					memException = J_CC(CC_NZ, true);
+				}
 
 				SwitchToFarCode();
-				SetJumpTarget(memException);
+				if (!js.fastmemLoadStore)
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = NULL;
+					SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+				}
+				else
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
+				}
 
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
+				BitSet32 gprToFlush = BitSet32::AllTrue(32);
+				BitSet32 fprToFlush = BitSet32::AllTrue(32);
+				if (js.revertGprLoad >= 0)
+					gprToFlush[js.revertGprLoad] = false;
+				if (js.revertFprLoad >= 0)
+					fprToFlush[js.revertFprLoad] = false;
+				gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
+				fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -784,6 +805,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 				SwitchToNearCode();
 			}
+
+			// If we have a register that will never be used again, flush it.
+			for (int j : ~ops[i].gprInUse)
+				gpr.StoreFromRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreFromRegister(j);
 
 			if (opinfo->flags & FL_LOADSTORE)
 				++jit->js.numLoadStoreInst;

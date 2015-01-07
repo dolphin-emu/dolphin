@@ -151,6 +151,44 @@ void CommonAsmRoutines::GenFres()
 	RET();
 }
 
+void CommonAsmRoutines::GenMfcr()
+{
+	// Input: none
+	// Output: RSCRATCH
+	// This function clobbers all three RSCRATCH.
+	X64Reg dst = RSCRATCH;
+	X64Reg tmp = RSCRATCH2;
+	X64Reg cr_val = RSCRATCH_EXTRA;
+	XOR(32, R(dst), R(dst));
+	// we only need to zero the high bits of tmp once
+	XOR(32, R(tmp), R(tmp));
+	for (int i = 0; i < 8; i++)
+	{
+		static const u32 m_flagTable[8] = { 0x0, 0x1, 0x8, 0x9, 0x0, 0x1, 0x8, 0x9 };
+		if (i != 0)
+			SHL(32, R(dst), Imm8(4));
+
+		MOV(64, R(cr_val), PPCSTATE(cr_val[i]));
+
+		// EQ: Bits 31-0 == 0; set flag bit 1
+		TEST(32, R(cr_val), R(cr_val));
+		// FIXME: is there a better way to do this without the partial register merging?
+		SETcc(CC_Z, R(tmp));
+		LEA(32, dst, MComplex(dst, tmp, SCALE_2, 0));
+
+		// GT: Value > 0; set flag bit 2
+		TEST(64, R(cr_val), R(cr_val));
+		SETcc(CC_G, R(tmp));
+		LEA(32, dst, MComplex(dst, tmp, SCALE_4, 0));
+
+		// SO: Bit 61 set; set flag bit 0
+		// LT: Bit 62 set; set flag bit 3
+		SHR(64, R(cr_val), Imm8(61));
+		OR(32, R(dst), MScaled(cr_val, SCALE_4, (u32)(u64)m_flagTable));
+	}
+	RET();
+}
+
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
 static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = { 3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -212,8 +250,6 @@ static const float GC_ALIGNED16(m_dequantizeTableS[]) =
 	(1ULL <<  4), (1ULL <<  4), (1ULL <<  3), (1ULL <<  3), (1ULL <<  2), (1ULL <<  2), (1ULL <<  1), (1ULL <<  1),
 };
 
-static float GC_ALIGNED16(psTemp[4]);
-
 static const float GC_ALIGNED16(m_65535[4]) = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
 static const float GC_ALIGNED16(m_32767) = 32767.0f;
 static const float GC_ALIGNED16(m_m32768) = -32768.0f;
@@ -230,36 +266,26 @@ static const float GC_ALIGNED16(m_one[]) = {1.0f, 0.0f, 0.0f, 0.0f};
 // I don't know whether the overflow actually happens in any games
 // but it potentially can cause problems, so we need some clamping
 
-static void WriteDual32(u32 address)
-{
-	Memory::Write_U64(*(u64 *) psTemp, address);
-}
-
 // See comment in header for in/outs.
 void CommonAsmRoutines::GenQuantizedStores()
 {
 	const u8* storePairedIllegal = AlignCode4();
 	UD2();
-	const u8* storePairedFloat = AlignCode4();
 
-	FixupBranch skip_complex, too_complex;
-	SHUFPS(XMM0, R(XMM0), 1);
-	MOVQ_xmm(M(&psTemp[0]), XMM0);
-	if (!jit->js.memcheck)
+	const u8* storePairedFloat = AlignCode4();
+	if (cpu_info.bSSSE3)
 	{
-		TEST(32, R(RSCRATCH_EXTRA), Imm32(0x0C000000));
-		too_complex = J_CC(CC_NZ, true);
-		MOV(64, R(RSCRATCH), M(&psTemp[0]));
-		SwapAndStore(64, MComplex(RMEM, RSCRATCH_EXTRA, SCALE_1, 0), RSCRATCH);
-		skip_complex = J(true);
-		SetJumpTarget(too_complex);
+		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
+		MOVQ_xmm(R(RSCRATCH), XMM0);
 	}
-	// RSP alignment here is 8 due to the call.
-	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-	ABI_CallFunctionR((void *)&WriteDual32, RSCRATCH_EXTRA);
-	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-	if (!jit->js.memcheck)
-		SetJumpTarget(skip_complex);
+	else
+	{
+		MOVQ_xmm(R(RSCRATCH), XMM0);
+		ROL(64, R(RSCRATCH), Imm8(32));
+		BSWAP(64, RSCRATCH);
+	}
+	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 64, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
+
 	RET();
 
 	const u8* storePairedU8 = AlignCode4();
@@ -316,12 +342,8 @@ void CommonAsmRoutines::GenQuantizedStores()
 		MINPS(XMM0, M(m_65535));
 
 		CVTTPS2DQ(XMM0, R(XMM0));
-		MOVQ_xmm(M(psTemp), XMM0);
-		// place ps[0] into the higher word, ps[1] into the lower
-		// so no need in ROL after BSWAP
-		MOVZX(32, 16, RSCRATCH, M(&psTemp[0]));
-		SHL(32, R(RSCRATCH), Imm8(16));
-		MOV(16, R(RSCRATCH), M(&psTemp[1]));
+		PSHUFLW(XMM0, R(XMM0), 2); // AABBCCDD -> CCAA____
+		MOVD_xmm(R(RSCRATCH), XMM0);
 		BSWAP(32, RSCRATCH);
 	}
 
@@ -369,21 +391,6 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	MOVD_xmm(R(RSCRATCH), XMM0);
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 32, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
-	/*
-	if (cpu_info.bSSSE3)
-	{
-		PSHUFB(XMM0, M(pbswapShuffle2x4));
-		// TODO: SafeWriteFloat
-		MOVSS(M(&psTemp[0]), XMM0);
-		MOV(32, R(RSCRATCH), M(&psTemp[0]));
-		SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 32, 0, SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
-	}
-	else
-	{
-		MOVSS(M(&psTemp[0]), XMM0);
-		MOV(32, R(RSCRATCH), M(&psTemp[0]));
-		SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 32, 0, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
-	}*/
 
 	const u8* storeSingleU8 = AlignCode4();  // Used by MKWii
 	SHR(32, R(RSCRATCH2), Imm8(5));
@@ -441,6 +448,12 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	const u8* loadPairedIllegal = AlignCode4();
 	UD2();
 
+	// FIXME? This code (in non-MMU mode) assumes all accesses are directly to RAM, i.e.
+	// don't need hardware access handling. This will definitely crash if paired loads occur
+	// from non-RAM areas, but as far as I know, this never happens. I don't know if this is
+	// for a good reason, or merely because no game does this.
+	// If we find something that actually does do this, maybe this should be changed. How
+	// much of a performance hit would it be?
 	const u8* loadPairedFloatTwo = AlignCode4();
 	if (jit->js.memcheck)
 	{

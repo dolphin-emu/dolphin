@@ -81,7 +81,7 @@ public:
 		LockX(reg1); LockX(reg2);
 	}
 
-	void Flush(FlushMode mode = FLUSH_ALL);
+	void Flush(FlushMode mode = FLUSH_ALL, BitSet32 regsToFlush = BitSet32::AllTrue(32));
 	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
 	int SanityCheck() const;
 	void KillImmediate(size_t preg, bool doLoad, bool makeDirty);

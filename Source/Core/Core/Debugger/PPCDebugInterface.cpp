@@ -28,7 +28,7 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
 		if (!Memory::IsRAMAddress(address, true, true))
 		{
 			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || !((address & JIT_ICACHE_VMEM_BIT) &&
-				Memory::TranslateAddress(address, Memory::FLAG_NO_EXCEPTION)))
+				Memory::TranslateAddress<Memory::FLAG_NO_EXCEPTION>(address)))
 			{
 				return "(No RAM here)";
 			}
