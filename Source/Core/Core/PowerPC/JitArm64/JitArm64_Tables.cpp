@@ -323,27 +323,27 @@ static GekkoOPTemplate table31_2[] =
 static GekkoOPTemplate table59[] =
 {
 	{18, &JitArm64::FallBackToInterpreter},     //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}},
-	{20, &JitArm64::FallBackToInterpreter},     //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{21, &JitArm64::FallBackToInterpreter},     //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{20, &JitArm64::fsubsx},                    //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{21, &JitArm64::faddsx},                    //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 //  {22, &JitArm64::FallBackToInterpreter},       //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{24, &JitArm64::FallBackToInterpreter},     //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{25, &JitArm64::FallBackToInterpreter},     //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{28, &JitArm64::FallBackToInterpreter},     //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{29, &JitArm64::FallBackToInterpreter},     //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{30, &JitArm64::FallBackToInterpreter},     //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}},
-	{31, &JitArm64::FallBackToInterpreter},     //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, &JitArm64::fmulsx},                    //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &JitArm64::fmsubsx},                   //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, &JitArm64::fmaddsx},                   //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &JitArm64::fnmsubsx},                  //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &JitArm64::fnmaddsx},                  //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
 static GekkoOPTemplate table63[] =
 {
-	{264, &JitArm64::FallBackToInterpreter},    //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{264, &JitArm64::fabsx},                    //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{32,  &JitArm64::FallBackToInterpreter},    //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{0,   &JitArm64::FallBackToInterpreter},    //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{14,  &JitArm64::FallBackToInterpreter},    //"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{15,  &JitArm64::FallBackToInterpreter},    //"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
-	{72,  &JitArm64::FallBackToInterpreter},    //"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{136, &JitArm64::FallBackToInterpreter},    //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{40,  &JitArm64::FallBackToInterpreter},    //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{72,  &JitArm64::fmrx},                     //"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{136, &JitArm64::fnabsx},                   //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{40,  &JitArm64::fnegx},                    //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{12,  &JitArm64::FallBackToInterpreter},    //"frspx",   OPTYPE_FPU, FL_RC_BIT_F}},
 
 	{64,  &JitArm64::FallBackToInterpreter},    //"mcrfs",   OPTYPE_SYSTEMFP, 0}},
@@ -357,16 +357,16 @@ static GekkoOPTemplate table63[] =
 static GekkoOPTemplate table63_2[] =
 {
 	{18, &JitArm64::FallBackToInterpreter},     //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
-	{20, &JitArm64::FallBackToInterpreter},     //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{21, &JitArm64::FallBackToInterpreter},     //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{20, &JitArm64::fsubx},                     //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{21, &JitArm64::faddx},                     //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{22, &JitArm64::FallBackToInterpreter},     //"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{23, &JitArm64::FallBackToInterpreter},     //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{25, &JitArm64::FallBackToInterpreter},     //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{23, &JitArm64::fselx},                     //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, &JitArm64::fmulx},                     //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{26, &JitArm64::FallBackToInterpreter},     //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
-	{28, &JitArm64::FallBackToInterpreter},     //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{29, &JitArm64::FallBackToInterpreter},     //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{30, &JitArm64::FallBackToInterpreter},     //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{31, &JitArm64::FallBackToInterpreter},     //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &JitArm64::fmsubx},                    //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, &JitArm64::fmaddx},                    //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &JitArm64::fnmsubx},                   //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &JitArm64::fnmaddx},                   //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
 
