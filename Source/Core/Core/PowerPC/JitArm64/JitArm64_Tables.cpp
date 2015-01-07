@@ -208,24 +208,24 @@ static GekkoOPTemplate table31[] =
 	{1014, &JitArm64::FallBackToInterpreter},   //"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
-	{23,  &JitArm64::FallBackToInterpreter},    //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &JitArm64::FallBackToInterpreter},    //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{23,  &JitArm64::lXX},                      //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{55,  &JitArm64::lXX},                      //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
-	{279, &JitArm64::FallBackToInterpreter},    //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{311, &JitArm64::FallBackToInterpreter},    //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{279, &JitArm64::lXX},                      //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{311, &JitArm64::lXX},                      //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword signextend
-	{343, &JitArm64::FallBackToInterpreter},    //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{375, &JitArm64::FallBackToInterpreter},    //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{343, &JitArm64::lXX},                      //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{375, &JitArm64::lXX},                      //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte
-	{87,  &JitArm64::FallBackToInterpreter},    //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{119, &JitArm64::FallBackToInterpreter},    //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{87,  &JitArm64::lXX},                      //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{119, &JitArm64::lXX},                      //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte reverse
-	{534, &JitArm64::FallBackToInterpreter},    //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{790, &JitArm64::FallBackToInterpreter},    //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{534, &JitArm64::lXX},                      //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{790, &JitArm64::lXX},                      //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
 	{150, &JitArm64::FallBackToInterpreter},    //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},
@@ -236,16 +236,16 @@ static GekkoOPTemplate table31[] =
 	{597, &JitArm64::FallBackToInterpreter},    //"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_AB | FL_OUT_D}},
 
 	//store word
-	{151, &JitArm64::FallBackToInterpreter},    //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{183, &JitArm64::FallBackToInterpreter},    //"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{151, &JitArm64::stX},                      //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{183, &JitArm64::stX},                      //"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store halfword
-	{407, &JitArm64::FallBackToInterpreter},    //"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{439, &JitArm64::FallBackToInterpreter},    //"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{407, &JitArm64::stX},                      //"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{439, &JitArm64::stX},                      //"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store byte
-	{215, &JitArm64::FallBackToInterpreter},    //"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{247, &JitArm64::FallBackToInterpreter},    //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{215, &JitArm64::stX},                      //"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{247, &JitArm64::stX},                      //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store bytereverse
 	{662, &JitArm64::FallBackToInterpreter},    //"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
