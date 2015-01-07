@@ -108,6 +108,8 @@ __forceinline T ReadFromHardware(const u32 em_address)
 			else
 				return (T)mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
 		}
+		// FIXME: 0x0 and 0x1 physical accesses should fail if MSR.DR (or IR, if opcode read) is set.
+		// Currently, accessing a null pointer doesn't crash, even though it should.
 		else if (segment == 0x8 || segment == 0xC || segment == 0x0)
 		{
 			return bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
@@ -274,16 +276,13 @@ __forceinline void WriteToHardware(u32 em_address, const T data)
 	// The easy case!
 	*(T*)&Memory::base[tlb_addr] = bswap(data);
 }
-// =====================
 
-
-// =================================
-/* These functions are primarily called by the Interpreter functions and are routed to the correct
-   location through ReadFromHardware and WriteToHardware */
-// ----------------
+// These functions are called both by the interpreter and by hardware/vmem-access
+// paths from the JIT.
 
 static void GenerateISIException(u32 effective_address);
 
+// FIXME: we should really distinguish an all-0 opcode from a failed opcode read.
 u32 Read_Opcode(u32 address)
 {
 	if (address == 0x00000000)
@@ -460,15 +459,11 @@ void WriteUnchecked_U32(const u32 var, const u32 address)
 	WriteToHardware<FLAG_NO_EXCEPTION, u32>(address, var);
 }
 
-// *********************************************************************************
-// Warning: Test Area
-//
-// This code is for TESTING and it works in interpreter mode ONLY. Some games (like
-// COD iirc) work thanks to this basic TLB emulation.
-// It is just a small hack and we have never spend enough time to finalize it.
-// Cheers PearPC!
-//
-// *********************************************************************************
+// This code is not perfect and complete (we assume static BAT mappings in the memory access
+// functions, and MSR.DR/IR are ignored), but seems to work for almost all games that use it.
+// Support for systems where default BATs are different might be required to run things like
+// Wii Linux; hopefully no games turn off any of the default BATs.
+// Originally based on PearPC code, but heavily modified and optimized.
 
 /*
 * PearPC
