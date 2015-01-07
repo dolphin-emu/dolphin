@@ -117,6 +117,10 @@ public:
 	void lXX(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst);
 
+	// LoadStore floating point
+	void lfXX(UGeckoInstruction inst);
+	void stfXX(UGeckoInstruction inst);
+
 	// Floating point
 	void fabsx(UGeckoInstruction inst);
 	void faddsx(UGeckoInstruction inst);

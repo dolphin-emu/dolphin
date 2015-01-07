@@ -16,6 +16,7 @@ void JitArm64::Init()
 {
 	AllocCodeSpace(CODE_SIZE);
 	jo.enableBlocklink = true;
+	jo.optimizeGatherPipe = true;
 	gpr.Init(this);
 	fpr.Init(this);
 
@@ -287,6 +288,21 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			// help peephole optimizations
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
+		}
+
+		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
+		{
+			js.fifoBytesThisBlock -= 32;
+
+			gpr.Lock(W30);
+			BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+			regs_in_use[W30] = 0;
+
+			ABI_PushRegisters(regs_in_use);
+			MOVI2R(X30, (u64)&GPFifo::CheckGatherPipe);
+			BLR(X30);
+			ABI_PopRegisters(regs_in_use);
+			gpr.Unlock(W30);
 		}
 
 		if (!ops[i].skip)
