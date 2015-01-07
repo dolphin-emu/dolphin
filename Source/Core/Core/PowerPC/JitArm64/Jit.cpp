@@ -302,6 +302,8 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			// If we have a register that will never be used again, flush it.
 			for (int j : ~ops[i].gprInUse)
 				gpr.StoreRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreRegister(j);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
