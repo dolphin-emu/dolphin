@@ -173,11 +173,6 @@ void XRRConfiguration::Update()
 						{
 							if (output_info->modes[j] == screenResources->modes[k].id)
 							{
-								std::string modename(screenResources->modes[k].name, screenResources->modes[k].nameLength);
-								ERROR_LOG(AUDIO, "%dx%d: %d %08x / %s", screenResources->modes[k].width,
-										screenResources->modes[k].height,
-										screenResources->modes[k].dotClock,
-										screenResources->modes[k].modeFlags, modename.c_str());
 								if (fullWidth == screenResources->modes[k].width &&
 										fullHeight == screenResources->modes[k].height &&
 										want_interlaced == !!(screenResources->modes[k].modeFlags & RR_Interlace))
