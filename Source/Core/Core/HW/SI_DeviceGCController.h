@@ -22,8 +22,7 @@ protected:
 
 	struct SOrigin
 	{
-		u8 uCommand; // Maybe should be button bits?
-		u8 unk_1;    // ..and this would be the other half
+		u16 uButton;
 		u8 uOriginStickX;
 		u8 uOriginStickY;
 		u8 uSubStickStickX;
