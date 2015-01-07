@@ -1552,10 +1552,10 @@ void XEmitter::MOVSD(X64Reg regOp, OpArg arg)   {WriteSSEOp(0xF2, sseMOVUPfromRM
 void XEmitter::MOVSS(OpArg arg, X64Reg regOp)   {WriteSSEOp(0xF3, sseMOVUPtoRM, regOp, arg);}
 void XEmitter::MOVSD(OpArg arg, X64Reg regOp)   {WriteSSEOp(0xF2, sseMOVUPtoRM, regOp, arg);}
 
-void XEmitter::MOVLPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0xF2, sseMOVLPDfromRM, regOp, arg);}
-void XEmitter::MOVHPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0xF2, sseMOVHPDfromRM, regOp, arg);}
-void XEmitter::MOVLPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(0xF2, sseMOVLPDtoRM, regOp, arg);}
-void XEmitter::MOVHPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(0xF2, sseMOVHPDtoRM, regOp, arg);}
+void XEmitter::MOVLPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x66, sseMOVLPfromRM, regOp, arg);}
+void XEmitter::MOVHPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x66, sseMOVHPfromRM, regOp, arg);}
+void XEmitter::MOVLPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x66, sseMOVLPtoRM, regOp, arg);}
+void XEmitter::MOVHPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x66, sseMOVHPtoRM, regOp, arg);}
 
 void XEmitter::MOVHLPS(X64Reg regOp1, X64Reg regOp2) {WriteSSEOp(0x00, sseMOVHLPS, regOp1, R(regOp2));}
 void XEmitter::MOVLHPS(X64Reg regOp1, X64Reg regOp2) {WriteSSEOp(0x00, sseMOVLHPS, regOp1, R(regOp2));}
