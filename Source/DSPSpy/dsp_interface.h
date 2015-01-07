@@ -32,5 +32,3 @@ public:
 	// the implementation does nothing but calling the virtual methods above.
 	void SendTask(void *addr, u16 iram_addr, u16 len, u16 start);
 };
-
-#endif  // _DSP_INTERFACE_H
