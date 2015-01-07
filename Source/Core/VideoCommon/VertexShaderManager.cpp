@@ -932,7 +932,7 @@ void VertexShaderManager::SetProjectionConstants()
 	bool bHideLeft = bHide, bHideRight = bHide, bTelescopeHUD = false, bNoForward = false;
 	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1)
 		iTelescopeHack = g_ActiveConfig.iTelescopeEye;
-	if (iTelescopeHack > 0)
+	if (g_has_hmd && iTelescopeHack > 0)
 	{
 		bNoForward = true;
 		// Calculate telescope scale
@@ -1114,6 +1114,10 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix44::Translate(mtxA, pos);
 			Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
 			Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
+		}
+		else
+		{
+			Matrix44::LoadIdentity(viewMtx);
 		}
 
 		Matrix44::Set(mtxB, g_fProjectionMatrix);
