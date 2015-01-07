@@ -133,6 +133,7 @@ void XRRConfiguration::Update()
 	// Get the resolution setings for fullscreen mode
 	unsigned int fullWidth, fullHeight;
 	char *output_name = nullptr;
+	char auxFlag = '\0';
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.find(':') ==
 			std::string::npos)
 	{
@@ -142,8 +143,10 @@ void XRRConfiguration::Update()
 	else
 	{
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-				"%m[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
+				"%m[^:]: %ux%u%c", &output_name, &fullWidth, &fullHeight, &auxFlag);
+		ERROR_LOG(AUDIO, "auxflag = %c", auxFlag);
 	}
+	bool want_interlaced = ('i' == auxFlag);
 
 	for (int i = 0; i < screenResources->noutput; i++)
 	{
@@ -170,8 +173,14 @@ void XRRConfiguration::Update()
 						{
 							if (output_info->modes[j] == screenResources->modes[k].id)
 							{
+								std::string modename(screenResources->modes[k].name, screenResources->modes[k].nameLength);
+								ERROR_LOG(AUDIO, "%dx%d: %d %08x / %s", screenResources->modes[k].width,
+										screenResources->modes[k].height,
+										screenResources->modes[k].dotClock,
+										screenResources->modes[k].modeFlags, modename.c_str());
 								if (fullWidth == screenResources->modes[k].width &&
-										fullHeight == screenResources->modes[k].height)
+										fullHeight == screenResources->modes[k].height &&
+										want_interlaced == !!(screenResources->modes[k].modeFlags & RR_Interlace))
 								{
 									fullMode = screenResources->modes[k].id;
 									if (crtcInfo->x + (int)screenResources->modes[k].width > fs_fb_width)
@@ -261,9 +270,10 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
 				{
 					if (output_info->modes[j] == screenResources->modes[k].id)
 					{
+						bool interlaced = !!(screenResources->modes[k].modeFlags & RR_Interlace);
 						const std::string strRes =
 							std::string(output_info->name) + ": " +
-							std::string(screenResources->modes[k].name);
+							std::string(screenResources->modes[k].name) + (interlaced? "i" : "");
 						// Only add unique resolutions
 						if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 						{
