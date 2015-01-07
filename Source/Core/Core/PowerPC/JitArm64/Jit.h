@@ -116,6 +116,9 @@ private:
 
 	ARM64FloatEmitter m_float_emit;
 
+	// Dump a memory range of code
+	void DumpCode(const u8* start, const u8* end);
+
 	// The key is the backpatch flags
 	std::map<u32, BackPatchInfo> m_backpatch_info;
 

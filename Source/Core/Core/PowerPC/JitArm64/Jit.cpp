@@ -179,6 +179,14 @@ void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 	BR(EncodeRegTo64(Reg));
 }
 
+void JitArm64::DumpCode(const u8* start, const u8* end)
+{
+	std::string output = "";
+	for (u8* code = (u8*)start; code < end; code += 4)
+		output += StringFromFormat("%08x", Common::swap32(*(u32*)code));
+	WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
+}
+
 void JitArm64::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
