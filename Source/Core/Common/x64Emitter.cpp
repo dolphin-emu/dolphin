@@ -60,10 +60,10 @@ enum NormalSSEOps
 	sseMOVAPtoRM   = 0x29, //MOVAP to RM
 	sseMOVUPfromRM = 0x10, //MOVUP from RM
 	sseMOVUPtoRM   = 0x11, //MOVUP to RM
-	sseMOVLPDfromRM= 0x12,
-	sseMOVLPDtoRM  = 0x13,
-	sseMOVHPDfromRM= 0x16,
-	sseMOVHPDtoRM  = 0x17,
+	sseMOVLPfromRM = 0x12,
+	sseMOVLPtoRM   = 0x13,
+	sseMOVHPfromRM = 0x16,
+	sseMOVHPtoRM   = 0x17,
 	sseMOVHLPS     = 0x12,
 	sseMOVLHPS     = 0x16,
 	sseMOVDQfromRM = 0x6F,
@@ -1552,9 +1552,14 @@ void XEmitter::MOVSD(X64Reg regOp, OpArg arg)   {WriteSSEOp(0xF2, sseMOVUPfromRM
 void XEmitter::MOVSS(OpArg arg, X64Reg regOp)   {WriteSSEOp(0xF3, sseMOVUPtoRM, regOp, arg);}
 void XEmitter::MOVSD(OpArg arg, X64Reg regOp)   {WriteSSEOp(0xF2, sseMOVUPtoRM, regOp, arg);}
 
+void XEmitter::MOVLPS(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x00, sseMOVLPfromRM, regOp, arg);}
 void XEmitter::MOVLPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x66, sseMOVLPfromRM, regOp, arg);}
-void XEmitter::MOVHPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x66, sseMOVHPfromRM, regOp, arg);}
+void XEmitter::MOVLPS(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x00, sseMOVLPtoRM, regOp, arg);}
 void XEmitter::MOVLPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x66, sseMOVLPtoRM, regOp, arg);}
+
+void XEmitter::MOVHPS(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x00, sseMOVHPfromRM, regOp, arg);}
+void XEmitter::MOVHPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x66, sseMOVHPfromRM, regOp, arg);}
+void XEmitter::MOVHPS(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x00, sseMOVHPtoRM, regOp, arg);}
 void XEmitter::MOVHPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x66, sseMOVHPtoRM, regOp, arg);}
 
 void XEmitter::MOVHLPS(X64Reg regOp1, X64Reg regOp2) {WriteSSEOp(0x00, sseMOVHLPS, regOp1, R(regOp2));}
