@@ -25,7 +25,7 @@ static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs t
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
 {
 public:
-	JitArm64() : code_buffer(32000) {}
+	JitArm64() : code_buffer(32000), m_float_emit(this) {}
 	~JitArm64() {}
 
 	void Init();
@@ -111,6 +111,8 @@ private:
 	JitArm64AsmRoutineManager asm_routines;
 
 	PPCAnalyst::CodeBuffer code_buffer;
+
+	ARM64FloatEmitter m_float_emit;
 
 	// The key is the backpatch flags
 	std::map<u32, BackPatchInfo> m_backpatch_info;
