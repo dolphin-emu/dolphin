@@ -417,15 +417,17 @@ void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, u32 op2, ARM64Reg Rt, ARM
 	Write32((b64Bit << 30) | (op << 22) | (bVec << 26) | (offset << 12) | (op2 << 10) | (Rn << 5) | Rt);
 }
 
-void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm, u8 size)
 {
 	bool b64Bit = Is64Bit(Rt);
 	bool bVec = IsVector(Rt);
 
-	if (b64Bit)
+	if (size == 64)
 		imm >>= 3;
-	else
+	else if (size == 32)
 		imm >>= 2;
+	else if (size == 16)
+		imm >>= 1;
 
 	_assert_msg_(DYNA_REC, imm < 0, "%s(INDEX_UNSIGNED): offset must be positive", __FUNCTION__);
 	_assert_msg_(DYNA_REC, !(imm & ~0xFFF), "%s(INDEX_UNSIGNED): offset too large %d", __FUNCTION__, imm);
@@ -1282,7 +1284,7 @@ void ARM64XEmitter::LDNP(ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, u32 imm)
 void ARM64XEmitter::STRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(0x0E4, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(0x0E4, Rt, Rn, imm, 8);
 	else
 		EncodeLoadStoreIndexedInst(0x0E0,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1290,7 +1292,7 @@ void ARM64XEmitter::STRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::LDRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(0x0E5, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(0x0E5, Rt, Rn, imm, 8);
 	else
 		EncodeLoadStoreIndexedInst(0x0E1,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1298,7 +1300,7 @@ void ARM64XEmitter::LDRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::LDRSB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E6 : 0x0E7, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E6 : 0x0E7, Rt, Rn, imm, 8);
 	else
 		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E2 : 0x0E3,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1306,7 +1308,7 @@ void ARM64XEmitter::LDRSB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::STRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(0x1E4, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(0x1E4, Rt, Rn, imm, 16);
 	else
 		EncodeLoadStoreIndexedInst(0x1E0,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1314,7 +1316,7 @@ void ARM64XEmitter::STRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::LDRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(0x1E5, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(0x1E5, Rt, Rn, imm, 16);
 	else
 		EncodeLoadStoreIndexedInst(0x1E1,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1322,7 +1324,7 @@ void ARM64XEmitter::LDRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::LDRSH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E6 : 0x1E7, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E6 : 0x1E7, Rt, Rn, imm, 16);
 	else
 		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E2 : 0x1E3,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1330,7 +1332,7 @@ void ARM64XEmitter::LDRSH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::STR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E4 : 0x2E4, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E4 : 0x2E4, Rt, Rn, imm, Is64Bit(Rt) ? 64 : 32);
 	else
 		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E0 : 0x2E0,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1338,7 +1340,7 @@ void ARM64XEmitter::STR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::LDR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E5 : 0x2E5, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E5 : 0x2E5, Rt, Rn, imm, Is64Bit(Rt) ? 64 : 32);
 	else
 		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E1 : 0x2E1,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
@@ -1346,7 +1348,7 @@ void ARM64XEmitter::LDR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 void ARM64XEmitter::LDRSW(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(0x2E6, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(0x2E6, Rt, Rn, imm, 32);
 	else
 		EncodeLoadStoreIndexedInst(0x2E2,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
