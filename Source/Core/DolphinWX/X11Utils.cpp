@@ -144,7 +144,6 @@ void XRRConfiguration::Update()
 	{
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
 				"%m[^:]: %ux%u%c", &output_name, &fullWidth, &fullHeight, &auxFlag);
-		ERROR_LOG(AUDIO, "auxflag = %c", auxFlag);
 	}
 	bool want_interlaced = ('i' == auxFlag);
 
