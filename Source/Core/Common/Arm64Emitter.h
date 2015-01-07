@@ -452,6 +452,8 @@ public:
 	void UMADDL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void UMSUBL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void UMULH(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
+	void MUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void MNEG(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
 	// Logical (shifted register)
 	void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);

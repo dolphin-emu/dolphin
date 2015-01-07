@@ -1022,6 +1022,14 @@ void ARM64XEmitter::UMULH(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra)
 {
 	EncodeData3SrcInst(7, Rd, Rn, Rm, Ra);
 }
+void ARM64XEmitter::MUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+	EncodeData3SrcInst(0, Rd, Rn, Rm, SP);
+}
+void ARM64XEmitter::MNEG(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+	EncodeData3SrcInst(1, Rd, Rn, Rm, SP);
+}
 
 // Logical (shifted register)
 void ARM64XEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift)
