@@ -226,8 +226,8 @@ void PixelShaderManager::SetZTextureTypeChanged()
 			break;
 		default:
 			break;
-        }
-        dirty = true;
+	}
+	dirty = true;
 }
 
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
