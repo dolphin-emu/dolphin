@@ -956,6 +956,20 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 // - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
+	// Hardware AA requires adjusted coordinates
+	if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+	{
+		// In every other mode, efb is arranged as a array of 640x528 24bit pixels
+		// In hardware AA,
+		if( y & 1 ) {
+			x += EFB_WIDTH;
+			y -= 1;
+		}
+		x = x >> 1;
+		y = y >> 1;
+	}
+
+
 	u32 cacheRectIdx = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_WIDTH
 	                 + (x / EFB_CACHE_RECT_SIZE);
 
@@ -1018,15 +1032,51 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// Scale the 32-bit value returned by glReadPixels to a 24-bit
 			// value (GC uses a 24-bit Z-buffer).
 			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
+
+			z = z & 0xffffff;
+			z = 0xffffff - z;
+
+
+			// if Z is in 16 bit format you must return a 16 bit integer
 			if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 			{
-				// if Z is in 16 bit format you must return a 16 bit integer
-				z = z >> 16;
+				u32 left_aligned = z < 8;
+				int exp = LeastSignificantSetBit(~left_aligned);
+				switch(bpmem.zcontrol.zformat)
+				{
+				case PEControl::ZNEAR:
+					{
+						exp = std::min(exp, 14);
+						u32 shift = std::max(0, 13 - exp);
+						z = left_aligned >> shift;
+						z |= exp << 12;
+						break;
+					}
+				case PEControl::ZMID:
+					{
+						exp = std::min(exp, 13);
+						u32 shift = std::max(0, 12 - exp);
+						z = left_aligned >> shift;
+						z |= exp << 12;
+						break;
+					}
+				case PEControl::ZFAR:
+					{
+						exp = std::min(exp, 12);
+						u32 shift = std::max(0, 11 - exp);
+						z = left_aligned >> shift;
+						z |= exp << 12;
+						break;
+					}
+				default:
+					ERROR_LOG(VIDEO, "EFB_PEEK: Unsupported zformat of %i", int(bpmem.zcontrol.zformat));
+					// fall thorugh
+				case PEControl::ZLINEAR:
+					z = z >> 16;
+					break;
+				}
 			}
-			else
-			{
-				z = z >> 8;
-			}
+
 			return z;
 		}
 
