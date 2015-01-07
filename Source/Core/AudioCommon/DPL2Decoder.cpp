@@ -361,7 +361,7 @@ void DPL2Decode(float *samples, int numsamples, float *out)
 		out[cur + 0] = lf[k];
 		out[cur + 1] = rf[k];
 		out[cur + 2] = cf[k];
-		LFE_buf[lfe_pos] = (out[0] + out[1]) / 2;
+		LFE_buf[lfe_pos] = (out[cur + 0] + out[cur + 1]) / 2;
 		out[cur + 3] = FIRFilter(LFE_buf, lfe_pos, len125, len125, filter_coefs_lfe);
 		lfe_pos++;
 		if (lfe_pos == len125)
