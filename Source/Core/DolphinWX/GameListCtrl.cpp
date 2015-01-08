@@ -1150,7 +1150,7 @@ void CGameListCtrl::OnHostNetplay(wxCommandEvent& WXUNUSED (event))
 	
 	std::string port;
 	netplay_section.Get("HostPort", &port, "2626");
-	npsd->HostGame(name, stol(port));
+	npsd->HostGame(name, std::stol(port));
 }
 
 

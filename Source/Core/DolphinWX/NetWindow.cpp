@@ -261,24 +261,11 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 
 	unsigned long port = 0;
 	m_host_port_text->GetValue().ToULong(&port);
-	netplay_server = new NetPlayServer(u16(port));
-	netplay_server->ChangeGame(game);
-	netplay_server->AdjustPadBufferSize(INITIAL_PAD_BUFFER_SIZE);
-	if (netplay_server->is_connected)
-	{
-#ifdef USE_UPNP
-		if (m_upnp_chk->GetValue())
-			netplay_server->TryPortmapping(port);
-#endif
-		MakeNetPlayDiag(port, game, true);
-	}
-	else
-	{
-		WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the NetPlay server running?"));
-	}
+	HostGame(game, port);
 }
 
-void NetPlaySetupDiag::HostGame(std::string game, unsigned long port) {
+void NetPlaySetupDiag::HostGame(const std::string& game, unsigned long port)
+{
 	NetPlayDiag*& npd = NetPlayDiag::GetInstance();
 	if (npd)
 	{
