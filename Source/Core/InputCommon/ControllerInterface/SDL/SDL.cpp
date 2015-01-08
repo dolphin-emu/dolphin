@@ -205,9 +205,14 @@ std::string Joystick::LeftRightEffect::GetName() const
 	return "LeftRight";
 }
 
-void Joystick::ConstantEffect::SetState(ControlState state)
+void Joystick::HapticEffect::SetState(ControlState state)
 {
 	memset(&m_effect, 0, sizeof(m_effect));
+	_SetState(state);
+}
+
+void Joystick::ConstantEffect::_SetState(ControlState state)
+{
 	if (state)
 	{
 		m_effect.type = SDL_HAPTIC_CONSTANT;
@@ -222,9 +227,8 @@ void Joystick::ConstantEffect::SetState(ControlState state)
 	Update();
 }
 
-void Joystick::RampEffect::SetState(ControlState state)
+void Joystick::RampEffect::_SetState(ControlState state)
 {
-	memset(&m_effect, 0, sizeof(m_effect));
 	if (state)
 	{
 		m_effect.type = SDL_HAPTIC_RAMP;
@@ -239,9 +243,8 @@ void Joystick::RampEffect::SetState(ControlState state)
 	Update();
 }
 
-void Joystick::SineEffect::SetState(ControlState state)
+void Joystick::SineEffect::_SetState(ControlState state)
 {
-	memset(&m_effect, 0, sizeof(m_effect));
 	if (state)
 	{
 		m_effect.type = SDL_HAPTIC_SINE;
@@ -261,9 +264,8 @@ void Joystick::SineEffect::SetState(ControlState state)
 	Update();
 }
 
-void Joystick::TriangleEffect::SetState(ControlState state)
+void Joystick::TriangleEffect::_SetState(ControlState state)
 {
-	memset(&m_effect, 0, sizeof(m_effect));
 	if (state)
 	{
 		m_effect.type = SDL_HAPTIC_TRIANGLE;
@@ -283,9 +285,8 @@ void Joystick::TriangleEffect::SetState(ControlState state)
 	Update();
 }
 
-void Joystick::LeftRightEffect::SetState(ControlState state)
+void Joystick::LeftRightEffect::_SetState(ControlState state)
 {
-	memset(&m_effect, 0, sizeof(m_effect));
 	if (state)
 	{
 		m_effect.type = SDL_HAPTIC_LEFTRIGHT;
