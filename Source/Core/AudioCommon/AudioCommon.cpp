@@ -27,6 +27,9 @@ static bool s_audio_dump_start = false;
 
 namespace AudioCommon
 {
+	static const int AUDIO_VOLUME_MIN = 0;
+	static const int AUDIO_VOLUME_MAX = 100;
+
 	SoundStream* InitSoundStream()
 	{
 		CMixer *mixer = new CMixer(48000);
@@ -140,11 +143,13 @@ namespace AudioCommon
 			}
 		}
 	}
+
 	void UpdateSoundStream()
 	{
 		if (g_sound_stream)
 		{
-			g_sound_stream->SetVolume(SConfig::GetInstance().m_Volume);
+			int volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume;
+			g_sound_stream->SetVolume(volume);
 		}
 	}
 
@@ -190,5 +195,32 @@ namespace AudioCommon
 		g_sound_stream->GetMixer()->StopLogDTKAudio();
 		g_sound_stream->GetMixer()->StopLogDSPAudio();
 		s_audio_dump_start = false;
+	}
+
+	void IncreaseVolume(unsigned short offset)
+	{
+		SConfig::GetInstance().m_IsMuted = false;
+		int& currentVolume = SConfig::GetInstance().m_Volume;
+		currentVolume += offset;
+		if (currentVolume > AUDIO_VOLUME_MAX)
+			currentVolume = AUDIO_VOLUME_MAX;
+		UpdateSoundStream();
+	}
+
+	void DecreaseVolume(unsigned short offset)
+	{
+		SConfig::GetInstance().m_IsMuted = false;
+		int& currentVolume = SConfig::GetInstance().m_Volume;
+		currentVolume -= offset;
+		if (currentVolume < AUDIO_VOLUME_MIN)
+			currentVolume = AUDIO_VOLUME_MIN;
+		UpdateSoundStream();
+	}
+
+	void ToggleMuteVolume()
+	{
+		bool& isMuted = SConfig::GetInstance().m_IsMuted;
+		isMuted = !isMuted;
+		UpdateSoundStream();
 	}
 }

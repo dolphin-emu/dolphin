@@ -237,13 +237,13 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
-    u32 array_bases[16];
-    u32 array_strides[16];
-    TMatrixIndexA matrix_index_a;
-    TMatrixIndexB matrix_index_b;
-    TVtxDesc vtx_desc;
-    // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
-    VAT vtx_attr[8];
+	u32 array_bases[16];
+	u32 array_strides[16];
+	TMatrixIndexA matrix_index_a;
+	TMatrixIndexB matrix_index_b;
+	TVtxDesc vtx_desc;
+	// Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
+	VAT vtx_attr[8];
 
 	// Attributes that actually belong to VertexLoaderManager:
 	BitSet32 attr_dirty;
