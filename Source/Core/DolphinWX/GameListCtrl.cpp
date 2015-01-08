@@ -65,6 +65,7 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/NetWindow.h"
 #include "DolphinWX/resources/Flag_Australia.xpm"
 #include "DolphinWX/resources/Flag_Europe.xpm"
 #include "DolphinWX/resources/Flag_France.xpm"
@@ -198,7 +199,8 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 	Bind(wxEVT_LIST_COL_CLICK, &CGameListCtrl::OnColumnClick, this);
 
 	Bind(wxEVT_MENU, &CGameListCtrl::OnProperties, this, IDM_PROPERTIES);
-	Bind(wxEVT_MENU, &CGameListCtrl::OnWiki, this, IDM_GAME_WIKI);
+    Bind(wxEVT_MENU, &CGameListCtrl::OnWiki, this, IDM_GAME_WIKI);
+    Bind(wxEVT_MENU, &CGameListCtrl::OnHostNetplay, this, IDM_HOST_NETPLAY);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenContainingFolder, this, IDM_OPEN_CONTAINING_FOLDER);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenSaveFolder, this, IDM_OPEN_SAVE_FOLDER);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnExportSave, this, IDM_EXPORT_SAVE);
@@ -932,6 +934,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			wxMenu popupMenu;
 			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
 			popupMenu.Append(IDM_GAME_WIKI, _("&Wiki"));
+            popupMenu.Append(IDM_HOST_NETPLAY, _("Host Netplay"));
+
 			popupMenu.AppendSeparator();
 
 			if (selected_iso->GetPlatform() != GameListItem::GAMECUBE_DISC)
@@ -1113,6 +1117,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 		Update();
 }
 
+
 void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 {
 	const GameListItem* iso = GetSelectedISO();
@@ -1122,6 +1127,25 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	std::string wikiUrl = "https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=" + iso->GetUniqueID();
 	WxUtils::Launch(wikiUrl);
 }
+void CGameListCtrl::OnHostNetplay(wxCommandEvent& WXUNUSED (event))
+{
+    const GameListItem* iso = GetSelectedISO();
+    if (!iso)
+        return;
+    
+    NetPlaySetupDiag* npsd = new NetPlaySetupDiag(this, this);
+    // Lang needs to be consistent
+    auto const lang = 0;
+    
+    std::string name(iso->GetName(lang));
+    
+    if (iso->GetRevision() != 0)
+         name = name + " (" + iso->GetUniqueID() + ", Revision " + std::to_string((long long)iso->GetRevision()) + ")";
+    else
+        name = name + " (" + iso->GetUniqueID() + ")";
+    npsd->HostGame(name, 2626);
+}
+
 
 bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
 {

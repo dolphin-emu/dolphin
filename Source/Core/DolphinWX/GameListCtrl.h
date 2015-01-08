@@ -95,6 +95,7 @@ private:
 	void OnSize(wxSizeEvent& event);
 	void OnProperties(wxCommandEvent& event);
 	void OnWiki(wxCommandEvent& event);
+    void OnHostNetplay(wxCommandEvent& event);
 	void OnOpenContainingFolder(wxCommandEvent& event);
 	void OnOpenSaveFolder(wxCommandEvent& event);
 	void OnExportSave(wxCommandEvent& event);
