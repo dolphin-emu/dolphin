@@ -36,6 +36,8 @@
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
@@ -1059,6 +1061,12 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			Core::SaveScreenShot();
 		else if (IsHotkey(event, HK_EXIT))
 			wxPostEvent(this, wxCommandEvent(wxID_EXIT));
+		else if (IsHotkey(event, HK_VOLUME_UP))
+			AudioCommon::IncreaseVolume(3);
+		else if (IsHotkey(event, HK_VOLUME_DOWN))
+			AudioCommon::DecreaseVolume(3);
+		else if (IsHotkey(event, HK_VOLUME_TOGGLE_MUTE))
+			AudioCommon::ToggleMuteVolume();
 		// Wiimote connect and disconnect hotkeys
 		else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
 			WiimoteId = 0;

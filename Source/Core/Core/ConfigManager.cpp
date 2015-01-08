@@ -62,6 +62,11 @@ static const struct
 	{ "Wiimote4Connect",    347 /* WXK_F8 */,     1 /* wxMOD_ALT */ },
 	{ "BalanceBoardConnect",348 /* WXK_F9 */,     1 /* wxMOD_ALT */ },
 #endif
+
+	{ "VolumeUp",            0,                    0 /* wxMOD_NONE */ },
+	{ "VolumeDown",          0,                    0 /* wxMOD_NONE */ },
+	{ "VolumeToggleMute",    0,                    0 /* wxMOD_NONE */ },
+
 	{ "ToggleIR",            0,                   0 /* wxMOD_NONE */ },
 	{ "ToggleAspectRatio",   0,                   0 /* wxMOD_NONE */ },
 	{ "ToggleEFBCopies",     0,                   0 /* wxMOD_NONE */ },
@@ -611,6 +616,8 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+
+	m_IsMuted = false;
 }
 
 void SConfig::LoadInputSettings(IniFile& ini)
