@@ -64,8 +64,8 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
-#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/NetWindow.h"
+#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/resources/Flag_Australia.xpm"
 #include "DolphinWX/resources/Flag_Europe.xpm"
 #include "DolphinWX/resources/Flag_France.xpm"
@@ -1132,22 +1132,17 @@ void CGameListCtrl::OnHostNetplay(wxCommandEvent& WXUNUSED (event))
 	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
-	
 	NetPlaySetupDiag* npsd = new NetPlaySetupDiag(this, this);
 	// Lang needs to be consistent
 	auto const lang = 0;
-	
 	std::string name(iso->GetName(lang));
-	
 	if (iso->GetRevision() != 0)
 		name = name + " (" + iso->GetUniqueID() + ", Revision " + std::to_string((long long)iso->GetRevision()) + ")";
 	else
 		name = name + " (" + iso->GetUniqueID() + ")";
-	
 	IniFile inifile;
 	inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
-	
 	std::string port;
 	netplay_section.Get("HostPort", &port, "2626");
 	npsd->HostGame(name, std::stol(port));
