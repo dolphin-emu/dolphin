@@ -346,14 +346,12 @@ HRESULT Create(HWND wnd)
 	{
 		// forcing buffer resolution to xres and yres..
 		// this is not a problem as long as we're in windowed mode
-#ifdef HAVE_OCULUSSDK
-		if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+		if (g_is_direct_mode)
 		{
 			swap_chain_desc.BufferDesc.Width = g_hmd_window_width;
 			swap_chain_desc.BufferDesc.Height = g_hmd_window_height;
 		}
 		else
-#endif
 		{
 			swap_chain_desc.BufferDesc.Width = xres;
 			swap_chain_desc.BufferDesc.Height = yres;

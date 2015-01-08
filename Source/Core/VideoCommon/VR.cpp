@@ -35,6 +35,7 @@ std::mutex g_ovr_lock;
 
 bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
+bool g_is_direct_mode = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
 u32 skip_objects_count = 0;
@@ -82,6 +83,7 @@ void NewVRFrame()
 void InitVR()
 {
 	g_has_hmd = false;
+	g_is_direct_mode = false;
 	g_hmd_device_name = nullptr;
 #ifdef HAVE_OCULUSSDK
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
@@ -134,6 +136,7 @@ void InitVR()
 			g_eye_fov[1] = hmdDesc.DefaultEyeFov[1];
 			g_hmd_window_x = hmdDesc.WindowsPos.x;
 			g_hmd_window_y = hmdDesc.WindowsPos.y;
+			g_is_direct_mode = !(hmdDesc.HmdCaps & ovrHmdCap_ExtendDesktop);
 #ifdef _WIN32
 			g_hmd_device_name = hmdDesc.DisplayDeviceName;
 			const char *p;
@@ -165,11 +168,12 @@ void ShutdownVR()
 	if (hmd)
 	{
 		// on my computer, on runtime 0.4.2, the Rift won't switch itself off without this:
-		if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+		if (g_is_direct_mode)
 			ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_DisplayOff);
 		ovrHmd_Destroy(hmd);
 		g_has_rift = false;
 		g_has_hmd = false;
+		g_is_direct_mode = false;
 		NOTICE_LOG(VR, "Oculus Rift shut down.");
 	}
 	ovr_Shutdown();

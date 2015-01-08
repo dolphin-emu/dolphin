@@ -1190,16 +1190,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	// Check exclusive fullscreen state
 	bool exclusive_mode, fullscreen_changed = false;
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+	if (g_is_direct_mode)
 	{
 		windowResized = false;
 		fullscreen = false;
 		fullscreen_changed = false;
 	}
-	else
-#endif		
-	if (SUCCEEDED(D3D::GetFullscreenState(&exclusive_mode)))
+	else if (SUCCEEDED(D3D::GetFullscreenState(&exclusive_mode)))
 	{
 		if (fullscreen && !exclusive_mode)
 		{
