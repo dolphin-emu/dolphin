@@ -50,6 +50,39 @@ Error, Oculus SDK 0.3.x is no longer supported
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / M_PI))
 #define DEGREES_TO_RADIANS(deg) ((float) deg * (float) (M_PI / 180.0))
 
+typedef enum
+{
+	CS_HYDRA_LEFT,
+	CS_HYDRA_RIGHT,
+	CS_WIIMOTE,
+	CS_NUNCHUK,
+	CS_WIIMOTE_LEFT,
+	CS_WIIMOTE_RIGHT,
+	CS_CLASSIC_LEFT,
+	CS_CLASSIC_RIGHT,
+	CS_GC_LEFT,
+	CS_GC_RIGHT,
+	CS_N64_LEFT,
+	CS_N64_RIGHT,
+	CS_SNES_LEFT,
+	CS_SNES_RIGHT,
+	CS_SNES_NTSC_RIGHT,
+	CS_NES_LEFT,
+	CS_NES_RIGHT,
+	CS_FAMICON_LEFT,
+	CS_FAMICON_RIGHT,
+	CS_SEGA_LEFT,
+	CS_SEGA_RIGHT,
+	CS_GENESIS_LEFT,
+	CS_GENESIS_RIGHT,
+	CS_TURBOGRAFX_LEFT,
+	CS_TURBOGRAFX_RIGHT,
+	CS_PCENGINE_LEFT,
+	CS_PCENGINE_RIGHT,
+	CS_ARCADE_LEFT,
+	CS_ARCADE_RIGHT
+} ControllerStyle;
+
 void InitVR();
 void ShutdownVR();
 void NewVRFrame();
@@ -58,8 +91,11 @@ void UpdateHeadTrackingIfNeeded();
 void VR_GetProjectionHalfTan(float &hmd_halftan);
 void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar);
 void VR_GetEyePos(float *posLeft, float *posRight);
+
+void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 bool VR_GetLeftHydraPos(float *pos);
 bool VR_GetRightHydraPos(float *pos);
+ControllerStyle VR_GetHydraStyle(int hand);
 
 void OpcodeReplayBuffer();
 

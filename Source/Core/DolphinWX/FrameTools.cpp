@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -1129,6 +1129,8 @@ void CFrame::StartGame(const std::string& filename)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
+		SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+		VR_SetGame(StartUp.bWii, StartUp.m_BootType == SCoreStartupParameter::BOOT_WII_NAND, StartUp.m_strUniqueID);
 
 		m_RenderParent->SetFocus();
 

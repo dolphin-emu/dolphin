@@ -44,6 +44,8 @@ float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
 
+ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
+
 std::vector<DataReader> timewarp_log;
 std::vector<bool> display_list_log;
 std::vector<bool> is_preprocess_log;
@@ -340,6 +342,100 @@ bool VR_GetRightHydraPos(float *pos)
 	pos[2] = -0.4f;
 	return true;
 }
+
+void VR_SetGame(bool is_wii, bool is_nand, std::string id)
+{
+	// GameCube uses GameCube controller
+	if (!is_wii)
+	{
+		vr_left_controller = CS_GC_LEFT;
+		vr_right_controller = CS_GC_RIGHT;
+	}
+	// Wii Discs or homebrew files use the Wiimote and Nunchuk
+	else if (!is_nand)
+	{
+		vr_left_controller = CS_NUNCHUK;
+		vr_right_controller = CS_WIIMOTE;
+	}
+	else
+	{
+		char c = ' ';
+		if (id.length() > 0)
+			c = id[0];
+		switch (c)
+		{
+		case 'C':
+		case 'X':
+			// C64, MSX (or WiiWare demos)
+			vr_left_controller = CS_ARCADE_LEFT;
+			vr_right_controller = CS_ARCADE_RIGHT;
+			break;
+		case 'E':
+			// Virtual arcade, Neo Geo
+			vr_left_controller = CS_ARCADE_LEFT;
+			vr_right_controller = CS_ARCADE_RIGHT;
+			break;
+		case 'F':
+			// NES
+			if (id.length() > 3 && id[3] == 'J')
+			{
+				vr_left_controller = CS_FAMICON_LEFT;
+				vr_right_controller = CS_FAMICON_RIGHT;
+			}
+			else
+			{
+				vr_left_controller = CS_NES_LEFT;
+				vr_right_controller = CS_NES_RIGHT;
+			}
+			break;
+		case 'J':
+			vr_left_controller = CS_SNES_LEFT;
+			// SNES
+			if (id.length() > 3 && id[3] == 'E')
+				vr_right_controller = CS_SNES_NTSC_RIGHT;
+			else
+				vr_right_controller = CS_SNES_RIGHT;
+			break;
+		case 'L':
+			// Sega
+			vr_left_controller = CS_SEGA_LEFT;
+			vr_right_controller = CS_SEGA_RIGHT;
+			break;
+		case 'M':
+			// Sega Genesis
+			vr_left_controller = CS_GENESIS_LEFT;
+			vr_right_controller = CS_GENESIS_RIGHT;
+			break;
+		case 'N':
+			// N64
+			vr_left_controller = CS_N64_LEFT;
+			vr_right_controller = CS_N64_RIGHT;
+			break;
+		case 'P':
+		case 'Q':
+			// TurboGrafx
+			vr_left_controller = CS_TURBOGRAFX_LEFT;
+			vr_right_controller = CS_TURBOGRAFX_RIGHT;
+			break;
+		case 'H':
+		case 'W':
+		default:
+			// WiiWare
+			vr_left_controller = CS_NUNCHUK;
+			vr_right_controller = CS_WIIMOTE;
+			break;
+		}
+	}
+}
+
+ControllerStyle VR_GetHydraStyle(int hand)
+{
+	if (hand)
+		return vr_right_controller;
+	else
+		return vr_left_controller;
+}
+
 
 void OpcodeReplayBuffer()
 {

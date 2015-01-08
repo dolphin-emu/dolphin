@@ -349,8 +349,8 @@ namespace DX11
 			case CS_SNES_RIGHT:
 			default:
 				params.color[0] = 0.5f;
-				params.color[0] = 0.5f;
-				params.color[0] = 0.5f;
+				params.color[1] = 0.5f;
+				params.color[2] = 0.5f;
 				break;
 		}
 		// world matrix
@@ -469,12 +469,14 @@ namespace DX11
 		// Draw Left Razer Hydra
 		if (VR_GetLeftHydraPos(pos))
 		{
-			DrawHydra(pos, CS_HYDRA_LEFT);
+			ControllerStyle cs = VR_GetHydraStyle(0);
+			DrawHydra(pos, cs);
 		}
 		// Draw Right Razer Hydra
 		if (VR_GetRightHydraPos(pos))
 		{
-			DrawHydra(pos, CS_GC_RIGHT);
+			ControllerStyle cs = VR_GetHydraStyle(1);
+			DrawHydra(pos, cs);
 		}
 
 		D3D::stateman->SetPixelShader(nullptr);
