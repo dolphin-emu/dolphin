@@ -16,4 +16,4 @@ u64 GetCRC32(const u8 *src, int len, u32 samples);   // SSE4.2 version of CRC32
 u64 GetHashHiresTexture(const u8 *src, int len, u32 samples);
 u64 GetMurmurHash3(const u8 *src, int len, u32 samples);
 u64 GetHash64(const u8 *src, int len, u32 samples);
-void SetHash64Function(bool useHiresTextures);
+void SetHash64Function();
