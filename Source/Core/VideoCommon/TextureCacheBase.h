@@ -116,13 +116,12 @@ public:
 protected:
 	TextureCache();
 
-	static  GC_ALIGNED16(u8 *temp);
-	static unsigned int temp_size;
+	static GC_ALIGNED16(u8 *temp);
+	static size_t temp_size;
 
 private:
-	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
-	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int* width, unsigned int* height);
-	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
+	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
+	static void CheckTempSize(size_t required_size);
 
 	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height);
 	static void FreeRenderTarget(TCacheEntryBase* entry);

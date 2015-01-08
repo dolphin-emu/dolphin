@@ -13,14 +13,14 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
+
 #include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/VideoConfig.h"
 
-namespace HiresTextures
-{
+std::unordered_map<std::string, std::string> HiresTexture::textureMap;
 
-static std::map<std::string, std::string> textureMap;
-
-void Init(const std::string& gameCode)
+void HiresTexture::Init(const std::string& gameCode)
 {
 	textureMap.clear();
 
@@ -80,85 +80,92 @@ void Init(const std::string& gameCode)
 	}
 }
 
-bool HiresTexExists(const std::string& filename)
+std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format)
 {
-	return textureMap.find(filename) != textureMap.end();
+	u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	u64 tlut_hash = 0;
+	u64 hash = tex_hash;
+	if (tlut_size)
+	{
+		tlut_hash = GetHashHiresTexture(tlut, (int)tlut_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		hash ^= tlut_hash;
+	}
+	return StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32)hash, (u16)format);
 }
 
-PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsigned int* pHeight, unsigned int* required_size, int texformat, unsigned int data_size, u8* data)
+HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format)
 {
-	if (textureMap.find(filename) == textureMap.end())
-		return PC_TEX_FMT_NONE;
+	std::string base_filename = GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format);
 
-	int width;
-	int height;
-	int channels;
-
-	File::IOFile file;
-	file.Open(textureMap[filename], "rb");
-	std::vector<u8> buffer(file.GetSize());
-	file.ReadBytes(buffer.data(), file.GetSize());
-
-	u8* temp = SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), &width, &height, &channels, SOIL_LOAD_RGBA);
-
-	if (temp == nullptr)
+	HiresTexture* ret = nullptr;
+	for (int level = 0;; level++)
 	{
-		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[filename].c_str());
-		return PC_TEX_FMT_NONE;
-	}
-
-	*pWidth = width;
-	*pHeight = height;
-
-	//int offset = 0;
-	PC_TexFormat returnTex = PC_TEX_FMT_NONE;
-
-	// TODO(neobrain): This function currently has no way to enforce RGBA32
-	// output, which however is required on some configurations to function
-	// properly. As a lazy workaround, we hence disable the optimized code
-	// path for now.
-#if 0
-	switch (texformat)
-	{
-	case GX_TF_I4:
-	case GX_TF_I8:
-	case GX_TF_IA4:
-	case GX_TF_IA8:
-		*required_size = width * height * 8;
-		if (data_size < *required_size)
-			goto cleanup;
-
-		for (int i = 0; i < width * height * 4; i += 4)
+		std::string filename = base_filename;
+		if (level)
 		{
-			// Rather than use a luminosity function, just use the most intense color for luminance
-			// TODO(neobrain): Isn't this kind of.. stupid?
-			data[offset++] = *std::max_element(temp+i, temp+i+3);
-			data[offset++] = temp[i+3];
+			filename += StringFromFormat("_mip%u", level);
 		}
-		returnTex = PC_TEX_FMT_IA8;
-		break;
-	default:
-		*required_size = width * height * 4;
-		if (data_size < *required_size)
-			goto cleanup;
 
-		memcpy(data, temp, width * height * 4);
-		returnTex = PC_TEX_FMT_RGBA32;
-		break;
+		if (textureMap.find(filename) != textureMap.end())
+		{
+			Level l;
+
+			File::IOFile file;
+			file.Open(textureMap[filename], "rb");
+			std::vector<u8> buffer(file.GetSize());
+			file.ReadBytes(buffer.data(), file.GetSize());
+
+			int channels;
+			l.data = SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width, (int*)&l.height, &channels, SOIL_LOAD_RGBA);
+			l.data_size = (size_t)l.width * l.height * 4;
+
+			if (l.data == nullptr)
+			{
+				ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
+				break;
+			}
+
+			if (!level)
+			{
+				if (l.width * height != l.height * width)
+					ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs from the native size %dx%d.",
+					          l.width, l.height, filename.c_str(), width, height);
+				if (l.width % width || l.height % height)
+					WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer upscaling factor based on the native size %dx%d.",
+					         l.width, l.height, filename.c_str(), width, height);
+				width = l.width;
+				height = l.height;
+			}
+			else if (width != l.width || height != l.height)
+			{
+				ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
+				          l.width, l.height, filename.c_str(), width, height);
+				SOIL_free_image_data(l.data);
+				break;
+			}
+
+			// calculate the size of the next mipmap
+			width >>= 1;
+			height >>= 1;
+
+			if (!ret)
+				ret = new HiresTexture();
+			ret->m_levels.push_back(l);
+		}
+		else
+		{
+			break;
+		}
 	}
-#else
-	*required_size = width * height * 4;
-	if (data_size < *required_size)
-		goto cleanup;
 
-	memcpy(data, temp, width * height * 4);
-	returnTex = PC_TEX_FMT_RGBA32;
-#endif
-
-	INFO_LOG(VIDEO, "Loading custom texture from %s", textureMap[filename].c_str());
-cleanup:
-	SOIL_free_image_data(temp);
-	return returnTex;
+	return ret;
 }
 
+HiresTexture::~HiresTexture()
+{
+	for (auto& l : m_levels)
+	{
+		SOIL_free_image_data(l.data);
+	}
 }
+
