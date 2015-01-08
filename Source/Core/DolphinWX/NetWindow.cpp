@@ -279,27 +279,27 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 }
 
 void NetPlaySetupDiag::HostGame(std::string game, unsigned long port) {
-    NetPlayDiag *&npd = NetPlayDiag::GetInstance();
-    if (npd)
-    {
-        WxUtils::ShowErrorDialog(_("A NetPlay window is already open!"));
-        return;
-    }
-    netplay_server = new NetPlayServer(u16(port));
-    netplay_server->ChangeGame(game);
-    netplay_server->AdjustPadBufferSize(INITIAL_PAD_BUFFER_SIZE);
-    if (netplay_server->is_connected)
-    {
+	NetPlayDiag*& npd = NetPlayDiag::GetInstance();
+	if (npd)
+	{
+		WxUtils::ShowErrorDialog(_("A NetPlay window is already open!"));
+		return;
+	}
+	netplay_server = new NetPlayServer(u16(port));
+	netplay_server->ChangeGame(game);
+	netplay_server->AdjustPadBufferSize(INITIAL_PAD_BUFFER_SIZE);
+	if (netplay_server->is_connected)
+	{
 #ifdef USE_UPNP
-        if (m_upnp_chk->GetValue())
-            netplay_server->TryPortmapping(port);
+		if (m_upnp_chk->GetValue())
+			netplay_server->TryPortmapping(port);
 #endif
-        MakeNetPlayDiag(port, game, true);
-    }
-    else
-    {
-        WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the NetPlay server running?"));
-    }
+		MakeNetPlayDiag(port, game, true);
+	}
+	else
+	{
+		WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the NetPlay server running?"));
+	}
 
 }
 

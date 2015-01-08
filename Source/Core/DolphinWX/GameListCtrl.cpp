@@ -199,8 +199,8 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 	Bind(wxEVT_LIST_COL_CLICK, &CGameListCtrl::OnColumnClick, this);
 
 	Bind(wxEVT_MENU, &CGameListCtrl::OnProperties, this, IDM_PROPERTIES);
-    Bind(wxEVT_MENU, &CGameListCtrl::OnWiki, this, IDM_GAME_WIKI);
-    Bind(wxEVT_MENU, &CGameListCtrl::OnHostNetplay, this, IDM_HOST_NETPLAY);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnWiki, this, IDM_GAME_WIKI);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnHostNetplay, this, IDM_HOST_NETPLAY);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenContainingFolder, this, IDM_OPEN_CONTAINING_FOLDER);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenSaveFolder, this, IDM_OPEN_SAVE_FOLDER);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnExportSave, this, IDM_EXPORT_SAVE);
@@ -934,7 +934,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			wxMenu popupMenu;
 			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
 			popupMenu.Append(IDM_GAME_WIKI, _("&Wiki"));
-            popupMenu.Append(IDM_HOST_NETPLAY, _("Host Netplay"));
+			popupMenu.Append(IDM_HOST_NETPLAY, _("Host Netplay"));
 
 			popupMenu.AppendSeparator();
 
@@ -1129,28 +1129,28 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 }
 void CGameListCtrl::OnHostNetplay(wxCommandEvent& WXUNUSED (event))
 {
-    const GameListItem* iso = GetSelectedISO();
-    if (!iso)
-        return;
-    
-    NetPlaySetupDiag* npsd = new NetPlaySetupDiag(this, this);
-    // Lang needs to be consistent
-    auto const lang = 0;
-    
-    std::string name(iso->GetName(lang));
-    
-    if (iso->GetRevision() != 0)
-         name = name + " (" + iso->GetUniqueID() + ", Revision " + std::to_string((long long)iso->GetRevision()) + ")";
-    else
-        name = name + " (" + iso->GetUniqueID() + ")";
-    
-    IniFile inifile;
-    inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
-    IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
-    
-    std::string port;
-    netplay_section.Get("HostPort", &port, "2626");
-    npsd->HostGame(name, stol(port));
+	const GameListItem* iso = GetSelectedISO();
+	if (!iso)
+		return;
+	
+	NetPlaySetupDiag* npsd = new NetPlaySetupDiag(this, this);
+	// Lang needs to be consistent
+	auto const lang = 0;
+	
+	std::string name(iso->GetName(lang));
+	
+	if (iso->GetRevision() != 0)
+		name = name + " (" + iso->GetUniqueID() + ", Revision " + std::to_string((long long)iso->GetRevision()) + ")";
+	else
+		name = name + " (" + iso->GetUniqueID() + ")";
+	
+	IniFile inifile;
+	inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+	
+	std::string port;
+	netplay_section.Get("HostPort", &port, "2626");
+	npsd->HostGame(name, stol(port));
 }
 
 
