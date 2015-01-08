@@ -1143,7 +1143,14 @@ void CGameListCtrl::OnHostNetplay(wxCommandEvent& WXUNUSED (event))
          name = name + " (" + iso->GetUniqueID() + ", Revision " + std::to_string((long long)iso->GetRevision()) + ")";
     else
         name = name + " (" + iso->GetUniqueID() + ")";
-    npsd->HostGame(name, 2626);
+    
+    IniFile inifile;
+    inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+    IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+    
+    std::string port;
+    netplay_section.Get("HostPort", &port, "2626");
+    npsd->HostGame(name, stol(port));
 }
 
 
