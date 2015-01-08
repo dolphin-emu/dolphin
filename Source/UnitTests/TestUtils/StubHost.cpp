@@ -22,6 +22,7 @@ void Host_RequestFullscreen(bool) {}
 void Host_SetStartupDebuggingParameters() {}
 bool Host_UIHasFocus() { return false; }
 bool Host_RendererHasFocus() { return false; }
+bool Host_RendererIsFullscreen() { return false; }
 void Host_ConnectWiimote(int, bool) {}
 void Host_SetWiiMoteConnectionState(int) {}
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}

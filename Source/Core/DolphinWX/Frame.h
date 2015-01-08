@@ -119,6 +119,7 @@ public:
 	void OnRenderParentMove(wxMoveEvent& event);
 	bool RendererHasFocus();
 	bool UIHasFocus();
+	bool RendererIsFullscreen();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
@@ -144,7 +145,7 @@ public:
 	wxToolBar *m_ToolBar;
 	// AUI
 	wxAuiManager *m_Mgr;
-	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
+	bool bFloatWindow[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
 
 	// Perspectives (Should find a way to make all of this private)
 	void DoAddPage(wxWindow *Win, int i, bool Float);
@@ -329,7 +330,6 @@ private:
 
 	void OnGameListCtrl_ItemActivated(wxListEvent& event);
 	void OnRenderParentResize(wxSizeEvent& event);
-	bool RendererIsFullscreen();
 	void StartGame(const std::string& filename);
 	void OnChangeColumnsVisible(wxCommandEvent& event);
 

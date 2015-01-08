@@ -178,11 +178,12 @@ void Jit64::Init()
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	js.fastmemLoadStore = NULL;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
 
-	trampolines.Init();
+	trampolines.Init(js.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 
 	// BLR optimization has the same consequences as block linking, as well as
@@ -493,21 +494,15 @@ void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
 	    farcode.GetSpaceLeft() < 0x10000 ||
-		blocks.IsFull() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
-		m_clear_cache_asap)
+	    trampolines.GetSpaceLeft() < 0x10000 ||
+	    blocks.IsFull() ||
+	    SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
+	    m_clear_cache_asap)
 	{
 		ClearCache();
 	}
 
-	int block_num = blocks.AllocateBlock(em_address);
-	JitBlock *b = blocks.GetBlock(block_num);
-	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
-}
-
-const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
-{
-	int blockSize = code_buf->GetSize();
+	int blockSize = code_buffer.GetSize();
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
@@ -532,6 +527,26 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
+	// Analyze the block, collect all instructions it is made of (including inlining,
+	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
+	u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, blockSize);
+
+	if (code_block.m_memory_exception)
+	{
+		// Address of instruction could not be translated
+		NPC = nextPC;
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
+		PowerPC::CheckExceptions();
+		return;
+	}
+
+	int block_num = blocks.AllocateBlock(em_address);
+	JitBlock *b = blocks.GetBlock(block_num);
+	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+}
+
+const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC)
+{
 	js.firstFPInstructionFound = false;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
@@ -539,10 +554,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.curBlock = b;
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
-
-	// Analyze the block, collect all instructions it is made of (including inlining,
-	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -594,7 +605,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.skipnext = false;
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
-	js.compilerPC = nextPC;
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -604,6 +614,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
+		js.fastmemLoadStore = NULL;
+		js.fixupExceptionHandler = false;
+		js.revertGprLoad = -1;
+		js.revertFprLoad = -1;
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
@@ -753,22 +767,37 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
-			// If we have a register that will never be used again, flush it.
-			for (int j : ~ops[i].gprInUse)
-				gpr.StoreFromRegister(j);
-			for (int j : ~ops[i].fprInUse)
-				fpr.StoreFromRegister(j);
-
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch memException = J_CC(CC_NZ, true);
+				// If we have a fastmem loadstore, we can omit the exception check and let fastmem handle it.
+				FixupBranch memException;
+				_assert_msg_(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
+					"Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!", ops[i].address);
+				if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
+				{
+					TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+					memException = J_CC(CC_NZ, true);
+				}
 
 				SwitchToFarCode();
-				SetJumpTarget(memException);
+				if (!js.fastmemLoadStore)
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = NULL;
+					SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+				}
+				else
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
+				}
 
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
+				BitSet32 gprToFlush = BitSet32::AllTrue(32);
+				BitSet32 fprToFlush = BitSet32::AllTrue(32);
+				if (js.revertGprLoad >= 0)
+					gprToFlush[js.revertGprLoad] = false;
+				if (js.revertFprLoad >= 0)
+					fprToFlush[js.revertFprLoad] = false;
+				gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
+				fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -776,6 +805,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 				SwitchToNearCode();
 			}
+
+			// If we have a register that will never be used again, flush it.
+			for (int j : ~ops[i].gprInUse)
+				gpr.StoreFromRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreFromRegister(j);
 
 			if (opinfo->flags & FL_LOADSTORE)
 				++jit->js.numLoadStoreInst;
@@ -812,20 +847,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
-	if (code_block.m_memory_exception)
-	{
-		b->memoryException = true;
-		// Address of instruction could not be translated
-		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC));
-
-		OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI));
-
-		// Remove the invalid instruction from the icache, forcing a recompile
-		MOV(64, R(RSCRATCH), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
-		MOV(32,MatR(RSCRATCH),Imm32(JIT_ICACHE_INVALID_WORD));
-
-		WriteExceptionExit();
-	}
 
 	if (code_block.m_broken)
 	{

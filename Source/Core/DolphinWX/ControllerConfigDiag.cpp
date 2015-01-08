@@ -146,7 +146,11 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	wxCheckBox* const gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
 	gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
 
+	wxCheckBox* const gamecube_adapter_thread = new wxCheckBox(this, wxID_ANY, _("Use Thread"));
+	gamecube_adapter_thread->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapterThread, this);
+
 	gamecube_adapter_sizer->Add(gamecube_adapter, 0, wxEXPAND);
+	gamecube_adapter_sizer->Add(gamecube_adapter_thread, 0, wxEXPAND);
 	gamecube_adapter_group->Add(gamecube_adapter_sizer, 0, wxEXPAND);
 	gamecube_static_sizer->Add(gamecube_adapter_group, 0, wxEXPAND);
 
@@ -159,12 +163,18 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 			gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
 		gamecube_adapter->SetValue(false);
 		gamecube_adapter->Disable();
+		gamecube_adapter_thread->SetValue(false);
+		gamecube_adapter_thread->Disable();
 	}
 	else
 	{
 		gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
+		gamecube_adapter_thread->SetValue(SConfig::GetInstance().m_GameCubeAdapterThread);
 		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		{
 			gamecube_adapter->Disable();
+			gamecube_adapter_thread->Disable();
+		}
 	}
 #endif
 

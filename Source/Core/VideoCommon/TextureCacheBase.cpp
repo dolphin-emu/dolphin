@@ -144,7 +144,7 @@ void TextureCache::Cleanup()
 	while (iter != tcend)
 	{
 		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
-            // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
+		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 		    !iter->second->IsEfbCopy())
 		{
 			delete iter->second;

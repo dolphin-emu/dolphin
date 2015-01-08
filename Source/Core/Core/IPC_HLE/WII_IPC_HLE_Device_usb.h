@@ -50,11 +50,11 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual bool IOCtlV(u32 _CommandAddress) override;
-	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
 	virtual u32 Update() override;
 

@@ -109,24 +109,24 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 		libusb_exit(nullptr);
 }
 
-bool CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
+IPCCommandResult CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
 {
 	DEBUG_LOG(WII_IPC_HID, "HID::Open");
 	m_Active = true;
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
 {
 	DEBUG_LOG(WII_IPC_HID, "HID::Close");
 	m_Active = false;
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 {
 	u32 Parameter     = Memory::Read_U32(_CommandAddress + 0xC);
 	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
@@ -142,7 +142,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Get Attached) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		deviceCommandAddress = _CommandAddress;
-		return false;
+		return IPC_NO_REPLY;
 	}
 	case IOCTL_HID_OPEN:
 	{
@@ -205,7 +205,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		//          bmRequestType, bRequest, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		// It's the async way!
-		return false;
+		return IPC_NO_REPLY;
 	}
 	case IOCTL_HID_INTERRUPT_OUT:
 	case IOCTL_HID_INTERRUPT_IN:
@@ -236,7 +236,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		//          Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		// It's the async way!
-		return false;
+		return IPC_NO_REPLY;
 	}
 	case IOCTL_HID_SHUTDOWN:
 	{
@@ -269,7 +269,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
 
@@ -299,7 +299,7 @@ bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle * dev)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
 {
 
 	Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HID, LogTypes::LWARNING);
@@ -318,7 +318,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
 	#endif
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
 

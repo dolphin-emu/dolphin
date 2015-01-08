@@ -12,18 +12,6 @@
 
 namespace MMIO { class Mapping; }
 
-// If inv is true, invert the check (i.e. skip over the associated code if an exception hits,
-// instead of skipping over the code if an exception isn't hit).
-#define MEMCHECK_START(inv) \
-	Gen::FixupBranch memException; \
-	if (jit->js.memcheck) \
-	{ TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
-	memException = J_CC((inv) ? Gen::CC_Z : Gen::CC_NZ, true); }
-
-#define MEMCHECK_END \
-	if (jit->js.memcheck) \
-	SetJumpTarget(memException);
-
 // We offset by 0x80 because the range of one byte memory offsets is
 // -0x80..0x7f.
 #define PPCSTATE(x) MDisp(RPPCSTATE, \
@@ -54,12 +42,18 @@ static const int CODE_SIZE = 1024 * 1024 * 32;
 static const int FARCODE_SIZE = 1024 * 1024 * 8;
 static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
 
+// same for the trampoline code cache, because fastmem results in far more backpatches in MMU mode
+static const int TRAMPOLINE_CODE_SIZE = 1024 * 1024 * 8;
+static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
 	FarCodeCache farcode;
 	u8* nearcode; // Backed up when we switch to far code.
+
+	void MemoryExceptionCheck();
 
 	// Simple functions to switch between near and far code emitting
 	void SwitchToFarCode()
@@ -141,4 +135,5 @@ public:
 protected:
 	std::unordered_map<u8 *, BitSet32> registersInUseAtLoc;
 	std::unordered_map<u8 *, u32> pcAtLoc;
+	std::unordered_map<u8 *, u8 *> exceptionHandlerAtLoc;
 };

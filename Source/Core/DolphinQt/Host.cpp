@@ -48,6 +48,11 @@ bool Host_UIHasFocus()
 	return g_main_window->isActiveWindow();
 }
 
+bool Host_RendererIsFullscreen()
+{
+	return false; // TODO
+}
+
 void Host_RequestFullscreen(bool enable)
 {
 	// TODO

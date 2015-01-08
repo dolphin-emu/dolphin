@@ -24,7 +24,7 @@ extern char **environ;
 namespace X11Utils
 {
 
-void ToggleFullscreen(Display *dpy, Window win)
+bool ToggleFullscreen(Display *dpy, Window win)
 {
 	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
 	XEvent event;
@@ -38,7 +38,12 @@ void ToggleFullscreen(Display *dpy, Window win)
 	// Send the event
 	if (!XSendEvent(dpy, DefaultRootWindow(dpy), False,
 	                SubstructureRedirectMask | SubstructureNotifyMask, &event))
+	{
 		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.");
+		return false;
+	}
+
+	return true;
 }
 
 void InhibitScreensaver(Display *dpy, Window win, bool suspend)

@@ -293,7 +293,7 @@ void CJitWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-		case IDM_NOTIFYMAPLOADED:
+		case IDM_NOTIFY_MAP_LOADED:
 			//NotifyMapLoaded();
 			break;
 	}

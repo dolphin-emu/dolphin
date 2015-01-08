@@ -25,6 +25,7 @@ public:
 
 	const u8 *frsqrte;
 	const u8 *fres;
+	const u8 *mfcr;
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to read from.
@@ -58,4 +59,5 @@ public:
 	void GenFifoWrite(int size);
 	void GenFrsqrte();
 	void GenFres();
+	void GenMfcr();
 };

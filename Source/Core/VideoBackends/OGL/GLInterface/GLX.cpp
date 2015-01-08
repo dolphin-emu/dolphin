@@ -21,8 +21,8 @@ static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
 static bool s_glxError;
 static int ctxErrorHandler(Display *dpy, XErrorEvent *ev)
 {
-    s_glxError = true;
-    return 0;
+	s_glxError = true;
+	return 0;
 }
 
 void cInterfaceGLX::SwapInterval(int Interval)

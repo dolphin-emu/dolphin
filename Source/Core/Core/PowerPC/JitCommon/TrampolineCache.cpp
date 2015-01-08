@@ -19,37 +19,22 @@
 
 using namespace Gen;
 
-void TrampolineCache::Init()
+void TrampolineCache::Init(int size)
 {
-	AllocCodeSpace(8 * 1024 * 1024);
+	AllocCodeSpace(size);
 }
 
 void TrampolineCache::ClearCodeSpace()
 {
 	X64CodeBlock::ClearCodeSpace();
-	cachedTrampolines.clear();
 }
 
 void TrampolineCache::Shutdown()
 {
 	FreeCodeSpace();
-	cachedTrampolines.clear();
 }
 
-const u8* TrampolineCache::GetReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse)
-{
-	TrampolineCacheKey key = { registersInUse, 0, info };
-
-	auto it = cachedTrampolines.find(key);
-	if (it != cachedTrampolines.end())
-		return it->second;
-
-	const u8* trampoline = GenerateReadTrampoline(info, registersInUse);
-	cachedTrampolines[key] = trampoline;
-	return trampoline;
-}
-
-const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse)
+const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u8* exceptionHandler, u8* returnPtr)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -57,57 +42,63 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, B
 	const u8* trampoline = GetCodePtr();
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
-	registersInUse[addrReg] = true;
-	registersInUse[dataReg] = false;
+	int stack_offset = 0;
+	bool push_param1 = registersInUse[ABI_PARAM1];
 
-	// It's a read. Easy.
-	// RSP alignment here is 8 due to the call.
-	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
+	if (push_param1)
+	{
+		PUSH(ABI_PARAM1);
+		stack_offset = 8;
+		registersInUse[ABI_PARAM1] = 0;
+	}
 
 	int dataRegSize = info.operandSize == 8 ? 64 : 32;
-	MOVTwo(dataRegSize, ABI_PARAM1, addrReg, ABI_PARAM2, dataReg);
-
-	if (info.displacement)
+	if (addrReg != ABI_PARAM1 && info.displacement)
+		LEA(32, ABI_PARAM1, MDisp(addrReg, info.displacement));
+	else if (addrReg != ABI_PARAM1)
+		MOV(32, R(ABI_PARAM1), R(addrReg));
+	else if (info.displacement)
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
+
+	ABI_PushRegistersAndAdjustStack(registersInUse, stack_offset);
 
 	switch (info.operandSize)
 	{
 	case 8:
-		CALL((void *)&Memory::Read_U64_Val);
+		CALL((void *)&Memory::Read_U64);
 		break;
 	case 4:
-		CALL((void *)&Memory::Read_U32_Val);
+		CALL((void *)&Memory::Read_U32);
 		break;
 	case 2:
-		CALL(info.signExtend ? (void *)&Memory::Read_S16_Val : (void *)&Memory::Read_U16_Val);
+		CALL((void *)&Memory::Read_U16);
 		break;
 	case 1:
-		CALL(info.signExtend ? (void *)&Memory::Read_S8_Val : (void *)&Memory::Read_U8_Val);
+		CALL((void *)&Memory::Read_U8);
 		break;
 	}
 
-	if (dataReg != ABI_RETURN)
-		MOV(dataRegSize, R(dataReg), R(ABI_RETURN));
+	ABI_PopRegistersAndAdjustStack(registersInUse, stack_offset);
 
-	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
-	RET();
+	if (push_param1)
+		POP(ABI_PARAM1);
+
+	if (exceptionHandler)
+	{
+		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+		J_CC(CC_NZ, exceptionHandler);
+	}
+
+	if (info.signExtend)
+		MOVSX(dataRegSize, info.operandSize * 8, dataReg, R(ABI_RETURN));
+	else if (dataReg != ABI_RETURN || info.operandSize < 4)
+		MOVZX(dataRegSize, info.operandSize * 8, dataReg, R(ABI_RETURN));
+
+	JMP(returnPtr, true);
 	return trampoline;
 }
 
-const u8* TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u32 pc)
-{
-	TrampolineCacheKey key = { registersInUse, pc, info };
-
-	auto it = cachedTrampolines.find(key);
-	if (it != cachedTrampolines.end())
-		return it->second;
-
-	const u8* trampoline = GenerateWriteTrampoline(info, registersInUse, pc);
-	cachedTrampolines[key] = trampoline;
-	return trampoline;
-}
-
-const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u32 pc)
+const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u8* exceptionHandler, u8* returnPtr, u32 pc)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -117,20 +108,23 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, 
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 
-	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a
-	// hardware access - we can take shortcuts.
 	// Don't treat FIFO writes specially for now because they require a burst
 	// check anyway.
 
 	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
 	MOV(32, PPCSTATE(pc), Imm32(pc));
 
-	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
+	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
 	if (info.hasImmediate)
 	{
-		if (addrReg != ABI_PARAM2)
-			MOV(64, R(ABI_PARAM2), R(addrReg));
+		if (addrReg != ABI_PARAM2 && info.displacement)
+			LEA(32, ABI_PARAM2, MDisp(addrReg, info.displacement));
+		else if (addrReg != ABI_PARAM2)
+			MOV(32, R(ABI_PARAM2), R(addrReg));
+		else if (info.displacement)
+			ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
+
 		// we have to swap back the immediate to pass it to the write functions
 		switch (info.operandSize)
 		{
@@ -150,11 +144,8 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, 
 	}
 	else
 	{
-		MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg);
-	}
-	if (info.displacement)
-	{
-		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
+		int dataRegSize = info.operandSize == 8 ? 64 : 32;
+		MOVTwo(dataRegSize, ABI_PARAM2, addrReg, info.displacement, ABI_PARAM1, dataReg);
 	}
 
 	switch (info.operandSize)
@@ -173,31 +164,13 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, 
 		break;
 	}
 
-	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
-	RET();
+	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+	if (exceptionHandler)
+	{
+		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+		J_CC(CC_NZ, exceptionHandler);
+	}
+	JMP(returnPtr, true);
 
 	return trampoline;
-}
-
-size_t TrampolineCacheKeyHasher::operator()(const TrampolineCacheKey& k) const
-{
-	size_t res = std::hash<int>()(k.registersInUse.m_val);
-	res ^= std::hash<int>()(k.info.operandSize)    >> 1;
-	res ^= std::hash<int>()(k.info.regOperandReg)  >> 2;
-	res ^= std::hash<int>()(k.info.scaledReg)      >> 3;
-	res ^= std::hash<u64>()(k.info.immediate)      >> 4;
-	res ^= std::hash<int>()(k.pc)                  >> 5;
-	res ^= std::hash<int>()(k.info.displacement)   << 1;
-	res ^= std::hash<bool>()(k.info.signExtend)    << 2;
-	res ^= std::hash<bool>()(k.info.hasImmediate)  << 3;
-	res ^= std::hash<bool>()(k.info.isMemoryWrite) << 4;
-
-	return res;
-}
-
-bool TrampolineCacheKey::operator==(const TrampolineCacheKey &other) const
-{
-	return pc == other.pc &&
-	       registersInUse == other.registersInUse &&
-	       info == other.info;
 }

@@ -188,9 +188,9 @@ bool AreMemoryBreakpointsActivated()
 #endif
 }
 
-u32 Read_Instruction(const u32 em_address)
+u32 Read_Instruction(const u32 address)
 {
-	UGeckoInstruction inst = ReadUnchecked_U32(em_address);
+	UGeckoInstruction inst = ReadUnchecked_U32(address);
 	return inst.hex;
 }
 
@@ -235,48 +235,48 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 	}
 }
 
-void ClearCacheLine(const u32 _Address)
+void ClearCacheLine(const u32 address)
 {
 	// FIXME: does this do the right thing if dcbz is run on hardware memory, e.g.
 	// the FIFO? Do games even do that? Probably not, but we should try to be correct...
 	for (u32 i = 0; i < 32; i += 8)
-		Write_U64(0, _Address + i);
+		Write_U64(0, address + i);
 }
 
-void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
+void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
 {
-	const u8* src = m_pL1Cache + (_CacheAddr & 0x3FFFF);
-	u8* dst = GetPointer(_MemAddr);
+	const u8* src = m_pL1Cache + (cacheAddr & 0x3FFFF);
+	u8* dst = GetPointer(memAddr);
 
-	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (memAddr & 3) == 0 && (cacheAddr & 3) == 0)
 	{
-		memcpy(dst, src, 32 * _iNumBlocks);
+		memcpy(dst, src, 32 * numBlocks);
 	}
 	else
 	{
-		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		for (u32 i = 0; i < 32 * numBlocks; i++)
 		{
-			u8 Temp = Read_U8(_CacheAddr + i);
-			Write_U8(Temp, _MemAddr + i);
+			u8 Temp = Read_U8(cacheAddr + i);
+			Write_U8(Temp, memAddr + i);
 		}
 	}
 }
 
-void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
+void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
 {
-	const u8* src = GetPointer(_MemAddr);
-	u8* dst = m_pL1Cache + (_CacheAddr & 0x3FFFF);
+	const u8* src = GetPointer(memAddr);
+	u8* dst = m_pL1Cache + (cacheAddr & 0x3FFFF);
 
-	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (memAddr & 3) == 0 && (cacheAddr & 3) == 0)
 	{
-		memcpy(dst, src, 32 * _iNumBlocks);
+		memcpy(dst, src, 32 * numBlocks);
 	}
 	else
 	{
-		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		for (u32 i = 0; i < 32 * numBlocks; i++)
 		{
-			u8 Temp = Read_U8(_MemAddr + i);
-			Write_U8(Temp, _CacheAddr + i);
+			u8 Temp = Read_U8(memAddr + i);
+			Write_U8(Temp, cacheAddr + i);
 		}
 	}
 }
@@ -301,16 +301,16 @@ std::string GetString(u32 em_address, size_t size)
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
 // programs don't have problems directly addressing any part of memory.
 // TODO re-think with respect to other BAT setups...
-u8* GetPointer(const u32 _Address)
+u8* GetPointer(const u32 address)
 {
-	switch (_Address >> 28)
+	switch (address >> 28)
 	{
 	case 0x0:
 	case 0x8:
-		if ((_Address & 0xfffffff) < REALRAM_SIZE)
-			return m_pRAM + (_Address & RAM_MASK);
+		if ((address & 0xfffffff) < REALRAM_SIZE)
+			return m_pRAM + (address & RAM_MASK);
 	case 0xc:
-		switch (_Address >> 24)
+		switch (address >> 24)
 		{
 		case 0xcc:
 		case 0xcd:
@@ -320,8 +320,8 @@ u8* GetPointer(const u32 _Address)
 			break;
 
 		default:
-			if ((_Address & 0xfffffff) < REALRAM_SIZE)
-				return m_pRAM + (_Address & RAM_MASK);
+			if ((address & 0xfffffff) < REALRAM_SIZE)
+				return m_pRAM + (address & RAM_MASK);
 		}
 
 	case 0x1:
@@ -329,53 +329,53 @@ u8* GetPointer(const u32 _Address)
 	case 0xd:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
-			if ((_Address & 0xfffffff) < EXRAM_SIZE)
-				return m_pEXRAM + (_Address & EXRAM_MASK);
+			if ((address & 0xfffffff) < EXRAM_SIZE)
+				return m_pEXRAM + (address & EXRAM_MASK);
 		}
 		else
 			break;
 
 	case 0xe:
-		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
-			return m_pL1Cache + (_Address & L1_CACHE_MASK);
+		if (address < (0xE0000000 + L1_CACHE_SIZE))
+			return m_pL1Cache + (address & L1_CACHE_MASK);
 		else
 			break;
 
 	default:
 		if (bFakeVMEM)
-			return m_pFakeVMEM + (_Address & FAKEVMEM_MASK);
+			return m_pFakeVMEM + (address & FAKEVMEM_MASK);
 	}
 
-	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", _Address, PC, LR);
+	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", address, PC, LR);
 
 	return nullptr;
 }
 
-bool IsRAMAddress(const u32 addr, bool allow_locked_cache, bool allow_fake_vmem)
+bool IsRAMAddress(const u32 address, bool allow_locked_cache, bool allow_fake_vmem)
 {
-	switch ((addr >> 24) & 0xFC)
+	switch ((address >> 24) & 0xFC)
 	{
 	case 0x00:
 	case 0x80:
 	case 0xC0:
-		if ((addr & 0x1FFFFFFF) < RAM_SIZE)
+		if ((address & 0x1FFFFFFF) < RAM_SIZE)
 			return true;
 		else
 			return false;
 	case 0x10:
 	case 0x90:
 	case 0xD0:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && (addr & 0x0FFFFFFF) < EXRAM_SIZE)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && (address & 0x0FFFFFFF) < EXRAM_SIZE)
 			return true;
 		else
 			return false;
 	case 0xE0:
-		if (allow_locked_cache && addr - 0xE0000000 < L1_CACHE_SIZE)
+		if (allow_locked_cache && address - 0xE0000000 < L1_CACHE_SIZE)
 			return true;
 		else
 			return false;
 	case 0x7C:
-		if (allow_fake_vmem && bFakeVMEM && addr >= 0x7E000000)
+		if (allow_fake_vmem && bFakeVMEM && address >= 0x7E000000)
 			return true;
 		else
 			return false;
