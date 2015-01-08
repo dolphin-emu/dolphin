@@ -35,6 +35,7 @@ class NetPlaySetupDiag : public wxFrame
 public:
 	NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list);
 	~NetPlaySetupDiag();
+    void HostGame(std::string game, unsigned long port);
 private:
 	void OnJoin(wxCommandEvent& event);
 	void OnHost(wxCommandEvent& event);
