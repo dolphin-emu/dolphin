@@ -34,7 +34,8 @@ NetPlayServer::~NetPlayServer()
 // called from ---GUI--- thread
 NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running(false), m_udpManager(port)
 {
-	/*sf::IpAddress ip("192.168.1.3");
+	/*
+	sf::IpAddress ip("192.168.1.3");
 	ReliableUnitTest theTest(ip, true);
 	theTest.TestsServer();
 	*/

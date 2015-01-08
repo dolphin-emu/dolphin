@@ -79,7 +79,7 @@ private:
 	sf::IpAddress m_adr;
 	u16 m_port;
 	std::shared_ptr<sf::UdpSocket> m_socket;
-	std::shared_ptr<ReliableUDPConnection> m_udp;
+	ReliableUDPConnection* m_udp;
 
 	sf::TcpSocket m_controlSock;
 

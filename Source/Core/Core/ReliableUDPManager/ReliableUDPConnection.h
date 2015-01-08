@@ -14,6 +14,9 @@
 
 class ReliableUDPConnection
 {
+#define udpBitType	u32
+#define udpBitMax	UINT32_MAX
+
 public:
 	ReliableUDPConnection(std::shared_ptr<sf::UdpSocket> socket, sf::IpAddress adr, u16 port);
 	~ReliableUDPConnection();
@@ -38,8 +41,8 @@ public:
 	
 	//function
 private:
-	bool WasRecieved(const u32& bitField, const u16& currentAck, const u16& ackCheck);
-	void UpdateBackUp(u16 ack, u32 bitfield);
+	bool WasRecieved(const udpBitType& bitField, const u16& currentAck, const u16& ackCheck);
+	void UpdateBackUp(u16 ack, udpBitType bitfield);
 	int  IfWrappedConvertToNeg(int current, int previous, int max);
 
 	//variables
@@ -86,7 +89,7 @@ private:
 
 	//ack stuff for to tell them what we havnt recieved
 	u16				m_theirSequenceNumber;
-	u32				m_missingBitField;
+	udpBitType		m_missingBitField;
 	
 	u16				m_theirLastAck;
 

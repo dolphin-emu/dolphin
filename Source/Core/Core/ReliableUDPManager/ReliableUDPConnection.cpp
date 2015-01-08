@@ -11,17 +11,23 @@ ReliableUDPConnection::ReliableUDPConnection(std::shared_ptr<sf::UdpSocket> sock
 : m_socket(sock)
 , m_remoteAddress(adr)
 , m_remotePort(port)
-, m_expectedSequence(1)//1
-, m_nextInOrder(1)//1
-, m_header(117) //probably should make this an agreed number upon accepting a connection
+, m_header(117)
 , m_mySequenceNumber(1)//1
 , m_theirSequenceNumber(0)//0
-, m_missingBitField(UINT32_MAX)
+, m_missingBitField(udpBitMax)
+, m_theirLastAck(0)//0
+, m_expectedSequence(1)//1
+, m_nextInOrder(1)//1
+, m_toBeSent()
+, m_recievedMess()
+, m_backupMess()
+, m_bufferMess()
+, m_resend()
+, m_keepAlive()
+, m_sendAck()
 , m_ackTime(20)
 , m_disconnectTime(10.0)
 , m_sentEmptyAck(false)
-, m_theirLastAck(0)
-
 {
 	m_keepAlive.Start();
 	m_sendAck.Start();
@@ -165,7 +171,7 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 	m_keepAlive.Start();
 
 	u16 lastGivenAck = 0;
-	u32 resendBitField = 0;
+	udpBitType resendBitField = 0;
 
 	// -- save their last given sequence number before replacing it
 	u16 previousSequence = m_theirSequenceNumber; 
@@ -233,7 +239,7 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 	packet >> resendBitField;
 
 	// -- If the bit field has missing message we need to make sure they get resent
-	UpdateBackUp(lastGivenAck, resendBitField);
+ 	UpdateBackUp(lastGivenAck, resendBitField);
 
 	// -- Grab the order id
 	u16 nextPacket;
@@ -333,23 +339,28 @@ void  ReliableUDPConnection::ClearBuffers()
 
 }
 
-bool ReliableUDPConnection::WasRecieved(const u32& bitField, const u16& currentAck, const u16& ackCheck)
+bool ReliableUDPConnection::WasRecieved(const udpBitType& bitField, const u16& currentAck, const u16& ackCheck)
 {
 	int offset = currentAck - ackCheck;
 	if (offset < 0)
 		return false;
 
-	u32 check = 1 << offset;
+	udpBitType check = 1 << offset;
 
 	return (bitField & check)!=0;
 }
 
 
-void ReliableUDPConnection::UpdateBackUp(u16 pAck, u32 pBitfield)
+void ReliableUDPConnection::UpdateBackUp(u16 pAck, udpBitType pBitfield)
 {
 	u16 sizeOfBitField = sizeof(m_missingBitField) * 8;
+	int lastAck = IfWrappedConvertToNeg(pAck, m_theirLastAck, UINT16_MAX);
+	int newLastAck = IfWrappedConvertToNeg(m_theirLastAck, pAck, UINT16_MAX);
+
 	if (m_backupMess.empty())
 	{
+		if (newLastAck > lastAck)
+			m_theirLastAck = pAck;
 		return;
 	}
 
@@ -358,13 +369,14 @@ void ReliableUDPConnection::UpdateBackUp(u16 pAck, u32 pBitfield)
 
 	if (m_backupMess.empty())
 	{
+		if (newLastAck > lastAck)
+			m_theirLastAck = pAck;
 		return;
 	}
 
 	// -- Check to see if there is a message older then our bitfield
 
-	int lastAck = IfWrappedConvertToNeg(pAck, m_theirLastAck, UINT16_MAX);
-	int newLastAck = IfWrappedConvertToNeg(m_theirLastAck, pAck, UINT16_MAX);
+	
 
 	if (newLastAck > lastAck)
 	{
@@ -400,7 +412,10 @@ void ReliableUDPConnection::UpdateBackUp(u16 pAck, u32 pBitfield)
 				m_backupMess.erase(itr);
 
 				if (m_backupMess.empty())
+				{
+					m_theirLastAck = pAck;
 					return;
+				}
 			}
 		}
 		m_theirLastAck = pAck;

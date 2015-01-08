@@ -42,8 +42,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
-	
-	/*sf::IpAddress adr(address);
+	/*
+	sf::IpAddress adr(address);
 	ReliableUnitTest theTest(adr, false);
 	theTest.TestClient();
 	*/

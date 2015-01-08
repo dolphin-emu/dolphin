@@ -16,7 +16,7 @@ ReliableUnitTest::ReliableUnitTest(sf::IpAddress adr, bool server)
 	m_socket = std::make_shared<sf::UdpSocket>();
 	m_socket->bind(2660);
 
-	m_udp = std::make_shared<ReliableUDPConnection> (m_socket, m_adr, 2660);
+	m_udp = new ReliableUDPConnection(m_socket, m_adr, 2660);
 	m_socket->setBlocking(true); 
 
 	if (server)
@@ -226,110 +226,150 @@ bool ReliableUnitTest::TestDroppingS()
 	//SERVER TEST WILL DROP MESSAGES ACCORDING TO BITFIELD drop
 	//Test all combination of drops withen the range of our missing bit field
 	int numOfBits = 9;
-	int dropStart = 511;//4607 //Mistakes 4532
-	for (int drop = dropStart; drop >= 0; --drop)
+	//int dropStart = 511;//4607 //Mistakes c 510 14 server //511 219 //510 219
+
+	sf::Packet dropNumbers;
+	dropNumbers << "Drop";
+	int clientD = 163;
+	int serverD = 255;
+	dropNumbers << clientD;
+	dropNumbers << serverD;
+	m_controlSock.send(dropNumbers);
+
+	PanicAlertT("Client %d, Server %d", clientD, serverD);
+
+	for (int clientDrop = clientD; clientDrop >= 0; --clientDrop)
 	{
-		sf::Packet ready;
-		ready << "Ready";
-		m_controlSock.send(ready);
+		//This is for quick tests
+		serverD = clientDrop;
+		for (int serverDrop = serverD; serverDrop >= 0; --serverDrop)
+		{
+			sf::Packet ready;
+			ready << "Ready";
+			m_controlSock.send(ready);
 
-		int expectedNumber = 0;
-		//PanicAlert("Server Ready");
-		for (int i = 0; i < numOfBits; ++i)
-		{	
-			// -- drop or recieve
-			if (CheckBit(i, drop))
+			int expectedNumber = 0;
+			//PanicAlert("Server Ready");
+			for (int i = 0; i < numOfBits; ++i)
 			{
-				sf::Packet rPack;
-				sf::Socket::Status stat;
-				while (true)
+				// -- drop or recieve
+				if (CheckBit(i, serverDrop))
 				{
-					stat = m_socket->receive(rPack, m_adr, m_port);
-					m_udp->Receive(rPack);
-					if (stat == sf::Socket::Done)
-						break;
-					
-				}
-			}
-			else
-			{
-				RecieveDrop();
-			}
-			
-			// -- grab any packets we recieved
-			sf::Packet gpac;
-			if (m_udp->GrabMessage(gpac))
-			{
-				int tmp;
-				gpac >> tmp;
-				if (tmp == expectedNumber)
-				{
-					++expectedNumber;
+					sf::Packet rPack;
+					sf::Socket::Status stat;
+					while (true)
+					{
+						stat = m_socket->receive(rPack, m_adr, m_port);
+						m_udp->Receive(rPack);
+						if (stat == sf::Socket::Done)
+							break;
+
+					}
 				}
 				else
 				{
-					PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test %d", expectedNumber, tmp, drop);
-					return false;
+					RecieveDrop();
 				}
+
+				// -- grab any packets we recieved
+				sf::Packet gpac;
+				if (m_udp->GrabMessage(gpac))
+				{
+					int tmp;
+					gpac >> tmp;
+					if (tmp == expectedNumber)
+					{
+						++expectedNumber;
+					}
+					else
+					{
+						PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop, serverDrop);
+						return false;
+					}
+				}
+
+				// -- send
+				Send(i);
 			}
 
-			// -- send
-			Send(i);
-		}
-
-		while (expectedNumber != numOfBits)
-		{
-			Send(50);
-			sf::Packet rpac;
-			
-			if (Recieve(rpac))
+			// -- grab any missing bits
+			while (expectedNumber != numOfBits)
 			{
-				int tmp = 0;
-				rpac >> tmp;
-				if (tmp == expectedNumber)
-				{
-					++expectedNumber;
-				}
-				else
-				{
-					PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test %d", expectedNumber, tmp, drop);
-					return false;
-				}
-			}
 			
+				Send(50);
+
+				sf::Packet rpac;
+				if (Recieve(rpac))
+				{
+					int tmp = 0;
+					rpac >> tmp;
+					if (tmp == expectedNumber)
+					{
+						++expectedNumber;
+					}
+					else
+					{
+						PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop,serverDrop);
+						//return false;
+					}
+				}
+				
+			}// -- end of the drop loop
+
+
+
+			// -- send to the client we are done
+			Common::Timer clk2;
+			clk2.Start();
+			while (clk2.GetTimeElapsed() < 200)
+			{
+
+			}
+			clk2.Stop();
+			Send(100);
+
+			// -- make sure client gets all his missing messages
+			int done = 0;
+			do
+			{
+				Send(55);
+				sf::Packet rpac;
+				Recieve(rpac);
+
+				rpac >> done;
+			} while (done != 100);
+
+			// -- send to the client we are done
+			Common::Timer clk3;
+			clk3.Start();
+			while (clk3.GetTimeElapsed() < 200)
+			{
+
+			}
+			clk3.Stop();
+
+			// -- empty out recieve
+			sf::Socket::Status st = sf::Socket::NotReady;
+			m_socket->setBlocking(false);
+			do
+			{
+				sf::Packet rpack;
+				sf::IpAddress ip;
+				unsigned short prt;
+				sf::Socket::Status st = m_socket->receive(rpack, ip, prt);
+			} while (st == sf::Socket::Done);
+			m_socket->setBlocking(true);
+
+			// -- reset socket
+			SocketReset();
+			Common::Timer clk;
+			clk.Start();
+			while (clk.GetTimeElapsed() < 10)
+			{
+
+			}
+			clk.Stop();
 		}
-
-		//send to the client we are done
-		Common::Timer clk2;
-		clk2.Start();
-		while (clk2.GetTimeElapsed() < 100)
-		{
-
-		}
-		clk2.Stop();
-		Send(100);
-
-		//--empty out recieve
-		sf::Socket::Status st = sf::Socket::NotReady;
-		m_socket->setBlocking(false);
-		do
-		{
-			sf::Packet rpack;
-			sf::IpAddress ip;
-			unsigned short prt;
-			sf::Socket::Status st = m_socket->receive(rpack,ip,prt);
-		} while (st == sf::Socket::Done);
-		m_socket->setBlocking(true);
-
-		//PanicAlert("Socket Server Resetting");
-		SocketReset();
-		Common::Timer clk;
-		clk.Start();
-		while (clk.GetTimeElapsed() < 10)
-		{
-
-		}
-		clk.Stop();
 	}
 	sf::Packet ready;
 	ready << "Ready";
@@ -341,6 +381,28 @@ bool ReliableUnitTest::TestDroppingS()
 
 bool ReliableUnitTest::TestDroppingC()
 {
+	
+	sf::Packet dropNumbers;
+	int clientD = 0;
+	int serverD = 0;
+
+	m_controlSock.receive(dropNumbers);
+	std::string c;
+	
+	dropNumbers >> c;
+	if (c == "Drop")
+	{
+		dropNumbers >> clientD;
+		dropNumbers >> serverD;
+	}
+	else
+	{
+		PanicAlertT("Didnt recieve our for loop numbers");
+		return false;
+	}
+
+	PanicAlertT("Client %d, Server %d", clientD, serverD);
+
 	//CLIENT ALL MESSAGES SENT RELIABLY
 	sf::Packet ready;
 	m_controlSock.receive(ready);
@@ -351,79 +413,195 @@ bool ReliableUnitTest::TestDroppingC()
 		PanicAlertT("ERROR FROM CONTROL SOCKET");
 		return false;
 	}
-	//PanicAlert("Client Ready");
 	int numOfBits = 9;
-	for (int drop = 511; drop >= 0; --drop)
+	for (int clientDrop = clientD; clientDrop >= 0; --clientDrop)
 	{
-		
-		int expectedNumber = 0;
-		for (int i = 0; i <numOfBits; ++i)
+		//This is for quick tests
+		serverD = clientDrop;
+		for (int serverDrop = serverD; serverDrop >= 0; --serverDrop)
 		{
+			// -- Run Drops
+			// -- send to the client we are done
+			Common::Timer clk1;
+			clk1.Start();
+			while (clk1.GetTimeElapsed() < 200)
+			{
 
-			// -- send
-			Send(i);
+			}
+			clk1.Stop();
+			//--empty out recieve
+			sf::Socket::Status st = sf::Socket::NotReady;
+			m_socket->setBlocking(false);
+			do
+			{
+				sf::Packet rpack;
+				sf::IpAddress ip;
+				unsigned short prt;
+				sf::Socket::Status st = m_socket->receive(rpack, ip, prt);
+			} while (st == sf::Socket::Done);
+			m_socket->setBlocking(true);
 
-			sf::Packet rpac;
-			if (Recieve(rpac))
+			int expectedNumber = 0;
+			for (int i = 0; i < numOfBits; ++i)
 			{
 				
-				int tmp = 0;
-				rpac >> tmp;
-				if (tmp == expectedNumber)
+				// -- send
+				Send(i);
+
+				// -- drop or recieve
+				if (CheckBit(i, clientDrop))
 				{
-					++expectedNumber;
+					sf::Packet rPack;
+					sf::Socket::Status stat;
+					while (true)
+					{
+						stat = m_socket->receive(rPack, m_adr, m_port);
+						m_udp->Receive(rPack);
+						if (stat == sf::Socket::Done)
+							break;
+
+					}
 				}
 				else
 				{
-					PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test %d", expectedNumber, tmp, drop);
-					return false;
+					RecieveDrop();
 				}
-			}
-			else
+
+				// -- grab any packets we recieved
+				sf::Packet gpac;
+				if (m_udp->GrabMessage(gpac))
+				{
+					int tmp;
+					gpac >> tmp;
+					if (tmp == expectedNumber)
+					{
+						++expectedNumber;
+					}
+					else
+					{
+						PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop, serverDrop);
+						return false;
+					}
+				}
+
+				
+			}// end of the drop loop
+			
+			//--grab any missing numbers
+			while (expectedNumber != numOfBits)
 			{
-				int tmp = 0;
-				rpac >> tmp;
-				PanicAlertT("We Were Expecting a Message!! Expected Number( %u), got %u for test %d", expectedNumber, tmp, drop);
+				Send(60);
+				sf::Packet rpac;
+
+				if (Recieve(rpac))
+				{
+					int tmp = 0;
+					rpac >> tmp;
+					if (tmp == expectedNumber)
+					{
+						++expectedNumber;
+					}
+					else
+					{
+						PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop, serverDrop);
+						return false;
+					}
+				}
+
 			}
 			
-		}
-		
-		//--make sure server gets all his missing messages
-		int done = 0;
-		do
-		{
-			Send(50);
-			sf::Packet rpac;
-			Recieve(rpac);
+			//send to the Server we are done
+			Common::Timer clk3;
+			clk3.Start();
+			while (clk3.GetTimeElapsed() < 200)
+			{
+
+			}
+			clk3.Stop();
+			Send(100);
+
+			//--make sure server gets all his missing messages
+			int done = 0;
+			do
+			{
+				Send(66);
+				sf::Packet rpac;
+				Recieve(rpac);
+
+				rpac >> done;
+			} while (done != 100); 
+
 			
-			rpac >> done;
-		} while (done != 100);
-		
-		//--wait for the server to tell us that
-		sf::Packet ready;
-		m_controlSock.receive(ready);
-		std::string str;
-		ready >> str;
-		if (str != "Ready")
-		{
-			PanicAlertT("ERROR FROM CONTROL SOCKET");
-			return false;
-		}
-		//PanicAlert("Client Socket Resetting");
-		SocketReset();
-		Common::Timer clk;
-		clk.Start();
-		while (clk.GetTimeElapsed() < 10)
-		{
 
+
+			//--wait for the server to tell us that
+			sf::Packet ready;
+			m_controlSock.receive(ready);
+			std::string str;
+			ready >> str;
+			if (str != "Ready")
+			{
+				PanicAlertT("ERROR FROM CONTROL SOCKET");
+				return false;
+			}
+			//PanicAlert("Client Socket Resetting");
+			SocketReset();
+			Common::Timer clk;
+			clk.Start();
+			while (clk.GetTimeElapsed() < 10)
+			{
+
+			}
+			clk.Stop();
 		}
-		clk.Stop();
 	}
-
 	PanicAlert("Done Client");
 	return true;
 }
 
+
+/*int expectedNumber = 0;
+			for (int i = 0; i < numOfBits; ++i)
+			{
+
+				// -- send
+				Send(i);
+
+				sf::Packet rpac;
+				if (Recieve(rpac))
+				{
+
+					int tmp = 0;
+					rpac >> tmp;
+					if (tmp == expectedNumber)
+					{
+						++expectedNumber;
+					}
+					else
+					{
+						PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop, serverDrop);
+						return false;
+					}
+				}
+				else
+				{
+					int tmp = 0;
+					rpac >> tmp;
+					PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop, serverDrop);
+				}
+
+			}
+
+			//--make sure server gets all his missing messages
+			int done = 0;
+			do
+			{
+				Send(50);
+				sf::Packet rpac;
+				Recieve(rpac);
+
+				rpac >> done;
+			} while (done != 100);*/
 //------------------------------------------------------------------------------------------
 
 bool ReliableUnitTest::TestAcksS()
@@ -928,6 +1106,8 @@ void  ReliableUnitTest::SocketReset()
 	//m_socket = std::make_shared<sf::UdpSocket>();
 	//m_socket->bind(2660);
 
-	m_udp.reset();
-	m_udp = std::make_shared<ReliableUDPConnection>(m_socket, m_adr, 2660);
+	delete m_udp;
+	m_udp = nullptr;
+	m_udp=new ReliableUDPConnection(m_socket, m_adr, 2660);
+	//m_udp = std::make_shared<ReliableUDPConnection>(m_socket, m_adr, 2660);
 }
