@@ -299,7 +299,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	std::stringstream vertices, layers;
 	vertices << m_EFBLayers * 3;
 	layers << m_EFBLayers;
-	std::string gs = sampler +
+	std::string gs =
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = " + vertices.str() + ") out;\n"
 		"flat out int layer;\n"
