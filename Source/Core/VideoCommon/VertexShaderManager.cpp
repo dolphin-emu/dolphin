@@ -176,6 +176,11 @@ void SetViewportType(Viewport &v)
 	{
 		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
 	}
+	// NES games render to the EFB copy and end up being projected twice, but this is now handled elsewhere
+	//else if (g_is_nes && width == 512 && height == 228 && left == 0 && top == 0)
+	//{
+	//	g_viewport_type = VIEW_RENDER_TO_TEXTURE;
+	//}
 	// Zelda Twilight Princess uses this strange viewport for rendering the Map Screen's coloured map highlights to a texture.
 	// I don't think it will break any other games, because it makes little sense as a real viewport.
 	else if (width == 457 && height == 341 && left == 0 && top == 0)
@@ -468,7 +473,10 @@ void LogProj(float p[]) { //VR
 			break;
 		case 0:
 		default:
-			g_metroid_layer = METROID_UNKNOWN_2D;
+			if (g_is_nes)
+				g_metroid_layer = GetNESLayer2D(debug_projNum, left, right, top, bottom, znear, zfar);
+			else
+				g_metroid_layer = METROID_UNKNOWN_2D;
 			break;
 		}
 	}
@@ -854,19 +862,7 @@ void VertexShaderManager::SetConstants()
 		SetViewportType(xfmem.viewport);
 		LogViewport(xfmem.viewport);
 
-		// The console GPU places the pixel center at 7/12 unless antialiasing
-		// is enabled, while D3D and OpenGL place it at 0.5. See the comment
-		// in VertexShaderGen.cpp for details.
-		// NOTE: If we ever emulate antialiasing, the sample locations set by
-		// BP registers 0x01-0x04 need to be considered here.
-		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
-		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
-		constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
-		constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
-		dirty = true;
-		// This is so implementation-dependent that we can't have it here.
-		g_renderer->SetViewport();
+		SetViewportConstants();
 
 		// Update projection if the viewport isn't 1:1 useable
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
@@ -892,6 +888,23 @@ void VertexShaderManager::SetConstants()
 
 //#pragma optimize("", off)
 
+void VertexShaderManager::SetViewportConstants()
+{
+	// The console GPU places the pixel center at 7/12 unless antialiasing
+	// is enabled, while D3D and OpenGL place it at 0.5. See the comment
+	// in VertexShaderGen.cpp for details.
+	// NOTE: If we ever emulate antialiasing, the sample locations set by
+	// BP registers 0x01-0x04 need to be considered here.
+	const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
+	const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
+	const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
+	constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
+	constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
+	dirty = true;
+	// This is so implementation-dependent that we can't have it here.
+	g_renderer->SetViewport();
+}
+
 void VertexShaderManager::SetProjectionConstants()
 {
 	// Transformations must be applied in the following order for VR:
@@ -915,7 +928,7 @@ void VertexShaderManager::SetProjectionConstants()
 	int flipped_x = 1, flipped_y = 1, iTelescopeHack = -1;
 	float fScaleHack = 1, fWidthHack = 1, fHeightHack = 1, fUpHack = 0, fRightHack = 0;
 
-	if (g_ActiveConfig.iMetroidPrime)
+	if (g_ActiveConfig.iMetroidPrime || g_is_nes)
 	{
 		GetMetroidPrimeValues(&bStuckToHead, &bFullscreenLayer, &bHide, &bFlashing, 
 			&fScaleHack, &fWidthHack, &fHeightHack, &fUpHack, &fRightHack, &iTelescopeHack);
@@ -1195,8 +1208,9 @@ void VertexShaderManager::SetProjectionConstants()
 		// or 3D HUD element that we will treat like a part of the 2D HUD 
 		else
 		{
-			if (vr_widest_3d_HFOV > 0) {
-				m_layer_on_top = g_ActiveConfig.bHudOnTop;
+			m_layer_on_top = g_ActiveConfig.bHudOnTop;
+			if (vr_widest_3d_HFOV > 0)
+			{
 				znear = vr_widest_3d_zNear;
 				zfar = vr_widest_3d_zFar;
 				hfov = vr_widest_3d_HFOV;
@@ -1204,15 +1218,22 @@ void VertexShaderManager::SetProjectionConstants()
 				if (debug_newScene)
 					INFO_LOG(VR, "2D to fit 3D world: hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov, vfov, znear, zfar);
 			}
-			else { // default, if no 3D in scene
+			else 
+			{ 
+				// NES games have a flickery Wii menu otherwise
+				if (g_is_nes)
+					m_layer_on_top = true;
+				// default, if no 3D in scene
 				znear = 0.2f*UnitsPerMetre * 20; // 50cm
 				zfar = 40 *UnitsPerMetre; // 40m
 				hfov = 70; // 70 degrees
-				if (g_aspect_wide)
+				if (g_is_nes)
+					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 1.0f / 1.175f);
+				else if (g_aspect_wide)
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 9.0f / 16.0f); // 2D screen is meant to be 16:9 aspect ratio
 				else
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 3.0f / 4.0f); //  2D screen is meant to be 4:3 aspect ratio, make it the same width but taller
-				// TODO: fix aspect ratio in virtual console games
+				// TODO: fix aspect ratio in other virtual console games
 				if (debug_newScene)
 					DEBUG_LOG(VR, "Only 2D Projecting: %g x %g, n=%fm f=%fm", hfov, vfov, znear, zfar);
 			}
@@ -1439,7 +1460,11 @@ void VertexShaderManager::SetProjectionConstants()
 				HudDistance = g_ActiveConfig.fScreenDistance * UnitsPerMetre;
 				HudHeight = g_ActiveConfig.fScreenHeight * UnitsPerMetre;
 				HudHeight = g_ActiveConfig.fScreenHeight * UnitsPerMetre;
-				if (g_aspect_wide)
+				// NES games are supposed to be 1.175:1 (16:13.62) even though VC normally renders them as 16:9
+				// http://forums.nesdev.com/viewtopic.php?t=8063
+				if (g_is_nes)
+					HudWidth = HudHeight * 1.175f;
+				else if (g_aspect_wide)
 					HudWidth = HudHeight * (float)16 / 9;
 				else
 					HudWidth = HudHeight * (float)4 / 3;

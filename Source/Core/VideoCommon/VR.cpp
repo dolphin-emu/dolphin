@@ -35,7 +35,7 @@ std::mutex g_ovr_lock;
 
 bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
-bool g_is_direct_mode = false;
+bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
 u32 skip_objects_count = 0;
@@ -349,6 +349,7 @@ bool VR_GetRightHydraPos(float *pos)
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id)
 {
+	g_is_nes = false;
 	// GameCube uses GameCube controller
 	if (!is_wii)
 	{
@@ -381,6 +382,7 @@ void VR_SetGame(bool is_wii, bool is_nand, std::string id)
 			break;
 		case 'F':
 			// NES
+			g_is_nes = true;
 			if (id.length() > 3 && id[3] == 'J')
 			{
 				vr_left_controller = CS_FAMICON_LEFT;

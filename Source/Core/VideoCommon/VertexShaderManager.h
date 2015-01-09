@@ -37,6 +37,7 @@ public:
 	// constant management
 	static void SetConstants();
 	static void SetProjectionConstants();
+	static void SetViewportConstants();
 
 	static void InvalidateXFRange(int start, int end);
 	static void SetTexMatrixChangedA(u32 value);

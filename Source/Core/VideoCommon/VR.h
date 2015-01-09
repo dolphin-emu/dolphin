@@ -100,7 +100,7 @@ ControllerStyle VR_GetHydraStyle(int hand);
 void OpcodeReplayBuffer();
 
 extern bool g_force_vr;
-extern bool g_has_hmd, g_has_rift, g_has_vr920, g_is_direct_mode;
+extern bool g_has_hmd, g_has_rift, g_has_vr920, g_is_direct_mode, g_is_nes;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;
 extern u32 skip_objects_count;
