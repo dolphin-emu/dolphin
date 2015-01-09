@@ -230,7 +230,7 @@ bool ReliableUnitTest::TestDroppingS()
 
 	sf::Packet dropNumbers;
 	dropNumbers << "Drop";
-	int clientD = 163;
+	int clientD = 255;
 	int serverD = 255;
 	dropNumbers << clientD;
 	dropNumbers << serverD;

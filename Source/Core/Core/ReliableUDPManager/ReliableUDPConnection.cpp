@@ -72,11 +72,6 @@ sf::Socket::Status ReliableUDPConnection::Send(bool sendAck)
 	if (!m_resend.empty())
 	{
 		// -- They had dropped a message so it must be resent!
-		/*pack << m_resend.front().packetOrder;
-		pack.append(m_resend.front().packet.getData(), m_resend.front().packet.getDataSize());
-		m_backupMess[m_mySequenceNumber] = Palette(m_resend.front().packetOrder, m_resend.front().packet);
-		*/
-
 		pack << m_resend.top().packetOrder;
 		pack.append(m_resend.top().packet.getData(), m_resend.top().packet.getDataSize());
 		m_backupMess[m_mySequenceNumber] = Palette(m_resend.top().packetOrder, m_resend.top().packet);
@@ -206,7 +201,10 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 		return true;
 	}
 	
-	if (uiReceived > m_theirSequenceNumber)
+	int recv = IfWrappedConvertToNeg(m_theirSequenceNumber, uiReceived, UINT16_MAX);
+	int Seq = IfWrappedConvertToNeg(uiReceived, m_theirSequenceNumber, UINT16_MAX);
+
+	if (recv > Seq)
 	{
 		// -- unpack the rest of the header
 		m_theirSequenceNumber = uiReceived;
@@ -223,15 +221,6 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 		{
 			// -- this has skipped over 1 or more messages, skip over to make the proper amount of 0 in bitfield
 			m_missingBitField = (m_missingBitField << (theirSeq - (prevSeq - 1))) | 1;
-
-			/*if ((theirSeq - prevSeq) > (sizeof(m_missingBitField)*8) - 1)
-			{
-				// -- We missed far to many messages lets just disconnect
-				printf("We Gracefully disconnected");
-				Disconnect();
-				
-				return false;
-			}*/
 		}
 	}
 

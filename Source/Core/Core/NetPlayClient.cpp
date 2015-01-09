@@ -51,8 +51,6 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 	// -- Test
 	m_serverID = m_udpManager.Connect(address, port, 5);
 
-	
-
 	if (m_serverID != 0)
 	{
 		// send connect message
