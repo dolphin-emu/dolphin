@@ -7,6 +7,7 @@
 
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/NetPlayServer.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -40,6 +41,7 @@ NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running
 		m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
 		m_target_buffer_size = 5;
 	}
+	g_NetplayInitialGCTime = SConfig::GetInstance().m_NetPlayInitialGCTime;
 }
 
 // called from ---NETPLAY--- thread
@@ -203,6 +205,11 @@ unsigned int NetPlayServer::OnConnect(std::unique_ptr<sf::TcpSocket>& socket)
 	spac.clear();
 	spac << (MessageId)NP_MSG_PAD_BUFFER;
 	spac << (u32)m_target_buffer_size;
+	player.socket->send(spac);
+		
+	spac.clear();
+	spac << (MessageId)NP_MSG_INITIAL_GCTIME;
+	spac << g_NetplayInitialGCTime;
 	player.socket->send(spac);
 
 	// sync values with new client

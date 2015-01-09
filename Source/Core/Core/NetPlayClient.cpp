@@ -27,7 +27,10 @@ NetPlayClient::~NetPlayClient()
 	// not perfect
 	if (m_is_running)
 		StopGame();
-
+	
+	// incase it was changed by the server
+	g_NetplayInitialGCTime = SConfig::GetInstance().m_NetPlayInitialGCTime;
+	
 	if (is_connected)
 	{
 		m_do_loop = false;
@@ -218,13 +221,21 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		}
 		break;
 
-
 	case NP_MSG_PAD_BUFFER :
 		{
 			u32 size = 0;
 			packet >> size;
 
 			m_target_buffer_size = size;
+		}
+		break;
+			
+	case NP_MSG_INITIAL_GCTIME :
+		{
+			int gctime = 0;
+			packet >> gctime;
+			
+			g_NetplayInitialGCTime = gctime;
 		}
 		break;
 
@@ -842,7 +853,7 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
 	if (netplay_client)
-		return NETPLAY_INITIAL_GCTIME; // watev
+		return g_NetplayInitialGCTime; // watev
 	else
 		return 0;
 }
