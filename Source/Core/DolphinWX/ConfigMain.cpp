@@ -359,7 +359,8 @@ void CConfigMain::InitializeGUIValues()
 	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
 	VolumeSlider->SetValue(SConfig::GetInstance().m_Volume);
 	VolumeText->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
-	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
+	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL
+			|| std::string(SConfig::GetInstance().sBackend) == BACKEND_PULSEAUDIO);
 	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
 	Latency->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	Latency->SetValue(startup_params.iLatency);
@@ -479,7 +480,7 @@ void CConfigMain::InitializeGUITooltips()
 #if defined(__APPLE__)
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OSX."));
 #else
-	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
 #endif
 
 	Latency->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
@@ -897,7 +898,8 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	case ID_BACKEND:
 		VolumeSlider->Enable(SupportsVolumeChanges(WxStrToStr(BackendSelection->GetStringSelection())));
 		Latency->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
-		DPL2Decoder->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
+		DPL2Decoder->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL
+				|| WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_PULSEAUDIO);
 		// Don't save the translated BACKEND_NULLSOUND string
 		SConfig::GetInstance().sBackend = BackendSelection->GetSelection() ?
 			WxStrToStr(BackendSelection->GetStringSelection()) : BACKEND_NULLSOUND;

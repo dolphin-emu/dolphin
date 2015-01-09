@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "AudioCommon/DPL2Decoder.h"
 #include "AudioCommon/PulseAudioStream.h"
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
+#include "Core/ConfigManager.h"
 
 namespace
 {
-const size_t BUFFER_SAMPLES = 512; // ~10 ms
-const size_t CHANNEL_COUNT = 2;
-const size_t BUFFER_SIZE = BUFFER_SAMPLES * CHANNEL_COUNT * sizeof(s16);
+const size_t BUFFER_SAMPLES = 512; // ~10 ms - needs to be at least 240 for surround
 }
 
 PulseAudio::PulseAudio(CMixer *mixer)
@@ -22,8 +22,17 @@ PulseAudio::PulseAudio(CMixer *mixer)
 
 bool PulseAudio::Start()
 {
+	m_stereo = !SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder;
+	m_channels = m_stereo ? 2 : 6; // will tell PA we use a Stereo or 5.1 channel setup
+
+	NOTICE_LOG(AUDIO, "PulseAudio backend using %d channels", m_channels);
+
 	m_run_thread = true;
 	m_thread = std::thread(&PulseAudio::SoundLoop, this);
+
+	// Initialize DPL2 parameters
+	DPL2Reset();
+
 	return true;
 }
 
@@ -81,10 +90,33 @@ bool PulseAudio::PulseInit()
 	// create a new audio stream with our sample format
 	// also connect the callbacks for this stream
 	pa_sample_spec ss;
-	ss.format = PA_SAMPLE_S16LE;
-	ss.channels = 2;
+	pa_channel_map channel_map;
+	pa_channel_map* channel_map_p = nullptr; // auto channel map
+	if (m_stereo)
+	{
+		ss.format = PA_SAMPLE_S16LE;
+		m_bytespersample = sizeof(s16);
+	}
+	else
+	{
+		// surround is remixed in floats, use a float PA buffer to save another conversion
+		ss.format = PA_SAMPLE_FLOAT32NE;
+		m_bytespersample = sizeof(float);
+
+		// DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
+		channel_map_p = &channel_map; // explicit channel map:
+		channel_map.channels = 6;
+		channel_map.map[0] = PA_CHANNEL_POSITION_FRONT_LEFT;
+		channel_map.map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
+		channel_map.map[2] = PA_CHANNEL_POSITION_FRONT_CENTER;
+		channel_map.map[3] = PA_CHANNEL_POSITION_LFE;
+		channel_map.map[4] = PA_CHANNEL_POSITION_REAR_LEFT;
+		channel_map.map[5] = PA_CHANNEL_POSITION_REAR_RIGHT;
+	}
+	ss.channels = m_channels;
 	ss.rate = m_mixer->GetSampleRate();
-	m_pa_s = pa_stream_new(m_pa_ctx, "Playback", &ss, nullptr);
+	assert(pa_sample_spec_valid(&ss));
+	m_pa_s = pa_stream_new(m_pa_ctx, "Playback", &ss, channel_map_p);
 	pa_stream_set_write_callback(m_pa_s, WriteCallback, this);
 	pa_stream_set_underflow_callback(m_pa_s, UnderflowCallback, this);
 
@@ -94,7 +126,7 @@ bool PulseAudio::PulseInit()
 	m_pa_ba.maxlength = -1;          // max buffer, so also max latency
 	m_pa_ba.minreq = -1;             // don't read every byte, try to group them _a bit_
 	m_pa_ba.prebuf = -1;             // start as early as possible
-	m_pa_ba.tlength = BUFFER_SIZE;   // designed latency, only change this flag for low latency output
+	m_pa_ba.tlength = BUFFER_SAMPLES * m_channels * m_bytespersample; // designed latency, only change this flag for low latency output
 	pa_stream_flags flags = pa_stream_flags(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE);
 	m_pa_error = pa_stream_connect_playback(m_pa_s, nullptr, &m_pa_ba, flags, nullptr, nullptr);
 	if (m_pa_error < 0)
@@ -133,7 +165,7 @@ void PulseAudio::StateCallback(pa_context* c)
 // on underflow, increase pulseaudio latency in ~10ms steps
 void PulseAudio::UnderflowCallback(pa_stream* s)
 {
-	m_pa_ba.tlength += BUFFER_SIZE;
+	m_pa_ba.tlength += BUFFER_SAMPLES * m_channels * m_bytespersample;
 	pa_stream_set_buffer_attr(s, &m_pa_ba, nullptr, nullptr);
 
 	WARN_LOG(AUDIO, "pulseaudio underflow, new latency: %d bytes", m_pa_ba.tlength);
@@ -141,15 +173,47 @@ void PulseAudio::UnderflowCallback(pa_stream* s)
 
 void PulseAudio::WriteCallback(pa_stream* s, size_t length)
 {
+	int bytes_per_frame = m_channels * m_bytespersample;
+	int frames = (length / bytes_per_frame);
+	size_t trunc_length = frames * bytes_per_frame;
+
 	// fetch dst buffer directly from pulseaudio, so no memcpy is needed
 	void* buffer;
-	m_pa_error = pa_stream_begin_write(s, &buffer, &length);
+	m_pa_error = pa_stream_begin_write(s, &buffer, &trunc_length);
 
 	if (!buffer || m_pa_error < 0)
 		return; // error will be printed from main loop
 
-	m_mixer->Mix((s16*) buffer, length / sizeof(s16) / CHANNEL_COUNT);
-	m_pa_error = pa_stream_write(s, buffer, length, nullptr, 0, PA_SEEK_RELATIVE);
+	if (m_stereo)
+	{
+		// use the raw s16 stereo mix
+		m_mixer->Mix((s16*) buffer, frames);
+	}
+	else
+	{
+		// get a floating point mix
+		s16 s16buffer_stereo[frames * 2];
+		m_mixer->Mix(s16buffer_stereo, frames); // implicitly mixes to 16-bit stereo
+
+		float floatbuffer_stereo[frames * 2];
+		// s16 to float
+		for (int i=0; i < frames * 2; ++i)
+		{
+			floatbuffer_stereo[i] = s16buffer_stereo[i] / float(1 << 15);
+		}
+
+		if (m_channels == 6) // Extract dpl2/5.1 Surround
+		{
+			DPL2Decode(floatbuffer_stereo, frames, (float*)buffer);
+		}
+		else
+		{
+			ERROR_LOG(AUDIO, "Unsupported number of PA channels requested: %d", (int)m_channels);
+			return;
+		}
+	}
+
+	m_pa_error = pa_stream_write(s, buffer, trunc_length, nullptr, 0, PA_SEEK_RELATIVE);
 }
 
 // Callbacks that forward to internal methods (required because PulseAudio is a C API).
