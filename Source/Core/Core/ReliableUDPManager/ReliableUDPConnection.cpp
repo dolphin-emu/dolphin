@@ -39,8 +39,7 @@ ReliableUDPConnection::~ReliableUDPConnection()
 
 void ReliableUDPConnection::StoreSend(sf::Packet& packet)
 {
-	//will be changed to add size checks, when i decide what a max packet size should be
-	//std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+	// -- will be changed to add size checks, when i decide what a max packet size should be
 	m_toBeSent.push(packet);
 	
 }
@@ -48,7 +47,6 @@ void ReliableUDPConnection::StoreSend(sf::Packet& packet)
 
 sf::Socket::Status ReliableUDPConnection::Send(bool sendAck)
 {
-	//std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	if (m_sentEmptyAck && (!m_resend.empty() || !m_toBeSent.empty()))
 	{
 		// -- if the last message was an ack and now we have messages to send make sure that the sequence is a new one
@@ -61,7 +59,6 @@ sf::Socket::Status ReliableUDPConnection::Send(bool sendAck)
 	}
 
 	//header: protocal ID (8 bit)|ack (16)|nack(16)|missing bit field (32)| packet order (16)| packet|
-	//add header id, ack, nack, and 32 bit field
 	sf::Packet pack;
 	pack << m_header; // protocal ID
 	pack << m_mySequenceNumber; //our current ack
@@ -125,7 +122,7 @@ sf::Socket::Status ReliableUDPConnection::Send(bool sendAck)
 	
 	if (sendAck && m_sendAck.GetTimeDifference() > m_ackTime)
 	{ 
-		// -- else we have no info to send so just send an ACK instead
+		// -- else we have no info to send so just send our acknowledgment info instead
 		m_sentEmptyAck = true;
 		pack << UINT16_MAX;
 		sf::Socket::Status stat;
@@ -160,7 +157,6 @@ sf::Socket::Status ReliableUDPConnection::SendUnreliable(sf::Packet& packet)
 
 bool ReliableUDPConnection::Receive(sf::Packet& packet)
 {
-	//std::lock_guard<std::recursive_mutex> lkr(m_crit.recieve);
 	// -- we recieved something so we need to update the timer
 	m_keepAlive.Stop();
 	m_keepAlive.Start();
@@ -176,7 +172,7 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 		previousSequence = 0;
 	}
 
-	// -- unpack header with make a new m_theirSequenceNumber
+	// -- unpack header
 	u8 headerCheck;
 	packet >> headerCheck;
 	if (m_header != headerCheck)
@@ -201,6 +197,7 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 		return true;
 	}
 	
+	// -- wrapping stuff.  Should work fine but could be cleaned up to look nicer
 	int recv = IfWrappedConvertToNeg(m_theirSequenceNumber, uiReceived, UINT16_MAX);
 	int Seq = IfWrappedConvertToNeg(uiReceived, m_theirSequenceNumber, UINT16_MAX);
 
@@ -211,7 +208,7 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 		int prevSeq = IfWrappedConvertToNeg(m_theirSequenceNumber, previousSequence, UINT16_MAX);
 		int theirSeq = IfWrappedConvertToNeg(previousSequence, m_theirSequenceNumber, UINT16_MAX);
 
-		// -- First check if this message is the next, old, or skipped over other messages to request to send new messages
+		// -- First check if this message is the next, or skipped over other messages to request to send new messages
 		if (previousSequence == m_theirSequenceNumber)
 		{
 			// -- shift _missingBitField with 1 at the end 1101 -> 1011
@@ -224,6 +221,7 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 		}
 	}
 
+	// -- get what their missing info
 	packet >> lastGivenAck;
 	packet >> resendBitField;
 
@@ -279,7 +277,6 @@ bool ReliableUDPConnection::Receive(sf::Packet& packet)
 
 bool ReliableUDPConnection::GrabMessage(sf::Packet& packet)
 {
-	//std::lock_guard<std::recursive_mutex> lks(m_crit.recieve);
 	if (!m_recievedMess.empty())
 	{
 		packet = m_recievedMess.front();
@@ -314,8 +311,6 @@ void ReliableUDPConnection::Disconnect()
 
 void  ReliableUDPConnection::ClearBuffers()
 {
-	//std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	//std::lock_guard<std::recursive_mutex> lkr(m_crit.recieve);
 	while (!m_toBeSent.empty())
 	{
 		m_toBeSent.pop();
@@ -326,17 +321,6 @@ void  ReliableUDPConnection::ClearBuffers()
 		m_recievedMess.pop();
 	}
 
-}
-
-bool ReliableUDPConnection::WasRecieved(const udpBitType& bitField, const u16& currentAck, const u16& ackCheck)
-{
-	int offset = currentAck - ackCheck;
-	if (offset < 0)
-		return false;
-
-	udpBitType check = 1 << offset;
-
-	return (bitField & check)!=0;
 }
 
 
@@ -363,10 +347,7 @@ void ReliableUDPConnection::UpdateBackUp(u16 pAck, udpBitType pBitfield)
 		return;
 	}
 
-	// -- Check to see if there is a message older then our bitfield
-
-	
-
+	// -- Check to see if there is a message older then our bitfield and assume it needs to be resent
 	if (newLastAck > lastAck)
 	{
 		int amountMissed = newLastAck - lastAck;
@@ -413,7 +394,7 @@ void ReliableUDPConnection::UpdateBackUp(u16 pAck, udpBitType pBitfield)
 	// -- loop through the bit field
 	for (u16 n = sizeOfBitField - 1; n > 0; --n)
 	{
-		//n is what bit we are on (starts on 32 because 0 is our current ack and is always =1)
+		//n is what bit we are on (starts on 31 and go left, skip 0 because that one is always recieved)
 
 		//--last ack is the int representation
 		u16 lastAck;

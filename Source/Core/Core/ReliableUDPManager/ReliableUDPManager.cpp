@@ -37,7 +37,6 @@ ReliableUDPManager::~ReliableUDPManager()
 	{
 		
 		itr->second->Disconnect();
-		//IpAndPort inp(itr->second->GetAddress().toInteger(), itr->second->GetPort());
 		std::pair<int, unsigned short> inp = std::make_pair(itr->second->GetAddress().toInteger(), itr->second->GetPort());
 		m_AddresstoConnection.erase(inp);
 		itr = m_IDtoConnection.erase(itr);
@@ -85,13 +84,13 @@ void ReliableUDPManager::Update()
 	}
 	
 	//--for now just send all messages in the message buffer
-	//--in the future we should just send a certain amount a bytes per millisecond
+	//--in the future we should just send a certain amount a bytes per 30 or 20 millisecond
 	std::list<u16> eraseList;
 	for (auto c : m_IDtoConnection)
 	{
 		if (!c.second->CheckIfAlive())
 		{
-			//if we havn't recieved a message for a long time, get rid of it
+			//if we havn't recieved a message for a long time, get rid of the connection
 			eraseList.push_front(c.first);
 			m_disconnection.push(c.first);
 			continue;

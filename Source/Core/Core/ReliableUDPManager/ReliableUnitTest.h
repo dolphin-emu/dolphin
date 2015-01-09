@@ -24,39 +24,11 @@ public:
 	bool TestDroppingS();
 	bool TestDroppingC();
 
-	bool TestAcksS();
-	bool TestAcksC();
-	
-	bool TestDuplicatesS();
-	bool TestDuplicatesC();
-	
-	bool Test34RecievesNoSendsS();
-	bool Test34RecievesNoSendsC();
-
-	bool Test30ConsecutiveDropsS();
-	bool Test30ConsecutiveDropsC();
-
-	bool TestRandom30PercentDroppingS();
-	bool TestRandom30PercentDroppingC();
-	
-	bool TestRandomResendsS();
-	bool TestRandomResendsC();
-
-	bool TestRandomS();
-	bool TestRandomC();
-	
-
 	void UnreliableSentTest1();
 	void RecieveUnreliableSentTest1();
 
 	void ReliableSentTest();
 	void ReliableRecieveTest();
-
-	void ReliableSentTest2();
-	void ReliableRecieveTest2();
-
-	void ReliableSentTest3();
-	void ReliableRecieveTest3();
 
 private:
 	#define MaxWords  5
@@ -68,7 +40,6 @@ private:
 	void Send(std::string str[MaxWords], bool ack = true);
 	void Send(int i, bool ack = true);
 	void SendAck();
-	//void Check();
 	void CheckString();
 
 	void SocketReset();
@@ -79,7 +50,7 @@ private:
 	sf::IpAddress m_adr;
 	u16 m_port;
 	std::shared_ptr<sf::UdpSocket> m_socket;
-	ReliableUDPConnection* m_udp;
+	std::shared_ptr<ReliableUDPConnection> m_udp;
 
 	sf::TcpSocket m_controlSock;
 

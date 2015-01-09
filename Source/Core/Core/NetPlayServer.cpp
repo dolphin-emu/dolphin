@@ -34,11 +34,6 @@ NetPlayServer::~NetPlayServer()
 // called from ---GUI--- thread
 NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running(false), m_udpManager(port)
 {
-	/*
-	sf::IpAddress ip("192.168.1.3");
-	ReliableUnitTest theTest(ip, true);
-	theTest.TestsServer();
-	*/
 	
 	memset(m_pad_map, -1, sizeof(m_pad_map));
 	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
@@ -48,7 +43,7 @@ NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running
 	{
 		is_connected = true;
 		m_do_loop = true;
-		//m_selector.add(m_socket);
+		
 		m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
 		m_target_buffer_size = 5;
 	}
@@ -147,7 +142,6 @@ void NetPlayServer::ThreadFunc()
 	// -- Close listening socket and client sockets
 	for (auto& player_entry : m_players)
 	{
-		//player_entry.socket->disconnect();
 		m_udpManager.Disconnect(player_entry.conID);
 	}
 }
@@ -184,7 +178,6 @@ unsigned int NetPlayServer::OnConnect(u16 ID)
 	m_update_pings = true;
 
 	Client player;
-	//player.socket = std::move(socket);
 	player.conID = ID;
 	rpac >> player.revision;
 	rpac >> player.name;
@@ -293,7 +286,6 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 	spac << (MessageId)NP_MSG_PLAYER_LEAVE;
 	spac << pid;
 
-	//m_selector.remove(*player.socket);
 	m_udpManager.Disconnect(player.conID);
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
@@ -301,7 +293,6 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 
 	// alert other players of disconnect
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	//SendToClients(spac);
 	m_udpManager.SendMessageToAll(spac);
 
 	for (PadMapping& mapping : m_pad_map)

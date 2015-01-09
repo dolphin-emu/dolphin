@@ -16,7 +16,7 @@ ReliableUnitTest::ReliableUnitTest(sf::IpAddress adr, bool server)
 	m_socket = std::make_shared<sf::UdpSocket>();
 	m_socket->bind(2660);
 
-	m_udp = new ReliableUDPConnection(m_socket, m_adr, 2660);
+	m_udp = std::make_shared<ReliableUDPConnection>(m_socket, m_adr, 2660);
 	m_socket->setBlocking(true); 
 
 	if (server)
@@ -85,13 +85,13 @@ void ReliableUnitTest::TestClient()
 	}
 	SocketReset();
 
-/*	if (!TestSendingRecievingC())
-	{
-		PanicAlertT("Failed");
-		return;
-	}
-	SocketReset();
-	*/
+	//if (!TestSendingRecievingC())
+	//{
+	//	PanicAlertT("Failed");
+	//	return;
+	//}
+	//SocketReset();
+	
 	if (!TestDroppingC())
 	{
 		PanicAlertT("Failed");
@@ -223,10 +223,9 @@ bool CheckBit(int index, int bitField)
 //----------------------------------------------------------------------------------
 bool ReliableUnitTest::TestDroppingS()
 {
-	//SERVER TEST WILL DROP MESSAGES ACCORDING TO BITFIELD drop
+	//SERVER TEST WILL DROP MESSAGES ACCORDING TO BITFIELD server Drop
 	//Test all combination of drops withen the range of our missing bit field
 	int numOfBits = 9;
-	//int dropStart = 511;//4607 //Mistakes c 510 14 server //511 219 //510 219
 
 	sf::Packet dropNumbers;
 	dropNumbers << "Drop";
@@ -560,117 +559,6 @@ bool ReliableUnitTest::TestDroppingC()
 }
 
 
-/*int expectedNumber = 0;
-			for (int i = 0; i < numOfBits; ++i)
-			{
-
-				// -- send
-				Send(i);
-
-				sf::Packet rpac;
-				if (Recieve(rpac))
-				{
-
-					int tmp = 0;
-					rpac >> tmp;
-					if (tmp == expectedNumber)
-					{
-						++expectedNumber;
-					}
-					else
-					{
-						PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop, serverDrop);
-						return false;
-					}
-				}
-				else
-				{
-					int tmp = 0;
-					rpac >> tmp;
-					PanicAlertT("Did Not Recieve Expected Number( %u), got %u for test C %d, S %d", expectedNumber, tmp, clientDrop, serverDrop);
-				}
-
-			}
-
-			//--make sure server gets all his missing messages
-			int done = 0;
-			do
-			{
-				Send(50);
-				sf::Packet rpac;
-				Recieve(rpac);
-
-				rpac >> done;
-			} while (done != 100);*/
-//------------------------------------------------------------------------------------------
-
-bool ReliableUnitTest::TestAcksS()
-{
-	return true;
-}
-
-
-bool ReliableUnitTest::TestAcksC()
-{
-	return false;
-}
-
-//-------------------------------------------------------------------------------------------
-bool ReliableUnitTest::TestDuplicatesS()
-{
-	return false;
-}
-bool ReliableUnitTest::TestDuplicatesC()
-{
-	return false;
-}
-
-bool ReliableUnitTest::Test34RecievesNoSendsS()
-{
-	return false;
-}
-bool ReliableUnitTest::Test34RecievesNoSendsC()
-{
-	return false;
-}
-
-bool ReliableUnitTest::Test30ConsecutiveDropsS()
-{
-	return false;
-}
-bool ReliableUnitTest::Test30ConsecutiveDropsC()
-{
-	return false;
-}
-
-bool ReliableUnitTest::TestRandom30PercentDroppingS()
-{
-	return false;
-}
-bool ReliableUnitTest::TestRandom30PercentDroppingC()
-{
-	return false;
-}
-
-bool ReliableUnitTest::TestRandomResendsS()
-{
-	return false;
-}
-bool ReliableUnitTest::TestRandomResendsC()
-{
-	return false;
-}
-
-bool ReliableUnitTest::TestRandomS()
-{
-	return false;
-}
-bool ReliableUnitTest::TestRandomC()
-{
-	return false;
-}
-
-
 void ReliableUnitTest::UnreliableSentTest1()
 {
 	sf::Packet pack;
@@ -763,215 +651,6 @@ void ReliableUnitTest::ReliableRecieveTest()
 	} while (true);
 
 }
-
-
-//Must Send First (Currently set on Client)
-void ReliableUnitTest::ReliableSentTest2()
-{
-	int expectedValue = 0;
-	int throwAway = 0;
-	int sendBlank = 0;
-	for (int i = 0; i < 100001; ++i)
-	{
-		//if (sendBlank < 2)
-		if(rand()%100 > 20)
-		{
-			Send(i);
-			++sendBlank;
-		}
-		else
-		{
-			SendAck();
-			sendBlank = 0;
-			--i;
-		}
-		
-		sf::Packet rPack;
-		m_socket->receive(rPack, m_adr, m_port);
-		//if (throwAway < 3)
-		//{
-			bool is_mess = m_udp->Receive(rPack);
-		//	++throwAway;
-		//}
-		//else
-		//{
-		//	throwAway = 0;
-		//	SendAck();
-		//}
-
-		sf::Packet packet;
-		if (m_udp->GrabMessage(packet))
-		{
-			int j;
-			packet >> j;
-			if (expectedValue == j)
-			{
-				++expectedValue;
-			}
-			else
-			{
-				PanicAlertT("NOOOOOOOOOO");
-			}
-		}
-		
-	}
-	PanicAlertT("We Sent ALL We Could");	
-	while (true)
-	{
-		m_udp->Send();
-		Recieve();
-	}
-	
-
-}
-
-//Must Recieve First (Currently set on host)
-void ReliableUnitTest::ReliableRecieveTest2()
-{
-	int expectedValue = 0;
-	int throwAway = 0;
-	int sendBlank = 0;
-	for (int i = 0; i < 1000000; ++i)
-	{
-		sf::Packet rPack;
-
-		m_socket->receive(rPack, m_adr, m_port);
-		if (throwAway < 3)
-		//if (rand()%100 > 50)
-		{
-			bool is_mess = m_udp->Receive(rPack);
-			++throwAway;
-		}
-		else
-		{
-			throwAway = 0;
-		}
-		sf::Packet packet;
-		if (m_udp->GrabMessage(packet))
-		{
-			int j;
-			packet >> j;
-			if (expectedValue == j)
-			{
-				++expectedValue;
-			}
-			else
-			{
-				PanicAlertT("NOOOOOOOOOO");
-			}
-		}
-		
-		Send(i);
-		
-	}
-	PanicAlertT("Server Done Sending");
-}
-
-//Must Send First (Currently set on Client)
-void ReliableUnitTest::ReliableSentTest3()
-{
-	m_socket->setBlocking(false);
-	int expectedValue = 0;
-	int throwAway = 0;
-	int sendBlank = 0;
-	int i = 0;
-	Common::Timer clk;
-	clk.Start();
-	u64 wait = 30;
-	while (expectedValue < UINT16_MAX * 2)
-	{
-		
-		if (clk.GetTimeElapsed() > wait)
-		{
-			Send(i);
-			++i;
-			clk.Stop();
-			clk.Start();
-		}
-		sf::Packet rPack;
-		sf::Socket::Status stat = m_socket->receive(rPack, m_adr, m_port);
-		
-		do
-		{
-			bool is_mess = m_udp->Receive(rPack);
-			rPack.clear();
-			sf::Socket::Status stat = m_socket->receive(rPack, m_adr, m_port);
-		} while (stat == sf::Socket::Done);
-	
-
-		sf::Packet packet;
-		if (m_udp->GrabMessage(packet))
-		{
-			int j;
-			packet >> j;
-			if (expectedValue == j)
-			{
-				++expectedValue;
-			}
-			else
-			{
-				PanicAlertT("NOOOOOOOOOO");
-			}
-		}
-
-	}
-	PanicAlertT("We Sent ALL We Could");
-
-}
-
-//Must Recieve First (Currently set on host)
-void ReliableUnitTest::ReliableRecieveTest3()
-{
-	m_socket->setBlocking(false);
-	int expectedValue = 0;
-	int throwAway = 0;
-	int sendBlank = 0;
-	int i = 0;
-	Common::Timer clk;
-	clk.Start();
-	u64 wait = 30;
-	while (expectedValue < UINT16_MAX * 2)
-	{
-		sf::Packet rPack;
-		
-		sf::Socket::Status stat = m_socket->receive(rPack, m_adr, m_port);
-		
-		do
-		{
-			bool is_mess = m_udp->Receive(rPack);
-			rPack.clear();
-			sf::Socket::Status stat = m_socket->receive(rPack, m_adr, m_port);
-		}
-		while (stat == sf::Socket::Done);
-
-		sf::Packet packet;
-		if (m_udp->GrabMessage(packet))
-		{
-			int j;
-			packet >> j;
-			if (expectedValue == j)
-			{
-				++expectedValue;
-			}
-			else
-			{
-				PanicAlertT("NOOOOOOOOOO");
-			}
-		}
-
-		
-		if (clk.GetTimeElapsed() > wait)
-		{
-			Send(i);
-			++i; 
-			clk.Stop();
-			clk.Start();
-		}
-	} 
-	PanicAlertT("Server Done Sending");
-}
-
-
 
 bool ReliableUnitTest::Recieve(sf::Packet& packet)
 {
@@ -1101,13 +780,6 @@ void ReliableUnitTest::CheckString()
 
 void  ReliableUnitTest::SocketReset()
 {
-	//m_socket->unbind();
-	//m_socket.reset();
-	//m_socket = std::make_shared<sf::UdpSocket>();
-	//m_socket->bind(2660);
-
-	delete m_udp;
-	m_udp = nullptr;
-	m_udp=new ReliableUDPConnection(m_socket, m_adr, 2660);
-	//m_udp = std::make_shared<ReliableUDPConnection>(m_socket, m_adr, 2660);
+	m_udp.reset();
+	m_udp = std::make_shared<ReliableUDPConnection>(m_socket, m_adr, 2660);
 }

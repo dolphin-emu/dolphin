@@ -42,13 +42,9 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
-	/*
-	sf::IpAddress adr(address);
-	ReliableUnitTest theTest(adr, false);
-	theTest.TestClient();
-	*/
+
 	is_connected = false;
-	// -- Test
+	
 	m_serverID = m_udpManager.Connect(address, port, 5);
 
 	if (m_serverID != 0)
@@ -91,7 +87,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 				PanicAlertT("The server sent an unknown error message!");
 				break;
 			}
-			//m_socket.disconnect();
+			
 			m_udpManager.Disconnect(m_serverID);
 		}
 		else
@@ -112,7 +108,6 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 			//PanicAlertT("Connection successful: assigned player id: %d", m_pid);
 			is_connected = true;
 
-			//m_selector.add(m_socket);
 			m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
 		}
 	}
@@ -367,7 +362,6 @@ void NetPlayClient::ThreadFunc()
 
 	}
 
-	//m_socket.disconnect();
 	m_udpManager.Disconnect(m_serverID);
 	return;
 }

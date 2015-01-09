@@ -58,7 +58,6 @@ private:
 		std::string name;
 		std::string revision;
 
-		//std::unique_ptr<sf::TcpSocket> socket;
 		u16 conID;
 		u32 ping;
 		u32 current_game;
@@ -109,9 +108,7 @@ private:
 
 	std::string m_selected_game;
 
-	//sf::TcpListener m_socket;
 	std::thread m_thread;
-	//sf::SocketSelector m_selector;
 
 	ReliableUDPManager m_udpManager;
 

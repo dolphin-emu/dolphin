@@ -89,13 +89,11 @@ protected:
 	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];
 
 	NetPlayUI*    m_dialog;
-	//sf::TcpSocket m_socket;
 	
 	ReliableUDPManager m_udpManager;
 	u16 m_serverID;
 
 	std::thread   m_thread;
-	//sf::SocketSelector m_selector;
 
 	std::string   m_selected_game;
 	volatile bool m_is_running;

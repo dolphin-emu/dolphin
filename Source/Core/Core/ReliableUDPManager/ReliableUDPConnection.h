@@ -41,7 +41,7 @@ public:
 	
 	//function
 private:
-	bool WasRecieved(const udpBitType& bitField, const u16& currentAck, const u16& ackCheck);
+
 	void UpdateBackUp(u16 ack, udpBitType bitfield);
 	int  IfWrappedConvertToNeg(int current, int previous, int max);
 
@@ -69,40 +69,46 @@ private:
 		}
 
 	};
-	/*
-	struct
-	{
-		std::recursive_mutex send;
-		// lock order
-		std::recursive_mutex recieve;
-	} m_crit;
-	*/
+	
 	std::shared_ptr<sf::UdpSocket>	m_socket;
 	
 	sf::IpAddress	m_remoteAddress;
 	unsigned short	m_remotePort;
 	
+	//header to know we are recieving message from the right program
 	u8				m_header;
 
-	//ack stuff for resending
+	//our sequence number to send to connection
 	u16				m_mySequenceNumber;
 
-	//ack stuff for to tell them what we havnt recieved
+	//their last recieved ack
 	u16				m_theirSequenceNumber;
+
+	//bit field where 0 represent a message we missed
 	udpBitType		m_missingBitField;
 	
+	//the last ack the other side confirmed
 	u16				m_theirLastAck;
 
+	//which in order number we are waiting for
 	u16				m_expectedSequence;
+
+	//which in order number we recieved
 	u16				m_nextInOrder;
 
-	// -- buffers
+	//messages that have yet to be sent
 	std::queue<sf::Packet>			m_toBeSent;
+
+	//messages that we have recieved
 	std::queue<sf::Packet>			m_recievedMess;
 
+	//messages that are on the ready to be sent back incase of drop
 	std::map <u16, Palette>			m_backupMess;
 	
+	//messages that we recieved out of order
 	std::map<u16, sf::Packet>		m_bufferMess;
+
+	//messages that have been confirmed drop and need to be resent
 	std::priority_queue<Palette>	m_resend;
 
 	// -- timer
