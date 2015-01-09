@@ -199,7 +199,7 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, "P", "perf_dir",
-			"Directory for Lionux perf perf-$pid.map file",
+			"Directory for Linux perf perf-$pid.map file",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -470,7 +470,7 @@ void* Host_GetRenderHandle()
 // wxPostEvent / wxAddPendingEvent is the solution.
 void Host_NotifyMapLoaded()
 {
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFYMAPLOADED);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFY_MAP_LOADED);
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
@@ -481,7 +481,7 @@ void Host_NotifyMapLoaded()
 
 void Host_UpdateDisasmDialog()
 {
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
@@ -492,7 +492,7 @@ void Host_UpdateDisasmDialog()
 
 void Host_UpdateMainFrame()
 {
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
@@ -503,21 +503,21 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateTitle(const std::string& title)
 {
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_TITLE);
 	event.SetString(StrToWxStr(title));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
 void Host_RequestRenderWindowSize(int width, int height)
 {
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOWSIZEREQUEST);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOW_SIZE_REQUEST);
 	event.SetClientData(new std::pair<int, int>(width, height));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
 void Host_RequestFullscreen(bool enable_fullscreen)
 {
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREENREQUEST);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREEN_REQUEST);
 	event.SetInt(enable_fullscreen ? 1 : 0);
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
@@ -546,7 +546,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 		return;
 	currentState = _State;
 
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_STATUS_BAR);
 
 	switch (_State)
 	{
@@ -570,6 +570,11 @@ bool Host_UIHasFocus()
 bool Host_RendererHasFocus()
 {
 	return main_frame->RendererHasFocus();
+}
+
+bool Host_RendererIsFullscreen()
+{
+	return main_frame->RendererIsFullscreen();
 }
 
 void Host_ConnectWiimote(int wm_idx, bool connect)

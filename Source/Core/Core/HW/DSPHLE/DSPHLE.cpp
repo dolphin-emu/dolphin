@@ -62,6 +62,8 @@ void DSPHLE::DSP_StopSoundStream()
 
 void DSPHLE::Shutdown()
 {
+	delete m_pUCode;
+	m_pUCode = nullptr;
 }
 
 void DSPHLE::DSP_Update(int cycles)

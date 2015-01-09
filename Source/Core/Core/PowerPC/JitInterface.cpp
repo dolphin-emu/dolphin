@@ -211,7 +211,7 @@ namespace JitInterface
 	{
 		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
 		{
-			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
+			_Address = Memory::TranslateAddress<Memory::FLAG_OPCODE>(_Address);
 			if (_Address == 0)
 			{
 				return 0;

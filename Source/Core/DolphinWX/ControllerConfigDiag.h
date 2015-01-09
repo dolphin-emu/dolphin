@@ -64,6 +64,11 @@ public:
 		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
 		event.Skip();
 	}
+	void OnGameCubeAdapterThread(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_GameCubeAdapterThread = event.IsChecked();
+		event.Skip();
+	}
 
 private:
 	wxStaticBoxSizer* CreateGamecubeSizer();

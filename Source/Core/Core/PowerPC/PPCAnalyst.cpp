@@ -649,7 +649,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	bool virtualAddr = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT);
 	if (virtualAddr)
 	{
-		if (!Memory::TranslateAddress(address, Memory::FLAG_NO_EXCEPTION))
+		if (!Memory::TranslateAddress<Memory::FLAG_NO_EXCEPTION>(address))
 		{
 			// Memory exception occurred during instruction fetch
 			block->m_memory_exception = true;
@@ -670,9 +670,23 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 		if (inst.hex != 0)
 		{
+			// Slight hack: the JIT block cache currently assumes all blocks end at the same place,
+			// but broken blocks due to page faults break this assumption. Avoid this by just ending
+			// all virtual memory instruction blocks at page boundaries.
+			// FIXME: improve the JIT block cache so we don't need to do this.
+			if (virtualAddr && i > 0 && (address & 0xfff) == 0)
+			{
+				break;
+			}
+
 			num_inst++;
 			memset(&code[i], 0, sizeof(CodeOp));
 			GekkoOPInfo *opinfo = GetOpInfo(inst);
+			if (!opinfo)
+			{
+				PanicAlert("Invalid PowerPC opcode: %x.", inst.hex);
+				Crash();
+			}
 
 			code[i].opinfo = opinfo;
 			code[i].address = address;

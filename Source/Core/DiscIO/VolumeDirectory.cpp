@@ -15,6 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Core/VolumeHandler.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
@@ -63,13 +64,23 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 	return File::IsDirectory(directoryName);
 }
 
-bool CVolumeDirectory::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
-	return false;
-}
+	bool wii = VolumeHandler::IsWii();
 
-bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
-{
+	if (!decrypt && (_Offset + _Length >= 0x400) && wii)
+	{
+		// Fully supporting this would require re-encrypting every file that's read.
+		// Only supporting the areas that IOS allows software to read could be more feasible.
+		// Currently, only the header (up to 0x400) is supported, though we're cheating a bit
+		// with it by reading the header inside the current partition instead. Supporting the
+		// header is enough for booting games, but not for running things like the Disc Channel.
+		return false;
+	}
+
+	if (decrypt && !wii)
+		PanicAlertT("Tried to decrypt data from a non-Wii volume");
+
 	// header
 	if (_Offset < DISKHEADERINFO_ADDRESS)
 	{

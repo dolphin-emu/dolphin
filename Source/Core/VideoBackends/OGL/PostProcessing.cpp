@@ -18,7 +18,7 @@
 namespace OGL
 {
 
-static char s_vertex_workaround_shader[] =
+static const char s_vertex_workaround_shader[] =
 	"in vec4 rawpos;\n"
 	"out vec2 uv0;\n"
 	"uniform vec4 src_rect;\n"
@@ -27,7 +27,7 @@ static char s_vertex_workaround_shader[] =
 	"	uv0 = rawpos.zw * src_rect.zw + src_rect.xy;\n"
 	"}\n";
 
-static char s_vertex_shader[] =
+static const char s_vertex_shader[] =
 	"out vec2 uv0;\n"
 	"uniform vec4 src_rect;\n"
 	"void main(void) {\n"
@@ -35,6 +35,26 @@ static char s_vertex_shader[] =
 	"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 	"	uv0 = rawpos * src_rect.zw + src_rect.xy;\n"
 	"}\n";
+
+// Anaglyph Red-Cyan shader based on Dubois algorithm
+// Constants taken from the paper:
+// "Conversion of a Stereo Pair to Anaglyph with
+// the Least-Squares Projection Method"
+// Eric Dubois, March 2009
+static const char s_anaglyph_shader[] =
+	"void main() {\n"
+	"	vec4 c0 = SampleLayer(0);\n"
+	"	vec4 c1 = SampleLayer(1);\n"
+	"	mat3 l = mat3( 0.437, 0.449, 0.164,\n"
+	"	              -0.062,-0.062,-0.024,\n"
+	"	              -0.048,-0.050,-0.017);\n"
+	"	mat3 r = mat3(-0.011,-0.032,-0.007,\n"
+	"	               0.377, 0.761, 0.009,\n"
+	"	              -0.026,-0.093, 1.234);\n"
+	"	SetOutput(vec4(c0.rgb * l + c1.rgb * r, c0.a));\n"
+	"}\n";
+
+static const char s_default_shader[] = "void main() { SetOutput(Sample()); }\n";
 
 OpenGLPostProcessing::OpenGLPostProcessing()
 	: m_initialized(false)
@@ -172,15 +192,13 @@ void OpenGLPostProcessing::ApplyShader()
 
 	// load shader code
 	std::string code = "";
-	std::string default_shader = "void main() { SetOutput(Sample()); }\n";
-
 	if (g_ActiveConfig.iStereoMode == STEREO_ANAGLYPH)
-		code = "void main() { SetOutput(float4(pow(0.7 * SampleLayer(0).g + 0.3 * SampleLayer(0).b, 1.5), SampleLayer(1).gba)); }\n";
+		code = s_anaglyph_shader;
 	else if (g_ActiveConfig.sPostProcessingShader != "")
 		code = m_config.LoadShader();
 
 	if (code == "")
-		code = default_shader;
+		code = s_default_shader;
 
 	code = LoadShaderOptions(code);
 
@@ -194,7 +212,7 @@ void OpenGLPostProcessing::ApplyShader()
 	{
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
 
-		code = LoadShaderOptions(default_shader);
+		code = LoadShaderOptions(s_default_shader);
 		ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str());
 	}
 

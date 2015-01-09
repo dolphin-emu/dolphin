@@ -181,20 +181,26 @@ void XEmitter::ABI_CallFunctionR(const void *func, X64Reg reg1)
 // Pass two registers as parameters.
 void XEmitter::ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2)
 {
-	MOVTwo(64, ABI_PARAM1, reg1, ABI_PARAM2, reg2);
+	MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
 	ABI_CallFunction(func);
 }
 
-void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2)
+void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1, Gen::X64Reg dst2, Gen::X64Reg src2)
 {
 	if (dst1 == src2 && dst2 == src1)
 	{
 		XCHG(bits, R(src1), R(src2));
+		if (offset1)
+			ADD(bits, R(dst1), Imm32(offset1));
 	}
 	else if (src2 != dst1)
 	{
-		if (dst1 != src1)
+		if (dst1 != src1 && offset1)
+			LEA(bits, dst1, MDisp(src1, offset1));
+		else if (dst1 != src1)
 			MOV(bits, R(dst1), R(src1));
+		else if (offset1)
+			ADD(bits, R(dst1), Imm32(offset1));
 		if (dst2 != src2)
 			MOV(bits, R(dst2), R(src2));
 	}
@@ -202,8 +208,12 @@ void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg 
 	{
 		if (dst2 != src2)
 			MOV(bits, R(dst2), R(src2));
-		if (dst1 != src1)
+		if (dst1 != src1 && offset1)
+			LEA(bits, dst1, MDisp(src1, offset1));
+		else if (dst1 != src1)
 			MOV(bits, R(dst1), R(src1));
+		else if (offset1)
+			ADD(bits, R(dst1), Imm32(offset1));
 	}
 }
 

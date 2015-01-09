@@ -35,7 +35,7 @@ public:
 private:
 	bool m_Initialized;
 	bool m_Valid;
-	u32 m_OffsetShift; // WII offsets are all shifted
+	bool m_Wii;
 
 	std::vector <SFileInfo> m_FileInfoVector;
 	u32 Read32(u64 _Offset) const;
@@ -44,6 +44,7 @@ private:
 	bool DetectFileSystem();
 	void InitFileSystem();
 	size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, u64 _NameTableOffset);
+	u32 GetOffsetShift() const;
 };
 
 } // namespace

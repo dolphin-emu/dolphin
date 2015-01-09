@@ -39,7 +39,7 @@ void CBoot::Load_FST(bool _bIsWii)
 		return;
 
 	// copy first 20 bytes of disc to start of Mem 1
-	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);
+	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20, false);
 
 	// copy of game id
 	Memory::Write_U32(Memory::Read_U32(0x80000000), 0x80003180);
@@ -48,15 +48,15 @@ void CBoot::Load_FST(bool _bIsWii)
 	if (_bIsWii)
 		shift = 2;
 
-	u32 fstOffset  = VolumeHandler::Read32(0x0424) << shift;
-	u32 fstSize    = VolumeHandler::Read32(0x0428) << shift;
-	u32 maxFstSize = VolumeHandler::Read32(0x042c) << shift;
+	u32 fstOffset  = VolumeHandler::Read32(0x0424, _bIsWii) << shift;
+	u32 fstSize    = VolumeHandler::Read32(0x0428, _bIsWii) << shift;
+	u32 maxFstSize = VolumeHandler::Read32(0x042c, _bIsWii) << shift;
 
 	u32 arenaHigh = ROUND_DOWN(0x817FFFFF - maxFstSize, 0x20);
 	Memory::Write_U32(arenaHigh, 0x00000034);
 
 	// load FST
-	VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize);
+	VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize, _bIsWii);
 	Memory::Write_U32(arenaHigh, 0x00000038);
 	Memory::Write_U32(maxFstSize, 0x0000003c);
 }

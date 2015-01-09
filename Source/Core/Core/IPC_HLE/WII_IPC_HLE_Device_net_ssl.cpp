@@ -52,24 +52,24 @@ int CWII_IPC_HLE_Device_net_ssl::getSSLFreeID()
 	return 0;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::Open(u32 _CommandAddress, u32 _Mode)
+IPCCommandResult CWII_IPC_HLE_Device_net_ssl::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_net_ssl::Close(u32 _CommandAddress, bool _bForce)
 {
 	if (!_bForce)
 	{
 		Memory::Write_U32(0, _CommandAddress + 4);
 	}
 	m_Active = false;
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 {
 	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
@@ -82,10 +82,10 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 	         GetDeviceName().c_str(), Command,
 	         BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	Memory::Write_U32(0, _CommandAddress + 0x4);
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 {
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
@@ -393,7 +393,7 @@ _SSL_NEW_ERROR:
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
 			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
-			return false;
+			return IPC_NO_REPLY;
 		}
 		else
 		{
@@ -408,7 +408,7 @@ _SSL_NEW_ERROR:
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
 			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_WRITE);
-			return false;
+			return IPC_NO_REPLY;
 		}
 		else
 		{
@@ -433,7 +433,7 @@ _SSL_NEW_ERROR:
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
 			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_READ);
-			return false;
+			return IPC_NO_REPLY;
 		}
 		else
 		{
@@ -506,6 +506,6 @@ _SSL_NEW_ERROR:
 	// SSL return codes are written to BufferIn
 	Memory::Write_U32(0, _CommandAddress+4);
 
-	return true;
+	return IPC_DEFAULT_REPLY;
 }
 
