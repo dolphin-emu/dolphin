@@ -236,7 +236,7 @@ static u32  g_ErrorCode = 0;
 static bool g_bDiscInside = false;
 bool g_bStream = false;
 static bool g_bStopAtTrackEnd = false;
-static int  tc = 0;
+static int  finish_execute_command = 0;
 static int  dtk = 0;
 
 static u64 g_last_read_offset;
@@ -291,7 +291,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_bStopAtTrackEnd);
 }
 
-static void TransferComplete(u64 userdata, int cyclesLate)
+static void FinishExecuteCommand(u64 userdata, int cyclesLate)
 {
 	if (m_DICR.TSTART)
 	{
@@ -393,7 +393,7 @@ void Init()
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
-	tc = CoreTiming::RegisterEvent("TransferComplete", TransferComplete);
+	finish_execute_command = CoreTiming::RegisterEvent("FinishExecuteCommand", FinishExecuteCommand);
 	dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
 
 	CoreTiming::ScheduleEvent(0, dtk);
@@ -541,12 +541,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			m_DICR.Hex = val & 7;
 			if (m_DICR.TSTART)
 			{
-				DVDCommandResult result = ExecuteCommand(
-					m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex, m_DICMDBUF[2].Hex,
-					m_DIMAR.Hex, m_DILENGTH.Hex, true);
-
-				// The transfer is finished after a delay
-				CoreTiming::ScheduleEvent((int)result.ticks_until_completion, tc, result.interrupt_type);
+				ExecuteCommand(m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex, m_DICMDBUF[2].Hex,
+				               m_DIMAR.Hex, m_DILENGTH.Hex, true, finish_execute_command);
 			}
 		})
 	);
@@ -629,8 +625,11 @@ void ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length,
 	result->interrupt_type = INT_TCINT;
 }
 
-DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
-                                u32 output_address, u32 output_length, bool write_to_DIIMMBUF)
+// When the command has finished executing, callback_event_type
+// will be called using CoreTiming::ScheduleEvent,
+// with the userdata set to the interrupt type.
+void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address, u32 output_length,
+                    bool write_to_DIIMMBUF, int callback_event_type)
 {
 	DVDCommandResult result;
 	result.interrupt_type = INT_TCINT;
@@ -1201,7 +1200,9 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 		break;
 	}
 
-	return result;
+	// The command will finish executing after a delay,
+	// to simulate the speed of a real disc drive
+	CoreTiming::ScheduleEvent((int)result.ticks_until_completion, callback_event_type, result.interrupt_type);
 }
 
 // Simulates the timing aspects of reading data from a disc.

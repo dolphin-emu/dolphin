@@ -105,7 +105,7 @@ void ChangeDisc(const std::string& fileName);
 // DVD Access Functions
 bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool decrypt);
 extern bool g_bStream;
-DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
-	u32 output_address, u32 output_length, bool write_to_DIIMMBUF);
+void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address, u32 output_length,
+                    bool write_to_DIIMMBUF, int callback_event_type);
 
 } // end of namespace DVDInterface
