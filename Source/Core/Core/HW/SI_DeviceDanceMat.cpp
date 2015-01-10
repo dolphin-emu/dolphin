@@ -7,6 +7,24 @@
 CSIDevice_DanceMat::CSIDevice_DanceMat(SIDevices device, int _iDeviceNumber)
 	: CSIDevice_GCController(device, _iDeviceNumber) {}
 
+int CSIDevice_DanceMat::RunBuffer(u8* _pBuffer, int _iLength)
+{
+	// Read the command
+	EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[3]);
+
+	if (command == CMD_RESET)
+	{
+		ISIDevice::RunBuffer(_pBuffer, _iLength);
+		*(u32*)&_pBuffer[0] = SI_DANCEMAT;
+	}
+	else
+	{
+		return CSIDevice_GCController::RunBuffer(_pBuffer, _iLength);
+	}
+
+	return _iLength;
+}
+
 u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
 {
 	// Map the dpad to the blue arrows, the buttons to the orange arrows
@@ -36,6 +54,12 @@ u32 CSIDevice_DanceMat::MapPadStatus(const GCPadStatus& pad_status)
 	return (u32)(map << 16) | 0x8080;
 }
 
-void CSIDevice_DanceMat::HandleButtonCombos(const GCPadStatus& pad_status)
+bool CSIDevice_DanceMat::GetData(u32& _Hi, u32& _Low)
 {
+	CSIDevice_GCController::GetData(_Hi, _Low);
+
+	// Identifies the dance mat
+	_Low = 0x8080ffff;
+
+	return true;
 }

@@ -118,14 +118,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	return _iLength;
 }
 
-
-// GetData
-
-// Return true on new data (max 7 Bytes and 6 bits ;)
-// [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
-//  |\_ ERR_LATCH (error latched - check SISR)
-//  |_ ERR_STATUS (error on last GetData or SendCmd?)
-bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
+GCPadStatus CSIDevice_GCController::GetPadStatus()
 {
 	GCPadStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
@@ -156,6 +149,19 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	{
 		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
 	}
+
+	return PadStatus;
+}
+
+// GetData
+
+// Return true on new data (max 7 Bytes and 6 bits ;)
+// [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
+//  |\_ ERR_LATCH (error latched - check SISR)
+//  |_ ERR_STATUS (error on last GetData or SendCmd?)
+bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
+{
+	GCPadStatus PadStatus = GetPadStatus();
 
 	_Hi = MapPadStatus(PadStatus);
 

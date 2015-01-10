@@ -88,7 +88,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 			}
 			else
 			{
-				if ((string[i-2] == 'l') && (string[i-1] == 'l')) // hax, just seen this on sysmenu osreport
+				if (string[i-1] == 'l' && string[i-2] == 'l') // hax, just seen this on sysmenu osreport
 				{
 					Parameter = GPR(++ParameterCounter);
 					Parameter = (Parameter<<32)|GPR(++ParameterCounter);
