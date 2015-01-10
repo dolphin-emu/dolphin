@@ -1680,7 +1680,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 	if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
 	{
 		u32 amount = (u32)gpr.R(b).offset;
-		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (u32)gpr.R(s).offset << amount);
+		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (u32)gpr.R(s).offset << (amount & 0x1f));
 		if (inst.Rc)
 			ComputeRC(gpr.R(a));
 	}
