@@ -51,6 +51,12 @@ public:
 	static void ScaleView(float scale);
 	static void ResetView();
 
+	// data: 3 floats representing the X, Y and Z vertex model coordinates
+	// out: 4 floats which will be initialized with the corresponding clip space coordinates
+	// NOTE: g_fProjectionMatrix must be up to date when this is called
+	//		(i.e. VertexShaderManager::SetConstants needs to be called before using this!)
+	static void TransformToClipSpace(const float* data, float *out);
+
 	static VertexShaderConstants constants;
 	static float4 constants_eye_projection[2][4];
 	static bool m_layer_on_top;

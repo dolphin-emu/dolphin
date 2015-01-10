@@ -162,11 +162,8 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		}
 	}
 
-	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
-	{
-		// if cull mode is CULL_ALL, ignore triangles and quads
+	if (skip_drawing)
 		return size;
-	}
 
 	// Object Removal Code code
 	if (m_LocalCoreStartupParameter.num_object_removal_codes)
