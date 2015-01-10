@@ -166,7 +166,7 @@ WiimoteLinux::~WiimoteLinux()
 // Connect to a wiimote with a known address.
 bool WiimoteLinux::ConnectInternal()
 {
-	sockaddr_l2 addr;
+	sockaddr_l2 addr = {};
 	addr.l2_family = AF_BLUETOOTH;
 	addr.l2_bdaddr = m_bdaddr;
 	addr.l2_cid = 0;
@@ -176,7 +176,7 @@ bool WiimoteLinux::ConnectInternal()
 	if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
 	                  connect(m_cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
-		DEBUG_LOG(WIIMOTE, "Unable to open output socket to wiimote.");
+		DEBUG_LOG(WIIMOTE, "Unable to open output socket to wiimote: %s", strerror(errno));
 		close(m_cmd_sock);
 		m_cmd_sock = -1;
 		return false;
@@ -187,7 +187,7 @@ bool WiimoteLinux::ConnectInternal()
 	if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
 	                  connect(m_int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
-		DEBUG_LOG(WIIMOTE, "Unable to open input socket from wiimote.");
+		DEBUG_LOG(WIIMOTE, "Unable to open input socket from wiimote: %s", strerror(errno));
 		close(m_int_sock);
 		close(m_cmd_sock);
 		m_int_sock = m_cmd_sock = -1;
