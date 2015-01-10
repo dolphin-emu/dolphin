@@ -23,40 +23,83 @@ namespace PPCAnalyst
 struct CodeOp //16B
 {
 	UGeckoInstruction inst;
-	GekkoOPInfo * opinfo;
+	GekkoOPInfo* opinfo;
 	u32 address;
-	u32 branchTo; //if 0, not a branch
-	int branchToIndex; //index of target block
+
+	// -----------------------------
+	// Properties of the instruction
+	// -----------------------------
+
+	// Which registers are possible inputs/outputs. If an output register might not be modified
+	// (e.g. in the case of a load that can exception) or is partially modified, it's listed in
+	// the inputs, too.
 	BitSet32 regsOut;
 	BitSet32 regsIn;
 	BitSet32 fregsIn;
-	s8 fregOut;
-	bool isBranchTarget;
-	bool wantsCR0;
-	bool wantsCR1;
-	bool wantsFPRF;
-	bool wantsCA;
-	bool wantsCAInFlags;
+	BitSet32 fregsOut;
+
+	// Whether the instruction writes to certain flags.
 	bool outputCR0;
 	bool outputCR1;
 	bool outputFPRF;
 	bool outputCA;
+
+	// -----------------------------
+	// Results of block analysis
+	// -----------------------------
+
+	// Whether this instruction needs to maintain particular flags: false if the flag will be
+	// clobbered before being used or block exit.
+	bool wantsFPRF; // floating point result flags
+	bool wantsCA;   // carry flag
+	// This instruction wants the carry flag in the host carry flag to use it as input, e.g. for
+	// instructions such as addex.
+	// TODO: add a similar "keep the carry flag in the host carry flag" feature for ARM? This is currently
+	// only used for x86.
+	bool wantsCAInFlags;
+	// Whether this instruction is the first FPU instruction in the block (for FP exception bailouts).
+	// This includes the case where a forward branch skipped a previous first FPU instruction.
+	bool firstFPUInst;
+	// Whether this instruction can end a block, either by branch or possible exception path.
 	bool canEndBlock;
-	bool skip;  // followed BL-s for example
-	// which registers are still needed after this instruction in this block
+	// Whether this instruction is the target of a forward branch from within the block.
+	bool isBranchTarget;
+	// Whether this instruction should be skipped (not currently used).
+	bool skip;
+
+	// Which registers are still used after this instruction in this block.
+	// If a register isn't used again we store it in order to reclaim the host register it was stored in.
 	BitSet32 fprInUse;
 	BitSet32 gprInUse;
-	// just because a register is in use doesn't mean we actually need or want it in an x86 register.
+
+	// Which registers have values that we can't discard after this instruction, i.e. won't be clobbered
+	// before being used.
+	// We use these to discard values that will be clobbered before a block exit point. This is an "unsafe"
+	// optimization: a mistake here will result in incorrect code.
+	BitSet32 gprNeeded;
+	BitSet32 fprNeeded;
+
+	// Which registers we would prefer to be loaded into host registers if possible.
+	// We use these to choose whether or not to load values into host registers: if we have the option
+	// of using a memory operand now, but the value will be used after this instruction, try to put it
+	// in a register.
+	// Just because a register is in use doesn't mean we actually need or want it in a host register;
+	// hence these aren't identical to gprInUse/fprInUse.
+	// For example, we do double stores from GPRs, so we don't want to load a PowerPC floating point register
+	// into an XMM only to move it again to a GPR afterwards. If we change how double stores work, the way
+	// these are decided upon should be changed too.
+	// TODO: optimization heuristics for ARM, too!
 	BitSet32 gprInReg;
-	// we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
-	// an XMM only to move it again to a GPR afterwards.
-	BitSet32 fprInXmm;
-	// whether an fpr is known to be an actual single-precision value at this point in the block.
+	BitSet32 fprInReg;
+
+	// Knowledge we have about the values in registers (based on where they came from) that allow us to
+	// perform further optimizations.
+	// Whether an fpr is known to be an actual single-precision value at this point in the block.
 	BitSet32 fprIsSingle;
-	// whether an fpr is known to have identical top and bottom halves (e.g. due to a single instruction)
+	// Whether an fpr is known to have identical top and bottom halves (e.g. due to a single instruction)
 	BitSet32 fprIsDuplicated;
-	// whether an fpr is the output of a single-precision arithmetic instruction, i.e. whether we can safely
-	// skip PPC_FP.
+	// Whether an fpr is the output of a single-precision arithmetic instruction, i.e. whether we can safely
+	// skip denormal/sNaN handling in single-precision stores.
 	BitSet32 fprIsStoreSafe;
 };
 
@@ -198,7 +241,6 @@ public:
 		// Similar to complex blocks.
 		// Instead of jumping backwards, this jumps forwards within the block.
 		// Requires JIT support to work.
-		// XXX: NOT COMPLETE
 		OPTION_FORWARD_JUMP = (1 << 3),
 
 		// Reorder compare/Rc instructions next to their associated branches and

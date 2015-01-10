@@ -89,8 +89,6 @@ using namespace PowerPC;
     conversion, movddup on non-paired singles, etc where possible.
   * Support loads/stores directly from xmm registers in jit_util and the backpatcher; this might
     help AMD a lot since gpr/xmm transfers are slower there.
-  * Smarter register allocation in general; maybe learn to drop values once we know they won't be
-    used again before being overwritten?
   * More flexible reordering; there's limits to how far we can go because of exception handling
     and such, but it's currently limited to integer ops only. This can definitely be made better.
 */
@@ -490,6 +488,45 @@ void Jit64::Trace()
 		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
+void Jit64::DoForwardBranches(u32 address)
+{
+	auto src = branch_targets.equal_range(address);
+	auto begin = src.first;
+	auto end = src.second;
+	if (begin == end)
+		return;
+	// First, do everything that needs to go in the main path
+	for (auto it = begin; it != end; ++it)
+	{
+		gpr.PrepareRegCache(it->second.gpr);
+		fpr.PrepareRegCache(it->second.fpr);
+	}
+	std::vector<FixupBranch> jumpsToMainCode;
+	jumpsToMainCode.push_back(J(true));
+	for (auto it = begin; it != end;)
+	{
+		BranchTarget branchData = it->second;
+		if (!(branchData.sourceOp->inst.BO & BO_DONT_DECREMENT_FLAG))
+			SetJumpTarget(branchData.sourceBranchCtr);
+		if (!(branchData.sourceOp->inst.BO & BO_DONT_CHECK_CONDITION))
+			SetJumpTarget(branchData.sourceBranchCond);
+		if (branchData.sourceOp->inst.LK)
+			MOV(32, PPCSTATE_LR, Imm32(branchData.sourceOp->address + 4)); // LR = PC + 4;
+		// revert the downcount amount difference
+		ADD(32, PPCSTATE(downcount), Imm32(js.downcountAmount - branchData.downcountAmount));
+		// we have to assume the worst
+		js.fifoBytesThisBlock = std::max(branchData.fifoBytesThisBlock, js.fifoBytesThisBlock);
+		branchData.gpr.ConvertRegCache(gpr);
+		branchData.fpr.ConvertRegCache(fpr);
+		++it;
+		if (it != end)
+			jumpsToMainCode.push_back(J(true));
+	}
+	for (FixupBranch jump : jumpsToMainCode)
+		SetJumpTarget(jump);
+	branch_targets.erase(begin, end);
+}
+
 void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
@@ -522,6 +559,7 @@ void Jit64::Jit(u32 em_address)
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 			}
 			Trace();
 		}
@@ -547,7 +585,6 @@ void Jit64::Jit(u32 em_address)
 
 const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC)
 {
-	js.firstFPInstructionFound = false;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
@@ -556,6 +593,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	jit->js.numFloatingPointInst = 0;
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
+	js.blockEnd = nextPC;
 
 	const u8 *start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
@@ -605,6 +643,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.skipnext = false;
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
+	branch_targets.clear();
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -613,7 +652,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionNumber = i;
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
-		js.downcountAmount += opinfo->numCycles;
 		js.fastmemLoadStore = NULL;
 		js.fixupExceptionHandler = false;
 		js.revertGprLoad = -1;
@@ -643,6 +681,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_op = &ops[i + 1];
 			js.next_inst_bp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i + 1].address);
 		}
+
+		if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+			DoForwardBranches(js.compilerPC);
+
+		// We have to do this after DoForwardBranches, so the correct cycle count delta gets used.
+		js.downcountAmount += opinfo->numCycles;
 
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
@@ -677,7 +721,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (!ops[i].skip)
 		{
-			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+			if (ops[i].firstFPUInst)
 			{
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, PPCSTATE(msr), Imm32(1 << 13)); // Test FP enabled bit
@@ -694,7 +738,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 
 				SwitchToNearCode();
-				js.firstFPInstructionFound = true;
 			}
 
 			// Add an external exception check if the instruction writes to the FIFO.
@@ -761,7 +804,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			{
 				if (fpr.NumFreeRegisters() < 2)
 					break;
-				if (ops[i].fprInXmm[reg])
+				if (ops[i].fprInReg[reg])
 					fpr.BindToRegister(reg, true, false);
 			}
 
@@ -805,6 +848,16 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 				SwitchToNearCode();
 			}
+
+			// If we have a register that will never be used again, and we know it's going to be clobbered, throw it away.
+			// Make sure to handle the skipped op case right: otherwise this can break in cases where we optimized out an
+			// instruction that writes to a different register from the current output(s), e.g. mftb merging.
+			// Make sure not to put any exception checks or other possible exits after this; this optimization
+			// assumes all possible block exits for this instruction have already happened.
+			for (int j : ~ops[i + js.skipnext].gprNeeded)
+				gpr.DiscardRegContentsIfCached(j);
+			for (int j : ~ops[i + js.skipnext].fprNeeded)
+				fpr.DiscardRegContentsIfCached(j);
 
 			// If we have a register that will never be used again, flush it.
 			for (int j : ~ops[i].gprInUse)
@@ -890,4 +943,5 @@ void Jit64::EnableOptimization()
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 }

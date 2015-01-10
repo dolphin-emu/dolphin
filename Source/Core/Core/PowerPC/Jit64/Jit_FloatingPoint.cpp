@@ -347,7 +347,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 
 	// Merge neighboring fcmp and cror (the primary use of cror).
 	UGeckoInstruction next = js.next_inst;
-	if (next.OPCD == 19 && next.SUBOP10 == 449 && (next.CRBA >> 2) == crf && (next.CRBB >> 2) == crf && (next.CRBD >> 2) == crf)
+	if (MergeAllowedNextInstruction() && next.OPCD == 19 && next.SUBOP10 == 449 && (next.CRBA >> 2) == crf && (next.CRBB >> 2) == crf && (next.CRBD >> 2) == crf)
 	{
 		js.skipnext = true;
 		js.downcountAmount++;

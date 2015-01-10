@@ -45,6 +45,18 @@ private:
 	GPRRegCache gpr;
 	FPURegCache fpr;
 
+	struct BranchTarget
+	{
+		Gen::FixupBranch sourceBranchCond;
+		Gen::FixupBranch sourceBranchCtr;
+		int downcountAmount;
+		int fifoBytesThisBlock;
+		GPRRegCache gpr;
+		FPURegCache fpr;
+		PPCAnalyst::CodeOp* sourceOp;
+	};
+	std::unordered_multimap<u32, BranchTarget> branch_targets;
+
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
 	PPCAnalyst::CodeBuffer code_buffer;
@@ -67,6 +79,8 @@ public:
 	void Shutdown() override;
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+
+	void DoForwardBranches(u32 address);
 
 	// Jit!
 
@@ -115,6 +129,7 @@ public:
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
+	bool MergeAllowedNextInstruction();
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
 	void FinalizeCarry(Gen::CCFlags cond);
 	void FinalizeCarry(bool ca);

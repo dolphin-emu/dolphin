@@ -50,14 +50,19 @@ void Jit64::GenerateOverflow()
 	SetJumpTarget(exit);
 }
 
+bool Jit64::MergeAllowedNextInstruction()
+{
+	// Be careful: a breakpoint kills flags in between instructions
+	return PowerPC::GetState() != PowerPC::CPU_STEPPING && !js.isLastInstruction && !js.next_inst_bp && !js.next_op->isBranchTarget;
+}
+
 void Jit64::FinalizeCarry(CCFlags cond)
 {
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		// Be careful: a breakpoint kills flags in between instructions
-		if (!js.isLastInstruction && js.next_op->wantsCAInFlags && !js.next_inst_bp)
+		if (MergeAllowedNextInstruction() && js.next_op->wantsCAInFlags)
 		{
 			if (cond == CC_C || cond == CC_NC)
 			{
@@ -86,7 +91,7 @@ void Jit64::FinalizeCarry(bool ca)
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		if (!js.isLastInstruction && js.next_op->wantsCAInFlags && !js.next_inst_bp)
+		if (MergeAllowedNextInstruction() && js.next_op->wantsCAInFlags)
 		{
 			if (ca)
 				STC();
@@ -331,6 +336,9 @@ bool Jit64::CheckMergedBranch(int crf)
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
 		return false;
 
+	if (!MergeAllowedNextInstruction())
+		return false;
+
 	const UGeckoInstruction& next = js.next_inst;
 	return (((next.OPCD == 16 /* bcx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
@@ -383,28 +391,48 @@ void Jit64::DoMergedBranchCondition()
 	js.downcountAmount++;
 	js.skipnext = true;
 	int test_bit = 8 >> (js.next_inst.BI & 3);
-	bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE);
+	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
+	bool jumpInBlock = false;
+	u32 destination;
+	if (js.next_inst.OPCD == 16 && cc && forwardJumps && !(test_bit & 1))
+	{
+		if (js.next_inst.AA)
+			destination = SignExt16(js.next_inst.BD << 2);
+		else
+			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
+		jumpInBlock = destination > js.next_compilerPC && destination < js.blockEnd;
+	}
+	bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE) ^ jumpInBlock;
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
-	FixupBranch pDontBranch;
+	FixupBranch pBranch;
 	if (test_bit & 8)
-		pDontBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
+		pBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
 	else if (test_bit & 4)
-		pDontBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
+		pBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
 	else if (test_bit & 2)
-		pDontBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
+		pBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
 	else  // SO bit, do not branch (we don't emulate SO for cmp).
-		pDontBranch = J(true);
+		pBranch = J(true);
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
+	if (jumpInBlock)
+	{
+		BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, gpr, fpr, js.next_op };
+		branch_targets.insert(std::make_pair(destination, branchData));
+	}
+	else
+	{
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-	DoMergedBranch();
+		DoMergedBranch();
 
-	SetJumpTarget(pDontBranch);
+		SetJumpTarget(pBranch);
+	}
 
-	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	if (!cc)
 	{
 		gpr.Flush();
 		fpr.Flush();
@@ -417,6 +445,18 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 	js.downcountAmount++;
 	js.skipnext = true;
 	int test_bit = 8 >> (js.next_inst.BI & 3);
+	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
+	bool jumpInBlock = false;
+	u32 destination;
+	if (js.next_inst.OPCD == 16 && cc && forwardJumps)
+	{
+		if (js.next_inst.AA)
+			destination = SignExt16(js.next_inst.BD << 2);
+		else
+			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
+		jumpInBlock = destination > js.next_compilerPC && destination < js.blockEnd;
+	}
 	bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE);
 
 	gpr.UnlockAll();
@@ -433,9 +473,27 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 
 	if (branch)
 	{
-		gpr.Flush();
-		fpr.Flush();
-		DoMergedBranch();
+		if (jumpInBlock)
+		{
+			FixupBranch pBranch = J(true);
+			BranchTarget branchData = { pBranch, pBranch, js.downcountAmount, js.fifoBytesThisBlock, gpr, fpr, js.next_op };
+			branch_targets.insert(std::make_pair(destination, branchData));
+		}
+		// IMPORTANT: we can't actually leave the block in this case!! A forward branch is still waiting around for
+		// its entry point. This -really- should be better optimized, but I don't think immediate branches are common
+		// anyways. Should we keep this feature around at all, given the possible complexity of interactions?
+		else if (!branch_targets.empty())
+		{
+			gpr.Flush(FLUSH_MAINTAIN_STATE);
+			fpr.Flush(FLUSH_MAINTAIN_STATE);
+			DoMergedBranch();
+		}
+		else
+		{
+			gpr.Flush();
+			fpr.Flush();
+			DoMergedBranch();
+		}
 	}
 	else if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
