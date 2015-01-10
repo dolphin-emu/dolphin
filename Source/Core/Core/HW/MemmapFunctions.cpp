@@ -90,6 +90,24 @@ static u32 EFB_Read(const u32 addr)
 	return var;
 }
 
+static void EFB_Write(u32 data, u32 addr)
+{
+	int x = (addr & 0xfff) >> 2;
+	int y = (addr >> 12) & 0x3ff;
+
+	if (addr & 0x00400000)
+	{
+		g_video_backend->Video_AccessEFB(POKE_Z, x, y, data);
+		DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
+	}
+	else
+	{
+		g_video_backend->Video_AccessEFB(POKE_COLOR, x, y, data);
+		DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", data, x, y);
+	}
+}
+
+
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
 template <XCheckTLBFlag flag, typename T>
@@ -193,20 +211,8 @@ __forceinline void WriteToHardware(u32 em_address, const T data)
 		{
 			if (em_address < 0xcc000000)
 			{
-				int x = (em_address & 0xfff) >> 2;
-				int y = (em_address >> 12) & 0x3ff;
-
-				// TODO figure out a way to send data without falling into the template trap
-				if (em_address & 0x00400000)
-				{
-					g_video_backend->Video_AccessEFB(POKE_Z, x, y, (u32)data);
-					DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", (u32)data, x, y);
-				}
-				else
-				{
-					g_video_backend->Video_AccessEFB(POKE_COLOR, x, y, (u32)data);
-					DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", (u32)data, x, y);
-				}
+				// TODO: This only works correctly for 32-bit writes.
+				EFB_Write((u32)data, em_address);
 				return;
 			}
 			else
@@ -458,6 +464,78 @@ void WriteUnchecked_U8(const u8 var, const u32 address)
 void WriteUnchecked_U32(const u32 var, const u32 address)
 {
 	WriteToHardware<FLAG_NO_EXCEPTION, u32>(address, var);
+}
+
+void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
+{
+	// TODO: It's not completely clear this is the right spot for this code;
+	// what would happen if, for example, the DVD drive tried to write to the EFB?
+	// TODO: This is terribly slow.
+	// TODO: Refactor.
+	// Avatar: The Last Airbender (GC) uses this for videos.
+	if ((memAddr & 0x0F000000) == 0x08000000)
+	{
+		for (u32 i = 0; i < 32 * numBlocks; i+=4)
+		{
+			u32 data = bswap(*(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)));
+			EFB_Write(data, memAddr + i);
+		}
+		return;
+	}
+
+	// No known game uses this; here for completeness.
+	// TODO: Refactor.
+	if ((memAddr & 0x0F000000) == 0x0C000000)
+	{
+		for (u32 i = 0; i < 32 * numBlocks; i += 4)
+		{
+			u32 data = bswap(*(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)));
+			mmio_mapping->Write(memAddr + i, data);
+		}
+		return;
+	}
+
+	const u8* src = Memory::m_pL1Cache + (cacheAddr & 0x3FFFF);
+	u8* dst = Memory::GetPointer(memAddr);
+	if (dst == nullptr)
+		return;
+
+	memcpy(dst, src, 32 * numBlocks);
+}
+
+void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
+{
+	const u8* src = Memory::GetPointer(memAddr);
+	u8* dst = Memory::m_pL1Cache + (cacheAddr & 0x3FFFF);
+
+	// No known game uses this; here for completeness.
+	// TODO: Refactor.
+	if ((memAddr & 0x0F000000) == 0x08000000)
+	{
+		for (u32 i = 0; i < 32 * numBlocks; i += 4)
+		{
+			u32 data = EFB_Read(memAddr + i);
+			*(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)) = bswap(data);
+		}
+		return;
+	}
+
+	// No known game uses this.
+	// TODO: Refactor.
+	if ((memAddr & 0x0F000000) == 0x0C000000)
+	{
+		for (u32 i = 0; i < 32 * numBlocks; i += 4)
+		{
+			u32 data = mmio_mapping->Read<u32>(memAddr + i);
+			*(u32*)(Memory::m_pL1Cache + ((cacheAddr + i) & 0x3FFFF)) = bswap(data);
+		}
+		return;
+	}
+
+	if (src == nullptr)
+		return;
+
+	memcpy(dst, src, 32 * numBlocks);
 }
 
 // *********************************************************************************
