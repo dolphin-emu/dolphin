@@ -91,6 +91,7 @@ public:
 	// Return true on new data
 	virtual bool GetData(u32& _Hi, u32& _Low) override;
 
+	virtual GCPadStatus GetPadStatus();
 	virtual u32 MapPadStatus(const GCPadStatus& pad_status);
 	virtual void HandleButtonCombos(const GCPadStatus& pad_status);
 
