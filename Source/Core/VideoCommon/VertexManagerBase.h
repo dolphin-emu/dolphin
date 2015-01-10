@@ -41,6 +41,8 @@ public:
 
 	static void DoState(PointerWrap& p);
 
+	static void CalculateZSlope(u32 stride);
+
 protected:
 	virtual void vDoState(PointerWrap& p) {  }
 
