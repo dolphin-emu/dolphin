@@ -484,7 +484,7 @@
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
-    <ClCompile Include="HW\WiimoteReal\IOWin.cpp">
+    <ClCompile Include="HW\WiimoteReal\IOhidapi.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
     </ClCompile>
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp">
