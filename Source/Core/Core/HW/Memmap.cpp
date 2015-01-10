@@ -309,6 +309,7 @@ u8* GetPointer(const u32 address)
 	case 0x8:
 		if ((address & 0xfffffff) < REALRAM_SIZE)
 			return m_pRAM + (address & RAM_MASK);
+		break;
 	case 0xc:
 		switch (address >> 24)
 		{
