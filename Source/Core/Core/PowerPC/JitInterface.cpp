@@ -240,18 +240,24 @@ namespace JitInterface
 		case ExceptionType::EXCEPTIONS_FIFO_WRITE:
 			exception_addresses = &jit->js.fifoWriteAddresses;
 			break;
+		case ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE:
+			exception_addresses = &jit->js.pairedQuantizeAddresses;
+			break;
 		}
 
 		if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
 		{
-			int optype = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
-			if (optype == OPTYPE_STORE || optype == OPTYPE_STOREFP || (optype == OPTYPE_STOREPS))
+			if (type == ExceptionType::EXCEPTIONS_FIFO_WRITE)
 			{
-				exception_addresses->insert(PC);
-
-				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
-				jit->GetBlockCache()->InvalidateICache(PC, 4, true);
+				// Check in case the code has been replaced since: do we need to do this?
+				int optype = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+				if (optype != OPTYPE_STORE && optype != OPTYPE_STOREFP && (optype != OPTYPE_STOREPS))
+					return;
 			}
+			exception_addresses->insert(PC);
+
+			// Invalidate the JIT block so that it gets recompiled with the external exception check included.
+			jit->GetBlockCache()->InvalidateICache(PC, 4, true);
 		}
 	}
 
