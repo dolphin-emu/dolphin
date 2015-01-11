@@ -48,7 +48,7 @@ static GekkoOPTemplate primarytable[] =
 	{10, &Jit64::cmpXX},                 //"cmpli",    OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn}},
 	{11, &Jit64::cmpXX},                 //"cmpi",     OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn}},
 	{12, &Jit64::reg_imm},               //"addic",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA}},
-	{13, &Jit64::reg_imm},               //"addic_rc", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA | FL_SET_CR0}},
+	{13, &Jit64::reg_imm},               //"addic_rc", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA | FL_SET_CR_0}},
 	{14, &Jit64::reg_imm},               //"addi",     OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0}},
 	{15, &Jit64::reg_imm},               //"addis",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0}},
 
@@ -60,8 +60,8 @@ static GekkoOPTemplate primarytable[] =
 	{25, &Jit64::reg_imm},               //"oris",     OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
 	{26, &Jit64::reg_imm},               //"xori",     OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
 	{27, &Jit64::reg_imm},               //"xoris",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
-	{28, &Jit64::reg_imm},               //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
-	{29, &Jit64::reg_imm},               //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
+	{28, &Jit64::reg_imm},               //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR_0}},
+	{29, &Jit64::reg_imm},               //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR_0}},
 
 	{32, &Jit64::lXXx},                  //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{33, &Jit64::lXXx},                  //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
@@ -226,8 +226,8 @@ static GekkoOPTemplate table31[] =
 	{790, &Jit64::lXXx},                   //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
-	{150, &Jit64::FallBackToInterpreter},  //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},
-	{20,  &Jit64::FallBackToInterpreter},  //"lwarx",  OPTYPE_LOAD, FL_EVIL | FL_OUT_D | FL_IN_A0B | FL_SET_CR0}},
+	{150, &Jit64::FallBackToInterpreter},  //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR_0}},
+	{20,  &Jit64::FallBackToInterpreter},  //"lwarx",  OPTYPE_LOAD, FL_EVIL | FL_OUT_D | FL_IN_A0B | FL_SET_CR_0}},
 
 	//load string (interpret these)
 	{533, &Jit64::FallBackToInterpreter},  //"lswx",  OPTYPE_LOAD, FL_EVIL | FL_IN_A | FL_OUT_D}},

@@ -9,10 +9,9 @@
 
 enum
 {
-	FL_SET_CR0         = (1<<0), //
-	FL_SET_CR1         = (1<<1), //
-	FL_SET_CRn         = (1<<2), //
-	FL_SET_CRx         = FL_SET_CR0 | FL_SET_CR1 | FL_SET_CRn, //
+	FL_SET_CR_0         = (1<<0),
+	FL_SET_CR_1         = (1<<1),
+	FL_SET_CR_D         = (1<<2),
 	FL_SET_CA          = (1<<3), // carry
 	FL_READ_CA         = (1<<4), // carry
 	FL_RC_BIT          = (1<<5),
@@ -45,14 +44,19 @@ enum
 	FL_IN_FLOAT_B      = (1<<24),
 	FL_IN_FLOAT_C      = (1<<25),
 	FL_IN_FLOAT_S      = (1<<26),
-	FL_IN_FLOAT_D      = (1<<27),
+	FL_IN_FLOAT_D      = FL_IN_FLOAT_S,
 	FL_IN_FLOAT_AB     = FL_IN_FLOAT_A | FL_IN_FLOAT_B,
 	FL_IN_FLOAT_AC     = FL_IN_FLOAT_A | FL_IN_FLOAT_C,
 	FL_IN_FLOAT_ABC    = FL_IN_FLOAT_A | FL_IN_FLOAT_B | FL_IN_FLOAT_C,
-	FL_OUT_FLOAT_D     = (1<<28),
-	FL_OUT_FLOAT_S     = (1<<29),
+	FL_OUT_FLOAT_D     = (1<<27),
 	// Used in the case of double ops (they don't modify the top half of the output)
 	FL_INOUT_FLOAT_D   = FL_IN_FLOAT_D | FL_OUT_FLOAT_D,
+	FL_READ_CRB_BI     = (1<<28),  // branches read the cr bit specified in BI
+	FL_READ_CRB_AB     = (1<<29), // while cr instructions read those in AB
+	FL_READ_CR_S       = (1<<30), // mcrf reads an entire 4-bit CR
+	FL_SET_CRB_D       = (1U<<31), // cr instructions set just a cr bit, not a cr
+	FL_SET_CRx = FL_SET_CR_0 | FL_SET_CR_1 | FL_SET_CR_D | FL_SET_CRB_D,
+	FL_READ_CRx = FL_READ_CRB_BI | FL_READ_CRB_AB | FL_READ_CR_S,
 };
 
 enum
@@ -98,7 +102,7 @@ struct GekkoOPInfo
 {
 	const char *opname;
 	int type;
-	int flags;
+	u32 flags;
 	int numCycles;
 	u64 runCount;
 	int compileCount;

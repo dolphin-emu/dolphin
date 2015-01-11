@@ -32,13 +32,11 @@ struct CodeOp //16B
 	BitSet32 fregsIn;
 	s8 fregOut;
 	bool isBranchTarget;
-	bool wantsCR0;
-	bool wantsCR1;
 	bool wantsFPRF;
 	bool wantsCA;
 	bool wantsCAInFlags;
-	bool outputCR0;
-	bool outputCR1;
+	BitSet8 outputCR;
+	BitSet8 wantsCR;
 	bool outputFPRF;
 	bool outputCA;
 	bool canEndBlock;
