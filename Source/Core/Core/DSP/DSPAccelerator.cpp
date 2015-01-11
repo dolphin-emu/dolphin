@@ -44,7 +44,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 
 	_rSamplePos++;
 
-	// The advanced interpolation (linear, polyphase,...) is done by the UCode,
+	// The advanced interpolation (linear, polyphase,...) is done by the ucode,
 	// so we don't need to bother with it here.
 	return val;
 }
@@ -116,7 +116,7 @@ u16 dsp_read_accelerator()
 	// let's do the "hardware" decode DSP_FORMAT is interesting - the Zelda
 	// ucode seems to indicate that the bottom two bits specify the "read size"
 	// and the address multiplier.  The bits above that may be things like sign
-	// extention and do/do not use ADPCM.  It also remains to be figured out
+	// extension and do/do not use ADPCM.  It also remains to be figured out
 	// whether there's a difference between the usual accelerator "read
 	// address" and 0xd3.
 	switch (g_dsp.ifx_regs[DSP_FORMAT])
@@ -152,7 +152,7 @@ u16 dsp_read_accelerator()
 
 	// TODO: Take GAIN into account
 	// adpcm = 0, pcm8 = 0x100, pcm16 = 0x800
-	// games using pcm8 : Phoenix Wright Ace Attorney (Wiiware), Megaman 9-10 (WiiWare)
+	// games using pcm8 : Phoenix Wright Ace Attorney (WiiWare), Megaman 9-10 (WiiWare)
 	// games using pcm16: GC Sega games, ...
 
 	// Check for loop.

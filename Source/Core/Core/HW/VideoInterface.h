@@ -290,7 +290,7 @@ struct SVIFilterCoefTables
 	UVIFilterCoefTable4 Tables36[4];
 };
 
-// Debug video mode only, probably never used in dolphin...
+// Debug video mode only, probably never used in Dolphin...
 union UVIBorderBlankRegister
 {
 	u32 Hex;

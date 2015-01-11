@@ -353,7 +353,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888dead)
 		{
-			// Send memory dump (dsp dram from someone's cube?)
+			// Send memory dump (DSP dram from someone's cube?)
 			// not really sure why this is important - I guess just to try to keep tests predictable
 			u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
@@ -363,7 +363,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888beef)
 		{
-			// Provide register base to dsp (if using dsp_base.inc, it will dma them to the correct place)
+			// Provide register base to DSP (if using dsp_base.inc, it will dma them to the correct place)
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
@@ -415,7 +415,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0xdcd10003) // DSP_DONE
 		{
-			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell dsp to halt (calls end_of_test)
+			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell DSP to halt (calls end_of_test)
 			while (real_dsp.CheckMailTo());
 
 			DCInvalidateRange(SecParams_out, sizeof(SecParams_out));

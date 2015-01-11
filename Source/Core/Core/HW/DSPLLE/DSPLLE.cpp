@@ -337,7 +337,7 @@ void DSPLLE::DSP_Update(int cycles)
 	}
 	else
 	{
-		// Wait for dsp thread to complete its cycle. Note: this logic should be thought through.
+		// Wait for DSP thread to complete its cycle. Note: this logic should be thought through.
 		ppcEvent.Wait();
 		{
 		std::lock_guard<std::mutex> lk(m_csDSPCycleCountActive);

@@ -424,7 +424,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					u32 flags = Memory::Read_U32(BufferIn2 + 0x04);
 					u32 has_destaddr = Memory::Read_U32(BufferIn2 + 0x08);
 
-                                        // Not a string, windows requires a const char* for sendto
+                                        // Not a string, Windows requires a const char* for sendto
 					const char* data = (const char*)Memory::GetPointer(BufferIn);
 
 					// Act as non blocking when SO_MSG_NONBLOCK is specified
@@ -459,7 +459,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 				case IOCTLV_SO_RECVFROM:
 				{
 					u32 flags = Memory::Read_U32(BufferIn + 0x04);
-					// Not a string, windows requires a char* for recvfrom
+					// Not a string, Windows requires a char* for recvfrom
 					char* data = (char*)Memory::GetPointer(BufferOut);
 					int data_len = BufferOutSize;
 

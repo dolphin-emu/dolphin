@@ -901,7 +901,7 @@ bool RunCode(const ARCode &arcode)
 
 			default:
 				LogInfo("ZCode: Unknown");
-				PanicAlertT("Zero code unknown to dolphin: %08x", zcode);
+				PanicAlertT("Zero code unknown to Dolphin: %08x", zcode);
 				return false;
 				break;
 			}

@@ -630,7 +630,7 @@ void Stop()
 			wiimote->EmuStop();
 }
 
-// called when the dolphin app exits
+// called when the Dolphin app exits
 void Shutdown()
 {
 	g_wiimote_scanner.StopScanning();

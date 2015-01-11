@@ -375,7 +375,7 @@ static bool batchdecrypt(u32 *codes, u16 size)
 	getbitstring(tmparray,tmparray2+5,2);  // Region
 
 	// Grab gameid and region from the last decrypted code
-	// TODO: Maybe check this against dolphin's GameID? - "code is for wrong game" type msg
+	// TODO: Maybe check this against Dolphin's GameID? - "code is for wrong game" type msg
 	//gameid = tmparray2[1];
 	//region = tmparray2[5];
 

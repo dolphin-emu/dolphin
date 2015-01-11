@@ -140,7 +140,7 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 #ifdef _WIN32
 	set_control(m_buttons, 5, "RETURN"); // Start
 #else
-	// osx/linux
+	// OS X/Linux
 	set_control(m_buttons, 5, "Return"); // Start
 #endif
 

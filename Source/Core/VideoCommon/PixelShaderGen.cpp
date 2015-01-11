@@ -924,7 +924,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 	};
 
 	// Regular TEV stage: (d + bias + lerp(a,b,c)) * scale
-	// The GC/Wii GPU uses a very sophisticated algorithm for scale-lerping:
+	// The GameCube/Wii GPU uses a very sophisticated algorithm for scale-lerping:
 	// - c is scaled from 0..255 to 0..256, which allows dividing the result by 256 instead of 255
 	// - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
 	// - a rounding bias is added before dividing by 256

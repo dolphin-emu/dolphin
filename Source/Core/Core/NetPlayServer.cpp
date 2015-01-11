@@ -133,7 +133,7 @@ unsigned int NetPlayServer::OnConnect(std::unique_ptr<sf::TcpSocket>& socket)
 
 	std::string npver;
 	rpac >> npver;
-	// dolphin netplay version
+	// Dolphin netplay version
 	if (npver != NETPLAY_VERSION)
 		return CON_ERR_VERSION_MISMATCH;
 

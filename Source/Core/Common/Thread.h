@@ -32,7 +32,7 @@ int CurrentThreadId();
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask);
 void SetCurrentThreadAffinity(u32 mask);
 
-// TODO: doesn't work on windows with (count > 2)
+// TODO: doesn't work on Windows with (count > 2)
 class Barrier
 {
 public:
