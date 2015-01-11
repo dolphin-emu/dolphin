@@ -76,7 +76,9 @@ enum ARM64Reg
 };
 
 inline bool Is64Bit(ARM64Reg reg) { return reg & 0x20; }
-inline bool Is128Bit(ARM64Reg reg) { return reg & 0xC0; }
+inline bool IsSingle(ARM64Reg reg) { return reg & 0x40; }
+inline bool IsDouble(ARM64Reg reg) { return reg & 0x80; }
+inline bool IsQuad(ARM64Reg reg) { return (reg & 0xC0) == 0xC0; }
 inline bool IsVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
 inline ARM64Reg DecodeReg(ARM64Reg reg) { return (ARM64Reg)(reg & 0x1F); }
 inline ARM64Reg EncodeRegTo64(ARM64Reg reg) { return (ARM64Reg)(reg | 0x20); }
@@ -238,9 +240,17 @@ public:
 		m_shifttype = shift_type;
 		m_type = TYPE_SHIFTEDREG;
 		if (Is64Bit(Rd))
+		{
 			m_width = WIDTH_64BIT;
+			if (shift == 64)
+				m_shift = 0;
+		}
 		else
+		{
 			m_width = WIDTH_32BIT;
+			if (shift == 32)
+				m_shift = 0;
+		}
 	}
 	TypeSpecifier GetType() const
 	{
@@ -270,6 +280,8 @@ public:
 
 class ARM64XEmitter
 {
+	friend class ARM64FloatEmitter;
+
 private:
 	u8* m_code;
 	u8* m_startcode;
@@ -294,7 +306,7 @@ private:
 	void EncodeLoadStoreExcInst(u32 instenc, ARM64Reg Rs, ARM64Reg Rt2, ARM64Reg Rn, ARM64Reg Rt);
 	void EncodeLoadStorePairedInst(u32 op, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, u32 imm);
 	void EncodeLoadStoreIndexedInst(u32 op, u32 op2, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
-	void EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm, u8 size);
 	void EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount pos);
 	void EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend);
@@ -452,6 +464,8 @@ public:
 	void UMADDL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void UMSUBL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void UMULH(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
+	void MUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void MNEG(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
 	// Logical (shifted register)
 	void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
@@ -563,6 +577,96 @@ public:
 	// ABI related
 	void ABI_PushRegisters(BitSet32 registers);
 	void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
+};
+
+class ARM64FloatEmitter
+{
+public:
+	ARM64FloatEmitter(ARM64XEmitter* emit) : m_emit(emit) {}
+
+	void LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void STR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+
+	// Loadstore single structure
+	void LD1R(u8 size, ARM64Reg Rt, ARM64Reg Rn);
+
+	// Scalar - 2 Source
+	void FMUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+
+	// Vector
+	void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void BSL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
+	void FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FCVTL(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FDIV(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FNEG(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FRSQRTE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FSUB(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void NOT(ARM64Reg Rd, ARM64Reg Rn);
+	void ORR(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void REV16(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void REV32(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void REV64(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+
+	// Move
+	void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void INS(u8 size, ARM64Reg Rd, u8 index, ARM64Reg Rn);
+	void INS(u8 size, ARM64Reg Rd, u8 index1, ARM64Reg Rn, u8 index2);
+
+	// One source
+	void FCVT(u8 size_to, u8 size_from, ARM64Reg Rd, ARM64Reg Rn);
+
+	// Conversion between float and integer
+	void FMOV(u8 size, bool top, ARM64Reg Rd, ARM64Reg Rn);
+
+	// Float comparison
+	void FCMP(ARM64Reg Rn, ARM64Reg Rm);
+	void FCMP(ARM64Reg Rn);
+	void FCMPE(ARM64Reg Rn, ARM64Reg Rm);
+	void FCMPE(ARM64Reg Rn);
+	void FCMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FCMEQ(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FCMGE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FCMGT(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCMLE(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCMLT(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+
+	// Conditional select
+	void FCSEL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, CCFlags cond);
+
+	// Permute
+	void UZP1(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void TRN1(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void ZIP1(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void UZP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void TRN2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void ZIP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+
+	// ABI related
+	void ABI_PushRegisters(BitSet32 registers);
+	void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
+
+private:
+	ARM64XEmitter* m_emit;
+	inline void Write32(u32 value) { m_emit->Write32(value); }
+
+	// Emitting functions
+	void EmitLoadStoreImmediate(u8 size, u32 opc, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void Emit2Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void EmitThreeSame(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void EmitCopy(bool Q, u32 op, u32 imm5, u32 imm4, ARM64Reg Rd, ARM64Reg Rn);
+	void Emit2RegMisc(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+	void EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt, ARM64Reg Rn);
+	void Emit1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+	void EmitConversion(bool sf, bool S, u32 type, u32 rmode, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+	void EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Reg Rn, ARM64Reg Rm);
+	void EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 };
 
 class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>
