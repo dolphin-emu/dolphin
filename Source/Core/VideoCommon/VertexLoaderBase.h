@@ -72,7 +72,7 @@ class VertexLoaderBase
 {
 public:
 	static VertexLoaderBase* CreateVertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
-	virtual ~VertexLoaderBase() {};
+	virtual ~VertexLoaderBase() {}
 
 	virtual int RunVertices(int primitive, int count, DataReader src, DataReader dst) = 0;
 
