@@ -560,7 +560,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3D11_RECT source = CD3D11_RECT(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 
 	ID3D11PixelShader* pixel_shader;
-	switch (convtype) 
+	switch (convtype)
 	{
 		case 0:
 			pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6(true);
