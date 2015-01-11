@@ -219,6 +219,11 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	const GekkoOPInfo *b_info = b.opinfo;
 	int a_flags = a_info->flags;
 	int b_flags = b_info->flags;
+
+	// can't reorder around breakpoints
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+	    (PowerPC::breakpoints.IsAddressBreakPoint(a.address) || PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+		return false;
 	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
 		return false;
 	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
@@ -462,7 +467,8 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 	// Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
 	// picky about this, but cror seems to almost solely be used for this purpose in real code.
 	// Additionally, the other boolean ops seem to almost never be used.
-	ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
+	if (HasOption(OPTION_CROR_MERGE))
+		ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
 	// For carry, bubble instructions *towards* each other; one direction often isn't enough
 	// to get pairs like addc/adde next to each other.
 	if (HasOption(OPTION_CARRY_MERGE))

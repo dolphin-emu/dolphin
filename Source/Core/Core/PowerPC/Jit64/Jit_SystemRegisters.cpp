@@ -282,38 +282,38 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		ADD(64, R(RAX), R(RDX));
 		MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
 
-		// Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
-		// if we can.
-		u32 nextIndex = (js.next_inst.SPRU << 5) | (js.next_inst.SPRL & 0x1F);
-		// Be careful; the actual opcode is for mftb (371), not mfspr (339)
-		int n = js.next_inst.RD;
-		if (js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) &&
-			PowerPC::GetState() != PowerPC::CPU_STEPPING && n != d)
+		if (MergeAllowedNextInstructions(1))
 		{
-			js.downcountAmount++;
-			js.skipnext = true;
-			gpr.Lock(d, n);
-			gpr.BindToRegister(d, false);
-			gpr.BindToRegister(n, false);
-			if (iIndex == SPR_TL)
-				MOV(32, gpr.R(d), R(RAX));
-			if (nextIndex == SPR_TL)
-				MOV(32, gpr.R(n), R(RAX));
-			SHR(64, R(RAX), Imm8(32));
-			if (iIndex == SPR_TU)
-				MOV(32, gpr.R(d), R(RAX));
-			if (nextIndex == SPR_TU)
-				MOV(32, gpr.R(n), R(RAX));
-		}
-		else
-		{
-			gpr.Lock(d);
-			gpr.BindToRegister(d, false);
-			if (iIndex == SPR_TU)
+			const UGeckoInstruction& next = js.op[1].inst;
+			// Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
+			// if we can.
+			u32 nextIndex = (next.SPRU << 5) | (next.SPRL & 0x1F);
+			// Be careful; the actual opcode is for mftb (371), not mfspr (339)
+			int n = next.RD;
+			if (next.OPCD == 31 && next.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) && n != d)
+			{
+				js.downcountAmount++;
+				js.skipInstructions = 1;
+				gpr.Lock(d, n);
+				gpr.BindToRegister(d, false);
+				gpr.BindToRegister(n, false);
+				if (iIndex == SPR_TL)
+					MOV(32, gpr.R(d), R(RAX));
+				if (nextIndex == SPR_TL)
+					MOV(32, gpr.R(n), R(RAX));
 				SHR(64, R(RAX), Imm8(32));
-			MOV(32, gpr.R(d), R(RAX));
+				if (iIndex == SPR_TU)
+					MOV(32, gpr.R(d), R(RAX));
+				if (nextIndex == SPR_TU)
+					MOV(32, gpr.R(n), R(RAX));
+				break;
+			}
 		}
-		gpr.UnlockAllX();
+		gpr.Lock(d);
+		gpr.BindToRegister(d, false);
+		if (iIndex == SPR_TU)
+			SHR(64, R(RAX), Imm8(32));
+		MOV(32, gpr.R(d), R(RAX));
 		break;
 	}
 	case SPR_XER:
@@ -341,6 +341,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		MOV(32, gpr.R(d), PPCSTATE(spr[iIndex]));
 		break;
 	}
+	gpr.UnlockAllX();
 	gpr.UnlockAll();
 }
 
