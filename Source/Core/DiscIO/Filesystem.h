@@ -32,8 +32,7 @@ struct SFileInfo
 		m_FileSize(filesize)
 	{ }
 
-	SFileInfo (SFileInfo const&) = delete;
-	SFileInfo (SFileInfo&&) = default;
+	SFileInfo (SFileInfo const&) = default;
 	SFileInfo () = default;
 };
 
