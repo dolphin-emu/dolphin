@@ -616,7 +616,7 @@ enum TLBLookupResult
 
 static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32 *paddr)
 {
-	int tag = vpa >> HW_PAGE_INDEX_SHIFT;
+	u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
 	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
 	if (tlbe->tag[0] == tag)
 	{
