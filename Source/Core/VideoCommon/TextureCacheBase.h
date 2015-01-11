@@ -25,8 +25,19 @@ public:
 		TCET_EC_DYNAMIC, // EFB copy which sits in RAM and needs to be decoded before being used
 	};
 
+	struct TCacheEntryConfig
+	{
+		TCacheEntryConfig() : width(0), height(0), levels(1), layers(1), rendertarget(false) {}
+
+		u32 width, height;
+		u32 levels, layers;
+		bool rendertarget;
+	};
+
 	struct TCacheEntryBase
 	{
+		const TCacheEntryConfig config;
+
 		// common members
 		u32 addr;
 		u32 size_in_bytes;
@@ -35,30 +46,23 @@ public:
 
 		enum TexCacheEntryType type;
 
-		unsigned int tex_levels;
-		unsigned int num_layers;
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
-		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
 
 		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
 		int frameCount;
 
 
-		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _tex_levels, unsigned int _num_layers)
+		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
 			addr = _addr;
 			size_in_bytes = _size;
 			format = _format;
-			tex_levels = _tex_levels;
-			num_layers = _num_layers;
 		}
 
-		void SetDimensions(unsigned int _native_width, unsigned int _native_height, unsigned int _virtual_width, unsigned int _virtual_height)
+		void SetDimensions(unsigned int _native_width, unsigned int _native_height)
 		{
 			native_width = _native_width;
 			native_height = _native_height;
-			virtual_width = _virtual_width;
-			virtual_height = _virtual_height;
 		}
 
 		void SetHashes(u64 _hash)
@@ -66,7 +70,7 @@ public:
 			hash = _hash;
 		}
 
-
+		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
 
 		virtual void Bind(unsigned int stage) = 0;
@@ -100,7 +104,7 @@ public:
 
 	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
 		unsigned int tex_levels, PC_TexFormat pcfmt) = 0;
-	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) = 0;
+	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers) = 0;
 
 	virtual void CompileShaders() = 0; // currently only implemented by OGL
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
@@ -121,7 +125,7 @@ private:
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 
-	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height);
+	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height, unsigned int layers);
 	static void FreeRenderTarget(TCacheEntryBase* entry);
 
 	typedef std::map<u32, TCacheEntryBase*> TexCache;

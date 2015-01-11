@@ -13,6 +13,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/Debugger.h"
+#include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
@@ -383,7 +384,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 		// 2. b) For normal textures, all texture parameters need to match
 		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
-			entry->tex_levels >= tex_levels && entry->native_width == nativeW && entry->native_height == nativeH)
+			entry->config.levels >= tex_levels && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
 			return ReturnEntry(stage, entry);
 		}
@@ -394,14 +395,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
 		if (((entry->type == TCET_NORMAL &&
-		     width == entry->virtual_width &&
-		     height == entry->virtual_height &&
+		     width == entry->config.width &&
+		     height == entry->config.height &&
 		     full_format == entry->format &&
-		     entry->tex_levels >= tex_levels) ||
+		     entry->config.levels >= tex_levels) ||
 		    (entry->type == TCET_EC_DYNAMIC &&
 		     entry->native_width == width &&
 		     entry->native_height == height)) &&
-		     entry->num_layers == 1)
+		     entry->config.layers == 1)
 		{
 			// reuse the texture
 		}
@@ -470,23 +471,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	if (nullptr == entry)
 	{
 		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, texLevels, pcfmt);
-
-		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
-		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
-		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
-
-		// TODO: This is the wrong value. We should be storing the number of levels our actual texture has.
-		// But that will currently make the above "existing entry" tests fail as "texLevels" is not calculated until after.
-		// Currently, we might try to reuse a texture which appears to have more levels than actual, maybe..
-		entry->tex_levels = tex_levels;
-		entry->num_layers = 1;
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
 
-	entry->SetGeneralParameters(address, texture_size, full_format, entry->tex_levels, entry->num_layers);
-	entry->SetDimensions(nativeW, nativeH, width, height);
+	entry->SetGeneralParameters(address, texture_size, full_format);
+	entry->SetDimensions(nativeW, nativeH);
 	entry->hash = tex_hash;
 
 	// load texture
@@ -854,12 +845,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h && entry->num_layers == efb_layers)
+		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h && entry->config.layers == efb_layers)
 		{
 			scaled_tex_w = tex_w;
 			scaled_tex_h = tex_h;
 		}
-		else if (!(entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h && entry->num_layers == efb_layers))
+		else if (!(entry->type == TCET_EC_VRAM && entry->config.width == scaled_tex_w && entry->config.height == scaled_tex_h && entry->config.layers == efb_layers))
 		{
 			if (entry->type == TCET_EC_VRAM)
 			{
@@ -879,11 +870,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	if (nullptr == entry)
 	{
 		// create the texture
-		textures[dstAddr] = entry = AllocateRenderTarget(scaled_tex_w, scaled_tex_h);
+		textures[dstAddr] = entry = AllocateRenderTarget(scaled_tex_w, scaled_tex_h, FramebufferManagerBase::GetEFBLayers());
 
 		// TODO: Using the wrong dstFormat, dumb...
-		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 1, efb_layers);
-		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
+		entry->SetGeneralParameters(dstAddr, 0, dstFormat);
+		entry->SetDimensions(tex_w, tex_h);
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
 	}
@@ -893,13 +884,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::AllocateRenderTarget(unsigned int width, unsigned int height)
+TextureCache::TCacheEntryBase* TextureCache::AllocateRenderTarget(unsigned int width, unsigned int height, unsigned int layers)
 {
 	for (size_t i = 0; i < render_target_pool.size(); ++i)
 	{
 		auto rt = render_target_pool[i];
 
-		if (rt->virtual_width != width || rt->virtual_height != height)
+		if (rt->config.width != width || rt->config.height != height || rt->config.layers != layers)
 			continue;
 
 		render_target_pool[i] = render_target_pool.back();
@@ -908,7 +899,7 @@ TextureCache::TCacheEntryBase* TextureCache::AllocateRenderTarget(unsigned int w
 		return rt;
 	}
 
-	return g_texture_cache->CreateRenderTargetTexture(width, height);
+	return g_texture_cache->CreateRenderTargetTexture(width, height, layers);
 }
 
 void TextureCache::FreeRenderTarget(TCacheEntryBase* entry)
