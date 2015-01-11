@@ -466,6 +466,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	const bool use_native_mips = use_mipmaps && !using_custom_lods && (width == nativeW && height == nativeH);
 	texLevels = (use_native_mips || using_custom_lods) ? texLevels : 1; // TODO: Should be forced to 1 for non-pow2 textures (e.g. efb copies with automatically adjusted IR)
 
+	if (entry && entry->config.levels != texLevels)
+	{
+		// delete the texture and make a new one
+		delete entry;
+		entry = nullptr;
+	}
+
 	// create the entry/texture
 	if (nullptr == entry)
 	{
