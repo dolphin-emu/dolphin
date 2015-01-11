@@ -39,6 +39,28 @@ void JitArm64::ComputeRC(u32 imm, int crf)
 	gpr.Unlock(WA);
 }
 
+void JitArm64::ComputeCarry(bool Carry)
+{
+	if (Carry)
+	{
+		ARM64Reg WA = gpr.GetReg();
+		MOVI2R(WA, 1);
+		STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		gpr.Unlock(WA);
+		return;
+	}
+
+	STRB(INDEX_UNSIGNED, WSP, X29, PPCSTATE_OFF(xer_ca));
+}
+
+void JitArm64::ComputeCarry()
+{
+	ARM64Reg WA = gpr.GetReg();
+	CSINC(WA, WSP, WSP, CC_CC);
+	STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+	gpr.Unlock(WA);
+}
+
 // Following static functions are used in conjunction with reg_imm
 static u32 Add(u32 a, u32 b)
 {
@@ -245,6 +267,29 @@ void JitArm64::boolX(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::addx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		s32 i = (s32)gpr.GetImm(a), j = (s32)gpr.GetImm(b);
+		gpr.SetImmediate(d, i + j);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		ADD(gpr.R(d), gpr.R(a), gpr.R(b));
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
 void JitArm64::extsXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -415,3 +460,237 @@ void JitArm64::cmpli(UGeckoInstruction inst)
 	FALLBACK_IF(true);
 }
 
+void JitArm64::rlwinmx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	u32 mask = Helper_Mask(inst.MB,inst.ME);
+	if (gpr.IsImm(inst.RS))
+	{
+		gpr.SetImmediate(inst.RA, _rotl(gpr.GetImm(inst.RS), inst.SH) & mask);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(inst.RA), 0);
+		return;
+	}
+
+	gpr.BindToRegister(inst.RA, inst.RA == inst.RS);
+
+	ARM64Reg WA = gpr.GetReg();
+	ArithOption Shift(gpr.R(inst.RS), ST_ROR, 32 - inst.SH);
+	MOVI2R(WA, mask);
+	AND(gpr.R(inst.RA), WA, gpr.R(inst.RS), Shift);
+	gpr.Unlock(WA);
+
+	if (inst.Rc)
+		ComputeRC(gpr.R(inst.RA), 0);
+}
+
+void JitArm64::srawix(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA;
+	int s = inst.RS;
+	int amount = inst.SH;
+
+	if (gpr.IsImm(s))
+	{
+		s32 imm = (s32)gpr.GetImm(s);
+		gpr.SetImmediate(a, imm >> amount);
+
+		if (amount != 0 && (imm < 0) && (imm << (32 - amount)))
+			ComputeCarry(true);
+		else
+			ComputeCarry(false);
+	}
+	else if (amount != 0)
+	{
+		gpr.BindToRegister(a, a == s);
+		ARM64Reg RA = gpr.R(a);
+		ARM64Reg RS = gpr.R(s);
+		ARM64Reg WA = gpr.GetReg();
+
+		ORR(WA, WSP, RS, ArithOption(RS, ST_LSL, 32 - amount));
+		ORR(RA, WSP, RS, ArithOption(RS, ST_ASR, amount));
+		if (inst.Rc)
+			ComputeRC(RA, 0);
+
+		ANDS(WSP, WA, RA, ArithOption(RA, ST_LSL, 0));
+		CSINC(WA, WSP, WSP, CC_EQ);
+		STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		gpr.Unlock(WA);
+	}
+	else
+	{
+		gpr.BindToRegister(a, a == s);
+		ARM64Reg RA = gpr.R(a);
+		ARM64Reg RS = gpr.R(s);
+		MOV(RA, RS);
+		STRB(INDEX_UNSIGNED, WSP, X29, PPCSTATE_OFF(xer_ca));
+	}
+}
+
+void JitArm64::addic(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, d = inst.RD;
+	bool rc = inst.OPCD == 13;
+	s32 simm = inst.SIMM_16;
+	u32 imm = (u32)simm;
+
+	if (gpr.IsImm(a))
+	{
+
+		u32 i = gpr.GetImm(a);
+		gpr.SetImmediate(d, i + imm);
+
+		bool has_carry = Interpreter::Helper_Carry(i, imm);
+		ComputeCarry(has_carry);
+		if (rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a);
+		if (imm < 4096)
+		{
+			ADDS(gpr.R(d), gpr.R(a), imm);
+		}
+		else if (simm > -4096 && simm < 0)
+		{
+			SUBS(gpr.R(d), gpr.R(a), std::abs(simm));
+		}
+		else
+		{
+			ARM64Reg WA = gpr.GetReg();
+			MOVI2R(WA, imm);
+			ADDS(gpr.R(d), gpr.R(a), WA);
+			gpr.Unlock(WA);
+		}
+
+		ComputeCarry();
+		if (rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
+void JitArm64::mulli(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, d = inst.RD;
+
+	if (gpr.IsImm(a))
+	{
+		s32 i = (s32)gpr.GetImm(a);
+		gpr.SetImmediate(d, i * inst.SIMM_16);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a);
+		ARM64Reg WA = gpr.GetReg();
+		MOVI2R(WA, (u32)(s32)inst.SIMM_16);
+		MUL(gpr.R(d), gpr.R(a), WA);
+		gpr.Unlock(WA);
+	}
+}
+
+void JitArm64::mullwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		s32 i = (s32)gpr.GetImm(a), j = (s32)gpr.GetImm(b);
+		gpr.SetImmediate(d, i * j);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+		MUL(gpr.R(d), gpr.R(a), gpr.R(b));
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
+void JitArm64::addzex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, d = inst.RD;
+
+	gpr.BindToRegister(d, d == a);
+	ARM64Reg WA = gpr.GetReg();
+	LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+	CMP(WA, 1);
+	CSINC(gpr.R(d), gpr.R(a), gpr.R(a), CC_NEQ);
+	CMP(gpr.R(d), 0);
+	gpr.Unlock(WA);
+	ComputeCarry();
+}
+
+void JitArm64::subfx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+		gpr.SetImmediate(d, j - i);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		SUB(gpr.R(d), gpr.R(b), gpr.R(a));
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
+void JitArm64::addcx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	FALLBACK_IF(inst.OE);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+		gpr.SetImmediate(d, i * j);
+
+		bool has_carry = Interpreter::Helper_Carry(i, j);
+		ComputeCarry(has_carry);
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+		ADDS(gpr.R(d), gpr.R(a), gpr.R(b));
+
+		ComputeCarry();
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}

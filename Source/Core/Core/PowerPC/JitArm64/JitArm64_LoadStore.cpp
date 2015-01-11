@@ -41,6 +41,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 		off_reg = gpr.R(offsetReg);
 
 	BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
 	BitSet32 ignore_mask(0);
 	regs_in_use[W0] = 0;
 	regs_in_use[W30] = 0;
@@ -114,25 +115,24 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 	if (is_immediate)
 		MOVI2R(XA, imm_addr);
 
+	if (update)
+		MOV(gpr.R(addr), addr_reg);
+
 	if (is_immediate && Memory::IsRAMAddress(imm_addr))
 	{
 		EmitBackpatchRoutine(this, flags, true, false, dest_reg, XA);
-
-		if (update)
-			MOVI2R(up_reg, imm_addr);
 	}
 	else
 	{
-		if (update)
-			MOV(up_reg, addr_reg);
-
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
+		m_float_emit.ABI_PushRegisters(fprs_in_use);
 		EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			dest_reg, XA);
+		m_float_emit.ABI_PopRegisters(fprs_in_use);
 		ABI_PopRegisters(regs_in_use, ignore_mask);
 	}
 
@@ -155,6 +155,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 		reg_dest = gpr.R(dest);
 
 	BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
 	regs_in_use[W0] = 0;
 	regs_in_use[W1] = 0;
 	regs_in_use[W30] = 0;
@@ -237,10 +238,12 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
+		m_float_emit.ABI_PushRegisters(fprs_in_use);
 		EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			RS, XA);
+		m_float_emit.ABI_PopRegisters(fprs_in_use);
 		ABI_PopRegisters(regs_in_use);
 	}
 
@@ -320,8 +323,6 @@ void JitArm64::lXX(UGeckoInstruction inst)
 			        BackPatchInfo::FLAG_SIZE_16;
 		break;
 	}
-
-	FALLBACK_IF(update);
 
 	SafeLoadToReg(d, update ? a : (a ? a : -1), offsetReg, flags, offset, update);
 
