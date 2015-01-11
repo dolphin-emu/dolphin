@@ -204,7 +204,6 @@ public:
 		// Similar to complex blocks.
 		// Instead of jumping backwards, this jumps forwards within the block.
 		// Requires JIT support to work.
-		// XXX: NOT COMPLETE
 		OPTION_FORWARD_JUMP = (1 << 3),
 
 		// Reorder compare/Rc instructions next to their associated branches and
@@ -214,6 +213,9 @@ public:
 		// Reorder carry instructions next to their associated branches and pass
 		// carry flags in the x86 flags between them, instead of in XER.
 		OPTION_CARRY_MERGE = (1 << 5),
+
+		// Reorder cror instructions next to their associated fcmp.
+		OPTION_CROR_MERGE =  (1 << 6),
 	};
 
 

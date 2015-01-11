@@ -223,7 +223,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.downcountAmount = 0;
-	js.skipnext = false;
+	js.skipInstructions = 0;
 	js.curBlock = b;
 
 	u32 nextPC = em_address;
@@ -272,13 +272,6 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		{
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
-			js.next_inst = 0;
-		}
-		else
-		{
-			// help peephole optimizations
-			js.next_inst = ops[i + 1].inst;
-			js.next_compilerPC = ops[i + 1].address;
 		}
 
 		if (!ops[i].skip)

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <queue>
 #include <string>
+#include <unordered_set>
 
 #include "Common/StringUtil.h"
 
@@ -219,6 +220,14 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	const GekkoOPInfo *b_info = b.opinfo;
 	int a_flags = a_info->flags;
 	int b_flags = b_info->flags;
+
+	// can't reorder around breakpoints
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+	    (PowerPC::breakpoints.IsAddressBreakPoint(a.address) || PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+		return false;
+	// can't reorder around branch targets, for now
+	if (a.isBranchTarget || b.isBranchTarget)
+		return false;
 	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
 		return false;
 	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
@@ -462,7 +471,8 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 	// Reorder cror instructions upwards (e.g. towards an fcmp). Technically we should be more
 	// picky about this, but cror seems to almost solely be used for this purpose in real code.
 	// Additionally, the other boolean ops seem to almost never be used.
-	ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
+	if (HasOption(OPTION_CROR_MERGE))
+		ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
 	// For carry, bubble instructions *towards* each other; one direction often isn't enough
 	// to get pairs like addc/adde next to each other.
 	if (HasOption(OPTION_CARRY_MERGE))
@@ -665,6 +675,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	u32 numFollows = 0;
 	u32 num_inst = 0;
 
+	std::unordered_set<u32> branchTargets;
+
 	for (u32 i = 0; i < blockSize; ++i)
 	{
 		UGeckoInstruction inst = JitInterface::ReadOpcodeJIT(address);
@@ -695,6 +707,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			code[i].branchTo = -1;
 			code[i].branchToIndex = -1;
 			code[i].skip = false;
+			code[i].isBranchTarget = HasOption(OPTION_FORWARD_JUMP) && branchTargets.count(address);
 			block->m_stats->numCycles += opinfo->numCycles;
 
 			SetInstructionStats(block, &code[i], opinfo, i);
@@ -758,6 +771,15 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 				{
 					// bcx with conditional branch
 					conditional_continue = true;
+					if (HasOption(OPTION_FORWARD_JUMP))
+					{
+						if (inst.AA)
+							destination = SignExt16(inst.BD << 2);
+						else
+							destination = address + SignExt16(inst.BD << 2);
+						if (destination > address)
+							branchTargets.insert(destination);
+					}
 				}
 				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
 				        ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
@@ -825,6 +847,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Scan for flag dependencies; assume the next block (or any branch that can leave the block)
 	// wants flags, to be safe.
+	// TODO: optimize for forward jumps, instead of assuming all jumps are block exits.
 	bool wantsCR0 = true, wantsCR1 = true, wantsFPRF = true, wantsCA = true;
 	BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
@@ -869,6 +892,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	BitSet8 gqrUsed, gqrModified;
 	for (u32 i = 0; i < block->m_num_instructions; i++)
 	{
+		// TODO: actually follow forward branches and calculate the real values instead
+		// of just giving up and assuming the worst.
+		if (code[i].isBranchTarget)
+			fprIsSingle = fprIsDuplicated = fprIsStoreSafe = BitSet32(0);
 		code[i].fprIsSingle = fprIsSingle;
 		code[i].fprIsDuplicated = fprIsDuplicated;
 		code[i].fprIsStoreSafe = fprIsStoreSafe;

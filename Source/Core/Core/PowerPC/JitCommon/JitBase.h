@@ -65,9 +65,8 @@ protected:
 	struct JitState
 	{
 		u32 compilerPC;
-		u32 next_compilerPC;
 		u32 blockStart;
-		UGeckoInstruction next_inst;  // for easy peephole opt.
+		u32 blockEnd;
 		int instructionNumber;
 		int instructionsLeft;
 		int downcountAmount;
@@ -88,10 +87,9 @@ protected:
 		bool firstFPInstructionFound;
 		bool isLastInstruction;
 		bool memcheck;
-		bool skipnext;
+		int skipInstructions;
 		bool carryFlagSet;
 		bool carryFlagInverted;
-		bool next_inst_bp;
 
 		int fifoBytesThisBlock;
 
@@ -99,7 +97,6 @@ protected:
 		PPCAnalyst::BlockRegStats gpa;
 		PPCAnalyst::BlockRegStats fpa;
 		PPCAnalyst::CodeOp* op;
-		PPCAnalyst::CodeOp* next_op;
 		u8* rewriteStart;
 
 		JitBlock *curBlock;
