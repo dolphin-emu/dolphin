@@ -301,7 +301,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	const u32 tlutaddr = tex.texTlut[id].tmem_offset << 9;
 	const u32 tlutfmt = tex.texTlut[id].tlut_format;
 	const bool use_mipmaps = (tex.texMode0[id].min_filter & 3) != 0;
-	u32 maxlevel = (tex.texMode1[id].max_lod + 0xf) / 0x10;
+	u32 tex_levels = (tex.texMode1[id].max_lod + 0xf) / 0x10 + 1;
 	const bool from_tmem = tex.texImage1[id].image_type != 0;
 
 	if (0 == address)
@@ -359,8 +359,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 	// D3D doesn't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
 	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,1x1, so we limit the mipmap count to 6 there
-	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(width, height) >> maxlevel == 0)
-		--maxlevel;
+	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(width, height) >> (tex_levels - 1) == 0)
+		--tex_levels;
 
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
@@ -383,7 +383,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 		// 2. b) For normal textures, all texture parameters need to match
 		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
-			entry->num_mipmaps > maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
+			entry->tex_levels >= tex_levels && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
 			return ReturnEntry(stage, entry);
 		}
@@ -397,7 +397,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		     width == entry->virtual_width &&
 		     height == entry->virtual_height &&
 		     full_format == entry->format &&
-		     entry->num_mipmaps > maxlevel) ||
+		     entry->tex_levels >= tex_levels) ||
 		    (entry->type == TCET_EC_DYNAMIC &&
 		     entry->native_width == width &&
 		     entry->native_height == height)) &&
@@ -460,7 +460,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		}
 	}
 
-	u32 texLevels = use_mipmaps ? (maxlevel + 1) : 1;
+	u32 texLevels = use_mipmaps ? tex_levels : 1;
 	const bool using_custom_lods = hires_tex && hires_tex->m_levels.size() >= texLevels;
 	// Only load native mips if their dimensions fit to our virtual texture dimensions
 	const bool use_native_mips = use_mipmaps && !using_custom_lods && (width == nativeW && height == nativeH);
@@ -478,14 +478,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		// TODO: This is the wrong value. We should be storing the number of levels our actual texture has.
 		// But that will currently make the above "existing entry" tests fail as "texLevels" is not calculated until after.
 		// Currently, we might try to reuse a texture which appears to have more levels than actual, maybe..
-		entry->num_mipmaps = maxlevel + 1;
+		entry->tex_levels = tex_levels;
 		entry->num_layers = 1;
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
 
-	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps, entry->num_layers);
+	entry->SetGeneralParameters(address, texture_size, full_format, entry->tex_levels, entry->num_layers);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
 

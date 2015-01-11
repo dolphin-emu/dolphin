@@ -35,7 +35,7 @@ public:
 
 		enum TexCacheEntryType type;
 
-		unsigned int num_mipmaps;
+		unsigned int tex_levels;
 		unsigned int num_layers;
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
@@ -44,12 +44,12 @@ public:
 		int frameCount;
 
 
-		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _num_mipmaps, unsigned int _num_layers)
+		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _tex_levels, unsigned int _num_layers)
 		{
 			addr = _addr;
 			size_in_bytes = _size;
 			format = _format;
-			num_mipmaps = _num_mipmaps;
+			tex_levels = _tex_levels;
 			num_layers = _num_layers;
 		}
 
