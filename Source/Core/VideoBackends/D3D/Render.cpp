@@ -560,12 +560,29 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3D11_RECT source = CD3D11_RECT(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 
 	ID3D11PixelShader* pixel_shader;
-	if (convtype == 0) pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6(true);
-	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8(true);
-	else
+	switch (convtype) 
 	{
-		ERROR_LOG(VIDEO, "Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
-		return;
+		case 0:
+			pixel_shader = PixelShaderCache::ReinterpRGB8ToRGBA6(true);
+			break;
+		case 1:
+			pixel_shader = PixelShaderCache::ReinterpRGB8ToRGB565(true);
+			break;
+		case 2:
+			pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8(true);
+			break;
+		case 3:
+			pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB565(true);
+			break;
+		case 4:
+			pixel_shader = PixelShaderCache::ReinterpRGB565ToRGB8(true);
+			break;
+		case 5:
+			pixel_shader = PixelShaderCache::ReinterpRGB565ToRGBA6(true);
+			break;
+		default:
+			ERROR_LOG(VIDEO, "Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+			return;
 	}
 
 	// convert data and set the target texture as our new EFB
