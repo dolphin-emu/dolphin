@@ -126,6 +126,24 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		// ramp effect
 		if (supported_effects & SDL_HAPTIC_RAMP)
 			AddOutput(new RampEffect(m_haptic));
+
+		// sine effect
+		if (supported_effects & SDL_HAPTIC_SINE)
+			AddOutput(new SineEffect(m_haptic));
+
+		// leftright effect
+		if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
+		{
+			// some controllers have two rumble motors, SDL allows to control them seperatly through the LeftRight
+			// haptic effect. We should allow the user to use them seperatly, because there is no other use for it
+			// yet and both motors are different, usually a big stronger and slower one and a small weaker and faster one.
+			AddOutput(new LeftRightSmallEffect(m_haptic));
+			AddOutput(new LeftRightLargeEffect(m_haptic));
+		}
+
+		// triangle effect
+		if (supported_effects & SDL_HAPTIC_TRIANGLE)
+			AddOutput(new TriangleEffect(m_haptic));
 	}
 #endif
 
@@ -178,6 +196,26 @@ std::string Joystick::RampEffect::GetName() const
 	return "Ramp";
 }
 
+std::string Joystick::SineEffect::GetName() const
+{
+	return "Sine";
+}
+
+std::string Joystick::LeftRightSmallEffect::GetName() const
+{
+	return "SmallOnly";
+}
+
+std::string Joystick::LeftRightLargeEffect::GetName() const
+{
+	return "LargeOnly";
+}
+
+std::string Joystick::TriangleEffect::GetName() const
+{
+	return "Triangle";
+}
+
 void Joystick::ConstantEffect::SetState(ControlState state)
 {
 	if (state)
@@ -207,6 +245,74 @@ void Joystick::RampEffect::SetState(ControlState state)
 	}
 
 	m_effect.ramp.start = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::SineEffect::SetState(ControlState state)
+{
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_SINE;
+		// 200 seems too weak, somebody with a lot of time could try out other values
+		m_effect.periodic.length = 250;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::LeftRightLargeEffect::SetState(ControlState state)
+{
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_LEFTRIGHT;
+		// 200 seems too weak, somebody with a lot of time could try out other values
+		m_effect.leftright.length = 250;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	m_effect.leftright.large_magnitude = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::LeftRightSmallEffect::SetState(ControlState state)
+{
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_LEFTRIGHT;
+		// 200 seems too weak, somebody with a lot of time could try out other values
+		m_effect.leftright.length = 250;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	m_effect.leftright.small_magnitude = (Sint16)(state * 0x7FFF);
+	Update();
+}
+
+void Joystick::TriangleEffect::SetState(ControlState state)
+{
+	if (state)
+	{
+		m_effect.type = SDL_HAPTIC_TRIANGLE;
+		// 200 seems too weak, somebody with a lot of time could try out other values
+		m_effect.periodic.length = 250;
+	}
+	else
+	{
+		m_effect.type = 0;
+	}
+
+	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
 	Update();
 }
 #endif

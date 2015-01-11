@@ -72,7 +72,7 @@ private:
 	class HapticEffect : public Output
 	{
 	public:
-		HapticEffect(SDL_Haptic* haptic) : m_haptic(haptic), m_id(-1) {}
+		HapticEffect(SDL_Haptic* haptic) : m_effect(), m_haptic(haptic), m_id(-1) {}
 		~HapticEffect() { m_effect.type = 0; Update(); }
 
 	protected:
@@ -95,6 +95,38 @@ private:
 	{
 	public:
 		RampEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
+
+	class SineEffect : public HapticEffect
+	{
+	public:
+		SineEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
+
+	class LeftRightSmallEffect : public HapticEffect
+	{
+	public:
+		LeftRightSmallEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
+
+	class LeftRightLargeEffect : public HapticEffect
+	{
+	public:
+		LeftRightLargeEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	};
+
+	class TriangleEffect : public HapticEffect
+	{
+	public:
+		TriangleEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
 		std::string GetName() const override;
 		void SetState(ControlState state) override;
 	};
