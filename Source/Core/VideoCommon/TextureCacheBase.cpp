@@ -290,10 +290,20 @@ static TextureCache::TCacheEntryBase* ReturnEntry(unsigned int stage, TextureCac
 	return entry;
 }
 
-TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
-	u32 const address, unsigned int width, unsigned int height, int const texformat,
-	unsigned int const tlutaddr, int const tlutfmt, bool const use_mipmaps, unsigned int maxlevel, bool const from_tmem)
+TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 {
+	const FourTexUnits &tex = bpmem.tex[stage >> 2];
+	const u32 id = stage & 3;
+	const u32 address = (tex.texImage3[id].image_base/* & 0x1FFFFF*/) << 5;
+	u32 width = tex.texImage0[id].width + 1;
+	u32 height = tex.texImage0[id].height + 1;
+	const int texformat = tex.texImage0[id].format;
+	const u32 tlutaddr = tex.texTlut[id].tmem_offset << 9;
+	const u32 tlutfmt = tex.texTlut[id].tlut_format;
+	const bool use_mipmaps = (tex.texMode0[id].min_filter & 3) != 0;
+	u32 maxlevel = (tex.texMode1[id].max_lod + 0xf) / 0x10;
+	const bool from_tmem = tex.texImage1[id].image_type != 0;
+
 	if (0 == address)
 		return nullptr;
 
