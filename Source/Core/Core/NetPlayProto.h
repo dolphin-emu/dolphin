@@ -16,6 +16,8 @@ struct NetSettings
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
+	bool m_OCEnable;
+	float m_OCFactor;
 	TEXIDevices m_EXIDevice[2];
 };
 

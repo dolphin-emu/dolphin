@@ -54,7 +54,7 @@ private:
 	~TextureCache();
 
 	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) override;
+		unsigned int tex_levels, PC_TexFormat pcfmt) override;
 
 	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) override;
 

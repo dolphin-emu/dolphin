@@ -250,6 +250,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			packet >> g_NetPlaySettings.m_WriteToMemcard;
+			packet >> g_NetPlaySettings.m_OCEnable;
+			packet >> g_NetPlaySettings.m_OCFactor;
 			int tmp;
 			packet >> tmp;
 			g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices) tmp;

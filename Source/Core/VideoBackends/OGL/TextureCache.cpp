@@ -108,8 +108,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, virtual_width, virtual_height, level);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
-	unsigned int height, unsigned int expanded_width,
+TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
 	unsigned int tex_levels, PC_TexFormat pcfmt)
 {
 	int gl_format = 0,
@@ -175,10 +174,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	glBindTexture(GL_TEXTURE_2D_ARRAY, entry.texture);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, tex_levels - 1);
 
-	entry.Load(width, height, expanded_width, 0);
-
-	// This isn't needed as Load() also reset the stage in the end
-	//TextureCache::SetStage();
+	TextureCache::SetStage();
 
 	return &entry;
 }
@@ -294,6 +290,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		u8* dst = Memory::GetPointer(addr);
 		u64 const new_hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		size_in_bytes = (u32)encoded_size;
 
 		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
 		if (!g_ActiveConfig.bEFBCopyCacheEnable)

@@ -638,6 +638,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	block->m_broken = false;
 	block->m_memory_exception = false;
 	block->m_num_instructions = 0;
+	block->m_gqr_used = BitSet8(0);
 
 	if (address == 0)
 	{
@@ -865,6 +866,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Forward scan, for flags that need the other direction for calculation.
 	BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
+	BitSet8 gqrUsed, gqrModified;
 	for (u32 i = 0; i < block->m_num_instructions; i++)
 	{
 		code[i].fprIsSingle = fprIsSingle;
@@ -903,7 +905,22 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			if (!strncmp(code[i].opinfo->opname, "mtfs", 4))
 				fprIsStoreSafe = BitSet32(0);
 		}
+
+		if (code[i].opinfo->type == OPTYPE_STOREPS || code[i].opinfo->type == OPTYPE_LOADPS)
+		{
+			int gqr = code[i].inst.OPCD == 4 ? code[i].inst.Ix : code[i].inst.I;
+			gqrUsed[gqr] = true;
+		}
+
+		if (code[i].inst.OPCD == 31 && code[i].inst.SUBOP10 == 467) // mtspr
+		{
+			int gqr = ((code[i].inst.SPRU << 5) | code[i].inst.SPRL) - SPR_GQR0;
+			if (gqr >= 0 && gqr <= 7)
+				gqrModified[gqr] = true;
+		}
 	}
+	block->m_gqr_used = gqrUsed;
+	block->m_gqr_modified = gqrModified;
 	return address;
 }
 

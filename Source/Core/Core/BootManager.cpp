@@ -253,6 +253,8 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
 		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
 		SConfig::GetInstance().m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
+		SConfig::GetInstance().m_OCEnable = g_NetPlaySettings.m_OCEnable;
+		SConfig::GetInstance().m_OCFactor = g_NetPlaySettings.m_OCFactor;
 		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
 		config_cache.bSetEXIDevice[0] = true;
