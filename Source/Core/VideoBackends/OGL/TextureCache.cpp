@@ -188,6 +188,12 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
+	if (level >= config.levels)
+		PanicAlert("Texture only has %d levels, can't update level %d", config.levels, level);
+	if (width != std::max(1u, config.width >> level) || height != std::max(1u, config.height >> level))
+		PanicAlert("size of level %d must be %dx%d, but %dx%d requested",
+		           level, std::max(1u, config.width >> level), std::max(1u, config.height >> level), width, height);
+
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
 		glActiveTexture(GL_TEXTURE0+9);
