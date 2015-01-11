@@ -383,7 +383,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 		// 2. b) For normal textures, all texture parameters need to match
 		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
-			entry->config.levels >= tex_levels && entry->native_width == nativeW && entry->native_height == nativeH)
+			entry->native_levels >= tex_levels && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
 			return ReturnEntry(stage, entry);
 		}
@@ -476,7 +476,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	}
 
 	entry->SetGeneralParameters(address, texture_size, full_format);
-	entry->SetDimensions(nativeW, nativeH);
+	entry->SetDimensions(nativeW, nativeH, tex_levels);
 	entry->hash = tex_hash;
 
 	// load texture
@@ -873,7 +873,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 		// TODO: Using the wrong dstFormat, dumb...
 		entry->SetGeneralParameters(dstAddr, 0, dstFormat);
-		entry->SetDimensions(tex_w, tex_h);
+		entry->SetDimensions(tex_w, tex_h, 1);
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
 	}

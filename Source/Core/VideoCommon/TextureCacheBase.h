@@ -47,6 +47,7 @@ public:
 		enum TexCacheEntryType type;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
+		unsigned int native_levels;
 
 		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
 		int frameCount;
@@ -59,10 +60,11 @@ public:
 			format = _format;
 		}
 
-		void SetDimensions(unsigned int _native_width, unsigned int _native_height)
+		void SetDimensions(unsigned int _native_width, unsigned int _native_height, unsigned int _native_levels)
 		{
 			native_width = _native_width;
 			native_height = _native_height;
+			native_levels = _native_levels;
 		}
 
 		void SetHashes(u64 _hash)
