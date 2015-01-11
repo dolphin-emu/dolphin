@@ -278,7 +278,8 @@ void CFileSystemGCWii::InitFileSystem()
 		Read32(FSTOffset + 0x8)
 	};
 
-	if (!Root.IsDirectory()) { return; }
+	if (!Root.IsDirectory())
+		return;
 
 	if (m_FileInfoVector.size())
 		PanicAlert("Wtf?");
@@ -287,10 +288,10 @@ void CFileSystemGCWii::InitFileSystem()
 	m_FileInfoVector.reserve((size_t)Root.m_FileSize);
 	for (u32 i = 0; i < Root.m_FileSize; i++)
 	{
-		u64 const Offset = FSTOffset + (i * 0xC);
-		u64 const name_offset = Read32(Offset + 0x0);
-		u64 const offset = static_cast<u64>(Read32(Offset + 0x4)) << shift;
-		u64 const size = Read32(Offset + 0x8);
+		u64 const read_offset = FSTOffset + (i * 0xC);
+		u64 const name_offset = Read32(read_offset + 0x0);
+		u64 const offset = static_cast<u64>(Read32(read_offset + 0x4)) << shift;
+		u64 const size = Read32(read_offset + 0x8);
 		m_FileInfoVector.emplace_back(name_offset, offset, size);
 		NameTableOffset += 0xC;
 	}
