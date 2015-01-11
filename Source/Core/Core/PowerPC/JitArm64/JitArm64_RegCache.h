@@ -119,7 +119,7 @@ private:
 class Arm64RegCache
 {
 public:
-	Arm64RegCache() : m_emit(nullptr), m_reg_stats(nullptr) {};
+	Arm64RegCache() : m_emit(nullptr), m_float_emit(nullptr), m_reg_stats(nullptr) {};
 	virtual ~Arm64RegCache() {};
 
 	void Init(ARM64XEmitter *emitter);
@@ -133,9 +133,13 @@ public:
 	// Will dump an immediate to the host register as well
 	virtual ARM64Reg R(u32 reg) = 0;
 
+	virtual BitSet32 GetCallerSavedUsed() = 0;
+
 	// Returns a temporary register for use
 	// Requires unlocking after done
 	ARM64Reg GetReg();
+
+	void StoreRegister(u32 preg) { FlushRegister(preg, false); }
 
 	// Locks a register so a cache cannot use it
 	// Useful for function calls
@@ -166,7 +170,7 @@ protected:
 	virtual void GetAllocationOrder() = 0;
 
 	// Flushes the most stale register
-	virtual void FlushMostStaleRegister() = 0;
+	void FlushMostStaleRegister();
 
 	// Lock a register
 	void LockRegister(ARM64Reg host_reg);
@@ -177,14 +181,30 @@ protected:
 	// Flushes a guest register by host provided
 	virtual void FlushByHost(ARM64Reg host_reg) = 0;
 
+	virtual void FlushRegister(u32 preg, bool maintain_state) = 0;
+
 	// Get available host registers
 	u32 GetUnlockedRegisterCount();
+
+	void IncrementAllUsed()
+	{
+		for (auto& reg : m_guest_registers)
+			reg.IncrementLastUsed();
+	}
 
 	// Code emitter
 	ARM64XEmitter *m_emit;
 
+	// Float emitter
+	std::unique_ptr<ARM64FloatEmitter> m_float_emit;
+
 	// Host side registers that hold the host registers in order of use
 	std::vector<HostReg> m_host_registers;
+
+	// Our guest GPRs
+	// PowerPC has 32 GPRs
+	// PowerPC also has 32 paired FPRs
+	OpArg m_guest_registers[32];
 
 	// Register stats for the current block
 	PPCAnalyst::BlockRegStats *m_reg_stats;
@@ -215,34 +235,20 @@ public:
 
 	void BindToRegister(u32 preg, bool do_load);
 
-	void StoreRegister(u32 preg) { FlushRegister(preg, false); }
-
-	BitSet32 GetCallerSavedUsed();
+	BitSet32 GetCallerSavedUsed() override;
 
 protected:
 	// Get the order of the host registers
 	void GetAllocationOrder();
 
-	// Flushes the most stale register
-	void FlushMostStaleRegister();
-
 	// Flushes a guest register by host provided
 	void FlushByHost(ARM64Reg host_reg) override;
 
-	// Our guest GPRs
-	// PowerPC has 32 GPRs
-	OpArg m_guest_registers[32];
+	void FlushRegister(u32 preg, bool maintain_state) override;
 
 private:
 	bool IsCalleeSaved(ARM64Reg reg);
 
-	void IncrementAllUsed()
-	{
-		for (auto& reg : m_guest_registers)
-			reg.IncrementLastUsed();
-	}
-
-	void FlushRegister(u32 preg, bool maintain_state);
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -256,17 +262,19 @@ public:
 	// Will dump an immediate to the host register as well
 	ARM64Reg R(u32 preg);
 
+	void BindToRegister(u32 preg, bool do_load);
+
+	BitSet32 GetCallerSavedUsed() override;
+
 protected:
 	// Get the order of the host registers
 	void GetAllocationOrder();
 
-	// Flushes the most stale register
-	void FlushMostStaleRegister();
-
 	// Flushes a guest register by host provided
 	void FlushByHost(ARM64Reg host_reg) override;
 
-	// Our guest FPRs
-	// Gekko has 32 paired registers(32x2)
-	OpArg m_guest_registers[32][2];
+	void FlushRegister(u32 preg, bool maintain_state) override;
+
+private:
+	bool IsCalleeSaved(ARM64Reg reg);
 };
