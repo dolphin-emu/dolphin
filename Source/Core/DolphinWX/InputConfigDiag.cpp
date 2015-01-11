@@ -901,6 +901,14 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
 			Add(attachments->wxcontrol, 0, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 3);
 			Add(configure_btn, 0, wxALL|wxEXPAND, 3);
+			// Motion Plus option
+			for (auto& groupSetting : group->settings)
+			{
+					PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
+					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+					options.push_back(setting_cbox);
+					Add(setting_cbox->wxcontrol, 0, wxALL | wxLEFT, 5);
+			}
 		}
 		break;
 	default:
