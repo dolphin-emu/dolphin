@@ -18,6 +18,14 @@ namespace ciface
 namespace SDL
 {
 
+namespace
+{
+// 10ms = 100Hz which homebrew docs very roughly imply is within WiiMote normal
+// range, used for periodic haptic effects though often ignored by devices
+const u16 RUMBLE_PERIOD = 10;
+const u16 RUMBLE_LENGTH_MAX = 500; // ms: enough to span multiple frames at low FPS, but still finite
+}
+
 static std::string GetJoystickName(int index)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -223,25 +231,25 @@ void Joystick::HapticEffect::SetState(ControlState state)
 void Joystick::ConstantEffect::SetSDLHapticEffect(ControlState state)
 {
 	m_effect.type = SDL_HAPTIC_CONSTANT;
-	m_effect.constant.length = SDL_HAPTIC_INFINITY;
+	m_effect.constant.length = RUMBLE_LENGTH_MAX;
 	m_effect.constant.level = (Sint16)(state * 0x7FFF);
 }
 
 void Joystick::RampEffect::SetSDLHapticEffect(ControlState state)
 {
 	m_effect.type = SDL_HAPTIC_RAMP;
-	m_effect.ramp.length = SDL_HAPTIC_INFINITY;
+	m_effect.ramp.length = RUMBLE_LENGTH_MAX;
 	m_effect.ramp.start = (Sint16)(state * 0x7FFF);
 }
 
 void Joystick::SineEffect::SetSDLHapticEffect(ControlState state)
 {
 	m_effect.type = SDL_HAPTIC_SINE;
-	m_effect.periodic.period = 1000;
+	m_effect.periodic.period = RUMBLE_PERIOD;
 	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
 	m_effect.periodic.offset = 0;
 	m_effect.periodic.phase = 18000;
-	m_effect.periodic.length = SDL_HAPTIC_INFINITY;
+	m_effect.periodic.length = RUMBLE_LENGTH_MAX;
 	m_effect.periodic.delay = 0;
 	m_effect.periodic.attack_length = 0;
 }
@@ -249,11 +257,11 @@ void Joystick::SineEffect::SetSDLHapticEffect(ControlState state)
 void Joystick::TriangleEffect::SetSDLHapticEffect(ControlState state)
 {
 	m_effect.type = SDL_HAPTIC_TRIANGLE;
-	m_effect.periodic.period = 1000;
+	m_effect.periodic.period = RUMBLE_PERIOD;
 	m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
 	m_effect.periodic.offset = 0;
 	m_effect.periodic.phase = 18000;
-	m_effect.periodic.length = SDL_HAPTIC_INFINITY;
+	m_effect.periodic.length = RUMBLE_LENGTH_MAX;
 	m_effect.periodic.delay = 0;
 	m_effect.periodic.attack_length = 0;
 }
@@ -261,7 +269,7 @@ void Joystick::TriangleEffect::SetSDLHapticEffect(ControlState state)
 void Joystick::LeftRightEffect::SetSDLHapticEffect(ControlState state)
 {
 	m_effect.type = SDL_HAPTIC_LEFTRIGHT;
-	m_effect.leftright.length = SDL_HAPTIC_INFINITY;
+	m_effect.leftright.length = RUMBLE_LENGTH_MAX;
 	// max ranges tuned to 'feel' similar in magnitude to triangle/sine on xbox360 controller
 	m_effect.leftright.large_magnitude = (Uint16)(state * 0x4000);
 	m_effect.leftright.small_magnitude = (Uint16)(state * 0xFFFF);
