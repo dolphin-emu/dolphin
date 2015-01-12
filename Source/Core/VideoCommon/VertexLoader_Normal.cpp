@@ -110,7 +110,7 @@ struct Normal_Direct_SSSE3
 	{
 		const T* pData = reinterpret_cast<const T*>(DataGetPosition());
 		const float frac = 1. / float(1u << (sizeof(T) * 8 - std::is_signed<T>::value - 1));
-		const __m128 scale = _mm_set_ps(frac, frac, frac, frac);
+		const __m128 scale = _mm_set_ps1(frac);
 		for (int i = 0; i < N; i++, pData += 3)
 			Vertex_Read_SSSE3<T, true, true>(pData, scale);
 		DataSkip<N * 3 * sizeof(T)>();
@@ -128,7 +128,7 @@ __forceinline void Normal_Index_Offset_SSSE3()
 	const T* pData = (const T*)(cached_arraybases[ARRAY_NORMAL]
 	               + (index * g_main_cp_state.array_strides[ARRAY_NORMAL]) + sizeof(T) * 3 * Offset);
 	const float frac = 1. / float(1u << (sizeof(T) * 8 - std::is_signed<T>::value - 1));
-	const __m128 scale = _mm_set_ps(frac, frac, frac, frac);
+	const __m128 scale = _mm_set_ps1(frac);
 	for (int i = 0; i < N; i++, pData += 3)
 		Vertex_Read_SSSE3<T, true, true>(pData, scale);
 }
