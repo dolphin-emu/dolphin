@@ -52,6 +52,37 @@ static const u8 eeprom_data_16D0[] = {
 	0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13
 };
 
+/* Default calibration for the motion plus, 0xA60020 */
+static const u8 motion_plus_calibration[] =
+{
+	0x7b, 0xec, 0x76, 0xca, 0x76, 0x2c, // gyroscope neutral values (each 14 bit, last 2bits unknown) fast motion p/r/y
+	0x32, 0xdc, 0xcc, 0xd7,				// "" min/max p
+	0x2e, 0xa8, 0xc8, 0x77,				// "" min/max r
+	0x5e, 0x02,
+
+	0x76, 0x0f, 0x79, 0x3d, 0x77, 0x9b, // gyroscope neutral values (each 14 bit, last 2bits unknown) slow motion
+	0x39, 0x43, 0xca, 0xa8,				// "" min/max p
+	0x31, 0xc8,							// "" min r
+	0x2d, 0x1c, 0xbc, 0x33
+}; // TODO: figure out remaining parts;
+
+// 0xA60050
+static const u8 mp_gyro_calib[] =
+{
+	0xab, 0x8c, 0x00, 0xe8, 0x24, 0xeb, 0xf1, 0xb8, 0x77, 0x62, 0x52, 0x44, 0x3e, 0x97, 0x6f, 0x5a,
+	0xf2, 0x5e, 0x7f, 0x6d, 0xe3, 0xaf, 0x9e, 0xa4, 0x45, 0xec, 0xe7, 0x2f, 0x2c, 0xb9, 0x22, 0xb3,
+	0xe1, 0x77, 0x52, 0xdf, 0xac, 0x6a, 0x2e, 0x1a, 0xf1, 0x91, 0x63, 0x13, 0xa7, 0xb7, 0x86, 0xaa,
+	0x6a, 0x64, 0xbb, 0x74, 0x7f, 0x56, 0xa0, 0x50, 0x9d, 0x00, 0xdd, 0x76, 0x97, 0xf7, 0x3e, 0x7a,
+};
+
+static const u8 mp_gyro_calib2[] =
+{
+	0x52, 0x16, 0x81, 0xaf, 0xf8, 0xad, 0x40, 0xfd, 0xc7, 0xb5, 0xab, 0x33, 0xa3, 0x38, 0x9e, 0xdb,
+	0xb0, 0xa2, 0xcf, 0xbf, 0x69, 0x3a, 0xfc, 0x78, 0x16, 0x80, 0x4b, 0xe0, 0x97, 0xbd, 0x3e, 0x58,
+	0x71, 0x64, 0x88, 0x5a, 0x44, 0x22, 0x05, 0x00, 0x1e, 0xa9, 0xa5, 0x35, 0xf1, 0xd0, 0x0e, 0x06,
+	0xa6, 0xe9, 0x9c, 0x6c, 0x4b, 0xa8, 0x2e, 0x1a, 0xac, 0x9a, 0x02, 0x17, 0x54, 0xe7, 0xba, 0x3e,
+}; 
+
 static const ReportFeatures reporting_mode_features[] =
 {
 	//0x30: Core Buttons
@@ -224,6 +255,8 @@ void Wiimote::Reset()
 	memset(&m_reg_ext, 0, sizeof(m_reg_ext));
 	memset(&m_reg_motion_plus, 0, sizeof(m_reg_motion_plus));
 
+	memcpy(&m_reg_motion_plus.calibration, motion_plus_calibration, sizeof(motion_plus_calibration));
+	memcpy(&m_reg_motion_plus.gyro_calib, mp_gyro_calib, sizeof(mp_gyro_calib));
 	memcpy(&m_reg_motion_plus.ext_identifier, motion_plus_id, sizeof(motion_plus_id));
 
 	// status
@@ -588,41 +621,70 @@ void Wiimote::GetExtData(u8* const data)
 	// motionplus pass-through modes
 	if (m_motion_plus_active)
 	{
-		switch (m_reg_motion_plus.ext_identifier[0x4])
+		if (m_motion_plus_passthrough)
 		{
-		// nunchuk pass-through mode
-		// Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
-		// Bit 0 of byte 4 is moved to bit 7 of byte 5
-		// Bit 3 of byte 5 is moved to bit 4 of byte 5, overwriting it
-		// Bit 1 of byte 5 is moved to bit 3 of byte 5
-		// Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
-		case 0x5:
-			//data[5] & (1 << 7)
-			//data[4] & (1 << 0)
-			//data[5] & (1 << 3)
-			//data[5] & (1 << 1)
-			//data[5] & (1 << 0)
-			break;
+			switch (m_reg_motion_plus.ext_identifier[0x4])
+			{
+				// nunchuk pass-through mode
+				// Bit 7 of byte 5 is moved to bit 6 of byte 5, overwriting it
+				// Bit 0 of byte 4 is moved to bit 7 of byte 5
+				// Bit 3 of byte 5 is moved to bit 4 of byte 5, overwriting it
+				// Bit 1 of byte 5 is moved to bit 3 of byte 5
+				// Bit 0 of byte 5 is moved to bit 2 of byte 5, overwriting it
+			case 0x5:
+			{
+				wm_nc* nc = (wm_nc*)data;
+				// These must be assigned in the correct order to avoid clobbering data
+				nc->passthrough_data.acc_z_lsb = ((nc->az & 1) << 1) | (nc->bt.acc_z_lsb >> 1);
+				nc->passthrough_data.acc_y_lsb = nc->bt.acc_y_lsb >> 1;
+				nc->passthrough_data.acc_x_lsb = nc->bt.acc_x_lsb >> 1;
+				nc->passthrough_data.c = nc->bt.c;
+				nc->passthrough_data.z = nc->bt.z;
+			}
+				break;
 
-		// classic controller/musical instrument pass-through mode
-		// Bit 0 of Byte 4 is overwritten
-		// Bits 0 and 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting
-		case 0x7:
-			//data[4] & (1 << 0)
-			//data[5] & (1 << 0)
-			//data[5] & (1 << 1)
-			break;
+				// classic controller/musical instrument pass-through mode
+				// Bit 0 of Byte 4 is overwritten
+				// Bits 0 and 1 of Byte 5 are moved to bit 0 of Bytes 0 and 1, overwriting
+			case 0x7:
+			{
+				wm_classic_extension *cc = (wm_classic_extension *)data;
+				cc->passthrough_data.dpad_up = cc->bt.regular_data.dpad_up;
+				cc->passthrough_data.dpad_left = cc->bt.regular_data.dpad_left;
+			}
+				break;
 
-		// unknown pass-through mode
-		default:
-			break;
+				// unknown pass-through mode
+			default:
+				break;
+			}
+
+			((wm_motionplus_data*)data)->is_mp_data = 0;
+		}
+		else
+		{
+			u16 yaw_speed = 0x1F7F, pitch_speed = 0x1F7F, roll_speed = 0x1F7F;
+
+			wm_motionplus_data* mp = (wm_motionplus_data*)data;
+			mp->yaw1 = yaw_speed & 0xFF;
+			mp->yaw2 = ((yaw_speed >> 8) & 0x3f);
+			mp->roll1 = roll_speed & 0xFF;
+			mp->roll2 = ((yaw_speed >> 8) & 0x3f);
+			mp->pitch1 = pitch_speed & 0xFF;
+			mp->pitch2 = ((yaw_speed >> 8) & 0x3f);
+			mp->yaw_slow = 1;
+			mp->roll_slow = 1;
+			mp->pitch_slow = 1;
+
+			mp->is_mp_data = 1;
 		}
 
-		((wm_motionplus_data*)data)->is_mp_data = 0;
-		((wm_motionplus_data*)data)->extension_connected = m_extension->active_extension;
+		((wm_motionplus_data*)data)->zero = 0;
+		((wm_motionplus_data*)data)->extension_connected = (m_extension->active_extension > 0);
+		m_motion_plus_passthrough = !m_motion_plus_passthrough;
 	}
 
-	if (0xAA == m_reg_ext.encryption)
+	if (0xAA == m_reg_ext.encryption && !m_motion_plus_active)
 		WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_nc));
 }
 

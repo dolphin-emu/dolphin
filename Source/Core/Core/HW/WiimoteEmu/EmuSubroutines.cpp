@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -333,7 +333,9 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 				memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
 			}
 			else
+			{
 				return;	// TODO: generate a writedata error reply
+			}
 
 			/* TODO?
 			if (region_ptr == &m_reg_speaker)
@@ -352,13 +354,16 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			}
 			else if (&m_reg_motion_plus == region_ptr)
 			{
-				// activate/deactivate motion plus
-				if (0x55 == m_reg_motion_plus.activated)
+				if (address == 0xa600fe)
 				{
-					// maybe hacky
-					m_reg_motion_plus.activated = 0;
-					m_motion_plus_active ^= 1;
-
+					// activate wii motion plus and set passthrough mode
+					m_motion_plus_active = true;
+					RequestStatus();
+				}
+				else if (address == 0xa400f0 && wd->size > 0 && wd->data[0]==0x55)
+				{
+					// deactivate motion plus
+					m_motion_plus_active = false;
 					RequestStatus();
 				}
 			}
@@ -537,7 +542,10 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
 	if (0 == _request.size)
 	{
 		reply->size = 0x0f;
-		reply->error = 0x08;
+		if ((_request.address & 0xFE0000) == 0xA60000)
+			reply->error = 0x07;
+		else
+			reply->error = 0x08;
 
 		memset(reply->data, 0, sizeof(reply->data));
 	}
