@@ -21,6 +21,10 @@
 #include <sys/mman.h>
 #endif
 
+// Valgrind doesn't support MAP_32BIT.
+// Uncomment the following line to be able to run Dolphin in Valgrind.
+//#undef MAP_32BIT
+
 #if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
 #include <unistd.h>
 #define PAGE_MASK     (getpagesize() - 1)
@@ -65,7 +69,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 	{
 		ptr = nullptr;
 #endif
-		PanicAlert("Failed to allocate executable memory");
+		PanicAlert("Failed to allocate executable memory. If you are running Dolphin in Valgrind, try '#undef MAP_32BIT'.");
 	}
 #if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
 	else
