@@ -243,44 +243,6 @@ void ClearCacheLine(const u32 address)
 		Write_U64(0, address + i);
 }
 
-void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
-{
-	const u8* src = m_pL1Cache + (cacheAddr & 0x3FFFF);
-	u8* dst = GetPointer(memAddr);
-
-	if ((dst != nullptr) && (src != nullptr) && (memAddr & 3) == 0 && (cacheAddr & 3) == 0)
-	{
-		memcpy(dst, src, 32 * numBlocks);
-	}
-	else
-	{
-		for (u32 i = 0; i < 32 * numBlocks; i++)
-		{
-			u8 Temp = Read_U8(cacheAddr + i);
-			Write_U8(Temp, memAddr + i);
-		}
-	}
-}
-
-void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
-{
-	const u8* src = GetPointer(memAddr);
-	u8* dst = m_pL1Cache + (cacheAddr & 0x3FFFF);
-
-	if ((dst != nullptr) && (src != nullptr) && (memAddr & 3) == 0 && (cacheAddr & 3) == 0)
-	{
-		memcpy(dst, src, 32 * numBlocks);
-	}
-	else
-	{
-		for (u32 i = 0; i < 32 * numBlocks; i++)
-		{
-			u8 Temp = Read_U8(memAddr + i);
-			Write_U8(Temp, cacheAddr + i);
-		}
-	}
-}
-
 std::string GetString(u32 em_address, size_t size)
 {
 	const char* ptr = reinterpret_cast<const char*>(GetPointer(em_address));
