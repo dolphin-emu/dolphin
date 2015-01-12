@@ -19,21 +19,21 @@ class IVolume;
 // file info of an FST entry
 struct SFileInfo
 {
-	u64 m_NameOffset;
-	u64 m_Offset;
-	u64 m_FileSize;
+	u64 m_NameOffset = 0u;
+	u64 m_Offset = 0u;
+	u64 m_FileSize = 0u;
 	std::string m_FullPath;
 
 	bool IsDirectory() const { return (m_NameOffset & 0xFF000000) != 0; }
 
-	SFileInfo() : m_NameOffset(0), m_Offset(0), m_FileSize(0)
-	{
-	}
+	SFileInfo(u64 name_offset, u64 offset, u64 filesize) :
+		m_NameOffset(name_offset),
+		m_Offset(offset),
+		m_FileSize(filesize)
+	{ }
 
-	SFileInfo(const SFileInfo& rhs) : m_NameOffset(rhs.m_NameOffset),
-	    m_Offset(rhs.m_Offset), m_FileSize(rhs.m_FileSize), m_FullPath(rhs.m_FullPath)
-	{
-	}
+	SFileInfo (SFileInfo const&) = default;
+	SFileInfo () = default;
 };
 
 class IFileSystem
