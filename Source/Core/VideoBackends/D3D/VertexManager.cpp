@@ -117,7 +117,6 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::Draw(u32 stride)
 {
-	u32 components = VertexLoaderManager::GetCurrentVertexFormat()->m_components;
 	u32 indices = IndexGenerator::GetIndexLen();
 
 	D3D::stateman->SetVertexBuffer(m_buffers[m_currentBuffer], stride, 0);
