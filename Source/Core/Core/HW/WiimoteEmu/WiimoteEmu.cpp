@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -51,37 +51,6 @@ static const u8 eeprom_data_16D0[] = {
 	0x33, 0xCC, 0x44, 0xBB, 0x00, 0x00, 0x66, 0x99,
 	0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13
 };
-
-/* Default calibration for the motion plus, 0xA60020 */
-static const u8 motion_plus_calibration[] =
-{
-	0x7b, 0xec, 0x76, 0xca, 0x76, 0x2c, // gyroscope neutral values (each 14 bit, last 2bits unknown) fast motion p/r/y
-	0x32, 0xdc, 0xcc, 0xd7,				// "" min/max p
-	0x2e, 0xa8, 0xc8, 0x77,				// "" min/max r
-	0x5e, 0x02,
-
-	0x76, 0x0f, 0x79, 0x3d, 0x77, 0x9b, // gyroscope neutral values (each 14 bit, last 2bits unknown) slow motion
-	0x39, 0x43, 0xca, 0xa8,				// "" min/max p
-	0x31, 0xc8,							// "" min r
-	0x2d, 0x1c, 0xbc, 0x33
-}; // TODO: figure out remaining parts;
-
-// 0xA60050
-static const u8 mp_gyro_calib[] =
-{
-	0xab, 0x8c, 0x00, 0xe8, 0x24, 0xeb, 0xf1, 0xb8, 0x77, 0x62, 0x52, 0x44, 0x3e, 0x97, 0x6f, 0x5a,
-	0xf2, 0x5e, 0x7f, 0x6d, 0xe3, 0xaf, 0x9e, 0xa4, 0x45, 0xec, 0xe7, 0x2f, 0x2c, 0xb9, 0x22, 0xb3,
-	0xe1, 0x77, 0x52, 0xdf, 0xac, 0x6a, 0x2e, 0x1a, 0xf1, 0x91, 0x63, 0x13, 0xa7, 0xb7, 0x86, 0xaa,
-	0x6a, 0x64, 0xbb, 0x74, 0x7f, 0x56, 0xa0, 0x50, 0x9d, 0x00, 0xdd, 0x76, 0x97, 0xf7, 0x3e, 0x7a,
-};
-
-static const u8 mp_gyro_calib2[] =
-{
-	0x52, 0x16, 0x81, 0xaf, 0xf8, 0xad, 0x40, 0xfd, 0xc7, 0xb5, 0xab, 0x33, 0xa3, 0x38, 0x9e, 0xdb,
-	0xb0, 0xa2, 0xcf, 0xbf, 0x69, 0x3a, 0xfc, 0x78, 0x16, 0x80, 0x4b, 0xe0, 0x97, 0xbd, 0x3e, 0x58,
-	0x71, 0x64, 0x88, 0x5a, 0x44, 0x22, 0x05, 0x00, 0x1e, 0xa9, 0xa5, 0x35, 0xf1, 0xd0, 0x0e, 0x06,
-	0xa6, 0xe9, 0x9c, 0x6c, 0x4b, 0xa8, 0x2e, 0x1a, 0xac, 0x9a, 0x02, 0x17, 0x54, 0xe7, 0xba, 0x3e,
-}; 
 
 static const ReportFeatures reporting_mode_features[] =
 {
@@ -226,6 +195,16 @@ static const char* const named_buttons[] =
 	"A", "B", "1", "2", "-", "+", "Home",
 };
 
+bool Wiimote::GetMotionPlusAttached() const
+{
+	return m_extension->settings[0]->value != 0;
+}
+
+bool Wiimote::GetMotionPlusActive() const
+{
+	return m_reg_motion_plus.ext_identifier[2] == 0xa4;
+}
+
 void Wiimote::Reset()
 {
 	m_reporting_mode = WM_REPORT_CORE;
@@ -237,6 +216,7 @@ void Wiimote::Reset()
 	m_speaker_mute = false;
 	m_motion_plus_present = false;
 	m_motion_plus_active = false;
+	m_motion_plus_passthrough = false;
 
 	// will make the first Update() call send a status request
 	// the first call to RequestStatus() will then set up the status struct extension bit
@@ -350,6 +330,7 @@ bool Wiimote::Step()
 {
 	// TODO: change this a bit
 	m_motion_plus_present = m_extension->settings[0]->value != 0;
+	m_motion_plus_active = m_reg_motion_plus.ext_identifier[2] == 0xa4;
 
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
@@ -391,6 +372,14 @@ bool Wiimote::Step()
 		m_reporting_auto = false;
 
 		return true;
+	}
+	
+	// user has unplugged (unchecked) the virtual motion plus while it was active
+	if (GetMotionPlusActive() && !GetMotionPlusAttached())
+	{
+		RequestStatus(nullptr, 0);
+		if (m_extension->active_extension != 0)
+			RequestStatus();
 	}
 
 	return false;
@@ -619,7 +608,7 @@ void Wiimote::GetExtData(u8* const data)
 	memcpy(m_reg_ext.controller_data, data, sizeof(wm_nc)); // TODO: Should it be nc specific?
 
 	// motionplus pass-through modes
-	if (m_motion_plus_active)
+	if (GetMotionPlusActive())
 	{
 		if (m_motion_plus_passthrough)
 		{
@@ -684,7 +673,7 @@ void Wiimote::GetExtData(u8* const data)
 		m_motion_plus_passthrough = !m_motion_plus_passthrough;
 	}
 
-	if (0xAA == m_reg_ext.encryption && !m_motion_plus_active)
+	if (0xAA == m_reg_ext.encryption)
 		WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_nc));
 }
 
