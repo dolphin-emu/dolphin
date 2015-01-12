@@ -11,11 +11,13 @@
 #include <SFML/Network.hpp>
 
 #include "Common/CommonTypes.h"
-#include "Common/CommonTypes.h"
+
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
 #include "Core/NetPlayProto.h"
+
+#include "ReliableUDPManager\ReliableUDPManager.h"
 
 class NetPlayServer
 {
@@ -56,7 +58,7 @@ private:
 		std::string name;
 		std::string revision;
 
-		std::unique_ptr<sf::TcpSocket> socket;
+		u16 conID;
 		u32 ping;
 		u32 current_game;
 
@@ -66,7 +68,7 @@ private:
 		Client(const Client& other) = delete;
 		Client(Client&& other)
 			: pid(other.pid), name(std::move(other.name)), revision(std::move(other.revision)),
-			socket(std::move(other.socket)), ping(other.ping), current_game(other.current_game)
+			conID(other.conID), ping(other.ping), current_game(other.current_game)
 		{
 		}
 
@@ -76,8 +78,8 @@ private:
 		}
 	};
 
-	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
-	unsigned int OnConnect(std::unique_ptr<sf::TcpSocket>& socket);
+	
+	unsigned int OnConnect(u16 ID);
 	unsigned int OnDisconnect(Client& player);
 	unsigned int OnData(sf::Packet& packet, Client& player);
 	void UpdatePadMapping();
@@ -106,9 +108,10 @@ private:
 
 	std::string m_selected_game;
 
-	sf::TcpListener m_socket;
 	std::thread m_thread;
-	sf::SocketSelector m_selector;
+
+	ReliableUDPManager m_udpManager;
+
 
 #ifdef USE_UPNP
 	static void mapPortThread(const u16 port);
