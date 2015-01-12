@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/Volume.h"
 
+// Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
 namespace DiscIO
 {
 IVolume::ECountry CountrySwitch(u8 CountryCode)

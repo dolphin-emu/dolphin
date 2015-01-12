@@ -152,7 +152,7 @@ bool GameFile::LoadFromCache()
 	if (!file.open(QFile::ReadOnly))
 		return false;
 
-	// If you modify the code below, you MUST bump the CACHE_REVISION! (ISOFile.cpp)
+	// Increment CACHE_REVISION if the code below is modified (GameFile.cpp)
 	QDataStream stream(&file);
 	stream.setVersion(DATASTREAM_REVISION);
 
@@ -195,7 +195,7 @@ void GameFile::SaveToCache()
 	if (!file.open(QFile::WriteOnly))
 		return;
 
-	// If you modify the code below, you MUST bump the CACHE_REVISION! (ISOFile.cpp)
+	// Increment CACHE_REVISION if the code below is modified (GameFile.cpp)
 	QDataStream stream(&file);
 	stream.setVersion(DATASTREAM_REVISION);
 	stream << CACHE_REVISION;
