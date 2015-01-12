@@ -166,14 +166,14 @@ void VertexLoader_TextCoord::Init()
 		tableReadTexCoord[1][3][1] = TexCoord_ReadDirect2_SSSE3<s16>;
 		tableReadTexCoord[1][4][1] = TexCoord_ReadDirect2_SSSE3<float>;
 		tableReadTexCoord[2][0][1] = TexCoord_ReadIndex2_SSSE3<u8, u8>;
-		tableReadTexCoord[3][0][1] = TexCoord_ReadIndex2_SSSE3<u16, u8>;
 		tableReadTexCoord[2][1][1] = TexCoord_ReadIndex2_SSSE3<u8, s8>;
-		tableReadTexCoord[3][1][1] = TexCoord_ReadIndex2_SSSE3<u16, s8>;
 		tableReadTexCoord[2][2][1] = TexCoord_ReadIndex2_SSSE3<u8, u16>;
-		tableReadTexCoord[3][2][1] = TexCoord_ReadIndex2_SSSE3<u16, u16>;
 		tableReadTexCoord[2][3][1] = TexCoord_ReadIndex2_SSSE3<u8, s16>;
-		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex2_SSSE3<u16, s16>;
 		tableReadTexCoord[2][4][1] = TexCoord_ReadIndex2_SSSE3<u8, float>;
+		tableReadTexCoord[3][0][1] = TexCoord_ReadIndex2_SSSE3<u16, u8>;
+		tableReadTexCoord[3][1][1] = TexCoord_ReadIndex2_SSSE3<u16, s8>;
+		tableReadTexCoord[3][2][1] = TexCoord_ReadIndex2_SSSE3<u16, u16>;
+		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex2_SSSE3<u16, s16>;
 		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex2_SSSE3<u16, float>;
 	}
 #endif
