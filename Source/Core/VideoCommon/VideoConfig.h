@@ -128,7 +128,7 @@ struct VideoConfig final
 	// Stereoscopy
 	bool bStereoEFBMonoDepth;
 	int iStereoDepthPercentage;
-	int iStereoConvergencePercentage;
+	int iStereoConvergenceMinimum;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
