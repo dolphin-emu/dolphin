@@ -82,6 +82,42 @@ void HiresTexture::Init(const std::string& gameCode)
 
 std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format)
 {
+	// checking for min/max on paletted textures
+	u32 min = 0xffff;
+	u32 max = 0;
+	switch(tlut_size)
+	{
+		case 0: break;
+		case 16 * 2:
+			for (size_t i = 0; i < texture_size; i++)
+			{
+				min = std::min<u32>(min, texture[i] & 0xf);
+				min = std::min<u32>(min, texture[i] >> 4);
+				max = std::max<u32>(max, texture[i] & 0xf);
+				max = std::max<u32>(max, texture[i] >> 4);
+			}
+			break;
+		case 256 * 2:
+			for (size_t i = 0; i < texture_size; i++)
+			{
+				min = std::min<u32>(min, texture[i]);
+				max = std::max<u32>(max, texture[i]);
+			}
+			break;
+		case 16384 * 2:
+			for (size_t i = 0; i < texture_size/2; i++)
+			{
+				min = std::min<u32>(min, Common::swap16(((u16*)texture)[i]) & 0x3fff);
+				max = std::max<u32>(max, Common::swap16(((u16*)texture)[i]) & 0x3fff);
+			}
+			break;
+	}
+	if (tlut_size > 0)
+	{
+		tlut_size = 2 * (max + 1 - min);
+		tlut += 2 * min;
+	}
+
 	u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	u64 tlut_hash = 0;
 	u64 hash = tex_hash;
