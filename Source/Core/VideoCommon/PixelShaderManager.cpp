@@ -50,7 +50,7 @@ void PixelShaderManager::Dirty()
 	SetZTextureBias();
 	SetViewportChanged();
 	SetEfbScaleChanged();
-	SetZSlope(0, 0, 1);
+	SetZSlope(0, 0, (float)0xFFFFFF);
 	SetIndTexScaleChanged(false);
 	SetIndTexScaleChanged(true);
 	SetIndMatrixChanged(0);
@@ -116,7 +116,8 @@ void PixelShaderManager::SetConstants()
 		s_bViewPortChanged = false;
 	}
 
-	if (s_bEFBScaleChanged) {
+	if (s_bEFBScaleChanged)
+	{
 		constants.efbscale[0] = 1.0f / float(Renderer::EFBToScaledXf(1));
 		constants.efbscale[1] = 1.0f / float(Renderer::EFBToScaledYf(1));
 		dirty = true;
