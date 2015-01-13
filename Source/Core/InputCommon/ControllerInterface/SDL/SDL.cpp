@@ -18,13 +18,10 @@ namespace ciface
 namespace SDL
 {
 
-namespace
-{
 // 10ms = 100Hz which homebrew docs very roughly imply is within WiiMote normal
 // range, used for periodic haptic effects though often ignored by devices
-const u16 RUMBLE_PERIOD = 10;
-const u16 RUMBLE_LENGTH_MAX = 500; // ms: enough to span multiple frames at low FPS, but still finite
-}
+static const u16 RUMBLE_PERIOD = 10;
+static const u16 RUMBLE_LENGTH_MAX = 500; // ms: enough to span multiple frames at low FPS, but still finite
 
 static std::string GetJoystickName(int index)
 {
