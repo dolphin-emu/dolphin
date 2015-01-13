@@ -299,6 +299,7 @@ private:
 	void WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteMOVBE(int bits, u8 op, X64Reg regOp, OpArg arg);
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
@@ -476,7 +477,8 @@ public:
 	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
 
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
-	void MOVBE(int dbits, const OpArg& dest, const OpArg& src);
+	void MOVBE(int bits, X64Reg dest, const OpArg& src);
+	void MOVBE(int bits, const OpArg& dest, X64Reg src);
 
 	// Available only on AMD >= Phenom or Intel >= Haswell
 	void LZCNT(int bits, X64Reg dest, OpArg src);

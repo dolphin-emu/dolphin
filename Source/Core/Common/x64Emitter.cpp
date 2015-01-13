@@ -870,38 +870,25 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 	src.WriteRest(this);
 }
 
-void XEmitter::MOVBE(int bits, const OpArg& dest, const OpArg& src)
+void XEmitter::WriteMOVBE(int bits, u8 op, X64Reg reg, OpArg arg)
 {
 	_assert_msg_(DYNA_REC, cpu_info.bMOVBE, "Generating MOVBE on a system that does not support it.");
 	if (bits == 8)
 	{
-		MOV(bits, dest, src);
+		MOV(8, op & 1 ? arg : R(reg), op & 1 ? R(reg) : arg);
 		return;
 	}
-
 	if (bits == 16)
 		Write8(0x66);
-
-	if (dest.IsSimpleReg())
-	{
-		_assert_msg_(DYNA_REC, !src.IsSimpleReg() && !src.IsImm(), "MOVBE: Loading from !mem");
-		src.WriteRex(this, bits, bits, dest.GetSimpleReg());
-		Write8(0x0F); Write8(0x38); Write8(0xF0);
-		src.WriteRest(this, 0, dest.GetSimpleReg());
-	}
-	else if (src.IsSimpleReg())
-	{
-		_assert_msg_(DYNA_REC, !dest.IsSimpleReg() && !dest.IsImm(), "MOVBE: Storing to !mem");
-		dest.WriteRex(this, bits, bits, src.GetSimpleReg());
-		Write8(0x0F); Write8(0x38); Write8(0xF1);
-		dest.WriteRest(this, 0, src.GetSimpleReg());
-	}
-	else
-	{
-		_assert_msg_(DYNA_REC, 0, "MOVBE: Not loading or storing to mem");
-	}
+	_assert_msg_(DYNA_REC, !arg.IsSimpleReg() && !arg.IsImm(), "MOVBE: need r<-m or m<-r!");
+	arg.WriteRex(this, bits, bits, reg);
+	Write8(0x0F);
+	Write8(0x38);
+	Write8(op);
+	arg.WriteRest(this, 0, reg);
 }
-
+void XEmitter::MOVBE(int bits, X64Reg dest, const OpArg& src) {WriteMOVBE(bits, 0xF0, dest, src);}
+void XEmitter::MOVBE(int bits, const OpArg& dest, X64Reg src) {WriteMOVBE(bits, 0xF1, src, dest);}
 
 void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
 {

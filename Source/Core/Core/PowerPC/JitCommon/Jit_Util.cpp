@@ -27,7 +27,7 @@ void EmuCodeBlock::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
 {
 	if (cpu_info.bMOVBE)
 	{
-		MOVBE(size, R(dst), src);
+		MOVBE(size, dst, src);
 	}
 	else
 	{
@@ -40,7 +40,7 @@ void EmuCodeBlock::SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src
 {
 	if (cpu_info.bMOVBE)
 	{
-		MOVBE(size, dst, R(src));
+		MOVBE(size, dst, src);
 	}
 	else
 	{
@@ -451,7 +451,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acce
 	{
 		if (cpu_info.bMOVBE)
 		{
-			MOVBE(accessSize, dest, reg_value);
+			MOVBE(accessSize, dest, reg_value.GetSimpleReg());
 		}
 		else
 		{
