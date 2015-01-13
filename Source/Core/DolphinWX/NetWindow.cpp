@@ -125,7 +125,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 		"Netplay will only work with the following settings:\n"
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
-		" - Manually set the extensions for each wiimote\n"
+		" - Manually set the extensions for each Wiimote\n"
 		"\n"
 		"All players should use the same Dolphin version and settings.\n"
 		"All memory cards must be identical between players or disabled.\n"

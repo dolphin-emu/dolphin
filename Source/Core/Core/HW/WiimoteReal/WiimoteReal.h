@@ -53,7 +53,7 @@ public:
 
 	// connecting and disconnecting from physical devices
 	// (using address inserted by FindWiimotes)
-	// these are called from the wiimote's thread.
+	// these are called from the Wiimote's thread.
 	virtual bool ConnectInternal() = 0;
 	virtual void DisconnectInternal() = 0;
 
@@ -124,7 +124,7 @@ public:
 
 	void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&);
 
-	// function called when not looking for more wiimotes
+	// function called when not looking for more Wiimotes
 	void Update();
 
 private:

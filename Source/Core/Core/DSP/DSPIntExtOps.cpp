@@ -34,7 +34,7 @@ namespace Ext
 
 inline bool IsSameMemArea(u16 a, u16 b)
 {
-	//LM: tested on WII
+	// LM: tested on Wii
 	if ((a>>10)==(b>>10))
 		return true;
 	else

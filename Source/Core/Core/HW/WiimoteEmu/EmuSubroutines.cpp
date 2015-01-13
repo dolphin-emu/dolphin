@@ -70,7 +70,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 {
 	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index, m_reporting_channel, sr->wm);
 
-	// wiibrew:
+	// WiiBrew:
 	// In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
 	m_rumble_on = sr->rumble;
 
@@ -221,7 +221,7 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
 	// status values
 	*(wm_status_report*)(data + 2) = m_status;
 
-	// hybrid wiimote stuff
+	// hybrid Wiimote stuff
 	if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && (m_extension->switch_extension <= 0))
 	{
 		using namespace WiimoteReal;
@@ -380,13 +380,13 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 	// ignore the 0x010000 bit
 	address &= 0xFEFFFF;
 
-	// hybrid wiimote stuff
-	// relay the read data request to real-wiimote
+	// hybrid Wiimote stuff
+	// relay the read data request to real-Wiimote
 	if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index] && ((0xA4 != (address >> 16)) || (m_extension->switch_extension <= 0)))
 	{
 		WiimoteReal::InterruptChannel(m_index, m_reporting_channel, ((u8*)rd) - 2, sizeof(wm_read_data) + 2); // hacky
 
-		// don't want emu-wiimote to send reply
+		// don't want emu-Wiimote to send reply
 		return;
 	}
 

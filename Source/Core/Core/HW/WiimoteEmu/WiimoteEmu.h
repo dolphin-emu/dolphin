@@ -169,10 +169,10 @@ private:
 	Extension*     m_extension;
 	ControlGroup*  m_options;
 
-	// WiiMote accel data
+	// Wiimote accel data
 	AccelData      m_accel;
 
-	// wiimote index, 0-3
+	// Wiimote index, 0-3
 	const u8       m_index;
 
 	double ir_sin, ir_cos; //for the low pass filter

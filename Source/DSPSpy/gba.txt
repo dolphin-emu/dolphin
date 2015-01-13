@@ -53,13 +53,13 @@ call        0x8078
 lrs         $AX0.L, @CMBL
 andi        $AC0.M, #0x0fff
 mrr         $AX0.H, $AC0.M
-lri         $AX1.H, #0x0000	; DSP-dram addr
+lri         $AX1.H, #0x0000	; DSP-DRAM addr
 lri         $AX1.L, #0x0020	; length (32 bytes = 16 words, word 9 and 10 are addr where result should DMA'd to in main mem)
 lri         $IX3, #0x0000	; there will be no ucode/iram upload
-lri         $AR0, #do_main	; return addr after dram upload
+lri         $AR0, #do_main	; return addr after DRAM upload
 jmp         0x80bc			; DRAM upload !!
 ; $AX0.H-$AX0.L - CPU(PPC) addr = mail & 0x0fffffff
-; upload data from mainmem to DSP dram and jump to 0x41 after that
+; upload data from mainmem to DSP DRAM and jump to 0x41 after that
 
 ; ucode addr 0x0041
 do_main:
@@ -127,7 +127,7 @@ jmp         0x80b5		; BootUcode()
 halt     
 
 
-; does some crazy stuff with data at dram @0x3/0x5/0x6/0x7 with help of some values from drom :)
+; does some crazy stuff with data at DRAM @0x3/0x5/0x6/0x7 with help of some values from drom :)
 ; result is @0x22,@0x23 and written back to main memory to dmem-0x08:dmem-0x09
 BigCrazyFunction:
 ; {
@@ -586,9 +586,9 @@ lri         $AX1.H, #0x0020	; DSP addr
 call		send_back
 lri         $AX1.L, #0x0008	; length
 call		send_back
-lri         $IX3, #0x0000	; there will be no iram dma
+lri         $IX3, #0x0000	; there will be no iram DMA
 call		send_back
-call        0x808b			; dram->CPU <<<--- important!!
+call        0x808b			; DRAM->CPU <<<--- important!!
 call		send_back
 ret         
 ; }

@@ -366,7 +366,7 @@ void EmuThread()
 	{
 		Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
 
-		// Activate wiimotes which don't have source set to "None"
+		// Activate Wiimotes which don't have source set to "None"
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
 			if (g_wiimote_sources[i])
 				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
@@ -432,7 +432,7 @@ void EmuThread()
 		// The EmuThread is thus an idle thread, which sleeps while
 		// waiting for the program to terminate. Without this extra
 		// thread, the video backend window hangs in single core mode
-		// because noone is pumping messages.
+		// because no one is pumping messages.
 		Common::SetCurrentThreadName("Emuthread - Idle");
 
 		// Spawn the CPU+GPU thread

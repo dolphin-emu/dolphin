@@ -646,7 +646,7 @@ static void Do_ARAM_DMA()
 
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the Wii Sports ucode is processed incorrectly?
-// (LM) It just means that DSP reads via '0xffdd' on WII can end up in EXRAM or main RAM
+// (LM) It just means that DSP reads via '0xffdd' on Wii can end up in EXRAM or main RAM
 u8 ReadARAM(u32 _iAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
@@ -666,7 +666,7 @@ u8 ReadARAM(u32 _iAddress)
 void WriteARAM(u8 value, u32 _uAddress)
 {
 	// NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
-	// TODO: verify this on WII
+	// TODO: verify this on Wii
 	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
 
