@@ -146,7 +146,6 @@ struct VideoConfig final
 		std::vector<std::string> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 
-		bool bUseMinimalMipCount;
 		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
 		bool bSupportsPrimitiveRestart;
