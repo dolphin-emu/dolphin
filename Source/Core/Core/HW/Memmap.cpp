@@ -102,6 +102,28 @@ bool IsInitialized()
 	return m_IsInitialized;
 }
 
+namespace
+{
+	enum {
+		MV_FAKE_VMEM = 1,
+		MV_WII_ONLY = 2,
+	};
+
+	struct PhysicalMemoryRegion
+	{
+		u8** out_pointer;
+		u32 physical_address;
+		u32 size;
+		u32 flags;
+		u32 shm_position;
+	};
+
+	struct LogicalMemoryView
+	{
+		void* mapped_pointer;
+		u32 mapped_size;
+	};
+}
 
 // Dolphin allocates memory to represent four regions:
 // - 32MB RAM (actually 24MB on hardware), available on Gamecube and Wii
@@ -123,28 +145,12 @@ bool IsInitialized()
 // [0x08000000, 0x0C000000) - EFB "mapping" (not handled here)
 // [0x0C000000, 0x0E000000) - MMIO etc. (not handled here)
 // [0x10000000, 0x14000000) - 64MB RAM (Wii-only; slightly slower)
-//
-// The 4GB starting at logical_base represents access from the CPU
-// with address translation turned on.  Instead of changing the mapping
-// based on the BAT registers, we approximate the common BAT configuration
-// used by games:
-// [0x00000000, 0x02000000) - 32MB RAM, cached access, normally only mapped
-//                            during startup by Wii WADs
-// [0x02000000, 0x08000000) - Mirrors of 32MB RAM (not implemented here)
-// [0x40000000, 0x50000000) - FakeVMEM
-// [0x70000000, 0x80000000) - FakeVMEM
-// [0x80000000, 0x82000000) - 32MB RAM, cached access
-// [0x82000000, 0x88000000) - Mirrors of 32MB RAM (not implemented here)
-// [0x90000000, 0x94000000) - 64MB RAM, Wii-only, cached access
-// [0xC0000000, 0xC2000000) - 32MB RAM, uncached access
-// [0xC2000000, 0xC8000000) - Mirrors of 32MB RAM (not implemented here)
-// [0xC8000000, 0xCC000000) - EFB "mapping" (not handled here)
-// [0xCC000000, 0xCE000000) - MMIO etc. (not handled here)
-// [0xD0000000, 0xD4000000) - 64MB RAM, Wii-only, uncached access
+// [0x7E000000, 0x80000000) - FakeVMEM
 // [0xE0000000, 0xE0040000) - 256KB locked L1
 //
-// TODO: We shouldn't hardcode this mapping; we can generate it dynamically
-// based on the BAT registers.
+// The 4GB starting at logical_base represents access from the CPU
+// with address translation turned on.  This mapping is computed based
+// on the BAT registers.
 //
 // Each of these 4GB regions is followed by 4GB of empty space so overflows
 // in address computation in the JIT don't access the wrong memory.
@@ -159,19 +165,15 @@ bool IsInitialized()
 //
 // TODO: The actual size of RAM is REALRAM_SIZE (24MB); the other 8MB shouldn't
 // be backed by actual memory.
-static MemoryView views[] =
+static PhysicalMemoryRegion physical_regions[] =
 {
 	{&m_pRAM,      0x00000000, RAM_SIZE,      0},
-	{nullptr,      0x200000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
-	{nullptr,      0x280000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
-	{nullptr,      0x2C0000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
-	{&m_pL1Cache,  0x2E0000000, L1_CACHE_SIZE, 0},
-	{&m_pFakeVMEM, 0x27E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
+	{&m_pL1Cache,  0xE0000000, L1_CACHE_SIZE, 0},
+	{&m_pFakeVMEM, 0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
 	{&m_pEXRAM,    0x10000000, EXRAM_SIZE,    MV_WII_ONLY},
-	{nullptr,      0x290000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
-	{nullptr,      0x2D0000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
 };
-static const int num_views = sizeof(views) / sizeof(MemoryView);
+
+static std::vector<LogicalMemoryView> logical_mapped_entries;
 
 void Init()
 {
@@ -186,7 +188,34 @@ void Init()
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
-	physical_base = MemoryMap_Setup(views, num_views, flags, &g_arena);
+	u32 mem_size = 0;
+	for (PhysicalMemoryRegion &region : physical_regions)
+	{
+		if ((flags & region.flags) != region.flags)
+			continue;
+		region.shm_position = mem_size;
+		mem_size += region.size;
+	}
+	g_arena.GrabSHMSegment(mem_size);
+	physical_base = MemArena::FindMemoryBase();
+
+	for (PhysicalMemoryRegion &region : physical_regions)
+	{
+		if ((flags & region.flags) != region.flags)
+			continue;
+
+		u8* base = physical_base + region.physical_address;
+		*region.out_pointer = (u8*)g_arena.CreateView(region.shm_position, region.size, base);
+
+		if (!*region.out_pointer)
+		{
+			PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
+			exit(0);
+		}
+
+		mem_size += region.size;
+	}
+
 #ifndef _ARCH_32
 	logical_base = physical_base + 0x200000000;
 #endif
@@ -200,6 +229,55 @@ void Init()
 
 	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
 	m_IsInitialized = true;
+}
+
+void UpdateLogicalMemory(u32* dbat_table)
+{
+	for (auto &entry : logical_mapped_entries)
+	{
+		g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
+	}
+	logical_mapped_entries.clear();
+	for (unsigned i = 0; i < (1 << (32 - PowerPC::BAT_INDEX_SHIFT)); ++i)
+	{
+		if (dbat_table[i] & 1)
+		{
+			unsigned logical_address = i << PowerPC::BAT_INDEX_SHIFT;
+			// TODO: Merge adjacent mappings to make this faster.
+			unsigned logical_size = 1 << PowerPC::BAT_INDEX_SHIFT;
+			unsigned translated_address = dbat_table[i] & ~3;
+			for (PhysicalMemoryRegion &physical_region : physical_regions)
+			{
+				u32 mapping_address = physical_region.physical_address;
+				u32 mapping_end = mapping_address + physical_region.size;
+				u32 intersection_start = std::max(mapping_address, translated_address);
+				u32 intersection_end = std::min(mapping_end, translated_address + logical_size);
+				if (intersection_start < intersection_end)
+				{
+					// Found an overlapping region; map it.
+					// We only worry about one overlapping region; in theory, a logical
+					// region could translate to more than one physical region, but in
+					// practice, that doesn't happen.
+					u32 position = physical_region.shm_position;
+					if (intersection_start > mapping_address)
+						position += intersection_start - mapping_address;
+					u8* base = logical_base + logical_address;
+					if (intersection_start > translated_address)
+						base += intersection_start - translated_address;
+					u32 mapped_size = intersection_end - intersection_start;
+
+					void* mapped_pointer = g_arena.CreateView(position, mapped_size, base);
+					if (!mapped_pointer)
+					{
+						PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
+						exit(0);
+					}
+					logical_mapped_entries.push_back({ mapped_pointer, mapped_size });
+					break;
+				}
+			}
+		}
+	}
 }
 
 void DoState(PointerWrap &p)
@@ -222,7 +300,18 @@ void Shutdown()
 	u32 flags = 0;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
-	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
+	for (PhysicalMemoryRegion &region : physical_regions)
+	{
+		if ((flags & region.flags) != region.flags)
+			continue;
+		g_arena.ReleaseView(*region.out_pointer, region.size);
+		*region.out_pointer = 0;
+	}
+	for (auto &entry : logical_mapped_entries)
+	{
+		g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
+	}
+	logical_mapped_entries.clear();
 	g_arena.ReleaseSHMSegment();
 	physical_base = nullptr;
 	logical_base = nullptr;
@@ -236,7 +325,9 @@ void Clear()
 		memset(m_pRAM, 0, RAM_SIZE);
 	if (m_pL1Cache)
 		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && m_pEXRAM)
+	if (m_pFakeVMEM)
+		memset(m_pFakeVMEM, 0, FAKEVMEM_SIZE);
+	if (m_pEXRAM)
 		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 

@@ -264,6 +264,8 @@ void ClearCacheLine(const u32 address); // Zeroes 32 bytes; address should be 32
 // TLB functions
 void SDRUpdated();
 void InvalidateTLBEntry(u32 address);
+void DBATUpdated();
+void IBATUpdated();
 
 // Result changes based on the BAT registers and MSR.DR.  Returns whether
 // it's safe to optimize a read or write to this address to an unguarded
@@ -279,6 +281,11 @@ struct TranslateResult
 	u32 address;
 };
 TranslateResult JitCache_TranslateAddress(u32 address);
+enum {
+	BAT_INDEX_SHIFT = 17
+};
+extern u32 ibat_table[];
+extern u32 dbat_table[];
 }  // namespace
 
 enum CRBits

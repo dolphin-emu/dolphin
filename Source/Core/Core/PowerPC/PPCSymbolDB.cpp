@@ -86,9 +86,6 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 
 Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-	if (!PowerPC::HostIsRAMAddress(addr))
-		return nullptr;
-
 	XFuncMap::iterator it = functions.find(addr);
 	if (it != functions.end())
 	{

@@ -358,6 +358,8 @@ void FifoPlayer::LoadMemory()
 	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
 	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
 	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+	PowerPC::DBATUpdated();
+	PowerPC::IBATUpdated();
 
 	Memory::Clear();
 

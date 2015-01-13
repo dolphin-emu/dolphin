@@ -50,6 +50,8 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
 	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
 	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+	PowerPC::DBATUpdated();
+	PowerPC::IBATUpdated();
 
 	// Clear ALL memory
 	Memory::Clear();
@@ -269,11 +271,11 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 	Memory::Write_U32(0x8179d500, 0x00003110);                  // Init
 	Memory::Write_U32(0x04000000, 0x00003118);                  // Unknown
 	Memory::Write_U32(0x04000000, 0x0000311c);                  // BAT
-	Memory::Write_U32(0x93400000, 0x00003120);                  // BAT
+	Memory::Write_U32(0x93600000, 0x00003120);                  // BAT
 	Memory::Write_U32(0x90000800, 0x00003124);                  // Init - MEM2 low
-	Memory::Write_U32(0x93ae0000, 0x00003128);                  // Init - MEM2 high
-	Memory::Write_U32(0x93ae0000, 0x00003130);                  // IOS MEM2 low
-	Memory::Write_U32(0x93b00000, 0x00003134);                  // IOS MEM2 high
+	Memory::Write_U32(0x935e0000, 0x00003128);                  // Init - MEM2 high
+	Memory::Write_U32(0x935e0000, 0x00003130);                  // IOS MEM2 low
+	Memory::Write_U32(0x93600000, 0x00003134);                  // IOS MEM2 high
 	Memory::Write_U32(0x00000012, 0x00003138);                  // Console type
 	// 40 is copied from 88 after running apploader
 	Memory::Write_U32(0x00090204, 0x00003140);                  // IOS revision (IOS9, v2.4)
@@ -341,6 +343,8 @@ bool CBoot::EmulatedBS2_Wii()
 		PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
 		PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
 		PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+		PowerPC::DBATUpdated();
+		PowerPC::IBATUpdated();
 
 		Memory::Write_U32(0x4c000064, 0x00000300); // Write default DSI Handler:     rfi
 		Memory::Write_U32(0x4c000064, 0x00000800); // Write default FPU Handler:     rfi

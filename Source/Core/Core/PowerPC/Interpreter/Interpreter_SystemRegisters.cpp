@@ -297,6 +297,11 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		// TODO: emulate locked cache and DMA bits.
 		break;
 
+	case SPR_HID4:
+		PowerPC::IBATUpdated();
+		PowerPC::DBATUpdated();
+		break;
+
 	case SPR_WPAR:
 		_assert_msg_(POWERPC, rGPR[_inst.RD] == 0x0C008000, "Gather pipe @ %08x", PC);
 		GPFifo::ResetGatherPipe();
@@ -352,6 +357,44 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 	case SPR_XER:
 		SetXER(rSPR(iIndex));
+		break;
+
+	case SPR_DBAT0L:
+	case SPR_DBAT0U:
+	case SPR_DBAT1L:
+	case SPR_DBAT1U:
+	case SPR_DBAT2L:
+	case SPR_DBAT2U:
+	case SPR_DBAT3L:
+	case SPR_DBAT3U:
+	case SPR_DBAT4L:
+	case SPR_DBAT4U:
+	case SPR_DBAT5L:
+	case SPR_DBAT5U:
+	case SPR_DBAT6L:
+	case SPR_DBAT6U:
+	case SPR_DBAT7L:
+	case SPR_DBAT7U:
+		PowerPC::DBATUpdated();
+		break;
+
+	case SPR_IBAT0L:
+	case SPR_IBAT0U:
+	case SPR_IBAT1L:
+	case SPR_IBAT1U:
+	case SPR_IBAT2L:
+	case SPR_IBAT2U:
+	case SPR_IBAT3L:
+	case SPR_IBAT3U:
+	case SPR_IBAT4L:
+	case SPR_IBAT4U:
+	case SPR_IBAT5L:
+	case SPR_IBAT5U:
+	case SPR_IBAT6L:
+	case SPR_IBAT6U:
+	case SPR_IBAT7L:
+	case SPR_IBAT7U:
+		PowerPC::IBATUpdated();
 		break;
 	}
 }

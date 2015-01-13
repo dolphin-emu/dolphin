@@ -316,24 +316,24 @@ void Interpreter::dcba(UGeckoInstruction _inst)
 
 void Interpreter::dcbf(UGeckoInstruction _inst)
 {
-	//This should tell GFX backend to throw out any cached data here
-	// !!! SPEEDUP HACK for OSProtectRange !!!
-/*	u32 tmp1 = PowerPC::HostRead_U32(PC+4);
-	u32 tmp2 = PowerPC::HostRead_U32(PC+8);
+	// TODO: Implement some sort of L2 emulation.
+	// TODO: Raise DSI if translation fails (except for direct-store segments).
 
-	if ((tmp1 == 0x38630020) &&
-		(tmp2 == 0x4200fff8))
-	{
-		NPC = PC + 12;
-	}*/
+	// Invalidate the JIT cache here as a heuristic to compensate for
+	// the lack of precise L1 icache emulation in the JIT. (Portable software
+	// should use icbi consistently, but games aren't portable.)
 	u32 address = Helper_Get_EA_X(_inst);
 	JitInterface::InvalidateICache(address & ~0x1f, 32, false);
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
 {
-	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
-	// However, we invalidate the jit block cache on dcbi
+	// TODO: Implement some sort of L2 emulation.
+	// TODO: Raise DSI if translation fails (except for direct-store segments).
+
+	// Invalidate the JIT cache here as a heuristic to compensate for
+	// the lack of precise L1 icache emulation in the JIT. (Portable software
+	// should use icbi consistently, but games aren't portable.)
 	u32 address = Helper_Get_EA_X(_inst);
 	JitInterface::InvalidateICache(address & ~0x1f, 32, false);
 
@@ -356,30 +356,33 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
 {
-	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
-	// Invalidate the jit block cache on dcbst in case new code has been loaded via the data cache
+	// TODO: Implement some sort of L2 emulation.
+	// TODO: Raise DSI if translation fails (except for direct-store segments).
+
+	// Invalidate the JIT cache here as a heuristic to compensate for
+	// the lack of precise L1 icache emulation in the JIT. (Portable software
+	// should use icbi consistently, but games aren't portable.)
 	u32 address = Helper_Get_EA_X(_inst);
 	JitInterface::InvalidateICache(address & ~0x1f, 32, false);
 }
 
 void Interpreter::dcbt(UGeckoInstruction _inst)
 {
-	// Prefetch. Since we don't emulate the data cache, we don't need to do anything.
+	// TODO: Implement some sort of L2 emulation.
 }
 
 void Interpreter::dcbtst(UGeckoInstruction _inst)
 {
-	// This is just some sort of store "prefetching".
-	// Since we don't emulate the data cache, we don't need to do anything.
+	// TODO: Implement some sort of L2 emulation.
 }
 
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {
-	// HACK but works... we think
+	// TODO: Implement some sort of L2 emulation.
+	// DCBZOFF is a hack to fix certain games which would otherwise require
+	// accurate L2 emulation.
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bDCBZOFF)
 		PowerPC::ClearCacheLine(Helper_Get_EA_X(_inst) & (~31));
-	if (!JitInterface::GetCore())
-		PowerPC::CheckExceptions();
 }
 
 // eciwx/ecowx technically should access the specified device
@@ -438,6 +441,7 @@ void Interpreter::eieio(UGeckoInstruction _inst)
 
 void Interpreter::icbi(UGeckoInstruction _inst)
 {
+	// TODO: Raise DSI if translation fails (except for direct-store segments).
 	u32 address = Helper_Get_EA_X(_inst);
 	PowerPC::ppcState.iCache.Invalidate(address);
 }
