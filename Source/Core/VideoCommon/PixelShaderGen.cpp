@@ -271,7 +271,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	GenerateVSOutputMembers<T>(out, ApiType);
 	out.Write("};\n");
 
-	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
+	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() 
+								&& (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
+								// We can't allow early_ztest for zfreeze because a reference poly is used 
+								// to control the depth and we need a depth test after the alpha test.
+								&& !bpmem.genMode.zfreeze;
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
 
 	if (forced_early_z)
@@ -400,7 +404,16 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		// On GLSL, input variables must not be assigned to.
 		// This is why we declare these variables locally instead.
-		out.Write("\tfloat4 col0, col1;\n");
+		if (ApiType == API_OPENGL)
+		{
+			out.Write("\tfloat4 col0, col1;\n");
+		}
+		// On D3D, input variables must be completely initialization before being used.
+		else
+		{
+			out.Write("\tfloat4 col0 = 0.0;\n");
+			out.Write("\tfloat4 col1 = 0.0;\n");
+		}
 
 		// TODO: Our current constant usage code isn't able to handle more than one buffer.
 		//       So we can't mark the VS constant as used here. But keep them here as reference.
@@ -1023,7 +1036,11 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	// Tests seem to have proven that writing depth even when the alpha test fails is more
 	// important that a reliable alpha test, so we just force the alpha test to always succeed.
 	// At least this seems to be less buggy.
-	uid_data->alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
+	uid_data->alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest()
+											 && bpmem.zmode.updateenable
+											 && !g_ActiveConfig.backend_info.bSupportsEarlyZ
+											 && !bpmem.genMode.zfreeze; // Might not be neccessary
+
 	if (!uid_data->alpha_test_use_zcomploc_hack)
 	{
 		out.Write("\t\tdiscard;\n");
@@ -1106,6 +1123,9 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 template<class T>
 static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType)
 {
+	//16-bit or 24-bit
+	int depthSize = (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16) ? depthSize = 0xFFFF : 0xFFFFFF;
+
 	if (bpmem.genMode.zfreeze)
 	{
 		out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
@@ -1114,10 +1134,10 @@ static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, A
 		out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE".xy;\n");
 
 		// Opengl has reversed vertical screenspace coordiantes
-		if(ApiType == API_OPENGL)
+		if (ApiType == API_OPENGL)
 			out.Write("\tscreenpos.y = %i - screenpos.y - 1;\n", EFB_HEIGHT);
 
-		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xffffff);\n");
+		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(%i);\n", depthSize);
 	}
 	else
 	{

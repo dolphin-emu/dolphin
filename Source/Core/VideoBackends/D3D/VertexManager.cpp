@@ -182,14 +182,31 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	PrepareDrawBuffers(stride);
 
-	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() >= 3)
+	// Hack for Mario Golf zfreeze triangle NOT using CULL_ALL like all othe zfreeze games :(
+	// So now we are forced to assume that the zfreeze ref poly is a triangle with 5 or less indices,
+	// Debug results show this to be true, however we may get other triangles in here that shouldn't be like GUI!
+	// If we can get rid of this, that'd be perfect!  Thanks a lot Camelot!
+	bool bZSlopeSet = false;
+	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() == 5)
 	{
 		CalculateZSlope(stride);
+		bZSlopeSet = true;
 	}
 
-	// if cull mode is CULL_ALL, ignore triangles and quads
+	// If cull mode is CULL_ALL, do not render these triangles, 
+	// for zfreeze this should be the zslope reference triangle
 	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
+	{
+		// Ideally this is all we need to do here, but Mario Golf isn't using CULL_ALL before drawing a zfreeze poly,
+		// and just using the menu itself I believe
+		// Our assumption that CULL_ALL is used before zfreeze triangle is drawn could be incorrect here
+		// but Mario Golf is the only game that fails to do this, so the issue with Mario Golf could be
+		// that we aren't resetting to the proper depth as a default slope, causing a depth draw issue on the character portraits
+		if (!bpmem.genMode.zfreeze && bZSlopeSet == false)
+			CalculateZSlope(stride);
+
 		return;
+	}
 
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);

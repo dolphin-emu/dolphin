@@ -50,7 +50,7 @@ void PixelShaderManager::Dirty()
 	SetZTextureBias();
 	SetViewportChanged();
 	SetEfbScaleChanged();
-	SetZSlope(0, 0, 1);
+	SetZSlope(0, 0, (float)0xFFFFFF);
 	SetIndTexScaleChanged(false);
 	SetIndTexScaleChanged(true);
 	SetIndMatrixChanged(0);

@@ -254,6 +254,8 @@ void VertexManager::CalculateZSlope(u32 stride)
 {
 	float vtx[9];
 	float out[12];
+	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
+						    xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
 	// Lookup vertices of the last rendered triangle and software-transform them
 	// This allows us to determine the depth slope, which will be used if zfreeze
@@ -268,9 +270,11 @@ void VertexManager::CalculateZSlope(u32 stride)
 		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4]);
 
 		// Transform to Screenspace
-		out[0 + i * 4] = out[0 + i * 4] / out[3 + i * 4] * xfmem.viewport.wd + (xfmem.viewport.xOrig - 342);
-		out[1 + i * 4] = out[1 + i * 4] / out[3 + i * 4] * xfmem.viewport.ht + (xfmem.viewport.yOrig - 342);
-		out[2 + i * 4] = out[2 + i * 4] / out[3 + i * 4] * xfmem.viewport.zRange + xfmem.viewport.farZ;
+		float w = out[3 + i * 4];
+
+		out[0 + i * 4] = out[0 + i * 4] / w * xfmem.viewport.wd + viewOffset[0];
+		out[1 + i * 4] = out[1 + i * 4] / w * xfmem.viewport.ht + viewOffset[1];
+		out[2 + i * 4] = out[2 + i * 4] / w * xfmem.viewport.zRange + xfmem.viewport.farZ;
 	}
 
 	float dx31 = out[8] - out[0];
@@ -283,6 +287,16 @@ void VertexManager::CalculateZSlope(u32 stride)
 	float a = DF31 * -dy12 - DF21 * dy31;
 	float b = dx31 * DF21 + dx12 * DF31;
 	float c = -dx12 * dy31 - dx31 * -dy12;
+
+	// This shouldn't happen
+	if (abs(c) < FLT_EPSILON)
+	{
+		// Reset Slope
+		PixelShaderManager::SetZSlope(0, 0, (float)0xFFFFFF);
+#if defined(_DEBUG) || defined(DEBUGFAST)
+		PRIM_LOG("This is not the zfreeze reference polygon you are looking for");
+#endif
+	}
 
 	float slope_dfdx = -a / c;
 	float slope_dfdy = -b / c;

@@ -692,6 +692,7 @@ void VertexShaderManager::ResetView()
 
 void VertexShaderManager::TransformToClipSpace(const float* data, float *out)
 {
+	// Can we use constants.posnormalmatrix here instead?
 	const float *world_matrix = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
 	const float *proj_matrix = &g_fProjectionMatrix[0];
 
@@ -699,8 +700,6 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float *out)
 	t[0] = data[0] * world_matrix[0] + data[1] * world_matrix[1] + data[2] * world_matrix[2] + world_matrix[3];
 	t[1] = data[0] * world_matrix[4] + data[1] * world_matrix[5] + data[2] * world_matrix[6] + world_matrix[7];
 	t[2] = data[0] * world_matrix[8] + data[1] * world_matrix[9] + data[2] * world_matrix[10] + world_matrix[11];
-
-	// TODO: this requires g_fProjectionMatrix to be up to date, which is not really a good design decision.
 
 	out[0] = t[0] * proj_matrix[0] + t[1] * proj_matrix[1] + t[2] * proj_matrix[2] + proj_matrix[3];
 	out[1] = t[0] * proj_matrix[4] + t[1] * proj_matrix[5] + t[2] * proj_matrix[6] + proj_matrix[7];
