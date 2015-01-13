@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -1105,11 +1105,9 @@ void CFrame::StartGame(const std::string& filename)
 
 	wxBeginBusyCursor();
 
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If Rift is in Direct Mode, start the mirror windowed.
+	if (g_is_direct_mode) //If Rift is in Direct Mode, start the mirror windowed.
 		DoFullscreen(FALSE);
 	else
-#endif
 		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
 	if (!BootManager::BootCore(filename))
@@ -1129,6 +1127,8 @@ void CFrame::StartGame(const std::string& filename)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
+		SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+		VR_SetGame(StartUp.bWii, StartUp.m_BootType == SCoreStartupParameter::BOOT_WII_NAND, StartUp.m_strUniqueID);
 
 		m_RenderParent->SetFocus();
 
@@ -1254,12 +1254,12 @@ void CFrame::DoStop()
 			wxMessageDialog m_StopDlg(
 				this,
 				_("Do you want to save these VR settings for this game?")
-				+ wxString::Format("\n3D: %5.2f units per metre, free look sensitivity %5.2f"
+				+ wxString::Format("\n3D: %5.2f units per metre"
 					"\nHUD %5.1fm away, %5.1fm thick, 3D HUD %5.2f closer, aim distance %5.1fm"
 					"\nCamera %5.1fm forward, %5.0f degrees up."
 					"\n\n2D: Screen is %5.1fm high, %5.1fm away, %5.1fm thick, %5.1fm up"
 					"\n2D Camera %5.0f degrees up.",
-					g_Config.fUnitsPerMetre, g_Config.fFreeLookSensitivity,
+					g_Config.fUnitsPerMetre,
 					g_Config.fHudDistance, g_Config.fHudThickness, g_Config.fHud3DCloser, g_Config.fAimDistance, 
 					g_Config.fCameraForward, g_Config.fCameraPitch,
 					g_Config.fScreenHeight, g_Config.fScreenDistance, g_Config.fScreenThickness, g_Config.fScreenUp,

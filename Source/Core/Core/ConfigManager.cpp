@@ -66,6 +66,11 @@ static const struct
 	{ "Wiimote4Connect",      true, false, 347 /* WXK_F8 */,    1 /* wxMOD_ALT */,     0, 0 },
 	{ "BalanceBoardConnect",  true, false, 348 /* WXK_F9 */,    1 /* wxMOD_ALT */,     0, 0 },
 #endif
+
+	{ "VolumeUp",            true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
+	{ "VolumeDown",          true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
+	{ "VolumeToggleMute",    true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
+
 	{ "ToggleIR",             true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleAspectRatio",    true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleEFBCopies",      true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
@@ -74,8 +79,8 @@ static const struct
 	{ "IncreaseFrameLimit",   true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "DecreaseFrameLimit",   true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 
-	{ "FreelookIncreaseSpeed", true, false, 49 /* '1' */,       4 /* wxMOD_SHIFT */,   0, 0 },
-	{ "FreelookDecreaseSpeed", true, false, 50 /* '2' */,       4 /* wxMOD_SHIFT */,   0, 0 },
+	{ "FreelookDecreaseSpeed", true, false, 49 /* '1' */,       4 /* wxMOD_SHIFT */,   0, 0 },
+	{ "FreelookIncreaseSpeed", true, false, 50 /* '2' */,       4 /* wxMOD_SHIFT */,   0, 0 },
 	{ "FreelookResetSpeed",    true, false, 70 /* 'F' */,       4 /* wxMOD_SHIFT */,   0, 0 },
 	{ "FreelookUp",            true, false, 69 /* 'E' */,       4 /* wxMOD_SHIFT */,   0, 0 },
 	{ "FreelookDown",          true, false, 81 /* 'Q' */,       4 /* wxMOD_SHIFT */,   0, 0 },
@@ -438,9 +443,12 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
 	core->Set("FrameLimit", m_Framelimit);
 	core->Set("FrameSkip", m_FrameSkip);
+	core->Set("Overclock", m_OCFactor);
+	core->Set("OverclockEnable", m_OCEnable);
 	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
 	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
+	core->Set("GameCubeAdapterThread", m_GameCubeAdapterThread);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -735,10 +743,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FastDiscSpeed",             &m_LocalCoreStartupParameter.bFastDiscSpeed,    false);
 	core->Get("DCBZ",                      &m_LocalCoreStartupParameter.bDCBZOFF,          false);
 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
+	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
+	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
+	core->Get("GameCubeAdapterThread",     &m_GameCubeAdapterThread,                       true);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -770,6 +781,8 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+
+	m_IsMuted = false;
 }
 
 void SConfig::LoadInputSettings(IniFile& ini)

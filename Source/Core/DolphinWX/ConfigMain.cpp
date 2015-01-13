@@ -134,7 +134,8 @@ EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 
 EVT_RADIOBOX(ID_CPUENGINE, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_NTSCJ, CConfigMain::CoreSettingsChanged)
-
+EVT_SLIDER(ID_OVERCLOCK, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_ENABLEOVERCLOCK, CConfigMain::CoreSettingsChanged)
 
 EVT_RADIOBOX(ID_DSPENGINE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
@@ -327,6 +328,10 @@ void CConfigMain::InitializeGUIValues()
 	SkipIdle->SetValue(startup_params.bSkipIdle);
 	EnableCheats->SetValue(startup_params.bEnableCheats);
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
+	int ocFactor = (int)(log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f + 0.5f);
+	EnableOC->SetValue(SConfig::GetInstance().m_OCEnable);
+	OCSlider->SetValue(ocFactor);
+	UpdateCPUClock();
 
 	// General - Advanced
 	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
@@ -359,7 +364,8 @@ void CConfigMain::InitializeGUIValues()
 	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
 	VolumeSlider->SetValue(SConfig::GetInstance().m_Volume);
 	VolumeText->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
-	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
+	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL
+			|| std::string(SConfig::GetInstance().sBackend) == BACKEND_PULSEAUDIO);
 	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
 	Latency->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	Latency->SetValue(startup_params.iLatency);
@@ -479,7 +485,7 @@ void CConfigMain::InitializeGUITooltips()
 #if defined(__APPLE__)
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OSX."));
 #else
-	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
 #endif
 
 	Latency->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
@@ -496,6 +502,7 @@ void CConfigMain::CreateGUIControls()
 	wxPanel* const AudioPage = new wxPanel(Notebook, ID_AUDIOPAGE);
 	wxPanel* const GamecubePage = new wxPanel(Notebook, ID_GAMECUBEPAGE);
 	wxPanel* const WiiPage = new wxPanel(Notebook, ID_WIIPAGE);
+	wxPanel* const AdvancedPage = new wxPanel(Notebook, ID_ADVANCEDPAGE);
 	PathsPage = new wxPanel(Notebook, ID_PATHSPAGE);
 
 	Notebook->AddPage(GeneralPage, _("General"));
@@ -504,6 +511,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(GamecubePage, _("GameCube"));
 	Notebook->AddPage(WiiPage, _("Wii"));
 	Notebook->AddPage(PathsPage, _("Paths"));
+	Notebook->AddPage(AdvancedPage, _("Advanced"));
 
 	// General page
 	// Core Settings - Basic
@@ -520,6 +528,7 @@ void CConfigMain::CreateGUIControls()
 	wxBoxSizer* sFramelimit = new wxBoxSizer(wxHORIZONTAL);
 	sFramelimit->Add(TEXT_BOX(GeneralPage, _("Framelimit:")), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	sFramelimit->Add(Framelimit, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+
 	wxStaticBoxSizer* const sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Basic Settings"));
 	sbBasic->Add(CPUThread, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
@@ -781,6 +790,33 @@ void CConfigMain::CreateGUIControls()
 	sMain->Add(Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
+	wxStaticBoxSizer* sbCPUOptions = new wxStaticBoxSizer(wxVERTICAL, AdvancedPage, _("CPU Options"));
+	wxBoxSizer* bOverclockEnable = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* bOverclock = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* bOverclockDesc = new wxBoxSizer(wxHORIZONTAL);
+	EnableOC = new wxCheckBox(AdvancedPage, ID_ENABLEOVERCLOCK, _("Enable CPU Clock Override"));
+	OCSlider = new wxSlider(AdvancedPage, ID_OVERCLOCK, 100, 0, 150, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+	wxStaticText* OCDescription = new wxStaticText(AdvancedPage, wxID_ANY,
+	  _("Higher values can make variable-framerate games\n"
+	    "run at a higher framerate, at the expense of CPU.\n"
+	    "Lower values can make variable-framerate games\n"
+	    "run at a lower framerate, saving CPU.\n\n"
+	    "WARNING: Changing this from the default (100%)\n"
+	    "can and will break games and cause glitches.\n"
+	    "Do so at your own risk. Please do not report\n"
+	    "bugs that occur with a non-default clock.\n"));
+	OCText = new wxStaticText(AdvancedPage, wxID_ANY, "");
+	bOverclockEnable->Add(EnableOC);
+	bOverclock->Add(OCSlider, 1, wxALL, 5);
+	bOverclock->Add(OCText, 1, wxALL, 5);
+	bOverclockDesc->Add(OCDescription, 1, wxALL, 5);
+	sbCPUOptions->Add(bOverclockEnable);
+	sbCPUOptions->Add(bOverclock);
+	sbCPUOptions->Add(bOverclockDesc);
+	wxBoxSizer* const sAdvancedPage = new wxBoxSizer(wxVERTICAL);
+	sAdvancedPage->Add(sbCPUOptions, 0, wxEXPAND | wxALL, 5);
+	AdvancedPage->SetSizer(sAdvancedPage);
+
 	InitializeGUIValues();
 	InitializeGUITooltips();
 
@@ -802,6 +838,14 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 
 	// Save the config. Dolphin crashes too often to only save the settings on closing
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CConfigMain::UpdateCPUClock()
+{
+	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	int percent = (int)(roundf(SConfig::GetInstance().m_OCFactor * 100.f));
+	int clock = (int)(roundf(SConfig::GetInstance().m_OCFactor * (wii ? 729.f : 486.f)));
+	OCText->SetLabel(SConfig::GetInstance().m_OCEnable ? wxString::Format("%d %% (%d mhz)", percent, clock) : "");
 }
 
 // Core settings
@@ -837,6 +881,16 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_NTSCJ:
 		startup_params.bForceNTSCJ = _NTSCJ->IsChecked();
+		break;
+	case ID_ENABLEOVERCLOCK:
+		SConfig::GetInstance().m_OCEnable = EnableOC->IsChecked();
+		OCSlider->Enable(SConfig::GetInstance().m_OCEnable);
+		UpdateCPUClock();
+		break;
+	case ID_OVERCLOCK:
+		// Vaguely exponential scaling?
+		SConfig::GetInstance().m_OCFactor = exp2f((OCSlider->GetValue() - 100.f) / 25.f);
+		UpdateCPUClock();
 		break;
 	}
 }
@@ -897,7 +951,8 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	case ID_BACKEND:
 		VolumeSlider->Enable(SupportsVolumeChanges(WxStrToStr(BackendSelection->GetStringSelection())));
 		Latency->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
-		DPL2Decoder->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
+		DPL2Decoder->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL
+				|| WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_PULSEAUDIO);
 		// Don't save the translated BACKEND_NULLSOUND string
 		SConfig::GetInstance().sBackend = BackendSelection->GetSelection() ?
 			WxStrToStr(BackendSelection->GetStringSelection()) : BACKEND_NULLSOUND;

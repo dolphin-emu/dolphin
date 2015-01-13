@@ -37,6 +37,7 @@ public:
 	// constant management
 	static void SetConstants();
 	static void SetProjectionConstants();
+	static void SetViewportConstants();
 
 	static void InvalidateXFRange(int start, int end);
 	static void SetTexMatrixChangedA(u32 value);
@@ -45,10 +46,16 @@ public:
 	static void SetProjectionChanged();
 	static void SetMaterialColorChanged(int index, u32 color);
 
-	static void TranslateView(float x, float y, float z = 0.0f);
+	static void TranslateView(float left_metres, float forward_metres, float down_metres = 0.0f);
 	static void RotateView(float x, float y);
 	static void ScaleView(float scale);
 	static void ResetView();
+
+	// data: 3 floats representing the X, Y and Z vertex model coordinates
+	// out: 4 floats which will be initialized with the corresponding clip space coordinates
+	// NOTE: g_fProjectionMatrix must be up to date when this is called
+	//		(i.e. VertexShaderManager::SetConstants needs to be called before using this!)
+	static void TransformToClipSpace(const float* data, float *out);
 
 	static VertexShaderConstants constants;
 	static float4 constants_eye_projection[2][4];

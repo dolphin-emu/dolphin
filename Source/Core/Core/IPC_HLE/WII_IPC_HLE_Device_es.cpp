@@ -942,8 +942,16 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			}
 			if (!bSuccess)
 			{
-				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
-					"TitleID %016" PRIx64".\n Dolphin will likely hang now.", TitleID);
+				if (TitleID == TITLEID_SYSMENU)
+				{
+					// Trying to return to Wii system menu, but we don't have one, so just stop emulating.
+					SuccessAlertT("Game is trying to return to the Wii menu. Please click the Stop button.");
+				}
+				else
+				{
+					PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
+						"TitleID %016" PRIx64".\n Dolphin will likely hang now.", TitleID);
+				}
 			}
 			else
 			{

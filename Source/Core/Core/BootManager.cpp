@@ -222,13 +222,9 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
-#ifdef HAVE_OCULUSSDK
 	// If Oculus Rift is in Direct Mode, we must use Deterministic Dual Core for it not to randomly drop frames.
-	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop) && !g_force_vr)
-		StartUp.m_GPUDeterminismMode = GPU_DETERMINISM_FAKE_COMPLETION;
-	else
-#endif
-		StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
+	// But we must NOT use Direct Mode for it to not crash with opcode replay. So we can't force it here.
+	StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
 	// Movie settings
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
@@ -257,6 +253,8 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
 		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
 		SConfig::GetInstance().m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
+		SConfig::GetInstance().m_OCEnable = g_NetPlaySettings.m_OCEnable;
+		SConfig::GetInstance().m_OCFactor = g_NetPlaySettings.m_OCFactor;
 		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
 		config_cache.bSetEXIDevice[0] = true;

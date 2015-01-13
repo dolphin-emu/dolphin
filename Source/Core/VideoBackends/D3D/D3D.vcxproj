@@ -47,14 +47,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4351;4267</DisableSpecificWarnings>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AvatarDrawer.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="D3DBase.cpp" />
     <ClCompile Include="D3DBlob.cpp" />
@@ -72,11 +76,13 @@
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Television.cpp" />
     <ClCompile Include="TextureCache.cpp" />
+    <ClCompile Include="tiny_obj_loader.cpp" />
     <ClCompile Include="VertexManager.cpp" />
     <ClCompile Include="VertexShaderCache.cpp" />
     <ClCompile Include="XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AvatarDrawer.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="D3DBase.h" />
     <ClInclude Include="D3DBlob.h" />
@@ -95,6 +101,7 @@
     <ClInclude Include="Television.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="TextureEncoder.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VertexShaderCache.h" />
     <ClInclude Include="VideoBackend.h" />

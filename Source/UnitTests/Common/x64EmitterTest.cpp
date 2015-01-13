@@ -728,9 +728,44 @@ TWO_OP_SSE_TEST(UCOMISS, "dword")
 TWO_OP_SSE_TEST(COMISD, "qword")
 TWO_OP_SSE_TEST(UCOMISD, "qword")
 
+// register-only instructions
+#define TWO_OP_SSE_REG_TEST(Name, MemBits) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		for (const auto& r1 : xmmnames) \
+		{ \
+			for (const auto& r2 : xmmnames) \
+			{ \
+				emitter->Name(r1.reg, r2.reg); \
+				ExpectDisassembly(#Name " " + r1.name + ", " + r2.name); \
+			} \
+		} \
+	}
+
+TWO_OP_SSE_REG_TEST(MOVHLPS, "qword")
+TWO_OP_SSE_REG_TEST(MOVLHPS, "qword")
+
+// "register + memory"-only instructions
+#define TWO_OP_SSE_MEM_TEST(Name, MemBits) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		for (const auto& r1 : xmmnames) \
+		{ \
+			emitter->Name(r1.reg, MatR(R12)); \
+			ExpectDisassembly(#Name " " + r1.name + ", " MemBits " ptr ds:[r12]"); \
+			emitter->Name(MatR(R12), r1.reg); \
+			ExpectDisassembly(#Name " " MemBits " ptr ds:[r12], " + r1.name); \
+		} \
+	}
+
+TWO_OP_SSE_MEM_TEST(MOVLPS, "qword")
+TWO_OP_SSE_MEM_TEST(MOVHPS, "qword")
+TWO_OP_SSE_MEM_TEST(MOVLPD, "qword")
+TWO_OP_SSE_MEM_TEST(MOVHPD, "qword")
+
 // TODO: CMPSS/SD
 // TODO: SHUFPS/PD
-// TODO: SSE MOVs
+// TODO: more SSE MOVs
 // TODO: MOVMSK
 
 TEST_F(x64EmitterTest, MASKMOVDQU)

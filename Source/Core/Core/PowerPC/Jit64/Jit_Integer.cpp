@@ -50,14 +50,30 @@ void Jit64::GenerateOverflow()
 	SetJumpTarget(exit);
 }
 
+bool Jit64::MergeAllowedNextInstructions(int count)
+{
+	if (PowerPC::GetState() == PowerPC::CPU_STEPPING || js.instructionsLeft < count)
+		return false;
+	// Be careful: a breakpoint kills flags in between instructions
+	for (int i = 1; i <= count; i++)
+	{
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+			PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+			return false;
+		if (js.op[i].isBranchTarget)
+			return false;
+	}
+	return true;
+}
+
 void Jit64::FinalizeCarry(CCFlags cond)
 {
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		// Be careful: a breakpoint kills flags in between instructions
-		if (!js.isLastInstruction && js.next_op->wantsCAInFlags && !js.next_inst_bp)
+		// Not actually merging instructions, but the effect is equivalent (we can't have breakpoints/etc in between).
+		if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
 		{
 			if (cond == CC_C || cond == CC_NC)
 			{
@@ -86,7 +102,7 @@ void Jit64::FinalizeCarry(bool ca)
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		if (!js.isLastInstruction && js.next_op->wantsCAInFlags && !js.next_inst_bp)
+		if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
 		{
 			if (ca)
 				STC();
@@ -326,12 +342,15 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	}
 }
 
-bool Jit64::CheckMergedBranch(int crf)
+bool Jit64::CheckMergedBranch(int crf, int inst)
 {
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
 		return false;
 
-	const UGeckoInstruction& next = js.next_inst;
+	if (!MergeAllowedNextInstructions(inst))
+		return false;
+
+	const UGeckoInstruction& next = js.op[inst].inst;
 	return (((next.OPCD == 16 /* bcx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
@@ -340,36 +359,38 @@ bool Jit64::CheckMergedBranch(int crf)
 	         (next.BI >> 2) == crf);
 }
 
-void Jit64::DoMergedBranch()
+void Jit64::DoMergedBranch(int inst)
 {
 	// Code that handles successful PPC branching.
-	if (js.next_inst.OPCD == 16) // bcx
+	const UGeckoInstruction& next = js.op[inst].inst;
+	const u32 nextPC = js.op[inst].address;
+	if (next.OPCD == 16) // bcx
 	{
-		if (js.next_inst.LK)
-			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+		if (next.LK)
+			MOV(32, M(&LR), Imm32(nextPC + 4));
 
 		u32 destination;
-		if (js.next_inst.AA)
-			destination = SignExt16(js.next_inst.BD << 2);
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
 		else
-			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-		WriteExit(destination, js.next_inst.LK, js.next_compilerPC + 4);
+			destination = nextPC + SignExt16(next.BD << 2);
+		WriteExit(destination, next.LK, nextPC + 4);
 	}
-	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
+	else if ((next.OPCD == 19) && (next.SUBOP10 == 528)) // bcctrx
 	{
-		if (js.next_inst.LK)
-			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+		if (next.LK)
+			MOV(32, M(&LR), Imm32(nextPC + 4));
 		MOV(32, R(RSCRATCH), M(&CTR));
 		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-		WriteExitDestInRSCRATCH(js.next_inst.LK, js.next_compilerPC + 4);
+		WriteExitDestInRSCRATCH(next.LK, nextPC + 4);
 	}
-	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
+	else if ((next.OPCD == 19) && (next.SUBOP10 == 16)) // bclrx
 	{
 		MOV(32, R(RSCRATCH), M(&LR));
 		if (!m_enable_blr_optimization)
 			AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-		if (js.next_inst.LK)
-			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+		if (next.LK)
+			MOV(32, M(&LR), Imm32(nextPC + 4));
 		WriteBLRExit();
 	}
 	else
@@ -381,43 +402,79 @@ void Jit64::DoMergedBranch()
 void Jit64::DoMergedBranchCondition()
 {
 	js.downcountAmount++;
-	js.skipnext = true;
-	int test_bit = 8 >> (js.next_inst.BI & 3);
-	bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE);
+	js.skipInstructions = 1;
+	const UGeckoInstruction& next = js.op[1].inst;
+	const u32 nextPC = js.op[1].address;
+	int test_bit = 8 >> (next.BI & 3);
+	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
+	bool jumpInBlock = false;
+	u32 destination;
+	if (next.OPCD == 16 && cc && forwardJumps && !(test_bit & 1))
+	{
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
+		else
+			destination = nextPC + SignExt16(next.BD << 2);
+		jumpInBlock = destination > nextPC && destination < js.blockEnd;
+	}
+	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE) ^ jumpInBlock;
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
-	FixupBranch pDontBranch;
+	FixupBranch pBranch;
 	if (test_bit & 8)
-		pDontBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
+		pBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
 	else if (test_bit & 4)
-		pDontBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
+		pBranch = J_CC(condition ? CC_LE : CC_G, true);  // Test > 0, so jump over if <= 0.
 	else if (test_bit & 2)
-		pDontBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
+		pBranch = J_CC(condition ? CC_NE : CC_E, true);  // Test = 0, so jump over if != 0.
 	else  // SO bit, do not branch (we don't emulate SO for cmp).
-		pDontBranch = J(true);
+		pBranch = J(true);
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
+	if (jumpInBlock)
+	{
+		BranchTarget branchData = { { pBranch }, 1, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
+		branch_targets.insert(std::make_pair(destination, branchData));
+	}
+	else
+	{
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-	DoMergedBranch();
+		DoMergedBranch();
 
-	SetJumpTarget(pDontBranch);
+		SetJumpTarget(pBranch);
+	}
 
-	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	if (!cc)
 	{
 		gpr.Flush();
 		fpr.Flush();
-		WriteExit(js.next_compilerPC + 4);
+		WriteExit(nextPC + 4);
 	}
 }
 
 void Jit64::DoMergedBranchImmediate(s64 val)
 {
 	js.downcountAmount++;
-	js.skipnext = true;
-	int test_bit = 8 >> (js.next_inst.BI & 3);
-	bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE);
+	js.skipInstructions = 1;
+	const UGeckoInstruction& next = js.op[1].inst;
+	const u32 nextPC = js.op[1].address;
+	int test_bit = 8 >> (next.BI & 3);
+	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
+	bool jumpInBlock = false;
+	u32 destination;
+	if (next.OPCD == 16 && cc && forwardJumps)
+	{
+		if (next.AA)
+			destination = SignExt16(next.BD << 2);
+		else
+			destination = nextPC + SignExt16(next.BD << 2);
+		jumpInBlock = destination > nextPC && destination < js.blockEnd;
+	}
+	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -433,15 +490,33 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 
 	if (branch)
 	{
-		gpr.Flush();
-		fpr.Flush();
-		DoMergedBranch();
+		if (jumpInBlock)
+		{
+			FixupBranch pBranch = J(true);
+			BranchTarget branchData = { { pBranch }, 1, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
+			branch_targets.insert(std::make_pair(destination, branchData));
+		}
+		// IMPORTANT: we can't actually leave the block in this case!! A forward branch is still waiting around for
+		// its entry point. This -really- should be better optimized, but I don't think immediate branches are common
+		// anyways. Should we keep this feature around at all, given the possible complexity of interactions?
+		else if (!branch_targets.empty())
+		{
+			gpr.Flush(FLUSH_MAINTAIN_STATE);
+			fpr.Flush(FLUSH_MAINTAIN_STATE);
+			DoMergedBranch();
+		}
+		else
+		{
+			gpr.Flush();
+			fpr.Flush();
+			DoMergedBranch();
+		}
 	}
 	else if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
 		gpr.Flush();
 		fpr.Flush();
-		WriteExit(js.next_compilerPC + 4);
+		WriteExit(nextPC + 4);
 	}
 }
 
@@ -1680,7 +1755,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 	if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
 	{
 		u32 amount = (u32)gpr.R(b).offset;
-		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (u32)gpr.R(s).offset << amount);
+		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (u32)gpr.R(s).offset << (amount & 0x1f));
 		if (inst.Rc)
 			ComputeRC(gpr.R(a));
 	}

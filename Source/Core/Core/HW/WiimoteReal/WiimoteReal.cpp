@@ -530,6 +530,13 @@ void Wiimote::ThreadFunc()
 
 	bool ok = ConnectInternal();
 
+	if (!ok)
+	{
+		// try again, it might take a moment to settle
+		Common::SleepCurrentThread(100);
+		ok = ConnectInternal();
+	}
+
 	SetReady();
 
 	if (!ok)

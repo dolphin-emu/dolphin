@@ -95,15 +95,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 
 	// PowerPC has no 8-bit sign extended load, but x86 does, so merge extsb with the load if we find it.
-	if (accessSize == 8 && js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 954 &&
-	    js.next_inst.RS == inst.RD && js.next_inst.RA == inst.RD && !js.next_inst.Rc)
+	if (MergeAllowedNextInstructions(1) && accessSize == 8 && js.op[1].inst.OPCD == 31 && js.op[1].inst.SUBOP10 == 954 &&
+	    js.op[1].inst.RS == inst.RD && js.op[1].inst.RA == inst.RD && !js.op[1].inst.Rc)
 	{
-		if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
-		{
-			js.downcountAmount++;
-			js.skipnext = true;
-			signExtend = true;
-		}
+		js.downcountAmount++;
+		js.skipInstructions = 1;
+		signExtend = true;
 	}
 
 	// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
@@ -246,29 +243,41 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 
 	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, js.memcheck, true);
-	BitSet32 registersInUse = CallerSavedRegistersInUse();
+
 	if (update && storeAddress)
+		gpr.BindToRegister(a, true, true);
+
+	// A bit of an evil hack here. We need to retain the original value of this register for the
+	// exception path, but we'd rather not needlessly pass it around if we don't have to, since
+	// the exception path is very rare. So we store the value in the regcache, let the load path
+	// clobber it, then restore the value in the exception path.
+	// TODO: no other load has to do this at the moment, since no other loads go directly to the
+	// target registers, but if that ever changes, we need to do it there too.
+	if (js.memcheck)
 	{
-		// We need to save the (usually scratch) address register for the update.
-		registersInUse[RSCRATCH2] = true;
+		gpr.StoreFromRegister(d);
+		js.revertGprLoad = d;
 	}
+	gpr.BindToRegister(d, false, true);
+
+	BitSet32 registersInUse = CallerSavedRegistersInUse();
+	// We need to save the (usually scratch) address register for the update.
+	if (update && storeAddress)
+		registersInUse[RSCRATCH2] = true;
+
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
 	if (update && storeAddress)
 	{
-		gpr.BindToRegister(a, true, true);
-		MEMCHECK_START(false)
+		MemoryExceptionCheck();
 		MOV(32, gpr.R(a), opAddress);
-		MEMCHECK_END
 	}
 
 	// TODO: support no-swap in SafeLoadToReg instead
 	if (byte_reversed)
 	{
-		MEMCHECK_START(false)
+		MemoryExceptionCheck();
 		BSWAP(accessSize, gpr.RX(d));
-		MEMCHECK_END
 	}
 
 	gpr.UnlockAll();
@@ -372,9 +381,8 @@ void Jit64::stX(UGeckoInstruction inst)
 			else
 			{
 				gpr.KillImmediate(a, true, true);
-				MEMCHECK_START(false)
+				MemoryExceptionCheck();
 				ADD(32, gpr.R(a), Imm32((u32)offset));
-				MEMCHECK_END
 			}
 		}
 	}
@@ -404,9 +412,8 @@ void Jit64::stX(UGeckoInstruction inst)
 
 		if (update)
 		{
-			MEMCHECK_START(false)
+			MemoryExceptionCheck();
 			ADD(32, gpr.R(a), Imm32((u32)offset));
-			MEMCHECK_END
 		}
 	}
 	gpr.UnlockAll();
@@ -425,12 +432,9 @@ void Jit64::stXx(UGeckoInstruction inst)
 	gpr.Lock(a, b, s);
 
 	if (update)
-	{
 		gpr.BindToRegister(a, true, true);
-		ADD(32, gpr.R(a), gpr.R(b));
-		MOV(32, R(RSCRATCH2), gpr.R(a));
-	}
-	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+
+	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
 		LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 	}
@@ -462,7 +466,10 @@ void Jit64::stXx(UGeckoInstruction inst)
 
 	if (gpr.R(s).IsImm())
 	{
-		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		BitSet32 registersInUse = CallerSavedRegistersInUse();
+		if (update)
+			registersInUse[RSCRATCH2] = true;
+		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, registersInUse, byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 	else
 	{
@@ -477,15 +484,16 @@ void Jit64::stXx(UGeckoInstruction inst)
 			gpr.BindToRegister(s, true, false);
 			reg_value = gpr.RX(s);
 		}
-		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		BitSet32 registersInUse = CallerSavedRegistersInUse();
+		if (update)
+			registersInUse[RSCRATCH2] = true;
+		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, registersInUse, byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 
-	if (update && js.memcheck)
+	if (update)
 	{
-		// revert the address change if an exception occurred
-		MEMCHECK_START(true)
-		SUB(32, gpr.R(a), gpr.R(b));
-		MEMCHECK_END;
+		MemoryExceptionCheck();
+		MOV(32, gpr.R(a), R(RSCRATCH2));
 	}
 
 	gpr.UnlockAll();

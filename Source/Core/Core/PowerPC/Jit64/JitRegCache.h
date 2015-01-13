@@ -81,7 +81,7 @@ public:
 		LockX(reg1); LockX(reg2);
 	}
 
-	void Flush(FlushMode mode = FLUSH_ALL);
+	void Flush(FlushMode mode = FLUSH_ALL, BitSet32 regsToFlush = BitSet32::AllTrue(32));
 	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
 	int SanityCheck() const;
 	void KillImmediate(size_t preg, bool doLoad, bool makeDirty);
@@ -139,6 +139,8 @@ public:
 	void SetImmediate32(size_t preg, u32 immValue);
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
+	void ConvertRegCache(GPRRegCache target);
+	void PrepareRegCache(GPRRegCache other);
 };
 
 
@@ -151,4 +153,6 @@ public:
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
+	void ConvertRegCache(FPURegCache target);
+	void PrepareRegCache(FPURegCache other);
 };

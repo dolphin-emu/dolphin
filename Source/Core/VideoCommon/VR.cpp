@@ -35,13 +35,17 @@ std::mutex g_ovr_lock;
 
 bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
+bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
 u32 skip_objects_count = 0;
 Matrix44 g_head_tracking_matrix;
 float g_head_tracking_position[3];
+float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
+
+ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
 std::vector<DataReader> timewarp_log;
 std::vector<bool> display_list_log;
@@ -79,6 +83,7 @@ void NewVRFrame()
 void InitVR()
 {
 	g_has_hmd = false;
+	g_is_direct_mode = false;
 	g_hmd_device_name = nullptr;
 #ifdef HAVE_OCULUSSDK
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
@@ -131,6 +136,7 @@ void InitVR()
 			g_eye_fov[1] = hmdDesc.DefaultEyeFov[1];
 			g_hmd_window_x = hmdDesc.WindowsPos.x;
 			g_hmd_window_y = hmdDesc.WindowsPos.y;
+			g_is_direct_mode = !(hmdDesc.HmdCaps & ovrHmdCap_ExtendDesktop);
 #ifdef _WIN32
 			g_hmd_device_name = hmdDesc.DisplayDeviceName;
 			const char *p;
@@ -162,11 +168,12 @@ void ShutdownVR()
 	if (hmd)
 	{
 		// on my computer, on runtime 0.4.2, the Rift won't switch itself off without this:
-		if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+		if (g_is_direct_mode)
 			ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_DisplayOff);
 		ovrHmd_Destroy(hmd);
 		g_has_rift = false;
 		g_has_hmd = false;
+		g_is_direct_mode = false;
 		NOTICE_LOG(VR, "Oculus Rift shut down.");
 	}
 	ovr_Shutdown();
@@ -199,8 +206,8 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
 			*yaw = -RADIANS_TO_DEGREES(ya);   // should be degrees right
 			*x = pose.Translation.x;
-			*y = (pose.Translation.y * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) - (pose.Translation.z * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
-			*z = (pose.Translation.z * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch))) + (pose.Translation.y * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			*y = pose.Translation.y;
+			*z = pose.Translation.z;
 		}
 	}
 	else
@@ -246,6 +253,195 @@ void UpdateHeadTrackingIfNeeded()
 		g_new_tracking_frame = false;
 	}
 }
+
+void VR_GetProjectionHalfTan(float &hmd_halftan)
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		hmd_halftan = fabs(g_eye_fov[0].LeftTan);
+		if (fabs(g_eye_fov[0].RightTan) > hmd_halftan)
+			hmd_halftan = fabs(g_eye_fov[0].RightTan);
+		if (fabs(g_eye_fov[0].UpTan) > hmd_halftan)
+			hmd_halftan = fabs(g_eye_fov[0].UpTan);
+		if (fabs(g_eye_fov[0].DownTan) > hmd_halftan)
+			hmd_halftan = fabs(g_eye_fov[0].DownTan);
+	}
+	else
+#endif
+	{
+		hmd_halftan = tan(DEGREES_TO_RADIANS(32.0f / 2))*3.0f / 4.0f;
+	}
+}
+
+void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar)
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, true);
+		ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], znear, zfar, true);
+		Matrix44::Set(left_eye, rift_left.M[0]);
+		Matrix44::Set(right_eye, rift_right.M[0]);
+	}
+	else
+#endif
+	{
+		Matrix44::LoadIdentity(left_eye);
+		left_eye.data[10] = -znear / (zfar - znear);
+		left_eye.data[11] = -zfar*znear / (zfar - znear);
+		left_eye.data[14] = -1.0f;
+		left_eye.data[15] = 0.0f;
+		// 32 degrees HFOV, 4:3 aspect ratio
+		left_eye.data[0 * 4 + 0] = 1.0f / tan(32.0f / 2.0f * 3.1415926535f / 180.0f);
+		left_eye.data[1 * 4 + 1] = 4.0f / 3.0f * left_eye.data[0 * 4 + 0];
+		Matrix44::Set(right_eye, left_eye.data);
+	}
+}
+
+void VR_GetEyePos(float *posLeft, float *posRight)
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+#ifdef OCULUSSDK042
+		posLeft[0] = g_eye_render_desc[0].ViewAdjust.x;
+		posLeft[1] = g_eye_render_desc[0].ViewAdjust.y;
+		posLeft[2] = g_eye_render_desc[0].ViewAdjust.z;
+		posRight[0] = g_eye_render_desc[1].ViewAdjust.x;
+		posRight[1] = g_eye_render_desc[1].ViewAdjust.y;
+		posRight[2] = g_eye_render_desc[1].ViewAdjust.z;
+#else
+		posLeft[0] = g_eye_render_desc[0].HmdToEyeViewOffset.x;
+		posLeft[1] = g_eye_render_desc[0].HmdToEyeViewOffset.y;
+		posLeft[2] = g_eye_render_desc[0].HmdToEyeViewOffset.z;
+		posRight[0] = g_eye_render_desc[1].HmdToEyeViewOffset.x;
+		posRight[1] = g_eye_render_desc[1].HmdToEyeViewOffset.y;
+		posRight[2] = g_eye_render_desc[1].HmdToEyeViewOffset.z;
+#endif
+	}
+	else
+#endif
+	{
+		// assume 62mm IPD
+		posLeft[0] = -0.031f;
+		posRight[0] = 0.031f;
+		posLeft[1] = posRight[1] = 0;
+		posLeft[2] = posRight[2] = 0;
+	}
+}
+
+bool VR_GetLeftHydraPos(float *pos)
+{
+	pos[0] = -0.15f;
+	pos[1] = -0.30f;
+	pos[2] = -0.4f;
+	return true;
+}
+
+bool VR_GetRightHydraPos(float *pos)
+{
+	pos[0] = 0.15f;
+	pos[1] = -0.30f;
+	pos[2] = -0.4f;
+	return true;
+}
+
+void VR_SetGame(bool is_wii, bool is_nand, std::string id)
+{
+	g_is_nes = false;
+	// GameCube uses GameCube controller
+	if (!is_wii)
+	{
+		vr_left_controller = CS_GC_LEFT;
+		vr_right_controller = CS_GC_RIGHT;
+	}
+	// Wii Discs or homebrew files use the Wiimote and Nunchuk
+	else if (!is_nand)
+	{
+		vr_left_controller = CS_NUNCHUK;
+		vr_right_controller = CS_WIIMOTE;
+	}
+	else
+	{
+		char c = ' ';
+		if (id.length() > 0)
+			c = id[0];
+		switch (c)
+		{
+		case 'C':
+		case 'X':
+			// C64, MSX (or WiiWare demos)
+			vr_left_controller = CS_ARCADE_LEFT;
+			vr_right_controller = CS_ARCADE_RIGHT;
+			break;
+		case 'E':
+			// Virtual arcade, Neo Geo
+			vr_left_controller = CS_ARCADE_LEFT;
+			vr_right_controller = CS_ARCADE_RIGHT;
+			break;
+		case 'F':
+			// NES
+			g_is_nes = true;
+			if (id.length() > 3 && id[3] == 'J')
+			{
+				vr_left_controller = CS_FAMICON_LEFT;
+				vr_right_controller = CS_FAMICON_RIGHT;
+			}
+			else
+			{
+				vr_left_controller = CS_NES_LEFT;
+				vr_right_controller = CS_NES_RIGHT;
+			}
+			break;
+		case 'J':
+			vr_left_controller = CS_SNES_LEFT;
+			// SNES
+			if (id.length() > 3 && id[3] == 'E')
+				vr_right_controller = CS_SNES_NTSC_RIGHT;
+			else
+				vr_right_controller = CS_SNES_RIGHT;
+			break;
+		case 'L':
+			// Sega
+			vr_left_controller = CS_SEGA_LEFT;
+			vr_right_controller = CS_SEGA_RIGHT;
+			break;
+		case 'M':
+			// Sega Genesis
+			vr_left_controller = CS_GENESIS_LEFT;
+			vr_right_controller = CS_GENESIS_RIGHT;
+			break;
+		case 'N':
+			// N64
+			vr_left_controller = CS_N64_LEFT;
+			vr_right_controller = CS_N64_RIGHT;
+			break;
+		case 'P':
+		case 'Q':
+			// TurboGrafx
+			vr_left_controller = CS_TURBOGRAFX_LEFT;
+			vr_right_controller = CS_TURBOGRAFX_RIGHT;
+			break;
+		case 'H':
+		case 'W':
+		default:
+			// WiiWare
+			vr_left_controller = CS_NUNCHUK;
+			vr_right_controller = CS_WIIMOTE;
+			break;
+		}
+	}
+}
+
+ControllerStyle VR_GetHydraStyle(int hand)
+{
+	if (hand)
+		return vr_right_controller;
+	else
+		return vr_left_controller;
+}
+
 
 void OpcodeReplayBuffer()
 {

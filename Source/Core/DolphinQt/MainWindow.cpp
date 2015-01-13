@@ -272,7 +272,7 @@ void DMainWindow::UpdateIcons()
 // Help menu
 void DMainWindow::OnOpenWebsite()
 {
-    QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
+	QDesktopServices::openUrl(QUrl(SL("https://dolphin-emu.org/")));
 }
 
 void DMainWindow::OnOpenDocs()

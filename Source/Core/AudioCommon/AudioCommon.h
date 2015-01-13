@@ -23,4 +23,7 @@ namespace AudioCommon
 	void SendAIBuffer(short* samples, unsigned int num_samples);
 	void StartAudioDump();
 	void StopAudioDump();
+	void IncreaseVolume(unsigned short offset);
+	void DecreaseVolume(unsigned short offset);
+	void ToggleMuteVolume();
 }

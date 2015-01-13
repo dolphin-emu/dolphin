@@ -615,9 +615,14 @@ public:
 	void MOVSS(OpArg arg, X64Reg regOp);
 	void MOVSD(OpArg arg, X64Reg regOp);
 
+	void MOVLPS(X64Reg regOp, OpArg arg);
 	void MOVLPD(X64Reg regOp, OpArg arg);
-	void MOVHPD(X64Reg regOp, OpArg arg);
+	void MOVLPS(OpArg arg, X64Reg regOp);
 	void MOVLPD(OpArg arg, X64Reg regOp);
+
+	void MOVHPS(X64Reg regOp, OpArg arg);
+	void MOVHPD(X64Reg regOp, OpArg arg);
+	void MOVHPS(OpArg arg, X64Reg regOp);
 	void MOVHPD(OpArg arg, X64Reg regOp);
 
 	void MOVHLPS(X64Reg regOp1, X64Reg regOp2);
@@ -888,7 +893,7 @@ public:
 	void ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2);
 
 	// Helper method for the above, or can be used separately.
-	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2);
+	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset, Gen::X64Reg dst2, Gen::X64Reg src2);
 
 	// Saves/restores the registers and adjusts the stack to be aligned as
 	// required by the ABI, where the previous alignment was as specified.

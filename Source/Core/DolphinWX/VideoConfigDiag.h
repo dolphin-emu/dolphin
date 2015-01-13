@@ -340,4 +340,14 @@ static wxString srgb_desc = wxTRANSLATE("\"Assume input images are in sRGB gamma
 static wxString overdrive_desc = wxTRANSLATE("Try to fix true black smearing by overdriving brightness transitions.\n\nIf unsure, leave this unchecked.");
 static wxString hqdistortion_desc = wxTRANSLATE("\"High-quality sampling of distortion buffer for anti-aliasing\".\n\nIf unsure, leave this unchecked.");
 static wxString hudontop_desc = wxTRANSLATE("Always draw the HUD on top of everything else.\nUse this when you can't see the HUD because the world is covering it up.\n\nIf unsure, leave this unchecked.");
-static wxString nearclip_desc = wxTRANSLATE("Always draw things which are close to the camera.\nOnly works in OpenGL.\nThis fixes the problem of things disappearing when you move your head close.\n\nIf unsure, leave this checked.");
+static wxString nearclip_desc = wxTRANSLATE("Always draw things which are close to (or far from) the camera.\nThis fixes the problem of things disappearing when you move your head close.\nThere can still be problems when two objects are in front of the near clipping plane, if they are drawn in the wrong order.\n\nIf unsure, leave this checked.");
+static wxString showcontroller_desc = wxTRANSLATE("Show the razer hydra, wiimote, or gamecube controller inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString showhands_desc = wxTRANSLATE("Show your hands inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString showfeet_desc = wxTRANSLATE("Show your feet inside the game world.\nBased on your height in Oculus Configuration Utility.\n\nIf unsure, leave this unchecked.");
+static wxString showgamecamera_desc = wxTRANSLATE("Show the location of the game's camera inside the game world.\nNormally this will be where your head is unless you move your head.\n\nIf unsure, leave this unchecked.");
+static wxString showgamecamerafrustum_desc = wxTRANSLATE("Show the pyramid coming out of the game camera representing what the game thinks you can see.\n\nIf unsure, leave this unchecked.");
+static wxString showsensorbar_desc = wxTRANSLATE("Show the virtual or real sensor bar inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString showtrackingcamera_desc = wxTRANSLATE("Show the Oculus Rift tracking camera inside the game world.\n\nIf unsure, leave this unchecked.");
+static wxString showtrackingvolume_desc = wxTRANSLATE("Show the pyramid coming out of the Rift's tracking camera representing where your head can be tracked.\n\nIf unsure, leave this unchecked.");
+static wxString showbasestation_desc = wxTRANSLATE("Show the Razer Hydra base station inside the game world.\n\nIf unsure, leave this unchecked.");
+

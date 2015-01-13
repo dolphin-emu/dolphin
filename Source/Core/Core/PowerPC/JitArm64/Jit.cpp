@@ -16,6 +16,7 @@ void JitArm64::Init()
 {
 	AllocCodeSpace(CODE_SIZE);
 	jo.enableBlocklink = true;
+	jo.optimizeGatherPipe = true;
 	gpr.Init(this);
 	fpr.Init(this);
 
@@ -179,6 +180,14 @@ void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 	BR(EncodeRegTo64(Reg));
 }
 
+void JitArm64::DumpCode(const u8* start, const u8* end)
+{
+	std::string output = "";
+	for (u8* code = (u8*)start; code < end; code += 4)
+		output += StringFromFormat("%08x", Common::swap32(*(u32*)code));
+	WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
+}
+
 void JitArm64::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
@@ -223,7 +232,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.downcountAmount = 0;
-	js.skipnext = false;
+	js.skipInstructions = 0;
 	js.curBlock = b;
 
 	u32 nextPC = em_address;
@@ -272,13 +281,21 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		{
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
-			js.next_inst = 0;
 		}
-		else
+
+		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
-			// help peephole optimizations
-			js.next_inst = ops[i + 1].inst;
-			js.next_compilerPC = ops[i + 1].address;
+			js.fifoBytesThisBlock -= 32;
+
+			gpr.Lock(W30);
+			BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+			regs_in_use[W30] = 0;
+
+			ABI_PushRegisters(regs_in_use);
+			MOVI2R(X30, (u64)&GPFifo::CheckGatherPipe);
+			BLR(X30);
+			ABI_PopRegisters(regs_in_use);
+			gpr.Unlock(W30);
 		}
 
 		if (!ops[i].skip)
@@ -294,6 +311,8 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			// If we have a register that will never be used again, flush it.
 			for (int j : ~ops[i].gprInUse)
 				gpr.StoreRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreRegister(j);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{

@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -7,7 +7,9 @@
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/MetroidVR.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VR.h"
 
 // helmet, combat visor, radar dot, map, scan visor, scan text, and scan hologram should be attached to face
@@ -198,6 +200,18 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Zelda Unknown Effect";
 	case ZELDA_WORLD:
 		return "Zelda World";
+	case NES_RENDER_TO_TEXTURE:
+		return "NES Render To Texture";
+	case NES_SHOW_TEXTURE:
+		return "NES Show Texture";
+	case NES_WII_GUI_BACKGROUND:
+		return "NES Wii Gui Background";
+	case NES_WII_GUI_ERROR:
+		return "NES Wii Gui Error";
+	case NES_WII_GUI_MENU:
+		return "NES Wii Gui Menu";
+	case NES_UNKNOWN_2D:
+		return "NES Unknown 2D";
 	default:
 		return "Error";
 	}
@@ -1649,6 +1663,50 @@ TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, 
 	return result;
 }
 
+TMetroidLayer GetNESLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar)
+{
+	TMetroidLayer result;
+	int l = Round100(left);
+	int r = Round100(right);
+	int t = Round100(top);
+	int b = Round100(bottom);
+	int n = Round100(znear);
+	int f = Round100(zfar);
+	if (l == 0 && t == 0 && r == 51200 && (b == -22800 || b == -23200))
+	{
+		// Mario NTSC: 0: 2D: NES Render To Texture (-0, 0) to (512, -228); z: -0 to 2000  [-0.0005, -1]
+		result = NES_RENDER_TO_TEXTURE;
+	}
+	else if (l == 0 && t == 0 && (r == 25600 || r == 51200) && (b == 22800 || b == 23200))
+	{
+		// Mario NTSC: 1 : 2D : NES Unknown 2D (-0, 0) to(512, 228); z: 0 to - 1[1, -1]
+		result = NES_SHOW_TEXTURE;
+	}
+	else if (l == -640 && r == 26220 && f == -100)
+	{
+		//NTSC: 0 : 2D : NES Unknown 2D (-6.39999, 0) to(262.2, 228); z: 0 to - 1[1, -1]
+		//PAL:  0 : 2D : NES Unknown 2D (-6.39999, -19.5) to(262.2, 251.5); z: 0 to - 1[1, -1]
+		result = NES_WII_GUI_BACKGROUND;
+	}
+	else if (l == -2800 && r == 54000 && t == 0 && b == 32000 && f == 1500)
+	{
+		// NTSC: 1 : 2D : NES Unknown 2D (-28, 0) to(540, 320); z: -0 to 15[-0.0666667, -1]
+		// PAL:  1 : 2D : NES Unknown 2D (-28, 0) to(540, 380.351); z: -0 to 15[-0.0666667, -1]
+		result = NES_WII_GUI_ERROR;
+	}
+	else if (l == -30400 && r == 30400 && t == 22800 && b == -22800 && f == 50000)
+	{
+		// 1 : 2D : NES Unknown 2D (-304, 228) to(304, -228); z: -0 to 500[-0.002, -1]
+		result = NES_WII_GUI_MENU;
+	}
+	else
+	{
+		result = NES_UNKNOWN_2D;
+	}
+	return result;
+}
+
+
 void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHide, bool *bFlashing,
 	float* fScaleHack, float *fWidthHack, float *fHeightHack, float *fUpHack, float *fRightHack, int *iTelescope)
 {
@@ -1933,6 +1991,44 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case ZELDA_REFLECTION:
 		*iTelescope = 0;
 		*bHide = true;
+		break;
+
+	case NES_RENDER_TO_TEXTURE:
+		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
+		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		{
+			// The Wii doesn't change viewports here, but we need to, because we are going from fullscreen VR to rendering to a texture.
+			VertexShaderManager::SetViewportConstants();
+		}
+		break;
+	case NES_SHOW_TEXTURE:
+		g_viewport_type = VIEW_LETTERBOXED;
+		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		{
+			// The Wii doesn't change viewports here, but we need to, because we are going from rendering to a texture to fullscreen VR rendering
+			VertexShaderManager::SetViewportConstants();
+			// On the real Wii, it doesn't need to clear the EFB before drawing, because the drawing will cover up the part we drew to before.
+			// But in VR, we need to clear the EFB here or we get the old drawing stuck in the top left corner of our view.
+			if (g_ActiveConfig.bEFBCopyEnable)
+				BPFunctions::ClearScreen(EFBRectangle(0, 0, EFB_WIDTH, EFB_HEIGHT), false);
+		}
+		break;
+	case NES_WII_GUI_BACKGROUND:
+		g_viewport_type = VIEW_LETTERBOXED;
+		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		{
+			VertexShaderManager::SetViewportConstants();
+		}
+		break;
+	case NES_WII_GUI_ERROR:
+	case NES_WII_GUI_MENU:
+	case NES_UNKNOWN_2D:
+		g_viewport_type = VIEW_LETTERBOXED;
+		*fScaleHack = 2.0f;
+		if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		{
+			VertexShaderManager::SetViewportConstants();
+		}
 		break;
 
 	default:

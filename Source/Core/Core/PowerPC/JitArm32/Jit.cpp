@@ -443,7 +443,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
-	js.skipnext = false;
+	js.skipInstructions = 0;
 	js.compilerPC = nextPC;
 
 	// Translate instructions
@@ -459,13 +459,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		{
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
-			js.next_inst = 0;
-		}
-		else
-		{
-			// help peephole optimizations
-			js.next_inst = ops[i + 1].inst;
-			js.next_compilerPC = ops[i + 1].address;
 		}
 
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)

@@ -22,8 +22,7 @@ protected:
 
 	struct SOrigin
 	{
-		u8 uCommand; // Maybe should be button bits?
-		u8 unk_1;    // ..and this would be the other half
+		u16 uButton;
 		u8 uOriginStickX;
 		u8 uOriginStickY;
 		u8 uSubStickStickX;
@@ -92,6 +91,7 @@ public:
 	// Return true on new data
 	virtual bool GetData(u32& _Hi, u32& _Low) override;
 
+	virtual GCPadStatus GetPadStatus();
 	virtual u32 MapPadStatus(const GCPadStatus& pad_status);
 	virtual void HandleButtonCombos(const GCPadStatus& pad_status);
 

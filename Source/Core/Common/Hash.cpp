@@ -510,19 +510,15 @@ u64 GetHash64(const u8 *src, int len, u32 samples)
 }
 
 // sets the hash function used for the texture cache
-void SetHash64Function(bool useHiresTextures)
+void SetHash64Function()
 {
-	if (useHiresTextures)
-	{
-		ptrHashFunction = &GetHashHiresTexture;
-	}
 #if _M_SSE >= 0x402
-	else if (cpu_info.bSSE4_2 && !useHiresTextures) // sse crc32 version
+	if (cpu_info.bSSE4_2) // sse crc32 version
 	{
 		ptrHashFunction = &GetCRC32;
 	}
-#endif
 	else
+#endif
 	{
 		ptrHashFunction = &GetMurmurHash3;
 	}

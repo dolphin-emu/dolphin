@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -113,6 +113,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
 	case WM_WRITE_DATA : // 0x16
 		WriteData((wm_write_data*)sr->data);
+		return; // sends its own ack
 		break;
 
 	case WM_READ_DATA : // 0x17
@@ -167,7 +168,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
    The first two bytes are the core buttons data,
    00 00 means nothing is pressed.
    The last byte is the success code 00. */
-void Wiimote::SendAck(u8 _reportID)
+void Wiimote::SendAck(u8 _reportID, u8 err)
 {
 	u8 data[6];
 
@@ -178,13 +179,17 @@ void Wiimote::SendAck(u8 _reportID)
 
 	ack->buttons = m_status.buttons;
 	ack->reportID = _reportID;
-	ack->errorID = 0;
+	ack->errorID = err;
 
 	Core::Callback_WiimoteInterruptChannel( m_index, m_reporting_channel, data, sizeof(data));
 }
 
 void Wiimote::HandleExtensionSwap()
 {
+	// if virtual motion plus was unplugged while active, it becomes inactive
+	if (GetMotionPlusActive() && !GetMotionPlusAttached())
+		m_reg_motion_plus.ext_identifier[2] = 0xa6;
+
 	// handle switch extension
 	if (m_extension->active_extension != m_extension->switch_extension)
 	{
@@ -206,12 +211,15 @@ void Wiimote::HandleExtensionSwap()
    the status request rs and all its eventual instructions it may include (for
    example turn off rumble or something else) and just send the status
    report. */
-void Wiimote::RequestStatus(const wm_request_status* const rs)
+void Wiimote::RequestStatus(const wm_request_status* const rs, int ext)
 {
 	HandleExtensionSwap();
 
 	// update status struct
-	m_status.extension = (m_extension->active_extension || m_motion_plus_active) ? 1 : 0;
+	if (ext == -1)
+		m_status.extension = (m_extension->active_extension || GetMotionPlusActive()) ? 1 : 0;
+	else
+		m_status.extension = ext;
 
 	// set up report
 	u8 data[8];
@@ -252,6 +260,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 	if (wd->size > 16)
 	{
 		PanicAlert("WriteData: size is > 16 bytes");
+		SendAck(0x16, 8);
 		return;
 	}
 
@@ -265,6 +274,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			{
 				ERROR_LOG(WIIMOTE, "WriteData: address + size out of bounds!");
 				PanicAlert("WriteData: address + size out of bounds!");
+				SendAck(0x16, 8);
 				return;
 			}
 			memcpy(m_eeprom + address, wd->data, wd->size);
@@ -305,13 +315,13 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 
 			// extension register
 			case 0xa4 :
-				region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+				region_ptr = GetMotionPlusActive() ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
 				region_size = WIIMOTE_REG_EXT_SIZE;
 				break;
 
 			// motion plus
 			case 0xa6 :
-				if (false == m_motion_plus_active)
+				if (!GetMotionPlusActive() && GetMotionPlusAttached())
 				{
 					region_ptr = &m_reg_motion_plus;
 					region_size = WIIMOTE_REG_EXT_SIZE;
@@ -333,7 +343,11 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 				memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
 			}
 			else
-				return;	// TODO: generate a writedata error reply
+			{
+				// generate a writedata error reply
+				SendAck(0x16, 8);
+				return;
+			}
 
 			/* TODO?
 			if (region_ptr == &m_reg_speaker)
@@ -352,23 +366,76 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			}
 			else if (&m_reg_motion_plus == region_ptr)
 			{
-				// activate/deactivate motion plus
-				if (0x55 == m_reg_motion_plus.activated)
+				switch (address & 0xfe00ff)
 				{
-					// maybe hacky
-					m_reg_motion_plus.activated = 0;
-					m_motion_plus_active ^= 1;
-
-					RequestStatus();
+				case 0xa600fe:
+					if (!GetMotionPlusActive() && wd->size > 0 && wd->data[0] >= 4)
+					// activate wii motion plus and set passthrough mode
+					m_motion_plus_active = true;
+					m_reg_motion_plus.ext_identifier[2] = 0xa4;
+					m_reg_motion_plus.state = 0x08;
+					RequestStatus(nullptr, 0);
+					RequestStatus(nullptr, 1);
+					break;
+				case 0xa400fb:
+					if (m_motion_plus_last_write_reg == 0xf0)
+					{
+						// deactivate motion plus
+						m_motion_plus_active = false;
+						m_reg_motion_plus.ext_identifier[2] = 0xa6;
+						m_reg_motion_plus.state = 0x08;
+						RequestStatus(nullptr, 0);
+						RequestStatus();
+					}
+					break;
+				// calibration
+				case 0xa400f1:
+					// failed, try again. TODO: make it never fail
+					if (wd->size > 0 && !wd->data[0])
+					{
+						// disconnect motion plus
+						m_motion_plus_active = false;
+						m_reg_motion_plus.ext_identifier[2] = 0xa6;
+						m_reg_motion_plus.state = 0x08;
+						RequestStatus(nullptr, 0);
+						if (m_extension->active_extension != 0)
+						{
+							// reconnect nunchuk
+							RequestStatus(nullptr, 1);
+							// disconnect nunchuk
+							RequestStatus(nullptr, 0);
+						}
+						// reconnect motion plus (but don't activate it yet)
+						RequestStatus(nullptr, 1);
+					}
+					else
+					{
+						// calibration succeeded, copy new fake calibration data
+						m_reg_motion_plus.state = 0x1a;
+						memcpy(&m_reg_motion_plus.gyro_calib, mp_gyro_calib2, sizeof(mp_gyro_calib2));
+					}
+					break;
+				case 0xf2:
+					if (m_reg_motion_plus.state < 0x0e)
+					{
+						m_reg_motion_plus.state = 0x0e;
+						memcpy(&m_reg_motion_plus.gyro_calib, mp_gyro_calib, sizeof(mp_gyro_calib));
+					}
+					break;
 				}
+				if ((address & 0xfe0000) == 0xa4)
+					m_motion_plus_last_write_reg = address & 0xFF;
 			}
 		}
 		break;
 
 	default:
 		PanicAlert("WriteData: unimplemented parameters!");
+		SendAck(0x16, 8);
+		return;
 		break;
 	}
+	SendAck(0x16);
 }
 
 /* Read data from Wiimote and Extensions registers. */
@@ -450,14 +517,14 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 
 			// extension
 			case 0xa4:
-				region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+				region_ptr = GetMotionPlusActive() ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
 				region_size = WIIMOTE_REG_EXT_SIZE;
 				break;
 
 			// motion plus
 			case 0xa6:
 				// reading from 0xa6 returns error when mplus is activated
-				if (false == m_motion_plus_active)
+				if (GetMotionPlusAttached() && !GetMotionPlusActive())
 				{
 					region_ptr = &m_reg_motion_plus;
 					region_size = WIIMOTE_REG_EXT_SIZE;
@@ -537,7 +604,10 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
 	if (0 == _request.size)
 	{
 		reply->size = 0x0f;
-		reply->error = 0x08;
+		if ((_request.address & 0xFE0000) == 0xA60000)
+			reply->error = 0x07;
+		else
+			reply->error = 0x08;
 
 		memset(reply->data, 0, sizeof(reply->data));
 	}

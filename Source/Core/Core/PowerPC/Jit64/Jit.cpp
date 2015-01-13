@@ -15,6 +15,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
@@ -178,11 +179,12 @@ void Jit64::Init()
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	js.fastmemLoadStore = NULL;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
 
-	trampolines.Init();
+	trampolines.Init(js.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 
 	// BLR optimization has the same consequences as block linking, as well as
@@ -489,13 +491,53 @@ void Jit64::Trace()
 		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
+void Jit64::DoForwardBranches(u32 address)
+{
+	auto src = branch_targets.equal_range(address);
+	auto begin = src.first;
+	auto end = src.second;
+	if (begin == end)
+		return;
+	// First, do everything that needs to go in the main path
+	for (auto it = begin; it != end; ++it)
+	{
+		gpr.PrepareRegCache(it->second.gpr);
+		fpr.PrepareRegCache(it->second.fpr);
+	}
+	std::vector<FixupBranch> jumpsToMainCode;
+	jumpsToMainCode.push_back(J(true));
+	for (auto it = begin; it != end;)
+	{
+		BranchTarget branchData = it->second;
+		for (int i = 0; i < branchData.branchCount; i++)
+			SetJumpTarget(branchData.sourceBranch[i]);
+		if (branchData.sourceOp->inst.LK)
+			MOV(32, PPCSTATE_LR, Imm32(branchData.sourceOp->address + 4)); // LR = PC + 4;
+		// revert the downcount amount difference
+		ADD(32, PPCSTATE(downcount), Imm32(js.downcountAmount - branchData.downcountAmount));
+		// we have to assume the worst
+		js.fifoBytesThisBlock = std::max(branchData.fifoBytesThisBlock, js.fifoBytesThisBlock);
+		if (!branchData.firstFPInstructionFound)
+			js.firstFPInstructionFound = false;
+		branchData.gpr.ConvertRegCache(gpr);
+		branchData.fpr.ConvertRegCache(fpr);
+		++it;
+		if (it != end)
+			jumpsToMainCode.push_back(J(true));
+	}
+	for (FixupBranch jump : jumpsToMainCode)
+		SetJumpTarget(jump);
+	branch_targets.erase(begin, end);
+}
+
 void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
 	    farcode.GetSpaceLeft() < 0x10000 ||
-		blocks.IsFull() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
-		m_clear_cache_asap)
+	    trampolines.GetSpaceLeft() < 0x10000 ||
+	    blocks.IsFull() ||
+	    SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache ||
+	    m_clear_cache_asap)
 	{
 		ClearCache();
 	}
@@ -519,7 +561,9 @@ void Jit64::Jit(u32 em_address)
 				jo.enableBlocklink = false;
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 			}
 			Trace();
 		}
@@ -554,6 +598,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	jit->js.numFloatingPointInst = 0;
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
+	js.blockEnd = nextPC;
 
 	const u8 *start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
@@ -600,9 +645,38 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
-	js.skipnext = false;
+	js.skipInstructions = 0;
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
+	js.assumeNoPairedQuantize = false;
+
+	// If the block only uses one GQR and the GQR is zero at compile time, make a guess that the block
+	// never uses quantized loads/stores. Many paired-heavy games use largely float loads and stores,
+	// which are significantly faster when inlined (especially in MMU mode, where this lets them use
+	// fastmem).
+	// Insert a check that the GQR is still zero at the start of the block in case our guess turns out
+	// wrong.
+	// TODO: support any other constant GQR value, not merely zero/unquantized: we can optimize quantized
+	// loadstores too, it'd just be more code.
+	if (code_block.m_gqr_used.Count() == 1 && js.pairedQuantizeAddresses.find(js.blockStart) == js.pairedQuantizeAddresses.end())
+	{
+		int gqr = *code_block.m_gqr_used.begin();
+		if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
+		{
+			CMP(32, PPCSTATE(spr[SPR_GQR0 + gqr]), Imm8(0));
+			FixupBranch failure = J_CC(CC_NZ, true);
+			SwitchToFarCode();
+			SetJumpTarget(failure);
+			MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+			ABI_PushRegistersAndAdjustStack({}, 0);
+			ABI_CallFunctionC((void *)&JitInterface::CompileExceptionCheck, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+			ABI_PopRegistersAndAdjustStack({}, 0);
+			JMP(asm_routines.dispatcher, true);
+			SwitchToNearCode();
+			js.assumeNoPairedQuantize = true;
+		}
+	}
+
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -611,16 +685,16 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionNumber = i;
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
-		js.downcountAmount += opinfo->numCycles;
+		js.fastmemLoadStore = NULL;
+		js.fixupExceptionHandler = false;
+		js.revertGprLoad = -1;
+		js.revertFprLoad = -1;
 
 		if (i == (code_block.m_num_instructions - 1))
 		{
-			// WARNING - cmp->branch merging will screw this up.
-			js.isLastInstruction = true;
-			js.next_inst = 0;
-			js.next_inst_bp = false;
 			if (Profiler::g_ProfileBlocks)
 			{
+				// WARNING - cmp->branch merging will screw this up.
 				PROFILER_VPUSH;
 				// get end tic
 				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
@@ -628,15 +702,14 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				PROFILER_UPDATE_TIME(b);
 				PROFILER_VPOP;
 			}
+			js.isLastInstruction = true;
 		}
-		else
-		{
-			// help peephole optimizations
-			js.next_inst = ops[i + 1].inst;
-			js.next_compilerPC = ops[i + 1].address;
-			js.next_op = &ops[i + 1];
-			js.next_inst_bp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i + 1].address);
-		}
+
+		if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+			DoForwardBranches(js.compilerPC);
+
+		// We have to do this after DoForwardBranches, so the correct cycle count delta gets used.
+		js.downcountAmount += opinfo->numCycles;
 
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
@@ -761,22 +834,37 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
-			// If we have a register that will never be used again, flush it.
-			for (int j : ~ops[i].gprInUse)
-				gpr.StoreFromRegister(j);
-			for (int j : ~ops[i].fprInUse)
-				fpr.StoreFromRegister(j);
-
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch memException = J_CC(CC_NZ, true);
+				// If we have a fastmem loadstore, we can omit the exception check and let fastmem handle it.
+				FixupBranch memException;
+				_assert_msg_(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
+					"Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!", ops[i].address);
+				if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
+				{
+					TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
+					memException = J_CC(CC_NZ, true);
+				}
 
 				SwitchToFarCode();
-				SetJumpTarget(memException);
+				if (!js.fastmemLoadStore)
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = NULL;
+					SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+				}
+				else
+				{
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
+				}
 
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
+				BitSet32 gprToFlush = BitSet32::AllTrue(32);
+				BitSet32 fprToFlush = BitSet32::AllTrue(32);
+				if (js.revertGprLoad >= 0)
+					gprToFlush[js.revertGprLoad] = false;
+				if (js.revertFprLoad >= 0)
+					fprToFlush[js.revertFprLoad] = false;
+				gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
+				fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -784,6 +872,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 				SwitchToNearCode();
 			}
+
+			// If we have a register that will never be used again, flush it.
+			for (int j : ~ops[i].gprInUse)
+				gpr.StoreFromRegister(j);
+			for (int j : ~ops[i].fprInUse)
+				fpr.StoreFromRegister(j);
 
 			if (opinfo->flags & FL_LOADSTORE)
 				++jit->js.numLoadStoreInst;
@@ -799,11 +893,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
 		}
 #endif
-		if (js.skipnext)
-		{
-			js.skipnext = false;
-			i++; // Skip next instruction
-		}
+		i += js.skipInstructions;
+		js.skipInstructions = 0;
 	}
 
 	u32 function = HLE::GetFunctionIndex(js.blockStart);
@@ -862,5 +953,7 @@ void Jit64::EnableOptimization()
 {
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 }

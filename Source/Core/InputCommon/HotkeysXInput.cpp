@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -205,25 +205,7 @@ namespace HotkeysXInput
 	void OnXInputPoll(u32* XInput_State, u32* DInput_State_Extra, bool DInput)
 	{
 
-		static float oldfUnitsPerMetre;
-		static float oldfFreeLookSensitivity;
-		static float oldfScale;
-		static float freeLookSpeed;
-
-		//Recalculate only when fUnitsPerMetre, fFreeLookSensitivity, or fScale changes.
-		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity))
-		{
-			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity;
-		}
-		else if (!g_has_hmd && g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity)
-		{
-			freeLookSpeed = 10 * g_ActiveConfig.fFreeLookSensitivity;
-		}
-
-		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
-		oldfFreeLookSensitivity = g_ActiveConfig.fFreeLookSensitivity;
-		oldfScale = g_ActiveConfig.fScale;
-
+		float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
 
 		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_POSITION_RESET)) 
 		{
@@ -237,19 +219,19 @@ namespace HotkeysXInput
 		}
 		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_FORWARD))
 		{
-			VertexShaderManager::TranslateView(0.0f, freeLookSpeed * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), -freeLookSpeed * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			VertexShaderManager::TranslateView(0.0f, freeLookSpeed);
 		}
 		else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_BACKWARD)) 
 		{
-			VertexShaderManager::TranslateView(0.0f, -freeLookSpeed * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), freeLookSpeed * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			VertexShaderManager::TranslateView(0.0f, -freeLookSpeed);
 		}
 		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_UP)) 
 		{
-			VertexShaderManager::TranslateView(0.0f, -(freeLookSpeed / 2) * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), (-freeLookSpeed / 2) * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed / 2);
 		}
 		else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_DOWN)) 
 		{
-			VertexShaderManager::TranslateView(0.0f, (freeLookSpeed / 2) * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)), (freeLookSpeed / 2) * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch)));
+			VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed / 2);
 		}
 		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_LEFT)) 
 		{

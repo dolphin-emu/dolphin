@@ -29,5 +29,5 @@ void DoCPState(PointerWrap& p)
 
 void CopyPreprocessCPStateFromMain()
 {
-   memcpy(&g_preprocess_cp_state, &g_main_cp_state, sizeof(CPState));
+	memcpy(&g_preprocess_cp_state, &g_main_cp_state, sizeof(CPState));
 }

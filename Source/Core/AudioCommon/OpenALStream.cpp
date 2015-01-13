@@ -201,7 +201,7 @@ void OpenALStream::SoundLoop()
 		// Convert the samples from short to float
 		float dest[OAL_MAX_SAMPLES * STEREO_CHANNELS];
 		for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-			dest[i] = (float)realtimeBuffer[i] / (1 << 16);
+			dest[i] = (float)realtimeBuffer[i] / (1 << 15);
 
 		soundTouch.putSamples(dest, numSamples);
 

@@ -73,9 +73,16 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	BitSet32 registersInUse = it->second;
 
+	u8* exceptionHandler = NULL;
+	if (jit->js.memcheck)
+	{
+		auto it2 = exceptionHandlerAtLoc.find(codePtr);
+		if (it2 != exceptionHandlerAtLoc.end())
+			exceptionHandler = it2->second;
+	}
+
 	if (!info.isMemoryWrite)
 	{
-		XEmitter emitter(codePtr);
 		int bswapNopCount;
 		if (info.byteSwap || info.operandSize == 1)
 			bswapNopCount = 0;
@@ -101,9 +108,11 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			totalSize += 3;
 		}
 
-		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
-		emitter.CALL((void *)trampoline);
+		XEmitter emitter(codePtr);
 		int padding = totalSize - BACKPATCH_SIZE;
+		u8* returnPtr = codePtr + 5 + padding;
+		const u8* trampoline = trampolines.GenerateReadTrampoline(info, registersInUse, exceptionHandler, returnPtr);
+		emitter.JMP(trampoline, true);
 		if (padding > 0)
 		{
 			emitter.NOP(padding);
@@ -113,14 +122,14 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 	else
 	{
 		// TODO: special case FIFO writes. Also, support 32-bit mode.
-		auto it2 = pcAtLoc.find(codePtr);
-		if (it2 == pcAtLoc.end())
+		auto it3 = pcAtLoc.find(codePtr);
+		if (it3 == pcAtLoc.end())
 		{
 			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
 			return nullptr;
 		}
 
-		u32 pc = it2->second;
+		u32 pc = it3->second;
 
 		u8 *start;
 		if (info.byteSwap || info.hasImmediate)
@@ -154,9 +163,10 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			start = codePtr - bswapSize;
 		}
 		XEmitter emitter(start);
-		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
-		emitter.CALL((void *)trampoline);
-		ptrdiff_t padding = (codePtr - emitter.GetCodePtr()) + info.instructionSize;
+		ptrdiff_t padding = (codePtr - (start + 5)) + info.instructionSize;
+		u8* returnPtr = start + 5 + padding;
+		const u8* trampoline = trampolines.GenerateWriteTrampoline(info, registersInUse, exceptionHandler, returnPtr, pc);
+		emitter.JMP(trampoline, true);
 		if (padding > 0)
 		{
 			emitter.NOP(padding);

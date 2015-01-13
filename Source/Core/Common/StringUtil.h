@@ -65,6 +65,8 @@ template <typename N>
 static bool TryParse(const std::string &str, N *const output)
 {
 	std::istringstream iss(str);
+	// is this right? not doing this breaks reading floats on locales that use different decimal separators
+	iss.imbue(std::locale("C"));
 
 	N tmp = 0;
 	if (iss >> tmp)

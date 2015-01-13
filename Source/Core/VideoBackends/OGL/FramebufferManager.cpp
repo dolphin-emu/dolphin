@@ -387,7 +387,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	std::stringstream vertices, layers;
 	vertices << m_EFBLayers * 3;
 	layers << m_EFBLayers;
-	std::string gs = sampler +
+	std::string gs =
 		"layout(triangles) in;\n"
 		"layout(triangle_strip, max_vertices = " + vertices.str() + ") out;\n"
 		"flat out int layer;\n"
@@ -690,7 +690,7 @@ void FramebufferManager::ConfigureRift()
 	cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
 	cfg.OGL.DC = GetDC(cfg.OGL.Window);
 #ifndef OCULUSSDK042
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If in Direct Mode
+	if (g_is_direct_mode) //If in Direct Mode
 	{
 		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
 	}

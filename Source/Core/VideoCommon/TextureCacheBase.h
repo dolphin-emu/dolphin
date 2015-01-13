@@ -33,7 +33,6 @@ public:
 		u32 addr;
 		u32 size_in_bytes;
 		u64 hash;
-		//u32 pal_hash;
 		u32 format;
 
 		enum TexCacheEntryType type;
@@ -64,10 +63,9 @@ public:
 			virtual_height = _virtual_height;
 		}
 
-		void SetHashes(u64 _hash/*, u32 _pal_hash*/)
+		void SetHashes(u64 _hash)
 		{
 			hash = _hash;
-			//pal_hash = _pal_hash;
 		}
 
 
@@ -100,7 +98,7 @@ public:
 	static bool Find(u32 start_address, u64 hash);
 
 	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) = 0;
+		unsigned int tex_levels, PC_TexFormat pcfmt) = 0;
 	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) = 0;
 
 	virtual void CompileShaders() = 0; // currently only implemented by OGL
@@ -116,13 +114,12 @@ public:
 protected:
 	TextureCache();
 
-	static  GC_ALIGNED16(u8 *temp);
-	static unsigned int temp_size;
+	static GC_ALIGNED16(u8 *temp);
+	static size_t temp_size;
 
 private:
-	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
-	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int* width, unsigned int* height);
-	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
+	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
+	static void CheckTempSize(size_t required_size);
 
 	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height);
 	static void FreeRenderTarget(TCacheEntryBase* entry);

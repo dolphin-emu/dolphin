@@ -142,6 +142,15 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	PrepareDrawBuffers(stride);
 
+	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() >= 3)
+	{
+		CalculateZSlope(stride);
+	}
+
+	// if cull mode is CULL_ALL, ignore triangles and quads
+	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
+		return;
+
 	// Makes sure we can actually do Dual source blending
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 

@@ -137,10 +137,10 @@ static GekkoOPTemplate table4_2[] =
 
 static GekkoOPTemplate table4_3[] =
 {
-	{6,  Interpreter::psq_lx,       {"psq_lx",   OPTYPE_PS, FL_OUT_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{7,  Interpreter::psq_stx,      {"psq_stx",  OPTYPE_PS, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{38, Interpreter::psq_lux,      {"psq_lux",  OPTYPE_PS, FL_OUT_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{39, Interpreter::psq_stux,     {"psq_stux", OPTYPE_PS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{6,  Interpreter::psq_lx,       {"psq_lx",   OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{7,  Interpreter::psq_stx,      {"psq_stx",  OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{38, Interpreter::psq_lux,      {"psq_lux",  OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{39, Interpreter::psq_stux,     {"psq_stux", OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 };
 
 static GekkoOPTemplate table19[] =

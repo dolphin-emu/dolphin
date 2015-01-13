@@ -266,15 +266,6 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_scale);
 		}
-		// Free Look Sensitivity
-		{
-			SettingNumber *const spin_freelook_sensitivity = CreateNumber(page_vr, vconfig.fFreeLookSensitivity,
-				wxGetTranslation(temp_desc), 0.0001f, 10000, 0.05f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Free Look Sensitivity:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_freelook_sensitivity);
-		}
 		// HUD 3D Items Closer (3D items drawn on the HUD, like A button in Zelda 64)
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHud3DCloser,
@@ -392,6 +383,34 @@ void CConfigVR::CreateGUIControls()
 			btn_reset->Disable();
 			page_vr->Disable();
 		}
+
+		szr_vr_main->AddStretchSpacer();
+		CreateDescriptionArea(page_vr, szr_vr_main);
+		page_vr->SetSizerAndFit(szr_vr_main);
+	}
+
+	// -- Avatar --
+	{
+		wxPanel* const page_vr = new wxPanel(Notebook, -1);
+		Notebook->AddPage(page_vr, _("Avatar"));
+		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
+
+		// - vr
+		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 5);
+
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Controller"), wxGetTranslation(showcontroller_desc), vconfig.bShowController));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera"), wxGetTranslation(showgamecamera_desc), vconfig.bShowGameCamera));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera Frustum"), wxGetTranslation(showgamecamerafrustum_desc), vconfig.bShowGameFrustum));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Camera"), wxGetTranslation(showtrackingcamera_desc), vconfig.bShowTrackingCamera));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Volume"), wxGetTranslation(showtrackingvolume_desc), vconfig.bShowTrackingVolume));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Show Hydra Base Station"), wxGetTranslation(showbasestation_desc), vconfig.bShowBaseStation));
+
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Show avatar"));
+		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
 
 		szr_vr_main->AddStretchSpacer();
 		CreateDescriptionArea(page_vr, szr_vr_main);
@@ -525,6 +544,13 @@ void CConfigVR::CreateGUIControls()
 			wxGridBagSizer* const options_gszr = new wxGridBagSizer(3, 3);
 			options_sbox->Add(options_gszr, 1, wxALIGN_CENTER_VERTICAL, 3);
 
+			// Free Look Sensitivity
+			SettingNumber *const spin_freelook_sensitivity = CreateNumber(Page, vconfig.fFreeLookSensitivity,
+				wxGetTranslation(temp_desc), 0.0001f, 10000, 0.05f);
+			wxStaticText *spin_freelook_scale_label = new wxStaticText(Page, wxID_ANY, _(" Free Look Sensitivity: "));
+			spin_freelook_sensitivity->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
+			spin_freelook_scale_label->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
+
 			wxCheckBox  *xInputPollEnableCheckbox = new wxCheckBox(Page, wxID_ANY, _("Enable XInput/DInput Polling"), wxDefaultPosition, wxDefaultSize);
 			xInputPollEnableCheckbox->Bind(wxEVT_CHECKBOX, &CConfigVR::OnXInputPollCheckbox, this);
 			xInputPollEnableCheckbox->SetToolTip(_("Check to enable XInput polling during game emulation. Uncheck to disable."));
@@ -533,7 +559,9 @@ void CConfigVR::CreateGUIControls()
 				xInputPollEnableCheckbox->SetValue(true);
 			}
 
-			options_gszr->Add(xInputPollEnableCheckbox, wxGBPosition(0, 0), wxDefaultSpan, wxALL, 3);
+			options_gszr->Add(spin_freelook_scale_label, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL, 3);
+			options_gszr->Add(spin_freelook_sensitivity, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL, 3);
+			options_gszr->Add(xInputPollEnableCheckbox, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 3);
 
 			//Create "VR Camera Controls" and add keys to it.
 			wxStaticBoxSizer *vr_camera_controls_box = new wxStaticBoxSizer(wxVERTICAL, Page, _("VR Camera Controls"));

@@ -125,12 +125,12 @@ void Init(int cpu_core)
 	{
 		for (int set = 0; set < 64; set++)
 		{
+			ppcState.tlb[tlb][set].recent = 0;
 			for (int way = 0; way < 2; way++)
 			{
-				ppcState.tlb[tlb][set][way].flags = TLB_FLAG_INVALID;
-				ppcState.tlb[tlb][set][way].paddr = 0;
-				ppcState.tlb[tlb][set][way].pte = 0;
-				ppcState.tlb[tlb][set][way].tag = 0;
+				ppcState.tlb[tlb][set].paddr[way] = 0;
+				ppcState.tlb[tlb][set].pte[way] = 0;
+				ppcState.tlb[tlb][set].tag[way] = TLB_TAG_INVALID;
 			}
 		}
 	}

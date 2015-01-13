@@ -66,9 +66,12 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 
 bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
-	bool wii = VolumeHandler::IsWii();
+	// VolumeHandler::IsWii is used here to check whether a Wii disc is used.
+	// That function calls this function to check a magic word in the disc header,
+	// so it is important that VolumeHandler::IsWii is not called when the header
+	// is being read with decrypt=false, as it would result in a stack overflow.
 
-	if (!decrypt && (_Offset + _Length >= 0x400) && wii)
+	if (!decrypt && (_Offset + _Length >= 0x400) && VolumeHandler::IsWii())
 	{
 		// Fully supporting this would require re-encrypting every file that's read.
 		// Only supporting the areas that IOS allows software to read could be more feasible.
@@ -78,7 +81,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 		return false;
 	}
 
-	if (decrypt && !wii)
+	if (decrypt && !VolumeHandler::IsWii())
 		PanicAlertT("Tried to decrypt data from a non-Wii volume");
 
 	// header

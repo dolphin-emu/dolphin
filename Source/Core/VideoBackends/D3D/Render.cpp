@@ -34,6 +34,7 @@
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -45,12 +46,10 @@ namespace DX11
 {
 
 static u32 s_last_multisample_mode = 0;
+static bool s_last_stereo_mode = false;
+static bool s_last_xfb_mode = false;
 
 static Television s_television;
-
-static bool s_last_fullscreen_mode = false;
-static bool s_last_stereo_mode = 0;
-static bool s_last_xfb_mode = false;
 
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
@@ -235,10 +234,10 @@ Renderer::Renderer(void *&window_handle)
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
 	s_last_efb_scale = g_ActiveConfig.iEFBScale;
-	s_last_fullscreen_mode = g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled();
 	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+	PixelShaderManager::SetEfbScaleChanged();
 
 	SetupDeviceObjects();
 
@@ -893,6 +892,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #ifdef HAVE_OCULUSSDK
 	else if (g_has_rift && g_ActiveConfig.bEnableVR)
 	{
+		DX11::s_avatarDrawer.Draw();
+
 		EFBRectangle sourceRc;
 		// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
 		sourceRc.left = 0;
@@ -1174,29 +1175,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	bool fullscreen = g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled() &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
 
-	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
-
-	bool fullscreen_state;
-	if (SUCCEEDED(D3D::GetFullscreenState(&fullscreen_state)))
-	{
-		if (fullscreen_state != fullscreen && Host_RendererHasFocus())
-		{
-			// The current fullscreen state does not match the configuration,
-			// this may happen when the renderer frame loses focus. When the
-			// render frame is in focus again we can re-apply the configuration.
-			fullscreen_changed = true;
-		}
-	}
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift && !(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
-	{
-		windowResized = false;
-		fullscreen = false;
-		fullscreen_changed = false;
-		fullscreen_state = false;
-	}
-#endif		
-
 	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
 	if (FramebufferManagerBase::LastXfbWidth() != fbStride || FramebufferManagerBase::LastXfbHeight() != fbHeight)
@@ -1211,6 +1189,41 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Flip/present backbuffer to frontbuffer here
 	if (!g_has_rift)
 		D3D::Present();
+
+	// Check exclusive fullscreen state
+	bool exclusive_mode, fullscreen_changed = false;
+	if (g_is_direct_mode)
+	{
+		windowResized = false;
+		fullscreen = false;
+		fullscreen_changed = false;
+	}
+	else if (SUCCEEDED(D3D::GetFullscreenState(&exclusive_mode)))
+	{
+		if (fullscreen && !exclusive_mode)
+		{
+			// Exclusive fullscreen is enabled in the configuration, but we're
+			// not in exclusive mode. Either exclusive fullscreen was turned on
+			// or the render frame lost focus. When the render frame is in focus
+			// we can apply exclusive mode.
+			fullscreen_changed = Host_RendererHasFocus();
+		}
+		else if (!fullscreen)
+		{
+			if (exclusive_mode)
+			{
+				// Exclusive fullscreen is disabled, but we're still in exclusive mode.
+				fullscreen_changed = true;
+			}
+			else if (!g_ActiveConfig.bBorderlessFullscreen && Host_RendererIsFullscreen())
+			{
+				// Exclusive fullscreen is disabled and we are no longer in exclusive
+				// mode. Thus we can now safely notify the UI to exit fullscreen. But
+				// we should only do so if borderless fullscreen mode is disabled.
+				Host_RequestFullscreen(false);
+			}
+		}
+	}
 
 	NewVRFrame();
 
@@ -1230,16 +1243,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			// Apply fullscreen state
 			if (fullscreen_changed)
-			{
-				s_last_fullscreen_mode = fullscreen;
 				D3D::SetFullscreenState(fullscreen);
-
-				// Notify the host that it is safe to exit fullscreen
-				if (!fullscreen)
-				{
-					Host_RequestFullscreen(false);
-				}
-			}
 
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
@@ -1254,6 +1258,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_last_efb_scale = g_ActiveConfig.iEFBScale;
 		s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+
+		PixelShaderManager::SetEfbScaleChanged();
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 

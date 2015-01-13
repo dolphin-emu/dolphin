@@ -227,8 +227,11 @@ elseif(_M_ARM_64)
 	         PowerPC/JitArm64/JitArm64_RegCache.cpp
 	         PowerPC/JitArm64/JitArm64_BackPatch.cpp
 	         PowerPC/JitArm64/JitArm64_Branch.cpp
+	         PowerPC/JitArm64/JitArm64_FloatingPoint.cpp
 	         PowerPC/JitArm64/JitArm64_Integer.cpp
 	         PowerPC/JitArm64/JitArm64_LoadStore.cpp
+	         PowerPC/JitArm64/JitArm64_LoadStoreFloating.cpp
+	         PowerPC/JitArm64/JitArm64_Paired.cpp
 	         PowerPC/JitArm64/JitArm64_SystemRegisters.cpp
 	         PowerPC/JitArm64/JitArm64_Tables.cpp)
 endif()
@@ -258,13 +261,13 @@ set(LIBS ${LIBS} ${POLARSSL_LIBRARY})
 
 if(WIN32)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+elseif(APPLE)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
 	set(LIBS ${LIBS}
 		${IOB_LIBRARY})
 elseif(UNIX)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Unix.cpp)
-	if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND BLUEZ_FOUND)
+	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND BLUEZ_FOUND)
 		set(SRCS ${SRCS} HW/WiimoteReal/IONix.cpp)
 		set(LIBS ${LIBS} bluetooth)
 	else()

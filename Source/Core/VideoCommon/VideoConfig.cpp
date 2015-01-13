@@ -75,6 +75,16 @@ VideoConfig::VideoConfig()
 	bOverdrive = true;
 	bHqDistortion = false;
 	bDisableNearClipping = true;
+	bShowHands = false;
+	bShowFeet = false;
+	bShowController = false;
+	bShowSensorBar = false;
+	bShowGameCamera = false;
+	bShowGameFrustum = false;
+	bShowTrackingCamera = false;
+	bShowTrackingVolume = false;
+	bShowBaseStation = false;
+
 	iVRPlayer = 0;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
@@ -185,6 +195,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Get("Scale", &fScale, 1.0f);
+	vr->Get("FreeLookSensitivity", &fFreeLookSensitivity, DEFAULT_VR_FREE_LOOK_SENSITIVITY);
 	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
 	vr->Get("EnableVR", &bEnableVR, true);
 	vr->Get("LowPersistence", &bLowPersistence, true);
@@ -201,6 +212,15 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("Overdrive", &bOverdrive, true);
 	vr->Get("HQDistortion", &bHqDistortion, false);
 	vr->Get("DisableNearClipping", &bDisableNearClipping, true);
+	vr->Get("ShowHands", &bShowHands, false);
+	vr->Get("ShowFeet", &bShowFeet, false);
+	vr->Get("ShowController", &bShowController, false);
+	vr->Get("ShowSensorBar", &bShowSensorBar, false);
+	vr->Get("ShowGameCamera", &bShowGameCamera, false);
+	vr->Get("ShowGameFrustum", &bShowGameFrustum, false);
+	vr->Get("ShowTrackingCamera", &bShowTrackingCamera, false);
+	vr->Get("ShowTrackingVolume", &bShowTrackingVolume, false);
+	vr->Get("ShowBaseStation", &bShowBaseStation, false);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
@@ -353,7 +373,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
-	fFreeLookSensitivity = DEFAULT_VR_FREE_LOOK_SENSITIVITY;
 	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
 	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
 	fHud3DCloser = DEFAULT_VR_HUD_3D_CLOSER;
@@ -377,7 +396,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
 	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
-	CHECK_SETTING("VR", "FreeLookSensitivity", fFreeLookSensitivity);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
 	CHECK_SETTING("VR", "Hud3DCloser", fHud3DCloser);
@@ -430,7 +448,6 @@ void VideoConfig::GameIniSave()
 
 	SAVE_IF_NOT_DEFAULT("VR", "Disable3D", bDisable3D, false);
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
-	SAVE_IF_NOT_DEFAULT("VR", "FreeLookSensitivity", (float)fFreeLookSensitivity, DEFAULT_VR_FREE_LOOK_SENSITIVITY);
 	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
@@ -470,7 +487,6 @@ void VideoConfig::GameIniReset()
 
 	LOAD_DEFAULT("VR", "Disable3D", bDisable3D, false);
 	LOAD_DEFAULT("VR", "UnitsPerMetre", fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
-	LOAD_DEFAULT("VR", "FreeLookSensitivity", fFreeLookSensitivity, DEFAULT_VR_FREE_LOOK_SENSITIVITY);
 	LOAD_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
@@ -582,6 +598,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Set("Scale", fScale);
+	vr->Set("FreeLookSensitivity", fFreeLookSensitivity);
 	vr->Set("LeanBackAngle", fLeanBackAngle);
 	vr->Set("EnableVR", bEnableVR);
 	vr->Set("LowPersistence", bLowPersistence);
@@ -598,6 +615,15 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
 	vr->Set("DisableNearClipping", bDisableNearClipping);
+	vr->Set("ShowHands", bShowHands);
+	vr->Set("ShowFeet", bShowFeet);
+	vr->Set("ShowController", bShowController);
+	vr->Set("ShowSensorBar", bShowSensorBar);
+	vr->Set("ShowGameCamera", bShowGameCamera);
+	vr->Set("ShowGameFrustum", bShowGameFrustum);
+	vr->Set("ShowTrackingCamera", bShowTrackingCamera);
+	vr->Set("ShowTrackingVolume", bShowTrackingVolume);
+	vr->Set("ShowBaseStation", bShowBaseStation);
 	vr->Set("Player", iVRPlayer);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);
@@ -622,7 +648,6 @@ bool VideoConfig::IsVSync()
 bool VideoConfig::VRSettingsModified()
 {
 	return fUnitsPerMetre != g_SavedConfig.fUnitsPerMetre
-		|| fFreeLookSensitivity != g_SavedConfig.fFreeLookSensitivity
 		|| fHudThickness != g_SavedConfig.fHudThickness
 		|| fHudDistance != g_SavedConfig.fHudDistance
 		|| fHud3DCloser != g_SavedConfig.fHud3DCloser

@@ -65,22 +65,31 @@ protected:
 	struct JitState
 	{
 		u32 compilerPC;
-		u32 next_compilerPC;
 		u32 blockStart;
-		UGeckoInstruction next_inst;  // for easy peephole opt.
+		u32 blockEnd;
 		int instructionNumber;
 		int instructionsLeft;
 		int downcountAmount;
 		u32 numLoadStoreInst;
 		u32 numFloatingPointInst;
+		// If this is set, we need to generate an exception handler for the fastmem load.
+		u8* fastmemLoadStore;
+		// If this is set, a load or store already prepared a jump to the exception handler for us,
+		// so just fixup that branch instead of testing for a DSI again.
+		bool fixupExceptionHandler;
+		Gen::FixupBranch exceptionHandler;
+		// If these are set, we've stored the old value of a register which will be loaded in revertLoad,
+		// which lets us revert it on the exception path.
+		int revertGprLoad;
+		int revertFprLoad;
 
+		bool assumeNoPairedQuantize;
 		bool firstFPInstructionFound;
 		bool isLastInstruction;
 		bool memcheck;
-		bool skipnext;
+		int skipInstructions;
 		bool carryFlagSet;
 		bool carryFlagInverted;
-		bool next_inst_bp;
 
 		int fifoBytesThisBlock;
 
@@ -88,12 +97,12 @@ protected:
 		PPCAnalyst::BlockRegStats gpa;
 		PPCAnalyst::BlockRegStats fpa;
 		PPCAnalyst::CodeOp* op;
-		PPCAnalyst::CodeOp* next_op;
 		u8* rewriteStart;
 
 		JitBlock *curBlock;
 
 		std::unordered_set<u32> fifoWriteAddresses;
+		std::unordered_set<u32> pairedQuantizeAddresses;
 	};
 
 	PPCAnalyst::CodeBlock code_block;

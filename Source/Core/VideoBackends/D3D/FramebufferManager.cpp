@@ -8,6 +8,7 @@
 #endif
 
 #include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D/AvatarDrawer.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
@@ -22,6 +23,7 @@
 namespace DX11 {
 
 static XFBEncoder s_xfbEncoder;
+AvatarDrawer s_avatarDrawer;
 
 FramebufferManager::Efb FramebufferManager::m_efb;
 unsigned int FramebufferManager::m_target_width;
@@ -226,6 +228,7 @@ FramebufferManager::FramebufferManager()
 	}
 
 	s_xfbEncoder.Init();
+	s_avatarDrawer.Init();
 }
 
 FramebufferManager::~FramebufferManager()
@@ -245,6 +248,7 @@ FramebufferManager::~FramebufferManager()
 #endif
 
 	s_xfbEncoder.Shutdown();
+	s_avatarDrawer.Shutdown();
 
 	SAFE_RELEASE(m_efb.color_tex);
 	SAFE_RELEASE(m_efb.color_temp_tex);
@@ -321,7 +325,7 @@ void FramebufferManager::ConfigureRift()
 	cfg.D3D11.pDeviceContext = D3D::context;
 	cfg.D3D11.pSwapChain = D3D::swapchain;
 	cfg.D3D11.pBackBufferRT = D3D::GetBackBuffer()->GetRTV();
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop)) //If Rift is in Direct Mode
+	if (g_is_direct_mode) //If Rift is in Direct Mode
 	{
 		//To do: This is a bit of a hack, but I haven't found any problems with this.  
 		//If we don't want to do this, large changes will be needed to init sequence.

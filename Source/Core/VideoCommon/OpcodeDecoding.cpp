@@ -129,6 +129,11 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 
 void OpcodeDecoder_Init()
 {
+	if (g_has_hmd)
+	{
+		opcode_replay_enabled = ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp));
+		g_opcodereplay_frame = !opcode_replay_enabled; // Don't log frames if not enabled
+	}
 }
 
 

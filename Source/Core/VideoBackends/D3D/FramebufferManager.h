@@ -20,6 +20,7 @@ extern "C"
 
 #include "d3d11.h"
 
+#include "VideoBackends/D3D/AvatarDrawer.h"
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 
@@ -133,5 +134,7 @@ public:
 	static unsigned int m_target_width;
 	static unsigned int m_target_height;
 };
+
+extern AvatarDrawer s_avatarDrawer;
 
 }  // namespace DX11

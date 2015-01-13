@@ -83,6 +83,13 @@ typedef enum
 	ZELDA_UNKNOWN_2D,
 	ZELDA_UNKNOWN_EFFECT,
 
+	NES_RENDER_TO_TEXTURE,
+	NES_SHOW_TEXTURE,
+	NES_WII_GUI_BACKGROUND,
+	NES_WII_GUI_ERROR,
+	NES_WII_GUI_MENU,
+	NES_UNKNOWN_2D,
+
 	METROID_LAYER_COUNT
 } TMetroidLayer;
 
@@ -107,6 +114,7 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
 TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float znear, float zfar);
 TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, float zfar);
+TMetroidLayer GetNESLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHide, bool *bFlashing,
 	float* fScaleHack, float *fWidthHack, float *fHeightHack, float *fUpHack, float *fRightHack, int *iTelescope);
 

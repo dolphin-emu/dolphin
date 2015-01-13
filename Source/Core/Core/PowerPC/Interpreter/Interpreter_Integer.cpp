@@ -329,7 +329,7 @@ void Interpreter::orcx(UGeckoInstruction _inst)
 void Interpreter::slwx(UGeckoInstruction _inst)
 {
 	u32 amount = rGPR[_inst.RB];
-	rGPR[_inst.RA] = (amount & 0x20) ? 0 : rGPR[_inst.RS] << amount;
+	rGPR[_inst.RA] = (amount & 0x20) ? 0 : rGPR[_inst.RS] << (amount & 0x1f);
 
 	if (_inst.Rc)
 		Helper_UpdateCR0(rGPR[_inst.RA]);

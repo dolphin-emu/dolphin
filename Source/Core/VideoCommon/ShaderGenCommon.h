@@ -243,19 +243,19 @@ static void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template<class T>
-static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
+static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 numTexGens, const char* qualifier = nullptr)
 {
 	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+	for (unsigned int i = 0; i < numTexGens; ++i)
 		DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
 
-	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
+	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", numTexGens);
 
 	if (g_ActiveConfig.bEnablePixelLighting)
-		DefineOutputMember(object, api_type, qualifier, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
+		DefineOutputMember(object, api_type, qualifier, "float4", "Normal", -1, "TEXCOORD", numTexGens + 1);
 }
 
 template<class T>
@@ -285,6 +285,8 @@ static inline void AssignVSOutputMembers(T& object, const char* a, const char* b
 #define I_FOGCOLOR      "cfogcolor"
 #define I_FOGI          "cfogi"
 #define I_FOGF          "cfogf"
+#define I_ZSLOPE        "czslope"
+#define I_EFBSCALE      "cefbscale"
 
 #define I_POSNORMALMATRIX       "cpnmtx"
 #define I_PROJECTION            "cproj"
