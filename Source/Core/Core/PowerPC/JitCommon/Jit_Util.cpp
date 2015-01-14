@@ -23,32 +23,6 @@ void EmuCodeBlock::MemoryExceptionCheck()
 	}
 }
 
-void EmuCodeBlock::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
-{
-	if (cpu_info.bMOVBE)
-	{
-		MOVBE(size, dst, src);
-	}
-	else
-	{
-		MOV(size, R(dst), src);
-		BSWAP(size, dst);
-	}
-}
-
-void EmuCodeBlock::SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src)
-{
-	if (cpu_info.bMOVBE)
-	{
-		MOVBE(size, dst, src);
-	}
-	else
-	{
-		BSWAP(size, src);
-		MOV(size, dst, R(src));
-	}
-}
-
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
 	MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
