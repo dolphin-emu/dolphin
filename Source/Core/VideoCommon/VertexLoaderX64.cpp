@@ -15,7 +15,8 @@ static const X64Reg dst_reg = ABI_PARAM2;
 static const X64Reg count_reg = ABI_PARAM3;
 static const X64Reg scratch1 = RAX;
 static const X64Reg scratch2 = R8;
-static const X64Reg skipped_reg = R9;
+static const X64Reg scratch3 = R9;
+static const X64Reg skipped_reg = R10;
 
 VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att): VertexLoaderBase(vtx_desc, vtx_att)
 {
@@ -139,8 +140,6 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 	return load_bytes;
 }
 
-// TODO: generate alternative code for pre-BMI2/MOVBE CPUs
-
 void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int elements)
 {
 	int load_bytes = 0;
@@ -163,10 +162,30 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 		case FORMAT_16B_565:
 			//                   RRRRRGGG GGGBBBBB
 			// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
-			MOVBE(16, scratch1, data);
-			PDEP(32, scratch1, scratch1, M(&mask_565));
+			LoadAndSwap(16, scratch1, data);
+			if (cpu_info.bBMI2)
+			{
+				PDEP(32, scratch1, scratch1, M(&mask_565));
+				MOV(32, R(scratch2), R(scratch1));
+			}
+			else
+			{
+				MOV(32, R(scratch3), R(scratch1));
+				SHL(32, R(scratch1), Imm8(16));
+				AND(32, R(scratch1), Imm32(0xF8000000));
+				MOV(32, R(scratch2), R(scratch1));
 
-			MOV(32, R(scratch2), R(scratch1));
+				MOV(32, R(scratch1), R(scratch3));
+				SHL(32, R(scratch1), Imm8(13));
+				AND(32, R(scratch1), Imm32(0x00FC0000));
+				OR(32, R(scratch2), R(scratch1));
+
+				SHL(32, R(scratch3), Imm8(11));
+				AND(32, R(scratch3), Imm32(0x0000F800));
+				OR(32, R(scratch2), R(scratch3));
+				MOV(32, R(scratch1), R(scratch2));
+			}
+
 			SHR(32, R(scratch1), Imm8(5));
 			AND(32, R(scratch1), Imm32(0x07000700));
 			OR(32, R(scratch1), R(scratch2));
@@ -176,18 +195,44 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 			OR(32, R(scratch1), R(scratch2));
 
 			OR(8, R(scratch1), Imm8(0xFF));
-			MOVBE(32, MDisp(dst_reg, m_dst_ofs), scratch1);
+			SwapAndStore(32, MDisp(dst_reg, m_dst_ofs), scratch1);
 			load_bytes = 2;
 			break;
 
 		case FORMAT_16B_4444:
 			//                   RRRRGGGG BBBBAAAA
 			// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
-			MOVBE(16, scratch1, data);
-			PDEP(32, scratch2, scratch1, M(&mask_0f));
-			PDEP(32, scratch1, scratch1, M(&mask_f0));
+			LoadAndSwap(16, scratch1, data);
+			if (cpu_info.bBMI2)
+			{
+				PDEP(32, scratch2, scratch1, M(&mask_0f));
+				PDEP(32, scratch1, scratch1, M(&mask_f0));
+			}
+			else
+			{
+				MOV(32, R(scratch3), R(scratch1));
+				SHL(32, R(scratch1), Imm8(12));
+				AND(32, R(scratch1), Imm32(0x0F000000));
+				MOV(32, R(scratch2), R(scratch1));
+
+				MOV(32, R(scratch1), R(scratch3));
+				SHL(32, R(scratch1), Imm8(8));
+				AND(32, R(scratch1), Imm32(0x000F0000));
+				OR(32, R(scratch2), R(scratch1));
+
+				MOV(32, R(scratch1), R(scratch3));
+				SHL(32, R(scratch1), Imm8(4));
+				AND(32, R(scratch1), Imm32(0x00000F00));
+				OR(32, R(scratch2), R(scratch1));
+
+				AND(32, R(scratch3), Imm8(0x0F));
+				OR(32, R(scratch2), R(scratch3));
+
+				MOV(32, R(scratch1), R(scratch2));
+				SHL(32, R(scratch1), Imm8(4));
+			}
 			OR(32, R(scratch1), R(scratch2));
-			MOVBE(32, MDisp(dst_reg, m_dst_ofs), scratch1);
+			SwapAndStore(32, MDisp(dst_reg, m_dst_ofs), scratch1);
 			load_bytes = 2;
 			break;
 
@@ -195,15 +240,41 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 			//          RRRRRRGG GGGGBBBB BBAAAAAA
 			// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
 			data.offset -= 1;
-			MOVBE(32, scratch1, data);
-			PDEP(32, scratch1, scratch1, M(&mask_fc));
+			LoadAndSwap(32, scratch1, data);
+			if (cpu_info.bBMI2)
+			{
+				PDEP(32, scratch1, scratch1, M(&mask_fc));
+				MOV(32, R(scratch2), R(scratch1));
+			}
+			else
+			{
+				MOV(32, R(scratch3), R(scratch1));
+				SHL(32, R(scratch1), Imm8(8));
+				AND(32, R(scratch1), Imm32(0xFC000000));
+				MOV(32, R(scratch2), R(scratch1));
 
-			MOV(32, R(scratch2), R(scratch1));
-			SHR(32, R(scratch2), Imm8(6));
-			AND(32, R(scratch2), Imm32(0x03030303));
+				MOV(32, R(scratch1), R(scratch3));
+				SHL(32, R(scratch1), Imm8(6));
+				AND(32, R(scratch1), Imm32(0x00FC0000));
+				OR(32, R(scratch2), R(scratch1));
+
+				MOV(32, R(scratch1), R(scratch3));
+				SHL(32, R(scratch1), Imm8(4));
+				AND(32, R(scratch1), Imm32(0x0000FC00));
+				OR(32, R(scratch2), R(scratch1));
+
+				SHL(32, R(scratch3), Imm8(2));
+				AND(32, R(scratch3), Imm32(0x000000FC));
+				OR(32, R(scratch2), R(scratch3));
+
+				MOV(32, R(scratch1), R(scratch2));
+			}
+
+			SHR(32, R(scratch1), Imm8(6));
+			AND(32, R(scratch1), Imm32(0x03030303));
 			OR(32, R(scratch1), R(scratch2));
 
-			MOVBE(32, MDisp(dst_reg, m_dst_ofs), scratch1);
+			SwapAndStore(32, MDisp(dst_reg, m_dst_ofs), scratch1);
 			load_bytes = 3;
 			break;
 	}
@@ -363,7 +434,8 @@ void VertexLoaderX64::GenerateVertexLoader()
 
 bool VertexLoaderX64::IsInitialized()
 {
-	return true;
+	// Uses PSHUFB.
+	return cpu_info.bSSSE3;
 }
 
 int VertexLoaderX64::RunVertices(int primitive, int count, DataReader src, DataReader dst)
