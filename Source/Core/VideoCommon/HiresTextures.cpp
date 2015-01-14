@@ -118,12 +118,12 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 		tlut += 2 * min;
 	}
 
-	u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size);
 	u64 tlut_hash = 0;
 	u64 hash = tex_hash;
 	if (tlut_size)
 	{
-		tlut_hash = GetHashHiresTexture(tlut, (int)tlut_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		tlut_hash = GetHashHiresTexture(tlut, (int)tlut_size);
 		hash ^= tlut_hash;
 	}
 	return StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32)hash, (u16)format);
