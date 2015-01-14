@@ -39,8 +39,6 @@ public:
 	};
 	std::vector<Level> m_levels;
 
-	static std::unordered_map<std::string, std::string> textureMap;
-
 private:
 	HiresTexture() {}
 
