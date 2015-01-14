@@ -16,6 +16,7 @@
 #include "Core/ConfigManager.h"
 
 #include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
 static std::unordered_map<std::string, std::string> s_textureMap;
@@ -23,7 +24,6 @@ static bool s_check_native_format;
 static bool s_check_new_format;
 
 static const std::string s_format_prefix = "tex1_";
-
 
 void HiresTexture::Init(const std::string& gameCode)
 {
@@ -96,17 +96,24 @@ void HiresTexture::Init(const std::string& gameCode)
 
 std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format, bool has_mipmaps, bool dump)
 {
+	std::string name = "";
+	bool convert = false;
 	if (!dump && s_check_native_format)
 	{
 		// try to load the old format first
 		u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size, g_ActiveConfig.iSafeTextureCache_ColorSamples) : 0;
-		std::string name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32)(tex_hash ^ tlut_hash), (u16)format);
+		name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32)(tex_hash ^ tlut_hash), (u16)format);
 		if (s_textureMap.find(name) != s_textureMap.end())
-			return name;
+		{
+			if (g_ActiveConfig.bConvertHiresTextures)
+				convert = true;
+			else
+				return name;
+		}
 	}
 
-	if (dump || s_check_new_format)
+	if (dump || s_check_new_format || convert)
 	{
 		// checking for min/max on paletted textures
 		u32 min = 0xffff;
@@ -150,17 +157,83 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 		std::string basename = s_format_prefix + StringFromFormat("%s%dx%d_%016lx", has_mipmaps ? "m_" : "", width, height, tex_hash);
 		std::string tlutname = tlut_size ? StringFromFormat("_%016lx", tlut_hash) : "";
 		std::string formatname = StringFromFormat("_%d", format);
+		std::string fullname = basename + tlutname + formatname;
+
+		for (int level = 0; level < 10 && convert; level++)
+		{
+			std::string oldname = name;
+			if (level)
+				oldname += StringFromFormat("_mip%d", level);
+
+			// skip not existing levels
+			if (s_textureMap.find(oldname) == s_textureMap.end())
+				continue;
+
+			for (int i = 0;; i++)
+			{
+				// for hash collisions, padd with an integer
+				std::string newname = fullname;
+				if (level)
+					newname += StringFromFormat("_mip%d", level);
+				if (i)
+					newname += StringFromFormat(".%d", i);
+
+				// new texture
+				if (s_textureMap.find(newname) == s_textureMap.end())
+				{
+					std::string src = s_textureMap[oldname];
+					size_t postfix = src.find_last_of('.');
+					std::string dst = src.substr(0, postfix - oldname.length()) + newname + src.substr(postfix, src.length() - postfix);
+					if (File::Rename(src, dst))
+					{
+						s_textureMap.erase(oldname);
+						s_textureMap[newname] = dst;
+						s_check_new_format = true;
+						OSD::AddMessage(StringFromFormat("Rename custom texture %s to %s", oldname.c_str(), newname.c_str()), 5000);
+					}
+					else
+					{
+						ERROR_LOG(VIDEO, "rename failed");
+					}
+					break;
+				}
+				else
+				{
+					// dst fail already exist, compare content
+					std::string a, b;
+					File::ReadFileToString(s_textureMap[oldname], a);
+					File::ReadFileToString(s_textureMap[newname], b);
+
+					if (a == b && a != "")
+					{
+						// equal, so remove
+						if (File::Delete(s_textureMap[oldname]))
+						{
+							s_textureMap.erase(oldname);
+							OSD::AddMessage(StringFromFormat("Delete double old custom texture %s", oldname.c_str()), 5000);
+						}
+						else
+						{
+							ERROR_LOG(VIDEO, "delete failed");
+						}
+						break;
+					}
+
+					// else continue in this loop with the next higher padding variable
+				}
+			}
+		}
 
 		// try to match a wildcard template
 		if (!dump && s_textureMap.find(basename + "_*" + formatname) != s_textureMap.end())
 			return basename + "_*" + formatname;
 
 		// else generate the complete texture
-		if (dump || s_textureMap.find(basename + tlutname + formatname) != s_textureMap.end())
-			return basename + tlutname + formatname;
+		if (dump || s_textureMap.find(fullname) != s_textureMap.end())
+			return fullname;
 	}
 
-	return "";
+	return name;
 }
 
 HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format, bool has_mipmaps)
