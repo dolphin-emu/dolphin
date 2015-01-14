@@ -14,6 +14,13 @@ enum PrimitiveType {
 	PRIMITIVE_TRIANGLES,
 };
 
+struct Slope
+{
+	float dfdx;
+	float dfdy;
+	float f0;
+};
+
 class VertexManager
 {
 private:
@@ -39,9 +46,7 @@ public:
 
 	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
 
-	static void DoState(PointerWrap& p);
-
-	static void CalculateZSlope(u32 stride);
+	static void DoState(PointerWrap& p);	
 
 protected:
 	virtual void vDoState(PointerWrap& p) {  }
@@ -56,6 +61,9 @@ protected:
 
 	static u32 GetRemainingSize();
 	static u32 GetRemainingIndices(int primitive);
+
+	static Slope ZSlope;
+	static void CalculateZSlope(u32 stride);
 
 private:
 	static bool IsFlushed;

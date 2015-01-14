@@ -368,7 +368,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("void main(\n");
 		out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
+			(per_pixel_depth && bpmem.zmode.testenable) ? "\n  out float depth : SV_Depth," : "");
 
 		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
 		out.Write("  in centroid float4 colors_1 : COLOR1\n");
@@ -408,7 +408,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("\tfloat4 col0, col1;\n");
 		}
-		// On D3D, input variables must be completely initialization before being used.
+		// On D3D, input variables must be completely initialized before being used.
 		else
 		{
 			out.Write("\tfloat4 col0 = 0.0;\n");

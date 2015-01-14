@@ -25,6 +25,8 @@ u8 *VertexManager::s_pEndBufferPointer;
 
 PrimitiveType VertexManager::current_primitive_type;
 
+Slope VertexManager::ZSlope;
+
 bool VertexManager::IsFlushed;
 
 static const PrimitiveType primitive_from_gx[8] = {
@@ -288,19 +290,11 @@ void VertexManager::CalculateZSlope(u32 stride)
 	float b = dx31 * DF21 + dx12 * DF31;
 	float c = -dx12 * dy31 - dx31 * -dy12;
 
-	// This shouldn't happen
+	// Stop divide by zero
 	if (abs(c) < FLT_EPSILON)
-	{
-		// Reset Slope
-		PixelShaderManager::SetZSlope(0, 0, (float)0xFFFFFF);
-#if defined(_DEBUG) || defined(DEBUGFAST)
-		PRIM_LOG("This is not the zfreeze reference polygon you are looking for");
-#endif
-	}
+		return;
 
-	float slope_dfdx = -a / c;
-	float slope_dfdy = -b / c;
-	float slope_f0 = out[2] - (out[0] * slope_dfdx + out[1] * slope_dfdy);
-
-	PixelShaderManager::SetZSlope(slope_dfdx, slope_dfdy, slope_f0);
+	ZSlope.dfdx = -a / c;
+	ZSlope.dfdy = -b / c;
+	ZSlope.f0 = out[2] - (out[0] * ZSlope.dfdx + out[1] * ZSlope.dfdy);	
 }
