@@ -476,7 +476,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			src_data, texture_size,
 			&texMem[tlutaddr], palette_size,
 			width, height,
-			texformat
+			texformat, true
 		);
 		DumpTexture(entry, basename, 0);
 	}
