@@ -271,9 +271,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	GenerateVSOutputMembers<T>(out, ApiType);
 	out.Write("};\n");
 
-	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() 
+	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
 								&& (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
-								// We can't allow early_ztest for zfreeze because a reference poly is used 
+								// We can't allow early_ztest for zfreeze because a reference poly is used
 								// to control the depth and we need a depth test after the alpha test.
 								&& !bpmem.genMode.zfreeze;
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;

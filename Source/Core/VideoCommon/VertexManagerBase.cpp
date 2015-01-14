@@ -296,5 +296,5 @@ void VertexManager::CalculateZSlope(u32 stride)
 
 	ZSlope.dfdx = -a / c;
 	ZSlope.dfdy = -b / c;
-	ZSlope.f0 = out[2] - (out[0] * ZSlope.dfdx + out[1] * ZSlope.dfdy);	
+	ZSlope.f0 = out[2] - (out[0] * ZSlope.dfdx + out[1] * ZSlope.dfdy);
 }

@@ -46,7 +46,7 @@ public:
 
 	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
 
-	static void DoState(PointerWrap& p);	
+	static void DoState(PointerWrap& p);
 
 protected:
 	virtual void vDoState(PointerWrap& p) {  }

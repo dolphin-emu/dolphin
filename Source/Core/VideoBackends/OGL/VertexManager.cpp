@@ -146,7 +146,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	if (!bpmem.genMode.zfreeze)
 		CalculateZSlope(stride);
 
-	// If cull mode is CULL_ALL, do not render these triangles, 
+	// If cull mode is CULL_ALL, do not render these triangles
 	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
 		return;
 
