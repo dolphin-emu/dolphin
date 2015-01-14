@@ -40,7 +40,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 		X64Reg addr = gpr.RX(a);
 		// TODO: this is kind of ugly :/ we should probably create a universal load/store address calculation
 		// function that handles all these weird cases, e.g. how non-fastmem loadstores clobber addresses.
-		if ((update && js.memcheck) || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
+		bool storeAddress = (update && js.memcheck) || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem;
+		if (storeAddress)
 		{
 			addr = RSCRATCH2;
 			MOV(32, R(addr), gpr.R(a));
@@ -88,11 +89,11 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 		}
 
 		BitSet32 registersInUse = CallerSavedRegistersInUse();
-		if (update && js.memcheck)
+		if (update && storeAddress)
 			registersInUse[addr] = true;
 		SafeWriteRegToReg(RSCRATCH, addr, w ? 32 : 64, storeOffset, registersInUse);
 		MemoryExceptionCheck();
-		if (update && js.memcheck)
+		if (update && storeAddress)
 			MOV(32, gpr.R(a), R(addr));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
