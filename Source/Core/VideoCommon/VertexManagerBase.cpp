@@ -264,11 +264,11 @@ void VertexManager::CalculateZSlope(u32 stride)
 		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4]);
 
 		// Transform to Screenspace
-		float w = out[3 + i * 4];
+		float inv_w = 1.0f / out[3 + i * 4];
 
-		out[0 + i * 4] = out[0 + i * 4] / w * xfmem.viewport.wd + viewOffset[0];
-		out[1 + i * 4] = out[1 + i * 4] / w * xfmem.viewport.ht + viewOffset[1];
-		out[2 + i * 4] = out[2 + i * 4] / w * xfmem.viewport.zRange + xfmem.viewport.farZ;
+		out[0 + i * 4] = out[0 + i * 4] * inv_w * xfmem.viewport.wd + viewOffset[0];
+		out[1 + i * 4] = out[1 + i * 4] * inv_w * xfmem.viewport.ht + viewOffset[1];
+		out[2 + i * 4] = out[2 + i * 4] * inv_w * xfmem.viewport.zRange + xfmem.viewport.farZ;
 	}
 
 	float dx31 = out[8] - out[0];
