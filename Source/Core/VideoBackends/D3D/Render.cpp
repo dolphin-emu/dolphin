@@ -886,6 +886,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			sourceRc.right = (int)xfbSource->texWidth;
 			sourceRc.bottom = (int)xfbSource->texHeight;
 
+			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+
 			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
 		}
 	}
@@ -1102,7 +1104,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 	D3D::EndFrame();
 
-	TextureCache::Cleanup();
+	TextureCache::Cleanup(frameCount);
 
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift)

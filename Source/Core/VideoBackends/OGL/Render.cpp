@@ -1807,7 +1807,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			sourceRc.top = xfbSource->sourceRc.top;
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
-			sourceRc.right -= fbStride - fbWidth;
+			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
 			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
@@ -2169,7 +2169,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-	TextureCache::Cleanup();
+	TextureCache::Cleanup(frameCount);
 
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift)

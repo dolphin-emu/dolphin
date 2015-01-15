@@ -21,6 +21,8 @@
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
+#include "VideoCommon/VideoConfig.h"
+
 // The "g_main_window" object as defined in MainWindow.h
 DMainWindow* g_main_window = nullptr;
 
@@ -92,39 +94,34 @@ void DMainWindow::StartGame(const QString filename)
 	m_render_widget->setWindowTitle(tr("Dolphin")); // TODO
 	m_render_widget->setWindowIcon(windowIcon());
 
-	// TODO: When rendering to main, this won't resize the parent window..
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen)
 	{
-		connect(m_render_widget.get(), SIGNAL(Closed()), this, SLOT(OnStop()));
-		m_render_widget->move(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
-		m_render_widget->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth, // TODO: Make sure these are client sizes!
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
-		m_render_widget->show();
+		m_render_widget->setWindowFlags(m_render_widget->windowFlags() | Qt::BypassWindowManagerHint);
+		g_Config.bFullscreen = !g_Config.bBorderlessFullscreen;
+		m_render_widget->showFullScreen();
 	}
 	else
 	{
 		m_ui->centralWidget->addWidget(m_render_widget.get());
 		m_ui->centralWidget->setCurrentWidget(m_render_widget.get());
+
+		// TODO: When rendering to main, this won't resize the parent window...
+		m_render_widget->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 	}
 
 	if (!BootManager::BootCore(filename.toStdString()))
 	{
 		QMessageBox::critical(this, tr("Fatal error"), tr("Failed to init Core"), QMessageBox::Ok);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-			m_ui->centralWidget->removeWidget(m_render_widget.get());
-		else
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen)
 			m_render_widget->close();
+		else
+			m_ui->centralWidget->removeWidget(m_render_widget.get());
 		m_render_widget.reset();
 	}
 	else
 	{
 		// TODO: Disable screensaver!
-
-		// TODO: Fullscreen
-		//DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
-
-		m_render_widget->focusWidget();
 		emit CoreStateChanged(Core::CORE_RUN);
 	}
 }
@@ -181,48 +178,53 @@ void DMainWindow::OnPlay()
 	}
 }
 
-void DMainWindow::OnStop()
+bool DMainWindow::OnStop()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED && !m_isStopping)
+	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
+		return true; // We're already stopped/stopping
+
+	// Ask for confirmation in case the user accidentally clicked Stop / Escape
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 	{
-		m_isStopping = true;
-		// Ask for confirmation in case the user accidentally clicked Stop / Escape
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
+		// Pause emulation
+		Core::SetState(Core::CORE_PAUSE);
+		emit CoreStateChanged(Core::CORE_PAUSE);
+
+		QMessageBox::StandardButton ret = QMessageBox::question(m_render_widget.get(), tr("Please confirm..."),
+			tr("Do you want to stop the current emulation?"),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+		if (ret == QMessageBox::No)
 		{
-			int ret = QMessageBox::question(m_render_widget.get(), tr("Please confirm..."),
-				tr("Do you want to stop the current emulation?"),
-				QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-
-			if (ret == QMessageBox::No)
-				return;
+			DoStartPause();
+			return false;
 		}
-
-		// TODO: Movie stuff
-		// TODO: Show the author/description dialog here
-
-		// TODO: Show busy cursor
-		BootManager::Stop();
-		// TODO: Hide busy cursor again
-
-		// TODO: Allow screensaver again
-		// TODO: Restore original window title
-
-		// TODO: Return from fullscreen if necessary (DoFullscreen in the wx code)
-
-		// TODO:
-		// If batch mode was specified on the command-line, exit now.
-		//if (m_bBatchMode)
-		//	Close(true);
-
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-			m_ui->centralWidget->removeWidget(m_render_widget.get());
-		else
-			m_render_widget->close();
-		m_render_widget.reset();
-
-		emit CoreStateChanged(Core::CORE_UNINITIALIZED);
 	}
+
+	m_isStopping = true;
+
+	// TODO: Movie stuff
+	// TODO: Show the author/description dialog here
+
+	BootManager::Stop();
+
+	// TODO: Allow screensaver again
+	// TODO: Restore original window title
+
+	// TODO:
+	// If batch mode was specified on the command-line, exit now.
+	//if (m_bBatchMode)
+	//	Close(true);
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen)
+		m_render_widget->close();
+	else
+		m_ui->centralWidget->removeWidget(m_render_widget.get());
+	m_render_widget.reset();
+
+	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
 	m_isStopping = false;
+	return true;
 }
 
 void DMainWindow::OnGameListStyleChanged()

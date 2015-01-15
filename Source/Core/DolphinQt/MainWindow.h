@@ -33,6 +33,10 @@ public:
 signals:
 	void CoreStateChanged(Core::EState state);
 
+public slots:
+	// Main toolbar (also used by DRenderWidget)
+	bool OnStop();
+
 private slots:
 	// Emulation
 	void StartGame(const QString filename);
@@ -41,7 +45,6 @@ private slots:
 	// Main toolbar
 	void OnOpen();
 	void OnPlay();
-	void OnStop();
 
 	// View menu
 	void OnGameListStyleChanged();

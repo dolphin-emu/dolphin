@@ -81,7 +81,8 @@ TextureCache::TCacheEntry::~TCacheEntry()
 	}
 }
 
-TextureCache::TCacheEntry::TCacheEntry()
+TextureCache::TCacheEntry::TCacheEntry(const TCacheEntryConfig& _config)
+: TCacheEntryBase(_config)
 {
 	glGenTextures(1, &texture);
 
@@ -105,7 +106,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
-	return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, virtual_width, virtual_height, level);
+	return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, config.width, config.height, level);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
@@ -164,7 +165,12 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 		}
 	}
 
-	TCacheEntry &entry = *new TCacheEntry;
+	TCacheEntryConfig config;
+	config.width = width;
+	config.height = height;
+	config.levels = tex_levels;
+
+	TCacheEntry &entry = *new TCacheEntry(config);
 	entry.gl_format = gl_format;
 	entry.gl_iformat = gl_iformat;
 	entry.gl_type = gl_type;
@@ -182,6 +188,12 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
+	if (level >= config.levels)
+		PanicAlert("Texture only has %d levels, can't update level %d", config.levels, level);
+	if (width != std::max(1u, config.width >> level) || height != std::max(1u, config.height >> level))
+		PanicAlert("size of level %d must be %dx%d, but %dx%d requested",
+		           level, std::max(1u, config.width >> level), std::max(1u, config.height >> level), width, height);
+
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
 		glActiveTexture(GL_TEXTURE0+9);
@@ -205,9 +217,15 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
-	unsigned int scaled_tex_w, unsigned int scaled_tex_h)
+	unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers)
 {
-	TCacheEntry *const entry = new TCacheEntry;
+	TCacheEntryConfig config;
+	config.width = scaled_tex_w;
+	config.height = scaled_tex_h;
+	config.layers = layers;
+	config.rendertarget = true;
+	TCacheEntry *const entry = new TCacheEntry(config);
+
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, entry->texture);
 
@@ -217,7 +235,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 		gl_type = GL_UNSIGNED_BYTE;
 
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, FramebufferManager::GetEFBLayers(), 0, gl_format, gl_type, nullptr);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, layers, 0, gl_format, gl_type, nullptr);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);
@@ -250,7 +268,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, read_texture);
 
-		glViewport(0, 0, virtual_width, virtual_height);
+		glViewport(0, 0, config.width, config.height);
 
 		GLuint uniform_location;
 		if (srcFormat == PEControl::Z24)
@@ -308,7 +326,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	{
 		static int count = 0;
 		SaveTexture(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-			count++), GL_TEXTURE_2D_ARRAY, texture, virtual_width, virtual_height, 0);
+			count++), GL_TEXTURE_2D_ARRAY, texture, config.width, config.height, 0);
 	}
 
 	g_renderer->RestoreAPIState();

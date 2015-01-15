@@ -41,13 +41,12 @@ VideoConfig::VideoConfig()
 
 	// disable all features by default
 	backend_info.APIType = API_NONE;
-	backend_info.bUseMinimalMipCount = false;
 	backend_info.bSupportsExclusiveFullscreen = false;
 
 	// Game-specific stereoscopy settings
 	bStereoEFBMonoDepth = false;
 	iStereoDepthPercentage = 100;
-	iStereoConvergencePercentage = 100;
+	iStereoConvergenceMinimum = 0;
 
 	// VR
 	fScale = 1.0f;
@@ -345,7 +344,7 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
 	CHECK_SETTING("Video_Stereoscopy", "StereoDepthPercentage", iStereoDepthPercentage);
-	CHECK_SETTING("Video_Stereoscopy", "StereoConvergencePercentage", iStereoConvergencePercentage);
+	CHECK_SETTING("Video_Stereoscopy", "StereoConvergenceMinimum", iStereoConvergenceMinimum);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);

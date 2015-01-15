@@ -136,7 +136,7 @@ struct VideoConfig final
 	// Stereoscopy
 	bool bStereoEFBMonoDepth;
 	int iStereoDepthPercentage;
-	int iStereoConvergencePercentage;
+	int iStereoConvergenceMinimum;
 
 	// VR global
 	float fScale;
@@ -220,7 +220,6 @@ struct VideoConfig final
 		std::vector<std::string> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 
-		bool bUseMinimalMipCount;
 		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
 		bool bSupportsPrimitiveRestart;

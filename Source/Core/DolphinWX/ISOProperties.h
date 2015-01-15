@@ -26,6 +26,8 @@ class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
 class wxChoice;
+class wxSlider;
+class wxSpinCtrl;
 class wxSpinCtrlDouble;
 class wxStaticBitmap;
 class wxTextCtrl;
@@ -75,6 +77,11 @@ private:
 	wxChoice* GPUDeterminism;
 	// Wii
 	wxCheckBox* EnableWideScreen;
+
+	// Stereoscopy
+	wxSlider* DepthPercentage;
+	wxSpinCtrl* ConvergenceMinimum;
+	wxCheckBox* MonoDepth;
 
 	wxArrayString arrayStringFor_EmuState;
 	wxChoice* EmuState;
@@ -200,6 +207,9 @@ private:
 		ID_ADDCHEAT,
 		ID_REMOVECHEAT,
 		ID_GPUDETERMINISM,
+		ID_DEPTHPERCENTAGE,
+		ID_CONVERGENCEMINIMUM,
+		ID_MONODEPTH,
 
 		ID_NAME,
 		ID_GAMEID,
