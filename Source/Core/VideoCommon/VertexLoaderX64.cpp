@@ -12,11 +12,11 @@ using namespace Gen;
 
 static const X64Reg src_reg = ABI_PARAM1;
 static const X64Reg dst_reg = ABI_PARAM2;
-static const X64Reg count_reg = ABI_PARAM3;
 static const X64Reg scratch1 = RAX;
-static const X64Reg scratch2 = R8;
-static const X64Reg scratch3 = R9;
-static const X64Reg skipped_reg = R10;
+static const X64Reg scratch2 = ABI_PARAM3;
+static const X64Reg scratch3 = ABI_PARAM4;
+static const X64Reg count_reg = R10;
+static const X64Reg skipped_reg = R11;
 
 VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att): VertexLoaderBase(vtx_desc, vtx_att)
 {
@@ -284,7 +284,10 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 void VertexLoaderX64::GenerateVertexLoader()
 {
 	// Backup count since we're going to count it down.
-	PUSH(32, R(count_reg));
+	PUSH(32, R(ABI_PARAM3));
+
+	// We use ABI_PARAM3 for scratch2.
+	MOV(32, R(count_reg), R(ABI_PARAM3));
 
 	if (m_VtxDesc.Position & MASK_INDEXED)
 		XOR(32, R(skipped_reg), R(skipped_reg));
