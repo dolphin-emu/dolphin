@@ -10,11 +10,17 @@
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderBase.h"
 
+#ifdef _M_X86_64
+#include "VideoCommon/VertexLoaderX64.h"
+#endif
+
 VertexLoaderBase::VertexLoaderBase(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 {
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
 	m_native_vertex_format = nullptr;
+	m_native_components = 0;
+	memset(&m_native_vtx_decl, 0, sizeof(m_native_vtx_decl));
 
 	SetVAT(vtx_attr);
 	m_VtxDesc = vtx_desc;
@@ -198,12 +204,19 @@ VertexLoaderBase* VertexLoaderBase::CreateVertexLoader(const TVtxDesc& vtx_desc,
 {
 	VertexLoaderBase* loader;
 
-#if 0
+//#define COMPARE_VERTEXLOADERS
+
+#if defined(COMPARE_VERTEXLOADERS) && defined(_M_X86_64)
 	// first try: Any new VertexLoader vs the old one
 	loader = new VertexLoaderTester(
 			new VertexLoader(vtx_desc, vtx_attr), // the software one
-			new VertexLoader(vtx_desc, vtx_attr), // the new one to compare
+			new VertexLoaderX64(vtx_desc, vtx_attr), // the new one to compare
 			vtx_desc, vtx_attr);
+	if (loader->IsInitialized())
+		return loader;
+	delete loader;
+#elif defined(_M_X86_64)
+	loader = new VertexLoaderX64(vtx_desc, vtx_attr);
 	if (loader->IsInitialized())
 		return loader;
 	delete loader;

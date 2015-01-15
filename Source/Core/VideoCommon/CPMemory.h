@@ -20,10 +20,13 @@ enum
 // Vertex components
 enum
 {
-	NOT_PRESENT = 0,
-	DIRECT      = 1,
-	INDEX8      = 2,
-	INDEX16     = 3,
+	NOT_PRESENT  = 0,
+	DIRECT       = 1,
+	INDEX8       = 2,
+	INDEX16      = 3,
+
+	MASK_INDEXED = 2,
+	MASK_ALL     = 3,
 };
 
 enum

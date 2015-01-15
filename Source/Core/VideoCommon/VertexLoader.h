@@ -58,7 +58,6 @@ public:
 
 	// Matrix components are first in GC format but later in PC format - we need to store it temporarily
 	// when decoding each vertex.
-	u8 m_curposmtx;
 	u8 m_curtexmtx[8];
 	int m_texmtxwrite;
 	int m_texmtxread;

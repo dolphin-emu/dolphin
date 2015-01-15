@@ -40,14 +40,9 @@ void VertexLoader::operator delete (void *p)
 
 static void LOADERDECL PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
-	BoundingBox::posMtxIdx = loader->m_curposmtx = DataReadU8() & 0x3f;
-	PRIM_LOG("posmtx: %d, ", loader->m_curposmtx);
-}
-
-static void LOADERDECL PosMtx_Write(VertexLoader* loader)
-{
-	// u8, 0, 0, 0
-	DataWrite<u32>(loader->m_curposmtx);
+	u8 posmtx = BoundingBox::posMtxIdx = DataReadU8() & 0x3f;
+	DataWrite<u32>(posmtx);
+	PRIM_LOG("posmtx: %d, ", posmtx);
 }
 
 static void LOADERDECL TexMtx_ReadDirect_UByte(VertexLoader* loader)
@@ -69,18 +64,16 @@ static void LOADERDECL TexMtx_Write_Float2(VertexLoader* loader)
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
-static void LOADERDECL TexMtx_Write_Float4(VertexLoader* loader)
+static void LOADERDECL TexMtx_Write_Float3(VertexLoader* loader)
 {
 #if _M_SSE >= 0x200
 	__m128 output = _mm_cvtsi32_ss(_mm_castsi128_ps(_mm_setzero_si128()), loader->m_curtexmtx[loader->m_texmtxwrite++]);
 	_mm_storeu_ps((float*)g_vertex_manager_write_ptr, _mm_shuffle_ps(output, output, 0x45 /* 1, 1, 0, 1 */));
-	g_vertex_manager_write_ptr += sizeof(float) * 4;
+	g_vertex_manager_write_ptr += sizeof(float) * 3;
 #else
 	DataWrite(0.f);
 	DataWrite(0.f);
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
-	// Just to fill out with 0.
-	DataWrite(0.f);
 #endif
 }
 
@@ -137,15 +130,21 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Position in pc vertex format.
 	int nat_offset = 0;
-	memset(&m_native_vtx_decl, 0, sizeof(m_native_vtx_decl));
 
 	// Position Matrix Index
 	if (m_VtxDesc.PosMatIdx)
 	{
 		WriteCall(PosMtx_ReadDirect_UByte);
 		components |= VB_HAS_POSMTXIDX;
+		m_native_vtx_decl.posmtx.components = 4;
+		m_native_vtx_decl.posmtx.enable = true;
+		m_native_vtx_decl.posmtx.offset = nat_offset;
+		m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+		m_native_vtx_decl.posmtx.integer = true;
+		nat_offset += 4;
 		m_VertexSize += 1;
 	}
+
 
 	if (m_VtxDesc.Tex0MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte); }
 	if (m_VtxDesc.Tex1MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte); }
@@ -267,11 +266,7 @@ void VertexLoader::CompileVertexTranslator()
 		const int format = m_VtxAttr.texCoord[i].Format;
 		const int elements = m_VtxAttr.texCoord[i].Elements;
 
-		if (tc[i] == NOT_PRESENT)
-		{
-			components &= ~(VB_HAS_UV0 << i);
-		}
-		else
+		if (tc[i] != NOT_PRESENT)
 		{
 			_assert_msg_(VIDEO, DIRECT <= tc[i] && tc[i] <= INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", (u32)tc[i]);
 			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
@@ -295,9 +290,9 @@ void VertexLoader::CompileVertexTranslator()
 			else
 			{
 				components |= VB_HAS_UV0 << i; // have to include since using now
-				m_native_vtx_decl.texcoords[i].components = 4;
-				nat_offset += 16; // still include the texture coordinate, but this time as 6 + 2 bytes
-				WriteCall(TexMtx_Write_Float4);
+				m_native_vtx_decl.texcoords[i].components = 3;
+				nat_offset += 12;
+				WriteCall(TexMtx_Write_Float3);
 			}
 		}
 		else
@@ -334,17 +329,6 @@ void VertexLoader::CompileVertexTranslator()
 	// Update the bounding box
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
 		WriteCall(BoundingBox::Update);
-
-	if (m_VtxDesc.PosMatIdx)
-	{
-		WriteCall(PosMtx_Write);
-		m_native_vtx_decl.posmtx.components = 4;
-		m_native_vtx_decl.posmtx.enable = true;
-		m_native_vtx_decl.posmtx.offset = nat_offset;
-		m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
-		m_native_vtx_decl.posmtx.integer = true;
-		nat_offset += 4;
-	}
 
 	// indexed position formats may skip a the vertex
 	if (m_VtxDesc.Position & 2)

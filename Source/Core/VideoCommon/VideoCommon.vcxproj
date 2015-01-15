@@ -66,6 +66,7 @@
     <ClCompile Include="TextureConversionShader.cpp" />
     <ClCompile Include="VertexLoader.cpp" />
     <ClCompile Include="VertexLoaderBase.cpp" />
+    <ClCompile Include="VertexLoaderX64.cpp" />
     <ClCompile Include="VertexLoaderManager.cpp" />
     <ClCompile Include="VertexLoader_Color.cpp" />
     <ClCompile Include="VertexLoader_Normal.cpp" />
