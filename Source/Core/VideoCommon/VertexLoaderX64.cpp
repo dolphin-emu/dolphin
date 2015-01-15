@@ -41,10 +41,10 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 		}
 		else
 		{
-			MOVZX(64, 16, scratch1, data);
+			MOV(16, R(scratch1), data);
 			m_src_ofs += 2;
-			// Convert to little-endian.
-			ROR(16, R(scratch1), Imm8(8));
+			BSWAP(16, scratch1);
+			MOVZX(64, 16, scratch1, R(scratch1));
 		}
 		if (array == ARRAY_POSITION)
 		{
@@ -173,17 +173,16 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 				MOV(32, R(scratch3), R(scratch1));
 				SHL(32, R(scratch1), Imm8(16));
 				AND(32, R(scratch1), Imm32(0xF8000000));
-				MOV(32, R(scratch2), R(scratch1));
 
-				MOV(32, R(scratch1), R(scratch3));
-				SHL(32, R(scratch1), Imm8(13));
-				AND(32, R(scratch1), Imm32(0x00FC0000));
-				OR(32, R(scratch2), R(scratch1));
+				MOV(32, R(scratch2), R(scratch3));
+				SHL(32, R(scratch2), Imm8(13));
+				AND(32, R(scratch2), Imm32(0x00FC0000));
+				OR(32, R(scratch1), R(scratch2));
 
 				SHL(32, R(scratch3), Imm8(11));
 				AND(32, R(scratch3), Imm32(0x0000F800));
-				OR(32, R(scratch2), R(scratch3));
-				MOV(32, R(scratch1), R(scratch2));
+				OR(32, R(scratch1), R(scratch3));
+				MOV(32, R(scratch2), R(scratch1));
 			}
 
 			SHR(32, R(scratch1), Imm8(5));
