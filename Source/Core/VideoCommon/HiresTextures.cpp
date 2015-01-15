@@ -80,7 +80,7 @@ void HiresTexture::Init(const std::string& gameCode)
 	}
 }
 
-std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format, bool dump)
+std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format, bool has_mipmaps, bool dump)
 {
 	// checking for min/max on paletted textures
 	u32 min = 0xffff;
@@ -121,7 +121,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 	u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size);
 	u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size) : 0;
 
-	std::string basename = StringFromFormat("tex1_%dx%d_%016lx", width, height, tex_hash);
+	std::string basename = StringFromFormat("tex1%s_%dx%d_%016lx", has_mipmaps ? "_m" : "", width, height, tex_hash);
 	std::string tlutname = tlut_size ? StringFromFormat("_%016lx", tlut_hash) : "";
 	std::string formatname = StringFromFormat("_%d", format);
 
@@ -131,9 +131,9 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 	return basename + tlutname + formatname;
 }
 
-HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format)
+HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format, bool has_mipmaps)
 {
-	std::string base_filename = GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format);
+	std::string base_filename = GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);
 
 	HiresTexture* ret = nullptr;
 	for (int level = 0;; level++)

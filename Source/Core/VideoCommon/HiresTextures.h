@@ -18,14 +18,15 @@ public:
 		const u8* texture, size_t texture_size,
 		const u8* tlut, size_t tlut_size,
 		u32 width, u32 height,
-		int format
+		int format, bool has_mipmaps
 	);
 
 	static std::string GenBaseName(
 		const u8* texture, size_t texture_size,
 		const u8* tlut, size_t tlut_size,
 		u32 width, u32 height,
-		int format, bool dump = false
+		int format, bool has_mipmaps,
+		bool dump = false
 	);
 
 	~HiresTexture();
