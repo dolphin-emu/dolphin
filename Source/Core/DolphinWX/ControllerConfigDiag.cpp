@@ -77,7 +77,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 
 	wxStaticText* pad_labels[4];
 	wxChoice* pad_type_choices[4];
-	wxButton* config_buttons[4];
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -86,8 +85,8 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 		// Create an ID for the config button.
 		const wxWindowID button_id = wxWindow::NewControlId();
 		m_gc_port_config_ids.insert(std::make_pair(button_id, i));
-		config_buttons[i] = new wxButton(this, button_id, _("Configure"), wxDefaultPosition, wxSize(100, 25));
-		config_buttons[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnGameCubeConfigButton, this);
+		gamecube_configure_bt[i] = new wxButton(this, button_id, _("Configure"), wxDefaultPosition, wxSize(100, 25));
+		gamecube_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnGameCubeConfigButton, this);
 
 		// Create a control ID for the choice boxes on the fly.
 		const wxWindowID choice_id = wxWindow::NewControlId();
@@ -122,19 +121,21 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 			break;
 		case SIDEVICE_GC_GBA:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[5]);
+			gamecube_configure_bt[i]->Disable();
 			break;
 		case SIDEVICE_AM_BASEBOARD:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[6]);
 			break;
 		default:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[0]);
+			gamecube_configure_bt[i]->Disable();
 			break;
 		}
 
 		// Add to the sizer
 		gamecube_flex_sizer->Add(pad_labels[i], 0, wxALIGN_CENTER_VERTICAL);
 		gamecube_flex_sizer->Add(pad_type_choices[i], 0, wxALIGN_CENTER_VERTICAL);
-		gamecube_flex_sizer->Add(config_buttons[i], 1, wxEXPAND);
+		gamecube_flex_sizer->Add(gamecube_configure_bt[i], 1, wxEXPAND);
 	}
 
 	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5);
@@ -488,19 +489,40 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 
 	SIDevices tempType;
 	if (device_name == m_gc_pad_type_strs[1])
+	{
 		tempType = SIDEVICE_GC_CONTROLLER;
+		gamecube_configure_bt[device_num]->Enable();
+	}
 	else if (device_name == m_gc_pad_type_strs[2])
+	{
 		tempType = SIDEVICE_GC_STEERING;
+		gamecube_configure_bt[device_num]->Enable();
+	}
 	else if (device_name == m_gc_pad_type_strs[3])
+	{
 		tempType = SIDEVICE_DANCEMAT;
+		gamecube_configure_bt[device_num]->Enable();
+	}
 	else if (device_name == m_gc_pad_type_strs[4])
+	{
 		tempType = SIDEVICE_GC_TARUKONGA;
+		gamecube_configure_bt[device_num]->Enable();
+	}
 	else if (device_name == m_gc_pad_type_strs[5])
+	{
 		tempType = SIDEVICE_GC_GBA;
+		gamecube_configure_bt[device_num]->Disable();
+	}
 	else if (device_name == m_gc_pad_type_strs[6])
+	{
 		tempType = SIDEVICE_AM_BASEBOARD;
+		gamecube_configure_bt[device_num]->Enable();
+	}
 	else
+	{
 		tempType = SIDEVICE_NONE;
+		gamecube_configure_bt[device_num]->Disable();
+	}
 
 	SConfig::GetInstance().m_SIDevice[device_num] = tempType;
 

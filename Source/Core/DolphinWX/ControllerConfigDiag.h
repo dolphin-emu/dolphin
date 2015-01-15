@@ -89,5 +89,6 @@ private:
 	unsigned int m_orig_wiimote_sources[MAX_BBMOTES];
 
 	wxButton* wiimote_configure_bt[MAX_WIIMOTES];
+	wxButton* gamecube_configure_bt[4];
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
 };
