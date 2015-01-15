@@ -167,7 +167,21 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 
 void VertexShaderManager::Init()
 {
-	Dirty();
+	// Initialize state tracking variables
+	nTransformMatricesChanged[0] = -1;
+	nTransformMatricesChanged[1] = -1;
+	nNormalMatricesChanged[0] = -1;
+	nNormalMatricesChanged[1] = -1;
+	nPostTransformMatricesChanged[0] = -1;
+	nPostTransformMatricesChanged[1] = -1;
+	nLightsChanged[0] = -1;
+	nLightsChanged[1] = -1;
+	nMaterialsChanged = BitSet32(0);
+	bTexMatricesChanged[0] = false;
+	bTexMatricesChanged[1] = false;
+	bPosNormalMatrixChanged = false;
+	bProjectionChanged = true;
+	bViewportChanged = false;
 
 	memset(&xfmem, 0, sizeof(xfmem));
 	memset(&constants, 0 , sizeof(constants));
@@ -178,6 +192,8 @@ void VertexShaderManager::Init()
 	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
 	for (int i = 0; i < 4; ++i)
 		g_fProjectionMatrix[i*5] = 1.0f;
+
+	dirty = true;
 }
 
 void VertexShaderManager::Shutdown()
@@ -186,25 +202,9 @@ void VertexShaderManager::Shutdown()
 
 void VertexShaderManager::Dirty()
 {
-	nTransformMatricesChanged[0] = 0;
-	nTransformMatricesChanged[1] = 256;
-
-	nNormalMatricesChanged[0] = 0;
-	nNormalMatricesChanged[1] = 96;
-
-	nPostTransformMatricesChanged[0] = 0;
-	nPostTransformMatricesChanged[1] = 256;
-
-	nLightsChanged[0] = 0;
-	nLightsChanged[1] = 0x80;
-
-	bPosNormalMatrixChanged = true;
-	bTexMatricesChanged[0] = true;
-	bTexMatricesChanged[1] = true;
-
+	// This function is called after a savestate is loaded.
+	// Any constants that can changed based on settings should be re-calculated
 	bProjectionChanged = true;
-
-	nMaterialsChanged = BitSet32::AllTrue(4);
 
 	dirty = true;
 }
@@ -715,8 +715,19 @@ void VertexShaderManager::DoState(PointerWrap &p)
 	p.Do(s_viewInvRotationMatrix);
 	p.Do(s_fViewTranslationVector);
 	p.Do(s_fViewRotation);
+
+	p.Do(nTransformMatricesChanged);
+	p.Do(nNormalMatricesChanged);
+	p.Do(nPostTransformMatricesChanged);
+	p.Do(nLightsChanged);
+
+	p.Do(nMaterialsChanged);
+	p.Do(bTexMatricesChanged);
+	p.Do(bPosNormalMatrixChanged);
+	p.Do(bProjectionChanged);
+	p.Do(bViewportChanged);
+
 	p.Do(constants);
-	p.Do(dirty);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{

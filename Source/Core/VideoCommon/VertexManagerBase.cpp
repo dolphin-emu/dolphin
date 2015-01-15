@@ -241,6 +241,7 @@ void VertexManager::Flush()
 
 void VertexManager::DoState(PointerWrap& p)
 {
+	p.Do(ZSlope);
 	g_vertex_manager->vDoState(p);
 }
 
