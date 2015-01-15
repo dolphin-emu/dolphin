@@ -200,34 +200,34 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	switch (OpenISO->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_AUSTRALIA:
-		m_Country->SetValue(_("AUSTRALIA"));
+		m_Country->SetValue(_("Australia"));
 		break;
 	case DiscIO::IVolume::COUNTRY_EUROPE:
-		m_Country->SetValue(_("EUROPE"));
+		m_Country->SetValue(_("Europe"));
 		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
-		m_Country->SetValue(_("FRANCE"));
+		m_Country->SetValue(_("France"));
 		break;
 	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
-		m_Country->SetValue(_("INTERNATIONAL"));
+		m_Country->SetValue(_("International"));
 		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
-		m_Country->SetValue(_("ITALY"));
+		m_Country->SetValue(_("Italy"));
 		break;
 	case DiscIO::IVolume::COUNTRY_GERMANY:
-		m_Country->SetValue(_("GERMANY"));
+		m_Country->SetValue(_("Germany"));
 		break;
 	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
-		m_Country->SetValue(_("NETHERLANDS"));
+		m_Country->SetValue(_("Netherlands"));
 		break;
 	case DiscIO::IVolume::COUNTRY_RUSSIA:
-		m_Country->SetValue(_("RUSSIA"));
+		m_Country->SetValue(_("Russia"));
 		break;
 	case DiscIO::IVolume::COUNTRY_SPAIN:
-		m_Country->SetValue(_("SPAIN"));
+		m_Country->SetValue(_("Spain"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		m_Country->SetValue(_("USA"));
+		m_Country->SetValue(_("United States"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
 			m_Lang->SetSelection(0);
@@ -236,7 +236,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 		break;
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		m_Country->SetValue(_("JAPAN"));
+		m_Country->SetValue(_("Japan"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
 			m_Lang->Insert(_("Japanese"), 0);
@@ -245,20 +245,20 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_KOREA:
-		m_Country->SetValue(_("KOREA"));
+		m_Country->SetValue(_("Korea"));
 		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
-		m_Country->SetValue(_("TAIWAN"));
+		m_Country->SetValue(_("Taiwan"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
-			m_Lang->Insert(_("TAIWAN"), 0);
+			m_Lang->Insert(_("Taiwan"), 0);
 			m_Lang->SetSelection(0);
 			m_Lang->Disable();
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:
-		m_Country->SetValue(_("UNKNOWN"));
+		m_Country->SetValue(_("Unknown"));
 		break;
 	}
 
