@@ -1123,9 +1123,6 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 template<class T>
 static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType)
 {
-	//16-bit or 24-bit
-	int depthSize = (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16) ? depthSize = 0xFFFF : 0xFFFFFF;
-
 	if (bpmem.genMode.zfreeze)
 	{
 		out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
@@ -1137,7 +1134,7 @@ static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, A
 		if (ApiType == API_OPENGL)
 			out.Write("\tscreenpos.y = %i - screenpos.y - 1;\n", EFB_HEIGHT);
 
-		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(%i);\n", depthSize);
+		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xFFFFFF);\n");
 	}
 	else
 	{

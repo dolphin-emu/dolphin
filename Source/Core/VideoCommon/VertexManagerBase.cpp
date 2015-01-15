@@ -291,7 +291,7 @@ void VertexManager::CalculateZSlope(u32 stride)
 	float c = -dx12 * dy31 - dx31 * -dy12;
 
 	// Stop divide by zero
-	if (abs(c) < FLT_EPSILON)
+	if (c == 0)
 		return;
 
 	ZSlope.dfdx = -a / c;
