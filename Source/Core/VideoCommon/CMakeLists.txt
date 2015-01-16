@@ -45,7 +45,7 @@ set(SRCS	BoundingBox.cpp
 			VR.cpp
 			MetroidVR.cpp)
 
-set(LIBS core png ovr.a)
+set(LIBS core png ovr)
 
 if(_M_X86)
 	set(SRCS ${SRCS}	TextureDecoder_x64.cpp)
