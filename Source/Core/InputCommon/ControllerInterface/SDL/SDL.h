@@ -77,10 +77,13 @@ private:
 
 	protected:
 		void Update();
+		virtual void SetSDLHapticEffect(ControlState state) = 0;
 
 		SDL_HapticEffect m_effect;
 		SDL_Haptic* m_haptic;
 		int m_id;
+	private:
+		virtual void SetState(ControlState state) override final;
 	};
 
 	class ConstantEffect : public HapticEffect
@@ -88,7 +91,8 @@ private:
 	public:
 		ConstantEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
 		std::string GetName() const override;
-		void SetState(ControlState state) override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
 	};
 
 	class RampEffect : public HapticEffect
@@ -96,7 +100,35 @@ private:
 	public:
 		RampEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
 		std::string GetName() const override;
-		void SetState(ControlState state) override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
+	};
+
+	class SineEffect : public HapticEffect
+	{
+	public:
+		SineEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
+	};
+
+	class TriangleEffect : public HapticEffect
+	{
+	public:
+		TriangleEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
+	};
+
+	class LeftRightEffect : public HapticEffect
+	{
+	public:
+		LeftRightEffect(SDL_Haptic* haptic) : HapticEffect(haptic) {}
+		std::string GetName() const override;
+	private:
+		void SetSDLHapticEffect(ControlState state) override;
 	};
 #endif
 
