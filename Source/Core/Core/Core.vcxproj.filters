@@ -82,6 +82,9 @@
     <Filter Include="HW %28Flipper/Hollywood%29\EXI - Expansion Interface">
       <UniqueIdentifier>{d19f1218-0e28-4f24-a4b3-33fac750a899}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\GCKeyboard">
+      <UniqueIdentifier>{15452851-6ca5-4520-bbf1-d4b810317be3}</UniqueIdentifier>
+    </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\GCMemcard">
       <UniqueIdentifier>{d7b3050d-3dd9-4284-969c-c5ad3b3662d9}</UniqueIdentifier>
     </Filter>
@@ -406,6 +409,12 @@
     <ClCompile Include="HW\Sram.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
+    <ClCompile Include="HW\GCKeyboard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCKeyboardEmu.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClCompile>
     <ClCompile Include="HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
@@ -449,6 +458,9 @@
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceKeyboard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\VideoInterface.cpp">
@@ -925,6 +937,12 @@
     <ClInclude Include="HW\Sram.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
+    <ClInclude Include="HW\GCKeyboard.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCKeyboardEmu.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
+    </ClInclude>
     <ClInclude Include="HW\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
@@ -968,6 +986,9 @@
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceKeyboard.h">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\VideoInterface.h">

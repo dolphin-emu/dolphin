@@ -97,6 +97,8 @@ set(SRCS	ActionReplay.cpp
 			HW/EXI_DeviceIPL.cpp
 			HW/EXI_DeviceMemoryCard.cpp
 			HW/EXI_DeviceMic.cpp
+			HW/GCKeyboard.cpp
+			HW/GCKeyboardEmu.cpp
 			HW/GCMemcard.cpp
 			HW/GCMemcardDirectory.cpp
 			HW/GCMemcardRaw.cpp
@@ -116,6 +118,7 @@ set(SRCS	ActionReplay.cpp
 			HW/SI_DeviceGBA.cpp
 			HW/SI_DeviceGCController.cpp
 			HW/SI_DeviceGCSteeringWheel.cpp
+			HW/SI_DeviceKeyboard.cpp
 			HW/Sram.cpp
 			HW/StreamADPCM.cpp
 			HW/SystemTimers.cpp
