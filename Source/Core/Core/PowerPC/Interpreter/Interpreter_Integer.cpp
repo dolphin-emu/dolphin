@@ -126,21 +126,9 @@ void Interpreter::oris(UGeckoInstruction _inst)
 
 void Interpreter::subfic(UGeckoInstruction _inst)
 {
-/*	u32 rra = ~rGPR[_inst.RA];
-	s32 immediate = (s16)_inst.SIMM_16 + 1;
-
-//	#define CALC_XER_CA(X,Y) (((X) + (Y) < X) ? SET_XER_CA : CLEAR_XER_CA)
-	if ((rra + immediate) < rra)
-		SetCarry(1);
-	else
-		SetCarry(0);
-
-	rGPR[_inst.RD] = rra - immediate;
-*/
-
-	s32 immediate = _inst.SIMM_16;
-	rGPR[_inst.RD] = immediate - (int)rGPR[_inst.RA];
-	SetCarry((rGPR[_inst.RA] == 0) || (Helper_Carry(0 - rGPR[_inst.RA], immediate)));
+	u32 immediate = (s32)_inst.SIMM_16;
+	SetCarry(immediate >= rGPR[_inst.RA]);
+	rGPR[_inst.RD] = immediate - rGPR[_inst.RA];
 }
 
 void Interpreter::twi(UGeckoInstruction _inst)
