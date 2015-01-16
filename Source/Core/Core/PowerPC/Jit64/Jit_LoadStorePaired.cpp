@@ -89,11 +89,11 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 		}
 
 		BitSet32 registersInUse = CallerSavedRegistersInUse();
-		if (update && storeAddress)
+		if (storeAddress)
 			registersInUse[addr] = true;
 		SafeWriteRegToReg(RSCRATCH, addr, w ? 32 : 64, storeOffset, registersInUse);
 		MemoryExceptionCheck();
-		if (update && storeAddress)
+		if (storeAddress)
 			MOV(32, gpr.R(a), R(addr));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
