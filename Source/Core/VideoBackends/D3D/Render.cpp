@@ -891,20 +891,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// we can apply exclusive mode.
 			fullscreen_changed = Host_RendererHasFocus();
 		}
-		else if (!fullscreen)
+		else if (!fullscreen && exclusive_mode)
 		{
-			if (exclusive_mode)
-			{
-				// Exclusive fullscreen is disabled, but we're still in exclusive mode.
-				fullscreen_changed = true;
-			}
-			else if (!g_ActiveConfig.bBorderlessFullscreen && Host_RendererIsFullscreen())
-			{
-				// Exclusive fullscreen is disabled and we are no longer in exclusive
-				// mode. Thus we can now safely notify the UI to exit fullscreen. But
-				// we should only do so if borderless fullscreen mode is disabled.
-				Host_RequestFullscreen(false);
-			}
+			// Exclusive fullscreen is disabled, but we're still in exclusive mode.
+			fullscreen_changed = true;
 		}
 	}
 
@@ -924,7 +914,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			// Apply fullscreen state
 			if (fullscreen_changed)
+			{
 				D3D::SetFullscreenState(fullscreen);
+
+				// If exclusive fullscreen is disabled we can safely notify the UI to exit fullscreen.
+				if (!fullscreen)
+					Host_RequestFullscreen(false);
+			}
 
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
