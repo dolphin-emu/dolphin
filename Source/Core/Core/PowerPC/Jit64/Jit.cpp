@@ -180,6 +180,7 @@ void Jit64::Init()
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 	js.fastmemLoadStore = NULL;
+	js.compilerPC = 0;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
@@ -539,6 +540,7 @@ void Jit64::Jit(u32 em_address)
 		NPC = nextPC;
 		PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
 		PowerPC::CheckExceptions();
+		WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
 		return;
 	}
 

@@ -147,7 +147,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 	if (update)
 		MOV(gpr.R(addr), addr_reg);
 
-	if (is_immediate && Memory::IsRAMAddress(imm_addr))
+	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		EmitBackpatchRoutine(this, flags, true, false, dest_reg, XA);
 	}
@@ -288,7 +288,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
 	ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-	if (is_immediate && Memory::IsRAMAddress(imm_addr))
+	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		MOVI2R(XA, imm_addr);
 
@@ -401,9 +401,9 @@ void JitArm64::lXX(UGeckoInstruction inst)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
 	    inst.OPCD == 32 &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
-	    (Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
-	    Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+		(PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		// if it's still 0, we can wait until the next event
 		FixupBranch noIdle = CBNZ(gpr.R(d));

@@ -107,7 +107,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 		pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 	}
 	pDolLoader->Load();
-	PC = pDolLoader->GetEntryPoint() | 0x80000000;
+	PC = pDolLoader->GetEntryPoint();
 
 	// Pass the "#002 check"
 	// Apploader should write the IOS version and revision to 0x3140, and compare it

@@ -96,7 +96,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 		if (func.size >= CODEBUFFER_SIZE * 4) //weird
 			return false;
 
-		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
+		UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
 		if (max_size && func.size > max_size)
 		{
 			func.address = startAddr;
@@ -275,7 +275,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func
 {
 	for (u32 addr = startAddr; addr < endAddr; addr+=4)
 	{
-		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
+		UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
 
 		if (PPCTables::IsValidInstruction(instr))
 		{
@@ -288,7 +288,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func
 						u32 target = SignExt26(instr.LI << 2);
 						if (!instr.AA)
 							target += addr;
-						if (Memory::IsRAMAddress(target))
+						if (PowerPC::HostIsRAMAddress(target))
 						{
 							func_db->AddFunction(target);
 						}
@@ -314,9 +314,9 @@ static void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 		while (true)
 		{
 			// skip zeroes that sometimes pad function to 16 byte boundary (e.g. Donkey Kong Country Returns)
-			while (Memory::Read_Instruction(location) == 0 && ((location & 0xf) != 0))
+			while (PowerPC::HostRead_Instruction(location) == 0 && ((location & 0xf) != 0))
 				location += 4;
-			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))
+			if (PPCTables::IsValidInstruction(PowerPC::HostRead_Instruction(location)))
 			{
 				//check if this function is already mapped
 				Symbol *f = func_db->AddFunction(location);
@@ -649,34 +649,24 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	block->m_num_instructions = 0;
 	block->m_gqr_used = BitSet8(0);
 
-	if (address == 0)
-	{
-		// Memory exception occurred during instruction fetch
-		block->m_memory_exception = true;
-		return address;
-	}
-
-	bool virtualAddr = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT);
-	if (virtualAddr)
-	{
-		if (!Memory::TranslateAddress<Memory::FLAG_NO_EXCEPTION>(address))
-		{
-			// Memory exception occurred during instruction fetch
-			block->m_memory_exception = true;
-			return address;
-		}
-	}
-
 	CodeOp *code = buffer->codebuffer;
 
 	bool found_exit = false;
 	u32 return_address = 0;
 	u32 numFollows = 0;
 	u32 num_inst = 0;
+	bool prev_inst_from_bat = true;
 
 	for (u32 i = 0; i < blockSize; ++i)
 	{
-		UGeckoInstruction inst = JitInterface::ReadOpcodeJIT(address);
+		auto result = PowerPC::TryReadInstruction(address);
+		if (!result.valid)
+		{
+			if (i == 0)
+				block->m_memory_exception = true;
+			break;
+		}
+		UGeckoInstruction inst = result.hex;
 
 		if (inst.hex != 0)
 		{
@@ -684,10 +674,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			// but broken blocks due to page faults break this assumption. Avoid this by just ending
 			// all virtual memory instruction blocks at page boundaries.
 			// FIXME: improve the JIT block cache so we don't need to do this.
-			if (virtualAddr && i > 0 && (address & 0xfff) == 0)
+			if ((!result.from_bat || !prev_inst_from_bat) && i > 0 && (address & 0xfff) == 0)
 			{
 				break;
 			}
+			prev_inst_from_bat = result.from_bat;
 
 			num_inst++;
 			memset(&code[i], 0, sizeof(CodeOp));
@@ -813,10 +804,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		}
 		else
 		{
-			// ISI exception or other critical memory exception occured (game over)
-			// We can continue on in MMU mode though, so don't spam this error in that case.
-			if (!virtualAddr)
-				ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
+			ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
 			break;
 		}
 	}

@@ -53,7 +53,8 @@ static bool bMMU = false;
 // Init() declarations
 // ----------------
 // Store the MemArena here
-u8* base = nullptr;
+u8* physical_base = nullptr;
+u8* logical_base = nullptr;
 
 // The MemArena class
 static MemArena g_arena;
@@ -106,13 +107,14 @@ bool IsInitialized()
 static MemoryView views[] =
 {
 	{&m_pRAM,      0x00000000, RAM_SIZE,      0},
-	{nullptr,      0x80000000, RAM_SIZE,      MV_MIRROR_PREVIOUS},
-	{nullptr,      0xC0000000, RAM_SIZE,      MV_MIRROR_PREVIOUS},
-	{&m_pL1Cache,  0xE0000000, L1_CACHE_SIZE, 0},
-	{&m_pFakeVMEM, 0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
+	{nullptr,      0x200000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
+	{nullptr,      0x280000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
+	{nullptr,      0x2C0000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
+	{&m_pL1Cache,  0x2E0000000, L1_CACHE_SIZE, 0},
+	{&m_pFakeVMEM, 0x27E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
 	{&m_pEXRAM,    0x10000000, EXRAM_SIZE,    MV_WII_ONLY},
-	{nullptr,      0x90000000, EXRAM_SIZE,    MV_WII_ONLY | MV_MIRROR_PREVIOUS},
-	{nullptr,      0xD0000000, EXRAM_SIZE,    MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{nullptr,      0x290000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{nullptr,      0x2D0000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
 };
 static const int num_views = sizeof(views) / sizeof(MemoryView);
 
@@ -129,7 +131,10 @@ void Init()
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
-	base = MemoryMap_Setup(views, num_views, flags, &g_arena);
+	physical_base = MemoryMap_Setup(views, num_views, flags, &g_arena);
+#ifndef _ARCH_32
+	logical_base = physical_base + 0x200000000;
+#endif
 
 	mmio_mapping = new MMIO::Mapping();
 
@@ -164,7 +169,8 @@ void Shutdown()
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSHMSegment();
-	base = nullptr;
+	physical_base = nullptr;
+	logical_base = nullptr;
 	delete mmio_mapping;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 }
@@ -186,12 +192,6 @@ bool AreMemoryBreakpointsActivated()
 #else
 	return true;
 #endif
-}
-
-u32 Read_Instruction(const u32 address)
-{
-	UGeckoInstruction inst = ReadUnchecked_U32(address);
-	return inst.hex;
 }
 
 static inline bool ValidCopyRange(u32 address, size_t size)
@@ -228,19 +228,6 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 	{
 		memset(ptr,_iValue,_iLength);
 	}
-	else
-	{
-		for (u32 i = 0; i < _iLength; i++)
-			Write_U8(_iValue, _Address + i);
-	}
-}
-
-void ClearCacheLine(const u32 address)
-{
-	// FIXME: does this do the right thing if dcbz is run on hardware memory, e.g.
-	// the FIFO? Do games even do that? Probably not, but we should try to be correct...
-	for (u32 i = 0; i < 32; i += 8)
-		Write_U64(0, address + i);
 }
 
 std::string GetString(u32 em_address, size_t size)
@@ -260,93 +247,73 @@ std::string GetString(u32 em_address, size_t size)
 	}
 }
 
-// GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
-// programs don't have problems directly addressing any part of memory.
-// TODO re-think with respect to other BAT setups...
-u8* GetPointer(const u32 address)
+u8* GetPointer(u32 address)
 {
-	switch (address >> 28)
+	// TODO: Should we be masking off more bits here?  Can all devices access
+	// EXRAM?
+	address &= 0x3FFFFFFF;
+	if (address < REALRAM_SIZE)
+		return m_pRAM + address;
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-	case 0x0:
-	case 0x8:
-		if ((address & 0xfffffff) < REALRAM_SIZE)
-			return m_pRAM + (address & RAM_MASK);
-		break;
-	case 0xc:
-		switch (address >> 24)
-		{
-		case 0xcc:
-		case 0xcd:
-			_dbg_assert_msg_(MEMMAP, 0, "GetPointer from IO Bridge doesnt work");
-			break;
-		case 0xc8:
-			// EFB. We don't want to return a pointer here since we have no memory mapped for it.
-			break;
-
-		default:
-			if ((address & 0xfffffff) < REALRAM_SIZE)
-				return m_pRAM + (address & RAM_MASK);
-		}
-		break;
-
-	case 0x1:
-	case 0x9:
-	case 0xd:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-		{
-			if ((address & 0xfffffff) < EXRAM_SIZE)
-				return m_pEXRAM + (address & EXRAM_MASK);
-		}
-		break;
-
-	case 0xe:
-		if (address < (0xE0000000 + L1_CACHE_SIZE))
-			return m_pL1Cache + (address & L1_CACHE_MASK);
-		else
-			break;
-
-	default:
-		if (bFakeVMEM)
-			return m_pFakeVMEM + (address & FAKEVMEM_MASK);
-		break;
+		if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
+			return m_pEXRAM + (address & EXRAM_MASK);
 	}
 
-	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", address, PC, LR);
+	PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
 
 	return nullptr;
 }
 
-bool IsRAMAddress(const u32 address, bool allow_locked_cache, bool allow_fake_vmem)
+u8 Read_U8(u32 address)
 {
-	switch ((address >> 24) & 0xFC)
-	{
-	case 0x00:
-	case 0x80:
-	case 0xC0:
-		if ((address & 0x1FFFFFFF) < RAM_SIZE)
-			return true;
-		else
-			return false;
-	case 0x10:
-	case 0x90:
-	case 0xD0:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && (address & 0x0FFFFFFF) < EXRAM_SIZE)
-			return true;
-		else
-			return false;
-	case 0xE0:
-		if (allow_locked_cache && address - 0xE0000000 < L1_CACHE_SIZE)
-			return true;
-		else
-			return false;
-	case 0x7C:
-		if (allow_fake_vmem && bFakeVMEM && address >= 0x7E000000)
-			return true;
-		else
-			return false;
-	default:
-		return false;
-	}
+	return *GetPointer(address);
+}
+
+u16 Read_U16(u32 address)
+{
+	return Common::swap16(GetPointer(address));
+}
+
+u32 Read_U32(u32 address)
+{
+	return Common::swap32(GetPointer(address));
+}
+
+u64 Read_U64(u32 address)
+{
+	return Common::swap64(GetPointer(address));
+}
+
+void Write_U8(u8 value, u32 address)
+{
+	*GetPointer(address) = value;
+}
+
+void Write_U16(u16 value, u32 address)
+{
+	*(u16*)GetPointer(address) = Common::swap16(value);
+}
+
+void Write_U32(u32 value, u32 address)
+{
+	*(u32*)GetPointer(address) = Common::swap32(value);
+}
+
+void Write_U64(u64 value, u32 address)
+{
+	*(u64*)GetPointer(address) = Common::swap64(value);
+}
+
+void Write_U32_Swap(u32 value, u32 address)
+{
+	*(u32*)GetPointer(address) = value;
+}
+
+void Write_U64_Swap(u64 value, u32 address)
+{
+	*(u64*)GetPointer(address) = value;
 }
 
 }  // namespace

@@ -58,12 +58,12 @@ void DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address, cha
 
 unsigned int DSPDebugInterface::ReadMemory(unsigned int address)
 {
-	return 0; //Memory::ReadUnchecked_U32(address);
+	return 0;
 }
 
 unsigned int DSPDebugInterface::ReadInstruction(unsigned int address)
 {
-	return 0; //Memory::Read_Instruction(address);
+	return 0;
 }
 
 bool DSPDebugInterface::IsAlive()

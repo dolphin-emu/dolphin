@@ -348,6 +348,17 @@ void FifoPlayer::SetupFifo()
 
 void FifoPlayer::LoadMemory()
 {
+	UReg_MSR newMSR;
+	newMSR.DR = 1;
+	newMSR.IR = 1;
+	MSR = newMSR.Hex;
+	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
+	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
+	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+
 	Memory::Clear();
 
 	SetupFifo();
@@ -391,12 +402,12 @@ void FifoPlayer::LoadMemory()
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
 {
-	Memory::Write_U16(value, 0xCC000000 | address);
+	PowerPC::Write_U16(value, 0xCC000000 | address);
 }
 
 void FifoPlayer::WritePI(u32 address, u32 value)
 {
-	Memory::Write_U32(value, 0xCC003000 | address);
+	PowerPC::Write_U32(value, 0xCC003000 | address);
 }
 
 void FifoPlayer::FlushWGP()

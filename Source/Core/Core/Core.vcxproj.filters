@@ -512,9 +512,6 @@
     <ClCompile Include="HW\Memmap.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
-    <ClCompile Include="HW\MemmapFunctions.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
     <ClCompile Include="HW\MMIO.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
@@ -726,6 +723,8 @@
     </ClCompile>
     <ClCompile Include="HW\GCKeyboard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    <ClCompile Include="PowerPC\MMU.cpp">
+      <Filter>PowerPC</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

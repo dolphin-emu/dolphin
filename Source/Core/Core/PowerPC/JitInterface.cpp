@@ -207,27 +207,6 @@ namespace JitInterface
 			jit->GetBlockCache()->InvalidateICache(address, size, forced);
 	}
 
-	u32 ReadOpcodeJIT(u32 _Address)
-	{
-		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
-		{
-			_Address = Memory::TranslateAddress<Memory::FLAG_OPCODE>(_Address);
-			if (_Address == 0)
-			{
-				return 0;
-			}
-		}
-
-		u32 inst;
-		// Bypass the icache for the external interrupt exception handler
-		// -- this is stupid, should respect HID0
-		if ( (_Address & 0x0FFFFF00) == 0x00000500 )
-			inst = Memory::ReadUnchecked_U32(_Address);
-		else
-			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
-		return inst;
-	}
-
 	void CompileExceptionCheck(ExceptionType type)
 	{
 		if (!jit)
@@ -250,7 +229,7 @@ namespace JitInterface
 			if (type == ExceptionType::EXCEPTIONS_FIFO_WRITE)
 			{
 				// Check in case the code has been replaced since: do we need to do this?
-				int optype = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+				int optype = GetOpInfo(PowerPC::HostRead_U32(PC))->type;
 				if (optype != OPTYPE_STORE && optype != OPTYPE_STOREFP && (optype != OPTYPE_STOREPS))
 					return;
 			}

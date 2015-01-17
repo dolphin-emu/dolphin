@@ -500,7 +500,7 @@ static void regMarkMemAddress(RegInfo& RI, InstLoc I, InstLoc AI, unsigned OpNum
 	if (isImm(*AI))
 	{
 		unsigned addr = RI.Build->GetImmValue(AI);
-		if (Memory::IsRAMAddress(addr))
+		if (PowerPC::IsOptimizableRAMAddress(addr))
 			return;
 	}
 
@@ -520,7 +520,7 @@ static std::pair<OpArg, u32> regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc 
 	if (isImm(*AI))
 	{
 		unsigned addr = RI.Build->GetImmValue(AI);
-		if (Memory::IsRAMAddress(addr))
+		if (PowerPC::IsOptimizableRAMAddress(addr))
 		{
 			if (dest)
 				*dest = regFindFreeReg(RI);

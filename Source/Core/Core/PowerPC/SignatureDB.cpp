@@ -150,7 +150,7 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const std::string& prefix)
 	u32 sum = 0;
 	for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)
 	{
-		u32 opcode = Memory::Read_Instruction(offset);
+		u32 opcode = PowerPC::HostRead_Instruction(offset);
 		u32 op = opcode & 0xFC000000;
 		u32 op2 = 0;
 		u32 op3 = 0;
