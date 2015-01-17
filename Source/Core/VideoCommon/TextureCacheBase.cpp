@@ -22,7 +22,7 @@
 
 static const u64 TEXHASH_INVALID = 0;
 static const int TEXTURE_KILL_THRESHOLD = 200;
-static const int RENDER_TARGET_KILL_THRESHOLD = 3;
+static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const u64 FRAMECOUNT_INVALID = 0;
 
 TextureCache *g_texture_cache;
@@ -31,7 +31,7 @@ GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
 size_t TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
-TextureCache::RenderTargetPool TextureCache::render_target_pool;
+TextureCache::TexturePool TextureCache::texture_pool;
 
 TextureCache::BackupConfig TextureCache::backup_config;
 
@@ -80,11 +80,11 @@ void TextureCache::Invalidate()
 	}
 	textures.clear();
 
-	for (auto& rt : render_target_pool)
+	for (auto& rt : texture_pool)
 	{
 		delete rt;
 	}
-	render_target_pool.clear();
+	texture_pool.clear();
 }
 
 TextureCache::~TextureCache()
@@ -152,7 +152,7 @@ void TextureCache::Cleanup(int _frameCount)
 		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 		    !iter->second->IsEfbCopy())
 		{
-			delete iter->second;
+			FreeTexture(iter->second);
 			iter = textures.erase(iter);
 		}
 		else
@@ -161,15 +161,15 @@ void TextureCache::Cleanup(int _frameCount)
 		}
 	}
 
-	for (size_t i = 0; i < render_target_pool.size();)
+	for (size_t i = 0; i < texture_pool.size();)
 	{
-		auto rt = render_target_pool[i];
+		auto rt = texture_pool[i];
 
-		if (_frameCount > RENDER_TARGET_KILL_THRESHOLD + rt->frameCount)
+		if (_frameCount > TEXTURE_POOL_KILL_THRESHOLD + rt->frameCount)
 		{
 			delete rt;
-			render_target_pool[i] = render_target_pool.back();
-			render_target_pool.pop_back();
+			texture_pool[i] = texture_pool.back();
+			texture_pool.pop_back();
 		}
 		else
 		{
@@ -187,7 +187,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 	{
 		if (iter->second->OverlapsMemoryRange(start_address, size))
 		{
-			delete iter->second;
+			FreeTexture(iter->second);
 			textures.erase(iter++);
 		}
 		else
@@ -246,7 +246,7 @@ void TextureCache::ClearRenderTargets()
 	{
 		if (iter->second->type == TCET_EC_VRAM)
 		{
-			delete iter->second;
+			FreeTexture(iter->second);
 			textures.erase(iter++);
 		}
 		else
@@ -407,7 +407,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		else
 		{
 			// delete the texture and make a new one
-			delete entry;
+			FreeTexture(entry);
 			entry = nullptr;
 		}
 	}
@@ -433,7 +433,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 				// If we thought we could reuse the texture before, make sure to pool it now!
 				if (entry)
 				{
-					delete entry;
+					FreeTexture(entry);
 					entry = nullptr;
 				}
 			}
@@ -467,7 +467,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	if (entry && entry->config.levels != texLevels)
 	{
 		// delete the texture and make a new one
-		delete entry;
+		FreeTexture(entry);
 		entry = nullptr;
 	}
 
@@ -478,7 +478,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		config.width = width;
 		config.height = height;
 		config.levels = texLevels;
-		textures[texID] = entry = g_texture_cache->CreateTexture(config);
+		textures[texID] = entry = AllocateTexture(config);
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -553,7 +553,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		}
 	}
 
-	INCSTAT(stats.numTexturesCreated);
+	INCSTAT(stats.numTexturesUploaded);
 	SETSTAT(stats.numTexturesAlive, textures.size());
 
 	return ReturnEntry(stage, entry);
@@ -857,17 +857,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		}
 		else if (!(entry->type == TCET_EC_VRAM && entry->config.width == scaled_tex_w && entry->config.height == scaled_tex_h && entry->config.layers == efb_layers))
 		{
-			if (entry->type == TCET_EC_VRAM)
-			{
-				// try to re-use this render target later
-				FreeRenderTarget(entry);
-			}
-			else
-			{
-				// remove it and recreate it as a render target
-				delete entry;
-			}
-
+			// try to re-use this texture later
+			FreeTexture(entry);
 			entry = nullptr;
 		}
 	}
@@ -875,7 +866,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	if (nullptr == entry)
 	{
 		// create the texture
-		textures[dstAddr] = entry = AllocateRenderTarget(scaled_tex_w, scaled_tex_h, FramebufferManagerBase::GetEFBLayers());
+		TCacheEntryConfig config;
+		config.rendertarget = true;
+		config.width = scaled_tex_w;
+		config.height = scaled_tex_h;
+		config.layers = FramebufferManagerBase::GetEFBLayers();
+
+		textures[dstAddr] = entry = AllocateTexture(config);
 
 		// TODO: Using the wrong dstFormat, dumb...
 		entry->SetGeneralParameters(dstAddr, 0, dstFormat);
@@ -889,31 +886,26 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::AllocateRenderTarget(unsigned int width, unsigned int height, unsigned int layers)
+TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryConfig& config)
 {
-	for (size_t i = 0; i < render_target_pool.size(); ++i)
+	for (size_t i = 0; i < texture_pool.size(); ++i)
 	{
-		auto rt = render_target_pool[i];
+		auto rt = texture_pool[i];
 
-		if (rt->config.width != width || rt->config.height != height || rt->config.layers != layers)
-			continue;
+		if (rt->config == config)
+		{
+			texture_pool[i] = texture_pool.back();
+			texture_pool.pop_back();
 
-		render_target_pool[i] = render_target_pool.back();
-		render_target_pool.pop_back();
-
-		return rt;
+			return rt;
+		}
 	}
 
-	TCacheEntryConfig config;
-	config.rendertarget = true;
-	config.width = width;
-	config.height = height;
-	config.layers = layers;
-
+	INCSTAT(stats.numTexturesCreated);
 	return g_texture_cache->CreateTexture(config);
 }
 
-void TextureCache::FreeRenderTarget(TCacheEntryBase* entry)
+void TextureCache::FreeTexture(TCacheEntryBase* entry)
 {
-	render_target_pool.push_back(entry);
+	texture_pool.push_back(entry);
 }

@@ -32,6 +32,11 @@ public:
 		u32 width, height;
 		u32 levels, layers;
 		bool rendertarget;
+
+		bool operator == (const TCacheEntryConfig& b) const
+		{
+			return width == b.width && height == b.height && levels == b.levels && layers == b.layers && rendertarget == b.rendertarget;
+		}
 	};
 
 	struct TCacheEntryBase
@@ -125,14 +130,14 @@ private:
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 
-	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height, unsigned int layers);
-	static void FreeRenderTarget(TCacheEntryBase* entry);
+	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
+	static void FreeTexture(TCacheEntryBase* entry);
 
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
-	typedef std::vector<TCacheEntryBase*> RenderTargetPool;
+	typedef std::vector<TCacheEntryBase*> TexturePool;
 
 	static TexCache textures;
-	static RenderTargetPool render_target_pool;
+	static TexturePool texture_pool;
 
 	// Backup configuration values
 	static struct BackupConfig
