@@ -516,6 +516,13 @@ include_directories(Source/Core)
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
+if(NOT XXHASH_FOUND)
+	message("Using static xxhash from Externals")
+	add_subdirectory(Externals/xxhash)
+	include_directories(Externals/xxhash)
+endif()
+LIST(APPEND LIBS xxhash)
+
 # If zlib has already been found on a previous run of cmake don't check again
 # as the check seems to take a long time.
 if(NOT ZLIB_FOUND)
