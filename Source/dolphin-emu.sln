@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Externals", "Externals", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bochs_disasm", "..\Externals\Bochs_disasm\Bochs_disasm.vcxproj", "{8ADA04D7-6DB1-4DA4-AB55-64FB12A0997B}"
 EndProject
+Project("{82233599-450F-46D6-8992-EF5000BFA6D3}") = "XXHash", "..\Externals\xxhash\xxhash.vcxproj", "{50B4A469-0C68-4614-A1C6-4EED57BE9F64}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Languages", "..\Languages\Languages.vcxproj", "{0E033BE3-2E08-428E-9AE9-BC673EFA12B5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dolphin Core", "Dolphin Core", "{15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}"
