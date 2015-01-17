@@ -109,72 +109,14 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, config.width, config.height, level);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
-	unsigned int tex_levels, PC_TexFormat pcfmt)
+TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height, unsigned int tex_levels)
 {
-	int gl_format = 0,
-		gl_iformat = 0,
-		gl_type = 0;
-
-	if (pcfmt != PC_TEX_FMT_DXT1)
-	{
-		switch (pcfmt)
-		{
-		default:
-		case PC_TEX_FMT_NONE:
-			PanicAlert("Invalid PC texture format %i", pcfmt);
-		case PC_TEX_FMT_BGRA32:
-			gl_format = GL_BGRA;
-			gl_iformat = GL_RGBA;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_RGBA32:
-			gl_format = GL_RGBA;
-			gl_iformat = GL_RGBA;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-		case PC_TEX_FMT_I4_AS_I8:
-			gl_format = GL_LUMINANCE;
-			gl_iformat = GL_INTENSITY4;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_IA4_AS_IA8:
-			gl_format = GL_LUMINANCE_ALPHA;
-			gl_iformat = GL_LUMINANCE4_ALPHA4;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_I8:
-			gl_format = GL_LUMINANCE;
-			gl_iformat = GL_INTENSITY8;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-
-		case PC_TEX_FMT_IA8:
-			gl_format = GL_LUMINANCE_ALPHA;
-			gl_iformat = GL_LUMINANCE8_ALPHA8;
-			gl_type = GL_UNSIGNED_BYTE;
-			break;
-		case PC_TEX_FMT_RGB565:
-			gl_format = GL_RGB;
-			gl_iformat = GL_RGB;
-			gl_type = GL_UNSIGNED_SHORT_5_6_5;
-			break;
-		}
-	}
-
 	TCacheEntryConfig config;
 	config.width = width;
 	config.height = height;
 	config.levels = tex_levels;
 
 	TCacheEntry &entry = *new TCacheEntry(config);
-	entry.gl_format = gl_format;
-	entry.gl_iformat = gl_iformat;
-	entry.gl_type = gl_type;
-	entry.pcfmt = pcfmt;
 
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, entry.texture);
@@ -194,25 +136,17 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 		PanicAlert("size of level %d must be %dx%d, but %dx%d requested",
 		           level, std::max(1u, config.width >> level), std::max(1u, config.height >> level), width, height);
 
-	if (pcfmt != PC_TEX_FMT_DXT1)
-	{
-		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+	glActiveTexture(GL_TEXTURE0+9);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
-		if (expanded_width != width)
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
+	if (expanded_width != width)
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, level, gl_iformat, width, height, 1, 0, gl_format, gl_type, temp);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, width, height, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 
-		if (expanded_width != width)
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-	}
-	else
-	{
-		PanicAlert("PC_TEX_FMT_DXT1 support disabled");
-		//glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
-			//width, height, 0, expanded_width * expanded_height/2, temp);
-	}
+	if (expanded_width != width)
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
 	TextureCache::SetStage();
 }
 
@@ -229,13 +163,8 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, entry->texture);
 
-	const GLenum
-		gl_format = GL_RGBA,
-		gl_iformat = GL_RGBA,
-		gl_type = GL_UNSIGNED_BYTE;
-
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, layers, 0, gl_format, gl_type, nullptr);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, scaled_tex_w, scaled_tex_h, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);

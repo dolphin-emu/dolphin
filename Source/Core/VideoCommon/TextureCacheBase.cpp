@@ -323,7 +323,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	u64 tlut_hash = TEXHASH_INVALID;
 
 	u32 full_format = texformat;
-	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	const bool isPaletteTexture = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
 	if (isPaletteTexture)
@@ -442,7 +441,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			expandedHeight = l.height;
 			CheckTempSize(l.data_size);
 			memcpy(temp, l.data, l.data_size);
-			pcfmt = PC_TEX_FMT_RGBA32;
 		}
 	}
 
@@ -451,12 +449,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		if (!(texformat == GX_TF_RGBA8 && from_tmem))
 		{
 			const u8* tlut = &texMem[tlutaddr];
-			pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, (TlutFormat) tlutfmt);
+			TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut, (TlutFormat) tlutfmt);
 		}
 		else
 		{
 			u8* src_data_gb = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
-			pcfmt = TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
+			TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
 		}
 	}
 
@@ -476,7 +474,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	// create the entry/texture
 	if (nullptr == entry)
 	{
-		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, texLevels, pcfmt);
+		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, texLevels);
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -508,49 +506,46 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 	u32 level = 1;
 	// load mips - TODO: Loading mipmaps from tmem is untested!
-	if (pcfmt != PC_TEX_FMT_NONE)
+	if (use_native_mips)
 	{
-		if (use_native_mips)
+		src_data += texture_size;
+
+		const u8* ptr_even = nullptr;
+		const u8* ptr_odd = nullptr;
+		if (from_tmem)
 		{
-			src_data += texture_size;
-
-			const u8* ptr_even = nullptr;
-			const u8* ptr_odd = nullptr;
-			if (from_tmem)
-			{
-				ptr_even = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE + texture_size];
-				ptr_odd = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
-			}
-
-			for (; level != texLevels; ++level)
-			{
-				const u32 mip_width = CalculateLevelSize(width, level);
-				const u32 mip_height = CalculateLevelSize(height, level);
-				const u32 expanded_mip_width = (mip_width + bsw) & (~bsw);
-				const u32 expanded_mip_height = (mip_height + bsh) & (~bsh);
-
-				const u8*& mip_src_data = from_tmem
-					? ((level % 2) ? ptr_odd : ptr_even)
-					: src_data;
-				const u8* tlut = &texMem[tlutaddr];
-				TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlut, (TlutFormat) tlutfmt);
-				mip_src_data += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
-
-				entry->Load(mip_width, mip_height, expanded_mip_width, level);
-
-				if (g_ActiveConfig.bDumpTextures)
-					DumpTexture(entry, basename, level);
-			}
+			ptr_even = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE + texture_size];
+			ptr_odd = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
 		}
-		else if (using_custom_lods)
+
+		for (; level != texLevels; ++level)
 		{
-			for (; level != texLevels; ++level)
-			{
-				auto& l = hires_tex->m_levels[level];
-				CheckTempSize(l.data_size);
-				memcpy(temp, l.data, l.data_size);
-				entry->Load(l.width, l.height, l.width, level);
-			}
+			const u32 mip_width = CalculateLevelSize(width, level);
+			const u32 mip_height = CalculateLevelSize(height, level);
+			const u32 expanded_mip_width = (mip_width + bsw) & (~bsw);
+			const u32 expanded_mip_height = (mip_height + bsh) & (~bsh);
+
+			const u8*& mip_src_data = from_tmem
+				? ((level % 2) ? ptr_odd : ptr_even)
+				: src_data;
+			const u8* tlut = &texMem[tlutaddr];
+			TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlut, (TlutFormat) tlutfmt);
+			mip_src_data += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
+
+			entry->Load(mip_width, mip_height, expanded_mip_width, level);
+
+			if (g_ActiveConfig.bDumpTextures)
+				DumpTexture(entry, basename, level);
+		}
+	}
+	else if (using_custom_lods)
+	{
+		for (; level != texLevels; ++level)
+		{
+			auto& l = hires_tex->m_levels[level];
+			CheckTempSize(l.data_size);
+			memcpy(temp, l.data, l.data_size);
+			entry->Load(l.width, l.height, l.width, level);
 		}
 	}
 

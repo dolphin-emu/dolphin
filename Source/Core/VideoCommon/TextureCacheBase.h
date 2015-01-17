@@ -104,8 +104,7 @@ public:
 	static void ClearRenderTargets(); // currently only used by OGL
 	static bool Find(u32 start_address, u64 hash);
 
-	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int tex_levels, PC_TexFormat pcfmt) = 0;
+	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height, unsigned int tex_levels) = 0;
 	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers) = 0;
 
 	virtual void CompileShaders() = 0; // currently only implemented by OGL
