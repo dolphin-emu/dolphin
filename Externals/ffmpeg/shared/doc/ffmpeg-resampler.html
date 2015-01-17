@@ -1,0 +1,357 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+  <head>
+    <meta charset="utf-8">
+    <title>
+      FFmpeg Resampler Documentation
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
+  </head>
+  <body>
+    <div style="width: 95%; margin: auto">
+      <h1>
+      FFmpeg Resampler Documentation
+      </h1>
+<div align="center">
+</div>
+
+<a name="SEC_Top"></a>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Description" href="#Description">1 Description</a></li>
+  <li><a name="toc-Resampler-Options" href="#Resampler-Options">2 Resampler Options</a></li>
+  <li><a name="toc-See-Also" href="#See-Also">3 See Also</a></li>
+  <li><a name="toc-Authors" href="#Authors">4 Authors</a></li>
+</ul>
+</div>
+
+
+<a name="Description"></a>
+<h2 class="chapter">1 Description<span class="pull-right"><a class="anchor hidden-xs" href="#Description" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Description" aria-hidden="true">TOC</a></span></h2>
+
+<p>The FFmpeg resampler provides a high-level interface to the
+libswresample library audio resampling utilities. In particular it
+allows one to perform audio resampling, audio channel layout rematrixing,
+and convert audio format and packing layout.
+</p>
+
+<a name="Resampler-Options"></a>
+<h2 class="chapter">2 Resampler Options<span class="pull-right"><a class="anchor hidden-xs" href="#Resampler-Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Resampler-Options" aria-hidden="true">TOC</a></span></h2>
+
+<p>The audio resampler supports the following named options.
+</p>
+<p>Options may be set by specifying -<var>option</var> <var>value</var> in the
+FFmpeg tools, <var>option</var>=<var>value</var> for the aresample filter,
+by setting the value explicitly in the
+<code>SwrContext</code> options or using the <samp>libavutil/opt.h</samp> API for
+programmatic use.
+</p>
+<dl compact="compact">
+<dt><samp>ich, in_channel_count</samp></dt>
+<dd><p>Set the number of input channels. Default value is 0. Setting this
+value is not mandatory if the corresponding channel layout
+<samp>in_channel_layout</samp> is set.
+</p>
+</dd>
+<dt><samp>och, out_channel_count</samp></dt>
+<dd><p>Set the number of output channels. Default value is 0. Setting this
+value is not mandatory if the corresponding channel layout
+<samp>out_channel_layout</samp> is set.
+</p>
+</dd>
+<dt><samp>uch, used_channel_count</samp></dt>
+<dd><p>Set the number of used input channels. Default value is 0. This option is
+only used for special remapping.
+</p>
+</dd>
+<dt><samp>isr, in_sample_rate</samp></dt>
+<dd><p>Set the input sample rate. Default value is 0.
+</p>
+</dd>
+<dt><samp>osr, out_sample_rate</samp></dt>
+<dd><p>Set the output sample rate. Default value is 0.
+</p>
+</dd>
+<dt><samp>isf, in_sample_fmt</samp></dt>
+<dd><p>Specify the input sample format. It is set by default to <code>none</code>.
+</p>
+</dd>
+<dt><samp>osf, out_sample_fmt</samp></dt>
+<dd><p>Specify the output sample format. It is set by default to <code>none</code>.
+</p>
+</dd>
+<dt><samp>tsf, internal_sample_fmt</samp></dt>
+<dd><p>Set the internal sample format. Default value is <code>none</code>.
+This will automatically be chosen when it is not explicitly set.
+</p>
+</dd>
+<dt><samp>icl, in_channel_layout</samp></dt>
+<dt><samp>ocl, out_channel_layout</samp></dt>
+<dd><p>Set the input/output channel layout.
+</p>
+<p>See <a href="ffmpeg-utils.html#channel-layout-syntax">(ffmpeg-utils)the Channel Layout section in the ffmpeg-utils(1) manual</a>
+for the required syntax.
+</p>
+</dd>
+<dt><samp>clev, center_mix_level</samp></dt>
+<dd><p>Set the center mix level. It is a value expressed in deciBel, and must be
+in the interval [-32,32].
+</p>
+</dd>
+<dt><samp>slev, surround_mix_level</samp></dt>
+<dd><p>Set the surround mix level. It is a value expressed in deciBel, and must
+be in the interval [-32,32].
+</p>
+</dd>
+<dt><samp>lfe_mix_level</samp></dt>
+<dd><p>Set LFE mix into non LFE level. It is used when there is a LFE input but no
+LFE output. It is a value expressed in deciBel, and must
+be in the interval [-32,32].
+</p>
+</dd>
+<dt><samp>rmvol, rematrix_volume</samp></dt>
+<dd><p>Set rematrix volume. Default value is 1.0.
+</p>
+</dd>
+<dt><samp>rematrix_maxval</samp></dt>
+<dd><p>Set maximum output value for rematrixing.
+This can be used to prevent clipping vs. preventing volumn reduction
+A value of 1.0 prevents cliping.
+</p>
+</dd>
+<dt><samp>flags, swr_flags</samp></dt>
+<dd><p>Set flags used by the converter. Default value is 0.
+</p>
+<p>It supports the following individual flags:
+</p><dl compact="compact">
+<dt><samp>res</samp></dt>
+<dd><p>force resampling, this flag forces resampling to be used even when the
+input and output sample rates match.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>dither_scale</samp></dt>
+<dd><p>Set the dither scale. Default value is 1.
+</p>
+</dd>
+<dt><samp>dither_method</samp></dt>
+<dd><p>Set dither method. Default value is 0.
+</p>
+<p>Supported values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>rectangular</samp>&rsquo;</dt>
+<dd><p>select rectangular dither
+</p></dd>
+<dt>&lsquo;<samp>triangular</samp>&rsquo;</dt>
+<dd><p>select triangular dither
+</p></dd>
+<dt>&lsquo;<samp>triangular_hp</samp>&rsquo;</dt>
+<dd><p>select triangular dither with high pass
+</p></dd>
+<dt>&lsquo;<samp>lipshitz</samp>&rsquo;</dt>
+<dd><p>select lipshitz noise shaping dither
+</p></dd>
+<dt>&lsquo;<samp>shibata</samp>&rsquo;</dt>
+<dd><p>select shibata noise shaping dither
+</p></dd>
+<dt>&lsquo;<samp>low_shibata</samp>&rsquo;</dt>
+<dd><p>select low shibata noise shaping dither
+</p></dd>
+<dt>&lsquo;<samp>high_shibata</samp>&rsquo;</dt>
+<dd><p>select high shibata noise shaping dither
+</p></dd>
+<dt>&lsquo;<samp>f_weighted</samp>&rsquo;</dt>
+<dd><p>select f-weighted noise shaping dither
+</p></dd>
+<dt>&lsquo;<samp>modified_e_weighted</samp>&rsquo;</dt>
+<dd><p>select modified-e-weighted noise shaping dither
+</p></dd>
+<dt>&lsquo;<samp>improved_e_weighted</samp>&rsquo;</dt>
+<dd><p>select improved-e-weighted noise shaping dither
+</p>
+</dd>
+</dl>
+
+</dd>
+<dt><samp>resampler</samp></dt>
+<dd><p>Set resampling engine. Default value is swr.
+</p>
+<p>Supported values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>swr</samp>&rsquo;</dt>
+<dd><p>select the native SW Resampler; filter options precision and cheby are not
+applicable in this case.
+</p></dd>
+<dt>&lsquo;<samp>soxr</samp>&rsquo;</dt>
+<dd><p>select the SoX Resampler (where available); compensation, and filter options
+filter_size, phase_shift, filter_type &amp; kaiser_beta, are not applicable in this
+case.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>filter_size</samp></dt>
+<dd><p>For swr only, set resampling filter size, default value is 32.
+</p>
+</dd>
+<dt><samp>phase_shift</samp></dt>
+<dd><p>For swr only, set resampling phase shift, default value is 10, and must be in
+the interval [0,30].
+</p>
+</dd>
+<dt><samp>linear_interp</samp></dt>
+<dd><p>Use Linear Interpolation if set to 1, default value is 0.
+</p>
+</dd>
+<dt><samp>cutoff</samp></dt>
+<dd><p>Set cutoff frequency (swr: 6dB point; soxr: 0dB point) ratio; must be a float
+value between 0 and 1.  Default value is 0.97 with swr, and 0.91 with soxr
+(which, with a sample-rate of 44100, preserves the entire audio band to 20kHz).
+</p>
+</dd>
+<dt><samp>precision</samp></dt>
+<dd><p>For soxr only, the precision in bits to which the resampled signal will be
+calculated.  The default value of 20 (which, with suitable dithering, is
+appropriate for a destination bit-depth of 16) gives SoX&rsquo;s &rsquo;High Quality&rsquo;; a
+value of 28 gives SoX&rsquo;s &rsquo;Very High Quality&rsquo;.
+</p>
+</dd>
+<dt><samp>cheby</samp></dt>
+<dd><p>For soxr only, selects passband rolloff none (Chebyshev) &amp; higher-precision
+approximation for &rsquo;irrational&rsquo; ratios. Default value is 0.
+</p>
+</dd>
+<dt><samp>async</samp></dt>
+<dd><p>For swr only, simple 1 parameter audio sync to timestamps using stretching,
+squeezing, filling and trimming. Setting this to 1 will enable filling and
+trimming, larger values represent the maximum amount in samples that the data
+may be stretched or squeezed for each second.
+Default value is 0, thus no compensation is applied to make the samples match
+the audio timestamps.
+</p>
+</dd>
+<dt><samp>first_pts</samp></dt>
+<dd><p>For swr only, assume the first pts should be this value. The time unit is 1 / sample rate.
+This allows for padding/trimming at the start of stream. By default, no
+assumption is made about the first frame&rsquo;s expected pts, so no padding or
+trimming is done. For example, this could be set to 0 to pad the beginning with
+silence if an audio stream starts after the video stream or to trim any samples
+with a negative pts due to encoder delay.
+</p>
+</dd>
+<dt><samp>min_comp</samp></dt>
+<dd><p>For swr only, set the minimum difference between timestamps and audio data (in
+seconds) to trigger stretching/squeezing/filling or trimming of the
+data to make it match the timestamps. The default is that
+stretching/squeezing/filling and trimming is disabled
+(<samp>min_comp</samp> = <code>FLT_MAX</code>).
+</p>
+</dd>
+<dt><samp>min_hard_comp</samp></dt>
+<dd><p>For swr only, set the minimum difference between timestamps and audio data (in
+seconds) to trigger adding/dropping samples to make it match the
+timestamps.  This option effectively is a threshold to select between
+hard (trim/fill) and soft (squeeze/stretch) compensation. Note that
+all compensation is by default disabled through <samp>min_comp</samp>.
+The default is 0.1.
+</p>
+</dd>
+<dt><samp>comp_duration</samp></dt>
+<dd><p>For swr only, set duration (in seconds) over which data is stretched/squeezed
+to make it match the timestamps. Must be a non-negative double float value,
+default value is 1.0.
+</p>
+</dd>
+<dt><samp>max_soft_comp</samp></dt>
+<dd><p>For swr only, set maximum factor by which data is stretched/squeezed to make it
+match the timestamps. Must be a non-negative double float value, default value
+is 0.
+</p>
+</dd>
+<dt><samp>matrix_encoding</samp></dt>
+<dd><p>Select matrixed stereo encoding.
+</p>
+<p>It accepts the following values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>none</samp>&rsquo;</dt>
+<dd><p>select none
+</p></dd>
+<dt>&lsquo;<samp>dolby</samp>&rsquo;</dt>
+<dd><p>select Dolby
+</p></dd>
+<dt>&lsquo;<samp>dplii</samp>&rsquo;</dt>
+<dd><p>select Dolby Pro Logic II
+</p></dd>
+</dl>
+
+<p>Default value is <code>none</code>.
+</p>
+</dd>
+<dt><samp>filter_type</samp></dt>
+<dd><p>For swr only, select resampling filter type. This only affects resampling
+operations.
+</p>
+<p>It accepts the following values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>cubic</samp>&rsquo;</dt>
+<dd><p>select cubic
+</p></dd>
+<dt>&lsquo;<samp>blackman_nuttall</samp>&rsquo;</dt>
+<dd><p>select Blackman Nuttall Windowed Sinc
+</p></dd>
+<dt>&lsquo;<samp>kaiser</samp>&rsquo;</dt>
+<dd><p>select Kaiser Windowed Sinc
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>kaiser_beta</samp></dt>
+<dd><p>For swr only, set Kaiser Window Beta value. Must be an integer in the
+interval [2,16], default value is 9.
+</p>
+</dd>
+<dt><samp>output_sample_bits</samp></dt>
+<dd><p>For swr only, set number of used output sample bits for dithering. Must be an integer in the
+interval [0,64], default value is 0, which means it&rsquo;s not used.
+</p>
+</dd>
+</dl>
+
+
+<a name="See-Also"></a>
+<h2 class="chapter">3 See Also<span class="pull-right"><a class="anchor hidden-xs" href="#See-Also" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-See-Also" aria-hidden="true">TOC</a></span></h2>
+
+<p><a href="ffmpeg.html">ffmpeg</a>, <a href="ffplay.html">ffplay</a>, <a href="ffprobe.html">ffprobe</a>, <a href="ffserver.html">ffserver</a>,
+<a href="libswresample.html">libswresample</a>
+</p>
+
+<a name="Authors"></a>
+<h2 class="chapter">4 Authors<span class="pull-right"><a class="anchor hidden-xs" href="#Authors" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Authors" aria-hidden="true">TOC</a></span></h2>
+
+<p>The FFmpeg developers.
+</p>
+<p>For details about the authorship, see the Git history of the project
+(git://source.ffmpeg.org/ffmpeg), e.g. by typing the command
+<code>git log</code> in the FFmpeg source directory, or browsing the
+online repository at <a href="http://source.ffmpeg.org">http://source.ffmpeg.org</a>.
+</p>
+<p>Maintainers for the specific components are listed in the file
+<samp>MAINTAINERS</samp> in the source code tree.
+</p>
+
+
+      <p style="font-size: small;">
+        This document was generated on <em>January 14, 2015</em> using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
+    </div>
+  </body>
+</html>

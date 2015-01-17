@@ -1,0 +1,4474 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+  <head>
+    <meta charset="utf-8">
+    <title>
+      FFmpeg Codecs Documentation
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
+  </head>
+  <body>
+    <div style="width: 95%; margin: auto">
+      <h1>
+      FFmpeg Codecs Documentation
+      </h1>
+<div align="center">
+</div>
+
+<a name="SEC_Top"></a>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Description" href="#Description">1 Description</a></li>
+  <li><a name="toc-Codec-Options" href="#Codec-Options">2 Codec Options</a></li>
+  <li><a name="toc-Decoders" href="#Decoders">3 Decoders</a></li>
+  <li><a name="toc-Video-Decoders" href="#Video-Decoders">4 Video Decoders</a>
+  <ul class="no-bullet">
+    <li><a name="toc-rawvideo" href="#rawvideo">4.1 rawvideo</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options" href="#Options">4.1.1 Options</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Audio-Decoders" href="#Audio-Decoders">5 Audio Decoders</a>
+  <ul class="no-bullet">
+    <li><a name="toc-ac3" href="#ac3">5.1 ac3</a>
+    <ul class="no-bullet">
+      <li><a name="toc-AC_002d3-Decoder-Options" href="#AC_002d3-Decoder-Options">5.1.1 AC-3 Decoder Options</a></li>
+    </ul></li>
+    <li><a name="toc-ffwavesynth" href="#ffwavesynth">5.2 ffwavesynth</a></li>
+    <li><a name="toc-libcelt" href="#libcelt">5.3 libcelt</a></li>
+    <li><a name="toc-libgsm" href="#libgsm">5.4 libgsm</a></li>
+    <li><a name="toc-libilbc" href="#libilbc">5.5 libilbc</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-1" href="#Options-1">5.5.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libopencore_002damrnb" href="#libopencore_002damrnb">5.6 libopencore-amrnb</a></li>
+    <li><a name="toc-libopencore_002damrwb" href="#libopencore_002damrwb">5.7 libopencore-amrwb</a></li>
+    <li><a name="toc-libopus" href="#libopus">5.8 libopus</a></li>
+  </ul></li>
+  <li><a name="toc-Subtitles-Decoders" href="#Subtitles-Decoders">6 Subtitles Decoders</a>
+  <ul class="no-bullet">
+    <li><a name="toc-dvdsub" href="#dvdsub">6.1 dvdsub</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-2" href="#Options-2">6.1.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libzvbi_002dteletext" href="#libzvbi_002dteletext">6.2 libzvbi-teletext</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-3" href="#Options-3">6.2.1 Options</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Encoders" href="#Encoders">7 Encoders</a></li>
+  <li><a name="toc-Audio-Encoders" href="#Audio-Encoders">8 Audio Encoders</a>
+  <ul class="no-bullet">
+    <li><a name="toc-aac" href="#aac">8.1 aac</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-4" href="#Options-4">8.1.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-ac3-and-ac3_005ffixed" href="#ac3-and-ac3_005ffixed">8.2 ac3 and ac3_fixed</a>
+    <ul class="no-bullet">
+      <li><a name="toc-AC_002d3-Metadata" href="#AC_002d3-Metadata">8.2.1 AC-3 Metadata</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Metadata-Control-Options" href="#Metadata-Control-Options">8.2.1.1 Metadata Control Options</a></li>
+        <li><a name="toc-Downmix-Levels" href="#Downmix-Levels">8.2.1.2 Downmix Levels</a></li>
+        <li><a name="toc-Audio-Production-Information" href="#Audio-Production-Information">8.2.1.3 Audio Production Information</a></li>
+        <li><a name="toc-Other-Metadata-Options" href="#Other-Metadata-Options">8.2.1.4 Other Metadata Options</a></li>
+      </ul></li>
+      <li><a name="toc-Extended-Bitstream-Information" href="#Extended-Bitstream-Information">8.2.2 Extended Bitstream Information</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Extended-Bitstream-Information-_002d-Part-1" href="#Extended-Bitstream-Information-_002d-Part-1">8.2.2.1 Extended Bitstream Information - Part 1</a></li>
+        <li><a name="toc-Extended-Bitstream-Information-_002d-Part-2" href="#Extended-Bitstream-Information-_002d-Part-2">8.2.2.2 Extended Bitstream Information - Part 2</a></li>
+      </ul></li>
+      <li><a name="toc-Other-AC_002d3-Encoding-Options" href="#Other-AC_002d3-Encoding-Options">8.2.3 Other AC-3 Encoding Options</a></li>
+      <li><a name="toc-Floating_002dPoint_002dOnly-AC_002d3-Encoding-Options" href="#Floating_002dPoint_002dOnly-AC_002d3-Encoding-Options">8.2.4 Floating-Point-Only AC-3 Encoding Options</a></li>
+    </ul></li>
+    <li><a name="toc-libfaac-1" href="#libfaac-1">8.3 libfaac</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-5" href="#Options-5">8.3.1 Options</a></li>
+      <li><a name="toc-Examples" href="#Examples">8.3.2 Examples</a></li>
+    </ul></li>
+    <li><a name="toc-libfdk_005faac" href="#libfdk_005faac">8.4 libfdk_aac</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-6" href="#Options-6">8.4.1 Options</a></li>
+      <li><a name="toc-Examples-1" href="#Examples-1">8.4.2 Examples</a></li>
+    </ul></li>
+    <li><a name="toc-libmp3lame-1" href="#libmp3lame-1">8.5 libmp3lame</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-7" href="#Options-7">8.5.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libopencore_002damrnb-1" href="#libopencore_002damrnb-1">8.6 libopencore-amrnb</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-8" href="#Options-8">8.6.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libshine-1" href="#libshine-1">8.7 libshine</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-9" href="#Options-9">8.7.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libtwolame" href="#libtwolame">8.8 libtwolame</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-10" href="#Options-10">8.8.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libvo_002daacenc-1" href="#libvo_002daacenc-1">8.9 libvo-aacenc</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-11" href="#Options-11">8.9.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libvo_002damrwbenc" href="#libvo_002damrwbenc">8.10 libvo-amrwbenc</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-12" href="#Options-12">8.10.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libopus-1" href="#libopus-1">8.11 libopus</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Option-Mapping" href="#Option-Mapping">8.11.1 Option Mapping</a></li>
+    </ul></li>
+    <li><a name="toc-libvorbis" href="#libvorbis">8.12 libvorbis</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-13" href="#Options-13">8.12.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libwavpack-1" href="#libwavpack-1">8.13 libwavpack</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-14" href="#Options-14">8.13.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-wavpack" href="#wavpack">8.14 wavpack</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-15" href="#Options-15">8.14.1 Options</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Shared-options" href="#Shared-options">8.14.1.1 Shared options</a></li>
+        <li><a name="toc-Private-options" href="#Private-options">8.14.1.2 Private options</a></li>
+      </ul></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Video-Encoders" href="#Video-Encoders">9 Video Encoders</a>
+  <ul class="no-bullet">
+    <li><a name="toc-libtheora" href="#libtheora">9.1 libtheora</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-16" href="#Options-16">9.1.1 Options</a></li>
+      <li><a name="toc-Examples-2" href="#Examples-2">9.1.2 Examples</a></li>
+    </ul></li>
+    <li><a name="toc-libvpx" href="#libvpx">9.2 libvpx</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-17" href="#Options-17">9.2.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libwebp" href="#libwebp">9.3 libwebp</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Pixel-Format" href="#Pixel-Format">9.3.1 Pixel Format</a></li>
+      <li><a name="toc-Options-18" href="#Options-18">9.3.2 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libx264_002c-libx264rgb" href="#libx264_002c-libx264rgb">9.4 libx264, libx264rgb</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Supported-Pixel-Formats" href="#Supported-Pixel-Formats">9.4.1 Supported Pixel Formats</a></li>
+      <li><a name="toc-Options-19" href="#Options-19">9.4.2 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libx265" href="#libx265">9.5 libx265</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-20" href="#Options-20">9.5.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-libxvid" href="#libxvid">9.6 libxvid</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-21" href="#Options-21">9.6.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-mpeg2" href="#mpeg2">9.7 mpeg2</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-22" href="#Options-22">9.7.1 Options</a></li>
+    </ul></li>
+    <li><a name="toc-png" href="#png">9.8 png</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Private-options-1" href="#Private-options-1">9.8.1 Private options</a></li>
+    </ul></li>
+    <li><a name="toc-ProRes" href="#ProRes">9.9 ProRes</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Private-Options-for-prores_002dks" href="#Private-Options-for-prores_002dks">9.9.1 Private Options for prores-ks</a></li>
+      <li><a name="toc-Speed-considerations" href="#Speed-considerations">9.9.2 Speed considerations</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Subtitles-Encoders" href="#Subtitles-Encoders">10 Subtitles Encoders</a>
+  <ul class="no-bullet">
+    <li><a name="toc-dvdsub-1" href="#dvdsub-1">10.1 dvdsub</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Options-23" href="#Options-23">10.1.1 Options</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-See-Also" href="#See-Also">11 See Also</a></li>
+  <li><a name="toc-Authors" href="#Authors">12 Authors</a></li>
+</ul>
+</div>
+
+
+<a name="Description"></a>
+<h2 class="chapter">1 Description<span class="pull-right"><a class="anchor hidden-xs" href="#Description" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Description" aria-hidden="true">TOC</a></span></h2>
+
+<p>This document describes the codecs (decoders and encoders) provided by
+the libavcodec library.
+</p>
+
+<a name="codec_002doptions"></a><a name="Codec-Options"></a>
+<h2 class="chapter">2 Codec Options<span class="pull-right"><a class="anchor hidden-xs" href="#Codec-Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Codec-Options" aria-hidden="true">TOC</a></span></h2>
+
+<p>libavcodec provides some generic global options, which can be set on
+all the encoders and decoders. In addition each codec may support
+so-called private options, which are specific for a given codec.
+</p>
+<p>Sometimes, a global option may only affect a specific kind of codec,
+and may be nonsensical or ignored by another, so you need to be aware
+of the meaning of the specified options. Also some options are
+meant only for decoding or encoding.
+</p>
+<p>Options may be set by specifying -<var>option</var> <var>value</var> in the
+FFmpeg tools, or by setting the value explicitly in the
+<code>AVCodecContext</code> options or using the <samp>libavutil/opt.h</samp> API
+for programmatic use.
+</p>
+<p>The list of supported options follow:
+</p>
+<dl compact="compact">
+<dt><samp>b <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dd><p>Set bitrate in bits/s. Default value is 200K.
+</p>
+</dd>
+<dt><samp>ab <var>integer</var> (<em>encoding,audio</em>)</samp></dt>
+<dd><p>Set audio bitrate (in bits/s). Default value is 128K.
+</p>
+</dd>
+<dt><samp>bt <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set video bitrate tolerance (in bits/s). In 1-pass mode, bitrate
+tolerance specifies how far ratecontrol is willing to deviate from the
+target average bitrate value. This is not related to min/max
+bitrate. Lowering tolerance too much has an adverse effect on quality.
+</p>
+</dd>
+<dt><samp>flags <var>flags</var> (<em>decoding/encoding,audio,video,subtitles</em>)</samp></dt>
+<dd><p>Set generic flags.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>mv4</samp>&rsquo;</dt>
+<dd><p>Use four motion vector by macroblock (mpeg4).
+</p></dd>
+<dt>&lsquo;<samp>qpel</samp>&rsquo;</dt>
+<dd><p>Use 1/4 pel motion compensation.
+</p></dd>
+<dt>&lsquo;<samp>loop</samp>&rsquo;</dt>
+<dd><p>Use loop filter.
+</p></dd>
+<dt>&lsquo;<samp>qscale</samp>&rsquo;</dt>
+<dd><p>Use fixed qscale.
+</p></dd>
+<dt>&lsquo;<samp>gmc</samp>&rsquo;</dt>
+<dd><p>Use gmc.
+</p></dd>
+<dt>&lsquo;<samp>mv0</samp>&rsquo;</dt>
+<dd><p>Always try a mb with mv=&lt;0,0&gt;.
+</p></dd>
+<dt>&lsquo;<samp>input_preserved</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>pass1</samp>&rsquo;</dt>
+<dd><p>Use internal 2pass ratecontrol in first pass mode.
+</p></dd>
+<dt>&lsquo;<samp>pass2</samp>&rsquo;</dt>
+<dd><p>Use internal 2pass ratecontrol in second pass mode.
+</p></dd>
+<dt>&lsquo;<samp>gray</samp>&rsquo;</dt>
+<dd><p>Only decode/encode grayscale.
+</p></dd>
+<dt>&lsquo;<samp>emu_edge</samp>&rsquo;</dt>
+<dd><p>Do not draw edges.
+</p></dd>
+<dt>&lsquo;<samp>psnr</samp>&rsquo;</dt>
+<dd><p>Set error[?] variables during encoding.
+</p></dd>
+<dt>&lsquo;<samp>truncated</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>naq</samp>&rsquo;</dt>
+<dd><p>Normalize adaptive quantization.
+</p></dd>
+<dt>&lsquo;<samp>ildct</samp>&rsquo;</dt>
+<dd><p>Use interlaced DCT.
+</p></dd>
+<dt>&lsquo;<samp>low_delay</samp>&rsquo;</dt>
+<dd><p>Force low delay.
+</p></dd>
+<dt>&lsquo;<samp>global_header</samp>&rsquo;</dt>
+<dd><p>Place global headers in extradata instead of every keyframe.
+</p></dd>
+<dt>&lsquo;<samp>bitexact</samp>&rsquo;</dt>
+<dd><p>Only write platform-, build- and time-independent data. (except (I)DCT).
+This ensures that file and data checksums are reproducible and match between
+platforms. Its primary use is for regression testing.
+</p></dd>
+<dt>&lsquo;<samp>aic</samp>&rsquo;</dt>
+<dd><p>Apply H263 advanced intra coding / mpeg4 ac prediction.
+</p></dd>
+<dt>&lsquo;<samp>cbp</samp>&rsquo;</dt>
+<dd><p>Deprecated, use mpegvideo private options instead.
+</p></dd>
+<dt>&lsquo;<samp>qprd</samp>&rsquo;</dt>
+<dd><p>Deprecated, use mpegvideo private options instead.
+</p></dd>
+<dt>&lsquo;<samp>ilme</samp>&rsquo;</dt>
+<dd><p>Apply interlaced motion estimation.
+</p></dd>
+<dt>&lsquo;<samp>cgop</samp>&rsquo;</dt>
+<dd><p>Use closed gop.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>me_method <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set motion estimation method.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>zero motion estimation (fastest)
+</p></dd>
+<dt>&lsquo;<samp>full</samp>&rsquo;</dt>
+<dd><p>full motion estimation (slowest)
+</p></dd>
+<dt>&lsquo;<samp>epzs</samp>&rsquo;</dt>
+<dd><p>EPZS motion estimation (default)
+</p></dd>
+<dt>&lsquo;<samp>esa</samp>&rsquo;</dt>
+<dd><p>esa motion estimation (alias for full)
+</p></dd>
+<dt>&lsquo;<samp>tesa</samp>&rsquo;</dt>
+<dd><p>tesa motion estimation
+</p></dd>
+<dt>&lsquo;<samp>dia</samp>&rsquo;</dt>
+<dd><p>dia motion estimation (alias for epzs)
+</p></dd>
+<dt>&lsquo;<samp>log</samp>&rsquo;</dt>
+<dd><p>log motion estimation
+</p></dd>
+<dt>&lsquo;<samp>phods</samp>&rsquo;</dt>
+<dd><p>phods motion estimation
+</p></dd>
+<dt>&lsquo;<samp>x1</samp>&rsquo;</dt>
+<dd><p>X1 motion estimation
+</p></dd>
+<dt>&lsquo;<samp>hex</samp>&rsquo;</dt>
+<dd><p>hex motion estimation
+</p></dd>
+<dt>&lsquo;<samp>umh</samp>&rsquo;</dt>
+<dd><p>umh motion estimation
+</p></dd>
+<dt>&lsquo;<samp>iter</samp>&rsquo;</dt>
+<dd><p>iter motion estimation
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>extradata_size <var>integer</var></samp></dt>
+<dd><p>Set extradata size.
+</p>
+</dd>
+<dt><samp>time_base <var>rational number</var></samp></dt>
+<dd><p>Set codec time base.
+</p>
+<p>It is the fundamental unit of time (in seconds) in terms of which
+frame timestamps are represented. For fixed-fps content, timebase
+should be <code>1 / frame_rate</code> and timestamp increments should be
+identically 1.
+</p>
+</dd>
+<dt><samp>g <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set the group of picture size. Default value is 12.
+</p>
+</dd>
+<dt><samp>ar <var>integer</var> (<em>decoding/encoding,audio</em>)</samp></dt>
+<dd><p>Set audio sampling rate (in Hz).
+</p>
+</dd>
+<dt><samp>ac <var>integer</var> (<em>decoding/encoding,audio</em>)</samp></dt>
+<dd><p>Set number of audio channels.
+</p>
+</dd>
+<dt><samp>cutoff <var>integer</var> (<em>encoding,audio</em>)</samp></dt>
+<dd><p>Set cutoff bandwidth.
+</p>
+</dd>
+<dt><samp>frame_size <var>integer</var> (<em>encoding,audio</em>)</samp></dt>
+<dd><p>Set audio frame size.
+</p>
+<p>Each submitted frame except the last must contain exactly frame_size
+samples per channel. May be 0 when the codec has
+CODEC_CAP_VARIABLE_FRAME_SIZE set, in that case the frame size is not
+restricted. It is set by some decoders to indicate constant frame
+size.
+</p>
+</dd>
+<dt><samp>frame_number <var>integer</var></samp></dt>
+<dd><p>Set the frame number.
+</p>
+</dd>
+<dt><samp>delay <var>integer</var></samp></dt>
+<dt><samp>qcomp <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set video quantizer scale compression (VBR). It is used as a constant
+in the ratecontrol equation. Recommended range for default rc_eq:
+0.0-1.0.
+</p>
+</dd>
+<dt><samp>qblur <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set video quantizer scale blur (VBR).
+</p>
+</dd>
+<dt><samp>qmin <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set min video quantizer scale (VBR). Must be included between -1 and
+69, default value is 2.
+</p>
+</dd>
+<dt><samp>qmax <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set max video quantizer scale (VBR). Must be included between -1 and
+1024, default value is 31.
+</p>
+</dd>
+<dt><samp>qdiff <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set max difference between the quantizer scale (VBR).
+</p>
+</dd>
+<dt><samp>bf <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set max number of B frames between non-B-frames.
+</p>
+<p>Must be an integer between -1 and 16. 0 means that B-frames are
+disabled. If a value of -1 is used, it will choose an automatic value
+depending on the encoder.
+</p>
+<p>Default value is 0.
+</p>
+</dd>
+<dt><samp>b_qfactor <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set qp factor between P and B frames.
+</p>
+</dd>
+<dt><samp>rc_strategy <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set ratecontrol method.
+</p>
+</dd>
+<dt><samp>b_strategy <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set strategy to choose between I/P/B-frames.
+</p>
+</dd>
+<dt><samp>ps <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set RTP payload size in bytes.
+</p>
+</dd>
+<dt><samp>mv_bits <var>integer</var></samp></dt>
+<dt><samp>header_bits <var>integer</var></samp></dt>
+<dt><samp>i_tex_bits <var>integer</var></samp></dt>
+<dt><samp>p_tex_bits <var>integer</var></samp></dt>
+<dt><samp>i_count <var>integer</var></samp></dt>
+<dt><samp>p_count <var>integer</var></samp></dt>
+<dt><samp>skip_count <var>integer</var></samp></dt>
+<dt><samp>misc_bits <var>integer</var></samp></dt>
+<dt><samp>frame_bits <var>integer</var></samp></dt>
+<dt><samp>codec_tag <var>integer</var></samp></dt>
+<dt><samp>bug <var>flags</var> (<em>decoding,video</em>)</samp></dt>
+<dd><p>Workaround not auto detected encoder bugs.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>autodetect</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>old_msmpeg4</samp>&rsquo;</dt>
+<dd><p>some old lavc generated msmpeg4v3 files (no autodetection)
+</p></dd>
+<dt>&lsquo;<samp>xvid_ilace</samp>&rsquo;</dt>
+<dd><p>Xvid interlacing bug (autodetected if fourcc==XVIX)
+</p></dd>
+<dt>&lsquo;<samp>ump4</samp>&rsquo;</dt>
+<dd><p>(autodetected if fourcc==UMP4)
+</p></dd>
+<dt>&lsquo;<samp>no_padding</samp>&rsquo;</dt>
+<dd><p>padding bug (autodetected)
+</p></dd>
+<dt>&lsquo;<samp>amv</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>ac_vlc</samp>&rsquo;</dt>
+<dd><p>illegal vlc bug (autodetected per fourcc)
+</p></dd>
+<dt>&lsquo;<samp>qpel_chroma</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>std_qpel</samp>&rsquo;</dt>
+<dd><p>old standard qpel (autodetected per fourcc/version)
+</p></dd>
+<dt>&lsquo;<samp>qpel_chroma2</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>direct_blocksize</samp>&rsquo;</dt>
+<dd><p>direct-qpel-blocksize bug (autodetected per fourcc/version)
+</p></dd>
+<dt>&lsquo;<samp>edge</samp>&rsquo;</dt>
+<dd><p>edge padding bug (autodetected per fourcc/version)
+</p></dd>
+<dt>&lsquo;<samp>hpel_chroma</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>dc_clip</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>ms</samp>&rsquo;</dt>
+<dd><p>Workaround various bugs in microsoft broken decoders.
+</p></dd>
+<dt>&lsquo;<samp>trunc</samp>&rsquo;</dt>
+<dd><p>trancated frames
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>lelim <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set single coefficient elimination threshold for luminance (negative
+values also consider DC coefficient).
+</p>
+</dd>
+<dt><samp>celim <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set single coefficient elimination threshold for chrominance (negative
+values also consider dc coefficient)
+</p>
+</dd>
+<dt><samp>strict <var>integer</var> (<em>decoding/encoding,audio,video</em>)</samp></dt>
+<dd><p>Specify how strictly to follow the standards.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>very</samp>&rsquo;</dt>
+<dd><p>strictly conform to a older more strict version of the spec or reference software
+</p></dd>
+<dt>&lsquo;<samp>strict</samp>&rsquo;</dt>
+<dd><p>strictly conform to all the things in the spec no matter what consequences
+</p></dd>
+<dt>&lsquo;<samp>normal</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>unofficial</samp>&rsquo;</dt>
+<dd><p>allow unofficial extensions
+</p></dd>
+<dt>&lsquo;<samp>experimental</samp>&rsquo;</dt>
+<dd><p>allow non standardized experimental things, experimental
+(unfinished/work in progress/not well tested) decoders and encoders.
+Note: experimental decoders can pose a security risk, do not use this for
+decoding untrusted input.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>b_qoffset <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set QP offset between P and B frames.
+</p>
+</dd>
+<dt><samp>err_detect <var>flags</var> (<em>decoding,audio,video</em>)</samp></dt>
+<dd><p>Set error detection flags.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>crccheck</samp>&rsquo;</dt>
+<dd><p>verify embedded CRCs
+</p></dd>
+<dt>&lsquo;<samp>bitstream</samp>&rsquo;</dt>
+<dd><p>detect bitstream specification deviations
+</p></dd>
+<dt>&lsquo;<samp>buffer</samp>&rsquo;</dt>
+<dd><p>detect improper bitstream length
+</p></dd>
+<dt>&lsquo;<samp>explode</samp>&rsquo;</dt>
+<dd><p>abort decoding on minor error detection
+</p></dd>
+<dt>&lsquo;<samp>ignore_err</samp>&rsquo;</dt>
+<dd><p>ignore decoding errors, and continue decoding.
+This is useful if you want to analyze the content of a video and thus want
+everything to be decoded no matter what. This option will not result in a video
+that is pleasing to watch in case of errors.
+</p></dd>
+<dt>&lsquo;<samp>careful</samp>&rsquo;</dt>
+<dd><p>consider things that violate the spec and have not been seen in the wild as errors
+</p></dd>
+<dt>&lsquo;<samp>compliant</samp>&rsquo;</dt>
+<dd><p>consider all spec non compliancies as errors
+</p></dd>
+<dt>&lsquo;<samp>aggressive</samp>&rsquo;</dt>
+<dd><p>consider things that a sane encoder should not do as an error
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>has_b_frames <var>integer</var></samp></dt>
+<dt><samp>block_align <var>integer</var></samp></dt>
+<dt><samp>mpeg_quant <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Use MPEG quantizers instead of H.263.
+</p>
+</dd>
+<dt><samp>qsquish <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>How to keep quantizer between qmin and qmax (0 = clip, 1 = use
+differentiable function).
+</p>
+</dd>
+<dt><samp>rc_qmod_amp <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set experimental quantizer modulation.
+</p>
+</dd>
+<dt><samp>rc_qmod_freq <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set experimental quantizer modulation.
+</p>
+</dd>
+<dt><samp>rc_override_count <var>integer</var></samp></dt>
+<dt><samp>rc_eq <var>string</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set rate control equation. When computing the expression, besides the
+standard functions defined in the section &rsquo;Expression Evaluation&rsquo;, the
+following functions are available: bits2qp(bits), qp2bits(qp). Also
+the following constants are available: iTex pTex tex mv fCode iCount
+mcVar var isI isP isB avgQP qComp avgIITex avgPITex avgPPTex avgBPTex
+avgTex.
+</p>
+</dd>
+<dt><samp>maxrate <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dd><p>Set max bitrate tolerance (in bits/s). Requires bufsize to be set.
+</p>
+</dd>
+<dt><samp>minrate <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dd><p>Set min bitrate tolerance (in bits/s). Most useful in setting up a CBR
+encode. It is of little use elsewise.
+</p>
+</dd>
+<dt><samp>bufsize <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dd><p>Set ratecontrol buffer size (in bits).
+</p>
+</dd>
+<dt><samp>rc_buf_aggressivity <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Currently useless.
+</p>
+</dd>
+<dt><samp>i_qfactor <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set QP factor between P and I frames.
+</p>
+</dd>
+<dt><samp>i_qoffset <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set QP offset between P and I frames.
+</p>
+</dd>
+<dt><samp>rc_init_cplx <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set initial complexity for 1-pass encoding.
+</p>
+</dd>
+<dt><samp>dct <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set DCT algorithm.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>auto</samp>&rsquo;</dt>
+<dd><p>autoselect a good one (default)
+</p></dd>
+<dt>&lsquo;<samp>fastint</samp>&rsquo;</dt>
+<dd><p>fast integer
+</p></dd>
+<dt>&lsquo;<samp>int</samp>&rsquo;</dt>
+<dd><p>accurate integer
+</p></dd>
+<dt>&lsquo;<samp>mmx</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>altivec</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>faan</samp>&rsquo;</dt>
+<dd><p>floating point AAN DCT
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>lumi_mask <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Compress bright areas stronger than medium ones.
+</p>
+</dd>
+<dt><samp>tcplx_mask <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set temporal complexity masking.
+</p>
+</dd>
+<dt><samp>scplx_mask <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set spatial complexity masking.
+</p>
+</dd>
+<dt><samp>p_mask <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set inter masking.
+</p>
+</dd>
+<dt><samp>dark_mask <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Compress dark areas stronger than medium ones.
+</p>
+</dd>
+<dt><samp>idct <var>integer</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dd><p>Select IDCT implementation.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>auto</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>int</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simple</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simplemmx</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simpleauto</samp>&rsquo;</dt>
+<dd><p>Automatically pick a IDCT compatible with the simple one
+</p>
+</dd>
+<dt>&lsquo;<samp>arm</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>altivec</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sh4</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simplearm</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simplearmv5te</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simplearmv6</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simpleneon</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>simplealpha</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>ipp</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>xvidmmx</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>faani</samp>&rsquo;</dt>
+<dd><p>floating point AAN IDCT
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>slice_count <var>integer</var></samp></dt>
+<dt><samp>ec <var>flags</var> (<em>decoding,video</em>)</samp></dt>
+<dd><p>Set error concealment strategy.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>guess_mvs</samp>&rsquo;</dt>
+<dd><p>iterative motion vector (MV) search (slow)
+</p></dd>
+<dt>&lsquo;<samp>deblock</samp>&rsquo;</dt>
+<dd><p>use strong deblock filter for damaged MBs
+</p></dd>
+<dt>&lsquo;<samp>favor_inter</samp>&rsquo;</dt>
+<dd><p>favor predicting from the previous frame instead of the current
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>bits_per_coded_sample <var>integer</var></samp></dt>
+<dt><samp>pred <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set prediction method.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>left</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>plane</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>median</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>aspect <var>rational number</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set sample aspect ratio.
+</p>
+</dd>
+<dt><samp>debug <var>flags</var> (<em>decoding/encoding,audio,video,subtitles</em>)</samp></dt>
+<dd><p>Print specific debug info.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>pict</samp>&rsquo;</dt>
+<dd><p>picture info
+</p></dd>
+<dt>&lsquo;<samp>rc</samp>&rsquo;</dt>
+<dd><p>rate control
+</p></dd>
+<dt>&lsquo;<samp>bitstream</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mb_type</samp>&rsquo;</dt>
+<dd><p>macroblock (MB) type
+</p></dd>
+<dt>&lsquo;<samp>qp</samp>&rsquo;</dt>
+<dd><p>per-block quantization parameter (QP)
+</p></dd>
+<dt>&lsquo;<samp>mv</samp>&rsquo;</dt>
+<dd><p>motion vector
+</p></dd>
+<dt>&lsquo;<samp>dct_coeff</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>skip</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>startcode</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>pts</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>er</samp>&rsquo;</dt>
+<dd><p>error recognition
+</p></dd>
+<dt>&lsquo;<samp>mmco</samp>&rsquo;</dt>
+<dd><p>memory management control operations (H.264)
+</p></dd>
+<dt>&lsquo;<samp>bugs</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>vis_qp</samp>&rsquo;</dt>
+<dd><p>visualize quantization parameter (QP), lower QP are tinted greener
+</p></dd>
+<dt>&lsquo;<samp>vis_mb_type</samp>&rsquo;</dt>
+<dd><p>visualize block types
+</p></dd>
+<dt>&lsquo;<samp>buffers</samp>&rsquo;</dt>
+<dd><p>picture buffer allocations
+</p></dd>
+<dt>&lsquo;<samp>thread_ops</samp>&rsquo;</dt>
+<dd><p>threading operations
+</p></dd>
+<dt>&lsquo;<samp>nomc</samp>&rsquo;</dt>
+<dd><p>skip motion compensation
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>vismv <var>integer</var> (<em>decoding,video</em>)</samp></dt>
+<dd><p>Visualize motion vectors (MVs).
+</p>
+<p>This option is deprecated, see the codecview filter instead.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>pf</samp>&rsquo;</dt>
+<dd><p>forward predicted MVs of P-frames
+</p></dd>
+<dt>&lsquo;<samp>bf</samp>&rsquo;</dt>
+<dd><p>forward predicted MVs of B-frames
+</p></dd>
+<dt>&lsquo;<samp>bb</samp>&rsquo;</dt>
+<dd><p>backward predicted MVs of B-frames
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>cmp <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set full pel me compare function.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>sad</samp>&rsquo;</dt>
+<dd><p>sum of absolute differences, fast (default)
+</p></dd>
+<dt>&lsquo;<samp>sse</samp>&rsquo;</dt>
+<dd><p>sum of squared errors
+</p></dd>
+<dt>&lsquo;<samp>satd</samp>&rsquo;</dt>
+<dd><p>sum of absolute Hadamard transformed differences
+</p></dd>
+<dt>&lsquo;<samp>dct</samp>&rsquo;</dt>
+<dd><p>sum of absolute DCT transformed differences
+</p></dd>
+<dt>&lsquo;<samp>psnr</samp>&rsquo;</dt>
+<dd><p>sum of squared quantization errors (avoid, low quality)
+</p></dd>
+<dt>&lsquo;<samp>bit</samp>&rsquo;</dt>
+<dd><p>number of bits needed for the block
+</p></dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>rate distortion optimal, slow
+</p></dd>
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>0
+</p></dd>
+<dt>&lsquo;<samp>vsad</samp>&rsquo;</dt>
+<dd><p>sum of absolute vertical differences
+</p></dd>
+<dt>&lsquo;<samp>vsse</samp>&rsquo;</dt>
+<dd><p>sum of squared vertical differences
+</p></dd>
+<dt>&lsquo;<samp>nsse</samp>&rsquo;</dt>
+<dd><p>noise preserving sum of squared differences
+</p></dd>
+<dt>&lsquo;<samp>w53</samp>&rsquo;</dt>
+<dd><p>5/3 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>w97</samp>&rsquo;</dt>
+<dd><p>9/7 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>dctmax</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>chroma</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>subcmp <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set sub pel me compare function.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>sad</samp>&rsquo;</dt>
+<dd><p>sum of absolute differences, fast (default)
+</p></dd>
+<dt>&lsquo;<samp>sse</samp>&rsquo;</dt>
+<dd><p>sum of squared errors
+</p></dd>
+<dt>&lsquo;<samp>satd</samp>&rsquo;</dt>
+<dd><p>sum of absolute Hadamard transformed differences
+</p></dd>
+<dt>&lsquo;<samp>dct</samp>&rsquo;</dt>
+<dd><p>sum of absolute DCT transformed differences
+</p></dd>
+<dt>&lsquo;<samp>psnr</samp>&rsquo;</dt>
+<dd><p>sum of squared quantization errors (avoid, low quality)
+</p></dd>
+<dt>&lsquo;<samp>bit</samp>&rsquo;</dt>
+<dd><p>number of bits needed for the block
+</p></dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>rate distortion optimal, slow
+</p></dd>
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>0
+</p></dd>
+<dt>&lsquo;<samp>vsad</samp>&rsquo;</dt>
+<dd><p>sum of absolute vertical differences
+</p></dd>
+<dt>&lsquo;<samp>vsse</samp>&rsquo;</dt>
+<dd><p>sum of squared vertical differences
+</p></dd>
+<dt>&lsquo;<samp>nsse</samp>&rsquo;</dt>
+<dd><p>noise preserving sum of squared differences
+</p></dd>
+<dt>&lsquo;<samp>w53</samp>&rsquo;</dt>
+<dd><p>5/3 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>w97</samp>&rsquo;</dt>
+<dd><p>9/7 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>dctmax</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>chroma</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>mbcmp <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set macroblock compare function.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>sad</samp>&rsquo;</dt>
+<dd><p>sum of absolute differences, fast (default)
+</p></dd>
+<dt>&lsquo;<samp>sse</samp>&rsquo;</dt>
+<dd><p>sum of squared errors
+</p></dd>
+<dt>&lsquo;<samp>satd</samp>&rsquo;</dt>
+<dd><p>sum of absolute Hadamard transformed differences
+</p></dd>
+<dt>&lsquo;<samp>dct</samp>&rsquo;</dt>
+<dd><p>sum of absolute DCT transformed differences
+</p></dd>
+<dt>&lsquo;<samp>psnr</samp>&rsquo;</dt>
+<dd><p>sum of squared quantization errors (avoid, low quality)
+</p></dd>
+<dt>&lsquo;<samp>bit</samp>&rsquo;</dt>
+<dd><p>number of bits needed for the block
+</p></dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>rate distortion optimal, slow
+</p></dd>
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>0
+</p></dd>
+<dt>&lsquo;<samp>vsad</samp>&rsquo;</dt>
+<dd><p>sum of absolute vertical differences
+</p></dd>
+<dt>&lsquo;<samp>vsse</samp>&rsquo;</dt>
+<dd><p>sum of squared vertical differences
+</p></dd>
+<dt>&lsquo;<samp>nsse</samp>&rsquo;</dt>
+<dd><p>noise preserving sum of squared differences
+</p></dd>
+<dt>&lsquo;<samp>w53</samp>&rsquo;</dt>
+<dd><p>5/3 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>w97</samp>&rsquo;</dt>
+<dd><p>9/7 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>dctmax</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>chroma</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>ildctcmp <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set interlaced dct compare function.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>sad</samp>&rsquo;</dt>
+<dd><p>sum of absolute differences, fast (default)
+</p></dd>
+<dt>&lsquo;<samp>sse</samp>&rsquo;</dt>
+<dd><p>sum of squared errors
+</p></dd>
+<dt>&lsquo;<samp>satd</samp>&rsquo;</dt>
+<dd><p>sum of absolute Hadamard transformed differences
+</p></dd>
+<dt>&lsquo;<samp>dct</samp>&rsquo;</dt>
+<dd><p>sum of absolute DCT transformed differences
+</p></dd>
+<dt>&lsquo;<samp>psnr</samp>&rsquo;</dt>
+<dd><p>sum of squared quantization errors (avoid, low quality)
+</p></dd>
+<dt>&lsquo;<samp>bit</samp>&rsquo;</dt>
+<dd><p>number of bits needed for the block
+</p></dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>rate distortion optimal, slow
+</p></dd>
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>0
+</p></dd>
+<dt>&lsquo;<samp>vsad</samp>&rsquo;</dt>
+<dd><p>sum of absolute vertical differences
+</p></dd>
+<dt>&lsquo;<samp>vsse</samp>&rsquo;</dt>
+<dd><p>sum of squared vertical differences
+</p></dd>
+<dt>&lsquo;<samp>nsse</samp>&rsquo;</dt>
+<dd><p>noise preserving sum of squared differences
+</p></dd>
+<dt>&lsquo;<samp>w53</samp>&rsquo;</dt>
+<dd><p>5/3 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>w97</samp>&rsquo;</dt>
+<dd><p>9/7 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>dctmax</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>chroma</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>dia_size <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set diamond type &amp; size for motion estimation.
+</p>
+</dd>
+<dt><samp>last_pred <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set amount of motion predictors from the previous frame.
+</p>
+</dd>
+<dt><samp>preme <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set pre motion estimation.
+</p>
+</dd>
+<dt><samp>precmp <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set pre motion estimation compare function.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>sad</samp>&rsquo;</dt>
+<dd><p>sum of absolute differences, fast (default)
+</p></dd>
+<dt>&lsquo;<samp>sse</samp>&rsquo;</dt>
+<dd><p>sum of squared errors
+</p></dd>
+<dt>&lsquo;<samp>satd</samp>&rsquo;</dt>
+<dd><p>sum of absolute Hadamard transformed differences
+</p></dd>
+<dt>&lsquo;<samp>dct</samp>&rsquo;</dt>
+<dd><p>sum of absolute DCT transformed differences
+</p></dd>
+<dt>&lsquo;<samp>psnr</samp>&rsquo;</dt>
+<dd><p>sum of squared quantization errors (avoid, low quality)
+</p></dd>
+<dt>&lsquo;<samp>bit</samp>&rsquo;</dt>
+<dd><p>number of bits needed for the block
+</p></dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>rate distortion optimal, slow
+</p></dd>
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>0
+</p></dd>
+<dt>&lsquo;<samp>vsad</samp>&rsquo;</dt>
+<dd><p>sum of absolute vertical differences
+</p></dd>
+<dt>&lsquo;<samp>vsse</samp>&rsquo;</dt>
+<dd><p>sum of squared vertical differences
+</p></dd>
+<dt>&lsquo;<samp>nsse</samp>&rsquo;</dt>
+<dd><p>noise preserving sum of squared differences
+</p></dd>
+<dt>&lsquo;<samp>w53</samp>&rsquo;</dt>
+<dd><p>5/3 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>w97</samp>&rsquo;</dt>
+<dd><p>9/7 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>dctmax</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>chroma</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>pre_dia_size <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set diamond type &amp; size for motion estimation pre-pass.
+</p>
+</dd>
+<dt><samp>subq <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set sub pel motion estimation quality.
+</p>
+</dd>
+<dt><samp>dtg_active_format <var>integer</var></samp></dt>
+<dt><samp>me_range <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set limit motion vectors range (1023 for DivX player).
+</p>
+</dd>
+<dt><samp>ibias <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set intra quant bias.
+</p>
+</dd>
+<dt><samp>pbias <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set inter quant bias.
+</p>
+</dd>
+<dt><samp>color_table_id <var>integer</var></samp></dt>
+<dt><samp>global_quality <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dt><samp>coder <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>vlc</samp>&rsquo;</dt>
+<dd><p>variable length coder / huffman coder
+</p></dd>
+<dt>&lsquo;<samp>ac</samp>&rsquo;</dt>
+<dd><p>arithmetic coder
+</p></dd>
+<dt>&lsquo;<samp>raw</samp>&rsquo;</dt>
+<dd><p>raw (no encoding)
+</p></dd>
+<dt>&lsquo;<samp>rle</samp>&rsquo;</dt>
+<dd><p>run-length coder
+</p></dd>
+<dt>&lsquo;<samp>deflate</samp>&rsquo;</dt>
+<dd><p>deflate-based coder
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>context <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set context model.
+</p>
+</dd>
+<dt><samp>slice_flags <var>integer</var></samp></dt>
+<dt><samp>xvmc_acceleration <var>integer</var></samp></dt>
+<dt><samp>mbd <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set macroblock decision algorithm (high quality mode).
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>simple</samp>&rsquo;</dt>
+<dd><p>use mbcmp (default)
+</p></dd>
+<dt>&lsquo;<samp>bits</samp>&rsquo;</dt>
+<dd><p>use fewest bits
+</p></dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>use best rate distortion
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>stream_codec_tag <var>integer</var></samp></dt>
+<dt><samp>sc_threshold <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set scene change threshold.
+</p>
+</dd>
+<dt><samp>lmin <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set min lagrange factor (VBR).
+</p>
+</dd>
+<dt><samp>lmax <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set max lagrange factor (VBR).
+</p>
+</dd>
+<dt><samp>nr <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set noise reduction.
+</p>
+</dd>
+<dt><samp>rc_init_occupancy <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set number of bits which should be loaded into the rc buffer before
+decoding starts.
+</p>
+</dd>
+<dt><samp>flags2 <var>flags</var> (<em>decoding/encoding,audio,video</em>)</samp></dt>
+<dd>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>fast</samp>&rsquo;</dt>
+<dd><p>Allow non spec compliant speedup tricks.
+</p></dd>
+<dt>&lsquo;<samp>sgop</samp>&rsquo;</dt>
+<dd><p>Deprecated, use mpegvideo private options instead.
+</p></dd>
+<dt>&lsquo;<samp>noout</samp>&rsquo;</dt>
+<dd><p>Skip bitstream encoding.
+</p></dd>
+<dt>&lsquo;<samp>ignorecrop</samp>&rsquo;</dt>
+<dd><p>Ignore cropping information from sps.
+</p></dd>
+<dt>&lsquo;<samp>local_header</samp>&rsquo;</dt>
+<dd><p>Place global headers at every keyframe instead of in extradata.
+</p></dd>
+<dt>&lsquo;<samp>chunks</samp>&rsquo;</dt>
+<dd><p>Frame data might be split into multiple chunks.
+</p></dd>
+<dt>&lsquo;<samp>showall</samp>&rsquo;</dt>
+<dd><p>Show all frames before the first keyframe.
+</p></dd>
+<dt>&lsquo;<samp>skiprd</samp>&rsquo;</dt>
+<dd><p>Deprecated, use mpegvideo private options instead.
+</p></dd>
+<dt>&lsquo;<samp>export_mvs</samp>&rsquo;</dt>
+<dd><p>Export motion vectors into frame side-data (see <code>AV_FRAME_DATA_MOTION_VECTORS</code>)
+for codecs that support it. See also <samp>doc/examples/export_mvs.c</samp>.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>error <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dt><samp>qns <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Deprecated, use mpegvideo private options instead.
+</p>
+</dd>
+<dt><samp>threads <var>integer</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dd>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>auto</samp>&rsquo;</dt>
+<dd><p>detect a good number of threads
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>me_threshold <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set motion estimation threshold.
+</p>
+</dd>
+<dt><samp>mb_threshold <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set macroblock threshold.
+</p>
+</dd>
+<dt><samp>dc <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set intra_dc_precision.
+</p>
+</dd>
+<dt><samp>nssew <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set nsse weight.
+</p>
+</dd>
+<dt><samp>skip_top <var>integer</var> (<em>decoding,video</em>)</samp></dt>
+<dd><p>Set number of macroblock rows at the top which are skipped.
+</p>
+</dd>
+<dt><samp>skip_bottom <var>integer</var> (<em>decoding,video</em>)</samp></dt>
+<dd><p>Set number of macroblock rows at the bottom which are skipped.
+</p>
+</dd>
+<dt><samp>profile <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dd>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>unknown</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_main</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_low</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_ssr</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_ltp</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_he</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_he_v2</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_ld</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>aac_eld</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mpeg2_aac_low</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mpeg2_aac_he</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mpeg4_sp</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mpeg4_core</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mpeg4_main</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mpeg4_asp</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>dts</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>dts_es</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>dts_96_24</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>dts_hd_hra</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>dts_hd_ma</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>level <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dd>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>unknown</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>lowres <var>integer</var> (<em>decoding,audio,video</em>)</samp></dt>
+<dd><p>Decode at 1= 1/2, 2=1/4, 3=1/8 resolutions.
+</p>
+</dd>
+<dt><samp>skip_threshold <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set frame skip threshold.
+</p>
+</dd>
+<dt><samp>skip_factor <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set frame skip factor.
+</p>
+</dd>
+<dt><samp>skip_exp <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set frame skip exponent.
+Negative values behave identical to the corresponding positive ones, except
+that the score is normalized.
+Positive values exist primarily for compatibility reasons and are not so useful.
+</p>
+</dd>
+<dt><samp>skipcmp <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set frame skip compare function.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>sad</samp>&rsquo;</dt>
+<dd><p>sum of absolute differences, fast (default)
+</p></dd>
+<dt>&lsquo;<samp>sse</samp>&rsquo;</dt>
+<dd><p>sum of squared errors
+</p></dd>
+<dt>&lsquo;<samp>satd</samp>&rsquo;</dt>
+<dd><p>sum of absolute Hadamard transformed differences
+</p></dd>
+<dt>&lsquo;<samp>dct</samp>&rsquo;</dt>
+<dd><p>sum of absolute DCT transformed differences
+</p></dd>
+<dt>&lsquo;<samp>psnr</samp>&rsquo;</dt>
+<dd><p>sum of squared quantization errors (avoid, low quality)
+</p></dd>
+<dt>&lsquo;<samp>bit</samp>&rsquo;</dt>
+<dd><p>number of bits needed for the block
+</p></dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>rate distortion optimal, slow
+</p></dd>
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>0
+</p></dd>
+<dt>&lsquo;<samp>vsad</samp>&rsquo;</dt>
+<dd><p>sum of absolute vertical differences
+</p></dd>
+<dt>&lsquo;<samp>vsse</samp>&rsquo;</dt>
+<dd><p>sum of squared vertical differences
+</p></dd>
+<dt>&lsquo;<samp>nsse</samp>&rsquo;</dt>
+<dd><p>noise preserving sum of squared differences
+</p></dd>
+<dt>&lsquo;<samp>w53</samp>&rsquo;</dt>
+<dd><p>5/3 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>w97</samp>&rsquo;</dt>
+<dd><p>9/7 wavelet, only used in snow
+</p></dd>
+<dt>&lsquo;<samp>dctmax</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>chroma</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>border_mask <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Increase the quantizer for macroblocks close to borders.
+</p>
+</dd>
+<dt><samp>mblmin <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set min macroblock lagrange factor (VBR).
+</p>
+</dd>
+<dt><samp>mblmax <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set max macroblock lagrange factor (VBR).
+</p>
+</dd>
+<dt><samp>mepc <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set motion estimation bitrate penalty compensation (1.0 = 256).
+</p>
+</dd>
+<dt><samp>skip_loop_filter <var>integer</var> (<em>decoding,video</em>)</samp></dt>
+<dt><samp>skip_idct        <var>integer</var> (<em>decoding,video</em>)</samp></dt>
+<dt><samp>skip_frame       <var>integer</var> (<em>decoding,video</em>)</samp></dt>
+<dd>
+<p>Make decoder discard processing depending on the frame type selected
+by the option value.
+</p>
+<p><samp>skip_loop_filter</samp> skips frame loop filtering, <samp>skip_idct</samp>
+skips frame IDCT/dequantization, <samp>skip_frame</samp> skips decoding.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>none</samp>&rsquo;</dt>
+<dd><p>Discard no frame.
+</p>
+</dd>
+<dt>&lsquo;<samp>default</samp>&rsquo;</dt>
+<dd><p>Discard useless frames like 0-sized frames.
+</p>
+</dd>
+<dt>&lsquo;<samp>noref</samp>&rsquo;</dt>
+<dd><p>Discard all non-reference frames.
+</p>
+</dd>
+<dt>&lsquo;<samp>bidir</samp>&rsquo;</dt>
+<dd><p>Discard all bidirectional frames.
+</p>
+</dd>
+<dt>&lsquo;<samp>nokey</samp>&rsquo;</dt>
+<dd><p>Discard all frames excepts keyframes.
+</p>
+</dd>
+<dt>&lsquo;<samp>all</samp>&rsquo;</dt>
+<dd><p>Discard all frames.
+</p></dd>
+</dl>
+
+<p>Default value is &lsquo;<samp>default</samp>&rsquo;.
+</p>
+</dd>
+<dt><samp>bidir_refine <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Refine the two motion vectors used in bidirectional macroblocks.
+</p>
+</dd>
+<dt><samp>brd_scale <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Downscale frames for dynamic B-frame decision.
+</p>
+</dd>
+<dt><samp>keyint_min <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set minimum interval between IDR-frames.
+</p>
+</dd>
+<dt><samp>refs <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set reference frames to consider for motion compensation.
+</p>
+</dd>
+<dt><samp>chromaoffset <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set chroma qp offset from luma.
+</p>
+</dd>
+<dt><samp>trellis <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dd><p>Set rate-distortion optimal quantization.
+</p>
+</dd>
+<dt><samp>sc_factor <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set value multiplied by qscale for each frame and added to
+scene_change_score.
+</p>
+</dd>
+<dt><samp>mv0_threshold <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dt><samp>b_sensitivity <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Adjust sensitivity of b_frame_strategy 1.
+</p>
+</dd>
+<dt><samp>compression_level <var>integer</var> (<em>encoding,audio,video</em>)</samp></dt>
+<dt><samp>min_prediction_order <var>integer</var> (<em>encoding,audio</em>)</samp></dt>
+<dt><samp>max_prediction_order <var>integer</var> (<em>encoding,audio</em>)</samp></dt>
+<dt><samp>timecode_frame_start <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Set GOP timecode frame start number, in non drop frame format.
+</p>
+</dd>
+<dt><samp>request_channels <var>integer</var> (<em>decoding,audio</em>)</samp></dt>
+<dd><p>Set desired number of audio channels.
+</p>
+</dd>
+<dt><samp>bits_per_raw_sample <var>integer</var></samp></dt>
+<dt><samp>channel_layout <var>integer</var> (<em>decoding/encoding,audio</em>)</samp></dt>
+<dd>
+<p>Possible values:
+</p></dd>
+<dt><samp>request_channel_layout <var>integer</var> (<em>decoding,audio</em>)</samp></dt>
+<dd>
+<p>Possible values:
+</p></dd>
+<dt><samp>rc_max_vbv_use <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dt><samp>rc_min_vbv_use <var>float</var> (<em>encoding,video</em>)</samp></dt>
+<dt><samp>ticks_per_frame <var>integer</var> (<em>decoding/encoding,audio,video</em>)</samp></dt>
+<dt><samp>color_primaries <var>integer</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dt><samp>color_trc <var>integer</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dt><samp>colorspace <var>integer</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dt><samp>color_range <var>integer</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dt><samp>chroma_sample_location <var>integer</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dt><samp>log_level_offset <var>integer</var></samp></dt>
+<dd><p>Set the log level offset.
+</p>
+</dd>
+<dt><samp>slices <var>integer</var> (<em>encoding,video</em>)</samp></dt>
+<dd><p>Number of slices, used in parallelized encoding.
+</p>
+</dd>
+<dt><samp>thread_type <var>flags</var> (<em>decoding/encoding,video</em>)</samp></dt>
+<dd><p>Select which multithreading methods to use.
+</p>
+<p>Use of &lsquo;<samp>frame</samp>&rsquo; will increase decoding delay by one frame per
+thread, so clients which cannot provide future frames should not use
+it.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>slice</samp>&rsquo;</dt>
+<dd><p>Decode more than one part of a single frame at once.
+</p>
+<p>Multithreading using slices works only when the video was encoded with
+slices.
+</p>
+</dd>
+<dt>&lsquo;<samp>frame</samp>&rsquo;</dt>
+<dd><p>Decode more than one frame at once.
+</p></dd>
+</dl>
+
+<p>Default value is &lsquo;<samp>slice+frame</samp>&rsquo;.
+</p>
+</dd>
+<dt><samp>audio_service_type <var>integer</var> (<em>encoding,audio</em>)</samp></dt>
+<dd><p>Set audio service type.
+</p>
+<p>Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>ma</samp>&rsquo;</dt>
+<dd><p>Main Audio Service
+</p></dd>
+<dt>&lsquo;<samp>ef</samp>&rsquo;</dt>
+<dd><p>Effects
+</p></dd>
+<dt>&lsquo;<samp>vi</samp>&rsquo;</dt>
+<dd><p>Visually Impaired
+</p></dd>
+<dt>&lsquo;<samp>hi</samp>&rsquo;</dt>
+<dd><p>Hearing Impaired
+</p></dd>
+<dt>&lsquo;<samp>di</samp>&rsquo;</dt>
+<dd><p>Dialogue
+</p></dd>
+<dt>&lsquo;<samp>co</samp>&rsquo;</dt>
+<dd><p>Commentary
+</p></dd>
+<dt>&lsquo;<samp>em</samp>&rsquo;</dt>
+<dd><p>Emergency
+</p></dd>
+<dt>&lsquo;<samp>vo</samp>&rsquo;</dt>
+<dd><p>Voice Over
+</p></dd>
+<dt>&lsquo;<samp>ka</samp>&rsquo;</dt>
+<dd><p>Karaoke
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>request_sample_fmt <var>sample_fmt</var> (<em>decoding,audio</em>)</samp></dt>
+<dd><p>Set sample format audio decoders should prefer. Default value is
+<code>none</code>.
+</p>
+</dd>
+<dt><samp>pkt_timebase <var>rational number</var></samp></dt>
+<dt><samp>sub_charenc <var>encoding</var> (<em>decoding,subtitles</em>)</samp></dt>
+<dd><p>Set the input subtitles character encoding.
+</p>
+</dd>
+<dt><samp>field_order  <var>field_order</var> (<em>video</em>)</samp></dt>
+<dd><p>Set/override the field order of the video.
+Possible values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>progressive</samp>&rsquo;</dt>
+<dd><p>Progressive video
+</p></dd>
+<dt>&lsquo;<samp>tt</samp>&rsquo;</dt>
+<dd><p>Interlaced video, top field coded and displayed first
+</p></dd>
+<dt>&lsquo;<samp>bb</samp>&rsquo;</dt>
+<dd><p>Interlaced video, bottom field coded and displayed first
+</p></dd>
+<dt>&lsquo;<samp>tb</samp>&rsquo;</dt>
+<dd><p>Interlaced video, top coded first, bottom displayed first
+</p></dd>
+<dt>&lsquo;<samp>bt</samp>&rsquo;</dt>
+<dd><p>Interlaced video, bottom coded first, top displayed first
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>skip_alpha <var>integer</var> (<em>decoding,video</em>)</samp></dt>
+<dd><p>Set to 1 to disable processing alpha (transparency). This works like the
+&lsquo;<samp>gray</samp>&rsquo; flag in the <samp>flags</samp> option which skips chroma information
+instead of alpha. Default is 0.
+</p>
+</dd>
+<dt><samp>codec_whitelist <var>list</var> (<em>input</em>)</samp></dt>
+<dd><p>&quot;,&quot; separated List of allowed decoders. By default all are allowed.
+</p>
+</dd>
+<dt><samp>dump_separator <var>string</var> (<em>input</em>)</samp></dt>
+<dd><p>Separator used to separate the fields printed on the command line about the
+Stream parameters.
+For example to separate the fields with newlines and indention:
+</p><div class="example">
+<pre class="example">ffprobe -dump_separator &quot;
+                          &quot;  -i ~/videos/matrixbench_mpeg2.mpg
+</pre></div>
+
+</dd>
+</dl>
+
+
+<a name="Decoders"></a>
+<h2 class="chapter">3 Decoders<span class="pull-right"><a class="anchor hidden-xs" href="#Decoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Decoders" aria-hidden="true">TOC</a></span></h2>
+
+<p>Decoders are configured elements in FFmpeg which allow the decoding of
+multimedia streams.
+</p>
+<p>When you configure your FFmpeg build, all the supported native decoders
+are enabled by default. Decoders requiring an external library must be enabled
+manually via the corresponding <code>--enable-lib</code> option. You can list all
+available decoders using the configure option <code>--list-decoders</code>.
+</p>
+<p>You can disable all the decoders with the configure option
+<code>--disable-decoders</code> and selectively enable / disable single decoders
+with the options <code>--enable-decoder=<var>DECODER</var></code> /
+<code>--disable-decoder=<var>DECODER</var></code>.
+</p>
+<p>The option <code>-decoders</code> of the ff* tools will display the list of
+enabled decoders.
+</p>
+
+<a name="Video-Decoders"></a>
+<h2 class="chapter">4 Video Decoders<span class="pull-right"><a class="anchor hidden-xs" href="#Video-Decoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Video-Decoders" aria-hidden="true">TOC</a></span></h2>
+
+<p>A description of some of the currently available video decoders
+follows.
+</p>
+<a name="rawvideo"></a>
+<h3 class="section">4.1 rawvideo<span class="pull-right"><a class="anchor hidden-xs" href="#rawvideo" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-rawvideo" aria-hidden="true">TOC</a></span></h3>
+
+<p>Raw video decoder.
+</p>
+<p>This decoder decodes rawvideo streams.
+</p>
+<a name="Options"></a>
+<h4 class="subsection">4.1.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>top <var>top_field_first</var></samp></dt>
+<dd><p>Specify the assumed field type of the input video.
+</p><dl compact="compact">
+<dt><samp>-1</samp></dt>
+<dd><p>the video is assumed to be progressive (default)
+</p></dd>
+<dt><samp>0</samp></dt>
+<dd><p>bottom-field-first is assumed
+</p></dd>
+<dt><samp>1</samp></dt>
+<dd><p>top-field-first is assumed
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+
+<a name="Audio-Decoders"></a>
+<h2 class="chapter">5 Audio Decoders<span class="pull-right"><a class="anchor hidden-xs" href="#Audio-Decoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Audio-Decoders" aria-hidden="true">TOC</a></span></h2>
+
+<p>A description of some of the currently available audio decoders
+follows.
+</p>
+<a name="ac3"></a>
+<h3 class="section">5.1 ac3<span class="pull-right"><a class="anchor hidden-xs" href="#ac3" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-ac3" aria-hidden="true">TOC</a></span></h3>
+
+<p>AC-3 audio decoder.
+</p>
+<p>This decoder implements part of ATSC A/52:2010 and ETSI TS 102 366, as well as
+the undocumented RealAudio 3 (a.k.a. dnet).
+</p>
+<a name="AC_002d3-Decoder-Options"></a>
+<h4 class="subsection">5.1.1 AC-3 Decoder Options<span class="pull-right"><a class="anchor hidden-xs" href="#AC_002d3-Decoder-Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-AC_002d3-Decoder-Options" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-drc_scale <var>value</var></samp></dt>
+<dd><p>Dynamic Range Scale Factor. The factor to apply to dynamic range values
+from the AC-3 stream. This factor is applied exponentially.
+There are 3 notable scale factor ranges:
+</p><dl compact="compact">
+<dt><samp>drc_scale == 0</samp></dt>
+<dd><p>DRC disabled. Produces full range audio.
+</p></dd>
+<dt><samp>0 &lt; drc_scale &lt;= 1</samp></dt>
+<dd><p>DRC enabled.  Applies a fraction of the stream DRC value.
+Audio reproduction is between full range and full compression.
+</p></dd>
+<dt><samp>drc_scale &gt; 1</samp></dt>
+<dd><p>DRC enabled. Applies drc_scale asymmetrically.
+Loud sounds are fully compressed.  Soft sounds are enhanced.
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="ffwavesynth"></a>
+<h3 class="section">5.2 ffwavesynth<span class="pull-right"><a class="anchor hidden-xs" href="#ffwavesynth" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-ffwavesynth" aria-hidden="true">TOC</a></span></h3>
+
+<p>Internal wave synthetizer.
+</p>
+<p>This decoder generates wave patterns according to predefined sequences. Its
+use is purely internal and the format of the data it accepts is not publicly
+documented.
+</p>
+<a name="libcelt"></a>
+<h3 class="section">5.3 libcelt<span class="pull-right"><a class="anchor hidden-xs" href="#libcelt" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libcelt" aria-hidden="true">TOC</a></span></h3>
+
+<p>libcelt decoder wrapper.
+</p>
+<p>libcelt allows libavcodec to decode the Xiph CELT ultra-low delay audio codec.
+Requires the presence of the libcelt headers and library during configuration.
+You need to explicitly configure the build with <code>--enable-libcelt</code>.
+</p>
+<a name="libgsm"></a>
+<h3 class="section">5.4 libgsm<span class="pull-right"><a class="anchor hidden-xs" href="#libgsm" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libgsm" aria-hidden="true">TOC</a></span></h3>
+
+<p>libgsm decoder wrapper.
+</p>
+<p>libgsm allows libavcodec to decode the GSM full rate audio codec. Requires
+the presence of the libgsm headers and library during configuration. You need
+to explicitly configure the build with <code>--enable-libgsm</code>.
+</p>
+<p>This decoder supports both the ordinary GSM and the Microsoft variant.
+</p>
+<a name="libilbc"></a>
+<h3 class="section">5.5 libilbc<span class="pull-right"><a class="anchor hidden-xs" href="#libilbc" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libilbc" aria-hidden="true">TOC</a></span></h3>
+
+<p>libilbc decoder wrapper.
+</p>
+<p>libilbc allows libavcodec to decode the Internet Low Bitrate Codec (iLBC)
+audio codec. Requires the presence of the libilbc headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libilbc</code>.
+</p>
+<a name="Options-1"></a>
+<h4 class="subsection">5.5.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-1" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following option is supported by the libilbc wrapper.
+</p>
+<dl compact="compact">
+<dt><samp>enhance</samp></dt>
+<dd>
+<p>Enable the enhancement of the decoded audio when set to 1. The default
+value is 0 (disabled).
+</p>
+</dd>
+</dl>
+
+<a name="libopencore_002damrnb"></a>
+<h3 class="section">5.6 libopencore-amrnb<span class="pull-right"><a class="anchor hidden-xs" href="#libopencore_002damrnb" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libopencore_002damrnb" aria-hidden="true">TOC</a></span></h3>
+
+<p>libopencore-amrnb decoder wrapper.
+</p>
+<p>libopencore-amrnb allows libavcodec to decode the Adaptive Multi-Rate
+Narrowband audio codec. Using it requires the presence of the
+libopencore-amrnb headers and library during configuration. You need to
+explicitly configure the build with <code>--enable-libopencore-amrnb</code>.
+</p>
+<p>An FFmpeg native decoder for AMR-NB exists, so users can decode AMR-NB
+without this library.
+</p>
+<a name="libopencore_002damrwb"></a>
+<h3 class="section">5.7 libopencore-amrwb<span class="pull-right"><a class="anchor hidden-xs" href="#libopencore_002damrwb" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libopencore_002damrwb" aria-hidden="true">TOC</a></span></h3>
+
+<p>libopencore-amrwb decoder wrapper.
+</p>
+<p>libopencore-amrwb allows libavcodec to decode the Adaptive Multi-Rate
+Wideband audio codec. Using it requires the presence of the
+libopencore-amrwb headers and library during configuration. You need to
+explicitly configure the build with <code>--enable-libopencore-amrwb</code>.
+</p>
+<p>An FFmpeg native decoder for AMR-WB exists, so users can decode AMR-WB
+without this library.
+</p>
+<a name="libopus"></a>
+<h3 class="section">5.8 libopus<span class="pull-right"><a class="anchor hidden-xs" href="#libopus" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libopus" aria-hidden="true">TOC</a></span></h3>
+
+<p>libopus decoder wrapper.
+</p>
+<p>libopus allows libavcodec to decode the Opus Interactive Audio Codec.
+Requires the presence of the libopus headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libopus</code>.
+</p>
+<p>An FFmpeg native decoder for Opus exists, so users can decode Opus
+without this library.
+</p>
+
+<a name="Subtitles-Decoders"></a>
+<h2 class="chapter">6 Subtitles Decoders<span class="pull-right"><a class="anchor hidden-xs" href="#Subtitles-Decoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Subtitles-Decoders" aria-hidden="true">TOC</a></span></h2>
+
+<a name="dvdsub"></a>
+<h3 class="section">6.1 dvdsub<span class="pull-right"><a class="anchor hidden-xs" href="#dvdsub" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-dvdsub" aria-hidden="true">TOC</a></span></h3>
+
+<p>This codec decodes the bitmap subtitles used in DVDs; the same subtitles can
+also be found in VobSub file pairs and in some Matroska files.
+</p>
+<a name="Options-2"></a>
+<h4 class="subsection">6.1.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-2" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-2" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>palette</samp></dt>
+<dd><p>Specify the global palette used by the bitmaps. When stored in VobSub, the
+palette is normally specified in the index file; in Matroska, the palette is
+stored in the codec extra-data in the same format as in VobSub. In DVDs, the
+palette is stored in the IFO file, and therefore not available when reading
+from dumped VOB files.
+</p>
+<p>The format for this option is a string containing 16 24-bits hexadecimal
+numbers (without 0x prefix) separated by comas, for example <code>0d00ee,
+ee450d, 101010, eaeaea, 0ce60b, ec14ed, ebff0b, 0d617a, 7b7b7b, d1d1d1,
+7b2a0e, 0d950c, 0f007b, cf0dec, cfa80c, 7c127b</code>.
+</p>
+</dd>
+<dt><samp>ifo_palette</samp></dt>
+<dd><p>Specify the IFO file from which the global palette is obtained.
+(experimental)
+</p>
+</dd>
+<dt><samp>forced_subs_only</samp></dt>
+<dd><p>Only decode subtitle entries marked as forced. Some titles have forced
+and non-forced subtitles in the same track. Setting this flag to <code>1</code>
+will only keep the forced subtitles. Default value is <code>0</code>.
+</p></dd>
+</dl>
+
+<a name="libzvbi_002dteletext"></a>
+<h3 class="section">6.2 libzvbi-teletext<span class="pull-right"><a class="anchor hidden-xs" href="#libzvbi_002dteletext" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libzvbi_002dteletext" aria-hidden="true">TOC</a></span></h3>
+
+<p>Libzvbi allows libavcodec to decode DVB teletext pages and DVB teletext
+subtitles. Requires the presence of the libzvbi headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libzvbi</code>.
+</p>
+<a name="Options-3"></a>
+<h4 class="subsection">6.2.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-3" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-3" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>txt_page</samp></dt>
+<dd><p>List of teletext page numbers to decode. You may use the special * string to
+match all pages. Pages that do not match the specified list are dropped.
+Default value is *.
+</p></dd>
+<dt><samp>txt_chop_top</samp></dt>
+<dd><p>Discards the top teletext line. Default value is 1.
+</p></dd>
+<dt><samp>txt_format</samp></dt>
+<dd><p>Specifies the format of the decoded subtitles. The teletext decoder is capable
+of decoding the teletext pages to bitmaps or to simple text, you should use
+&quot;bitmap&quot; for teletext pages, because certain graphics and colors cannot be
+expressed in simple text. You might use &quot;text&quot; for teletext based subtitles if
+your application can handle simple text based subtitles. Default value is
+bitmap.
+</p></dd>
+<dt><samp>txt_left</samp></dt>
+<dd><p>X offset of generated bitmaps, default is 0.
+</p></dd>
+<dt><samp>txt_top</samp></dt>
+<dd><p>Y offset of generated bitmaps, default is 0.
+</p></dd>
+<dt><samp>txt_chop_spaces</samp></dt>
+<dd><p>Chops leading and trailing spaces and removes empty lines from the generated
+text. This option is useful for teletext based subtitles where empty spaces may
+be present at the start or at the end of the lines or empty lines may be
+present between the subtitle lines because of double-sized teletext charactes.
+Default value is 1.
+</p></dd>
+<dt><samp>txt_duration</samp></dt>
+<dd><p>Sets the display duration of the decoded teletext pages or subtitles in
+miliseconds. Default value is 30000 which is 30 seconds.
+</p></dd>
+<dt><samp>txt_transparent</samp></dt>
+<dd><p>Force transparent background of the generated teletext bitmaps. Default value
+is 0 which means an opaque (black) background.
+</p></dd>
+</dl>
+
+<a name="Encoders"></a>
+<h2 class="chapter">7 Encoders<span class="pull-right"><a class="anchor hidden-xs" href="#Encoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Encoders" aria-hidden="true">TOC</a></span></h2>
+
+<p>Encoders are configured elements in FFmpeg which allow the encoding of
+multimedia streams.
+</p>
+<p>When you configure your FFmpeg build, all the supported native encoders
+are enabled by default. Encoders requiring an external library must be enabled
+manually via the corresponding <code>--enable-lib</code> option. You can list all
+available encoders using the configure option <code>--list-encoders</code>.
+</p>
+<p>You can disable all the encoders with the configure option
+<code>--disable-encoders</code> and selectively enable / disable single encoders
+with the options <code>--enable-encoder=<var>ENCODER</var></code> /
+<code>--disable-encoder=<var>ENCODER</var></code>.
+</p>
+<p>The option <code>-encoders</code> of the ff* tools will display the list of
+enabled encoders.
+</p>
+
+<a name="Audio-Encoders"></a>
+<h2 class="chapter">8 Audio Encoders<span class="pull-right"><a class="anchor hidden-xs" href="#Audio-Encoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Audio-Encoders" aria-hidden="true">TOC</a></span></h2>
+
+<p>A description of some of the currently available audio encoders
+follows.
+</p>
+<a name="aacenc"></a><a name="aac"></a>
+<h3 class="section">8.1 aac<span class="pull-right"><a class="anchor hidden-xs" href="#aac" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-aac" aria-hidden="true">TOC</a></span></h3>
+
+<p>Advanced Audio Coding (AAC) encoder.
+</p>
+<p>This encoder is an experimental FFmpeg-native AAC encoder. Currently only the
+low complexity (AAC-LC) profile is supported. To use this encoder, you must set
+<samp>strict</samp> option to &lsquo;<samp>experimental</samp>&rsquo; or lower.
+</p>
+<p>As this encoder is experimental, unexpected behavior may exist from time to
+time. For a more stable AAC encoder, see <a href="#libvo_002daacenc">libvo-aacenc</a>. However, be warned
+that it has a worse quality reported by some users.
+</p>
+<p>See also <a href="#libfdk_002daac_002denc">libfdk_aac</a> and <a href="#libfaac">libfaac</a>.
+</p>
+<a name="Options-4"></a>
+<h4 class="subsection">8.1.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-4" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-4" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>b</samp></dt>
+<dd><p>Set bit rate in bits/s. Setting this automatically activates constant bit rate
+(CBR) mode.
+</p>
+</dd>
+<dt><samp>q</samp></dt>
+<dd><p>Set quality for variable bit rate (VBR) mode. This option is valid only using
+the <code>ffmpeg</code> command-line tool. For library interface users, use
+<samp>global_quality</samp>.
+</p>
+</dd>
+<dt><samp>stereo_mode</samp></dt>
+<dd><p>Set stereo encoding mode. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>auto</samp>&rsquo;</dt>
+<dd><p>Automatically selected by the encoder.
+</p>
+</dd>
+<dt>&lsquo;<samp>ms_off</samp>&rsquo;</dt>
+<dd><p>Disable middle/side encoding. This is the default.
+</p>
+</dd>
+<dt>&lsquo;<samp>ms_force</samp>&rsquo;</dt>
+<dd><p>Force middle/side encoding.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>aac_coder</samp></dt>
+<dd><p>Set AAC encoder coding method. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>faac</samp>&rsquo;</dt>
+<dd><p>FAAC-inspired method.
+</p>
+<p>This method is a simplified reimplementation of the method used in FAAC, which
+sets thresholds proportional to the band energies, and then decreases all the
+thresholds with quantizer steps to find the appropriate quantization with
+distortion below threshold band by band.
+</p>
+<p>The quality of this method is comparable to the two loop searching method
+described below, but somewhat a little better and slower.
+</p>
+</dd>
+<dt>&lsquo;<samp>anmr</samp>&rsquo;</dt>
+<dd><p>Average noise to mask ratio (ANMR) trellis-based solution.
+</p>
+<p>This has a theoretic best quality out of all the coding methods, but at the
+cost of the slowest speed.
+</p>
+</dd>
+<dt>&lsquo;<samp>twoloop</samp>&rsquo;</dt>
+<dd><p>Two loop searching (TLS) method.
+</p>
+<p>This method first sets quantizers depending on band thresholds and then tries
+to find an optimal combination by adding or subtracting a specific value from
+all quantizers and adjusting some individual quantizer a little.
+</p>
+<p>This method produces similar quality with the FAAC method and is the default.
+</p>
+</dd>
+<dt>&lsquo;<samp>fast</samp>&rsquo;</dt>
+<dd><p>Constant quantizer method.
+</p>
+<p>This method sets a constant quantizer for all bands. This is the fastest of all
+the methods, yet produces the worst quality.
+</p>
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="ac3-and-ac3_005ffixed"></a>
+<h3 class="section">8.2 ac3 and ac3_fixed<span class="pull-right"><a class="anchor hidden-xs" href="#ac3-and-ac3_005ffixed" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-ac3-and-ac3_005ffixed" aria-hidden="true">TOC</a></span></h3>
+
+<p>AC-3 audio encoders.
+</p>
+<p>These encoders implement part of ATSC A/52:2010 and ETSI TS 102 366, as well as
+the undocumented RealAudio 3 (a.k.a. dnet).
+</p>
+<p>The <var>ac3</var> encoder uses floating-point math, while the <var>ac3_fixed</var>
+encoder only uses fixed-point integer math. This does not mean that one is
+always faster, just that one or the other may be better suited to a
+particular system. The floating-point encoder will generally produce better
+quality audio for a given bitrate. The <var>ac3_fixed</var> encoder is not the
+default codec for any of the output formats, so it must be specified explicitly
+using the option <code>-acodec ac3_fixed</code> in order to use it.
+</p>
+<a name="AC_002d3-Metadata"></a>
+<h4 class="subsection">8.2.1 AC-3 Metadata<span class="pull-right"><a class="anchor hidden-xs" href="#AC_002d3-Metadata" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-AC_002d3-Metadata" aria-hidden="true">TOC</a></span></h4>
+
+<p>The AC-3 metadata options are used to set parameters that describe the audio,
+but in most cases do not affect the audio encoding itself. Some of the options
+do directly affect or influence the decoding and playback of the resulting
+bitstream, while others are just for informational purposes. A few of the
+options will add bits to the output stream that could otherwise be used for
+audio data, and will thus affect the quality of the output. Those will be
+indicated accordingly with a note in the option list below.
+</p>
+<p>These parameters are described in detail in several publicly-available
+documents.
+</p><ul>
+<li> <a href="http://www.atsc.org/cms/standards/a_52-2010.pdf">A/52:2010 - Digital Audio Compression (AC-3) (E-AC-3) Standard</a>
+</li><li> <a href="http://www.atsc.org/cms/standards/a_54a_with_corr_1.pdf">A/54 - Guide to the Use of the ATSC Digital Television Standard</a>
+</li><li> <a href="http://www.dolby.com/uploadedFiles/zz-_Shared_Assets/English_PDFs/Professional/18_Metadata.Guide.pdf">Dolby Metadata Guide</a>
+</li><li> <a href="http://www.dolby.com/uploadedFiles/zz-_Shared_Assets/English_PDFs/Professional/46_DDEncodingGuidelines.pdf">Dolby Digital Professional Encoding Guidelines</a>
+</li></ul>
+
+<a name="Metadata-Control-Options"></a>
+<h4 class="subsubsection">8.2.1.1 Metadata Control Options<span class="pull-right"><a class="anchor hidden-xs" href="#Metadata-Control-Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Metadata-Control-Options" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-per_frame_metadata <var>boolean</var></samp></dt>
+<dd><p>Allow Per-Frame Metadata. Specifies if the encoder should check for changing
+metadata for each frame.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dd><p>The metadata values set at initialization will be used for every frame in the
+stream. (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dd><p>Metadata values can be changed before encoding each frame.
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="Downmix-Levels"></a>
+<h4 class="subsubsection">8.2.1.2 Downmix Levels<span class="pull-right"><a class="anchor hidden-xs" href="#Downmix-Levels" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Downmix-Levels" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-center_mixlev <var>level</var></samp></dt>
+<dd><p>Center Mix Level. The amount of gain the decoder should apply to the center
+channel when downmixing to stereo. This field will only be written to the
+bitstream if a center channel is present. The value is specified as a scale
+factor. There are 3 valid values:
+</p><dl compact="compact">
+<dt><samp>0.707</samp></dt>
+<dd><p>Apply -3dB gain
+</p></dd>
+<dt><samp>0.595</samp></dt>
+<dd><p>Apply -4.5dB gain (default)
+</p></dd>
+<dt><samp>0.500</samp></dt>
+<dd><p>Apply -6dB gain
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-surround_mixlev <var>level</var></samp></dt>
+<dd><p>Surround Mix Level. The amount of gain the decoder should apply to the surround
+channel(s) when downmixing to stereo. This field will only be written to the
+bitstream if one or more surround channels are present. The value is specified
+as a scale factor.  There are 3 valid values:
+</p><dl compact="compact">
+<dt><samp>0.707</samp></dt>
+<dd><p>Apply -3dB gain
+</p></dd>
+<dt><samp>0.500</samp></dt>
+<dd><p>Apply -6dB gain (default)
+</p></dd>
+<dt><samp>0.000</samp></dt>
+<dd><p>Silence Surround Channel(s)
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="Audio-Production-Information"></a>
+<h4 class="subsubsection">8.2.1.3 Audio Production Information<span class="pull-right"><a class="anchor hidden-xs" href="#Audio-Production-Information" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Audio-Production-Information" aria-hidden="true">TOC</a></span></h4>
+<p>Audio Production Information is optional information describing the mixing
+environment.  Either none or both of the fields are written to the bitstream.
+</p>
+<dl compact="compact">
+<dt><samp>-mixing_level <var>number</var></samp></dt>
+<dd><p>Mixing Level. Specifies peak sound pressure level (SPL) in the production
+environment when the mix was mastered. Valid values are 80 to 111, or -1 for
+unknown or not indicated. The default value is -1, but that value cannot be
+used if the Audio Production Information is written to the bitstream. Therefore,
+if the <code>room_type</code> option is not the default value, the <code>mixing_level</code>
+option must not be -1.
+</p>
+</dd>
+<dt><samp>-room_type <var>type</var></samp></dt>
+<dd><p>Room Type. Describes the equalization used during the final mixing session at
+the studio or on the dubbing stage. A large room is a dubbing stage with the
+industry standard X-curve equalization; a small room has flat equalization.
+This field will not be written to the bitstream if both the <code>mixing_level</code>
+option and the <code>room_type</code> option have the default values.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>notindicated</samp></dt>
+<dd><p>Not Indicated (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>large</samp></dt>
+<dd><p>Large Room
+</p></dd>
+<dt><samp>2</samp></dt>
+<dt><samp>small</samp></dt>
+<dd><p>Small Room
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="Other-Metadata-Options"></a>
+<h4 class="subsubsection">8.2.1.4 Other Metadata Options<span class="pull-right"><a class="anchor hidden-xs" href="#Other-Metadata-Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Other-Metadata-Options" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-copyright <var>boolean</var></samp></dt>
+<dd><p>Copyright Indicator. Specifies whether a copyright exists for this audio.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>off</samp></dt>
+<dd><p>No Copyright Exists (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>on</samp></dt>
+<dd><p>Copyright Exists
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-dialnorm <var>value</var></samp></dt>
+<dd><p>Dialogue Normalization. Indicates how far the average dialogue level of the
+program is below digital 100% full scale (0 dBFS). This parameter determines a
+level shift during audio reproduction that sets the average volume of the
+dialogue to a preset level. The goal is to match volume level between program
+sources. A value of -31dB will result in no volume level change, relative to
+the source volume, during audio reproduction. Valid values are whole numbers in
+the range -31 to -1, with -31 being the default.
+</p>
+</dd>
+<dt><samp>-dsur_mode <var>mode</var></samp></dt>
+<dd><p>Dolby Surround Mode. Specifies whether the stereo signal uses Dolby Surround
+(Pro Logic). This field will only be written to the bitstream if the audio
+stream is stereo. Using this option does <b>NOT</b> mean the encoder will actually
+apply Dolby Surround processing.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>notindicated</samp></dt>
+<dd><p>Not Indicated (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>off</samp></dt>
+<dd><p>Not Dolby Surround Encoded
+</p></dd>
+<dt><samp>2</samp></dt>
+<dt><samp>on</samp></dt>
+<dd><p>Dolby Surround Encoded
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-original <var>boolean</var></samp></dt>
+<dd><p>Original Bit Stream Indicator. Specifies whether this audio is from the
+original source and not a copy.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>off</samp></dt>
+<dd><p>Not Original Source
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>on</samp></dt>
+<dd><p>Original Source (default)
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="Extended-Bitstream-Information"></a>
+<h4 class="subsection">8.2.2 Extended Bitstream Information<span class="pull-right"><a class="anchor hidden-xs" href="#Extended-Bitstream-Information" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Extended-Bitstream-Information" aria-hidden="true">TOC</a></span></h4>
+<p>The extended bitstream options are part of the Alternate Bit Stream Syntax as
+specified in Annex D of the A/52:2010 standard. It is grouped into 2 parts.
+If any one parameter in a group is specified, all values in that group will be
+written to the bitstream.  Default values are used for those that are written
+but have not been specified.  If the mixing levels are written, the decoder
+will use these values instead of the ones specified in the <code>center_mixlev</code>
+and <code>surround_mixlev</code> options if it supports the Alternate Bit Stream
+Syntax.
+</p>
+<a name="Extended-Bitstream-Information-_002d-Part-1"></a>
+<h4 class="subsubsection">8.2.2.1 Extended Bitstream Information - Part 1<span class="pull-right"><a class="anchor hidden-xs" href="#Extended-Bitstream-Information-_002d-Part-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Extended-Bitstream-Information-_002d-Part-1" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-dmix_mode <var>mode</var></samp></dt>
+<dd><p>Preferred Stereo Downmix Mode. Allows the user to select either Lt/Rt
+(Dolby Surround) or Lo/Ro (normal stereo) as the preferred stereo downmix mode.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>notindicated</samp></dt>
+<dd><p>Not Indicated (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>ltrt</samp></dt>
+<dd><p>Lt/Rt Downmix Preferred
+</p></dd>
+<dt><samp>2</samp></dt>
+<dt><samp>loro</samp></dt>
+<dd><p>Lo/Ro Downmix Preferred
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-ltrt_cmixlev <var>level</var></samp></dt>
+<dd><p>Lt/Rt Center Mix Level. The amount of gain the decoder should apply to the
+center channel when downmixing to stereo in Lt/Rt mode.
+</p><dl compact="compact">
+<dt><samp>1.414</samp></dt>
+<dd><p>Apply +3dB gain
+</p></dd>
+<dt><samp>1.189</samp></dt>
+<dd><p>Apply +1.5dB gain
+</p></dd>
+<dt><samp>1.000</samp></dt>
+<dd><p>Apply 0dB gain
+</p></dd>
+<dt><samp>0.841</samp></dt>
+<dd><p>Apply -1.5dB gain
+</p></dd>
+<dt><samp>0.707</samp></dt>
+<dd><p>Apply -3.0dB gain
+</p></dd>
+<dt><samp>0.595</samp></dt>
+<dd><p>Apply -4.5dB gain (default)
+</p></dd>
+<dt><samp>0.500</samp></dt>
+<dd><p>Apply -6.0dB gain
+</p></dd>
+<dt><samp>0.000</samp></dt>
+<dd><p>Silence Center Channel
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-ltrt_surmixlev <var>level</var></samp></dt>
+<dd><p>Lt/Rt Surround Mix Level. The amount of gain the decoder should apply to the
+surround channel(s) when downmixing to stereo in Lt/Rt mode.
+</p><dl compact="compact">
+<dt><samp>0.841</samp></dt>
+<dd><p>Apply -1.5dB gain
+</p></dd>
+<dt><samp>0.707</samp></dt>
+<dd><p>Apply -3.0dB gain
+</p></dd>
+<dt><samp>0.595</samp></dt>
+<dd><p>Apply -4.5dB gain
+</p></dd>
+<dt><samp>0.500</samp></dt>
+<dd><p>Apply -6.0dB gain (default)
+</p></dd>
+<dt><samp>0.000</samp></dt>
+<dd><p>Silence Surround Channel(s)
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-loro_cmixlev <var>level</var></samp></dt>
+<dd><p>Lo/Ro Center Mix Level. The amount of gain the decoder should apply to the
+center channel when downmixing to stereo in Lo/Ro mode.
+</p><dl compact="compact">
+<dt><samp>1.414</samp></dt>
+<dd><p>Apply +3dB gain
+</p></dd>
+<dt><samp>1.189</samp></dt>
+<dd><p>Apply +1.5dB gain
+</p></dd>
+<dt><samp>1.000</samp></dt>
+<dd><p>Apply 0dB gain
+</p></dd>
+<dt><samp>0.841</samp></dt>
+<dd><p>Apply -1.5dB gain
+</p></dd>
+<dt><samp>0.707</samp></dt>
+<dd><p>Apply -3.0dB gain
+</p></dd>
+<dt><samp>0.595</samp></dt>
+<dd><p>Apply -4.5dB gain (default)
+</p></dd>
+<dt><samp>0.500</samp></dt>
+<dd><p>Apply -6.0dB gain
+</p></dd>
+<dt><samp>0.000</samp></dt>
+<dd><p>Silence Center Channel
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-loro_surmixlev <var>level</var></samp></dt>
+<dd><p>Lo/Ro Surround Mix Level. The amount of gain the decoder should apply to the
+surround channel(s) when downmixing to stereo in Lo/Ro mode.
+</p><dl compact="compact">
+<dt><samp>0.841</samp></dt>
+<dd><p>Apply -1.5dB gain
+</p></dd>
+<dt><samp>0.707</samp></dt>
+<dd><p>Apply -3.0dB gain
+</p></dd>
+<dt><samp>0.595</samp></dt>
+<dd><p>Apply -4.5dB gain
+</p></dd>
+<dt><samp>0.500</samp></dt>
+<dd><p>Apply -6.0dB gain (default)
+</p></dd>
+<dt><samp>0.000</samp></dt>
+<dd><p>Silence Surround Channel(s)
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="Extended-Bitstream-Information-_002d-Part-2"></a>
+<h4 class="subsubsection">8.2.2.2 Extended Bitstream Information - Part 2<span class="pull-right"><a class="anchor hidden-xs" href="#Extended-Bitstream-Information-_002d-Part-2" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Extended-Bitstream-Information-_002d-Part-2" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-dsurex_mode <var>mode</var></samp></dt>
+<dd><p>Dolby Surround EX Mode. Indicates whether the stream uses Dolby Surround EX
+(7.1 matrixed to 5.1). Using this option does <b>NOT</b> mean the encoder will actually
+apply Dolby Surround EX processing.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>notindicated</samp></dt>
+<dd><p>Not Indicated (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>on</samp></dt>
+<dd><p>Dolby Surround EX Off
+</p></dd>
+<dt><samp>2</samp></dt>
+<dt><samp>off</samp></dt>
+<dd><p>Dolby Surround EX On
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-dheadphone_mode <var>mode</var></samp></dt>
+<dd><p>Dolby Headphone Mode. Indicates whether the stream uses Dolby Headphone
+encoding (multi-channel matrixed to 2.0 for use with headphones). Using this
+option does <b>NOT</b> mean the encoder will actually apply Dolby Headphone
+processing.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>notindicated</samp></dt>
+<dd><p>Not Indicated (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>on</samp></dt>
+<dd><p>Dolby Headphone Off
+</p></dd>
+<dt><samp>2</samp></dt>
+<dt><samp>off</samp></dt>
+<dd><p>Dolby Headphone On
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-ad_conv_type <var>type</var></samp></dt>
+<dd><p>A/D Converter Type. Indicates whether the audio has passed through HDCD A/D
+conversion.
+</p><dl compact="compact">
+<dt><samp>0</samp></dt>
+<dt><samp>standard</samp></dt>
+<dd><p>Standard A/D Converter (default)
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>hdcd</samp></dt>
+<dd><p>HDCD A/D Converter
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="Other-AC_002d3-Encoding-Options"></a>
+<h4 class="subsection">8.2.3 Other AC-3 Encoding Options<span class="pull-right"><a class="anchor hidden-xs" href="#Other-AC_002d3-Encoding-Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Other-AC_002d3-Encoding-Options" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-stereo_rematrixing <var>boolean</var></samp></dt>
+<dd><p>Stereo Rematrixing. Enables/Disables use of rematrixing for stereo input. This
+is an optional AC-3 feature that increases quality by selectively encoding
+the left/right channels as mid/side. This option is enabled by default, and it
+is highly recommended that it be left as enabled except for testing purposes.
+</p>
+</dd>
+</dl>
+
+<a name="Floating_002dPoint_002dOnly-AC_002d3-Encoding-Options"></a>
+<h4 class="subsection">8.2.4 Floating-Point-Only AC-3 Encoding Options<span class="pull-right"><a class="anchor hidden-xs" href="#Floating_002dPoint_002dOnly-AC_002d3-Encoding-Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Floating_002dPoint_002dOnly-AC_002d3-Encoding-Options" aria-hidden="true">TOC</a></span></h4>
+
+<p>These options are only valid for the floating-point encoder and do not exist
+for the fixed-point encoder due to the corresponding features not being
+implemented in fixed-point.
+</p>
+<dl compact="compact">
+<dt><samp>-channel_coupling <var>boolean</var></samp></dt>
+<dd><p>Enables/Disables use of channel coupling, which is an optional AC-3 feature
+that increases quality by combining high frequency information from multiple
+channels into a single channel. The per-channel high frequency information is
+sent with less accuracy in both the frequency and time domains. This allows
+more bits to be used for lower frequencies while preserving enough information
+to reconstruct the high frequencies. This option is enabled by default for the
+floating-point encoder and should generally be left as enabled except for
+testing purposes or to increase encoding speed.
+</p><dl compact="compact">
+<dt><samp>-1</samp></dt>
+<dt><samp>auto</samp></dt>
+<dd><p>Selected by Encoder (default)
+</p></dd>
+<dt><samp>0</samp></dt>
+<dt><samp>off</samp></dt>
+<dd><p>Disable Channel Coupling
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>on</samp></dt>
+<dd><p>Enable Channel Coupling
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-cpl_start_band <var>number</var></samp></dt>
+<dd><p>Coupling Start Band. Sets the channel coupling start band, from 1 to 15. If a
+value higher than the bandwidth is used, it will be reduced to 1 less than the
+coupling end band. If <var>auto</var> is used, the start band will be determined by
+the encoder based on the bit rate, sample rate, and channel layout. This option
+has no effect if channel coupling is disabled.
+</p><dl compact="compact">
+<dt><samp>-1</samp></dt>
+<dt><samp>auto</samp></dt>
+<dd><p>Selected by Encoder (default)
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="libfaac"></a><a name="libfaac-1"></a>
+<h3 class="section">8.3 libfaac<span class="pull-right"><a class="anchor hidden-xs" href="#libfaac-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libfaac-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>libfaac AAC (Advanced Audio Coding) encoder wrapper.
+</p>
+<p>Requires the presence of the libfaac headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libfaac --enable-nonfree</code>.
+</p>
+<p>This encoder is considered to be of higher quality with respect to the
+<a href="#aacenc">the native experimental FFmpeg AAC encoder</a>.
+</p>
+<p>For more information see the libfaac project at
+<a href="http://www.audiocoding.com/faac.html/">http://www.audiocoding.com/faac.html/</a>.
+</p>
+<a name="Options-5"></a>
+<h4 class="subsection">8.3.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-5" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-5" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following shared FFmpeg codec options are recognized.
+</p>
+<p>The following options are supported by the libfaac wrapper. The
+<code>faac</code>-equivalent of the options are listed in parentheses.
+</p>
+<dl compact="compact">
+<dt><samp>b (<em>-b</em>)</samp></dt>
+<dd><p>Set bit rate in bits/s for ABR (Average Bit Rate) mode. If the bit rate
+is not explicitly specified, it is automatically set to a suitable
+value depending on the selected profile. <code>faac</code> bitrate is
+expressed in kilobits/s.
+</p>
+<p>Note that libfaac does not support CBR (Constant Bit Rate) but only
+ABR (Average Bit Rate).
+</p>
+<p>If VBR mode is enabled this option is ignored.
+</p>
+</dd>
+<dt><samp>ar (<em>-R</em>)</samp></dt>
+<dd><p>Set audio sampling rate (in Hz).
+</p>
+</dd>
+<dt><samp>ac (<em>-c</em>)</samp></dt>
+<dd><p>Set the number of audio channels.
+</p>
+</dd>
+<dt><samp>cutoff (<em>-C</em>)</samp></dt>
+<dd><p>Set cutoff frequency. If not specified (or explicitly set to 0) it
+will use a value automatically computed by the library. Default value
+is 0.
+</p>
+</dd>
+<dt><samp>profile</samp></dt>
+<dd><p>Set audio profile.
+</p>
+<p>The following profiles are recognized:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>aac_main</samp>&rsquo;</dt>
+<dd><p>Main AAC (Main)
+</p>
+</dd>
+<dt>&lsquo;<samp>aac_low</samp>&rsquo;</dt>
+<dd><p>Low Complexity AAC (LC)
+</p>
+</dd>
+<dt>&lsquo;<samp>aac_ssr</samp>&rsquo;</dt>
+<dd><p>Scalable Sample Rate (SSR)
+</p>
+</dd>
+<dt>&lsquo;<samp>aac_ltp</samp>&rsquo;</dt>
+<dd><p>Long Term Prediction (LTP)
+</p></dd>
+</dl>
+
+<p>If not specified it is set to &lsquo;<samp>aac_low</samp>&rsquo;.
+</p>
+</dd>
+<dt><samp>flags +qscale</samp></dt>
+<dd><p>Set constant quality VBR (Variable Bit Rate) mode.
+</p>
+</dd>
+<dt><samp>global_quality</samp></dt>
+<dd><p>Set quality in VBR mode as an integer number of lambda units.
+</p>
+<p>Only relevant when VBR mode is enabled with <code>flags +qscale</code>.  The
+value is converted to QP units by dividing it by <code>FF_QP2LAMBDA</code>,
+and used to set the quality value used by libfaac. A reasonable range
+for the option value in QP units is [10-500], the higher the value the
+higher the quality.
+</p>
+</dd>
+<dt><samp>q (<em>-q</em>)</samp></dt>
+<dd><p>Enable VBR mode when set to a non-negative value, and set constant
+quality value as a double floating point value in QP units.
+</p>
+<p>The value sets the quality value used by libfaac. A reasonable range
+for the option value is [10-500], the higher the value the higher the
+quality.
+</p>
+<p>This option is valid only using the <code>ffmpeg</code> command-line
+tool. For library interface users, use <samp>global_quality</samp>.
+</p></dd>
+</dl>
+
+<a name="Examples"></a>
+<h4 class="subsection">8.3.2 Examples<span class="pull-right"><a class="anchor hidden-xs" href="#Examples" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Examples" aria-hidden="true">TOC</a></span></h4>
+
+<ul>
+<li> Use <code>ffmpeg</code> to convert an audio file to ABR 128 kbps AAC in an M4A (MP4)
+container:
+<div class="example">
+<pre class="example">ffmpeg -i input.wav -codec:a libfaac -b:a 128k -output.m4a
+</pre></div>
+
+</li><li> Use <code>ffmpeg</code> to convert an audio file to VBR AAC, using the
+LTP AAC profile:
+<div class="example">
+<pre class="example">ffmpeg -i input.wav -c:a libfaac -profile:a aac_ltp -q:a 100 output.m4a
+</pre></div>
+</li></ul>
+
+<a name="libfdk_002daac_002denc"></a><a name="libfdk_005faac"></a>
+<h3 class="section">8.4 libfdk_aac<span class="pull-right"><a class="anchor hidden-xs" href="#libfdk_005faac" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libfdk_005faac" aria-hidden="true">TOC</a></span></h3>
+
+<p>libfdk-aac AAC (Advanced Audio Coding) encoder wrapper.
+</p>
+<p>The libfdk-aac library is based on the Fraunhofer FDK AAC code from
+the Android project.
+</p>
+<p>Requires the presence of the libfdk-aac headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libfdk-aac</code>. The library is also incompatible with GPL,
+so if you allow the use of GPL, you should configure with
+<code>--enable-gpl --enable-nonfree --enable-libfdk-aac</code>.
+</p>
+<p>This encoder is considered to be of higher quality with respect to
+both <a href="#aacenc">the native experimental FFmpeg AAC encoder</a> and
+<a href="#libfaac">libfaac</a>.
+</p>
+<p>VBR encoding, enabled through the <samp>vbr</samp> or <samp>flags
++qscale</samp> options, is experimental and only works with some
+combinations of parameters.
+</p>
+<p>Support for encoding 7.1 audio is only available with libfdk-aac 0.1.3 or
+higher.
+</p>
+<p>For more information see the fdk-aac project at
+<a href="http://sourceforge.net/p/opencore-amr/fdk-aac/">http://sourceforge.net/p/opencore-amr/fdk-aac/</a>.
+</p>
+<a name="Options-6"></a>
+<h4 class="subsection">8.4.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-6" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-6" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following options are mapped on the shared FFmpeg codec options.
+</p>
+<dl compact="compact">
+<dt><samp>b</samp></dt>
+<dd><p>Set bit rate in bits/s. If the bitrate is not explicitly specified, it
+is automatically set to a suitable value depending on the selected
+profile.
+</p>
+<p>In case VBR mode is enabled the option is ignored.
+</p>
+</dd>
+<dt><samp>ar</samp></dt>
+<dd><p>Set audio sampling rate (in Hz).
+</p>
+</dd>
+<dt><samp>channels</samp></dt>
+<dd><p>Set the number of audio channels.
+</p>
+</dd>
+<dt><samp>flags +qscale</samp></dt>
+<dd><p>Enable fixed quality, VBR (Variable Bit Rate) mode.
+Note that VBR is implicitly enabled when the <samp>vbr</samp> value is
+positive.
+</p>
+</dd>
+<dt><samp>cutoff</samp></dt>
+<dd><p>Set cutoff frequency. If not specified (or explicitly set to 0) it
+will use a value automatically computed by the library. Default value
+is 0.
+</p>
+</dd>
+<dt><samp>profile</samp></dt>
+<dd><p>Set audio profile.
+</p>
+<p>The following profiles are recognized:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>aac_low</samp>&rsquo;</dt>
+<dd><p>Low Complexity AAC (LC)
+</p>
+</dd>
+<dt>&lsquo;<samp>aac_he</samp>&rsquo;</dt>
+<dd><p>High Efficiency AAC (HE-AAC)
+</p>
+</dd>
+<dt>&lsquo;<samp>aac_he_v2</samp>&rsquo;</dt>
+<dd><p>High Efficiency AAC version 2 (HE-AACv2)
+</p>
+</dd>
+<dt>&lsquo;<samp>aac_ld</samp>&rsquo;</dt>
+<dd><p>Low Delay AAC (LD)
+</p>
+</dd>
+<dt>&lsquo;<samp>aac_eld</samp>&rsquo;</dt>
+<dd><p>Enhanced Low Delay AAC (ELD)
+</p></dd>
+</dl>
+
+<p>If not specified it is set to &lsquo;<samp>aac_low</samp>&rsquo;.
+</p></dd>
+</dl>
+
+<p>The following are private options of the libfdk_aac encoder.
+</p>
+<dl compact="compact">
+<dt><samp>afterburner</samp></dt>
+<dd><p>Enable afterburner feature if set to 1, disabled if set to 0. This
+improves the quality but also the required processing power.
+</p>
+<p>Default value is 1.
+</p>
+</dd>
+<dt><samp>eld_sbr</samp></dt>
+<dd><p>Enable SBR (Spectral Band Replication) for ELD if set to 1, disabled
+if set to 0.
+</p>
+<p>Default value is 0.
+</p>
+</dd>
+<dt><samp>signaling</samp></dt>
+<dd><p>Set SBR/PS signaling style.
+</p>
+<p>It can assume one of the following values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>default</samp>&rsquo;</dt>
+<dd><p>choose signaling implicitly (explicit hierarchical by default,
+implicit if global header is disabled)
+</p>
+</dd>
+<dt>&lsquo;<samp>implicit</samp>&rsquo;</dt>
+<dd><p>implicit backwards compatible signaling
+</p>
+</dd>
+<dt>&lsquo;<samp>explicit_sbr</samp>&rsquo;</dt>
+<dd><p>explicit SBR, implicit PS signaling
+</p>
+</dd>
+<dt>&lsquo;<samp>explicit_hierarchical</samp>&rsquo;</dt>
+<dd><p>explicit hierarchical signaling
+</p></dd>
+</dl>
+
+<p>Default value is &lsquo;<samp>default</samp>&rsquo;.
+</p>
+</dd>
+<dt><samp>latm</samp></dt>
+<dd><p>Output LATM/LOAS encapsulated data if set to 1, disabled if set to 0.
+</p>
+<p>Default value is 0.
+</p>
+</dd>
+<dt><samp>header_period</samp></dt>
+<dd><p>Set StreamMuxConfig and PCE repetition period (in frames) for sending
+in-band configuration buffers within LATM/LOAS transport layer.
+</p>
+<p>Must be a 16-bits non-negative integer.
+</p>
+<p>Default value is 0.
+</p>
+</dd>
+<dt><samp>vbr</samp></dt>
+<dd><p>Set VBR mode, from 1 to 5. 1 is lowest quality (though still pretty
+good) and 5 is highest quality. A value of 0 will disable VBR, and CBR
+(Constant Bit Rate) is enabled.
+</p>
+<p>Currently only the &lsquo;<samp>aac_low</samp>&rsquo; profile supports VBR encoding.
+</p>
+<p>VBR modes 1-5 correspond to roughly the following average bit rates:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>1</samp>&rsquo;</dt>
+<dd><p>32 kbps/channel
+</p></dd>
+<dt>&lsquo;<samp>2</samp>&rsquo;</dt>
+<dd><p>40 kbps/channel
+</p></dd>
+<dt>&lsquo;<samp>3</samp>&rsquo;</dt>
+<dd><p>48-56 kbps/channel
+</p></dd>
+<dt>&lsquo;<samp>4</samp>&rsquo;</dt>
+<dd><p>64 kbps/channel
+</p></dd>
+<dt>&lsquo;<samp>5</samp>&rsquo;</dt>
+<dd><p>about 80-96 kbps/channel
+</p></dd>
+</dl>
+
+<p>Default value is 0.
+</p></dd>
+</dl>
+
+<a name="Examples-1"></a>
+<h4 class="subsection">8.4.2 Examples<span class="pull-right"><a class="anchor hidden-xs" href="#Examples-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Examples-1" aria-hidden="true">TOC</a></span></h4>
+
+<ul>
+<li> Use <code>ffmpeg</code> to convert an audio file to VBR AAC in an M4A (MP4)
+container:
+<div class="example">
+<pre class="example">ffmpeg -i input.wav -codec:a libfdk_aac -vbr 3 output.m4a
+</pre></div>
+
+</li><li> Use <code>ffmpeg</code> to convert an audio file to CBR 64k kbps AAC, using the
+High-Efficiency AAC profile:
+<div class="example">
+<pre class="example">ffmpeg -i input.wav -c:a libfdk_aac -profile:a aac_he -b:a 64k output.m4a
+</pre></div>
+</li></ul>
+
+<a name="libmp3lame"></a><a name="libmp3lame-1"></a>
+<h3 class="section">8.5 libmp3lame<span class="pull-right"><a class="anchor hidden-xs" href="#libmp3lame-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libmp3lame-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>LAME (Lame Ain&rsquo;t an MP3 Encoder) MP3 encoder wrapper.
+</p>
+<p>Requires the presence of the libmp3lame headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libmp3lame</code>.
+</p>
+<p>See <a href="#libshine">libshine</a> for a fixed-point MP3 encoder, although with a
+lower quality.
+</p>
+<a name="Options-7"></a>
+<h4 class="subsection">8.5.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-7" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-7" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following options are supported by the libmp3lame wrapper. The
+<code>lame</code>-equivalent of the options are listed in parentheses.
+</p>
+<dl compact="compact">
+<dt><samp>b (<em>-b</em>)</samp></dt>
+<dd><p>Set bitrate expressed in bits/s for CBR or ABR. LAME <code>bitrate</code> is
+expressed in kilobits/s.
+</p>
+</dd>
+<dt><samp>q (<em>-V</em>)</samp></dt>
+<dd><p>Set constant quality setting for VBR. This option is valid only
+using the <code>ffmpeg</code> command-line tool. For library interface
+users, use <samp>global_quality</samp>.
+</p>
+</dd>
+<dt><samp>compression_level (<em>-q</em>)</samp></dt>
+<dd><p>Set algorithm quality. Valid arguments are integers in the 0-9 range,
+with 0 meaning highest quality but slowest, and 9 meaning fastest
+while producing the worst quality.
+</p>
+</dd>
+<dt><samp>reservoir</samp></dt>
+<dd><p>Enable use of bit reservoir when set to 1. Default value is 1. LAME
+has this enabled by default, but can be overridden by use
+<samp>--nores</samp> option.
+</p>
+</dd>
+<dt><samp>joint_stereo (<em>-m j</em>)</samp></dt>
+<dd><p>Enable the encoder to use (on a frame by frame basis) either L/R
+stereo or mid/side stereo. Default value is 1.
+</p>
+</dd>
+<dt><samp>abr (<em>--abr</em>)</samp></dt>
+<dd><p>Enable the encoder to use ABR when set to 1. The <code>lame</code>
+<samp>--abr</samp> sets the target bitrate, while this options only
+tells FFmpeg to use ABR still relies on <samp>b</samp> to set bitrate.
+</p>
+</dd>
+</dl>
+
+<a name="libopencore_002damrnb-1"></a>
+<h3 class="section">8.6 libopencore-amrnb<span class="pull-right"><a class="anchor hidden-xs" href="#libopencore_002damrnb-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libopencore_002damrnb-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>OpenCORE Adaptive Multi-Rate Narrowband encoder.
+</p>
+<p>Requires the presence of the libopencore-amrnb headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libopencore-amrnb --enable-version3</code>.
+</p>
+<p>This is a mono-only encoder. Officially it only supports 8000Hz sample rate,
+but you can override it by setting <samp>strict</samp> to &lsquo;<samp>unofficial</samp>&rsquo; or
+lower.
+</p>
+<a name="Options-8"></a>
+<h4 class="subsection">8.6.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-8" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-8" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>b</samp></dt>
+<dd><p>Set bitrate in bits per second. Only the following bitrates are supported,
+otherwise libavcodec will round to the nearest valid bitrate.
+</p>
+<dl compact="compact">
+<dt><samp>4750</samp></dt>
+<dt><samp>5150</samp></dt>
+<dt><samp>5900</samp></dt>
+<dt><samp>6700</samp></dt>
+<dt><samp>7400</samp></dt>
+<dt><samp>7950</samp></dt>
+<dt><samp>10200</samp></dt>
+<dt><samp>12200</samp></dt>
+</dl>
+
+</dd>
+<dt><samp>dtx</samp></dt>
+<dd><p>Allow discontinuous transmission (generate comfort noise) when set to 1. The
+default value is 0 (disabled).
+</p>
+</dd>
+</dl>
+
+<a name="libshine"></a><a name="libshine-1"></a>
+<h3 class="section">8.7 libshine<span class="pull-right"><a class="anchor hidden-xs" href="#libshine-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libshine-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>Shine Fixed-Point MP3 encoder wrapper.
+</p>
+<p>Shine is a fixed-point MP3 encoder. It has a far better performance on
+platforms without an FPU, e.g. armel CPUs, and some phones and tablets.
+However, as it is more targeted on performance than quality, it is not on par
+with LAME and other production-grade encoders quality-wise. Also, according to
+the project&rsquo;s homepage, this encoder may not be free of bugs as the code was
+written a long time ago and the project was dead for at least 5 years.
+</p>
+<p>This encoder only supports stereo and mono input. This is also CBR-only.
+</p>
+<p>The original project (last updated in early 2007) is at
+<a href="http://sourceforge.net/projects/libshine-fxp/">http://sourceforge.net/projects/libshine-fxp/</a>. We only support the
+updated fork by the Savonet/Liquidsoap project at <a href="https://github.com/savonet/shine">https://github.com/savonet/shine</a>.
+</p>
+<p>Requires the presence of the libshine headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libshine</code>.
+</p>
+<p>See also <a href="#libmp3lame">libmp3lame</a>.
+</p>
+<a name="Options-9"></a>
+<h4 class="subsection">8.7.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-9" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-9" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following options are supported by the libshine wrapper. The
+<code>shineenc</code>-equivalent of the options are listed in parentheses.
+</p>
+<dl compact="compact">
+<dt><samp>b (<em>-b</em>)</samp></dt>
+<dd><p>Set bitrate expressed in bits/s for CBR. <code>shineenc</code> <samp>-b</samp> option
+is expressed in kilobits/s.
+</p>
+</dd>
+</dl>
+
+<a name="libtwolame"></a>
+<h3 class="section">8.8 libtwolame<span class="pull-right"><a class="anchor hidden-xs" href="#libtwolame" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libtwolame" aria-hidden="true">TOC</a></span></h3>
+
+<p>TwoLAME MP2 encoder wrapper.
+</p>
+<p>Requires the presence of the libtwolame headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libtwolame</code>.
+</p>
+<a name="Options-10"></a>
+<h4 class="subsection">8.8.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-10" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-10" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following options are supported by the libtwolame wrapper. The
+<code>twolame</code>-equivalent options follow the FFmpeg ones and are in
+parentheses.
+</p>
+<dl compact="compact">
+<dt><samp>b (<em>-b</em>)</samp></dt>
+<dd><p>Set bitrate expressed in bits/s for CBR. <code>twolame</code> <samp>b</samp>
+option is expressed in kilobits/s. Default value is 128k.
+</p>
+</dd>
+<dt><samp>q (<em>-V</em>)</samp></dt>
+<dd><p>Set quality for experimental VBR support. Maximum value range is
+from -50 to 50, useful range is from -10 to 10. The higher the
+value, the better the quality. This option is valid only using the
+<code>ffmpeg</code> command-line tool. For library interface users,
+use <samp>global_quality</samp>.
+</p>
+</dd>
+<dt><samp>mode (<em>--mode</em>)</samp></dt>
+<dd><p>Set the mode of the resulting audio. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>auto</samp>&rsquo;</dt>
+<dd><p>Choose mode automatically based on the input. This is the default.
+</p></dd>
+<dt>&lsquo;<samp>stereo</samp>&rsquo;</dt>
+<dd><p>Stereo
+</p></dd>
+<dt>&lsquo;<samp>joint_stereo</samp>&rsquo;</dt>
+<dd><p>Joint stereo
+</p></dd>
+<dt>&lsquo;<samp>dual_channel</samp>&rsquo;</dt>
+<dd><p>Dual channel
+</p></dd>
+<dt>&lsquo;<samp>mono</samp>&rsquo;</dt>
+<dd><p>Mono
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>psymodel (<em>--psyc-mode</em>)</samp></dt>
+<dd><p>Set psychoacoustic model to use in encoding. The argument must be
+an integer between -1 and 4, inclusive. The higher the value, the
+better the quality. The default value is 3.
+</p>
+</dd>
+<dt><samp>energy_levels (<em>--energy</em>)</samp></dt>
+<dd><p>Enable energy levels extensions when set to 1. The default value is
+0 (disabled).
+</p>
+</dd>
+<dt><samp>error_protection (<em>--protect</em>)</samp></dt>
+<dd><p>Enable CRC error protection when set to 1. The default value is 0
+(disabled).
+</p>
+</dd>
+<dt><samp>copyright (<em>--copyright</em>)</samp></dt>
+<dd><p>Set MPEG audio copyright flag when set to 1. The default value is 0
+(disabled).
+</p>
+</dd>
+<dt><samp>original (<em>--original</em>)</samp></dt>
+<dd><p>Set MPEG audio original flag when set to 1. The default value is 0
+(disabled).
+</p>
+</dd>
+</dl>
+
+<a name="libvo_002daacenc"></a><a name="libvo_002daacenc-1"></a>
+<h3 class="section">8.9 libvo-aacenc<span class="pull-right"><a class="anchor hidden-xs" href="#libvo_002daacenc-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libvo_002daacenc-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>VisualOn AAC encoder.
+</p>
+<p>Requires the presence of the libvo-aacenc headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libvo-aacenc --enable-version3</code>.
+</p>
+<p>This encoder is considered to be worse than the
+<a href="#aacenc">native experimental FFmpeg AAC encoder</a>, according to
+multiple sources.
+</p>
+<a name="Options-11"></a>
+<h4 class="subsection">8.9.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-11" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-11" aria-hidden="true">TOC</a></span></h4>
+
+<p>The VisualOn AAC encoder only support encoding AAC-LC and up to 2
+channels. It is also CBR-only.
+</p>
+<dl compact="compact">
+<dt><samp>b</samp></dt>
+<dd><p>Set bit rate in bits/s.
+</p>
+</dd>
+</dl>
+
+<a name="libvo_002damrwbenc"></a>
+<h3 class="section">8.10 libvo-amrwbenc<span class="pull-right"><a class="anchor hidden-xs" href="#libvo_002damrwbenc" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libvo_002damrwbenc" aria-hidden="true">TOC</a></span></h3>
+
+<p>VisualOn Adaptive Multi-Rate Wideband encoder.
+</p>
+<p>Requires the presence of the libvo-amrwbenc headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libvo-amrwbenc --enable-version3</code>.
+</p>
+<p>This is a mono-only encoder. Officially it only supports 16000Hz sample
+rate, but you can override it by setting <samp>strict</samp> to
+&lsquo;<samp>unofficial</samp>&rsquo; or lower.
+</p>
+<a name="Options-12"></a>
+<h4 class="subsection">8.10.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-12" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-12" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>b</samp></dt>
+<dd><p>Set bitrate in bits/s. Only the following bitrates are supported, otherwise
+libavcodec will round to the nearest valid bitrate.
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>6600</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>8850</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>12650</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>14250</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>15850</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>18250</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>19850</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>23050</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>23850</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>dtx</samp></dt>
+<dd><p>Allow discontinuous transmission (generate comfort noise) when set to 1. The
+default value is 0 (disabled).
+</p>
+</dd>
+</dl>
+
+<a name="libopus-1"></a>
+<h3 class="section">8.11 libopus<span class="pull-right"><a class="anchor hidden-xs" href="#libopus-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libopus-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>libopus Opus Interactive Audio Codec encoder wrapper.
+</p>
+<p>Requires the presence of the libopus headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libopus</code>.
+</p>
+<a name="Option-Mapping"></a>
+<h4 class="subsection">8.11.1 Option Mapping<span class="pull-right"><a class="anchor hidden-xs" href="#Option-Mapping" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Option-Mapping" aria-hidden="true">TOC</a></span></h4>
+
+<p>Most libopus options are modelled after the <code>opusenc</code> utility from
+opus-tools. The following is an option mapping chart describing options
+supported by the libopus wrapper, and their <code>opusenc</code>-equivalent
+in parentheses.
+</p>
+<dl compact="compact">
+<dt><samp>b (<em>bitrate</em>)</samp></dt>
+<dd><p>Set the bit rate in bits/s.  FFmpeg&rsquo;s <samp>b</samp> option is
+expressed in bits/s, while <code>opusenc</code>&rsquo;s <samp>bitrate</samp> in
+kilobits/s.
+</p>
+</dd>
+<dt><samp>vbr (<em>vbr</em>, <em>hard-cbr</em>, and <em>cvbr</em>)</samp></dt>
+<dd><p>Set VBR mode. The FFmpeg <samp>vbr</samp> option has the following
+valid arguments, with the their <code>opusenc</code> equivalent options
+in parentheses:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>off (<em>hard-cbr</em>)</samp>&rsquo;</dt>
+<dd><p>Use constant bit rate encoding.
+</p>
+</dd>
+<dt>&lsquo;<samp>on (<em>vbr</em>)</samp>&rsquo;</dt>
+<dd><p>Use variable bit rate encoding (the default).
+</p>
+</dd>
+<dt>&lsquo;<samp>constrained (<em>cvbr</em>)</samp>&rsquo;</dt>
+<dd><p>Use constrained variable bit rate encoding.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>compression_level (<em>comp</em>)</samp></dt>
+<dd><p>Set encoding algorithm complexity. Valid options are integers in
+the 0-10 range. 0 gives the fastest encodes but lower quality, while 10
+gives the highest quality but slowest encoding. The default is 10.
+</p>
+</dd>
+<dt><samp>frame_duration (<em>framesize</em>)</samp></dt>
+<dd><p>Set maximum frame size, or duration of a frame in milliseconds. The
+argument must be exactly the following: 2.5, 5, 10, 20, 40, 60. Smaller
+frame sizes achieve lower latency but less quality at a given bitrate.
+Sizes greater than 20ms are only interesting at fairly low bitrates.
+The default is 20ms.
+</p>
+</dd>
+<dt><samp>packet_loss (<em>expect-loss</em>)</samp></dt>
+<dd><p>Set expected packet loss percentage. The default is 0.
+</p>
+</dd>
+<dt><samp>application (N.A.)</samp></dt>
+<dd><p>Set intended application type. Valid options are listed below:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>voip</samp>&rsquo;</dt>
+<dd><p>Favor improved speech intelligibility.
+</p></dd>
+<dt>&lsquo;<samp>audio</samp>&rsquo;</dt>
+<dd><p>Favor faithfulness to the input (the default).
+</p></dd>
+<dt>&lsquo;<samp>lowdelay</samp>&rsquo;</dt>
+<dd><p>Restrict to only the lowest delay modes.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>cutoff (N.A.)</samp></dt>
+<dd><p>Set cutoff bandwidth in Hz. The argument must be exactly one of the
+following: 4000, 6000, 8000, 12000, or 20000, corresponding to
+narrowband, mediumband, wideband, super wideband, and fullband
+respectively. The default is 0 (cutoff disabled).
+</p>
+</dd>
+</dl>
+
+<a name="libvorbis"></a>
+<h3 class="section">8.12 libvorbis<span class="pull-right"><a class="anchor hidden-xs" href="#libvorbis" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libvorbis" aria-hidden="true">TOC</a></span></h3>
+
+<p>libvorbis encoder wrapper.
+</p>
+<p>Requires the presence of the libvorbisenc headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libvorbis</code>.
+</p>
+<a name="Options-13"></a>
+<h4 class="subsection">8.12.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-13" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-13" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following options are supported by the libvorbis wrapper. The
+<code>oggenc</code>-equivalent of the options are listed in parentheses.
+</p>
+<p>To get a more accurate and extensive documentation of the libvorbis
+options, consult the libvorbisenc&rsquo;s and <code>oggenc</code>&rsquo;s documentations.
+See <a href="http://xiph.org/vorbis/">http://xiph.org/vorbis/</a>,
+<a href="http://wiki.xiph.org/Vorbis-tools">http://wiki.xiph.org/Vorbis-tools</a>, and oggenc(1).
+</p>
+<dl compact="compact">
+<dt><samp>b (<em>-b</em>)</samp></dt>
+<dd><p>Set bitrate expressed in bits/s for ABR. <code>oggenc</code> <samp>-b</samp> is
+expressed in kilobits/s.
+</p>
+</dd>
+<dt><samp>q (<em>-q</em>)</samp></dt>
+<dd><p>Set constant quality setting for VBR. The value should be a float
+number in the range of -1.0 to 10.0. The higher the value, the better
+the quality. The default value is &lsquo;<samp>3.0</samp>&rsquo;.
+</p>
+<p>This option is valid only using the <code>ffmpeg</code> command-line tool.
+For library interface users, use <samp>global_quality</samp>.
+</p>
+</dd>
+<dt><samp>cutoff (<em>--advanced-encode-option lowpass_frequency=N</em>)</samp></dt>
+<dd><p>Set cutoff bandwidth in Hz, a value of 0 disables cutoff. <code>oggenc</code>&rsquo;s
+related option is expressed in kHz. The default value is &lsquo;<samp>0</samp>&rsquo; (cutoff
+disabled).
+</p>
+</dd>
+<dt><samp>minrate (<em>-m</em>)</samp></dt>
+<dd><p>Set minimum bitrate expressed in bits/s. <code>oggenc</code> <samp>-m</samp> is
+expressed in kilobits/s.
+</p>
+</dd>
+<dt><samp>maxrate (<em>-M</em>)</samp></dt>
+<dd><p>Set maximum bitrate expressed in bits/s. <code>oggenc</code> <samp>-M</samp> is
+expressed in kilobits/s. This only has effect on ABR mode.
+</p>
+</dd>
+<dt><samp>iblock (<em>--advanced-encode-option impulse_noisetune=N</em>)</samp></dt>
+<dd><p>Set noise floor bias for impulse blocks. The value is a float number from
+-15.0 to 0.0. A negative bias instructs the encoder to pay special attention
+to the crispness of transients in the encoded audio. The tradeoff for better
+transient response is a higher bitrate.
+</p>
+</dd>
+</dl>
+
+<a name="libwavpack"></a><a name="libwavpack-1"></a>
+<h3 class="section">8.13 libwavpack<span class="pull-right"><a class="anchor hidden-xs" href="#libwavpack-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libwavpack-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>A wrapper providing WavPack encoding through libwavpack.
+</p>
+<p>Only lossless mode using 32-bit integer samples is supported currently.
+</p>
+<p>Requires the presence of the libwavpack headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libwavpack</code>.
+</p>
+<p>Note that a libavcodec-native encoder for the WavPack codec exists so users can
+encode audios with this codec without using this encoder. See <a href="#wavpackenc">wavpackenc</a>.
+</p>
+<a name="Options-14"></a>
+<h4 class="subsection">8.13.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-14" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-14" aria-hidden="true">TOC</a></span></h4>
+
+<p><code>wavpack</code> command line utility&rsquo;s corresponding options are listed in
+parentheses, if any.
+</p>
+<dl compact="compact">
+<dt><samp>frame_size (<em>--blocksize</em>)</samp></dt>
+<dd><p>Default is 32768.
+</p>
+</dd>
+<dt><samp>compression_level</samp></dt>
+<dd><p>Set speed vs. compression tradeoff. Acceptable arguments are listed below:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>0 (<em>-f</em>)</samp>&rsquo;</dt>
+<dd><p>Fast mode.
+</p>
+</dd>
+<dt>&lsquo;<samp>1</samp>&rsquo;</dt>
+<dd><p>Normal (default) settings.
+</p>
+</dd>
+<dt>&lsquo;<samp>2 (<em>-h</em>)</samp>&rsquo;</dt>
+<dd><p>High quality.
+</p>
+</dd>
+<dt>&lsquo;<samp>3 (<em>-hh</em>)</samp>&rsquo;</dt>
+<dd><p>Very high quality.
+</p>
+</dd>
+<dt>&lsquo;<samp>4-8 (<em>-hh -x</em><var>EXTRAPROC</var>)</samp>&rsquo;</dt>
+<dd><p>Same as &lsquo;<samp>3</samp>&rsquo;, but with extra processing enabled.
+</p>
+<p>&lsquo;<samp>4</samp>&rsquo; is the same as <samp>-x2</samp> and &lsquo;<samp>8</samp>&rsquo; is the same as <samp>-x6</samp>.
+</p>
+</dd>
+</dl>
+</dd>
+</dl>
+
+<a name="wavpackenc"></a><a name="wavpack"></a>
+<h3 class="section">8.14 wavpack<span class="pull-right"><a class="anchor hidden-xs" href="#wavpack" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-wavpack" aria-hidden="true">TOC</a></span></h3>
+
+<p>WavPack lossless audio encoder.
+</p>
+<p>This is a libavcodec-native WavPack encoder. There is also an encoder based on
+libwavpack, but there is virtually no reason to use that encoder.
+</p>
+<p>See also <a href="#libwavpack">libwavpack</a>.
+</p>
+<a name="Options-15"></a>
+<h4 class="subsection">8.14.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-15" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-15" aria-hidden="true">TOC</a></span></h4>
+
+<p>The equivalent options for <code>wavpack</code> command line utility are listed in
+parentheses.
+</p>
+<a name="Shared-options"></a>
+<h4 class="subsubsection">8.14.1.1 Shared options<span class="pull-right"><a class="anchor hidden-xs" href="#Shared-options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Shared-options" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following shared options are effective for this encoder. Only special notes
+about this particular encoder will be documented here. For the general meaning
+of the options, see <a href="#codec_002doptions">the Codec Options chapter</a>.
+</p>
+<dl compact="compact">
+<dt><samp>frame_size (<em>--blocksize</em>)</samp></dt>
+<dd><p>For this encoder, the range for this option is between 128 and 131072. Default
+is automatically decided based on sample rate and number of channel.
+</p>
+<p>For the complete formula of calculating default, see
+<samp>libavcodec/wavpackenc.c</samp>.
+</p>
+</dd>
+<dt><samp>compression_level (<em>-f</em>, <em>-h</em>, <em>-hh</em>, and <em>-x</em>)</samp></dt>
+<dd><p>This option&rsquo;s syntax is consistent with <a href="#libwavpack">libwavpack</a>&rsquo;s.
+</p></dd>
+</dl>
+
+<a name="Private-options"></a>
+<h4 class="subsubsection">8.14.1.2 Private options<span class="pull-right"><a class="anchor hidden-xs" href="#Private-options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Private-options" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>joint_stereo (<em>-j</em>)</samp></dt>
+<dd><p>Set whether to enable joint stereo. Valid values are:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>on (<em>1</em>)</samp>&rsquo;</dt>
+<dd><p>Force mid/side audio encoding.
+</p></dd>
+<dt>&lsquo;<samp>off (<em>0</em>)</samp>&rsquo;</dt>
+<dd><p>Force left/right audio encoding.
+</p></dd>
+<dt>&lsquo;<samp>auto</samp>&rsquo;</dt>
+<dd><p>Let the encoder decide automatically.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>optimize_mono</samp></dt>
+<dd><p>Set whether to enable optimization for mono. This option is only effective for
+non-mono streams. Available values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>on</samp>&rsquo;</dt>
+<dd><p>enabled
+</p></dd>
+<dt>&lsquo;<samp>off</samp>&rsquo;</dt>
+<dd><p>disabled
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+
+<a name="Video-Encoders"></a>
+<h2 class="chapter">9 Video Encoders<span class="pull-right"><a class="anchor hidden-xs" href="#Video-Encoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Video-Encoders" aria-hidden="true">TOC</a></span></h2>
+
+<p>A description of some of the currently available video encoders
+follows.
+</p>
+<a name="libtheora"></a>
+<h3 class="section">9.1 libtheora<span class="pull-right"><a class="anchor hidden-xs" href="#libtheora" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libtheora" aria-hidden="true">TOC</a></span></h3>
+
+<p>libtheora Theora encoder wrapper.
+</p>
+<p>Requires the presence of the libtheora headers and library during
+configuration. You need to explicitly configure the build with
+<code>--enable-libtheora</code>.
+</p>
+<p>For more information about the libtheora project see
+<a href="http://www.theora.org/">http://www.theora.org/</a>.
+</p>
+<a name="Options-16"></a>
+<h4 class="subsection">9.1.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-16" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-16" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following global options are mapped to internal libtheora options
+which affect the quality and the bitrate of the encoded stream.
+</p>
+<dl compact="compact">
+<dt><samp>b</samp></dt>
+<dd><p>Set the video bitrate in bit/s for CBR (Constant Bit Rate) mode.  In
+case VBR (Variable Bit Rate) mode is enabled this option is ignored.
+</p>
+</dd>
+<dt><samp>flags</samp></dt>
+<dd><p>Used to enable constant quality mode (VBR) encoding through the
+<samp>qscale</samp> flag, and to enable the <code>pass1</code> and <code>pass2</code>
+modes.
+</p>
+</dd>
+<dt><samp>g</samp></dt>
+<dd><p>Set the GOP size.
+</p>
+</dd>
+<dt><samp>global_quality</samp></dt>
+<dd><p>Set the global quality as an integer in lambda units.
+</p>
+<p>Only relevant when VBR mode is enabled with <code>flags +qscale</code>. The
+value is converted to QP units by dividing it by <code>FF_QP2LAMBDA</code>,
+clipped in the [0 - 10] range, and then multiplied by 6.3 to get a
+value in the native libtheora range [0-63]. A higher value corresponds
+to a higher quality.
+</p>
+</dd>
+<dt><samp>q</samp></dt>
+<dd><p>Enable VBR mode when set to a non-negative value, and set constant
+quality value as a double floating point value in QP units.
+</p>
+<p>The value is clipped in the [0-10] range, and then multiplied by 6.3
+to get a value in the native libtheora range [0-63].
+</p>
+<p>This option is valid only using the <code>ffmpeg</code> command-line
+tool. For library interface users, use <samp>global_quality</samp>.
+</p></dd>
+</dl>
+
+<a name="Examples-2"></a>
+<h4 class="subsection">9.1.2 Examples<span class="pull-right"><a class="anchor hidden-xs" href="#Examples-2" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Examples-2" aria-hidden="true">TOC</a></span></h4>
+
+<ul>
+<li> Set maximum constant quality (VBR) encoding with <code>ffmpeg</code>:
+<div class="example">
+<pre class="example">ffmpeg -i INPUT -codec:v libtheora -q:v 10 OUTPUT.ogg
+</pre></div>
+
+</li><li> Use <code>ffmpeg</code> to convert a CBR 1000 kbps Theora video stream:
+<div class="example">
+<pre class="example">ffmpeg -i INPUT -codec:v libtheora -b:v 1000k OUTPUT.ogg
+</pre></div>
+</li></ul>
+
+<a name="libvpx"></a>
+<h3 class="section">9.2 libvpx<span class="pull-right"><a class="anchor hidden-xs" href="#libvpx" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libvpx" aria-hidden="true">TOC</a></span></h3>
+
+<p>VP8/VP9 format supported through libvpx.
+</p>
+<p>Requires the presence of the libvpx headers and library during configuration.
+You need to explicitly configure the build with <code>--enable-libvpx</code>.
+</p>
+<a name="Options-17"></a>
+<h4 class="subsection">9.2.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-17" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-17" aria-hidden="true">TOC</a></span></h4>
+
+<p>Mapping from FFmpeg to libvpx options with conversion notes in parentheses.
+</p>
+<dl compact="compact">
+<dt><samp>threads</samp></dt>
+<dd><p>g_threads
+</p>
+</dd>
+<dt><samp>profile</samp></dt>
+<dd><p>g_profile
+</p>
+</dd>
+<dt><samp>vb</samp></dt>
+<dd><p>rc_target_bitrate
+</p>
+</dd>
+<dt><samp>g</samp></dt>
+<dd><p>kf_max_dist
+</p>
+</dd>
+<dt><samp>keyint_min</samp></dt>
+<dd><p>kf_min_dist
+</p>
+</dd>
+<dt><samp>qmin</samp></dt>
+<dd><p>rc_min_quantizer
+</p>
+</dd>
+<dt><samp>qmax</samp></dt>
+<dd><p>rc_max_quantizer
+</p>
+</dd>
+<dt><samp>bufsize, vb</samp></dt>
+<dd><p>rc_buf_sz
+<code>(bufsize * 1000 / vb)</code>
+</p>
+<p>rc_buf_optimal_sz
+<code>(bufsize * 1000 / vb * 5 / 6)</code>
+</p>
+</dd>
+<dt><samp>rc_init_occupancy, vb</samp></dt>
+<dd><p>rc_buf_initial_sz
+<code>(rc_init_occupancy * 1000 / vb)</code>
+</p>
+</dd>
+<dt><samp>rc_buffer_aggressivity</samp></dt>
+<dd><p>rc_undershoot_pct
+</p>
+</dd>
+<dt><samp>skip_threshold</samp></dt>
+<dd><p>rc_dropframe_thresh
+</p>
+</dd>
+<dt><samp>qcomp</samp></dt>
+<dd><p>rc_2pass_vbr_bias_pct
+</p>
+</dd>
+<dt><samp>maxrate, vb</samp></dt>
+<dd><p>rc_2pass_vbr_maxsection_pct
+<code>(maxrate * 100 / vb)</code>
+</p>
+</dd>
+<dt><samp>minrate, vb</samp></dt>
+<dd><p>rc_2pass_vbr_minsection_pct
+<code>(minrate * 100 / vb)</code>
+</p>
+</dd>
+<dt><samp>minrate, maxrate, vb</samp></dt>
+<dd><p><code>VPX_CBR</code>
+<code>(minrate == maxrate == vb)</code>
+</p>
+</dd>
+<dt><samp>crf</samp></dt>
+<dd><p><code>VPX_CQ</code>, <code>VP8E_SET_CQ_LEVEL</code>
+</p>
+</dd>
+<dt><samp>quality</samp></dt>
+<dd><dl compact="compact">
+<dt><samp><var>best</var></samp></dt>
+<dd><p><code>VPX_DL_BEST_QUALITY</code>
+</p></dd>
+<dt><samp><var>good</var></samp></dt>
+<dd><p><code>VPX_DL_GOOD_QUALITY</code>
+</p></dd>
+<dt><samp><var>realtime</var></samp></dt>
+<dd><p><code>VPX_DL_REALTIME</code>
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>speed</samp></dt>
+<dd><p><code>VP8E_SET_CPUUSED</code>
+</p>
+</dd>
+<dt><samp>nr</samp></dt>
+<dd><p><code>VP8E_SET_NOISE_SENSITIVITY</code>
+</p>
+</dd>
+<dt><samp>mb_threshold</samp></dt>
+<dd><p><code>VP8E_SET_STATIC_THRESHOLD</code>
+</p>
+</dd>
+<dt><samp>slices</samp></dt>
+<dd><p><code>VP8E_SET_TOKEN_PARTITIONS</code>
+</p>
+</dd>
+<dt><samp>max-intra-rate</samp></dt>
+<dd><p><code>VP8E_SET_MAX_INTRA_BITRATE_PCT</code>
+</p>
+</dd>
+<dt><samp>force_key_frames</samp></dt>
+<dd><p><code>VPX_EFLAG_FORCE_KF</code>
+</p>
+</dd>
+<dt><samp>Alternate reference frame related</samp></dt>
+<dd><dl compact="compact">
+<dt><samp>vp8flags altref</samp></dt>
+<dd><p><code>VP8E_SET_ENABLEAUTOALTREF</code>
+</p></dd>
+<dt><samp><var>arnr_max_frames</var></samp></dt>
+<dd><p><code>VP8E_SET_ARNR_MAXFRAMES</code>
+</p></dd>
+<dt><samp><var>arnr_type</var></samp></dt>
+<dd><p><code>VP8E_SET_ARNR_TYPE</code>
+</p></dd>
+<dt><samp><var>arnr_strength</var></samp></dt>
+<dd><p><code>VP8E_SET_ARNR_STRENGTH</code>
+</p></dd>
+<dt><samp><var>rc_lookahead</var></samp></dt>
+<dd><p>g_lag_in_frames
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>vp8flags error_resilient</samp></dt>
+<dd><p>g_error_resilient
+</p>
+</dd>
+<dt><samp>aq_mode</samp></dt>
+<dd><p><code>VP9E_SET_AQ_MODE</code>
+</p>
+</dd>
+</dl>
+
+<p>For more information about libvpx see:
+<a href="http://www.webmproject.org/">http://www.webmproject.org/</a>
+</p>
+
+<a name="libwebp"></a>
+<h3 class="section">9.3 libwebp<span class="pull-right"><a class="anchor hidden-xs" href="#libwebp" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libwebp" aria-hidden="true">TOC</a></span></h3>
+
+<p>libwebp WebP Image encoder wrapper
+</p>
+<p>libwebp is Google&rsquo;s official encoder for WebP images. It can encode in either
+lossy or lossless mode. Lossy images are essentially a wrapper around a VP8
+frame. Lossless images are a separate codec developed by Google.
+</p>
+<a name="Pixel-Format"></a>
+<h4 class="subsection">9.3.1 Pixel Format<span class="pull-right"><a class="anchor hidden-xs" href="#Pixel-Format" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Pixel-Format" aria-hidden="true">TOC</a></span></h4>
+
+<p>Currently, libwebp only supports YUV420 for lossy and RGB for lossless due
+to limitations of the format and libwebp. Alpha is supported for either mode.
+Because of API limitations, if RGB is passed in when encoding lossy or YUV is
+passed in for encoding lossless, the pixel format will automatically be
+converted using functions from libwebp. This is not ideal and is done only for
+convenience.
+</p>
+<a name="Options-18"></a>
+<h4 class="subsection">9.3.2 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-18" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-18" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>-lossless <var>boolean</var></samp></dt>
+<dd><p>Enables/Disables use of lossless mode. Default is 0.
+</p>
+</dd>
+<dt><samp>-compression_level <var>integer</var></samp></dt>
+<dd><p>For lossy, this is a quality/speed tradeoff. Higher values give better quality
+for a given size at the cost of increased encoding time. For lossless, this is
+a size/speed tradeoff. Higher values give smaller size at the cost of increased
+encoding time. More specifically, it controls the number of extra algorithms
+and compression tools used, and varies the combination of these tools. This
+maps to the <var>method</var> option in libwebp. The valid range is 0 to 6.
+Default is 4.
+</p>
+</dd>
+<dt><samp>-qscale <var>float</var></samp></dt>
+<dd><p>For lossy encoding, this controls image quality, 0 to 100. For lossless
+encoding, this controls the effort and time spent at compressing more. The
+default value is 75. Note that for usage via libavcodec, this option is called
+<var>global_quality</var> and must be multiplied by <var>FF_QP2LAMBDA</var>.
+</p>
+</dd>
+<dt><samp>-preset <var>type</var></samp></dt>
+<dd><p>Configuration preset. This does some automatic settings based on the general
+type of the image.
+</p><dl compact="compact">
+<dt><samp>none</samp></dt>
+<dd><p>Do not use a preset.
+</p></dd>
+<dt><samp>default</samp></dt>
+<dd><p>Use the encoder default.
+</p></dd>
+<dt><samp>picture</samp></dt>
+<dd><p>Digital picture, like portrait, inner shot
+</p></dd>
+<dt><samp>photo</samp></dt>
+<dd><p>Outdoor photograph, with natural lighting
+</p></dd>
+<dt><samp>drawing</samp></dt>
+<dd><p>Hand or line drawing, with high-contrast details
+</p></dd>
+<dt><samp>icon</samp></dt>
+<dd><p>Small-sized colorful images
+</p></dd>
+<dt><samp>text</samp></dt>
+<dd><p>Text-like
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+<a name="libx264_002c-libx264rgb"></a>
+<h3 class="section">9.4 libx264, libx264rgb<span class="pull-right"><a class="anchor hidden-xs" href="#libx264_002c-libx264rgb" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libx264_002c-libx264rgb" aria-hidden="true">TOC</a></span></h3>
+
+<p>x264 H.264/MPEG-4 AVC encoder wrapper.
+</p>
+<p>This encoder requires the presence of the libx264 headers and library
+during configuration. You need to explicitly configure the build with
+<code>--enable-libx264</code>.
+</p>
+<p>libx264 supports an impressive number of features, including 8x8 and
+4x4 adaptive spatial transform, adaptive B-frame placement, CAVLC/CABAC
+entropy coding, interlacing (MBAFF), lossless mode, psy optimizations
+for detail retention (adaptive quantization, psy-RD, psy-trellis).
+</p>
+<p>Many libx264 encoder options are mapped to FFmpeg global codec
+options, while unique encoder options are provided through private
+options. Additionally the <samp>x264opts</samp> and <samp>x264-params</samp>
+private options allows one to pass a list of key=value tuples as accepted
+by the libx264 <code>x264_param_parse</code> function.
+</p>
+<p>The x264 project website is at
+<a href="http://www.videolan.org/developers/x264.html">http://www.videolan.org/developers/x264.html</a>.
+</p>
+<p>The libx264rgb encoder is the same as libx264, except it accepts packed RGB
+pixel formats as input instead of YUV.
+</p>
+<a name="Supported-Pixel-Formats"></a>
+<h4 class="subsection">9.4.1 Supported Pixel Formats<span class="pull-right"><a class="anchor hidden-xs" href="#Supported-Pixel-Formats" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Supported-Pixel-Formats" aria-hidden="true">TOC</a></span></h4>
+
+<p>x264 supports 8- to 10-bit color spaces. The exact bit depth is controlled at
+x264&rsquo;s configure time. FFmpeg only supports one bit depth in one particular
+build. In other words, it is not possible to build one FFmpeg with multiple
+versions of x264 with different bit depths.
+</p>
+<a name="Options-19"></a>
+<h4 class="subsection">9.4.2 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-19" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-19" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following options are supported by the libx264 wrapper. The
+<code>x264</code>-equivalent options or values are listed in parentheses
+for easy migration.
+</p>
+<p>To reduce the duplication of documentation, only the private options
+and some others requiring special attention are documented here. For
+the documentation of the undocumented generic options, see
+<a href="#codec_002doptions">the Codec Options chapter</a>.
+</p>
+<p>To get a more accurate and extensive documentation of the libx264
+options, invoke the command <code>x264 --full-help</code> or consult
+the libx264 documentation.
+</p>
+<dl compact="compact">
+<dt><samp>b (<em>bitrate</em>)</samp></dt>
+<dd><p>Set bitrate in bits/s. Note that FFmpeg&rsquo;s <samp>b</samp> option is
+expressed in bits/s, while <code>x264</code>&rsquo;s <samp>bitrate</samp> is in
+kilobits/s.
+</p>
+</dd>
+<dt><samp>bf (<em>bframes</em>)</samp></dt>
+<dt><samp>g (<em>keyint</em>)</samp></dt>
+<dt><samp>qmin (<em>qpmin</em>)</samp></dt>
+<dd><p>Minimum quantizer scale.
+</p>
+</dd>
+<dt><samp>qmax (<em>qpmax</em>)</samp></dt>
+<dd><p>Maximum quantizer scale.
+</p>
+</dd>
+<dt><samp>qdiff (<em>qpstep</em>)</samp></dt>
+<dd><p>Maximum difference between quantizer scales.
+</p>
+</dd>
+<dt><samp>qblur (<em>qblur</em>)</samp></dt>
+<dd><p>Quantizer curve blur
+</p>
+</dd>
+<dt><samp>qcomp (<em>qcomp</em>)</samp></dt>
+<dd><p>Quantizer curve compression factor
+</p>
+</dd>
+<dt><samp>refs (<em>ref</em>)</samp></dt>
+<dd><p>Number of reference frames each P-frame can use. The range is from <var>0-16</var>.
+</p>
+</dd>
+<dt><samp>sc_threshold (<em>scenecut</em>)</samp></dt>
+<dd><p>Sets the threshold for the scene change detection.
+</p>
+</dd>
+<dt><samp>trellis (<em>trellis</em>)</samp></dt>
+<dd><p>Performs Trellis quantization to increase efficiency. Enabled by default.
+</p>
+</dd>
+<dt><samp>nr  (<em>nr</em>)</samp></dt>
+<dt><samp>me_range (<em>merange</em>)</samp></dt>
+<dd><p>Maximum range of the motion search in pixels.
+</p>
+</dd>
+<dt><samp>me_method (<em>me</em>)</samp></dt>
+<dd><p>Set motion estimation method. Possible values in the decreasing order
+of speed:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>dia (<em>dia</em>)</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>epzs (<em>dia</em>)</samp>&rsquo;</dt>
+<dd><p>Diamond search with radius 1 (fastest). &lsquo;<samp>epzs</samp>&rsquo; is an alias for
+&lsquo;<samp>dia</samp>&rsquo;.
+</p></dd>
+<dt>&lsquo;<samp>hex (<em>hex</em>)</samp>&rsquo;</dt>
+<dd><p>Hexagonal search with radius 2.
+</p></dd>
+<dt>&lsquo;<samp>umh (<em>umh</em>)</samp>&rsquo;</dt>
+<dd><p>Uneven multi-hexagon search.
+</p></dd>
+<dt>&lsquo;<samp>esa (<em>esa</em>)</samp>&rsquo;</dt>
+<dd><p>Exhaustive search.
+</p></dd>
+<dt>&lsquo;<samp>tesa (<em>tesa</em>)</samp>&rsquo;</dt>
+<dd><p>Hadamard exhaustive search (slowest).
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>subq (<em>subme</em>)</samp></dt>
+<dd><p>Sub-pixel motion estimation method.
+</p>
+</dd>
+<dt><samp>b_strategy (<em>b-adapt</em>)</samp></dt>
+<dd><p>Adaptive B-frame placement decision algorithm. Use only on first-pass.
+</p>
+</dd>
+<dt><samp>keyint_min (<em>min-keyint</em>)</samp></dt>
+<dd><p>Minimum GOP size.
+</p>
+</dd>
+<dt><samp>coder</samp></dt>
+<dd><p>Set entropy encoder. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>ac</samp>&rsquo;</dt>
+<dd><p>Enable CABAC.
+</p>
+</dd>
+<dt>&lsquo;<samp>vlc</samp>&rsquo;</dt>
+<dd><p>Enable CAVLC and disable CABAC. It generates the same effect as
+<code>x264</code>&rsquo;s <samp>--no-cabac</samp> option.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>cmp</samp></dt>
+<dd><p>Set full pixel motion estimation comparation algorithm. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>chroma</samp>&rsquo;</dt>
+<dd><p>Enable chroma in motion estimation.
+</p>
+</dd>
+<dt>&lsquo;<samp>sad</samp>&rsquo;</dt>
+<dd><p>Ignore chroma in motion estimation. It generates the same effect as
+<code>x264</code>&rsquo;s <samp>--no-chroma-me</samp> option.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>threads (<em>threads</em>)</samp></dt>
+<dd><p>Number of encoding threads.
+</p>
+</dd>
+<dt><samp>thread_type</samp></dt>
+<dd><p>Set multithreading technique. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>slice</samp>&rsquo;</dt>
+<dd><p>Slice-based multithreading. It generates the same effect as
+<code>x264</code>&rsquo;s <samp>--sliced-threads</samp> option.
+</p></dd>
+<dt>&lsquo;<samp>frame</samp>&rsquo;</dt>
+<dd><p>Frame-based multithreading.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>flags</samp></dt>
+<dd><p>Set encoding flags. It can be used to disable closed GOP and enable
+open GOP by setting it to <code>-cgop</code>. The result is similar to
+the behavior of <code>x264</code>&rsquo;s <samp>--open-gop</samp> option.
+</p>
+</dd>
+<dt><samp>rc_init_occupancy (<em>vbv-init</em>)</samp></dt>
+<dt><samp>preset (<em>preset</em>)</samp></dt>
+<dd><p>Set the encoding preset.
+</p>
+</dd>
+<dt><samp>tune (<em>tune</em>)</samp></dt>
+<dd><p>Set tuning of the encoding params.
+</p>
+</dd>
+<dt><samp>profile (<em>profile</em>)</samp></dt>
+<dd><p>Set profile restrictions.
+</p>
+</dd>
+<dt><samp>fastfirstpass</samp></dt>
+<dd><p>Enable fast settings when encoding first pass, when set to 1. When set
+to 0, it has the same effect of <code>x264</code>&rsquo;s
+<samp>--slow-firstpass</samp> option.
+</p>
+</dd>
+<dt><samp>crf (<em>crf</em>)</samp></dt>
+<dd><p>Set the quality for constant quality mode.
+</p>
+</dd>
+<dt><samp>crf_max (<em>crf-max</em>)</samp></dt>
+<dd><p>In CRF mode, prevents VBV from lowering quality beyond this point.
+</p>
+</dd>
+<dt><samp>qp (<em>qp</em>)</samp></dt>
+<dd><p>Set constant quantization rate control method parameter.
+</p>
+</dd>
+<dt><samp>aq-mode (<em>aq-mode</em>)</samp></dt>
+<dd><p>Set AQ method. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>none (<em>0</em>)</samp>&rsquo;</dt>
+<dd><p>Disabled.
+</p>
+</dd>
+<dt>&lsquo;<samp>variance (<em>1</em>)</samp>&rsquo;</dt>
+<dd><p>Variance AQ (complexity mask).
+</p>
+</dd>
+<dt>&lsquo;<samp>autovariance (<em>2</em>)</samp>&rsquo;</dt>
+<dd><p>Auto-variance AQ (experimental).
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>aq-strength (<em>aq-strength</em>)</samp></dt>
+<dd><p>Set AQ strength, reduce blocking and blurring in flat and textured areas.
+</p>
+</dd>
+<dt><samp>psy</samp></dt>
+<dd><p>Use psychovisual optimizations when set to 1. When set to 0, it has the
+same effect as <code>x264</code>&rsquo;s <samp>--no-psy</samp> option.
+</p>
+</dd>
+<dt><samp>psy-rd  (<em>psy-rd</em>)</samp></dt>
+<dd><p>Set strength of psychovisual optimization, in
+<var>psy-rd</var>:<var>psy-trellis</var> format.
+</p>
+</dd>
+<dt><samp>rc-lookahead (<em>rc-lookahead</em>)</samp></dt>
+<dd><p>Set number of frames to look ahead for frametype and ratecontrol.
+</p>
+</dd>
+<dt><samp>weightb</samp></dt>
+<dd><p>Enable weighted prediction for B-frames when set to 1. When set to 0,
+it has the same effect as <code>x264</code>&rsquo;s <samp>--no-weightb</samp> option.
+</p>
+</dd>
+<dt><samp>weightp (<em>weightp</em>)</samp></dt>
+<dd><p>Set weighted prediction method for P-frames. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>none (<em>0</em>)</samp>&rsquo;</dt>
+<dd><p>Disabled
+</p></dd>
+<dt>&lsquo;<samp>simple (<em>1</em>)</samp>&rsquo;</dt>
+<dd><p>Enable only weighted refs
+</p></dd>
+<dt>&lsquo;<samp>smart (<em>2</em>)</samp>&rsquo;</dt>
+<dd><p>Enable both weighted refs and duplicates
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>ssim (<em>ssim</em>)</samp></dt>
+<dd><p>Enable calculation and printing SSIM stats after the encoding.
+</p>
+</dd>
+<dt><samp>intra-refresh (<em>intra-refresh</em>)</samp></dt>
+<dd><p>Enable the use of Periodic Intra Refresh instead of IDR frames when set
+to 1.
+</p>
+</dd>
+<dt><samp>avcintra-class (<em>class</em>)</samp></dt>
+<dd><p>Configure the encoder to generate AVC-Intra.
+Valid values are 50,100 and 200
+</p>
+</dd>
+<dt><samp>bluray-compat (<em>bluray-compat</em>)</samp></dt>
+<dd><p>Configure the encoder to be compatible with the bluray standard.
+It is a shorthand for setting &quot;bluray-compat=1 force-cfr=1&quot;.
+</p>
+</dd>
+<dt><samp>b-bias (<em>b-bias</em>)</samp></dt>
+<dd><p>Set the influence on how often B-frames are used.
+</p>
+</dd>
+<dt><samp>b-pyramid (<em>b-pyramid</em>)</samp></dt>
+<dd><p>Set method for keeping of some B-frames as references. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>none (<em>none</em>)</samp>&rsquo;</dt>
+<dd><p>Disabled.
+</p></dd>
+<dt>&lsquo;<samp>strict (<em>strict</em>)</samp>&rsquo;</dt>
+<dd><p>Strictly hierarchical pyramid.
+</p></dd>
+<dt>&lsquo;<samp>normal (<em>normal</em>)</samp>&rsquo;</dt>
+<dd><p>Non-strict (not Blu-ray compatible).
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>mixed-refs</samp></dt>
+<dd><p>Enable the use of one reference per partition, as opposed to one
+reference per macroblock when set to 1. When set to 0, it has the
+same effect as <code>x264</code>&rsquo;s <samp>--no-mixed-refs</samp> option.
+</p>
+</dd>
+<dt><samp>8x8dct</samp></dt>
+<dd><p>Enable adaptive spatial transform (high profile 8x8 transform)
+when set to 1. When set to 0, it has the same effect as
+<code>x264</code>&rsquo;s <samp>--no-8x8dct</samp> option.
+</p>
+</dd>
+<dt><samp>fast-pskip</samp></dt>
+<dd><p>Enable early SKIP detection on P-frames when set to 1. When set
+to 0, it has the same effect as <code>x264</code>&rsquo;s
+<samp>--no-fast-pskip</samp> option.
+</p>
+</dd>
+<dt><samp>aud (<em>aud</em>)</samp></dt>
+<dd><p>Enable use of access unit delimiters when set to 1.
+</p>
+</dd>
+<dt><samp>mbtree</samp></dt>
+<dd><p>Enable use macroblock tree ratecontrol when set to 1. When set
+to 0, it has the same effect as <code>x264</code>&rsquo;s
+<samp>--no-mbtree</samp> option.
+</p>
+</dd>
+<dt><samp>deblock (<em>deblock</em>)</samp></dt>
+<dd><p>Set loop filter parameters, in <var>alpha</var>:<var>beta</var> form.
+</p>
+</dd>
+<dt><samp>cplxblur (<em>cplxblur</em>)</samp></dt>
+<dd><p>Set fluctuations reduction in QP (before curve compression).
+</p>
+</dd>
+<dt><samp>partitions (<em>partitions</em>)</samp></dt>
+<dd><p>Set partitions to consider as a comma-separated list of. Possible
+values in the list:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>p8x8</samp>&rsquo;</dt>
+<dd><p>8x8 P-frame partition.
+</p></dd>
+<dt>&lsquo;<samp>p4x4</samp>&rsquo;</dt>
+<dd><p>4x4 P-frame partition.
+</p></dd>
+<dt>&lsquo;<samp>b8x8</samp>&rsquo;</dt>
+<dd><p>4x4 B-frame partition.
+</p></dd>
+<dt>&lsquo;<samp>i8x8</samp>&rsquo;</dt>
+<dd><p>8x8 I-frame partition.
+</p></dd>
+<dt>&lsquo;<samp>i4x4</samp>&rsquo;</dt>
+<dd><p>4x4 I-frame partition.
+(Enabling &lsquo;<samp>p4x4</samp>&rsquo; requires &lsquo;<samp>p8x8</samp>&rsquo; to be enabled. Enabling
+&lsquo;<samp>i8x8</samp>&rsquo; requires adaptive spatial transform (<samp>8x8dct</samp>
+option) to be enabled.)
+</p></dd>
+<dt>&lsquo;<samp>none (<em>none</em>)</samp>&rsquo;</dt>
+<dd><p>Do not consider any partitions.
+</p></dd>
+<dt>&lsquo;<samp>all (<em>all</em>)</samp>&rsquo;</dt>
+<dd><p>Consider every partition.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>direct-pred (<em>direct</em>)</samp></dt>
+<dd><p>Set direct MV prediction mode. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>none (<em>none</em>)</samp>&rsquo;</dt>
+<dd><p>Disable MV prediction.
+</p></dd>
+<dt>&lsquo;<samp>spatial (<em>spatial</em>)</samp>&rsquo;</dt>
+<dd><p>Enable spatial predicting.
+</p></dd>
+<dt>&lsquo;<samp>temporal (<em>temporal</em>)</samp>&rsquo;</dt>
+<dd><p>Enable temporal predicting.
+</p></dd>
+<dt>&lsquo;<samp>auto (<em>auto</em>)</samp>&rsquo;</dt>
+<dd><p>Automatically decided.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>slice-max-size (<em>slice-max-size</em>)</samp></dt>
+<dd><p>Set the limit of the size of each slice in bytes. If not specified
+but RTP payload size (<samp>ps</samp>) is specified, that is used.
+</p>
+</dd>
+<dt><samp>stats (<em>stats</em>)</samp></dt>
+<dd><p>Set the file name for multi-pass stats.
+</p>
+</dd>
+<dt><samp>nal-hrd (<em>nal-hrd</em>)</samp></dt>
+<dd><p>Set signal HRD information (requires <samp>vbv-bufsize</samp> to be set).
+Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>none (<em>none</em>)</samp>&rsquo;</dt>
+<dd><p>Disable HRD information signaling.
+</p></dd>
+<dt>&lsquo;<samp>vbr (<em>vbr</em>)</samp>&rsquo;</dt>
+<dd><p>Variable bit rate.
+</p></dd>
+<dt>&lsquo;<samp>cbr (<em>cbr</em>)</samp>&rsquo;</dt>
+<dd><p>Constant bit rate (not allowed in MP4 container).
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>x264opts (N.A.)</samp></dt>
+<dd><p>Set any x264 option, see <code>x264 --fullhelp</code> for a list.
+</p>
+<p>Argument is a list of <var>key</var>=<var>value</var> couples separated by
+&quot;:&quot;. In <var>filter</var> and <var>psy-rd</var> options that use &quot;:&quot; as a separator
+themselves, use &quot;,&quot; instead. They accept it as well since long ago but this
+is kept undocumented for some reason.
+</p>
+<p>For example to specify libx264 encoding options with <code>ffmpeg</code>:
+</p><div class="example">
+<pre class="example">ffmpeg -i foo.mpg -vcodec libx264 -x264opts keyint=123:min-keyint=20 -an out.mkv
+</pre></div>
+
+</dd>
+<dt><samp>x264-params (N.A.)</samp></dt>
+<dd><p>Override the x264 configuration using a :-separated list of key=value
+parameters.
+</p>
+<p>This option is functionally the same as the <samp>x264opts</samp>, but is
+duplicated for compatibility with the Libav fork.
+</p>
+<p>For example to specify libx264 encoding options with <code>ffmpeg</code>:
+</p><div class="example">
+<pre class="example">ffmpeg -i INPUT -c:v libx264 -x264-params level=30:bframes=0:weightp=0:\
+cabac=0:ref=1:vbv-maxrate=768:vbv-bufsize=2000:analyse=all:me=umh:\
+no-fast-pskip=1:subq=6:8x8dct=0:trellis=0 OUTPUT
+</pre></div>
+</dd>
+</dl>
+
+<p>Encoding ffpresets for common usages are provided so they can be used with the
+general presets system (e.g. passing the <samp>pre</samp> option).
+</p>
+<a name="libx265"></a>
+<h3 class="section">9.5 libx265<span class="pull-right"><a class="anchor hidden-xs" href="#libx265" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libx265" aria-hidden="true">TOC</a></span></h3>
+
+<p>x265 H.265/HEVC encoder wrapper.
+</p>
+<p>This encoder requires the presence of the libx265 headers and library
+during configuration. You need to explicitly configure the build with
+<samp>--enable-libx265</samp>.
+</p>
+<a name="Options-20"></a>
+<h4 class="subsection">9.5.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-20" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-20" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>preset</samp></dt>
+<dd><p>Set the x265 preset.
+</p>
+</dd>
+<dt><samp>tune</samp></dt>
+<dd><p>Set the x265 tune parameter.
+</p>
+</dd>
+<dt><samp>x265-params</samp></dt>
+<dd><p>Set x265 options using a list of <var>key</var>=<var>value</var> couples separated
+by &quot;:&quot;. See <code>x265 --help</code> for a list of options.
+</p>
+<p>For example to specify libx265 encoding options with <samp>-x265-params</samp>:
+</p>
+<div class="example">
+<pre class="example">ffmpeg -i input -c:v libx265 -x265-params crf=26:psy-rd=1 output.mp4
+</pre></div>
+</dd>
+</dl>
+
+<a name="libxvid"></a>
+<h3 class="section">9.6 libxvid<span class="pull-right"><a class="anchor hidden-xs" href="#libxvid" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-libxvid" aria-hidden="true">TOC</a></span></h3>
+
+<p>Xvid MPEG-4 Part 2 encoder wrapper.
+</p>
+<p>This encoder requires the presence of the libxvidcore headers and library
+during configuration. You need to explicitly configure the build with
+<code>--enable-libxvid --enable-gpl</code>.
+</p>
+<p>The native <code>mpeg4</code> encoder supports the MPEG-4 Part 2 format, so
+users can encode to this format without this library.
+</p>
+<a name="Options-21"></a>
+<h4 class="subsection">9.6.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-21" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-21" aria-hidden="true">TOC</a></span></h4>
+
+<p>The following options are supported by the libxvid wrapper. Some of
+the following options are listed but are not documented, and
+correspond to shared codec options. See <a href="#codec_002doptions">the Codec
+Options chapter</a> for their documentation. The other shared options
+which are not listed have no effect for the libxvid encoder.
+</p>
+<dl compact="compact">
+<dt><samp>b</samp></dt>
+<dt><samp>g</samp></dt>
+<dt><samp>qmin</samp></dt>
+<dt><samp>qmax</samp></dt>
+<dt><samp>mpeg_quant</samp></dt>
+<dt><samp>threads</samp></dt>
+<dt><samp>bf</samp></dt>
+<dt><samp>b_qfactor</samp></dt>
+<dt><samp>b_qoffset</samp></dt>
+<dt><samp>flags</samp></dt>
+<dd><p>Set specific encoding flags. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>mv4</samp>&rsquo;</dt>
+<dd><p>Use four motion vector by macroblock.
+</p>
+</dd>
+<dt>&lsquo;<samp>aic</samp>&rsquo;</dt>
+<dd><p>Enable high quality AC prediction.
+</p>
+</dd>
+<dt>&lsquo;<samp>gray</samp>&rsquo;</dt>
+<dd><p>Only encode grayscale.
+</p>
+</dd>
+<dt>&lsquo;<samp>gmc</samp>&rsquo;</dt>
+<dd><p>Enable the use of global motion compensation (GMC).
+</p>
+</dd>
+<dt>&lsquo;<samp>qpel</samp>&rsquo;</dt>
+<dd><p>Enable quarter-pixel motion compensation.
+</p>
+</dd>
+<dt>&lsquo;<samp>cgop</samp>&rsquo;</dt>
+<dd><p>Enable closed GOP.
+</p>
+</dd>
+<dt>&lsquo;<samp>global_header</samp>&rsquo;</dt>
+<dd><p>Place global headers in extradata instead of every keyframe.
+</p>
+</dd>
+</dl>
+
+</dd>
+<dt><samp>trellis</samp></dt>
+<dt><samp>me_method</samp></dt>
+<dd><p>Set motion estimation method. Possible values in decreasing order of
+speed and increasing order of quality:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>zero</samp>&rsquo;</dt>
+<dd><p>Use no motion estimation (default).
+</p>
+</dd>
+<dt>&lsquo;<samp>phods</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>x1</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>log</samp>&rsquo;</dt>
+<dd><p>Enable advanced diamond zonal search for 16x16 blocks and half-pixel
+refinement for 16x16 blocks. &lsquo;<samp>x1</samp>&rsquo; and &lsquo;<samp>log</samp>&rsquo; are aliases for
+&lsquo;<samp>phods</samp>&rsquo;.
+</p>
+</dd>
+<dt>&lsquo;<samp>epzs</samp>&rsquo;</dt>
+<dd><p>Enable all of the things described above, plus advanced diamond zonal
+search for 8x8 blocks, half-pixel refinement for 8x8 blocks, and motion
+estimation on chroma planes.
+</p>
+</dd>
+<dt>&lsquo;<samp>full</samp>&rsquo;</dt>
+<dd><p>Enable all of the things described above, plus extended 16x16 and 8x8
+blocks search.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>mbd</samp></dt>
+<dd><p>Set macroblock decision algorithm. Possible values in the increasing
+order of quality:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>simple</samp>&rsquo;</dt>
+<dd><p>Use macroblock comparing function algorithm (default).
+</p>
+</dd>
+<dt>&lsquo;<samp>bits</samp>&rsquo;</dt>
+<dd><p>Enable rate distortion-based half pixel and quarter pixel refinement for
+16x16 blocks.
+</p>
+</dd>
+<dt>&lsquo;<samp>rd</samp>&rsquo;</dt>
+<dd><p>Enable all of the things described above, plus rate distortion-based
+half pixel and quarter pixel refinement for 8x8 blocks, and rate
+distortion-based search using square pattern.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>lumi_aq</samp></dt>
+<dd><p>Enable lumi masking adaptive quantization when set to 1. Default is 0
+(disabled).
+</p>
+</dd>
+<dt><samp>variance_aq</samp></dt>
+<dd><p>Enable variance adaptive quantization when set to 1. Default is 0
+(disabled).
+</p>
+<p>When combined with <samp>lumi_aq</samp>, the resulting quality will not
+be better than any of the two specified individually. In other
+words, the resulting quality will be the worse one of the two
+effects.
+</p>
+</dd>
+<dt><samp>ssim</samp></dt>
+<dd><p>Set structural similarity (SSIM) displaying method. Possible values:
+</p>
+<dl compact="compact">
+<dt>&lsquo;<samp>off</samp>&rsquo;</dt>
+<dd><p>Disable displaying of SSIM information.
+</p>
+</dd>
+<dt>&lsquo;<samp>avg</samp>&rsquo;</dt>
+<dd><p>Output average SSIM at the end of encoding to stdout. The format of
+showing the average SSIM is:
+</p>
+<div class="example">
+<pre class="example">Average SSIM: %f
+</pre></div>
+
+<p>For users who are not familiar with C, %f means a float number, or
+a decimal (e.g. 0.939232).
+</p>
+</dd>
+<dt>&lsquo;<samp>frame</samp>&rsquo;</dt>
+<dd><p>Output both per-frame SSIM data during encoding and average SSIM at
+the end of encoding to stdout. The format of per-frame information
+is:
+</p>
+<div class="example">
+<pre class="example">       SSIM: avg: %1.3f min: %1.3f max: %1.3f
+</pre></div>
+
+<p>For users who are not familiar with C, %1.3f means a float number
+rounded to 3 digits after the dot (e.g. 0.932).
+</p>
+</dd>
+</dl>
+
+</dd>
+<dt><samp>ssim_acc</samp></dt>
+<dd><p>Set SSIM accuracy. Valid options are integers within the range of
+0-4, while 0 gives the most accurate result and 4 computes the
+fastest.
+</p>
+</dd>
+</dl>
+
+<a name="mpeg2"></a>
+<h3 class="section">9.7 mpeg2<span class="pull-right"><a class="anchor hidden-xs" href="#mpeg2" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-mpeg2" aria-hidden="true">TOC</a></span></h3>
+
+<p>MPEG-2 video encoder.
+</p>
+<a name="Options-22"></a>
+<h4 class="subsection">9.7.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-22" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-22" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>seq_disp_ext <var>integer</var></samp></dt>
+<dd><p>Specifies if the encoder should write a sequence_display_extension to the
+output.
+</p><dl compact="compact">
+<dt><samp>-1</samp></dt>
+<dt><samp>auto</samp></dt>
+<dd><p>Decide automatically to write it or not (this is the default) by checking if
+the data to be written is different from the default or unspecified values.
+</p></dd>
+<dt><samp>0</samp></dt>
+<dt><samp>never</samp></dt>
+<dd><p>Never write it.
+</p></dd>
+<dt><samp>1</samp></dt>
+<dt><samp>always</samp></dt>
+<dd><p>Always write it.
+</p></dd>
+</dl>
+</dd>
+</dl>
+
+<a name="png"></a>
+<h3 class="section">9.8 png<span class="pull-right"><a class="anchor hidden-xs" href="#png" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-png" aria-hidden="true">TOC</a></span></h3>
+
+<p>PNG image encoder.
+</p>
+<a name="Private-options-1"></a>
+<h4 class="subsection">9.8.1 Private options<span class="pull-right"><a class="anchor hidden-xs" href="#Private-options-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Private-options-1" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>dpi <var>integer</var></samp></dt>
+<dd><p>Set physical density of pixels, in dots per inch, unset by default
+</p></dd>
+<dt><samp>dpm <var>integer</var></samp></dt>
+<dd><p>Set physical density of pixels, in dots per meter, unset by default
+</p></dd>
+</dl>
+
+<a name="ProRes"></a>
+<h3 class="section">9.9 ProRes<span class="pull-right"><a class="anchor hidden-xs" href="#ProRes" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-ProRes" aria-hidden="true">TOC</a></span></h3>
+
+<p>Apple ProRes encoder.
+</p>
+<p>FFmpeg contains 2 ProRes encoders, the prores-aw and prores-ks encoder.
+The used encoder can be chosen with the <code>-vcodec</code> option.
+</p>
+<a name="Private-Options-for-prores_002dks"></a>
+<h4 class="subsection">9.9.1 Private Options for prores-ks<span class="pull-right"><a class="anchor hidden-xs" href="#Private-Options-for-prores_002dks" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Private-Options-for-prores_002dks" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>profile <var>integer</var></samp></dt>
+<dd><p>Select the ProRes profile to encode
+</p><dl compact="compact">
+<dt>&lsquo;<samp>proxy</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>lt</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>standard</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>hq</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>4444</samp>&rsquo;</dt>
+</dl>
+
+</dd>
+<dt><samp>quant_mat <var>integer</var></samp></dt>
+<dd><p>Select quantization matrix.
+</p><dl compact="compact">
+<dt>&lsquo;<samp>auto</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>default</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>proxy</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>lt</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>standard</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>hq</samp>&rsquo;</dt>
+</dl>
+<p>If set to <var>auto</var>, the matrix matching the profile will be picked.
+If not set, the matrix providing the highest quality, <var>default</var>, will be
+picked.
+</p>
+</dd>
+<dt><samp>bits_per_mb <var>integer</var></samp></dt>
+<dd><p>How many bits to allot for coding one macroblock. Different profiles use
+between 200 and 2400 bits per macroblock, the maximum is 8000.
+</p>
+</dd>
+<dt><samp>mbs_per_slice <var>integer</var></samp></dt>
+<dd><p>Number of macroblocks in each slice (1-8); the default value (8)
+should be good in almost all situations.
+</p>
+</dd>
+<dt><samp>vendor <var>string</var></samp></dt>
+<dd><p>Override the 4-byte vendor ID.
+A custom vendor ID like <var>apl0</var> would claim the stream was produced by
+the Apple encoder.
+</p>
+</dd>
+<dt><samp>alpha_bits <var>integer</var></samp></dt>
+<dd><p>Specify number of bits for alpha component.
+Possible values are <var>0</var>, <var>8</var> and <var>16</var>.
+Use <var>0</var> to disable alpha plane coding.
+</p>
+</dd>
+</dl>
+
+<a name="Speed-considerations"></a>
+<h4 class="subsection">9.9.2 Speed considerations<span class="pull-right"><a class="anchor hidden-xs" href="#Speed-considerations" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Speed-considerations" aria-hidden="true">TOC</a></span></h4>
+
+<p>In the default mode of operation the encoder has to honor frame constraints
+(i.e. not produce frames with size bigger than requested) while still making
+output picture as good as possible.
+A frame containing a lot of small details is harder to compress and the encoder
+would spend more time searching for appropriate quantizers for each slice.
+</p>
+<p>Setting a higher <samp>bits_per_mb</samp> limit will improve the speed.
+</p>
+<p>For the fastest encoding speed set the <samp>qscale</samp> parameter (4 is the
+recommended value) and do not set a size constraint.
+</p>
+
+<a name="Subtitles-Encoders"></a>
+<h2 class="chapter">10 Subtitles Encoders<span class="pull-right"><a class="anchor hidden-xs" href="#Subtitles-Encoders" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Subtitles-Encoders" aria-hidden="true">TOC</a></span></h2>
+
+<a name="dvdsub-1"></a>
+<h3 class="section">10.1 dvdsub<span class="pull-right"><a class="anchor hidden-xs" href="#dvdsub-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-dvdsub-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>This codec encodes the bitmap subtitle format that is used in DVDs.
+Typically they are stored in VOBSUB file pairs (*.idx + *.sub),
+and they can also be used in Matroska files.
+</p>
+<a name="Options-23"></a>
+<h4 class="subsection">10.1.1 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options-23" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options-23" aria-hidden="true">TOC</a></span></h4>
+
+<dl compact="compact">
+<dt><samp>even_rows_fix</samp></dt>
+<dd><p>When set to 1, enable a work-around that makes the number of pixel rows
+even in all subtitles.  This fixes a problem with some players that
+cut off the bottom row if the number is odd.  The work-around just adds
+a fully transparent row if needed.  The overhead is low, typically
+one byte per subtitle on average.
+</p>
+<p>By default, this work-around is disabled.
+</p></dd>
+</dl>
+
+
+<a name="See-Also"></a>
+<h2 class="chapter">11 See Also<span class="pull-right"><a class="anchor hidden-xs" href="#See-Also" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-See-Also" aria-hidden="true">TOC</a></span></h2>
+
+<p><a href="ffmpeg.html">ffmpeg</a>, <a href="ffplay.html">ffplay</a>, <a href="ffprobe.html">ffprobe</a>, <a href="ffserver.html">ffserver</a>,
+<a href="libavcodec.html">libavcodec</a>
+</p>
+
+<a name="Authors"></a>
+<h2 class="chapter">12 Authors<span class="pull-right"><a class="anchor hidden-xs" href="#Authors" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Authors" aria-hidden="true">TOC</a></span></h2>
+
+<p>The FFmpeg developers.
+</p>
+<p>For details about the authorship, see the Git history of the project
+(git://source.ffmpeg.org/ffmpeg), e.g. by typing the command
+<code>git log</code> in the FFmpeg source directory, or browsing the
+online repository at <a href="http://source.ffmpeg.org">http://source.ffmpeg.org</a>.
+</p>
+<p>Maintainers for the specific components are listed in the file
+<samp>MAINTAINERS</samp> in the source code tree.
+</p>
+
+
+      <p style="font-size: small;">
+        This document was generated on <em>January 14, 2015</em> using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
+    </div>
+  </body>
+</html>

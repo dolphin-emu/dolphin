@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+  <head>
+    <meta charset="utf-8">
+    <title>
+      FFmpeg Bitstream Filters Documentation
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
+  </head>
+  <body>
+    <div style="width: 95%; margin: auto">
+      <h1>
+      FFmpeg Bitstream Filters Documentation
+      </h1>
+<div align="center">
+</div>
+
+<a name="SEC_Top"></a>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Description" href="#Description">1 Description</a></li>
+  <li><a name="toc-Bitstream-Filters" href="#Bitstream-Filters">2 Bitstream Filters</a>
+  <ul class="no-bullet">
+    <li><a name="toc-aac_005fadtstoasc" href="#aac_005fadtstoasc">2.1 aac_adtstoasc</a></li>
+    <li><a name="toc-chomp" href="#chomp">2.2 chomp</a></li>
+    <li><a name="toc-dump_005fextra" href="#dump_005fextra">2.3 dump_extra</a></li>
+    <li><a name="toc-h264_005fmp4toannexb" href="#h264_005fmp4toannexb">2.4 h264_mp4toannexb</a></li>
+    <li><a name="toc-imxdump" href="#imxdump">2.5 imxdump</a></li>
+    <li><a name="toc-mjpeg2jpeg" href="#mjpeg2jpeg">2.6 mjpeg2jpeg</a></li>
+    <li><a name="toc-mjpega_005fdump_005fheader" href="#mjpega_005fdump_005fheader">2.7 mjpega_dump_header</a></li>
+    <li><a name="toc-movsub" href="#movsub">2.8 movsub</a></li>
+    <li><a name="toc-mp3_005fheader_005fdecompress" href="#mp3_005fheader_005fdecompress">2.9 mp3_header_decompress</a></li>
+    <li><a name="toc-noise" href="#noise">2.10 noise</a></li>
+    <li><a name="toc-remove_005fextra" href="#remove_005fextra">2.11 remove_extra</a></li>
+  </ul></li>
+  <li><a name="toc-See-Also" href="#See-Also">3 See Also</a></li>
+  <li><a name="toc-Authors" href="#Authors">4 Authors</a></li>
+</ul>
+</div>
+
+
+<a name="Description"></a>
+<h2 class="chapter">1 Description<span class="pull-right"><a class="anchor hidden-xs" href="#Description" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Description" aria-hidden="true">TOC</a></span></h2>
+
+<p>This document describes the bitstream filters provided by the
+libavcodec library.
+</p>
+<p>A bitstream filter operates on the encoded stream data, and performs
+bitstream level modifications without performing decoding.
+</p>
+
+<a name="Bitstream-Filters"></a>
+<h2 class="chapter">2 Bitstream Filters<span class="pull-right"><a class="anchor hidden-xs" href="#Bitstream-Filters" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Bitstream-Filters" aria-hidden="true">TOC</a></span></h2>
+
+<p>When you configure your FFmpeg build, all the supported bitstream
+filters are enabled by default. You can list all available ones using
+the configure option <code>--list-bsfs</code>.
+</p>
+<p>You can disable all the bitstream filters using the configure option
+<code>--disable-bsfs</code>, and selectively enable any bitstream filter using
+the option <code>--enable-bsf=BSF</code>, or you can disable a particular
+bitstream filter using the option <code>--disable-bsf=BSF</code>.
+</p>
+<p>The option <code>-bsfs</code> of the ff* tools will display the list of
+all the supported bitstream filters included in your build.
+</p>
+<p>The ff* tools have a -bsf option applied per stream, taking a
+comma-separated list of filters, whose parameters follow the filter
+name after a &rsquo;=&rsquo;.
+</p>
+<div class="example">
+<pre class="example">ffmpeg -i INPUT -c:v copy -bsf:v filter1[=opt1=str1/opt2=str2][,filter2] OUTPUT
+</pre></div>
+
+<p>Below is a description of the currently available bitstream filters,
+with their parameters, if any.
+</p>
+<a name="aac_005fadtstoasc"></a>
+<h3 class="section">2.1 aac_adtstoasc<span class="pull-right"><a class="anchor hidden-xs" href="#aac_005fadtstoasc" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-aac_005fadtstoasc" aria-hidden="true">TOC</a></span></h3>
+
+<p>Convert MPEG-2/4 AAC ADTS to MPEG-4 Audio Specific Configuration
+bitstream filter.
+</p>
+<p>This filter creates an MPEG-4 AudioSpecificConfig from an MPEG-2/4
+ADTS header and removes the ADTS header.
+</p>
+<p>This is required for example when copying an AAC stream from a raw
+ADTS AAC container to a FLV or a MOV/MP4 file.
+</p>
+<a name="chomp"></a>
+<h3 class="section">2.2 chomp<span class="pull-right"><a class="anchor hidden-xs" href="#chomp" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-chomp" aria-hidden="true">TOC</a></span></h3>
+
+<p>Remove zero padding at the end of a packet.
+</p>
+<a name="dump_005fextra"></a>
+<h3 class="section">2.3 dump_extra<span class="pull-right"><a class="anchor hidden-xs" href="#dump_005fextra" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-dump_005fextra" aria-hidden="true">TOC</a></span></h3>
+
+<p>Add extradata to the beginning of the filtered packets.
+</p>
+<p>The additional argument specifies which packets should be filtered.
+It accepts the values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>a</samp>&rsquo;</dt>
+<dd><p>add extradata to all key packets, but only if <var>local_header</var> is
+set in the <samp>flags2</samp> codec context field
+</p>
+</dd>
+<dt>&lsquo;<samp>k</samp>&rsquo;</dt>
+<dd><p>add extradata to all key packets
+</p>
+</dd>
+<dt>&lsquo;<samp>e</samp>&rsquo;</dt>
+<dd><p>add extradata to all packets
+</p></dd>
+</dl>
+
+<p>If not specified it is assumed &lsquo;<samp>k</samp>&rsquo;.
+</p>
+<p>For example the following <code>ffmpeg</code> command forces a global
+header (thus disabling individual packet headers) in the H.264 packets
+generated by the <code>libx264</code> encoder, but corrects them by adding
+the header stored in extradata to the key packets:
+</p><div class="example">
+<pre class="example">ffmpeg -i INPUT -map 0 -flags:v +global_header -c:v libx264 -bsf:v dump_extra out.ts
+</pre></div>
+
+<a name="h264_005fmp4toannexb"></a>
+<h3 class="section">2.4 h264_mp4toannexb<span class="pull-right"><a class="anchor hidden-xs" href="#h264_005fmp4toannexb" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-h264_005fmp4toannexb" aria-hidden="true">TOC</a></span></h3>
+
+<p>Convert an H.264 bitstream from length prefixed mode to start code
+prefixed mode (as defined in the Annex B of the ITU-T H.264
+specification).
+</p>
+<p>This is required by some streaming formats, typically the MPEG-2
+transport stream format (&quot;mpegts&quot;).
+</p>
+<p>For example to remux an MP4 file containing an H.264 stream to mpegts
+format with <code>ffmpeg</code>, you can use the command:
+</p>
+<div class="example">
+<pre class="example">ffmpeg -i INPUT.mp4 -codec copy -bsf:v h264_mp4toannexb OUTPUT.ts
+</pre></div>
+
+<a name="imxdump"></a>
+<h3 class="section">2.5 imxdump<span class="pull-right"><a class="anchor hidden-xs" href="#imxdump" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-imxdump" aria-hidden="true">TOC</a></span></h3>
+
+<p>Modifies the bitstream to fit in MOV and to be usable by the Final Cut
+Pro decoder. This filter only applies to the mpeg2video codec, and is
+likely not needed for Final Cut Pro 7 and newer with the appropriate
+<samp>-tag:v</samp>.
+</p>
+<p>For example, to remux 30 MB/sec NTSC IMX to MOV:
+</p>
+<div class="example">
+<pre class="example">ffmpeg -i input.mxf -c copy -bsf:v imxdump -tag:v mx3n output.mov
+</pre></div>
+
+<a name="mjpeg2jpeg"></a>
+<h3 class="section">2.6 mjpeg2jpeg<span class="pull-right"><a class="anchor hidden-xs" href="#mjpeg2jpeg" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-mjpeg2jpeg" aria-hidden="true">TOC</a></span></h3>
+
+<p>Convert MJPEG/AVI1 packets to full JPEG/JFIF packets.
+</p>
+<p>MJPEG is a video codec wherein each video frame is essentially a
+JPEG image. The individual frames can be extracted without loss,
+e.g. by
+</p>
+<div class="example">
+<pre class="example">ffmpeg -i ../some_mjpeg.avi -c:v copy frames_%d.jpg
+</pre></div>
+
+<p>Unfortunately, these chunks are incomplete JPEG images, because
+they lack the DHT segment required for decoding. Quoting from
+<a href="http://www.digitalpreservation.gov/formats/fdd/fdd000063.shtml">http://www.digitalpreservation.gov/formats/fdd/fdd000063.shtml</a>:
+</p>
+<p>Avery Lee, writing in the rec.video.desktop newsgroup in 2001,
+commented that &quot;MJPEG, or at least the MJPEG in AVIs having the
+MJPG fourcc, is restricted JPEG with a fixed &ndash; and *omitted* &ndash;
+Huffman table. The JPEG must be YCbCr colorspace, it must be 4:2:2,
+and it must use basic Huffman encoding, not arithmetic or
+progressive. . . . You can indeed extract the MJPEG frames and
+decode them with a regular JPEG decoder, but you have to prepend
+the DHT segment to them, or else the decoder won&rsquo;t have any idea
+how to decompress the data. The exact table necessary is given in
+the OpenDML spec.&quot;
+</p>
+<p>This bitstream filter patches the header of frames extracted from an MJPEG
+stream (carrying the AVI1 header ID and lacking a DHT segment) to
+produce fully qualified JPEG images.
+</p>
+<div class="example">
+<pre class="example">ffmpeg -i mjpeg-movie.avi -c:v copy -bsf:v mjpeg2jpeg frame_%d.jpg
+exiftran -i -9 frame*.jpg
+ffmpeg -i frame_%d.jpg -c:v copy rotated.avi
+</pre></div>
+
+<a name="mjpega_005fdump_005fheader"></a>
+<h3 class="section">2.7 mjpega_dump_header<span class="pull-right"><a class="anchor hidden-xs" href="#mjpega_005fdump_005fheader" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-mjpega_005fdump_005fheader" aria-hidden="true">TOC</a></span></h3>
+
+<a name="movsub"></a>
+<h3 class="section">2.8 movsub<span class="pull-right"><a class="anchor hidden-xs" href="#movsub" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-movsub" aria-hidden="true">TOC</a></span></h3>
+
+<a name="mp3_005fheader_005fdecompress"></a>
+<h3 class="section">2.9 mp3_header_decompress<span class="pull-right"><a class="anchor hidden-xs" href="#mp3_005fheader_005fdecompress" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-mp3_005fheader_005fdecompress" aria-hidden="true">TOC</a></span></h3>
+
+<a name="noise"></a>
+<h3 class="section">2.10 noise<span class="pull-right"><a class="anchor hidden-xs" href="#noise" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-noise" aria-hidden="true">TOC</a></span></h3>
+
+<p>Damages the contents of packets without damaging the container. Can be
+used for fuzzing or testing error resilience/concealment.
+</p>
+<p>Parameters:
+A numeral string, whose value is related to how often output bytes will
+be modified. Therefore, values below or equal to 0 are forbidden, and
+the lower the more frequent bytes will be modified, with 1 meaning
+every byte is modified.
+</p>
+<div class="example">
+<pre class="example">ffmpeg -i INPUT -c copy -bsf noise[=1] output.mkv
+</pre></div>
+<p>applies the modification to every byte.
+</p>
+<a name="remove_005fextra"></a>
+<h3 class="section">2.11 remove_extra<span class="pull-right"><a class="anchor hidden-xs" href="#remove_005fextra" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-remove_005fextra" aria-hidden="true">TOC</a></span></h3>
+
+
+<a name="See-Also"></a>
+<h2 class="chapter">3 See Also<span class="pull-right"><a class="anchor hidden-xs" href="#See-Also" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-See-Also" aria-hidden="true">TOC</a></span></h2>
+
+<p><a href="ffmpeg.html">ffmpeg</a>, <a href="ffplay.html">ffplay</a>, <a href="ffprobe.html">ffprobe</a>, <a href="ffserver.html">ffserver</a>,
+<a href="libavcodec.html">libavcodec</a>
+</p>
+
+<a name="Authors"></a>
+<h2 class="chapter">4 Authors<span class="pull-right"><a class="anchor hidden-xs" href="#Authors" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Authors" aria-hidden="true">TOC</a></span></h2>
+
+<p>The FFmpeg developers.
+</p>
+<p>For details about the authorship, see the Git history of the project
+(git://source.ffmpeg.org/ffmpeg), e.g. by typing the command
+<code>git log</code> in the FFmpeg source directory, or browsing the
+online repository at <a href="http://source.ffmpeg.org">http://source.ffmpeg.org</a>.
+</p>
+<p>Maintainers for the specific components are listed in the file
+<samp>MAINTAINERS</samp> in the source code tree.
+</p>
+
+
+      <p style="font-size: small;">
+        This document was generated on <em>January 14, 2015</em> using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
+    </div>
+  </body>
+</html>

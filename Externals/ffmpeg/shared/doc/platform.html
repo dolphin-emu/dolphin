@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+  <head>
+    <meta charset="utf-8">
+    <title>
+      Platform Specific Information
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
+  </head>
+  <body>
+    <div style="width: 95%; margin: auto">
+      <h1>
+      Platform Specific Information
+      </h1>
+<div align="center">
+</div>
+
+<a name="SEC_Top"></a>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Unix_002dlike" href="#Unix_002dlike">1 Unix-like</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Advanced-linking-configuration" href="#Advanced-linking-configuration">1.1 Advanced linking configuration</a></li>
+    <li><a name="toc-BSD" href="#BSD">1.2 BSD</a></li>
+    <li><a name="toc-_0028Open_0029Solaris" href="#g_t_0028Open_0029Solaris">1.3 (Open)Solaris</a></li>
+    <li><a name="toc-Darwin-_0028Mac-OS-X_002c-iPhone_0029" href="#Darwin-_0028Mac-OS-X_002c-iPhone_0029">1.4 Darwin (Mac OS X, iPhone)</a></li>
+  </ul></li>
+  <li><a name="toc-DOS" href="#DOS">2 DOS</a></li>
+  <li><a name="toc-OS_002f2" href="#OS_002f2">3 OS/2</a></li>
+  <li><a name="toc-Windows" href="#Windows">4 Windows</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Native-Windows-compilation-using-MinGW-or-MinGW_002dw64" href="#Native-Windows-compilation-using-MinGW-or-MinGW_002dw64">4.1 Native Windows compilation using MinGW or MinGW-w64</a></li>
+    <li><a name="toc-Microsoft-Visual-C_002b_002b-or-Intel-C_002b_002b-Compiler-for-Windows" href="#Microsoft-Visual-C_002b_002b-or-Intel-C_002b_002b-Compiler-for-Windows">4.2 Microsoft Visual C++ or Intel C++ Compiler for Windows</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Linking-to-FFmpeg-with-Microsoft-Visual-C_002b_002b" href="#Linking-to-FFmpeg-with-Microsoft-Visual-C_002b_002b">4.2.1 Linking to FFmpeg with Microsoft Visual C++</a></li>
+    </ul></li>
+    <li><a name="toc-Cross-compilation-for-Windows-with-Linux-1" href="#Cross-compilation-for-Windows-with-Linux-1">4.3 Cross compilation for Windows with Linux</a></li>
+    <li><a name="toc-Compilation-under-Cygwin" href="#Compilation-under-Cygwin">4.4 Compilation under Cygwin</a></li>
+    <li><a name="toc-Crosscompilation-for-Windows-under-Cygwin" href="#Crosscompilation-for-Windows-under-Cygwin">4.5 Crosscompilation for Windows under Cygwin</a></li>
+  </ul></li>
+  <li><a name="toc-Plan-9" href="#Plan-9">5 Plan 9</a></li>
+</ul>
+</div>
+
+
+<a name="Unix_002dlike"></a>
+<h2 class="chapter">1 Unix-like<span class="pull-right"><a class="anchor hidden-xs" href="#Unix_002dlike" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Unix_002dlike" aria-hidden="true">TOC</a></span></h2>
+
+<p>Some parts of FFmpeg cannot be built with version 2.15 of the GNU
+assembler which is still provided by a few AMD64 distributions. To
+make sure your compiler really uses the required version of gas
+after a binutils upgrade, run:
+</p>
+<div class="example">
+<pre class="example">$(gcc -print-prog-name=as) --version
+</pre></div>
+
+<p>If not, then you should install a different compiler that has no
+hard-coded path to gas. In the worst case pass <code>--disable-asm</code>
+to configure.
+</p>
+<a name="Advanced-linking-configuration"></a>
+<h3 class="section">1.1 Advanced linking configuration<span class="pull-right"><a class="anchor hidden-xs" href="#Advanced-linking-configuration" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Advanced-linking-configuration" aria-hidden="true">TOC</a></span></h3>
+
+<p>If you compiled FFmpeg libraries statically and you want to use them to
+build your own shared library, you may need to force PIC support (with
+<code>--enable-pic</code> during FFmpeg configure) and add the following option
+to your project LDFLAGS:
+</p>
+<div class="example">
+<pre class="example">-Wl,-Bsymbolic
+</pre></div>
+
+<p>If your target platform requires position independent binaries, you should
+pass the correct linking flag (e.g. <code>-pie</code>) to <code>--extra-ldexeflags</code>.
+</p>
+<a name="BSD"></a>
+<h3 class="section">1.2 BSD<span class="pull-right"><a class="anchor hidden-xs" href="#BSD" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-BSD" aria-hidden="true">TOC</a></span></h3>
+
+<p>BSD make will not build FFmpeg, you need to install and use GNU Make
+(<code>gmake</code>).
+</p>
+<a name="g_t_0028Open_0029Solaris"></a>
+<h3 class="section">1.3 (Open)Solaris<span class="pull-right"><a class="anchor hidden-xs" href="#_0028Open_0029Solaris" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-_0028Open_0029Solaris" aria-hidden="true">TOC</a></span></h3>
+
+<p>GNU Make is required to build FFmpeg, so you have to invoke (<code>gmake</code>),
+standard Solaris Make will not work. When building with a non-c99 front-end
+(gcc, generic suncc) add either <code>--extra-libs=/usr/lib/values-xpg6.o</code>
+or <code>--extra-libs=/usr/lib/64/values-xpg6.o</code> to the configure options
+since the libc is not c99-compliant by default. The probes performed by
+configure may raise an exception leading to the death of configure itself
+due to a bug in the system shell. Simply invoke a different shell such as
+bash directly to work around this:
+</p>
+<div class="example">
+<pre class="example">bash ./configure
+</pre></div>
+
+<a name="Darwin"></a><a name="Darwin-_0028Mac-OS-X_002c-iPhone_0029"></a>
+<h3 class="section">1.4 Darwin (Mac OS X, iPhone)<span class="pull-right"><a class="anchor hidden-xs" href="#Darwin-_0028Mac-OS-X_002c-iPhone_0029" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Darwin-_0028Mac-OS-X_002c-iPhone_0029" aria-hidden="true">TOC</a></span></h3>
+
+<p>The toolchain provided with Xcode is sufficient to build the basic
+unacelerated code.
+</p>
+<p>Mac OS X on PowerPC or ARM (iPhone) requires a preprocessor from
+<a href="https://github.com/FFmpeg/gas-preprocessor">https://github.com/FFmpeg/gas-preprocessor</a> or
+<a href="https://github.com/yuvi/gas-preprocessor">https://github.com/yuvi/gas-preprocessor</a>(currently outdated) to build the optimized
+assembly functions. Put the Perl script somewhere
+in your PATH, FFmpeg&rsquo;s configure will pick it up automatically.
+</p>
+<p>Mac OS X on amd64 and x86 requires <code>yasm</code> to build most of the
+optimized assembly functions. <a href="http://www.finkproject.org/">Fink</a>,
+<a href="http://www.gentoo.org/proj/en/gentoo-alt/prefix/bootstrap-macos.xml">Gentoo Prefix</a>,
+<a href="https://mxcl.github.com/homebrew/">Homebrew</a>
+or <a href="http://www.macports.org">MacPorts</a> can easily provide it.
+</p>
+
+<a name="DOS"></a>
+<h2 class="chapter">2 DOS<span class="pull-right"><a class="anchor hidden-xs" href="#DOS" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-DOS" aria-hidden="true">TOC</a></span></h2>
+
+<p>Using a cross-compiler is preferred for various reasons.
+<a href="http://www.delorie.com/howto/djgpp/linux-x-djgpp.html">http://www.delorie.com/howto/djgpp/linux-x-djgpp.html</a>
+</p>
+
+<a name="OS_002f2"></a>
+<h2 class="chapter">3 OS/2<span class="pull-right"><a class="anchor hidden-xs" href="#OS_002f2" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-OS_002f2" aria-hidden="true">TOC</a></span></h2>
+
+<p>For information about compiling FFmpeg on OS/2 see
+<a href="http://www.edm2.com/index.php/FFmpeg">http://www.edm2.com/index.php/FFmpeg</a>.
+</p>
+
+<a name="Windows"></a>
+<h2 class="chapter">4 Windows<span class="pull-right"><a class="anchor hidden-xs" href="#Windows" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Windows" aria-hidden="true">TOC</a></span></h2>
+
+<p>To get help and instructions for building FFmpeg under Windows, check out
+the FFmpeg Windows Help Forum at <a href="http://ffmpeg.zeranoe.com/forum/">http://ffmpeg.zeranoe.com/forum/</a>.
+</p>
+<a name="Native-Windows-compilation-using-MinGW-or-MinGW_002dw64"></a>
+<h3 class="section">4.1 Native Windows compilation using MinGW or MinGW-w64<span class="pull-right"><a class="anchor hidden-xs" href="#Native-Windows-compilation-using-MinGW-or-MinGW_002dw64" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Native-Windows-compilation-using-MinGW-or-MinGW_002dw64" aria-hidden="true">TOC</a></span></h3>
+
+<p>FFmpeg can be built to run natively on Windows using the MinGW or MinGW-w64
+toolchains. Install the latest versions of MSYS and MinGW or MinGW-w64 from
+<a href="http://www.mingw.org/">http://www.mingw.org/</a> or <a href="http://mingw-w64.sourceforge.net/">http://mingw-w64.sourceforge.net/</a>.
+You can find detailed installation instructions in the download section and
+the FAQ.
+</p>
+<p>Notes:
+</p>
+<ul>
+<li> Building natively using MSYS can be sped up by disabling implicit rules
+in the Makefile by calling <code>make -r</code> instead of plain <code>make</code>. This
+speed up is close to non-existent for normal one-off builds and is only
+noticeable when running make for a second time (for example during
+<code>make install</code>).
+
+</li><li> In order to compile FFplay, you must have the MinGW development library
+of <a href="http://www.libsdl.org/">SDL</a> and <code>pkg-config</code> installed.
+
+</li><li> By using <code>./configure --enable-shared</code> when configuring FFmpeg,
+you can build the FFmpeg libraries (e.g. libavutil, libavcodec,
+libavformat) as DLLs.
+
+</li></ul>
+
+<a name="Microsoft-Visual-C_002b_002b-or-Intel-C_002b_002b-Compiler-for-Windows"></a>
+<h3 class="section">4.2 Microsoft Visual C++ or Intel C++ Compiler for Windows<span class="pull-right"><a class="anchor hidden-xs" href="#Microsoft-Visual-C_002b_002b-or-Intel-C_002b_002b-Compiler-for-Windows" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Microsoft-Visual-C_002b_002b-or-Intel-C_002b_002b-Compiler-for-Windows" aria-hidden="true">TOC</a></span></h3>
+
+<p>FFmpeg can be built with MSVC 2012 or earlier using a C99-to-C89 conversion utility
+and wrapper, or with MSVC 2013 and ICL natively.
+</p>
+<p>You will need the following prerequisites:
+</p>
+<ul>
+<li> <a href="https://github.com/libav/c99-to-c89/">C99-to-C89 Converter &amp; Wrapper</a>
+(if using MSVC 2012 or earlier)
+</li><li> <a href="http://code.google.com/p/msinttypes/">msinttypes</a>
+(if using MSVC 2012 or earlier)
+</li><li> <a href="http://www.mingw.org/">MSYS</a>
+</li><li> <a href="http://yasm.tortall.net/">YASM</a>
+</li><li> <a href="http://gnuwin32.sourceforge.net/packages/bc.htm">bc for Windows</a> if
+you want to run <a href="fate.html">FATE</a>.
+</li></ul>
+
+<p>To set up a proper environment in MSYS, you need to run <code>msys.bat</code> from
+the Visual Studio or Intel Compiler command prompt.
+</p>
+<p>Place <code>yasm.exe</code> somewhere in your <code>PATH</code>. If using MSVC 2012 or
+earlier, place <code>c99wrap.exe</code> and <code>c99conv.exe</code> somewhere in your
+<code>PATH</code> as well.
+</p>
+<p>Next, make sure any other headers and libs you want to use, such as zlib, are
+located in a spot that the compiler can see. Do so by modifying the <code>LIB</code>
+and <code>INCLUDE</code> environment variables to include the <strong>Windows-style</strong>
+paths to these directories. Alternatively, you can try and use the
+<code>--extra-cflags</code>/<code>--extra-ldflags</code> configure options. If using MSVC
+2012 or earlier, place <code>inttypes.h</code> somewhere the compiler can see too.
+</p>
+<p>Finally, run:
+</p>
+<div class="example">
+<pre class="example">For MSVC:
+./configure --toolchain=msvc
+
+For ICL:
+./configure --toolchain=icl
+
+make
+make install
+</pre></div>
+
+<p>If you wish to compile shared libraries, add <code>--enable-shared</code> to your
+configure options. Note that due to the way MSVC and ICL handle DLL imports and
+exports, you cannot compile static and shared libraries at the same time, and
+enabling shared libraries will automatically disable the static ones.
+</p>
+<p>Notes:
+</p>
+<ul>
+<li> It is possible that coreutils&rsquo; <code>link.exe</code> conflicts with MSVC&rsquo;s linker.
+You can find out by running <code>which link</code> to see which <code>link.exe</code> you
+are using. If it is located at <code>/bin/link.exe</code>, then you have the wrong one
+in your <code>PATH</code>. Either move or remove that copy, or make sure MSVC&rsquo;s
+<code>link.exe</code> takes precedence in your <code>PATH</code> over coreutils&rsquo;.
+
+</li><li> If you wish to build with zlib support, you will have to grab a compatible
+zlib binary from somewhere, with an MSVC import lib, or if you wish to link
+statically, you can follow the instructions below to build a compatible
+<code>zlib.lib</code> with MSVC. Regardless of which method you use, you must still
+follow step 3, or compilation will fail.
+<ol>
+<li> Grab the <a href="http://zlib.net/">zlib sources</a>.
+</li><li> Edit <code>win32/Makefile.msc</code> so that it uses -MT instead of -MD, since
+this is how FFmpeg is built as well.
+</li><li> Edit <code>zconf.h</code> and remove its inclusion of <code>unistd.h</code>. This gets
+erroneously included when building FFmpeg.
+</li><li> Run <code>nmake -f win32/Makefile.msc</code>.
+</li><li> Move <code>zlib.lib</code>, <code>zconf.h</code>, and <code>zlib.h</code> to somewhere MSVC
+can see.
+</li></ol>
+
+</li><li> FFmpeg has been tested with the following on i686 and x86_64:
+<ul>
+<li> Visual Studio 2010 Pro and Express
+</li><li> Visual Studio 2012 Pro and Express
+</li><li> Visual Studio 2013 Pro and Express
+</li><li> Intel Composer XE 2013
+</li><li> Intel Composer XE 2013 SP1
+</li></ul>
+<p>Anything else is not officially supported.
+</p>
+</li></ul>
+
+<a name="Linking-to-FFmpeg-with-Microsoft-Visual-C_002b_002b"></a>
+<h4 class="subsection">4.2.1 Linking to FFmpeg with Microsoft Visual C++<span class="pull-right"><a class="anchor hidden-xs" href="#Linking-to-FFmpeg-with-Microsoft-Visual-C_002b_002b" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Linking-to-FFmpeg-with-Microsoft-Visual-C_002b_002b" aria-hidden="true">TOC</a></span></h4>
+
+<p>If you plan to link with MSVC-built static libraries, you will need
+to make sure you have <code>Runtime Library</code> set to
+<code>Multi-threaded (/MT)</code> in your project&rsquo;s settings.
+</p>
+<p>You will need to define <code>inline</code> to something MSVC understands:
+</p><div class="example">
+<pre class="example">#define inline __inline
+</pre></div>
+
+<p>Also note, that as stated in <strong>Microsoft Visual C++</strong>, you will need
+an MSVC-compatible <a href="http://code.google.com/p/msinttypes/">inttypes.h</a>.
+</p>
+<p>If you plan on using import libraries created by dlltool, you must
+set <code>References</code> to <code>No (/OPT:NOREF)</code> under the linker optimization
+settings, otherwise the resulting binaries will fail during runtime.
+This is not required when using import libraries generated by <code>lib.exe</code>.
+This issue is reported upstream at
+<a href="http://sourceware.org/bugzilla/show_bug.cgi?id=12633">http://sourceware.org/bugzilla/show_bug.cgi?id=12633</a>.
+</p>
+<p>To create import libraries that work with the <code>/OPT:REF</code> option
+(which is enabled by default in Release mode), follow these steps:
+</p>
+<ol>
+<li> Open the <em>Visual Studio Command Prompt</em>.
+
+<p>Alternatively, in a normal command line prompt, call <samp>vcvars32.bat</samp>
+which sets up the environment variables for the Visual C++ tools
+(the standard location for this file is something like
+<samp>C:\Program Files (x86_\Microsoft Visual Studio 10.0\VC\bin\vcvars32.bat</samp>).
+</p>
+</li><li> Enter the <samp>bin</samp> directory where the created LIB and DLL files
+are stored.
+
+</li><li> Generate new import libraries with <code>lib.exe</code>:
+
+<div class="example">
+<pre class="example">lib /machine:i386 /def:..\lib\foo-version.def  /out:foo.lib
+</pre></div>
+
+<p>Replace <code>foo-version</code> and <code>foo</code> with the respective library names.
+</p>
+</li></ol>
+
+<a name="Cross-compilation-for-Windows-with-Linux"></a><a name="Cross-compilation-for-Windows-with-Linux-1"></a>
+<h3 class="section">4.3 Cross compilation for Windows with Linux<span class="pull-right"><a class="anchor hidden-xs" href="#Cross-compilation-for-Windows-with-Linux-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Cross-compilation-for-Windows-with-Linux-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>You must use the MinGW cross compilation tools available at
+<a href="http://www.mingw.org/">http://www.mingw.org/</a>.
+</p>
+<p>Then configure FFmpeg with the following options:
+</p><div class="example">
+<pre class="example">./configure --target-os=mingw32 --cross-prefix=i386-mingw32msvc-
+</pre></div>
+<p>(you can change the cross-prefix according to the prefix chosen for the
+MinGW tools).
+</p>
+<p>Then you can easily test FFmpeg with <a href="http://www.winehq.com/">Wine</a>.
+</p>
+<a name="Compilation-under-Cygwin"></a>
+<h3 class="section">4.4 Compilation under Cygwin<span class="pull-right"><a class="anchor hidden-xs" href="#Compilation-under-Cygwin" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Compilation-under-Cygwin" aria-hidden="true">TOC</a></span></h3>
+
+<p>Please use Cygwin 1.7.x as the obsolete 1.5.x Cygwin versions lack
+llrint() in its C library.
+</p>
+<p>Install your Cygwin with all the &quot;Base&quot; packages, plus the
+following &quot;Devel&quot; ones:
+</p><div class="example">
+<pre class="example">binutils, gcc4-core, make, git, mingw-runtime, texinfo
+</pre></div>
+
+<p>In order to run FATE you will also need the following &quot;Utils&quot; packages:
+</p><div class="example">
+<pre class="example">bc, diffutils
+</pre></div>
+
+<p>If you want to build FFmpeg with additional libraries, download Cygwin
+&quot;Devel&quot; packages for Ogg and Vorbis from any Cygwin packages repository:
+</p><div class="example">
+<pre class="example">libogg-devel, libvorbis-devel
+</pre></div>
+
+<p>These library packages are only available from
+<a href="http://sourceware.org/cygwinports/">Cygwin Ports</a>:
+</p>
+<div class="example">
+<pre class="example">yasm, libSDL-devel, libfaac-devel, libaacplus-devel, libgsm-devel, libmp3lame-devel,
+libschroedinger1.0-devel, speex-devel, libtheora-devel, libxvidcore-devel
+</pre></div>
+
+<p>The recommendation for x264 is to build it from source, as it evolves too
+quickly for Cygwin Ports to be up to date.
+</p>
+<a name="Crosscompilation-for-Windows-under-Cygwin"></a>
+<h3 class="section">4.5 Crosscompilation for Windows under Cygwin<span class="pull-right"><a class="anchor hidden-xs" href="#Crosscompilation-for-Windows-under-Cygwin" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Crosscompilation-for-Windows-under-Cygwin" aria-hidden="true">TOC</a></span></h3>
+
+<p>With Cygwin you can create Windows binaries that do not need the cygwin1.dll.
+</p>
+<p>Just install your Cygwin as explained before, plus these additional
+&quot;Devel&quot; packages:
+</p><div class="example">
+<pre class="example">gcc-mingw-core, mingw-runtime, mingw-zlib
+</pre></div>
+
+<p>and add some special flags to your configure invocation.
+</p>
+<p>For a static build run
+</p><div class="example">
+<pre class="example">./configure --target-os=mingw32 --extra-cflags=-mno-cygwin --extra-libs=-mno-cygwin
+</pre></div>
+
+<p>and for a build with shared libraries
+</p><div class="example">
+<pre class="example">./configure --target-os=mingw32 --enable-shared --disable-static --extra-cflags=-mno-cygwin --extra-libs=-mno-cygwin
+</pre></div>
+
+<a name="Plan-9"></a>
+<h2 class="chapter">5 Plan 9<span class="pull-right"><a class="anchor hidden-xs" href="#Plan-9" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Plan-9" aria-hidden="true">TOC</a></span></h2>
+
+<p>The native <a href="http://plan9.bell-labs.com/plan9/">Plan 9</a> compiler
+does not implement all the C99 features needed by FFmpeg so the gcc
+port must be used.  Furthermore, a few items missing from the C
+library and shell environment need to be fixed.
+</p>
+<ul>
+<li> GNU awk, grep, make, and sed
+
+<p>Working packages of these tools can be found at
+<a href="http://code.google.com/p/ports2plan9/downloads/list">ports2plan9</a>.
+They can be installed with <a href="http://9front.org/">9front&rsquo;s</a> <code>pkg</code>
+utility by setting <code>pkgpath</code> to
+<code>http://ports2plan9.googlecode.com/files/</code>.
+</p>
+</li><li> Missing/broken <code>head</code> and <code>printf</code> commands
+
+<p>Replacements adequate for building FFmpeg can be found in the
+<code>compat/plan9</code> directory.  Place these somewhere they will be
+found by the shell.  These are not full implementations of the
+commands and are <em>not</em> suitable for general use.
+</p>
+</li><li> Missing C99 <code>stdint.h</code> and <code>inttypes.h</code>
+
+<p>Replacement headers are available from
+<a href="http://code.google.com/p/plan9front/issues/detail?id=152">http://code.google.com/p/plan9front/issues/detail?id=152</a>.
+</p>
+</li><li> Missing or non-standard library functions
+
+<p>Some functions in the C library are missing or incomplete.  The
+<code><a href="http://ports2plan9.googlecode.com/files/gcc-apelibs-1207.tbz">gcc-apelibs-1207</a></code> package from
+<a href="http://code.google.com/p/ports2plan9/downloads/list">ports2plan9</a>
+includes an updated C library, but installing the full package gives
+unusable executables.  Instead, keep the files from <code>gccbin.tgz</code>
+under <code>/386/lib/gnu</code>.  From the <code>libc.a</code> archive in the
+<code>gcc-apelibs-1207</code> package, extract the following object files and
+turn them into a library:
+</p>
+<ul>
+<li> <code>strerror.o</code>
+</li><li> <code>strtoll.o</code>
+</li><li> <code>snprintf.o</code>
+</li><li> <code>vsnprintf.o</code>
+</li><li> <code>vfprintf.o</code>
+</li><li> <code>_IO_getc.o</code>
+</li><li> <code>_IO_putc.o</code>
+</li></ul>
+
+<p>Use the <code>--extra-libs</code> option of <code>configure</code> to inform the
+build system of this library.
+</p>
+</li><li> FPU exceptions enabled by default
+
+<p>Unlike most other systems, Plan 9 enables FPU exceptions by default.
+These must be disabled before calling any FFmpeg functions.  While the
+included tools will do this automatically, other users of the
+libraries must do it themselves.
+</p>
+</li></ul>
+
+
+      <p style="font-size: small;">
+        This document was generated on <em>January 14, 2015</em> using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
+    </div>
+  </body>
+</html>

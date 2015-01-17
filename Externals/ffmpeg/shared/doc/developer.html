@@ -1,0 +1,777 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+  <head>
+    <meta charset="utf-8">
+    <title>
+      Developer Documentation
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
+  </head>
+  <body>
+    <div style="width: 95%; margin: auto">
+      <h1>
+      Developer Documentation
+      </h1>
+<div align="center">
+</div>
+
+<a name="SEC_Top"></a>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Developers-Guide" href="#Developers-Guide">1 Developers Guide</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Notes-for-external-developers" href="#Notes-for-external-developers">1.1 Notes for external developers</a></li>
+    <li><a name="toc-Contributing" href="#Contributing">1.2 Contributing</a></li>
+    <li><a name="toc-Coding-Rules-1" href="#Coding-Rules-1">1.3 Coding Rules</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Code-formatting-conventions" href="#Code-formatting-conventions">1.3.1 Code formatting conventions</a></li>
+      <li><a name="toc-Comments" href="#Comments">1.3.2 Comments</a></li>
+      <li><a name="toc-C-language-features" href="#C-language-features">1.3.3 C language features</a></li>
+      <li><a name="toc-Naming-conventions" href="#Naming-conventions">1.3.4 Naming conventions</a></li>
+      <li><a name="toc-Miscellaneous-conventions" href="#Miscellaneous-conventions">1.3.5 Miscellaneous conventions</a></li>
+      <li><a name="toc-Editor-configuration" href="#Editor-configuration">1.3.6 Editor configuration</a></li>
+    </ul></li>
+    <li><a name="toc-Development-Policy" href="#Development-Policy">1.4 Development Policy</a></li>
+    <li><a name="toc-Submitting-patches-1" href="#Submitting-patches-1">1.5 Submitting patches</a></li>
+    <li><a name="toc-New-codecs-or-formats-checklist" href="#New-codecs-or-formats-checklist">1.6 New codecs or formats checklist</a></li>
+    <li><a name="toc-patch-submission-checklist" href="#patch-submission-checklist">1.7 patch submission checklist</a></li>
+    <li><a name="toc-Patch-review-process" href="#Patch-review-process">1.8 Patch review process</a></li>
+    <li><a name="toc-Regression-tests-1" href="#Regression-tests-1">1.9 Regression tests</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Adding-files-to-the-fate_002dsuite-dataset" href="#Adding-files-to-the-fate_002dsuite-dataset">1.9.1 Adding files to the fate-suite dataset</a></li>
+      <li><a name="toc-Visualizing-Test-Coverage" href="#Visualizing-Test-Coverage">1.9.2 Visualizing Test Coverage</a></li>
+      <li><a name="toc-Using-Valgrind" href="#Using-Valgrind">1.9.3 Using Valgrind</a></li>
+    </ul></li>
+    <li><a name="toc-Release-process-1" href="#Release-process-1">1.10 Release process</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Criteria-for-Point-Releases-1" href="#Criteria-for-Point-Releases-1">1.10.1 Criteria for Point Releases</a></li>
+      <li><a name="toc-Release-Checklist" href="#Release-Checklist">1.10.2 Release Checklist</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+<a name="Developers-Guide"></a>
+<h2 class="chapter">1 Developers Guide<span class="pull-right"><a class="anchor hidden-xs" href="#Developers-Guide" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Developers-Guide" aria-hidden="true">TOC</a></span></h2>
+
+<a name="Notes-for-external-developers"></a>
+<h3 class="section">1.1 Notes for external developers<span class="pull-right"><a class="anchor hidden-xs" href="#Notes-for-external-developers" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Notes-for-external-developers" aria-hidden="true">TOC</a></span></h3>
+
+<p>This document is mostly useful for internal FFmpeg developers.
+External developers who need to use the API in their application should
+refer to the API doxygen documentation in the public headers, and
+check the examples in <samp>doc/examples</samp> and in the source code to
+see how the public API is employed.
+</p>
+<p>You can use the FFmpeg libraries in your commercial program, but you
+are encouraged to <em>publish any patch you make</em>. In this case the
+best way to proceed is to send your patches to the ffmpeg-devel
+mailing list following the guidelines illustrated in the remainder of
+this document.
+</p>
+<p>For more detailed legal information about the use of FFmpeg in
+external programs read the <samp>LICENSE</samp> file in the source tree and
+consult <a href="http://ffmpeg.org/legal.html">http://ffmpeg.org/legal.html</a>.
+</p>
+<a name="Contributing"></a>
+<h3 class="section">1.2 Contributing<span class="pull-right"><a class="anchor hidden-xs" href="#Contributing" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Contributing" aria-hidden="true">TOC</a></span></h3>
+
+<p>There are 3 ways by which code gets into ffmpeg.
+</p><ul>
+<li> Submitting Patches to the main developer mailing list
+      see <a href="#Submitting-patches">Submitting patches</a> for details.
+</li><li> Directly committing changes to the main tree.
+</li><li> Committing changes to a git clone, for example on github.com or
+      gitorious.org. And asking us to merge these changes.
+</li></ul>
+
+<p>Whichever way, changes should be reviewed by the maintainer of the code
+before they are committed. And they should follow the <a href="#Coding-Rules">Coding Rules</a>.
+The developer making the commit and the author are responsible for their changes
+and should try to fix issues their commit causes.
+</p>
+<a name="Coding-Rules"></a><a name="Coding-Rules-1"></a>
+<h3 class="section">1.3 Coding Rules<span class="pull-right"><a class="anchor hidden-xs" href="#Coding-Rules-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Coding-Rules-1" aria-hidden="true">TOC</a></span></h3>
+
+<a name="Code-formatting-conventions"></a>
+<h4 class="subsection">1.3.1 Code formatting conventions<span class="pull-right"><a class="anchor hidden-xs" href="#Code-formatting-conventions" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Code-formatting-conventions" aria-hidden="true">TOC</a></span></h4>
+
+<p>There are the following guidelines regarding the indentation in files:
+</p>
+<ul>
+<li> Indent size is 4.
+
+</li><li> The TAB character is forbidden outside of Makefiles as is any
+form of trailing whitespace. Commits containing either will be
+rejected by the git repository.
+
+</li><li> You should try to limit your code lines to 80 characters; however, do so if
+and only if this improves readability.
+</li></ul>
+<p>The presentation is one inspired by &rsquo;indent -i4 -kr -nut&rsquo;.
+</p>
+<p>The main priority in FFmpeg is simplicity and small code size in order to
+minimize the bug count.
+</p>
+<a name="Comments"></a>
+<h4 class="subsection">1.3.2 Comments<span class="pull-right"><a class="anchor hidden-xs" href="#Comments" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Comments" aria-hidden="true">TOC</a></span></h4>
+<p>Use the JavaDoc/Doxygen  format (see examples below) so that code documentation
+can be generated automatically. All nontrivial functions should have a comment
+above them explaining what the function does, even if it is just one sentence.
+All structures and their member variables should be documented, too.
+</p>
+<p>Avoid Qt-style and similar Doxygen syntax with <code>!</code> in it, i.e. replace
+<code>//!</code> with <code>///</code> and similar.  Also @ syntax should be employed
+for markup commands, i.e. use <code>@param</code> and not <code>\param</code>.
+</p>
+<div class="example">
+<pre class="example">/**
+ * @file
+ * MPEG codec.
+ * @author ...
+ */
+
+/**
+ * Summary sentence.
+ * more text ...
+ * ...
+ */
+typedef struct Foobar {
+    int var1; /**&lt; var1 description */
+    int var2; ///&lt; var2 description
+    /** var3 description */
+    int var3;
+} Foobar;
+
+/**
+ * Summary sentence.
+ * more text ...
+ * ...
+ * @param my_parameter description of my_parameter
+ * @return return value description
+ */
+int myfunc(int my_parameter)
+...
+</pre></div>
+
+<a name="C-language-features"></a>
+<h4 class="subsection">1.3.3 C language features<span class="pull-right"><a class="anchor hidden-xs" href="#C-language-features" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-C-language-features" aria-hidden="true">TOC</a></span></h4>
+
+<p>FFmpeg is programmed in the ISO C90 language with a few additional
+features from ISO C99, namely:
+</p>
+<ul>
+<li> the &lsquo;<samp>inline</samp>&rsquo; keyword;
+
+</li><li> &lsquo;<samp>//</samp>&rsquo; comments;
+
+</li><li> designated struct initializers (&lsquo;<samp>struct s x = { .i = 17 };</samp>&rsquo;)
+
+</li><li> compound literals (&lsquo;<samp>x = (struct s) { 17, 23 };</samp>&rsquo;)
+</li></ul>
+
+<p>These features are supported by all compilers we care about, so we will not
+accept patches to remove their use unless they absolutely do not impair
+clarity and performance.
+</p>
+<p>All code must compile with recent versions of GCC and a number of other
+currently supported compilers. To ensure compatibility, please do not use
+additional C99 features or GCC extensions. Especially watch out for:
+</p>
+<ul>
+<li> mixing statements and declarations;
+
+</li><li> &lsquo;<samp>long long</samp>&rsquo; (use &lsquo;<samp>int64_t</samp>&rsquo; instead);
+
+</li><li> &lsquo;<samp>__attribute__</samp>&rsquo; not protected by &lsquo;<samp>#ifdef __GNUC__</samp>&rsquo; or similar;
+
+</li><li> GCC statement expressions (&lsquo;<samp>(x = ({ int y = 4; y; })</samp>&rsquo;).
+</li></ul>
+
+<a name="Naming-conventions"></a>
+<h4 class="subsection">1.3.4 Naming conventions<span class="pull-right"><a class="anchor hidden-xs" href="#Naming-conventions" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Naming-conventions" aria-hidden="true">TOC</a></span></h4>
+<p>All names should be composed with underscores (_), not CamelCase. For example,
+&lsquo;<samp>avfilter_get_video_buffer</samp>&rsquo; is an acceptable function name and
+&lsquo;<samp>AVFilterGetVideo</samp>&rsquo; is not. The exception from this are type names, like
+for example structs and enums; they should always be in the CamelCase
+</p>
+<p>There are the following conventions for naming variables and functions:
+</p>
+<ul>
+<li> For local variables no prefix is required.
+
+</li><li> For file-scope variables and functions declared as <code>static</code>, no prefix
+is required.
+
+</li><li> For variables and functions visible outside of file scope, but only used
+internally by a library, an <code>ff_</code> prefix should be used,
+e.g. &lsquo;<samp>ff_w64_demuxer</samp>&rsquo;.
+
+</li><li> For variables and functions visible outside of file scope, used internally
+across multiple libraries, use <code>avpriv_</code> as prefix, for example,
+&lsquo;<samp>avpriv_aac_parse_header</samp>&rsquo;.
+
+</li><li> Each library has its own prefix for public symbols, in addition to the
+commonly used <code>av_</code> (<code>avformat_</code> for libavformat,
+<code>avcodec_</code> for libavcodec, <code>swr_</code> for libswresample, etc).
+Check the existing code and choose names accordingly.
+Note that some symbols without these prefixes are also exported for
+retro-compatibility reasons. These exceptions are declared in the
+<code>lib&lt;name&gt;/lib&lt;name&gt;.v</code> files.
+</li></ul>
+
+<p>Furthermore, name space reserved for the system should not be invaded.
+Identifiers ending in <code>_t</code> are reserved by
+<a href="http://pubs.opengroup.org/onlinepubs/007904975/functions/xsh_chap02_02.html#tag_02_02_02">POSIX</a>.
+Also avoid names starting with <code>__</code> or <code>_</code> followed by an uppercase
+letter as they are reserved by the C standard. Names starting with <code>_</code>
+are reserved at the file level and may not be used for externally visible
+symbols. If in doubt, just avoid names starting with <code>_</code> altogether.
+</p>
+<a name="Miscellaneous-conventions"></a>
+<h4 class="subsection">1.3.5 Miscellaneous conventions<span class="pull-right"><a class="anchor hidden-xs" href="#Miscellaneous-conventions" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Miscellaneous-conventions" aria-hidden="true">TOC</a></span></h4>
+
+<ul>
+<li> fprintf and printf are forbidden in libavformat and libavcodec,
+please use av_log() instead.
+
+</li><li> Casts should be used only when necessary. Unneeded parentheses
+should also be avoided if they don&rsquo;t make the code easier to understand.
+</li></ul>
+
+<a name="Editor-configuration"></a>
+<h4 class="subsection">1.3.6 Editor configuration<span class="pull-right"><a class="anchor hidden-xs" href="#Editor-configuration" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Editor-configuration" aria-hidden="true">TOC</a></span></h4>
+<p>In order to configure Vim to follow FFmpeg formatting conventions, paste
+the following snippet into your <samp>.vimrc</samp>:
+</p><div class="example">
+<pre class="example">&quot; indentation rules for FFmpeg: 4 spaces, no tabs
+set expandtab
+set shiftwidth=4
+set softtabstop=4
+set cindent
+set cinoptions=(0
+&quot; Allow tabs in Makefiles.
+autocmd FileType make,automake set noexpandtab shiftwidth=8 softtabstop=8
+&quot; Trailing whitespace and tabs are forbidden, so highlight them.
+highlight ForbiddenWhitespace ctermbg=red guibg=red
+match ForbiddenWhitespace /\s\+$\|\t/
+&quot; Do not highlight spaces at the end of line while typing on that line.
+autocmd InsertEnter * match ForbiddenWhitespace /\t\|\s\+\%#\@&lt;!$/
+</pre></div>
+
+<p>For Emacs, add these roughly equivalent lines to your <samp>.emacs.d/init.el</samp>:
+</p><div class="example">
+<pre class="example">(c-add-style &quot;ffmpeg&quot;
+             '(&quot;k&amp;r&quot;
+               (c-basic-offset . 4)
+               (indent-tabs-mode . nil)
+               (show-trailing-whitespace . t)
+               (c-offsets-alist
+                (statement-cont . (c-lineup-assignments +)))
+               )
+             )
+(setq c-default-style &quot;ffmpeg&quot;)
+</pre></div>
+
+<a name="Development-Policy"></a>
+<h3 class="section">1.4 Development Policy<span class="pull-right"><a class="anchor hidden-xs" href="#Development-Policy" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Development-Policy" aria-hidden="true">TOC</a></span></h3>
+
+<ol>
+<li> Contributions should be licensed under the
+<a href="http://www.gnu.org/licenses/lgpl-2.1.html">LGPL 2.1</a>,
+including an &quot;or any later version&quot; clause, or, if you prefer
+a gift-style license, the
+<a href="http://opensource.org/licenses/isc-license.txt">ISC</a> or
+<a href="http://mit-license.org/">MIT</a> license.
+<a href="http://www.gnu.org/licenses/gpl-2.0.html">GPL 2</a> including
+an &quot;or any later version&quot; clause is also acceptable, but LGPL is
+preferred.
+If you add a new file, give it a proper license header. Do not copy and
+paste it from a random place, use an existing file as template.
+
+</li><li> You must not commit code which breaks FFmpeg! (Meaning unfinished but
+enabled code which breaks compilation or compiles but does not work or
+breaks the regression tests)
+You can commit unfinished stuff (for testing etc), but it must be disabled
+(#ifdef etc) by default so it does not interfere with other developers&rsquo;
+work.
+
+</li><li> The commit message should have a short first line in the form of
+a &lsquo;<samp>topic: short description</samp>&rsquo; as a header, separated by a newline
+from the body consisting of an explanation of why the change is necessary.
+If the commit fixes a known bug on the bug tracker, the commit message
+should include its bug ID. Referring to the issue on the bug tracker does
+not exempt you from writing an excerpt of the bug in the commit message.
+
+</li><li> You do not have to over-test things. If it works for you, and you think it
+should work for others, then commit. If your code has problems
+(portability, triggers compiler bugs, unusual environment etc) they will be
+reported and eventually fixed.
+
+</li><li> Do not commit unrelated changes together, split them into self-contained
+pieces. Also do not forget that if part B depends on part A, but A does not
+depend on B, then A can and should be committed first and separate from B.
+Keeping changes well split into self-contained parts makes reviewing and
+understanding them on the commit log mailing list easier. This also helps
+in case of debugging later on.
+Also if you have doubts about splitting or not splitting, do not hesitate to
+ask/discuss it on the developer mailing list.
+
+</li><li> Do not change behavior of the programs (renaming options etc) or public
+API or ABI without first discussing it on the ffmpeg-devel mailing list.
+Do not remove functionality from the code. Just improve!
+
+<p>Note: Redundant code can be removed.
+</p>
+</li><li> Do not commit changes to the build system (Makefiles, configure script)
+which change behavior, defaults etc, without asking first. The same
+applies to compiler warning fixes, trivial looking fixes and to code
+maintained by other developers. We usually have a reason for doing things
+the way we do. Send your changes as patches to the ffmpeg-devel mailing
+list, and if the code maintainers say OK, you may commit. This does not
+apply to files you wrote and/or maintain.
+
+</li><li> We refuse source indentation and other cosmetic changes if they are mixed
+with functional changes, such commits will be rejected and removed. Every
+developer has his own indentation style, you should not change it. Of course
+if you (re)write something, you can use your own style, even though we would
+prefer if the indentation throughout FFmpeg was consistent (Many projects
+force a given indentation style - we do not.). If you really need to make
+indentation changes (try to avoid this), separate them strictly from real
+changes.
+
+<p>NOTE: If you had to put if(){ .. } over a large (&gt; 5 lines) chunk of code,
+then either do NOT change the indentation of the inner part within (do not
+move it to the right)! or do so in a separate commit
+</p>
+</li><li> Always fill out the commit log message. Describe in a few lines what you
+changed and why. You can refer to mailing list postings if you fix a
+particular bug. Comments such as &quot;fixed!&quot; or &quot;Changed it.&quot; are unacceptable.
+Recommended format:
+
+<div class="example">
+<pre class="example">area changed: Short 1 line description
+
+details describing what and why and giving references.
+</pre></div>
+
+</li><li> Make sure the author of the commit is set correctly. (see git commit &ndash;author)
+If you apply a patch, send an
+answer to ffmpeg-devel (or wherever you got the patch from) saying that
+you applied the patch.
+
+</li><li> When applying patches that have been discussed (at length) on the mailing
+list, reference the thread in the log message.
+
+</li><li> Do NOT commit to code actively maintained by others without permission.
+Send a patch to ffmpeg-devel instead. If no one answers within a reasonable
+timeframe (12h for build failures and security fixes, 3 days small changes,
+1 week for big patches) then commit your patch if you think it is OK.
+Also note, the maintainer can simply ask for more time to review!
+
+</li><li> Subscribe to the ffmpeg-cvslog mailing list. The diffs of all commits
+are sent there and reviewed by all the other developers. Bugs and possible
+improvements or general questions regarding commits are discussed there. We
+expect you to react if problems with your code are uncovered.
+
+</li><li> Update the documentation if you change behavior or add features. If you are
+unsure how best to do this, send a patch to ffmpeg-devel, the documentation
+maintainer(s) will review and commit your stuff.
+
+</li><li> Try to keep important discussions and requests (also) on the public
+developer mailing list, so that all developers can benefit from them.
+
+</li><li> Never write to unallocated memory, never write over the end of arrays,
+always check values read from some untrusted source before using them
+as array index or other risky things.
+
+</li><li> Remember to check if you need to bump versions for the specific libav*
+parts (libavutil, libavcodec, libavformat) you are changing. You need
+to change the version integer.
+Incrementing the first component means no backward compatibility to
+previous versions (e.g. removal of a function from the public API).
+Incrementing the second component means backward compatible change
+(e.g. addition of a function to the public API or extension of an
+existing data structure).
+Incrementing the third component means a noteworthy binary compatible
+change (e.g. encoder bug fix that matters for the decoder). The third
+component always starts at 100 to distinguish FFmpeg from Libav.
+
+</li><li> Compiler warnings indicate potential bugs or code with bad style. If a type of
+warning always points to correct and clean code, that warning should
+be disabled, not the code changed.
+Thus the remaining warnings can either be bugs or correct code.
+If it is a bug, the bug has to be fixed. If it is not, the code should
+be changed to not generate a warning unless that causes a slowdown
+or obfuscates the code.
+
+</li><li> Make sure that no parts of the codebase that you maintain are missing from the
+<samp>MAINTAINERS</samp> file. If something that you want to maintain is missing add it with
+your name after it.
+If at some point you no longer want to maintain some code, then please help
+finding a new maintainer and also don&rsquo;t forget updating the <samp>MAINTAINERS</samp> file.
+</li></ol>
+
+<p>We think our rules are not too hard. If you have comments, contact us.
+</p>
+<a name="Submitting-patches"></a><a name="Submitting-patches-1"></a>
+<h3 class="section">1.5 Submitting patches<span class="pull-right"><a class="anchor hidden-xs" href="#Submitting-patches-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Submitting-patches-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>First, read the <a href="#Coding-Rules">Coding Rules</a> above if you did not yet, in particular
+the rules regarding patch submission.
+</p>
+<p>When you submit your patch, please use <code>git format-patch</code> or
+<code>git send-email</code>. We cannot read other diffs :-)
+</p>
+<p>Also please do not submit a patch which contains several unrelated changes.
+Split it into separate, self-contained pieces. This does not mean splitting
+file by file. Instead, make the patch as small as possible while still
+keeping it as a logical unit that contains an individual change, even
+if it spans multiple files. This makes reviewing your patches much easier
+for us and greatly increases your chances of getting your patch applied.
+</p>
+<p>Use the patcheck tool of FFmpeg to check your patch.
+The tool is located in the tools directory.
+</p>
+<p>Run the <a href="#Regression-tests">Regression tests</a> before submitting a patch in order to verify
+it does not cause unexpected problems.
+</p>
+<p>It also helps quite a bit if you tell us what the patch does (for example
+&rsquo;replaces lrint by lrintf&rsquo;), and why (for example &rsquo;*BSD isn&rsquo;t C99 compliant
+and has no lrint()&rsquo;)
+</p>
+<p>Also please if you send several patches, send each patch as a separate mail,
+do not attach several unrelated patches to the same mail.
+</p>
+<p>Patches should be posted to the
+<a href="http://lists.ffmpeg.org/mailman/listinfo/ffmpeg-devel">ffmpeg-devel</a>
+mailing list. Use <code>git send-email</code> when possible since it will properly
+send patches without requiring extra care. If you cannot, then send patches
+as base64-encoded attachments, so your patch is not trashed during
+transmission.
+</p>
+<p>Your patch will be reviewed on the mailing list. You will likely be asked
+to make some changes and are expected to send in an improved version that
+incorporates the requests from the review. This process may go through
+several iterations. Once your patch is deemed good enough, some developer
+will pick it up and commit it to the official FFmpeg tree.
+</p>
+<p>Give us a few days to react. But if some time passes without reaction,
+send a reminder by email. Your patch should eventually be dealt with.
+</p>
+
+<a name="New-codecs-or-formats-checklist"></a>
+<h3 class="section">1.6 New codecs or formats checklist<span class="pull-right"><a class="anchor hidden-xs" href="#New-codecs-or-formats-checklist" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-New-codecs-or-formats-checklist" aria-hidden="true">TOC</a></span></h3>
+
+<ol>
+<li> Did you use av_cold for codec initialization and close functions?
+
+</li><li> Did you add a long_name under NULL_IF_CONFIG_SMALL to the AVCodec or
+AVInputFormat/AVOutputFormat struct?
+
+</li><li> Did you bump the minor version number (and reset the micro version
+number) in <samp>libavcodec/version.h</samp> or <samp>libavformat/version.h</samp>?
+
+</li><li> Did you register it in <samp>allcodecs.c</samp> or <samp>allformats.c</samp>?
+
+</li><li> Did you add the AVCodecID to <samp>avcodec.h</samp>?
+When adding new codec IDs, also add an entry to the codec descriptor
+list in <samp>libavcodec/codec_desc.c</samp>.
+
+</li><li> If it has a FourCC, did you add it to <samp>libavformat/riff.c</samp>,
+even if it is only a decoder?
+
+</li><li> Did you add a rule to compile the appropriate files in the Makefile?
+Remember to do this even if you&rsquo;re just adding a format to a file that is
+already being compiled by some other rule, like a raw demuxer.
+
+</li><li> Did you add an entry to the table of supported formats or codecs in
+<samp>doc/general.texi</samp>?
+
+</li><li> Did you add an entry in the Changelog?
+
+</li><li> If it depends on a parser or a library, did you add that dependency in
+configure?
+
+</li><li> Did you <code>git add</code> the appropriate files before committing?
+
+</li><li> Did you make sure it compiles standalone, i.e. with
+<code>configure --disable-everything --enable-decoder=foo</code>
+(or <code>--enable-demuxer</code> or whatever your component is)?
+</li></ol>
+
+
+<a name="patch-submission-checklist"></a>
+<h3 class="section">1.7 patch submission checklist<span class="pull-right"><a class="anchor hidden-xs" href="#patch-submission-checklist" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-patch-submission-checklist" aria-hidden="true">TOC</a></span></h3>
+
+<ol>
+<li> Does <code>make fate</code> pass with the patch applied?
+
+</li><li> Was the patch generated with git format-patch or send-email?
+
+</li><li> Did you sign off your patch? (git commit -s)
+See <a href="http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob_plain;f=Documentation/SubmittingPatches">http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob_plain;f=Documentation/SubmittingPatches</a> for the meaning
+of sign off.
+
+</li><li> Did you provide a clear git commit log message?
+
+</li><li> Is the patch against latest FFmpeg git master branch?
+
+</li><li> Are you subscribed to ffmpeg-devel?
+(the list is subscribers only due to spam)
+
+</li><li> Have you checked that the changes are minimal, so that the same cannot be
+achieved with a smaller patch and/or simpler final code?
+
+</li><li> If the change is to speed critical code, did you benchmark it?
+
+</li><li> If you did any benchmarks, did you provide them in the mail?
+
+</li><li> Have you checked that the patch does not introduce buffer overflows or
+other security issues?
+
+</li><li> Did you test your decoder or demuxer against damaged data? If no, see
+tools/trasher, the noise bitstream filter, and
+<a href="http://caca.zoy.org/wiki/zzuf">zzuf</a>. Your decoder or demuxer
+should not crash, end in a (near) infinite loop, or allocate ridiculous
+amounts of memory when fed damaged data.
+
+</li><li> Does the patch not mix functional and cosmetic changes?
+
+</li><li> Did you add tabs or trailing whitespace to the code? Both are forbidden.
+
+</li><li> Is the patch attached to the email you send?
+
+</li><li> Is the mime type of the patch correct? It should be text/x-diff or
+text/x-patch or at least text/plain and not application/octet-stream.
+
+</li><li> If the patch fixes a bug, did you provide a verbose analysis of the bug?
+
+</li><li> If the patch fixes a bug, did you provide enough information, including
+a sample, so the bug can be reproduced and the fix can be verified?
+Note please do not attach samples &gt;100k to mails but rather provide a
+URL, you can upload to ftp://upload.ffmpeg.org
+
+</li><li> Did you provide a verbose summary about what the patch does change?
+
+</li><li> Did you provide a verbose explanation why it changes things like it does?
+
+</li><li> Did you provide a verbose summary of the user visible advantages and
+disadvantages if the patch is applied?
+
+</li><li> Did you provide an example so we can verify the new feature added by the
+patch easily?
+
+</li><li> If you added a new file, did you insert a license header? It should be
+taken from FFmpeg, not randomly copied and pasted from somewhere else.
+
+</li><li> You should maintain alphabetical order in alphabetically ordered lists as
+long as doing so does not break API/ABI compatibility.
+
+</li><li> Lines with similar content should be aligned vertically when doing so
+improves readability.
+
+</li><li> Consider to add a regression test for your code.
+
+</li><li> If you added YASM code please check that things still work with &ndash;disable-yasm
+
+</li><li> Make sure you check the return values of function and return appropriate
+error codes. Especially memory allocation functions like <code>av_malloc()</code>
+are notoriously left unchecked, which is a serious problem.
+
+</li><li> Test your code with valgrind and or Address Sanitizer to ensure it&rsquo;s free
+of leaks, out of array accesses, etc.
+</li></ol>
+
+<a name="Patch-review-process"></a>
+<h3 class="section">1.8 Patch review process<span class="pull-right"><a class="anchor hidden-xs" href="#Patch-review-process" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Patch-review-process" aria-hidden="true">TOC</a></span></h3>
+
+<p>All patches posted to ffmpeg-devel will be reviewed, unless they contain a
+clear note that the patch is not for the git master branch.
+Reviews and comments will be posted as replies to the patch on the
+mailing list. The patch submitter then has to take care of every comment,
+that can be by resubmitting a changed patch or by discussion. Resubmitted
+patches will themselves be reviewed like any other patch. If at some point
+a patch passes review with no comments then it is approved, that can for
+simple and small patches happen immediately while large patches will generally
+have to be changed and reviewed many times before they are approved.
+After a patch is approved it will be committed to the repository.
+</p>
+<p>We will review all submitted patches, but sometimes we are quite busy so
+especially for large patches this can take several weeks.
+</p>
+<p>If you feel that the review process is too slow and you are willing to try to
+take over maintainership of the area of code you change then just clone
+git master and maintain the area of code there. We will merge each area from
+where its best maintained.
+</p>
+<p>When resubmitting patches, please do not make any significant changes
+not related to the comments received during review. Such patches will
+be rejected. Instead, submit significant changes or new features as
+separate patches.
+</p>
+<a name="Regression-tests"></a><a name="Regression-tests-1"></a>
+<h3 class="section">1.9 Regression tests<span class="pull-right"><a class="anchor hidden-xs" href="#Regression-tests-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Regression-tests-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>Before submitting a patch (or committing to the repository), you should at least
+test that you did not break anything.
+</p>
+<p>Running &rsquo;make fate&rsquo; accomplishes this, please see <a href="fate.html">fate.html</a> for details.
+</p>
+<p>[Of course, some patches may change the results of the regression tests. In
+this case, the reference results of the regression tests shall be modified
+accordingly].
+</p>
+<a name="Adding-files-to-the-fate_002dsuite-dataset"></a>
+<h4 class="subsection">1.9.1 Adding files to the fate-suite dataset<span class="pull-right"><a class="anchor hidden-xs" href="#Adding-files-to-the-fate_002dsuite-dataset" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Adding-files-to-the-fate_002dsuite-dataset" aria-hidden="true">TOC</a></span></h4>
+
+<p>When there is no muxer or encoder available to generate test media for a
+specific test then the media has to be included in the fate-suite.
+First please make sure that the sample file is as small as possible to test the
+respective decoder or demuxer sufficiently. Large files increase network
+bandwidth and disk space requirements.
+Once you have a working fate test and fate sample, provide in the commit
+message or introductory message for the patch series that you post to
+the ffmpeg-devel mailing list, a direct link to download the sample media.
+</p>
+
+<a name="Visualizing-Test-Coverage"></a>
+<h4 class="subsection">1.9.2 Visualizing Test Coverage<span class="pull-right"><a class="anchor hidden-xs" href="#Visualizing-Test-Coverage" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Visualizing-Test-Coverage" aria-hidden="true">TOC</a></span></h4>
+
+<p>The FFmpeg build system allows visualizing the test coverage in an easy
+manner with the coverage tools <code>gcov</code>/<code>lcov</code>.  This involves
+the following steps:
+</p>
+<ol>
+<li> Configure to compile with instrumentation enabled:
+    <code>configure --toolchain=gcov</code>.
+
+</li><li> Run your test case, either manually or via FATE. This can be either
+    the full FATE regression suite, or any arbitrary invocation of any
+    front-end tool provided by FFmpeg, in any combination.
+
+</li><li> Run <code>make lcov</code> to generate coverage data in HTML format.
+
+</li><li> View <code>lcov/index.html</code> in your preferred HTML viewer.
+</li></ol>
+
+<p>You can use the command <code>make lcov-reset</code> to reset the coverage
+measurements. You will need to rerun <code>make lcov</code> after running a
+new test.
+</p>
+<a name="Using-Valgrind"></a>
+<h4 class="subsection">1.9.3 Using Valgrind<span class="pull-right"><a class="anchor hidden-xs" href="#Using-Valgrind" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Using-Valgrind" aria-hidden="true">TOC</a></span></h4>
+
+<p>The configure script provides a shortcut for using valgrind to spot bugs
+related to memory handling. Just add the option
+<code>--toolchain=valgrind-memcheck</code> or <code>--toolchain=valgrind-massif</code>
+to your configure line, and reasonable defaults will be set for running
+FATE under the supervision of either the <strong>memcheck</strong> or the
+<strong>massif</strong> tool of the valgrind suite.
+</p>
+<p>In case you need finer control over how valgrind is invoked, use the
+<code>--target-exec='valgrind &lt;your_custom_valgrind_options&gt;</code> option in
+your configure line instead.
+</p>
+<a name="Release-process"></a><a name="Release-process-1"></a>
+<h3 class="section">1.10 Release process<span class="pull-right"><a class="anchor hidden-xs" href="#Release-process-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Release-process-1" aria-hidden="true">TOC</a></span></h3>
+
+<p>FFmpeg maintains a set of <strong>release branches</strong>, which are the
+recommended deliverable for system integrators and distributors (such as
+Linux distributions, etc.). At regular times, a <strong>release
+manager</strong> prepares, tests and publishes tarballs on the
+<a href="http://ffmpeg.org">http://ffmpeg.org</a> website.
+</p>
+<p>There are two kinds of releases:
+</p>
+<ol>
+<li> <strong>Major releases</strong> always include the latest and greatest
+features and functionality.
+
+</li><li> <strong>Point releases</strong> are cut from <strong>release</strong> branches,
+which are named <code>release/X</code>, with <code>X</code> being the release
+version number.
+</li></ol>
+
+<p>Note that we promise to our users that shared libraries from any FFmpeg
+release never break programs that have been <strong>compiled</strong> against
+previous versions of <strong>the same release series</strong> in any case!
+</p>
+<p>However, from time to time, we do make API changes that require adaptations
+in applications. Such changes are only allowed in (new) major releases and
+require further steps such as bumping library version numbers and/or
+adjustments to the symbol versioning file. Please discuss such changes
+on the <strong>ffmpeg-devel</strong> mailing list in time to allow forward planning.
+</p>
+<a name="Criteria-for-Point-Releases"></a><a name="Criteria-for-Point-Releases-1"></a>
+<h4 class="subsection">1.10.1 Criteria for Point Releases<span class="pull-right"><a class="anchor hidden-xs" href="#Criteria-for-Point-Releases-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Criteria-for-Point-Releases-1" aria-hidden="true">TOC</a></span></h4>
+
+<p>Changes that match the following criteria are valid candidates for
+inclusion into a point release:
+</p>
+<ol>
+<li> Fixes a security issue, preferably identified by a <strong>CVE
+number</strong> issued by <a href="http://cve.mitre.org/">http://cve.mitre.org/</a>.
+
+</li><li> Fixes a documented bug in <a href="https://trac.ffmpeg.org">https://trac.ffmpeg.org</a>.
+
+</li><li> Improves the included documentation.
+
+</li><li> Retains both source code and binary compatibility with previous
+point releases of the same release branch.
+</li></ol>
+
+<p>The order for checking the rules is (1 OR 2 OR 3) AND 4.
+</p>
+
+<a name="Release-Checklist"></a>
+<h4 class="subsection">1.10.2 Release Checklist<span class="pull-right"><a class="anchor hidden-xs" href="#Release-Checklist" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Release-Checklist" aria-hidden="true">TOC</a></span></h4>
+
+<p>The release process involves the following steps:
+</p>
+<ol>
+<li> Ensure that the <samp>RELEASE</samp> file contains the version number for
+the upcoming release.
+
+</li><li> Add the release at <a href="https://trac.ffmpeg.org/admin/ticket/versions">https://trac.ffmpeg.org/admin/ticket/versions</a>.
+
+</li><li> Announce the intent to do a release to the mailing list.
+
+</li><li> Make sure all relevant security fixes have been backported. See
+<a href="https://ffmpeg.org/security.html">https://ffmpeg.org/security.html</a>.
+
+</li><li> Ensure that the FATE regression suite still passes in the release
+branch on at least <strong>i386</strong> and <strong>amd64</strong>
+(cf. <a href="#Regression-tests">Regression tests</a>).
+
+</li><li> Prepare the release tarballs in <code>bz2</code> and <code>gz</code> formats, and
+supplementing files that contain <code>gpg</code> signatures
+
+</li><li> Publish the tarballs at <a href="http://ffmpeg.org/releases">http://ffmpeg.org/releases</a>. Create and
+push an annotated tag in the form <code>nX</code>, with <code>X</code>
+containing the version number.
+
+</li><li> Propose and send a patch to the <strong>ffmpeg-devel</strong> mailing list
+with a news entry for the website.
+
+</li><li> Publish the news entry.
+
+</li><li> Send announcement to the mailing list.
+</li></ol>
+
+
+      <p style="font-size: small;">
+        This document was generated on <em>January 14, 2015</em> using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
+    </div>
+  </body>
+</html>

@@ -93,7 +93,7 @@
     OutDir :)
     -->
   <ItemGroup>
-    <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
+    <ExternalDlls Include="$(ExternalsDir)ffmpeg\shared\bin\*.dll;$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
   </ItemGroup>
   <!--Either method of running requires the runtime deps to be copied to pwd-->
   <Target Name="CopyDeps"

@@ -1,0 +1,1113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+  <head>
+    <meta charset="utf-8">
+    <title>
+      ffprobe Documentation
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
+  </head>
+  <body>
+    <div style="width: 95%; margin: auto">
+      <h1>
+      ffprobe Documentation
+      </h1>
+<div align="center">
+</div>
+
+<a name="SEC_Top"></a>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Synopsis" href="#Synopsis">1 Synopsis</a></li>
+  <li><a name="toc-Description" href="#Description">2 Description</a></li>
+  <li><a name="toc-Options" href="#Options">3 Options</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Stream-specifiers-1" href="#Stream-specifiers-1">3.1 Stream specifiers</a></li>
+    <li><a name="toc-Generic-options" href="#Generic-options">3.2 Generic options</a></li>
+    <li><a name="toc-AVOptions" href="#AVOptions">3.3 AVOptions</a></li>
+    <li><a name="toc-Main-options" href="#Main-options">3.4 Main options</a></li>
+  </ul></li>
+  <li><a name="toc-Writers" href="#Writers">4 Writers</a>
+  <ul class="no-bullet">
+    <li><a name="toc-default" href="#default">4.1 default</a></li>
+    <li><a name="toc-compact_002c-csv" href="#compact_002c-csv">4.2 compact, csv</a></li>
+    <li><a name="toc-flat" href="#flat">4.3 flat</a></li>
+    <li><a name="toc-ini" href="#ini">4.4 ini</a></li>
+    <li><a name="toc-json" href="#json">4.5 json</a></li>
+    <li><a name="toc-xml" href="#xml">4.6 xml</a></li>
+  </ul></li>
+  <li><a name="toc-Timecode" href="#Timecode">5 Timecode</a></li>
+  <li><a name="toc-See-Also" href="#See-Also">6 See Also</a></li>
+  <li><a name="toc-Authors" href="#Authors">7 Authors</a></li>
+</ul>
+</div>
+
+
+<a name="Synopsis"></a>
+<h2 class="chapter">1 Synopsis<span class="pull-right"><a class="anchor hidden-xs" href="#Synopsis" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Synopsis" aria-hidden="true">TOC</a></span></h2>
+
+<p>ffprobe [<var>options</var>] [<samp>input_file</samp>]
+</p>
+<a name="Description"></a>
+<h2 class="chapter">2 Description<span class="pull-right"><a class="anchor hidden-xs" href="#Description" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Description" aria-hidden="true">TOC</a></span></h2>
+
+<p>ffprobe gathers information from multimedia streams and prints it in
+human- and machine-readable fashion.
+</p>
+<p>For example it can be used to check the format of the container used
+by a multimedia stream and the format and type of each media stream
+contained in it.
+</p>
+<p>If a filename is specified in input, ffprobe will try to open and
+probe the file content. If the file cannot be opened or recognized as
+a multimedia file, a positive exit code is returned.
+</p>
+<p>ffprobe may be employed both as a standalone application or in
+combination with a textual filter, which may perform more
+sophisticated processing, e.g. statistical processing or plotting.
+</p>
+<p>Options are used to list some of the formats supported by ffprobe or
+for specifying which information to display, and for setting how
+ffprobe will show it.
+</p>
+<p>ffprobe output is designed to be easily parsable by a textual filter,
+and consists of one or more sections of a form defined by the selected
+writer, which is specified by the <samp>print_format</samp> option.
+</p>
+<p>Sections may contain other nested sections, and are identified by a
+name (which may be shared by other sections), and an unique
+name. See the output of <samp>sections</samp>.
+</p>
+<p>Metadata tags stored in the container or in the streams are recognized
+and printed in the corresponding &quot;FORMAT&quot;, &quot;STREAM&quot; or &quot;PROGRAM_STREAM&quot;
+section.
+</p>
+
+<a name="Options"></a>
+<h2 class="chapter">3 Options<span class="pull-right"><a class="anchor hidden-xs" href="#Options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Options" aria-hidden="true">TOC</a></span></h2>
+
+<p>All the numerical options, if not specified otherwise, accept a string
+representing a number as input, which may be followed by one of the SI
+unit prefixes, for example: &rsquo;K&rsquo;, &rsquo;M&rsquo;, or &rsquo;G&rsquo;.
+</p>
+<p>If &rsquo;i&rsquo; is appended to the SI unit prefix, the complete prefix will be
+interpreted as a unit prefix for binary multiples, which are based on
+powers of 1024 instead of powers of 1000. Appending &rsquo;B&rsquo; to the SI unit
+prefix multiplies the value by 8. This allows using, for example:
+&rsquo;KB&rsquo;, &rsquo;MiB&rsquo;, &rsquo;G&rsquo; and &rsquo;B&rsquo; as number suffixes.
+</p>
+<p>Options which do not take arguments are boolean options, and set the
+corresponding value to true. They can be set to false by prefixing
+the option name with &quot;no&quot;. For example using &quot;-nofoo&quot;
+will set the boolean option with name &quot;foo&quot; to false.
+</p>
+<a name="Stream-specifiers"></a><a name="Stream-specifiers-1"></a>
+<h3 class="section">3.1 Stream specifiers<span class="pull-right"><a class="anchor hidden-xs" href="#Stream-specifiers-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Stream-specifiers-1" aria-hidden="true">TOC</a></span></h3>
+<p>Some options are applied per-stream, e.g. bitrate or codec. Stream specifiers
+are used to precisely specify which stream(s) a given option belongs to.
+</p>
+<p>A stream specifier is a string generally appended to the option name and
+separated from it by a colon. E.g. <code>-codec:a:1 ac3</code> contains the
+<code>a:1</code> stream specifier, which matches the second audio stream. Therefore, it
+would select the ac3 codec for the second audio stream.
+</p>
+<p>A stream specifier can match several streams, so that the option is applied to all
+of them. E.g. the stream specifier in <code>-b:a 128k</code> matches all audio
+streams.
+</p>
+<p>An empty stream specifier matches all streams. For example, <code>-codec copy</code>
+or <code>-codec: copy</code> would copy all the streams without reencoding.
+</p>
+<p>Possible forms of stream specifiers are:
+</p><dl compact="compact">
+<dt><samp><var>stream_index</var></samp></dt>
+<dd><p>Matches the stream with this index. E.g. <code>-threads:1 4</code> would set the
+thread count for the second stream to 4.
+</p></dd>
+<dt><samp><var>stream_type</var>[:<var>stream_index</var>]</samp></dt>
+<dd><p><var>stream_type</var> is one of following: &rsquo;v&rsquo; for video, &rsquo;a&rsquo; for audio, &rsquo;s&rsquo; for subtitle,
+&rsquo;d&rsquo; for data, and &rsquo;t&rsquo; for attachments. If <var>stream_index</var> is given, then it matches
+stream number <var>stream_index</var> of this type. Otherwise, it matches all
+streams of this type.
+</p></dd>
+<dt><samp>p:<var>program_id</var>[:<var>stream_index</var>]</samp></dt>
+<dd><p>If <var>stream_index</var> is given, then it matches the stream with number <var>stream_index</var>
+in the program with the id <var>program_id</var>. Otherwise, it matches all streams in the
+program.
+</p></dd>
+<dt><samp>#<var>stream_id</var> or i:<var>stream_id</var></samp></dt>
+<dd><p>Match the stream by stream id (e.g. PID in MPEG-TS container).
+</p></dd>
+<dt><samp>m:<var>key</var>[:<var>value</var>]</samp></dt>
+<dd><p>Matches streams with the metadata tag <var>key</var> having the specified value. If
+<var>value</var> is not given, matches streams that contain the given tag with any
+value.
+</p>
+<p>Note that in <code>ffmpeg</code>, matching by metadata will only work properly for
+input files.
+</p></dd>
+</dl>
+
+<a name="Generic-options"></a>
+<h3 class="section">3.2 Generic options<span class="pull-right"><a class="anchor hidden-xs" href="#Generic-options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Generic-options" aria-hidden="true">TOC</a></span></h3>
+
+<p>These options are shared amongst the ff* tools.
+</p>
+<dl compact="compact">
+<dt><samp>-L</samp></dt>
+<dd><p>Show license.
+</p>
+</dd>
+<dt><samp>-h, -?, -help, --help [<var>arg</var>]</samp></dt>
+<dd><p>Show help. An optional parameter may be specified to print help about a specific
+item. If no argument is specified, only basic (non advanced) tool
+options are shown.
+</p>
+<p>Possible values of <var>arg</var> are:
+</p><dl compact="compact">
+<dt><samp>long</samp></dt>
+<dd><p>Print advanced tool options in addition to the basic tool options.
+</p>
+</dd>
+<dt><samp>full</samp></dt>
+<dd><p>Print complete list of options, including shared and private options
+for encoders, decoders, demuxers, muxers, filters, etc.
+</p>
+</dd>
+<dt><samp>decoder=<var>decoder_name</var></samp></dt>
+<dd><p>Print detailed information about the decoder named <var>decoder_name</var>. Use the
+<samp>-decoders</samp> option to get a list of all decoders.
+</p>
+</dd>
+<dt><samp>encoder=<var>encoder_name</var></samp></dt>
+<dd><p>Print detailed information about the encoder named <var>encoder_name</var>. Use the
+<samp>-encoders</samp> option to get a list of all encoders.
+</p>
+</dd>
+<dt><samp>demuxer=<var>demuxer_name</var></samp></dt>
+<dd><p>Print detailed information about the demuxer named <var>demuxer_name</var>. Use the
+<samp>-formats</samp> option to get a list of all demuxers and muxers.
+</p>
+</dd>
+<dt><samp>muxer=<var>muxer_name</var></samp></dt>
+<dd><p>Print detailed information about the muxer named <var>muxer_name</var>. Use the
+<samp>-formats</samp> option to get a list of all muxers and demuxers.
+</p>
+</dd>
+<dt><samp>filter=<var>filter_name</var></samp></dt>
+<dd><p>Print detailed information about the filter name <var>filter_name</var>. Use the
+<samp>-filters</samp> option to get a list of all filters.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>-version</samp></dt>
+<dd><p>Show version.
+</p>
+</dd>
+<dt><samp>-formats</samp></dt>
+<dd><p>Show available formats (including devices).
+</p>
+</dd>
+<dt><samp>-devices</samp></dt>
+<dd><p>Show available devices.
+</p>
+</dd>
+<dt><samp>-codecs</samp></dt>
+<dd><p>Show all codecs known to libavcodec.
+</p>
+<p>Note that the term &rsquo;codec&rsquo; is used throughout this documentation as a shortcut
+for what is more correctly called a media bitstream format.
+</p>
+</dd>
+<dt><samp>-decoders</samp></dt>
+<dd><p>Show available decoders.
+</p>
+</dd>
+<dt><samp>-encoders</samp></dt>
+<dd><p>Show all available encoders.
+</p>
+</dd>
+<dt><samp>-bsfs</samp></dt>
+<dd><p>Show available bitstream filters.
+</p>
+</dd>
+<dt><samp>-protocols</samp></dt>
+<dd><p>Show available protocols.
+</p>
+</dd>
+<dt><samp>-filters</samp></dt>
+<dd><p>Show available libavfilter filters.
+</p>
+</dd>
+<dt><samp>-pix_fmts</samp></dt>
+<dd><p>Show available pixel formats.
+</p>
+</dd>
+<dt><samp>-sample_fmts</samp></dt>
+<dd><p>Show available sample formats.
+</p>
+</dd>
+<dt><samp>-layouts</samp></dt>
+<dd><p>Show channel names and standard channel layouts.
+</p>
+</dd>
+<dt><samp>-colors</samp></dt>
+<dd><p>Show recognized color names.
+</p>
+</dd>
+<dt><samp>-sources <var>device</var>[,<var>opt1</var>=<var>val1</var>[,<var>opt2</var>=<var>val2</var>]...]</samp></dt>
+<dd><p>Show autodetected sources of the intput device.
+Some devices may provide system-dependent source names that cannot be autodetected.
+The returned list cannot be assumed to be always complete.
+</p><div class="example">
+<pre class="example">ffmpeg -sources pulse,server=192.168.0.4
+</pre></div>
+
+</dd>
+<dt><samp>-sinks <var>device</var>[,<var>opt1</var>=<var>val1</var>[,<var>opt2</var>=<var>val2</var>]...]</samp></dt>
+<dd><p>Show autodetected sinks of the output device.
+Some devices may provide system-dependent sink names that cannot be autodetected.
+The returned list cannot be assumed to be always complete.
+</p><div class="example">
+<pre class="example">ffmpeg -sinks pulse,server=192.168.0.4
+</pre></div>
+
+</dd>
+<dt><samp>-loglevel [repeat+]<var>loglevel</var> | -v [repeat+]<var>loglevel</var></samp></dt>
+<dd><p>Set the logging level used by the library.
+Adding &quot;repeat+&quot; indicates that repeated log output should not be compressed
+to the first line and the &quot;Last message repeated n times&quot; line will be
+omitted. &quot;repeat&quot; can also be used alone.
+If &quot;repeat&quot; is used alone, and with no prior loglevel set, the default
+loglevel will be used. If multiple loglevel parameters are given, using
+&rsquo;repeat&rsquo; will not change the loglevel.
+<var>loglevel</var> is a string or a number containing one of the following values:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>quiet, -8</samp>&rsquo;</dt>
+<dd><p>Show nothing at all; be silent.
+</p></dd>
+<dt>&lsquo;<samp>panic, 0</samp>&rsquo;</dt>
+<dd><p>Only show fatal errors which could lead the process to crash, such as
+and assert failure. This is not currently used for anything.
+</p></dd>
+<dt>&lsquo;<samp>fatal, 8</samp>&rsquo;</dt>
+<dd><p>Only show fatal errors. These are errors after which the process absolutely
+cannot continue after.
+</p></dd>
+<dt>&lsquo;<samp>error, 16</samp>&rsquo;</dt>
+<dd><p>Show all errors, including ones which can be recovered from.
+</p></dd>
+<dt>&lsquo;<samp>warning, 24</samp>&rsquo;</dt>
+<dd><p>Show all warnings and errors. Any message related to possibly
+incorrect or unexpected events will be shown.
+</p></dd>
+<dt>&lsquo;<samp>info, 32</samp>&rsquo;</dt>
+<dd><p>Show informative messages during processing. This is in addition to
+warnings and errors. This is the default value.
+</p></dd>
+<dt>&lsquo;<samp>verbose, 40</samp>&rsquo;</dt>
+<dd><p>Same as <code>info</code>, except more verbose.
+</p></dd>
+<dt>&lsquo;<samp>debug, 48</samp>&rsquo;</dt>
+<dd><p>Show everything, including debugging information.
+</p></dd>
+</dl>
+
+<p>By default the program logs to stderr, if coloring is supported by the
+terminal, colors are used to mark errors and warnings. Log coloring
+can be disabled setting the environment variable
+<code>AV_LOG_FORCE_NOCOLOR</code> or <code>NO_COLOR</code>, or can be forced setting
+the environment variable <code>AV_LOG_FORCE_COLOR</code>.
+The use of the environment variable <code>NO_COLOR</code> is deprecated and
+will be dropped in a following FFmpeg version.
+</p>
+</dd>
+<dt><samp>-report</samp></dt>
+<dd><p>Dump full command line and console output to a file named
+<code><var>program</var>-<var>YYYYMMDD</var>-<var>HHMMSS</var>.log</code> in the current
+directory.
+This file can be useful for bug reports.
+It also implies <code>-loglevel verbose</code>.
+</p>
+<p>Setting the environment variable <code>FFREPORT</code> to any value has the
+same effect. If the value is a &rsquo;:&rsquo;-separated key=value sequence, these
+options will affect the report; option values must be escaped if they
+contain special characters or the options delimiter &rsquo;:&rsquo; (see the
+&ldquo;Quoting and escaping&rdquo; section in the ffmpeg-utils manual).
+</p>
+<p>The following options are recognized:
+</p><dl compact="compact">
+<dt><samp>file</samp></dt>
+<dd><p>set the file name to use for the report; <code>%p</code> is expanded to the name
+of the program, <code>%t</code> is expanded to a timestamp, <code>%%</code> is expanded
+to a plain <code>%</code>
+</p></dd>
+<dt><samp>level</samp></dt>
+<dd><p>set the log verbosity level using a numerical value (see <code>-loglevel</code>).
+</p></dd>
+</dl>
+
+<p>For example, to output a report to a file named <samp>ffreport.log</samp>
+using a log level of <code>32</code> (alias for log level <code>info</code>):
+</p>
+<div class="example">
+<pre class="example">FFREPORT=file=ffreport.log:level=32 ffmpeg -i input output
+</pre></div>
+
+<p>Errors in parsing the environment variable are not fatal, and will not
+appear in the report.
+</p>
+</dd>
+<dt><samp>-hide_banner</samp></dt>
+<dd><p>Suppress printing banner.
+</p>
+<p>All FFmpeg tools will normally show a copyright notice, build options
+and library versions. This option can be used to suppress printing
+this information.
+</p>
+</dd>
+<dt><samp>-cpuflags flags (<em>global</em>)</samp></dt>
+<dd><p>Allows setting and clearing cpu flags. This option is intended
+for testing. Do not use it unless you know what you&rsquo;re doing.
+</p><div class="example">
+<pre class="example">ffmpeg -cpuflags -sse+mmx ...
+ffmpeg -cpuflags mmx ...
+ffmpeg -cpuflags 0 ...
+</pre></div>
+<p>Possible flags for this option are:
+</p><dl compact="compact">
+<dt>&lsquo;<samp>x86</samp>&rsquo;</dt>
+<dd><dl compact="compact">
+<dt>&lsquo;<samp>mmx</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>mmxext</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sse</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sse2</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sse2slow</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sse3</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sse3slow</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>ssse3</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>atom</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sse4.1</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>sse4.2</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>avx</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>xop</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>fma4</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>3dnow</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>3dnowext</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>cmov</samp>&rsquo;</dt>
+</dl>
+</dd>
+<dt>&lsquo;<samp>ARM</samp>&rsquo;</dt>
+<dd><dl compact="compact">
+<dt>&lsquo;<samp>armv5te</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>armv6</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>armv6t2</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>vfp</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>vfpv3</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>neon</samp>&rsquo;</dt>
+</dl>
+</dd>
+<dt>&lsquo;<samp>PowerPC</samp>&rsquo;</dt>
+<dd><dl compact="compact">
+<dt>&lsquo;<samp>altivec</samp>&rsquo;</dt>
+</dl>
+</dd>
+<dt>&lsquo;<samp>Specific Processors</samp>&rsquo;</dt>
+<dd><dl compact="compact">
+<dt>&lsquo;<samp>pentium2</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>pentium3</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>pentium4</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>k6</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>k62</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>athlon</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>athlonxp</samp>&rsquo;</dt>
+<dt>&lsquo;<samp>k8</samp>&rsquo;</dt>
+</dl>
+</dd>
+</dl>
+
+</dd>
+<dt><samp>-opencl_bench</samp></dt>
+<dd><p>Benchmark all available OpenCL devices and show the results. This option
+is only available when FFmpeg has been compiled with <code>--enable-opencl</code>.
+</p>
+</dd>
+<dt><samp>-opencl_options options (<em>global</em>)</samp></dt>
+<dd><p>Set OpenCL environment options. This option is only available when
+FFmpeg has been compiled with <code>--enable-opencl</code>.
+</p>
+<p><var>options</var> must be a list of <var>key</var>=<var>value</var> option pairs
+separated by &rsquo;:&rsquo;. See the &ldquo;OpenCL Options&rdquo; section in the
+ffmpeg-utils manual for the list of supported options.
+</p></dd>
+</dl>
+
+<a name="AVOptions"></a>
+<h3 class="section">3.3 AVOptions<span class="pull-right"><a class="anchor hidden-xs" href="#AVOptions" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-AVOptions" aria-hidden="true">TOC</a></span></h3>
+
+<p>These options are provided directly by the libavformat, libavdevice and
+libavcodec libraries. To see the list of available AVOptions, use the
+<samp>-help</samp> option. They are separated into two categories:
+</p><dl compact="compact">
+<dt><samp>generic</samp></dt>
+<dd><p>These options can be set for any container, codec or device. Generic options
+are listed under AVFormatContext options for containers/devices and under
+AVCodecContext options for codecs.
+</p></dd>
+<dt><samp>private</samp></dt>
+<dd><p>These options are specific to the given container, device or codec. Private
+options are listed under their corresponding containers/devices/codecs.
+</p></dd>
+</dl>
+
+<p>For example to write an ID3v2.3 header instead of a default ID3v2.4 to
+an MP3 file, use the <samp>id3v2_version</samp> private option of the MP3
+muxer:
+</p><div class="example">
+<pre class="example">ffmpeg -i input.flac -id3v2_version 3 out.mp3
+</pre></div>
+
+<p>All codec AVOptions are per-stream, and thus a stream specifier
+should be attached to them.
+</p>
+<p>Note: the <samp>-nooption</samp> syntax cannot be used for boolean
+AVOptions, use <samp>-option 0</samp>/<samp>-option 1</samp>.
+</p>
+<p>Note: the old undocumented way of specifying per-stream AVOptions by
+prepending v/a/s to the options name is now obsolete and will be
+removed soon.
+</p>
+<a name="Main-options"></a>
+<h3 class="section">3.4 Main options<span class="pull-right"><a class="anchor hidden-xs" href="#Main-options" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Main-options" aria-hidden="true">TOC</a></span></h3>
+
+<dl compact="compact">
+<dt><samp>-f <var>format</var></samp></dt>
+<dd><p>Force format to use.
+</p>
+</dd>
+<dt><samp>-unit</samp></dt>
+<dd><p>Show the unit of the displayed values.
+</p>
+</dd>
+<dt><samp>-prefix</samp></dt>
+<dd><p>Use SI prefixes for the displayed values.
+Unless the &quot;-byte_binary_prefix&quot; option is used all the prefixes
+are decimal.
+</p>
+</dd>
+<dt><samp>-byte_binary_prefix</samp></dt>
+<dd><p>Force the use of binary prefixes for byte values.
+</p>
+</dd>
+<dt><samp>-sexagesimal</samp></dt>
+<dd><p>Use sexagesimal format HH:MM:SS.MICROSECONDS for time values.
+</p>
+</dd>
+<dt><samp>-pretty</samp></dt>
+<dd><p>Prettify the format of the displayed values, it corresponds to the
+options &quot;-unit -prefix -byte_binary_prefix -sexagesimal&quot;.
+</p>
+</dd>
+<dt><samp>-of, -print_format <var>writer_name</var>[=<var>writer_options</var>]</samp></dt>
+<dd><p>Set the output printing format.
+</p>
+<p><var>writer_name</var> specifies the name of the writer, and
+<var>writer_options</var> specifies the options to be passed to the writer.
+</p>
+<p>For example for printing the output in JSON format, specify:
+</p><div class="example">
+<pre class="example">-print_format json
+</pre></div>
+
+<p>For more details on the available output printing formats, see the
+Writers section below.
+</p>
+</dd>
+<dt><samp>-sections</samp></dt>
+<dd><p>Print sections structure and section information, and exit. The output
+is not meant to be parsed by a machine.
+</p>
+</dd>
+<dt><samp>-select_streams <var>stream_specifier</var></samp></dt>
+<dd><p>Select only the streams specified by <var>stream_specifier</var>. This
+option affects only the options related to streams
+(e.g. <code>show_streams</code>, <code>show_packets</code>, etc.).
+</p>
+<p>For example to show only audio streams, you can use the command:
+</p><div class="example">
+<pre class="example">ffprobe -show_streams -select_streams a INPUT
+</pre></div>
+
+<p>To show only video packets belonging to the video stream with index 1:
+</p><div class="example">
+<pre class="example">ffprobe -show_packets -select_streams v:1 INPUT
+</pre></div>
+
+</dd>
+<dt><samp>-show_data</samp></dt>
+<dd><p>Show payload data, as a hexadecimal and ASCII dump. Coupled with
+<samp>-show_packets</samp>, it will dump the packets&rsquo; data. Coupled with
+<samp>-show_streams</samp>, it will dump the codec extradata.
+</p>
+<p>The dump is printed as the &quot;data&quot; field. It may contain newlines.
+</p>
+</dd>
+<dt><samp>-show_data_hash <var>algorithm</var></samp></dt>
+<dd><p>Show a hash of payload data, for packets with <samp>-show_packets</samp> and for
+codec extradata with <samp>-show_streams</samp>.
+</p>
+</dd>
+<dt><samp>-show_error</samp></dt>
+<dd><p>Show information about the error found when trying to probe the input.
+</p>
+<p>The error information is printed within a section with name &quot;ERROR&quot;.
+</p>
+</dd>
+<dt><samp>-show_format</samp></dt>
+<dd><p>Show information about the container format of the input multimedia
+stream.
+</p>
+<p>All the container format information is printed within a section with
+name &quot;FORMAT&quot;.
+</p>
+</dd>
+<dt><samp>-show_format_entry <var>name</var></samp></dt>
+<dd><p>Like <samp>-show_format</samp>, but only prints the specified entry of the
+container format information, rather than all. This option may be given more
+than once, then all specified entries will be shown.
+</p>
+<p>This option is deprecated, use <code>show_entries</code> instead.
+</p>
+</dd>
+<dt><samp>-show_entries <var>section_entries</var></samp></dt>
+<dd><p>Set list of entries to show.
+</p>
+<p>Entries are specified according to the following
+syntax. <var>section_entries</var> contains a list of section entries
+separated by <code>:</code>. Each section entry is composed by a section
+name (or unique name), optionally followed by a list of entries local
+to that section, separated by <code>,</code>.
+</p>
+<p>If section name is specified but is followed by no <code>=</code>, all
+entries are printed to output, together with all the contained
+sections. Otherwise only the entries specified in the local section
+entries list are printed. In particular, if <code>=</code> is specified but
+the list of local entries is empty, then no entries will be shown for
+that section.
+</p>
+<p>Note that the order of specification of the local section entries is
+not honored in the output, and the usual display order will be
+retained.
+</p>
+<p>The formal syntax is given by:
+</p><div class="example">
+<pre class="example"><var>LOCAL_SECTION_ENTRIES</var> ::= <var>SECTION_ENTRY_NAME</var>[,<var>LOCAL_SECTION_ENTRIES</var>]
+<var>SECTION_ENTRY</var>         ::= <var>SECTION_NAME</var>[=[<var>LOCAL_SECTION_ENTRIES</var>]]
+<var>SECTION_ENTRIES</var>       ::= <var>SECTION_ENTRY</var>[:<var>SECTION_ENTRIES</var>]
+</pre></div>
+
+<p>For example, to show only the index and type of each stream, and the PTS
+time, duration time, and stream index of the packets, you can specify
+the argument:
+</p><div class="example">
+<pre class="example">packet=pts_time,duration_time,stream_index : stream=index,codec_type
+</pre></div>
+
+<p>To show all the entries in the section &quot;format&quot;, but only the codec
+type in the section &quot;stream&quot;, specify the argument:
+</p><div class="example">
+<pre class="example">format : stream=codec_type
+</pre></div>
+
+<p>To show all the tags in the stream and format sections:
+</p><div class="example">
+<pre class="example">stream_tags : format_tags
+</pre></div>
+
+<p>To show only the <code>title</code> tag (if available) in the stream
+sections:
+</p><div class="example">
+<pre class="example">stream_tags=title
+</pre></div>
+
+</dd>
+<dt><samp>-show_packets</samp></dt>
+<dd><p>Show information about each packet contained in the input multimedia
+stream.
+</p>
+<p>The information for each single packet is printed within a dedicated
+section with name &quot;PACKET&quot;.
+</p>
+</dd>
+<dt><samp>-show_frames</samp></dt>
+<dd><p>Show information about each frame and subtitle contained in the input
+multimedia stream.
+</p>
+<p>The information for each single frame is printed within a dedicated
+section with name &quot;FRAME&quot; or &quot;SUBTITLE&quot;.
+</p>
+</dd>
+<dt><samp>-show_streams</samp></dt>
+<dd><p>Show information about each media stream contained in the input
+multimedia stream.
+</p>
+<p>Each media stream information is printed within a dedicated section
+with name &quot;STREAM&quot;.
+</p>
+</dd>
+<dt><samp>-show_programs</samp></dt>
+<dd><p>Show information about programs and their streams contained in the input
+multimedia stream.
+</p>
+<p>Each media stream information is printed within a dedicated section
+with name &quot;PROGRAM_STREAM&quot;.
+</p>
+</dd>
+<dt><samp>-show_chapters</samp></dt>
+<dd><p>Show information about chapters stored in the format.
+</p>
+<p>Each chapter is printed within a dedicated section with name &quot;CHAPTER&quot;.
+</p>
+</dd>
+<dt><samp>-count_frames</samp></dt>
+<dd><p>Count the number of frames per stream and report it in the
+corresponding stream section.
+</p>
+</dd>
+<dt><samp>-count_packets</samp></dt>
+<dd><p>Count the number of packets per stream and report it in the
+corresponding stream section.
+</p>
+</dd>
+<dt><samp>-read_intervals <var>read_intervals</var></samp></dt>
+<dd>
+<p>Read only the specified intervals. <var>read_intervals</var> must be a
+sequence of interval specifications separated by &quot;,&quot;.
+<code>ffprobe</code> will seek to the interval starting point, and will
+continue reading from that.
+</p>
+<p>Each interval is specified by two optional parts, separated by &quot;%&quot;.
+</p>
+<p>The first part specifies the interval start position. It is
+interpreted as an abolute position, or as a relative offset from the
+current position if it is preceded by the &quot;+&quot; character. If this first
+part is not specified, no seeking will be performed when reading this
+interval.
+</p>
+<p>The second part specifies the interval end position. It is interpreted
+as an absolute position, or as a relative offset from the current
+position if it is preceded by the &quot;+&quot; character. If the offset
+specification starts with &quot;#&quot;, it is interpreted as the number of
+packets to read (not including the flushing packets) from the interval
+start. If no second part is specified, the program will read until the
+end of the input.
+</p>
+<p>Note that seeking is not accurate, thus the actual interval start
+point may be different from the specified position. Also, when an
+interval duration is specified, the absolute end time will be computed
+by adding the duration to the interval start point found by seeking
+the file, rather than to the specified start value.
+</p>
+<p>The formal syntax is given by:
+</p><div class="example">
+<pre class="example"><var>INTERVAL</var>  ::= [<var>START</var>|+<var>START_OFFSET</var>][%[<var>END</var>|+<var>END_OFFSET</var>]]
+<var>INTERVALS</var> ::= <var>INTERVAL</var>[,<var>INTERVALS</var>]
+</pre></div>
+
+<p>A few examples follow.
+</p><ul>
+<li> Seek to time 10, read packets until 20 seconds after the found seek
+point, then seek to position <code>01:30</code> (1 minute and thirty
+seconds) and read packets until position <code>01:45</code>.
+<div class="example">
+<pre class="example">10%+20,01:30%01:45
+</pre></div>
+
+</li><li> Read only 42 packets after seeking to position <code>01:23</code>:
+<div class="example">
+<pre class="example">01:23%+#42
+</pre></div>
+
+</li><li> Read only the first 20 seconds from the start:
+<div class="example">
+<pre class="example">%+20
+</pre></div>
+
+</li><li> Read from the start until position <code>02:30</code>:
+<div class="example">
+<pre class="example">%02:30
+</pre></div>
+</li></ul>
+
+</dd>
+<dt><samp>-show_private_data, -private</samp></dt>
+<dd><p>Show private data, that is data depending on the format of the
+particular shown element.
+This option is enabled by default, but you may need to disable it
+for specific uses, for example when creating XSD-compliant XML output.
+</p>
+</dd>
+<dt><samp>-show_program_version</samp></dt>
+<dd><p>Show information related to program version.
+</p>
+<p>Version information is printed within a section with name
+&quot;PROGRAM_VERSION&quot;.
+</p>
+</dd>
+<dt><samp>-show_library_versions</samp></dt>
+<dd><p>Show information related to library versions.
+</p>
+<p>Version information for each library is printed within a section with
+name &quot;LIBRARY_VERSION&quot;.
+</p>
+</dd>
+<dt><samp>-show_versions</samp></dt>
+<dd><p>Show information related to program and library versions. This is the
+equivalent of setting both <samp>-show_program_version</samp> and
+<samp>-show_library_versions</samp> options.
+</p>
+</dd>
+<dt><samp>-show_pixel_formats</samp></dt>
+<dd><p>Show information about all pixel formats supported by FFmpeg.
+</p>
+<p>Pixel format information for each format is printed within a section
+with name &quot;PIXEL_FORMAT&quot;.
+</p>
+</dd>
+<dt><samp>-bitexact</samp></dt>
+<dd><p>Force bitexact output, useful to produce output which is not dependent
+on the specific build.
+</p>
+</dd>
+<dt><samp>-i <var>input_file</var></samp></dt>
+<dd><p>Read <var>input_file</var>.
+</p>
+</dd>
+</dl>
+
+<a name="Writers"></a>
+<h2 class="chapter">4 Writers<span class="pull-right"><a class="anchor hidden-xs" href="#Writers" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Writers" aria-hidden="true">TOC</a></span></h2>
+
+<p>A writer defines the output format adopted by <code>ffprobe</code>, and will be
+used for printing all the parts of the output.
+</p>
+<p>A writer may accept one or more arguments, which specify the options
+to adopt. The options are specified as a list of <var>key</var>=<var>value</var>
+pairs, separated by &quot;:&quot;.
+</p>
+<p>All writers support the following options:
+</p>
+<dl compact="compact">
+<dt><samp>string_validation, sv</samp></dt>
+<dd><p>Set string validation mode.
+</p>
+<p>The following values are accepted.
+</p><dl compact="compact">
+<dt>&lsquo;<samp>fail</samp>&rsquo;</dt>
+<dd><p>The writer will fail immediately in case an invalid string (UTF-8)
+sequence or code point is found in the input. This is especially
+useful to validate input metadata.
+</p>
+</dd>
+<dt>&lsquo;<samp>ignore</samp>&rsquo;</dt>
+<dd><p>Any validation error will be ignored. This will result in possibly
+broken output, especially with the json or xml writer.
+</p>
+</dd>
+<dt>&lsquo;<samp>replace</samp>&rsquo;</dt>
+<dd><p>The writer will substitute invalid UTF-8 sequences or code points with
+the string specified with the <samp>string_validation_replacement</samp>.
+</p></dd>
+</dl>
+
+<p>Default value is &lsquo;<samp>replace</samp>&rsquo;.
+</p>
+</dd>
+<dt><samp>string_validation_replacement, svr</samp></dt>
+<dd><p>Set replacement string to use in case <samp>string_validation</samp> is
+set to &lsquo;<samp>replace</samp>&rsquo;.
+</p>
+<p>In case the option is not specified, the writer will assume the empty
+string, that is it will remove the invalid sequences from the input
+strings.
+</p></dd>
+</dl>
+
+<p>A description of the currently available writers follows.
+</p>
+<a name="default"></a>
+<h3 class="section">4.1 default<span class="pull-right"><a class="anchor hidden-xs" href="#default" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-default" aria-hidden="true">TOC</a></span></h3>
+<p>Default format.
+</p>
+<p>Print each section in the form:
+</p><div class="example">
+<pre class="example">[SECTION]
+key1=val1
+...
+keyN=valN
+[/SECTION]
+</pre></div>
+
+<p>Metadata tags are printed as a line in the corresponding FORMAT, STREAM or
+PROGRAM_STREAM section, and are prefixed by the string &quot;TAG:&quot;.
+</p>
+<p>A description of the accepted options follows.
+</p>
+<dl compact="compact">
+<dt><samp>nokey, nk</samp></dt>
+<dd><p>If set to 1 specify not to print the key of each field. Default value
+is 0.
+</p>
+</dd>
+<dt><samp>noprint_wrappers, nw</samp></dt>
+<dd><p>If set to 1 specify not to print the section header and footer.
+Default value is 0.
+</p></dd>
+</dl>
+
+<a name="compact_002c-csv"></a>
+<h3 class="section">4.2 compact, csv<span class="pull-right"><a class="anchor hidden-xs" href="#compact_002c-csv" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-compact_002c-csv" aria-hidden="true">TOC</a></span></h3>
+<p>Compact and CSV format.
+</p>
+<p>The <code>csv</code> writer is equivalent to <code>compact</code>, but supports
+different defaults.
+</p>
+<p>Each section is printed on a single line.
+If no option is specifid, the output has the form:
+</p><div class="example">
+<pre class="example">section|key1=val1| ... |keyN=valN
+</pre></div>
+
+<p>Metadata tags are printed in the corresponding &quot;format&quot; or &quot;stream&quot;
+section. A metadata tag key, if printed, is prefixed by the string
+&quot;tag:&quot;.
+</p>
+<p>The description of the accepted options follows.
+</p>
+<dl compact="compact">
+<dt><samp>item_sep, s</samp></dt>
+<dd><p>Specify the character to use for separating fields in the output line.
+It must be a single printable character, it is &quot;|&quot; by default (&quot;,&quot; for
+the <code>csv</code> writer).
+</p>
+</dd>
+<dt><samp>nokey, nk</samp></dt>
+<dd><p>If set to 1 specify not to print the key of each field. Its default
+value is 0 (1 for the <code>csv</code> writer).
+</p>
+</dd>
+<dt><samp>escape, e</samp></dt>
+<dd><p>Set the escape mode to use, default to &quot;c&quot; (&quot;csv&quot; for the <code>csv</code>
+writer).
+</p>
+<p>It can assume one of the following values:
+</p><dl compact="compact">
+<dt><samp>c</samp></dt>
+<dd><p>Perform C-like escaping. Strings containing a newline (&rsquo;\n&rsquo;), carriage
+return (&rsquo;\r&rsquo;), a tab (&rsquo;\t&rsquo;), a form feed (&rsquo;\f&rsquo;), the escaping
+character (&rsquo;\&rsquo;) or the item separator character <var>SEP</var> are escaped using C-like fashioned
+escaping, so that a newline is converted to the sequence &quot;\n&quot;, a
+carriage return to &quot;\r&quot;, &rsquo;\&rsquo; to &quot;\\&quot; and the separator <var>SEP</var> is
+converted to &quot;\<var>SEP</var>&quot;.
+</p>
+</dd>
+<dt><samp>csv</samp></dt>
+<dd><p>Perform CSV-like escaping, as described in RFC4180.  Strings
+containing a newline (&rsquo;\n&rsquo;), a carriage return (&rsquo;\r&rsquo;), a double quote
+(&rsquo;&quot;&rsquo;), or <var>SEP</var> are enclosed in double-quotes.
+</p>
+</dd>
+<dt><samp>none</samp></dt>
+<dd><p>Perform no escaping.
+</p></dd>
+</dl>
+
+</dd>
+<dt><samp>print_section, p</samp></dt>
+<dd><p>Print the section name at the begin of each line if the value is
+<code>1</code>, disable it with value set to <code>0</code>. Default value is
+<code>1</code>.
+</p>
+</dd>
+</dl>
+
+<a name="flat"></a>
+<h3 class="section">4.3 flat<span class="pull-right"><a class="anchor hidden-xs" href="#flat" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-flat" aria-hidden="true">TOC</a></span></h3>
+<p>Flat format.
+</p>
+<p>A free-form output where each line contains an explicit key=value, such as
+&quot;streams.stream.3.tags.foo=bar&quot;. The output is shell escaped, so it can be
+directly embedded in sh scripts as long as the separator character is an
+alphanumeric character or an underscore (see <var>sep_char</var> option).
+</p>
+<p>The description of the accepted options follows.
+</p>
+<dl compact="compact">
+<dt><samp>sep_char, s</samp></dt>
+<dd><p>Separator character used to separate the chapter, the section name, IDs and
+potential tags in the printed field key.
+</p>
+<p>Default value is &rsquo;.&rsquo;.
+</p>
+</dd>
+<dt><samp>hierarchical, h</samp></dt>
+<dd><p>Specify if the section name specification should be hierarchical. If
+set to 1, and if there is more than one section in the current
+chapter, the section name will be prefixed by the name of the
+chapter. A value of 0 will disable this behavior.
+</p>
+<p>Default value is 1.
+</p></dd>
+</dl>
+
+<a name="ini"></a>
+<h3 class="section">4.4 ini<span class="pull-right"><a class="anchor hidden-xs" href="#ini" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-ini" aria-hidden="true">TOC</a></span></h3>
+<p>INI format output.
+</p>
+<p>Print output in an INI based format.
+</p>
+<p>The following conventions are adopted:
+</p>
+<ul>
+<li> all key and values are UTF-8
+</li><li> &rsquo;.&rsquo; is the subgroup separator
+</li><li> newline, &rsquo;\t&rsquo;, &rsquo;\f&rsquo;, &rsquo;\b&rsquo; and the following characters are escaped
+</li><li> &rsquo;\&rsquo; is the escape character
+</li><li> &rsquo;#&rsquo; is the comment indicator
+</li><li> &rsquo;=&rsquo; is the key/value separator
+</li><li> &rsquo;:&rsquo; is not used but usually parsed as key/value separator
+</li></ul>
+
+<p>This writer accepts options as a list of <var>key</var>=<var>value</var> pairs,
+separated by &quot;:&quot;.
+</p>
+<p>The description of the accepted options follows.
+</p>
+<dl compact="compact">
+<dt><samp>hierarchical, h</samp></dt>
+<dd><p>Specify if the section name specification should be hierarchical. If
+set to 1, and if there is more than one section in the current
+chapter, the section name will be prefixed by the name of the
+chapter. A value of 0 will disable this behavior.
+</p>
+<p>Default value is 1.
+</p></dd>
+</dl>
+
+<a name="json"></a>
+<h3 class="section">4.5 json<span class="pull-right"><a class="anchor hidden-xs" href="#json" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-json" aria-hidden="true">TOC</a></span></h3>
+<p>JSON based format.
+</p>
+<p>Each section is printed using JSON notation.
+</p>
+<p>The description of the accepted options follows.
+</p>
+<dl compact="compact">
+<dt><samp>compact, c</samp></dt>
+<dd><p>If set to 1 enable compact output, that is each section will be
+printed on a single line. Default value is 0.
+</p></dd>
+</dl>
+
+<p>For more information about JSON, see <a href="http://www.json.org/">http://www.json.org/</a>.
+</p>
+<a name="xml"></a>
+<h3 class="section">4.6 xml<span class="pull-right"><a class="anchor hidden-xs" href="#xml" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-xml" aria-hidden="true">TOC</a></span></h3>
+<p>XML based format.
+</p>
+<p>The XML output is described in the XML schema description file
+<samp>ffprobe.xsd</samp> installed in the FFmpeg datadir.
+</p>
+<p>An updated version of the schema can be retrieved at the url
+<a href="http://www.ffmpeg.org/schema/ffprobe.xsd">http://www.ffmpeg.org/schema/ffprobe.xsd</a>, which redirects to the
+latest schema committed into the FFmpeg development source code tree.
+</p>
+<p>Note that the output issued will be compliant to the
+<samp>ffprobe.xsd</samp> schema only when no special global output options
+(<samp>unit</samp>, <samp>prefix</samp>, <samp>byte_binary_prefix</samp>,
+<samp>sexagesimal</samp> etc.) are specified.
+</p>
+<p>The description of the accepted options follows.
+</p>
+<dl compact="compact">
+<dt><samp>fully_qualified, q</samp></dt>
+<dd><p>If set to 1 specify if the output should be fully qualified. Default
+value is 0.
+This is required for generating an XML file which can be validated
+through an XSD file.
+</p>
+</dd>
+<dt><samp>xsd_compliant, x</samp></dt>
+<dd><p>If set to 1 perform more checks for ensuring that the output is XSD
+compliant. Default value is 0.
+This option automatically sets <samp>fully_qualified</samp> to 1.
+</p></dd>
+</dl>
+
+<p>For more information about the XML format, see
+<a href="http://www.w3.org/XML/">http://www.w3.org/XML/</a>.
+</p>
+<a name="Timecode"></a>
+<h2 class="chapter">5 Timecode<span class="pull-right"><a class="anchor hidden-xs" href="#Timecode" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Timecode" aria-hidden="true">TOC</a></span></h2>
+
+<p><code>ffprobe</code> supports Timecode extraction:
+</p>
+<ul>
+<li> MPEG1/2 timecode is extracted from the GOP, and is available in the video
+stream details (<samp>-show_streams</samp>, see <var>timecode</var>).
+
+</li><li> MOV timecode is extracted from tmcd track, so is available in the tmcd
+stream metadata (<samp>-show_streams</samp>, see <var>TAG:timecode</var>).
+
+</li><li> DV, GXF and AVI timecodes are available in format metadata
+(<samp>-show_format</samp>, see <var>TAG:timecode</var>).
+
+</li></ul>
+
+
+<a name="See-Also"></a>
+<h2 class="chapter">6 See Also<span class="pull-right"><a class="anchor hidden-xs" href="#See-Also" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-See-Also" aria-hidden="true">TOC</a></span></h2>
+
+<p><a href="ffprobe-all.html">ffprobe-all</a>,
+<a href="ffmpeg.html">ffmpeg</a>, <a href="ffplay.html">ffplay</a>, <a href="ffserver.html">ffserver</a>,
+<a href="ffmpeg-utils.html">ffmpeg-utils</a>,
+<a href="ffmpeg-scaler.html">ffmpeg-scaler</a>,
+<a href="ffmpeg-resampler.html">ffmpeg-resampler</a>,
+<a href="ffmpeg-codecs.html">ffmpeg-codecs</a>,
+<a href="ffmpeg-bitstream-filters.html">ffmpeg-bitstream-filters</a>,
+<a href="ffmpeg-formats.html">ffmpeg-formats</a>,
+<a href="ffmpeg-devices.html">ffmpeg-devices</a>,
+<a href="ffmpeg-protocols.html">ffmpeg-protocols</a>,
+<a href="ffmpeg-filters.html">ffmpeg-filters</a>
+</p>
+
+<a name="Authors"></a>
+<h2 class="chapter">7 Authors<span class="pull-right"><a class="anchor hidden-xs" href="#Authors" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Authors" aria-hidden="true">TOC</a></span></h2>
+
+<p>The FFmpeg developers.
+</p>
+<p>For details about the authorship, see the Git history of the project
+(git://source.ffmpeg.org/ffmpeg), e.g. by typing the command
+<code>git log</code> in the FFmpeg source directory, or browsing the
+online repository at <a href="http://source.ffmpeg.org">http://source.ffmpeg.org</a>.
+</p>
+<p>Maintainers for the specific components are listed in the file
+<samp>MAINTAINERS</samp> in the source code tree.
+</p>
+
+
+      <p style="font-size: small;">
+        This document was generated on <em>January 14, 2015</em> using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
+    </div>
+  </body>
+</html>

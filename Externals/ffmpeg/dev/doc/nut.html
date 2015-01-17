@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+  <head>
+    <meta charset="utf-8">
+    <title>
+      NUT
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
+  </head>
+  <body>
+    <div style="width: 95%; margin: auto">
+      <h1>
+      NUT
+      </h1>
+<div align="center">
+</div>
+
+
+<a name="SEC_Top"></a>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Description" href="#Description">1 Description</a></li>
+  <li><a name="toc-Modes" href="#Modes">2 Modes</a>
+  <ul class="no-bullet">
+    <li><a name="toc-BROADCAST" href="#BROADCAST">2.1 BROADCAST</a></li>
+    <li><a name="toc-PIPE" href="#PIPE">2.2 PIPE</a></li>
+  </ul></li>
+  <li><a name="toc-Container_002dspecific-codec-tags" href="#Container_002dspecific-codec-tags">3 Container-specific codec tags</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Generic-raw-YUVA-formats" href="#Generic-raw-YUVA-formats">3.1 Generic raw YUVA formats</a></li>
+    <li><a name="toc-Raw-Audio" href="#Raw-Audio">3.2 Raw Audio</a></li>
+    <li><a name="toc-Subtitles" href="#Subtitles">3.3 Subtitles</a></li>
+    <li><a name="toc-Raw-Data" href="#Raw-Data">3.4 Raw Data</a></li>
+    <li><a name="toc-Codecs" href="#Codecs">3.5 Codecs</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+<a name="Description"></a>
+<h2 class="chapter">1 Description<span class="pull-right"><a class="anchor hidden-xs" href="#Description" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Description" aria-hidden="true">TOC</a></span></h2>
+<p>NUT is a low overhead generic container format. It stores audio, video,
+subtitle and user-defined streams in a simple, yet efficient, way.
+</p>
+<p>It was created by a group of FFmpeg and MPlayer developers in 2003
+and was finalized in 2008.
+</p>
+<p>The official nut specification is at svn://svn.mplayerhq.hu/nut
+In case of any differences between this text and the official specification,
+the official specification shall prevail.
+</p>
+<a name="Modes"></a>
+<h2 class="chapter">2 Modes<span class="pull-right"><a class="anchor hidden-xs" href="#Modes" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Modes" aria-hidden="true">TOC</a></span></h2>
+<p>NUT has some variants signaled by using the flags field in its main header.
+</p>
+<table>
+<tr><td width="40%">BROADCAST</td><td width="40%">Extend the syncpoint to report the sender wallclock</td></tr>
+<tr><td width="40%">PIPE</td><td width="40%">Omit completely the syncpoint</td></tr>
+</table>
+
+<a name="BROADCAST"></a>
+<h3 class="section">2.1 BROADCAST<span class="pull-right"><a class="anchor hidden-xs" href="#BROADCAST" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-BROADCAST" aria-hidden="true">TOC</a></span></h3>
+
+<p>The BROADCAST variant provides a secondary time reference to facilitate
+detecting endpoint latency and network delays.
+It assumes all the endpoint clocks are syncronized.
+To be used in real-time scenarios.
+</p>
+<a name="PIPE"></a>
+<h3 class="section">2.2 PIPE<span class="pull-right"><a class="anchor hidden-xs" href="#PIPE" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-PIPE" aria-hidden="true">TOC</a></span></h3>
+
+<p>The PIPE variant assumes NUT is used as non-seekable intermediate container,
+by not using syncpoint removes unneeded overhead and reduces the overall
+memory usage.
+</p>
+<a name="Container_002dspecific-codec-tags"></a>
+<h2 class="chapter">3 Container-specific codec tags<span class="pull-right"><a class="anchor hidden-xs" href="#Container_002dspecific-codec-tags" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Container_002dspecific-codec-tags" aria-hidden="true">TOC</a></span></h2>
+
+<a name="Generic-raw-YUVA-formats"></a>
+<h3 class="section">3.1 Generic raw YUVA formats<span class="pull-right"><a class="anchor hidden-xs" href="#Generic-raw-YUVA-formats" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Generic-raw-YUVA-formats" aria-hidden="true">TOC</a></span></h3>
+
+<p>Since many exotic planar YUVA pixel formats are not considered by
+the AVI/QuickTime FourCC lists, the following scheme is adopted for
+representing them.
+</p>
+<p>The first two bytes can contain the values:
+Y1 = only Y
+Y2 = Y+A
+Y3 = YUV
+Y4 = YUVA
+</p>
+<p>The third byte represents the width and height chroma subsampling
+values for the UV planes, that is the amount to shift the luma
+width/height right to find the chroma width/height.
+</p>
+<p>The fourth byte is the number of bits used (8, 16, ...).
+</p>
+<p>If the order of bytes is inverted, that means that each component has
+to be read big-endian.
+</p>
+<a name="Raw-Audio"></a>
+<h3 class="section">3.2 Raw Audio<span class="pull-right"><a class="anchor hidden-xs" href="#Raw-Audio" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Raw-Audio" aria-hidden="true">TOC</a></span></h3>
+
+<table>
+<tr><td width="40%">ALAW</td><td width="40%">A-LAW</td></tr>
+<tr><td width="40%">ULAW</td><td width="40%">MU-LAW</td></tr>
+<tr><td width="40%">P&lt;type&gt;&lt;interleaving&gt;&lt;bits&gt;</td><td width="40%">little-endian PCM</td></tr>
+<tr><td width="40%">&lt;bits&gt;&lt;interleaving&gt;&lt;type&gt;P</td><td width="40%">big-endian PCM</td></tr>
+</table>
+
+<p>&lt;type&gt; is S for signed integer, U for unsigned integer, F for IEEE float
+&lt;interleaving&gt; is D for default, P is for planar.
+&lt;bits&gt; is 8/16/24/32
+</p>
+<div class="example">
+<pre class="example">PFD[32]   would for example be signed 32 bit little-endian IEEE float
+</pre></div>
+
+<a name="Subtitles"></a>
+<h3 class="section">3.3 Subtitles<span class="pull-right"><a class="anchor hidden-xs" href="#Subtitles" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Subtitles" aria-hidden="true">TOC</a></span></h3>
+
+<table>
+<tr><td width="40%">UTF8</td><td width="40%">Raw UTF-8</td></tr>
+<tr><td width="40%">SSA[0]</td><td width="40%">SubStation Alpha</td></tr>
+<tr><td width="40%">DVDS</td><td width="40%">DVD subtitles</td></tr>
+<tr><td width="40%">DVBS</td><td width="40%">DVB subtitles</td></tr>
+</table>
+
+<a name="Raw-Data"></a>
+<h3 class="section">3.4 Raw Data<span class="pull-right"><a class="anchor hidden-xs" href="#Raw-Data" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Raw-Data" aria-hidden="true">TOC</a></span></h3>
+
+<table>
+<tr><td width="40%">UTF8</td><td width="40%">Raw UTF-8</td></tr>
+</table>
+
+<a name="Codecs"></a>
+<h3 class="section">3.5 Codecs<span class="pull-right"><a class="anchor hidden-xs" href="#Codecs" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Codecs" aria-hidden="true">TOC</a></span></h3>
+
+<table>
+<tr><td width="40%">3IV1</td><td width="40%">non-compliant MPEG-4 generated by old 3ivx</td></tr>
+<tr><td width="40%">ASV1</td><td width="40%">Asus Video</td></tr>
+<tr><td width="40%">ASV2</td><td width="40%">Asus Video 2</td></tr>
+<tr><td width="40%">CVID</td><td width="40%">Cinepak</td></tr>
+<tr><td width="40%">CYUV</td><td width="40%">Creative YUV</td></tr>
+<tr><td width="40%">DIVX</td><td width="40%">non-compliant MPEG-4 generated by old DivX</td></tr>
+<tr><td width="40%">DUCK</td><td width="40%">Truemotion 1</td></tr>
+<tr><td width="40%">FFV1</td><td width="40%">FFmpeg video 1</td></tr>
+<tr><td width="40%">FFVH</td><td width="40%">FFmpeg Huffyuv</td></tr>
+<tr><td width="40%">H261</td><td width="40%">ITU H.261</td></tr>
+<tr><td width="40%">H262</td><td width="40%">ITU H.262</td></tr>
+<tr><td width="40%">H263</td><td width="40%">ITU H.263</td></tr>
+<tr><td width="40%">H264</td><td width="40%">ITU H.264</td></tr>
+<tr><td width="40%">HFYU</td><td width="40%">Huffyuv</td></tr>
+<tr><td width="40%">I263</td><td width="40%">Intel H.263</td></tr>
+<tr><td width="40%">IV31</td><td width="40%">Indeo 3.1</td></tr>
+<tr><td width="40%">IV32</td><td width="40%">Indeo 3.2</td></tr>
+<tr><td width="40%">IV50</td><td width="40%">Indeo 5.0</td></tr>
+<tr><td width="40%">LJPG</td><td width="40%">ITU JPEG (lossless)</td></tr>
+<tr><td width="40%">MJLS</td><td width="40%">ITU JPEG-LS</td></tr>
+<tr><td width="40%">MJPG</td><td width="40%">ITU JPEG</td></tr>
+<tr><td width="40%">MPG4</td><td width="40%">MS MPEG-4v1 (not ISO MPEG-4)</td></tr>
+<tr><td width="40%">MP42</td><td width="40%">MS MPEG-4v2</td></tr>
+<tr><td width="40%">MP43</td><td width="40%">MS MPEG-4v3</td></tr>
+<tr><td width="40%">MP4V</td><td width="40%">ISO MPEG-4 Part 2 Video (from old encoders)</td></tr>
+<tr><td width="40%">mpg1</td><td width="40%">ISO MPEG-1 Video</td></tr>
+<tr><td width="40%">mpg2</td><td width="40%">ISO MPEG-2 Video</td></tr>
+<tr><td width="40%">MRLE</td><td width="40%">MS RLE</td></tr>
+<tr><td width="40%">MSVC</td><td width="40%">MS Video 1</td></tr>
+<tr><td width="40%">RT21</td><td width="40%">Indeo 2.1</td></tr>
+<tr><td width="40%">RV10</td><td width="40%">RealVideo 1.0</td></tr>
+<tr><td width="40%">RV20</td><td width="40%">RealVideo 2.0</td></tr>
+<tr><td width="40%">RV30</td><td width="40%">RealVideo 3.0</td></tr>
+<tr><td width="40%">RV40</td><td width="40%">RealVideo 4.0</td></tr>
+<tr><td width="40%">SNOW</td><td width="40%">FFmpeg Snow</td></tr>
+<tr><td width="40%">SVQ1</td><td width="40%">Sorenson Video 1</td></tr>
+<tr><td width="40%">SVQ3</td><td width="40%">Sorenson Video 3</td></tr>
+<tr><td width="40%">theo</td><td width="40%">Xiph Theora</td></tr>
+<tr><td width="40%">TM20</td><td width="40%">Truemotion 2.0</td></tr>
+<tr><td width="40%">UMP4</td><td width="40%">non-compliant MPEG-4 generated by UB Video MPEG-4</td></tr>
+<tr><td width="40%">VCR1</td><td width="40%">ATI VCR1</td></tr>
+<tr><td width="40%">VP30</td><td width="40%">VP 3.0</td></tr>
+<tr><td width="40%">VP31</td><td width="40%">VP 3.1</td></tr>
+<tr><td width="40%">VP50</td><td width="40%">VP 5.0</td></tr>
+<tr><td width="40%">VP60</td><td width="40%">VP 6.0</td></tr>
+<tr><td width="40%">VP61</td><td width="40%">VP 6.1</td></tr>
+<tr><td width="40%">VP62</td><td width="40%">VP 6.2</td></tr>
+<tr><td width="40%">VP70</td><td width="40%">VP 7.0</td></tr>
+<tr><td width="40%">WMV1</td><td width="40%">MS WMV7</td></tr>
+<tr><td width="40%">WMV2</td><td width="40%">MS WMV8</td></tr>
+<tr><td width="40%">WMV3</td><td width="40%">MS WMV9</td></tr>
+<tr><td width="40%">WV1F</td><td width="40%">non-compliant MPEG-4 generated by ?</td></tr>
+<tr><td width="40%">WVC1</td><td width="40%">VC-1</td></tr>
+<tr><td width="40%">XVID</td><td width="40%">non-compliant MPEG-4 generated by old Xvid</td></tr>
+<tr><td width="40%">XVIX</td><td width="40%">non-compliant MPEG-4 generated by old Xvid with interlacing bug</td></tr>
+</table>
+
+
+      <p style="font-size: small;">
+        This document was generated on <em>January 14, 2015</em> using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
+    </div>
+  </body>
+</html>
