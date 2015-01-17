@@ -163,7 +163,7 @@ static const char* const named_keys2[] =
 	"PRT SC",
 	"'",
 	"[",
-	"=",
+	"EQUALS",
 	"*"
 };
 static const char* const named_keys3[] =
@@ -379,7 +379,7 @@ void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_keys3x, 1, ",");
 	set_control(m_keys3x, 2, ".");
 	set_control(m_keys3x, 3, "/");
-	set_control(m_keys3x, 4, "\");
+	set_control(m_keys3x, 4, "\\");
 
 	set_control(m_keys4x, 1, "Escape");
 	set_control(m_keys4x, 2, "Insert");
