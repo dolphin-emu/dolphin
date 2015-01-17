@@ -31,7 +31,7 @@ GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
 size_t TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
-TextureCache::TexturePool TextureCache::texture_pool;
+TextureCache::TexPool TextureCache::texture_pool;
 
 TextureCache::BackupConfig TextureCache::backup_config;
 
@@ -82,7 +82,7 @@ void TextureCache::Invalidate()
 
 	for (auto& rt : texture_pool)
 	{
-		delete rt;
+		delete rt.second;
 	}
 	texture_pool.clear();
 }
@@ -161,19 +161,22 @@ void TextureCache::Cleanup(int _frameCount)
 		}
 	}
 
-	for (size_t i = 0; i < texture_pool.size();)
+	TexPool::iterator iter2 = texture_pool.begin();
+	TexPool::iterator tcend2 = texture_pool.end();
+	while (iter2 != tcend2)
 	{
-		auto rt = texture_pool[i];
-
-		if (_frameCount > TEXTURE_POOL_KILL_THRESHOLD + rt->frameCount)
+		if(iter2->second->frameCount == FRAMECOUNT_INVALID)
 		{
-			delete rt;
-			texture_pool[i] = texture_pool.back();
-			texture_pool.pop_back();
+			iter2->second->frameCount = _frameCount;
+		}
+		if (_frameCount > TEXTURE_POOL_KILL_THRESHOLD + iter2->second->frameCount)
+		{
+			delete iter2->second;
+			iter2 = texture_pool.erase(iter2);
 		}
 		else
 		{
-			++i;
+			++iter2;
 		}
 	}
 }
@@ -888,17 +891,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryConfig& config)
 {
-	for (size_t i = 0; i < texture_pool.size(); ++i)
+	TexPool::iterator iter = texture_pool.find(config);
+	if (iter != texture_pool.end())
 	{
-		auto rt = texture_pool[i];
-
-		if (rt->config == config)
-		{
-			texture_pool[i] = texture_pool.back();
-			texture_pool.pop_back();
-
-			return rt;
-		}
+		TextureCache::TCacheEntryBase* entry = iter->second;
+		texture_pool.erase(iter);
+		return entry;
 	}
 
 	INCSTAT(stats.numTexturesCreated);
@@ -907,5 +905,6 @@ TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryCo
 
 void TextureCache::FreeTexture(TCacheEntryBase* entry)
 {
-	texture_pool.push_back(entry);
+	entry->frameCount = FRAMECOUNT_INVALID;
+	texture_pool.insert(TexPool::value_type(entry->config, entry));
 }

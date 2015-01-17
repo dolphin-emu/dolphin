@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
+#include <unordered_map>
 
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
@@ -37,6 +39,16 @@ public:
 		{
 			return width == b.width && height == b.height && levels == b.levels && layers == b.layers && rendertarget == b.rendertarget;
 		}
+
+		struct Hasher : std::hash<u64>
+		{
+			size_t operator()(const TextureCache::TCacheEntryConfig& c) const
+			{
+				u64 id = (u64)c.rendertarget << 63 | (u64)c.layers << 48 | (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
+				return std::hash<u64>::operator()(id);
+			}
+		};
+
 	};
 
 	struct TCacheEntryBase
@@ -134,10 +146,10 @@ private:
 	static void FreeTexture(TCacheEntryBase* entry);
 
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
-	typedef std::vector<TCacheEntryBase*> TexturePool;
+	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
 
 	static TexCache textures;
-	static TexturePool texture_pool;
+	static TexPool texture_pool;
 
 	// Backup configuration values
 	static struct BackupConfig
