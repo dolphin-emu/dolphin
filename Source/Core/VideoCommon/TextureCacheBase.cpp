@@ -364,7 +364,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,0x0, so we limit the mipmap count to 6 there
 	tex_levels = std::min<u32>(IntLog2(std::max(width, height)) + 1, tex_levels);
 
-	TCacheEntryBase *entry = textures[texID];
+	TCacheEntryBase*& entry = textures[texID];
 	if (entry)
 	{
 		// 1. Calculate reference hash:
@@ -390,29 +390,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			return ReturnEntry(stage, entry);
 		}
 
-		// 3. If we reach this line, we'll have to upload the new texture data to VRAM.
-		//    If we're lucky, the texture parameters didn't change and we can reuse the internal texture object instead of destroying and recreating it.
-		//
-		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
-		// TODO: Actually, it should be enough if the internal texture format matches...
-		if (((entry->type == TCET_NORMAL &&
-		     width == entry->config.width &&
-		     height == entry->config.height &&
-		     full_format == entry->format &&
-		     entry->config.levels >= tex_levels) ||
-		    (entry->type == TCET_EC_DYNAMIC &&
-		     entry->native_width == width &&
-		     entry->native_height == height)) &&
-		     entry->config.layers == 1)
-		{
-			// reuse the texture
-		}
-		else
-		{
-			// delete the texture and make a new one
-			FreeTexture(entry);
-			entry = nullptr;
-		}
+		// pool this texture and make a new one later
+		FreeTexture(entry);
 	}
 
 	std::unique_ptr<HiresTexture> hires_tex;
@@ -432,13 +411,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			{
 				width = l.width;
 				height = l.height;
-
-				// If we thought we could reuse the texture before, make sure to pool it now!
-				if (entry)
-				{
-					FreeTexture(entry);
-					entry = nullptr;
-				}
 			}
 			expandedWidth = l.width;
 			expandedHeight = l.height;
@@ -467,25 +439,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	const bool use_native_mips = use_mipmaps && !using_custom_lods && (width == nativeW && height == nativeH);
 	texLevels = (use_native_mips || using_custom_lods) ? texLevels : 1; // TODO: Should be forced to 1 for non-pow2 textures (e.g. efb copies with automatically adjusted IR)
 
-	if (entry && entry->config.levels != texLevels)
-	{
-		// delete the texture and make a new one
-		FreeTexture(entry);
-		entry = nullptr;
-	}
-
 	// create the entry/texture
-	if (nullptr == entry)
-	{
-		TCacheEntryConfig config;
-		config.width = width;
-		config.height = height;
-		config.levels = texLevels;
-		textures[texID] = entry = AllocateTexture(config);
-		entry->type = TCET_NORMAL;
-
-		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
-	}
+	TCacheEntryConfig config;
+	config.width = width;
+	config.height = height;
+	config.levels = texLevels;
+	entry = AllocateTexture(config);
+	entry->type = TCET_NORMAL;
+	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 
 	entry->SetGeneralParameters(address, texture_size, full_format);
 	entry->SetDimensions(nativeW, nativeH, tex_levels);
@@ -848,41 +809,24 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
-	const unsigned int efb_layers = FramebufferManagerBase::GetEFBLayers();
-
-	TCacheEntryBase *entry = textures[dstAddr];
+	TCacheEntryBase*& entry = textures[dstAddr];
 	if (entry)
-	{
-		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h && entry->config.layers == efb_layers)
-		{
-			scaled_tex_w = tex_w;
-			scaled_tex_h = tex_h;
-		}
-		else if (!(entry->type == TCET_EC_VRAM && entry->config.width == scaled_tex_w && entry->config.height == scaled_tex_h && entry->config.layers == efb_layers))
-		{
-			// try to re-use this texture later
-			FreeTexture(entry);
-			entry = nullptr;
-		}
-	}
+		FreeTexture(entry);
 
-	if (nullptr == entry)
-	{
-		// create the texture
-		TCacheEntryConfig config;
-		config.rendertarget = true;
-		config.width = scaled_tex_w;
-		config.height = scaled_tex_h;
-		config.layers = FramebufferManagerBase::GetEFBLayers();
+	// create the texture
+	TCacheEntryConfig config;
+	config.rendertarget = true;
+	config.width = scaled_tex_w;
+	config.height = scaled_tex_h;
+	config.layers = FramebufferManagerBase::GetEFBLayers();
 
-		textures[dstAddr] = entry = AllocateTexture(config);
+	entry = AllocateTexture(config);
 
-		// TODO: Using the wrong dstFormat, dumb...
-		entry->SetGeneralParameters(dstAddr, 0, dstFormat);
-		entry->SetDimensions(tex_w, tex_h, 1);
-		entry->SetHashes(TEXHASH_INVALID);
-		entry->type = TCET_EC_VRAM;
-	}
+	// TODO: Using the wrong dstFormat, dumb...
+	entry->SetGeneralParameters(dstAddr, 0, dstFormat);
+	entry->SetDimensions(tex_w, tex_h, 1);
+	entry->SetHashes(TEXHASH_INVALID);
+	entry->type = TCET_EC_VRAM;
 
 	entry->frameCount = FRAMECOUNT_INVALID;
 
