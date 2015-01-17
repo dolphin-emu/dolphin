@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <xxhash.h>
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -27,6 +28,8 @@ ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 TextureCache::TCacheEntry::~TCacheEntry()
 {
 	texture->Release();
+	int foo = 1;
+	XXH32(&foo, sizeof(int), 0x34);
 }
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
