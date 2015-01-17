@@ -47,9 +47,7 @@ private:
 
 	~TextureCache();
 
-	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height, unsigned int tex_levels) override;
-
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers) override;
+	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
 	void CompileShaders() override;
 	void DeleteShaders() override;

@@ -81,39 +81,43 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height, unsigned int tex_levels)
+TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
-	D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-	D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
-
-	if (tex_levels == 1)
+	if (config.rendertarget)
 	{
-		usage = D3D11_USAGE_DYNAMIC;
-		cpu_access = D3D11_CPU_ACCESS_WRITE;
+		return new TCacheEntry(config, D3DTexture2D::Create(config.width, config.height,
+			(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
+			D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers));
 	}
+	else
+	{
+		D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
+		D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
 
-	const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
-		width, height, 1, tex_levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
+		if (config.levels == 1)
+		{
+			usage = D3D11_USAGE_DYNAMIC;
+			cpu_access = D3D11_CPU_ACCESS_WRITE;
+		}
 
-	ID3D11Texture2D *pTexture;
-	const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
-	CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
+		const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
+			config.width, config.height, 1, config.levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
 
-	TCacheEntryConfig config;
-	config.width = width;
-	config.height = height;
-	config.levels = tex_levels;
+		ID3D11Texture2D *pTexture;
+		const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
+		CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
 
-	TCacheEntry* const entry = new TCacheEntry(config, new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
-	entry->usage = usage;
+		TCacheEntry* const entry = new TCacheEntry(config, new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
+		entry->usage = usage;
 
-	// TODO: better debug names
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(), "a texture of the TextureCache");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");
+		// TODO: better debug names
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(), "a texture of the TextureCache");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");
 
-	SAFE_RELEASE(pTexture);
+		SAFE_RELEASE(pTexture);
 
-	return entry;
+		return entry;
+	}
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
@@ -189,20 +193,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		this->hash = hash;
 	}
-}
-
-TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
-	unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers)
-{
-	TCacheEntryConfig config;
-	config.width = scaled_tex_w;
-	config.height = scaled_tex_h;
-	config.layers = layers;
-	config.rendertarget = true;
-
-	return new TCacheEntry(config, D3DTexture2D::Create(scaled_tex_w, scaled_tex_h,
-		(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
-		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, layers));
 }
 
 TextureCache::TextureCache()

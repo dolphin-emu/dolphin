@@ -109,22 +109,28 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, config.width, config.height, level);
 }
 
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height, unsigned int tex_levels)
+TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
-	TCacheEntryConfig config;
-	config.width = width;
-	config.height = height;
-	config.levels = tex_levels;
-
-	TCacheEntry &entry = *new TCacheEntry(config);
+	TCacheEntry* entry = new TCacheEntry(config);
 
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, entry.texture);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, tex_levels - 1);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, entry->texture);
+
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, config.levels - 1);
+
+	if (config.rendertarget)
+	{
+		for (u32 level = 0; level <= config.levels; level++)
+		{
+			glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, config.width, config.height, config.layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		}
+		glGenFramebuffers(1, &entry->framebuffer);
+		FramebufferManager::SetFramebuffer(entry->framebuffer);
+		FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, entry->texture, 0);
+	}
 
 	TextureCache::SetStage();
-
-	return &entry;
+	return entry;
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
@@ -148,32 +154,6 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 	TextureCache::SetStage();
-}
-
-TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
-	unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers)
-{
-	TCacheEntryConfig config;
-	config.width = scaled_tex_w;
-	config.height = scaled_tex_h;
-	config.layers = layers;
-	config.rendertarget = true;
-	TCacheEntry *const entry = new TCacheEntry(config);
-
-	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, entry->texture);
-
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, scaled_tex_w, scaled_tex_h, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-	glGenFramebuffers(1, &entry->framebuffer);
-	FramebufferManager::SetFramebuffer(entry->framebuffer);
-	FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_ARRAY, entry->texture, 0);
-
-	SetStage();
-
-	return entry;
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,

@@ -474,7 +474,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	// create the entry/texture
 	if (nullptr == entry)
 	{
-		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, texLevels);
+		TCacheEntryConfig config;
+		config.width = width;
+		config.height = height;
+		config.levels = texLevels;
+		textures[texID] = entry = g_texture_cache->CreateTexture(config);
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -900,7 +904,13 @@ TextureCache::TCacheEntryBase* TextureCache::AllocateRenderTarget(unsigned int w
 		return rt;
 	}
 
-	return g_texture_cache->CreateRenderTargetTexture(width, height, layers);
+	TCacheEntryConfig config;
+	config.rendertarget = true;
+	config.width = width;
+	config.height = height;
+	config.layers = layers;
+
+	return g_texture_cache->CreateTexture(config);
 }
 
 void TextureCache::FreeRenderTarget(TCacheEntryBase* entry)
