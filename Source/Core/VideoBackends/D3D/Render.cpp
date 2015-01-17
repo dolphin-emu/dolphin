@@ -862,7 +862,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	SetWindowSize(fbStride, fbHeight);
 
 	const bool windowResized = CheckForResize();
-	const bool fullscreen = g_ActiveConfig.bFullscreen &&
+	const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
 
 	bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
@@ -917,8 +917,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			{
 				D3D::SetFullscreenState(fullscreen);
 
-				// If exclusive fullscreen is disabled we can safely notify the UI to exit fullscreen.
-				if (!fullscreen)
+				// If fullscreen is disabled we can safely notify the UI to exit fullscreen.
+				if (!g_ActiveConfig.bFullscreen)
 					Host_RequestFullscreen(false);
 			}
 
