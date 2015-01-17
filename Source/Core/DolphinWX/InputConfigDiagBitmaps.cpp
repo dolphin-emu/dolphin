@@ -48,6 +48,25 @@ static void DrawCoordinate(wxDC &dc, ControlState x, ControlState y)
 	DrawCenteredRectangle(dc, xc, yc, COORD_VIS_SIZE, COORD_VIS_SIZE);
 }
 
+void DrawButton(unsigned int* const bitmasks, unsigned int buttons, unsigned int n, wxDC& dc, ControlGroupBox* g, unsigned int row)
+{
+	if (buttons & bitmasks[(row * 8) + n])
+	{
+		dc.SetBrush(*wxRED_BRUSH);
+	}
+	else
+	{
+		unsigned char amt = 255 - g->control_group->controls[(row * 8) + n]->control_ref->State() * 128;
+		dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
+	}
+	dc.DrawRectangle(n * 12, (row == 0) ? 0 : (row * 12 - 1), 14, 12);
+
+	// text
+	const std::string name = g->control_group->controls[(row * 8) + n]->name;
+	// bit of hax so ZL, ZR show up as L, R
+	dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n * 12 + 2, 1 + ((row == 0) ? 0 : (row * 12 - 1)));
+}
+
 static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 {
 	switch (g->control_group->type)
@@ -242,35 +261,29 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 	break;
 	case GROUP_TYPE_BUTTONS :
 	{
-		const unsigned int button_count = ((unsigned int)g->control_group->controls.size());
+		unsigned int button_count = ((unsigned int)g->control_group->controls.size());
 
 		// draw the shit
 		dc.SetPen(*wxGREY_PEN);
 
-		unsigned int * const bitmasks = new unsigned int[ button_count ];
+		unsigned int* const bitmasks = new unsigned int[button_count];
 		for (unsigned int n = 0; n<button_count; ++n)
 			bitmasks[n] = (1 << n);
 
 		unsigned int buttons = 0;
 		((ControllerEmu::Buttons*)g->control_group)->GetState(&buttons, bitmasks);
 
-		for (unsigned int n = 0; n<button_count; ++n)
+		// Draw buttons in rows of 8
+		for (unsigned int row = 0; row < ceil((float)button_count / 8.0f); row++)
 		{
-			if (buttons & bitmasks[n])
-			{
-				dc.SetBrush(*wxRED_BRUSH);
-			}
-			else
-			{
-				unsigned char amt = 255 - g->control_group->controls[n]->control_ref->State() * 128;
-				dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
-			}
-			dc.DrawRectangle(n * 12, 0, 14, 12);
+			unsigned int buttons_to_draw = 8;
+			if ((button_count - row * 8) <= 8)
+				buttons_to_draw = button_count - row * 8;
 
-			// text
-			const std::string name = g->control_group->controls[n]->name;
-			// bit of hax so ZL, ZR show up as L, R
-			dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n*12 + 2, 1);
+			for (unsigned int n = 0; n < buttons_to_draw; ++n)
+			{
+				DrawButton(bitmasks, buttons, n, dc, g, row);
+			}
 		}
 
 		delete[] bitmasks;

@@ -836,7 +836,11 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 		break;
 	case GROUP_TYPE_BUTTONS:
 		{
-			wxBitmap bitmap(int(12*group->controls.size()+1), 12);
+			// Draw buttons in rows of 8
+			unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
+			unsigned int button_rows = ceil((float)group->controls.size() / 8.0f);
+			wxBitmap bitmap(int(12 * button_cols + 1), (12 * button_rows) - (button_rows - 1));
+
 			dc.SelectObject(bitmap);
 			dc.Clear();
 			static_bitmap = new wxStaticBitmap(parent, wxID_ANY, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP);
