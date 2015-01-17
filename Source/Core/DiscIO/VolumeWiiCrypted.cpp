@@ -227,6 +227,11 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
 	return date;
 }
 
+bool CVolumeWiiCrypted::IsWiiDisc() const
+{
+	return true;
+}
+
 u64 CVolumeWiiCrypted::GetSize() const
 {
 	if (m_pReader)

@@ -45,6 +45,7 @@ public:
 	u32 GetFSTSize() const override;
 
 	std::string GetApploaderDate() const override;
+	bool IsWiiDisc() const override;
 
 	ECountry GetCountry() const override;
 
@@ -84,6 +85,8 @@ private:
 	std::map<u64, std::string> m_virtualDisk;
 
 	u32 m_totalNameSize;
+
+	bool m_is_wii;
 
 	// GameCube has no shift, Wii has 2 bit shift
 	u32 m_addressShift;

@@ -21,8 +21,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DiscIO/VolumeCreator.h"
-
 void CBoot::RunFunction(u32 _iAddr)
 {
 	PC = _iAddr;
@@ -320,7 +318,7 @@ bool CBoot::EmulatedBS2_Wii()
 
 	// Execute the apploader
 	bool apploaderRan = false;
-	if (VolumeHandler::IsValid() && VolumeHandler::IsWii())
+	if (VolumeHandler::IsValid() && VolumeHandler::IsWiiDisc())
 	{
 		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
