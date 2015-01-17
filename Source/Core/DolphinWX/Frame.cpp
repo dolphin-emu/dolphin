@@ -211,6 +211,11 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 	{
 		// OpenGL requires the pop-up style to activate exclusive mode.
 		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
+
+		// Some backends don't support exclusive fullscreen, so we
+		// can't tell exactly when exclusive mode is activated.
+		if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
+			OSD::AddMessage("Enabled exclusive fullscreen.");
 	}
 #endif
 
