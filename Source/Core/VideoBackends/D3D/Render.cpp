@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <sstream>
 #include <string>
 #include <strsafe.h>
 #include <unordered_map>
@@ -270,6 +271,11 @@ Renderer::Renderer(void *&window_handle)
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
+
+	// Action Replay culling code brute-forcing
+	// begin searching
+	if (Core::ch_bruteforce)
+		Core::ch_comenzar_busqueda = true;
 }
 
 Renderer::~Renderer()
@@ -775,6 +781,10 @@ void Renderer::AsyncTimewarpDraw()
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
+	//rafa
+	if (Core::ch_bruteforce)
+		Core::ch_cacheo_pasado = true;
+
 	// VR - before the first frame we need ovrHmd_BeginFrame, and we need to configure the tracking
 #ifdef HAVE_OCULUSSDK
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
@@ -1026,6 +1036,28 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// done with drawing the game stuff, good moment to save a screenshot
+
+	if (Core::ch_bruteforce && Core::ch_tomarFoto>0)
+	{
+		if (Core::ch_tomarFoto == 1)
+		{
+			Core::ch_tomarFoto = 0;
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+			std::ostringstream s;
+			s << Core::ch_codigoactual;
+
+			s_bScreenshot = true;
+			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + Core::ch_map[Core::ch_codigoactual] + ".png";
+			Core::ch_cicles_without_snapshot = 0;
+			Core::ch_cacheo_pasado = true;
+			Core::ch_next_code = true; //TODO next code quitar de aqui
+		}
+		else
+		{
+			Core::ch_tomarFoto -= 1;
+		}
+	}
+
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());

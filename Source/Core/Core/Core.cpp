@@ -75,6 +75,27 @@ namespace Core
 
 bool g_want_determinism;
 
+// Action Replay culling code brute-forcing by penkamaster
+// count down to take a screenshot
+int ch_tomarFoto;
+// current code
+int ch_codigoactual;
+// move on to next code?
+bool ch_next_code;
+// start searching
+bool ch_comenzar_busqueda;
+// number of windows messages without saving a screenshot
+int ch_cicles_without_snapshot;
+// search last
+bool ch_cacheo_pasado;
+// emulator is in action replay culling code brute-forcing mode
+bool ch_bruteforce;
+
+std::vector<std::string> ch_map;
+std::string ch_title_id;
+std::string Core::ch_code;
+
+
 // Declarations and definitions
 static Common::Timer s_timer;
 static Common::Timer s_vr_timer;

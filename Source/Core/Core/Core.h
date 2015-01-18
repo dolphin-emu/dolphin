@@ -30,6 +30,27 @@ void SetIsFramelimiterTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 
+// Action Replay culling code brute-forcing by penkamaster
+// take photo
+extern int ch_tomarFoto;
+// current code
+extern int ch_codigoactual;
+// move on to next code?
+extern bool ch_next_code;
+// start searching
+extern bool ch_comenzar_busqueda;
+// number of windows messages without saving a screenshot
+extern int ch_cicles_without_snapshot;
+// search last
+extern bool ch_cacheo_pasado;
+// emulator is in action replay culling code brute-forcing mode
+extern bool ch_bruteforce;
+
+extern std::vector<std::string> ch_map;
+extern std::string ch_title_id;
+extern std::string ch_code;
+
+
 enum EState
 {
 	CORE_UNINITIALIZED,
