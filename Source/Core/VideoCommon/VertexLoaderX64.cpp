@@ -5,6 +5,7 @@
 #endif
 
 #include "Common/CPUDetect.h"
+#include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
 #include "VideoCommon/VertexLoaderX64.h"
 
@@ -27,6 +28,10 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att): 
 	ClearCodeSpace();
 	GenerateVertexLoader();
 	WriteProtect();
+
+	std::string name;
+	AppendToString(&name);
+	JitRegister::Register(region, (u32)(GetCodePtr() - region), name.c_str());
 }
 
 OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)

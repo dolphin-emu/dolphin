@@ -7,7 +7,7 @@ public:
 	VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att);
 
 protected:
-	std::string GetName() const override { return "VertexLoaderJit"; }
+	std::string GetName() const override { return "VertexLoaderX64"; }
 	bool IsInitialized() override;
 	int RunVertices(int primitive, int count, DataReader src, DataReader dst) override;
 
