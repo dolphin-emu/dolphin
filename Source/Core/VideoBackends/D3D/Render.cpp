@@ -43,7 +43,6 @@ namespace DX11
 static u32 s_last_multisample_mode = 0;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
-static bool s_last_fullscreen = false;
 
 static Television s_television;
 
@@ -231,7 +230,6 @@ Renderer::Renderer(void *&window_handle)
 	s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-	s_last_fullscreen = g_ActiveConfig.bFullscreen;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
@@ -887,16 +885,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	{
 		if (fullscreen && !exclusive_mode)
 		{
-			if (s_last_fullscreen)
+			if (g_Config.bExclusiveMode)
 				OSD::AddMessage("Lost exclusive fullscreen.");
-
-			s_last_fullscreen = false;
 
 			// Exclusive fullscreen is enabled in the configuration, but we're
 			// not in exclusive mode. Either exclusive fullscreen was turned on
 			// or the render frame lost focus. When the render frame is in focus
 			// we can apply exclusive mode.
 			fullscreen_changed = Host_RendererHasFocus();
+
+			g_Config.bExclusiveMode = false;
 		}
 		else if (!fullscreen && exclusive_mode)
 		{
@@ -922,7 +920,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Apply fullscreen state
 			if (fullscreen_changed)
 			{
-				s_last_fullscreen = fullscreen;
+				g_Config.bExclusiveMode = fullscreen;
 
 				if (fullscreen)
 					OSD::AddMessage("Entered exclusive fullscreen.");
