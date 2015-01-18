@@ -251,8 +251,11 @@ void CConfigMain::InitializeGUILists()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
-	for (int i = 5; i <= 120; i += 5) // from 5 to 120
+	for (int i = 5; i <= 70; i += 5) // from 5 to 70
 		arrayStringFor_Framelimit.Add(wxString::Format("%i", i));
+	for (int i = 80; i <= 100; i += 10) // from 80 to 100
+		arrayStringFor_Framelimit.Add(wxString::Format("%i", i));
+	arrayStringFor_Framelimit.Add(_("120"));
 
 	// Emulator Engine
 	for (const CPUCore& CPUCores_a : CPUCores)
