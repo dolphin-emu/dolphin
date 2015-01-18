@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -577,6 +578,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
+	Core::ch_comenzar_busqueda = true;
 
 	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
@@ -1424,6 +1426,9 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
+	//rafa
+	Core::ch_cacheo_pasado = true;
+
 	if (g_ogl_config.bSupportsDebug)
 	{
 		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
@@ -1520,13 +1525,31 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
-	if (s_bScreenshot)
+	
+	if (Core::ch_tomarFoto>0)
 	{
-		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, flipped_trc);
-		// Reset settings
-		s_sScreenshotName.clear();
-		s_bScreenshot = false;
+		if (Core::ch_tomarFoto == 1){
+			Core::ch_tomarFoto = 0;
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+			std::ostringstream s;
+			s << Core::ch_codigoactual;
+
+			
+
+			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + Core::ch_map[Core::ch_codigoactual] + ".png";
+			SaveScreenshot(s_sScreenshotName, flipped_trc);
+			Core::ch_cicles_without_snapshot = 0;
+			Core::ch_cacheo_pasado = true;
+			// Reset settings
+			s_sScreenshotName.clear();
+			s_bScreenshot = false;
+			Core::ch_next_code = true; //TODO next code quitar de aqui
+			
+
+		}
+		else{
+			Core::ch_tomarFoto -= 1;
+		}
 	}
 
 	// Frame dumps are handled a little differently in Windows

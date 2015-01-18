@@ -30,6 +30,18 @@ void SetIsFramelimiterTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 
+
+extern int ch_tomarFoto;
+extern int ch_codigoactual;
+extern bool ch_next_code;
+extern bool ch_comenzar_busqueda;
+extern int ch_cicles_without_snapshot;
+extern bool ch_cacheo_pasado;
+extern std::vector<std::string> ch_map;
+extern std::string ch_title_id;
+extern std::string ch_code;
+
+
 enum EState
 {
 	CORE_UNINITIALIZED,

@@ -156,10 +156,65 @@ bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 
 	return internal_game_id == SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
 }
+void ch_guardar_ultimaposicion(int posicion){
+	std::ofstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "posicion.txt");
+	if (myfile.is_open())
+	{
+		std::string Result;
+		std::ostringstream convert;   // stream used for the conversion
+		convert << posicion;      // insert the textual representation of 'Number' in the characters in the stream
+		myfile << convert.str() + "\n";
+		myfile.close();
+	}	
+}
+int ch_cargar_ultimaposicion(){
+	
+	
+	std::string line;
+	std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) +"posicion.txt");
+	std::string aux;
+	
+	if (myfile.is_open())
+	{
+		while (getline(myfile, line))
+		{
+			aux= line;
+		}
+		myfile.close();
+		
+	}
+	return (atoi(aux.c_str())+1);
+}
 
 #ifdef _WIN32
 WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
+	Core::ch_cicles_without_snapshot += 1;
+	if (Core::ch_comenzar_busqueda){
+		Core::ch_comenzar_busqueda = false;
+		Core::ch_next_code = false;
+		Core::ch_codigoactual = 0;
+		Core::ch_codigoactual = ch_cargar_ultimaposicion();
+		State::Load(1);
+	}
+	else{
+		if (Core::ch_next_code){
+			Core::ch_next_code = false;
+			Core::ch_codigoactual += 1;
+			ch_guardar_ultimaposicion(Core::ch_codigoactual);
+			Core::ch_cicles_without_snapshot = 0;
+			State::Load(1);
+			
+		}
+		else if ( Core::ch_cicles_without_snapshot > 65 && Core::ch_cacheo_pasado){			
+			Core::ch_next_code = false;
+			Core::ch_codigoactual += 1;
+			ch_guardar_ultimaposicion(Core::ch_codigoactual);
+			Core::ch_cicles_without_snapshot = 0;
+			State::Load(1);
+			
+		}
+	}
 	switch (nMsg)
 	{
 		case WM_SYSCOMMAND:

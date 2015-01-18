@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <direct.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -224,6 +225,27 @@ bool CBoot::BootUp()
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
 		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
+
+		std::string userPath = File::GetUserPath(D_MAPS_IDX);
+		std::string userPathScreens = File::GetUserPath(D_SCREENSHOTS_IDX);
+
+		std::string line;
+		std::ifstream myfile( userPath + unique_id + ".map"); //lego starwars
+		std::string gameScrenShotsPath = userPathScreens + unique_id;
+		mkdir(gameScrenShotsPath.c_str());
+
+		Core::ch_title_id = unique_id;
+		if (myfile.is_open())
+		{
+			while (getline(myfile, line))
+			{
+				line = line.substr(2, 6);
+				Core::ch_map.push_back("04" + line);
+			}
+			myfile.close();
+		}
+
+
 		if (unique_id.size() >= 4)
 			VideoInterface::SetRegionReg(unique_id.at(3));
 

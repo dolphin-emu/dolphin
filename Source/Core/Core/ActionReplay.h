@@ -26,7 +26,7 @@ struct ARCode
 };
 
 void RunAllActive();
-bool RunCode(const ARCode &arcode);
+bool RunCode();
 void LoadCodes(const IniFile &globalini, const IniFile &localIni, bool forceLoad);
 void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalini, IniFile &localIni);
 size_t GetCodeListSize();

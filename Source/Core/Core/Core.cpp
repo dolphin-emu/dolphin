@@ -61,6 +61,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+
 // TODO: ugly, remove
 bool g_aspect_wide;
 
@@ -68,6 +69,17 @@ namespace Core
 {
 
 bool g_want_determinism;
+
+int ch_tomarFoto;
+int ch_codigoactual;
+bool ch_next_code;
+bool ch_comenzar_busqueda;
+int ch_cicles_without_snapshot;
+bool ch_cacheo_pasado;
+std::vector<std::string> ch_map;
+std::string ch_title_id;
+std::string Core::ch_code;
+
 
 // Declarations and definitions
 static Common::Timer s_timer;

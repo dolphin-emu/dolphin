@@ -470,6 +470,8 @@ void LoadAs(const std::string& filename)
 		if (loadedSuccessfully)
 		{
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
+
+			Core::ch_tomarFoto = 2;	
 			if (File::Exists(filename + ".dtm"))
 				Movie::LoadInput(filename + ".dtm");
 			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())

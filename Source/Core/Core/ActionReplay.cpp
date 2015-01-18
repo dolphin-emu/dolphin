@@ -759,7 +759,12 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 
 void RunAllActive()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	if (Core::ch_codigoactual != 0 && Core::ch_codigoactual != -1)
+		RunCode();
+
+	b_RanOnce = true;
+
+	/*if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
 		for (auto& activeCode : activeCodes)
 		{
@@ -769,12 +774,11 @@ void RunAllActive()
 				LogInfo("\n");
 			}
 		}
-
-		b_RanOnce = true;
-	}
+		b_RanOnce = true;		
+	}*/
 }
 
-bool RunCode(const ARCode &arcode)
+bool RunCode()
 {
 	// The mechanism is different than what the real AR uses, so there may be compatibility problems.
 
@@ -785,13 +789,48 @@ bool RunCode(const ARCode &arcode)
 	int skip_count = 0;
 
 	u32 val_last = 0;
+	
+	ARCode ch_currentCode;
 
-	current_code = &arcode;
+	ch_currentCode.active = true;
+	ch_currentCode.name = "cullin";
+	ch_currentCode.user_defined = true;
 
-	LogInfo("Code Name: %s", arcode.name.c_str());
-	LogInfo("Number of codes: %i", arcode.ops.size());
+	AREntry op;
+	bool success_addr;
+	
+	success_addr = TryParse(std::string("0x") + Core::ch_map[Core::ch_codigoactual], &op.cmd_addr);	
+	bool success_val = TryParse(std::string("0x") + "3860000" + Core::ch_code, &op.value);
+	if (success_addr && success_val)
+	{
+		ch_currentCode.ops.push_back(op);
+	}
 
-	for (const AREntry& entry : arcode.ops)
+	std::string ch_codigo_mas_cuatro = Core::ch_map[Core::ch_codigoactual];
+
+	std::stringstream str;
+	std::string s1 = Core::ch_map[Core::ch_codigoactual];
+		str << s1;
+	int value;
+	str >> std::hex >> value;
+	value = value + 4;
+	std::stringstream stream;
+	stream << std::hex << value;
+	
+	success_addr = TryParse(std::string("0x") + stream.str(), &op.cmd_addr);
+	
+	success_val = TryParse(std::string("0x") + "4E800020", &op.value);
+	if (success_addr && success_val)
+	{
+		ch_currentCode.ops.push_back(op);
+	}
+
+	//current_code = &arcode;
+
+	LogInfo("Code Name: %s", ch_currentCode.name.c_str());
+	LogInfo("Number of codes: %i", ch_currentCode.ops.size());
+
+	for (const AREntry& entry : ch_currentCode.ops)
 	{
 		const ARAddr& addr = *(ARAddr*)&entry.cmd_addr;
 		const u32 data = entry.value;

@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <cstring>
 #include <mutex>
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <utility>
 #include <wx/app.h>
@@ -361,6 +363,40 @@ void DolphinApp::AfterInit()
 			main_frame->BootGame("");
 		}
 	}
+
+	Core::ch_tomarFoto = 0;	
+	Core::ch_next_code = false;
+	Core::ch_comenzar_busqueda = false;
+	Core::ch_cicles_without_snapshot = 0;
+	Core::ch_cacheo_pasado = false;
+	
+	std::string line;
+	std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "posicion.txt");
+	std::string aux;
+
+	if (myfile.is_open())
+	{
+		while (getline(myfile, line))
+		{
+			aux = line;
+		}
+		myfile.close();
+	}
+
+	std::ifstream myfile2(File::GetUserPath(D_SCREENSHOTS_IDX) + "codigo.txt");
+	if (myfile2.is_open())
+	{
+		while (getline(myfile2, line))
+		{
+			Core::ch_code = line;
+		}
+		myfile.close();
+	}
+
+	if (atoi(aux.c_str()) != -1){
+		main_frame->BootGame("");
+	}
+
 }
 
 void DolphinApp::InitLanguageSupport()
