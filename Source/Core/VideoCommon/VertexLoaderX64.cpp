@@ -143,10 +143,6 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int elements)
 {
 	int load_bytes = 0;
-	static const u32 mask_565 = 0xF8FCF800;
-	static const u32 mask_0f  = 0x0F0F0F0F;
-	static const u32 mask_f0  = 0xF0F0F0F0;
-	static const u32 mask_fc  = 0xFCFCFCFC;
 	switch (format)
 	{
 		case FORMAT_24B_888:
@@ -164,10 +160,16 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 			//                   RRRRRGGG GGGBBBBB
 			// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
 			LoadAndSwap(16, scratch1, data);
-			if (cpu_info.bBMI2)
+			if (cpu_info.bBMI1 && cpu_info.bBMI2)
 			{
-				PDEP(32, scratch1, scratch1, M(&mask_565));
-				MOV(32, R(scratch2), R(scratch1));
+				MOV(32, R(scratch2), Imm32(0x07C3F7C0));
+				PDEP(32, scratch3, scratch1, R(scratch2));
+
+				MOV(32, R(scratch2), Imm32(0xF8FCF800));
+				PDEP(32, scratch1, scratch1, R(scratch2));
+				ANDN(32, scratch2, scratch2, R(scratch3));
+
+				OR(32, R(scratch1), R(scratch2));
 			}
 			else
 			{
@@ -183,18 +185,18 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 				SHL(32, R(scratch3), Imm8(11));
 				AND(32, R(scratch3), Imm32(0x0000F800));
 				OR(32, R(scratch1), R(scratch3));
+
 				MOV(32, R(scratch2), R(scratch1));
+				SHR(32, R(scratch1), Imm8(5));
+				AND(32, R(scratch1), Imm32(0x07000700));
+				OR(32, R(scratch1), R(scratch2));
+
+				SHR(32, R(scratch2), Imm8(6));
+				AND(32, R(scratch2), Imm32(0x00030000));
+				OR(32, R(scratch1), R(scratch2));
 			}
 
-			SHR(32, R(scratch1), Imm8(5));
-			AND(32, R(scratch1), Imm32(0x07000700));
-			OR(32, R(scratch1), R(scratch2));
-
-			SHR(32, R(scratch2), Imm8(6));
-			AND(32, R(scratch2), Imm32(0x00030000));
-			OR(32, R(scratch1), R(scratch2));
-
-			OR(8, R(scratch1), Imm8(0xFF));
+			OR(32, R(scratch1), Imm32(0x000000FF));
 			SwapAndStore(32, MDisp(dst_reg, m_dst_ofs), scratch1);
 			load_bytes = 2;
 			break;
@@ -205,8 +207,10 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 			LoadAndSwap(16, scratch1, data);
 			if (cpu_info.bBMI2)
 			{
-				PDEP(32, scratch2, scratch1, M(&mask_0f));
-				PDEP(32, scratch1, scratch1, M(&mask_f0));
+				MOV(32, R(scratch3), Imm32(0x0F0F0F0F));
+				PDEP(32, scratch2, scratch1, R(scratch3));
+				MOV(32, R(scratch3), Imm32(0xF0F0F0F0));
+				PDEP(32, scratch1, scratch1, R(scratch3));
 			}
 			else
 			{
@@ -243,7 +247,8 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 			LoadAndSwap(32, scratch1, data);
 			if (cpu_info.bBMI2)
 			{
-				PDEP(32, scratch1, scratch1, M(&mask_fc));
+				MOV(32, R(scratch2), Imm32(0xFCFCFCFC));
+				PDEP(32, scratch1, scratch1, R(scratch2));
 				MOV(32, R(scratch2), R(scratch1));
 			}
 			else
