@@ -18,6 +18,7 @@ struct Statistics
 	int numVertexShadersAlive;
 
 	int numTexturesCreated;
+	int numTexturesUploaded;
 	int numTexturesAlive;
 
 	int numVertexLoaders;

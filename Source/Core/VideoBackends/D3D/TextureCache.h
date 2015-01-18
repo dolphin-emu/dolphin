@@ -38,10 +38,8 @@ private:
 		bool Save(const std::string& filename, unsigned int level) override;
 	};
 
-	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int tex_levels, PC_TexFormat pcfmt) override;
+	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers) override;
 	u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 SourceW, u32 SourceH, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source) {return 0;};
 
 	void CompileShaders() override { }

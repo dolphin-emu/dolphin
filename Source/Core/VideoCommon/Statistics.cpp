@@ -28,6 +28,7 @@ std::string Statistics::ToString()
 {
 	std::string str;
 	str += StringFromFormat("Textures created: %i\n", stats.numTexturesCreated);
+	str += StringFromFormat("Textures uploaded: %i\n", stats.numTexturesUploaded);
 	str += StringFromFormat("Textures alive: %i\n", stats.numTexturesAlive);
 	str += StringFromFormat("pshaders created: %i\n", stats.numPixelShadersCreated);
 	str += StringFromFormat("pshaders alive: %i\n", stats.numPixelShadersAlive);
