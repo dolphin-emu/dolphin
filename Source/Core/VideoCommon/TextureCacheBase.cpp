@@ -227,7 +227,7 @@ bool TextureCache::Find(u32 start_address, u64 hash)
 
 bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 range_size) const
 {
-	if (addr + size_in_bytes < range_address)
+	if (addr + size_in_bytes <= range_address)
 		return false;
 
 	if (addr >= range_address + range_size)
