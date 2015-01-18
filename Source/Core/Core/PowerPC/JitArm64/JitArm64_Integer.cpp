@@ -405,7 +405,11 @@ void JitArm64::cmpl(UGeckoInstruction inst)
 		return;
 	}
 
-	FALLBACK_IF(true);
+	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+	SUB(XA, EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
+	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
+	gpr.Unlock(WA);
 }
 
 void JitArm64::cmpi(UGeckoInstruction inst)
@@ -457,7 +461,21 @@ void JitArm64::cmpli(UGeckoInstruction inst)
 		return;
 	}
 
-	FALLBACK_IF(true);
+	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+
+	if (inst.UIMM < 4096)
+	{
+		SUB(XA, EncodeRegTo64(gpr.R(a)), inst.UIMM);
+	}
+	else
+	{
+		MOVI2R(WA, inst.UIMM);
+		SUB(XA, EncodeRegTo64(gpr.R(a)), XA);
+	}
+
+	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
+	gpr.Unlock(WA);
 }
 
 void JitArm64::rlwinmx(UGeckoInstruction inst)
