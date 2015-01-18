@@ -328,7 +328,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 
 	if (m_VtxDesc.Normal)
 	{
-		static const u8 map[] = {7, 6, 15, 14, 0};
+		static const u8 map[8] = {7, 6, 15, 14};
 		u8 scaling_exponent = map[m_VtxAttr.NormalFormat];
 
 		for (int i = 0; i < (m_VtxAttr.NormalElements ? 3 : 1); i++)
