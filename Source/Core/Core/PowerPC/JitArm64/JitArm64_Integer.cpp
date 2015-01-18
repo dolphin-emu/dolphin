@@ -31,8 +31,8 @@ void JitArm64::ComputeRC(u32 imm, int crf)
 	ARM64Reg WA = gpr.GetReg();
 	ARM64Reg XA = EncodeRegTo64(WA);
 
-	MOVI2R(WA, imm);
-	if (!(imm & 0x80000000))
+	MOVI2R(XA, imm);
+	if (imm & 0x80000000)
 		SXTW(XA, WA);
 
 	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[crf]));
