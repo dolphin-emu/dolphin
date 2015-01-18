@@ -165,6 +165,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/Interpreter/Interpreter_Paired.cpp
 			PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
 			PowerPC/Interpreter/Interpreter_Tables.cpp
+			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/JitBase.cpp
 			PowerPC/JitCommon/JitCache.cpp
 			PowerPC/JitILCommon/IR.cpp
@@ -195,7 +196,6 @@ if(_M_X86)
 			PowerPC/Jit64/Jit_Paired.cpp
 			PowerPC/Jit64/JitRegCache.cpp
 			PowerPC/Jit64/Jit_SystemRegisters.cpp
-			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/JitBackpatch.cpp
 			PowerPC/JitCommon/Jit_Util.cpp
 			PowerPC/JitCommon/TrampolineCache.cpp)
