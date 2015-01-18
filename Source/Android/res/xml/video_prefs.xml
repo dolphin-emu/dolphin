@@ -155,6 +155,14 @@
                 android:summary="@string/fast_depth_calculation_descrip"
                 android:title="@string/fast_depth_calculation"/>
 
+            <ListPreference
+                android:defaultValue="0"
+                android:entries="@array/aspectRatioEntries"
+                android:entryValues="@array/aspectRatioValues"
+                android:key="aspectRatio"
+                android:summary="@string/aspect_ratio_descrip"
+                android:title="@string/aspect_ratio"/>
+
         </PreferenceCategory>
     </PreferenceScreen>
 
