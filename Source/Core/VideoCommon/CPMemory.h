@@ -26,7 +26,6 @@ enum
 	INDEX16      = 3,
 
 	MASK_INDEXED = 2,
-	MASK_ALL     = 3,
 };
 
 enum

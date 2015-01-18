@@ -153,6 +153,7 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 		case FORMAT_32B_888x:
 		case FORMAT_32B_8888:
 			MOV(32, R(scratch1), data);
+			// See VertexLoader_Color.cpp for a comment on this condition.
 			if (format != FORMAT_32B_8888 || !elements)
 				OR(32, R(scratch1), Imm32(0xFF000000));
 			MOV(32, MDisp(dst_reg, m_dst_ofs), R(scratch1));
@@ -327,7 +328,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 
 	if (m_VtxDesc.Normal)
 	{
-		static const u8 map[] = {7, 6, 15, 14, 30};
+		static const u8 map[] = {7, 6, 15, 14, 0};
 		u8 scaling_exponent = map[m_VtxAttr.NormalFormat];
 
 		for (int i = 0; i < (m_VtxAttr.NormalElements ? 3 : 1); i++)
@@ -385,8 +386,6 @@ void VertexLoaderX64::GenerateVertexLoader()
 			m_native_vtx_decl.texcoords[i].type = VAR_FLOAT;
 			m_native_vtx_decl.texcoords[i].integer = false;
 			MOVZX(64, 8, scratch1, MDisp(src_reg, texmatidx_ofs[i]));
-			PXOR(XMM0, R(XMM0));
-			CVTSI2SS(XMM0, R(scratch1));
 			if (tc[i])
 			{
 				CVTSI2SS(XMM0, R(scratch1));
@@ -422,7 +421,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 		RET();
 
 		SetJumpTarget(m_skip_vertex);
-		ADD(32, R(skipped_reg), Imm8(m_VtxDesc.Position == INDEX8 ? 1 : 2));
+		ADD(32, R(skipped_reg), Imm8(1));
 		JMP(cont);
 	}
 	else
