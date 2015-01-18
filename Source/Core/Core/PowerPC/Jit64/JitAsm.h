@@ -32,7 +32,9 @@ public:
 	void Init(u8* stack_top)
 	{
 		m_stack_top = stack_top;
-		AllocCodeSpace(8192);
+		// NOTE: When making large additions to the AsmCommon code, you might
+		// want to ensure this number is big enough.
+		AllocCodeSpace(16384);
 		Generate();
 		WriteProtect();
 	}
