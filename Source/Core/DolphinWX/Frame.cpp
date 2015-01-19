@@ -211,6 +211,11 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 	{
 		// OpenGL requires the pop-up style to activate exclusive mode.
 		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
+
+		// Some backends don't support exclusive fullscreen, so we
+		// can't tell exactly when exclusive mode is activated.
+		if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
+			OSD::AddMessage("Enabled exclusive fullscreen.");
 	}
 #endif
 
@@ -1314,13 +1319,11 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-	if (g_Config.ExclusiveFullscreenEnabled() &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-		Core::GetState() == Core::CORE_PAUSE)
+	if (g_Config.bExclusiveMode && Core::GetState() == Core::CORE_PAUSE)
 	{
 		// A responsive renderer is required for exclusive fullscreen, but the
 		// renderer can only respond in the running state. Therefore we ignore
-		// fullscreen switches if we support exclusive fullscreen, but the
+		// fullscreen switches if we are in exclusive fullscreen, but the
 		// renderer is not running.
 		// TODO: Allow the renderer to switch fullscreen modes while paused.
 		return;
@@ -1341,11 +1344,10 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (!g_Config.ExclusiveFullscreenEnabled() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	else if (!g_Config.bExclusiveMode)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
-		// Therefore we don't exit fullscreen from here if we support exclusive mode.
+		// Therefore we don't exit fullscreen from here if we are in exclusive mode.
 		m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
 	}
 #endif
@@ -1398,8 +1400,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = (!g_Config.ExclusiveFullscreenEnabled() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
+	g_Config.bFullscreen = enable_fullscreen;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const
