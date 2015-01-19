@@ -1288,11 +1288,27 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			OnConnectWiimote(evt);
 		}
 
+		static float oldfUnitsPerMetre;
+		static float oldfFreeLookSensitivity;
+		static float oldfScale;
+		static float freeLookSpeed;
+
+		//Recalculate only when fUnitsPerMetre, fFreeLookSensitivity, or fScale changes.
+		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity))
+		{
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity;
+		}
+		else if (!g_has_hmd && g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity)
+		{
+			freeLookSpeed = 10 * g_ActiveConfig.fFreeLookSensitivity;
+		}
+
+		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
+		oldfFreeLookSensitivity = g_ActiveConfig.fFreeLookSensitivity;
+		oldfScale = g_ActiveConfig.fScale;
+
 		if (g_has_hmd || g_Config.bFreeLook)
 		{
-			// Maths is probably cheaper than if statements, so always recalculate
-			float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
-
 			if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
 				g_ActiveConfig.fFreeLookSensitivity *= 2.0f;
 			else if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
