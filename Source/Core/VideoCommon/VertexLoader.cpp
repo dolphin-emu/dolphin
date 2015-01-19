@@ -270,7 +270,6 @@ void VertexLoader::CompileVertexTranslator()
 			}
 			else
 			{
-				components |= VB_HAS_UV0 << i; // have to include since using now
 				m_native_vtx_decl.texcoords[i].components = 3;
 				nat_offset += 12;
 				WriteCall(TexMtx_Write_Float3);
