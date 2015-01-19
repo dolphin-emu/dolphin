@@ -238,9 +238,16 @@ void CPUInfo::Detect()
 	// Qualcomm Krait supports IDIVA but it doesn't report it. Check for krait.
 	if (GetCPUImplementer() == 0x51 && GetCPUPart() == 0x6F) // Krait(300) is 0x6F, Scorpion is 0x4D
 		bIDIVa = bIDIVt = true;
-	// These two require ARMv8 or higher
+#ifdef _M_ARM_64
+	// These require ARMv8 or higher
 	bFP = CheckCPUFeature("fp");
 	bASIMD = CheckCPUFeature("asimd");
+	bAES = CheckCPUFeature("aes");
+	bPMULL = CheckCPUFeature("pmull");
+	bSHA1 = CheckCPUFeature("sha1");
+	bSHA2 = CheckCPUFeature("sha2");
+	bCRC32 = CheckCPUFeature("crc32");
+#endif
 #endif
 	// On android, we build a separate library for ARMv7 so this is fine.
 	// TODO: Check for ARMv7 on other platforms.
