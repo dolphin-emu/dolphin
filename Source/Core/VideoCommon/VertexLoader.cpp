@@ -28,16 +28,6 @@
 u8* g_video_buffer_read_ptr;
 u8* g_vertex_manager_write_ptr;
 
-void* VertexLoader::operator new (size_t size)
-{
-	return AllocateAlignedMemory(size, 16);
-}
-
-void VertexLoader::operator delete (void *p)
-{
-	FreeAlignedMemory(p);
-}
-
 static void LOADERDECL PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
 	u8 posmtx = BoundingBox::posMtxIdx = DataReadU8() & 0x3f;
@@ -66,15 +56,9 @@ static void LOADERDECL TexMtx_Write_Float2(VertexLoader* loader)
 
 static void LOADERDECL TexMtx_Write_Float3(VertexLoader* loader)
 {
-#if _M_SSE >= 0x200
-	__m128 output = _mm_cvtsi32_ss(_mm_castsi128_ps(_mm_setzero_si128()), loader->m_curtexmtx[loader->m_texmtxwrite++]);
-	_mm_storeu_ps((float*)g_vertex_manager_write_ptr, _mm_shuffle_ps(output, output, 0x45 /* 1, 1, 0, 1 */));
-	g_vertex_manager_write_ptr += sizeof(float) * 3;
-#else
 	DataWrite(0.f);
 	DataWrite(0.f);
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
-#endif
 }
 
 static void LOADERDECL SkipVertex(VertexLoader* loader)
@@ -92,15 +76,13 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 : VertexLoaderBase(vtx_desc, vtx_attr)
 {
 	VertexLoader_Normal::Init();
-	VertexLoader_Position::Init();
-	VertexLoader_TextCoord::Init();
 
 	CompileVertexTranslator();
 
 	// generate frac factors
-	m_posScale[0] = m_posScale[1] = m_posScale[2] = m_posScale[3] = 1.0f / (1U << m_VtxAttr.PosFrac);
+	m_posScale = 1.0f / (1U << m_VtxAttr.PosFrac);
 	for (int i = 0; i < 8; i++)
-		m_tcScale[i][0] = m_tcScale[i][1] = 1.0f / (1U << m_VtxAttr.texCoord[i].Frac);
+		m_tcScale[i] = 1.0f / (1U << m_VtxAttr.texCoord[i].Frac);
 
 	for (int i = 0; i < 2; i++)
 		m_colElements[i] = m_VtxAttr.color[i].Elements;
