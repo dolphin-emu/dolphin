@@ -68,9 +68,6 @@ public:
 		SetCodePtr(nearcode);
 	}
 
-	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
-	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
-
 	Gen::FixupBranch CheckIfSafeAddress(Gen::OpArg reg_value, Gen::X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask);
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset, bool signExtend = false);

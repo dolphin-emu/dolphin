@@ -56,8 +56,8 @@ void LOADERDECL TexCoord_ReadDirect(VertexLoader* loader)
 	for (int i = 0; i != N; ++i)
 		dst.Write(TCScale(src.Read<T>(), scale));
 
-	dst.WritePointer(&g_vertex_manager_write_ptr);
-	src.WritePointer(&g_video_buffer_read_ptr);
+	g_vertex_manager_write_ptr = dst.GetPointer();
+	g_video_buffer_read_ptr = src.GetPointer();
 	LOG_TEX<N>();
 
 	++loader->m_tcIndex;
@@ -77,7 +77,7 @@ void LOADERDECL TexCoord_ReadIndex(VertexLoader* loader)
 	for (int i = 0; i != N; ++i)
 		dst.Write(TCScale(Common::FromBigEndian(data[i]), scale));
 
-	dst.WritePointer(&g_vertex_manager_write_ptr);
+	g_vertex_manager_write_ptr = dst.GetPointer();
 	LOG_TEX<N>();
 	++loader->m_tcIndex;
 }
@@ -166,14 +166,14 @@ void VertexLoader_TextCoord::Init()
 		tableReadTexCoord[1][3][1] = TexCoord_ReadDirect2_SSSE3<s16>;
 		tableReadTexCoord[1][4][1] = TexCoord_ReadDirect2_SSSE3<float>;
 		tableReadTexCoord[2][0][1] = TexCoord_ReadIndex2_SSSE3<u8, u8>;
-		tableReadTexCoord[3][0][1] = TexCoord_ReadIndex2_SSSE3<u16, u8>;
 		tableReadTexCoord[2][1][1] = TexCoord_ReadIndex2_SSSE3<u8, s8>;
-		tableReadTexCoord[3][1][1] = TexCoord_ReadIndex2_SSSE3<u16, s8>;
 		tableReadTexCoord[2][2][1] = TexCoord_ReadIndex2_SSSE3<u8, u16>;
-		tableReadTexCoord[3][2][1] = TexCoord_ReadIndex2_SSSE3<u16, u16>;
 		tableReadTexCoord[2][3][1] = TexCoord_ReadIndex2_SSSE3<u8, s16>;
-		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex2_SSSE3<u16, s16>;
 		tableReadTexCoord[2][4][1] = TexCoord_ReadIndex2_SSSE3<u8, float>;
+		tableReadTexCoord[3][0][1] = TexCoord_ReadIndex2_SSSE3<u16, u8>;
+		tableReadTexCoord[3][1][1] = TexCoord_ReadIndex2_SSSE3<u16, s8>;
+		tableReadTexCoord[3][2][1] = TexCoord_ReadIndex2_SSSE3<u16, u16>;
+		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex2_SSSE3<u16, s16>;
 		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex2_SSSE3<u16, float>;
 	}
 #endif

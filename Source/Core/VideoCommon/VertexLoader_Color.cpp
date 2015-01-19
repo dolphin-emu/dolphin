@@ -10,10 +10,6 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 
-#define RSHIFT 0
-#define GSHIFT 8
-#define BSHIFT 16
-#define ASHIFT 24
 #define AMASK 0xFF000000
 
 __forceinline void _SetCol(VertexLoader* loader, u32 val)
@@ -24,13 +20,14 @@ __forceinline void _SetCol(VertexLoader* loader, u32 val)
 
 //color comes in format BARG in 16 bits
 //BARG -> AABBGGRR
-__forceinline void _SetCol4444(VertexLoader* loader, u16 val)
+__forceinline void _SetCol4444(VertexLoader* loader, u16 val_)
 {
-	u32 col = (val & 0xF0);             // col  = 000000R0;
-	col |=    (val & 0xF ) << 12;       // col |= 0000G000;
-	col |= (((u32)val) & 0xF000) << 8;  // col |= 00B00000;
-	col |= (((u32)val) & 0x0F00) << 20; // col |= A0000000;
-	col |= col >> 4;                    // col =  A0B0G0R0 | 0A0B0G0R;
+	u32 col, val = val_;
+	col  =  val & 0x00F0;        // col  = 000000R0;
+	col |= (val & 0x000F) << 12; // col |= 0000G000;
+	col |= (val & 0xF000) << 8;  // col |= 00B00000;
+	col |= (val & 0x0F00) << 20; // col |= A0000000;
+	col |= col >> 4;             // col  = A0B0G0R0 | 0A0B0G0R;
 	_SetCol(loader, col);
 }
 
@@ -38,9 +35,9 @@ __forceinline void _SetCol4444(VertexLoader* loader, u16 val)
 //RRRRRRGG GGGGBBBB BBAAAAAA
 __forceinline void _SetCol6666(VertexLoader* loader, u32 val)
 {
-	u32 col = (val >> 16) & 0xFC;
-	col |=    (val >>  2) & 0xFC00;
-	col |=    (val << 12) & 0xFC0000;
+	u32 col = (val >> 16) & 0x000000FC;
+	col |=    (val >>  2) & 0x0000FC00;
+	col |=    (val << 12) & 0x00FC0000;
 	col |=    (val << 26) & 0xFC000000;
 	col |=    (col >>  6) & 0x03030303;
 	_SetCol(loader, col);
@@ -48,13 +45,14 @@ __forceinline void _SetCol6666(VertexLoader* loader, u32 val)
 
 //color comes in RGB
 //RRRRRGGG GGGBBBBB
-__forceinline void _SetCol565(VertexLoader* loader, u16 val)
+__forceinline void _SetCol565(VertexLoader* loader, u16 val_)
 {
-	u32 col =   (val  >>  8) & 0xF8;
-	col |=      (val  <<  5) & 0xFC00;
-	col |=(((u32)val) << 19) & 0xF80000;
-	col |= (col >> 5) & 0x070007;
-	col |= (col >> 6) & 0x000300;
+	u32 col, val = val_;
+	col  = (val >>  8) & 0x0000F8;
+	col |= (val <<  5) & 0x00FC00;
+	col |= (val << 19) & 0xF80000;
+	col |= (col >>  5) & 0x070007;
+	col |= (col >>  6) & 0x000300;
 	_SetCol(loader, col | AMASK);
 }
 
@@ -96,11 +94,6 @@ void LOADERDECL Color_ReadDirect_24b_6666(VertexLoader* loader)
 }
 // F|RES: i am not 100 percent sure, but the colElements seems to be important for rendering only
 // at least it fixes mario party 4
-//
-//  if (colElements[colIndex])
-//  else
-//      col |= 0xFF<<ASHIFT;
-//
 void LOADERDECL Color_ReadDirect_32b_8888(VertexLoader* loader)
 {
 	// TODO (mb2): check this
@@ -108,7 +101,7 @@ void LOADERDECL Color_ReadDirect_32b_8888(VertexLoader* loader)
 
 	// "kill" the alpha
 	if (!loader->m_colElements[loader->m_colIndex])
-		col |= 0xFF << ASHIFT;
+		col |= AMASK;
 
 	_SetCol(loader, col);
 }

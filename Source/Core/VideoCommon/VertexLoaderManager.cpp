@@ -121,11 +121,10 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 		{
 			// search for a cached native vertex format
 			const PortableVertexDeclaration& format = loader->m_native_vtx_decl;
-			auto& native = s_native_vertex_map[format];
+			std::unique_ptr<NativeVertexFormat>& native = s_native_vertex_map[format];
 			if (!native)
 			{
-				auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
-				native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+				native.reset(g_vertex_manager->CreateNativeVertexFormat());
 				native->Initialize(format);
 				native->m_components = loader->m_native_components;
 			}
