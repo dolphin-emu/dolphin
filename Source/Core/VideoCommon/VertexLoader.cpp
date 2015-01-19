@@ -145,7 +145,6 @@ void VertexLoader::CompileVertexTranslator()
 		m_VertexSize += 1;
 	}
 
-
 	if (m_VtxDesc.Tex0MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte); }
 	if (m_VtxDesc.Tex1MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte); }
 	if (m_VtxDesc.Tex2MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX2; WriteCall(TexMtx_ReadDirect_UByte); }
@@ -159,12 +158,12 @@ void VertexLoader::CompileVertexTranslator()
 	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
 
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
-	nat_offset += 12;
 	m_native_vtx_decl.position.components = 3;
 	m_native_vtx_decl.position.enable = true;
-	m_native_vtx_decl.position.offset = 0;
+	m_native_vtx_decl.position.offset = nat_offset;
 	m_native_vtx_decl.position.type = VAR_FLOAT;
 	m_native_vtx_decl.position.integer = false;
+	nat_offset += 12;
 
 	// Normals
 	if (m_VtxDesc.Normal != NOT_PRESENT)
