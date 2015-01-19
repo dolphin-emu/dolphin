@@ -743,10 +743,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			int xfbWidth = xfbSource->srcWidth;
 			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
-			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / fbHeight;
-			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / fbHeight;
-			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / fbStride) / 2;
-			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / fbStride) / 2;
+			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
+			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
+			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
+			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
 
 			// The following code disables auto stretch.  Kept for reference.
 			// scale draw area for a 1 to 1 pixel mapping with the draw target
