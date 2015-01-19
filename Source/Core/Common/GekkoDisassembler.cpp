@@ -994,7 +994,7 @@ void GekkoDisassembler::ps(u32 inst)
 
 	case 7:
 		m_opcode = inst & 0x40 ? "psq_stux" : "psq_stx";
-		m_operands = StringFromFormat("p%u, r%u, r%u, %d, qr%d", RA, RB, FS, RA, RB, WX, IX);
+		m_operands = StringFromFormat("p%u, r%u, r%u, %d, qr%d", FS, RA, RB, WX, IX);
 		return;
 
 	case 18:
