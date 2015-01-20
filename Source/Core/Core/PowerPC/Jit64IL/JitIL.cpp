@@ -668,20 +668,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
-	u32 function = HLE::GetFunctionIndex(jit->js.blockStart);
-	if (function != 0)
-	{
-		int type = HLE::GetFunctionTypeByIndex(function);
-		if (type == HLE::HLE_HOOK_END)
-		{
-			int flags = HLE::GetFunctionFlagsByIndex(function);
-			if (HLE::IsEnabled(flags))
-			{
-				HLEFunction(function);
-			}
-		}
-	}
-
 	// Perform actual code generation
 	WriteCode(nextPC);
 

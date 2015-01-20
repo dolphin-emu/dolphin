@@ -851,21 +851,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.skipInstructions = 0;
 	}
 
-	u32 function = HLE::GetFunctionIndex(js.blockStart);
-	if (function != 0)
-	{
-		int type = HLE::GetFunctionTypeByIndex(function);
-		if (type == HLE::HLE_HOOK_END)
-		{
-			int flags = HLE::GetFunctionFlagsByIndex(function);
-			if (HLE::IsEnabled(flags))
-			{
-				HLEFunction(function);
-			}
-		}
-	}
-
-
 	if (code_block.m_broken)
 	{
 		gpr.Flush();
