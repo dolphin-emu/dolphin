@@ -125,7 +125,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		//wm_speaker_data *spkz = (wm_speaker_data*)sr->data;
 		//ERROR_LOG(WIIMOTE, "WM_WRITE_SPEAKER_DATA len:%x %s", spkz->length,
 		//	ArrayToString(spkz->data, spkz->length, 100, false).c_str());
-		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index] && !m_speaker_mute)
 			Wiimote::SpeakerData((wm_speaker_data*) sr->data);
 		return;	// no ack
 		break;
