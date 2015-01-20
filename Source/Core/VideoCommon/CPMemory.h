@@ -187,7 +187,7 @@ struct TVtxAttr
 	u8 NormalFormat;
 	ColorAttr color[2];
 	TexAttr texCoord[8];
-	u8 ByteDequant;
+	bool ByteDequant;
 	u8 NormalIndex3;
 };
 

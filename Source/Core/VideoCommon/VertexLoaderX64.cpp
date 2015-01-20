@@ -67,7 +67,7 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 	}
 }
 
-int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count_in, int count_out, u8 scaling_exponent, AttributeFormat* native_format)
+int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count_in, int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format)
 {
 	static const __m128i shuffle_lut[5][3] = {
 		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF00L),  // 1x u8
@@ -120,7 +120,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 
 		CVTDQ2PS(coords, R(coords));
 
-		if (scaling_exponent)
+		if (dequantize && scaling_exponent)
 			MULPS(coords, M(&scale_factors[scaling_exponent]));
 	}
 
@@ -333,7 +333,8 @@ void VertexLoaderX64::GenerateVertexLoader()
 	}
 
 	OpArg data = GetVertexAddr(ARRAY_POSITION, m_VtxDesc.Position);
-	ReadVertex(data, m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements + 2, 3, m_VtxAttr.PosFrac, &m_native_vtx_decl.position);
+	ReadVertex(data, m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements + 2, 3,
+	           m_VtxAttr.ByteDequant, m_VtxAttr.PosFrac, &m_native_vtx_decl.position);
 
 	if (m_VtxDesc.Normal)
 	{
@@ -348,7 +349,8 @@ void VertexLoaderX64::GenerateVertexLoader()
 				int elem_size = 1 << (m_VtxAttr.NormalFormat / 2);
 				data.offset += i * elem_size * 3;
 			}
-			data.offset += ReadVertex(data, m_VtxDesc.Normal, m_VtxAttr.NormalFormat, 3, 3, scaling_exponent, &m_native_vtx_decl.normals[i]);
+			data.offset += ReadVertex(data, m_VtxDesc.Normal, m_VtxAttr.NormalFormat, 3, 3,
+			                          true, scaling_exponent, &m_native_vtx_decl.normals[i]);
 		}
 
 		m_native_components |= VB_HAS_NRM0;
@@ -384,7 +386,8 @@ void VertexLoaderX64::GenerateVertexLoader()
 		{
 			data = GetVertexAddr(ARRAY_TEXCOORD0 + i, tc[i]);
 			u8 scaling_exponent = m_VtxAttr.texCoord[i].Frac;
-			ReadVertex(data, tc[i], m_VtxAttr.texCoord[i].Format, elements, tm[i] ? 2 : elements, scaling_exponent, &m_native_vtx_decl.texcoords[i]);
+			ReadVertex(data, tc[i], m_VtxAttr.texCoord[i].Format, elements, tm[i] ? 2 : elements,
+			           m_VtxAttr.ByteDequant, scaling_exponent, &m_native_vtx_decl.texcoords[i]);
 			m_native_components |= VB_HAS_UV0 << i;
 		}
 		if (tm[i])
