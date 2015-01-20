@@ -92,7 +92,7 @@ void ReadFileSystem(const std::string& filename)
 	FileAccess = true;
 }
 
-// Check if we should play this file
+// Logs a file if it passes a few checks
 void CheckFile(const std::string& file, u64 size)
 {
 	// Don't do anything if the log is unselected
