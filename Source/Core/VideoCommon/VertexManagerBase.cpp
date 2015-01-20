@@ -25,6 +25,8 @@ u8 *VertexManager::s_pEndBufferPointer;
 
 PrimitiveType VertexManager::current_primitive_type;
 
+Slope VertexManager::ZSlope;
+
 bool VertexManager::IsFlushed;
 
 static const PrimitiveType primitive_from_gx[8] = {
@@ -240,4 +242,51 @@ void VertexManager::Flush()
 void VertexManager::DoState(PointerWrap& p)
 {
 	g_vertex_manager->vDoState(p);
+}
+
+void VertexManager::CalculateZSlope(u32 stride)
+{
+	float vtx[9];
+	float out[12];
+	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
+						    xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
+
+	// Lookup vertices of the last rendered triangle and software-transform them
+	// This allows us to determine the depth slope, which will be used if zfreeze
+	// is enabled in the following flush.
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		u8* vtx_ptr = s_pCurBufferPointer - stride * (3 - i);
+		vtx[0 + i * 3] = ((float*)vtx_ptr)[0];
+		vtx[1 + i * 3] = ((float*)vtx_ptr)[1];
+		vtx[2 + i * 3] = ((float*)vtx_ptr)[2];
+
+		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4]);
+
+		// Transform to Screenspace
+		float w = out[3 + i * 4];
+
+		out[0 + i * 4] = out[0 + i * 4] / w * xfmem.viewport.wd + viewOffset[0];
+		out[1 + i * 4] = out[1 + i * 4] / w * xfmem.viewport.ht + viewOffset[1];
+		out[2 + i * 4] = out[2 + i * 4] / w * xfmem.viewport.zRange + xfmem.viewport.farZ;
+	}
+
+	float dx31 = out[8] - out[0];
+	float dx12 = out[0] - out[4];
+	float dy12 = out[1] - out[5];
+	float dy31 = out[9] - out[1];
+
+	float DF31 = out[10] - out[2];
+	float DF21 = out[6] - out[2];
+	float a = DF31 * -dy12 - DF21 * dy31;
+	float b = dx31 * DF21 + dx12 * DF31;
+	float c = -dx12 * dy31 - dx31 * -dy12;
+
+	// Stop divide by zero
+	if (c == 0)
+		return;
+
+	ZSlope.dfdx = -a / c;
+	ZSlope.dfdy = -b / c;
+	ZSlope.f0 = out[2] - (out[0] * ZSlope.dfdx + out[1] * ZSlope.dfdy);
 }

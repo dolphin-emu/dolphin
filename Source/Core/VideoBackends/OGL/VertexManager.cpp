@@ -89,6 +89,9 @@ void VertexManager::ResetBuffer(u32 stride)
 	buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
 	IndexGenerator::Start((u16*)buffer.first);
 	s_index_offset = buffer.second;
+
+	if (bpmem.genMode.zfreeze)
+		PixelShaderManager::SetZSlope(ZSlope.dfdx, ZSlope.dfdy, ZSlope.f0);
 }
 
 void VertexManager::Draw(u32 stride)
@@ -139,6 +142,13 @@ void VertexManager::vFlush(bool useDstAlpha)
 	}
 
 	PrepareDrawBuffers(stride);
+
+	if (!bpmem.genMode.zfreeze)
+		CalculateZSlope(stride);
+
+	// If cull mode is CULL_ALL, do not render these triangles
+	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
+		return;
 
 	// Makes sure we can actually do Dual source blending
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;

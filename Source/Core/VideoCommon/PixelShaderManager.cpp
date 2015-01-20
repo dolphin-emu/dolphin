@@ -14,6 +14,7 @@
 
 bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
+bool PixelShaderManager::s_bEFBScaleChanged;
 
 std::array<int4,4> PixelShaderManager::s_tev_color;
 std::array<int4,4> PixelShaderManager::s_tev_konst_color;
@@ -48,6 +49,8 @@ void PixelShaderManager::Dirty()
 	SetDestAlpha();
 	SetZTextureBias();
 	SetViewportChanged();
+	SetEfbScaleChanged();
+	SetZSlope(0, 0, (float)0xFFFFFF);
 	SetIndTexScaleChanged(false);
 	SetIndTexScaleChanged(true);
 	SetIndMatrixChanged(0);
@@ -112,6 +115,14 @@ void PixelShaderManager::SetConstants()
 		dirty = true;
 		s_bViewPortChanged = false;
 	}
+
+	if (s_bEFBScaleChanged)
+	{
+		constants.efbscale[0] = 1.0f / float(Renderer::EFBToScaledXf(1));
+		constants.efbscale[1] = 1.0f / float(Renderer::EFBToScaledYf(1));
+		dirty = true;
+		s_bEFBScaleChanged = false;
+	}
 }
 
 void PixelShaderManager::SetTevColor(int index, int component, s32 value)
@@ -166,6 +177,21 @@ void PixelShaderManager::SetViewportChanged()
 {
 	s_bViewPortChanged = true;
 	s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
+}
+
+void PixelShaderManager::SetEfbScaleChanged()
+{
+	s_bEFBScaleChanged = true;
+	s_bViewPortChanged = true;
+}
+
+void PixelShaderManager::SetZSlope(float dfdx, float dfdy, float f0)
+{
+	constants.zslope[0] = dfdx;
+	constants.zslope[1] = dfdy;
+	constants.zslope[2] = f0;
+	constants.zslope[3] = 0;
+	dirty = true;
 }
 
 void PixelShaderManager::SetIndTexScaleChanged(bool high)

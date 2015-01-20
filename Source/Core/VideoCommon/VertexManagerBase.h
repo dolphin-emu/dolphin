@@ -14,6 +14,13 @@ enum PrimitiveType {
 	PRIMITIVE_TRIANGLES,
 };
 
+struct Slope
+{
+	float dfdx;
+	float dfdy;
+	float f0;
+};
+
 class VertexManager
 {
 private:
@@ -54,6 +61,9 @@ protected:
 
 	static u32 GetRemainingSize();
 	static u32 GetRemainingIndices(int primitive);
+
+	static Slope ZSlope;
+	static void CalculateZSlope(u32 stride);
 
 private:
 	static bool IsFlushed;

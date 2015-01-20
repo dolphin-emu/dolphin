@@ -36,6 +36,8 @@ public:
 	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
 	static void SetZTextureBias();
 	static void SetViewportChanged();
+	static void SetEfbScaleChanged();
+	static void SetZSlope(float dfdx, float dfdy, float f0);
 	static void SetIndMatrixChanged(int matrixidx);
 	static void SetTevKSelChanged(int id);
 	static void SetZTextureTypeChanged();
@@ -50,6 +52,7 @@ public:
 
 	static bool s_bFogRangeAdjustChanged;
 	static bool s_bViewPortChanged;
+	static bool s_bEFBScaleChanged;
 
 	// These colors aren't available from global BP state,
 	// hence we keep a copy of them around.
