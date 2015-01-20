@@ -231,8 +231,8 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Increase Frame limit"),
 		_("Decrease Frame limit"),
 
-		_("Freelook Increase Speed"),
 		_("Freelook Decrease Speed"),
+		_("Freelook Increase Speed"),
 		_("Freelook Reset Speed"),
 		_("Freelook Move Up"),
 		_("Freelook Move Down"),
