@@ -66,11 +66,6 @@ void VertexLoaderBase::SetVAT(const VAT& vat)
 	m_VtxAttr.texCoord[7].Elements = vat.g2.Tex7CoordElements;
 	m_VtxAttr.texCoord[7].Format   = vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac     = vat.g2.Tex7Frac;
-
-	if (!m_VtxAttr.ByteDequant)
-	{
-		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
-	}
 };
 
 void VertexLoaderBase::AppendToString(std::string *dest) const

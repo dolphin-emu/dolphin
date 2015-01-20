@@ -159,6 +159,7 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 	// Test that scale works on U16 inputs.
 	Input<u16>(42); Input<u16>(24);
 	m_vtx_attr.g0.PosFrac = 1;
+	m_vtx_attr.g0.ByteDequant = 1;
 	loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 	count = loader->RunVertices(7, 1, src, dst);
 	src.Skip(1 * loader->m_VertexSize);
