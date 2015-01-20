@@ -254,7 +254,7 @@ private:
 	void AddAudioBackends();
 
 	void GCSettingsChanged(wxCommandEvent& event);
-	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
+	void ChooseSlotPath(bool isSlotA, TEXIDevices device_type);
 	void ChooseEXIDevice(wxString deviceName, int deviceNum);
 
 	void WiiSettingsChanged(wxCommandEvent& event);

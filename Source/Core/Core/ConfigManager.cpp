@@ -329,6 +329,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("Latency", m_LocalCoreStartupParameter.iLatency);
 	core->Set("MemcardAPath", m_strMemoryCardA);
 	core->Set("MemcardBPath", m_strMemoryCardB);
+	core->Set("AgpCartAPath", m_strGbaCartA);
+	core->Set("AgpCartBPath", m_strGbaCartB);
 	core->Set("SlotA", m_EXIDevice[0]);
 	core->Set("SlotB", m_EXIDevice[1]);
 	core->Set("SerialPort1", m_EXIDevice[2]);
@@ -559,6 +561,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("Latency",           &m_LocalCoreStartupParameter.iLatency, 2);
 	core->Get("MemcardAPath",      &m_strMemoryCardA);
 	core->Get("MemcardBPath",      &m_strMemoryCardB);
+	core->Get("AgpCartAPath",      &m_strGbaCartA);
+	core->Get("AgpCartBPath",      &m_strGbaCartB);
 	core->Get("SlotA",       (int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 	core->Get("SlotB",       (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 	core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
