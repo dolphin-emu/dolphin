@@ -62,8 +62,19 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 			}
 			else
 			{
-				MOVI2R(addr_reg, offset);
-				ADD(addr_reg, addr_reg, up_reg);
+				if (offset >= 0 && offset < 4096)
+				{
+					ADD(addr_reg, up_reg, offset);
+				}
+				else if (offset < 0 && offset > -4096)
+				{
+					SUB(addr_reg, up_reg, std::abs(offset));
+				}
+				else
+				{
+					MOVI2R(addr_reg, offset);
+					ADD(addr_reg, addr_reg, up_reg);
+				}
 			}
 		}
 		else
@@ -83,13 +94,29 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 			}
 			else if (gpr.IsImm(addr) && !gpr.IsImm(offsetReg))
 			{
-				MOVI2R(addr_reg, gpr.GetImm(addr));
-				ADD(addr_reg, addr_reg, off_reg);
+				u32 reg_offset = gpr.GetImm(addr);
+				if (reg_offset < 4096)
+				{
+					ADD(addr_reg, off_reg, reg_offset);
+				}
+				else
+				{
+					MOVI2R(addr_reg, gpr.GetImm(addr));
+					ADD(addr_reg, addr_reg, off_reg);
+				}
 			}
 			else if (!gpr.IsImm(addr) && gpr.IsImm(offsetReg))
 			{
-				MOVI2R(addr_reg, gpr.GetImm(offsetReg));
-				ADD(addr_reg, addr_reg, up_reg);
+				u32 reg_offset = gpr.GetImm(offsetReg);
+				if (reg_offset < 4096)
+				{
+					ADD(addr_reg, up_reg, reg_offset);
+				}
+				else
+				{
+					MOVI2R(addr_reg, gpr.GetImm(offsetReg));
+					ADD(addr_reg, addr_reg, up_reg);
+				}
 			}
 			else
 			{
@@ -176,8 +203,19 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 			}
 			else
 			{
-				MOVI2R(addr_reg, offset);
-				ADD(addr_reg, addr_reg, reg_dest);
+				if (offset >= 0 && offset < 4096)
+				{
+					ADD(addr_reg, reg_dest, offset);
+				}
+				else if (offset < 0 && offset > -4096)
+				{
+					SUB(addr_reg, reg_dest, std::abs(offset));
+				}
+				else
+				{
+					MOVI2R(addr_reg, offset);
+					ADD(addr_reg, addr_reg, reg_dest);
+				}
 			}
 		}
 		else
@@ -197,13 +235,29 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 			}
 			else if (gpr.IsImm(dest) && !gpr.IsImm(regOffset))
 			{
-				MOVI2R(addr_reg, gpr.GetImm(dest));
-				ADD(addr_reg, addr_reg, reg_off);
+				u32 reg_offset = gpr.GetImm(dest);
+				if (reg_offset < 4096)
+				{
+					ADD(addr_reg, reg_off, reg_offset);
+				}
+				else
+				{
+					MOVI2R(addr_reg, reg_offset);
+					ADD(addr_reg, addr_reg, reg_off);
+				}
 			}
 			else if (!gpr.IsImm(dest) && gpr.IsImm(regOffset))
 			{
-				MOVI2R(addr_reg, gpr.GetImm(regOffset));
-				ADD(addr_reg, addr_reg, reg_dest);
+				u32 reg_offset = gpr.GetImm(regOffset);
+				if (reg_offset < 4096)
+				{
+					ADD(addr_reg, reg_dest, reg_offset);
+				}
+				else
+				{
+					MOVI2R(addr_reg, gpr.GetImm(regOffset));
+					ADD(addr_reg, addr_reg, reg_dest);
+				}
 			}
 			else
 			{

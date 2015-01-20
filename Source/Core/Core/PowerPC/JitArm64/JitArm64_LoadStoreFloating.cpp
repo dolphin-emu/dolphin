@@ -94,9 +94,19 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 		{
 			if (offset_reg == -1)
 			{
-				MOVI2R(addr_reg, offset);
-				ADD(addr_reg, addr_reg, gpr.R(a));
-			}
+				if (offset >= 0 && offset < 4096)
+				{
+					ADD(addr_reg, gpr.R(a), offset);
+				}
+				else if (offset < 0 && offset > -4096)
+				{
+					SUB(addr_reg, gpr.R(a), std::abs(offset));
+				}
+				else
+				{
+					MOVI2R(addr_reg, offset);
+					ADD(addr_reg, addr_reg, gpr.R(a));
+				}			}
 			else
 			{
 				ADD(addr_reg, gpr.R(offset_reg), gpr.R(a));
@@ -114,9 +124,19 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 			}
 			else if (a)
 			{
-				MOVI2R(addr_reg, offset);
-				ADD(addr_reg, addr_reg, gpr.R(a));
-			}
+				if (offset >= 0 && offset < 4096)
+				{
+					ADD(addr_reg, gpr.R(a), offset);
+				}
+				else if (offset < 0 && offset > -4096)
+				{
+					SUB(addr_reg, gpr.R(a), std::abs(offset));
+				}
+				else
+				{
+					MOVI2R(addr_reg, offset);
+					ADD(addr_reg, addr_reg, gpr.R(a));
+				}			}
 			else
 			{
 				is_immediate = true;
@@ -266,8 +286,19 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 		{
 			if (offset_reg == -1)
 			{
-				MOVI2R(addr_reg, offset);
-				ADD(addr_reg, addr_reg, gpr.R(a));
+				if (offset >= 0 && offset < 4096)
+				{
+					ADD(addr_reg, gpr.R(a), offset);
+				}
+				else if (offset < 0 && offset > -4096)
+				{
+					SUB(addr_reg, gpr.R(a), std::abs(offset));
+				}
+				else
+				{
+					MOVI2R(addr_reg, offset);
+					ADD(addr_reg, addr_reg, gpr.R(a));
+				}
 			}
 			else
 			{
@@ -286,9 +317,19 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 			}
 			else if (a)
 			{
-				MOVI2R(addr_reg, offset);
-				ADD(addr_reg, addr_reg, gpr.R(a));
-			}
+				if (offset >= 0 && offset < 4096)
+				{
+					ADD(addr_reg, gpr.R(a), offset);
+				}
+				else if (offset < 0 && offset > -4096)
+				{
+					SUB(addr_reg, gpr.R(a), std::abs(offset));
+				}
+				else
+				{
+					MOVI2R(addr_reg, offset);
+					ADD(addr_reg, addr_reg, gpr.R(a));
+				}			}
 			else
 			{
 				is_immediate = true;
