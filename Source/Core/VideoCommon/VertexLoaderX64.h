@@ -17,6 +17,6 @@ private:
 	Gen::FixupBranch m_skip_vertex;
 	Gen::OpArg GetVertexAddr(int array, u64 attribute);
 	int ReadVertex(Gen::OpArg data, u64 attribute, int format, int count_in, int count_out, u8 scaling_exponent, AttributeFormat* native_format);
-	void ReadColor(Gen::OpArg data, u64 attribute, int format, int elements);
+	void ReadColor(Gen::OpArg data, u64 attribute, int format);
 	void GenerateVertexLoader();
 };

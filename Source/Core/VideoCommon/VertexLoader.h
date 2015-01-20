@@ -41,7 +41,6 @@ public:
 	float m_tcScale[8];
 	int m_tcIndex;
 	int m_colIndex;
-	int m_colElements[2];
 
 	// Matrix components are first in GC format but later in PC format - we need to store it temporarily
 	// when decoding each vertex.

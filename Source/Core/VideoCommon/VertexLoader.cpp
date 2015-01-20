@@ -83,9 +83,6 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_posScale = 1.0f / (1U << m_VtxAttr.PosFrac);
 	for (int i = 0; i < 8; i++)
 		m_tcScale[i] = 1.0f / (1U << m_VtxAttr.texCoord[i].Frac);
-
-	for (int i = 0; i < 2; i++)
-		m_colElements[i] = m_VtxAttr.color[i].Elements;
 }
 
 void VertexLoader::CompileVertexTranslator()

@@ -92,18 +92,9 @@ void LOADERDECL Color_ReadDirect_24b_6666(VertexLoader* loader)
 	_SetCol6666(loader, Common::swap32(DataGetPosition() - 1));
 	DataSkip(3);
 }
-// F|RES: i am not 100 percent sure, but the colElements seems to be important for rendering only
-// at least it fixes mario party 4
 void LOADERDECL Color_ReadDirect_32b_8888(VertexLoader* loader)
 {
-	// TODO (mb2): check this
-	u32 col = DataReadU32Unswapped();
-
-	// "kill" the alpha
-	if (!loader->m_colElements[loader->m_colIndex])
-		col |= AMASK;
-
-	_SetCol(loader, col);
+	_SetCol(loader, DataReadU32Unswapped());
 }
 
 template <typename I>

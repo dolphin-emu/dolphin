@@ -145,7 +145,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 	return load_bytes;
 }
 
-void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int elements)
+void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format)
 {
 	int load_bytes = 0;
 	switch (format)
@@ -154,8 +154,7 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format, int eleme
 		case FORMAT_32B_888x:
 		case FORMAT_32B_8888:
 			MOV(32, R(scratch1), data);
-			// See VertexLoader_Color.cpp for a comment on this condition.
-			if (format != FORMAT_32B_8888 || !elements)
+			if (format != FORMAT_32B_8888)
 				OR(32, R(scratch1), Imm32(0xFF000000));
 			MOV(32, MDisp(dst_reg, m_dst_ofs), R(scratch1));
 			load_bytes = 3 + (format != FORMAT_24B_888);
@@ -363,7 +362,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 		if (col[i])
 		{
 			data = GetVertexAddr(ARRAY_COLOR + i, col[i]);
-			ReadColor(data, col[i], m_VtxAttr.color[i].Comp, m_VtxAttr.color[i].Elements);
+			ReadColor(data, col[i], m_VtxAttr.color[i].Comp);
 			m_native_components |= VB_HAS_COL0 << i;
 			m_native_vtx_decl.colors[i].components = 4;
 			m_native_vtx_decl.colors[i].enable = true;
