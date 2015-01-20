@@ -20,6 +20,7 @@
 
 #include "Common/IniFile.h"
 #include "Core/ActionReplay.h"
+#include "DolphinWX/InputConfigDiag.h"
 
 class GameListItem;
 class wxButton;
