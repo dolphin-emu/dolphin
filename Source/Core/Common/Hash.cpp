@@ -4,9 +4,9 @@
 
 #include <algorithm>
 #include "Common/CommonFuncs.h"
+#include "Common/CPUDetect.h"
 #include "Common/Hash.h"
 #if _M_SSE >= 0x402
-#include "Common/CPUDetect.h"
 #include <nmmintrin.h>
 #endif
 
@@ -260,6 +260,47 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 	return 0;
 #endif
 }
+
+#ifdef _M_ARM_64
+// CRC32c hash using the ARMv8 CRC instructions
+u64 GetARMCRC32C(const u8 *src, int len, u32 samples)
+{
+	u64 h[4] = { len, 0, 0, 0 };
+	u32 Step = (len / 8);
+	const u64 *data = (const u64 *)src;
+	const u64 *end = data + Step;
+	if (samples == 0) samples = std::max(Step, 1u);
+	Step = Step / samples;
+	if (Step < 1) Step = 1;
+	while (data < end - Step * 3)
+	{
+		asm("crc32cx %w[res0], %w[res0], %x[input0];\n"
+		    "crc32cx %w[res1], %w[res1], %x[input1];\n"
+		    "crc32cx %w[res2], %w[res2], %x[input2];\n"
+		    "crc32cx %w[res3], %w[res3], %x[input3];\n"
+			: [res0] "+r" (h[0]),
+			  [res1] "+r" (h[1]),
+			  [res2] "+r" (h[2]),
+			  [res3] "+r" (h[3])
+			: [input0] "r" (data[Step * 0]),
+			  [input1] "r" (data[Step * 1]),
+		        [input2] "r" (data[Step * 2]),
+		        [input3] "r" (data[Step * 3]));
+		data += Step * 4;
+	}
+	if (data < end - Step * 0)
+		asm("crc32cx %w0, %w0, %x1;\n" : "+r" (h[0]) : "r" (data[Step * 0]));
+	if (data < end - Step * 1)
+		asm("crc32cx %w0, %w0, %x1;\n" : "+r" (h[1]) : "r" (data[Step * 1]));
+	if (data < end - Step * 2)
+		asm("crc32cx %w0, %w0, %x1;\n" : "+r" (h[2]) : "r" (data[Step * 2]));
+
+	const u8 *data2 = (const u8*)end;
+	// FIXME: is there a better way to combine these partial hashes?
+	asm("crc32cx %w0, %w0, %x1;\n" : "+r" (h[0]) : "r" (data2[0]));
+	return h[0] + (h[1] << 10) + (h[2] << 21) + (h[3] << 32);
+}
+#endif
 
 
 /*
@@ -516,6 +557,13 @@ void SetHash64Function()
 	if (cpu_info.bSSE4_2) // sse crc32 version
 	{
 		ptrHashFunction = &GetCRC32;
+	}
+	else
+#endif
+#ifdef _M_ARM_64
+	if (cpu_info.bCRC32)
+	{
+		ptrHashFunction = &GetARMCRC32C;
 	}
 	else
 #endif
