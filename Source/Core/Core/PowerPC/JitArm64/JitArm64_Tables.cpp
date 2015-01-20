@@ -94,10 +94,10 @@ static GekkoOPTemplate primarytable[] =
 	{54, &JitArm64::stfXX},                     //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
 	{55, &JitArm64::stfXX},                     //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
-	{56, &JitArm64::FallBackToInterpreter},     //"psq_l",   OPTYPE_PS, FL_IN_A}},
-	{57, &JitArm64::FallBackToInterpreter},     //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
-	{60, &JitArm64::FallBackToInterpreter},     //"psq_st",  OPTYPE_PS, FL_IN_A}},
-	{61, &JitArm64::FallBackToInterpreter},     //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{56, &JitArm64::psq_l},                     //"psq_l",   OPTYPE_PS, FL_IN_A}},
+	{57, &JitArm64::psq_l},                     //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{60, &JitArm64::psq_st},                    //"psq_st",  OPTYPE_PS, FL_IN_A}},
+	{61, &JitArm64::psq_st},                    //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
 	{0,  &JitArm64::FallBackToInterpreter},     //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
