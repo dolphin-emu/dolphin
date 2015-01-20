@@ -50,7 +50,6 @@ ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYD
 std::vector<DataReader> timewarp_log;
 std::vector<bool> display_list_log;
 std::vector<bool> is_preprocess_log;
-std::vector<bool> cached_ram_location;
 bool opcode_replay_enabled = false;
 bool g_opcodereplay_frame = false;
 int skipped_opcode_replay_count = 0;
