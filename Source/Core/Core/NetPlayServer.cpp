@@ -48,7 +48,7 @@ void NetPlayServer::ThreadFunc()
 	while (m_do_loop)
 	{
 		// update pings every so many seconds
-		if ((m_ping_timer.GetTimeElapsed() > (10 * 1000)) || m_update_pings)
+		if ((m_ping_timer.GetTimeElapsed() > 1000) || m_update_pings)
 		{
 			//PanicAlertT("Sending pings");
 
