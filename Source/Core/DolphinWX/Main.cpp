@@ -1,10 +1,12 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
 #include <cstdio>
 #include <cstring>
 #include <mutex>
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <utility>
 #include <wx/app.h>
@@ -149,6 +151,7 @@ bool DolphinApp::OnInit()
 	wxString audioEmulationName;
 	wxString userPath;
 	wxString perfDir;
+	wxString bruteforceResult;
 
 #if wxUSE_CMDLINE_PARSER // Parse command lines
 	wxCmdLineEntryDesc cmdLineDesc[] =
@@ -202,18 +205,23 @@ bool DolphinApp::OnInit()
 		{
 			wxCMD_LINE_SWITCH, "vr", nullptr,
 			"force Virtual Reality on",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		// -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
 		// note, wxwidgets had to be modified to allow this
 		{
 			wxCMD_LINE_SWITCH, "force-d3d11", nullptr,
 			"force use of Direct3D 11 backend",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, "force-opengl", nullptr,
 			"force use of OpenGL backend",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "bruteforce", "bruteforce",
+			"return value for brute forcing Action Replay culling codes (needs save state 1 and map file)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -248,6 +256,8 @@ bool DolphinApp::OnInit()
 	selectPerfDir = parser.Found("perf_dir", &perfDir);
 	playMovie = parser.Found("movie", &movieFile);
 	g_force_vr = parser.Found("vr");
+	Core::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
+	Core::ch_code = WxStrToStr(bruteforceResult);
 	if (parser.Found("force-d3d11"))
 	{
 		selectVideoBackend = true;
@@ -394,6 +404,35 @@ void DolphinApp::AfterInit()
 			main_frame->BootGame("");
 		}
 	}
+
+	// Action Replay culling code brute-forcing by penkamaster
+	Core::ch_tomarFoto = 0;
+	Core::ch_next_code = false;
+	Core::ch_comenzar_busqueda = false;
+	Core::ch_cicles_without_snapshot = 0;
+	Core::ch_cacheo_pasado = false;
+
+	if (Core::ch_bruteforce)
+	{
+		std::string line;
+		std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "posicion.txt");
+		std::string aux;
+
+		if (myfile.is_open())
+		{
+			while (getline(myfile, line))
+			{
+				aux = line;
+			}
+			myfile.close();
+		}
+
+		if (atoi(aux.c_str()) != -1)
+		{
+			main_frame->BootGame("");
+		}
+	}
+
 }
 
 void DolphinApp::InitLanguageSupport()

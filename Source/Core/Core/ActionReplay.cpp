@@ -759,6 +759,47 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 
 void RunAllActive()
 {
+	// penkamaster's Action Replay culling code brue-forcing
+	if (Core::ch_bruteforce && Core::ch_codigoactual != 0 && Core::ch_codigoactual != -1)
+	{
+		ARCode ch_currentCode;
+
+		ch_currentCode.active = true;
+		ch_currentCode.name = "cullin";
+		ch_currentCode.user_defined = true;
+
+		AREntry op;
+		bool success_addr;
+
+		success_addr = TryParse(std::string("0x") + Core::ch_map[Core::ch_codigoactual], &op.cmd_addr);
+		bool success_val = TryParse(std::string("0x") + "3860000" + Core::ch_code, &op.value);
+		if (success_addr && success_val)
+		{
+			ch_currentCode.ops.push_back(op);
+		}
+
+		std::string ch_codigo_mas_cuatro = Core::ch_map[Core::ch_codigoactual];
+
+		std::stringstream str;
+		std::string s1 = Core::ch_map[Core::ch_codigoactual];
+		str << s1;
+		int value;
+		str >> std::hex >> value;
+		value = value + 4;
+		std::stringstream stream;
+		stream << std::hex << value;
+
+		success_addr = TryParse(std::string("0x") + stream.str(), &op.cmd_addr);
+
+		success_val = TryParse(std::string("0x") + "4E800020", &op.value);
+		if (success_addr && success_val)
+		{
+			ch_currentCode.ops.push_back(op);
+		}
+		RunCode(ch_currentCode);
+		b_RanOnce = true;
+	}
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
 		for (auto& activeCode : activeCodes)

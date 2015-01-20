@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <SOIL/SOIL.h>
@@ -585,6 +586,11 @@ Renderer::Renderer()
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
+
+	// Action Replay culling code brute-forcing
+	// begin searching
+	if (Core::ch_bruteforce)
+		Core::ch_comenzar_busqueda = true;
 
 	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
@@ -1700,6 +1706,10 @@ void Renderer::AsyncTimewarpDraw()
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
+	//rafa
+	if (Core::ch_bruteforce)
+		Core::ch_cacheo_pasado = true;
+
 	if (g_ogl_config.bSupportsDebug)
 	{
 		if (LogManager::GetInstance()->IsEnabled(LogTypes::VIDEO, LogTypes::LERROR))
@@ -1807,7 +1817,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			sourceRc.top = xfbSource->sourceRc.top;
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
-			sourceRc.right -= fbStride - fbWidth;
+			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
 			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
@@ -1961,6 +1971,28 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
+	
+	if (Core::ch_bruteforce && Core::ch_tomarFoto>0)
+	{
+		if (Core::ch_tomarFoto == 1)
+		{
+			Core::ch_tomarFoto = 0;
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+			std::ostringstream s;
+			s << Core::ch_codigoactual;
+
+			s_bScreenshot = true;
+			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + Core::ch_map[Core::ch_codigoactual] + ".png";
+			Core::ch_cicles_without_snapshot = 0;
+			Core::ch_cacheo_pasado = true;
+			Core::ch_next_code = true; //TODO next code quitar de aqui
+		}
+		else
+		{
+			Core::ch_tomarFoto -= 1;
+		}
+	}
+
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -2169,7 +2201,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-	TextureCache::Cleanup();
+	TextureCache::Cleanup(frameCount);
 
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift)

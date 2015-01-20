@@ -432,37 +432,42 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Units Per Metre:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	UnitsPerMetre = new wxSpinCtrlDouble(m_VR, ID_UNITS_PER_METRE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.0000001, 10000000, DEFAULT_VR_UNITS_PER_METRE, 0.5);
 	s3DGrid->Add(UnitsPerMetre, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("game units")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Game Units")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Distance:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Free Look Sensitivity:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	FreeLookSensitivity = new wxSpinCtrlDouble(m_VR, ID_FREE_LOOK_SENSITIVITY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.0001, 10000, DEFAULT_VR_FREE_LOOK_SENSITIVITY, 0.05);
+	s3DGrid->Add(FreeLookSensitivity, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Free Look Multiplier")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Distance:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	HudDistance = new wxSpinCtrlDouble(m_VR, ID_HUD_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_HUD_DISTANCE, 0.1);
-	s3DGrid->Add(HudDistance, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(HudDistance, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Thickness:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Thickness:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	HudThickness = new wxSpinCtrlDouble(m_VR, ID_HUD_THICKNESS, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, DEFAULT_VR_HUD_THICKNESS, 0.1);
-	s3DGrid->Add(HudThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(HudThickness, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD 3D Closer:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD 3D Closer:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	Hud3DCloser = new wxSpinCtrlDouble(m_VR, ID_HUD_3D_CLOSER, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1, DEFAULT_VR_HUD_3D_CLOSER, 0.1);
-	s3DGrid->Add(Hud3DCloser, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("0=Back, 1=Front")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(Hud3DCloser, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("0=Back, 1=Front")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera Forward:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera Forward:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	CameraForward = new wxSpinCtrlDouble(m_VR, ID_CAMERA_FORWARD, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, DEFAULT_VR_CAMERA_FORWARD, 0.1);
-	s3DGrid->Add(CameraForward, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(CameraForward, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera Pitch:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera Pitch:")), wxGBPosition(6, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	CameraPitch = new wxSpinCtrlDouble(m_VR, ID_CAMERA_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -180, 360, DEFAULT_VR_CAMERA_PITCH, 1);
-	s3DGrid->Add(CameraPitch, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Degrees Up")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(CameraPitch, wxGBPosition(6, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Degrees Up")), wxGBPosition(6, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Aim Distance:")), wxGBPosition(6, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Aim Distance:")), wxGBPosition(7, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	AimDistance = new wxSpinCtrlDouble(m_VR, ID_AIM_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_AIM_DISTANCE, 0.1);
-	s3DGrid->Add(AimDistance, wxGBPosition(6, 1), wxDefaultSpan, wxALL, 5);
-	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(6, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s3DGrid->Add(AimDistance, wxGBPosition(7, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(7, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	wxStaticBoxSizer * const sb2D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("2D Screens"));
 	sbVR->Add(sb2D, 0, wxEXPAND | wxALL, 5);
@@ -472,32 +477,32 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Height:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	ScreenHeight = new wxSpinCtrlDouble(m_VR, ID_SCREEN_HEIGHT, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_SCREEN_HEIGHT, 0.1);
 	s2DGrid->Add(ScreenHeight, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Distance:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	ScreenDistance = new wxSpinCtrlDouble(m_VR, ID_SCREEN_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_SCREEN_DISTANCE, 0.1);
 	s2DGrid->Add(ScreenDistance, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
-	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Thickness:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	ScreenThickness = new wxSpinCtrlDouble(m_VR, ID_SCREEN_THICKNESS, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, DEFAULT_VR_SCREEN_THICKNESS, 0.1);
 	s2DGrid->Add(ScreenThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
-	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Up:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	ScreenUp = new wxSpinCtrlDouble(m_VR, ID_SCREEN_UP, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, DEFAULT_VR_SCREEN_UP, 0.1);
 	s2DGrid->Add(ScreenUp, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
-	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Right:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	ScreenRight = new wxSpinCtrlDouble(m_VR, ID_SCREEN_RIGHT, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, DEFAULT_VR_SCREEN_RIGHT, 0.1);
 	s2DGrid->Add(ScreenRight, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
-	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Metres")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Pitch:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	ScreenPitch = new wxSpinCtrlDouble(m_VR, ID_SCREEN_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -180, 360, DEFAULT_VR_SCREEN_PITCH, 1);
 	s2DGrid->Add(ScreenPitch, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
-	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Degrees")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	wxGridBagSizer *sVRGrid = new wxGridBagSizer();
 	sbVR->Add(sVRGrid, 0, wxEXPAND);
@@ -550,6 +555,25 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Wii Console
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Wii", "Widescreen"));
 
+	// Stereoscopy
+	wxBoxSizer* const sDepthPercentage = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const DepthPercentageText = new wxStaticText(m_GameConfig, wxID_ANY, _("Depth Percentage: "));
+	DepthPercentage = new wxSlider(m_GameConfig, ID_DEPTHPERCENTAGE, 100, 0, 200);
+	DepthPercentage->SetToolTip(_("This value is multiplied with the depth set in the graphics configuration."));
+	sDepthPercentage->Add(DepthPercentageText);
+	sDepthPercentage->Add(DepthPercentage);
+
+	wxBoxSizer* const sConvergenceMinimum = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const ConvergenceMinimumText = new wxStaticText(m_GameConfig, wxID_ANY, _("Convergence Minimum: "));
+	ConvergenceMinimum = new wxSpinCtrl(m_GameConfig, ID_CONVERGENCEMINIMUM);
+	ConvergenceMinimum->SetRange(0, INT32_MAX);
+	ConvergenceMinimum->SetToolTip(_("This value is added to the convergence value set in the graphics configuration."));
+	sConvergenceMinimum->Add(ConvergenceMinimumText);
+	sConvergenceMinimum->Add(ConvergenceMinimum);
+
+	MonoDepth = new wxCheckBox(m_GameConfig, ID_MONODEPTH, _("Monoscopic Shadows"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video_Stereoscopy", "StereoEFBMonoDepth"));
+	MonoDepth->SetToolTip(_("Use a single depth buffer for both eyes. Needed for a few games."));
+
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const EmuStateText = new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
 #if 0
@@ -587,10 +611,17 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	}
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
 
+	wxStaticBoxSizer* const sbStereoOverrides =
+		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Stereoscopy"));
+	sbStereoOverrides->Add(sDepthPercentage);
+	sbStereoOverrides->Add(sConvergenceMinimum);
+	sbStereoOverrides->Add(MonoDepth);
+
 	wxStaticBoxSizer * const sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
+	sbGameConfig->Add(sbStereoOverrides, 0, wxEXPAND);
 	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
 	sEmuState->Add(EmuState, 0, wxEXPAND);
@@ -1197,6 +1228,7 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "BlockMerging", BlockMerging);
 	SetCheckboxValueFromGameini("Core", "DSPHLE", DSPHLE);
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
+	SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
 	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
 
@@ -1244,6 +1276,13 @@ void CISOProperties::LoadGameConfig()
 	else if (sTemp == "fake-completion")
 		GPUDeterminism->SetSelection(3);
 
+	IniFile::Section* default_stereoscopy = GameIniDefault.GetOrCreateSection("Video_Stereoscopy");
+	default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
+	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
+	DepthPercentage->SetValue(iTemp);
+	default_stereoscopy->Get("StereoConvergenceMinimum", &iTemp, 0);
+	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergenceMinimum", &iTemp);
+	ConvergenceMinimum->SetValue(iTemp);
 	//SetCheckboxValueFromGameini("VR", "Disable3D", Disable3D);
 	SetCheckboxValueFromGameini("VR", "HudFullscreen", HudFullscreen);
 	SetCheckboxValueFromGameini("VR", "HudOnTop", HudOnTop);
@@ -1254,6 +1293,12 @@ void CISOProperties::LoadGameConfig()
 		UnitsPerMetre->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "UnitsPerMetre", &fTemp))
 		UnitsPerMetre->SetValue(fTemp);
+
+	fTemp = DEFAULT_VR_FREE_LOOK_SENSITIVITY;
+	if (GameIniDefault.GetIfExists("VR", "FreeLookSensitivity", &fTemp))
+		FreeLookSensitivity->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "FreeLookSensitivity", &fTemp))
+		FreeLookSensitivity->SetValue(fTemp);
 
 	fTemp = DEFAULT_VR_HUD_DISTANCE;
 	if (GameIniDefault.GetIfExists("VR", "HudDistance", &fTemp))
@@ -1382,6 +1427,7 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "BlockMerging", BlockMerging);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
 	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
+	SaveGameIniValueFrom3StateCheckbox("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
@@ -1418,10 +1464,14 @@ bool CISOProperties::SaveGameConfig()
 
 	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
 
+	int depth = DepthPercentage->GetValue() > 0 ? DepthPercentage->GetValue() : 100;
+	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
+	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoConvergenceMinimum", ConvergenceMinimum->GetValue(), 0);
 	//SaveGameIniValueFrom3StateCheckbox("VR", "Disable3D", Disable3D);
 	SaveGameIniValueFrom3StateCheckbox("VR", "HudFullscreen", HudFullscreen);
 	SaveGameIniValueFrom3StateCheckbox("VR", "HudOnTop", HudOnTop);
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)UnitsPerMetre->GetValue(), DEFAULT_VR_UNITS_PER_METRE);
+	SAVE_IF_NOT_DEFAULT("VR", "FreeLookSensitivity", (float)FreeLookSensitivity->GetValue(), DEFAULT_VR_FREE_LOOK_SENSITIVITY);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)HudDistance->GetValue(), DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)HudThickness->GetValue(), DEFAULT_VR_HUD_THICKNESS);
 	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)Hud3DCloser->GetValue(), DEFAULT_VR_HUD_3D_CLOSER);

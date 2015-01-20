@@ -125,10 +125,11 @@ void VideoBackendHardware::Video_EndField()
 	{
 		SyncGPU(SYNC_GPU_SWAP);
 
-		// We don't want to miss a swap request
-		while(s_swapRequested.IsSet() && g_ActiveConfig.bUseXFB)
+		// Wait until the GPU thread has swapped. Prevents FIFO overflows.
+		while (g_ActiveConfig.bUseXFB && SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread && s_swapRequested.IsSet())
+		{
 			Common::YieldCPU();
-
+		}
 		s_swapRequested.Set();
 	}
 }

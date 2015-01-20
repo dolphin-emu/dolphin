@@ -81,6 +81,10 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			exceptionHandler = it2->second;
 	}
 
+	// Compute the start and length of the memory operation, including
+	// any byteswapping.
+	int totalSize;
+	u8 *start = codePtr;
 	if (!info.isMemoryWrite)
 	{
 		int bswapNopCount;
@@ -92,7 +96,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		else
 			bswapNopCount = 2;
 
-		int totalSize = info.instructionSize + bswapNopCount;
+		totalSize = info.instructionSize + bswapNopCount;
 		if (info.operandSize == 2 && !info.byteSwap)
 		{
 			if ((codePtr[totalSize] & 0xF0) == 0x40)
@@ -107,35 +111,13 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			info.signExtend = (codePtr[totalSize + 1] & 0x10) != 0;
 			totalSize += 3;
 		}
-
-		XEmitter emitter(codePtr);
-		int padding = totalSize - BACKPATCH_SIZE;
-		u8* returnPtr = codePtr + 5 + padding;
-		const u8* trampoline = trampolines.GenerateReadTrampoline(info, registersInUse, exceptionHandler, returnPtr);
-		emitter.JMP(trampoline, true);
-		if (padding > 0)
-		{
-			emitter.NOP(padding);
-		}
-		ctx->CTX_PC = (u64)codePtr;
 	}
 	else
 	{
-		// TODO: special case FIFO writes. Also, support 32-bit mode.
-		auto it3 = pcAtLoc.find(codePtr);
-		if (it3 == pcAtLoc.end())
-		{
-			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
-			return nullptr;
-		}
-
-		u32 pc = it3->second;
-
-		u8 *start;
 		if (info.byteSwap || info.hasImmediate)
 		{
 			// The instruction is a MOVBE but it failed so the value is still in little-endian byte order.
-			start = codePtr;
+			totalSize = info.instructionSize;
 		}
 		else
 		{
@@ -161,18 +143,45 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 				break;
 			}
 			start = codePtr - bswapSize;
+			totalSize = info.instructionSize + bswapSize;
 		}
-		XEmitter emitter(start);
-		ptrdiff_t padding = (codePtr - (start + 5)) + info.instructionSize;
-		u8* returnPtr = start + 5 + padding;
-		const u8* trampoline = trampolines.GenerateWriteTrampoline(info, registersInUse, exceptionHandler, returnPtr, pc);
-		emitter.JMP(trampoline, true);
-		if (padding > 0)
-		{
-			emitter.NOP(padding);
-		}
-		ctx->CTX_PC = (u64)start;
 	}
+
+	// In the trampoline code, we jump back into the block at the beginning
+	// of the next instruction. The next instruction comes immediately
+	// after the backpatched operation, or BACKPATCH_SIZE bytes after the start
+	// of the backpatched operation, whichever comes last. (The JIT inserts NOPs
+	// into the original code if necessary to ensure there is enough space
+	// to insert the backpatch jump.)
+	int padding = totalSize > BACKPATCH_SIZE ? totalSize - BACKPATCH_SIZE : 0;
+	u8* returnPtr = start + 5 + padding;
+
+	// Generate the trampoline.
+	const u8* trampoline;
+	if (info.isMemoryWrite)
+	{
+		// TODO: special case FIFO writes.
+		auto it3 = pcAtLoc.find(codePtr);
+		if (it3 == pcAtLoc.end())
+		{
+			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
+			return nullptr;
+		}
+
+		u32 pc = it3->second;
+		trampoline = trampolines.GenerateWriteTrampoline(info, registersInUse, exceptionHandler, returnPtr, pc);
+	}
+	else
+	{
+		trampoline = trampolines.GenerateReadTrampoline(info, registersInUse, exceptionHandler, returnPtr);
+	}
+
+	// Patch the original memory operation.
+	XEmitter emitter(start);
+	emitter.JMP(trampoline, true);
+	for (int i = 0; i < padding; ++i)
+		emitter.INT3();
+	ctx->CTX_PC = (u64)start;
 
 	return true;
 }

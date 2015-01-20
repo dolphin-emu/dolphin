@@ -93,7 +93,10 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			}
 			out.Write("centroid out float4 clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
-				out.Write("centroid out float4 Normal;\n");
+			{
+				out.Write("centroid out float3 Normal;\n");
+				out.Write("centroid out float3 WorldPos;\n");
+			}
 			out.Write("centroid out float4 colors_0;\n");
 			out.Write("centroid out float4 colors_1;\n");
 		}
@@ -338,11 +341,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	}
 
 	// clipPos/w needs to be done in pixel shader, not here
-	out.Write("o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
+	out.Write("o.clipPos = o.pos;\n");
 
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
-		out.Write("o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
+		out.Write("o.Normal = _norm0;\n");
+		out.Write("o.WorldPos = pos.xyz;\n");
 
 		if (components & VB_HAS_COL0)
 			out.Write("o.colors_0 = color0;\n");
@@ -396,7 +400,10 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("uv%d.xyz = o.tex%d;\n", i, i);
 			out.Write("clipPos = o.clipPos;\n");
 			if (g_ActiveConfig.bEnablePixelLighting)
+			{
 				out.Write("Normal = o.Normal;\n");
+				out.Write("WorldPos = o.WorldPos;\n");
+			}
 			out.Write("colors_0 = o.colors_0;\n");
 			out.Write("colors_1 = o.colors_1;\n");
 		}

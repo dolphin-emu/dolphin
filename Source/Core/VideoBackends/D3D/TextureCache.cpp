@@ -100,7 +100,12 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 	const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
 	CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
 
-	TCacheEntry* const entry = new TCacheEntry(new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
+	TCacheEntryConfig config;
+	config.width = width;
+	config.height = height;
+	config.levels = tex_levels;
+
+	TCacheEntry* const entry = new TCacheEntry(config, new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
 	entry->usage = usage;
 
 	// TODO: better debug names
@@ -122,7 +127,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		g_renderer->ResetAPIState();
 
 		// stretch picture with increased internal resolution
-		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtual_width, (float)virtual_height);
+		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)config.width, (float)config.height);
 		D3D::context->RSSetViewports(1, &vp);
 
 		// set transformation
@@ -188,11 +193,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
-	unsigned int scaled_tex_w, unsigned int scaled_tex_h)
+	unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers)
 {
-	return new TCacheEntry(D3DTexture2D::Create(scaled_tex_w, scaled_tex_h,
+	TCacheEntryConfig config;
+	config.width = scaled_tex_w;
+	config.height = scaled_tex_h;
+	config.layers = layers;
+	config.rendertarget = true;
+
+	return new TCacheEntry(config, D3DTexture2D::Create(scaled_tex_w, scaled_tex_h,
 		(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
-		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, FramebufferManager::GetEFBLayers()));
+		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, layers));
 }
 
 TextureCache::TextureCache()

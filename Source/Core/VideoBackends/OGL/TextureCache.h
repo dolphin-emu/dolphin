@@ -36,7 +36,7 @@ private:
 		//TexMode0 mode; // current filter and clamp modes that texture is set to
 		//TexMode1 mode1; // current filter and clamp modes that texture is set to
 
-		TCacheEntry();
+		TCacheEntry(const TCacheEntryConfig& config);
 		~TCacheEntry();
 
 		void Load(unsigned int width, unsigned int height,
@@ -56,7 +56,7 @@ private:
 	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
 		unsigned int tex_levels, PC_TexFormat pcfmt) override;
 
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) override;
+	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h, unsigned int layers) override;
 
 	void CompileShaders() override;
 	void DeleteShaders() override;

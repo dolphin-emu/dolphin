@@ -205,7 +205,25 @@ namespace HotkeysXInput
 	void OnXInputPoll(u32* XInput_State, u32* DInput_State_Extra, bool DInput)
 	{
 
-		float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
+		static float oldfUnitsPerMetre;
+		static float oldfFreeLookSensitivity;
+		static float oldfScale;
+		static float freeLookSpeed;
+
+		//Recalculate only when fUnitsPerMetre, fFreeLookSensitivity, or fScale changes.
+		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity))
+		{
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity;
+		}
+		else if (!g_has_hmd && g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity)
+		{
+			freeLookSpeed = 10 * g_ActiveConfig.fFreeLookSensitivity;
+		}
+
+		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
+		oldfFreeLookSensitivity = g_ActiveConfig.fFreeLookSensitivity;
+		oldfScale = g_ActiveConfig.fScale;
+
 
 		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_POSITION_RESET)) 
 		{

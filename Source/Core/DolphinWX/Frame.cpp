@@ -156,9 +156,79 @@ bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 	return internal_game_id == SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
 }
 
+// save last position
+void ch_guardar_ultimaposicion(int posicion){
+	std::ofstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "posicion.txt");
+	if (myfile.is_open())
+	{
+		std::string Result;
+		std::ostringstream convert;   // stream used for the conversion
+		convert << posicion;      // insert the textual representation of 'Number' in the characters in the stream
+		myfile << convert.str() + "\n";
+		myfile.close();
+	}	
+}
+// load last position
+int ch_cargar_ultimaposicion(){
+	
+	
+	std::string line;
+	std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) +"posicion.txt");
+	std::string aux;
+	
+	if (myfile.is_open())
+	{
+		while (getline(myfile, line))
+		{
+			aux= line;
+		}
+		myfile.close();
+		
+	}
+	return (atoi(aux.c_str())+1);
+}
+
 #ifdef _WIN32
 WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
+	// Action Replay culling code brute forcing by penkamaster
+	if (Core::ch_bruteforce)
+	{
+		Core::ch_cicles_without_snapshot += 1;
+		// if begining searching, start from the most recently saved position
+		if (Core::ch_comenzar_busqueda)
+		{
+			Core::ch_comenzar_busqueda = false;
+			Core::ch_next_code = false;
+			Core::ch_codigoactual = 0;
+			Core::ch_codigoactual = ch_cargar_ultimaposicion();
+			State::Load(1);
+		}
+		else
+		{
+			// if we should move on to the next code then do so, and save where we are up to
+			if (Core::ch_next_code)
+			{
+				Core::ch_next_code = false;
+				Core::ch_codigoactual += 1;
+				ch_guardar_ultimaposicion(Core::ch_codigoactual);
+				Core::ch_cicles_without_snapshot = 0;
+				State::Load(1);
+			}
+			// if we have received 65 windows messages without saving a screenshot, then this code is probably bad
+			// so skip to the next one
+			else if ( Core::ch_cicles_without_snapshot > 65 && Core::ch_cacheo_pasado)
+			{
+				Core::ch_next_code = false;
+				Core::ch_codigoactual += 1;
+				ch_guardar_ultimaposicion(Core::ch_codigoactual);
+				Core::ch_cicles_without_snapshot = 0;
+				State::Load(1);
+			
+			}
+		}
+	}
+
 	switch (nMsg)
 	{
 		case WM_SYSCOMMAND:
@@ -1218,11 +1288,27 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			OnConnectWiimote(evt);
 		}
 
+		static float oldfUnitsPerMetre;
+		static float oldfFreeLookSensitivity;
+		static float oldfScale;
+		static float freeLookSpeed;
+
+		//Recalculate only when fUnitsPerMetre, fFreeLookSensitivity, or fScale changes.
+		if (g_has_hmd && (g_ActiveConfig.fScale != oldfScale || g_Config.fUnitsPerMetre != oldfUnitsPerMetre || g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity))
+		{
+			freeLookSpeed = (20 / (g_Config.fUnitsPerMetre / g_ActiveConfig.fScale)) * g_ActiveConfig.fFreeLookSensitivity;
+		}
+		else if (!g_has_hmd && g_ActiveConfig.fFreeLookSensitivity != oldfFreeLookSensitivity)
+		{
+			freeLookSpeed = 10 * g_ActiveConfig.fFreeLookSensitivity;
+		}
+
+		oldfUnitsPerMetre = g_Config.fUnitsPerMetre;
+		oldfFreeLookSensitivity = g_ActiveConfig.fFreeLookSensitivity;
+		oldfScale = g_ActiveConfig.fScale;
+
 		if (g_has_hmd || g_Config.bFreeLook)
 		{
-			// Maths is probably cheaper than if statements, so always recalculate
-			float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
-
 			if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
 				g_ActiveConfig.fFreeLookSensitivity *= 2.0f;
 			else if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))

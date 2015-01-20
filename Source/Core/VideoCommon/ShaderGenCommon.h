@@ -255,7 +255,10 @@ static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 num
 	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", numTexGens);
 
 	if (g_ActiveConfig.bEnablePixelLighting)
-		DefineOutputMember(object, api_type, qualifier, "float4", "Normal", -1, "TEXCOORD", numTexGens + 1);
+	{
+		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", numTexGens + 1);
+		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", numTexGens + 2);
+	}
 }
 
 template<class T>
@@ -271,7 +274,10 @@ static inline void AssignVSOutputMembers(T& object, const char* a, const char* b
 	object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
 	if (g_ActiveConfig.bEnablePixelLighting)
+	{
 		object.Write("\t%s.Normal = %s.Normal;\n", a, b);
+		object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
+	}
 }
 
 // Constant variable names
