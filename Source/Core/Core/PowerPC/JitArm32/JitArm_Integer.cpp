@@ -886,6 +886,7 @@ void JitArm::cmpli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
+	
 	u32 a = inst.RA;
 	int crf = inst.CRFD;
 
@@ -900,8 +901,6 @@ void JitArm::cmpli(UGeckoInstruction inst)
 		ComputeRC(gpr.R(a), crf);
 		return;
 	}
-
-	FALLBACK_IF(true);
 }
 
 void JitArm::negx(UGeckoInstruction inst)
