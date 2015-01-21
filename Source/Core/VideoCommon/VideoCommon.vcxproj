@@ -147,6 +147,9 @@
     <ProjectReference Include="$(ExternalsDir)SOIL\SOIL.vcxproj">
       <Project>{b441cc62-877e-4b3f-93e0-0de80544f705}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
+      <Project>{677EA016-1182-440C-9345-DC88D1E98C0C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
       <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>
