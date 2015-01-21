@@ -260,11 +260,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 	bool is_immediate = false;
 
 	ARM64Reg V0 = fpr.R(inst.FS);
-	ARM64Reg addr_reg;
-	if (flags & BackPatchInfo::FLAG_SIZE_F64)
-		addr_reg = W0;
-	else
-		addr_reg = W1;
+	ARM64Reg addr_reg = W1;
 
 	gpr.Lock(W0, W1, W30);
 	fpr.Lock(Q0);
