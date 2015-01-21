@@ -983,8 +983,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_SAVE_STATE_SLOT_SELECTED: return IDM_SAVE_SELECTED_SLOT;
 	case HK_LOAD_STATE_SLOT_SELECTED: return IDM_LOAD_SELECTED_SLOT;
 
-	case HK_FREELOOK_INCREASE_SPEED: return IDM_FREELOOK_INCREASE_SPEED;
 	case HK_FREELOOK_DECREASE_SPEED: return IDM_FREELOOK_DECREASE_SPEED;
+	case HK_FREELOOK_INCREASE_SPEED: return IDM_FREELOOK_INCREASE_SPEED;
 	case HK_FREELOOK_RESET_SPEED: return IDM_FREELOOK_RESET_SPEED;
 	case HK_FREELOOK_LEFT: return IDM_FREELOOK_LEFT;
 	case HK_FREELOOK_RIGHT: return IDM_FREELOOK_RIGHT;
@@ -1217,10 +1217,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			static float debugSpeed = 1.0f;
 
-			if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
-				debugSpeed *= 2.0f;
-			else if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+			if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
 				debugSpeed /= 2.0f;
+			else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
+				debugSpeed *= 2.0f;
 			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
 				debugSpeed = 1.0f;
 			else if (IsHotkey(event, HK_FREELOOK_UP))
