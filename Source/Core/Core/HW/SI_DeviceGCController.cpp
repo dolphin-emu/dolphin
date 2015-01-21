@@ -12,9 +12,7 @@
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceGCController.h"
-#if defined(__LIBUSB__) || defined (_WIN32)
 #include "Core/HW/SI_GCAdapter.h"
-#endif
 #include "Core/HW/SystemTimers.h"
 
 // --- standard GameCube controller ---
@@ -125,9 +123,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
-#if defined(__LIBUSB__) || defined (_WIN32)
 	SI_GCAdapter::Input(ISIDevice::m_iDeviceNumber, &PadStatus);
-#endif
 
 	Movie::CallGCInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 
@@ -280,9 +276,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			// get the correct pad number that should rumble locally when using netplay
 			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
-#if defined(__LIBUSB__) || defined (_WIN32)
 			SI_GCAdapter::Output(numPAD, command.Parameter1 & 0xff);
-#endif
 			if (numPAD < 4)
 			{
 				if (uType == 1 && uStrength > 2)

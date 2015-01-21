@@ -49,7 +49,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Core\Common\SC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_Network", "..\Externals\SFML\build\vc2010\SFML_Network.vcxproj", "{93D73454-2512-424E-9CDA-4BB357FE13DD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0", "..\Externals\libusbx\msvc\libusb_static_2013.vcxproj", "{349EE8F9-7D25-4909-AAF5-FF3FADE72187}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0", "..\Externals\libusb\msvc\libusb_static_2013.vcxproj", "{349EE8F9-7D25-4909-AAF5-FF3FADE72187}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portaudio", "..\Externals\portaudio\build\portaudio.vcxproj", "{0A18A071-125E-442F-AFF7-A3F68ABECF99}"
 EndProject
@@ -66,6 +66,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pch", "PCH\pch.vcxproj", "{76563A7F-1011-4EAD-B667-7BB18D09568E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\UnitTests.vcxproj", "{474661E7-C73A-43A6-AFEE-EE1EC433D49E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hidapi", "..\Externals\hidapi\hidapi.vcxproj", "{549D32D8-1640-46F9-9D78-BAE6EB0D723D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -189,6 +191,10 @@ Global
 		{474661E7-C73A-43A6-AFEE-EE1EC433D49E}.Debug|x64.Build.0 = Debug|x64
 		{474661E7-C73A-43A6-AFEE-EE1EC433D49E}.Release|x64.ActiveCfg = Release|x64
 		{474661E7-C73A-43A6-AFEE-EE1EC433D49E}.Release|x64.Build.0 = Release|x64
+		{549D32D8-1640-46F9-9D78-BAE6EB0D723D}.Debug|x64.ActiveCfg = Debug|x64
+		{549D32D8-1640-46F9-9D78-BAE6EB0D723D}.Debug|x64.Build.0 = Debug|x64
+		{549D32D8-1640-46F9-9D78-BAE6EB0D723D}.Release|x64.ActiveCfg = Release|x64
+		{549D32D8-1640-46F9-9D78-BAE6EB0D723D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -218,5 +224,7 @@ Global
 		{A4C423AA-F57C-46C7-A172-D1A777017D29} = {AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4}
 		{AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
 		{76563A7F-1011-4EAD-B667-7BB18D09568E} = {15670B2E-CED6-4ED5-94CE-A00B1B2B5BA6}
+		{96020103-4BA5-4FD2-B4AA-5B6D24492D4E} = {AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4}
+		{549D32D8-1640-46F9-9D78-BAE6EB0D723D} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 	EndGlobalSection
 EndGlobal

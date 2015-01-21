@@ -1,0 +1,8 @@
+# This is how you can match Wiimotes (and Wiimote-emulating devices like the DolphinBar) in udev.
+# If you are a package maintainer you'll probably want to restrict permissions to a group: GROUP="plugdev", MODE="0660".
+
+# Wiimote or DolphinBar
+SUBSYSTEMS=="hid", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="0306", MODE="0666"
+
+# newer Wiimotes (RVL-CNT-01-TR)
+SUBSYSTEMS=="hid", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="0330", MODE="0666"

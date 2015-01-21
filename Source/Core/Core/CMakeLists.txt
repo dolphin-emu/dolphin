@@ -116,6 +116,7 @@ set(SRCS	ActionReplay.cpp
 			HW/SI_DeviceGBA.cpp
 			HW/SI_DeviceGCController.cpp
 			HW/SI_DeviceGCSteeringWheel.cpp
+			HW/SI_GCAdapter.cpp
 			HW/Sram.cpp
 			HW/StreamADPCM.cpp
 			HW/SystemTimers.cpp
@@ -132,6 +133,7 @@ set(SRCS	ActionReplay.cpp
 			HW/WiimoteEmu/EmuSubroutines.cpp
 			HW/WiimoteEmu/Encryption.cpp
 			HW/WiimoteEmu/Speaker.cpp
+			HW/WiimoteReal/IOhidapi.cpp
 			HW/WiimoteReal/WiimoteReal.cpp
 			HW/WiiSaveCrypted.cpp
 			IPC_HLE/ICMPLin.cpp
@@ -140,6 +142,7 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			IPC_HLE/WII_IPC_HLE_Device_fs.cpp
+			IPC_HLE/WII_IPC_HLE_Device_hid.cpp
 			IPC_HLE/WII_Socket.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
@@ -249,29 +252,15 @@ set(LIBS
 	z
 	)
 
-if(LIBUSB_FOUND)
-	# Using shared LibUSB
-	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
-	        	       	HW/SI_GCAdapter.cpp)
-endif(LIBUSB_FOUND)
 
 set(LIBS ${LIBS} ${POLARSSL_LIBRARY})
 
 if(WIN32)
-	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
+	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp)
 elseif(APPLE)
-	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
-	set(LIBS ${LIBS}
-		${IOB_LIBRARY})
+	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp)
 elseif(UNIX)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Unix.cpp)
-	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND BLUEZ_FOUND)
-		set(SRCS ${SRCS} HW/WiimoteReal/IONix.cpp)
-		set(LIBS ${LIBS} bluetooth)
-	else()
-		set(SRCS ${SRCS} HW/WiimoteReal/IODummy.cpp)
-	endif()
 endif()
 
 if(PORTAUDIO_FOUND)
