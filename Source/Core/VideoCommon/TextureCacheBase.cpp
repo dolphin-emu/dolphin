@@ -356,8 +356,17 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		//       we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
 		//
 		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
+		u32 temp_texID = texID;
 		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
 		tex_hash ^= tlut_hash;
+
+		// Don't change the texID depending on the tlut_hash for paletted textures that are efb copies and don't have
+		// an entry in the cache for texID ^ tlut_hash. This makes those textures less broken when using efb to texture.
+		// Examples are the mini map in Twilight Princess and objects on the targetting computer in Rogue Squadron 2(RS2).
+		// TODO: Convert those textures using the right palette, so they display correctly
+		auto iter = textures.find(temp_texID);
+		if (iter != textures.end() && iter->second->IsEfbCopy() && textures.find(texID) == textures.end())
+			texID = temp_texID;
 	}
 
 	// GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
