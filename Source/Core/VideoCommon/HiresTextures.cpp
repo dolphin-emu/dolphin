@@ -6,6 +6,7 @@
 #include <cstring>
 #include <string>
 #include <utility>
+#include <xxhash.h>
 #include <SOIL/SOIL.h>
 
 #include "Common/CommonPaths.h"
@@ -151,8 +152,8 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 			tlut += 2 * min;
 		}
 
-		u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size);
-		u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size) : 0;
+		u64 tex_hash = XXH64(texture, texture_size, 0);
+		u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
 		std::string basename = s_format_prefix + StringFromFormat("%s%dx%d_%016lx", has_mipmaps ? "m_" : "", width, height, tex_hash);
 		std::string tlutname = tlut_size ? StringFromFormat("_%016lx", tlut_hash) : "";
