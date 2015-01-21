@@ -91,6 +91,9 @@
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)xxhash\xxhash.vcxproj">
+      <Project>{50B4A469-0C68-4614-A1C6-4EED57BE9F64}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
