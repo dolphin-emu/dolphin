@@ -63,8 +63,8 @@ static const struct
 	{ "BalanceBoardConnect",348 /* WXK_F9 */,     1 /* wxMOD_ALT */ },
 #endif
 
-	{ "VolumeUp",            0,                    0 /* wxMOD_NONE */ },
 	{ "VolumeDown",          0,                    0 /* wxMOD_NONE */ },
+	{ "VolumeUp",            0,                    0 /* wxMOD_NONE */ },
 	{ "VolumeToggleMute",    0,                    0 /* wxMOD_NONE */ },
 
 	{ "ToggleIR",            0,                   0 /* wxMOD_NONE */ },
@@ -72,8 +72,8 @@ static const struct
 	{ "ToggleEFBCopies",     0,                   0 /* wxMOD_NONE */ },
 	{ "ToggleFog",           0,                   0 /* wxMOD_NONE */ },
 	{ "ToggleThrottle",      9 /* '\t' */,        0 /* wxMOD_NONE */ },
-	{ "IncreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
+	{ "IncreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 
 	{ "FreelookDecreaseSpeed",49 /* '1' */,       4 /* wxMOD_SHIFT */ },
 	{ "FreelookIncreaseSpeed",50 /* '2' */,       4 /* wxMOD_SHIFT */ },
@@ -86,10 +86,10 @@ static const struct
 	{ "FreelookZoomOut",      83 /* 'S' */,       4 /* wxMOD_SHIFT */ },
 	{ "FreelookReset",        82 /* 'R' */,       4 /* wxMOD_SHIFT */ },
 
-	{ "IncreaseDepth",       0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseDepth",       0,                   0 /* wxMOD_NONE */ },
-	{ "IncreaseConvergence", 0,                   0 /* wxMOD_NONE */ },
+	{ "IncreaseDepth",       0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseConvergence", 0,                   0 /* wxMOD_NONE */ },
+	{ "IncreaseConvergence", 0,                   0 /* wxMOD_NONE */ },
 
 	{ "LoadStateSlot1",      340 /* WXK_F1 */,    0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot2",      341 /* WXK_F2 */,    0 /* wxMOD_NONE */ },

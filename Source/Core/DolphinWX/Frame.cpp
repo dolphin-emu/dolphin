@@ -1066,10 +1066,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			Core::SaveScreenShot();
 		else if (IsHotkey(event, HK_EXIT))
 			wxPostEvent(this, wxCommandEvent(wxID_EXIT));
-		else if (IsHotkey(event, HK_VOLUME_UP))
-			AudioCommon::IncreaseVolume(3);
 		else if (IsHotkey(event, HK_VOLUME_DOWN))
 			AudioCommon::DecreaseVolume(3);
+		else if (IsHotkey(event, HK_VOLUME_UP))
+			AudioCommon::IncreaseVolume(3);
 		else if (IsHotkey(event, HK_VOLUME_TOGGLE_MUTE))
 			AudioCommon::ToggleMuteVolume();
 		// Wiimote connect and disconnect hotkeys
@@ -1118,15 +1118,15 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			Core::SetIsFramelimiterTempDisabled(true);
 		}
-		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
-		{
-			if (++SConfig::GetInstance().m_Framelimit > 0x19)
-				SConfig::GetInstance().m_Framelimit = 0;
-		}
 		else if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
 		{
 			if (--SConfig::GetInstance().m_Framelimit > 0x19)
 				SConfig::GetInstance().m_Framelimit = 0x19;
+		}
+		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
+		{
+			if (++SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0;
 		}
 		else if (IsHotkey(event, HK_SAVE_STATE_SLOT_SELECTED))
 		{
@@ -1136,25 +1136,25 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			State::Load(g_saveSlot);
 		}
-		else if (IsHotkey(event, HK_INCREASE_DEPTH))
-		{
-			if (++g_Config.iStereoDepth > 100)
-				g_Config.iStereoDepth = 100;
-		}
 		else if (IsHotkey(event, HK_DECREASE_DEPTH))
 		{
 			if (--g_Config.iStereoDepth < 0)
 				g_Config.iStereoDepth = 0;
 		}
-		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+		else if (IsHotkey(event, HK_INCREASE_DEPTH))
 		{
-			if (++g_Config.iStereoConvergence > 500)
-				g_Config.iStereoConvergence = 500;
+			if (++g_Config.iStereoDepth > 100)
+				g_Config.iStereoDepth = 100;
 		}
 		else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
 		{
 			if (--g_Config.iStereoConvergence < 0)
 				g_Config.iStereoConvergence = 0;
+		}
+		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+		{
+			if (++g_Config.iStereoConvergence > 500)
+				g_Config.iStereoConvergence = 500;
 		}
 
 		else
