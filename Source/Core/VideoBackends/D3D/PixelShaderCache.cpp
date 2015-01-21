@@ -36,8 +36,12 @@ ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
 ID3D11PixelShader* s_AnaglyphProgram = nullptr;
+ID3D11PixelShader* s_rgb8_to_rgba6[2] = { nullptr };
+ID3D11PixelShader* s_rgb8_to_rgb565[2] = { nullptr };
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
-ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
+ID3D11PixelShader* s_rgba6_to_rgb565[2] = { nullptr };
+ID3D11PixelShader* s_rgb565_to_rgb8[2] = { nullptr };
+ID3D11PixelShader* s_rgb565_to_rgba6[2] = { nullptr };
 ID3D11Buffer* pscbuf = nullptr;
 
 const char clear_program_code[] = {
@@ -213,49 +217,6 @@ const char depth_matrix_program_msaa[] = {
 	"}\n"
 };
 
-const char reint_rgba6_to_rgb8[] = {
-	"sampler samp0 : register(s0);\n"
-	"Texture2DArray Tex0 : register(t0);\n"
-	"void main(\n"
-	"	out float4 ocol0 : SV_Target,\n"
-	"	in float4 pos : SV_Position,\n"
-	"	in float3 uv0 : TEXCOORD0)\n"
-	"{\n"
-	"	int4 src6 = round(Tex0.Sample(samp0,uv0) * 63.f);\n"
-	"	int4 dst8;\n"
-	"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
-	"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
-	"	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
-	"	dst8.a = 255;\n"
-	"	ocol0 = (float4)dst8 / 255.f;\n"
-	"}"
-};
-
-const char reint_rgba6_to_rgb8_msaa[] = {
-	"#define SAMPLES %d\n"
-	"sampler samp0 : register(s0);\n"
-	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
-	"void main(\n"
-	"	out float4 ocol0 : SV_Target,\n"
-	"	in float4 pos : SV_Position,\n"
-	"	in float3 uv0 : TEXCOORD0)\n"
-	"{\n"
-	"	int width, height, slices, samples;\n"
-	"	Tex0.GetDimensions(width, height, slices, samples);\n"
-	"	float4 texcol = 0;\n"
-	"	for (int i = 0; i < SAMPLES; ++i)\n"
-	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-	"	texcol /= SAMPLES;\n"
-	"	int4 src6 = round(texcol * 63.f);\n"
-	"	int4 dst8;\n"
-	"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
-	"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
-	"	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
-	"	dst8.a = 255;\n"
-	"	ocol0 = (float4)dst8 / 255.f;\n"
-	"}"
-};
-
 const char reint_rgb8_to_rgba6[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2DArray Tex0 : register(t0);\n"
@@ -299,6 +260,269 @@ const char reint_rgb8_to_rgba6_msaa[] = {
 	"}\n"
 };
 
+const char reint_rgb8_to_rgb565[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int4 src8 = round(Tex0.Sample(samp0,uv0) * 255.f);\n"
+	"	int4 dst565;\n"
+	"	dst565.r = src8.r >> 3;\n"
+	"	dst565.g = ((src8.r & 0x7) << 3) | (src8.g >> 5);\n"
+	"	dst565.b = (src8.g & 0x1F);\n"
+	"	dst565.a = 255;\n"
+	"	ocol0 = (float4)dst565 / float4(31.f, 63.f, 31.f, 255.f);\n"
+	"}\n"
+};
+
+const char reint_rgb8_to_rgba565_msaa[] = {
+	"#define SAMPLES %d\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int width, height, slices, samples;\n"
+	"	Tex0.GetDimensions(width, height, slices, samples);\n"
+	"	float4 texcol = 0;\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
+	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+	"	texcol /= SAMPLES;\n"
+	"	int4 src8 = round(texcol * 255.f);\n"
+	"	int4 dst565;\n"
+	"	dst565.r = src8.r >> 3;\n"
+	"	dst565.g = ((src8.r & 0x7) << 3) | (src8.g >> 5);\n"
+	"	dst565.b = (src8.g & 0x1F);\n"
+	"	dst565.a = 255;\n"
+	"	ocol0 = (float4)dst565 / float4(31.f, 63.f, 31.f, 255.f);\n"
+	"}\n"
+};
+
+const char reint_rgba6_to_rgb8[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int4 src6 = round(Tex0.Sample(samp0,uv0) * 63.f);\n"
+	"	int4 dst8;\n"
+	"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
+	"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
+	"	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
+	"	dst8.a = 255;\n"
+	"	ocol0 = (float4)dst8 / 255.f;\n"
+	"}"
+};
+
+const char reint_rgba6_to_rgb8_msaa[] = {
+	"#define SAMPLES %d\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int width, height, slices, samples;\n"
+	"	Tex0.GetDimensions(width, height, slices, samples);\n"
+	"	float4 texcol = 0;\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
+	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+	"	texcol /= SAMPLES;\n"
+	"	int4 src6 = round(texcol * 63.f);\n"
+	"	int4 dst8;\n"
+	"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
+	"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
+	"	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
+	"	dst8.a = 255;\n"
+	"	ocol0 = (float4)dst8 / 255.f;\n"
+	"}"
+};
+
+const char reint_rgba6_to_rgb565[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int4 src6 = round(Tex0.Sample(samp0,uv0) * 63.f);\n"
+	"	int4 dst565;\n"
+	"	dst565.r = src6.r >> 1;\n"
+	"	dst565.g = ((src6.r & 0x1) << 5) | (src6.g >> 1);\n"
+	"	dst565.b = ((src6.g & 0x1) << 4) | (src6.b >> 1);\n"
+	"	dst565.a = 255;\n"
+	"	ocol0 = (float4)dst565 / float4(31.f, 63.f, 31.f, 255.f);\n"
+	"}"
+};
+
+const char reint_rgba6_to_rgb565_msaa[] = {
+	"#define SAMPLES %d\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int width, height, slices, samples;\n"
+	"	Tex0.GetDimensions(width, height, slices, samples);\n"
+	"	float4 texcol = 0;\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
+	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+	"	texcol /= SAMPLES;\n"
+	"	int4 src6 = round(texcol * 63.f);\n"
+	"	int4 dst565;\n"
+	"	dst565.r = src6.r >> 1;\n"
+	"	dst565.g = ((src6.r & 0x1) << 5) | (src6.g >> 1);\n"
+	"	dst565.b = ((src6.g & 0x1) << 4) | (src6.b >> 1);\n"
+	"	dst565.a = 255;\n"
+	"	ocol0 = (float4)dst565 / float4(31.f, 63.f, 31.f, 255.f);\n"
+	"}"
+};
+
+const char reint_rgb565_to_rgb8[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int4 src565 = round(Tex0.Sample(samp0,uv0) * float4(31.f, 63.f, 31.f, 255.f));\n"
+	"	int4 dst8;\n"
+	"	dst8.r = (src565.r << 3) | (src565.g >> 3);\n"
+	"	dst8.g = ((src565.g & 0x7) << 5) | src565.b;\n"
+	"	dst8.b = 0;\n"
+	"	dst8.a = 255;\n"
+	"	ocol0 = (float4)dst8 / 255.f;\n"
+	"}\n"
+};
+
+const char reint_rgb565_to_rgb8_msaa[] = {
+	"#define SAMPLES %d\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int width, height, slices, samples;\n"
+	"	Tex0.GetDimensions(width, height, slices, samples);\n"
+	"	float4 texcol = 0;\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
+	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+	"	texcol /= SAMPLES;\n"
+	"	int4 src565 = round(texcol * float4(31.f, 63.f, 31.f, 255.f));\n"
+	"	int4 dst8;\n"
+	"	dst8.r = (src565.r << 3) | (src565.g >> 3);\n"
+	"	dst8.g = ((src565.g & 0x7) << 5) | src565.b;\n"
+	"	dst8.b = 0;\n"
+	"	dst8.a = 255;\n"
+	"	ocol0 = (float4)dst8 / 255.f;\n"
+	"}\n"
+};
+
+const char reint_rgb565_to_rgba6[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int4 src565 = round(Tex0.Sample(samp0,uv0) * float4(31.f, 63.f, 31.f, 255.f));\n"
+	"	int4 dst6;\n"
+	"	dst6.r = (src565.r << 1) | (src565.g >> 5);\n"
+	"	dst6.g = ((src565.g & 0x1F) << 1) | (src565.b >> 4);\n"
+	"	dst6.b = src565.b & 0xF;\n"
+	"	dst6.a = 63;\n"
+	"	ocol0 = (float4)dst6 / 63.f;\n"
+	"}\n"
+};
+
+const char reint_rgb565_to_rgba6_msaa[] = {
+	"#define SAMPLES %d\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+	"void main(\n"
+	"	out float4 ocol0 : SV_Target,\n"
+	"	in float4 pos : SV_Position,\n"
+	"	in float3 uv0 : TEXCOORD0)\n"
+	"{\n"
+	"	int width, height, slices, samples;\n"
+	"	Tex0.GetDimensions(width, height, slices, samples);\n"
+	"	float4 texcol = 0;\n"
+	"	for (int i = 0; i < SAMPLES; ++i)\n"
+	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+	"	texcol /= SAMPLES;\n"
+	"	int4 src565 = round(texcol * float4(31.f, 63.f, 31.f, 255.f));\n"
+	"	int4 dst6;\n"
+	"	dst6.r = (src565.r << 1) | (src565.g >> 5);\n"
+	"	dst6.g = ((src565.g & 0x1F) << 1) | (src565.b >> 4);\n"
+	"	dst6.b = src565.b & 0xF;\n"
+	"	dst6.a = 63;\n"
+	"	ocol0 = (float4)dst6 / 63.f;\n"
+	"}\n"
+};
+
+ID3D11PixelShader* PixelShaderCache::ReinterpRGB8ToRGBA6(bool multisampled)
+{
+	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1)
+	{
+		if (!s_rgb8_to_rgba6[0])
+		{
+			s_rgb8_to_rgba6[0] = D3D::CompileAndCreatePixelShader(reint_rgb8_to_rgba6);
+			CHECK(s_rgb8_to_rgba6[0], "Create RGB8 to RGBA6 pixel shader");
+			D3D::SetDebugObjectName(s_rgb8_to_rgba6[0], "RGB8 to RGBA6 pixel shader");
+		}
+		return s_rgb8_to_rgba6[0];
+	}
+	else if (!s_rgb8_to_rgba6[1])
+	{
+		// create MSAA shader for current AA mode
+		std::string buf = StringFromFormat(reint_rgb8_to_rgba6_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
+		s_rgb8_to_rgba6[1] = D3D::CompileAndCreatePixelShader(buf);
+
+		CHECK(s_rgb8_to_rgba6[1], "Create RGB8 to RGBA6 MSAA pixel shader");
+		D3D::SetDebugObjectName(s_rgb8_to_rgba6[1], "RGB8 to RGBA6 MSAA pixel shader");
+	}
+	return s_rgb8_to_rgba6[1];
+}
+
+ID3D11PixelShader* PixelShaderCache::ReinterpRGB8ToRGB565(bool multisampled)
+{
+	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1)
+	{
+		if (!s_rgb8_to_rgb565[0])
+		{
+			s_rgb8_to_rgb565[0] = D3D::CompileAndCreatePixelShader(reint_rgb8_to_rgb565);
+			CHECK(s_rgb8_to_rgb565[0], "Create RGBA6 to RGB565 pixel shader");
+			D3D::SetDebugObjectName(s_rgb8_to_rgb565[0], "RGBA6 to RGB565 pixel shader");
+		}
+		return s_rgb8_to_rgb565[0];
+	}
+	else if (!s_rgb8_to_rgb565[1])
+	{
+		// create MSAA shader for current AA mode
+		std::string buf = StringFromFormat(reint_rgb8_to_rgba565_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
+		s_rgb8_to_rgb565[1] = D3D::CompileAndCreatePixelShader(buf);
+
+		CHECK(s_rgb8_to_rgb565[1], "Create RGBA6 to RGB565 MSAA pixel shader");
+		D3D::SetDebugObjectName(s_rgb8_to_rgb565[1], "RGBA6 to RGB565 MSAA pixel shader");
+	}
+	return s_rgb8_to_rgb565[1];
+}
+
 ID3D11PixelShader* PixelShaderCache::ReinterpRGBA6ToRGB8(bool multisampled)
 {
 	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1)
@@ -323,28 +547,76 @@ ID3D11PixelShader* PixelShaderCache::ReinterpRGBA6ToRGB8(bool multisampled)
 	return s_rgba6_to_rgb8[1];
 }
 
-ID3D11PixelShader* PixelShaderCache::ReinterpRGB8ToRGBA6(bool multisampled)
+ID3D11PixelShader* PixelShaderCache::ReinterpRGBA6ToRGB565(bool multisampled)
 {
 	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1)
 	{
-		if (!s_rgb8_to_rgba6[0])
+		if (!s_rgba6_to_rgb565[0])
 		{
-			s_rgb8_to_rgba6[0] = D3D::CompileAndCreatePixelShader(reint_rgb8_to_rgba6);
-			CHECK(s_rgb8_to_rgba6[0], "Create RGB8 to RGBA6 pixel shader");
-			D3D::SetDebugObjectName(s_rgb8_to_rgba6[0], "RGB8 to RGBA6 pixel shader");
+			s_rgba6_to_rgb565[0] = D3D::CompileAndCreatePixelShader(reint_rgba6_to_rgb565);
+			CHECK(s_rgba6_to_rgb565[0], "Create RGBA6 to RGB565 pixel shader");
+			D3D::SetDebugObjectName(s_rgba6_to_rgb565[0], "RGBA6 to RGB565 pixel shader");
 		}
-		return s_rgb8_to_rgba6[0];
+		return s_rgba6_to_rgb565[0];
 	}
-	else if (!s_rgb8_to_rgba6[1])
+	else if (!s_rgba6_to_rgb565[1])
 	{
 		// create MSAA shader for current AA mode
-		std::string buf = StringFromFormat(reint_rgb8_to_rgba6_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
-		s_rgb8_to_rgba6[1] = D3D::CompileAndCreatePixelShader(buf);
+		std::string buf = StringFromFormat(reint_rgba6_to_rgb565_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
+		s_rgba6_to_rgb565[1] = D3D::CompileAndCreatePixelShader(buf);
 
-		CHECK(s_rgb8_to_rgba6[1], "Create RGB8 to RGBA6 MSAA pixel shader");
-		D3D::SetDebugObjectName(s_rgb8_to_rgba6[1], "RGB8 to RGBA6 MSAA pixel shader");
+		CHECK(s_rgba6_to_rgb565[1], "Create RGBA6 to RGB565 MSAA pixel shader");
+		D3D::SetDebugObjectName(s_rgba6_to_rgb565[1], "RGBA6 to RGB565 MSAA pixel shader");
 	}
-	return s_rgb8_to_rgba6[1];
+	return s_rgba6_to_rgb565[1];
+}
+
+ID3D11PixelShader* PixelShaderCache::ReinterpRGB565ToRGB8(bool multisampled)
+{
+	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1)
+	{
+		if (!s_rgb565_to_rgb8[0])
+		{
+			s_rgb565_to_rgb8[0] = D3D::CompileAndCreatePixelShader(reint_rgb565_to_rgb8);
+			CHECK(s_rgb565_to_rgb8[0], "Create RGB565 to RGB8 pixel shader");
+			D3D::SetDebugObjectName(s_rgb565_to_rgb8[0], "RGB565 to RGB8 pixel shader");
+		}
+		return s_rgb565_to_rgb8[0];
+	}
+	else if (!s_rgb565_to_rgb8[1])
+	{
+		// create MSAA shader for current AA mode
+		std::string buf = StringFromFormat(reint_rgb565_to_rgb8_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
+		s_rgb565_to_rgb8[1] = D3D::CompileAndCreatePixelShader(buf);
+
+		CHECK(s_rgb565_to_rgb8[1], "Create RGB565 to RGB8 MSAA pixel shader");
+		D3D::SetDebugObjectName(s_rgb565_to_rgb8[1], "RGB565 to RGB8 MSAA pixel shader");
+	}
+	return s_rgb565_to_rgb8[1];
+}
+
+ID3D11PixelShader* PixelShaderCache::ReinterpRGB565ToRGBA6(bool multisampled)
+{
+	if (!multisampled || D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count == 1)
+	{
+		if (!s_rgb565_to_rgba6[0])
+		{
+			s_rgb565_to_rgba6[0] = D3D::CompileAndCreatePixelShader(reint_rgb565_to_rgba6);
+			CHECK(s_rgb565_to_rgba6[0], "Create RGB565 to RGBA6 pixel shader");
+			D3D::SetDebugObjectName(s_rgb565_to_rgba6[0], "RGB565 to RGBA6 pixel shader");
+		}
+		return s_rgb565_to_rgba6[0];
+	}
+	else if (!s_rgb565_to_rgba6[1])
+	{
+		// create MSAA shader for current AA mode
+		std::string buf = StringFromFormat(reint_rgb565_to_rgba6_msaa, D3D::GetAAMode(g_ActiveConfig.iMultisampleMode).Count);
+		s_rgb565_to_rgba6[1] = D3D::CompileAndCreatePixelShader(buf);
+
+		CHECK(s_rgb565_to_rgba6[1], "Create RGB565 to RGBA6 MSAA pixel shader");
+		D3D::SetDebugObjectName(s_rgb565_to_rgba6[1], "RGB565 to RGBA6 MSAA pixel shader");
+	}
+	return s_rgb565_to_rgba6[1];
 }
 
 ID3D11PixelShader* PixelShaderCache::GetColorCopyProgram(bool multisampled)

@@ -31,8 +31,12 @@ public:
 	static ID3D11PixelShader* GetDepthMatrixProgram(bool multisampled);
 	static ID3D11PixelShader* GetClearProgram();
 	static ID3D11PixelShader* GetAnaglyphProgram();
-	static ID3D11PixelShader* ReinterpRGBA6ToRGB8(bool multisampled);
 	static ID3D11PixelShader* ReinterpRGB8ToRGBA6(bool multisampled);
+	static ID3D11PixelShader* ReinterpRGB8ToRGB565(bool multisampled);
+	static ID3D11PixelShader* ReinterpRGBA6ToRGB8(bool multisampled);
+	static ID3D11PixelShader* ReinterpRGBA6ToRGB565(bool multisampled);
+	static ID3D11PixelShader* ReinterpRGB565ToRGB8(bool multisampled);
+	static ID3D11PixelShader* ReinterpRGB565ToRGBA6(bool multisampled);
 
 	static void InvalidateMSAAShaders();
 
