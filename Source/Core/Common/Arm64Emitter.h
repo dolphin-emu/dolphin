@@ -617,8 +617,14 @@ public:
 	// Loadstore multiple structure
 	void LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
 
+	// Scalar - 1 Source
+	void FABS(ARM64Reg Rd, ARM64Reg Rn);
+	void FNEG(ARM64Reg Rd, ARM64Reg Rn);
+
 	// Scalar - 2 Source
+	void FADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FMUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FSUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
 	// Scalar floating point immediate
 	void FMOV(ARM64Reg Rd, u32 imm);
@@ -718,6 +724,7 @@ private:
 	void EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm);
 	void EmitShiftImm(bool U, u32 immh, u32 immb, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn);
+	void EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 };
 
 class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>
