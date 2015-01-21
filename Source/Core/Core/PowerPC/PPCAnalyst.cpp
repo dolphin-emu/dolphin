@@ -313,6 +313,9 @@ static void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 	{
 		while (true)
 		{
+			// skip zeroes that sometimes pad function to 16 byte boundary (eg. Donkey Kong Country Returns)
+			while (Memory::Read_Instruction(location) == 0 && ((location & 0xf) != 0))
+				location += 4;
 			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))
 			{
 				//check if this function is already mapped
