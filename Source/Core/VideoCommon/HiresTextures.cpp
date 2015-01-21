@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstring>
 #include <string>
 #include <utility>
@@ -155,8 +156,8 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 		u64 tex_hash = XXH64(texture, texture_size, 0);
 		u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
-		std::string basename = s_format_prefix + StringFromFormat("%s%dx%d_%016lx", has_mipmaps ? "m_" : "", width, height, tex_hash);
-		std::string tlutname = tlut_size ? StringFromFormat("_%016lx", tlut_hash) : "";
+		std::string basename = s_format_prefix + StringFromFormat("%dx%d%s_%016" PRIx64, width, height, has_mipmaps ? "_m" : "", tex_hash);
+		std::string tlutname = tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
 		std::string formatname = StringFromFormat("_%d", format);
 		std::string fullname = basename + tlutname + formatname;
 
