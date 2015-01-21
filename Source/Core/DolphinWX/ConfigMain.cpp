@@ -1264,7 +1264,7 @@ inline u8 CConfigMain::GetSADRCountryCode(int language)
 		countrycode = 1; //Japan
 		break;
 	case 1: //English
-		countrycode = 49; // United States
+		countrycode = 49; //United States
 		break;
 	case 2: //German
 		countrycode = 78; //Germany
