@@ -374,7 +374,7 @@ void XEmitter::JMPptr(const OpArg &arg2)
 }
 
 //Can be used to trap other processors, before overwriting their code
-// not used in dolphin
+// not used in Dolphin
 void XEmitter::JMPself()
 {
 	Write8(0xEB);
@@ -968,8 +968,8 @@ void XEmitter::WriteShift(int bits, OpArg dest, OpArg &shift, int ext)
 		Write8((u8)shift.offset);
 }
 
-// large rotates and shift are slower on intel than amd
-// intel likes to rotate by 1, and the op is smaller too
+// large rotates and shift are slower on Intel than AMD
+// Intel likes to rotate by 1, and the op is smaller too
 void XEmitter::ROL(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 0);}
 void XEmitter::ROR(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 1);}
 void XEmitter::RCL(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 2);}

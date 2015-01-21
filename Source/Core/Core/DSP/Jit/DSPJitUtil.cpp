@@ -509,7 +509,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 
 
 // EAX - destination address
-// ECX - Base of dram
+// ECX - Base of DRAM
 void DSPEmitter::dmem_write(X64Reg value)
 {
 	//	if (saddr == 0)

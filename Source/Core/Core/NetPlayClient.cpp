@@ -213,7 +213,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			delete[] data;
 
 			// trusting server for good map value (>=0 && <4)
-			// add to wiimote buffer
+			// add to Wiimote buffer
 			m_wiimote_buffer[(unsigned)map].Push(nw);
 		}
 		break;
@@ -620,9 +620,9 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 	{
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
-	// in game mapping for this local wiimote
+	// in game mapping for this local Wiimote
 	unsigned int in_game_num = LocalWiimoteToInGameWiimote(_number);
-	// does this local wiimote map in game?
+	// does this local Wiimote map in game?
 	if (in_game_num < 4)
 	{
 		if (previousSize[in_game_num] == size)

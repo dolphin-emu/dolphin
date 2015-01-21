@@ -338,17 +338,17 @@ bool Wiimote::Step()
 			m_read_requests.pop();
 		}
 
-		// dont send any other reports
+		// don't send any other reports
 		return true;
 	}
 
 	// check if a status report needs to be sent
-	// this happens on wiimote sync and when extensions are switched
+	// this happens on Wiimote sync and when extensions are switched
 	if (m_extension->active_extension != m_extension->switch_extension)
 	{
 		RequestStatus();
 
-		// Wiibrew: Following a connection or disconnection event on the Extension Port,
+		// WiiBrew: Following a connection or disconnection event on the Extension Port,
 		// data reporting is disabled and the Data Reporting Mode must be reset before new data can arrive.
 		// after a game receives an unrequested status report,
 		// it expects data reports to stop until it sets the reporting mode again
@@ -655,7 +655,7 @@ void Wiimote::Update()
 		if (rptf.ext)
 			GetExtData(data + rptf.ext);
 
-		// hybrid wiimote stuff (for now, it's not supported while recording)
+		// hybrid Wiimote stuff (for now, it's not supported while recording)
 		if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index] && !Movie::IsRecordingInput())
 		{
 			using namespace WiimoteReal;
@@ -675,7 +675,7 @@ void Wiimote::Update()
 						{
 							const ReportFeatures& real_rptf = reporting_mode_features[real_data[1] - WM_REPORT_CORE];
 
-							// force same report type from real-wiimote
+							// force same report type from real-Wiimote
 							if (&real_rptf != &rptf)
 								rptf_size = 0;
 
@@ -723,7 +723,7 @@ void Wiimote::Update()
 
 					}
 
-					// copy over report from real-wiimote
+					// copy over report from real-Wiimote
 					if (-1 == rptf_size)
 					{
 						std::copy(rpt.begin(), rpt.end(), data);
@@ -760,7 +760,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 	// Check for custom communication
 	if (99 == _channelID)
 	{
-		// wiimote disconnected
+		// Wiimote disconnected
 		//PanicAlert( "Wiimote Disconnected" );
 
 		// reset eeprom/register/reporting mode

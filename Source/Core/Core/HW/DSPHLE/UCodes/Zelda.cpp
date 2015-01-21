@@ -353,7 +353,7 @@ void ZeldaUCode::HandleMail_NormalVersion(u32 mail)
 		case 0x0003: // Do nothing - continue normally
 			return;
 
-		case 0x0001: // accepts params to either dma to iram and/or dram (used for hotbooting a new ucode)
+		case 0x0001: // accepts params to either DMA to iram and/or DRAM (used for hotbooting a new ucode)
 			// TODO find a better way to protect from HLEMixer?
 			m_upload_setup_in_progress = true;
 			return;

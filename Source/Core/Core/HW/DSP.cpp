@@ -184,7 +184,7 @@ static DSPEmulator *dsp_emulator;
 static int dsp_slice = 0;
 static bool dsp_is_lle = false;
 
-//time given to lle dsp on every read of the high bits in a mailbox
+// time given to LLE DSP on every read of the high bits in a mailbox
 static const int DSP_MAIL_SLICE=72;
 
 void DoState(PointerWrap &p)
@@ -245,7 +245,7 @@ void Init(bool hle)
 	}
 	else
 	{
-		// On the GC, ARAM is accessible only through this interface.
+		// On the GameCube, ARAM is accessible only through this interface.
 		g_ARAM.wii_mode = false;
 		g_ARAM.size = ARAM_SIZE;
 		g_ARAM.mask = ARAM_MASK;
@@ -366,7 +366,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 			// Not really sure if this is correct, but it works...
 			// Kind of a hack because DSP_CONTROL_MASK should make this bit
-			// only viewable to dsp emulator
+			// only viewable to DSP emulator
 			if (val & 1 /*DSPReset*/)
 			{
 				g_audioDMA.AudioDMAControl.Hex = 0;
@@ -480,15 +480,15 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 	CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type);
 }
 
-// called whenever SystemTimers thinks the dsp deserves a few more cycles
+// called whenever SystemTimers thinks the DSP deserves a few more cycles
 void UpdateDSPSlice(int cycles)
 {
 	if (dsp_is_lle)
 	{
-		//use up the rest of the slice(if any)
+		// use up the rest of the slice(if any)
 		dsp_emulator->DSP_Update(dsp_slice);
 		dsp_slice %= 6;
-		//note the new budget
+		// note the new budget
 		dsp_slice += cycles;
 	}
 	else
@@ -588,7 +588,7 @@ static void Do_ARAM_DMA()
 		}
 		else
 		{
-			// Assuming no external ARAM installed; returns zeroes on out of bounds reads (verified on real HW)
+			// Assuming no external ARAM installed; returns zeros on out of bounds reads (verified on real HW)
 			while (g_arDMA.Cnt.count)
 			{
 				Memory::Write_U64(0, g_arDMA.MMAddr);
@@ -646,7 +646,7 @@ static void Do_ARAM_DMA()
 
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the Wii Sports ucode is processed incorrectly?
-// (LM) It just means that dsp reads via '0xffdd' on WII can end up in EXRAM or main RAM
+// (LM) It just means that DSP reads via '0xffdd' on Wii can end up in EXRAM or main RAM
 u8 ReadARAM(u32 _iAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
@@ -665,8 +665,8 @@ u8 ReadARAM(u32 _iAddress)
 
 void WriteARAM(u8 value, u32 _uAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
-	//TODO: verify this on WII
+	// NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
+	// TODO: verify this on Wii
 	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
 

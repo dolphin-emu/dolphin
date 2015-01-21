@@ -296,8 +296,8 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 	wxBoxSizer* const real_wiimotes_sizer = new wxBoxSizer(wxHORIZONTAL);
 
 	if (!WiimoteReal::g_wiimote_scanner.IsReady())
-		real_wiimotes_group->Add(new wxStaticText(this, wxID_ANY, _("A supported bluetooth device could not be found.\n"
-		                                                            "You must manually connect your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
+		real_wiimotes_group->Add(new wxStaticText(this, wxID_ANY, _("A supported Bluetooth device could not be found.\n"
+		                                                            "You must manually connect your Wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
 
 	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
 	continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);

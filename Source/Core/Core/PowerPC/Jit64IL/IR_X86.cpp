@@ -163,7 +163,7 @@ static void fregSpill(RegInfo& RI, X64Reg reg)
 // (TODO: if we could lock RCX here too then we could allocate it - needed for
 // shifts)
 
-// 64-bit - calling conventions differ between linux & windows, so...
+// 64-bit - calling conventions differ between Linux & Windows, so...
 #ifdef _WIN32
 static const X64Reg RegAllocOrder[] = {RSI, RDI, R12, R13, R14, R8, R9, R10, R11};
 #else

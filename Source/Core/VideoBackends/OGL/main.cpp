@@ -134,8 +134,8 @@ static void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bSupportsExclusiveFullscreen = false;
-	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu dependent and must be set in renderer
-	//g_Config.backend_info.bSupportsEarlyZ = true; // is gpu dependent and must be set in renderer
+	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is GPU dependent and must be set in renderer
+	//g_Config.backend_info.bSupportsEarlyZ = true; // is GPU dependent and must be set in renderer
 	g_Config.backend_info.bSupportsOversizedViewports = true;
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = false;

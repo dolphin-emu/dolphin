@@ -133,7 +133,7 @@ unsigned int NetPlayServer::OnConnect(std::unique_ptr<sf::TcpSocket>& socket)
 
 	std::string npver;
 	rpac >> npver;
-	// dolphin netplay version
+	// Dolphin netplay version
 	if (npver != NETPLAY_VERSION)
 		return CON_ERR_VERSION_MISMATCH;
 
@@ -416,7 +416,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		case NP_MSG_WIIMOTE_DATA :
 		{
-			// if this is wiimote data from the last game still being received, ignore it
+			// if this is Wiimote data from the last game still being received, ignore it
 			if (player.current_game != m_current_game)
 				break;
 

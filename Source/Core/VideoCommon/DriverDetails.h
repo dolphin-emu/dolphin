@@ -97,10 +97,10 @@ namespace DriverDetails
 		// Started Version: ?
 		// Ended Version: 13.9 working for me (neobrain).
 		// Affected OS: Linux
-		// Pinned memory is disabled for index buffer as the amd driver (the only one with pinned memory support) seems
+		// Pinned memory is disabled for index buffer as the AMD driver (the only one with pinned memory support) seems
 		// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
 		// This bug only happens when paired with base_vertex.
-		// Please see issue #6105 on google code. Let's hope buffer storage solves this issues.
+		// Please see issue #6105 on Google Code. Let's hope buffer storage solves this issues.
 		// TODO: Detect broken drivers.
 		BUG_BROKENPINNEDMEMORY,
 		// Bug: Entirely broken UBOs
@@ -134,7 +134,7 @@ namespace DriverDetails
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
 		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
-		// Affected devices: Geforce 4xx+
+		// Affected devices: GeForce 4xx+
 		// Started Version: -1
 		// Ended Version: 332.21
 		// The buffer_storage streaming method is required for greater speed gains in our buffer streaming
@@ -150,14 +150,14 @@ namespace DriverDetails
 		// Intel HD 4000 series isn't affected by the bug
 		BUG_PRIMITIVERESTART,
 		// Bug: unsync mapping doesn't work fine
-		// Affected devices: nvidia driver
+		// Affected devices: Nvidia driver
 		// Started Version: -1
 		// Ended Version: -1
-		// The nvidia driver (both windows + linux) doesn't like unsync mapping performance wise.
-		// Because of their threaded behavoir, they seem not to handle unsync mapping complete unsync,
+		// The Nvidia driver (both Windows + Linux) doesn't like unsync mapping performance wise.
+		// Because of their threaded behavior, they seem not to handle unsync mapping complete unsync,
 		// in fact, they serialize the driver which adds a much bigger overhead.
 		// Workaround: Use BufferSubData
-		// TODO: some windows AMD driver/gpu combination seems also affected
+		// TODO: some Windows AMD driver/GPU combination seems also affected
 		//       but as they all support pinned memory, it doesn't matter
 		BUG_BROKENUNSYNCMAPPING,
 		// Bug: Intel's Window driver broke buffer_storage with GL_ELEMENT_ARRAY_BUFFER

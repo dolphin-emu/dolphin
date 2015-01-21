@@ -328,9 +328,9 @@ static void InitDriverInfo()
 			int glrelease = 0;
 			int major = 0;
 			int minor = 0;
-			// TODO: this is known to be broken on windows
-			// nvidia seems to have removed their driver version from this string, so we can't get it.
-			// hopefully we'll never have to workaround nvidia bugs
+			// TODO: this is known to be broken on Windows
+			// Nvidia seems to have removed their driver version from this string, so we can't get it.
+			// hopefully we'll never have to workaround Nvidia bugs
 			sscanf(g_ogl_config.gl_version, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major, &minor);
 			version = 100*major + minor;
 		}
@@ -556,7 +556,7 @@ Renderer::Renderer()
 		// It also isn't useful as we don't render anything to the default framebuffer.
 		// We also try to get a non-msaa fb, so this only happens when forced by the driver.
 		PanicAlert("MSAA on default framebuffer isn't supported.\n"
-			"Please avoid forcing dolphin to use MSAA by the driver.\n"
+			"Please avoid forcing Dolphin to use MSAA by the driver.\n"
 			"%d samples on default framebuffer found.", samples);
 		bSuccess = false;
 	}

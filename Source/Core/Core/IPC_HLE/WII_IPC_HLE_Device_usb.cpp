@@ -81,8 +81,8 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 			i++;
 		}
 
-		// save now so that when games load sysconf file it includes the new wiimotes
-		// and the correct order for connected wiimotes
+		// save now so that when games load sysconf file it includes the new Wiimotes
+		// and the correct order for connected Wiimotes
 		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
 			PanicAlertT("Failed to write BT.DINF to SYSCONF");
 	}
@@ -441,7 +441,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		packet_transferred = true;
 	}
 
-	// We wait for ScanEnable to be sent from the bt stack through HCI_CMD_WRITE_SCAN_ENABLE
+	// We wait for ScanEnable to be sent from the Bluetooth stack through HCI_CMD_WRITE_SCAN_ENABLE
 	// before we initiate the connection.
 	//
 	// FiRES: TODO find a better way to do this
@@ -1857,8 +1857,8 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 			return &wiimote;
 	}
 
-	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find WiiMote by connection handle %02x", _ConnectionHandle);
-	PanicAlertT("Can't find WiiMote by connection handle %02x", _ConnectionHandle);
+	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find Wiimote by connection handle %02x", _ConnectionHandle);
+	PanicAlertT("Can't find Wiimote by connection handle %02x", _ConnectionHandle);
 	return nullptr;
 }
 

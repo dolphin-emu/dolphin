@@ -832,7 +832,7 @@ void Interpreter::sync(UGeckoInstruction _inst)
 void Interpreter::tlbia(UGeckoInstruction _inst)
 {
 	// Gekko does not support this instructions.
-	PanicAlert("The GC CPU does not support tlbia");
+	PanicAlert("The GameCube CPU does not support tlbia");
 	// invalid the whole TLB
 	//MessageBox(0,"TLBIA","TLBIA",0);
 }

@@ -48,7 +48,7 @@ void WriteCR(u16 val)
 	else if (val == 4)
 	{
 		// HAX!
-		// OSInitAudioSystem ucode should send this mail - not dsp core itself
+		// OSInitAudioSystem ucode should send this mail - not DSP core itself
 		INFO_LOG(DSPLLE,"DSP_CONTROL INIT");
 		init_hax = true;
 		val |= 0x800;

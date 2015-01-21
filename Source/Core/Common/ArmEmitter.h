@@ -390,7 +390,7 @@ public:
 	void MCR(u32 coproc, u32 opc1, ARMReg Rt, u32 CRn, u32 CRm, u32 opc2 = 0);
 
 	// Do nothing
-	void NOP(int count = 1); //nop padding - TODO: fast nop slides, for amd and intel (check their manuals)
+	void NOP(int count = 1); //nop padding - TODO: fast nop slides, for AMD and Intel (check their manuals)
 
 #ifdef CALL
 #undef CALL
@@ -476,7 +476,7 @@ public:
 	void UBFX(ARMReg dest, ARMReg op2, u8 lsb, u8 width);
 	void CLZ(ARMReg rd, ARMReg rm);
 
-	// Using just MSR here messes with our defines on the PPC side of stuff (when this code was in dolphin...)
+	// Using just MSR here messes with our defines on the PPC side of stuff (when this code was in Dolphin...)
 	// Just need to put an underscore here, bit annoying.
 	void _MSR (bool nzcvq, bool g, Operand2 op2);
 	void _MSR (bool nzcvq, bool g, ARMReg src);

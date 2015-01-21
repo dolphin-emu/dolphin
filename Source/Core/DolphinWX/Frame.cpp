@@ -1195,7 +1195,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			// On OS X, we claim all keyboard events while
 			// emulation is running to avoid wxWidgets sounding
 			// the system beep for unhandled key events when
-			// receiving pad/wiimote keypresses which take an
+			// receiving pad/Wiimote keypresses which take an
 			// entirely different path through the HID subsystem.
 #ifndef __APPLE__
 			// On other platforms, we leave the key event alone
@@ -1205,7 +1205,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 		}
 
-		// Actually perform the wiimote connection or disconnection
+		// Actually perform the Wiimote connection or disconnection
 		if (WiimoteId >= 0)
 		{
 			wxCommandEvent evt;

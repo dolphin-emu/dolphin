@@ -10,7 +10,7 @@
 #include "Core/HW/Memmap.h"
 
 // XXX: The BBA stores multi-byte elements as little endian.
-// Multiple parts of this implementation depend on dolphin
+// Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
 
