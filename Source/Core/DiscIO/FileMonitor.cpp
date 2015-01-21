@@ -79,7 +79,7 @@ void ReadFileSystem(const std::string& filename)
 	if (!OpenISO)
 		return;
 
-	if (!DiscIO::IsVolumeWadFile(OpenISO))
+	if (!OpenISO->IsWadFile())
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 

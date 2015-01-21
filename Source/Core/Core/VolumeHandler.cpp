@@ -77,10 +77,10 @@ bool IsValid()
 	return (g_pVolume != nullptr);
 }
 
-bool IsWii()
+bool IsWiiDisc()
 {
 	if (g_pVolume)
-		return IsVolumeWiiDisc(g_pVolume);
+		return g_pVolume->IsWiiDisc();
 
 	return false;
 }

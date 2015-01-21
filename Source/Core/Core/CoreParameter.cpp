@@ -153,7 +153,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				m_strRevisionSpecificUniqueID = pVolume->GetRevisionSpecificUniqueID();
 
 				// Check if we have a Wii disc
-				bWii = DiscIO::IsVolumeWiiDisc(pVolume.get());
+				bWii = pVolume.get()->IsWiiDisc();
 				switch (pVolume->GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_USA:

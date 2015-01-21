@@ -32,6 +32,7 @@ public:
 	std::vector<std::string> GetNames() const override;
 	u32 GetFSTSize() const override               { return 0; }
 	std::string GetApploaderDate() const override { return "0"; }
+	bool IsWadFile() const override;
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;

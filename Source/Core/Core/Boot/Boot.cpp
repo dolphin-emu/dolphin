@@ -214,8 +214,7 @@ bool CBoot::BootUp()
 		if (pVolume == nullptr)
 			break;
 
-		bool isoWii = DiscIO::IsVolumeWiiDisc(pVolume);
-		if (isoWii != _StartupPara.bWii)
+		if (pVolume->IsWiiDisc() != _StartupPara.bWii)
 		{
 			PanicAlertT("Warning - starting ISO in wrong console mode!");
 		}
@@ -237,7 +236,7 @@ bool CBoot::BootUp()
 		}
 
 
-		_StartupPara.bWii = VolumeHandler::IsWii();
+		_StartupPara.bWii = VolumeHandler::IsWiiDisc();
 
 		// HLE BS2 or not
 		if (_StartupPara.bHLE_BS2)
@@ -295,7 +294,7 @@ bool CBoot::BootUp()
 		{
 			BS2Success = EmulatedBS2(dolWii);
 		}
-		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultISO.empty())
+		else if (!VolumeHandler::IsWiiDisc() && !_StartupPara.m_strDefaultISO.empty())
 		{
 			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultISO);
 			BS2Success = EmulatedBS2(dolWii);
@@ -345,7 +344,7 @@ bool CBoot::BootUp()
 		{
 			BS2Success = EmulatedBS2(elfWii);
 		}
-		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultISO.empty())
+		else if (!VolumeHandler::IsWiiDisc() && !_StartupPara.m_strDefaultISO.empty())
 		{
 			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultISO);
 			BS2Success = EmulatedBS2(elfWii);

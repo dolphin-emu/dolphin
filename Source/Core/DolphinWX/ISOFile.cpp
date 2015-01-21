@@ -62,14 +62,14 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 		if (pVolume != nullptr)
 		{
-			if (!DiscIO::IsVolumeWadFile(pVolume))
-				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
+			if (!pVolume->IsWadFile())
+				m_Platform = pVolume->IsWiiDisc() ? WII_DISC : GAMECUBE_DISC;
 			else
 				m_Platform = WII_WAD;
 
 			m_volume_names = pVolume->GetNames();
 
-			m_Country  = pVolume->GetCountry();
+			m_Country = pVolume->GetCountry();
 			m_FileSize = pVolume->GetRawSize();
 			m_VolumeSize = pVolume->GetSize();
 
@@ -281,7 +281,7 @@ const std::string GameListItem::GetWiiFSPath() const
 	if (iso == nullptr)
 		return ret;
 
-	if (DiscIO::IsVolumeWiiDisc(iso) || DiscIO::IsVolumeWadFile(iso))
+	if (iso->IsWiiDisc() || iso->IsWadFile())
 	{
 		u64 title = 0;
 
