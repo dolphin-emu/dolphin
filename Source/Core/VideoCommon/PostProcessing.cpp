@@ -260,10 +260,16 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
 		break;
 		case ConfigurationOption::OptionType::OPTION_FLOAT:
 		{
-			std::string value = "";
+			std::ostringstream value;
+			value.imbue(std::locale("C"));
+
 			for (size_t i = 0; i < it.second.m_float_values.size(); ++i)
-				value += StringFromFormat("%f%s", it.second.m_float_values[i], i == (it.second.m_float_values.size() - 1) ? "": ", ");
-			ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
+			{
+				value << it.second.m_float_values[i];
+				if (i != (it.second.m_float_values.size() - 1))
+					value << ", ";
+			}
+			ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());
 		}
 		break;
 		}
