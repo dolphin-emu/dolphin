@@ -51,8 +51,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus()
 {
-	KeyboardStatus KeyStatus;
-	memset(&KeyStatus, 0, sizeof(KeyStatus));
+	KeyboardStatus KeyStatus = {};
 	Keyboard::GetStatus(ISIDevice::m_iDeviceNumber, &KeyStatus);
 	return KeyStatus;
 }

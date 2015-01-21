@@ -50,17 +50,17 @@ public:
 	CSIDevice_Keyboard(SIDevices device, int _iDeviceNumber);
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
+	int RunBuffer(u8* _pBuffer, int _iLength) override;
 
 	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low) override;
+	bool GetData(u32& _Hi, u32& _Low) override;
 
-	virtual KeyboardStatus GetKeyboardStatus();
-	virtual void MapKeys(KeyboardStatus& KeyStatus, u8* key);
+	KeyboardStatus GetKeyboardStatus();
+	void MapKeys(KeyboardStatus& KeyStatus, u8* key);
 
 	// Send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
+	void SendCommand(u32 _Cmd, u8 _Poll) override;
 
 	// Savestate support
-	virtual void DoState(PointerWrap& p) override;
+	void DoState(PointerWrap& p) override;
 };
