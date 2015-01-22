@@ -272,10 +272,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
-								&& (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
-								// We can't allow early_ztest for zfreeze because a reference poly is used
-								// to control the depth and we need a depth test after the alpha test.
-								&& !bpmem.genMode.zfreeze;
+	                            && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
+	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
+	                            // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
+	                            && !bpmem.genMode.zfreeze;
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
 
 	if (forced_early_z)
@@ -1028,9 +1028,9 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	// important that a reliable alpha test, so we just force the alpha test to always succeed.
 	// At least this seems to be less buggy.
 	uid_data->alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest()
-											 && bpmem.zmode.updateenable
-											 && !g_ActiveConfig.backend_info.bSupportsEarlyZ
-											 && !bpmem.genMode.zfreeze; // Might not be neccessary
+	                                         && bpmem.zmode.updateenable
+	                                         && !g_ActiveConfig.backend_info.bSupportsEarlyZ
+	                                         && !bpmem.genMode.zfreeze;
 
 	if (!uid_data->alpha_test_use_zcomploc_hack)
 	{
@@ -1123,7 +1123,7 @@ static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, A
 
 		// Opengl has reversed vertical screenspace coordiantes
 		if (ApiType == API_OPENGL)
-			out.Write("\tscreenpos.y = %i - screenpos.y - 1;\n", EFB_HEIGHT);
+			out.Write("\tscreenpos.y = %i - screenpos.y;\n", EFB_HEIGHT);
 
 		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xFFFFFF);\n");
 	}

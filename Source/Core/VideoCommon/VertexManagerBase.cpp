@@ -250,7 +250,7 @@ void VertexManager::CalculateZSlope(u32 stride)
 	float vtx[9];
 	float out[12];
 	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
-						    xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
+	                        xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
 	// Lookup vertices of the last rendered triangle and software-transform them
 	// This allows us to determine the depth slope, which will be used if zfreeze
