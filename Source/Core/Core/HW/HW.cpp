@@ -28,8 +28,14 @@
 
 namespace HW
 {
+	bool PAL60;
+
 	void Init()
 	{
+		bool NTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC;
+		bool PAL60 = WiiPAL60;
+		WiiPAL60->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60") && !NTSC); // Don't use PAL60 on NTSC games
+
 		CoreTiming::Init();
 		SystemTimers::PreInit();
 
@@ -65,6 +71,8 @@ namespace HW
 		Memory::Shutdown();
 		SerialInterface::Shutdown();
 		AudioInterface::Shutdown();
+
+		WiiPAL60->SetValue(PAL60)); // Set WiiPAL60 back to what it was before
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
