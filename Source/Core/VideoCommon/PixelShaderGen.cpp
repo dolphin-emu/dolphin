@@ -401,7 +401,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("\tfloat3 pos = WorldPos;\n");
 
 		out.Write("\tint4 lacc;\n"
-				"\tfloat3 ldir, h;\n"
+				"\tfloat3 ldir, h, cosAttn, distAttn;\n"
 				"\tfloat dist, dist2, attn;\n");
 
 		// TODO: Our current constant usage code isn't able to handle more than one buffer.
