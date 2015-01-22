@@ -206,6 +206,18 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 	switch (iIndex)
 	{
 	case SPR_XER:
+	{
+		gpr.BindToRegister(inst.RD, false);
+		ARM64Reg RD = gpr.R(inst.RD);
+		ARM64Reg WA = gpr.GetReg();
+		LDRH(INDEX_UNSIGNED, RD, X29, PPCSTATE_OFF(xer_stringctrl));
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
+		ORR(RD, RD, WA, ArithOption(WA, ST_LSL, XER_CA_SHIFT));
+		LDRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_so_ov));
+		ORR(RD, RD, WA, ArithOption(WA, ST_LSL, XER_OV_SHIFT));
+		gpr.Unlock(WA);
+	}
+	break;
 	case SPR_WPAR:
 	case SPR_DEC:
 	case SPR_TL:
@@ -261,18 +273,15 @@ void JitArm64::mtspr(UGeckoInstruction inst)
 	break;
 	case SPR_XER:
 	{
-		FALLBACK_IF(true);
 		ARM64Reg RD = gpr.R(inst.RD);
 		ARM64Reg WA = gpr.GetReg();
-		ARM64Reg mask = gpr.GetReg();
-		MOVI2R(mask, 0xFF7F);
-		AND(WA, RD, mask, ArithOption(mask, ST_LSL, 0));
+		AND(WA, RD, 24, 30);
 		STRH(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_stringctrl));
-		UBFM(WA, RD, XER_CA_SHIFT, XER_CA_SHIFT);
+		UBFM(WA, RD, XER_CA_SHIFT, XER_CA_SHIFT + 1);
 		STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
 		UBFM(WA, RD, XER_OV_SHIFT, 31); // Same as WA = RD >> XER_OV_SHIFT
 		STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_so_ov));
-		gpr.Unlock(WA, mask);
+		gpr.Unlock(WA);
 	}
 	break;
 	default:
