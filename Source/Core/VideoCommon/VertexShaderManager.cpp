@@ -1674,6 +1674,8 @@ void VertexShaderManager::SetProjectionConstants()
 			final_matrix_right.data[4] *= -1;
 			final_matrix_right.data[8] *= -1;
 			final_matrix_right.data[12] *= -1;
+			GeometryShaderManager::constants.stereoparams[0] *= -1;
+			GeometryShaderManager::constants.stereoparams[1] *= -1;
 		}
 		if (flipped_y < 0)
 		{
