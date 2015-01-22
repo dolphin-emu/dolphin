@@ -167,13 +167,15 @@ void SetViewportType(Viewport &v)
 	// Twilighlight Princess GC uses square but non-power-of-2 textures: 216x216 and 384x384
 	// Metroid Prime 2 uses square textures in the bottom left corner but screen_height is wrong.
 	// So the relaxed rule is: square texture on any screen edge with size a multiple of 8
+	// Bad Boys 2 and 007 Everything or Nothing use 512x512 viewport and 512x512 screen size for non-render-targets
 	//if (width == height
 	//	&& (width == 32 || width == 64 || width == 128 || width == 256)
 	//	&& ((left == 0 && top == 0) || (left == 0 && top == screen_height - height)
 	//	|| (left == screen_width - width && top == 0) || (left == screen_width - width && top == screen_height - height)))
 	if (width == height
 		&& (width == 1 || width == 2 || width == 4 || ((int)width % 8 == 0))
-		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width))
+		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width)
+		&& !(width == 512 && screen_width == 512 && screen_height == 512))
 	{
 		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
 	}
