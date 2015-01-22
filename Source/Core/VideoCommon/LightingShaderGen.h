@@ -56,19 +56,19 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 
 	uid_data.attnfunc |= chan.attnfunc << (2*litchan_index);
 	uid_data.diffusefunc |= chan.diffusefunc << (2*litchan_index);
-	
+
 	switch (chan.attnfunc)
 	{
 		case LIGHTATTN_NONE:
 		case LIGHTATTN_DIR:
-			object.Write("ldir = normalize(" LIGHT_POS".xyz);\n", LIGHT_POS_PARAMS(index));
+			object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
 			object.Write("attn = 1.0f;\n");
 			break;
 		case LIGHTATTN_SPEC:
 			object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
 			object.Write("attn = (dot(_norm0, ldir) >= 0.0) ? max(0.0, dot(_norm0, " LIGHT_DIR".xyz)) : 0.0;\n", LIGHT_DIR_PARAMS(index));
 			object.Write("cosAttn = " LIGHT_COSATT".xyz;\n", LIGHT_COSATT_PARAMS(index));
-			object.Write("distAttn = %s(" LIGHT_DISTATT".xyz);\n", (chan.diffusefunc == LIGHTDIF_NONE) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));			
+			object.Write("distAttn = %s(" LIGHT_DISTATT".xyz);\n", (chan.diffusefunc == LIGHTDIF_NONE) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));
 			object.Write("attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, float3(1.0, attn, attn*attn));\n");
 			break;
 		case LIGHTATTN_SPOT:
@@ -99,7 +99,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 			break;
 		default: _assert_(0);
 	}
-	
+
 	object.Write("\n");
 }
 
