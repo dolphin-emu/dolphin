@@ -409,12 +409,6 @@
     <ClCompile Include="HW\Sram.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\GCKeyboard.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\GCKeyboardEmu.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
-    </ClCompile>
     <ClCompile Include="HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
@@ -718,6 +712,14 @@
     <ClCompile Include="PowerPC\JitILCommon\IR.cpp">
       <Filter>PowerPC\JitILCommon</Filter>
     </ClCompile>
+    <ClCompile Include="HW\SI_GCAdapter.cpp" />
+    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp" />
+    <ClCompile Include="HW\GCKeyboardEmu.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCKeyboard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -727,7 +729,6 @@
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="Host.h" />
-    <ClCompile Include="MachineContext.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />
     <ClInclude Include="NetPlayClient.h" />
@@ -936,12 +937,6 @@
     </ClInclude>
     <ClInclude Include="HW\Sram.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\GCKeyboard.h">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\GCKeyboardEmu.h">
-      <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
@@ -1221,6 +1216,14 @@
     </ClInclude>
     <ClInclude Include="PowerPC\JitILCommon\IR.h">
       <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_GCAdapter.h" />
+    <ClInclude Include="MachineContext.h" />
+    <ClInclude Include="HW\GCKeyboardEmu.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCKeyboard.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

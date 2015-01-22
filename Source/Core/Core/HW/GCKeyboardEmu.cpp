@@ -217,28 +217,28 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 {
 	// buttons
 	groups.emplace_back(m_keys0x = new Buttons(_trans("Keys")));
-	for (unsigned int i = 0; i < sizeof(named_keys0) / sizeof(*named_keys0); ++i)
-		m_keys0x->controls.emplace_back(new ControlGroup::Input(named_keys0[i]));
+	for (const char* key : named_keys0)
+		m_keys0x->controls.emplace_back(new ControlGroup::Input(key));
 
 	groups.emplace_back(m_keys1x = new Buttons(_trans("Keys")));
-	for (unsigned int i = 0; i < sizeof(named_keys1) / sizeof(*named_keys1); ++i)
-		m_keys1x->controls.emplace_back(new ControlGroup::Input(named_keys1[i]));
+	for (const char* key : named_keys1)
+		m_keys1x->controls.emplace_back(new ControlGroup::Input(key));
 
 	groups.emplace_back(m_keys2x = new Buttons(_trans("Keys")));
-	for (unsigned int i = 0; i < sizeof(named_keys2) / sizeof(*named_keys2); ++i)
-		m_keys2x->controls.emplace_back(new ControlGroup::Input(named_keys2[i]));
+	for (const char* key : named_keys2)
+		m_keys2x->controls.emplace_back(new ControlGroup::Input(key));
 
 	groups.emplace_back(m_keys3x = new Buttons(_trans("Keys")));
-	for (unsigned int i = 0; i < sizeof(named_keys3) / sizeof(*named_keys3); ++i)
-		m_keys3x->controls.emplace_back(new ControlGroup::Input(named_keys3[i]));
+	for (const char* key : named_keys3)
+		m_keys3x->controls.emplace_back(new ControlGroup::Input(key));
 
 	groups.emplace_back(m_keys4x = new Buttons(_trans("Keys")));
-	for (unsigned int i = 0; i < sizeof(named_keys4) / sizeof(*named_keys4); ++i)
-		m_keys4x->controls.emplace_back(new ControlGroup::Input(named_keys4[i]));
+	for (const char* key : named_keys4)
+		m_keys4x->controls.emplace_back(new ControlGroup::Input(key));
 
 	groups.emplace_back(m_keys5x = new Buttons(_trans("Keys")));
-	for (unsigned int i = 0; i < sizeof(named_keys5) / sizeof(*named_keys5); ++i)
-		m_keys5x->controls.emplace_back(new ControlGroup::Input(named_keys5[i]));
+	for (const char* key : named_keys5)
+		m_keys5x->controls.emplace_back(new ControlGroup::Input(key));
 
 
 	// options
