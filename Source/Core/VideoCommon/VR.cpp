@@ -153,13 +153,20 @@ void InitVR()
 		}
 	}
 #endif
-	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution = 
-		StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = g_hmd_window_y;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = g_hmd_window_width;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = g_hmd_window_height;
-	SConfig::GetInstance().m_special_case = true;
+	if (g_has_hmd)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+			StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = g_hmd_window_y;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = g_hmd_window_width;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = g_hmd_window_height;
+		SConfig::GetInstance().m_special_case = true;
+	}
+	else
+	{
+		SConfig::GetInstance().m_special_case = false;
+	}
 }
 
 void ShutdownVR()
