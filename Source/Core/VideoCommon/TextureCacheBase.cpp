@@ -115,12 +115,6 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			invalidate_texture_cache_requested = false;
 		}
 
-		// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
-		if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable) // TODO: not sure if this is needed?
-		{
-			g_texture_cache->ClearRenderTargets();
-		}
-
 		if ((config.iStereoMode > 0) != backup_config.s_stereo_3d ||
 			config.bStereoEFBMonoDepth != backup_config.s_efb_mono_depth)
 		{
@@ -133,7 +127,6 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
 	backup_config.s_hires_textures = config.bHiresTextures;
-	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
 	backup_config.s_stereo_3d = config.iStereoMode > 0;
 	backup_config.s_efb_mono_depth = config.bStereoEFBMonoDepth;
 }
@@ -218,16 +211,6 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 	}
 }
 
-bool TextureCache::Find(u32 start_address, u64 hash)
-{
-	TexCache::iterator iter = textures.lower_bound(start_address);
-
-	if (iter->second->hash == hash)
-		return true;
-
-	return false;
-}
-
 bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 range_size) const
 {
 	if (addr + size_in_bytes <= range_address)
@@ -247,7 +230,7 @@ void TextureCache::ClearRenderTargets()
 
 	while (iter != tcend)
 	{
-		if (iter->second->type == TCET_EC_VRAM)
+		if (iter->second->IsEfbCopy())
 		{
 			FreeTexture(iter->second);
 			textures.erase(iter++);
@@ -384,8 +367,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		// 2. a) For EFB copies, only the hash and the texture address need to match
 		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
 		{
-			entry->type = TCET_EC_VRAM;
-
 			// TODO: Print a warning if the format changes! In this case,
 			// we could reinterpret the internal texture object data to the new pixel format
 			// (similar to what is already being done in Renderer::ReinterpretPixelFormat())
@@ -454,7 +435,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	config.height = height;
 	config.levels = texLevels;
 	entry = AllocateTexture(config);
-	entry->type = TCET_NORMAL;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 
 	entry->SetGeneralParameters(address, texture_size, full_format);
@@ -463,11 +443,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0);
-
-	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture)
-		entry->type = TCET_EC_DYNAMIC;
-	else
-		entry->type = TCET_NORMAL;
 
 	std::string basename = "";
 	if (g_ActiveConfig.bDumpTextures && !hires_tex)
@@ -835,7 +810,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->SetGeneralParameters(dstAddr, 0, dstFormat);
 	entry->SetDimensions(tex_w, tex_h, 1);
 	entry->SetHashes(TEXHASH_INVALID);
-	entry->type = TCET_EC_VRAM;
 
 	entry->frameCount = FRAMECOUNT_INVALID;
 

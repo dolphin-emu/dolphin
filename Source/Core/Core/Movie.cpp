@@ -1214,7 +1214,7 @@ void SaveRecording(const std::string& filename)
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
 	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
 	header.bCopyEFBToTexture = g_ActiveConfig.bCopyEFBToTexture;
-	header.bEFBCopyCacheEnable = g_ActiveConfig.bEFBCopyCacheEnable;
+	header.bEFBCopyCacheEnable = false;
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
@@ -1276,7 +1276,6 @@ void SetGraphicsConfig()
 	g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
 	g_Config.bEFBCopyEnable = tmpHeader.bEFBCopyEnable;
 	g_Config.bCopyEFBToTexture = tmpHeader.bCopyEFBToTexture;
-	g_Config.bEFBCopyCacheEnable = tmpHeader.bEFBCopyCacheEnable;
 	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
 	g_Config.bUseXFB = tmpHeader.bUseXFB;
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
