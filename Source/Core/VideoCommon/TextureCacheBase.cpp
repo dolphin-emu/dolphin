@@ -304,8 +304,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	const int texformat = tex.texImage0[id].format;
 	const u32 tlutaddr = tex.texTlut[id].tmem_offset << 9;
 	const u32 tlutfmt = tex.texTlut[id].tlut_format;
-	const bool use_mipmaps = (tex.texMode0[id].min_filter & 3) != 0;
 	u32 tex_levels = (tex.texMode1[id].max_lod + 0xf) / 0x10 + 1;
+	const bool use_mipmaps = (tex.texMode0[id].min_filter & 3) != 0 && tex_levels > 0;
 	const bool from_tmem = tex.texImage1[id].image_type != 0;
 
 	if (0 == address)
@@ -410,7 +410,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			src_data, texture_size,
 			&texMem[tlutaddr], palette_size,
 			width, height,
-			texformat
+			texformat, use_mipmaps
 		));
 
 		if (hires_tex)
@@ -476,7 +476,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			src_data, texture_size,
 			&texMem[tlutaddr], palette_size,
 			width, height,
-			texformat
+			texformat, use_mipmaps,
+			true
 		);
 		DumpTexture(entry, basename, 0);
 	}
