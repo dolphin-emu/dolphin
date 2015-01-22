@@ -361,13 +361,8 @@ void EmuThread()
 		return;
 	}
 
-	for (unsigned int port_num = 0; port_num < 4; port_num++)
-	{
-		if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
-			Keyboard::Initialize(s_window_handle);
-		else
-			Pad::Initialize(s_window_handle);
-	}
+	Keyboard::Initialize(s_window_handle);
+	Pad::Initialize(s_window_handle);
 
 	// Load and Init Wiimotes - only if we are booting in Wii mode
 	if (core_parameter.bWii)
@@ -483,14 +478,12 @@ void EmuThread()
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
 	HW::Shutdown();
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
-	for (unsigned int port_num = 0; port_num < 4; port_num++)
-	{
-		if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
-			Keyboard::Shutdown();
-		else
-			Pad::Shutdown();
-	}
+
 	Wiimote::Shutdown();
+
+	Keyboard::Shutdown();
+	Pad::Shutdown();
+
 	g_video_backend->Shutdown();
 	AudioCommon::ShutdownSoundStream();
 
