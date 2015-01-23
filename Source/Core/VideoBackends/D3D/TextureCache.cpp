@@ -176,7 +176,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		D3D::stateman->SetTextureByMask(textureSlotMask, texture->GetSRV());
 	}
 
-	if (!g_ActiveConfig.bCopyEFBToTexture)
+	if (!g_ActiveConfig.bCopyEFBToTexture && (!g_ActiveConfig.bEFBCopyCacheEnable || do_efb2ram))
 	{
 		u8* dst = Memory::GetPointer(dstAddr);
 		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
@@ -185,11 +185,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		size_in_bytes = (u32)encoded_size;
 
-		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
-		if (!g_ActiveConfig.bEFBCopyCacheEnable)
-			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
-		else if (!TextureCache::Find(addr, hash))
-			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
+		TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
 
 		this->hash = hash;
 	}

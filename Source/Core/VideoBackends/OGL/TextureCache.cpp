@@ -204,7 +204,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
-	if (false == g_ActiveConfig.bCopyEFBToTexture)
+	if (false == g_ActiveConfig.bCopyEFBToTexture && (!g_ActiveConfig.bEFBCopyCacheEnable || do_efb2ram))
 	{
 		int encoded_size = TextureConverter::EncodeToRamFromTexture(
 			addr,
@@ -220,11 +220,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		size_in_bytes = (u32)encoded_size;
 
-		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
-		if (!g_ActiveConfig.bEFBCopyCacheEnable)
-			TextureCache::MakeRangeDynamic(addr,encoded_size);
-		else if (!TextureCache::Find(addr, new_hash))
-			TextureCache::MakeRangeDynamic(addr,encoded_size);
+		TextureCache::MakeRangeDynamic(addr,encoded_size);
 
 		hash = new_hash;
 	}

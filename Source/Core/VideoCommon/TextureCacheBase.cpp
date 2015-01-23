@@ -339,6 +339,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	else
 		src_data = Memory::GetPointer(address);
 
+	bool temp_do_efb2ram = false;
+
 	// TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data from the low tmem bank than it should)
 	tex_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	u32 palette_size = 0;
@@ -366,7 +368,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		// TODO: Convert those textures using the right palette, so they display correctly
 		auto iter = textures.find(temp_texID);
 		if (iter != textures.end() && iter->second->IsEfbCopy() && textures.find(texID) == textures.end())
+		{
 			texID = temp_texID;
+			temp_do_efb2ram = true;
+		}
 	}
 
 	// GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
@@ -378,8 +383,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	{
 		// 1. Calculate reference hash:
 		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
-		if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
+		if ((g_ActiveConfig.bCopyEFBToTexture || (g_ActiveConfig.bEFBCopyCacheEnable && !entry->do_efb2ram)) && entry->IsEfbCopy())
 			tex_hash = TEXHASH_INVALID;
+
+		entry->do_efb2ram = temp_do_efb2ram;
 
 		// 2. a) For EFB copies, only the hash and the texture address need to match
 		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
@@ -460,6 +467,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	entry->SetGeneralParameters(address, texture_size, full_format);
 	entry->SetDimensions(nativeW, nativeH, tex_levels);
 	entry->hash = tex_hash;
+
+	entry->do_efb2ram = true;
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0);
@@ -819,9 +828,14 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
+	bool temp_do_efb2ram = true;
+
 	TCacheEntryBase*& entry = textures[dstAddr];
 	if (entry)
+	{
 		FreeTexture(entry);
+		temp_do_efb2ram = entry->do_efb2ram;
+	}
 
 	// create the texture
 	TCacheEntryConfig config;
@@ -837,6 +851,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->SetDimensions(tex_w, tex_h, 1);
 	entry->SetHashes(TEXHASH_INVALID);
 	entry->type = TCET_EC_VRAM;
+	entry->do_efb2ram = temp_do_efb2ram;
 
 	entry->frameCount = FRAMECOUNT_INVALID;
 
