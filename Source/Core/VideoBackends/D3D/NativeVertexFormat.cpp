@@ -59,7 +59,7 @@ DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 
 void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
-	vertex_stride = _vtx_decl.stride;
+	vtx_decl = _vtx_decl;
 	memset(m_elems, 0, sizeof(m_elems));
 	const AttributeFormat* format = &_vtx_decl.position;
 

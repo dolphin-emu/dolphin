@@ -181,13 +181,6 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	PrepareDrawBuffers(stride);
 
-	if (!bpmem.genMode.zfreeze)
-		CalculateZSlope(stride);
-
-	// If cull mode is CULL_ALL, do not render these triangles
-	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
-		return;
-
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
 
@@ -200,9 +193,6 @@ void VertexManager::ResetBuffer(u32 stride)
 {
 	s_pCurBufferPointer = s_pBaseBufferPointer;
 	IndexGenerator::Start(GetIndexBuffer());
-
-	if (bpmem.genMode.zfreeze)
-		PixelShaderManager::SetZSlope(ZSlope.dfdx, ZSlope.dfdy, ZSlope.f0);
 }
 
 }  // namespace

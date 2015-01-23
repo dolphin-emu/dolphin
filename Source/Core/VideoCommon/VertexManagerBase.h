@@ -4,6 +4,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
 class NativeVertexFormat;
 class PointerWrap;
@@ -19,6 +20,7 @@ struct Slope
 	float dfdx;
 	float dfdy;
 	float f0;
+	bool dirty;
 };
 
 class VertexManager
@@ -63,7 +65,7 @@ protected:
 	static u32 GetRemainingIndices(int primitive);
 
 	static Slope ZSlope;
-	static void CalculateZSlope(u32 stride);
+	static void CalculateZSlope(NativeVertexFormat *format);
 
 private:
 	static bool IsFlushed;

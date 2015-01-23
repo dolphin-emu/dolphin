@@ -690,10 +690,12 @@ void VertexShaderManager::ResetView()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::TransformToClipSpace(const float* data, float *out)
+void VertexShaderManager::TransformToClipSpace(const float* data, float *out, u32 MtxIdx)
 {
-	// Can we use constants.posnormalmatrix here instead?
-	const float *world_matrix = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
+	const float *world_matrix = (const float *)xfmem.posMatrices + (MtxIdx & 0x3f) * 4;
+	// We use the projection matrix calculated by vertexShaderManager, because it
+	// includes any free look transformations.
+	// Make sure VertexManager::SetConstants() has been called first.
 	const float *proj_matrix = &g_fProjectionMatrix[0];
 
 	float t[3];

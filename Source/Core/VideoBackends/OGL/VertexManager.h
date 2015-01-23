@@ -13,8 +13,6 @@ namespace OGL
 {
 	class GLVertexFormat : public NativeVertexFormat
 	{
-		PortableVertexDeclaration vtx_decl;
-
 	public:
 		GLVertexFormat();
 		~GLVertexFormat();

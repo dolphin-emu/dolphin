@@ -12,6 +12,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -220,6 +221,30 @@ void VertexManager::Flush()
 	GeometryShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
+	// Calculate ZSlope for zfreeze
+	if (!bpmem.genMode.zfreeze)
+	{
+		// Must be done after VertexShaderManager::SetConstants()
+		CalculateZSlope(VertexLoaderManager::GetCurrentVertexFormat());
+	}
+	else if (ZSlope.dirty) // or apply any dirty ZSlopes
+	{
+		PixelShaderManager::SetZSlope(ZSlope.dfdx, ZSlope.dfdy, ZSlope.f0);
+		ZSlope.dirty = false;
+	}
+
+	// If cull mode is CULL_ALL, we shouldn't render any triangles/quads (points and lines don't get culled)
+	// vertex loader has already converted any quads into triangles, so we just check for triangles.
+	// TODO: These culled primites need to get this far through the pipeline to be used as zfreeze refrence
+	//       planes. But currently we apply excessive processing and store the vertices in buffers on the
+	//       video card, which is a waste of bandwidth.
+	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
+	{
+		GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
+		IsFlushed = true;
+		return;
+	}
+
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
 	                   bpmem.dstalpha.enable &&
 	                   bpmem.blendmode.alphaupdate &&
@@ -245,24 +270,34 @@ void VertexManager::DoState(PointerWrap& p)
 	g_vertex_manager->vDoState(p);
 }
 
-void VertexManager::CalculateZSlope(u32 stride)
+void VertexManager::CalculateZSlope(NativeVertexFormat *format)
 {
 	float vtx[9];
 	float out[12];
 	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
 	                        xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
+	// Global matrix ID.
+	u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
+	PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
+	size_t posOff = vert_decl.position.offset;
+	size_t mtxOff = vert_decl.posmtx.offset;
+
 	// Lookup vertices of the last rendered triangle and software-transform them
-	// This allows us to determine the depth slope, which will be used if zfreeze
+	// This allows us to determine the depth slope, which will be used if z--freeze
 	// is enabled in the following flush.
 	for (unsigned int i = 0; i < 3; ++i)
 	{
-		u8* vtx_ptr = s_pCurBufferPointer - stride * (3 - i);
-		vtx[0 + i * 3] = ((float*)vtx_ptr)[0];
-		vtx[1 + i * 3] = ((float*)vtx_ptr)[1];
-		vtx[2 + i * 3] = ((float*)vtx_ptr)[2];
+		u8* vtx_ptr = s_pCurBufferPointer - vert_decl.stride * (3 - i);
+		vtx[0 + i * 3] = ((float*)(vtx_ptr + posOff))[0];
+		vtx[1 + i * 3] = ((float*)(vtx_ptr + posOff))[1];
+		vtx[2 + i * 3] = ((float*)(vtx_ptr + posOff))[2];
 
-		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4]);
+		// If this vertex format has per-vertex position matrix IDs, look it up.
+		if(vert_decl.posmtx.enable)
+			mtxIdx = *((u32*)(vtx_ptr + mtxOff));
+
+		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4], mtxIdx);
 
 		// Transform to Screenspace
 		float inv_w = 1.0f / out[3 + i * 4];
@@ -283,11 +318,12 @@ void VertexManager::CalculateZSlope(u32 stride)
 	float b = dx31 * DF21 + dx12 * DF31;
 	float c = -dx12 * dy31 - dx31 * -dy12;
 
-	// Stop divide by zero
+	// Sometimes we process de-generate triangles. Stop any divide by zeros
 	if (c == 0)
 		return;
 
 	ZSlope.dfdx = -a / c;
 	ZSlope.dfdy = -b / c;
 	ZSlope.f0 = out[2] - (out[0] * ZSlope.dfdx + out[1] * ZSlope.dfdy);
+	ZSlope.dirty = true;
 }
