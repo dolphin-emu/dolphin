@@ -27,7 +27,7 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(true);
+	
 	u32 b = inst.FB;
 	u32 d = inst.FD;
 
@@ -135,6 +135,8 @@ void JitArm::fctiwzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
+	
+	//Pink in Animal Crossing
 	FALLBACK_IF(true);
 
 	u32 b = inst.FB;
@@ -496,7 +498,6 @@ void JitArm::frsqrtex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(true);
 
 	FALLBACK_IF(inst.Rc);
 
