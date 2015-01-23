@@ -420,6 +420,7 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 
 	fpr.Unlock(V0);
 }
+
 void JitArm::fnmaddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -535,3 +536,50 @@ void JitArm::frsqrtex(UGeckoInstruction inst)
 	gpr.Unlock(fpscrReg, rA);
 }
 
+void JitArm::fmsubx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMUL(V0, vA0, vC0);
+
+	VSUB(V0, V0, vB0);
+
+	VMOV(vD0, V0);
+
+	fpr.Unlock(V0);
+}
+
+void JitArm::fnmsubx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMUL(V0, vA0, vC0);
+
+	VSUB(vD0, V0, vB0);
+
+	VNEG(vD0, vD0);
+
+	fpr.Unlock(V0);
+}
