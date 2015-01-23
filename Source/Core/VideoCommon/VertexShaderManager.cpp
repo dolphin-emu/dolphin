@@ -34,7 +34,7 @@ static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 extern bool g_aspect_wide;
 
 // track changes
-static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged, bFreeLookChanged;
+static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged, bFreeLookChanged, bFrameChanged;
 static BitSet32 nMaterialsChanged;
 static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
@@ -127,6 +127,8 @@ const char *GetViewportTypeName(ViewportType v)
 //#pragma optimize("", off)
 
 void ClearDebugProj() { //VR
+	bFrameChanged = true;
+
 	debug_newScene = debug_nextScene;
 	if (debug_newScene)
 	{
@@ -704,6 +706,7 @@ void VertexShaderManager::Dirty()
 	bTexMatricesChanged[1] = true;
 
 	bProjectionChanged = true;
+	bFrameChanged = true;
 
 	nMaterialsChanged = BitSet32::AllTrue(4);
 
@@ -871,20 +874,22 @@ void VertexShaderManager::SetConstants()
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			if (!bProjectionChanged)
+			if (!bProjectionChanged && !bFrameChanged)
 				SetProjectionConstants();
 		} 
 		// VR adjust the projection matrix for the new kind of viewport
-		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged)
+		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged && !bFrameChanged)
 		{
 			SetProjectionConstants();
 		}
 	}
 
-	if (bProjectionChanged)
+	if (bProjectionChanged || bFrameChanged)
 	{
+		if (bProjectionChanged)
+			LogProj(xfmem.projection.rawProjection);
 		bProjectionChanged = false;
-		LogProj(xfmem.projection.rawProjection);
+		bFrameChanged = false;
 		SetProjectionConstants();
 	}
 }
