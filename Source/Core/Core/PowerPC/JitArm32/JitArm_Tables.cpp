@@ -363,9 +363,9 @@ static GekkoOPTemplate table63_2[] =
 	{23, &JitArm::fselx},                 //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitArm::fmulx},                 //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{26, &JitArm::frsqrtex},              //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
-	{28, &JitArm::fmsubx}, 				  //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &JitArm::fmsubx},                //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{29, &JitArm::fmaddx},                //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{30, &JitArm::fnmsubx},				  //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &JitArm::fnmsubx},               //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{31, &JitArm::fnmaddx},               //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
