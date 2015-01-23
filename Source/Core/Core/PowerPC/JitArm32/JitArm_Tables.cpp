@@ -209,7 +209,7 @@ static GekkoOPTemplate table31[] =
 
 	//load word
 	{23,  &JitArm::lXX},                    //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &JitArm::lXX}, 				    //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{55,  &JitArm::lXX},                    //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
 	{279, &JitArm::lXX},                    //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
