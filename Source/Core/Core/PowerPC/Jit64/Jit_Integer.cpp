@@ -50,22 +50,6 @@ void Jit64::GenerateOverflow()
 	SetJumpTarget(exit);
 }
 
-bool Jit64::MergeAllowedNextInstructions(int count)
-{
-	if (PowerPC::GetState() == PowerPC::CPU_STEPPING || js.instructionsLeft < count)
-		return false;
-	// Be careful: a breakpoint kills flags in between instructions
-	for (int i = 1; i <= count; i++)
-	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
-			PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
-			return false;
-		if (js.op[i].isBranchTarget)
-			return false;
-	}
-	return true;
-}
-
 void Jit64::FinalizeCarry(CCFlags cond)
 {
 	js.carryFlagSet = false;
