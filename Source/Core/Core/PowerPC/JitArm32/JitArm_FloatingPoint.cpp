@@ -553,9 +553,7 @@ void JitArm::fmsubx(UGeckoInstruction inst)
 
 	VMUL(V0, vA0, vC0);
 
-	VSUB(V0, V0, vB0);
-
-	VMOV(vD0, V0);
+	VSUB(vD0, V0, vB0);
 
 	fpr.Unlock(V0);
 }
