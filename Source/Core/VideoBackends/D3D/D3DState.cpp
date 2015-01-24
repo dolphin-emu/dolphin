@@ -425,6 +425,10 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
 
 ID3D11DepthStencilState* StateCache::Get(ZMode state)
 {
+	// VR HUD always on Top option
+	if (VertexShaderManager::m_layer_on_top)
+		state.func = ZMode::ALWAYS;
+
 	auto it = m_depth.find(state.hex);
 
 	if (it != m_depth.end())
@@ -463,10 +467,6 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
 		depthdc.DepthEnable = FALSE;
 		depthdc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	}
-
-	// VR HUD always on Top option
-	if (VertexShaderManager::m_layer_on_top)
-		depthdc.DepthFunc = D3D11_COMPARISON_ALWAYS;
 
 	ID3D11DepthStencilState* res = nullptr;
 
