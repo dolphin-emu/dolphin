@@ -41,10 +41,9 @@ static size_t s_baseVertex;
 static size_t s_index_offset;
 
 VertexManager::VertexManager()
+	: m_cpu_v_buffer(MAX_VBUFFER_SIZE), m_cpu_i_buffer(MAX_IBUFFER_SIZE)
 {
 	CreateDeviceObjects();
-	CpuVBuffer.resize(MAX_VBUFFER_SIZE);
-	CpuIBuffer.resize(MAX_IBUFFER_SIZE);
 }
 
 VertexManager::~VertexManager()
@@ -83,13 +82,13 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-	if (CullAll)
+	if (s_cull_all)
 	{
 		// This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
-		s_pCurBufferPointer = s_pBaseBufferPointer = CpuVBuffer.data();
-		s_pEndBufferPointer = s_pBaseBufferPointer + CpuVBuffer.size();
+		s_pCurBufferPointer = s_pBaseBufferPointer = m_cpu_v_buffer.data();
+		s_pEndBufferPointer = s_pBaseBufferPointer + m_cpu_v_buffer.size();
 
-		IndexGenerator::Start((u16*)CpuIBuffer.data());
+		IndexGenerator::Start((u16*)m_cpu_i_buffer.data());
 	}
 	else
 	{

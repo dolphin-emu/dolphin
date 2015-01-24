@@ -47,8 +47,8 @@ private:
 	void PrepareDrawBuffers(u32 stride);
 
 	// Alternative buffers in CPU memory for primatives we are going to discard.
-	std::vector<u8> CpuVBuffer;
-	std::vector<u16> CpuIBuffer;
+	std::vector<u8> m_cpu_v_buffer;
+	std::vector<u16> m_cpu_i_buffer;
 };
 
 }
