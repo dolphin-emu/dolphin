@@ -632,6 +632,11 @@ public:
 	void MOVHLPS(X64Reg regOp1, X64Reg regOp2);
 	void MOVLHPS(X64Reg regOp1, X64Reg regOp2);
 
+	// Be careful when using these overloads for reg <--> xmm moves.
+	// The one you cast to OpArg with R(reg) is the x86 reg, the other
+	// one is the xmm reg.
+	// ie: "MOVD_xmm(eax, R(xmm1))" generates incorrect code (movd xmm0, rcx)
+	//     use "MOVD_xmm(R(eax), xmm1)" instead.
 	void MOVD_xmm(X64Reg dest, const OpArg &arg);
 	void MOVQ_xmm(X64Reg dest, OpArg arg);
 	void MOVD_xmm(const OpArg &arg, X64Reg src);
