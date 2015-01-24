@@ -11,11 +11,11 @@
 #include "Core/HW/EXI_DeviceAGP.h"
 #include "Core/HW/Memmap.h"
 
-CEXIAgp::CEXIAgp(int index) :
-	m_slot(index)
+CEXIAgp::CEXIAgp(int index)
 {
+	m_slot = index;
+
 	// Create the ROM
-	m_pHashArray = (u8*)AllocateMemoryPages(HASH_SIZE);
 	m_rom_size = 0;
 
 	LoadRom();
@@ -26,16 +26,25 @@ CEXIAgp::CEXIAgp(int index) :
 
 CEXIAgp::~CEXIAgp()
 {
-	m_pROM = nullptr;
-	m_pHashArray = nullptr;
+	std::string path;
+	std::string filename;
+	std::string ext;
+	std::string gbapath;
+	SplitPath(m_slot == 0 ? SConfig::GetInstance().m_strGbaCartA : SConfig::GetInstance().m_strGbaCartB, &path, &filename, &ext);
+	gbapath = path + filename;
+
+	SaveFileFromEEPROM(gbapath + ".sav");
 }
 
 void CEXIAgp::DoHash(u8* data, u32 size)
 {
+	if (!m_rom_hash_loaded)
+		LoadHash();
+
 	for (u32 it = 0; it < size; it++)
 	{
 		m_hash = m_hash ^ data[it];
-		m_hash = m_pHashArray[m_hash];
+		m_hash = m_hash_array[m_hash];
 	}
 }
 
@@ -49,9 +58,9 @@ void CEXIAgp::LoadRom()
 	SplitPath(m_slot == 0 ? SConfig::GetInstance().m_strGbaCartA : SConfig::GetInstance().m_strGbaCartB, &path, &filename, &ext);
 	gbapath = path + filename;
 	LoadFileToROM(gbapath + ext);
-	INFO_LOG(EXPANSIONINTERFACE, "Loaded gba rom: %s card: %d", gbapath.c_str(), m_slot);
+	INFO_LOG(EXPANSIONINTERFACE, "Loaded GBA rom: %s card: %d", gbapath.c_str(), m_slot);
 	LoadFileToEEPROM(gbapath + ".sav");
-	INFO_LOG(EXPANSIONINTERFACE, "Loaded gba sav: %s card: %d", gbapath.c_str(), m_slot);
+	INFO_LOG(EXPANSIONINTERFACE, "Loaded GBA sav: %s card: %d", gbapath.c_str(), m_slot);
 }
 
 void CEXIAgp::LoadFileToROM(std::string filename)
@@ -63,14 +72,14 @@ void CEXIAgp::LoadFileToROM(std::string filename)
 		m_rom_size = filesize & 0xFFFFFFFF;
 		m_rom_mask = (m_rom_size - 1);
 
-		m_pROM = (u8*)AllocateMemoryPages(m_rom_size);
+		m_rom.resize(m_rom_size);
 
-		pStream.ReadBytes(m_pROM, filesize);
+		pStream.ReadBytes(m_rom.data(), filesize);
 	}
 	else
 	{
 		// dummy rom data
-		m_pROM = (u8*)AllocateMemoryPages(0x2000);
+		m_rom.resize(0x2000);
 	}
 }
 
@@ -83,9 +92,18 @@ void CEXIAgp::LoadFileToEEPROM(std::string filename)
 		m_eeprom_size = filesize & 0xFFFFFFFF;
 		m_eeprom_mask = (m_eeprom_size - 1);
 
-		m_pEEPROM = (u8*)AllocateMemoryPages(m_eeprom_size);
+		m_eeprom.resize(m_eeprom_size);
 
-		pStream.ReadBytes(m_pEEPROM, filesize);
+		pStream.ReadBytes(m_eeprom.data(), filesize);
+	}
+}
+
+void CEXIAgp::SaveFileFromEEPROM(std::string filename)
+{
+	File::IOFile pStream(filename, "wb");
+	if (pStream)
+	{
+		pStream.WriteBytes(m_eeprom.data(), m_eeprom_size);
 	}
 }
 
@@ -95,9 +113,14 @@ void CEXIAgp::LoadHash()
 	{
 		for (int i = 0; i < 0x100; i++)
 		{
-			m_pHashArray[i] = Memory::ReadUnchecked_U8(0x0017e908 + i);
+			// Load the ROM hash expected by the AGP
+			m_hash_array[i] = Memory::ReadUnchecked_U8(0x0017e908 + i);
 		}
-		m_rom_hash_loaded = true;
+		// Verify the hash
+		if (m_hash_array[HASH_SIZE - 1] == 0x35)
+		{
+			m_rom_hash_loaded = true;
+		}
 	}
 }
 
@@ -108,16 +131,16 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
 	u32 uData = 0;
 	u8 RomVal1, RomVal2, RomVal3, RomVal4;
 
-	switch (m_currrent_cmd)
+	switch (m_current_cmd)
 	{
 	case 0xAE000000:
 		uData = 0x5AAA5517; // 17 is precalculated hash
-		m_currrent_cmd = 0;
+		m_current_cmd = 0;
 		break;
 	case 0xAE010000:
 		uData = (m_return_pos == 0) ? 0x01020304 : 0xF0020304; // F0 is precalculated hash, 020304 is left over
 		if (m_return_pos == 1)
-			m_currrent_cmd = 0;
+			m_current_cmd = 0;
 		else
 			m_return_pos = 1;
 		break;
@@ -129,28 +152,26 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
 		}
 		else
 		{
-			RomVal1 = m_pROM[m_rw_offset++];
-			RomVal2 = m_pROM[m_rw_offset++];
-			LoadHash();
+			RomVal1 = m_rom[m_rw_offset++];
+			RomVal2 = m_rom[m_rw_offset++];
 		}
 		DoHash(&RomVal2, 1);
 		DoHash(&RomVal1, 1);
 		uData = (RomVal2 << 24) | (RomVal1 << 16) | (m_hash << 8);
-		m_currrent_cmd = 0;
+		m_current_cmd = 0;
 		break;
 	case 0xAE030000:
 		if (_uSize == 1)
 		{
 			uData = 0xFF000000;
-			m_currrent_cmd = 0;
+			m_current_cmd = 0;
 		}
 		else
 		{
-			RomVal1 = m_pROM[m_rw_offset++];
-			RomVal2 = m_pROM[m_rw_offset++];
-			RomVal3 = m_pROM[m_rw_offset++];
-			RomVal4 = m_pROM[m_rw_offset++];
-			LoadHash();
+			RomVal1 = m_rom[m_rw_offset++];
+			RomVal2 = m_rom[m_rw_offset++];
+			RomVal3 = m_rom[m_rw_offset++];
+			RomVal4 = m_rom[m_rw_offset++];
 			DoHash(&RomVal2, 1);
 			DoHash(&RomVal1, 1);
 			DoHash(&RomVal4, 1);
@@ -159,21 +180,21 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
 		}
 		break;
 	case 0xAE0B0000:
-		RomVal1 = m_eeprom_pos < 4 ? 0xA : (((u64*)m_pEEPROM)[(m_eeprom_cmd >> 1) & 0x3F] >> (m_eeprom_pos - 4)) & 0x1;
+		RomVal1 = m_eeprom_pos < 4 ? 0xA : (((u64*)m_eeprom.data())[(m_eeprom_cmd >> 1) & 0x3F] >> (m_eeprom_pos - 4)) & 0x1;
 		RomVal2 = 0;
 		DoHash(&RomVal2, 1);
 		DoHash(&RomVal1, 1);
 		uData = (RomVal2 << 24) | (RomVal1 << 16) | (m_hash << 8);
 		m_eeprom_pos++;
-		m_currrent_cmd = 0;
+		m_current_cmd = 0;
 		break;
 	case 0xAE0C0000:
 		uData = m_hash << 24;
-		m_currrent_cmd = 0;
+		m_current_cmd = 0;
 		break;
 	default:
 		uData = 0x0;
-		m_currrent_cmd = 0;
+		m_current_cmd = 0;
 		break;
 	}
 	INFO_LOG(EXPANSIONINTERFACE, "AGP read %x", uData);
@@ -188,7 +209,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 	u8 HashCmd;
 	u64 Mask;
 	INFO_LOG(EXPANSIONINTERFACE, "AGP command %x", _uData);
-	switch (m_currrent_cmd)
+	switch (m_current_cmd)
 	{
 	case 0xAE020000:
 	case 0xAE030000:
@@ -210,7 +231,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 			else
 				m_eeprom_cmd &= ~Mask;
 			if (m_eeprom_pos == 0x48)
-				((u64*)(m_pEEPROM))[(m_eeprom_cmd >> 1) & 0x3F] = m_eeprom_data;
+				((u64*)(m_eeprom.data()))[(m_eeprom_cmd >> 1) & 0x3F] = m_eeprom_data;
 		}
 		else
 		{
@@ -235,7 +256,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 	case 0xAE0A0000:
 	default:
 		m_eeprom_pos = 0;
-		m_currrent_cmd = _uData;
+		m_current_cmd = _uData;
 		m_return_pos = 0;
 		m_hash = 0xFF;
 		HashCmd = (_uData & 0x00FF0000) >> 16;
@@ -246,8 +267,21 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 
 void CEXIAgp::DoState(PointerWrap &p)
 {
-	p.Do(m_position);
+	p.Do(m_slot);
 	p.Do(m_address);
-	p.Do(m_rw_offset);
+	p.Do(m_current_cmd);
+	p.Do(m_eeprom);
+	p.Do(m_eeprom_cmd);
+	p.Do(m_eeprom_data);
+	p.Do(m_eeprom_mask);
+	p.Do(m_eeprom_pos);
+	p.Do(m_eeprom_size);
 	p.Do(m_hash);
+	p.Do(m_hash_array);
+	p.Do(m_position);
+	p.Do(m_return_pos);
+	p.Do(m_rom);
+	p.Do(m_rom_mask);
+	p.Do(m_rom_size);
+	p.Do(m_rw_offset);
 }

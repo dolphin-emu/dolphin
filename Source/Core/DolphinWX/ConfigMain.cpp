@@ -1023,7 +1023,7 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 		ChooseSlotPath(true, SConfig::GetInstance().m_EXIDevice[0]);
 		break;
 	case ID_GC_EXIDEVICE_SLOTB_PATH:
-		ChooseSlotPath(false, SConfig::GetInstance().m_EXIDevice[0]);
+		ChooseSlotPath(false, SConfig::GetInstance().m_EXIDevice[1]);
 		break;
 	}
 }
@@ -1062,10 +1062,6 @@ void CConfigMain::ChooseSlotPath(bool isSlotA, TEXIDevices device_type)
 						"is not a valid gamecube memory card file"), filename.c_str()));
 					return;
 				}
-			}
-			else
-			{
-				return;
 			}
 		}
 #ifdef _WIN32

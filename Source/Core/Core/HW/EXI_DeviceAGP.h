@@ -35,9 +35,9 @@ private:
 	u32 m_rom_mask = 0;
 	u32 m_eeprom_size = 0;
 	u32 m_eeprom_mask = 0;
-	u8* m_pROM;
-	u8* m_pEEPROM;
-	u8* m_pHashArray;
+	std::vector<u8> m_rom;
+	std::vector<u8> m_eeprom;
+	std::array<u8, HASH_SIZE> m_hash_array;
 
 	//! Helper
 	u32 m_position = 0;
@@ -49,12 +49,13 @@ private:
 
 	void LoadFileToROM(std::string filename);
 	void LoadFileToEEPROM(std::string filename);
+	void SaveFileFromEEPROM(std::string filename);
 	void LoadHash();
 	void LoadRom();
 	void DoHash(u8* data, u32 size);
 
 	u8 m_hash = 0;
-	u32 m_currrent_cmd = 0;
+	u32 m_current_cmd = 0;
 	u32 m_return_pos = 0;
 
 	bool m_rom_hash_loaded = false;
