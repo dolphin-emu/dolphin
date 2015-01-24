@@ -85,14 +85,14 @@ static GekkoOPTemplate primarytable[] =
 	{61, Interpreter::psq_stu,      {"psq_stu", OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
-	{0,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
-	{5,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
-	{6,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
-	{9,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
-	{22, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
-	{30, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
-	{62, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
-	{58, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
+	{0,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{5,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{6,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{9,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{22, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{30, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{62, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{58, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0}},
 };
 
 static GekkoOPTemplate table4[] =
