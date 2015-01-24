@@ -398,7 +398,6 @@ void JitArm64::lXX(UGeckoInstruction inst)
 		ARM64Reg XA = EncodeRegTo64(WA);
 
 		MOVI2R(XA, (u64)&PowerPC::OnIdle);
-		MOVI2R(W0, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 		BLR(XA);
 
 		gpr.Unlock(WA);

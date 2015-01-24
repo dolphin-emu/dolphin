@@ -479,8 +479,6 @@ void Idle()
 
 	idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);
 	PowerPC::ppcState.downcount = 0;
-
-	Advance();
 }
 
 std::string GetScheduledEventsSummary()
