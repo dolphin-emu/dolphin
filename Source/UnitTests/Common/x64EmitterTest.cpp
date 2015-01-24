@@ -609,12 +609,12 @@ TEST_F(x64EmitterTest, MOVZX)
 
 TEST_F(x64EmitterTest, MOVBE)
 {
-	emitter->MOVBE(16, R(RAX), MatR(R12));
-	emitter->MOVBE(16, MatR(RAX), R(R12));
-	emitter->MOVBE(32, R(RAX), MatR(R12));
-	emitter->MOVBE(32, MatR(RAX), R(R12));
-	emitter->MOVBE(64, R(RAX), MatR(R12));
-	emitter->MOVBE(64, MatR(RAX), R(R12));
+	emitter->MOVBE(16, RAX, MatR(R12));
+	emitter->MOVBE(16, MatR(RAX), R12);
+	emitter->MOVBE(32, RAX, MatR(R12));
+	emitter->MOVBE(32, MatR(RAX), R12);
+	emitter->MOVBE(64, RAX, MatR(R12));
+	emitter->MOVBE(64, MatR(RAX), R12);
 	ExpectDisassembly("movbe ax, word ptr ds:[r12] "
 	                  "movbe word ptr ds:[rax], r12w "
 	                  "movbe eax, dword ptr ds:[r12] "

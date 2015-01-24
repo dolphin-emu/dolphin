@@ -194,7 +194,7 @@ void CommonAsmRoutines::GenMfcr()
 const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = { 3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = { 3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-static const float GC_ALIGNED16(m_quantizeTableS[]) =
+const float GC_ALIGNED16(m_quantizeTableS[]) =
 {
 	(1ULL <<  0), (1ULL <<  0), (1ULL <<  1), (1ULL <<  1), (1ULL <<  2), (1ULL <<  2), (1ULL <<  3), (1ULL <<  3),
 	(1ULL <<  4), (1ULL <<  4), (1ULL <<  5), (1ULL <<  5), (1ULL <<  6), (1ULL <<  6), (1ULL <<  7), (1ULL <<  7),
@@ -222,7 +222,7 @@ static const float GC_ALIGNED16(m_quantizeTableS[]) =
 	1.0 / (1ULL <<  2), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  1),
 };
 
-static const float GC_ALIGNED16(m_dequantizeTableS[]) =
+const float GC_ALIGNED16(m_dequantizeTableS[]) =
 {
 	1.0 / (1ULL <<  0), 1.0 / (1ULL <<  0), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  1),
 	1.0 / (1ULL <<  2), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  3), 1.0 / (1ULL <<  3),

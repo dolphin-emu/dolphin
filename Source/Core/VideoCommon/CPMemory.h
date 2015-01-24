@@ -20,10 +20,12 @@ enum
 // Vertex components
 enum
 {
-	NOT_PRESENT = 0,
-	DIRECT      = 1,
-	INDEX8      = 2,
-	INDEX16     = 3,
+	NOT_PRESENT  = 0,
+	DIRECT       = 1,
+	INDEX8       = 2,
+	INDEX16      = 3,
+
+	MASK_INDEXED = 2,
 };
 
 enum
@@ -185,7 +187,7 @@ struct TVtxAttr
 	u8 NormalFormat;
 	ColorAttr color[2];
 	TexAttr texCoord[8];
-	u8 ByteDequant;
+	bool ByteDequant;
 	u8 NormalIndex3;
 };
 

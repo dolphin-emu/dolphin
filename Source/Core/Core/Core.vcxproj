@@ -148,6 +148,8 @@
     <ClCompile Include="HW\EXI_DeviceIPL.cpp" />
     <ClCompile Include="HW\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="HW\EXI_DeviceMic.cpp" />
+    <ClCompile Include="HW\GCKeyboard.cpp" />
+    <ClCompile Include="HW\GCKeyboardEmu.cpp" />
     <ClCompile Include="HW\GCMemcard.cpp" />
     <ClCompile Include="HW\GCMemcardDirectory.cpp" />
     <ClCompile Include="HW\GCMemcardRaw.cpp" />
@@ -167,6 +169,7 @@
     <ClCompile Include="HW\SI_DeviceGBA.cpp" />
     <ClCompile Include="HW\SI_DeviceGCController.cpp" />
     <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp" />
+    <ClCompile Include="HW\SI_DeviceKeyboard.cpp" />
     <ClCompile Include="HW\SI_GCAdapter.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
@@ -355,6 +358,8 @@
     <ClInclude Include="HW\EXI_DeviceIPL.h" />
     <ClInclude Include="HW\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="HW\EXI_DeviceMic.h" />
+    <ClInclude Include="HW\GCKeyboard.h" />
+    <ClInclude Include="HW\GCKeyboardEmu.h" />
     <ClInclude Include="HW\GCMemcard.h" />
     <ClInclude Include="HW\GCMemcardDirectory.h" />
     <ClInclude Include="HW\GCMemcardRaw.h" />
@@ -374,6 +379,7 @@
     <ClInclude Include="HW\SI_DeviceGBA.h" />
     <ClInclude Include="HW\SI_DeviceGCController.h" />
     <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h" />
+    <ClInclude Include="HW\SI_DeviceKeyboard.h" />
     <ClInclude Include="HW\SI_GCAdapter.h" />
     <ClInclude Include="HW\Sram.h" />
     <ClInclude Include="HW\StreamADPCM.h" />

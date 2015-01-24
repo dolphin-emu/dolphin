@@ -240,7 +240,7 @@ protected:
 			choice_backend->Disable();
 			label_backend->Disable();
 
-			//D3D only
+			// D3D only
 			if (vconfig.backend_info.Adapters.size())
 			{
 				choice_adapter->Disable();
@@ -248,7 +248,7 @@ protected:
 			}
 
 #ifndef __APPLE__
-			// This isn't supported on OSX.
+			// This isn't supported on OS X.
 
 			choice_display_resolution->Disable();
 			label_display_resolution->Disable();

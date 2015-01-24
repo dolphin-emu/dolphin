@@ -67,6 +67,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	switch (command)
 	{
 	case CMD_RESET:
+	case CMD_ID:
 		*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER;
 		break;
 

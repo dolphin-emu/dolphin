@@ -31,7 +31,7 @@
 	#endif
 #endif
 
-// Shared data dirs (Sys and shared User for linux)
+// Shared data dirs (Sys and shared User for Linux)
 #ifdef _WIN32
 	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__

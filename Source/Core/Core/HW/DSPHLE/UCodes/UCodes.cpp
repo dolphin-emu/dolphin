@@ -66,11 +66,11 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda ucode chosen", crc);
 		return new ZeldaUCode(dsphle, crc);
 
-	// WII CRCs
+	// Wii CRCs
 	case 0xb7eb9a9c: // Wii Pikmin - PAL
 	case 0xeaeb38cc: // Wii Pikmin 2 - PAL
 	case 0x6c3f6f94: // Zelda TP - PAL
-	case 0xd643001f: // Mario Galaxy - PAL / WII DK Jungle Beat - PAL
+	case 0xd643001f: // Mario Galaxy - PAL / Wii DK Jungle Beat - PAL
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda Wii ucode chosen\n", crc);
 		return new ZeldaUCode(dsphle, crc);
 
@@ -166,12 +166,12 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 		if (m_next_ucode.mram_size)
 		{
 			WARN_LOG(DSPHLE,
-				"Trying to boot new ucode with dram download - not implemented");
+				"Trying to boot new ucode with DRAM download - not implemented");
 		}
 		if (m_next_ucode.dram_size)
 		{
 			WARN_LOG(DSPHLE,
-				"Trying to boot new ucode with dram upload - not implemented");
+				"Trying to boot new ucode with DRAM upload - not implemented");
 		}
 
 		m_dsphle->SwapUCode(ector_crc);

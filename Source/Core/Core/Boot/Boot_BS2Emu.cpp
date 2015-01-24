@@ -22,8 +22,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DiscIO/VolumeCreator.h"
-
 void CBoot::RunFunction(u32 _iAddr)
 {
 	PC = _iAddr;
@@ -37,7 +35,7 @@ void CBoot::RunFunction(u32 _iAddr)
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC()
+bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 {
 	INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -87,7 +85,7 @@ bool CBoot::EmulatedBS2_GC()
 	u32 iAppLoaderOffset = 0x2440;
 	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10, false);
 	u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14, false) + VolumeHandler::Read32(iAppLoaderOffset + 0x18, false);
-	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
+	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1) || skipAppLoader)
 	{
 		INFO_LOG(BOOT, "GC BS2: Not running apploader!");
 		return false;
@@ -323,7 +321,7 @@ bool CBoot::EmulatedBS2_Wii()
 
 	// Execute the apploader
 	bool apploaderRan = false;
-	if (VolumeHandler::IsValid() && VolumeHandler::IsWii())
+	if (VolumeHandler::IsValid() && VolumeHandler::IsWiiDisc())
 	{
 		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);

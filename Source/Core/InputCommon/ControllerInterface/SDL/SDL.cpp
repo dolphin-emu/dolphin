@@ -38,21 +38,31 @@ void Init( std::vector<Core::Device*>& devices )
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map<std::string, int> name_counts;
 
-	if (SDL_Init( SDL_INIT_FLAGS ) >= 0)
+#ifdef USE_SDL_HAPTIC
+	if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) >= 0)
 	{
-		// joysticks
-		for (int i = 0; i < SDL_NumJoysticks(); ++i)
+		// Correctly initialized
+	}
+	else
+#endif
+	if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+	{
+		// Failed to initialize
+		return;
+	}
+
+	// joysticks
+	for (int i = 0; i < SDL_NumJoysticks(); ++i)
+	{
+		SDL_Joystick* dev = SDL_JoystickOpen(i);
+		if (dev)
 		{
-			SDL_Joystick* dev = SDL_JoystickOpen(i);
-			if (dev)
-			{
-				Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
-				// only add if it has some inputs/outputs
-				if (js->Inputs().size() || js->Outputs().size())
-					devices.push_back( js );
-				else
-					delete js;
-			}
+			Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
+			// only add if it has some inputs/outputs
+			if (js->Inputs().size() || js->Outputs().size())
+				devices.push_back( js );
+			else
+				delete js;
 		}
 	}
 }

@@ -168,6 +168,10 @@ public:
 	void ps_sum0(UGeckoInstruction inst);
 	void ps_sum1(UGeckoInstruction inst);
 
+	// Loadstore paired
+	void psq_l(UGeckoInstruction inst);
+	void psq_st(UGeckoInstruction inst);
+
 private:
 	Arm64GPRCache gpr;
 	Arm64FPRCache fpr;

@@ -200,7 +200,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 
 	while (true)
 	{
-		src.WritePointer(&opcodeStart);
+		opcodeStart = src.GetPointer();
 
 		if (!src.size())
 			goto end;
@@ -367,7 +367,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 		if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
 		{
 			u8* opcodeEnd;
-			src.WritePointer(&opcodeEnd);
+			opcodeEnd = src.GetPointer();
 			FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(opcodeEnd - opcodeStart));
 		}
 	}

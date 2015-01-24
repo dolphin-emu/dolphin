@@ -25,6 +25,7 @@
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI.h"
 #if defined(__LIBUSB__) || defined (_WIN32)
@@ -39,13 +40,14 @@
 #include "DolphinWX/X11Utils.h"
 #endif
 
-const std::array<wxString, 7> ControllerConfigDiag::m_gc_pad_type_strs = {{
+const std::array<wxString, 8> ControllerConfigDiag::m_gc_pad_type_strs = {{
 	_("None"),
 	_("Standard Controller"),
 	_("Steering Wheel"),
 	_("Dance Mat"),
 	_("TaruKonga (Bongos)"),
 	_("GBA"),
+	_("Keyboard"),
 	_("AM-Baseboard")
 }};
 
@@ -123,8 +125,11 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[5]);
 			gamecube_configure_bt[i]->Disable();
 			break;
-		case SIDEVICE_AM_BASEBOARD:
+		case SIDEVICE_GC_KEYBOARD:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[6]);
+			break;
+		case SIDEVICE_AM_BASEBOARD:
+			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[7]);
 			break;
 		default:
 			pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[0]);
@@ -291,8 +296,8 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 	wxBoxSizer* const real_wiimotes_sizer = new wxBoxSizer(wxHORIZONTAL);
 
 	if (!WiimoteReal::g_wiimote_scanner.IsReady())
-		real_wiimotes_group->Add(new wxStaticText(this, wxID_ANY, _("A supported bluetooth device could not be found.\n"
-		                                                            "You must manually connect your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
+		real_wiimotes_group->Add(new wxStaticText(this, wxID_ANY, _("A supported Bluetooth device could not be found.\n"
+		                                                            "You must manually connect your Wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
 
 	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
 	continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);
@@ -515,6 +520,11 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 	}
 	else if (device_name == m_gc_pad_type_strs[6])
 	{
+		tempType = SIDEVICE_GC_KEYBOARD;
+		gamecube_configure_bt[device_num]->Enable();
+	}
+	else if (device_name == m_gc_pad_type_strs[7])
+	{
 		tempType = SIDEVICE_AM_BASEBOARD;
 		gamecube_configure_bt[device_num]->Enable();
 	}
@@ -533,6 +543,7 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
 void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 {
 	InputConfig* const pad_plugin = Pad::GetConfig();
+	InputConfig* const key_plugin = Keyboard::GetConfig();
 	const int port_num = m_gc_port_config_ids[event.GetId()];
 
 	bool was_init = false;
@@ -547,16 +558,30 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
 		Pad::Initialize(reinterpret_cast<void*>(win));
+		Keyboard::Initialize(reinterpret_cast<void*>(win));
 #else
 		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
+		Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 	}
 
-	InputConfigDialog m_ConfigFrame(this, *pad_plugin, _("Dolphin GCPad Configuration"), port_num);
-	m_ConfigFrame.ShowModal();
-	m_ConfigFrame.Destroy();
+	if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
+	{
+		InputConfigDialog m_ConfigFrame(this, *key_plugin, _("GameCube Controller Configuration"), port_num);
+		m_ConfigFrame.ShowModal();
+		m_ConfigFrame.Destroy();
+	}
+	else
+	{
+		InputConfigDialog m_ConfigFrame(this, *pad_plugin, _("GameCube Controller Configuration"), port_num);
+		m_ConfigFrame.ShowModal();
+		m_ConfigFrame.Destroy();
+	}
 
 	// if game isn't running
 	if (!was_init)
+	{
+		Keyboard::Shutdown();
 		Pad::Shutdown();
+	}
 }

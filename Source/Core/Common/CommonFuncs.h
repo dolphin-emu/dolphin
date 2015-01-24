@@ -108,7 +108,7 @@ inline u64 _rotr64(u64 x, unsigned int shift)
 	#define snprintf _snprintf
 	#define vscprintf _vscprintf
 
-// 64 bit offsets for windows
+// 64 bit offsets for Windows
 	#define fseeko _fseeki64
 	#define ftello _ftelli64
 	#define atoll _atoi64

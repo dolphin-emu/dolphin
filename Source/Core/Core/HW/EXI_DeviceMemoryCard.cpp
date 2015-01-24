@@ -216,7 +216,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 		{
 			// TODO more user friendly abort
 			PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your write permissions or move "
-						"the file outside of dolphin",
+						"the file outside of Dolphin",
 						strDirectoryName.c_str());
 			exit(0);
 		}

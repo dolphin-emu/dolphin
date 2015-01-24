@@ -52,7 +52,7 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		// NTSC
 		case 'E':
 		case 'N': // Japanese import to USA and other NTSC regions
-		case 'Z': // Prince Of Persia - The Forgotten Sands (WII)
+		case 'Z': // Prince of Persia - The Forgotten Sands (Wii)
 		case 'B': // Ufouria: The Saga (Virtual Console)
 			return IVolume::COUNTRY_USA;
 

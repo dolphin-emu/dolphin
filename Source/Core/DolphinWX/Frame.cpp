@@ -280,6 +280,11 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 	{
 		// OpenGL requires the pop-up style to activate exclusive mode.
 		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
+
+		// Some backends don't support exclusive fullscreen, so we
+		// can't tell exactly when exclusive mode is activated.
+		if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
+			OSD::AddMessage("Enabled exclusive fullscreen.");
 	}
 #endif
 
@@ -912,6 +917,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		SConfig::GetInstance().m_ListAustralia &&
 		SConfig::GetInstance().m_ListFrance &&
 		SConfig::GetInstance().m_ListGermany &&
+		SConfig::GetInstance().m_ListInternational &&
 		SConfig::GetInstance().m_ListItaly &&
 		SConfig::GetInstance().m_ListKorea &&
 		SConfig::GetInstance().m_ListNetherlands &&
@@ -929,6 +935,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		SConfig::GetInstance().m_ListAustralia =
 		SConfig::GetInstance().m_ListFrance =
 		SConfig::GetInstance().m_ListGermany =
+		SConfig::GetInstance().m_ListInternational =
 		SConfig::GetInstance().m_ListItaly =
 		SConfig::GetInstance().m_ListKorea =
 		SConfig::GetInstance().m_ListNetherlands =
@@ -946,6 +953,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_LIST_AUSTRALIA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_FRANCE)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_GERMANY)->Check(true);
+		GetMenuBar()->FindItem(IDM_LIST_INTERNATIONAL)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_ITALY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_KOREA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_NETHERLANDS)->Check(true);
@@ -1058,8 +1066,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_SAVE_STATE_SLOT_SELECTED: return IDM_SAVE_SELECTED_SLOT;
 	case HK_LOAD_STATE_SLOT_SELECTED: return IDM_LOAD_SELECTED_SLOT;
 
-	case HK_FREELOOK_INCREASE_SPEED: return IDM_FREELOOK_INCREASE_SPEED;
 	case HK_FREELOOK_DECREASE_SPEED: return IDM_FREELOOK_DECREASE_SPEED;
+	case HK_FREELOOK_INCREASE_SPEED: return IDM_FREELOOK_INCREASE_SPEED;
 	case HK_FREELOOK_RESET_SPEED: return IDM_FREELOOK_RESET_SPEED;
 	case HK_FREELOOK_LEFT: return IDM_FREELOOK_LEFT;
 	case HK_FREELOOK_RIGHT: return IDM_FREELOOK_RIGHT;
@@ -1141,10 +1149,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			Core::SaveScreenShot();
 		else if (IsHotkey(event, HK_EXIT))
 			wxPostEvent(this, wxCommandEvent(wxID_EXIT));
-		else if (IsHotkey(event, HK_VOLUME_UP))
-			AudioCommon::IncreaseVolume(3);
 		else if (IsHotkey(event, HK_VOLUME_DOWN))
 			AudioCommon::DecreaseVolume(3);
+		else if (IsHotkey(event, HK_VOLUME_UP))
+			AudioCommon::IncreaseVolume(3);
 		else if (IsHotkey(event, HK_VOLUME_TOGGLE_MUTE))
 			AudioCommon::ToggleMuteVolume();
 		// Wiimote connect and disconnect hotkeys
@@ -1193,15 +1201,15 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			Core::SetIsFramelimiterTempDisabled(true);
 		}
-		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
-		{
-			if (++SConfig::GetInstance().m_Framelimit > 0x19)
-				SConfig::GetInstance().m_Framelimit = 0;
-		}
 		else if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
 		{
 			if (--SConfig::GetInstance().m_Framelimit > 0x19)
 				SConfig::GetInstance().m_Framelimit = 0x19;
+		}
+		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
+		{
+			if (++SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0;
 		}
 		else if (IsHotkey(event, HK_SAVE_STATE_SLOT_SELECTED))
 		{
@@ -1211,25 +1219,25 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			State::Load(g_saveSlot);
 		}
-		else if (IsHotkey(event, HK_INCREASE_DEPTH))
-		{
-			if (++g_Config.iStereoDepth > 100)
-				g_Config.iStereoDepth = 100;
-		}
 		else if (IsHotkey(event, HK_DECREASE_DEPTH))
 		{
 			if (--g_Config.iStereoDepth < 0)
 				g_Config.iStereoDepth = 0;
 		}
-		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+		else if (IsHotkey(event, HK_INCREASE_DEPTH))
 		{
-			if (++g_Config.iStereoConvergence > 500)
-				g_Config.iStereoConvergence = 500;
+			if (++g_Config.iStereoDepth > 100)
+				g_Config.iStereoDepth = 100;
 		}
 		else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
 		{
 			if (--g_Config.iStereoConvergence < 0)
 				g_Config.iStereoConvergence = 0;
+		}
+		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+		{
+			if (++g_Config.iStereoConvergence > 500)
+				g_Config.iStereoConvergence = 500;
 		}
 
 		else
@@ -1270,7 +1278,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			// On OS X, we claim all keyboard events while
 			// emulation is running to avoid wxWidgets sounding
 			// the system beep for unhandled key events when
-			// receiving pad/wiimote keypresses which take an
+			// receiving pad/Wiimote keypresses which take an
 			// entirely different path through the HID subsystem.
 #ifndef __APPLE__
 			// On other platforms, we leave the key event alone
@@ -1280,7 +1288,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 		}
 
-		// Actually perform the wiimote connection or disconnection
+		// Actually perform the Wiimote connection or disconnection
 		if (WiimoteId >= 0)
 		{
 			wxCommandEvent evt;
@@ -1293,10 +1301,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			// Maths is probably cheaper than if statements, so always recalculate
 			float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
 
-			if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
-				g_ActiveConfig.fFreeLookSensitivity *= 2.0f;
-			else if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+			if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
 				g_ActiveConfig.fFreeLookSensitivity /= 2.0f;
+			else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
+				g_ActiveConfig.fFreeLookSensitivity *= 2.0f;
 			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
 				g_ActiveConfig.fFreeLookSensitivity = 1.0f;
 			else if (IsHotkey(event, HK_FREELOOK_UP))
@@ -1585,13 +1593,11 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-	if (g_Config.ExclusiveFullscreenEnabled() &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-		Core::GetState() == Core::CORE_PAUSE)
+	if (g_Config.bExclusiveMode && Core::GetState() == Core::CORE_PAUSE)
 	{
 		// A responsive renderer is required for exclusive fullscreen, but the
 		// renderer can only respond in the running state. Therefore we ignore
-		// fullscreen switches if we support exclusive fullscreen, but the
+		// fullscreen switches if we are in exclusive fullscreen, but the
 		// renderer is not running.
 		// TODO: Allow the renderer to switch fullscreen modes while paused.
 		return;
@@ -1612,11 +1618,10 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (!g_Config.ExclusiveFullscreenEnabled() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	else if (!g_Config.bExclusiveMode)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
-		// Therefore we don't exit fullscreen from here if we support exclusive mode.
+		// Therefore we don't exit fullscreen from here if we are in exclusive mode.
 		m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
 	}
 #endif

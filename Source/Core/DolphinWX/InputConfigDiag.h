@@ -9,7 +9,7 @@
 #define PREVIEW_UPDATE_TIME  25
 #define DEFAULT_HIGH_VALUE   100
 
-// might have to change this setup for wiimote
+// might have to change this setup for Wiimote
 #define PROFILES_PATH       "Profiles/"
 
 #include <cstddef>

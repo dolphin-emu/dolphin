@@ -169,4 +169,18 @@
         <item>2</item>
         <item>3</item>
     </string-array>
+
+    <!-- Aspect Ratio Preference -->
+    <string-array name="aspectRatioEntries" translatable="false">
+        <item>Auto</item>
+        <item>Force 16:9</item>
+        <item>Force 4:3</item>
+        <item>Stretch To Window</item>
+    </string-array>
+    <string-array name="aspectRatioValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
 </resources>

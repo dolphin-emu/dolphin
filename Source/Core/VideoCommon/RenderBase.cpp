@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
 // ---------------------------------------------------------------------------------------------
-// 3d commands are issued through the fifo. The gpu draws to the 2MB EFB.
+// 3d commands are issued through the fifo. The GPU draws to the 2MB EFB.
 // The efb can be copied back into ram in two forms: as textures or as XFB.
 // The XFB is the region in RAM that the VI chip scans out to the television.
 // So, after all rendering to EFB is done, the image is copied into one of two XFBs in RAM.

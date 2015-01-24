@@ -121,7 +121,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 			}
 
 			case 'p':
-				// Override, so 64bit dolphin prints 32bit pointers, since the ppc is 32bit :)
+				// Override, so 64bit Dolphin prints 32bit pointers, since the ppc is 32bit :)
 				_rOutBuffer += StringFromFormat("%x", (u32)Parameter);
 				break;
 

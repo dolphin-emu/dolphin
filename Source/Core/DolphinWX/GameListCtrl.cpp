@@ -632,52 +632,57 @@ void CGameListCtrl::ScanForISOs()
 						if (!SConfig::GetInstance().m_ListAustralia)
 							list = false;
 						break;
-					case DiscIO::IVolume::COUNTRY_GERMANY:
-						if (!SConfig::GetInstance().m_ListGermany)
-							list = false;
-						break;
-					case DiscIO::IVolume::COUNTRY_RUSSIA:
-						if (!SConfig::GetInstance().m_ListRussia)
-							list = false;
-						break;
-					case DiscIO::IVolume::COUNTRY_UNKNOWN:
-						if (!SConfig::GetInstance().m_ListUnknown)
-							list = false;
-						break;
-					case DiscIO::IVolume::COUNTRY_TAIWAN:
-						if (!SConfig::GetInstance().m_ListTaiwan)
-							list = false;
-						break;
-					case DiscIO::IVolume::COUNTRY_KOREA:
-						if (!SConfig::GetInstance().m_ListKorea)
-							list = false;
-						break;
-					case DiscIO::IVolume::COUNTRY_JAPAN:
-						if (!SConfig::GetInstance().m_ListJap)
-							list = false;
-						break;
-					case DiscIO::IVolume::COUNTRY_USA:
-						if (!SConfig::GetInstance().m_ListUsa)
+					case DiscIO::IVolume::COUNTRY_EUROPE:
+						if (!SConfig::GetInstance().m_ListPal)
 							list = false;
 						break;
 					case DiscIO::IVolume::COUNTRY_FRANCE:
 						if (!SConfig::GetInstance().m_ListFrance)
 							list = false;
 						break;
+					case DiscIO::IVolume::COUNTRY_GERMANY:
+						if (!SConfig::GetInstance().m_ListGermany)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
+						if (!SConfig::GetInstance().m_ListInternational)
+							list = false;
+						break;
 					case DiscIO::IVolume::COUNTRY_ITALY:
 						if (!SConfig::GetInstance().m_ListItaly)
 							list = false;
 						break;
-					case DiscIO::IVolume::COUNTRY_SPAIN:
-						if (!SConfig::GetInstance().m_ListSpain)
+					case DiscIO::IVolume::COUNTRY_JAPAN:
+						if (!SConfig::GetInstance().m_ListJap)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_KOREA:
+						if (!SConfig::GetInstance().m_ListKorea)
 							list = false;
 						break;
 					case DiscIO::IVolume::COUNTRY_NETHERLANDS:
 						if (!SConfig::GetInstance().m_ListNetherlands)
 							list = false;
 						break;
+					case DiscIO::IVolume::COUNTRY_RUSSIA:
+						if (!SConfig::GetInstance().m_ListRussia)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_SPAIN:
+						if (!SConfig::GetInstance().m_ListSpain)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_TAIWAN:
+						if (!SConfig::GetInstance().m_ListTaiwan)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_USA:
+						if (!SConfig::GetInstance().m_ListUsa)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_UNKNOWN:
 					default:
-						if (!SConfig::GetInstance().m_ListPal)
+						if (!SConfig::GetInstance().m_ListUnknown)
 							list = false;
 						break;
 				}

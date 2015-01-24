@@ -393,18 +393,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
 	          "\tint4 tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,0);\n\n"); // tev combiner inputs
 
+	// On GLSL, input variables must not be assigned to.
+	// This is why we declare these variables locally instead.
+	out.Write("\tfloat4 col0 = colors_0;\n");
+	out.Write("\tfloat4 col1 = colors_1;\n");
+
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
 		out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
 		out.Write("\tfloat3 pos = WorldPos;\n");
 
 		out.Write("\tint4 lacc;\n"
-				"\tfloat3 ldir, h;\n"
+				"\tfloat3 ldir, h, cosAttn, distAttn;\n"
 				"\tfloat dist, dist2, attn;\n");
-
-		// On GLSL, input variables must not be assigned to.
-		// This is why we declare these variables locally instead.
-		out.Write("\tfloat4 col0, col1;\n");
 
 		// TODO: Our current constant usage code isn't able to handle more than one buffer.
 		//       So we can't mark the VS constant as used here. But keep them here as reference.
@@ -413,11 +414,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
 		uid_data->components = components;
 		GenerateLightingShader<T>(out, uid_data->lighting, components, "colors_", "col");
-	}
-	else
-	{
-		out.Write("\tfloat4 col0 = colors_0;\n");
-		out.Write("\tfloat4 col1 = colors_1;\n");
 	}
 
 	// HACK to handle cases where the tex gen is not enabled
@@ -936,7 +932,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 	};
 
 	// Regular TEV stage: (d + bias + lerp(a,b,c)) * scale
-	// The GC/Wii GPU uses a very sophisticated algorithm for scale-lerping:
+	// The GameCube/Wii GPU uses a very sophisticated algorithm for scale-lerping:
 	// - c is scaled from 0..255 to 0..256, which allows dividing the result by 256 instead of 255
 	// - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
 	// - a rounding bias is added before dividing by 256

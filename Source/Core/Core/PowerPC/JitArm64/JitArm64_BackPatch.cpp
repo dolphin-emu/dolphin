@@ -63,9 +63,18 @@ bool JitArm64::DisasmLoadStore(const u8* ptr, u32* flags, ARM64Reg* reg)
 		{
 			*flags &= ~BackPatchInfo::FLAG_SIZE_32;
 			*flags |= BackPatchInfo::FLAG_SIZE_F32;
+
+			// Loads directly in to the target register
+			// Duplicates bottom result in to top register
+			*reg = (ARM64Reg)(inst & 0x1F);
+		}
+		else // 64-bit float
+		{
+			// Real register is in the INS instruction
+			u32 ins_inst = *(u32*)(ptr + 8);
+			*reg = (ARM64Reg)(ins_inst & 0x1F);
 		}
 		*flags |= BackPatchInfo::FLAG_LOAD;
-		*reg = (ARM64Reg)(inst & 0x1F);
 		return true;
 	}
 	else if (op == 0xF4) // NEON STR
@@ -74,9 +83,17 @@ bool JitArm64::DisasmLoadStore(const u8* ptr, u32* flags, ARM64Reg* reg)
 		{
 			*flags &= ~BackPatchInfo::FLAG_SIZE_32;
 			*flags |= BackPatchInfo::FLAG_SIZE_F32;
+
+			// Real register is in the first FCVT conversion instruction
+			u32 fcvt_inst = *(u32*)(ptr - 8);
+			*reg = (ARM64Reg)((fcvt_inst >> 5) & 0x1F);
+		}
+		else // 64-bit float
+		{
+			// Real register is in the previous REV64 instruction
+			*reg = (ARM64Reg)((prev_inst >> 5) & 0x1F);
 		}
 		*flags |= BackPatchInfo::FLAG_STORE;
-		*reg = (ARM64Reg)(inst & 0x1F);
 		return true;
 	}
 	else if (op == 0xE5) // Load
@@ -200,14 +217,14 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
 				float_emit.FCVT(32, 64, Q0, RS);
-				float_emit.FMOV(32, false, W0, Q0);
+				float_emit.UMOV(32, W0, Q0, 0);
 				emit->MOVI2R(X30, (u64)&Memory::Write_U32);
 				emit->BLR(X30);
 			}
 			else
 			{
-				emit->MOVI2R(X30, (u64)&Memory::Write_F64);
-				float_emit.DUP(64, Q0, RS);
+				emit->MOVI2R(X30, (u64)&Memory::Write_U64);
+				float_emit.UMOV(64, X0, RS, 0);
 				emit->BLR(X30);
 			}
 

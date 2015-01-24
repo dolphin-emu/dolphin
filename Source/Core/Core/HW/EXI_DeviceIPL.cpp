@@ -296,7 +296,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		case REGION_WRTC0:
 		case REGION_WRTC1:
 		case REGION_WRTC2:
-			// WII only RTC flags... afaik just the Wii menu initialize it
+			// Wii only RTC flags... afaik just the Wii Menu initialize it
 		default:
 			if ((m_uAddress >> 6) < ROM_SIZE)
 			{

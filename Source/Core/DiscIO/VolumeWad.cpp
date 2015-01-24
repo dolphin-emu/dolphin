@@ -103,6 +103,11 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 	return true;
 }
 
+bool CVolumeWAD::IsWadFile() const
+{
+	return true;
+}
+
 std::vector<std::string> CVolumeWAD::GetNames() const
 {
 	std::vector<std::string> names;

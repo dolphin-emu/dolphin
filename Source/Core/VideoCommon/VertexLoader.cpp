@@ -4,8 +4,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
-#include "Common/x64ABI.h"
-#include "Common/x64Emitter.h"
 
 #include "Core/Host.h"
 
@@ -21,9 +19,6 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-
-#define COMPILED_CODE_SIZE 4096
-
 #ifndef _WIN32
 	#undef inline
 	#define inline
@@ -33,29 +28,11 @@
 u8* g_video_buffer_read_ptr;
 u8* g_vertex_manager_write_ptr;
 
-using namespace Gen;
-
-
-void* VertexLoader::operator new (size_t size)
-{
-	return AllocateAlignedMemory(size, 16);
-}
-
-void VertexLoader::operator delete (void *p)
-{
-	FreeAlignedMemory(p);
-}
-
 static void LOADERDECL PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
-	BoundingBox::posMtxIdx = loader->m_curposmtx = DataReadU8() & 0x3f;
-	PRIM_LOG("posmtx: %d, ", loader->m_curposmtx);
-}
-
-static void LOADERDECL PosMtx_Write(VertexLoader* loader)
-{
-	// u8, 0, 0, 0
-	DataWrite<u32>(loader->m_curposmtx);
+	u8 posmtx = BoundingBox::posMtxIdx = DataReadU8() & 0x3f;
+	DataWrite<u32>(posmtx);
+	PRIM_LOG("posmtx: %d, ", posmtx);
 }
 
 static void LOADERDECL TexMtx_ReadDirect_UByte(VertexLoader* loader)
@@ -77,19 +54,11 @@ static void LOADERDECL TexMtx_Write_Float2(VertexLoader* loader)
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
 }
 
-static void LOADERDECL TexMtx_Write_Float4(VertexLoader* loader)
+static void LOADERDECL TexMtx_Write_Float3(VertexLoader* loader)
 {
-#if _M_SSE >= 0x200
-	__m128 output = _mm_cvtsi32_ss(_mm_castsi128_ps(_mm_setzero_si128()), loader->m_curtexmtx[loader->m_texmtxwrite++]);
-	_mm_storeu_ps((float*)g_vertex_manager_write_ptr, _mm_shuffle_ps(output, output, 0x45 /* 1, 1, 0, 1 */));
-	g_vertex_manager_write_ptr += sizeof(float) * 4;
-#else
 	DataWrite(0.f);
 	DataWrite(0.f);
 	DataWrite(float(loader->m_curtexmtx[loader->m_texmtxwrite++]));
-	// Just to fill out with 0.
-	DataWrite(0.f);
-#endif
 }
 
 static void LOADERDECL SkipVertex(VertexLoader* loader)
@@ -106,34 +75,14 @@ static void LOADERDECL SkipVertex(VertexLoader* loader)
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 : VertexLoaderBase(vtx_desc, vtx_attr)
 {
-	m_compiledCode = nullptr;
 	VertexLoader_Normal::Init();
-	VertexLoader_Position::Init();
-	VertexLoader_TextCoord::Init();
 
-	#ifdef USE_VERTEX_LOADER_JIT
-	AllocCodeSpace(COMPILED_CODE_SIZE);
 	CompileVertexTranslator();
-	WriteProtect();
-	#else
-	m_numPipelineStages = 0;
-	CompileVertexTranslator();
-	#endif
 
 	// generate frac factors
-	m_posScale[0] = m_posScale[1] = m_posScale[2] = m_posScale[3] = 1.0f / (1U << m_VtxAttr.PosFrac);
+	m_posScale = 1.0f / (1U << m_VtxAttr.PosFrac);
 	for (int i = 0; i < 8; i++)
-		m_tcScale[i][0] = m_tcScale[i][1] = 1.0f / (1U << m_VtxAttr.texCoord[i].Frac);
-
-	for (int i = 0; i < 2; i++)
-		m_colElements[i] = m_VtxAttr.color[i].Elements;
-}
-
-VertexLoader::~VertexLoader()
-{
-	#ifdef USE_VERTEX_LOADER_JIT
-	FreeCodeSpace();
-	#endif
+		m_tcScale[i] = 1.0f / (1U << m_VtxAttr.texCoord[i].Frac);
 }
 
 void VertexLoader::CompileVertexTranslator()
@@ -141,43 +90,8 @@ void VertexLoader::CompileVertexTranslator()
 	m_VertexSize = 0;
 	const TVtxAttr &vtx_attr = m_VtxAttr;
 
-#ifdef USE_VERTEX_LOADER_JIT
-	if (m_compiledCode)
-		PanicAlert("Trying to recompile a vertex translator");
-
-	m_compiledCode = GetCodePtr();
-	// We only use RAX (caller saved) and RBX (callee saved).
-	ABI_PushRegistersAndAdjustStack({RBX, RBP}, 8);
-
-	// save count
-	MOV(64, R(RBX), R(ABI_PARAM1));
-
-	// save loader
-	MOV(64, R(RBP), R(ABI_PARAM2));
-
-	// Start loop here
-	const u8 *loop_start = GetCodePtr();
-
-	// Reset component counters if present in vertex format only.
-	if (m_VtxDesc.Tex0Coord || m_VtxDesc.Tex1Coord || m_VtxDesc.Tex2Coord || m_VtxDesc.Tex3Coord ||
-		m_VtxDesc.Tex4Coord || m_VtxDesc.Tex5Coord || m_VtxDesc.Tex6Coord || m_VtxDesc.Tex7Coord)
-	{
-		WriteSetVariable(32, &m_tcIndex, Imm32(0));
-	}
-	if (m_VtxDesc.Color0 || m_VtxDesc.Color1)
-	{
-		WriteSetVariable(32, &m_colIndex, Imm32(0));
-	}
-	if (m_VtxDesc.Tex0MatIdx || m_VtxDesc.Tex1MatIdx || m_VtxDesc.Tex2MatIdx || m_VtxDesc.Tex3MatIdx ||
-		m_VtxDesc.Tex4MatIdx || m_VtxDesc.Tex5MatIdx || m_VtxDesc.Tex6MatIdx || m_VtxDesc.Tex7MatIdx)
-	{
-		WriteSetVariable(32, &m_texmtxwrite, Imm32(0));
-		WriteSetVariable(32, &m_texmtxread, Imm32(0));
-	}
-#else
 	// Reset pipeline
 	m_numPipelineStages = 0;
-#endif
 
 	// Get the pointer to this vertex's buffer data for the bounding box
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
@@ -195,13 +109,18 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Position in pc vertex format.
 	int nat_offset = 0;
-	memset(&m_native_vtx_decl, 0, sizeof(m_native_vtx_decl));
 
 	// Position Matrix Index
 	if (m_VtxDesc.PosMatIdx)
 	{
 		WriteCall(PosMtx_ReadDirect_UByte);
 		components |= VB_HAS_POSMTXIDX;
+		m_native_vtx_decl.posmtx.components = 4;
+		m_native_vtx_decl.posmtx.enable = true;
+		m_native_vtx_decl.posmtx.offset = nat_offset;
+		m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+		m_native_vtx_decl.posmtx.integer = true;
+		nat_offset += 4;
 		m_VertexSize += 1;
 	}
 
@@ -218,12 +137,12 @@ void VertexLoader::CompileVertexTranslator()
 	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
 
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
-	nat_offset += 12;
 	m_native_vtx_decl.position.components = 3;
 	m_native_vtx_decl.position.enable = true;
-	m_native_vtx_decl.position.offset = 0;
+	m_native_vtx_decl.position.offset = nat_offset;
 	m_native_vtx_decl.position.type = VAR_FLOAT;
 	m_native_vtx_decl.position.integer = false;
+	nat_offset += 12;
 
 	// Normals
 	if (m_VtxDesc.Normal != NOT_PRESENT)
@@ -325,11 +244,7 @@ void VertexLoader::CompileVertexTranslator()
 		const int format = m_VtxAttr.texCoord[i].Format;
 		const int elements = m_VtxAttr.texCoord[i].Elements;
 
-		if (tc[i] == NOT_PRESENT)
-		{
-			components &= ~(VB_HAS_UV0 << i);
-		}
-		else
+		if (tc[i] != NOT_PRESENT)
 		{
 			_assert_msg_(VIDEO, DIRECT <= tc[i] && tc[i] <= INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", (u32)tc[i]);
 			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
@@ -352,10 +267,9 @@ void VertexLoader::CompileVertexTranslator()
 			}
 			else
 			{
-				components |= VB_HAS_UV0 << i; // have to include since using now
-				m_native_vtx_decl.texcoords[i].components = 4;
-				nat_offset += 16; // still include the texture coordinate, but this time as 6 + 2 bytes
-				WriteCall(TexMtx_Write_Float4);
+				m_native_vtx_decl.texcoords[i].components = 3;
+				nat_offset += 12;
+				WriteCall(TexMtx_Write_Float3);
 			}
 		}
 		else
@@ -393,17 +307,6 @@ void VertexLoader::CompileVertexTranslator()
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
 		WriteCall(BoundingBox::Update);
 
-	if (m_VtxDesc.PosMatIdx)
-	{
-		WriteCall(PosMtx_Write);
-		m_native_vtx_decl.posmtx.components = 4;
-		m_native_vtx_decl.posmtx.enable = true;
-		m_native_vtx_decl.posmtx.offset = nat_offset;
-		m_native_vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
-		m_native_vtx_decl.posmtx.integer = true;
-		nat_offset += 4;
-	}
-
 	// indexed position formats may skip a the vertex
 	if (m_VtxDesc.Position & 2)
 	{
@@ -412,49 +315,17 @@ void VertexLoader::CompileVertexTranslator()
 
 	m_native_components = components;
 	m_native_vtx_decl.stride = nat_offset;
-
-#ifdef USE_VERTEX_LOADER_JIT
-	// End loop here
-	SUB(64, R(RBX), Imm8(1));
-
-	J_CC(CC_NZ, loop_start);
-	ABI_PopRegistersAndAdjustStack({RBX, RBP}, 8);
-	RET();
-#endif
 }
 
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
-#ifdef USE_VERTEX_LOADER_JIT
-	MOV(64, R(ABI_PARAM1), R(RBP));
-	ABI_CallFunction((const void*)func);
-#else
 	m_PipelineStages[m_numPipelineStages++] = func;
-#endif
 }
-// ARMTODO: This should be done in a better way
-#ifndef _M_GENERIC
-void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
-{
-#ifdef USE_VERTEX_LOADER_JIT
-	MOV(64, R(RAX), Imm64((u64)address));
-	MOV(bits, dest, MatR(RAX));
-#endif
-}
-
-void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
-{
-#ifdef USE_VERTEX_LOADER_JIT
-	MOV(64, R(RAX), Imm64((u64)address));
-	MOV(bits, MatR(RAX), value);
-#endif
-}
-#endif
 
 int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataReader dst)
 {
-	dst.WritePointer(&g_vertex_manager_write_ptr);
-	src.WritePointer(&g_video_buffer_read_ptr);
+	g_vertex_manager_write_ptr = dst.GetPointer();
+	g_video_buffer_read_ptr = src.GetPointer();
 
 	m_numLoadedVertices += count;
 	m_skippedVertices = 0;
@@ -463,12 +334,6 @@ int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataRead
 	if (!g_ActiveConfig.backend_info.bSupportsBBox)
 		BoundingBox::Prepare(m_vat, primitive, m_VtxDesc, m_native_vtx_decl);
 
-#ifdef USE_VERTEX_LOADER_JIT
-	if (count > 0)
-	{
-		((void (*)(int, VertexLoader* loader))(void*)m_compiledCode)(count, this);
-	}
-#else
 	for (int s = 0; s < count; s++)
 	{
 		m_tcIndex = 0;
@@ -478,7 +343,6 @@ int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataRead
 			m_PipelineStages[i](this);
 		PRIM_LOG("\n");
 	}
-#endif
 
 	return count - m_skippedVertices;
 }

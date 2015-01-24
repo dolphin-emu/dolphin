@@ -68,7 +68,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	bth = [[IOBluetoothHostController alloc] init];
 	if ([bth addressAsString] == nil)
 	{
-		WARN_LOG(WIIMOTE, "No bluetooth host controller");
+		WARN_LOG(WIIMOTE, "No Bluetooth host controller");
 		[bth release];
 		return;
 	}
@@ -81,7 +81,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 	if ([bti start] != kIOReturnSuccess)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to do bluetooth discovery");
+		ERROR_LOG(WIIMOTE, "Unable to do Bluetooth discovery");
 		[bth release];
 		[sbt release];
 		return;
@@ -96,7 +96,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	int found_devices = [[bti foundDevices] count];
 
 	if (found_devices)
-		NOTICE_LOG(WIIMOTE, "Found %i bluetooth devices", found_devices);
+		NOTICE_LOG(WIIMOTE, "Found %i Bluetooth devices", found_devices);
 
 	en = [[bti foundDevices] objectEnumerator];
 	for (int i = 0; i < found_devices; i++)
@@ -149,7 +149,7 @@ WiimoteDarwin::~WiimoteDarwin()
 	DisablePowerAssertionInternal();
 }
 
-// Connect to a wiimote with a known address.
+// Connect to a Wiimote with a known address.
 bool WiimoteDarwin::ConnectInternal()
 {
 	if (IsConnected())
@@ -162,7 +162,7 @@ bool WiimoteDarwin::ConnectInternal()
 	IOReturn ret = [m_btd openConnection];
 	if (ret)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to open Bluetooth connection to wiimote %i: %x",
+		ERROR_LOG(WIIMOTE, "Unable to open Bluetooth connection to Wiimote %i: %x",
 		          m_index + 1, ret);
 		[cbt release];
 		return false;
@@ -172,7 +172,7 @@ bool WiimoteDarwin::ConnectInternal()
 	           withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
 	if (ret)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to open control channel for wiimote %i: %x",
+		ERROR_LOG(WIIMOTE, "Unable to open control channel for Wiimote %i: %x",
 		          m_index + 1, ret);
 		goto bad;
 	}
@@ -187,13 +187,13 @@ bool WiimoteDarwin::ConnectInternal()
 	           withPSM: kBluetoothL2CAPPSMHIDInterrupt delegate: cbt];
 	if (ret)
 	{
-		WARN_LOG(WIIMOTE, "Unable to open interrupt channel for wiimote %i: %x",
+		WARN_LOG(WIIMOTE, "Unable to open interrupt channel for Wiimote %i: %x",
 		         m_index + 1, ret);
 		goto bad;
 	}
 	[m_ichan retain];
 
-	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i at %s",
+	NOTICE_LOG(WIIMOTE, "Connected to Wiimote %i at %s",
 	           m_index + 1, [[m_btd addressString] UTF8String]);
 
 	m_connected = true;
@@ -210,7 +210,7 @@ bad:
 	return false;
 }
 
-// Disconnect a wiimote.
+// Disconnect a Wiimote.
 void WiimoteDarwin::DisconnectInternal()
 {
 	[m_ichan closeChannel];
@@ -226,7 +226,7 @@ void WiimoteDarwin::DisconnectInternal()
 	if (!IsConnected())
 		return;
 
-	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i", m_index + 1);
+	NOTICE_LOG(WIIMOTE, "Disconnecting Wiimote %i", m_index + 1);
 
 	m_connected = false;
 }
@@ -301,7 +301,7 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 - (void) deviceInquiryDeviceFound: (IOBluetoothDeviceInquiry *) sender
 	device: (IOBluetoothDevice *) device
 {
-	NOTICE_LOG(WIIMOTE, "Discovered bluetooth device at %s: %s",
+	NOTICE_LOG(WIIMOTE, "Discovered Bluetooth device at %s: %s",
 		[[device addressString] UTF8String],
 		[[device name] UTF8String]);
 
@@ -330,18 +330,18 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 	}
 
 	if (wm == nullptr) {
-		ERROR_LOG(WIIMOTE, "Received packet for unknown wiimote");
+		ERROR_LOG(WIIMOTE, "Received packet for unknown Wiimote");
 		return;
 	}
 
 	if (length > MAX_PAYLOAD) {
-		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, too large",
+		WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, too large",
 				wm->m_index + 1);
 		return;
 	}
 
 	if (wm->m_inputlen != -1) {
-		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, queue full",
+		WARN_LOG(WIIMOTE, "Dropping packet for Wiimote %i, queue full",
 				wm->m_index + 1);
 		return;
 	}
@@ -369,11 +369,11 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 	}
 
 	if (wm == nullptr) {
-		ERROR_LOG(WIIMOTE, "Channel for unknown wiimote was closed");
+		ERROR_LOG(WIIMOTE, "Channel for unknown Wiimote was closed");
 		return;
 	}
 
-	WARN_LOG(WIIMOTE, "Lost channel to wiimote %i", wm->m_index + 1);
+	WARN_LOG(WIIMOTE, "Lost channel to Wiimote %i", wm->m_index + 1);
 
 	wm->DisconnectInternal();
 }

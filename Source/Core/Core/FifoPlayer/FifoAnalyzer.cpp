@@ -17,8 +17,6 @@ namespace FifoAnalyzer
 void Init()
 {
 	VertexLoader_Normal::Init();
-	VertexLoader_Position::Init();
-	VertexLoader_TextCoord::Init();
 }
 
 u8 ReadFifo8(u8 *&data)
