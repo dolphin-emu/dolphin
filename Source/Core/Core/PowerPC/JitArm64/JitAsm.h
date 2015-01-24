@@ -16,7 +16,7 @@ private:
 public:
 	void Init()
 	{
-		AllocCodeSpace(8192);
+		AllocCodeSpace(16384);
 		Generate();
 		WriteProtect();
 	}
