@@ -29,6 +29,7 @@ PrimitiveType VertexManager::current_primitive_type;
 Slope VertexManager::ZSlope;
 
 bool VertexManager::IsFlushed;
+bool VertexManager::CullAll;
 
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
@@ -44,6 +45,7 @@ static const PrimitiveType primitive_from_gx[8] = {
 VertexManager::VertexManager()
 {
 	IsFlushed = true;
+	CullAll = false;
 }
 
 VertexManager::~VertexManager()
@@ -55,7 +57,7 @@ u32 VertexManager::GetRemainingSize()
 	return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
-DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
+DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall)
 {
 	// The SSE vertex loader can write up to 4 bytes past the end
 	u32 const needed_vertex_bytes = count * stride + 4;
@@ -80,6 +82,8 @@ DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
 				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
+
+	CullAll = cullall;
 
 	// need to alloc new buffer
 	if (IsFlushed)
@@ -192,34 +196,36 @@ void VertexManager::Flush()
 		(int)bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alpha_test.hex>>16)&0xff);
 #endif
 
-	BitSet32 usedtextures;
-	for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
-		if (bpmem.tevorders[i / 2].getEnable(i & 1))
-			usedtextures[bpmem.tevorders[i/2].getTexMap(i & 1)] = true;
-
-	if (bpmem.genMode.numindstages > 0)
-		for (unsigned int i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
-			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
-				usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
-
-	for (unsigned int i : usedtextures)
+	// If the primitave is marked CullAll. All we need to do is update the vertex constants and calculate the zfreeze refrence slope
+	if (!CullAll)
 	{
-		g_renderer->SetSamplerState(i & 3, i >> 2);
-		const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i);
+		BitSet32 usedtextures;
+		for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
+			if (bpmem.tevorders[i / 2].getEnable(i & 1))
+				usedtextures[bpmem.tevorders[i/2].getTexMap(i & 1)] = true;
 
-		if (tentry)
+		if (bpmem.genMode.numindstages > 0)
+			for (unsigned int i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
+				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+					usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
+
+		for (unsigned int i : usedtextures)
 		{
-			// 0s are probably for no manual wrapping needed.
-			PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
+			g_renderer->SetSamplerState(i & 3, i >> 2);
+			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i);
+
+			if (tentry)
+			{
+				// 0s are probably for no manual wrapping needed.
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
+			}
+			else
+				ERROR_LOG(VIDEO, "error loading texture");
 		}
-		else
-			ERROR_LOG(VIDEO, "error loading texture");
 	}
 
-	// set global constants
+	// set global vertex constants
 	VertexShaderManager::SetConstants();
-	GeometryShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
 
 	// Calculate ZSlope for zfreeze
 	if (!bpmem.genMode.zfreeze)
@@ -227,34 +233,29 @@ void VertexManager::Flush()
 		// Must be done after VertexShaderManager::SetConstants()
 		CalculateZSlope(VertexLoaderManager::GetCurrentVertexFormat());
 	}
-	else if (ZSlope.dirty) // or apply any dirty ZSlopes
+	else if (ZSlope.dirty && !CullAll) // or apply any dirty ZSlopes
 	{
 		PixelShaderManager::SetZSlope(ZSlope.dfdx, ZSlope.dfdy, ZSlope.f0);
 		ZSlope.dirty = false;
 	}
 
-	// If cull mode is CULL_ALL, we shouldn't render any triangles/quads (points and lines don't get culled)
-	// vertex loader has already converted any quads into triangles, so we just check for triangles.
-	// TODO: These culled primites need to get this far through the pipeline to be used as zfreeze refrence
-	//       planes. But currently we apply excessive processing and store the vertices in buffers on the
-	//       video card, which is a waste of bandwidth.
-	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
+	if (!CullAll)
 	{
-		GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
-		IsFlushed = true;
-		return;
+		// set the rest of the global constants
+		GeometryShaderManager::SetConstants();
+		PixelShaderManager::SetConstants();
+
+		bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
+						   bpmem.dstalpha.enable &&
+						   bpmem.blendmode.alphaupdate &&
+						   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
+		if (PerfQueryBase::ShouldEmulate())
+			g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+		g_vertex_manager->vFlush(useDstAlpha);
+		if (PerfQueryBase::ShouldEmulate())
+			g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	}
-
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
-	                   bpmem.dstalpha.enable &&
-	                   bpmem.blendmode.alphaupdate &&
-	                   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-
-	if (PerfQueryBase::ShouldEmulate())
-		g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-	g_vertex_manager->vFlush(useDstAlpha);
-	if (PerfQueryBase::ShouldEmulate())
-		g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
@@ -262,6 +263,7 @@ void VertexManager::Flush()
 		ERROR_LOG(VIDEO, "xf.numtexgens (%d) does not match bp.numtexgens (%d). Error in command stream.", xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
 
 	IsFlushed = true;
+	CullAll = false;
 }
 
 void VertexManager::DoState(PointerWrap& p)
@@ -279,7 +281,7 @@ void VertexManager::CalculateZSlope(NativeVertexFormat *format)
 
 	// Global matrix ID.
 	u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
-	PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
+	const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 	size_t posOff = vert_decl.position.offset;
 	size_t mtxOff = vert_decl.posmtx.offset;
 

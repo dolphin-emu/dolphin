@@ -41,7 +41,7 @@ public:
 	// needs to be virtual for DX11's dtor
 	virtual ~VertexManager();
 
-	static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride);
+	static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
 	static void FlushData(u32 count, u32 stride);
 
 	static void Flush();
@@ -66,6 +66,8 @@ protected:
 
 	static Slope ZSlope;
 	static void CalculateZSlope(NativeVertexFormat *format);
+
+	static bool CullAll;
 
 private:
 	static bool IsFlushed;
