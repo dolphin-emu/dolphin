@@ -668,145 +668,137 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		}
 		UGeckoInstruction inst = result.hex;
 
-		if (inst.hex != 0)
+		// Slight hack: the JIT block cache currently assumes all blocks end at the same place,
+		// but broken blocks due to page faults break this assumption. Avoid this by just ending
+		// all virtual memory instruction blocks at page boundaries.
+		// FIXME: improve the JIT block cache so we don't need to do this.
+		if ((!result.from_bat || !prev_inst_from_bat) && i > 0 && (address & 0xfff) == 0)
 		{
-			// Slight hack: the JIT block cache currently assumes all blocks end at the same place,
-			// but broken blocks due to page faults break this assumption. Avoid this by just ending
-			// all virtual memory instruction blocks at page boundaries.
-			// FIXME: improve the JIT block cache so we don't need to do this.
-			if ((!result.from_bat || !prev_inst_from_bat) && i > 0 && (address & 0xfff) == 0)
-			{
-				break;
-			}
-			prev_inst_from_bat = result.from_bat;
-
-			num_inst++;
-			memset(&code[i], 0, sizeof(CodeOp));
-			GekkoOPInfo *opinfo = GetOpInfo(inst);
-			if (!opinfo)
-			{
-				PanicAlert("Invalid PowerPC opcode: %x.", inst.hex);
-				Crash();
-			}
-
-			code[i].opinfo = opinfo;
-			code[i].address = address;
-			code[i].inst = inst;
-			code[i].branchTo = -1;
-			code[i].branchToIndex = -1;
-			code[i].skip = false;
-			block->m_stats->numCycles += opinfo->numCycles;
-
-			SetInstructionStats(block, &code[i], opinfo, i);
-
-			bool follow = false;
-			u32 destination = 0;
-
-			bool conditional_continue = false;
-
-			// Do we inline leaf functions?
-			if (HasOption(OPTION_LEAF_INLINE))
-			{
-				if (inst.OPCD == 18 && blockSize > 1)
-				{
-					//Is bx - should we inline? yes!
-					if (inst.AA)
-						destination = SignExt26(inst.LI << 2);
-					else
-						destination = address + SignExt26(inst.LI << 2);
-					if (destination != block->m_address)
-						follow = true;
-				}
-				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
-					(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
-					return_address != 0)
-				{
-					// bclrx with unconditional branch = return
-					follow = true;
-					destination = return_address;
-					return_address = 0;
-
-					if (inst.LK)
-						return_address = address + 4;
-				}
-				else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
-				{
-					// mtspr
-					const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-					if (index == SPR_LR)
-					{
-						// We give up to follow the return address
-						// because we have to check the register usage.
-						return_address = 0;
-					}
-				}
-
-				// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
-				//       If it is small, the performance will be down.
-				//       If it is big, the size of generated code will be big and
-				//       cache clearning will happen many times.
-				// TODO: Investivate the reason why
-				//       "0" is fastest in some games, MP2 for example.
-				if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
-					follow = false;
-			}
-
-			if (HasOption(OPTION_CONDITIONAL_CONTINUE))
-			{
-				if (inst.OPCD == 16 &&
-				   ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
-				{
-					// bcx with conditional branch
-					conditional_continue = true;
-				}
-				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
-				        ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
-				{
-					// bclrx with conditional branch
-					conditional_continue = true;
-				}
-				else if (inst.OPCD == 3 ||
-					  (inst.OPCD == 31 && inst.SUBOP10 == 4))
-				{
-					// tw/twi tests and raises an exception
-					conditional_continue = true;
-				}
-				else if (inst.OPCD == 19 && inst.SUBOP10 == 528 &&
-				        (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
-				{
-					// Rare bcctrx with conditional branch
-					// Seen in NES games
-					conditional_continue = true;
-				}
-			}
-
-			if (!follow)
-			{
-				address += 4;
-				if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
-				{
-					found_exit = true;
-					break;
-				}
-			}
-			// XXX: We don't support inlining yet.
-#if 0
-			else
-			{
-				numFollows++;
-				// We don't "code[i].skip = true" here
-				// because bx may store a certain value to the link register.
-				// Instead, we skip a part of bx in Jit**::bx().
-				address = destination;
-				merged_addresses[size_of_merged_addresses++] = address;
-			}
-#endif
-		}
-		else
-		{
-			ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
 			break;
 		}
+		prev_inst_from_bat = result.from_bat;
+
+		num_inst++;
+		memset(&code[i], 0, sizeof(CodeOp));
+		GekkoOPInfo *opinfo = GetOpInfo(inst);
+		if (!opinfo)
+		{
+			PanicAlert("Invalid PowerPC opcode: %x.", inst.hex);
+			Crash();
+		}
+
+		code[i].opinfo = opinfo;
+		code[i].address = address;
+		code[i].inst = inst;
+		code[i].branchTo = -1;
+		code[i].branchToIndex = -1;
+		code[i].skip = false;
+		block->m_stats->numCycles += opinfo->numCycles;
+
+		SetInstructionStats(block, &code[i], opinfo, i);
+
+		bool follow = false;
+		u32 destination = 0;
+
+		bool conditional_continue = false;
+
+		// Do we inline leaf functions?
+		if (HasOption(OPTION_LEAF_INLINE))
+		{
+			if (inst.OPCD == 18 && blockSize > 1)
+			{
+				//Is bx - should we inline? yes!
+				if (inst.AA)
+					destination = SignExt26(inst.LI << 2);
+				else
+					destination = address + SignExt26(inst.LI << 2);
+				if (destination != block->m_address)
+					follow = true;
+			}
+			else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+				(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
+				return_address != 0)
+			{
+				// bclrx with unconditional branch = return
+				follow = true;
+				destination = return_address;
+				return_address = 0;
+
+				if (inst.LK)
+					return_address = address + 4;
+			}
+			else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
+			{
+				// mtspr
+				const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+				if (index == SPR_LR)
+				{
+					// We give up to follow the return address
+					// because we have to check the register usage.
+					return_address = 0;
+				}
+			}
+
+			// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
+			//       If it is small, the performance will be down.
+			//       If it is big, the size of generated code will be big and
+			//       cache clearning will happen many times.
+			// TODO: Investivate the reason why
+			//       "0" is fastest in some games, MP2 for example.
+			if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
+				follow = false;
+		}
+
+		if (HasOption(OPTION_CONDITIONAL_CONTINUE))
+		{
+			if (inst.OPCD == 16 &&
+				((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+			{
+				// bcx with conditional branch
+				conditional_continue = true;
+			}
+			else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+				    ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+			{
+				// bclrx with conditional branch
+				conditional_continue = true;
+			}
+			else if (inst.OPCD == 3 ||
+					(inst.OPCD == 31 && inst.SUBOP10 == 4))
+			{
+				// tw/twi tests and raises an exception
+				conditional_continue = true;
+			}
+			else if (inst.OPCD == 19 && inst.SUBOP10 == 528 &&
+				    (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
+			{
+				// Rare bcctrx with conditional branch
+				// Seen in NES games
+				conditional_continue = true;
+			}
+		}
+
+		if (!follow)
+		{
+			address += 4;
+			if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
+			{
+				found_exit = true;
+				break;
+			}
+		}
+		// XXX: We don't support inlining yet.
+#if 0
+		else
+		{
+			numFollows++;
+			// We don't "code[i].skip = true" here
+			// because bx may store a certain value to the link register.
+			// Instead, we skip a part of bx in Jit**::bx().
+			address = destination;
+			merged_addresses[size_of_merged_addresses++] = address;
+		}
+#endif
 	}
 
 	block->m_num_instructions = num_inst;
