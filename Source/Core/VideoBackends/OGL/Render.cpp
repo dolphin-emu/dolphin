@@ -43,6 +43,7 @@
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
@@ -617,6 +618,8 @@ Renderer::Renderer()
 
 	s_last_efb_scale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+
+	PixelShaderManager::SetEfbScaleChanged();
 
 	// Because of the fixed framebuffer size we need to disable the resolution
 	// options while running
@@ -1681,6 +1684,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples);
+
+			PixelShaderManager::SetEfbScaleChanged();
 		}
 	}
 
