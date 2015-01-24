@@ -64,13 +64,13 @@ protected:
 	static u32 GetRemainingSize();
 	static u32 GetRemainingIndices(int primitive);
 
-	static Slope ZSlope;
-	static void CalculateZSlope(NativeVertexFormat *format);
+	static Slope s_zslope;
+	static void CalculateZSlope(NativeVertexFormat* format);
 
-	static bool CullAll;
+	static bool s_cull_all;
 
 private:
-	static bool IsFlushed;
+	static bool s_is_flushed;
 
 	virtual void vFlush(bool useDstAlpha) = 0;
 

@@ -690,13 +690,13 @@ void VertexShaderManager::ResetView()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::TransformToClipSpace(const float* data, float *out, u32 MtxIdx)
+void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
 {
-	const float *world_matrix = (const float *)xfmem.posMatrices + (MtxIdx & 0x3f) * 4;
+	const float* world_matrix = (const float*)xfmem.posMatrices + (MtxIdx & 0x3f) * 4;
 	// We use the projection matrix calculated by vertexShaderManager, because it
 	// includes any free look transformations.
 	// Make sure VertexManager::SetConstants() has been called first.
-	const float *proj_matrix = &g_fProjectionMatrix[0];
+	const float* proj_matrix = &g_fProjectionMatrix[0];
 
 	float t[3];
 	t[0] = data[0] * world_matrix[0] + data[1] * world_matrix[1] + data[2] * world_matrix[2] + world_matrix[3];

@@ -26,10 +26,10 @@ u8 *VertexManager::s_pEndBufferPointer;
 
 PrimitiveType VertexManager::current_primitive_type;
 
-Slope VertexManager::ZSlope;
+Slope VertexManager::s_zslope;
 
-bool VertexManager::IsFlushed;
-bool VertexManager::CullAll;
+bool VertexManager::s_is_flushed;
+bool VertexManager::s_cull_all;
 
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
@@ -44,8 +44,8 @@ static const PrimitiveType primitive_from_gx[8] = {
 
 VertexManager::VertexManager()
 {
-	IsFlushed = true;
-	CullAll = false;
+	s_is_flushed = true;
+	s_cull_all = false;
 }
 
 VertexManager::~VertexManager()
@@ -68,8 +68,8 @@ DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32
 	current_primitive_type = primitive_from_gx[primitive];
 
 	// Check for size in buffer, if the buffer gets full, call Flush()
-	if ( !IsFlushed && ( count > IndexGenerator::GetRemainingIndices() ||
-	     count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize() ) )
+	if (!s_is_flushed && ( count > IndexGenerator::GetRemainingIndices() ||
+	     count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize()))
 	{
 		Flush();
 
@@ -83,13 +83,13 @@ DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32
 				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
 
-	CullAll = cullall;
+	s_cull_all = cullall;
 
 	// need to alloc new buffer
-	if (IsFlushed)
+	if (s_is_flushed)
 	{
 		g_vertex_manager->ResetBuffer(stride);
-		IsFlushed = false;
+		s_is_flushed = false;
 	}
 
 	return DataReader(s_pCurBufferPointer, s_pEndBufferPointer);
@@ -160,7 +160,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 
 void VertexManager::Flush()
 {
-	if (IsFlushed)
+	if (s_is_flushed)
 		return;
 
 	// loading a state will invalidate BP, so check for it
@@ -197,7 +197,7 @@ void VertexManager::Flush()
 #endif
 
 	// If the primitave is marked CullAll. All we need to do is update the vertex constants and calculate the zfreeze refrence slope
-	if (!CullAll)
+	if (!s_cull_all)
 	{
 		BitSet32 usedtextures;
 		for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
@@ -220,7 +220,9 @@ void VertexManager::Flush()
 				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
+			{
 				ERROR_LOG(VIDEO, "error loading texture");
+			}
 		}
 	}
 
@@ -233,13 +235,13 @@ void VertexManager::Flush()
 		// Must be done after VertexShaderManager::SetConstants()
 		CalculateZSlope(VertexLoaderManager::GetCurrentVertexFormat());
 	}
-	else if (ZSlope.dirty && !CullAll) // or apply any dirty ZSlopes
+	else if (s_zslope.dirty && !s_cull_all) // or apply any dirty ZSlopes
 	{
-		PixelShaderManager::SetZSlope(ZSlope.dfdx, ZSlope.dfdy, ZSlope.f0);
-		ZSlope.dirty = false;
+		PixelShaderManager::SetZSlope(s_zslope.dfdx, s_zslope.dfdy, s_zslope.f0);
+		s_zslope.dirty = false;
 	}
 
-	if (!CullAll)
+	if (!s_cull_all)
 	{
 		// set the rest of the global constants
 		GeometryShaderManager::SetConstants();
@@ -262,17 +264,17 @@ void VertexManager::Flush()
 	if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
 		ERROR_LOG(VIDEO, "xf.numtexgens (%d) does not match bp.numtexgens (%d). Error in command stream.", xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
 
-	IsFlushed = true;
-	CullAll = false;
+	s_is_flushed = true;
+	s_cull_all = false;
 }
 
 void VertexManager::DoState(PointerWrap& p)
 {
-	p.Do(ZSlope);
+	p.Do(s_zslope);
 	g_vertex_manager->vDoState(p);
 }
 
-void VertexManager::CalculateZSlope(NativeVertexFormat *format)
+void VertexManager::CalculateZSlope(NativeVertexFormat* format)
 {
 	float vtx[9];
 	float out[12];
@@ -324,8 +326,8 @@ void VertexManager::CalculateZSlope(NativeVertexFormat *format)
 	if (c == 0)
 		return;
 
-	ZSlope.dfdx = -a / c;
-	ZSlope.dfdy = -b / c;
-	ZSlope.f0 = out[2] - (out[0] * ZSlope.dfdx + out[1] * ZSlope.dfdy);
-	ZSlope.dirty = true;
+	s_zslope.dfdx = -a / c;
+	s_zslope.dfdy = -b / c;
+	s_zslope.f0 = out[2] - (out[0] * s_zslope.dfdx + out[1] * s_zslope.dfdy);
+	s_zslope.dirty = true;
 }
