@@ -364,6 +364,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		auto iter = textures.find(texID);
 		if (iter == textures.end() || !iter->second->IsEfbCopy())
 			texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
+
+		//test
 	}
 
 	// GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
