@@ -34,6 +34,12 @@ public:
 	static void RotateView(float x, float y);
 	static void ResetView();
 
+	// data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.
+	// out:  4 floats which will be initialized with the corresponding clip space coordinates
+	// NOTE: g_fProjectionMatrix must be up to date when this is called
+	//       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
+	static void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
+
 	static VertexShaderConstants constants;
 	static bool dirty;
 };

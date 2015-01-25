@@ -25,11 +25,24 @@ TEST(UniqueID, UniqueEnough)
 
 TEST(IsMMIOAddress, SpecialAddresses)
 {
+	SConfig::Init();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bWii = true;
+
 	// WG Pipe address, should not be handled by MMIO.
 	EXPECT_FALSE(MMIO::IsMMIOAddress(0xCC008000));
 
 	// Memory zone used by games using the "MMU Speedhack".
 	EXPECT_FALSE(MMIO::IsMMIOAddress(0xE0000000));
+
+	// Uncached mirror of MEM1, shouldn't be handled by MMIO
+	EXPECT_FALSE(MMIO::IsMMIOAddress(0xC0000000));
+
+	// And lets check some valid addresses too
+	EXPECT_TRUE(MMIO::IsMMIOAddress(0xCC0000E0)); // Gamecube MMIOs
+	EXPECT_TRUE(MMIO::IsMMIOAddress(0xCD00008C)); // Wii MMIOs
+	EXPECT_TRUE(MMIO::IsMMIOAddress(0xCD800F10)); // Mirror of Wii MMIOs
+
+	SConfig::Shutdown();
 }
 
 class MappingTest : public testing::Test

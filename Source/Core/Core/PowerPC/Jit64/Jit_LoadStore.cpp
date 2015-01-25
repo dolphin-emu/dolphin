@@ -134,7 +134,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		BitSet32 registersInUse = CallerSavedRegistersInUse();
 		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
-		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
+		ABI_CallFunction((void *)&PowerPC::OnIdle);
 
 		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 

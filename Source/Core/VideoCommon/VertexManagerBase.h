@@ -4,6 +4,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
 class NativeVertexFormat;
 class PointerWrap;
@@ -12,6 +13,14 @@ enum PrimitiveType {
 	PRIMITIVE_POINTS,
 	PRIMITIVE_LINES,
 	PRIMITIVE_TRIANGLES,
+};
+
+struct Slope
+{
+	float dfdx;
+	float dfdy;
+	float f0;
+	bool dirty;
 };
 
 class VertexManager
@@ -32,7 +41,7 @@ public:
 	// needs to be virtual for DX11's dtor
 	virtual ~VertexManager();
 
-	static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride);
+	static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
 	static void FlushData(u32 count, u32 stride);
 
 	static void Flush();
@@ -55,8 +64,13 @@ protected:
 	static u32 GetRemainingSize();
 	static u32 GetRemainingIndices(int primitive);
 
+	static Slope s_zslope;
+	static void CalculateZSlope(NativeVertexFormat* format);
+
+	static bool s_cull_all;
+
 private:
-	static bool IsFlushed;
+	static bool s_is_flushed;
 
 	virtual void vFlush(bool useDstAlpha) = 0;
 
