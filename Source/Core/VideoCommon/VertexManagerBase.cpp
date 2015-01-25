@@ -287,6 +287,10 @@ void VertexManager::CalculateZSlope(NativeVertexFormat* format)
 	size_t posOff = vert_decl.position.offset;
 	size_t mtxOff = vert_decl.posmtx.offset;
 
+	// Make sure the buffer contains at lest 3 vertices.
+	if ((s_pCurBufferPointer - s_pBaseBufferPointer) < (vert_decl.stride * 3))
+		return;
+
 	// Lookup vertices of the last rendered triangle and software-transform them
 	// This allows us to determine the depth slope, which will be used if z--freeze
 	// is enabled in the following flush.
