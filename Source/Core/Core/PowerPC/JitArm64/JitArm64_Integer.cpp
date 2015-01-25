@@ -702,7 +702,7 @@ void JitArm64::addcx(UGeckoInstruction inst)
 	if (gpr.IsImm(a) && gpr.IsImm(b))
 	{
 		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
-		gpr.SetImmediate(d, i * j);
+		gpr.SetImmediate(d, i + j);
 
 		bool has_carry = Interpreter::Helper_Carry(i, j);
 		ComputeCarry(has_carry);
