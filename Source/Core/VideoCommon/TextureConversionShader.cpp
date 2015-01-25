@@ -70,20 +70,23 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 		WRITE(p, "  out vec4 ocol0;\n");
 		WRITE(p, "void main()\n");
+		WRITE(p, "{\n"
+			"  int2 sampleUv;\n"
+			"  int2 uv1 = int2(gl_FragCoord.xy);\n"
+			);
 	}
 	else // D3D
 	{
-		WRITE(p,"sampler samp0 : register(s0);\n");
+		WRITE(p, "sampler samp0 : register(s0);\n");
 		WRITE(p, "Texture2D Tex0 : register(t0);\n");
 
-		WRITE(p,"void main(\n");
-		WRITE(p,"  out float4 ocol0 : SV_Target)\n");
+		WRITE(p, "void main(\n");
+		WRITE(p, "  out float4 ocol0 : SV_Target, in float4 rawpos : SV_Position)\n");
+		WRITE(p, "{\n"
+			"  int2 sampleUv;\n"
+			"  int2 uv1 = int2((rawpos + 1) / 2 * float2(640, 528));\n"
+			);
 	}
-
-	WRITE(p, "{\n"
-	"  int2 sampleUv;\n"
-	"  int2 uv1 = int2(gl_FragCoord.xy);\n"
-	);
 
 	WRITE(p, "  int y_block_position = uv1.y & %d;\n", ~(blkH - 1));
 	WRITE(p, "  int y_offset_in_block = uv1.y & %d;\n", blkH - 1);
@@ -116,9 +119,18 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
 {
-	WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
-		dest, xoffset, colorComp
-	);
+	if (ApiType == API_OPENGL)
+	{
+		WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
+			dest, xoffset, colorComp
+			);
+	}
+	else
+	{
+		WRITE(p, "  %s = Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
+			dest, xoffset, colorComp
+			);
+	}
 }
 
 static void WriteColorToIntensity(char*& p, const char* src, const char* dest)
@@ -134,6 +146,7 @@ static void WriteColorToIntensity(char*& p, const char* src, const char* dest)
 
 static void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 {
+	//WRITE(p, "  ocol0 = float4(1,1,1,1;\n");
 	WRITE(p, "  %s = floor(%s * 255.0 / exp2(8.0 - %d.0));\n", dest, src, depth);
 }
 
