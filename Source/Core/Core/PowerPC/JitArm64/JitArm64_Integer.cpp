@@ -377,13 +377,18 @@ void JitArm64::cmp(UGeckoInstruction inst)
 	}
 
 	ARM64Reg WA = gpr.GetReg();
+	ARM64Reg WB = gpr.GetReg();
+	ARM64Reg XA = EncodeRegTo64(WA);
+	ARM64Reg XB = EncodeRegTo64(WB);
 	ARM64Reg RA = gpr.R(a);
 	ARM64Reg RB = gpr.R(b);
+	SXTW(XA, RA);
+	SXTW(XB, RB);
 
-	SUB(WA, RA, RB);
-	ComputeRC(WA, crf);
+	SUB(XA, XA, XB);
+	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
 
-	gpr.Unlock(WA);
+	gpr.Unlock(WA, WB);
 }
 
 void JitArm64::cmpl(UGeckoInstruction inst)
