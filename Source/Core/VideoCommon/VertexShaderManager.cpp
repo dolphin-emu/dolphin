@@ -664,7 +664,21 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 
 void VertexShaderManager::Init()
 {
-	Dirty();
+	// Initialize state tracking variables
+	nTransformMatricesChanged[0] = -1;
+	nTransformMatricesChanged[1] = -1;
+	nNormalMatricesChanged[0] = -1;
+	nNormalMatricesChanged[1] = -1;
+	nPostTransformMatricesChanged[0] = -1;
+	nPostTransformMatricesChanged[1] = -1;
+	nLightsChanged[0] = -1;
+	nLightsChanged[1] = -1;
+	nMaterialsChanged = BitSet32(0);
+	bTexMatricesChanged[0] = false;
+	bTexMatricesChanged[1] = false;
+	bPosNormalMatrixChanged = false;
+	bProjectionChanged = true;
+	bViewportChanged = false;
 
 	m_layer_on_top = false;
 
@@ -681,6 +695,8 @@ void VertexShaderManager::Init()
 	g_old_viewport_type = VIEW_FULLSCREEN;
 	g_splitscreen_type = SS_FULLSCREEN;
 	g_old_splitscreen_type = SS_FULLSCREEN;
+
+	dirty = true;
 }
 
 void VertexShaderManager::Shutdown()
@@ -689,26 +705,10 @@ void VertexShaderManager::Shutdown()
 
 void VertexShaderManager::Dirty()
 {
-	nTransformMatricesChanged[0] = 0;
-	nTransformMatricesChanged[1] = 256;
-
-	nNormalMatricesChanged[0] = 0;
-	nNormalMatricesChanged[1] = 96;
-
-	nPostTransformMatricesChanged[0] = 0;
-	nPostTransformMatricesChanged[1] = 256;
-
-	nLightsChanged[0] = 0;
-	nLightsChanged[1] = 0x80;
-
-	bPosNormalMatrixChanged = true;
-	bTexMatricesChanged[0] = true;
-	bTexMatricesChanged[1] = true;
-
+	// This function is called after a savestate is loaded.
+	// Any constants that can changed based on settings should be re-calculated
 	bProjectionChanged = true;
 	bFrameChanged = true;
-
-	nMaterialsChanged = BitSet32::AllTrue(4);
 
 	dirty = true;
 }
@@ -1936,17 +1936,18 @@ void VertexShaderManager::ResetView()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::TransformToClipSpace(const float* data, float *out)
+void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
 {
-	const float *world_matrix = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
-	const float *proj_matrix = &g_fProjectionMatrix[0];
+	const float* world_matrix = (const float*)xfmem.posMatrices + (MtxIdx & 0x3f) * 4;
+	// We use the projection matrix calculated by vertexShaderManager, because it
+	// includes any free look transformations.
+	// Make sure VertexManager::SetConstants() has been called first.
+	const float* proj_matrix = &g_fProjectionMatrix[0];
 
 	float t[3];
 	t[0] = data[0] * world_matrix[0] + data[1] * world_matrix[1] + data[2] * world_matrix[2] + world_matrix[3];
 	t[1] = data[0] * world_matrix[4] + data[1] * world_matrix[5] + data[2] * world_matrix[6] + world_matrix[7];
 	t[2] = data[0] * world_matrix[8] + data[1] * world_matrix[9] + data[2] * world_matrix[10] + world_matrix[11];
-
-	// TODO: this requires g_fProjectionMatrix to be up to date, which is not really a good design decision.
 
 	out[0] = t[0] * proj_matrix[0] + t[1] * proj_matrix[1] + t[2] * proj_matrix[2] + proj_matrix[3];
 	out[1] = t[0] * proj_matrix[4] + t[1] * proj_matrix[5] + t[2] * proj_matrix[6] + proj_matrix[7];
@@ -1962,8 +1963,19 @@ void VertexShaderManager::DoState(PointerWrap &p)
 	p.Do(s_viewInvRotationMatrix);
 	p.Do(s_fViewTranslationVector);
 	p.Do(s_fViewRotation);
+
+	p.Do(nTransformMatricesChanged);
+	p.Do(nNormalMatricesChanged);
+	p.Do(nPostTransformMatricesChanged);
+	p.Do(nLightsChanged);
+
+	p.Do(nMaterialsChanged);
+	p.Do(bTexMatricesChanged);
+	p.Do(bPosNormalMatrixChanged);
+	p.Do(bProjectionChanged);
+	p.Do(bViewportChanged);
+
 	p.Do(constants);
-	p.Do(dirty);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{

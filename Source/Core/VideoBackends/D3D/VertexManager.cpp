@@ -182,15 +182,6 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	PrepareDrawBuffers(stride);
 
-	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() >= 3)
-	{
-		CalculateZSlope(stride);
-	}
-
-	// if cull mode is CULL_ALL, ignore triangles and quads
-	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
-		return;
-
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
 

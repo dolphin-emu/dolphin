@@ -13,8 +13,6 @@ namespace OGL
 {
 	class GLVertexFormat : public NativeVertexFormat
 	{
-		PortableVertexDeclaration vtx_decl;
-
 	public:
 		GLVertexFormat();
 		~GLVertexFormat();
@@ -48,6 +46,10 @@ private:
 	void vFlush(bool useDstAlpha) override;
 	void vFlush3D(bool useDstAlpha);
 	void PrepareDrawBuffers(u32 stride);
+
+	// Alternative buffers in CPU memory for primatives we are going to discard.
+	std::vector<u8> m_cpu_v_buffer;
+	std::vector<u16> m_cpu_i_buffer;
 };
 
 }
