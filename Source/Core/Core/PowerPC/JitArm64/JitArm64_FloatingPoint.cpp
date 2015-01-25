@@ -321,8 +321,8 @@ void JitArm64::fselx(UGeckoInstruction inst)
 	ARM64Reg VB = fpr.R(inst.FB);
 	ARM64Reg VC = fpr.R(inst.FC);
 
-	m_float_emit.FCMPE(VA);
-	m_float_emit.FCSEL(V0, VC, VB, CC_GE);
+	m_float_emit.FCMPE(EncodeRegToDouble(VA));
+	m_float_emit.FCSEL(EncodeRegToDouble(V0), EncodeRegToDouble(VC), EncodeRegToDouble(VB), CC_GE);
 	m_float_emit.INS(64, VD, 0, V0, 0);
 
 	fpr.Unlock(V0);
