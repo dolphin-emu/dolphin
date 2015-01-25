@@ -6,6 +6,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/Boot/ElfReader.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
