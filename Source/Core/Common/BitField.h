@@ -115,10 +115,14 @@ template<std::size_t position, std::size_t bits, typename T>
 struct BitField
 {
 private:
+#ifndef _WIN32
 	// This constructor might be considered ambiguous:
 	// Would it initialize the storage or just the bitfield?
 	// Hence, delete it. Use the assignment operator to set bitfield values!
+	// MSVC 2013 Intellisense complains that this declaration isn't allowed
+	// in a union member, so disable it on Windows.
 	BitField(T val) = delete;
+#endif
 
 public:
 	// Force default constructor to be created
