@@ -6,6 +6,8 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -134,6 +136,7 @@ EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 
 EVT_RADIOBOX(ID_CPUENGINE, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_NTSCJ, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_USEPORTABLE, CConfigMain::CoreSettingsChanged)
 EVT_SLIDER(ID_OVERCLOCK, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLEOVERCLOCK, CConfigMain::CoreSettingsChanged)
 
@@ -339,7 +342,6 @@ void CConfigMain::InitializeGUIValues()
 			CPUEngine->SetSelection(a);
 	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
 
-
 	// Display - Interface
 	ConfirmStop->SetValue(startup_params.bConfirmStop);
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
@@ -455,6 +457,14 @@ void CConfigMain::InitializeGUIValues()
 	DVDRoot->SetPath(StrToWxStr(startup_params.m_strDVDRoot));
 	ApploaderPath->SetPath(StrToWxStr(startup_params.m_strApploader));
 	NANDRoot->SetPath(StrToWxStr(SConfig::GetInstance().m_NANDPath));
+
+	if (std::ifstream("portable.txt")) {
+		UsePortable->SetValue(true); //Checks box if user is already in portable mode
+	}
+	else {
+		UsePortable->SetValue(false); //Un-Checks box if user is in Global Directory
+	}
+
 }
 
 void CConfigMain::InitializeGUITooltips()
@@ -462,10 +472,10 @@ void CConfigMain::InitializeGUITooltips()
 	// General - Basic
 	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
 	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
-
+	
 	// General - Advanced
 	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
-
+	
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
 	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
@@ -481,6 +491,9 @@ void CConfigMain::InitializeGUITooltips()
 
 	// Wii - Devices
 	WiiKeyboard->SetToolTip(_("This could cause slow down in Wii Menu and some games."));
+
+	//Paths
+	UsePortable->SetToolTip(_("This disables the global directory and sets the working directory to the executable location, this includes configuration, save data/slots etc. Leave unchecked if unsure. Requires Restart."));
 
 #if defined(__APPLE__)
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OSX."));
@@ -754,6 +767,7 @@ void CConfigMain::CreateGUIControls()
 		_("apploader (.img)") + wxString::Format("|*.img|%s", wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	NANDRoot = new wxDirPickerCtrl(PathsPage, ID_NANDROOT, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
+	UsePortable = new wxCheckBox(PathsPage, ID_USEPORTABLE, _("Portable mode"));
 
 	// Populate the settings
 	wxBoxSizer* sISOButtons = new wxBoxSizer(wxHORIZONTAL);
@@ -778,6 +792,7 @@ void CConfigMain::CreateGUIControls()
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Wii NAND Root:")),
 			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(NANDRoot, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+	sOtherPaths->Add(UsePortable, wxGBPosition(4, 0), wxDefaultSpan, wxEXPAND|wxALL, 5);
 	sOtherPaths->AddGrowableCol(1);
 
 	// Populate the Paths page
@@ -789,6 +804,8 @@ void CConfigMain::CreateGUIControls()
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+
+	//Advanced Options
 
 	wxStaticBoxSizer* sbCPUOptions = new wxStaticBoxSizer(wxVERTICAL, AdvancedPage, _("CPU Options"));
 	wxBoxSizer* bOverclockEnable = new wxBoxSizer(wxHORIZONTAL);
@@ -881,6 +898,15 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_NTSCJ:
 		startup_params.bForceNTSCJ = _NTSCJ->IsChecked();
+		break;
+	case ID_USEPORTABLE:
+		if (UsePortable->IsChecked() == true) {
+			std::ofstream outfile("portable.txt");
+			outfile.close();
+		}
+		else {
+			std::remove("portable.txt");
+		}
 		break;
 	case ID_ENABLEOVERCLOCK:
 		SConfig::GetInstance().m_OCEnable = EnableOC->IsChecked();

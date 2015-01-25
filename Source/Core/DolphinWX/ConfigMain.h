@@ -124,6 +124,7 @@ private:
 		ID_RECURSIVEISOPATH,
 		ID_ADDISOPATH,
 		ID_REMOVEISOPATH,
+		ID_USEPORTABLE,
 
 		ID_DEFAULTISO,
 		ID_DVDROOT,
@@ -211,11 +212,12 @@ private:
 	wxButton* AddISOPath;
 	wxButton* RemoveISOPath;
 
-	// DefaultISO, DVD Root, Apploader, NANDPath
+	// DefaultISO, DVD Root, Apploader, NANDPath, Portable
 	wxFilePickerCtrl* DefaultISO;
 	wxDirPickerCtrl* DVDRoot;
 	wxFilePickerCtrl* ApploaderPath;
 	wxDirPickerCtrl* NANDRoot;
+	wxCheckBox* UsePortable;
 
 	// Graphics
 	wxChoice* GraphicSelection;
