@@ -144,7 +144,7 @@ protected:
 	void Event_PPShader(wxCommandEvent &ev)
 	{
 		const int sel = ev.GetInt();
-		if (sel || vconfig.iStereoMode == STEREO_ANAGLYPH)
+		if (sel)
 			vconfig.sPostProcessingShader = WxStrToStr(ev.GetString());
 		else
 			vconfig.sPostProcessingShader.clear();

@@ -739,8 +739,7 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 	if (shaders.empty())
 		return;
 
-	if (vconfig.iStereoMode != STEREO_ANAGLYPH)
-		choice_ppshader->AppendString(_("(off)"));
+	choice_ppshader->AppendString(_("(off)"));
 
 	for (const std::string& shader : shaders)
 	{
@@ -753,7 +752,10 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 		choice_ppshader->Select(0);
 
 		if (vconfig.iStereoMode == STEREO_ANAGLYPH)
-			vconfig.sPostProcessingShader = shaders[0];
+		{
+			vconfig.sPostProcessingShader = "dubois";
+			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
+		}
 		else
 			vconfig.sPostProcessingShader.clear();
 	}
