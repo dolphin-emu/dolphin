@@ -13,6 +13,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 
+static const char s_default_shader[] = "void main() { SetOutput(Sample()); }\n";
+
 PostProcessingShaderImplementation::PostProcessingShaderImplementation()
 {
 	m_timer.Start();
@@ -36,16 +38,23 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 	std::string code;
 	std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
-	if (!File::Exists(path))
+	if (shader == "")
 	{
-		// Fallback to shared user dir
-		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
+		code = s_default_shader;
 	}
-
-	if (!File::ReadFileToString(path, code))
+	else
 	{
-		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
-		return "";
+		if (!File::Exists(path))
+		{
+			// Fallback to shared user dir
+			path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
+		}
+
+		if (!File::ReadFileToString(path, code))
+		{
+			ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
+			code = s_default_shader;
+		}
 	}
 
 	LoadOptions(code);

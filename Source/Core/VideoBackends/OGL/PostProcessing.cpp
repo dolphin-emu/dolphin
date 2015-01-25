@@ -36,8 +36,6 @@ static const char s_vertex_shader[] =
 	"	uv0 = rawpos * src_rect.zw + src_rect.xy;\n"
 	"}\n";
 
-static const char s_default_shader[] = "void main() { SetOutput(Sample()); }\n";
-
 OpenGLPostProcessing::OpenGLPostProcessing()
 	: m_initialized(false)
 {
@@ -171,13 +169,7 @@ void OpenGLPostProcessing::ApplyShader()
 	m_uniform_bindings.clear();
 
 	// load shader code
-	std::string code = "";
-	if (g_ActiveConfig.sPostProcessingShader != "")
-		code = m_config.LoadShader();
-
-	if (code == "")
-		code = s_default_shader;
-
+	std::string code = m_config.LoadShader();
 	code = LoadShaderOptions(code);
 
 	const char* vertex_shader = s_vertex_shader;
@@ -189,8 +181,8 @@ void OpenGLPostProcessing::ApplyShader()
 	if (!ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str()))
 	{
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
-
-		code = LoadShaderOptions(s_default_shader);
+		g_ActiveConfig.sPostProcessingShader.clear();
+		code = m_config.LoadShader();
 		ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str());
 	}
 
