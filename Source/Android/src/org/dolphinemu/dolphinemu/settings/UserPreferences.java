@@ -10,6 +10,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.preference.PreferenceManager;
 
 /**
@@ -39,7 +40,11 @@ public final class UserPreferences
 		SharedPreferences.Editor editor = prefs.edit();
 
 		// Add the settings.
-		editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
+		if (Build.CPU_ABI.contains("arm64"))
+			editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "4"));
+		else
+			editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
+
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
 		editor.putBoolean("fastmemPref", getConfig("Dolphin.ini", "Core", "Fastmem", "False").equals("True"));
 
