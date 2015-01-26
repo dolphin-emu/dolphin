@@ -20,8 +20,8 @@ namespace DX11
 
 struct EFBEncodeParams
 {
-	DWORD SrcTop;
 	DWORD SrcLeft;
+	DWORD SrcTop;
 	DWORD DestWidth;
 	DWORD ScaleFactor;
 };
