@@ -93,7 +93,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	if (samples == 1)
 	{
 		// With samples == 1, we write out pairs of blocks; one A8R8, one G8B8.
-		WRITE(p, "  bool first = !(uv1.x & %d);\n", blkH * blkW / 2);
+		WRITE(p, "  bool first = (uv1.x & %d) == 0;\n", blkH * blkW / 2);
 		samples = 2;
 	}
 	WRITE(p, "  int offset_in_block = uv1.x & %d;\n", (blkH * blkW / samples) - 1);
