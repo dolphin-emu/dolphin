@@ -88,21 +88,19 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 			);
 	}
 
-	WRITE(p, "  int y_block_position = uv1.y & %d;\n", ~(blkH - 1));
-	WRITE(p, "  int y_offset_in_block = uv1.y & %d;\n", blkH - 1);
-	WRITE(p, "  int x_virtual_position = (uv1.x << %d) + y_offset_in_block * position.z;\n", IntLog2(samples));
-	WRITE(p, "  int x_block_position = (x_virtual_position >> %d) & %d;\n", IntLog2(blkH), ~(blkW - 1));
+	WRITE(p, "  int x_block_position = (uv1.x >> %d) << %d;\n", IntLog2(blkH * blkW / samples), IntLog2(blkW));
+	WRITE(p, "  int y_block_position = uv1.y << %d;\n", IntLog2(blkH));
+	WRITE(p, "  int offset_in_block = uv1.x & %d;\n", (blkH * blkW / samples) - 1);
+	WRITE(p, "  int y_offset_in_block = offset_in_block >> %d;\n", IntLog2(blkW / samples));
+	WRITE(p, "  int x_offset_in_block = (offset_in_block & %d) << %d;\n", (blkW / samples) - 1, IntLog2(samples));
 	if (samples == 1)
 	{
-		// 32 bit textures (RGBA8 and Z24) are stored in 2 cache line increments
-		WRITE(p, "  bool first = 0 == (x_virtual_position & %d);\n", 8 * samples); // first cache line, used in the encoders
-		WRITE(p, "  x_virtual_position = x_virtual_position << 1;\n");
+		WRITE(p, "  bool first = 0 == (x_block_position & %d);\n", blkW);
+		WRITE(p, "  x_block_position >>= 1;\n", blkW);
 	}
-	WRITE(p, "  int x_offset_in_block = x_virtual_position & %d;\n", blkW - 1);
-	WRITE(p, "  int y_offset = (x_virtual_position >> %d) & %d;\n", IntLog2(blkW), blkH - 1);
 
-	WRITE(p, "  sampleUv.x = x_offset_in_block + x_block_position;\n");
-	WRITE(p, "  sampleUv.y = y_block_position + y_offset;\n");
+	WRITE(p, "  sampleUv.x = x_block_position + x_offset_in_block;\n");
+	WRITE(p, "  sampleUv.y = y_block_position + y_offset_in_block;\n");
 
 	WRITE(p, "  float2 uv0 = float2(sampleUv);\n");                // sampleUv is the sample position in (int)gx_coords
 	WRITE(p, "  uv0 += float2(0.5, 0.5);\n");                      // move to center of pixel
