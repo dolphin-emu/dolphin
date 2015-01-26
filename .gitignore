@@ -18,8 +18,6 @@ Source/Core/Common/scmrev.h
 *.vcxproj.user
 *.obj
 *.tlog
-ninjabuild/
-
 # Ignore build info file created by QtCreator
 CMakeLists.txt.user
 # Ignore files created by posix people
