@@ -34,26 +34,6 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg\dev\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Lib>
-      <AdditionalDependencies>$(ExternalsDir)ffmpeg\dev\lib\swscale.lib;$(ExternalsDir)ffmpeg\dev\lib\avutil.lib;$(ExternalsDir)ffmpeg\dev\lib\avcodec.lib;$(ExternalsDir)ffmpeg\dev\lib\avformat.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg\dev\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Lib>
-      <AdditionalDependencies>$(ExternalsDir)ffmpeg\dev\lib\swscale.lib;$(ExternalsDir)ffmpeg\dev\lib\avutil.lib;$(ExternalsDir)ffmpeg\dev\lib\avcodec.lib;$(ExternalsDir)ffmpeg\dev\lib\avformat.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AVIDump.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
