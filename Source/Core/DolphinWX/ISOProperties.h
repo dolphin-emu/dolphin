@@ -84,6 +84,7 @@ private:
 	wxCheckBox* MonoDepth;
 
 	wxArrayString arrayStringFor_EmuState;
+	wxArrayString arrayStringFor_VRState;
 	wxChoice* EmuState;
 	wxTextCtrl* EmuIssues;
 	wxArrayString arrayStringFor_RmObjs;
@@ -122,6 +123,7 @@ private:
 	wxSpinCtrlDouble* ScreenUp;
 	wxSpinCtrlDouble* ScreenRight;
 	wxSpinCtrlDouble* ScreenPitch;
+	wxSpinCtrlDouble* MinFOV;
 	wxChoice *VRState;
 	wxTextCtrl *VRIssues;
 
@@ -164,6 +166,7 @@ private:
 		ID_CAMERA_FORWARD,
 		ID_CAMERA_PITCH,
 		ID_AIM_DISTANCE,
+		ID_MIN_FOV,
 		ID_SCREEN_HEIGHT,
 		ID_SCREEN_DISTANCE,
 		ID_SCREEN_THICKNESS,

@@ -951,7 +951,8 @@ void VertexShaderManager::SetProjectionConstants()
 	float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
 	float fLeftHeightHack = fHeightHack, fRightHeightHack = fHeightHack;
 	bool bHideLeft = bHide, bHideRight = bHide, bTelescopeHUD = false, bNoForward = false;
-	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1)
+	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1
+		&& (g_ActiveConfig.fTelescopeMaxFOV <= g_ActiveConfig.fMinFOV || (g_ActiveConfig.fTelescopeMaxFOV > g_ActiveConfig.fMinFOV && vr_widest_3d_VFOV > g_ActiveConfig.fMinFOV)))
 		iTelescopeHack = g_ActiveConfig.iTelescopeEye;
 	if (g_has_hmd && iTelescopeHack > 0)
 	{
@@ -1197,6 +1198,15 @@ void VertexShaderManager::SetProjectionConstants()
 		// near clipping plane in game units
 		float zfar, znear, zNear3D, hfov, vfov;
 
+		// if the camera is zoomed in so much that the action only fills a tiny part of your FOV,
+		// we need to move the camera forwards until objects at AimDistance fill the minimum FOV.
+		float zoom_forward = 0.0f;
+		if (vr_widest_3d_HFOV <= g_ActiveConfig.fMinFOV && vr_widest_3d_HFOV > 0 && iTelescopeHack <= 0)
+		{
+			zoom_forward = g_ActiveConfig.fAimDistance * tanf(DEGREES_TO_RADIANS(g_ActiveConfig.fMinFOV) / 2) / tanf(DEGREES_TO_RADIANS(vr_widest_3d_HFOV) / 2);
+			zoom_forward -= g_ActiveConfig.fAimDistance;
+		}
+
 		// Real 3D scene
 		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
@@ -1221,8 +1231,16 @@ void VertexShaderManager::SetProjectionConstants()
 			{
 				znear = vr_widest_3d_zNear;
 				zfar = vr_widest_3d_zFar;
-				hfov = vr_widest_3d_HFOV;
-				vfov = vr_widest_3d_VFOV;
+				if (zoom_forward != 0)
+				{
+					hfov = g_ActiveConfig.fMinFOV;
+					vfov = g_ActiveConfig.fMinFOV * vr_widest_3d_VFOV / vr_widest_3d_HFOV;
+				}
+				else
+				{
+					hfov = vr_widest_3d_HFOV;
+					vfov = vr_widest_3d_VFOV;
+				}
 				if (debug_newScene)
 					INFO_LOG(VR, "2D to fit 3D world: hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov, vfov, znear, zfar);
 			}
@@ -1400,7 +1418,6 @@ void VertexShaderManager::SetProjectionConstants()
 		{
 			Matrix44::LoadIdentity(head_position_matrix);
 			Matrix44::LoadIdentity(free_look_matrix);
-			Matrix44::LoadIdentity(camera_forward_matrix);
 		}
 		else
 		{
@@ -1421,18 +1438,6 @@ void VertexShaderManager::SetProjectionConstants()
 			for (int i = 0; i < 3; ++i)
 				pos[i] = s_fViewTranslationVector[i] * UnitsPerMetre;
 			Matrix44::Translate(free_look_matrix, pos);
-
-			if (bNoForward)
-			{
-				Matrix44::LoadIdentity(camera_forward_matrix);
-			}
-			else
-			{
-				pos[0] = 0;
-				pos[1] = 0;
-				pos[2] = g_ActiveConfig.fCameraForward * UnitsPerMetre;
-				Matrix44::Translate(camera_forward_matrix, pos);
-			}
 		}
 
 		Matrix44 look_matrix;
@@ -1445,6 +1450,19 @@ void VertexShaderManager::SetProjectionConstants()
 			// leaning back
 			// head position tracking
 			// head rotation tracking
+			if (bNoForward || g_is_skybox || bStuckToHead)
+			{
+				Matrix44::LoadIdentity(camera_forward_matrix);
+			}
+			else
+			{
+				float pos[3];
+				pos[0] = 0;
+				pos[1] = 0;
+				pos[2] = (g_ActiveConfig.fCameraForward + zoom_forward) * UnitsPerMetre;
+				Matrix44::Translate(camera_forward_matrix, pos);
+			}
+
 			Matrix44 A, B;
 			Matrix44::Multiply(camera_pitch_matrix, camera_forward_matrix, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
@@ -1490,7 +1508,7 @@ void VertexShaderManager::SetProjectionConstants()
 				if (bNoForward)
 					CameraForward = 0;
 				else
-					CameraForward = g_ActiveConfig.fCameraForward * UnitsPerMetre;
+					CameraForward = (g_ActiveConfig.fCameraForward + zoom_forward) * UnitsPerMetre;
 				// When moving the camera forward, correct the size of the HUD so that aiming is correct at AimDistance
 				AimDistance = g_ActiveConfig.fAimDistance * UnitsPerMetre;
 				if (AimDistance <= 0)
@@ -1575,10 +1593,7 @@ void VertexShaderManager::SetProjectionConstants()
 				if (vr_widest_3d_HFOV <= 0)
 					position[2] = scale[2] * zObj - HudDistance;
 				else
-					position[2] = scale[2] * zObj - HudDistance - CameraForward;
-
-
-
+					position[2] = scale[2] * zObj - HudDistance; // - CameraForward;
 			}
 			// 2D layer, or 2D viewport (may be part of 2D screen or HUD)
 			else
@@ -1619,7 +1634,7 @@ void VertexShaderManager::SetProjectionConstants()
 				if (vr_widest_3d_HFOV <= 0)
 					position[2] = -HudDistance;
 				else
-					position[2] = -HudDistance - CameraForward;
+					position[2] = -HudDistance; // - CameraForward;
 			}
 
 			Matrix44 A, B, scale_matrix, position_matrix, box_matrix;
@@ -1629,8 +1644,7 @@ void VertexShaderManager::SetProjectionConstants()
 			// order: scale, position
 			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
 
-			Matrix44::Multiply(camera_forward_matrix, box_matrix, B);
-			Matrix44::Multiply(camera_pitch_matrix, B, A);
+			Matrix44::Multiply(camera_pitch_matrix, box_matrix, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
 			Matrix44::Multiply(lean_back_matrix, B, A);
 			Matrix44::Multiply(head_position_matrix, A, B);

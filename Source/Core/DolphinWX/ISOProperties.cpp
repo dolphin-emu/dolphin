@@ -464,6 +464,11 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s3DGrid->Add(AimDistance, wxGBPosition(6, 1), wxDefaultSpan, wxALL, 5);
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(6, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Min HFOV:")), wxGBPosition(7, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	MinFOV = new wxSpinCtrlDouble(m_VR, ID_MIN_FOV, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 179, DEFAULT_VR_MIN_FOV, 1);
+	s3DGrid->Add(MinFOV, wxGBPosition(7, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees")), wxGBPosition(7, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
 	wxStaticBoxSizer * const sb2D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("2D Screens"));
 	sbVR->Add(sb2D, 0, wxEXPAND | wxALL, 5);
 	wxGridBagSizer *s2DGrid = new wxGridBagSizer();
@@ -502,12 +507,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxGridBagSizer *sVRGrid = new wxGridBagSizer();
 	sbVR->Add(sVRGrid, 0, wxEXPAND);
 
-	arrayStringFor_EmuState.Add(_("Not Set"));
-	arrayStringFor_EmuState.Add(_("Broken"));
-	arrayStringFor_EmuState.Add(_("Intro"));
-	arrayStringFor_EmuState.Add(_("In Game"));
-	arrayStringFor_EmuState.Add(_("Playable"));
-	arrayStringFor_EmuState.Add(_("Perfect"));
+	arrayStringFor_VRState.Add(_("Not Set"));
+	arrayStringFor_VRState.Add(_("Unplayable"));
+	arrayStringFor_VRState.Add(_("Bad"));
+	arrayStringFor_VRState.Add(_("Playable"));
+	arrayStringFor_VRState.Add(_("Good"));
+	arrayStringFor_VRState.Add(_("Perfect"));
 	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
 	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("VR state:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sVRGrid->Add(VRState, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -571,14 +576,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const EmuStateText = new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
-#if 0
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
 	arrayStringFor_EmuState.Add(_("Intro"));
 	arrayStringFor_EmuState.Add(_("In Game"));
 	arrayStringFor_EmuState.Add(_("Playable"));
 	arrayStringFor_EmuState.Add(_("Perfect"));
-#endif
 	EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
 	EmuIssues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString);
 
@@ -1325,6 +1328,12 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.GetIfExists("VR", "AimDistance", &fTemp))
 		AimDistance->SetValue(fTemp);
 
+	fTemp = DEFAULT_VR_MIN_FOV;
+	if (GameIniDefault.GetIfExists("VR", "MinFOV", &fTemp))
+		MinFOV->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "MinFOV", &fTemp))
+		MinFOV->SetValue(fTemp);
+
 	fTemp = DEFAULT_VR_SCREEN_HEIGHT;
 	if (GameIniDefault.GetIfExists("VR", "ScreenHeight", &fTemp))
 		ScreenHeight->SetValue(fTemp);
@@ -1466,6 +1475,7 @@ bool CISOProperties::SaveGameConfig()
 	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)CameraForward->GetValue(), DEFAULT_VR_CAMERA_FORWARD);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)CameraPitch->GetValue(), DEFAULT_VR_CAMERA_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)AimDistance->GetValue(), DEFAULT_VR_AIM_DISTANCE);
+	SAVE_IF_NOT_DEFAULT("VR", "MinFOV", (float)MinFOV->GetValue(), DEFAULT_VR_MIN_FOV);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)ScreenHeight->GetValue(), DEFAULT_VR_SCREEN_HEIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)ScreenDistance->GetValue(), DEFAULT_VR_SCREEN_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)ScreenThickness->GetValue(), DEFAULT_VR_SCREEN_THICKNESS);

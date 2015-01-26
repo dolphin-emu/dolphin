@@ -109,7 +109,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale,
 				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale:"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale multiplier: x"));
 			
 			spin_scale->SetToolTip(wxGetTranslation(scale_desc));
 			label->SetToolTip(wxGetTranslation(scale_desc));
@@ -362,6 +362,15 @@ void CConfigVR::CreateGUIControls()
 				wxGetTranslation(temp_desc), -180, 360, 1);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Pitch:"));
 			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Min FOV
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fMinFOV,
+				wxGetTranslation(temp_desc), 0, 179, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Min HFOV:"));
+			label->SetToolTip(wxGetTranslation(minfov_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
