@@ -53,7 +53,7 @@ private:
 	u64 m_dataOffset;
 
 	mutable u64 m_LastDecryptedBlockOffset;
-	mutable unsigned char m_LastDecryptedBlock[0x8000];
+	mutable unsigned char m_LastDecryptedBlock[0x7C00];
 };
 
 } // namespace

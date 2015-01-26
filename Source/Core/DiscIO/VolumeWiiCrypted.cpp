@@ -47,7 +47,6 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
 	return true;
 }
 
-
 CVolumeWiiCrypted::~CVolumeWiiCrypted()
 {
 	delete[] m_pBuffer;
@@ -66,36 +65,41 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 
 	while (_Length > 0)
 	{
-		static unsigned char IV[16];
-
-		// math block offset
+		// Calculate block offset
 		u64 Block  = _ReadOffset / 0x7C00;
 		u64 Offset = _ReadOffset % 0x7C00;
 
-		// read current block
-		if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
-			return(false);
-
 		if (m_LastDecryptedBlockOffset != Block)
 		{
-			memcpy(IV, m_pBuffer + 0x3d0, 16);
-			aes_crypt_cbc(m_AES_ctx.get(), AES_DECRYPT, 0x7C00, IV, m_pBuffer + 0x400, m_LastDecryptedBlock);
+			// Read the current block
+			if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
+				return false;
 
+			// Decrypt the block's data.
+			// 0x3D0 - 0x3DF in m_pBuffer will be overwritten,
+			// but that won't affect anything, because we won't
+			// use the content of m_pBuffer anymore after this
+			aes_crypt_cbc(m_AES_ctx.get(), AES_DECRYPT, 0x7C00, m_pBuffer + 0x3D0, m_pBuffer + 0x400, m_LastDecryptedBlock);
 			m_LastDecryptedBlockOffset = Block;
+
+			// The only thing we currently use from the 0x000 - 0x3FF part
+			// of the block is the IV (at 0x3D0), but it also contains SHA-1
+			// hashes that IOS uses to check that discs aren't tampered with.
+			// http://wiibrew.org/wiki/Wii_Disc#Encrypted
 		}
 
-		// copy the encrypted data
+		// Copy the decrypted data
 		u64 MaxSizeToCopy = 0x7C00 - Offset;
 		u64 CopySize = (_Length > MaxSizeToCopy) ? MaxSizeToCopy : _Length;
 		memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
 
-		// increase buffers
+		// Update offsets
 		_Length -= CopySize;
 		_pBuffer    += CopySize;
 		_ReadOffset += CopySize;
 	}
 
-	return(true);
+	return true;
 }
 
 bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
