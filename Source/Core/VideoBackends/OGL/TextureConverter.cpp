@@ -320,14 +320,16 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		source.left, source.top,
 		expandedWidth, bScaleByHalf ? 2 : 1);
 
-	int cacheBytes = 32;
+	unsigned int numBlocksX = expandedWidth / TexDecoder_GetBlockWidthInTexels(format);
+	unsigned int numBlocksY = expandedHeight / TexDecoder_GetBlockHeightInTexels(format);
+	unsigned int cacheLinesPerRow;
 	if ((format & 0x0f) == 6)
-		cacheBytes = 64;
+		cacheLinesPerRow = numBlocksX * 2;
+	else
+		cacheLinesPerRow = numBlocksX;
 
-	int readStride = (expandedWidth * cacheBytes) /
-		TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(source_texture,
-		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
+		dest_ptr, cacheLinesPerRow * 8, numBlocksY, cacheLinesPerRow * 32,
 		bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
 
