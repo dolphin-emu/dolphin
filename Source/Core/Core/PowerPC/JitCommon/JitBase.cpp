@@ -66,3 +66,19 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 		DEBUG_LOG(DYNA_REC,"IR_X86 bin: %s\n\n\n", ss.str().c_str());
 	}
 }
+
+bool JitBase::MergeAllowedNextInstructions(int count)
+{
+	if (PowerPC::GetState() == PowerPC::CPU_STEPPING || js.instructionsLeft < count)
+		return false;
+	// Be careful: a breakpoint kills flags in between instructions
+	for (int i = 1; i <= count; i++)
+	{
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging &&
+			PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+			return false;
+		if (js.op[i].isBranchTarget)
+			return false;
+	}
+	return true;
+}
