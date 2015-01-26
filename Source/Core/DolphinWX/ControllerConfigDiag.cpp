@@ -177,7 +177,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 			m_gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
 		}
 		m_gamecube_adapter->SetValue(false);
-		m_gamecube_adapter->SetValue(false);
 		m_gamecube_adapter->Disable();
 		m_gamecube_adapter_thread->SetValue(false);
 		m_gamecube_adapter_thread->Disable();
@@ -186,7 +185,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	{
 		m_gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
 		m_gamecube_adapter_thread->SetValue(SConfig::GetInstance().m_GameCubeAdapterThread);
-		m_gamecube_adapter_scan->Disable();
 		if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		{
 			m_gamecube_adapter->Disable();

@@ -76,6 +76,7 @@ public:
 	{
 		SConfig::GetInstance().m_GameCubeAdapter = true;
 		SConfig::GetInstance().m_GameCubeAdapterThread = true;
+		SI_GCAdapter::Shutdown();
 		SI_GCAdapter::Init();
 		if (SI_GCAdapter::IsDetected())
 		{
@@ -83,10 +84,13 @@ public:
 			m_gamecube_adapter->SetValue(true);
 			m_gamecube_adapter_thread->Enable();
 			m_gamecube_adapter_thread->SetValue(true);
-			m_gamecube_adapter_scan->Disable();
 		}
 		else
 		{
+			m_gamecube_adapter->Disable();
+			m_gamecube_adapter->SetValue(false);
+			m_gamecube_adapter_thread->Disable();
+			m_gamecube_adapter_thread->SetValue(false);
 			SConfig::GetInstance().m_GameCubeAdapter = false;
 			SConfig::GetInstance().m_GameCubeAdapterThread = false;
 		}
