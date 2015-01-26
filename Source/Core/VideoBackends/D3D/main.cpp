@@ -81,6 +81,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsOversizedViewports = false;
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = true;
+	g_Config.backend_info.bSupportsPostProcessing = false;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -133,6 +134,7 @@ void InitBackendInfo()
 
 	// Clear ppshaders string vector
 	g_Config.backend_info.PPShaders.clear();
+	g_Config.backend_info.AnaglyphShaders.clear();
 
 	DX11::D3D::UnloadDXGI();
 	DX11::D3D::UnloadD3D();

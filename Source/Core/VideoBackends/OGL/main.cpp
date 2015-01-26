@@ -95,14 +95,14 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
-static void GetShaders(std::vector<std::string> &shaders)
+static void GetShaders(std::vector<std::string> &shaders, const std::string &sub_dir = "")
 {
 	std::set<std::string> already_found;
 
 	shaders.clear();
-	static const std::string directories[] = {
-		File::GetUserPath(D_SHADERS_IDX),
-		File::GetSysDirectory() + SHADERS_DIR DIR_SEP,
+	const std::string directories[] = {
+		File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+		File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir,
 	};
 	for (auto& directory : directories)
 	{
@@ -139,6 +139,7 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupportsOversizedViewports = true;
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = false;
+	g_Config.backend_info.bSupportsPostProcessing = true;
 
 	g_Config.backend_info.Adapters.clear();
 
@@ -148,6 +149,7 @@ static void InitBackendInfo()
 
 	// pp shaders
 	GetShaders(g_Config.backend_info.PPShaders);
+	GetShaders(g_Config.backend_info.AnaglyphShaders, std::string(ANAGLYPH_DIR DIR_SEP));
 }
 
 void VideoBackend::ShowConfig(void *_hParent)
