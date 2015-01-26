@@ -185,10 +185,12 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	{
 		m_gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
 		m_gamecube_adapter_thread->SetValue(SConfig::GetInstance().m_GameCubeAdapterThread);
+		// Disable the adapter options when emulation is running
 		if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		{
 			m_gamecube_adapter->Disable();
 			m_gamecube_adapter_thread->Disable();
+			m_gamecube_adapter_scan->Disable();
 		}
 	}
 #endif
