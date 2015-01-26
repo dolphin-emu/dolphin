@@ -290,7 +290,6 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		RET(X30);
 	}
 	const u8* storePairedU8 = GetCodePtr();
-	const u8* storePairedS8 = GetCodePtr();
 	{
 		BitSet32 gprs(GPR_CALLER_SAVE & ~7); // All except X0/X1/X2
 		BitSet32 fprs(~3); // All except Q0/Q1
@@ -321,9 +320,39 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
+	const u8* storePairedS8 = GetCodePtr();
+	{
+		BitSet32 gprs(GPR_CALLER_SAVE & ~7); // All except X0/X1/X2
+		BitSet32 fprs(~3); // All except Q0/Q1
+
+		MOVI2R(X2, (u64)&m_quantizeTableS);
+		ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LD1R(32, D1, scale_reg);
+		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.FCVTZS(32, D0, D0);
+		float_emit.XTN(16, D0, D0);
+		float_emit.XTN(8, D0, D0);
+
+		TST(DecodeReg(addr_reg), 6, 1);
+		FixupBranch argh = B(CC_NEQ);
+		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(8, Q0, 0, addr_reg, SP);
+		float_emit.ST1(8, Q0, 1, addr_reg, SP);
+		RET(X30);
+
+		SetJumpTarget(argh);
+		ABI_PushRegisters(gprs);
+		float_emit.ABI_PushRegisters(fprs);
+		float_emit.UMOV(16, W0, Q0, 0);
+		REV16(W0, W0);
+		MOVI2R(X30, (u64)Memory::Write_U16);
+		BLR(X30);
+		float_emit.ABI_PopRegisters(fprs);
+		ABI_PopRegisters(gprs);
+		RET(X30);
+	}
 
 	const u8* storePairedU16 = GetCodePtr();
-	const u8* storePairedS16 = GetCodePtr();
 	{
 		BitSet32 gprs(GPR_CALLER_SAVE & ~7); // All except X0/X1/X2
 		BitSet32 fprs(~3); // All except Q0/Q1
@@ -334,6 +363,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		float_emit.FMUL(32, D0, D0, D1);
 		float_emit.FCVTZU(32, D0, D0);
 		float_emit.XTN(16, D0, D0);
+		float_emit.REV16(8, D0, D0);
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
@@ -345,8 +375,39 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
 		float_emit.ABI_PushRegisters(fprs);
+		float_emit.REV32(8, D0, D0);
 		float_emit.UMOV(32, W0, Q0, 0);
-		REV32(W0, W0);
+		MOVI2R(X30, (u64)Memory::Write_U32);
+		BLR(X30);
+		float_emit.ABI_PopRegisters(fprs);
+		ABI_PopRegisters(gprs);
+		RET(X30);
+	}
+	const u8* storePairedS16 = GetCodePtr(); // Used by Viewtiful Joe's intro movie
+	{
+		BitSet32 gprs(GPR_CALLER_SAVE & ~7); // All except X0/X1/X2
+		BitSet32 fprs(~3); // All except Q0/Q1
+
+		MOVI2R(X2, (u64)&m_quantizeTableS);
+		ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
+		float_emit.LD1R(32, D1, scale_reg);
+		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.FCVTZS(32, D0, D0);
+		float_emit.XTN(16, D0, D0);
+		float_emit.REV16(8, D0, D0);
+
+		TST(DecodeReg(addr_reg), 6, 1);
+		FixupBranch argh = B(CC_NEQ);
+		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.ST1(16, Q0, 0, addr_reg, SP);
+		float_emit.ST1(16, Q0, 1, addr_reg, SP);
+		RET(X30);
+
+		SetJumpTarget(argh);
+		ABI_PushRegisters(gprs);
+		float_emit.ABI_PushRegisters(fprs);
+		float_emit.REV32(8, D0, D0);
+		float_emit.UMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)Memory::Write_U32);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
@@ -451,6 +512,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
 		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.REV16(8, D0, D0);
 		float_emit.ST1(16, Q0, 0, addr_reg);
 		RET(X30);
 
@@ -479,6 +541,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
 		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		float_emit.REV16(8, D0, D0);
 		float_emit.ST1(16, Q0, 0, addr_reg);
 		RET(X30);
 
@@ -486,7 +549,6 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		ABI_PushRegisters(gprs);
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.SMOV(32, W0, Q0, 0);
-
 		MOVI2R(X30, (u64)&Memory::Write_U16);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
