@@ -5,10 +5,13 @@
 #include <wx/dialog.h>
 #include <wx/event.h>
 #include <wx/windowid.h>
+#include <wx/checkbox.h>
+#include <wx/button.h>
 
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/SI_GCAdapter.h"
 
 class InputConfig;
 class wxButton;
@@ -69,6 +72,26 @@ public:
 		SConfig::GetInstance().m_GameCubeAdapterThread = event.IsChecked();
 		event.Skip();
 	}
+	void OnGameCubeAdapterScan(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_GameCubeAdapter = true;
+		SConfig::GetInstance().m_GameCubeAdapterThread = true;
+		SI_GCAdapter::Init();
+		if (SI_GCAdapter::IsDetected())
+		{
+			m_gamecube_adapter->Enable();
+			m_gamecube_adapter->SetValue(true);
+			m_gamecube_adapter_thread->Enable();
+			m_gamecube_adapter_thread->SetValue(true);
+			m_gamecube_adapter_scan->Disable();
+		}
+		else
+		{
+			SConfig::GetInstance().m_GameCubeAdapter = false;
+			SConfig::GetInstance().m_GameCubeAdapterThread = false;
+		}
+		event.Skip();
+	}
 
 private:
 	wxStaticBoxSizer* CreateGamecubeSizer();
@@ -91,4 +114,8 @@ private:
 	wxButton* wiimote_configure_bt[MAX_WIIMOTES];
 	wxButton* gamecube_configure_bt[4];
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
+
+	wxCheckBox* m_gamecube_adapter;
+	wxCheckBox* m_gamecube_adapter_thread;
+	wxButton* m_gamecube_adapter_scan;
 };

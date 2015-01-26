@@ -149,14 +149,18 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	wxStaticBoxSizer* const gamecube_adapter_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("GameCube Adapter"));
 	wxBoxSizer* const gamecube_adapter_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-	wxCheckBox* const gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
-	gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
+	m_gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
+	m_gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
 
-	wxCheckBox* const gamecube_adapter_thread = new wxCheckBox(this, wxID_ANY, _("Use Thread"));
-	gamecube_adapter_thread->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapterThread, this);
+	m_gamecube_adapter_thread = new wxCheckBox(this, wxID_ANY, _("Use Thread"));
+	m_gamecube_adapter_thread->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapterThread, this);
 
-	gamecube_adapter_sizer->Add(gamecube_adapter, 0, wxEXPAND);
-	gamecube_adapter_sizer->Add(gamecube_adapter_thread, 0, wxEXPAND);
+	m_gamecube_adapter_scan = new wxButton(this, wxID_ANY, _("Find adapter"));
+	m_gamecube_adapter_scan->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnGameCubeAdapterScan, this);
+
+	gamecube_adapter_sizer->Add(m_gamecube_adapter, 0, wxEXPAND);
+	gamecube_adapter_sizer->Add(m_gamecube_adapter_thread, 0, wxEXPAND);
+	gamecube_adapter_sizer->Add(m_gamecube_adapter_scan, 0, wxEXPAND);
 	gamecube_adapter_group->Add(gamecube_adapter_sizer, 0, wxEXPAND);
 	gamecube_static_sizer->Add(gamecube_adapter_group, 0, wxEXPAND);
 
@@ -164,22 +168,29 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	if (!SI_GCAdapter::IsDetected())
 	{
 		if (!SI_GCAdapter::IsDriverDetected())
-			gamecube_adapter->SetLabelText(_("Driver Not Detected"));
+		{
+			m_gamecube_adapter->SetLabelText(_("Driver Not Detected"));
+			m_gamecube_adapter_scan->Disable();
+		}
 		else
-			gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
-		gamecube_adapter->SetValue(false);
-		gamecube_adapter->Disable();
-		gamecube_adapter_thread->SetValue(false);
-		gamecube_adapter_thread->Disable();
+		{
+			m_gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
+		}
+		m_gamecube_adapter->SetValue(false);
+		m_gamecube_adapter->SetValue(false);
+		m_gamecube_adapter->Disable();
+		m_gamecube_adapter_thread->SetValue(false);
+		m_gamecube_adapter_thread->Disable();
 	}
 	else
 	{
-		gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
-		gamecube_adapter_thread->SetValue(SConfig::GetInstance().m_GameCubeAdapterThread);
+		m_gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
+		m_gamecube_adapter_thread->SetValue(SConfig::GetInstance().m_GameCubeAdapterThread);
+		m_gamecube_adapter_scan->Disable();
 		if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		{
-			gamecube_adapter->Disable();
-			gamecube_adapter_thread->Disable();
+			m_gamecube_adapter->Disable();
+			m_gamecube_adapter_thread->Disable();
 		}
 	}
 #endif
