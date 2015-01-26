@@ -90,14 +90,15 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	WRITE(p, "  int x_block_position = (uv1.x >> %d) << %d;\n", IntLog2(blkH * blkW / samples), IntLog2(blkW));
 	WRITE(p, "  int y_block_position = uv1.y << %d;\n", IntLog2(blkH));
+	if (samples == 1)
+	{
+		// With samples == 1, we write out pairs of blocks; one A8R8, one G8B8.
+		WRITE(p, "  bool first = !(uv1.x & %d);\n", blkH * blkW / 2);
+		samples = 2;
+	}
 	WRITE(p, "  int offset_in_block = uv1.x & %d;\n", (blkH * blkW / samples) - 1);
 	WRITE(p, "  int y_offset_in_block = offset_in_block >> %d;\n", IntLog2(blkW / samples));
 	WRITE(p, "  int x_offset_in_block = (offset_in_block & %d) << %d;\n", (blkW / samples) - 1, IntLog2(samples));
-	if (samples == 1)
-	{
-		WRITE(p, "  bool first = 0 == (x_block_position & %d);\n", blkW);
-		WRITE(p, "  x_block_position >>= 1;\n", blkW);
-	}
 
 	WRITE(p, "  sampleUv.x = x_block_position + x_offset_in_block;\n");
 	WRITE(p, "  sampleUv.y = y_block_position + y_offset_in_block;\n");
