@@ -48,7 +48,7 @@ public final class UserPreferences
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
 		editor.putBoolean("fastmemPref", getConfig("Dolphin.ini", "Core", "Fastmem", "False").equals("True"));
 
-		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend", "Software Renderer"));
+		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend", "OGL"));
 		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
 		editor.putBoolean("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True").equals("True"));
 
