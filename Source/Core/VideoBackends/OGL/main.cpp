@@ -140,6 +140,7 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsPostProcessing = true;
+	g_Config.backend_info.bSupportsPaletteConversion = false;
 
 	g_Config.backend_info.Adapters.clear();
 

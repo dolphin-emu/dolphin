@@ -48,6 +48,7 @@ private:
 	~TextureCache();
 
 	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
+	void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) override;
 
 	void CompileShaders() override;
 	void DeleteShaders() override;

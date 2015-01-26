@@ -43,13 +43,56 @@ public:
 		};
 
 	};
-
+	class TextureAddress
+	{
+		u32 address1;
+		u32 address2;
+		enum AddressKind
+		{
+			// A texture in RAM
+			RAM,
+			// A texture loaded into TMEM
+			TMEM,
+			// A texture in RAM, fully decoded using a palette.
+			RAM_PALETTE,
+			// An RGBA8 texture in TMEM.
+			TMEM_RGBA8,
+			// A palette texture in TMEM.
+			TMEM_PALETTE,
+			// Uninitialized address.
+			INVALID
+		};
+		AddressKind kind;
+		TextureAddress(u32 a, u32 b, AddressKind k) : address1(a), address2(b), kind(k) {}
+	public:
+		TextureAddress() : kind(INVALID), address1(0), address2(0) {}
+		static TextureAddress Mem(u32 a) { return TextureAddress(a, 0, RAM); }
+		static TextureAddress MemPalette(u32 a, u32 b) { return TextureAddress(a, b, RAM_PALETTE); }
+		static TextureAddress TMem(u32 a) { return TextureAddress(a, 0, TMEM); }
+		static TextureAddress TMemRGBA8(u32 a, u32 b) { return TextureAddress(a, b, TMEM_RGBA8); }
+		static TextureAddress TMemPalette(u32 a, u32 b) { return TextureAddress(a, b, TMEM_PALETTE); }
+		bool operator == (const TextureAddress& b) const
+		{
+			return kind == b.kind && address1 == b.address1 && address2 == b.address2;
+		}
+		bool operator < (const TextureAddress& b) const
+		{
+			if (kind != b.kind)
+				return kind < b.kind;
+			if (address1 != b.address1)
+				return address1 < b.address1;
+			 return address2 < b.address2;
+		}
+		bool IsMemOnlyAddress() const { return kind == RAM; }
+		bool HasMemAddress() const { return kind == RAM || kind == RAM_PALETTE; }
+		u32 GetMemAddress() const { return address1; }
+	};
 	struct TCacheEntryBase
 	{
 		const TCacheEntryConfig config;
 
 		// common members
-		u32 addr;
+		TextureAddress addr;
 		u32 size_in_bytes;
 		u64 hash;
 		u32 format;
@@ -61,7 +104,7 @@ public:
 		int frameCount;
 
 
-		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
+		void SetGeneralParameters(TextureAddress _addr, u32 _size, u32 _format)
 		{
 			addr = _addr;
 			size_in_bytes = _size;
@@ -96,6 +139,7 @@ public:
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
 		bool IsEfbCopy() { return config.rendertarget; }
+		bool IsUnrecoverable() { return IsEfbCopy() && addr.IsMemOnlyAddress(); }
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
@@ -107,9 +151,7 @@ public:
 	static void Cleanup(int frameCount);
 
 	static void Invalidate();
-	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
-	static void ClearRenderTargets(); // currently only used by OGL
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
@@ -117,10 +159,14 @@ public:
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
 
 	static TCacheEntryBase* Load(const u32 stage);
+	static void UnbindTextures();
+	static void BindTextures();
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	static void RequestInvalidateTextureCache();
+
+	virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) = 0;
 
 protected:
 	TextureCache();
@@ -135,11 +181,14 @@ private:
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
 	static void FreeTexture(TCacheEntryBase* entry);
 
-	typedef std::multimap<u32, TCacheEntryBase*> TexCache;
+	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
+
+	typedef std::multimap<TextureAddress, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
 
 	static TexCache textures;
 	static TexPool texture_pool;
+	static TCacheEntryBase* bound_textures[8];
 
 	// Backup configuration values
 	static struct BackupConfig
