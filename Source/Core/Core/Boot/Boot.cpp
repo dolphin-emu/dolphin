@@ -2,7 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#ifdef _WIN32
 #include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -236,7 +240,11 @@ bool CBoot::BootUp()
 			std::string line;
 			std::ifstream myfile( userPath + unique_id + ".map"); //lego starwars
 			std::string gameScrenShotsPath = userPathScreens + unique_id;
+#ifdef _WIN32
 			mkdir(gameScrenShotsPath.c_str());
+#else
+			mkdir(gameScrenShotsPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+#endif
 
 			Core::ch_title_id = unique_id;
 			if (myfile.is_open())

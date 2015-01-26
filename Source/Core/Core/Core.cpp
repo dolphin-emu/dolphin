@@ -94,7 +94,7 @@ bool ch_bruteforce;
 
 std::vector<std::string> ch_map;
 std::string ch_title_id;
-std::string Core::ch_code;
+std::string ch_code;
 
 
 // Declarations and definitions
