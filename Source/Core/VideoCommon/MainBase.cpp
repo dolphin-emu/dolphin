@@ -121,7 +121,7 @@ void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStri
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHardware::Video_EndField()
 {
-	if (s_BackendInitialized && g_ActiveConfig.bUseXFB)
+	if (s_BackendInitialized)
 	{
 		SyncGPU(SYNC_GPU_SWAP);
 
