@@ -50,7 +50,6 @@ ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYD
 std::vector<DataReader> timewarp_log;
 std::vector<bool> display_list_log;
 std::vector<bool> is_preprocess_log;
-std::vector<bool> cached_ram_location;
 bool opcode_replay_enabled = false;
 bool g_opcodereplay_frame = false;
 int skipped_opcode_replay_count = 0;
@@ -153,13 +152,20 @@ void InitVR()
 		}
 	}
 #endif
-	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution = 
-		StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = g_hmd_window_y;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = g_hmd_window_width;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = g_hmd_window_height;
-	SConfig::GetInstance().m_special_case = true;
+	if (g_has_hmd)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+			StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = g_hmd_window_y;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = g_hmd_window_width;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = g_hmd_window_height;
+		SConfig::GetInstance().m_special_case = true;
+	}
+	else
+	{
+		SConfig::GetInstance().m_special_case = false;
+	}
 }
 
 void ShutdownVR()
@@ -450,7 +456,7 @@ void OpcodeReplayBuffer()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
+	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)

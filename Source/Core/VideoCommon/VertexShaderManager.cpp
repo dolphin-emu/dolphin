@@ -22,6 +22,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
+#include "Core/Core.h"
 
 #define HACK_LOG INFO_LOG
 
@@ -33,7 +34,7 @@ static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 extern bool g_aspect_wide;
 
 // track changes
-static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged, bFreeLookChanged;
+static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged, bFreeLookChanged, bFrameChanged;
 static BitSet32 nMaterialsChanged;
 static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
@@ -126,6 +127,8 @@ const char *GetViewportTypeName(ViewportType v)
 //#pragma optimize("", off)
 
 void ClearDebugProj() { //VR
+	bFrameChanged = true;
+
 	debug_newScene = debug_nextScene;
 	if (debug_newScene)
 	{
@@ -166,13 +169,15 @@ void SetViewportType(Viewport &v)
 	// Twilighlight Princess GC uses square but non-power-of-2 textures: 216x216 and 384x384
 	// Metroid Prime 2 uses square textures in the bottom left corner but screen_height is wrong.
 	// So the relaxed rule is: square texture on any screen edge with size a multiple of 8
+	// Bad Boys 2 and 007 Everything or Nothing use 512x512 viewport and 512x512 screen size for non-render-targets
 	//if (width == height
 	//	&& (width == 32 || width == 64 || width == 128 || width == 256)
 	//	&& ((left == 0 && top == 0) || (left == 0 && top == screen_height - height)
 	//	|| (left == screen_width - width && top == 0) || (left == screen_width - width && top == screen_height - height)))
 	if (width == height
 		&& (width == 1 || width == 2 || width == 4 || ((int)width % 8 == 0))
-		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width))
+		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width)
+		&& !(width == 512 && screen_width == 512 && screen_height == 512))
 	{
 		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
 	}
@@ -701,6 +706,7 @@ void VertexShaderManager::Dirty()
 	bTexMatricesChanged[1] = true;
 
 	bProjectionChanged = true;
+	bFrameChanged = true;
 
 	nMaterialsChanged = BitSet32::AllTrue(4);
 
@@ -868,20 +874,22 @@ void VertexShaderManager::SetConstants()
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			if (!bProjectionChanged)
+			if (!bProjectionChanged && !bFrameChanged)
 				SetProjectionConstants();
 		} 
 		// VR adjust the projection matrix for the new kind of viewport
-		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged)
+		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged && !bFrameChanged)
 		{
 			SetProjectionConstants();
 		}
 	}
 
-	if (bProjectionChanged)
+	if (bProjectionChanged || bFrameChanged)
 	{
+		if (bProjectionChanged)
+			LogProj(xfmem.projection.rawProjection);
 		bProjectionChanged = false;
-		LogProj(xfmem.projection.rawProjection);
+		bFrameChanged = false;
 		SetProjectionConstants();
 	}
 }
@@ -1118,7 +1126,7 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 mtxB;
 		Matrix44 viewMtx;
 
-		if (bFreeLookChanged && xfmem.projection.type == GX_PERSPECTIVE)
+		if ((bFreeLookChanged || Core::ch_bruteforce) && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			// use the freelook camera position, which should still be in metres even for non-VR so it is a consistent speed between games
 			float pos[3];
@@ -1673,6 +1681,8 @@ void VertexShaderManager::SetProjectionConstants()
 			final_matrix_right.data[4] *= -1;
 			final_matrix_right.data[8] *= -1;
 			final_matrix_right.data[12] *= -1;
+			GeometryShaderManager::constants.stereoparams[0] *= -1;
+			GeometryShaderManager::constants.stereoparams[1] *= -1;
 		}
 		if (flipped_y < 0)
 		{
