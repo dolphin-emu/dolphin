@@ -191,7 +191,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		else if (!TextureCache::Find(addr, hash))
 			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
 
-		this->hash = 0;
+		this->hash = hash;
 	}
 }
 

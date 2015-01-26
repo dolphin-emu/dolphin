@@ -188,7 +188,6 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		u8* src = (u8*)map.pData;
 		for (unsigned int y = 0; y < numBlocksY; ++y)
 		{
-			_assert_msg_(POWERPC, map.RowPitch >= cacheLinesPerRow * 32, "");
 			memcpy(dst, src, cacheLinesPerRow*32);
 			dst += bpmem.copyMipMapStrideChannels*32;
 			src += map.RowPitch;
