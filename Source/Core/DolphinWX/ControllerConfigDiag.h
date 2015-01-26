@@ -2,11 +2,11 @@
 
 #include <array>
 #include <map>
+#include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/event.h>
 #include <wx/windowid.h>
-#include <wx/checkbox.h>
-#include <wx/button.h>
 
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
@@ -74,26 +74,29 @@ public:
 	}
 	void OnGameCubeAdapterScan(wxCommandEvent& event)
 	{
+		bool gcadapter_config = SConfig::GetInstance().m_GameCubeAdapter;
+		// required for SI_GCAdapter::Shutdown() to proceed
 		SConfig::GetInstance().m_GameCubeAdapter = true;
-		SConfig::GetInstance().m_GameCubeAdapterThread = true;
 		SI_GCAdapter::Shutdown();
 		SI_GCAdapter::Init();
 		if (SI_GCAdapter::IsDetected())
 		{
+			m_gamecube_adapter->SetLabelText(_("Direct Connect"));
 			m_gamecube_adapter->Enable();
-			m_gamecube_adapter->SetValue(true);
 			m_gamecube_adapter_thread->Enable();
-			m_gamecube_adapter_thread->SetValue(true);
+
+			m_gamecube_adapter->SetValue(gcadapter_config);
+			m_gamecube_adapter_thread->SetValue(SConfig::GetInstance().m_GameCubeAdapterThread);
 		}
 		else
 		{
+			m_gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
 			m_gamecube_adapter->Disable();
 			m_gamecube_adapter->SetValue(false);
 			m_gamecube_adapter_thread->Disable();
 			m_gamecube_adapter_thread->SetValue(false);
-			SConfig::GetInstance().m_GameCubeAdapter = false;
-			SConfig::GetInstance().m_GameCubeAdapterThread = false;
 		}
+		SConfig::GetInstance().m_GameCubeAdapter = gcadapter_config;
 		event.Skip();
 	}
 
