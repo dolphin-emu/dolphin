@@ -139,8 +139,9 @@ protected:
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	bool bAVIDumping;
+#else
+	File::IOFile pFrameDump;
 #endif
-
 	std::vector<u8> frame_data;
 	bool bLastFrameDumped;
 
