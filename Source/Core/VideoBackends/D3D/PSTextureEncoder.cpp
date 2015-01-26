@@ -162,6 +162,12 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
 		D3D::stateman->SetPixelConstants(m_encodeParams);
 
+		// Use linear filtering if (bScaleByHalf), use point filtering otherwise
+		if (scaleByHalf)
+			D3D::SetLinearCopySampler();
+		else
+			D3D::SetPointCopySampler();
+
 		D3D::drawShadedTexQuad(pEFB,
 			targetRect.AsRECT(),
 			Renderer::GetTargetWidth(),
