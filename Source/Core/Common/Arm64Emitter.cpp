@@ -1754,7 +1754,8 @@ void ARM64FloatEmitter::EmitConversion(bool sf, bool S, u32 type, u32 rmode, u32
 
 void ARM64FloatEmitter::EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Reg Rn, ARM64Reg Rm)
 {
-	bool is_double = !IsSingle(Rn);
+	_assert_msg_(DYNA_REC, IsQuad(Rn), "%s doesn't support vector!", __FUNCTION__);
+	bool is_double = IsDouble(Rn);
 
 	Rn = DecodeReg(Rn);
 	Rm = DecodeReg(Rm);
@@ -1765,7 +1766,8 @@ void ARM64FloatEmitter::EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Re
 
 void ARM64FloatEmitter::EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-	bool is_double = !IsSingle(Rd);
+	_assert_msg_(DYNA_REC, IsQuad(Rd), "%s doesn't support vector!", __FUNCTION__);
+	bool is_double = IsDouble(Rd);
 
 	Rd = DecodeReg(Rd);
 	Rn = DecodeReg(Rn);
