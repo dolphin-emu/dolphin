@@ -40,15 +40,15 @@ void PSTextureEncoder::Init()
 
 	// Create output texture RGBA format
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
-		DXGI_FORMAT_R8G8B8A8_UINT,
-		EFB_WIDTH, EFB_HEIGHT, 1, 1, D3D11_BIND_RENDER_TARGET);
+		DXGI_FORMAT_B8G8R8A8_UNORM,
+		EFB_WIDTH * 4, EFB_HEIGHT / 4, 1, 1, D3D11_BIND_RENDER_TARGET);
 	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_out);
 	CHECK(SUCCEEDED(hr), "create efb encode output texture");
 	D3D::SetDebugObjectName(m_out, "efb encoder output texture");
 
 	// Create output render target view
 	D3D11_RENDER_TARGET_VIEW_DESC rtvd = CD3D11_RENDER_TARGET_VIEW_DESC(m_out,
-		D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R8G8B8A8_UINT);
+		D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_B8G8R8A8_UNORM);
 	hr = D3D::device->CreateRenderTargetView(m_out, &rtvd, &m_outRTV);
 	CHECK(SUCCEEDED(hr), "create efb encode output render target view");
 	D3D::SetDebugObjectName(m_outRTV, "efb encoder output rtv");
@@ -135,7 +135,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	// Set up all the state for EFB encoding
 
 	{
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2*4), FLOAT(numBlocksY*4));
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow * 8), FLOAT(numBlocksY));
 		D3D::context->RSSetViewports(1, &vp);
 
 		EFBRectangle fullSrcRect;
@@ -156,11 +156,11 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 		EFBEncodeParams params;
 		params.SrcLeft = correctSrc.left;
-		params.SrcLeft = correctSrc.top;
+		params.SrcTop = correctSrc.top;
 		params.DestWidth = actualWidth;
 		params.ScaleFactor = scaleByHalf ? 2 : 1;
 		D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
-		D3D::stateman->SetPixelConstants(0, m_encodeParams);
+		D3D::stateman->SetPixelConstants(m_encodeParams);
 
 		D3D::drawShadedTexQuad(pEFB,
 			targetRect.AsRECT(),
@@ -171,7 +171,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 			VertexShaderCache::GetSimpleInputLayout());
 
 		// Copy to staging buffer
-		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, cacheLinesPerRow*2*4, numBlocksY*4, 1);
+		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, cacheLinesPerRow * 8, numBlocksY, 1);
 		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 		// Transfer staging buffer to GameCube/Wii RAM
@@ -182,6 +182,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		u8* src = (u8*)map.pData;
 		for (unsigned int y = 0; y < numBlocksY; ++y)
 		{
+			_assert_msg_(POWERPC, map.RowPitch >= cacheLinesPerRow * 32, "");
 			memcpy(dst, src, cacheLinesPerRow*32);
 			dst += bpmem.copyMipMapStrideChannels*32;
 			src += map.RowPitch;
