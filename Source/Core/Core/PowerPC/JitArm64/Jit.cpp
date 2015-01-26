@@ -320,6 +320,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				BRK(0x666);
 			}
 		}
+
+		i += js.skipInstructions;
+		js.skipInstructions = 0;
 	}
 
 	if (code_block.m_memory_exception)

@@ -107,6 +107,8 @@ protected:
 	PPCAnalyst::CodeBlock code_block;
 	PPCAnalyst::PPCAnalyzer analyzer;
 
+	bool MergeAllowedNextInstructions(int count);
+
 public:
 	// This should probably be removed from public:
 	JitOptions jo;
