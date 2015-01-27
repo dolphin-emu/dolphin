@@ -408,14 +408,14 @@ void CConfigVR::CreateGUIControls()
 		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 5);
 
 		szr_vr->Add(CreateCheckBox(page_vr, _("Show Controller"), wxGetTranslation(showcontroller_desc), vconfig.bShowController));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera"), wxGetTranslation(showgamecamera_desc), vconfig.bShowGameCamera));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera Frustum"), wxGetTranslation(showgamecamerafrustum_desc), vconfig.bShowGameFrustum));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Camera"), wxGetTranslation(showtrackingcamera_desc), vconfig.bShowTrackingCamera));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Volume"), wxGetTranslation(showtrackingvolume_desc), vconfig.bShowTrackingVolume));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Hydra Base Station"), wxGetTranslation(showbasestation_desc), vconfig.bShowBaseStation));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera"), wxGetTranslation(showgamecamera_desc), vconfig.bShowGameCamera));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera Frustum"), wxGetTranslation(showgamecamerafrustum_desc), vconfig.bShowGameFrustum));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Camera"), wxGetTranslation(showtrackingcamera_desc), vconfig.bShowTrackingCamera));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Volume"), wxGetTranslation(showtrackingvolume_desc), vconfig.bShowTrackingVolume));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Hydra Base Station"), wxGetTranslation(showbasestation_desc), vconfig.bShowBaseStation));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Show avatar"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
