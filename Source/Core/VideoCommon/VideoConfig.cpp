@@ -100,7 +100,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
 	hacks->Get("EFBToTextureEnable", &bCopyEFBToTexture, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
-	hacks->Get("EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
 	// Load common settings
@@ -201,7 +200,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
-	CHECK_SETTING("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
@@ -290,7 +288,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
 	hacks->Set("EFBToTextureEnable", bCopyEFBToTexture);
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
-	hacks->Set("EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	iniFile.Save(ini_file);
