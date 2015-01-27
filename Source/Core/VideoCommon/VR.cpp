@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2015 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
@@ -31,7 +31,7 @@ ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 int g_ovr_frameindex;
 #endif
 
-std::mutex g_ovr_lock;
+std::mutex g_vr_lock;
 
 bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
@@ -168,6 +168,23 @@ void InitVR()
 	}
 }
 
+void VR_StopRendering()
+{
+#ifdef _WIN32
+	if (g_has_vr920)
+	{
+		VR920_StopStereo3D();
+	}
+#endif
+#ifdef HAVE_OCULUSSDK
+	// Shut down rendering and release resources (by passing NULL)
+	if (g_has_rift)
+	{
+		ovrHmd_ConfigureRendering(hmd, nullptr, 0, g_eye_fov, g_eye_render_desc);
+	}
+#endif
+}
+
 void ShutdownVR()
 {
 #ifdef HAVE_OCULUSSDK
@@ -186,6 +203,75 @@ void ShutdownVR()
 #endif
 }
 
+void VR_RecenterHMD()
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		ovrHmd_RecenterPose(hmd);
+	}
+#endif
+}
+
+void VR_ConfigureHMDTracking()
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		int cap = 0;
+		if (g_ActiveConfig.bOrientationTracking)
+			cap |= ovrTrackingCap_Orientation;
+		if (g_ActiveConfig.bMagYawCorrection)
+			cap |= ovrTrackingCap_MagYawCorrection;
+		if (g_ActiveConfig.bPositionTracking)
+			cap |= ovrTrackingCap_Position;
+		ovrHmd_ConfigureTracking(hmd, cap, 0);
+	}
+#endif
+}
+
+void VR_ConfigureHMDPrediction()
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+		if (g_Config.bLowPersistence)
+			caps |= ovrHmdCap_LowPersistence;
+		if (g_Config.bDynamicPrediction)
+			caps |= ovrHmdCap_DynamicPrediction;
+
+		ovrHmd_SetEnabledCaps(hmd, caps);
+	}
+#endif
+}
+
+void VR_BeginFrame()
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
+	}
+#endif
+}
+
+void VR_GetEyePoses()
+{
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+#ifdef OCULUSSDK042
+		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+#else
+		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
+		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
+#endif
+	}
+#endif
+}
+
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
 {
 #ifdef HAVE_OCULUSSDK
@@ -193,10 +279,10 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 	{
 		// we can only call GetEyePose between BeginFrame and EndFrame
 #ifdef OCULUSSDK042
-		g_ovr_lock.lock();
+		g_vr_lock.lock();
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-		g_ovr_lock.unlock();
+		g_vr_lock.unlock();
 #else
 		ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
 		ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);

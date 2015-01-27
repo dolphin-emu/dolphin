@@ -79,6 +79,7 @@
     <ClCompile Include="tiny_obj_loader.cpp" />
     <ClCompile Include="VertexManager.cpp" />
     <ClCompile Include="VertexShaderCache.cpp" />
+    <ClCompile Include="VRD3D.cpp" />
     <ClCompile Include="XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -105,6 +106,7 @@
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VertexShaderCache.h" />
     <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="VRD3D.h" />
     <ClInclude Include="XFBEncoder.h" />
   </ItemGroup>
   <ItemGroup>

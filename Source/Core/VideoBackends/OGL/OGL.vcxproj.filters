@@ -71,6 +71,7 @@
     <ClCompile Include="GLInterface\WGL.cpp">
       <Filter>GLInterface</Filter>
     </ClCompile>
+    <ClCompile Include="VROGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VertexManager.h">
@@ -196,6 +197,7 @@
     <ClInclude Include="GLInterface\WGL.h">
       <Filter>GLInterface</Filter>
     </ClInclude>
+    <ClInclude Include="VROGL.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

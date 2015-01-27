@@ -1,5 +1,5 @@
 // Copyright 2015 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "InputCommon/HotkeysXInput.h"
@@ -210,12 +210,7 @@ namespace HotkeysXInput
 		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_POSITION_RESET)) 
 		{
 			VertexShaderManager::ResetView();
-#ifdef HAVE_OCULUSSDK
-			if (g_has_rift)
-			{
-				ovrHmd_RecenterPose(hmd);
-			}
-#endif
+			VR_RecenterHMD();
 		}
 		if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_CAMERA_FORWARD))
 		{

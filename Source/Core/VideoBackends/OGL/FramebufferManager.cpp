@@ -1,11 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
 #include "VideoBackends/OGL/GLInterface/WGL.h"
-
-#include "VideoCommon/VR920.h"
 #else
 #include "VideoBackends/OGL/GLInterface/GLX.h"
 #endif
@@ -16,6 +14,7 @@
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/TextureConverter.h"
+#include "VideoBackends/OGL/VROGL.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -49,10 +48,6 @@ GLuint FramebufferManager::m_resolvedDepthTexture;
 // reinterpret pixel format
 SHADER FramebufferManager::m_pixel_format_shaders[2];
 
-// Oculus Rift
-#ifdef HAVE_OCULUSSDK
-ovrGLTexture FramebufferManager::m_eye_texture[2];
-#endif
 bool FramebufferManager::m_stereo3d = false;
 int FramebufferManager::m_eye_count = 1;
 
@@ -85,12 +80,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 	m_msaaSamples = msaaSamples;
 
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift)
-	{
-		ConfigureRift();
-	}
-#endif
+	if (g_has_hmd)
+		VR_ConfigureHMD();
 
 	// The EFB can be set to different pixel formats by the game through the
 	// BPMEM_ZCOMPARE register (which should probably have a different name).
@@ -242,28 +233,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
 	FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
 
-	if (g_has_vr920)
-	{
-#ifdef _WIN32
-		VR920_StartStereo3D();
-#endif
-	}
-	else if (g_has_rift)
-	{
-#ifdef HAVE_OCULUSSDK
-		m_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
-		m_eye_texture[0].OGL.Header.TextureSize.w = m_targetWidth;
-		m_eye_texture[0].OGL.Header.TextureSize.h = m_targetHeight;
-		m_eye_texture[0].OGL.Header.RenderViewport.Pos.x = 0;
-		m_eye_texture[0].OGL.Header.RenderViewport.Pos.y = 0;
-		m_eye_texture[0].OGL.Header.RenderViewport.Size.w = m_targetWidth;
-		m_eye_texture[0].OGL.Header.RenderViewport.Size.h = m_targetHeight;
-		m_eye_texture[0].OGL.TexId = m_frontBuffer[0];
-		m_eye_texture[1] = m_eye_texture[0];
-		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
-			m_eye_texture[1].OGL.TexId = m_frontBuffer[1];
-#endif
-	}
+	VR_StartFramebuffer(m_targetWidth, m_targetHeight, m_frontBuffer[0], m_frontBuffer[1]);
+
 	// Bind all the other layers as separate FBOs for blitting.
 	for (unsigned int i = 1; i < m_EFBLayers; i++)
 	{
@@ -410,19 +381,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 FramebufferManager::~FramebufferManager()
 {
-#ifdef _WIN32
-	if (g_has_vr920)
-	{
-		VR920_StopStereo3D();
-	}
-#endif
-#ifdef HAVE_OCULUSSDK
-	// Shut down rendering and release resources (by passing NULL)
-	if (g_has_rift)
-	{
-		ovrHmd_ConfigureRendering(hmd, nullptr, 0, g_eye_fov, g_eye_render_desc);
-	}
-#endif
+	VR_StopRendering();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -672,56 +631,5 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 	*width = m_targetWidth;
 	*height = m_targetHeight;
 }
-
-#ifdef HAVE_OCULUSSDK
-void FramebufferManager::ConfigureRift()
-{
-	ovrGLConfig cfg;
-	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
-#ifdef OCULUSSDK044
-	cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
-	cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
-#else
-	cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
-	cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
-#endif
-	cfg.OGL.Header.Multisample = 0;
-#ifdef _WIN32
-	cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
-	cfg.OGL.DC = GetDC(cfg.OGL.Window);
-#ifndef OCULUSSDK042
-	if (g_is_direct_mode) //If in Direct Mode
-	{
-		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
-	}
-#endif
-#else
-	cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->getDisplay();
-#ifdef OCULUSSDK043
-	cfg.OGL.Win = glXGetCurrentDrawable();
-#endif
-#endif
-	int caps = 0;
-	if (g_Config.bChromatic)
-		caps |= ovrDistortionCap_Chromatic;
-	if (g_Config.bTimewarp)
-		caps |= ovrDistortionCap_TimeWarp;
-	if (g_Config.bVignette)
-		caps |= ovrDistortionCap_Vignette;
-	if (g_Config.bNoRestore)
-		caps |= ovrDistortionCap_NoRestore;
-	if (g_Config.bFlipVertical)
-		caps |= ovrDistortionCap_FlipInput;
-	if (g_Config.bSRGB)
-		caps |= ovrDistortionCap_SRGB;
-	if (g_Config.bOverdrive)
-		caps |= ovrDistortionCap_Overdrive;
-	if (g_Config.bHqDistortion)
-		caps |= ovrDistortionCap_HqDistortion;
-	ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps,
-		g_eye_fov, g_eye_render_desc);
-	ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
-}
-#endif
 
 }  // namespace OGL

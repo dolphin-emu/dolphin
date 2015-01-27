@@ -1322,12 +1322,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			else if (IsHotkey(event, HK_FREELOOK_RESET))
 			{
 				VertexShaderManager::ResetView();
-#ifdef HAVE_OCULUSSDK
-				if (g_has_rift)
-				{
-					ovrHmd_RecenterPose(hmd);
-				}
-#endif
+				VR_RecenterHMD();
 			}
 			else if (g_has_hmd)
 			{

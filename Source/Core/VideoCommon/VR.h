@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2015 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -84,8 +84,14 @@ typedef enum
 } ControllerStyle;
 
 void InitVR();
+void VR_StopRendering();
 void ShutdownVR();
+void VR_RecenterHMD();
+void VR_ConfigureHMDTracking();
+void VR_ConfigureHMDPrediction();
 void NewVRFrame();
+void VR_BeginFrame();
+void VR_GetEyePoses();
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z);
 void UpdateHeadTrackingIfNeeded();
 void VR_GetProjectionHalfTan(float &hmd_halftan);
@@ -131,7 +137,7 @@ extern int skipped_opcode_replay_count;
 //extern std::vector<u32> CPReadPointer_log;
 //extern std::vector<u32> CPBreakpoint_log;
 
-extern std::mutex g_ovr_lock;
+extern std::mutex g_vr_lock;
 extern volatile u32 g_drawn_vr;
 
 extern bool debug_nextScene;

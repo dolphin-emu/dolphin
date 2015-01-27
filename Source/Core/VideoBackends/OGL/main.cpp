@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -196,7 +196,7 @@ bool VideoBackend::Initialize(void *window_handle)
 bool VideoBackend::InitializeOtherThread(void *window_handle, std::thread *video_thread)
 {
 	m_video_thread = video_thread;
-	g_ovr_lock.lock();
+	g_vr_lock.lock();
 	if (window_handle)
 	{
 		if (!GLInterface->Create(window_handle))
@@ -312,7 +312,7 @@ void VideoBackend::Video_Cleanup()
 
 void VideoBackend::Video_CleanupOtherThread()
 {
-	g_ovr_lock.unlock();
+	g_vr_lock.unlock();
 	GLInterface->ClearCurrent();
 }
 

@@ -71,6 +71,7 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="tiny_obj_loader.cpp" />
+    <ClCompile Include="VRD3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -137,5 +138,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="tiny_obj_loader.h" />
+    <ClInclude Include="VRD3D.h" />
   </ItemGroup>
 </Project>
