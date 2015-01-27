@@ -76,6 +76,7 @@ private:
 	enum
 	{
 		ID_CPUTHREAD = 1010,
+		ID_GPUDETERMINISM,
 		ID_IDLESKIP,
 		ID_ENABLECHEATS,
 		ID_ENABLEOVERCLOCK,
@@ -140,6 +141,8 @@ private:
 
 	// Basic
 	wxCheckBox* CPUThread;
+	wxArrayString arrayStringFor_GPUDeterminism;
+	wxChoice* GPUDeterminism;
 	wxCheckBox* SkipIdle;
 	wxCheckBox* EnableCheats;
 	wxChoice* Framelimit;

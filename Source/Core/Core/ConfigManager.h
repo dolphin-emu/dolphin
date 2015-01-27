@@ -163,3 +163,5 @@ private:
 
 	static SConfig* m_Instance;
 };
+
+GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode);

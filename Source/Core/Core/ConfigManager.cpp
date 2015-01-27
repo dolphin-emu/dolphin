@@ -192,6 +192,19 @@ static const struct
 
 };
 
+GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
+{
+	if (mode == "auto")
+		return GPU_DETERMINISM_AUTO;
+	if (mode == "none")
+		return GPU_DETERMINISM_NONE;
+	if (mode == "fake-completion")
+		return GPU_DETERMINISM_FAKE_COMPLETION;
+
+	NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
+	return GPU_DETERMINISM_AUTO;
+}
+
 SConfig::SConfig()
 {
 	// Make sure we have log manager
@@ -754,6 +767,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
+	m_LocalCoreStartupParameter.m_GPUDeterminismMode = ParseGPUDeterminismMode(m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
 	core->Get("GameCubeAdapterThread",     &m_GameCubeAdapterThread,                       true);
 }

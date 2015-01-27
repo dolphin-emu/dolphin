@@ -34,6 +34,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITILTimeProfiling(false), bJITILOutputIR(false),
   bFPRF(false),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
+  m_GPUDeterminismMode(GPU_DETERMINISM_AUTO),
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
   bMergeBlocks(false), bEnableMemcardSaving(true),

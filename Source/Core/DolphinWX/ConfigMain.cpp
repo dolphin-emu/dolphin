@@ -129,6 +129,7 @@ EVT_BUTTON(wxID_OK, CConfigMain::OnOk)
 
 
 EVT_CHECKBOX(ID_CPUTHREAD, CConfigMain::CoreSettingsChanged)
+EVT_CHOICE(ID_GPUDETERMINISM, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
@@ -221,6 +222,7 @@ void CConfigMain::UpdateGUI()
 	{
 		// Disable the Core stuff on GeneralPage
 		CPUThread->Disable();
+		GPUDeterminism->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
 
@@ -326,6 +328,7 @@ void CConfigMain::InitializeGUIValues()
 
 	// General - Basic
 	CPUThread->SetValue(startup_params.bCPUThread);
+	GPUDeterminism->Select(startup_params.m_GPUDeterminismMode);
 	SkipIdle->SetValue(startup_params.bSkipIdle);
 	EnableCheats->SetValue(startup_params.bEnableCheats);
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
@@ -521,6 +524,16 @@ void CConfigMain::CreateGUIControls()
 	// General page
 	// Core Settings - Basic
 	CPUThread = new wxCheckBox(GeneralPage, ID_CPUTHREAD, _("Enable Dual Core (speedup)"));
+
+	wxBoxSizer* const sGPUDeterminism = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const GPUDeterminismText = new wxStaticText(GeneralPage, wxID_ANY, _("Deterministic dual core: "));
+	arrayStringFor_GPUDeterminism.Add(_("auto"));
+	arrayStringFor_GPUDeterminism.Add(_("none"));
+	arrayStringFor_GPUDeterminism.Add(_("fake-completion"));
+	GPUDeterminism = new wxChoice(GeneralPage, ID_GPUDETERMINISM, wxDefaultPosition, wxDefaultSize, arrayStringFor_GPUDeterminism);
+	sGPUDeterminism->Add(GPUDeterminismText);
+	sGPUDeterminism->Add(GPUDeterminism);
+
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, _("Enable Idle Skipping (speedup)"));
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, _("Enable Cheats"));
 	// Framelimit
@@ -536,6 +549,7 @@ void CConfigMain::CreateGUIControls()
 
 	wxStaticBoxSizer* const sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Basic Settings"));
 	sbBasic->Add(CPUThread, 0, wxALL, 5);
+	sbBasic->Add(sGPUDeterminism, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
 	sbBasic->Add(sFramelimit);
@@ -865,6 +879,10 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		if (Core::IsRunning())
 			return;
 		startup_params.bCPUThread = CPUThread->IsChecked();
+		break;
+	case ID_GPUDETERMINISM:
+		startup_params.m_GPUDeterminismMode = (GPUDeterminismMode)GPUDeterminism->GetSelection();
+		startup_params.m_strGPUDeterminismMode = arrayStringFor_GPUDeterminism[startup_params.m_GPUDeterminismMode];
 		break;
 	case ID_IDLESKIP:
 		startup_params.bSkipIdle = SkipIdle->IsChecked();

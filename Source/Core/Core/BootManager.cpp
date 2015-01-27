@@ -61,19 +61,6 @@ struct ConfigCache
 };
 static ConfigCache config_cache;
 
-static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
-{
-	if (mode == "auto")
-		return GPU_DETERMINISM_AUTO;
-	if (mode == "none")
-		return GPU_DETERMINISM_NONE;
-	if (mode == "fake-completion")
-		return GPU_DETERMINISM_FAKE_COMPLETION;
-
-	NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
-	return GPU_DETERMINISM_AUTO;
-}
-
 // Boot the ISO or file
 bool BootCore(const std::string& _rFilename)
 {
