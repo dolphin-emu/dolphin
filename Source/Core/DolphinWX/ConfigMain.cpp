@@ -111,6 +111,7 @@ static const wxLanguage langIds[] =
 #define EXIDEV_MEMDIR_STR   _trans("GCI Folder")
 #define EXIDEV_MIC_STR      _trans("Mic")
 #define EXIDEV_BBA_STR      "BBA"
+#define EXIDEV_AGP_STR      "Advance Game Port"
 #define EXIDEV_AM_BB_STR    _trans("AM-Baseboard")
 #define EXIDEV_GECKO_STR    "USBGecko"
 
@@ -382,8 +383,9 @@ void CConfigMain::InitializeGUIValues()
 		SlotDevices.Add(_(DEV_NONE_STR));
 		SlotDevices.Add(_(DEV_DUMMY_STR));
 		SlotDevices.Add(_(EXIDEV_MEMCARD_STR));
-		SlotDevices.Add(_(EXIDEV_GECKO_STR));
 		SlotDevices.Add(_(EXIDEV_MEMDIR_STR));
+		SlotDevices.Add(_(EXIDEV_GECKO_STR));
+		SlotDevices.Add(_(EXIDEV_AGP_STR));
 
 #if HAVE_PORTAUDIO
 		SlotDevices.Add(_(EXIDEV_MIC_STR));
@@ -415,19 +417,22 @@ void CConfigMain::InitializeGUIValues()
 			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
 			break;
 		case EXIDEVICE_MEMORYCARDFOLDER:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[3]);
+			break;
+		case EXIDEVICE_GECKO:
 			GCEXIDevice[i]->SetStringSelection(SlotDevices[4]);
 			break;
+		case EXIDEVICE_AGP:
+			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[5]);
+			break;
 		case EXIDEVICE_MIC:
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[5]);
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[6]);
 			break;
 		case EXIDEVICE_ETH:
 			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
 			break;
 		case EXIDEVICE_AM_BASEBOARD:
 			GCEXIDevice[i]->SetStringSelection(SP1Devices[3]);
-			break;
-		case EXIDEVICE_GECKO:
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[3]);
 			break;
 		case EXIDEVICE_DUMMY:
 		default:
@@ -1015,68 +1020,94 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 		ChooseEXIDevice(event.GetString(), exidevice);
 		break;
 	case ID_GC_EXIDEVICE_SLOTA_PATH:
-		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardA, true);
+		ChooseSlotPath(true, SConfig::GetInstance().m_EXIDevice[0]);
 		break;
 	case ID_GC_EXIDEVICE_SLOTB_PATH:
-		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardB, false);
+		ChooseSlotPath(false, SConfig::GetInstance().m_EXIDevice[1]);
 		break;
 	}
 }
 
-void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
+void CConfigMain::ChooseSlotPath(bool isSlotA, TEXIDevices device_type)
 {
+	bool memcard = (device_type == EXIDEVICE_MEMORYCARD);
+	std::string path;
+	std::string cardname;
+	std::string ext;
+	std::string pathA = SConfig::GetInstance().m_strMemoryCardA;
+	std::string pathB = SConfig::GetInstance().m_strMemoryCardB;
+	if (!memcard)
+	{
+		pathA = SConfig::GetInstance().m_strGbaCartA;
+		pathB = SConfig::GetInstance().m_strGbaCartB;
+	}
+	SplitPath(isSlotA ? pathA : pathB, &path, &cardname, &ext);
 	std::string filename = WxStrToStr(wxFileSelector(
 		_("Choose a file to open"),
-		StrToWxStr(File::GetUserPath(D_GCUSER_IDX)),
-		isSlotA ? GC_MEMCARDA : GC_MEMCARDB,
-		wxEmptyString,
-		_("GameCube Memory Cards (*.raw,*.gcp)") + "|*.raw;*.gcp"));
+		StrToWxStr(path),
+		StrToWxStr(cardname),
+		StrToWxStr(ext),
+		memcard ? _("GameCube Memory Cards (*.raw,*.gcp)") + "|*.raw;*.gcp" : _("Game Boy Advance Carts (*.gba)") + "|*.gba"));
 
 	if (!filename.empty())
 	{
 		if (File::Exists(filename))
 		{
-			GCMemcard memorycard(filename);
-			if (!memorycard.IsValid())
+			if (memcard)
 			{
-				WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n" \
-				            "is not a valid gamecube memory card file"), filename.c_str()));
-				return;
-			}
-		}
-		#ifdef _WIN32
-			if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
-			{
-				// If the Exe Directory Matches the prefix of the filename, we still need to verify
-				// that the next character is a directory separator character, otherwise we may create an invalid path
-				char next_char = filename.at(File::GetExeDirectory().size())+1;
-				if (next_char == '/' || next_char == '\\')
+				GCMemcard memorycard(filename);
+				if (!memorycard.IsValid())
 				{
-					filename.erase(0, File::GetExeDirectory().size() +1);
-					filename = "./" + filename;
+					WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n" \
+						"is not a valid gamecube memory card file"), filename.c_str()));
+					return;
 				}
 			}
-		#endif
+		}
+#ifdef _WIN32
+		if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
+		{
+			// If the Exe Directory Matches the prefix of the filename, we still need to verify
+			// that the next character is a directory separator character, otherwise we may create an invalid path
+			char next_char = filename.at(File::GetExeDirectory().size()) + 1;
+			if (next_char == '/' || next_char == '\\')
+			{
+				filename.erase(0, File::GetExeDirectory().size() + 1);
+				filename = "./" + filename;
+			}
+		}
+#endif
 
 		// also check that the path isn't used for the other memcard...
-		if (filename.compare(isSlotA ? SConfig::GetInstance().m_strMemoryCardB
-			: SConfig::GetInstance().m_strMemoryCardA) != 0)
+		if (filename.compare(isSlotA ? pathB : pathA) != 0)
 		{
-			strMemcard = filename;
+			if (memcard)
+			{
+				if (isSlotA)
+					SConfig::GetInstance().m_strMemoryCardA = filename;
+				else
+					SConfig::GetInstance().m_strMemoryCardB = filename;
+			}
+			else
+			{
+				if (isSlotA)
+					SConfig::GetInstance().m_strGbaCartA = filename;
+				else
+					SConfig::GetInstance().m_strGbaCartB = filename;
+			}
 
 			if (Core::IsRunning())
 			{
 				// Change memcard to the new file
 				ExpansionInterface::ChangeDevice(
 					isSlotA ? 0 : 1, // SlotA: channel 0, SlotB channel 1
-					EXIDEVICE_MEMORYCARD,
+					device_type,
 					0); // SP1 is device 2, slots are device 0
 			}
 		}
 		else
 		{
-			WxUtils::ShowErrorDialog(_("Cannot use that file as a memory card.\n"
-			                           "Are you trying to use the same file in both slots?"));
+			WxUtils::ShowErrorDialog(_("Are you trying to use the same file in both slots?"));
 		}
 	}
 }
@@ -1093,6 +1124,8 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 		tempType = EXIDEVICE_MIC;
 	else if (!deviceName.compare(EXIDEV_BBA_STR))
 		tempType = EXIDEVICE_ETH;
+	else if (!deviceName.compare(EXIDEV_AGP_STR))
+		tempType = EXIDEVICE_AGP;
 	else if (!deviceName.compare(_(EXIDEV_AM_BB_STR)))
 		tempType = EXIDEVICE_AM_BASEBOARD;
 	else if (!deviceName.compare(EXIDEV_GECKO_STR))
@@ -1102,8 +1135,8 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 	else
 		tempType = EXIDEVICE_DUMMY;
 
-	// Gray out the memcard path button if we're not on a memcard
-	if (tempType == EXIDEVICE_MEMORYCARD)
+	// Gray out the memcard path button if we're not on a memcard or AGP
+	if (tempType == EXIDEVICE_MEMORYCARD || tempType == EXIDEVICE_AGP)
 		GCMemcardPath[deviceNum]->Enable();
 	else if (deviceNum == 0 || deviceNum == 1)
 		GCMemcardPath[deviceNum]->Disable();

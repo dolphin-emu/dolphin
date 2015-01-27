@@ -1136,7 +1136,7 @@ DVDCommandResult ExecuteCommand(u32 command_0, u32 command_1, u32 command_2,
 		INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s",
 		         command_1 ? "eject" : "", command_2 ? "kill!" : "");
 
-		if (command_1)
+		if (command_1 && !command_2)
 			EjectDiscCallback(0, 0);
 		break;
 
