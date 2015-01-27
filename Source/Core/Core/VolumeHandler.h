@@ -25,7 +25,7 @@ u32 Read32(u64 _Offset, bool decrypt);
 bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength, bool decrypt);
 
 bool IsValid();
-bool IsWii();
+bool IsWiiDisc();
 
 DiscIO::IVolume *GetVolume();
 

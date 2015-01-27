@@ -21,11 +21,8 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
 	switch (command)
 	{
 	case CMD_RESET:
+	case CMD_ID:
 		*(u32*)&_pBuffer[0] = SI_GC_STEERING;
-		break;
-
-	// Seen in F-Zero GX
-	case CMD_MOTOR_OFF:
 		break;
 
 	// DEFAULT

@@ -49,7 +49,7 @@
 class HostDisassemblerLLVM : public HostDisassembler
 {
 public:
-	HostDisassemblerLLVM(const std::string host_disasm);
+	HostDisassemblerLLVM(const std::string host_disasm, int inst_size = -1, const std::string cpu = "");
 	~HostDisassemblerLLVM()
 	{
 		if (m_can_disasm)
@@ -59,22 +59,24 @@ public:
 private:
 	bool m_can_disasm;
 	LLVMDisasmContextRef m_llvm_context;
+	int m_instruction_size;
 
 	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
 };
 
-HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string host_disasm)
-	: m_can_disasm(false)
+HostDisassemblerLLVM::HostDisassemblerLLVM(const std::string host_disasm, int inst_size, const std::string cpu)
+	: m_can_disasm(false), m_instruction_size(inst_size)
 {
 	LLVMInitializeAllTargetInfos();
 	LLVMInitializeAllTargetMCs();
 	LLVMInitializeAllDisassemblers();
 
-	m_llvm_context = LLVMCreateDisasm(host_disasm.c_str(), nullptr, 0, 0, nullptr);
+	m_llvm_context = LLVMCreateDisasmCPU(host_disasm.c_str(), cpu.c_str(), nullptr, 0, 0, nullptr);
 
 	// Couldn't create llvm context
 	if (!m_llvm_context)
 		return;
+
 	LLVMSetDisasmOptions(m_llvm_context,
 		LLVMDisassembler_Option_AsmPrinterVariant |
 		LLVMDisassembler_Option_PrintLatency);
@@ -87,15 +89,47 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
 	if (!m_can_disasm)
 		return "(No LLVM context)";
 
-	u64 disasmPtr = (u64)code_start;
+	u8* disasmPtr = (u8*)code_start;
 	const u8 *end = code_start + code_size;
 
 	std::ostringstream x86_disasm;
 	while ((u8*)disasmPtr < end)
 	{
 		char inst_disasm[256];
-		disasmPtr += LLVMDisasmInstruction(m_llvm_context, (u8*)disasmPtr, (u64)(end - disasmPtr), (u64)disasmPtr, inst_disasm, 256);
-		x86_disasm << inst_disasm << std::endl;
+		size_t inst_size = LLVMDisasmInstruction(m_llvm_context, disasmPtr, (u64)(end - disasmPtr), (u64)disasmPtr, inst_disasm, 256);
+		if (!inst_size)
+		{
+			x86_disasm << "Invalid inst:";
+
+			if (m_instruction_size != -1)
+			{
+				// If we are on an architecture that has a fixed instruction size
+				// We can continue onward past this bad instruction.
+				std::string inst_str = "";
+				for (int i = 0; i < m_instruction_size; ++i)
+					inst_str += StringFromFormat("%02x", disasmPtr[i]);
+
+				x86_disasm << inst_str << std::endl;
+				disasmPtr += m_instruction_size;
+			}
+			else
+			{
+				// We can't continue if we are on an architecture that has flexible instruction sizes
+				// Dump the rest of the block instead
+				std::string code_block = "";
+				for (int i = 0; (disasmPtr + i) < end; ++i)
+					code_block += StringFromFormat("%02x", disasmPtr[i]);
+
+				x86_disasm << code_block << std::endl;
+				break;
+			}
+		}
+		else
+		{
+			x86_disasm << inst_disasm << std::endl;
+			disasmPtr += inst_size;
+		}
+
 		(*host_instructions_count)++;
 	}
 
@@ -199,9 +233,9 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 #elif defined(_M_X86)
 	m_disassembler.reset(new HostDisassemblerX86());
 #elif defined(_M_ARM_64) && defined(HAS_LLVM)
-	m_disassembler.reset(new HostDisassemblerLLVM("aarch64-none-unknown"));
+	m_disassembler.reset(new HostDisassemblerLLVM("aarch64-none-unknown", 4, "cortex-a57"));
 #elif defined(_M_ARM_32) && defined(HAS_LLVM)
-	m_disassembler.reset(new HostDisassemblerLLVM("armv7-none-unknown"));
+	m_disassembler.reset(new HostDisassemblerLLVM("armv7-none-unknown", 4, "cortex-a15"));
 #else
 	m_disassembler.reset(new HostDisassembler());
 #endif

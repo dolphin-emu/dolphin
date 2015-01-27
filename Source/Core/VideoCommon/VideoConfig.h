@@ -74,6 +74,7 @@ struct VideoConfig final
 	// General
 	bool bVSync;
 	bool bFullscreen;
+	bool bExclusiveMode;
 	bool bRunning;
 	bool bWidescreenHack;
 	int iAspectRatio;
@@ -109,6 +110,7 @@ struct VideoConfig final
 	// Utility
 	bool bDumpTextures;
 	bool bHiresTextures;
+	bool bConvertHiresTextures;
 	bool bDumpEFBTarget;
 	bool bUseFFV1;
 	bool bFreeLook;
@@ -188,6 +190,7 @@ struct VideoConfig final
 	float fCameraForward;
 	float fCameraPitch;
 	float fAimDistance;
+	float fMinFOV;
 	float fScreenHeight;
 	float fScreenThickness;
 	float fScreenDistance;

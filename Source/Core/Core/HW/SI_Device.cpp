@@ -11,7 +11,7 @@
 #include "Core/HW/SI_DeviceGBA.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
-
+#include "Core/HW/SI_DeviceKeyboard.h"
 
 // --- interface ISIDevice ---
 int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
@@ -82,6 +82,10 @@ ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
 
 	case SIDEVICE_GC_GBA:
 		return new CSIDevice_GBA(device, port_number);
+		break;
+
+	case SIDEVICE_GC_KEYBOARD:
+		return new CSIDevice_Keyboard(device, port_number);
 		break;
 
 	case SIDEVICE_AM_BASEBOARD:

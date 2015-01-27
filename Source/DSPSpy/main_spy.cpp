@@ -353,7 +353,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888dead)
 		{
-			// Send memory dump (dsp dram from someone's cube?)
+			// Send memory dump (DSP DRAM from someone's GameCube?)
 			// not really sure why this is important - I guess just to try to keep tests predictable
 			u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
@@ -363,7 +363,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0x8888beef)
 		{
-			// Provide register base to dsp (if using dsp_base.inc, it will dma them to the correct place)
+			// Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct place)
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
@@ -385,14 +385,14 @@ void handle_dsp_mail(void)
 		// ROM dumping mails
 		else if (mail == 0x8888c0de)
 		{
-			// DSP has copied irom to its dram...send address so it can dma it back
+			// DSP has copied irom to its DRAM...send address so it can dma it back
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)dspbufP);
 			while (real_dsp.CheckMailTo());
 		}
 		else if (mail == 0x8888da7a)
 		{
-			// DSP has copied coef to its dram...send address so it can dma it back
+			// DSP has copied coef to its DRAM...send address so it can DMA it back
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)&dspbufP[0x1000]);
 			while (real_dsp.CheckMailTo());
@@ -415,7 +415,7 @@ void handle_dsp_mail(void)
 		}
 		else if (mail == 0xdcd10003) // DSP_DONE
 		{
-			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell dsp to halt (calls end_of_test)
+			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell DSP to halt (calls end_of_test)
 			while (real_dsp.CheckMailTo());
 
 			DCInvalidateRange(SecParams_out, sizeof(SecParams_out));
@@ -525,7 +525,7 @@ void InitGeneral()
 #endif
 
 	// Obtain the preferred video mode from the system
-	// This will correspond to the settings in the Wii menu
+	// This will correspond to the settings in the Wii Menu
 	rmode = VIDEO_GetPreferredMode(nullptr);
 
 	// Allocate memory for the display in the uncached region

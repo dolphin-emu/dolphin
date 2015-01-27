@@ -120,15 +120,6 @@ IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii,
 	return nullptr;
 }
 
-bool IsVolumeWiiDisc(const IVolume *_rVolume)
-{
-	u32 MagicWord = 0;
-	_rVolume->Read(0x18, 4, (u8*)&MagicWord, false);
-
-	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
-	//GameCube 0xc2339f3d
-}
-
 bool IsVolumeWadFile(const IVolume *_rVolume)
 {
 	u32 MagicWord = 0;

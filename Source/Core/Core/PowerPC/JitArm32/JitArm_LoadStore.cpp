@@ -464,7 +464,6 @@ void JitArm::lXX(UGeckoInstruction inst)
 		rA = gpr.GetReg();
 
 		MOVI2R(rA, (u32)&PowerPC::OnIdle);
-		MOVI2R(R0, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 		BL(rA);
 
 		gpr.Unlock(rA);

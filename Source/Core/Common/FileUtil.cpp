@@ -469,7 +469,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 		FindClose(hFind);
 		return foundEntries;
 	}
-	// windows loop
+	// Windows loop
 	do
 	{
 		FSTEntry entry;
@@ -481,7 +481,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	if (!dirp)
 		return 0;
 
-	// non windows loop
+	// non Windows loop
 	while (!readdir_r(dirp, &dirent, &result) && result)
 	{
 		FSTEntry entry;
@@ -538,7 +538,7 @@ bool DeleteDirRecursively(const std::string &directory)
 		return false;
 	}
 
-	// windows loop
+	// Windows loop
 	do
 	{
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
@@ -548,7 +548,7 @@ bool DeleteDirRecursively(const std::string &directory)
 	if (!dirp)
 		return false;
 
-	// non windows loop
+	// non Windows loop
 	while (!readdir_r(dirp, &dirent, &result) && result)
 	{
 		const std::string virtualName = result->d_name;

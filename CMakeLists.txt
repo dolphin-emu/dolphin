@@ -516,6 +516,13 @@ include_directories(Source/Core)
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
+if(NOT XXHASH_FOUND)
+	message("Using static xxhash from Externals")
+	add_subdirectory(Externals/xxhash)
+	include_directories(Externals/xxhash)
+endif()
+LIST(APPEND LIBS xxhash)
+
 include(FindOculusSDK OPTIONAL)
 if(OCULUSSDK_FOUND)
 	message("Using Oculus SDK")

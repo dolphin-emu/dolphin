@@ -8,7 +8,6 @@
 #include "DiscIO/BannerLoaderGC.h"
 #include "DiscIO/BannerLoaderWii.h"
 #include "DiscIO/Filesystem.h"
-#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {
@@ -18,7 +17,7 @@ class IVolume;
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
 {
-	if (IsVolumeWiiDisc(pVolume) || IsVolumeWadFile(pVolume))
+	if (pVolume->IsWiiDisc() || pVolume->IsWadFile())
 		return new CBannerLoaderWii(pVolume);
 	if (_rFileSystem.IsValid())
 		return new CBannerLoaderGC(_rFileSystem, pVolume);

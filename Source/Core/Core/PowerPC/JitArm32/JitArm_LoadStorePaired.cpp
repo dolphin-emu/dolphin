@@ -33,7 +33,7 @@ void JitArm::psq_l(UGeckoInstruction inst)
 	UBFX(R12, R11, 16, 3); // Type
 	LSL(R12, R12, 2);
 	UBFX(R11, R11, 24, 6); // Scale
-	LSL(R11, R11, 2);
+	LSL(R11, R11, 3);
 
 	Operand2 off;
 	if (TryMakeOperand2(offset, off))
@@ -84,7 +84,7 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 	UBFX(R12, R11, 16, 3); // Type
 	LSL(R12, R12, 2);
 	UBFX(R11, R11, 24, 6); // Scale
-	LSL(R11, R11, 2);
+	LSL(R11, R11, 3);
 
 	if (inst.RA || update) // Always uses the register on update
 	{
@@ -136,7 +136,7 @@ void JitArm::psq_st(UGeckoInstruction inst)
 	UBFX(R12, R11, 0, 3); // Type
 	LSL(R12, R12, 2);
 	UBFX(R11, R11, 8, 6); // Scale
-	LSL(R11, R11, 2);
+	LSL(R11, R11, 3);
 
 	Operand2 off;
 	if (TryMakeOperand2(offset, off))
@@ -187,7 +187,7 @@ void JitArm::psq_stx(UGeckoInstruction inst)
 	UBFX(R12, R11, 0, 3); // Type
 	LSL(R12, R12, 2);
 	UBFX(R11, R11, 8, 6); // Scale
-	LSL(R11, R11, 2);
+	LSL(R11, R11, 3);
 
 	if (inst.RA || update) // Always uses the register on update
 	{

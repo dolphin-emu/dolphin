@@ -8,7 +8,7 @@
 
 // DSPCR bits
 #define DSPCR_DSPRESET      0x0800        // Reset DSP
-#define DSPCR_ARDMA         0x0200        // ARAM dma in progress, if set
+#define DSPCR_ARDMA         0x0200        // ARAM DMA in progress, if set
 #define DSPCR_DSPINTMSK     0x0100        // * interrupt mask   (RW)
 #define DSPCR_DSPINT        0x0080        // * interrupt active (RWC)
 #define DSPCR_ARINTMSK      0x0040

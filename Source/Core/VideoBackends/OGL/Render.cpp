@@ -336,9 +336,9 @@ static void InitDriverInfo()
 			int glrelease = 0;
 			int major = 0;
 			int minor = 0;
-			// TODO: this is known to be broken on windows
-			// nvidia seems to have removed their driver version from this string, so we can't get it.
-			// hopefully we'll never have to workaround nvidia bugs
+			// TODO: this is known to be broken on Windows
+			// Nvidia seems to have removed their driver version from this string, so we can't get it.
+			// hopefully we'll never have to workaround Nvidia bugs
 			sscanf(g_ogl_config.gl_version, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major, &minor);
 			version = 100*major + minor;
 		}
@@ -482,8 +482,10 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
 	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
 	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex") ||
-	                                     GLExtensions::Supports("GL_EXT_draw_elements_base_vertex");
-	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage");
+	                                     GLExtensions::Supports("GL_EXT_draw_elements_base_vertex") ||
+	                                     GLExtensions::Supports("GL_OES_draw_elements_base_vertex");
+	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage") ||
+	                                        GLExtensions::Supports("GL_EXT_buffer_storage");;
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
@@ -563,7 +565,7 @@ Renderer::Renderer()
 		// It also isn't useful as we don't render anything to the default framebuffer.
 		// We also try to get a non-msaa fb, so this only happens when forced by the driver.
 		PanicAlert("MSAA on default framebuffer isn't supported.\n"
-			"Please avoid forcing dolphin to use MSAA by the driver.\n"
+			"Please avoid forcing Dolphin to use MSAA by the driver.\n"
 			"%d samples on default framebuffer found.", samples);
 		bSuccess = false;
 	}

@@ -60,7 +60,7 @@ void GBAUCode::HandleMail(u32 mail)
 			u32 pad[3];
 		} sec_params;
 
-		// 32 bytes from mram addr to dram @ 0
+		// 32 bytes from mram addr to DRAM @ 0
 		for (int i = 0; i < 8; i++, mramaddr += 4)
 			((u32*)&sec_params)[i] = HLEMemory_Read_U32(mramaddr);
 

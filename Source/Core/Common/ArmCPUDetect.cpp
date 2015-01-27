@@ -149,11 +149,11 @@ CPUInfo::CPUInfo()
 	Detect();
 }
 
-// Detects the various cpu features
+// Detects the various CPU features
 void CPUInfo::Detect()
 {
 	// Set some defaults here
-	// When ARMv8 cpus come out, these need to be updated.
+	// When ARMv8 CPUs come out, these need to be updated.
 	HTT = false;
 #ifdef _M_ARM_64
 	OS64bit = true;
@@ -251,7 +251,7 @@ void CPUInfo::Detect()
 #endif
 }
 
-// Turn the cpu info into a string we can show
+// Turn the CPU info into a string we can show
 std::string CPUInfo::Summarize()
 {
 	std::string sum;

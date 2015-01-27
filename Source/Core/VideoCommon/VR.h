@@ -10,7 +10,7 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_FREE_LOOK_SENSITIVITY 
 	DEFAULT_VR_CAMERA_FORWARD = 0.0f, DEFAULT_VR_CAMERA_PITCH = 0.0f, DEFAULT_VR_AIM_DISTANCE = 7.0f, 
 	DEFAULT_VR_SCREEN_HEIGHT = 2.0f, DEFAULT_VR_SCREEN_DISTANCE = 1.5f, DEFAULT_VR_SCREEN_THICKNESS = 0.5f, 
 	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f,
-	DEFAULT_VR_TIMEWARP_TWEAK = 0;
+	DEFAULT_VR_TIMEWARP_TWEAK = 0, DEFAULT_VR_MIN_FOV = 10.0f;
 const int DEFAULT_VR_EXTRA_FRAMES = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
@@ -113,7 +113,6 @@ extern const char *g_hmd_device_name;
 //Opcode Replay Buffer
 extern std::vector<DataReader> timewarp_log;
 extern std::vector<bool> display_list_log;
-extern std::vector<bool> cached_ram_location;
 extern std::vector<bool> is_preprocess_log;
 extern bool opcode_replay_enabled;
 extern bool g_opcodereplay_frame;

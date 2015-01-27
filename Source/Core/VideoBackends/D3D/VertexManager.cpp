@@ -118,7 +118,6 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::Draw(u32 stride)
 {
-	u32 components = VertexLoaderManager::GetCurrentVertexFormat()->m_components;
 	u32 indices = IndexGenerator::GetIndexLen();
 
 	D3D::stateman->SetVertexBuffer(m_buffers[m_currentBuffer], stride, 0);
@@ -182,15 +181,6 @@ void VertexManager::vFlush(bool useDstAlpha)
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
 
 	PrepareDrawBuffers(stride);
-
-	if (!bpmem.genMode.zfreeze && IndexGenerator::GetIndexLen() >= 3)
-	{
-		CalculateZSlope(stride);
-	}
-
-	// if cull mode is CULL_ALL, ignore triangles and quads
-	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && current_primitive_type == PRIMITIVE_TRIANGLES)
-		return;
 
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);

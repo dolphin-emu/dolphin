@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
+#include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
 // In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
 // code at runtime. In the case of fixed code like this, after writing it, we write

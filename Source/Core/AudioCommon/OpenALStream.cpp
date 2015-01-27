@@ -132,7 +132,7 @@ void OpenALStream::SoundLoop()
 #if defined(__APPLE__)
 	bool float32_capable = false;
 	const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
-	// OSX does not have the alext AL_FORMAT_51CHN32 yet.
+	// OS X does not have the alext AL_FORMAT_51CHN32 yet.
 	surround_capable = false;
 	const ALenum AL_FORMAT_51CHN32 = 0;
 #else
@@ -251,6 +251,14 @@ void OpenALStream::SoundLoop()
 			{
 				float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
 				DPL2Decode(sampleBuffer, nSamples, dpl2);
+				// zero-out the subwoofer channel - DPL2Decode generates a pretty
+				// good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
+				// AL_FORMAT_50CHN32 to make this super-explicit.
+				// DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
+				for (u32 i=0; i < nSamples; ++i)
+				{
+					dpl2[i*SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
+				}
 				alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
 				ALenum err = alGetError();
 				if (err == AL_INVALID_ENUM)

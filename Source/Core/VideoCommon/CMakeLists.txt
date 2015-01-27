@@ -45,10 +45,10 @@ set(SRCS	BoundingBox.cpp
 			VR.cpp
 			MetroidVR.cpp)
 
-set(LIBS core png OculusVR)
+set(LIBS core png ovr)
 
 if(_M_X86)
-	set(SRCS ${SRCS}	TextureDecoder_x64.cpp)
+	set(SRCS ${SRCS}	TextureDecoder_x64.cpp VertexLoaderX64.cpp)
 else()
 	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp)
 endif()

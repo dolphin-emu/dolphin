@@ -139,9 +139,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 {
 	// Load ISO data
 	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
-	bool IsWad = DiscIO::IsVolumeWadFile(OpenISO);
-	bool IsWiiDisc = DiscIO::IsVolumeWiiDisc(OpenISO);
-	if (IsWiiDisc)
+	bool IsWad = OpenISO->IsWadFile();
+	if (OpenISO->IsWiiDisc())
 	{
 		for (int group = 0; group < 4; group++)
 		{
@@ -213,34 +212,34 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	switch (OpenISO->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_AUSTRALIA:
-		m_Country->SetValue(_("AUSTRALIA"));
+		m_Country->SetValue(_("Australia"));
 		break;
 	case DiscIO::IVolume::COUNTRY_EUROPE:
-		m_Country->SetValue(_("EUROPE"));
+		m_Country->SetValue(_("Europe"));
 		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
-		m_Country->SetValue(_("FRANCE"));
+		m_Country->SetValue(_("France"));
 		break;
 	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
-		m_Country->SetValue(_("INTERNATIONAL"));
+		m_Country->SetValue(_("International"));
 		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
-		m_Country->SetValue(_("ITALY"));
+		m_Country->SetValue(_("Italy"));
 		break;
 	case DiscIO::IVolume::COUNTRY_GERMANY:
-		m_Country->SetValue(_("GERMANY"));
+		m_Country->SetValue(_("Germany"));
 		break;
 	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
-		m_Country->SetValue(_("NETHERLANDS"));
+		m_Country->SetValue(_("Netherlands"));
 		break;
 	case DiscIO::IVolume::COUNTRY_RUSSIA:
-		m_Country->SetValue(_("RUSSIA"));
+		m_Country->SetValue(_("Russia"));
 		break;
 	case DiscIO::IVolume::COUNTRY_SPAIN:
-		m_Country->SetValue(_("SPAIN"));
+		m_Country->SetValue(_("Spain"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		m_Country->SetValue(_("USA"));
+		m_Country->SetValue(_("United States"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
 			m_Lang->SetSelection(0);
@@ -249,7 +248,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 		break;
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		m_Country->SetValue(_("JAPAN"));
+		m_Country->SetValue(_("Japan"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
 			m_Lang->Insert(_("Japanese"), 0);
@@ -258,24 +257,24 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_KOREA:
-		m_Country->SetValue(_("KOREA"));
+		m_Country->SetValue(_("Korea"));
 		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
-		m_Country->SetValue(_("TAIWAN"));
+		m_Country->SetValue(_("Taiwan"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
-			m_Lang->Insert(_("TAIWAN"), 0);
+			m_Lang->Insert(_("Taiwan"), 0);
 			m_Lang->SetSelection(0);
 			m_Lang->Disable();
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:
-		m_Country->SetValue(_("UNKNOWN"));
+		m_Country->SetValue(_("Unknown"));
 		break;
 	}
 
-	if (IsWiiDisc) // Only one language with Wii banners
+	if (OpenISO->IsWiiDisc()) // Only one language with Wii banners
 	{
 		m_Lang->SetSelection(0);
 		m_Lang->Disable();
@@ -302,9 +301,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Filesystem browser/dumper
 	// TODO : Should we add a way to browse the wad file ?
-	if (!DiscIO::IsVolumeWadFile(OpenISO))
+	if (!OpenISO->IsWadFile())
 	{
-		if (DiscIO::IsVolumeWiiDisc(OpenISO))
+		if (OpenISO->IsWiiDisc())
 		{
 			for (u32 i = 0; i < WiiDisc.size(); i++)
 			{
@@ -327,7 +326,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 CISOProperties::~CISOProperties()
 {
-	if (!IsVolumeWiiDisc(OpenISO) && !IsVolumeWadFile(OpenISO) && pFileSystem)
+	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile() && pFileSystem)
 		delete pFileSystem;
 	// two vector's items are no longer valid after deleting filesystem
 	WiiDisc.clear();
@@ -465,6 +464,11 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s3DGrid->Add(AimDistance, wxGBPosition(6, 1), wxDefaultSpan, wxALL, 5);
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(6, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Min HFOV:")), wxGBPosition(7, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	MinFOV = new wxSpinCtrlDouble(m_VR, ID_MIN_FOV, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 179, DEFAULT_VR_MIN_FOV, 1);
+	s3DGrid->Add(MinFOV, wxGBPosition(7, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees")), wxGBPosition(7, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
 	wxStaticBoxSizer * const sb2D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("2D Screens"));
 	sbVR->Add(sb2D, 0, wxEXPAND | wxALL, 5);
 	wxGridBagSizer *s2DGrid = new wxGridBagSizer();
@@ -503,12 +507,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxGridBagSizer *sVRGrid = new wxGridBagSizer();
 	sbVR->Add(sVRGrid, 0, wxEXPAND);
 
-	arrayStringFor_EmuState.Add(_("Not Set"));
-	arrayStringFor_EmuState.Add(_("Broken"));
-	arrayStringFor_EmuState.Add(_("Intro"));
-	arrayStringFor_EmuState.Add(_("In Game"));
-	arrayStringFor_EmuState.Add(_("Playable"));
-	arrayStringFor_EmuState.Add(_("Perfect"));
+	arrayStringFor_VRState.Add(_("Not Set"));
+	arrayStringFor_VRState.Add(_("Unplayable"));
+	arrayStringFor_VRState.Add(_("Bad"));
+	arrayStringFor_VRState.Add(_("Playable"));
+	arrayStringFor_VRState.Add(_("Good"));
+	arrayStringFor_VRState.Add(_("Perfect"));
 	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
 	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("VR state:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sVRGrid->Add(VRState, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -572,14 +576,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const EmuStateText = new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
-#if 0
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
 	arrayStringFor_EmuState.Add(_("Intro"));
 	arrayStringFor_EmuState.Add(_("In Game"));
 	arrayStringFor_EmuState.Add(_("Playable"));
 	arrayStringFor_EmuState.Add(_("Perfect"));
-#endif
 	EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
 	EmuIssues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString);
 
@@ -600,7 +602,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND|wxALL, 5);
 
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
+	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile())
 	{
 		sbWiiOverrides->ShowItems(false);
 		EnableWideScreen->Hide();
@@ -895,7 +897,7 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
 	popupMenu.Append(IDM_EXTRACTALL, _("Extract All Files..."));
 
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO) ||
+	if (!OpenISO->IsWiiDisc() ||
 		(m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
 		m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection()))
 	{
@@ -938,7 +940,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}
 
-	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	if (OpenISO->IsWiiDisc())
 	{
 		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/") - 1, 1));
 		File.erase(0, File.find_first_of("/") + 1); // Remove "Partition x/"
@@ -952,7 +954,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const int partitionNum)
 {
-	DiscIO::IFileSystem* const fs = DiscIO::IsVolumeWiiDisc(OpenISO) ? WiiDisc[partitionNum].FileSystem : pFileSystem;
+	DiscIO::IFileSystem* const fs = OpenISO->IsWiiDisc() ? WiiDisc[partitionNum].FileSystem : pFileSystem;
 
 	std::vector<const DiscIO::SFileInfo*> fst;
 	fs->GetFileList(fst);
@@ -967,7 +969,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		size = (u32)fst.size();
 
 		fs->ExportApploader(_rExportFolder);
-		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+		if (!OpenISO->IsWiiDisc())
 			fs->ExportDOL(_rExportFolder);
 	}
 	else
@@ -1052,7 +1054,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	if (event.GetId() == IDM_EXTRACTALL)
 	{
-		if (DiscIO::IsVolumeWiiDisc(OpenISO))
+		if (OpenISO->IsWiiDisc())
 			for (u32 i = 0; i < WiiDisc.size(); i++)
 				ExportDir("", WxStrToStr(Path), i);
 		else
@@ -1071,7 +1073,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	Directory += DIR_SEP_CHR;
 
-	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	if (OpenISO->IsWiiDisc())
 	{
 		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/") - 1, 1));
 		Directory.erase(0, Directory.find_first_of("/") + 1); // Remove "Partition x/"
@@ -1091,7 +1093,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	if (Path.empty())
 		return;
 
-	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	if (OpenISO->IsWiiDisc())
 	{
 		wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
 		unsigned int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("0123456789"), 2));
@@ -1148,7 +1150,7 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 {
 	// Normally we can't enter this function if we aren't analyzing a Wii disc
 	// anyway, but let's still check to be sure.
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+	if (!OpenISO->IsWiiDisc())
 		return;
 
 	wxString PartitionName = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
@@ -1326,6 +1328,12 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.GetIfExists("VR", "AimDistance", &fTemp))
 		AimDistance->SetValue(fTemp);
 
+	fTemp = DEFAULT_VR_MIN_FOV;
+	if (GameIniDefault.GetIfExists("VR", "MinFOV", &fTemp))
+		MinFOV->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "MinFOV", &fTemp))
+		MinFOV->SetValue(fTemp);
+
 	fTemp = DEFAULT_VR_SCREEN_HEIGHT;
 	if (GameIniDefault.GetIfExists("VR", "ScreenHeight", &fTemp))
 		ScreenHeight->SetValue(fTemp);
@@ -1467,6 +1475,7 @@ bool CISOProperties::SaveGameConfig()
 	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)CameraForward->GetValue(), DEFAULT_VR_CAMERA_FORWARD);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)CameraPitch->GetValue(), DEFAULT_VR_CAMERA_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)AimDistance->GetValue(), DEFAULT_VR_AIM_DISTANCE);
+	SAVE_IF_NOT_DEFAULT("VR", "MinFOV", (float)MinFOV->GetValue(), DEFAULT_VR_MIN_FOV);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)ScreenHeight->GetValue(), DEFAULT_VR_SCREEN_HEIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)ScreenDistance->GetValue(), DEFAULT_VR_SCREEN_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)ScreenThickness->GetValue(), DEFAULT_VR_SCREEN_THICKNESS);

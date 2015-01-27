@@ -11,7 +11,6 @@
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-
 namespace Pad
 {
 

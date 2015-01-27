@@ -18,6 +18,7 @@ protected:
 		CMD_DIRECT      = 0x40,
 		CMD_ORIGIN      = 0x41,
 		CMD_RECALIBRATE = 0x42,
+		CMD_ID          = 0xff,
 	};
 
 	struct SOrigin

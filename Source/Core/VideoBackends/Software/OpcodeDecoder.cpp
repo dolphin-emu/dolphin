@@ -34,7 +34,7 @@ static u8 lastPrimCmd;
 void DoState(PointerWrap &p)
 {
 	p.Do(minCommandSize);
-	// Not sure what is wrong with this. Something(s) in here is causing dolphin to crash/hang when loading states saved from another run of dolphin. Doesn't seem too important anyway...
+	// Not sure what is wrong with this. Something(s) in here is causing Dolphin to crash/hang when loading states saved from another run of Dolphin. Doesn't seem too important anyway...
 	//vertexLoader.DoState(p);
 	p.Do(readOpcode);
 	p.Do(inObjectStream);

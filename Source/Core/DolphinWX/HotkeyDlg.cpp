@@ -253,8 +253,8 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Connect Wiimote 4"),
 		_("Connect Balance Board"),
 
-		_("Volume Up"),
 		_("Volume Down"),
+		_("Volume Up"),
 		_("Volume Toggle Mute"),
 
 		_("Toggle IR"),
@@ -262,11 +262,11 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Toggle EFB Copies"),
 		_("Toggle Fog"),
 		_("Toggle Frame limit"),
-		_("Increase Frame limit"),
 		_("Decrease Frame limit"),
+		_("Increase Frame limit"),
 
-		_("Freelook Increase Speed"),
 		_("Freelook Decrease Speed"),
+		_("Freelook Increase Speed"),
 		_("Freelook Reset Speed"),
 		_("Freelook Move Up"),
 		_("Freelook Move Down"),
@@ -276,10 +276,10 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Freelook Move Out"),
 		_("Freelook Reset"),
 
-		_("Increase Depth"),
 		_("Decrease Depth"),
-		_("Increase Convergence"),
+		_("Increase Depth"),
 		_("Decrease Convergence"),
+		_("Increase Convergence"),
 
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),

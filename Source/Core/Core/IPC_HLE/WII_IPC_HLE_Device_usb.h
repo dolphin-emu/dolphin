@@ -42,7 +42,7 @@ struct SQueuedEvent
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
-// This device is ONLY the internal bluetooth module (based on BCM2045 chip)
+// This device is ONLY the internal Bluetooth module (based on BCM2045 chip)
 class CWII_IPC_HLE_Device_usb_oh1_57e_305 : public IWII_IPC_HLE_Device
 {
 public:
@@ -60,12 +60,12 @@ public:
 
 	static void EnqueueReply(u32 CommandAddress);
 
-	// Send ACL data back to bt stack
+	// Send ACL data back to Bluetooth stack
 	void SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 
 	bool RemoteDisconnect(u16 _connectionHandle);
 
-// hack for wiimote plugin
+// hack for Wiimote plugin
 public:
 	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);

@@ -103,6 +103,7 @@ public final class UserPreferences
 
 		editor.putBoolean("disableDestinationAlpha", getConfig("gfx_opengl.ini", "Settings", "DstAlphaPass", "False").equals("True"));
 		editor.putBoolean("fastDepthCalculation",    getConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", "True").equals("True"));
+		editor.putString("aspectRatio", getConfig("gfx_opengl.ini", "Settings", "AspectRatio", "0"));
 
 		// Apply the changes.
 		editor.apply();
@@ -162,6 +163,9 @@ public final class UserPreferences
 		// Whether or not to use fast depth calculation.
 		boolean useFastDepthCalc = prefs.getBoolean("fastDepthCalculation", true);
 
+		// Aspect ratio selection
+		String aspectRatio = prefs.getString("aspectRatio", "0");
+
 		// Internal resolution. Falls back to 1x Native upon error.
 		String internalResolution = prefs.getString("internalResolution", "2");
 
@@ -211,6 +215,7 @@ public final class UserPreferences
 		// Video Hack Settings
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", skipEFBAccess ? "False" : "True");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBEmulateFormatChanges", ignoreFormatChanges ? "True" : "False");
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "AspectRatio", aspectRatio);
 
 		// Set EFB Copy Method 
 		if (efbCopyMethod.equals("Off"))

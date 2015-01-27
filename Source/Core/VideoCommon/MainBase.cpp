@@ -81,32 +81,26 @@ void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 // Run from the graphics thread (from Fifo.cpp)
 static void VideoFifo_CheckSwapRequest()
 {
-	if (g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB && s_swapRequested.IsSet())
 	{
-		if (s_swapRequested.IsSet())
-		{
-			EFBRectangle rc;
-			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbStride, s_beginFieldArgs.fbHeight, rc);
-			s_swapRequested.Clear();
-		}
+		EFBRectangle rc;
+		Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbStride, s_beginFieldArgs.fbHeight, rc);
+		s_swapRequested.Clear();
 	}
 }
 
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	if (g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB && s_swapRequested.IsSet())
 	{
-		if (s_swapRequested.IsSet())
-		{
-			u32 aLower = xfbAddr;
-			u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
-			u32 bLower = s_beginFieldArgs.xfbAddr;
-			u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbStride * s_beginFieldArgs.fbHeight;
+		u32 aLower = xfbAddr;
+		u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
+		u32 bLower = s_beginFieldArgs.xfbAddr;
+		u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbStride * s_beginFieldArgs.fbHeight;
 
-			if (AddressRangesOverlap(aLower, aUpper, bLower, bUpper))
-				VideoFifo_CheckSwapRequest();
-		}
+		if (AddressRangesOverlap(aLower, aUpper, bLower, bUpper))
+			VideoFifo_CheckSwapRequest();
 	}
 }
 

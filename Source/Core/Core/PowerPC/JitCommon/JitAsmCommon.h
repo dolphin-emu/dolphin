@@ -4,16 +4,17 @@
 
 #pragma once
 
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Common/Common.h"
 
 extern const u8 GC_ALIGNED16(pbswapShuffle1x4[16]);
 extern const u8 GC_ALIGNED16(pbswapShuffle2x4[16]);
 extern const float GC_ALIGNED16(m_one[]);
+extern const float GC_ALIGNED16(m_quantizeTableS[]);
+extern const float GC_ALIGNED16(m_dequantizeTableS[]);
 
 class CommonAsmRoutinesBase
 {
 public:
-
 	const u8 *fifoDirectWrite8;
 	const u8 *fifoDirectWrite16;
 	const u8 *fifoDirectWrite32;
@@ -49,19 +50,5 @@ public:
 	// In: ECX: Address to write to.
 	// In: XMM0: Bottom 32-bit slot holds the float to be written.
 	const u8 **singleStoreQuantized;
-
 };
 
-class CommonAsmRoutines : public CommonAsmRoutinesBase, public EmuCodeBlock
-{
-protected:
-	void GenQuantizedLoads();
-	void GenQuantizedStores();
-	void GenQuantizedSingleStores();
-
-public:
-	void GenFifoWrite(int size);
-	void GenFrsqrte();
-	void GenFres();
-	void GenMfcr();
-};

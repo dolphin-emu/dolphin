@@ -82,6 +82,8 @@ inline bool IsQuad(ARM64Reg reg) { return (reg & 0xC0) == 0xC0; }
 inline bool IsVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
 inline ARM64Reg DecodeReg(ARM64Reg reg) { return (ARM64Reg)(reg & 0x1F); }
 inline ARM64Reg EncodeRegTo64(ARM64Reg reg) { return (ARM64Reg)(reg | 0x20); }
+inline ARM64Reg EncodeRegToDouble(ARM64Reg reg) { return (ARM64Reg)((reg & ~0xC0) | 0x80); }
+inline ARM64Reg EncodeRegToQuad(ARM64Reg reg) { return (ARM64Reg)(reg | 0xC0); }
 
 enum OpType
 {
@@ -217,10 +219,24 @@ private:
 	u32             m_shift;
 
 public:
-	ArithOption(ARM64Reg Rd)
+	ArithOption(ARM64Reg Rd, bool index = false)
 	{
+		// Indexed registers are a certain feature of AARch64
+		// On Loadstore instructions that use a register offset
+		// We can have the register as an index
+		// If we are indexing then the offset register will
+		// be shifted to the left so we are indexing at intervals
+		// of the size of what we are loading
+		// 8-bit: Index does nothing
+		// 16-bit: Index LSL 1
+		// 32-bit: Index LSL 2
+		// 64-bit: Index LSL 3
+		if (index)
+			m_shift = 4;
+		else
+			m_shift = 0;
+
 		m_destReg = Rd;
-		m_shift = 0;
 		m_type = TYPE_EXTENDEDREG;
 		if (Is64Bit(Rd))
 		{
@@ -256,18 +272,20 @@ public:
 	{
 		return m_type;
 	}
+	ARM64Reg GetReg()
+	{
+		return m_destReg;
+	}
 	u32 GetData() const
 	{
 		switch (m_type)
 		{
 			case TYPE_EXTENDEDREG:
-				return (m_width == WIDTH_64BIT ? (1 << 31) : 0) |
-				       (m_extend << 13) |
+				return (m_extend << 13) |
 				       (m_shift << 10);
 			break;
 			case TYPE_SHIFTEDREG:
-				return (m_width == WIDTH_64BIT ? (1 << 31) : 0) |
-				       (m_shifttype << 22) |
+				return (m_shifttype << 22) |
 				       (m_shift << 10);
 			break;
 			default:
@@ -309,7 +327,7 @@ private:
 	void EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm, u8 size);
 	void EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount pos);
 	void EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
-	void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend);
+	void EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
 	void EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd);
 	void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
@@ -505,6 +523,8 @@ public:
 	void SXTB(ARM64Reg Rd, ARM64Reg Rn);
 	void SXTH(ARM64Reg Rd, ARM64Reg Rn);
 	void SXTW(ARM64Reg Rd, ARM64Reg Rn);
+	void UXTB(ARM64Reg Rd, ARM64Reg Rn);
+	void UXTH(ARM64Reg Rd, ARM64Reg Rn);
 
 	// Load Register (Literal)
 	void LDR(ARM64Reg Rt, u32 imm);
@@ -551,16 +571,16 @@ public:
 	void LDRSW(IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
 	// Load/Store register (register offset)
-	void STRB(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void LDRB(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void LDRSB(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void STRH(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void LDRH(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void LDRSH(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void STR(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void LDR(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void LDRSW(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
-	void PRFM(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend = EXTEND_LSL);
+	void STRB(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void LDRB(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void LDRSB(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void STRH(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void LDRH(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void LDRSH(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void STR(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void LDR(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void LDRSW(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
+	void PRFM(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
 
 	// Load/Store pair
 	void LDP(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
@@ -588,10 +608,26 @@ public:
 	void STR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
 	// Loadstore single structure
+	void LD1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn);
+	void LD1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn, ARM64Reg Rm);
 	void LD1R(u8 size, ARM64Reg Rt, ARM64Reg Rn);
+	void ST1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn);
+	void ST1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn, ARM64Reg Rm);
+
+	// Loadstore multiple structure
+	void LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
+
+	// Scalar - 1 Source
+	void FABS(ARM64Reg Rd, ARM64Reg Rn);
+	void FNEG(ARM64Reg Rd, ARM64Reg Rn);
 
 	// Scalar - 2 Source
+	void FADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FMUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void FSUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+
+	// Scalar floating point immediate
+	void FMOV(ARM64Reg Rd, u32 imm);
 
 	// Vector
 	void AND(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
@@ -600,6 +636,9 @@ public:
 	void FABS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FADD(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FCVTL(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCVTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCVTZS(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void FCVTZU(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void FDIV(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void FNEG(u8 size, ARM64Reg Rd, ARM64Reg Rn);
@@ -610,17 +649,24 @@ public:
 	void REV16(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void REV32(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void REV64(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void SCVTF(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void UCVTF(u8 size, ARM64Reg Rd, ARM64Reg Rn);
+	void XTN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn);
 
 	// Move
 	void DUP(u8 size, ARM64Reg Rd, ARM64Reg Rn);
 	void INS(u8 size, ARM64Reg Rd, u8 index, ARM64Reg Rn);
 	void INS(u8 size, ARM64Reg Rd, u8 index1, ARM64Reg Rn, u8 index2);
+	void UMOV(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
+	void SMOV(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index);
 
 	// One source
 	void FCVT(u8 size_to, u8 size_from, ARM64Reg Rd, ARM64Reg Rn);
 
 	// Conversion between float and integer
 	void FMOV(u8 size, bool top, ARM64Reg Rd, ARM64Reg Rn);
+	void SCVTF(ARM64Reg Rd, ARM64Reg Rn);
+	void UCVTF(ARM64Reg Rd, ARM64Reg Rn);
 
 	// Float comparison
 	void FCMP(ARM64Reg Rn, ARM64Reg Rm);
@@ -647,6 +693,13 @@ public:
 	void TRN2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void ZIP2(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 
+	// Shift by immediate
+	void SSHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+	void USHLL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+	void SHRN(u8 dest_size, ARM64Reg Rd, ARM64Reg Rn, u32 shift);
+	void SXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn);
+	void UXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn);
+
 	// ABI related
 	void ABI_PushRegisters(BitSet32 registers);
 	void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
@@ -662,11 +715,16 @@ private:
 	void EmitCopy(bool Q, u32 op, u32 imm5, u32 imm4, ARM64Reg Rd, ARM64Reg Rn);
 	void Emit2RegMisc(bool U, u32 size, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt, ARM64Reg Rn);
+	void EmitLoadStoreSingleStructure(bool L, bool R, u32 opcode, bool S, u32 size, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm);
 	void Emit1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitConversion(bool sf, bool S, u32 type, u32 rmode, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitCompare(bool M, bool S, u32 op, u32 opcode2, ARM64Reg Rn, ARM64Reg Rm);
 	void EmitCondSelect(bool M, bool S, CCFlags cond, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void EmitPermute(u32 size, u32 op, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm);
+	void EmitShiftImm(bool U, u32 immh, u32 immb, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+	void EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn);
+	void EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 };
 
 class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>

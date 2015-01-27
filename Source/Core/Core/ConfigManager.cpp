@@ -67,8 +67,8 @@ static const struct
 	{ "BalanceBoardConnect",  true, false, 348 /* WXK_F9 */,    1 /* wxMOD_ALT */,     0, 0 },
 #endif
 
-	{ "VolumeUp",            true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
 	{ "VolumeDown",          true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
+	{ "VolumeUp",            true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
 	{ "VolumeToggleMute",    true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
 
 	{ "ToggleIR",             true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
@@ -76,8 +76,8 @@ static const struct
 	{ "ToggleEFBCopies",      true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleFog",            true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleThrottle",       true, false, 9 /* '\t' */,        0 /* wxMOD_NONE */,    0, 0 },
-	{ "IncreaseFrameLimit",   true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "DecreaseFrameLimit",   true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
+	{ "IncreaseFrameLimit",   true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 
 	{ "FreelookDecreaseSpeed", true, false, 49 /* '1' */,       4 /* wxMOD_SHIFT */,   0, 0 },
 	{ "FreelookIncreaseSpeed", true, false, 50 /* '2' */,       4 /* wxMOD_SHIFT */,   0, 0 },
@@ -90,10 +90,10 @@ static const struct
 	{ "FreelookZoomOut",       true, false, 83 /* 'S' */,       4 /* wxMOD_SHIFT */,   0, 0 },
 	{ "FreelookReset",         true, false, 82 /* 'R' */,       4 /* wxMOD_SHIFT */,   0, 0 },
 
-	{ "IncreaseDepth",        true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "DecreaseDepth",        true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
-	{ "IncreaseConvergence",  true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
+	{ "IncreaseDepth",        true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "DecreaseConvergence",  true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
+	{ "IncreaseConvergence",  true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 
 	{ "LoadStateSlot1",       true, false, 340 /* WXK_F1 */,    0 /* wxMOD_NONE */,    0, 0 },
 	{ "LoadStateSlot2",       true, false, 341 /* WXK_F2 */,    0 /* wxMOD_NONE */,    0, 0 },

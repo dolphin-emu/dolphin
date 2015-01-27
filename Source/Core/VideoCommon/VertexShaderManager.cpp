@@ -34,7 +34,7 @@ static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 extern bool g_aspect_wide;
 
 // track changes
-static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged, bFreeLookChanged;
+static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged, bFreeLookChanged, bFrameChanged;
 static BitSet32 nMaterialsChanged;
 static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
@@ -127,6 +127,8 @@ const char *GetViewportTypeName(ViewportType v)
 //#pragma optimize("", off)
 
 void ClearDebugProj() { //VR
+	bFrameChanged = true;
+
 	debug_newScene = debug_nextScene;
 	if (debug_newScene)
 	{
@@ -167,13 +169,15 @@ void SetViewportType(Viewport &v)
 	// Twilighlight Princess GC uses square but non-power-of-2 textures: 216x216 and 384x384
 	// Metroid Prime 2 uses square textures in the bottom left corner but screen_height is wrong.
 	// So the relaxed rule is: square texture on any screen edge with size a multiple of 8
+	// Bad Boys 2 and 007 Everything or Nothing use 512x512 viewport and 512x512 screen size for non-render-targets
 	//if (width == height
 	//	&& (width == 32 || width == 64 || width == 128 || width == 256)
 	//	&& ((left == 0 && top == 0) || (left == 0 && top == screen_height - height)
 	//	|| (left == screen_width - width && top == 0) || (left == screen_width - width && top == screen_height - height)))
 	if (width == height
 		&& (width == 1 || width == 2 || width == 4 || ((int)width % 8 == 0))
-		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width))
+		&& (left == 0 || top == 0 || top == screen_height - height || left == screen_width - width)
+		&& !(width == 512 && screen_width == 512 && screen_height == 512))
 	{
 		g_viewport_type = VIEW_RENDER_TO_TEXTURE;
 	}
@@ -660,7 +664,21 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 
 void VertexShaderManager::Init()
 {
-	Dirty();
+	// Initialize state tracking variables
+	nTransformMatricesChanged[0] = -1;
+	nTransformMatricesChanged[1] = -1;
+	nNormalMatricesChanged[0] = -1;
+	nNormalMatricesChanged[1] = -1;
+	nPostTransformMatricesChanged[0] = -1;
+	nPostTransformMatricesChanged[1] = -1;
+	nLightsChanged[0] = -1;
+	nLightsChanged[1] = -1;
+	nMaterialsChanged = BitSet32(0);
+	bTexMatricesChanged[0] = false;
+	bTexMatricesChanged[1] = false;
+	bPosNormalMatrixChanged = false;
+	bProjectionChanged = true;
+	bViewportChanged = false;
 
 	m_layer_on_top = false;
 
@@ -677,6 +695,8 @@ void VertexShaderManager::Init()
 	g_old_viewport_type = VIEW_FULLSCREEN;
 	g_splitscreen_type = SS_FULLSCREEN;
 	g_old_splitscreen_type = SS_FULLSCREEN;
+
+	dirty = true;
 }
 
 void VertexShaderManager::Shutdown()
@@ -685,25 +705,10 @@ void VertexShaderManager::Shutdown()
 
 void VertexShaderManager::Dirty()
 {
-	nTransformMatricesChanged[0] = 0;
-	nTransformMatricesChanged[1] = 256;
-
-	nNormalMatricesChanged[0] = 0;
-	nNormalMatricesChanged[1] = 96;
-
-	nPostTransformMatricesChanged[0] = 0;
-	nPostTransformMatricesChanged[1] = 256;
-
-	nLightsChanged[0] = 0;
-	nLightsChanged[1] = 0x80;
-
-	bPosNormalMatrixChanged = true;
-	bTexMatricesChanged[0] = true;
-	bTexMatricesChanged[1] = true;
-
+	// This function is called after a savestate is loaded.
+	// Any constants that can changed based on settings should be re-calculated
 	bProjectionChanged = true;
-
-	nMaterialsChanged = BitSet32::AllTrue(4);
+	bFrameChanged = true;
 
 	dirty = true;
 }
@@ -869,20 +874,22 @@ void VertexShaderManager::SetConstants()
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			if (!bProjectionChanged)
+			if (!bProjectionChanged && !bFrameChanged)
 				SetProjectionConstants();
 		} 
 		// VR adjust the projection matrix for the new kind of viewport
-		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged)
+		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged && !bFrameChanged)
 		{
 			SetProjectionConstants();
 		}
 	}
 
-	if (bProjectionChanged)
+	if (bProjectionChanged || bFrameChanged)
 	{
+		if (bProjectionChanged)
+			LogProj(xfmem.projection.rawProjection);
 		bProjectionChanged = false;
-		LogProj(xfmem.projection.rawProjection);
+		bFrameChanged = false;
 		SetProjectionConstants();
 	}
 }
@@ -944,7 +951,8 @@ void VertexShaderManager::SetProjectionConstants()
 	float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
 	float fLeftHeightHack = fHeightHack, fRightHeightHack = fHeightHack;
 	bool bHideLeft = bHide, bHideRight = bHide, bTelescopeHUD = false, bNoForward = false;
-	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1)
+	if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye && vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1
+		&& (g_ActiveConfig.fTelescopeMaxFOV <= g_ActiveConfig.fMinFOV || (g_ActiveConfig.fTelescopeMaxFOV > g_ActiveConfig.fMinFOV && vr_widest_3d_VFOV > g_ActiveConfig.fMinFOV)))
 		iTelescopeHack = g_ActiveConfig.iTelescopeEye;
 	if (g_has_hmd && iTelescopeHack > 0)
 	{
@@ -1190,6 +1198,15 @@ void VertexShaderManager::SetProjectionConstants()
 		// near clipping plane in game units
 		float zfar, znear, zNear3D, hfov, vfov;
 
+		// if the camera is zoomed in so much that the action only fills a tiny part of your FOV,
+		// we need to move the camera forwards until objects at AimDistance fill the minimum FOV.
+		float zoom_forward = 0.0f;
+		if (vr_widest_3d_HFOV <= g_ActiveConfig.fMinFOV && vr_widest_3d_HFOV > 0 && iTelescopeHack <= 0)
+		{
+			zoom_forward = g_ActiveConfig.fAimDistance * tanf(DEGREES_TO_RADIANS(g_ActiveConfig.fMinFOV) / 2) / tanf(DEGREES_TO_RADIANS(vr_widest_3d_HFOV) / 2);
+			zoom_forward -= g_ActiveConfig.fAimDistance;
+		}
+
 		// Real 3D scene
 		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
@@ -1214,8 +1231,16 @@ void VertexShaderManager::SetProjectionConstants()
 			{
 				znear = vr_widest_3d_zNear;
 				zfar = vr_widest_3d_zFar;
-				hfov = vr_widest_3d_HFOV;
-				vfov = vr_widest_3d_VFOV;
+				if (zoom_forward != 0)
+				{
+					hfov = g_ActiveConfig.fMinFOV;
+					vfov = g_ActiveConfig.fMinFOV * vr_widest_3d_VFOV / vr_widest_3d_HFOV;
+				}
+				else
+				{
+					hfov = vr_widest_3d_HFOV;
+					vfov = vr_widest_3d_VFOV;
+				}
 				if (debug_newScene)
 					INFO_LOG(VR, "2D to fit 3D world: hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov, vfov, znear, zfar);
 			}
@@ -1393,7 +1418,6 @@ void VertexShaderManager::SetProjectionConstants()
 		{
 			Matrix44::LoadIdentity(head_position_matrix);
 			Matrix44::LoadIdentity(free_look_matrix);
-			Matrix44::LoadIdentity(camera_forward_matrix);
 		}
 		else
 		{
@@ -1414,18 +1438,6 @@ void VertexShaderManager::SetProjectionConstants()
 			for (int i = 0; i < 3; ++i)
 				pos[i] = s_fViewTranslationVector[i] * UnitsPerMetre;
 			Matrix44::Translate(free_look_matrix, pos);
-
-			if (bNoForward)
-			{
-				Matrix44::LoadIdentity(camera_forward_matrix);
-			}
-			else
-			{
-				pos[0] = 0;
-				pos[1] = 0;
-				pos[2] = g_ActiveConfig.fCameraForward * UnitsPerMetre;
-				Matrix44::Translate(camera_forward_matrix, pos);
-			}
 		}
 
 		Matrix44 look_matrix;
@@ -1438,6 +1450,19 @@ void VertexShaderManager::SetProjectionConstants()
 			// leaning back
 			// head position tracking
 			// head rotation tracking
+			if (bNoForward || g_is_skybox || bStuckToHead)
+			{
+				Matrix44::LoadIdentity(camera_forward_matrix);
+			}
+			else
+			{
+				float pos[3];
+				pos[0] = 0;
+				pos[1] = 0;
+				pos[2] = (g_ActiveConfig.fCameraForward + zoom_forward) * UnitsPerMetre;
+				Matrix44::Translate(camera_forward_matrix, pos);
+			}
+
 			Matrix44 A, B;
 			Matrix44::Multiply(camera_pitch_matrix, camera_forward_matrix, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
@@ -1483,7 +1508,7 @@ void VertexShaderManager::SetProjectionConstants()
 				if (bNoForward)
 					CameraForward = 0;
 				else
-					CameraForward = g_ActiveConfig.fCameraForward * UnitsPerMetre;
+					CameraForward = (g_ActiveConfig.fCameraForward + zoom_forward) * UnitsPerMetre;
 				// When moving the camera forward, correct the size of the HUD so that aiming is correct at AimDistance
 				AimDistance = g_ActiveConfig.fAimDistance * UnitsPerMetre;
 				if (AimDistance <= 0)
@@ -1568,10 +1593,7 @@ void VertexShaderManager::SetProjectionConstants()
 				if (vr_widest_3d_HFOV <= 0)
 					position[2] = scale[2] * zObj - HudDistance;
 				else
-					position[2] = scale[2] * zObj - HudDistance - CameraForward;
-
-
-
+					position[2] = scale[2] * zObj - HudDistance; // - CameraForward;
 			}
 			// 2D layer, or 2D viewport (may be part of 2D screen or HUD)
 			else
@@ -1612,7 +1634,7 @@ void VertexShaderManager::SetProjectionConstants()
 				if (vr_widest_3d_HFOV <= 0)
 					position[2] = -HudDistance;
 				else
-					position[2] = -HudDistance - CameraForward;
+					position[2] = -HudDistance; // - CameraForward;
 			}
 
 			Matrix44 A, B, scale_matrix, position_matrix, box_matrix;
@@ -1622,8 +1644,7 @@ void VertexShaderManager::SetProjectionConstants()
 			// order: scale, position
 			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
 
-			Matrix44::Multiply(camera_forward_matrix, box_matrix, B);
-			Matrix44::Multiply(camera_pitch_matrix, B, A);
+			Matrix44::Multiply(camera_pitch_matrix, box_matrix, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
 			Matrix44::Multiply(lean_back_matrix, B, A);
 			Matrix44::Multiply(head_position_matrix, A, B);
@@ -1674,6 +1695,8 @@ void VertexShaderManager::SetProjectionConstants()
 			final_matrix_right.data[4] *= -1;
 			final_matrix_right.data[8] *= -1;
 			final_matrix_right.data[12] *= -1;
+			GeometryShaderManager::constants.stereoparams[0] *= -1;
+			GeometryShaderManager::constants.stereoparams[1] *= -1;
 		}
 		if (flipped_y < 0)
 		{
@@ -1927,17 +1950,18 @@ void VertexShaderManager::ResetView()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::TransformToClipSpace(const float* data, float *out)
+void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u32 MtxIdx)
 {
-	const float *world_matrix = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
-	const float *proj_matrix = &g_fProjectionMatrix[0];
+	const float* world_matrix = (const float*)xfmem.posMatrices + (MtxIdx & 0x3f) * 4;
+	// We use the projection matrix calculated by vertexShaderManager, because it
+	// includes any free look transformations.
+	// Make sure VertexManager::SetConstants() has been called first.
+	const float* proj_matrix = &g_fProjectionMatrix[0];
 
 	float t[3];
 	t[0] = data[0] * world_matrix[0] + data[1] * world_matrix[1] + data[2] * world_matrix[2] + world_matrix[3];
 	t[1] = data[0] * world_matrix[4] + data[1] * world_matrix[5] + data[2] * world_matrix[6] + world_matrix[7];
 	t[2] = data[0] * world_matrix[8] + data[1] * world_matrix[9] + data[2] * world_matrix[10] + world_matrix[11];
-
-	// TODO: this requires g_fProjectionMatrix to be up to date, which is not really a good design decision.
 
 	out[0] = t[0] * proj_matrix[0] + t[1] * proj_matrix[1] + t[2] * proj_matrix[2] + proj_matrix[3];
 	out[1] = t[0] * proj_matrix[4] + t[1] * proj_matrix[5] + t[2] * proj_matrix[6] + proj_matrix[7];
@@ -1953,8 +1977,19 @@ void VertexShaderManager::DoState(PointerWrap &p)
 	p.Do(s_viewInvRotationMatrix);
 	p.Do(s_fViewTranslationVector);
 	p.Do(s_fViewRotation);
+
+	p.Do(nTransformMatricesChanged);
+	p.Do(nNormalMatricesChanged);
+	p.Do(nPostTransformMatricesChanged);
+	p.Do(nLightsChanged);
+
+	p.Do(nMaterialsChanged);
+	p.Do(bTexMatricesChanged);
+	p.Do(bPosNormalMatrixChanged);
+	p.Do(bProjectionChanged);
+	p.Do(bViewportChanged);
+
 	p.Do(constants);
-	p.Do(dirty);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{

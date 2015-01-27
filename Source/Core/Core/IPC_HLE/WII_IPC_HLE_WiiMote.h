@@ -54,7 +54,7 @@ public:
 	void ResetChannels();
 	void Activate(bool ready);
 	void ExecuteL2capCmd(u8* _pData, u32 _Size); // From CPU
-	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size); // From wiimote
+	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size); // From Wiimote
 
 	int NetPlay_GetWiimoteNum(int _number);
 

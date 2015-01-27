@@ -40,7 +40,7 @@ typedef int32_t s32;
 typedef int64_t s64;
 
 #endif
-// For using windows lock code
+// For using Windows lock code
 #define TCHAR char
 #define LONG int
 

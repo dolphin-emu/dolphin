@@ -13,9 +13,8 @@ namespace HLE
 	enum
 	{
 		HLE_HOOK_START   = 0,    // Hook the beginning of the function and execute the function afterwards
-		HLE_HOOK_END     = 1,    // Hook the end of the function, executing the function first before the hook
-		HLE_HOOK_REPLACE = 2,    // Replace the function with the HLE version
-		HLE_HOOK_NONE    = 3,    // Do not hook the function
+		HLE_HOOK_REPLACE = 1,    // Replace the function with the HLE version
+		HLE_HOOK_NONE    = 2,    // Do not hook the function
 	};
 
 	enum

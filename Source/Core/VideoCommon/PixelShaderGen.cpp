@@ -271,7 +271,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	GenerateVSOutputMembers<T>(out, ApiType, uid_data->genMode_numtexgens);
 	out.Write("};\n");
 
-	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
+	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
+	                            && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
+	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
+	                            // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
+	                            && !bpmem.genMode.zfreeze;
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
 
 	if (forced_early_z)
@@ -365,7 +369,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("void main(\n");
 		out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
+			(per_pixel_depth && bpmem.zmode.testenable) ? "\n  out float depth : SV_Depth," : "");
 
 		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
 		out.Write("  in centroid float4 colors_1 : COLOR1\n");
@@ -393,18 +397,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
 	          "\tint4 tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,0);\n\n"); // tev combiner inputs
 
+	// On GLSL, input variables must not be assigned to.
+	// This is why we declare these variables locally instead.
+	out.Write("\tfloat4 col0 = colors_0;\n");
+	out.Write("\tfloat4 col1 = colors_1;\n");
+
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
 		out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
 		out.Write("\tfloat3 pos = WorldPos;\n");
 
 		out.Write("\tint4 lacc;\n"
-				"\tfloat3 ldir, h;\n"
+				"\tfloat3 ldir, h, cosAttn, distAttn;\n"
 				"\tfloat dist, dist2, attn;\n");
-
-		// On GLSL, input variables must not be assigned to.
-		// This is why we declare these variables locally instead.
-		out.Write("\tfloat4 col0, col1;\n");
 
 		// TODO: Our current constant usage code isn't able to handle more than one buffer.
 		//       So we can't mark the VS constant as used here. But keep them here as reference.
@@ -413,11 +418,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
 		uid_data->components = components;
 		GenerateLightingShader<T>(out, uid_data->lighting, components, "colors_", "col");
-	}
-	else
-	{
-		out.Write("\tfloat4 col0 = colors_0;\n");
-		out.Write("\tfloat4 col1 = colors_1;\n");
 	}
 
 	// HACK to handle cases where the tex gen is not enabled
@@ -936,7 +936,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 	};
 
 	// Regular TEV stage: (d + bias + lerp(a,b,c)) * scale
-	// The GC/Wii GPU uses a very sophisticated algorithm for scale-lerping:
+	// The GameCube/Wii GPU uses a very sophisticated algorithm for scale-lerping:
 	// - c is scaled from 0..255 to 0..256, which allows dividing the result by 256 instead of 255
 	// - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
 	// - a rounding bias is added before dividing by 256
@@ -1027,7 +1027,11 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	// Tests seem to have proven that writing depth even when the alpha test fails is more
 	// important that a reliable alpha test, so we just force the alpha test to always succeed.
 	// At least this seems to be less buggy.
-	uid_data->alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
+	uid_data->alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest()
+	                                         && bpmem.zmode.updateenable
+	                                         && !g_ActiveConfig.backend_info.bSupportsEarlyZ
+	                                         && !bpmem.genMode.zfreeze;
+
 	if (!uid_data->alpha_test_use_zcomploc_hack)
 	{
 		out.Write("\t\tdiscard;\n");
@@ -1118,10 +1122,10 @@ static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, A
 		out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE".xy;\n");
 
 		// Opengl has reversed vertical screenspace coordiantes
-		if(ApiType == API_OPENGL)
-			out.Write("\tscreenpos.y = %i - screenpos.y - 1;\n", EFB_HEIGHT);
+		if (ApiType == API_OPENGL)
+			out.Write("\tscreenpos.y = %i - screenpos.y;\n", EFB_HEIGHT);
 
-		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xffffff);\n");
+		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xFFFFFF);\n");
 	}
 	else
 	{

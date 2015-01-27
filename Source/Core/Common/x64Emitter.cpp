@@ -374,7 +374,7 @@ void XEmitter::JMPptr(const OpArg &arg2)
 }
 
 //Can be used to trap other processors, before overwriting their code
-// not used in dolphin
+// not used in Dolphin
 void XEmitter::JMPself()
 {
 	Write8(0xEB);
@@ -870,35 +870,49 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 	src.WriteRest(this);
 }
 
-void XEmitter::MOVBE(int bits, const OpArg& dest, const OpArg& src)
+void XEmitter::WriteMOVBE(int bits, u8 op, X64Reg reg, OpArg arg)
 {
 	_assert_msg_(DYNA_REC, cpu_info.bMOVBE, "Generating MOVBE on a system that does not support it.");
 	if (bits == 8)
 	{
-		MOV(bits, dest, src);
+		MOV(8, op & 1 ? arg : R(reg), op & 1 ? R(reg) : arg);
 		return;
 	}
-
 	if (bits == 16)
 		Write8(0x66);
+	_assert_msg_(DYNA_REC, !arg.IsSimpleReg() && !arg.IsImm(), "MOVBE: need r<-m or m<-r!");
+	arg.WriteRex(this, bits, bits, reg);
+	Write8(0x0F);
+	Write8(0x38);
+	Write8(op);
+	arg.WriteRest(this, 0, reg);
+}
+void XEmitter::MOVBE(int bits, X64Reg dest, const OpArg& src) {WriteMOVBE(bits, 0xF0, dest, src);}
+void XEmitter::MOVBE(int bits, const OpArg& dest, X64Reg src) {WriteMOVBE(bits, 0xF1, src, dest);}
 
-	if (dest.IsSimpleReg())
+void XEmitter::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
+{
+	if (cpu_info.bMOVBE)
 	{
-		_assert_msg_(DYNA_REC, !src.IsSimpleReg() && !src.IsImm(), "MOVBE: Loading from !mem");
-		src.WriteRex(this, bits, bits, dest.GetSimpleReg());
-		Write8(0x0F); Write8(0x38); Write8(0xF0);
-		src.WriteRest(this, 0, dest.GetSimpleReg());
-	}
-	else if (src.IsSimpleReg())
-	{
-		_assert_msg_(DYNA_REC, !dest.IsSimpleReg() && !dest.IsImm(), "MOVBE: Storing to !mem");
-		dest.WriteRex(this, bits, bits, src.GetSimpleReg());
-		Write8(0x0F); Write8(0x38); Write8(0xF1);
-		dest.WriteRest(this, 0, src.GetSimpleReg());
+		MOVBE(size, dst, src);
 	}
 	else
 	{
-		_assert_msg_(DYNA_REC, 0, "MOVBE: Not loading or storing to mem");
+		MOV(size, R(dst), src);
+		BSWAP(size, dst);
+	}
+}
+
+void XEmitter::SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src)
+{
+	if (cpu_info.bMOVBE)
+	{
+		MOVBE(size, dst, src);
+	}
+	else
+	{
+		BSWAP(size, src);
+		MOV(size, dst, R(src));
 	}
 }
 
@@ -954,8 +968,8 @@ void XEmitter::WriteShift(int bits, OpArg dest, OpArg &shift, int ext)
 		Write8((u8)shift.offset);
 }
 
-// large rotates and shift are slower on intel than amd
-// intel likes to rotate by 1, and the op is smaller too
+// large rotates and shift are slower on Intel than AMD
+// Intel likes to rotate by 1, and the op is smaller too
 void XEmitter::ROL(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 0);}
 void XEmitter::ROR(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 1);}
 void XEmitter::RCL(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 2);}

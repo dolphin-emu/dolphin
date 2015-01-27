@@ -52,10 +52,4 @@ public:
 
 	static bool s_bFogRangeAdjustChanged;
 	static bool s_bViewPortChanged;
-	static bool s_bEFBScaleChanged;
-
-	// These colors aren't available from global BP state,
-	// hence we keep a copy of them around.
-	static std::array<int4,4> s_tev_color;
-	static std::array<int4,4> s_tev_konst_color;
 };

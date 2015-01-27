@@ -15,9 +15,9 @@ public:
 	__forceinline DataReader(u8* src, u8* _end)
 	: buffer(src), end(_end) {}
 
-	__forceinline void WritePointer(u8** src)
+	__forceinline u8* GetPointer()
 	{
-		*src = buffer;
+		return buffer;
 	}
 
 	__forceinline u8* operator=(u8* src)
