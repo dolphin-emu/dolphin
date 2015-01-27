@@ -414,29 +414,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	// postproc shader
-	if (vconfig.backend_info.PPShaders.size())
+	if (vconfig.backend_info.bSupportsPostProcessing)
 	{
 		wxFlexGridSizer* const szr_pp = new wxFlexGridSizer(3, 5, 5);
 		choice_ppshader = new wxChoice(page_enh, wxID_ANY);
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
-		choice_ppshader->AppendString(_("(off)"));
-
 		button_config_pp = new wxButton(page_enh, wxID_ANY, _("Config"));
 
-		for (const std::string& shader : vconfig.backend_info.PPShaders)
-		{
-			choice_ppshader->AppendString(StrToWxStr(shader));
-		}
-
-		if (vconfig.sPostProcessingShader.empty() || vconfig.iStereoMode == STEREO_ANAGLYPH)
-			choice_ppshader->Select(0);
-		else
-			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
-
-		// Should the configuration button be loaded by default?
-		PostProcessingShaderConfiguration postprocessing_shader;
-		postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
-		button_config_pp->Enable(postprocessing_shader.HasOptions());
+		PopulatePostProcessingShaders();
 
 		choice_ppshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_PPShader, this);
 		button_config_pp->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ConfigurePPShader, this);
@@ -809,6 +794,41 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 
 	// Store description text object for later lookup
 	desc_texts.insert(std::pair<wxWindow*,wxStaticText*>(page, desc_text));
+}
+
+void VideoConfigDiag::PopulatePostProcessingShaders()
+{
+	std::vector<std::string> &shaders = (vconfig.iStereoMode == STEREO_ANAGLYPH) ?
+			vconfig.backend_info.AnaglyphShaders : vconfig.backend_info.PPShaders;
+
+	if (shaders.empty())
+		return;
+
+	choice_ppshader->AppendString(_("(off)"));
+
+	for (const std::string& shader : shaders)
+	{
+		choice_ppshader->AppendString(StrToWxStr(shader));
+	}
+
+	if (!choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader)))
+	{
+		// Invalid shader, reset it to default
+		choice_ppshader->Select(0);
+
+		if (vconfig.iStereoMode == STEREO_ANAGLYPH)
+		{
+			vconfig.sPostProcessingShader = "dubois";
+			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
+		}
+		else
+			vconfig.sPostProcessingShader.clear();
+	}
+
+	// Should the configuration button be loaded by default?
+	PostProcessingShaderConfiguration postprocessing_shader;
+	postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
+	button_config_pp->Enable(postprocessing_shader.HasOptions());
 }
 
 template class FloatSetting<float>;
