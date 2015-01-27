@@ -46,6 +46,7 @@
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
 #include "Core/Host.h"
+#include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/HW/CPU.h"
@@ -238,6 +239,7 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_MENU_COMMANDS, _("&Menu Accelerators"));
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
@@ -1350,11 +1352,48 @@ void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED (event))
 	config_dlg.Destroy();
 }
 
-void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED(event))
 {
 	HotkeyConfigDialog *m_HotkeyDialog = new HotkeyConfigDialog(this);
 	m_HotkeyDialog->ShowModal();
 	m_HotkeyDialog->Destroy();
+
+	// Update the GUI in case menu accelerators were changed
+	UpdateGUI();
+}
+
+
+void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
+{
+	bool was_init = false;
+
+	InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
+
+	// check if game is running
+	if (g_controller_interface.IsInit())
+	{
+		was_init = true;
+	}
+	else
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		Window win = X11Utils::XWindowFromHandle(GetHandle());
+		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
+#else
+		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
+#endif
+	}
+
+	InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"), 0);
+	m_ConfigFrame.ShowModal();
+	m_ConfigFrame.Destroy();
+
+	// if game isn't running
+	if (!was_init)
+	{
+		HotkeyManagerEmu::Shutdown();
+	}
+
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
 }

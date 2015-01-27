@@ -839,7 +839,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			// Draw buttons in rows of 8
 			unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
 			unsigned int button_rows = ceil((float)group->controls.size() / 8.0f);
-			wxBitmap bitmap(int(12 * button_cols + 1), (12 * button_rows) - (button_rows - 1));
+			wxBitmap bitmap(int(12 * button_cols + 1), (11 * button_rows) + 1);
 
 			dc.SelectObject(bitmap);
 			dc.Clear();
@@ -1074,6 +1074,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
 	szr->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxEXPAND|wxALL, 5);
 
+	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
 	SetSizerAndFit(szr);
 	Center();
 

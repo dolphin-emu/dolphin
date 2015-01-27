@@ -46,6 +46,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
+#include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/HW/DVDInterface.h"
@@ -269,6 +270,7 @@ EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
 EVT_MENU(IDM_CONFIG_AUDIO, CFrame::OnConfigAudio)
 EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
+EVT_MENU(IDM_CONFIG_MENU_COMMANDS, CFrame::OnConfigMenuCommands)
 
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
 EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnPerspectiveMenu)
@@ -341,6 +343,22 @@ END_EVENT_TABLE()
 
 // ---------------
 // Creation and close, quit functions
+
+
+bool CFrame::InitHotkeys()
+{
+	if (!g_controller_interface.IsInit())
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		Window win = X11Utils::XWindowFromHandle(GetHandle());
+		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
+#else
+		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
+#endif
+		return true;
+	}
+	return false;
+}
 
 CFrame::CFrame(wxFrame* parent,
 		wxWindowID id,
@@ -477,10 +495,24 @@ CFrame::CFrame(wxFrame* parent,
 	UpdateGUI();
 	if (g_pCodeWindow)
 		g_pCodeWindow->UpdateButtonStates();
+
+	// check if game is running
+	m_bHotkeysInit = InitHotkeys();
+
+	m_poll_hotkey_timer = new wxTimer(this);
+	Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
+	m_poll_hotkey_timer->Start(1000 / 60, wxTIMER_CONTINUOUS);
 }
 // Destructor
 CFrame::~CFrame()
 {
+	m_poll_hotkey_timer->Stop();
+
+	if (m_bHotkeysInit)
+	{
+		HotkeyManagerEmu::Shutdown();
+	}
+
 	drives.clear();
 
 	#if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -904,11 +936,15 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	}
 }
 
-static bool IsHotkey(wxKeyEvent &event, int Id)
+static bool IsHotkey(wxKeyEvent &event, int Id, bool keyUp = false)
 {
-	return (event.GetKeyCode() != WXK_NONE &&
-			event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+	// Input event hotkey
+	if (event.GetKeyCode() == WXK_NONE)
+	{
+		return HotkeyManagerEmu::IsPressed(Id, keyUp);
+	}
+
+	return false;
 }
 
 int GetCmdForHotkey(unsigned int key)
@@ -1045,202 +1081,12 @@ bool TASInputHasFocus()
 	return false;
 }
 
-
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED &&
 	    (RendererHasFocus() || TASInputHasFocus()))
 	{
-		int WiimoteId = -1;
-		// Toggle fullscreen
-		if (IsHotkey(event, HK_FULLSCREEN))
-			DoFullscreen(!RendererIsFullscreen());
-		// Send Debugger keys to CodeWindow
-		else if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
-			event.Skip();
-		// Pause and Unpause
-		else if (IsHotkey(event, HK_PLAY_PAUSE))
-			DoPause();
-		// Stop
-		else if (IsHotkey(event, HK_STOP))
-			DoStop();
-		// Screenshot hotkey
-		else if (IsHotkey(event, HK_SCREENSHOT))
-			Core::SaveScreenShot();
-		else if (IsHotkey(event, HK_EXIT))
-			wxPostEvent(this, wxCommandEvent(wxID_EXIT));
-		else if (IsHotkey(event, HK_VOLUME_DOWN))
-			AudioCommon::DecreaseVolume(3);
-		else if (IsHotkey(event, HK_VOLUME_UP))
-			AudioCommon::IncreaseVolume(3);
-		else if (IsHotkey(event, HK_VOLUME_TOGGLE_MUTE))
-			AudioCommon::ToggleMuteVolume();
-		// Wiimote connect and disconnect hotkeys
-		else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
-			WiimoteId = 0;
-		else if (IsHotkey(event, HK_WIIMOTE2_CONNECT))
-			WiimoteId = 1;
-		else if (IsHotkey(event, HK_WIIMOTE3_CONNECT))
-			WiimoteId = 2;
-		else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
-			WiimoteId = 3;
-		else if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
-			WiimoteId = 4;
-		else if (IsHotkey(event, HK_TOGGLE_IR))
-		{
-			OSDChoice = 1;
-			// Toggle native resolution
-			if (++g_Config.iEFBScale > SCALE_4X)
-				g_Config.iEFBScale = SCALE_AUTO;
-		}
-		else if (IsHotkey(event, HK_TOGGLE_AR))
-		{
-			OSDChoice = 2;
-			// Toggle aspect ratio
-			g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
-		}
-		else if (IsHotkey(event, HK_TOGGLE_EFBCOPIES))
-		{
-			OSDChoice = 3;
-			// Toggle EFB copies between EFB2RAM and EFB2Texture
-			if (!g_Config.bEFBCopyEnable)
-			{
-				OSD::AddMessage("EFB Copies are disabled, enable them in Graphics settings for toggling", 6000);
-			}
-			else
-			{
-				g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
-			}
-		}
-		else if (IsHotkey(event, HK_TOGGLE_FOG))
-		{
-			OSDChoice = 4;
-			g_Config.bDisableFog = !g_Config.bDisableFog;
-		}
-		else if (IsHotkey(event, HK_TOGGLE_THROTTLE))
-		{
-			Core::SetIsFramelimiterTempDisabled(true);
-		}
-		else if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
-		{
-			if (--SConfig::GetInstance().m_Framelimit > 0x19)
-				SConfig::GetInstance().m_Framelimit = 0x19;
-		}
-		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
-		{
-			if (++SConfig::GetInstance().m_Framelimit > 0x19)
-				SConfig::GetInstance().m_Framelimit = 0;
-		}
-		else if (IsHotkey(event, HK_SAVE_STATE_SLOT_SELECTED))
-		{
-			State::Save(g_saveSlot);
-		}
-		else if (IsHotkey(event, HK_LOAD_STATE_SLOT_SELECTED))
-		{
-			State::Load(g_saveSlot);
-		}
-		else if (IsHotkey(event, HK_DECREASE_DEPTH))
-		{
-			if (--g_Config.iStereoDepth < 0)
-				g_Config.iStereoDepth = 0;
-		}
-		else if (IsHotkey(event, HK_INCREASE_DEPTH))
-		{
-			if (++g_Config.iStereoDepth > 100)
-				g_Config.iStereoDepth = 100;
-		}
-		else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
-		{
-			if (--g_Config.iStereoConvergence < 0)
-				g_Config.iStereoConvergence = 0;
-		}
-		else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
-		{
-			if (++g_Config.iStereoConvergence > 500)
-				g_Config.iStereoConvergence = 500;
-		}
-
-		else
-		{
-			for (int i = HK_SELECT_STATE_SLOT_1; i < HK_SELECT_STATE_SLOT_10; ++i)
-			{
-				if (IsHotkey (event, i))
-				{
-					wxCommandEvent slot_event;
-					slot_event.SetId(i + IDM_SELECT_SLOT_1 - HK_SELECT_STATE_SLOT_1);
-					CFrame::OnSelectSlot(slot_event);
-				}
-			}
-
-			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
-			{
-				for (i = 0; i < NUM_HOTKEYS; i++)
-				{
-					if (IsHotkey(event, i))
-					{
-						int cmd = GetCmdForHotkey(i);
-						if (cmd >= 0)
-						{
-							wxCommandEvent evt(wxEVT_MENU, cmd);
-							wxMenuItem *item = GetMenuBar()->FindItem(cmd);
-							if (item && item->IsCheckable())
-							{
-								item->wxMenuItemBase::Toggle();
-								evt.SetInt(item->IsChecked());
-							}
-							GetEventHandler()->AddPendingEvent(evt);
-							break;
-						}
-					}
-				}
-			}
-			// On OS X, we claim all keyboard events while
-			// emulation is running to avoid wxWidgets sounding
-			// the system beep for unhandled key events when
-			// receiving pad/Wiimote keypresses which take an
-			// entirely different path through the HID subsystem.
-#ifndef __APPLE__
-			// On other platforms, we leave the key event alone
-			// so it can be passed on to the windowing system.
-			if (i == NUM_HOTKEYS)
-				event.Skip();
-#endif
-		}
-
-		// Actually perform the Wiimote connection or disconnection
-		if (WiimoteId >= 0)
-		{
-			wxCommandEvent evt;
-			evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
-			OnConnectWiimote(evt);
-		}
-
-		if (g_Config.bFreeLook)
-		{
-			static float debugSpeed = 1.0f;
-
-			if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
-				debugSpeed /= 2.0f;
-			else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
-				debugSpeed *= 2.0f;
-			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
-				debugSpeed = 1.0f;
-			else if (IsHotkey(event, HK_FREELOOK_UP))
-				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_DOWN))
-				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_LEFT))
-				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-			else if (IsHotkey(event, HK_FREELOOK_RIGHT))
-				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-			else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
-				VertexShaderManager::TranslateView(0.0f, debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
-				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_RESET))
-				VertexShaderManager::ResetView();
-		}
+		ParseHotkeys(event);
 	}
 	else
 	{
@@ -1409,4 +1255,224 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 const CGameListCtrl *CFrame::GetGameListCtrl() const
 {
 	return m_GameListCtrl;
+}
+
+void CFrame::PollHotkeys(wxTimerEvent& event)
+{
+	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
+	{
+		InitHotkeys();
+		g_controller_interface.UpdateInput();
+	}
+
+	if (Core::GetState() != Core::CORE_STOPPING)
+	{
+		wxKeyEvent keyevent = 0;
+
+		if (IsHotkey(keyevent, HK_TOGGLE_THROTTLE))
+		{
+			Core::SetIsFramelimiterTempDisabled(false);
+		}
+		else
+		{
+			ParseHotkeys(keyevent);
+		}
+	}
+}
+
+void CFrame::ParseHotkeys(wxKeyEvent &event)
+{
+	int WiimoteId = -1;
+	// Toggle fullscreen
+	if (IsHotkey(event, HK_FULLSCREEN))
+		DoFullscreen(!RendererIsFullscreen());
+	// Send Debugger keys to CodeWindow
+	else if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
+		event.Skip();
+	// Pause and Unpause
+	else if (IsHotkey(event, HK_PLAY_PAUSE))
+		DoPause();
+	// Stop
+	else if (IsHotkey(event, HK_STOP))
+		DoStop();
+	// Screenshot hotkey
+	else if (IsHotkey(event, HK_SCREENSHOT))
+		Core::SaveScreenShot();
+	else if (IsHotkey(event, HK_EXIT))
+		wxPostEvent(this, wxCommandEvent(wxID_EXIT));
+	else if (IsHotkey(event, HK_VOLUME_DOWN))
+		AudioCommon::DecreaseVolume(3);
+	else if (IsHotkey(event, HK_VOLUME_UP))
+		AudioCommon::IncreaseVolume(3);
+	else if (IsHotkey(event, HK_VOLUME_TOGGLE_MUTE))
+		AudioCommon::ToggleMuteVolume();
+	// Wiimote connect and disconnect hotkeys
+	else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
+		WiimoteId = 0;
+	else if (IsHotkey(event, HK_WIIMOTE2_CONNECT))
+		WiimoteId = 1;
+	else if (IsHotkey(event, HK_WIIMOTE3_CONNECT))
+		WiimoteId = 2;
+	else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
+		WiimoteId = 3;
+	else if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
+		WiimoteId = 4;
+	else if (IsHotkey(event, HK_TOGGLE_IR))
+	{
+		OSDChoice = 1;
+		// Toggle native resolution
+		if (++g_Config.iEFBScale > SCALE_4X)
+			g_Config.iEFBScale = SCALE_AUTO;
+	}
+	else if (IsHotkey(event, HK_TOGGLE_AR))
+	{
+		OSDChoice = 2;
+		// Toggle aspect ratio
+		g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+	}
+	else if (IsHotkey(event, HK_TOGGLE_EFBCOPIES))
+	{
+		OSDChoice = 3;
+		// Toggle EFB copies between EFB2RAM and EFB2Texture
+		if (!g_Config.bEFBCopyEnable)
+		{
+			OSD::AddMessage("EFB Copies are disabled, enable them in Graphics settings for toggling", 6000);
+		}
+		else
+		{
+			g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+		}
+	}
+	else if (IsHotkey(event, HK_TOGGLE_FOG))
+	{
+		OSDChoice = 4;
+		g_Config.bDisableFog = !g_Config.bDisableFog;
+	}
+	else if (IsHotkey(event, HK_TOGGLE_THROTTLE, true))
+	{
+		Core::SetIsFramelimiterTempDisabled(true);
+	}
+	else if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
+	{
+		if (--SConfig::GetInstance().m_Framelimit > 0x19)
+			SConfig::GetInstance().m_Framelimit = 0x19;
+	}
+	else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
+	{
+		if (++SConfig::GetInstance().m_Framelimit > 0x19)
+			SConfig::GetInstance().m_Framelimit = 0;
+	}
+	else if (IsHotkey(event, HK_SAVE_STATE_SLOT_SELECTED))
+	{
+		State::Save(g_saveSlot);
+	}
+	else if (IsHotkey(event, HK_LOAD_STATE_SLOT_SELECTED))
+	{
+		State::Load(g_saveSlot);
+	}
+	else if (IsHotkey(event, HK_DECREASE_DEPTH))
+	{
+		if (--g_Config.iStereoDepth < 0)
+			g_Config.iStereoDepth = 0;
+	}
+	else if (IsHotkey(event, HK_INCREASE_DEPTH))
+	{
+		if (++g_Config.iStereoDepth > 100)
+			g_Config.iStereoDepth = 100;
+	}
+	else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
+	{
+		if (--g_Config.iStereoConvergence < 0)
+			g_Config.iStereoConvergence = 0;
+	}
+	else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+	{
+		if (++g_Config.iStereoConvergence > 500)
+			g_Config.iStereoConvergence = 500;
+	}
+
+	else
+	{
+		for (int i = HK_SELECT_STATE_SLOT_1; i < HK_SELECT_STATE_SLOT_10; ++i)
+		{
+			if (IsHotkey(event, i))
+			{
+				wxCommandEvent slot_event;
+				slot_event.SetId(i + IDM_SELECT_SLOT_1 - HK_SELECT_STATE_SLOT_1);
+				CFrame::OnSelectSlot(slot_event);
+			}
+		}
+
+		unsigned int i = NUM_HOTKEYS;
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
+		{
+			for (i = 0; i < NUM_HOTKEYS; i++)
+			{
+				if (IsHotkey(event, i))
+				{
+					int cmd = GetCmdForHotkey(i);
+					if (cmd >= 0)
+					{
+						wxCommandEvent evt(wxEVT_MENU, cmd);
+						wxMenuItem *item = GetMenuBar()->FindItem(cmd);
+						if (item && item->IsCheckable())
+						{
+							item->wxMenuItemBase::Toggle();
+							evt.SetInt(item->IsChecked());
+						}
+						GetEventHandler()->AddPendingEvent(evt);
+						break;
+					}
+				}
+			}
+		}
+		// On OS X, we claim all keyboard events while
+		// emulation is running to avoid wxWidgets sounding
+		// the system beep for unhandled key events when
+		// receiving pad/Wiimote keypresses which take an
+		// entirely different path through the HID subsystem.
+#ifndef __APPLE__
+		// On other platforms, we leave the key event alone
+		// so it can be passed on to the windowing system.
+		if (i == NUM_HOTKEYS)
+			event.Skip();
+#endif
+	}
+
+	// Actually perform the Wiimote connection or disconnection
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		if (WiimoteId >= 0)
+		{
+			wxCommandEvent evt;
+			evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
+			OnConnectWiimote(evt);
+		}
+
+		if (g_Config.bFreeLook)
+		{
+			static float debugSpeed = 1.0f;
+
+			if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+				debugSpeed /= 2.0f;
+			else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
+				debugSpeed *= 2.0f;
+			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
+				debugSpeed = 1.0f;
+			else if (IsHotkey(event, HK_FREELOOK_UP))
+				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_DOWN))
+				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_LEFT))
+				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+			else if (IsHotkey(event, HK_FREELOOK_RIGHT))
+				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+			else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
+				VertexShaderManager::TranslateView(0.0f, debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
+				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+			else if (IsHotkey(event, HK_FREELOOK_RESET))
+				VertexShaderManager::ResetView();
+		}
+	}
 }
