@@ -77,22 +77,15 @@ void VertexLoaderBase::AppendToString(std::string *dest) const
 
 	static const char *posMode[4] = {
 		"Inv",
-		"Dir",
-		"I8",
-		"I16",
+		"Dir", "I8", "I16",
 	};
-	static const char *posFormats[5] = {
+	static const char *posFormats[8] = {
 		"u8", "s8", "u16", "s16", "flt",
+		"Inv", "Inv", "Inv",
 	};
 	static const char *colorFormat[8] = {
-		"565",
-		"888",
-		"888x",
-		"4444",
-		"6666",
-		"8888",
-		"Inv",
-		"Inv",
+		"565", "888", "888x", "4444", "6666", "8888",
+		"Inv", "Inv",
 	};
 
 	dest->append(StringFromFormat("%ib skin: %i P: %i %s-%s ",
