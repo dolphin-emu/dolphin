@@ -70,6 +70,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Metroid Dialog";
 	case METROID_ECHO_EFFECT:
 		return "Echo Visor Effect";
+	case METROID_EFB_COPY:
+		return "EFB Copy";
 	case METROID_GUN:
 		return "Gun";
 	case METROID_MAP_OR_HINT:
@@ -1054,7 +1056,7 @@ TMetroidLayer GetMetroidPrime1WiiLayer(int layer, float hfov, float vfov, float 
 	}
 	else if (f == 409600 && v == 5500)
 	{
-		if ((g_metroid_map_screen || g_metroid_inventory) && h == 7327)
+		if ((g_metroid_map_screen || g_metroid_inventory) && (h == 7327 || h == 8564))
 		{
 			result = METROID_INVENTORY_SAMUS;
 			g_metroid_map_screen = false;
