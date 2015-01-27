@@ -652,33 +652,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
 
-	// -- VR --
-	{
-		wxPanel* const page_vr = new wxPanel(notebook, -1);
-		notebook->AddPage(page_vr, _("VR"));
-		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
-
-		// - vr
-		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
-
-		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Chromatic aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Don't restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Flip vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
-		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
-		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
-
-		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
-		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
-
-		szr_vr_main->AddStretchSpacer();
-		CreateDescriptionArea(page_vr, szr_vr_main);
-		page_vr->SetSizerAndFit(szr_vr_main);
-	}
-
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
 	btn_close->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickClose, this);
 
