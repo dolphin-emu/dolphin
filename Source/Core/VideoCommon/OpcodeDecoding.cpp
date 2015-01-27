@@ -287,7 +287,9 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 					else
 						src.Skip(bytes);
 				}
-				totalCycles += 1600;
+
+				// 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
+				totalCycles += num_vertices * 4 * 3 + 6;
 			}
 			else
 			{
