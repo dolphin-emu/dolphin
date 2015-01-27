@@ -20,13 +20,6 @@ struct VideoConfig;
 class TextureCache
 {
 public:
-	enum TexCacheEntryType
-	{
-		TCET_NORMAL,
-		TCET_EC_VRAM,    // EFB copy which sits in VRAM and is ready to be used
-		TCET_EC_DYNAMIC, // EFB copy which sits in RAM and needs to be decoded before being used
-	};
-
 	struct TCacheEntryConfig
 	{
 		TCacheEntryConfig() : width(0), height(0), levels(1), layers(1), rendertarget(false) {}
@@ -60,8 +53,6 @@ public:
 		u32 size_in_bytes;
 		u64 hash;
 		u32 format;
-
-		enum TexCacheEntryType type;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -104,7 +95,7 @@ public:
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
-		bool IsEfbCopy() { return (type == TCET_EC_VRAM || type == TCET_EC_DYNAMIC); }
+		bool IsEfbCopy() { return config.rendertarget; }
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
@@ -119,7 +110,6 @@ public:
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
 	static void ClearRenderTargets(); // currently only used by OGL
-	static bool Find(u32 start_address, u64 hash);
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 

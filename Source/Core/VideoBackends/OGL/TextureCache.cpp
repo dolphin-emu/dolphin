@@ -168,41 +168,38 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
 		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
-	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
+	FramebufferManager::SetFramebuffer(framebuffer);
+
+	OpenGL_BindAttributelessVAO();
+
+	glActiveTexture(GL_TEXTURE0+9);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, read_texture);
+
+	glViewport(0, 0, config.width, config.height);
+
+	GLuint uniform_location;
+	if (srcFormat == PEControl::Z24)
 	{
-		FramebufferManager::SetFramebuffer(framebuffer);
-
-		OpenGL_BindAttributelessVAO();
-
-		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, read_texture);
-
-		glViewport(0, 0, config.width, config.height);
-
-		GLuint uniform_location;
-		if (srcFormat == PEControl::Z24)
-		{
-			s_DepthMatrixProgram.Bind();
-			if (s_DepthCbufid != cbufid)
-				glUniform4fv(s_DepthMatrixUniform, 5, colmat);
-			s_DepthCbufid = cbufid;
-			uniform_location = s_DepthCopyPositionUniform;
-		}
-		else
-		{
-			s_ColorMatrixProgram.Bind();
-			if (s_ColorCbufid != cbufid)
-				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
-			s_ColorCbufid = cbufid;
-			uniform_location = s_ColorCopyPositionUniform;
-		}
-
-		TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
-		glUniform4f(uniform_location, static_cast<float>(R.left), static_cast<float>(R.top),
-			static_cast<float>(R.right), static_cast<float>(R.bottom));
-
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		s_DepthMatrixProgram.Bind();
+		if (s_DepthCbufid != cbufid)
+			glUniform4fv(s_DepthMatrixUniform, 5, colmat);
+		s_DepthCbufid = cbufid;
+		uniform_location = s_DepthCopyPositionUniform;
 	}
+	else
+	{
+		s_ColorMatrixProgram.Bind();
+		if (s_ColorCbufid != cbufid)
+			glUniform4fv(s_ColorMatrixUniform, 7, colmat);
+		s_ColorCbufid = cbufid;
+		uniform_location = s_ColorCopyPositionUniform;
+	}
+
+	TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
+	glUniform4f(uniform_location, static_cast<float>(R.left), static_cast<float>(R.top),
+		static_cast<float>(R.right), static_cast<float>(R.bottom));
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
 	{
@@ -220,11 +217,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		size_in_bytes = (u32)encoded_size;
 
-		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
-		if (!g_ActiveConfig.bEFBCopyCacheEnable)
-			TextureCache::MakeRangeDynamic(addr,encoded_size);
-		else if (!TextureCache::Find(addr, new_hash))
-			TextureCache::MakeRangeDynamic(addr,encoded_size);
+		TextureCache::MakeRangeDynamic(addr,encoded_size);
 
 		hash = new_hash;
 	}

@@ -223,7 +223,6 @@ protected:
 		efbcopy_clear_disable->Enable(!vconfig.bEFBCopyEnable);
 		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
 		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
-		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && !vconfig.bCopyEFBToTexture);
 
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
@@ -294,7 +293,6 @@ protected:
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;
-	SettingCheckBox* cache_efb_copies;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;

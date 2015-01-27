@@ -9,7 +9,6 @@
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
@@ -18,11 +17,6 @@
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-
-#ifndef _WIN32
-	#undef inline
-	#define inline
-#endif
 
 // This pointer is used as the source/dst for all fixed function loader calls
 u8* g_video_buffer_read_ptr;

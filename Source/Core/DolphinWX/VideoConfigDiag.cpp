@@ -515,14 +515,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	efbcopy_clear_disable = CreateCheckBox(page_hacks, _("Remove Blank EFB Copy Box"), wxGetTranslation(efb_copy_clear_desc), vconfig.bEFBCopyClearDisable, false);
 	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(efb_copy_texture_desc), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
 	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bCopyEFBToTexture, true);
-	cache_efb_copies = CreateCheckBox(page_hacks, _("Enable Cache"), wxGetTranslation(cache_efb_copies_desc), vconfig.bEFBCopyCacheEnable);
 
 	group_efbcopy->Add(efbcopy_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->Add(efbcopy_clear_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
-	group_efbcopy->Add(cache_efb_copies, 0, wxRIGHT, 5);
 
 	szr_efb->Add(CreateCheckBox(page_hacks, _("Skip EFB Access from CPU"), wxGetTranslation(efb_access_desc), vconfig.bEFBAccessEnable, true), 0, wxBOTTOM | wxLEFT, 5);
 	szr_efb->Add(CreateCheckBox(page_hacks, _("Ignore Format Changes"), wxGetTranslation(efb_emulate_format_changes_desc), vconfig.bEFBEmulateFormatChanges, true), 0, wxBOTTOM | wxLEFT, 5);

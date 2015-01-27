@@ -4,7 +4,6 @@
 
 #include "Common/CommonTypes.h"
 
-#include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexManagerBase.h"
