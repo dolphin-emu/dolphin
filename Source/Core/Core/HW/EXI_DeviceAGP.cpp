@@ -63,7 +63,7 @@ void CEXIAgp::LoadRom()
 	INFO_LOG(EXPANSIONINTERFACE, "Loaded GBA sav: %s card: %d", gbapath.c_str(), m_slot);
 }
 
-void CEXIAgp::LoadFileToROM(std::string filename)
+void CEXIAgp::LoadFileToROM(const std::string& filename)
 {
 	File::IOFile pStream(filename, "rb");
 	if (pStream)
@@ -83,7 +83,7 @@ void CEXIAgp::LoadFileToROM(std::string filename)
 	}
 }
 
-void CEXIAgp::LoadFileToEEPROM(std::string filename)
+void CEXIAgp::LoadFileToEEPROM(const std::string& filename)
 {
 	File::IOFile pStream(filename, "rb");
 	if (pStream)
@@ -98,7 +98,7 @@ void CEXIAgp::LoadFileToEEPROM(std::string filename)
 	}
 }
 
-void CEXIAgp::SaveFileFromEEPROM(std::string filename)
+void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
 {
 	File::IOFile pStream(filename, "wb");
 	if (pStream)
