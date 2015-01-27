@@ -331,6 +331,10 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	FixupBranch exit = J(true);
 
 	SwitchToNearCode();
+	// Mask out the address so we don't write to MEM1 out of bounds
+	// FIXME: Work out why the AGP disc writes out of bounds
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		AND(32, R(RSCRATCH), Imm32(Memory::RAM_MASK));
 	PXOR(XMM0, R(XMM0));
 	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);

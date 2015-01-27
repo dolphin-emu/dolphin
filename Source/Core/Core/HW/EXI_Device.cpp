@@ -7,6 +7,7 @@
 #include "Core/Core.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAD16.h"
+#include "Core/HW/EXI_DeviceAGP.h"
 #include "Core/HW/EXI_DeviceAMBaseboard.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/EXI_DeviceGecko.h"
@@ -84,6 +85,7 @@ public:
 	u32  ImmRead (u32 size) override           {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
 	void DMAWrite(u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
 	void DMARead (u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
+	bool IsPresent() override { return true; }
 };
 
 
@@ -127,6 +129,10 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 
 	case EXIDEVICE_GECKO:
 		result = new CEXIGecko();
+		break;
+
+	case EXIDEVICE_AGP:
+		result = new CEXIAgp(channel_num);
 		break;
 
 	case EXIDEVICE_NONE:
