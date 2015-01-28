@@ -48,7 +48,7 @@ static Common::FifoQueue<BaseEvent, false> tsQueue;
 // event pools
 static Event *eventPool = nullptr;
 
-float lastOCFactor;
+static float lastOCFactor;
 int slicelength;
 static int maxSliceLength = MAX_SLICE_LENGTH;
 
