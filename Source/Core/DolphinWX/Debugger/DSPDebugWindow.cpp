@@ -171,7 +171,6 @@ void DSPDebuggerLLE::Update()
 	UpdateDisAsmListView();
 	UpdateRegisterFlags();
 	UpdateState();
-	m_mgr.Update();
 #if defined __WXGTK__
 	if (!wxIsMainThread())
 		wxMutexGuiLeave();
