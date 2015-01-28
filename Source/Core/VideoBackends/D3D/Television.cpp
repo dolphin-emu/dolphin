@@ -148,15 +148,13 @@ void Television::Render()
 		// line down. We could even consider implementing a deinterlacing
 		// algorithm.
 
-		MathUtil::Rectangle<int> sourceRc(0, 0, int(m_curWidth), int(m_curHeight));
-		MathUtil::Rectangle<float> destRc(-1.f, 1.f, 1.f, -1.f);
+		D3D11_RECT sourceRc = CD3D11_RECT(0, 0, int(m_curWidth), int(m_curHeight));
 
 		D3D::stateman->SetSampler(0, m_samplerState);
 
-		D3D::drawShadedTexSubQuad(
+		D3D::drawShadedTexQuad(
 			m_yuyvTextureSRV, &sourceRc,
 			MAX_XFB_WIDTH, MAX_XFB_HEIGHT,
-			&destRc,
 			m_pShader,
 			VertexShaderCache::GetSimpleVertexShader(),
 			VertexShaderCache::GetSimpleInputLayout());

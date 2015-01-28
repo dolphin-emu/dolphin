@@ -70,36 +70,38 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 		WRITE(p, "  out vec4 ocol0;\n");
 		WRITE(p, "void main()\n");
+		WRITE(p, "{\n"
+			"  int2 sampleUv;\n"
+			"  int2 uv1 = int2(gl_FragCoord.xy);\n"
+			);
 	}
 	else // D3D
 	{
-		WRITE(p,"sampler samp0 : register(s0);\n");
+		WRITE(p, "sampler samp0 : register(s0);\n");
 		WRITE(p, "Texture2D Tex0 : register(t0);\n");
 
-		WRITE(p,"void main(\n");
-		WRITE(p,"  out float4 ocol0 : SV_Target)\n");
+		WRITE(p, "void main(\n");
+		WRITE(p, "  out float4 ocol0 : SV_Target, in float4 rawpos : SV_Position)\n");
+		WRITE(p, "{\n"
+			"  int2 sampleUv;\n"
+			"  int2 uv1 = int2(rawpos.xy);\n"
+			);
 	}
 
-	WRITE(p, "{\n"
-	"  int2 sampleUv;\n"
-	"  int2 uv1 = int2(gl_FragCoord.xy);\n"
-	);
-
-	WRITE(p, "  int y_block_position = uv1.y & %d;\n", ~(blkH - 1));
-	WRITE(p, "  int y_offset_in_block = uv1.y & %d;\n", blkH - 1);
-	WRITE(p, "  int x_virtual_position = (uv1.x << %d) + y_offset_in_block * position.z;\n", IntLog2(samples));
-	WRITE(p, "  int x_block_position = (x_virtual_position >> %d) & %d;\n", IntLog2(blkH), ~(blkW - 1));
+	WRITE(p, "  int x_block_position = (uv1.x >> %d) << %d;\n", IntLog2(blkH * blkW / samples), IntLog2(blkW));
+	WRITE(p, "  int y_block_position = uv1.y << %d;\n", IntLog2(blkH));
 	if (samples == 1)
 	{
-		// 32 bit textures (RGBA8 and Z24) are stored in 2 cache line increments
-		WRITE(p, "  bool first = 0 == (x_virtual_position & %d);\n", 8 * samples); // first cache line, used in the encoders
-		WRITE(p, "  x_virtual_position = x_virtual_position << 1;\n");
+		// With samples == 1, we write out pairs of blocks; one A8R8, one G8B8.
+		WRITE(p, "  bool first = (uv1.x & %d) == 0;\n", blkH * blkW / 2);
+		samples = 2;
 	}
-	WRITE(p, "  int x_offset_in_block = x_virtual_position & %d;\n", blkW - 1);
-	WRITE(p, "  int y_offset = (x_virtual_position >> %d) & %d;\n", IntLog2(blkW), blkH - 1);
+	WRITE(p, "  int offset_in_block = uv1.x & %d;\n", (blkH * blkW / samples) - 1);
+	WRITE(p, "  int y_offset_in_block = offset_in_block >> %d;\n", IntLog2(blkW / samples));
+	WRITE(p, "  int x_offset_in_block = (offset_in_block & %d) << %d;\n", (blkW / samples) - 1, IntLog2(samples));
 
-	WRITE(p, "  sampleUv.x = x_offset_in_block + x_block_position;\n");
-	WRITE(p, "  sampleUv.y = y_block_position + y_offset;\n");
+	WRITE(p, "  sampleUv.x = x_block_position + x_offset_in_block;\n");
+	WRITE(p, "  sampleUv.y = y_block_position + y_offset_in_block;\n");
 
 	WRITE(p, "  float2 uv0 = float2(sampleUv);\n");                // sampleUv is the sample position in (int)gx_coords
 	WRITE(p, "  uv0 += float2(0.5, 0.5);\n");                      // move to center of pixel
@@ -116,9 +118,18 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
 {
-	WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
-		dest, xoffset, colorComp
-	);
+	if (ApiType == API_OPENGL)
+	{
+		WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
+			dest, xoffset, colorComp
+			);
+	}
+	else
+	{
+		WRITE(p, "  %s = Tex0.Sample(samp0, uv0 + float2(%d, 0) * sample_offset).%s;\n",
+			dest, xoffset, colorComp
+			);
+	}
 }
 
 static void WriteColorToIntensity(char*& p, const char* src, const char* dest)
