@@ -433,6 +433,9 @@ void LogProj(float p[]) { //VR
 		case 32:
 			g_metroid_layer = GetMetroidPrime2GCLayer(debug_projNum, hfov, vfov, n, f);
 			break;
+		case 3:
+			g_metroid_layer = GetMetroidPrime3Layer(debug_projNum, hfov, vfov, n, f);
+			break;
 		case 113:
 			g_metroid_layer = GetZeldaTPGCLayer(debug_projNum, hfov, vfov, n, f);
 			break;
@@ -472,6 +475,9 @@ void LogProj(float p[]) { //VR
 		case 2:
 		case 32:
 			g_metroid_layer = GetMetroidPrime2GCLayer2D(debug_projNum, left, right, top, bottom, znear, zfar);
+			break;
+		case 3:
+			g_metroid_layer = GetMetroidPrime3Layer2D(debug_projNum, left, right, top, bottom, znear, zfar);
 			break;
 		case 113:
 			g_metroid_layer = GetZeldaTPGCLayer2D(debug_projNum, left, right, top, bottom, znear, zfar);
