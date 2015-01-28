@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/JitRegister.h"
 #include "Common/MemoryUtil.h"
 
 #include "Core/PowerPC/Jit64/Jit.h"
@@ -199,6 +200,8 @@ void Jit64AsmRoutineManager::Generate()
 	}
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
+
+	JitRegister::Register(enterCode, GetCodePtr(), "JIT_Loop");
 
 	GenerateCommon();
 }

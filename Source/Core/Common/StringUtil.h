@@ -13,6 +13,8 @@
 
 #include "Common/Common.h"
 
+std::string StringFromFormatV(const char* format, va_list args);
+
 std::string StringFromFormat(const char* format, ...)
 #if !defined _WIN32
 // On compilers that support function attributes, this gives StringFromFormat

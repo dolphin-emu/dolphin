@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
@@ -20,6 +21,8 @@ using namespace Gen;
 
 void CommonAsmRoutines::GenFifoWrite(int size)
 {
+	const void* start = GetCodePtr();
+
 	// Assume value in RSCRATCH
 	u32 gather_pipe = (u32)(u64)GPFifo::m_gatherPipe;
 	_assert_msg_(DYNA_REC, gather_pipe <= 0x7FFFFFFF, "Gather pipe not in low 2GB of memory!");
@@ -28,10 +31,14 @@ void CommonAsmRoutines::GenFifoWrite(int size)
 	ADD(32, R(RSCRATCH2), Imm8(size >> 3));
 	MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
 	RET();
+
+	JitRegister::Register(start, GetCodePtr(), "JIT_FifoWrite_%i", size);
 }
 
 void CommonAsmRoutines::GenFrsqrte()
 {
+	const void* start = GetCodePtr();
+
 	// Assume input in XMM0.
 	// This function clobbers all three RSCRATCH.
 	MOVQ_xmm(R(RSCRATCH), XMM0);
@@ -91,10 +98,14 @@ void CommonAsmRoutines::GenFrsqrte()
 	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocalSquareRoot);
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	RET();
+
+	JitRegister::Register(start, GetCodePtr(), "JIT_Frsqrte");
 }
 
 void CommonAsmRoutines::GenFres()
 {
+	const void* start = GetCodePtr();
+
 	// Assume input in XMM0.
 	// This function clobbers all three RSCRATCH.
 	MOVQ_xmm(R(RSCRATCH), XMM0);
@@ -149,10 +160,14 @@ void CommonAsmRoutines::GenFres()
 	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocal);
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	RET();
+
+	JitRegister::Register(start, GetCodePtr(), "JIT_Fres");
 }
 
 void CommonAsmRoutines::GenMfcr()
 {
+	const void* start = GetCodePtr();
+
 	// Input: none
 	// Output: RSCRATCH
 	// This function clobbers all three RSCRATCH.
@@ -187,6 +202,8 @@ void CommonAsmRoutines::GenMfcr()
 		OR(32, R(dst), MScaled(cr_val, SCALE_4, (u32)(u64)m_flagTable));
 	}
 	RET();
+
+	JitRegister::Register(start, GetCodePtr(), "JIT_Mfcr");
 }
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
@@ -207,6 +224,8 @@ static const float GC_ALIGNED16(m_m128) = -128.0f;
 // See comment in header for in/outs.
 void CommonAsmRoutines::GenQuantizedStores()
 {
+	const void* start = GetCodePtr();
+
 	const u8* storePairedIllegal = AlignCode4();
 	UD2();
 
@@ -305,6 +324,8 @@ void CommonAsmRoutines::GenQuantizedStores()
 
 	RET();
 
+	JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
+
 	pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
 	ReserveCodeSpace(8 * sizeof(u8*));
 
@@ -321,6 +342,8 @@ void CommonAsmRoutines::GenQuantizedStores()
 // See comment in header for in/outs.
 void CommonAsmRoutines::GenQuantizedSingleStores()
 {
+	const void* start = GetCodePtr();
+
 	const u8* storeSingleIllegal = AlignCode4();
 	UD2();
 
@@ -368,6 +391,8 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 16, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 
+	JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedSingleStore");
+
 	singleStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
 	ReserveCodeSpace(8 * sizeof(u8*));
 
@@ -383,6 +408,8 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 void CommonAsmRoutines::GenQuantizedLoads()
 {
+	const void* start = GetCodePtr();
+
 	const u8* loadPairedIllegal = AlignCode4();
 	UD2();
 
@@ -577,6 +604,9 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	UNPCKLPS(XMM0, M(m_one));
 	RET();
+
+
+	JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
 
 	pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
 	ReserveCodeSpace(16 * sizeof(u8*));
