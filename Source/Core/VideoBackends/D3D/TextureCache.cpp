@@ -153,6 +153,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	else
 		D3D::SetPointCopySampler();
 
+	// Make sure we don't draw with the texture set as both a source and target.
+	// (This can happen because we don't unbind textures when we free them.)
+	D3D::stateman->UnsetTexture(texture->GetSRV());
+
 	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
 
 	// Create texture copy
