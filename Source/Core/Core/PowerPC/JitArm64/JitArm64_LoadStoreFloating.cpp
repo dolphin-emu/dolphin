@@ -176,11 +176,10 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
 	BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
 	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-	BitSet32 fpr_ignore_mask(0);
 	regs_in_use[W0] = 0;
 	regs_in_use[W30] = 0;
 	fprs_in_use[0] = 0; // Q0
-	fpr_ignore_mask[VD - Q0] = 1;
+	fprs_in_use[VD - Q0] = 0;
 
 	if (is_immediate && Memory::IsRAMAddress(imm_addr))
 	{
@@ -196,7 +195,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			VD, XA);
-		m_float_emit.ABI_PopRegisters(fprs_in_use, fpr_ignore_mask);
+		m_float_emit.ABI_PopRegisters(fprs_in_use);
 		ABI_PopRegisters(regs_in_use);
 	}
 
