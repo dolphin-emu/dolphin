@@ -180,10 +180,7 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
 				emit->STRH(INDEX_UNSIGNED, temp, addr, 0);
 			else
-			{
 				emit->STRB(INDEX_UNSIGNED, RS, addr, 0);
-				emit->HINT(HINT_NOP);
-			}
 		}
 		else
 		{
