@@ -111,11 +111,21 @@ void CEXIAgp::LoadHash()
 {
 	if (!m_rom_hash_loaded && m_rom_size > 0)
 	{
+		u32 hash_addr = 0;
+
+		// Find where the hash is in memory
+		for (u32 h = 0; h < Memory::REALRAM_SIZE; h += 4)
+		{
+			if (Memory::ReadUnchecked_U32(h) == 0x005ebce2)
+				hash_addr = h;
+		}
+
 		for (int i = 0; i < 0x100; i++)
 		{
 			// Load the ROM hash expected by the AGP
-			m_hash_array[i] = Memory::ReadUnchecked_U8(0x0017e908 + i);
+			m_hash_array[i] = Memory::ReadUnchecked_U8(hash_addr + i);
 		}
+
 		// Verify the hash
 		if (m_hash_array[HASH_SIZE - 1] == 0x35)
 		{
