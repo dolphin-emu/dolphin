@@ -107,6 +107,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Morphball Map or Hint";
 	case METROID_MORPHBALL_WORLD:
 		return "Morphball World";
+	case METROID_MOUSE_POINTER:
+		return "Mouse Pointer";
 	case METROID_RADAR_DOT:
 		return "Radar Dot";
 	case METROID_RETICLE:
@@ -1592,6 +1594,7 @@ TMetroidLayer GetMetroidPrime3Layer2D(int layer, float left, float right, float 
 	{
 		result = METROID_MAP_0;
 		g_metroid_map_screen = true;
+		g_metroid_morphball_active = false;
 	}
 	else if (layer == 1)
 	{
@@ -1603,6 +1606,12 @@ TMetroidLayer GetMetroidPrime3Layer2D(int layer, float left, float right, float 
 		{
 			result = METROID_MAP_1;
 			g_metroid_map_screen = true;
+			g_metroid_morphball_active = false;
+		}
+		else if (l == 0 && t == g_metroid_vres * 100 && r == 64000 && b == 0 && n == -409600 && f == 409600)
+		{
+			// This is some sort of fullscreen effect over a cutscene
+			result = METROID_EFB_COPY;
 		}
 		else
 		{
@@ -1613,6 +1622,15 @@ TMetroidLayer GetMetroidPrime3Layer2D(int layer, float left, float right, float 
 	{
 		// This is some sort of fullscreen effect
 		result = METROID_EFB_COPY;
+	}
+	else if (layer > 1 && l == 0 && t == 0 && r == 640 && b == 528 && n == -100 && f == 100)
+	{
+		result = METROID_MOUSE_POINTER;
+	}
+	else if (layer > 1 && l == -32000 && t == g_metroid_vres * 50 && r == 32000 && b == -g_metroid_vres * 50 && n == -409600 && f == 409600)
+	{
+		// used in the cinematic cutscene when you first enter the federation ship
+		result = METROID_SCREEN_FADE;
 	}
 	else
 		result = METROID_UNKNOWN_2D;
@@ -1643,15 +1661,18 @@ TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float zne
 		g_metroid_cinematic = false;
 		if (h == 8055)
 		{
-			g_metroid_morphball_active = false;
 			g_metroid_inventory = false;
 
 			++g_metroid_wide_count;
-			if (g_metroid_after_cursor)
+			if (g_metroid_morphball_active)
+			{
+				result = METROID_MORPHBALL_HUD;
+			}
+			else if (g_metroid_after_cursor && !g_metroid_map_screen)
 			{
 				result = METROID_MAP;
 			}
-			else if (g_metroid_wide_count == g_metroid_helmet_index)
+			else if (g_metroid_wide_count == g_metroid_helmet_index && !g_metroid_map_screen)
 			{
 				result = METROID_HELMET;
 			}
@@ -1675,7 +1696,8 @@ TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float zne
 				case 3:
 					// hint message
 					if (g_metroid_map_screen)
-						result = METROID_UNKNOWN_HUD;
+						// unknown
+						result = METROID_MAP_MAP;
 					else
 						result = METROID_VISOR_RADAR_HINT;
 					break;
@@ -1683,7 +1705,8 @@ TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float zne
 					// helmet
 					if (g_metroid_map_screen)
 					{
-						result = METROID_UNKNOWN_HUD;
+						// really this is the legend
+						result = METROID_MAP_MAP;
 					}
 					else
 					{
@@ -1700,7 +1723,8 @@ TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float zne
 					break;
 				case 6:
 					if (g_metroid_map_screen)
-						result = METROID_MAP_LEGEND;
+						// really this is the visor HUD
+						result = METROID_MAP_MAP;
 					else
 						result = METROID_UNKNOWN_HUD;
 					break;
@@ -1715,7 +1739,7 @@ TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float zne
 			result = METROID_UNKNOWN_HUD;
 		}
 	}
-	else if (f == 75000 && (v == 4958 || v == 4522))
+	else if (f == 75000 && v == 6000)
 	{
 		result = METROID_MORPHBALL_WORLD;
 		vr_widest_3d_HFOV = abs(hfov);
@@ -1745,8 +1769,9 @@ TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float zne
 	// 73.27 = GameCube, 85.64 = Wii (widescreen)
 	else if (f == 75000 && (h == 8951))
 	{
-		g_metroid_cinematic = false;
 		++g_metroid_normal_count;
+		g_metroid_cinematic = false;
+		g_metroid_morphball_active = false;
 		g_metroid_map_screen = false;
 		g_metroid_inventory = false;
 		vr_widest_3d_HFOV = hfov;
@@ -1798,6 +1823,7 @@ TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float zne
 	else
 	{
 		g_metroid_cinematic = true;
+		g_metroid_morphball_active = false;
 		result = METROID_CINEMATIC_WORLD;
 	}
 	return result;
@@ -2097,6 +2123,7 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 	case METROID_SCAN_CROSS:
 	case METROID_UNKNOWN_WORLD:
 	case METROID_UNKNOWN_2D:
+	case METROID_MOUSE_POINTER:
 	case METROID_SHADOW_2D:
 		*bStuckToHead = false;
 		break;
