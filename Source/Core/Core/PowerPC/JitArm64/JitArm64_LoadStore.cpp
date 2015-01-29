@@ -288,15 +288,24 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
 	ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-	if (is_immediate)
-		MOVI2R(XA, imm_addr);
-
 	if (is_immediate && Memory::IsRAMAddress(imm_addr))
 	{
+		MOVI2R(XA, imm_addr);
+
 		EmitBackpatchRoutine(this, flags, true, false, RS, XA);
+	}
+	else if (is_immediate && MMIO::IsMMIOAddress(imm_addr) &&
+	         !(flags & BackPatchInfo::FLAG_REVERSE))
+	{
+		MMIOWriteRegToAddr(Memory::mmio_mapping, this,
+		                   regs_in_use, fprs_in_use, RS,
+		                   imm_addr, flags);
 	}
 	else
 	{
+		if (is_immediate)
+			MOVI2R(XA, imm_addr);
+
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
