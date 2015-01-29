@@ -33,7 +33,7 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att): 
 
 	std::string name;
 	AppendToString(&name);
-	JitRegister::Register(region, (u32)(GetCodePtr() - region), name.c_str());
+	JitRegister::Register(region, GetCodePtr(), name.c_str());
 }
 
 OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)

@@ -308,7 +308,6 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
-	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);
 
 	// only copy on cache line boundaries
 	// extra pixels are copied but not displayed in the resulting texture

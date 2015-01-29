@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/JitRegister.h"
 #include "Common/StringUtil.h"
 #include "Common/x64ABI.h"
 #include "Core/HW/Memmap.h"
@@ -95,6 +96,8 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, B
 		MOVZX(dataRegSize, info.operandSize * 8, dataReg, R(ABI_RETURN));
 
 	JMP(returnPtr, true);
+
+	JitRegister::Register(trampoline, GetCodePtr(), "JIT_ReadTrampoline");
 	return trampoline;
 }
 
@@ -172,5 +175,6 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, 
 	}
 	JMP(returnPtr, true);
 
+	JitRegister::Register(trampoline, GetCodePtr(), "JIT_WriteTrampoline_%x", pc);
 	return trampoline;
 }
