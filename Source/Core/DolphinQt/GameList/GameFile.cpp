@@ -299,7 +299,7 @@ QString GameFile::GetName(int index) const
 
 const QString GameFile::GetWiiFSPath() const
 {
-	DiscIO::IVolume* volume = DiscIO::CreateVolumeFromFilename(m_file_name.toStdString());
+	std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(m_file_name.toStdString()));
 	QString ret;
 
 	if (volume == nullptr)
@@ -323,7 +323,6 @@ const QString GameFile::GetWiiFSPath() const
 		else
 			ret = QString::fromStdString(path);
 	}
-	delete volume;
 
 	return ret;
 }
