@@ -47,9 +47,9 @@ private:
 	u8  m_eeprom_pos = 0;
 	u16 m_eeprom_cmd = 0;
 
-	void LoadFileToROM(std::string filename);
-	void LoadFileToEEPROM(std::string filename);
-	void SaveFileFromEEPROM(std::string filename);
+	void LoadFileToROM(const std::string& filename);
+	void LoadFileToEEPROM(const std::string& filename);
+	void SaveFileFromEEPROM(const std::string& filename);
 	void LoadHash();
 	void LoadRom();
 	void DoHash(u8* data, u32 size);
