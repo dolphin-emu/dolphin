@@ -292,7 +292,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			regs_in_use[W30] = 0;
 
 			ABI_PushRegisters(regs_in_use);
-			MOVI2R(X30, (u64)&GPFifo::CheckGatherPipe);
+			MOVI2R(X30, (u64)&GPFifo::FastCheckGatherPipe);
 			BLR(X30);
 			ABI_PopRegisters(regs_in_use);
 			gpr.Unlock(W30);
