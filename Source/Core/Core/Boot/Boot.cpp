@@ -210,7 +210,7 @@ bool CBoot::BootUp()
 	// GCM and Wii
 	case SCoreStartupParameter::BOOT_ISO:
 	{
-		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename);
+		std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
 		if (pVolume == nullptr)
 			break;
 
@@ -267,13 +267,11 @@ bool CBoot::BootUp()
 			}
 		}
 
-		/* Try to load the symbol map if there is one, and then scan it for
-			and eventually replace code */
+		// Try to load the symbol map if there is one, and then scan it for
+		// and eventually replace code
 		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
-		// We don't need the volume any more
-		delete pVolume;
 		break;
 	}
 

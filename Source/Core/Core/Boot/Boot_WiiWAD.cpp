@@ -120,7 +120,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
 
 	// Load patches and run startup patches
-	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
+	const std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(_pFilename));
 	if (pVolume != nullptr)
 		PatchEngine::LoadPatches();
 
