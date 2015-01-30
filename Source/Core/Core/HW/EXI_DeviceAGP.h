@@ -23,8 +23,6 @@ public:
 private:
 	enum
 	{
-		HASH_SIZE = 256,
-		HASH_MASK = (HASH_SIZE - 1),
 		EE_READ   = 0x80
 	};
 
@@ -37,7 +35,6 @@ private:
 	u32 m_eeprom_mask = 0;
 	std::vector<u8> m_rom;
 	std::vector<u8> m_eeprom;
-	std::array<u8, HASH_SIZE> m_hash_array;
 
 	//! Helper
 	u32 m_position = 0;
@@ -50,13 +47,10 @@ private:
 	void LoadFileToROM(const std::string& filename);
 	void LoadFileToEEPROM(const std::string& filename);
 	void SaveFileFromEEPROM(const std::string& filename);
-	void LoadHash();
 	void LoadRom();
-	void DoHash(u8* data, u32 size);
+	void CRC8(u8* data, u32 size);
 
 	u8 m_hash = 0;
 	u32 m_current_cmd = 0;
 	u32 m_return_pos = 0;
-
-	bool m_rom_hash_loaded = false;
 };
