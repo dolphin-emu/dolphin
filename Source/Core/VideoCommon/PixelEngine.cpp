@@ -16,6 +16,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -299,7 +300,10 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	}
 
 	CommandProcessor::interruptTokenWaiting = true;
-	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
+		CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+	else
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 }
 
 // SetFinish
@@ -307,7 +311,10 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 void SetFinish()
 {
 	CommandProcessor::interruptFinishWaiting = true;
-	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
+		CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
+	else
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 

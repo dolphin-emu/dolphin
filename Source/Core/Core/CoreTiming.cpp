@@ -224,6 +224,7 @@ u64 GetIdleTicks()
 // schedule things to be executed on the main thread.
 void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
+	_assert_msg_(POWERPC, !Core::IsCPUThread(), "ScheduleEvent_Threadsafe from wrong thread");
 	std::lock_guard<std::mutex> lk(tsWriteLock);
 	Event ne;
 	ne.time = globalTimer + cyclesIntoFuture;
@@ -279,6 +280,7 @@ static void AddEventToQueue(Event* ne)
 // than Advance
 void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 {
+	_assert_msg_(POWERPC, Core::IsCPUThread(), "ScheduleEvent from wrong thread");
 	Event *ne = GetNewEvent();
 	ne->userdata = userdata;
 	ne->type = event_type;

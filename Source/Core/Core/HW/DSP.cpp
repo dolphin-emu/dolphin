@@ -427,7 +427,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				// We make the samples ready as soon as possible
 				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
 				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
-				CoreTiming::ScheduleEvent_Threadsafe(80, et_GenerateDSPInterrupt, INT_AID);
+				CoreTiming::ScheduleEvent(80, et_GenerateDSPInterrupt, INT_AID);
 			}
 		})
 	);
@@ -477,6 +477,7 @@ static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate)
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 {
+	// TODO: Maybe rethink this? ScheduleEvent_Threadsafe has unpredictable timing.
 	CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type);
 }
 
@@ -543,7 +544,7 @@ static void Do_ARAM_DMA()
 	if (instant_dma)
 		ticksToTransfer = 0;
 
-	CoreTiming::ScheduleEvent_Threadsafe(ticksToTransfer, et_CompleteARAM);
+	CoreTiming::ScheduleEvent(ticksToTransfer, et_CompleteARAM);
 
 	if (instant_dma)
 		CoreTiming::ForceExceptionCheck(100);
