@@ -647,7 +647,7 @@ static void GenerateDSIException(u32 effectiveAddress, bool write)
 
 	PowerPC::ppcState.spr[SPR_DAR] = effectiveAddress;
 
-	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
+	PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
 }
 
 
@@ -656,7 +656,7 @@ static void GenerateISIException(u32 _EffectiveAddress)
 	// Address of instruction could not be translated
 	NPC = _EffectiveAddress;
 
-	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ISI);
+	PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
 }
 
 

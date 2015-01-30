@@ -8,6 +8,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
@@ -159,9 +160,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 void UpdateException()
 {
 	if ((m_InterruptCause & m_InterruptMask) != 0)
-		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_EXTERNAL_INT);
+		PowerPC::ppcState.Exceptions |= EXCEPTION_EXTERNAL_INT;
 	else
-		Common::AtomicAnd(PowerPC::ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
+		PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
 static const char *Debug_GetInterruptName(u32 _causemask)
@@ -190,7 +191,7 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 
 void SetInterrupt(u32 _causemask, bool _bSet)
 {
-	// TODO(ector): add sanity check that current thread id is CPU thread
+	_assert_msg_(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
 
 	if (_bSet && !(m_InterruptCause & _causemask))
 	{
