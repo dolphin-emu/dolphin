@@ -7,9 +7,12 @@
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/MMIO.h"
+
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/JitArm64/Jit_Util.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/JitAsm.h"
 
@@ -42,10 +45,9 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 
 	BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
 	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-	BitSet32 ignore_mask(0);
 	regs_in_use[W0] = 0;
 	regs_in_use[W30] = 0;
-	ignore_mask[dest_reg] = 1;
+	regs_in_use[dest_reg] = 0;
 
 	ARM64Reg addr_reg = W0;
 	u32 imm_addr = 0;
@@ -149,6 +151,12 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 	{
 		EmitBackpatchRoutine(this, flags, true, false, dest_reg, XA);
 	}
+	else if (is_immediate && MMIO::IsMMIOAddress(imm_addr))
+	{
+		MMIOLoadToReg(Memory::mmio_mapping, this,
+		              regs_in_use, fprs_in_use, dest_reg,
+		              imm_addr, flags);
+	}
 	else
 	{
 		// Has a chance of being backpatched which will destroy our state
@@ -160,7 +168,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			dest_reg, XA);
 		m_float_emit.ABI_PopRegisters(fprs_in_use);
-		ABI_PopRegisters(regs_in_use, ignore_mask);
+		ABI_PopRegisters(regs_in_use);
 	}
 
 	gpr.Unlock(W0, W30);
@@ -280,15 +288,24 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
 	ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-	if (is_immediate)
-		MOVI2R(XA, imm_addr);
-
 	if (is_immediate && Memory::IsRAMAddress(imm_addr))
 	{
+		MOVI2R(XA, imm_addr);
+
 		EmitBackpatchRoutine(this, flags, true, false, RS, XA);
+	}
+	else if (is_immediate && MMIO::IsMMIOAddress(imm_addr) &&
+	         !(flags & BackPatchInfo::FLAG_REVERSE))
+	{
+		MMIOWriteRegToAddr(Memory::mmio_mapping, this,
+		                   regs_in_use, fprs_in_use, RS,
+		                   imm_addr, flags);
 	}
 	else
 	{
+		if (is_immediate)
+			MOVI2R(XA, imm_addr);
+
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
