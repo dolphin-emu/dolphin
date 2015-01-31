@@ -150,7 +150,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		// horizontal depending the slope of the line.
 		out.Write(
 			"\tfloat2 offset;\n"
-			"\tfloat2 to = abs(end.pos.xy - start.pos.xy);\n"
+			"\tfloat2 to = abs(end.pos.xy / end.pos.w - start.pos.xy / start.pos.w);\n"
 			// FIXME: What does real hardware do when line is at a 45-degree angle?
 			// FIXME: Lines aren't drawn at the correct width. See Twilight Princess map.
 			"\tif (" I_LINEPTPARAMS".y * to.y > " I_LINEPTPARAMS".x * to.x) {\n"
