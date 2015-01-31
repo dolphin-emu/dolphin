@@ -1076,6 +1076,7 @@ void CConfigMain::ChooseSlotPath(bool isSlotA, TEXIDevices device_type)
 				filename = "./" + filename;
 			}
 		}
+		std::replace(filename.begin(), filename.end(), '\\', '/');
 #endif
 
 		// also check that the path isn't used for the other memcard...

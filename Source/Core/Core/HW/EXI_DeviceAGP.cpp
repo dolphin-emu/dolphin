@@ -21,7 +21,6 @@ CEXIAgp::CEXIAgp(int index)
 	LoadRom();
 
 	m_address = 0;
-	m_rom_hash_loaded = false;
 }
 
 CEXIAgp::~CEXIAgp()
@@ -36,15 +35,21 @@ CEXIAgp::~CEXIAgp()
 	SaveFileFromEEPROM(gbapath + ".sav");
 }
 
-void CEXIAgp::DoHash(u8* data, u32 size)
+void CEXIAgp::CRC8(u8* data, u32 size)
 {
-	if (!m_rom_hash_loaded)
-		LoadHash();
-
 	for (u32 it = 0; it < size; it++)
 	{
+		u8 crc = 0;
 		m_hash = m_hash ^ data[it];
-		m_hash = m_hash_array[m_hash];
+		if (m_hash & 1)     crc ^= 0x5e;
+		if (m_hash & 2)     crc ^= 0xbc;
+		if (m_hash & 4)     crc ^= 0x61;
+		if (m_hash & 8)     crc ^= 0xc2;
+		if (m_hash & 0x10)  crc ^= 0x9d;
+		if (m_hash & 0x20)  crc ^= 0x23;
+		if (m_hash & 0x40)  crc ^= 0x46;
+		if (m_hash & 0x80)  crc ^= 0x8c;
+		m_hash = crc;
 	}
 }
 
@@ -107,23 +112,6 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
 	}
 }
 
-void CEXIAgp::LoadHash()
-{
-	if (!m_rom_hash_loaded && m_rom_size > 0)
-	{
-		for (int i = 0; i < 0x100; i++)
-		{
-			// Load the ROM hash expected by the AGP
-			m_hash_array[i] = Memory::ReadUnchecked_U8(0x0017e908 + i);
-		}
-		// Verify the hash
-		if (m_hash_array[HASH_SIZE - 1] == 0x35)
-		{
-			m_rom_hash_loaded = true;
-		}
-	}
-}
-
 u32 CEXIAgp::ImmRead(u32 _uSize)
 {
 	// We don't really care about _uSize
@@ -155,8 +143,8 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
 			RomVal1 = m_rom[m_rw_offset++];
 			RomVal2 = m_rom[m_rw_offset++];
 		}
-		DoHash(&RomVal2, 1);
-		DoHash(&RomVal1, 1);
+		CRC8(&RomVal2, 1);
+		CRC8(&RomVal1, 1);
 		uData = (RomVal2 << 24) | (RomVal1 << 16) | (m_hash << 8);
 		m_current_cmd = 0;
 		break;
@@ -172,18 +160,18 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
 			RomVal2 = m_rom[m_rw_offset++];
 			RomVal3 = m_rom[m_rw_offset++];
 			RomVal4 = m_rom[m_rw_offset++];
-			DoHash(&RomVal2, 1);
-			DoHash(&RomVal1, 1);
-			DoHash(&RomVal4, 1);
-			DoHash(&RomVal3, 1);
+			CRC8(&RomVal2, 1);
+			CRC8(&RomVal1, 1);
+			CRC8(&RomVal4, 1);
+			CRC8(&RomVal3, 1);
 			uData = (RomVal2 << 24) | (RomVal1 << 16) | (RomVal4 << 8) | (RomVal3);
 		}
 		break;
 	case 0xAE0B0000:
 		RomVal1 = m_eeprom_pos < 4 ? 0xA : (((u64*)m_eeprom.data())[(m_eeprom_cmd >> 1) & 0x3F] >> (m_eeprom_pos - 4)) & 0x1;
 		RomVal2 = 0;
-		DoHash(&RomVal2, 1);
-		DoHash(&RomVal1, 1);
+		CRC8(&RomVal2, 1);
+		CRC8(&RomVal1, 1);
 		uData = (RomVal2 << 24) | (RomVal1 << 16) | (m_hash << 8);
 		m_eeprom_pos++;
 		m_current_cmd = 0;
@@ -216,11 +204,11 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 		m_rw_offset = ((_uData & 0xFFFFFF00) >> 7) & m_rom_mask;
 		m_return_pos = 0;
 		HashCmd = (_uData & 0xFF000000) >> 24;
-		DoHash(&HashCmd, 1);
+		CRC8(&HashCmd, 1);
 		HashCmd = (_uData & 0x00FF0000) >> 16;
-		DoHash(&HashCmd, 1);
+		CRC8(&HashCmd, 1);
 		HashCmd = (_uData & 0x0000FF00) >> 8;
-		DoHash(&HashCmd, 1);
+		CRC8(&HashCmd, 1);
 		break;
 	case 0xAE0C0000:
 		if ((m_eeprom_pos < 0x8) || (m_eeprom_pos == ((m_eeprom_cmd & EE_READ) ? 0x8 : 0x48)))
@@ -244,9 +232,9 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 		m_eeprom_pos++;
 		m_return_pos = 0;
 		HashCmd = (_uData & 0xFF000000) >> 24;
-		DoHash(&HashCmd, 1);
+		CRC8(&HashCmd, 1);
 		HashCmd = (_uData & 0x00FF0000) >> 16;
-		DoHash(&HashCmd, 1);
+		CRC8(&HashCmd, 1);
 		break;
 	case 0xAE0B0000:
 		break;
@@ -260,7 +248,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 		m_return_pos = 0;
 		m_hash = 0xFF;
 		HashCmd = (_uData & 0x00FF0000) >> 16;
-		DoHash(&HashCmd, 1);
+		CRC8(&HashCmd, 1);
 		break;
 	}
 }
@@ -277,7 +265,6 @@ void CEXIAgp::DoState(PointerWrap &p)
 	p.Do(m_eeprom_pos);
 	p.Do(m_eeprom_size);
 	p.Do(m_hash);
-	p.Do(m_hash_array);
 	p.Do(m_position);
 	p.Do(m_return_pos);
 	p.Do(m_rom);
