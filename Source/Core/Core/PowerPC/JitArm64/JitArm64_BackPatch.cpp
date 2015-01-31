@@ -217,12 +217,12 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			{
 				float_emit.FCVT(32, 64, Q0, RS);
 				float_emit.UMOV(32, W0, Q0, 0);
-				emit->MOVI2R(X30, (u64)&Memory::Write_U32);
+				emit->MOVI2R(X30, (u64)&PowerPC::Write_U32);
 				emit->BLR(X30);
 			}
 			else
 			{
-				emit->MOVI2R(X30, (u64)&Memory::Write_U64);
+				emit->MOVI2R(X30, (u64)&PowerPC::Write_U64);
 				float_emit.UMOV(64, X0, RS, 0);
 				emit->BLR(X30);
 			}
@@ -234,14 +234,14 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			ARM64FloatEmitter float_emit(emit);
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
-				emit->MOVI2R(X30, (u64)&Memory::Read_U32);
+				emit->MOVI2R(X30, (u64)&PowerPC::Read_U32);
 				emit->BLR(X30);
 				float_emit.DUP(32, RS, X0);
 				float_emit.FCVTL(64, RS, RS);
 			}
 			else
 			{
-				emit->MOVI2R(X30, (u64)&Memory::Read_F64);
+				emit->MOVI2R(X30, (u64)&PowerPC::Read_F64);
 				emit->BLR(X30);
 				float_emit.INS(64, RS, 0, X0);
 			}
