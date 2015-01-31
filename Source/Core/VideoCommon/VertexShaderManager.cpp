@@ -1660,11 +1660,14 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
-		VR_GetEyePos(posLeft, posRight);
-		for (int i = 0; i < 3; ++i)
+		if (!g_is_skybox)
 		{
-			posLeft[i] *= UnitsPerMetre;
-			posRight[i] *= UnitsPerMetre;
+			VR_GetEyePos(posLeft, posRight);
+			for (int i = 0; i < 3; ++i)
+			{
+				posLeft[i] *= UnitsPerMetre;
+				posRight[i] *= UnitsPerMetre;
+			}
 		}
 		
 		Matrix44 view_matrix_left, view_matrix_right;
