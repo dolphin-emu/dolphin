@@ -1120,10 +1120,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		RestoreAPIState();
+		if (s_efbCacheValid[1][cacheRectIdx])
+		{
+			u32 xRect = x % EFB_CACHE_RECT_SIZE;
+			u32 yRect = y % EFB_CACHE_RECT_SIZE;
+			u32 color = poke_data >> 24 | poke_data << 8;
+			s_efbCache[1][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect] = color;
+		}
 
-		// TODO: Could just update the EFB cache with the new value
-		ClearEFBCache();
+		RestoreAPIState();
 
 		break;
 	}
@@ -1140,10 +1145,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		RestoreAPIState();
+		if (s_efbCacheValid[0][cacheRectIdx])
+		{
+			u32 xRect = x % EFB_CACHE_RECT_SIZE;
+			u32 yRect = y % EFB_CACHE_RECT_SIZE;
+			u32 z = poke_data << 8 | poke_data >> 24;
+			s_efbCache[0][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect] = z;
+		}
 
-		// TODO: Could just update the EFB cache with the new value
-		ClearEFBCache();
+		RestoreAPIState();
 
 		break;
 	}
