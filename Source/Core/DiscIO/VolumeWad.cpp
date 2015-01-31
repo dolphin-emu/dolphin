@@ -103,6 +103,17 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 	return true;
 }
 
+int CVolumeWAD::GetRevision() const
+{
+	u32 TmdOffset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
+
+	u16 revision;
+	if (!m_pReader->Read(TmdOffset + 0x1dc, 2, (u8*)&revision))
+		return 0;
+
+	return Common::swap16(revision);
+}
+
 bool CVolumeWAD::IsWadFile() const
 {
 	return true;
