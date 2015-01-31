@@ -87,6 +87,16 @@ VideoConfig::VideoConfig()
 	bShowTrackingVolume = false;
 	bShowBaseStation = false;
 
+	bMotionSicknessAlways = false;
+	bMotionSicknessFreelook = false;
+	bMotionSickness2D = false;
+	bMotionSicknessLeftStick = false;
+	bMotionSicknessRightStick = false;
+	bMotionSicknessDPad = false;
+	iMotionSicknessMethod = 0;
+	iMotionSicknessSkybox = 0;
+	fMotionSicknessFOV = 45.0f;
+
 	iVRPlayer = 0;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
@@ -223,6 +233,16 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("ShowTrackingCamera", &bShowTrackingCamera, false);
 	vr->Get("ShowTrackingVolume", &bShowTrackingVolume, false);
 	vr->Get("ShowBaseStation", &bShowBaseStation, false);
+	vr->Get("MotionSicknessAlways", &bMotionSicknessAlways, false);
+	vr->Get("MotionSicknessFreelook", &bMotionSicknessFreelook, false);
+	vr->Get("MotionSickness2D", &bMotionSickness2D, false);
+	vr->Get("MotionSicknessLeftStick", &bMotionSicknessLeftStick, false);
+	vr->Get("MotionSicknessRightStick", &bMotionSicknessRightStick, false);
+	vr->Get("MotionSicknessDPad", &bMotionSicknessDPad, false);
+	vr->Get("MotionSicknessIR", &bMotionSicknessIR, false);
+	vr->Get("MotionSicknessMethod", &iMotionSicknessMethod, 0);
+	vr->Get("MotionSicknessSkybox", &iMotionSicknessSkybox, 0);
+	vr->Get("MotionSicknessFOV", &fMotionSicknessFOV, DEFAULT_VR_MOTION_SICKNESS_FOV);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
@@ -629,6 +649,16 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("ShowTrackingCamera", bShowTrackingCamera);
 	vr->Set("ShowTrackingVolume", bShowTrackingVolume);
 	vr->Set("ShowBaseStation", bShowBaseStation);
+	vr->Set("MotionSicknessAlways", bMotionSicknessAlways);
+	vr->Set("MotionSicknessFreelook", bMotionSicknessFreelook);
+	vr->Set("MotionSickness2D", bMotionSickness2D);
+	vr->Set("MotionSicknessLeftStick", bMotionSicknessLeftStick);
+	vr->Set("MotionSicknessRightStick", bMotionSicknessRightStick);
+	vr->Set("MotionSicknessDPad", bMotionSicknessDPad);
+	vr->Set("MotionSicknessIR", bMotionSicknessIR);
+	vr->Set("MotionSicknessMethod", iMotionSicknessMethod);
+	vr->Set("MotionSicknessSkybox", iMotionSicknessSkybox);
+	vr->Set("MotionSicknessFOV", fMotionSicknessFOV);
 	vr->Set("Player", iVRPlayer);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);

@@ -438,6 +438,49 @@ void CConfigVR::CreateGUIControls()
 		page_vr->SetSizerAndFit(szr_vr_main);
 	}
 
+	// -- Motion Sickness --
+	{
+		wxPanel* const page_vr = new wxPanel(Notebook, -1);
+		Notebook->AddPage(page_vr, _("Motion Sickness"));
+		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
+		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 5);
+
+		// Sky / Background
+		{
+			const wxString vr_choices[] = { _("normal"), _("hide"), _("lock"), };
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Sky / Background:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessSkybox, wxGetTranslation(hideskybox_desc),
+				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+			szr_vr->Add(choice_vr, 1, 0, 0);
+			choice_vr->Select(vconfig.iMotionSicknessSkybox);
+		}
+		// Motion Sickness Prevention Method
+		{
+			const wxString vr_choices[] = { _("none"), _("reduce FOV"), _("black screen"), _("PLCB") };
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Motion sickness prevention method:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessMethod, wxGetTranslation(temp_desc),
+				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+			szr_vr->Add(choice_vr, 1, 0, 0);
+			choice_vr->Select(vconfig.iMotionSicknessMethod);
+		}
+	
+		szr_vr->Add(CreateCheckBox(page_vr, _("always"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessAlways));
+		szr_vr->Add(CreateCheckBox(page_vr, _("during Freelook"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessFreelook));
+		szr_vr->Add(CreateCheckBox(page_vr, _("on 2D screens"), wxGetTranslation(temp_desc), vconfig.bMotionSickness2D));
+		szr_vr->Add(CreateCheckBox(page_vr, _("with left stick"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessLeftStick));
+		szr_vr->Add(CreateCheckBox(page_vr, _("with right stick"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessRightStick));
+		szr_vr->Add(CreateCheckBox(page_vr, _("with D-Pad"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessDPad));
+		szr_vr->Add(CreateCheckBox(page_vr, _("with IR Pointer"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessIR));
+
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Motion Sickness"));
+		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
+
+		szr_vr_main->AddStretchSpacer();
+		CreateDescriptionArea(page_vr, szr_vr_main);
+		page_vr->SetSizerAndFit(szr_vr_main);
+	}
+
 	const wxString pageNames[] =
 	{
 		_("VR Hotkeys"),
