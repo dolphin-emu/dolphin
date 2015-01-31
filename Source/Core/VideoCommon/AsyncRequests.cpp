@@ -97,6 +97,11 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 
 		case Event::BBOX_READ:
 			*e.bbox.data = g_renderer->BBoxRead(e.bbox.index);
+			break;
+
+		case Event::PERF_QUERY:
+			g_perf_query->FlushResults();
+			break;
 
 	}
 }

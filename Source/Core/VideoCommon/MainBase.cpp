@@ -21,9 +21,6 @@ bool s_BackendInitialized = false;
 
 static Common::Flag s_FifoShuttingDown;
 
-static Common::Flag s_perfQueryRequested;
-static Common::Event s_perfQueryReadyEvent;
-
 static volatile struct
 {
 	u32 xfbAddr;
@@ -47,7 +44,6 @@ void VideoBackendHardware::Video_ExitLoop()
 {
 	ExitGpuLoop();
 	s_FifoShuttingDown.Set();
-	s_perfQueryReadyEvent.Set();
 }
 
 void VideoBackendHardware::Video_SetRendering(bool bEnabled)
@@ -118,7 +114,7 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 		e.efb_poke.data = InputData;
 		e.efb_poke.x = x;
 		e.efb_poke.y = y;
-		AsyncRequests::GetInstance()->PushEvent(e, 0);
+		AsyncRequests::GetInstance()->PushEvent(e, false);
 		return 0;
 	}
 	else
@@ -130,18 +126,8 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 		e.efb_peek.x = x;
 		e.efb_peek.y = y;
 		e.efb_peek.data = &result;
-		AsyncRequests::GetInstance()->PushEvent(e, 1);
+		AsyncRequests::GetInstance()->PushEvent(e, true);
 		return result;
-	}
-}
-
-static void VideoFifo_CheckPerfQueryRequest()
-{
-	if (s_perfQueryRequested.IsSet())
-	{
-		g_perf_query->FlushResults();
-		s_perfQueryRequested.Clear();
-		s_perfQueryReadyEvent.Set();
 	}
 }
 
@@ -154,20 +140,12 @@ u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 
 	SyncGPU(SYNC_GPU_PERFQUERY);
 
-	// TODO: Is this check sane?
+	AsyncRequests::Event e;
+	e.time = 0;
+	e.type = AsyncRequests::Event::PERF_QUERY;
+
 	if (!g_perf_query->IsFlushed())
-	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
-		{
-			s_perfQueryReadyEvent.Reset();
-			if (s_FifoShuttingDown.IsSet())
-				return 0;
-			s_perfQueryRequested.Set();
-			s_perfQueryReadyEvent.Wait();
-		}
-		else
-			g_perf_query->FlushResults();
-	}
+		AsyncRequests::GetInstance()->PushEvent(e, true);
 
 	return g_perf_query->GetQueryResult(type);
 }
@@ -194,7 +172,6 @@ void VideoBackendHardware::InitializeShared()
 {
 	VideoCommon_Init();
 
-	s_perfQueryRequested.Clear();
 	s_FifoShuttingDown.Clear();
 	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
 	m_invalid = false;
@@ -246,15 +223,9 @@ void VideoBackendHardware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	Fifo_PauseAndLock(doLock, unpauseOnUnlock);
 }
 
-
 void VideoBackendHardware::RunLoop(bool enable)
 {
 	VideoCommon_RunLoop(enable);
-}
-
-void VideoFifo_CheckAsyncRequest()
-{
-	VideoFifo_CheckPerfQueryRequest();
 }
 
 void VideoBackendHardware::Video_GatherPipeBursted()

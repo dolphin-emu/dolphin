@@ -24,6 +24,7 @@ public:
 			EFB_PEEK_Z,
 			SWAP_EVENT,
 			BBOX_READ,
+			PERF_QUERY,
 		} type;
 		u64 time;
 
@@ -56,6 +57,10 @@ public:
 				int index;
 				u16* data;
 			} bbox;
+
+			struct
+			{
+			} perf_query;
 		};
 	};
 

@@ -53,7 +53,3 @@ void EmulatorState(bool running);
 bool AtBreakpoint();
 void ResetVideoBuffer();
 void Fifo_SetRendering(bool bEnabled);
-
-
-// Implemented by the Video Backend
-void VideoFifo_CheckAsyncRequest();

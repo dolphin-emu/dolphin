@@ -290,7 +290,6 @@ void RunGpuLoop()
 	{
 		g_video_backend->PeekMessages();
 
-		VideoFifo_CheckAsyncRequest();
 		AsyncRequests::GetInstance()->PullEvents();
 		if (g_use_deterministic_gpu_thread)
 		{
@@ -353,7 +352,6 @@ void RunGpuLoop()
 				// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
 				// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 				// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
-				VideoFifo_CheckAsyncRequest();
 				AsyncRequests::GetInstance()->PullEvents();
 				CommandProcessor::isPossibleWaitingSetDrawDone = false;
 			}
