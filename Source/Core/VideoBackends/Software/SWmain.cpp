@@ -163,6 +163,7 @@ void VideoSoftware::Shutdown()
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
 	GLInterface->Shutdown();
+	delete GLInterface;
 }
 
 void VideoSoftware::Video_Cleanup()

@@ -225,6 +225,7 @@ void VideoBackend::Shutdown()
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
 	GLInterface->Shutdown();
+	delete GLInterface;
 }
 
 void VideoBackend::Video_Cleanup()
