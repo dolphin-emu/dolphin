@@ -138,18 +138,18 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 	return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing)
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing, bool is_preprocess)
 {
 	if (!count)
 		return 0;
 
-	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group);
+	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 
 	int size = count * loader->m_VertexSize;
 	if ((int)src.size() < size)
 		return -1;
 
-	if (skip_drawing)
+	if (skip_drawing || is_preprocess)
 		return size;
 
 	// If the native vertex format changed, force a flush.
@@ -173,11 +173,6 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 	return size;
-}
-
-int GetVertexSize(int vtx_attr_group, bool preprocess)
-{
-	return RefreshLoader(vtx_attr_group, preprocess)->m_VertexSize;
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()
