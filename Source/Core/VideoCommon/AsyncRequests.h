@@ -23,6 +23,7 @@ public:
 			EFB_PEEK_COLOR,
 			EFB_PEEK_Z,
 			SWAP_EVENT,
+			BBOX_READ,
 		} type;
 		u64 time;
 
@@ -49,6 +50,12 @@ public:
 				u32 fbStride;
 				u32 fbHeight;
 			} swap_event;
+
+			struct
+			{
+				int index;
+				u16* data;
+			} bbox;
 		};
 	};
 

@@ -95,6 +95,9 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 			Renderer::Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride, e.swap_event.fbHeight, rc);
 			break;
 
+		case Event::BBOX_READ:
+			*e.bbox.data = g_renderer->BBoxRead(e.bbox.index);
+
 	}
 }
 

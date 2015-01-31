@@ -24,11 +24,6 @@ static Common::Flag s_FifoShuttingDown;
 static Common::Flag s_perfQueryRequested;
 static Common::Event s_perfQueryReadyEvent;
 
-static Common::Flag s_BBoxRequested;
-static Common::Event s_BBoxReadyEvent;
-static int s_BBoxIndex;
-static u16 s_BBoxResult;
-
 static volatile struct
 {
 	u32 xfbAddr;
@@ -184,30 +179,15 @@ u16 VideoBackendHardware::Video_GetBoundingBox(int index)
 
 	SyncGPU(SYNC_GPU_BBOX);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
-	{
-		s_BBoxReadyEvent.Reset();
-		if (s_FifoShuttingDown.IsSet())
-			return 0;
-		s_BBoxIndex = index;
-		s_BBoxRequested.Set();
-		s_BBoxReadyEvent.Wait();
-		return s_BBoxResult;
-	}
-	else
-	{
-		return g_renderer->BBoxRead(index);
-	}
-}
+	AsyncRequests::Event e;
+	u16 result;
+	e.time = 0;
+	e.type = AsyncRequests::Event::BBOX_READ;
+	e.bbox.index = index;
+	e.bbox.data = &result;
+	AsyncRequests::GetInstance()->PushEvent(e, true);
 
-static void VideoFifo_CheckBBoxRequest()
-{
-	if (s_BBoxRequested.IsSet())
-	{
-		s_BBoxResult = g_renderer->BBoxRead(s_BBoxIndex);
-		s_BBoxRequested.Clear();
-		s_BBoxReadyEvent.Set();
-	}
+	return result;
 }
 
 void VideoBackendHardware::InitializeShared()
@@ -275,7 +255,6 @@ void VideoBackendHardware::RunLoop(bool enable)
 void VideoFifo_CheckAsyncRequest()
 {
 	VideoFifo_CheckPerfQueryRequest();
-	VideoFifo_CheckBBoxRequest();
 }
 
 void VideoBackendHardware::Video_GatherPipeBursted()
