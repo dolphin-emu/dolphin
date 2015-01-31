@@ -1765,6 +1765,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
 			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
 	}
@@ -1903,6 +1905,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
 	}
 
