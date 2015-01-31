@@ -284,6 +284,7 @@ void RunGpuLoop()
 	bool yield_cpu = cpu_info.num_cores <= 2;
 
 	AsyncRequests::GetInstance()->SetEnable(true);
+	AsyncRequests::GetInstance()->SetPassthrough(false);
 
 	while (GpuRunningState)
 	{
@@ -383,6 +384,7 @@ void RunGpuLoop()
 	// wake up SyncGPU if we were interrupted
 	s_video_buffer_cond.notify_all();
 	AsyncRequests::GetInstance()->SetEnable(false);
+	AsyncRequests::GetInstance()->SetPassthrough(true);
 }
 
 

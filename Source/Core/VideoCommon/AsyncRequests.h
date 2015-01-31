@@ -22,6 +22,7 @@ public:
 			EFB_POKE_Z,
 			EFB_PEEK_COLOR,
 			EFB_PEEK_Z,
+			SWAP_EVENT,
 		} type;
 		u64 time;
 
@@ -40,6 +41,14 @@ public:
 				u16 y;
 				u32* data;
 			} efb_peek;
+
+			struct
+			{
+				u32 xfbAddr;
+				u32 fbWidth;
+				u32 fbStride;
+				u32 fbHeight;
+			} swap_event;
 		};
 	};
 
@@ -52,6 +61,7 @@ public:
 	}
 	void PushEvent(const Event& event, bool blocking = false);
 	void SetEnable(bool enable);
+	void SetPassthrough(bool enable);
 
 	static AsyncRequests* GetInstance() { return &s_singleton; }
 
@@ -68,4 +78,5 @@ private:
 
 	bool m_wake_me_up_again;
 	bool m_enable;
+	bool m_passthrough;
 };

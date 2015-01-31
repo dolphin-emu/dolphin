@@ -19,7 +19,6 @@
 
 bool s_BackendInitialized = false;
 
-Common::Flag s_swapRequested;
 static Common::Flag s_FifoShuttingDown;
 
 static Common::Flag s_perfQueryRequested;
@@ -61,45 +60,11 @@ void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 	Fifo_SetRendering(bEnabled);
 }
 
-// Run from the graphics thread (from Fifo.cpp)
-static void VideoFifo_CheckSwapRequest()
-{
-	if (g_ActiveConfig.bUseXFB)
-	{
-		if (s_swapRequested.IsSet())
-		{
-			EFBRectangle rc;
-			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbStride, s_beginFieldArgs.fbHeight, rc);
-			s_swapRequested.Clear();
-		}
-	}
-}
-
-// Run from the graphics thread (from Fifo.cpp)
-void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
-{
-	if (g_ActiveConfig.bUseXFB)
-	{
-		if (s_swapRequested.IsSet())
-		{
-			u32 aLower = xfbAddr;
-			u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
-			u32 bLower = s_beginFieldArgs.xfbAddr;
-			u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbStride * s_beginFieldArgs.fbHeight;
-
-			if (AddressRangesOverlap(aLower, aUpper, bLower, bUpper))
-				VideoFifo_CheckSwapRequest();
-		}
-	}
-}
-
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight)
 {
 	if (s_BackendInitialized && g_ActiveConfig.bUseXFB)
 	{
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
-			VideoFifo_CheckSwapRequest();
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.fbWidth = fbWidth;
 		s_beginFieldArgs.fbStride = fbStride;
@@ -110,16 +75,19 @@ void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStri
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHardware::Video_EndField()
 {
-	if (s_BackendInitialized)
+	if (s_BackendInitialized && g_ActiveConfig.bUseXFB && g_renderer)
 	{
 		SyncGPU(SYNC_GPU_SWAP);
 
-		// Wait until the GPU thread has swapped. Prevents FIFO overflows.
-		while (g_ActiveConfig.bUseXFB && SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread && s_swapRequested.IsSet())
-		{
-			Common::YieldCPU();
-		}
-		s_swapRequested.Set();
+		AsyncRequests::Event e;
+		e.time = 0;
+		e.type = AsyncRequests::Event::SWAP_EVENT;
+
+		e.swap_event.xfbAddr = s_beginFieldArgs.xfbAddr;
+		e.swap_event.fbWidth = s_beginFieldArgs.fbWidth;
+		e.swap_event.fbStride = s_beginFieldArgs.fbStride;
+		e.swap_event.fbHeight = s_beginFieldArgs.fbHeight;
+		AsyncRequests::GetInstance()->PushEvent(e, false);
 	}
 }
 
@@ -246,7 +214,6 @@ void VideoBackendHardware::InitializeShared()
 {
 	VideoCommon_Init();
 
-	s_swapRequested.Clear();
 	s_perfQueryRequested.Clear();
 	s_FifoShuttingDown.Clear();
 	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
@@ -268,7 +235,6 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	VideoCommon_DoState(p);
 	p.DoMarker("VideoCommon");
 
-	p.Do(s_swapRequested);
 	p.Do(s_beginFieldArgs);
 	p.DoMarker("VideoBackendHardware");
 
@@ -308,7 +274,6 @@ void VideoBackendHardware::RunLoop(bool enable)
 
 void VideoFifo_CheckAsyncRequest()
 {
-	VideoFifo_CheckSwapRequest();
 	VideoFifo_CheckPerfQueryRequest();
 	VideoFifo_CheckBBoxRequest();
 }

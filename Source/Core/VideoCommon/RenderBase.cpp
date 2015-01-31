@@ -116,7 +116,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidt
 	if (!fbWidth || !fbHeight)
 		return;
 
-	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	XFBWrited = true;
 
 	if (g_ActiveConfig.bUseXFB)
@@ -126,7 +125,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidt
 	else
 	{
 		Swap(xfbAddr, fbWidth, fbWidth, fbHeight, sourceRc, Gamma);
-		s_swapRequested.Clear();
 	}
 }
 

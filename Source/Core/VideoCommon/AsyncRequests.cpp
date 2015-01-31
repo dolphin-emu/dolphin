@@ -4,7 +4,7 @@
 AsyncRequests AsyncRequests::s_singleton;
 
 AsyncRequests::AsyncRequests()
-: m_enable(false)
+: m_enable(false), m_passthrough(true)
 {
 }
 
@@ -34,6 +34,13 @@ void AsyncRequests::PullEventsInternal()
 void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
+
+	if (m_passthrough)
+	{
+		HandleEvent(event);
+		return;
+	}
+
 	m_empty.store(false);
 	m_wake_me_up_again |= blocking;
 
@@ -65,6 +72,7 @@ void AsyncRequests::SetEnable(bool enable)
 
 void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 {
+	EFBRectangle rc;
 	switch (e.type)
 	{
 		case Event::EFB_POKE_COLOR:
@@ -83,6 +91,16 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 			*e.efb_peek.data = g_renderer->AccessEFB(PEEK_Z, e.efb_peek.x, e.efb_peek.y, 0);
 			break;
 
+		case Event::SWAP_EVENT:
+			Renderer::Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride, e.swap_event.fbHeight, rc);
+			break;
+
 	}
+}
+
+void AsyncRequests::SetPassthrough(bool enable)
+{
+	std::unique_lock<std::mutex> lock(m_mutex);
+	m_passthrough = enable;
 }
 
