@@ -17,10 +17,8 @@ namespace VertexLoaderManager
 
 	void MarkAllDirty();
 
-	int GetVertexSize(int vtx_attr_group, bool preprocess);
-
 	// Returns -1 if buf_size is insufficient, else the amount of bytes consumed
-	int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing = false);
+	int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing, bool is_preprocess);
 
 	// For debugging
 	void AppendListToString(std::string *dest);
