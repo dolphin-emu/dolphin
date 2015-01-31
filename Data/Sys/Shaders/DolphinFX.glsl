@@ -171,9 +171,9 @@ DefaultValue = true
 GUIName = TonemapType
 OptionName = A_TONEMAP_TYPE
 MinValue = 0
-MaxValue = 1
+MaxValue = 2
 StepAmount = 1
-DefaultValue = 0
+DefaultValue = 1
 DependentOption = C_TONEMAP_PASS
 
 [OptionRangeFloat]
@@ -182,16 +182,16 @@ OptionName = B_TONE_AMOUNT
 MinValue = 0.05
 MaxValue = 2.00
 StepAmount = 0.01
-DefaultValue = 0.40
+DefaultValue = 0.33
 DependentOption = C_TONEMAP_PASS
 
 [OptionRangeFloat]
 GUIName = BlackLevels
 OptionName = C_BLACK_LEVELS
-MinValue = 0.05
+MinValue = 0.00
 MaxValue = 1.00
 StepAmount = 0.01
-DefaultValue = 0.30
+DefaultValue = 0.06
 DependentOption = C_TONEMAP_PASS
 
 [OptionRangeFloat]
@@ -309,7 +309,7 @@ OptionName = E_SHIFT_RATIO
 MinValue = 0.00
 MaxValue = 1.00
 StepAmount = 0.01
-DefaultValue = 0.30
+DefaultValue = 0.25
 DependentOption = E_FILMIC_PROCESS
 
 [OptionBool]
@@ -378,7 +378,7 @@ OptionName = A_VIBRANCE
 MinValue = -0.50
 MaxValue = 1.00
 StepAmount = 0.01
-DefaultValue = 0.10
+DefaultValue = 0.15
 DependentOption = H_PIXEL_VIBRANCE
 
 [OptionBool]
@@ -499,7 +499,7 @@ DependentOption = K_SCAN_LINES
 GUIName = ScanlineSpacing
 OptionName = B_SCANLINE_SPACING
 MinValue = 0.10
-MaxValue = 0.35
+MaxValue = 0.99
 StepAmount = 0.01
 DefaultValue = 0.25
 DependentOption = K_SCAN_LINES
@@ -617,18 +617,16 @@ DependentOption = M_DITHER_PASS
 ------------------------------------------------------------------------------*/
 
 uint timer = GetTime();
-
 float2 texcoord = GetCoordinates();
 float2 screenSize = GetResolution();
 float2 pixelSize = GetInvResolution();
-float2 texSize = textureSize(samp9, 0);
+float2 texSize = textureSize(samp9, 0).xy;
 
 #define mul(x, y) y * x
 #define FIX(c) max(abs(c), 1e-5)
 #define Saturate(x) clamp(x, 0.0, 1.0)
-#define SampleLocationLod(location, lod) textureLod(samp9, location, lod)
+#define SampleLocationLod(location, lod) textureLod(samp9, float3(location, 0), lod)
 
-const float PI = 3.1415926535897932384626433832795;
 float2 invDefocus = float2(1.0 / 3840.0, 1.0 / 2160.0);
 const float3 lumCoeff = float3(0.2126729, 0.7151522, 0.0721750);
 
@@ -705,6 +703,7 @@ float3 PixelPos(float xpos, float ypos)
 
 float4 WeightQuad(float x)
 {
+    const float PI = 3.141592653;
     float4 weight = FIX(PI * float4(1.0 + x, x, 1.0 - x, 2.0 - x));
     float4 ret = sin(weight) * sin(weight / 2.0) / (weight * weight);
 
@@ -791,7 +790,7 @@ float4 BilinearPass(float4 color)
                        [GAMMA CORRECTION CODE SECTION]
 ------------------------------------------------------------------------------*/
 
-float3 RGBGammaToLinear(float3 color, float gamma)
+float3 RGBGammaToLinear(in float3 color, in float gamma)
 {
     color = Saturate(color);
     color.r = (color.r <= 0.0404482362771082) ?
@@ -804,7 +803,7 @@ float3 RGBGammaToLinear(float3 color, float gamma)
     return color;
 }
 
-float3 LinearToRGBGamma(float3 color, float gamma)
+float3 LinearToRGBGamma(in float3 color, in float gamma)
 {
     color = Saturate(color);
     color.r = (color.r <= 0.00313066844250063) ?
@@ -831,7 +830,7 @@ float4 GammaPass(float4 color)
                         [BLENDED BLOOM CODE SECTION]
 ------------------------------------------------------------------------------*/
 
-float4 PyramidFilter(float2 texcoord, float2 width)
+float4 PyramidFilter(in float2 texcoord, in float2 width)
 {
     float4 color = SampleLocation(texcoord + float2(0.5, 0.5) * width);
     color += SampleLocation(texcoord + float2(-0.5, 0.5) * width);
@@ -842,7 +841,7 @@ float4 PyramidFilter(float2 texcoord, float2 width)
     return color;
 }
 
-float3 BloomCorrection(float3 color)
+float3 BloomCorrection(in float3 color)
 {
     float X = 1.0 / (1.0 + exp(GetOption(E_BLOOM_REDS) / 2.0));
     float Y = 1.0 / (1.0 + exp(GetOption(F_BLOOM_GREENS) / 2.0));
@@ -855,13 +854,13 @@ float3 BloomCorrection(float3 color)
     return color;
 }
 
-float3 Blend(float3 color, float3 bloom)
+float3 Blend(in float3 color, in float3 bloom)
 {
     float3 BlendAddLight = (color + bloom) * 0.75;
     float3 BlendScreen = (color + bloom) - (color * bloom);
     float3 BlendLuma = lerp((color * bloom), (1.0 - ((1.0 - color) * (1.0 - bloom))), RGBLuminance(color + bloom));
 
-    float3 BlendGlow = step(0.5, color);
+    float3 BlendGlow = smoothstep(0.0, 1.0, color);
     BlendGlow = lerp((color + bloom) - (color * bloom), (bloom + bloom) - (bloom * bloom), BlendGlow);
 
     float3 BlendOverlay = step(0.5, color);
@@ -876,8 +875,10 @@ float3 Blend(float3 color, float3 bloom)
 
 float4 BloomPass(float4 color)
 {
-    const float defocus = 1.25;
-    float4 bloom = PyramidFilter(texcoord, (1.0/texSize) * defocus);
+    float defocus = 1.25;
+    float anflare = 4.00;
+
+    float4 bloom = PyramidFilter(texcoord, invDefocus * defocus);
 
     float2 dx = float2(invDefocus.x * GetOption(D_BLOOM_WIDTH), 0.0);
     float2 dy = float2(0.0, invDefocus.y * GetOption(D_BLOOM_WIDTH));
@@ -922,6 +923,7 @@ float4 BloomPass(float4 color)
 
     color.a = RGBLuminance(color.rgb);
     bloom.a = RGBLuminance(bloom.rgb);
+    bloom.a *= anflare;
 
     color = lerp(color, bloom, GetOption(B_BLOOM_STRENGTH));
 
@@ -932,12 +934,28 @@ float4 BloomPass(float4 color)
                  [COLOR CORRECTION/TONE MAPPING CODE SECTION]
 ------------------------------------------------------------------------------*/
 
-float3 FilmicTonemap(float3 color)
+float3 ScaleLuma(in float3 L)
+{
+    const float W = 1.00;   // Linear White Point Value
+    const float K = 1.12;   // Scale
+
+    return (1.0 + K * L / (W * W)) * L / (L + K);
+}
+
+float4 ScaleBlacks(in float4 color)
+{
+    color = float4(color.rgb * pow(abs(max(color.r,
+    max(color.g, color.b))), GetOption(C_BLACK_LEVELS)), color.a);
+    
+    return color;
+}
+
+float3 FilmicTonemap(in float3 color)
 {
     float3 Q = color.xyz;
 
     float A = 0.10;
-    float B = GetOption(C_BLACK_LEVELS);
+    float B = 0.35;
     float C = 0.10;
     float D = GetOption(B_TONE_AMOUNT);
     float E = 0.02;
@@ -952,13 +970,18 @@ float3 FilmicTonemap(float3 color)
     return color;
 }
 
-float3 ColorShift(float3 color)
+float3 CrossShift(in float3 color)
 {
     float3 colMood;
+    
+    float2 CrossMatrix[3] = {
+    float2 (0.96, 0.04),
+    float2 (0.99, 0.01),
+    float2 (0.97, 0.03), };
 
-    colMood.r = GetOption(B_RED_SHIFT);
-    colMood.g = GetOption(C_GREEN_SHIFT);
-    colMood.b = GetOption(D_BLUE_SHIFT);
+    colMood.r = GetOption(B_RED_SHIFT) * CrossMatrix[0].x + CrossMatrix[0].y;
+    colMood.g = GetOption(C_GREEN_SHIFT) * CrossMatrix[1].x + CrossMatrix[1].y;
+    colMood.b = GetOption(D_BLUE_SHIFT) * CrossMatrix[2].x + CrossMatrix[2].y;
 
     float fLum = RGBLuminance(color.rgb);
     colMood = lerp(float3(0.0), colMood, (fLum * 2.0));
@@ -968,7 +991,7 @@ float3 ColorShift(float3 color)
     return colOutput;
 }
 
-float3 ColorCorrection(float3 color)
+float3 ColorCorrection(in float3 color)
 {
     float X = 1.0 / (1.0 + exp(GetOption(B_RED_CORRECTION) / 2.0));
     float Y = 1.0 / (1.0 + exp(GetOption(C_GREEN_CORRECTION) / 2.0));
@@ -985,13 +1008,15 @@ float4 TonemapPass(float4 color)
 {
     const float delta = 0.001;
     const float wpoint = pow(1.002, 2.0);
+  
+    color = ScaleBlacks(color);
+    color.rgb = ScaleLuma(color.rgb);
     
     if (OptionEnabled(D_COLOR_CORRECTION) && GetOption(A_PALETTE) == 1)
     { color.rgb = ColorCorrection(color.rgb); }
     if (OptionEnabled(E_FILMIC_PROCESS) && GetOption(A_FILMIC) == 1)
-    { color.rgb = ColorShift(color.rgb); }
-
-    color.rgb = FilmicTonemap(color.rgb);
+    { color.rgb = CrossShift(color.rgb); }
+    if (GetOption(A_TONEMAP_TYPE) == 1) { color.rgb = FilmicTonemap(color.rgb); }
 
     // RGB -> XYZ conversion
     const mat3 RGB2XYZ = mat3( 0.4124564, 0.2126729, 0.0193339,
@@ -1007,16 +1032,12 @@ float4 TonemapPass(float4 color)
     Yxy.g = XYZ.r / (XYZ.r + XYZ.g + XYZ.b);    // x = X / (X + Y + Z)
     Yxy.b = XYZ.g / (XYZ.r + XYZ.g + XYZ.b);    // y = Y / (X + Y + Z)
 
+    if (GetOption(A_TONEMAP_TYPE) == 2) { Yxy.r = FilmicTonemap(Yxy.rgb).r; }
     if (OptionEnabled(D_COLOR_CORRECTION) && GetOption(A_PALETTE) == 2)
     { Yxy.rgb = ColorCorrection(Yxy.rgb); }
 
     // (Lp) Map average luminance to the middlegrey zone by scaling pixel luminance
-    float Lp;
-    if (GetOption(A_TONEMAP_TYPE) == 1)
-    { Lp = Yxy.r * FilmicTonemap(Yxy.rrr).r / RGBLuminance(Yxy.rrr) *
-        GetOption(D_EXPOSURE) / (GetOption(E_LUMINANCE) + delta); }
-    else
-    { Lp = Yxy.r * GetOption(D_EXPOSURE) / (GetOption(E_LUMINANCE) + delta); }
+    float Lp = Yxy.r * GetOption(D_EXPOSURE) / (GetOption(E_LUMINANCE) + delta);
 
     // (Ld) Scale all luminance within a displayable range of 0 to 1
     Yxy.r = (Lp * (1.0 + Lp / wpoint)) / (1.0 + Lp);
@@ -1536,32 +1557,32 @@ float4 DitherPass(float4 color)
 #define FxaaHalf4 vec4
 #define FxaaInt2 ivec2
 #define FxaaSat(x) clamp(x, 0.0, 1.0)
-#define FxaaTex sampler2D
+#define FxaaTex sampler2DArray
 
 #if (FXAA_GLSL_120 == 1)
-    #define FxaaTexTop(t, p) texture2DLod(t, p, 0.0)
+    #define FxaaTexTop(t, p) texture2DLod(t, float3(p, 0), 0.0)
 #if (FXAA_FAST_PIXEL_OFFSET == 1)
-    #define FxaaTexOff(t, p, o, r) texture2DLodOffset(t, p, 0.0, o)
+    #define FxaaTexOff(t, p, o, r) texture2DLodOffset(t, float3(p, 0), 0.0, o)
 #else
-    #define FxaaTexOff(t, p, o, r) texture2DLod(t, p + (o * r), 0.0)
+    #define FxaaTexOff(t, p, o, r) texture2DLod(t, float3(p, 0) + (o * r), 0.0)
 #endif
 #if (FXAA_GATHER4_ALPHA == 1)
     // use #extension GL_ARB_gpu_shader5 : enable
-    #define FxaaTexAlpha4(t, p) textureGather(t, p, 3)
-    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, p, o, 3)
-    #define FxaaTexGreen4(t, p) textureGather(t, p, 1)
-    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, p, o, 1)
+    #define FxaaTexAlpha4(t, p) textureGather(t, float3(p, 0), 3)
+    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 3)
+    #define FxaaTexGreen4(t, p) textureGather(t, float3(p, 0), 1)
+    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 1)
 #endif
 #endif
 #if (FXAA_GLSL_130 == 1)
-    #define FxaaTexTop(t, p) textureLod(t, p, 0.0)
-    #define FxaaTexOff(t, p, o, r) textureLodOffset(t, p, 0.0, o)
+    #define FxaaTexTop(t, p) textureLod(t, float3(p, 0), 0.0)
+    #define FxaaTexOff(t, p, o, r) textureLodOffset(t, float3(p, 0), 0.0, o)
 #if (FXAA_GATHER4_ALPHA == 1)
     // use #extension GL_ARB_gpu_shader5 : enable
-    #define FxaaTexAlpha4(t, p) textureGather(t, p, 3)
-    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, p, o, 3)
-    #define FxaaTexGreen4(t, p) textureGather(t, p, 1)
-    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, p, o, 1)
+    #define FxaaTexAlpha4(t, p) textureGather(t, float3(p, 0), 3)
+    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 3)
+    #define FxaaTexGreen4(t, p) textureGather(t, float3(p, 0), 1)
+    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 1)
 #endif
 #endif
 
