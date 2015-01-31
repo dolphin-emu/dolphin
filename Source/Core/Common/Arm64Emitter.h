@@ -597,6 +597,29 @@ public:
 	// ABI related
 	void ABI_PushRegisters(BitSet32 registers);
 	void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
+
+	// Utility to generate a call to a std::function object.
+	//
+	// Unfortunately, calling operator() directly is undefined behavior in C++
+	// (this method might be a thunk in the case of multi-inheritance) so we
+	// have to go through a trampoline function.
+	template <typename T, typename... Args>
+	static void CallLambdaTrampoline(const std::function<T(Args...)>* f,
+	                                 Args... args)
+	{
+		(*f)(args...);
+	}
+
+	// This function expects you to have set up the state.
+	// Overwrites X0 and X30
+	template <typename T, typename... Args>
+	ARM64Reg ABI_SetupLambda(const std::function<T(Args...)>* f)
+	{
+		auto trampoline = &ARM64XEmitter::CallLambdaTrampoline<T, Args...>;
+		MOVI2R(X30, (u64)trampoline);
+		MOVI2R(X0, (u64)const_cast<void*>((const void*)f));
+		return X30;
+	}
 };
 
 class ARM64FloatEmitter

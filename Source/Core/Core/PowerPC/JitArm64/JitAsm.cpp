@@ -273,8 +273,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		float_emit.REV32(8, D0, D0);
 		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
-		float_emit.ST1(32, Q0, 0, addr_reg, SP);
-		float_emit.ST1(32, Q0, 1, addr_reg, SP);
+		float_emit.ST1(64, Q0, 0, addr_reg, SP);
 		RET(X30);
 
 		SetJumpTarget(argh);
@@ -304,9 +303,9 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
+
 		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
-		float_emit.ST1(8, Q0, 0, addr_reg, SP);
-		float_emit.ST1(8, Q0, 1, addr_reg, SP);
+		float_emit.ST1(16, Q0, 0, addr_reg, SP);
 		RET(X30);
 
 		SetJumpTarget(argh);
@@ -335,9 +334,9 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
+
 		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
-		float_emit.ST1(8, Q0, 0, addr_reg, SP);
-		float_emit.ST1(8, Q0, 1, addr_reg, SP);
+		float_emit.ST1(16, Q0, 0, addr_reg, SP);
 		RET(X30);
 
 		SetJumpTarget(argh);
@@ -368,8 +367,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
 		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
-		float_emit.ST1(16, Q0, 0, addr_reg, SP);
-		float_emit.ST1(16, Q0, 1, addr_reg, SP);
+		float_emit.ST1(32, Q0, 0, addr_reg, SP);
 		RET(X30);
 
 		SetJumpTarget(argh);
@@ -399,8 +397,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
 		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
-		float_emit.ST1(16, Q0, 0, addr_reg, SP);
-		float_emit.ST1(16, Q0, 1, addr_reg, SP);
+		float_emit.ST1(32, Q0, 0, addr_reg, SP);
 		RET(X30);
 
 		SetJumpTarget(argh);

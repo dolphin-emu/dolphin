@@ -1058,7 +1058,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 void EmuCodeBlock::JitGetAndClearCAOV(bool oe)
 {
 	if (oe)
-		AND(8, PPCSTATE(xer_so_ov), Imm32(~XER_OV_MASK)); //XER.OV = 0
+		AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK)); //XER.OV = 0
 	SHR(8, PPCSTATE(xer_ca), Imm8(1)); //carry = XER.CA, XER.CA = 0
 }
 
