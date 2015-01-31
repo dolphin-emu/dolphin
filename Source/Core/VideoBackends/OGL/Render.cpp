@@ -705,29 +705,10 @@ Renderer::~Renderer()
 void Renderer::Shutdown()
 {
 	static int ElementArrayBufferBinding, ArrayBufferBinding;
-#ifdef HAVE_OCULUSSDK
 	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
-		//TargetRectangle targetRc = ConvertEFBRectangle(rc);
-
-		// for msaa mode, we must resolve the efb content to non-msaa
-		//FramebufferManager::ResolveAndGetRenderTarget(rc, 0);
-		//FramebufferManager::ResolveAndGetRenderTarget(rc, 1);
-
-		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
-		//m_post_processor->BindTargetFramebuffer();
-
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
-
-		// Let OVR do distortion rendering, Present and flush/sync.
-		glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ElementArrayBufferBinding);
-		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &ArrayBufferBinding);
-		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
-		glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
+		VR_PresentHMDFrame();
 	}
-#endif
 	g_first_rift_frame = true;
 
 	delete g_framebuffer_manager;
@@ -1545,32 +1526,8 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 
 void Renderer::AsyncTimewarpDraw()
 {
-#ifdef HAVE_OCULUSSDK
-	auto frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
-	g_ovr_lock.unlock();
-
-	if (0 == frameTime.TimewarpPointSeconds) {
-		ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
-	}
-	else {
-		ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
-	}
-
-	g_ovr_lock.lock();
-	// Grab the most recent textures
-	for (int eye = 0; eye < 2; eye++)
-	{
-		((ovrGLTexture&)(FramebufferManager::m_eye_texture[eye])).OGL.TexId = FramebufferManager::m_frontBuffer[eye];
-	}
-#ifdef _WIN32
-	//HANDLE thread_handle = g_video_backend->m_video_thread->native_handle();
-	//SuspendThread(thread_handle);
-#endif
-	ovrHmd_EndFrame(hmd, g_front_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+	VR_DrawAsyncTimewarpFrame();
 	Common::AtomicIncrement(g_drawn_vr);
-#ifdef _WIN32
-	//ResumeThread(thread_handle);
-#endif
 
 	static int w = 0, h = 0;
 	// Save screenshot
@@ -1702,7 +1659,6 @@ void Renderer::AsyncTimewarpDraw()
 #endif
 	}
 	// end of frame dumping code
-#endif
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
@@ -1725,25 +1681,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
-			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
-#ifdef OCULUSSDK042
-			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
-			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#else
-			ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
-			ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
-#endif
+			VR_BeginFrame();
+			VR_GetEyePoses();
 		}
 		g_first_rift_frame = false;
 
-		int cap = 0;
-		if (g_ActiveConfig.bOrientationTracking)
-			cap |= ovrTrackingCap_Orientation;
-		if (g_ActiveConfig.bMagYawCorrection)
-			cap |= ovrTrackingCap_MagYawCorrection;
-		if (g_ActiveConfig.bPositionTracking)
-			cap |= ovrTrackingCap_Position;
-		ovrHmd_ConfigureTracking(hmd, cap, 0);
+		VR_ConfigureHMDPrediction();
+		VR_ConfigureHMDTracking();
 	}
 #endif
 
@@ -1862,12 +1806,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		OSD::DoCallbacks(OSD::OSD_ONFRAME);
 		OSD::DrawMessages();
 
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
-
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
-			// Let OVR do distortion rendering, Present and flush/sync.
 			static int ElementArrayBufferBinding, ArrayBufferBinding, VertexArrayBinding;
 			glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ElementArrayBufferBinding);
 			glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &ArrayBufferBinding);
@@ -1875,7 +1815,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindVertexArray(0);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			VR_PresentHMDFrame();
 			Common::AtomicIncrement(g_drawn_vr);
 
 			// VR Synchronous Timewarp
@@ -1919,11 +1859,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
-				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
-
-				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
-
-				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+				VR_DrawTimewarpFrame();
 				Common::AtomicIncrement(g_drawn_vr);
 			}
 
@@ -1946,12 +1882,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 					case GL_ALREADY_SIGNALED:
 					case GL_CONDITION_SATISFIED:
 						eyesFence = 0;
-						g_ovr_lock.lock();
+						g_vr_lock.lock();
 						FramebufferManager::SwapAsyncFrontBuffers();
 						g_front_eye_poses[0] = g_eye_poses[0];
 						g_front_eye_poses[1] = g_eye_poses[1];
 						//glFinish();
-						g_ovr_lock.unlock();
+						g_vr_lock.unlock();
 						break;
 					}
 				}
@@ -2152,13 +2088,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			ApplySSAASettings();
 
 			if (g_ActiveConfig.bAsynchronousTimewarp)
-				g_ovr_lock.lock();
+				g_vr_lock.lock();
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples);
 			glFinish();
 			if (g_ActiveConfig.bAsynchronousTimewarp)
-				g_ovr_lock.unlock();
+				g_vr_lock.unlock();
 
 			PixelShaderManager::SetEfbScaleChanged();
 		}
@@ -2212,27 +2148,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
 			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction)
 		{
-			int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
-			if (g_Config.bLowPersistence)
-				caps |= ovrHmdCap_LowPersistence;
-			if (g_Config.bDynamicPrediction)
-				caps |= ovrHmdCap_DynamicPrediction;
-
-			ovrHmd_SetEnabledCaps(hmd, caps);
+			VR_ConfigureHMDPrediction();
 		}
 
 		if (g_Config.bOrientationTracking != g_ActiveConfig.bOrientationTracking ||
 			g_Config.bMagYawCorrection != g_ActiveConfig.bMagYawCorrection ||
 			g_Config.bPositionTracking != g_ActiveConfig.bPositionTracking)
 		{
-			int cap = 0;
-			if (g_ActiveConfig.bOrientationTracking)
-				cap |= ovrTrackingCap_Orientation;
-			if (g_ActiveConfig.bMagYawCorrection)
-				cap |= ovrTrackingCap_MagYawCorrection;
-			if (g_ActiveConfig.bPositionTracking)
-				cap |= ovrTrackingCap_Position;
-			ovrHmd_ConfigureTracking(hmd, cap, 0);
+			VR_ConfigureHMDTracking();
 		}
 
 		if (g_Config.bChromatic != g_ActiveConfig.bChromatic ||
@@ -2244,7 +2167,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			g_Config.bOverdrive != g_ActiveConfig.bOverdrive ||
 			g_Config.bHqDistortion != g_ActiveConfig.bHqDistortion)
 		{
-			FramebufferManager::ConfigureRift();
+			VR_ConfigureHMD();
 		}
 
 		//To do: Probably not the right place for these.  Why do they update for D3D automatically, but not for OpenGL?
@@ -2276,12 +2199,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_ActiveConfig.iAspectRatio = 3; 
 	}
 	TextureCache::OnConfigChanged(g_ActiveConfig);
-#ifdef HAVE_OCULUSSDK
 	if (g_has_rift && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+		VR_BeginFrame();
 	}
-#endif
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();

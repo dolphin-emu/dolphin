@@ -45,7 +45,6 @@ public final class AssetCopyService extends IntentService
 		if(!file.exists())
 		{
 			NativeLibrary.CreateUserFolders();
-			copyAsset("Dolphin.ini", ConfigDir + File.separator + "Dolphin.ini");
 			copyAsset("dsp_coef.bin", GCDir + File.separator + "dsp_coef.bin");
 			copyAsset("dsp_rom.bin", GCDir + File.separator + "dsp_rom.bin");
 			copyAsset("font_ansi.bin", GCDir + File.separator + "font_ansi.bin");

@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -16,6 +16,7 @@
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
+#include "VideoBackends/D3D/VRD3D.h"
 #include "VideoBackends/D3D/XFBEncoder.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
@@ -29,10 +30,6 @@ FramebufferManager::Efb FramebufferManager::m_efb;
 unsigned int FramebufferManager::m_target_width;
 unsigned int FramebufferManager::m_target_height;
 
-// Oculus Rift
-#ifdef HAVE_OCULUSSDK
-ovrD3D11Texture FramebufferManager::m_eye_texture[2];
-#endif
 bool FramebufferManager::m_stereo3d = false;
 int FramebufferManager::m_eye_count = 1;
 
@@ -89,12 +86,8 @@ FramebufferManager::FramebufferManager()
 	m_target_height = Renderer::GetTargetHeight();
 	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
 
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift)
-	{
-		ConfigureRift();
-	}
-#endif
+	if (g_has_hmd)
+		VR_ConfigureHMD();
 
 	ID3D11Texture2D* buf;
 	D3D11_TEXTURE2D_DESC texdesc;
@@ -200,32 +193,8 @@ FramebufferManager::FramebufferManager()
 		m_efb.resolved_color_tex = nullptr;
 		m_efb.resolved_depth_tex = nullptr;
 	}
-	if (g_has_vr920)
-	{
-#ifdef _WIN32
-		VR920_StartStereo3D();
-#endif
-	}
-	else if (g_has_rift)
-	{
-#ifdef HAVE_OCULUSSDK
-		m_eye_texture[0].D3D11.Header.API = ovrRenderAPI_D3D11;
-		m_eye_texture[0].D3D11.Header.TextureSize.w = Renderer::GetTargetWidth();
-		m_eye_texture[0].D3D11.Header.TextureSize.h = Renderer::GetTargetHeight();
-		m_eye_texture[0].D3D11.Header.RenderViewport.Pos.x = 0;
-		m_eye_texture[0].D3D11.Header.RenderViewport.Pos.y = 0;
-		m_eye_texture[0].D3D11.Header.RenderViewport.Size.w = Renderer::GetTargetWidth();
-		m_eye_texture[0].D3D11.Header.RenderViewport.Size.h = Renderer::GetTargetHeight();
-		m_eye_texture[0].D3D11.pTexture = m_efb.m_frontBuffer[0]->GetTex();
-		m_eye_texture[0].D3D11.pSRView = m_efb.m_frontBuffer[0]->GetSRV();
-		m_eye_texture[1] = m_eye_texture[0];
-		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
-		{
-			m_eye_texture[1].D3D11.pTexture = m_efb.m_frontBuffer[1]->GetTex();
-			m_eye_texture[1].D3D11.pSRView = m_efb.m_frontBuffer[1]->GetSRV();
-		}
-#endif
-	}
+	if (g_has_hmd)
+		VR_StartFramebuffer();
 
 	s_xfbEncoder.Init();
 	s_avatarDrawer.Init();
@@ -233,19 +202,7 @@ FramebufferManager::FramebufferManager()
 
 FramebufferManager::~FramebufferManager()
 {
-#ifdef _WIN32
-	if (g_has_vr920)
-	{
-		VR920_StopStereo3D();
-	}
-#endif
-#ifdef HAVE_OCULUSSDK
-	// Shut down rendering and release resources (by passing NULL)
-	if (g_has_rift)
-	{
-		ovrHmd_ConfigureRendering(hmd, nullptr, 0, g_eye_fov, g_eye_render_desc);
-	}
-#endif
+	VR_StopRendering();
 
 	s_xfbEncoder.Shutdown();
 	s_avatarDrawer.Shutdown();
@@ -307,53 +264,5 @@ void XFBSource::CopyEFB(float Gamma)
 
 	g_renderer->RestoreAPIState();
 }
-
-#ifdef HAVE_OCULUSSDK
-void FramebufferManager::ConfigureRift()
-{
-	ovrD3D11Config cfg;
-	cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
-#ifdef OCULUSSDK044
-	cfg.D3D11.Header.BackBufferSize.w = hmdDesc.Resolution.w;
-	cfg.D3D11.Header.BackBufferSize.h = hmdDesc.Resolution.h;
-#else
-	cfg.D3D11.Header.RTSize.w = hmdDesc.Resolution.w;
-	cfg.D3D11.Header.RTSize.h = hmdDesc.Resolution.h;
-#endif
-	cfg.D3D11.Header.Multisample = 0;
-	cfg.D3D11.pDevice = D3D::device;
-	cfg.D3D11.pDeviceContext = D3D::context;
-	cfg.D3D11.pSwapChain = D3D::swapchain;
-	cfg.D3D11.pBackBufferRT = D3D::GetBackBuffer()->GetRTV();
-	if (g_is_direct_mode) //If Rift is in Direct Mode
-	{
-		//To do: This is a bit of a hack, but I haven't found any problems with this.  
-		//If we don't want to do this, large changes will be needed to init sequence.
-		DX11::D3D::UnloadDXGI();  //Unload CreateDXGIFactory() before ovrHmd_AttachToWindow, or else direct mode won't work.
-		ovrHmd_AttachToWindow(hmd, D3D::hWnd, nullptr, nullptr); //Attach to Direct Mode.
-		DX11::D3D::LoadDXGI();
-	}
-	int caps = 0;
-	if (g_Config.bChromatic)
-		caps |= ovrDistortionCap_Chromatic;
-	if (g_Config.bTimewarp)
-		caps |= ovrDistortionCap_TimeWarp;
-	if (g_Config.bVignette)
-		caps |= ovrDistortionCap_Vignette;
-	if (g_Config.bNoRestore)
-		caps |= ovrDistortionCap_NoRestore;
-	if (g_Config.bFlipVertical)
-		caps |= ovrDistortionCap_FlipInput;
-	if (g_Config.bSRGB)
-		caps |= ovrDistortionCap_SRGB;
-	if (g_Config.bOverdrive)
-		caps |= ovrDistortionCap_Overdrive;
-	if (g_Config.bHqDistortion)
-		caps |= ovrDistortionCap_HqDistortion;
-	ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps,
-		g_eye_fov, g_eye_render_desc);
-	ovrhmd_EnableHSWDisplaySDKRender(hmd, false); //Disable Health and Safety Warning.
-}
-#endif
 
 }  // namespace DX11

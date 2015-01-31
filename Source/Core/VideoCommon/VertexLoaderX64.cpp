@@ -11,6 +11,8 @@
 
 using namespace Gen;
 
+#define VERTEX_LOADER_REGS {XMM0+16}
+
 static const X64Reg src_reg = ABI_PARAM1;
 static const X64Reg dst_reg = ABI_PARAM2;
 static const X64Reg scratch1 = RAX;
@@ -31,7 +33,7 @@ VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att): 
 
 	std::string name;
 	AppendToString(&name);
-	JitRegister::Register(region, (u32)(GetCodePtr() - region), name.c_str());
+	JitRegister::Register(region, GetCodePtr(), name.c_str());
 }
 
 OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
@@ -293,10 +295,12 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format)
 
 void VertexLoaderX64::GenerateVertexLoader()
 {
+	ABI_PushRegistersAndAdjustStack(VERTEX_LOADER_REGS, 8);
+
 	// Backup count since we're going to count it down.
 	PUSH(32, R(ABI_PARAM3));
 
-	// We use ABI_PARAM3 for scratch2.
+	// ABI_PARAM3 is one of the lower registers, so free it for scratch2.
 	MOV(32, R(count_reg), R(ABI_PARAM3));
 
 	if (m_VtxDesc.Position & MASK_INDEXED)
@@ -426,6 +430,8 @@ void VertexLoaderX64::GenerateVertexLoader()
 
 	// Get the original count.
 	POP(32, R(ABI_RETURN));
+
+	ABI_PopRegistersAndAdjustStack(VERTEX_LOADER_REGS, 8);
 
 	if (m_VtxDesc.Position & MASK_INDEXED)
 	{

@@ -27,6 +27,7 @@
 #include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
+#include "VideoBackends/D3D/VRD3D.h"
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
@@ -280,24 +281,10 @@ Renderer::Renderer(void *&window_handle)
 
 Renderer::~Renderer()
 {
-#ifdef HAVE_OCULUSSDK
 	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
-		//TargetRectangle targetRc = ConvertEFBRectangle(rc);
-
-		// for msaa mode, we must resolve the efb content to non-msaa
-		//FramebufferManager::ResolveAndGetRenderTarget(rc, 0);
-		//FramebufferManager::ResolveAndGetRenderTarget(rc, 1);
-
-		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
-
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
-
-		// Let OVR do distortion rendering, Present and flush/sync.
-		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+		VR_PresentHMDFrame();
 	}
-#endif
 	g_first_rift_frame = true;
 
 	TeardownDeviceObjects();
@@ -785,33 +772,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (Core::ch_bruteforce)
 		Core::ch_cacheo_pasado = true;
 
-	// VR - before the first frame we need ovrHmd_BeginFrame, and we need to configure the tracking
-#ifdef HAVE_OCULUSSDK
+	// VR - before the first frame we need BeginFrame, and we need to configure the tracking
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
-			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
-#ifdef OCULUSSDK042
-			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
-			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-#else
-			ovrVector3f useHmdToEyeViewOffset[2] = { g_eye_render_desc[0].HmdToEyeViewOffset, g_eye_render_desc[1].HmdToEyeViewOffset };
-			ovrHmd_GetEyePoses(hmd, g_ovr_frameindex, useHmdToEyeViewOffset, g_eye_poses, nullptr);
-#endif
+			VR_BeginFrame();
+			VR_GetEyePoses();
 		}
 		g_first_rift_frame = false;
 
-		int cap = 0;
-		if (g_ActiveConfig.bOrientationTracking)
-			cap |= ovrTrackingCap_Orientation;
-		if (g_ActiveConfig.bMagYawCorrection)
-			cap |= ovrTrackingCap_MagYawCorrection;
-		if (g_ActiveConfig.bPositionTracking)
-			cap |= ovrTrackingCap_Position;
-		ovrHmd_ConfigureTracking(hmd, cap, 0);
+		VR_ConfigureHMDTracking();
 	}
-#endif
 
 	// With frame skipping (or if the GC/Wii didn't draw anything), return without drawing anything
 	// but if we are recording an .avi file, save the frame to disk again to maintain the right frame rate.
@@ -904,6 +876,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 #ifdef HAVE_OCULUSSDK
 	else if (g_has_rift && g_ActiveConfig.bEnableVR)
 	{
+		// Draw our Razer Hydra
 		DX11::s_avatarDrawer.Draw();
 
 		EFBRectangle sourceRc;
@@ -933,34 +906,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		Renderer::DrawDebugText();
 		OSD::DrawMessages();
 
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
-		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
-
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
-			//Change to compatible D3D Blend State:
-			//Some games (e.g. Paper Mario) do not use a Blend State that is compatible
-			//with the Oculus Rift's SDK.  They set RenderTargetWriteMask to 0,
-			//which masks out the call's Pixel Shader stage.  This also seems inefficient
-			// from a rendering point of view.  Could this be an area Dolphin could be optimized?
-			//To Do: Only use this when needed?  Is this slow?
-			ID3D11BlendState* g_pOculusRiftBlendState = NULL;
-
-			D3D11_BLEND_DESC oculusBlendDesc;
-			ZeroMemory(&oculusBlendDesc, sizeof(D3D11_BLEND_DESC));
-			oculusBlendDesc.AlphaToCoverageEnable = FALSE;
-			oculusBlendDesc.IndependentBlendEnable = FALSE;
-			oculusBlendDesc.RenderTarget[0].BlendEnable = FALSE;
-			oculusBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-			HRESULT hr = D3D::device->CreateBlendState(&oculusBlendDesc, &g_pOculusRiftBlendState);
-			if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
-			D3D::SetDebugObjectName((ID3D11DeviceChild*)g_pOculusRiftBlendState, "blend state used to make sure rift draw call works");
-
-			D3D::context->OMSetBlendState(g_pOculusRiftBlendState, NULL, 0xFFFFFFFF);
-
-			// Let OVR do distortion rendering, Present and flush/sync.
-			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			VR_PresentHMDFrame();
 			Common::AtomicIncrement(g_drawn_vr);
 
 			// VR Synchronous Timewarp
@@ -1005,17 +953,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
-				ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
-				//const ovrTexture* new_eye_texture = new ovrTexture(FramebufferManager::m_eye_texture[0].Texture);
-				//ovrD3D11Texture new_eye_texture;
-				//memcpy((void*)&new_eye_texture, &FramebufferManager::m_eye_texture[0], sizeof(ovrD3D11Texture));
-
-				//ovrPosef new_eye_poses[2];
-				//memcpy((void*)&new_eye_poses, g_eye_poses, sizeof(ovrPosef)*2);
-
-				ovr_WaitTillTime(frameTime.NextFrameSeconds - g_ActiveConfig.fTimeWarpTweak);
-
-				ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+				VR_DrawTimewarpFrame();
 				Common::AtomicIncrement(g_drawn_vr);
 			}
 
@@ -1138,33 +1076,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	TextureCache::Cleanup(frameCount);
 
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift)
+	if (g_has_hmd)
 	{
 		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
 			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction)
 		{
-			int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
-			if (g_Config.bLowPersistence)
-				caps |= ovrHmdCap_LowPersistence;
-			if (g_Config.bDynamicPrediction)
-				caps |= ovrHmdCap_DynamicPrediction;
-
-			ovrHmd_SetEnabledCaps(hmd, caps);
+			VR_ConfigureHMDPrediction();
 		}
 
 		if (g_Config.bOrientationTracking != g_ActiveConfig.bOrientationTracking ||
 			g_Config.bMagYawCorrection != g_ActiveConfig.bMagYawCorrection ||
 			g_Config.bPositionTracking != g_ActiveConfig.bPositionTracking)
 		{
-			int cap = 0;
-			if (g_ActiveConfig.bOrientationTracking)
-				cap |= ovrTrackingCap_Orientation;
-			if (g_ActiveConfig.bMagYawCorrection)
-				cap |= ovrTrackingCap_MagYawCorrection;
-			if (g_ActiveConfig.bPositionTracking)
-				cap |= ovrTrackingCap_Position;
-			ovrHmd_ConfigureTracking(hmd, cap, 0);
+			VR_ConfigureHMDTracking();
 		}
 
 		if (g_Config.bChromatic != g_ActiveConfig.bChromatic ||
@@ -1176,10 +1100,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			g_Config.bOverdrive != g_ActiveConfig.bOverdrive ||
 			g_Config.bHqDistortion != g_ActiveConfig.bHqDistortion)
 		{
-			FramebufferManager::ConfigureRift();
+			VR_ConfigureHMD();
 		}
 	}
-#endif
 
 	// VR layer debugging, sometimes layers need to flash.
 	g_Config.iFlashState++;
@@ -1196,12 +1119,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_ActiveConfig.iAspectRatio = 3;
 	}
 	TextureCache::OnConfigChanged(g_ActiveConfig);
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
-	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
-	}
-#endif
+	if (g_has_hmd && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
+		VR_BeginFrame();
 
 	SetWindowSize(fbStride, fbHeight);
 
@@ -1304,14 +1223,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
 		if (g_ActiveConfig.bAsynchronousTimewarp)
-			g_ovr_lock.lock();
+			g_vr_lock.lock();
 		delete g_framebuffer_manager;
 		g_framebuffer_manager = new FramebufferManager;
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 		if (g_ActiveConfig.bAsynchronousTimewarp)
-			g_ovr_lock.unlock();
+			g_vr_lock.unlock();
 	}
 	else if (g_has_hmd)
 	{

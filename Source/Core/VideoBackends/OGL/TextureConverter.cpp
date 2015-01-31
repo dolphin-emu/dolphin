@@ -35,7 +35,7 @@ static GLuint s_texConvFrameBuffer[2] = {0,0};
 static GLuint s_srcTexture = 0; // for decoding from RAM
 static GLuint s_dstTexture = 0; // for encoding to RAM
 
-const int renderBufferWidth = 1024;
+const int renderBufferWidth = EFB_WIDTH * 4;
 const int renderBufferHeight = 1024;
 
 static SHADER s_rgbToYuyvProgram;
@@ -308,7 +308,6 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
-	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);
 
 	// only copy on cache line boundaries
 	// extra pixels are copied but not displayed in the resulting texture
@@ -320,14 +319,16 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		source.left, source.top,
 		expandedWidth, bScaleByHalf ? 2 : 1);
 
-	int cacheBytes = 32;
+	unsigned int numBlocksX = expandedWidth / TexDecoder_GetBlockWidthInTexels(format);
+	unsigned int numBlocksY = expandedHeight / TexDecoder_GetBlockHeightInTexels(format);
+	unsigned int cacheLinesPerRow;
 	if ((format & 0x0f) == 6)
-		cacheBytes = 64;
+		cacheLinesPerRow = numBlocksX * 2;
+	else
+		cacheLinesPerRow = numBlocksX;
 
-	int readStride = (expandedWidth * cacheBytes) /
-		TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(source_texture,
-		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
+		dest_ptr, cacheLinesPerRow * 8, numBlocksY, cacheLinesPerRow * 32,
 		bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
 

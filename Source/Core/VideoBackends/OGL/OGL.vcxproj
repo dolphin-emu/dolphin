@@ -73,6 +73,7 @@
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="TextureConverter.cpp" />
     <ClCompile Include="VertexManager.cpp" />
+    <ClCompile Include="VROGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
@@ -118,6 +119,7 @@
     <ClInclude Include="TextureConverter.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="VROGL.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

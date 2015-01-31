@@ -1046,12 +1046,7 @@ void CFrame::StartGame(const std::string& filename)
 
 		InitVR(); //Must be done before g_has_hmd is used below.
 
-#ifdef HAVE_OCULUSSDK
-		if (g_has_rift)
-		{
-			ovrHmd_RecenterPose(hmd);
-		}
-#endif
+		VR_RecenterHMD();
 
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
@@ -1061,6 +1056,12 @@ void CFrame::StartGame(const std::string& filename)
 			size = wxSize(g_hmd_window_width, g_hmd_window_height);
 			position.x = g_hmd_window_x;
 			position.y = g_hmd_window_y;
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen || g_is_direct_mode)
+			{
+				// shift window so border is off-screen
+				position.x -= 4;
+				position.y -= 4;
+			}
 		}
 		else
 		{

@@ -192,6 +192,19 @@ static const struct
 
 };
 
+GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
+{
+	if (mode == "auto")
+		return GPU_DETERMINISM_AUTO;
+	if (mode == "none")
+		return GPU_DETERMINISM_NONE;
+	if (mode == "fake-completion")
+		return GPU_DETERMINISM_FAKE_COMPLETION;
+
+	NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
+	return GPU_DETERMINISM_AUTO;
+}
+
 SConfig::SConfig()
 {
 	// Make sure we have log manager
@@ -427,6 +440,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("Latency", m_LocalCoreStartupParameter.iLatency);
 	core->Set("MemcardAPath", m_strMemoryCardA);
 	core->Set("MemcardBPath", m_strMemoryCardB);
+	core->Set("AgpCartAPath", m_strGbaCartA);
+	core->Set("AgpCartBPath", m_strGbaCartB);
 	core->Set("SlotA", m_EXIDevice[0]);
 	core->Set("SlotB", m_EXIDevice[1]);
 	core->Set("SerialPort1", m_EXIDevice[2]);
@@ -703,6 +718,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JIT64);
 #elif _M_ARM_32
 	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JITARM);
+#elif _M_ARM_64
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JITARM64);
 #else
 	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_INTERPRETER);
 #endif
@@ -720,6 +737,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("Latency",           &m_LocalCoreStartupParameter.iLatency, 2);
 	core->Get("MemcardAPath",      &m_strMemoryCardA);
 	core->Get("MemcardBPath",      &m_strMemoryCardB);
+	core->Get("AgpCartAPath",      &m_strGbaCartA);
+	core->Get("AgpCartBPath",      &m_strGbaCartB);
 	core->Get("SlotA",       (int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 	core->Get("SlotB",       (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 	core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
@@ -748,6 +767,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
+	m_LocalCoreStartupParameter.m_GPUDeterminismMode = ParseGPUDeterminismMode(m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
 	core->Get("GameCubeAdapterThread",     &m_GameCubeAdapterThread,                       true);
 }

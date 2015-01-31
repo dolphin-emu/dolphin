@@ -1,22 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
 #pragma once
-
-#ifdef HAVE_OCULUSSDK
-#define OVR_D3D_VERSION 11
-
-#include "Kernel/OVR_Types.h"
-#include "OVR_CAPI.h"
-#include "OVR_CAPI_D3D.h"
-#include "Kernel/OVR_Math.h"
-
-extern "C"
-{
-	void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
-}
-#endif
 
 #include "d3d11.h"
 
@@ -96,11 +82,6 @@ public:
 
 	static void SwapAsyncFrontBuffers();
 
-	// Oculus Rift
-#ifdef HAVE_OCULUSSDK
-	static void ConfigureRift();
-	static ovrD3D11Texture m_eye_texture[2];
-#endif
 	//static volatile GLuint m_frontBuffer[2];
 	static bool m_stereo3d;
 	static int m_eye_count;

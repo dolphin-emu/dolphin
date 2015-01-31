@@ -1,5 +1,5 @@
-// Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Copyright 2015 Dolphin Emulator Project
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
@@ -67,6 +67,7 @@ typedef enum
 	METROID_VISOR_BOOTUP,
 	METROID_UNKNOWN_VISOR,
 	METROID_UNKNOWN_HUD,
+	METROID_MOUSE_POINTER,
 	METROID_UNKNOWN_2D,
 
 	ZELDA_UNKNOWN,
@@ -112,6 +113,8 @@ TMetroidLayer GetMetroidPrime1WiiLayer2D(int layer, float left, float right, flo
 TMetroidLayer GetMetroidPrime1WiiLayer(int layer, float hfov, float vfov, float znear, float zfar);
 TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float znear, float zfar);
+TMetroidLayer GetMetroidPrime3Layer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
+TMetroidLayer GetMetroidPrime3Layer(int layer, float hfov, float vfov, float znear, float zfar);
 TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, float zfar);
 TMetroidLayer GetNESLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);

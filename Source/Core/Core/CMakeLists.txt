@@ -92,6 +92,7 @@ set(SRCS	ActionReplay.cpp
 			HW/EXI.cpp
 			HW/EXI_Device.cpp
 			HW/EXI_DeviceAD16.cpp
+			HW/EXI_DeviceAGP.cpp
 			HW/EXI_DeviceAMBaseboard.cpp
 			HW/EXI_DeviceEthernet.cpp
 			HW/EXI_DeviceGecko.cpp

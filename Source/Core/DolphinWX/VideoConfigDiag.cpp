@@ -414,29 +414,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	// postproc shader
-	if (vconfig.backend_info.PPShaders.size())
+	if (vconfig.backend_info.bSupportsPostProcessing)
 	{
 		wxFlexGridSizer* const szr_pp = new wxFlexGridSizer(3, 5, 5);
 		choice_ppshader = new wxChoice(page_enh, wxID_ANY);
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
-		choice_ppshader->AppendString(_("(off)"));
-
 		button_config_pp = new wxButton(page_enh, wxID_ANY, _("Config"));
 
-		for (const std::string& shader : vconfig.backend_info.PPShaders)
-		{
-			choice_ppshader->AppendString(StrToWxStr(shader));
-		}
-
-		if (vconfig.sPostProcessingShader.empty() || vconfig.iStereoMode == STEREO_ANAGLYPH)
-			choice_ppshader->Select(0);
-		else
-			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
-
-		// Should the configuration button be loaded by default?
-		PostProcessingShaderConfiguration postprocessing_shader;
-		postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
-		button_config_pp->Enable(postprocessing_shader.HasOptions());
+		PopulatePostProcessingShaders();
 
 		choice_ppshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_PPShader, this);
 		button_config_pp->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ConfigurePPShader, this);
@@ -530,14 +515,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	efbcopy_clear_disable = CreateCheckBox(page_hacks, _("Remove Blank EFB Copy Box"), wxGetTranslation(efb_copy_clear_desc), vconfig.bEFBCopyClearDisable, false);
 	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(efb_copy_texture_desc), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
 	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bCopyEFBToTexture, true);
-	cache_efb_copies = CreateCheckBox(page_hacks, _("Enable Cache"), wxGetTranslation(cache_efb_copies_desc), vconfig.bEFBCopyCacheEnable);
 
 	group_efbcopy->Add(efbcopy_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->Add(efbcopy_clear_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->AddStretchSpacer(1);
 	group_efbcopy->Add(efbcopy_texture, 0, wxRIGHT, 5);
 	group_efbcopy->Add(efbcopy_ram, 0, wxRIGHT, 5);
-	group_efbcopy->Add(cache_efb_copies, 0, wxRIGHT, 5);
 
 	szr_efb->Add(CreateCheckBox(page_hacks, _("Skip EFB Access from CPU"), wxGetTranslation(efb_access_desc), vconfig.bEFBAccessEnable, true), 0, wxBOTTOM | wxLEFT, 5);
 	szr_efb->Add(CreateCheckBox(page_hacks, _("Ignore Format Changes"), wxGetTranslation(efb_emulate_format_changes_desc), vconfig.bEFBEmulateFormatChanges, true), 0, wxBOTTOM | wxLEFT, 5);
@@ -669,33 +652,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
 
-	// -- VR --
-	{
-		wxPanel* const page_vr = new wxPanel(notebook, -1);
-		notebook->AddPage(page_vr, _("VR"));
-		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
-
-		// - vr
-		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
-
-		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Chromatic aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Don't restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Flip vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
-		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
-		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
-
-		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
-		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
-
-		szr_vr_main->AddStretchSpacer();
-		CreateDescriptionArea(page_vr, szr_vr_main);
-		page_vr->SetSizerAndFit(szr_vr_main);
-	}
-
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
 	btn_close->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickClose, this);
 
@@ -809,6 +765,41 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 
 	// Store description text object for later lookup
 	desc_texts.insert(std::pair<wxWindow*,wxStaticText*>(page, desc_text));
+}
+
+void VideoConfigDiag::PopulatePostProcessingShaders()
+{
+	std::vector<std::string> &shaders = (vconfig.iStereoMode == STEREO_ANAGLYPH) ?
+			vconfig.backend_info.AnaglyphShaders : vconfig.backend_info.PPShaders;
+
+	if (shaders.empty())
+		return;
+
+	choice_ppshader->AppendString(_("(off)"));
+
+	for (const std::string& shader : shaders)
+	{
+		choice_ppshader->AppendString(StrToWxStr(shader));
+	}
+
+	if (!choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader)))
+	{
+		// Invalid shader, reset it to default
+		choice_ppshader->Select(0);
+
+		if (vconfig.iStereoMode == STEREO_ANAGLYPH)
+		{
+			vconfig.sPostProcessingShader = "dubois";
+			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
+		}
+		else
+			vconfig.sPostProcessingShader.clear();
+	}
+
+	// Should the configuration button be loaded by default?
+	PostProcessingShaderConfiguration postprocessing_shader;
+	postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
+	button_config_pp->Enable(postprocessing_shader.HasOptions());
 }
 
 template class FloatSetting<float>;

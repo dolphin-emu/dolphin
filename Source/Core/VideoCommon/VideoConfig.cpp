@@ -164,7 +164,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
 	hacks->Get("EFBToTextureEnable", &bCopyEFBToTexture, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
-	hacks->Get("EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
 	LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
@@ -356,7 +355,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
-	CHECK_SETTING("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 	if (g_has_hmd)
 	{
@@ -365,7 +363,6 @@ void VideoConfig::GameIniLoad()
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyClearDisable", bEFBCopyClearDisable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBToTextureEnable", bCopyEFBToTexture);
 		CHECK_SETTING("Video_Hacks_VR", "EFBScaledCopy", bCopyEFBScaled);
-		CHECK_SETTING("Video_Hacks_VR", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 	}
 
@@ -593,7 +590,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
 	hacks->Set("EFBToTextureEnable", bCopyEFBToTexture);
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
-	hacks->Set("EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");

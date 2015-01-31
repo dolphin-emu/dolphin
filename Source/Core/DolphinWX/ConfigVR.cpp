@@ -103,13 +103,13 @@ void CConfigVR::CreateGUIControls()
 		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
 
 		// - vr
-		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
+		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 10);
 
 		// Scale
 		{
 			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale,
 				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale multiplier: x"));
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale multiplier:   x"));
 			
 			spin_scale->SetToolTip(wxGetTranslation(scale_desc));
 			label->SetToolTip(wxGetTranslation(scale_desc));
@@ -137,6 +137,9 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iVRPlayer);
 		}
+
+		// - vr
+		wxFlexGridSizer* const szr_opcode = new wxFlexGridSizer(2, 5, 5);
 		{
 			spin_replay_buffer = new U32Setting(page_vr, _("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
 			RegisterControl(spin_replay_buffer, replaybuffer_desc);
@@ -145,8 +148,8 @@ void CConfigVR::CreateGUIControls()
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frames:"));
 
 			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_replay_buffer);
+			szr_opcode->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(spin_replay_buffer);
 			spin_replay_buffer->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 		}
 		{
@@ -157,21 +160,21 @@ void CConfigVR::CreateGUIControls()
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frame Divider:"));
 
 			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_replay_buffer_divider);
+			szr_opcode->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(spin_replay_buffer_divider);
 			spin_replay_buffer_divider->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			// Used for spacing for now.
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, _("")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20 = CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
 			checkbox_pullup30 = CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
 			checkbox_pullup60 = CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
 			SettingCheckBox* checkbox_disable_warnings = CreateCheckBox(page_vr, _("Disable Opcode Warnings"), wxGetTranslation(opcodewarning_desc), vconfig.bOpcodeWarningDisable);
-			szr_vr->Add(checkbox_pullup20, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(checkbox_pullup30, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(checkbox_pullup60, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(checkbox_disable_warnings, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(checkbox_pullup20, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(checkbox_pullup30, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(checkbox_pullup60, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(checkbox_disable_warnings, 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup30->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup60->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
@@ -180,6 +183,8 @@ void CConfigVR::CreateGUIControls()
 			checkbox_pullup60->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp);
 		}
 		// Synchronous Timewarp extra frames per frame
+		// - vr
+		wxFlexGridSizer* const szr_timewarp = new wxFlexGridSizer(2, 5, 5);
 		{
 			spin_extra_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
 			RegisterControl(spin_extra_frames, extraframes_desc);
@@ -188,8 +193,8 @@ void CConfigVR::CreateGUIControls()
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Timewarped Frames:"));
 
 			label->SetToolTip(wxGetTranslation(extraframes_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_extra_frames);
+			szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_timewarp->Add(spin_extra_frames);
 			spin_extra_frames->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 		}
 		{
@@ -201,47 +206,54 @@ void CConfigVR::CreateGUIControls()
 			spin_timewarp_tweak->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
 			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(spin_timewarp_tweak);
+			szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_timewarp->Add(spin_timewarp_tweak);
 
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Timewarp Pull-Up:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_timewarp->Add(new wxStaticText(page_vr, wxID_ANY, _("Timewarp Pull-Up:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20_timewarp = CreateCheckBox(page_vr, _("Timewarp 20fps to 75fps"), wxGetTranslation(pullup20timewarp_desc), vconfig.bPullUp20fpsTimewarp);
 			checkbox_pullup30_timewarp = CreateCheckBox(page_vr, _("Timewarp 30fps to 75fps"), wxGetTranslation(pullup30timewarp_desc), vconfig.bPullUp30fpsTimewarp);
 			checkbox_pullup60_timewarp = CreateCheckBox(page_vr, _("Timewarp 60fps to 75fps"), wxGetTranslation(pullup60timewarp_desc), vconfig.bPullUp60fpsTimewarp);
-			szr_vr->Add(checkbox_pullup20_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(checkbox_pullup30_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(checkbox_pullup60_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_timewarp->Add(checkbox_pullup20_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_timewarp->Add(checkbox_pullup30_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_timewarp->Add(checkbox_pullup60_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup30_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup60_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup20_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 			checkbox_pullup30_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 			checkbox_pullup60_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
-
 		}
 
-		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Dynamic prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Orientation tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Magnetic yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Position tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Chromatic aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Don't restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Flip vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
-		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
-		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
+		wxFlexGridSizer* const szr_options = new wxFlexGridSizer(4, 5, 10);
+		szr_options->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
+		szr_options->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
+		szr_options->Add(CreateCheckBox(page_vr, _("Dynamic prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
+		szr_options->Add(CreateCheckBox(page_vr, _("Orientation tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
+		szr_options->Add(CreateCheckBox(page_vr, _("Magnetic yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
+		szr_options->Add(CreateCheckBox(page_vr, _("Position tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
+		szr_options->Add(CreateCheckBox(page_vr, _("Chromatic aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
+		szr_options->Add(CreateCheckBox(page_vr, _("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
+		szr_options->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
+		szr_options->Add(CreateCheckBox(page_vr, _("Don't restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
+		szr_options->Add(CreateCheckBox(page_vr, _("Flip vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
+		szr_options->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
+		szr_options->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
+		szr_options->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
 #ifdef OCULUSSDK042
-		szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bAsynchronousTimewarp));
+		szr_options->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bAsynchronousTimewarp));
 #endif
-		szr_vr->Add(CreateCheckBox(page_vr, _("Disable Near-Clipping"), wxGetTranslation(nearclip_desc), vconfig.bDisableNearClipping));
+		szr_options->Add(CreateCheckBox(page_vr, _("Disable Near-Clipping"), wxGetTranslation(nearclip_desc), vconfig.bDisableNearClipping));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		group_vr->Add(szr_options, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
+		wxStaticBoxSizer* const group_opcode = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Opcode Replay (ALPHA TEST)"));
+		group_opcode->Add(szr_opcode, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_opcode, 0, wxEXPAND | wxALL, 5);
+		wxStaticBoxSizer* const group_timewarp = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Synchronous Timewarp"));
+		group_timewarp->Add(szr_timewarp, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_timewarp, 0, wxEXPAND | wxALL, 5);
 
 		szr_vr_main->AddStretchSpacer();
 		CreateDescriptionArea(page_vr, szr_vr_main);
@@ -408,14 +420,14 @@ void CConfigVR::CreateGUIControls()
 		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 5);
 
 		szr_vr->Add(CreateCheckBox(page_vr, _("Show Controller"), wxGetTranslation(showcontroller_desc), vconfig.bShowController));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera"), wxGetTranslation(showgamecamera_desc), vconfig.bShowGameCamera));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera Frustum"), wxGetTranslation(showgamecamerafrustum_desc), vconfig.bShowGameFrustum));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Camera"), wxGetTranslation(showtrackingcamera_desc), vconfig.bShowTrackingCamera));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Volume"), wxGetTranslation(showtrackingvolume_desc), vconfig.bShowTrackingVolume));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Show Hydra Base Station"), wxGetTranslation(showbasestation_desc), vconfig.bShowBaseStation));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera"), wxGetTranslation(showgamecamera_desc), vconfig.bShowGameCamera));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Game Camera Frustum"), wxGetTranslation(showgamecamerafrustum_desc), vconfig.bShowGameFrustum));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Camera"), wxGetTranslation(showtrackingcamera_desc), vconfig.bShowTrackingCamera));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Tracking Volume"), wxGetTranslation(showtrackingvolume_desc), vconfig.bShowTrackingVolume));
+		//szr_vr->Add(CreateCheckBox(page_vr, _("Show Hydra Base Station"), wxGetTranslation(showbasestation_desc), vconfig.bShowBaseStation));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Show avatar"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

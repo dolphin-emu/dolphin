@@ -125,56 +125,50 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
-	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
+	g_renderer->ResetAPIState();
+
+	// stretch picture with increased internal resolution
+	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)config.width, (float)config.height);
+	D3D::context->RSSetViewports(1, &vp);
+
+	// set transformation
+	if (nullptr == efbcopycbuf[cbufid])
 	{
-		g_renderer->ResetAPIState();
-
-		// stretch picture with increased internal resolution
-		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)config.width, (float)config.height);
-		D3D::context->RSSetViewports(1, &vp);
-
-		// set transformation
-		if (nullptr == efbcopycbuf[cbufid])
-		{
-			const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
-			D3D11_SUBRESOURCE_DATA data;
-			data.pSysMem = colmat;
-			HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
-			CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
-			D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
-		}
-		D3D::stateman->SetPixelConstants(efbcopycbuf[cbufid]);
-
-		const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
-		// TODO: try targetSource.asRECT();
-		const D3D11_RECT sourcerect = CD3D11_RECT(targetSource.left, targetSource.top, targetSource.right, targetSource.bottom);
-
-		// Use linear filtering if (bScaleByHalf), use point filtering otherwise
-		if (scaleByHalf)
-			D3D::SetLinearCopySampler();
-		else
-			D3D::SetPointCopySampler();
-
-		// if texture is currently in use, it needs to be temporarily unset
-		u32 textureSlotMask = D3D::stateman->UnsetTexture(texture->GetSRV());
-		D3D::stateman->Apply();
-
-		D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
-
-		// Create texture copy
-		D3D::drawShadedTexQuad(
-			(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
-			&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-			(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
-			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
-
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
-		g_renderer->RestoreAPIState();
-
-		// Restore old texture in all previously used slots, if any
-		D3D::stateman->SetTextureByMask(textureSlotMask, texture->GetSRV());
+		const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
+		D3D11_SUBRESOURCE_DATA data;
+		data.pSysMem = colmat;
+		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
+		CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 	}
+	D3D::stateman->SetPixelConstants(efbcopycbuf[cbufid]);
+
+	const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
+	// TODO: try targetSource.asRECT();
+	const D3D11_RECT sourcerect = CD3D11_RECT(targetSource.left, targetSource.top, targetSource.right, targetSource.bottom);
+
+	// Use linear filtering if (bScaleByHalf), use point filtering otherwise
+	if (scaleByHalf)
+		D3D::SetLinearCopySampler();
+	else
+		D3D::SetPointCopySampler();
+
+	// Make sure we don't draw with the texture set as both a source and target.
+	// (This can happen because we don't unbind textures when we free them.)
+	D3D::stateman->UnsetTexture(texture->GetSRV());
+
+	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
+
+	// Create texture copy
+	D3D::drawShadedTexQuad(
+		(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
+		&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+		(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
+		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
+
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+
+	g_renderer->RestoreAPIState();
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
@@ -185,11 +179,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		size_in_bytes = (u32)encoded_size;
 
-		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
-		if (!g_ActiveConfig.bEFBCopyCacheEnable)
-			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
-		else if (!TextureCache::Find(addr, hash))
-			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
+		TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
 
 		this->hash = hash;
 	}

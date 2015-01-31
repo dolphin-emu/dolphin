@@ -431,24 +431,31 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 	wm_accel& accel = *(wm_accel*)(data + rptf.accel);
 	wm_buttons& core = *(wm_buttons*)(data + rptf.core);
 
-	u16 x = (u16)(m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G);
-	u16 y = (u16)(m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G);
-	u16 z = (u16)(m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G);
+	// We now use 2 bits more precision, so multiply by 4 before converting to int
+	s16 x = (s16)(4 * (m_accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
+	s16 y = (s16)(4 * (m_accel.y * ACCEL_RANGE + ACCEL_ZERO_G));
+	s16 z = (s16)(4 * (m_accel.z * ACCEL_RANGE + ACCEL_ZERO_G));
 
 	if (x > 1024)
 		x = 1024;
+	else if (x < 0)
+		x = 0;
 	if (y > 1024)
 		y = 1024;
+	else if (y < 0)
+		y = 0;
 	if (z > 1024)
 		z = 1024;
+	else if (z < 0)
+		z = 0;
 
-	accel.x = x & 0xFF;
-	accel.y = y & 0xFF;
-	accel.z = z & 0xFF;
+	accel.x = (x >> 2) & 0xFF;
+	accel.y = (y >> 2) & 0xFF;
+	accel.z = (z >> 2) & 0xFF;
 
-	core.acc_x_lsb = x >> 8 & 0x3;
-	core.acc_y_lsb = y >> 8 & 0x1;
-	core.acc_z_lsb = z >> 8 & 0x1;
+	core.acc_x_lsb = x & 0x3;
+	core.acc_y_lsb = (y >> 1) & 0x1;
+	core.acc_z_lsb = (z >> 1) & 0x1;
 }
 #define kCutoffFreq 5.0
 inline void LowPassFilter(double & var, double newval, double period)
