@@ -974,7 +974,27 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// done with drawing the game stuff, good moment to save a screenshot
-
+	if (Core::ch_bruteforce && Core::ch_tomarFoto > 0)
+	{
+		//if (Core::ch_tomarFoto == 1){
+			//s_bScreenshot = true;
+			//s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + std::to_string(Core::ch_codigoactual) + "_" + Core::ch_map[Core::ch_codigoactual] + "_" + Core::ch_code + ".png";
+			 
+			std::string s_sAux = std::to_string(Core::ch_codigoactual) + "," + Core::ch_map[Core::ch_codigoactual] +
+				"," + Core::ch_code + "," + std::to_string(stats.thisFrame.numPrims) + "," + std::to_string(stats.thisFrame.numDrawCalls) + "," + std::to_string(Core::ch_tomarFoto);
+			std::ofstream myfile;
+			myfile.open(File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/bruteforce.csv" , std::ios_base::app);
+			myfile << s_sAux << "\n";
+			myfile.close();
+			if (Core::ch_tomarFoto == 1){
+				Core::ch_cicles_without_snapshot = 0;
+				Core::ch_cacheo_pasado = true;
+				Core::ch_next_code = true; //TODO next code quitar de aqui
+			}
+		//}
+		Core::ch_tomarFoto -= 1;
+	}
+	/*
 	if (Core::ch_bruteforce && Core::ch_tomarFoto>0)
 	{
 		if (Core::ch_tomarFoto == 1)
@@ -985,7 +1005,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			s << Core::ch_codigoactual;
 
 			s_bScreenshot = true;
-			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + Core::ch_map[Core::ch_codigoactual] + ".png";
+			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + std::to_string(Core::ch_codigoactual) + "_"+ Core::ch_map[Core::ch_codigoactual] + "_"+ Core::ch_code +".png";
 			Core::ch_cicles_without_snapshot = 0;
 			Core::ch_cacheo_pasado = true;
 			Core::ch_next_code = true; //TODO next code quitar de aqui
@@ -994,7 +1014,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			Core::ch_tomarFoto -= 1;
 		}
-	}
+	}*/
 
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
