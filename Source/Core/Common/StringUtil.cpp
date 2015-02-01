@@ -22,7 +22,16 @@
 	#include <Windows.h>
 #else
 	#include <iconv.h>
+	#include <locale.h>
 	#include <errno.h>
+#endif
+
+#if !defined(_WIN32) && !defined(ANDROID)
+static locale_t GetCLocale()
+{
+	static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
+	return c_locale;
+}
 #endif
 
 // faster than sscanf
@@ -77,7 +86,13 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 		c_locale = _create_locale(LC_ALL, ".1252");
 	writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
+	#if !defined(ANDROID)
+	locale_t previousLocale = uselocale(GetCLocale());
+	#endif
 	writtenCount = vsnprintf(out, outsize, format, args);
+	#if !defined(ANDROID)
+	uselocale(previousLocale);
+	#endif
 #endif
 
 	if (writtenCount > 0 && writtenCount < outsize)
@@ -112,8 +127,14 @@ std::string StringFromFormatV(const char* format, va_list args)
 	std::string temp = buf;
 	delete[] buf;
 #else
+	#if !defined(ANDROID)
+	locale_t previousLocale = uselocale(GetCLocale());
+	#endif
 	if (vasprintf(&buf, format, args) < 0)
 		ERROR_LOG(COMMON, "Unable to allocate memory for string");
+	#if !defined(ANDROID)
+	uselocale(previousLocale);
+	#endif
 
 	std::string temp = buf;
 	free(buf);
