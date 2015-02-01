@@ -179,6 +179,7 @@ void VideoSoftware::Shutdown()
 void VideoSoftware::ShutdownOtherThread()
 {
 	GLInterface->Shutdown();
+	delete GLInterface;
 }
 
 void VideoSoftware::Video_Cleanup()
