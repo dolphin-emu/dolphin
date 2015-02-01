@@ -123,6 +123,7 @@ struct SConfig : NonCopyable
 
 	// Save settings
 	void SaveSettings();
+	void SaveSingleSetting(std::string section_name, std::string setting_name, float value_to_save);
 
 	// Load settings
 	void LoadSettings();

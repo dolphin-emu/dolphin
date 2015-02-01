@@ -252,6 +252,20 @@ namespace HotkeysXInput
 				VertexShaderManager::ScaleView(1.0f / 1.10f);
 				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 			}
+			if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_GLOBAL_LARGER_SCALE))
+			{
+				// Make everything 10% bigger (and further)
+				g_Config.fScale *= 1.10f;
+				SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
+				VertexShaderManager::ScaleView(1.10f);
+			}
+			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_GLOBAL_SMALLER_SCALE))
+			{
+				// Make everything 10% smaller (and closer)
+				g_Config.fScale /= 1.10f;
+				SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
+				VertexShaderManager::ScaleView(1.0f / 1.10f);
+			}
 			else if (IsVRSettingsXInput(XInput_State, DInput_State_Extra, DInput, VR_PERMANENT_CAMERA_FORWARD)) 
 			{
 				// Move camera forward 10cm

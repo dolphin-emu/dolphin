@@ -503,8 +503,10 @@ void CConfigVR::CreateGUIControls()
 		_("Permanent Camera Backward"),
 		//_("Permanent Camera Up"),
 		//_("Permanent Camera Down"),
-		_("Larger Scale"),
-		_("Smaller Scale"),
+		_("Per-Game Larger Scale"),
+		_("Per-Game Smaller Scale"),
+		_("Global Larger Scale"),
+		_("Global Smaller Scale"),
 		_("Tilt Camera Up"),
 		_("Tilt Camera Down"),
 
