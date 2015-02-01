@@ -106,8 +106,10 @@ void NetPlayServer::ThreadFunc()
 						if (0 == OnData(rpac, client))
 							break;
 
-					//case sf::Socket::Disconnected :
-					default :
+					// Fallthrough
+					case sf::Socket::Disconnected:
+					case sf::Socket::Error:
+					case sf::Socket::NotReady:
 						{
 						std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 						OnDisconnect(client);

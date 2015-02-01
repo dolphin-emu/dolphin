@@ -88,10 +88,6 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const E
 			Memory::Write_U16((u16)(s16)fResult, _Addr);
 		}
 		break;
-
-	default:
-		_dbg_assert_msg_(POWERPC, 0, "PS dequantize - unknown type to read");
-		break;
 	}
 }
 
@@ -123,11 +119,6 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 		// used for THP player
 	case QUANTIZE_S16:
 		fResult = static_cast<float>((s16)Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
-		break;
-
-	default:
-		_dbg_assert_msg_(POWERPC, 0, "PS dequantize - unknown type to read");
-		fResult = 0;
 		break;
 	}
 	return fResult;

@@ -38,12 +38,6 @@ int CSIDevice_Keyboard::RunBuffer(u8* _pBuffer, int _iLength)
 			}
 		}
 		break;
-
-	default:
-		{
-			ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
-		}
-		break;
 	}
 
 	return _iLength;

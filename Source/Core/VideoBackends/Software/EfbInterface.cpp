@@ -54,8 +54,14 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		default:
+
+		case PEControl::INVALID_FMT:
+		case PEControl::U8:
+		case PEControl::V8:
+		case PEControl::Y8:
+		case PEControl::YUV420:
 			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			break;
 		}
 	}
 
@@ -94,8 +100,14 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		default:
+
+		case PEControl::INVALID_FMT:
+		case PEControl::U8:
+		case PEControl::V8:
+		case PEControl::Y8:
+		case PEControl::YUV420:
 			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			break;
 		}
 	}
 
@@ -135,8 +147,14 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		default:
+
+		case PEControl::INVALID_FMT:
+		case PEControl::U8:
+		case PEControl::V8:
+		case PEControl::Y8:
+		case PEControl::YUV420:
 			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			break;
 		}
 	}
 
@@ -171,8 +189,14 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		default:
+
+		case PEControl::INVALID_FMT:
+		case PEControl::U8:
+		case PEControl::V8:
+		case PEControl::Y8:
+		case PEControl::YUV420:
 			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			break;
 		}
 	}
 
@@ -199,8 +223,14 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		default:
+
+		case PEControl::INVALID_FMT:
+		case PEControl::U8:
+		case PEControl::V8:
+		case PEControl::Y8:
+		case PEControl::YUV420:
 			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			break;
 		}
 	}
 
@@ -223,8 +253,14 @@ namespace EfbInterface
 				depth = (*(u32*)&efb[offset]) & 0x00ffffff;
 			}
 			break;
-		default:
+
+		case PEControl::INVALID_FMT:
+		case PEControl::U8:
+		case PEControl::V8:
+		case PEControl::Y8:
+		case PEControl::YUV420:
 			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			break;
 		}
 
 		return depth;
@@ -613,9 +649,6 @@ namespace EfbInterface
 		case ZMode::ALWAYS:
 			pass = true;
 			break;
-		default:
-			pass = false;
-			ERROR_LOG(VIDEO, "Bad Z compare mode %i", (int)bpmem.zmode.func);
 		}
 
 		if (pass && bpmem.zmode.updateenable)

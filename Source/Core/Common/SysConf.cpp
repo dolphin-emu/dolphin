@@ -136,11 +136,10 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 			curEntry.dataLength = 4;
 			break;
 
-		default:
+		case Type_Unknown:
 			PanicAlertT("Unknown entry type %i in SYSCONF (%s@%x)!",
 				curEntry.type, curEntry.name, curEntry.offset);
 			return false;
-			break;
 		}
 		// Fill in the actual data
 		if (curEntry.dataLength)
@@ -178,9 +177,11 @@ static unsigned int create_item(SSysConfEntry &item, SysconfType type, const std
 		case Type_Long:
 			// size of description + name length + data length
 			return 1 + item.nameLength + item.dataLength;
-		default:
+		case Type_Unknown:
 			return 0;
 	}
+
+	return 0;
 }
 
 void SysConf::GenerateSysConf()
@@ -347,7 +348,11 @@ void SysConf::GenerateSysConf()
 				g.WriteBytes(&null_byte, 1);
 				break;
 
-			default:
+			case Type_Bool:
+			case Type_Byte:
+			case Type_Long:
+			case Type_Short:
+			case Type_Unknown:
 				g.WriteBytes(items[i].data, items[i].dataLength);
 				break;
 		}

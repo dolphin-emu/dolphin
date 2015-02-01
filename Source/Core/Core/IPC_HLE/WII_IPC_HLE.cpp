@@ -519,11 +519,8 @@ void ExecuteCommand(u32 _Address)
 		}
 		break;
 	}
-	default:
-	{
-		_dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, _Address);
+	case IPC_REP_ASYNC:
 		break;
-	}
 	}
 
 	// Ensure replies happen in order

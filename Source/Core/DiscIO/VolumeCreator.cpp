@@ -100,7 +100,6 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 		}
 
 		case DISC_TYPE_UNK:
-		default:
 			std::string Filename, ext;
 			SplitPath(_rFilename, nullptr, &Filename, &ext);
 			Filename += ext;

@@ -160,6 +160,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
 			{
 				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val);
 			}
+			// Fallthrough
 		case DSP_DSPA:
 		case DSP_DSMAH:
 		case DSP_DSMAL:

@@ -326,12 +326,13 @@ void NetPlayClient::ThreadFunc()
 			sf::Packet rpac;
 			switch (m_socket.receive(rpac))
 			{
-			case sf::Socket::Done :
+			case sf::Socket::Done:
 				OnData(rpac);
 				break;
 
-			//case sf::Socket::Disconnected :
-			default :
+			case sf::Socket::Disconnected:
+			case sf::Socket::Error:
+			case sf::Socket::NotReady:
 				m_is_running = false;
 				NetPlay_Disable();
 				m_dialog->AppendChat("< LOST CONNECTION TO SERVER >");

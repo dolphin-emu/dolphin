@@ -425,14 +425,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 				iPosition = _iLength;
 				break;
 			}
-			// DEFAULT
-		default:
-			{
-				ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
-				PanicAlert("SI: Unknown command");
-				iPosition = _iLength;
-			}
-			break;
 		}
 	}
 

@@ -219,8 +219,6 @@ Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir
 	case left:
 		m_name = "Left";
 		break;
-	default:
-		m_name = "unk";
 	}
 }
 

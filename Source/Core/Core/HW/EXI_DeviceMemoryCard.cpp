@@ -158,14 +158,33 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 	std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
 	switch (CountryCode)
 	{
+	case DiscIO::IVolume::COUNTRY_KOREA:
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		ascii = false;
+		CountryCode = DiscIO::IVolume::COUNTRY_JAPAN;
 		strDirectoryName += JAP_DIR DIR_SEP;
 		break;
+
 	case DiscIO::IVolume::COUNTRY_USA:
 		strDirectoryName += USA_DIR DIR_SEP;
 		break;
+
+	case DiscIO::IVolume::COUNTRY_AUSTRALIA:
+	case DiscIO::IVolume::COUNTRY_EUROPE:
+	case DiscIO::IVolume::COUNTRY_FRANCE:
+	case DiscIO::IVolume::COUNTRY_GERMANY:
+	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
+	case DiscIO::IVolume::COUNTRY_ITALY:
+	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
+	case DiscIO::IVolume::COUNTRY_RUSSIA:
+	case DiscIO::IVolume::COUNTRY_SPAIN:
+		CountryCode = DiscIO::IVolume::COUNTRY_EUROPE;
+		strDirectoryName += EUR_DIR DIR_SEP;
+		break;
+
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
+	case DiscIO::IVolume::NUMBER_OF_COUNTRIES: // Should never happen.
 	{
 		// The current game's region is not passed down to the EXI device level.
 		// Usually, we can retrieve the region from SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueId.
@@ -175,9 +194,9 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 		// Earlier in the boot process the region is added to the memory card name (This is done by the function checkMemcardPath)
 		// For now take advantage of this.
 		// Future options:
-		// 			Set memory card directory path in the checkMemcardPath function.
-		// 	or		Add region to SConfig::GetInstance().m_LocalCoreStartupParameter.
-		// 	or		Pass region down to the EXI device creation.
+		//          Set memory card directory path in the checkMemcardPath function.
+		//  or      Add region to SConfig::GetInstance().m_LocalCoreStartupParameter.
+		//  or      Pass region down to the EXI device creation.
 
 		std::string memcardFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
 		std::string region = memcardFilename.substr(memcardFilename.size() - 7, 3);
@@ -186,18 +205,20 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 			CountryCode = DiscIO::IVolume::COUNTRY_JAPAN;
 			ascii = false;
 			strDirectoryName += JAP_DIR DIR_SEP;
-			break;
 		}
 		else if (region == USA_DIR)
 		{
 			CountryCode = DiscIO::IVolume::COUNTRY_USA;
 			strDirectoryName += USA_DIR DIR_SEP;
-			break;
 		}
+		else
+		{
+			CountryCode = DiscIO::IVolume::COUNTRY_EUROPE;
+			strDirectoryName += EUR_DIR DIR_SEP;
+		}
+
+		break;
 	}
-	default:
-		CountryCode = DiscIO::IVolume::COUNTRY_EUROPE;
-		strDirectoryName += EUR_DIR DIR_SEP;
 	}
 	strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);
 

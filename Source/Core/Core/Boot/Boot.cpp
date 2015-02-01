@@ -102,7 +102,9 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 				name_begin_index, _StartupPara.m_strFilename.size() - 4 - name_begin_index);
 		break;
 
-	default:
+	case SCoreStartupParameter::BOOT_BS2:
+	case SCoreStartupParameter::BOOT_DFF:
+	case SCoreStartupParameter::BOOT_ISO:
 		title_id_str = _StartupPara.GetUniqueID();
 		break;
 	}
@@ -391,12 +393,6 @@ bool CBoot::BootUp()
 	case SCoreStartupParameter::BOOT_DFF:
 		// do nothing
 		break;
-
-	default:
-	{
-		PanicAlertT("Tried to load an unknown file type.");
-		return false;
-	}
 	}
 
 	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler

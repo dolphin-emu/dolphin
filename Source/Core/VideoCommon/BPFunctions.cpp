@@ -201,7 +201,11 @@ void OnPixelFormatChange()
 				convtype = 5;
 			break;
 
-		default:
+		case PEControl::INVALID_FMT:
+		case PEControl::U8:
+		case PEControl::V8:
+		case PEControl::Y8:
+		case PEControl::YUV420:
 			break;
 	}
 

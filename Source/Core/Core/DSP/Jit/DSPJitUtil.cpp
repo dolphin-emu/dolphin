@@ -204,7 +204,6 @@ void DSPEmitter::dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg, D
 			MOVZX(64, 16, host_dreg, R(host_dreg));
 			break;
 		case NONE:
-		default:
 			break;
 		}
 		return;
@@ -232,7 +231,6 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 			MOVZX(64, 16, host_dreg, R(host_dreg));
 			break;
 		case NONE:
-		default:
 			break;
 		}
 		return;

@@ -66,35 +66,33 @@ ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
 	{
 	case SIDEVICE_GC_CONTROLLER:
 		return new CSIDevice_GCController(device, port_number);
-		break;
 
 	case SIDEVICE_DANCEMAT:
 		return new CSIDevice_DanceMat(device, port_number);
-		break;
 
 	case SIDEVICE_GC_STEERING:
 		return new CSIDevice_GCSteeringWheel(device, port_number);
-		break;
 
 	case SIDEVICE_GC_TARUKONGA:
 		return new CSIDevice_TaruKonga(device, port_number);
-		break;
 
 	case SIDEVICE_GC_GBA:
 		return new CSIDevice_GBA(device, port_number);
-		break;
 
 	case SIDEVICE_GC_KEYBOARD:
 		return new CSIDevice_Keyboard(device, port_number);
-		break;
 
 	case SIDEVICE_AM_BASEBOARD:
 		return new CSIDevice_AMBaseboard(device, port_number);
-		break;
 
 	case SIDEVICE_NONE:
-	default:
+	case SIDEVICE_N64_CONTROLLER:
+	case SIDEVICE_N64_KEYBOARD:
+	case SIDEVICE_N64_MIC:
+	case SIDEVICE_N64_MOUSE:
 		return new CSIDevice_Null(device, port_number);
-		break;
 	}
+
+	// Should never be hit.
+	return new CSIDevice_Null(device, port_number);
 }

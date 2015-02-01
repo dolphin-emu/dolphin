@@ -347,8 +347,10 @@ static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
 	case AlphaTest::GREATER: return alpha > ref;
 	case AlphaTest::EQUAL:   return alpha == ref;
 	case AlphaTest::NEQUAL:  return alpha != ref;
-	default: return true;
 	}
+
+	// Never reached.
+	return true;
 }
 
 static bool TevAlphaTest(int alpha)
@@ -358,12 +360,14 @@ static bool TevAlphaTest(int alpha)
 
 	switch (bpmem.alpha_test.logic)
 	{
-	case 0: return comp0 && comp1;   // and
-	case 1: return comp0 || comp1;   // or
-	case 2: return comp0 ^ comp1;    // xor
-	case 3: return !(comp0 ^ comp1); // xnor
-	default: return true;
+	case AlphaTest::AND:  return comp0 && comp1;
+	case AlphaTest::OR:   return comp0 || comp1;
+	case AlphaTest::XOR:  return comp0 ^ comp1;
+	case AlphaTest::XNOR: return !(comp0 ^ comp1);
 	}
+
+	// Never reached.
+	return true;
 }
 
 static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)

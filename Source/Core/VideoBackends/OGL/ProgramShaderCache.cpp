@@ -56,10 +56,10 @@ static std::string GetGLSLVersionString()
 			return "#version 140";
 		case GLSL_150:
 			return "#version 150";
-		default:
-			// Shouldn't ever hit this
-			return "#version ERROR";
 	}
+
+	// Should never be reached.
+	return "#version ERROR";
 }
 
 void SHADER::SetProgramVariables()
