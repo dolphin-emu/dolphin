@@ -209,8 +209,11 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
-	// If Oculus Rift is in Direct Mode, we must use Deterministic Dual Core for it not to randomly drop frames.
-	// But we must NOT use Direct Mode for it to not crash with opcode replay. So we can't force it here.
+	if (g_is_direct_mode && !g_force_vr && StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+		PanicAlert("The Rift is running in direct mode without 'deterministic dual core' set to 'fake-completion'."
+				    " This has been known to cause judder.  Try changing this setting located in the"
+					" 'config' tab if you experience issues.");
+
 	StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
 	// Movie settings

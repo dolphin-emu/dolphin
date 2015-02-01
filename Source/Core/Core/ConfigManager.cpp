@@ -167,6 +167,8 @@ static const struct
 		{ "VRPermanentCameraBackward",  true, false, 59, 4 /* wxMOD_SHIFT */, 0, 0 },
 		{ "VRLargerScale",              true, false, 61, 4 /* wxMOD_SHIFT */, 0, 0 },
 		{ "VRSmallerScale",	            true, false, 45, 4 /* wxMOD_SHIFT */, 0, 0 },
+		{ "VRGlobalLargerScale",        true, false,  0, 0 /* wxMOD_SHIFT */, 0, 0 },
+		{ "VRGlobalSmallerScale",       true, false,  0, 0 /* wxMOD_SHIFT */, 0, 0 },
 		{ "VRCameraTiltUp",             true, false, 79, 4 /* wxMOD_SHIFT */, 0, 0 },
 		{ "VRCameraTiltDown",           true, false, 76, 4 /* wxMOD_SHIFT */, 0, 0 },
 
@@ -249,6 +251,16 @@ void SConfig::SaveSettings()
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
+}
+
+void SConfig::SaveSingleSetting(std::string section_name, std::string setting_name, float value_to_save)
+{
+	IniFile iniFile;
+	iniFile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+
+	IniFile::Section* vr = iniFile.GetOrCreateSection(section_name);
+	vr->Set(setting_name, value_to_save);
+	iniFile.Save(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 }
 
 void SConfig::SaveGeneralSettings(IniFile& ini)

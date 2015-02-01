@@ -65,6 +65,7 @@ VideoConfig::VideoConfig()
 	bAsynchronousTimewarp = false;
 	bLowPersistence = true;
 	bDynamicPrediction = true;
+	bNoMirrorToWindow = false;
 	bOrientationTracking = true;
 	bMagYawCorrection = true;
 	bPositionTracking = true;
@@ -212,6 +213,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("EnableVR", &bEnableVR, true);
 	vr->Get("LowPersistence", &bLowPersistence, true);
 	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
+	vr->Get("NoMirrorToWindow", &bNoMirrorToWindow, true);
 	vr->Get("OrientationTracking", &bOrientationTracking, true);
 	vr->Get("MagYawCorrection", &bMagYawCorrection, true);
 	vr->Get("PositionTracking", &bPositionTracking, true);
@@ -628,6 +630,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("EnableVR", bEnableVR);
 	vr->Set("LowPersistence", bLowPersistence);
 	vr->Set("DynamicPrediction", bDynamicPrediction);
+	vr->Set("NoMirrorToWindow", bNoMirrorToWindow);
 	vr->Set("OrientationTracking", bOrientationTracking);
 	vr->Set("MagYawCorrection", bMagYawCorrection);
 	vr->Set("PositionTracking", bPositionTracking);
