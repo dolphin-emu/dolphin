@@ -166,7 +166,9 @@
     <ClCompile Include="ControllerConfigDiag.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-  </ItemGroup>
+    <ClCompile Include="RmObjAddEdit.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
     <ClInclude Include="WXInputBase.h" />
@@ -298,6 +300,9 @@
       <Filter>GUI\Video</Filter>
     </ClInclude>
     <ClInclude Include="ControllerConfigDiag.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="RmObjAddEdit.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>

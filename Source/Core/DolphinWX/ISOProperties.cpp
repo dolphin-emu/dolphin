@@ -66,6 +66,7 @@
 #include "Core/CoreParameter.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
+#include "Core/RmObjEngine.h"
 #include "Core/Boot/Boot.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -74,6 +75,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
+#include "DolphinWX/RmObjAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/resources/isoprop_disc.xpm"
@@ -92,6 +94,7 @@ static DiscIO::IVolume *OpenISO = nullptr;
 static DiscIO::IFileSystem *pFileSystem = nullptr;
 
 std::vector<PatchEngine::Patch> onFrame;
+std::vector<RmObjEngine::RmObj> rmObjCodes;
 std::vector<ActionReplay::ARCode> arCodes;
 PHackData PHack_Data;
 
@@ -104,6 +107,11 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
+	EVT_LISTBOX(ID_RMOBJS_LIST, CISOProperties::ListSelectionChanged)
+	EVT_CHECKLISTBOX(ID_RMOBJS_LIST, CISOProperties::CheckboxSelectionChanged)
+	EVT_BUTTON(ID_EDITRMOBJ, CISOProperties::RmObjButtonClicked)
+	EVT_BUTTON(ID_ADDRMOBJ, CISOProperties::RmObjButtonClicked)
+	EVT_BUTTON(ID_REMOVERMOBJ, CISOProperties::RmObjButtonClicked)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -387,6 +395,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxNotebook* const m_Notebook = new wxNotebook(this, ID_NOTEBOOK);
 	wxPanel* const m_GameConfig = new wxPanel(m_Notebook, ID_GAMECONFIG);
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
+	wxPanel* const m_RmObjPage = new wxPanel(m_Notebook, ID_RMOBJ_PAGE);
+	m_Notebook->AddPage(m_RmObjPage, _("Remove Object"));
 	wxPanel* const m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE);
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
 	wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
@@ -504,6 +514,26 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
 
+	// Remove Object
+	wxBoxSizer* const sRmObjs = new wxBoxSizer(wxVERTICAL);
+
+	RmObjs = new wxCheckListBox(m_RmObjPage, ID_RMOBJS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_RmObjs, wxLB_HSCROLL);
+	wxBoxSizer* const sRmObjsButtons = new wxBoxSizer(wxHORIZONTAL);
+	EditRmObj = new wxButton(m_RmObjPage, ID_EDITRMOBJ, _("Edit..."));
+	wxButton* const AddRmObj = new wxButton(m_RmObjPage, ID_ADDRMOBJ, _("Add..."));
+	RemoveRmObj = new wxButton(m_RmObjPage, ID_REMOVERMOBJ, _("Remove"));
+	EditRmObj->Enable(false);
+	RemoveRmObj->Enable(false);
+
+	wxBoxSizer* sRmObjPage = new wxBoxSizer(wxVERTICAL);
+	sRmObjs->Add(RmObjs, 1, wxEXPAND | wxALL, 0);
+	sRmObjsButtons->Add(EditRmObj, 0, wxEXPAND | wxALL, 0);
+	sRmObjsButtons->AddStretchSpacer();
+	sRmObjsButtons->Add(AddRmObj, 0, wxEXPAND | wxALL, 0);
+	sRmObjsButtons->Add(RemoveRmObj, 0, wxEXPAND | wxALL, 0);
+	sRmObjs->Add(sRmObjsButtons, 0, wxEXPAND | wxALL, 0);
+	sRmObjPage->Add(sRmObjs, 1, wxEXPAND | wxALL, 5);
+	m_RmObjPage->SetSizer(sRmObjPage);
 
 	// Patches
 	wxBoxSizer* const sPatches = new wxBoxSizer(wxVERTICAL);
@@ -1125,6 +1155,7 @@ void CISOProperties::LoadGameConfig()
 	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergenceMinimum", &iTemp);
 	ConvergenceMinimum->SetValue(iTemp);
 
+	RmObjList_Load();
 	PatchList_Load();
 	ActionReplayList_Load();
 	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
@@ -1324,6 +1355,19 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
+	case ID_RMOBJS_LIST:
+		if (RmObjs->GetSelection() == wxNOT_FOUND ||
+			DefaultRmObjs.find(RmObjs->GetString(RmObjs->GetSelection()).ToStdString()) != DefaultRmObjs.end())
+		{
+			EditRmObj->Disable();
+			RemoveRmObj->Disable();
+		}
+		else
+		{
+			EditRmObj->Enable();
+			RemoveRmObj->Enable();
+		}
+		break;
 	case ID_PATCHES_LIST:
 		if (Patches->GetSelection() == wxNOT_FOUND ||
 		    DefaultPatches.find(Patches->GetString(Patches->GetSelection()).ToStdString()) != DefaultPatches.end())
@@ -1351,6 +1395,97 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 		}
 		break;
 	}
+}
+
+void CISOProperties::CheckboxSelectionChanged(wxCommandEvent& event)
+{
+	RmObjList_Save();
+	RmObjList_Load();
+}
+
+void CISOProperties::RmObjList_Load()
+{
+	rmObjCodes.clear();
+	RmObjs->Clear();
+
+	RmObjEngine::LoadRmObjSection("RmObjCodes", rmObjCodes, GameIniDefault, GameIniLocal);
+
+	u32 index = 0;
+	for (RmObjEngine::RmObj& p : rmObjCodes)
+	{
+		RmObjs->Append(StrToWxStr(p.name));
+		RmObjs->Check(index, p.active);
+		if (!p.user_defined)
+			DefaultRmObjs.insert(p.name);
+		++index;
+	}
+	
+	RmObjEngine::ApplyRmObjs(rmObjCodes);
+
+}
+
+void CISOProperties::RmObjList_Save()
+{
+	std::vector<std::string> lines;
+	std::vector<std::string> enabledLines;
+	u32 index = 0;
+	for (RmObjEngine::RmObj& p : rmObjCodes)
+	{
+		if (RmObjs->IsChecked(index))
+			enabledLines.push_back("$" + p.name);
+
+		// Do not save default removed objects.
+		if (DefaultRmObjs.find(p.name) == DefaultRmObjs.end())
+		{
+			lines.push_back("$" + p.name);
+			for (const RmObjEngine::RmObjEntry& entry : p.entries)
+			{
+				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", RmObjEngine::RmObjTypeStrings[entry.type], (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
+				lines.push_back(temp);
+			}
+		}
+		++index;
+	}
+	GameIniLocal.SetLines("RmObjCodes_Enabled", enabledLines);
+	GameIniLocal.SetLines("RmObjCodes", lines);
+}
+
+void CISOProperties::RmObjButtonClicked(wxCommandEvent& event)
+{
+	int selection = RmObjs->GetSelection();
+
+	switch (event.GetId())
+	{
+	case ID_EDITRMOBJ:
+	{
+		CRmObjAddEdit dlg(selection, this);
+		dlg.ShowModal();
+	}
+	break;
+	case ID_ADDRMOBJ:
+	{
+		CRmObjAddEdit dlg(-1, this, 1, _("Add Object to Remove"));
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			RmObjs->Append(StrToWxStr(rmObjCodes.back().name));
+			RmObjs->Check((unsigned int)(rmObjCodes.size() - 1), rmObjCodes.back().active);
+		}
+	}
+	break;
+	case ID_REMOVERMOBJ:
+		rmObjCodes.erase(rmObjCodes.begin() + RmObjs->GetSelection());
+		RmObjs->Delete(RmObjs->GetSelection());
+		break;
+	}
+
+	RmObjList_Save();
+	RmObjs->Clear();
+	RmObjList_Load();
+
+	RmObjEngine::ApplyRmObjs(rmObjCodes);
+
+	EditRmObj->Enable(false);
+	RemoveRmObj->Enable(false);
 }
 
 void CISOProperties::PatchList_Load()

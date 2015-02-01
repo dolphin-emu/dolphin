@@ -92,6 +92,7 @@
     <ClCompile Include="MemcardManager.cpp" />
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
+    <ClCompile Include="RmObjAddEdit.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
@@ -140,6 +141,7 @@
     <ClInclude Include="MemcardManager.h" />
     <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
+    <ClInclude Include="RmObjAddEdit.h" />
     <ClInclude Include="SoftwareVideoConfigDialog.h" />
     <ClInclude Include="TASInputDlg.h" />
     <ClInclude Include="VideoConfigDiag.h" />
