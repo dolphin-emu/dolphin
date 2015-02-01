@@ -14,7 +14,6 @@
 ||                                                                               ||
 |#################################################################################|
 \*===============================================================================*/
-#extension GL_ARB_gpu_shader5 : enable
 
 /*
 [configuration]
@@ -625,7 +624,7 @@ float2 texSize = textureSize(samp9, 0).xy;
 #define mul(x, y) y * x
 #define FIX(c) max(abs(c), 1e-5)
 #define Saturate(x) clamp(x, 0.0, 1.0)
-#define SampleLocationLod(location, lod) textureLod(samp9, float3(location, 0), lod)
+#define SampleLocationLod(location, lod) textureLod(samp9, float3(location, layer), lod)
 
 float2 invDefocus = float2(1.0 / 3840.0, 1.0 / 2160.0);
 const float3 lumCoeff = float3(0.2126729, 0.7151522, 0.0721750);
@@ -1497,9 +1496,6 @@ float4 DitherPass(float4 color)
 #ifndef FXAA_GREEN_AS_LUMA
     #define FXAA_GREEN_AS_LUMA 0
 #endif
-#ifndef FXAA_EARLY_EXIT
-    #define FXAA_EARLY_EXIT 1
-#endif
 #ifndef FXAA_DISCARD
     #define FXAA_DISCARD 0
 #endif
@@ -1560,29 +1556,29 @@ float4 DitherPass(float4 color)
 #define FxaaTex sampler2DArray
 
 #if (FXAA_GLSL_120 == 1)
-    #define FxaaTexTop(t, p) texture2DLod(t, float3(p, 0), 0.0)
+    #define FxaaTexTop(t, p) texture2DLod(t, float3(p, layer), 0.0)
 #if (FXAA_FAST_PIXEL_OFFSET == 1)
-    #define FxaaTexOff(t, p, o, r) texture2DLodOffset(t, float3(p, 0), 0.0, o)
+    #define FxaaTexOff(t, p, o, r) texture2DLodOffset(t, float3(p, layer), 0.0, o)
 #else
-    #define FxaaTexOff(t, p, o, r) texture2DLod(t, float3(p, 0) + (o * r), 0.0)
+    #define FxaaTexOff(t, p, o, r) texture2DLod(t, float3(p, layer) + (o * r), 0.0)
 #endif
 #if (FXAA_GATHER4_ALPHA == 1)
     // use #extension GL_ARB_gpu_shader5 : enable
-    #define FxaaTexAlpha4(t, p) textureGather(t, float3(p, 0), 3)
-    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 3)
-    #define FxaaTexGreen4(t, p) textureGather(t, float3(p, 0), 1)
-    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 1)
+    #define FxaaTexAlpha4(t, p) textureGather(t, float3(p, layer), 3)
+    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, float3(p, layer), o, 3)
+    #define FxaaTexGreen4(t, p) textureGather(t, float3(p, layer), 1)
+    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, float3(p, layer), o, 1)
 #endif
 #endif
 #if (FXAA_GLSL_130 == 1)
-    #define FxaaTexTop(t, p) textureLod(t, float3(p, 0), 0.0)
-    #define FxaaTexOff(t, p, o, r) textureLodOffset(t, float3(p, 0), 0.0, o)
+    #define FxaaTexTop(t, p) textureLod(t, float3(p, layer), 0.0)
+    #define FxaaTexOff(t, p, o, r) textureLodOffset(t, float3(p, layer), 0.0, o)
 #if (FXAA_GATHER4_ALPHA == 1)
     // use #extension GL_ARB_gpu_shader5 : enable
-    #define FxaaTexAlpha4(t, p) textureGather(t, float3(p, 0), 3)
-    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 3)
-    #define FxaaTexGreen4(t, p) textureGather(t, float3(p, 0), 1)
-    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, float3(p, 0), o, 1)
+    #define FxaaTexAlpha4(t, p) textureGather(t, float3(p, layer), 3)
+    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, float3(p, layer), o, 3)
+    #define FxaaTexGreen4(t, p) textureGather(t, float3(p, layer), 1)
+    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, float3(p, layer), o, 1)
 #endif
 #endif
 
