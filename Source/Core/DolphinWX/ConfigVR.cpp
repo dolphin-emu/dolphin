@@ -239,6 +239,8 @@ void CConfigVR::CreateGUIControls()
 		szr_options->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
 		szr_options->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
 		szr_options->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
+		szr_options->Add(CreateCheckBox(page_vr, _("Direct mode - disable mirroring"), wxGetTranslation(nomirrortowindow_desc), vconfig.bNoMirrorToWindow));
+
 #ifdef OCULUSSDK042
 		szr_options->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bAsynchronousTimewarp));
 #endif

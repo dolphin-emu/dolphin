@@ -1079,7 +1079,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (g_has_hmd)
 	{
 		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
-			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction)
+			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
+			g_Config.bNoMirrorToWindow != g_ActiveConfig.bNoMirrorToWindow)
 		{
 			VR_ConfigureHMDPrediction();
 		}

@@ -153,6 +153,7 @@ struct VideoConfig final
 	bool bEnableVR;
 	bool bLowPersistence;
 	bool bDynamicPrediction;
+	bool bNoMirrorToWindow;
 	bool bOrientationTracking;
 	bool bMagYawCorrection;
 	bool bPositionTracking;
