@@ -649,8 +649,10 @@ void CConfigVR::CreateGUIControls()
 			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,  
 				_("Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
 				"guide to help.\n\nDirect mode is working, but the performance on many games is poor. It is recommended to run in "
-				"extended mode! If you do run in Direct Mode, make sure Aero is enabled. \n\nIn the 'Config' tab, 'Framelimit' should "
-				"be set to match your Rift's refresh rate (most likely 75fps). "
+				"extended mode! If you do run in direct mode, make sure Aero is enabled. The only judder free configuration for direct mode "
+				"found so far is  'dual core determinism' set to 'fake-completion', the mirrored window enabled, and "
+				"the mirrored window manually resized to 0 pixels by 0 pixles. Testing has been limited so your mileage may vary."
+				"\n\nIn the 'Config' tab, 'Framelimit' should be set to match your Rift's refresh rate (most likely 75fps). "
 				"Games will run 25% too fast, but this will avoid judder. There are two options available to bring the game frame rate back down "
 				"normal speed. The first is the 'Opcode Replay Buffer', which rerenders game frames so headtracking runs at 75fps forcing "
 				"the game to maintain its normal speed.  This feature only currently works in around 50% of games, but is the preferred "
