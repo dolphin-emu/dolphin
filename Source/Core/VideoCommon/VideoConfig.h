@@ -174,6 +174,18 @@ struct VideoConfig final
 	bool bShowTrackingCamera;
 	bool bShowTrackingVolume;
 	bool bShowBaseStation;
+
+	bool bMotionSicknessAlways;
+	bool bMotionSicknessFreelook;
+	bool bMotionSickness2D;
+	bool bMotionSicknessLeftStick;
+	bool bMotionSicknessRightStick;
+	bool bMotionSicknessDPad;
+	bool bMotionSicknessIR;
+	int iMotionSicknessMethod;
+	int iMotionSicknessSkybox;
+	float fMotionSicknessFOV;
+
 	int iVRPlayer;
 	float fTimeWarpTweak;
 	u32 iExtraFrames;

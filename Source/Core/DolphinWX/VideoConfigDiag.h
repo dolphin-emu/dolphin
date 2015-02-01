@@ -349,4 +349,5 @@ static wxString showsensorbar_desc = wxTRANSLATE("Show the virtual or real senso
 static wxString showtrackingcamera_desc = wxTRANSLATE("Show the Oculus Rift tracking camera inside the game world.\n\nIf unsure, leave this unchecked.");
 static wxString showtrackingvolume_desc = wxTRANSLATE("Show the pyramid coming out of the Rift's tracking camera representing where your head can be tracked.\n\nIf unsure, leave this unchecked.");
 static wxString showbasestation_desc = wxTRANSLATE("Show the Razer Hydra base station inside the game world.\n\nIf unsure, leave this unchecked.");
-
+static wxString hideskybox_desc = wxTRANSLATE("Don't draw the background or sky in some games.\nThat may reduce motion sickness by reducing vection in your periphery. But most games won't look as good.\n\nIf unsure, leave this unchecked.");
+static wxString lockskybox_desc = wxTRANSLATE("Lock the game's background or sky to the real world in some games.\nTurning in-game will rotate the level but not the background. Oculus suggested this at Connect. It will reduce motion sickness at the cost of decreased immersion.\n\nIf unsure, leave this unchecked.");

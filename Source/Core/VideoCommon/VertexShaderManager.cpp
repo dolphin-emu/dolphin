@@ -952,6 +952,8 @@ void VertexShaderManager::SetProjectionConstants()
 	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4 && g_ActiveConfig.iVRPlayer!=g_viewport_type-VIEW_PLAYER_1)));
 	// flash selected layer for debugging
 	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
+	// hide skybox to reduce motion sickness
+	bHide = bHide || (g_is_skybox && g_ActiveConfig.iMotionSicknessSkybox == 1);
 
 	// Split WidthHack and HeightHack into left and right versions for telescopes
 	float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
@@ -1660,11 +1662,14 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
-		VR_GetEyePos(posLeft, posRight);
-		for (int i = 0; i < 3; ++i)
+		if (!g_is_skybox)
 		{
-			posLeft[i] *= UnitsPerMetre;
-			posRight[i] *= UnitsPerMetre;
+			VR_GetEyePos(posLeft, posRight);
+			for (int i = 0; i < 3; ++i)
+			{
+				posLeft[i] *= UnitsPerMetre;
+				posRight[i] *= UnitsPerMetre;
+			}
 		}
 		
 		Matrix44 view_matrix_left, view_matrix_right;
