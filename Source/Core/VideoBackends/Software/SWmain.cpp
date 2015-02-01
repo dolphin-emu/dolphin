@@ -164,6 +164,7 @@ void VideoSoftware::Shutdown()
 
 	GLInterface->Shutdown();
 	delete GLInterface;
+	GLInterface = nullptr;
 }
 
 void VideoSoftware::Video_Cleanup()
