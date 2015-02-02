@@ -180,6 +180,7 @@ void VideoSoftware::ShutdownOtherThread()
 {
 	GLInterface->Shutdown();
 	delete GLInterface;
+	GLInterface = nullptr;
 }
 
 void VideoSoftware::Video_Cleanup()
