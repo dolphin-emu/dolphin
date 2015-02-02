@@ -1258,13 +1258,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		// cegli - clearing the screen here causes flickering in games that fake 60fps by only actually updating
 		// the entire screen once every 2 frames.  They rely on the fact that nothing is cleared on the fake frame.
 		// An example of this is Beyond Good and Evil. Removing it aligns D3D with OGL, but adds the same smearing
-		// problem OGL has in the BG&E menu.
+		// problem OGL has in the BG&E menu.  Without clearing the screen, some games like PM: TTYD have smearing
+		// around the edges.  How does OGL handle this gracefully?
 		// To Do: Figure out the best thing to do here.
 
 		// VR Clear screen before every frame
-		//float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
-		//D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
-		//D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
+		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 	}
 
 	// begin next frame
