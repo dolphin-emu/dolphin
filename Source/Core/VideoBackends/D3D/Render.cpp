@@ -1253,7 +1253,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (g_ActiveConfig.bAsynchronousTimewarp)
 			g_vr_lock.unlock();
 	}
-	else if (g_has_hmd)
+	else if (g_has_hmd && !g_ActiveConfig.bDontClearScreen)
 	{
 		// cegli - clearing the screen here causes flickering in games that fake 60fps by only actually updating
 		// the entire screen once every 2 frames.  They rely on the fact that nothing is cleared on the fake frame.
