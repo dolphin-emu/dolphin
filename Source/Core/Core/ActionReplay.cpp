@@ -31,6 +31,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
 
 namespace ActionReplay
 {
@@ -323,6 +324,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 			Memory::Write_U8(data & 0xFF, new_addr + i);
 			LogInfo("Wrote %08x to address %08x", data & 0xFF, new_addr + i);
 		}
+		JitInterface::InvalidateICache(new_addr, repeat + 1, false);
 		LogInfo("--------");
 		break;
 	}
@@ -337,6 +339,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 			Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
 			LogInfo("Wrote %08x to address %08x", data & 0xFFFF, new_addr + i * 2);
 		}
+		JitInterface::InvalidateICache(new_addr, (repeat + 1)*2, false);
 		LogInfo("--------");
 		break;
 	}
@@ -346,6 +349,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 		LogInfo("32-bit Write");
 		LogInfo("--------");
 		Memory::Write_U32(data, new_addr);
+		JitInterface::InvalidateICache(new_addr, 4, false);
 		LogInfo("Wrote %08x to address %08x", data, new_addr);
 		LogInfo("--------");
 		break;
@@ -381,6 +385,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 		LogInfo("Byte: %08x", thebyte);
 		LogInfo("Offset: %08x", offset);
 		Memory::Write_U8(thebyte, ptr + offset);
+		JitInterface::InvalidateICache(ptr + offset, 1, false);
 		LogInfo("Wrote %08x to address %08x", thebyte, ptr + offset);
 		LogInfo("--------");
 		break;
@@ -396,6 +401,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 		LogInfo("Byte: %08x", theshort);
 		LogInfo("Offset: %08x", offset);
 		Memory::Write_U16(theshort, ptr + offset);
+		JitInterface::InvalidateICache(ptr + offset, 2, false);
 		LogInfo("Wrote %08x to address %08x", theshort, ptr + offset);
 		LogInfo("--------");
 		break;
@@ -406,6 +412,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 		LogInfo("Write 32-bit to pointer");
 		LogInfo("--------");
 		Memory::Write_U32(data, ptr);
+		JitInterface::InvalidateICache(ptr, 4, false);
 		LogInfo("Wrote %08x to address %08x", data, ptr);
 		LogInfo("--------");
 		break;
@@ -434,6 +441,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 		LogInfo("8-bit Add");
 		LogInfo("--------");
 		Memory::Write_U8(Memory::Read_U8(new_addr) + data, new_addr);
+		JitInterface::InvalidateICache(new_addr, 1, false);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U8(new_addr) + (data & 0xFF), new_addr);
 		LogInfo("--------");
 		break;
@@ -442,6 +450,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 		LogInfo("16-bit Add");
 		LogInfo("--------");
 		Memory::Write_U16(Memory::Read_U16(new_addr) + data, new_addr);
+		JitInterface::InvalidateICache(new_addr, 2, false);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U16(new_addr) + (data & 0xFFFF), new_addr);
 		LogInfo("--------");
 		break;
@@ -450,6 +459,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 		LogInfo("32-bit Add");
 		LogInfo("--------");
 		Memory::Write_U32(Memory::Read_U32(new_addr) + data, new_addr);
+		JitInterface::InvalidateICache(new_addr, 4, false);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U32(new_addr) + data, new_addr);
 		LogInfo("--------");
 		break;
@@ -463,6 +473,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 		const float fread = *((float*)&read) + (float)data; // data contains an integer value
 		const u32 newval = *((u32*)&fread);
 		Memory::Write_U32(newval, new_addr);
+		JitInterface::InvalidateICache(new_addr, 4, false);
 		LogInfo("Old Value %08x", read);
 		LogInfo("Increment %08x", data);
 		LogInfo("New value %08x", newval);
@@ -518,6 +529,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 		for (int i = 0; i < write_num; ++i)
 		{
 			Memory::Write_U8(val & 0xFF, curr_addr);
+			JitInterface::InvalidateICache(curr_addr, 1, false);
 			curr_addr += addr_incr;
 			val += val_incr;
 			LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
@@ -534,6 +546,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 		for (int i=0; i < write_num; ++i)
 		{
 			Memory::Write_U16(val & 0xFFFF, curr_addr);
+			JitInterface::InvalidateICache(curr_addr, 2, false);
 			LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
 			curr_addr += addr_incr * 2;
 			val += val_incr;
@@ -549,6 +562,7 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 		for (int i = 0; i < write_num; ++i)
 		{
 			Memory::Write_U32(val, curr_addr);
+			JitInterface::InvalidateICache(curr_addr, 4, false);
 			LogInfo("Write %08x to address %08x", val, curr_addr);
 			curr_addr += addr_incr * 4;
 			val += val_incr;
@@ -589,6 +603,7 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 				Memory::Write_U8(Memory::Read_U8(addr_src + i), addr_dest + i);
 				LogInfo("Wrote %08x to address %08x", Memory::Read_U8(addr_src + i), addr_dest + i);
 			}
+			JitInterface::InvalidateICache(addr_dest, 138, false);
 			LogInfo("--------");
 		}
 		else
@@ -600,6 +615,7 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 				Memory::Write_U8(Memory::Read_U8(addr_src + i), addr_dest + i);
 				LogInfo("Wrote %08x to address %08x", Memory::ReadUnchecked_U8(addr_src + i), addr_dest + i);
 			}
+			JitInterface::InvalidateICache(addr_dest, num_bytes, false);
 			LogInfo("--------");
 			return true;
 		}
