@@ -7,15 +7,13 @@
 #include <map>
 #include <queue>
 #include <sstream>
+#include <unordered_set>
 
-#include <SFML/Network.hpp>
-
-#include "Common/CommonTypes.h"
-#include "Common/CommonTypes.h"
+#include "enet/enet.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/NetPlayProto.h"
+#include <SFML/Network/Packet.hpp>
 
 class NetPlayServer
 {
@@ -40,7 +38,9 @@ public:
 
 	void AdjustPadBufferSize(unsigned int size);
 
-	void KickPlayer(u8 player);
+	void KickPlayer(PlayerId player);
+
+	u16 GetPort();
 
 	bool is_connected;
 
@@ -56,19 +56,9 @@ private:
 		std::string name;
 		std::string revision;
 
-		std::unique_ptr<sf::TcpSocket> socket;
+		ENetPeer* socket;
 		u32 ping;
 		u32 current_game;
-
-		// VS2013 does not generate the right constructors here automatically
-		//  like GCC does, so we implement them manually
-		Client() = default;
-		Client(const Client& other) = delete;
-		Client(Client&& other)
-			: pid(other.pid), name(std::move(other.name)), revision(std::move(other.revision)),
-			socket(std::move(other.socket)), ping(other.ping), current_game(other.current_game)
-		{
-		}
 
 		bool operator==(const Client& other) const
 		{
@@ -77,7 +67,8 @@ private:
 	};
 
 	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
-	unsigned int OnConnect(std::unique_ptr<sf::TcpSocket>& socket);
+	void Send(ENetPeer* socket, sf::Packet& packet);
+	unsigned int OnConnect(ENetPeer* socket);
 	unsigned int OnDisconnect(Client& player);
 	unsigned int OnData(sf::Packet& packet, Client& player);
 	void UpdatePadMapping();
@@ -95,7 +86,7 @@ private:
 	PadMapping      m_pad_map[4];
 	PadMapping      m_wiimote_map[4];
 
-	std::list<Client> m_players;
+	std::map<u32, Client> m_players;
 
 	struct
 	{
@@ -105,10 +96,9 @@ private:
 	} m_crit;
 
 	std::string m_selected_game;
-
-	sf::TcpListener m_socket;
 	std::thread m_thread;
-	sf::SocketSelector m_selector;
+
+	ENetHost*        m_server;
 
 #ifdef USE_UPNP
 	static void mapPortThread(const u16 port);

@@ -8,16 +8,14 @@
 #include <queue>
 #include <sstream>
 
-#include <SFML/Network.hpp>
-
+#include "enet/enet.h"
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/NetPlayProto.h"
-
 #include "InputCommon/GCPadStatus.h"
+#include <SFML/Network/Packet.hpp>
 
 class NetPlayUI
 {
@@ -38,7 +36,7 @@ public:
 
 class Player
 {
- public:
+public:
 	PlayerId    pid;
 	std::string name;
 	std::string revision;
@@ -87,9 +85,10 @@ protected:
 	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];
 
 	NetPlayUI*    m_dialog;
-	sf::TcpSocket m_socket;
-	std::thread   m_thread;
-	sf::SocketSelector m_selector;
+
+	ENetHost*    m_client;
+	ENetPeer*    m_server;
+	std::thread  m_thread;
 
 	std::string   m_selected_game;
 	volatile bool m_is_running;
@@ -111,9 +110,17 @@ private:
 	void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
 	void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
 	unsigned int OnData(sf::Packet& packet);
+	void Send(sf::Packet& packet);
+	void Disconnect();
+	bool Connect();
+
+	void OnTraversalDisconnect(int fail);
 
 	PlayerId m_pid;
 	std::map<PlayerId, Player> m_players;
+	std::string m_host_spec;
+	std::string m_player_name;
+	bool m_connecting;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
