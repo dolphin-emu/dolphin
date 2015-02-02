@@ -24,6 +24,7 @@ set(SRCS BreakPoints.cpp
          SysConf.cpp
          Thread.cpp
          Timer.cpp
+         TraversalClient.cpp
          Version.cpp
          x64ABI.cpp
          x64Analyzer.cpp
@@ -33,7 +34,7 @@ set(SRCS BreakPoints.cpp
          Logging/ConsoleListener.cpp
          Logging/LogManager.cpp)
 
-
+set(LIBS enet)
 if(_M_ARM)
 	if (_M_ARM_32) #ARMv7
 		set(SRCS ${SRCS}

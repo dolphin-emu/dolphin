@@ -12,6 +12,7 @@
 #include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
+#include <wx/clipbrd.h>
 #include <wx/defs.h>
 #include <wx/dialog.h>
 #include <wx/event.h>
@@ -27,7 +28,7 @@
 #include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/translation.h>
-#include <wx/clipbrd.h>
+
 
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
@@ -416,12 +417,12 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	: wxFrame(parent, wxID_ANY, _("Dolphin NetPlay"))
 	, m_selected_game(game)
 	, m_start_btn(nullptr)
-	, m_game_list(game_list)
-	, m_host_type_choice(nullptr)
 	, m_host_label(nullptr)
+	, m_host_type_choice(nullptr)
 	, m_host_copy_btn(nullptr)
 	, m_host_copy_btn_is_retry(false)
 	, m_is_hosting(is_hosting)
+	, m_game_list(game_list)
 {
 	Bind(wxEVT_THREAD, &NetPlayDiag::OnThread, this);
 

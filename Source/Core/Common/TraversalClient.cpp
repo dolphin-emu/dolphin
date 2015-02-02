@@ -1,8 +1,7 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
-#include "Common/TraversalClient.h"
-#include "enet/enet.h"
 #include "Timer.h"
+#include "Common/TraversalClient.h"
 
 static void GetRandomishBytes(u8* buf, size_t size)
 {
@@ -15,11 +14,11 @@ static void GetRandomishBytes(u8* buf, size_t size)
 
 TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server)
 	: m_NetHost(netHost)
-	, m_Server(server)
 	, m_Client(nullptr)
 	, m_FailureReason(0)
 	, m_ConnectRequestId(0)
 	, m_PendingConnect(false)
+	, m_Server(server)
 	, m_PingTime(0)
 {
 	netHost->intercept = TraversalClient::InterceptCallback;
@@ -112,6 +111,8 @@ void TraversalClient::Update()
 			TestPacket(netEvent.packet->data, netEvent.packet->dataLength, &netEvent.peer->address);
 
 			enet_packet_destroy(netEvent.packet);
+			break;
+		default:
 			break;
 		}
 	}
@@ -343,9 +344,7 @@ bool EnsureTraversalClient(const std::string& server, u16 port)
 			return false;
 		}
 		g_MainNetHost.reset(host);
-		
 		g_TraversalClient.reset(new TraversalClient(g_MainNetHost.get(), server));
-
 	}
 	return true;
 }

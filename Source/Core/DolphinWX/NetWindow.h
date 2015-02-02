@@ -105,8 +105,8 @@ private:
 
 	wxListBox*    m_player_lbox;
 	wxTextCtrl*   m_chat_text;
-	wxTextCtrl*	  m_chat_msg_text;
-	wxCheckBox*	  m_memcard_write;
+	wxTextCtrl*   m_chat_msg_text;
+	wxCheckBox*   m_memcard_write;
 	wxCheckBox*   m_record_chkbox;
 
 	std::string   m_selected_game;

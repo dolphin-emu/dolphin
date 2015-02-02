@@ -4,13 +4,22 @@
 
 #include <string>
 #include <vector>
-
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/NetPlayClient.h" //for NetPlayUI
 #include "Core/NetPlayServer.h"
+#include "Core/HW/EXI_DeviceIPL.h"
 #include "InputCommon/GCPadStatus.h"
+#if !defined(_WIN32)
+#include <sys/types.h>
+#include <sys/socket.h>
+#ifndef ANDROID
+#include <ifaddrs.h>
+#endif
+#include <arpa/inet.h>
+#endif
+
+int g_netplay_initial_gctime = 1272737767;
 
 NetPlayServer::~NetPlayServer()
 {
@@ -175,6 +184,8 @@ void NetPlayServer::ThreadFunc()
 				}
 			}
 			break;
+			default:
+			break;
 			}
 		}
 	}
@@ -285,7 +296,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	// add client to the player list
 	{
 		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		m_players.emplace(player.socket->connectID, player);
+		m_players.insert(std::pair<u32, Client>(player.socket->connectID, player));
 		std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 		UpdatePadMapping(); // sync pad mappings with everyone
 		UpdateWiimoteMapping();
@@ -617,6 +628,8 @@ bool NetPlayServer::StartGame()
 	// no change, just update with clients
 	AdjustPadBufferSize(m_target_buffer_size);
 
+	g_netplay_initial_gctime = CEXIIPL::GetGCTime();
+
 	// tell clients to start game
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
@@ -630,6 +643,7 @@ bool NetPlayServer::StartGame()
 	spac << m_settings.m_OCFactor;
 	spac << m_settings.m_EXIDevice[0];
 	spac << m_settings.m_EXIDevice[1];
+	spac << g_netplay_initial_gctime;
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
@@ -712,44 +726,20 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 	std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)
 
-#elif defined(__APPLE__)
-	// we do this to get the friendly names rather than the BSD ones. ew.
-	if (m_dynamic_store && m_prefs)
-	{
-		CFArrayRef ary = SCNetworkServiceCopyAll((SCPreferencesRef)m_prefs);
-		for (CFIndex i = 0; i < CFArrayGetCount(ary); i++)
-		{
-			SCNetworkServiceRef ifr = (SCNetworkServiceRef)CFArrayGetValueAtIndex(ary, i);
-			std::string name = CFStrToStr(SCNetworkServiceGetName(ifr));
-			CFStringRef key = SCDynamicStoreKeyCreateNetworkServiceEntity(NULL, kSCDynamicStoreDomainState, SCNetworkServiceGetServiceID(ifr), kSCEntNetIPv4);
-			CFDictionaryRef props = (CFDictionaryRef)SCDynamicStoreCopyValue((SCDynamicStoreRef)m_dynamic_store, key);
-			CFRelease(key);
-			if (!props)
-				continue;
-			CFArrayRef ipary = (CFArrayRef)CFDictionaryGetValue(props, kSCPropNetIPv4Addresses);
-			if (ipary)
-			{
-				for (CFIndex j = 0; j < CFArrayGetCount(ipary); j++)
-					result.emplace_back(std::make_pair(name, CFStrToStr((CFStringRef)CFArrayGetValueAtIndex(ipary, j))));
-				CFRelease(ipary);
-			}
-		}
-		CFRelease(ary);
-	}
 #elif defined(ANDROID)
 	// Android has no getifaddrs for some stupid reason.  If this
 	// functionality ends up actually being used on Android, fix this.
 #else
-	ifaddrs* ifp;
+	ifaddrs* ifp = nullptr;
 	char buf[512];
 	if (getifaddrs(&ifp) != -1)
 	{
-		for (struct ifaddrs* curifp = ifp; curifp; curifp = curifp->ifa_next)
+		for (ifaddrs* curifp = ifp; curifp; curifp = curifp->ifa_next)
 		{
-			struct sockaddr* sa = curifp->ifa_addr;
+			sockaddr* sa = curifp->ifa_addr;
 			if (sa->sa_family != AF_INET)
 				continue;
-			struct sockaddr_in* sai = (struct sockaddr_in*) sa;
+			sockaddr_in* sai = (struct sockaddr_in*) sa;
 			if (ntohl(((struct sockaddr_in*) sa)->sin_addr.s_addr) == 0x7f000001)
 				continue;
 			const char* ip = inet_ntop(sa->sa_family, &sai->sin_addr, buf, sizeof(buf));
@@ -761,7 +751,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 	}
 #endif
 	if (result.empty())
-		result.push_back(std::make_pair("!local!", "127.0.0.1"));
+		result.emplace_back(std::make_pair("!local!", "127.0.0.1"));
 	return result;
 }
 

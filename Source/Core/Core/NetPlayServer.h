@@ -8,12 +8,11 @@
 #include <queue>
 #include <sstream>
 #include <unordered_set>
-
-#include "Common/Thread.h"
-#include "Common/TraversalClient.h"
-#include "Common/Timer.h"
-#include "Core/NetPlayProto.h"
 #include <SFML/Network/Packet.hpp>
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+#include "Common/TraversalClient.h"
+#include "Core/NetPlayProto.h"
 
 class NetPlayUI;
 
