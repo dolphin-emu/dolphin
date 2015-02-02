@@ -7,6 +7,7 @@
 #include <map>
 #include <queue>
 #include <sstream>
+#include <SFML/Network/Packet.hpp>
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/Thread.h"
@@ -14,7 +15,7 @@
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
-#include <SFML/Network/Packet.hpp>
+
 
 class NetPlayUI
 {
@@ -97,7 +98,7 @@ protected:
 	Common::FifoQueue<GCPadStatus> m_pad_buffer[4];
 	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];
 
-	NetPlayUI*    m_dialog;
+	NetPlayUI*   m_dialog;
 
 	ENetHost*    m_client;
 	ENetPeer*    m_server;

@@ -247,6 +247,7 @@ set(LIBS
 	bdisasm
 	common
 	discio
+	enet
 	inputcommon
 	${LZO}
 	sfml-network

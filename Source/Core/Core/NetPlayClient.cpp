@@ -4,6 +4,8 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_DeviceDanceMat.h"
@@ -13,8 +15,6 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
-#include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
@@ -57,7 +57,8 @@ NetPlayClient::~NetPlayClient()
 
 // called from ---GUI--- thread
 NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal)
-	: m_dialog(dialog)
+	: m_state(Failure)
+	, m_dialog(dialog)
 	, m_client(nullptr)
 	, m_server(nullptr)
 	, m_is_running(false)
@@ -69,7 +70,6 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 	, m_pid(0)
 	, m_connecting(false)
 	, m_traversal_client(nullptr)
-	, m_state(Failure)
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
@@ -149,6 +149,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 						m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
 					}
 					return;
+				default:
+					break;
 				}
 			}
 		}
@@ -375,6 +377,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices)tmp;
 			packet >> tmp;
 			g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices)tmp;
+
+			packet >> g_netplay_initial_gctime;
 		}
 
 		m_dialog->OnMsgStartGame();
@@ -455,6 +459,8 @@ void NetPlayClient::Disconnect()
 		case ENET_EVENT_TYPE_DISCONNECT:
 			m_server = nullptr;
 			return;
+		default:
+			break;
 		}
 	}
 	//didn't disconnect gracefully force disconnect
@@ -494,6 +500,8 @@ void NetPlayClient::ThreadFunc()
 				m_do_loop = false;
 
 				netEvent.peer->data = nullptr;
+				break;
+			default:
 				break;
 			}
 		}
@@ -1050,7 +1058,7 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
 	if (netplay_client)
-		return NETPLAY_INITIAL_GCTIME;
+		return g_netplay_initial_gctime;
 	else
 		return 0;
 }
