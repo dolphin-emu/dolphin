@@ -9,18 +9,20 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "enet/enet.h"
 #include "Common/Thread.h"
+#include "Common/TraversalClient.h"
 #include "Common/Timer.h"
 #include "Core/NetPlayProto.h"
 #include <SFML/Network/Packet.hpp>
 
-class NetPlayServer
+class NetPlayUI;
+
+class NetPlayServer : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
 
-	NetPlayServer(const u16 port);
+	NetPlayServer(const u16 port, bool traversal);
 	~NetPlayServer();
 
 	bool ChangeGame(const std::string& game);
@@ -41,6 +43,10 @@ public:
 	void KickPlayer(PlayerId player);
 
 	u16 GetPort();
+
+	void SetNetPlayUI(NetPlayUI* dialog);
+	std::unordered_set<std::string> GetInterfaceSet();
+	std::string GetInterfaceHost(const std::string inter);
 
 	bool is_connected;
 
@@ -71,8 +77,12 @@ private:
 	unsigned int OnConnect(ENetPeer* socket);
 	unsigned int OnDisconnect(Client& player);
 	unsigned int OnData(sf::Packet& packet, Client& player);
+	virtual void OnTraversalStateChanged();
+	virtual void OnConnectReady(ENetAddress addr) {}
+	virtual void OnConnectFailed(u8 reason) {}
 	void UpdatePadMapping();
 	void UpdateWiimoteMapping();
+	std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal();
 
 	NetSettings     m_settings;
 
@@ -99,6 +109,8 @@ private:
 	std::thread m_thread;
 
 	ENetHost*        m_server;
+	TraversalClient* m_traversal_client;
+	NetPlayUI*       m_dialog;
 
 #ifdef USE_UPNP
 	static void mapPortThread(const u16 port);

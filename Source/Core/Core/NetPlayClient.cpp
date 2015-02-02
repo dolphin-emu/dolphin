@@ -38,10 +38,25 @@ NetPlayClient::~NetPlayClient()
 		Disconnect();
 	}
 
+	if (g_MainNetHost.get() == m_client)
+	{
+		g_MainNetHost.release();
+	}
+	if (m_client)
+	{
+		enet_host_destroy(m_client);
+		m_client = nullptr;
+	}
+
+	if (m_traversal_client)
+	{
+		ReleaseTraversalClient();
+	}
+
 }
 
 // called from ---GUI--- thread
-NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name)
+NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal)
 	: m_dialog(dialog)
 	, m_client(nullptr)
 	, m_server(nullptr)
@@ -53,6 +68,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 	, m_is_recording(false)
 	, m_pid(0)
 	, m_connecting(false)
+	, m_traversal_client(nullptr)
+	, m_state(Failure)
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
@@ -61,35 +78,81 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
 	m_player_name = name;
 
-	//Direct Connection
-	m_client = enet_host_create(nullptr, 1, 3, 0, 0);
-
-	if (m_client == nullptr)
+	if (!traversal)
 	{
-		PanicAlertT("Couldn't Create Client");
-	}
+		//Direct Connection
+		m_client = enet_host_create(nullptr, 1, 3, 0, 0);
 
-	ENetAddress addr;
-	enet_address_set_host(&addr, address.c_str());
-	addr.port = port;
+		if (m_client == nullptr)
+		{
+			PanicAlertT("Couldn't Create Client");
+		}
 
-	m_server = enet_host_connect(m_client, &addr, 3, 0);
+		ENetAddress addr;
+		enet_address_set_host(&addr, address.c_str());
+		addr.port = port;
 
-	if (m_server == nullptr)
-	{
-		PanicAlertT("Couldn't create peer.");
-	}
+		m_server = enet_host_connect(m_client, &addr, 3, 0);
 
-	ENetEvent netEvent;
-	int net = enet_host_service(m_client, &netEvent, 5000);
-	if (net > 0 && netEvent.type == ENET_EVENT_TYPE_CONNECT)
-	{
-		if (Connect())
-			m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
+		if (m_server == nullptr)
+		{
+			PanicAlertT("Couldn't create peer.");
+		}
+
+		ENetEvent netEvent;
+		int net = enet_host_service(m_client, &netEvent, 5000);
+		if (net > 0 && netEvent.type == ENET_EVENT_TYPE_CONNECT)
+		{
+			if (Connect())
+				m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
+		}
+		else
+		{
+			PanicAlertT("Failed to Connect!");
+		}
+
 	}
 	else
 	{
-		PanicAlertT("Failed to Connect!");
+		//Traversal Server
+		if (!EnsureTraversalClient("dolphin-emu.org", 0))
+			return;
+		m_client = g_MainNetHost.get();
+
+		m_traversal_client = g_TraversalClient.get();
+
+		// If we were disconnected in the background, reconnect.
+		if (m_traversal_client->m_State == TraversalClient::Failure)
+			m_traversal_client->ReconnectToServer();
+		m_traversal_client->m_Client = this;
+		m_host_spec = address;
+		m_state = WaitingForTraversalClientConnection;
+		OnTraversalStateChanged();
+		m_connecting = true;
+
+		while (m_connecting)
+		{
+			ENetEvent netEvent;
+			if (m_traversal_client)
+				m_traversal_client->HandleResends();
+
+			while (enet_host_service(m_client, &netEvent, 4) > 0)
+			{
+				sf::Packet rpac;
+				switch (netEvent.type)
+				{
+				case ENET_EVENT_TYPE_CONNECT:
+					m_server = netEvent.peer;
+					if (Connect())
+					{
+						m_state = Connected;
+						m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
+					}
+					return;
+				}
+			}
+		}
+		PanicAlertT("Failed To Connect!");
 	}
 }
 
@@ -380,6 +443,7 @@ void NetPlayClient::Send(sf::Packet& packet)
 void NetPlayClient::Disconnect()
 {
 	ENetEvent netEvent;
+	m_state = Failure;
 	enet_peer_disconnect(m_server, 0);
 	while (enet_host_service(m_client, &netEvent, 3000) > 0)
 	{
@@ -407,6 +471,8 @@ void NetPlayClient::ThreadFunc()
 		int net;
 		{
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+			if (m_traversal_client)
+				m_traversal_client->HandleResends();
 			net = enet_host_service(m_client, &netEvent, 4);
 		}
 		if (net > 0)
@@ -627,6 +693,55 @@ void NetPlayClient::ClearBuffers()
 
 		while (m_wiimote_buffer[i].Size())
 			m_wiimote_buffer[i].Pop();
+	}
+}
+
+// called from ---NETPLAY--- thread
+void NetPlayClient::OnTraversalStateChanged()
+{
+	if (m_state == WaitingForTraversalClientConnection &&
+		m_traversal_client->m_State == TraversalClient::Connected)
+	{
+		m_state = WaitingForTraversalClientConnectReady;
+		m_traversal_client->ConnectToClient(m_host_spec);
+	}
+	else if (m_state != Failure &&
+		m_traversal_client->m_State == TraversalClient::Failure)
+	{
+		Disconnect();
+	}
+}
+
+// called from ---NETPLAY--- thread
+void NetPlayClient::OnConnectReady(ENetAddress addr)
+{
+	if (m_state == WaitingForTraversalClientConnectReady)
+	{
+		m_state = Connecting;
+		enet_host_connect(m_client, &addr, 0, 0);
+	}
+}
+
+// called from ---NETPLAY--- thread
+void NetPlayClient::OnConnectFailed(u8 reason)
+{
+	m_connecting = false;
+	m_state = Failure;
+	int swtch = TraversalClient::ConnectFailedError + reason;
+	switch (swtch)
+	{
+	case TraversalClient::ConnectFailedError + TraversalConnectFailedClientDidntRespond:
+		PanicAlertT("Traversal server timed out connecting to the host");
+		break;
+	case TraversalClient::ConnectFailedError + TraversalConnectFailedClientFailure:
+		PanicAlertT("Server rejected traversal attempt");
+		break;
+	case TraversalClient::ConnectFailedError + TraversalConnectFailedNoSuchClient:
+		PanicAlertT("Invalid host");
+		break;
+	default:
+		PanicAlertT("Unknown error %x", swtch);
+		break;
 	}
 }
 
