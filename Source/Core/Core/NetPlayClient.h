@@ -7,12 +7,11 @@
 #include <map>
 #include <queue>
 #include <sstream>
-
-#include "enet/enet.h"
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
 #include <SFML/Network/Packet.hpp>
@@ -43,12 +42,12 @@ public:
 	u32         ping;
 };
 
-class NetPlayClient
+class NetPlayClient : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
 
-	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name);
+	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal);
 	~NetPlayClient();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
@@ -66,10 +65,24 @@ public:
 	bool WiimoteUpdate(int _number, u8* data, const u8 size);
 	bool GetNetPads(const u8 pad_nb, GCPadStatus* pad_status);
 
+	void OnTraversalStateChanged() override;
+	void OnConnectReady(ENetAddress addr) override;
+	void OnConnectFailed(u8 reason) override;
+
 	u8 LocalPadToInGamePad(u8 localPad);
 	u8 InGamePadToLocalPad(u8 localPad);
 
 	u8 LocalWiimoteToInGameWiimote(u8 local_pad);
+
+	enum State
+	{
+		WaitingForTraversalClientConnection,
+		WaitingForTraversalClientConnectReady,
+		Connecting,
+		WaitingForHelloResponse,
+		Connected,
+		Failure
+	} m_state;
 
 protected:
 	void ClearBuffers();
@@ -121,6 +134,7 @@ private:
 	std::string m_host_spec;
 	std::string m_player_name;
 	bool m_connecting;
+	TraversalClient* m_traversal_client;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

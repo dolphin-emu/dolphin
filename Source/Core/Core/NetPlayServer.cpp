@@ -19,6 +19,17 @@ NetPlayServer::~NetPlayServer()
 		m_do_loop = false;
 		m_thread.join();
 		enet_host_destroy(m_server);
+
+		if (g_MainNetHost.get() == m_server)
+		{
+			g_MainNetHost.release();
+		}
+
+		if (m_traversal_client)
+		{
+			g_TraversalClient->m_Client = nullptr;
+			ReleaseTraversalClient();
+		}
 	}
 
 #ifdef USE_UPNP
@@ -30,7 +41,7 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port)
+NetPlayServer::NetPlayServer(const u16 port, bool traversal)
 	: is_connected(false)
 	, m_is_running(false)
 	, m_do_loop(false)
@@ -40,6 +51,8 @@ NetPlayServer::NetPlayServer(const u16 port)
 	, m_target_buffer_size(0)
 	, m_selected_game("")
 	, m_server(nullptr)
+	, m_traversal_client(nullptr)
+	, m_dialog(nullptr)
 {
 	//--use server time
 	if (enet_initialize() != 0)
@@ -49,11 +62,26 @@ NetPlayServer::NetPlayServer(const u16 port)
 
 	memset(m_pad_map, -1, sizeof(m_pad_map));
 	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
-		
-	ENetAddress serverAddr;
-	serverAddr.host = ENET_HOST_ANY;
-	serverAddr.port = port;
-	m_server = enet_host_create(&serverAddr, 10, 3, 0, 0);
+	if (traversal)
+	{
+		if (!EnsureTraversalClient("dolphin-emu.org", 0))
+			return;
+
+		g_TraversalClient->m_Client = this;
+		m_traversal_client = g_TraversalClient.get();
+
+		m_server = g_MainNetHost.get();
+
+		if (g_TraversalClient->m_State == TraversalClient::Failure)
+			g_TraversalClient->ReconnectToServer();
+	}
+	else
+	{
+		ENetAddress serverAddr;
+		serverAddr.host = ENET_HOST_ANY;
+		serverAddr.port = port;
+		m_server = enet_host_create(&serverAddr, 10, 3, 0, 0);
+	}
 
 	if (m_server != nullptr)
 	{
@@ -89,6 +117,8 @@ void NetPlayServer::ThreadFunc()
 		int net;
 		{
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+			if (m_traversal_client)
+				m_traversal_client->HandleResends();
 			net = enet_host_service(m_server, &netEvent, 4);
 		}
 		if (net > 0)
@@ -533,6 +563,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 	return 0;
 }
 
+
+void NetPlayServer::OnTraversalStateChanged()
+{
+	if (m_dialog)
+		m_dialog->Update();
+}
+
 // called from ---GUI--- thread / and ---NETPLAY--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
@@ -636,6 +673,96 @@ void NetPlayServer::KickPlayer(PlayerId player)
 u16 NetPlayServer::GetPort()
 {
 	return m_server->address.port;
+}
+
+void NetPlayServer::SetNetPlayUI(NetPlayUI* dialog)
+{
+	m_dialog = dialog;
+}
+
+// called from ---GUI--- thread
+std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
+{
+	std::unordered_set<std::string> result;
+	auto lst = GetInterfaceListInternal();
+	for (auto list_entry : lst)
+		result.emplace(list_entry.first);
+	return result;
+}
+
+// called from ---GUI--- thread
+std::string NetPlayServer::GetInterfaceHost(const std::string inter)
+{
+	char buf[16];
+	sprintf(buf, ":%d", GetPort());
+	auto lst = GetInterfaceListInternal();
+	for (const auto& list_entry : lst)
+	{
+		if (list_entry.first == inter)
+		{
+			return list_entry.second + buf;
+		}
+	}
+	return "?";
+}
+
+// called from ---GUI--- thread
+std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal()
+{
+	std::vector<std::pair<std::string, std::string>> result;
+#if defined(_WIN32)
+
+#elif defined(__APPLE__)
+	// we do this to get the friendly names rather than the BSD ones. ew.
+	if (m_dynamic_store && m_prefs)
+	{
+		CFArrayRef ary = SCNetworkServiceCopyAll((SCPreferencesRef)m_prefs);
+		for (CFIndex i = 0; i < CFArrayGetCount(ary); i++)
+		{
+			SCNetworkServiceRef ifr = (SCNetworkServiceRef)CFArrayGetValueAtIndex(ary, i);
+			std::string name = CFStrToStr(SCNetworkServiceGetName(ifr));
+			CFStringRef key = SCDynamicStoreKeyCreateNetworkServiceEntity(NULL, kSCDynamicStoreDomainState, SCNetworkServiceGetServiceID(ifr), kSCEntNetIPv4);
+			CFDictionaryRef props = (CFDictionaryRef)SCDynamicStoreCopyValue((SCDynamicStoreRef)m_dynamic_store, key);
+			CFRelease(key);
+			if (!props)
+				continue;
+			CFArrayRef ipary = (CFArrayRef)CFDictionaryGetValue(props, kSCPropNetIPv4Addresses);
+			if (ipary)
+			{
+				for (CFIndex j = 0; j < CFArrayGetCount(ipary); j++)
+					result.emplace_back(std::make_pair(name, CFStrToStr((CFStringRef)CFArrayGetValueAtIndex(ipary, j))));
+				CFRelease(ipary);
+			}
+		}
+		CFRelease(ary);
+	}
+#elif defined(ANDROID)
+	// Android has no getifaddrs for some stupid reason.  If this
+	// functionality ends up actually being used on Android, fix this.
+#else
+	ifaddrs* ifp;
+	char buf[512];
+	if (getifaddrs(&ifp) != -1)
+	{
+		for (struct ifaddrs* curifp = ifp; curifp; curifp = curifp->ifa_next)
+		{
+			struct sockaddr* sa = curifp->ifa_addr;
+			if (sa->sa_family != AF_INET)
+				continue;
+			struct sockaddr_in* sai = (struct sockaddr_in*) sa;
+			if (ntohl(((struct sockaddr_in*) sa)->sin_addr.s_addr) == 0x7f000001)
+				continue;
+			const char* ip = inet_ntop(sa->sa_family, &sai->sin_addr, buf, sizeof(buf));
+			if (ip == nullptr)
+				continue;
+			result.emplace_back(std::make_pair(curifp->ifa_name, ip));
+		}
+		freeifaddrs(ifp);
+	}
+#endif
+	if (result.empty())
+		result.push_back(std::make_pair("!local!", "127.0.0.1"));
+	return result;
 }
 
 #ifdef USE_UPNP
