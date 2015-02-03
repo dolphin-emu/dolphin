@@ -1714,64 +1714,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
-		// Flip top and bottom for some reason; TODO: Fix the code to suck less?
-		std::swap(flipped_trc.top, flipped_trc.bottom);
+	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+	std::swap(flipped_trc.top, flipped_trc.bottom);
 
 	// Copy the framebuffer to screen.
 	const XFBSource* xfbSource = nullptr;
 
-	if (g_ActiveConfig.bUseXFB)
-	{
-		// draw each xfb source
-		for (u32 i = 0; i < xfbCount; ++i)
-		{
-			xfbSource = (const XFBSource*) xfbSourceList[i];
-
-			TargetRectangle drawRc;
-
-			if (g_ActiveConfig.bUseRealXFB)
-			{
-				drawRc = flipped_trc;
-			}
-			else
-			{
-				// use virtual xfb with offset
-				int xfbHeight = xfbSource->srcHeight;
-				int xfbWidth = xfbSource->srcWidth;
-				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-				drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / (s32)fbHeight;
-				drawRc.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / (s32)fbHeight;
-				drawRc.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-				drawRc.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-
-				// The following code disables auto stretch.  Kept for reference.
-				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
-				//float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
-				//drawRc.top *= vScale;
-				//drawRc.bottom *= vScale;
-				//drawRc.left *= hScale;
-				//drawRc.right *= hScale;
-			}
-			// Tell the OSD Menu about the current internal resolution
-			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
-
-			TargetRectangle sourceRc;
-			sourceRc.left = xfbSource->sourceRc.left;
-			sourceRc.right = xfbSource->sourceRc.right;
-			sourceRc.top = xfbSource->sourceRc.top;
-			sourceRc.bottom = xfbSource->sourceRc.bottom;
-
-			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
-		}
-	}
-#ifdef HAVE_OCULUSSDK
-	else if (g_has_rift && g_ActiveConfig.bEnableVR)
+	if (g_has_rift && g_ActiveConfig.bEnableVR)
 	{
 		EFBRectangle sourceRc;
 		// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
@@ -1782,26 +1731,82 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
-		// for msaa mode, we must resolve the efb content to non-msaa
-		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
-
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[0]);
-		if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
+		if (g_ActiveConfig.bUseXFB)
 		{
-			m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
+			flipped_trc = targetRc;
+			// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+			//std::swap(flipped_trc.top, flipped_trc.bottom);
 
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
-			m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 1);
+			// draw each xfb source
+			for (u32 i = 0; i < xfbCount; ++i)
+			{
+				xfbSource = (const XFBSource*)xfbSourceList[i];
+
+				TargetRectangle drawRc;
+
+				if (g_ActiveConfig.bUseRealXFB)
+				{
+					drawRc = flipped_trc;
+				}
+				else
+				{
+					// use virtual xfb with offset
+					int xfbHeight = xfbSource->srcHeight;
+					int xfbWidth = xfbSource->srcWidth;
+					int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+
+					drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / (s32)fbHeight;
+					drawRc.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / (s32)fbHeight;
+					drawRc.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
+					drawRc.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
+				}
+				// Tell the OSD Menu about the current internal resolution
+				OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
+
+				TargetRectangle sourceRc;
+				sourceRc.left = xfbSource->sourceRc.left;
+				sourceRc.right = xfbSource->sourceRc.right;
+				sourceRc.top = xfbSource->sourceRc.top;
+				sourceRc.bottom = xfbSource->sourceRc.bottom;
+
+				sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[0]);
+				if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
+				{
+					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 0);
+
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
+					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight, 1);
+				}
+				else
+				{
+					m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+				}
+			}
 		}
 		else
 		{
-			m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
-		}
+			// for msaa mode, we must resolve the efb content to non-msaa
+			GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(sourceRc);
 
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[0]);
+			if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
+			{
+				m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 0);
+
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
+				m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height, 1);
+			}
+			else
+			{
+				m_post_processor->BlitFromTexture(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+			}
+		}
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		// Reset viewport for drawing text
-		glViewport(400, 400, GLInterface->GetBackBufferWidth()-400, GLInterface->GetBackBufferHeight()-400);
+		glViewport(400, 400, GLInterface->GetBackBufferWidth() - 400, GLInterface->GetBackBufferHeight() - 400);
 		ShowEfbCopyRegions();
 		DrawDebugText();
 		// Do our OSD callbacks
@@ -1896,7 +1901,56 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			} while (eyesFence != 0);
 		}
 	}
-#endif
+	else if (g_ActiveConfig.bUseXFB)
+	{
+		// draw each xfb source
+		for (u32 i = 0; i < xfbCount; ++i)
+		{
+			xfbSource = (const XFBSource*) xfbSourceList[i];
+
+			TargetRectangle drawRc;
+
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc = flipped_trc;
+			}
+			else
+			{
+				// use virtual xfb with offset
+				int xfbHeight = xfbSource->srcHeight;
+				int xfbWidth = xfbSource->srcWidth;
+				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+
+				drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / (s32)fbHeight;
+				drawRc.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / (s32)fbHeight;
+				drawRc.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
+				drawRc.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
+
+				// The following code disables auto stretch.  Kept for reference.
+				// scale draw area for a 1 to 1 pixel mapping with the draw target
+				//float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
+				//float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
+				//drawRc.top *= vScale;
+				//drawRc.bottom *= vScale;
+				//drawRc.left *= hScale;
+				//drawRc.right *= hScale;
+			}
+			// Tell the OSD Menu about the current internal resolution
+			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
+
+			TargetRectangle sourceRc;
+			sourceRc.left = xfbSource->sourceRc.left;
+			sourceRc.right = xfbSource->sourceRc.right;
+			sourceRc.top = xfbSource->sourceRc.top;
+			sourceRc.bottom = xfbSource->sourceRc.bottom;
+
+			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+		}
+	}
 	else
 	{
 		EFBRectangle sourceRc;
@@ -2143,7 +2197,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	TextureCache::Cleanup(frameCount);
 
-#ifdef HAVE_OCULUSSDK
 	if (g_has_rift)
 	{
 		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
@@ -2178,7 +2231,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_ActiveConfig.iExtraVideoLoopsDivider = g_Config.iExtraVideoLoopsDivider;
 		g_ActiveConfig.fTimeWarpTweak = g_Config.fTimeWarpTweak;
 	}
-#endif
 
 	// Render to the framebuffer.
 	FramebufferManager::SetFramebuffer(0);
@@ -2193,12 +2245,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_Config.iFlashState = 0;
 
 	UpdateActiveConfig();
-	// VR XFB isn't implemented yet, so always disable it for VR
+	// VR Real XFB isn't implemented yet, so always disable it for VR
 	if (g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
-		g_ActiveConfig.bUseXFB = false;
+		g_ActiveConfig.bUseRealXFB = false;
 		// always stretch to fit
-		g_ActiveConfig.iAspectRatio = 3; 
+		g_ActiveConfig.iAspectRatio = 3;
 	}
 	TextureCache::OnConfigChanged(g_ActiveConfig);
 	if (g_has_rift && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
