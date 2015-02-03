@@ -140,11 +140,11 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	unsigned long long value_upper = 0;
 	RmObjEngine::RmObjType tempType = (RmObjEngine::RmObjType)EditRmObjType->GetSelection();
 
-	//Get wxString
+	// Get wxString
 	wxString valueString = EditRmObjValue->GetValue();
 	int length = EditRmObjValue->GetValue().length();
 
-	//Parse Upper If Needed
+	// Parse Upper If Needed
 	if (tempType > RmObjEngine::RMOBJ_64BIT) 
 	{
 		if (length > 16) 
@@ -163,7 +163,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 			}
 		}
 	}
-	//Always Parse Lower
+	// Always Parse Lower
 	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16)) 
 	{
 		if (!ParseValue(value_lower, tempType))
@@ -175,7 +175,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 		return;
 	}
 
-	//Now we have upper and lower
+	// Now we have upper and lower
 
 	if (event.GetId() == ID_BUTTON_UP) 
 	{
@@ -247,7 +247,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	if (selection == -1)
 	{
 		RmObjEngine::RmObj newRmObj;
-		//newRmObj.name = WxStrToStr(EditRmObjName->GetValue());
+
 		newRmObj.entries = tempEntries;
 		newRmObj.active = true;
 		rmObjCodes.push_back(newRmObj);
@@ -277,7 +277,7 @@ bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::it
 
 	size_t length = EditRmObjValue->GetValue().Length();
 
-	//Parse Upper If Needed
+	// Parse Upper If Needed
 	if (tempType > RmObjEngine::RMOBJ_64BIT) {
 		if (length > 16) {
 			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) 
@@ -303,7 +303,7 @@ bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::it
 			value_upper = 0;
 		}
 	}
-	//Always Parse Lower
+	// Always Parse Lower
 	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16))
 	{
 		if (ParseValue(value_lower, tempType))
@@ -324,32 +324,11 @@ bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::it
 }
 
 
-//Checks if the value is larger than the maximum it is allowed by the type.
-//e.g. if tempType = 8bits, value cannot be > 0xFF.
+// Checks if the value is larger than the maximum it is allowed by the type.
+// e.g. if tempType = 8bits, value cannot be > 0xFF.
 bool CRmObjAddEdit::ParseValue(unsigned long long value, RmObjEngine::RmObjType tempType)
 {
-	bool parsed_ok = true;
-
-	//u64 mask = (1 << ((tempType + 1) << 3)) - 1;
-	
-	if (tempType == RmObjEngine::RMOBJ_08BIT && value > 0xff)
-		parsed_ok = false;
-	else if (tempType == RmObjEngine::RMOBJ_16BIT && value > 0xffff)
-		parsed_ok = false;
-	else if (tempType == RmObjEngine::RMOBJ_24BIT && value > 0xffffff)
-		parsed_ok = false;
-	else if (tempType == RmObjEngine::RMOBJ_32BIT && value > 0xffffffff)
-		parsed_ok = false;
-	else if (tempType == RmObjEngine::RMOBJ_40BIT && value > 0xffffffffff)
-		parsed_ok = false;
-	else if (tempType == RmObjEngine::RMOBJ_48BIT && value > 0xffffffffffff)
-		parsed_ok = false;
-	else if (tempType == RmObjEngine::RMOBJ_52BIT && value > 0xffffffffffffff)
-		parsed_ok = false;
-	else if (tempType == RmObjEngine::RMOBJ_64BIT && value > 0xffffffffffffffff)
-		parsed_ok = false;
-	
-	if (!parsed_ok) 
+	if (!(tempType >= 7 || !(value >> ((tempType + 1ull) << 3ull))))
 	{
 		wxMessageBox(_("Value too large.\nEntry not modified."), _("Error"));
 		return false;
