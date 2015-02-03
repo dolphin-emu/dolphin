@@ -15,6 +15,7 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
@@ -24,7 +25,7 @@ void ClearDebugProj();
 #ifdef HAVE_OCULUSSDK
 ovrHmd hmd = nullptr;
 ovrHmdDesc hmdDesc;
-ovrFovPort g_eye_fov[2];
+ovrFovPort g_best_eye_fov[2], g_eye_fov[2], g_last_eye_fov[2];
 ovrEyeRenderDesc g_eye_render_desc[2];
 ovrFrameTiming g_rift_frame_timing;
 ovrPosef g_eye_poses[2], g_front_eye_poses[2];
@@ -44,6 +45,8 @@ float g_head_tracking_position[3];
 float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
+float g_vr_speed = 0;
+bool g_fov_changed = false;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -77,6 +80,46 @@ void NewVRFrame()
 	g_new_frame_tracker_for_efb_skip = true;
 	skip_objects_count = 0;
 	ClearDebugProj();
+
+	// Prevent motion sickness: estimate how fast we are moving, and reduce the FOV if we are moving fast
+	g_vr_speed = 0;
+	if (g_ActiveConfig.bMotionSicknessAlways)
+	{
+		g_vr_speed = 1.0f;
+	}
+	else
+	{
+		if (g_ActiveConfig.bMotionSicknessDPad)
+			g_vr_speed += HydraTLayer::vr_gc_dpad_speed + HydraTLayer::vr_cc_dpad_speed + HydraTLayer::vr_wm_dpad_speed;
+		if (g_ActiveConfig.bMotionSicknessLeftStick)
+			g_vr_speed += HydraTLayer::vr_gc_leftstick_speed + HydraTLayer::vr_wm_leftstick_speed;
+		if (g_ActiveConfig.bMotionSicknessRightStick)
+			g_vr_speed += HydraTLayer::vr_gc_rightstick_speed + HydraTLayer::vr_wm_rightstick_speed;
+	}
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1)
+	{
+		// reduce the FOV if we are moving fast
+		if (g_vr_speed > 0.15f)
+		{
+			float t = tan(g_ActiveConfig.fMotionSicknessFOV / 2);
+			g_eye_fov[0].LeftTan = std::min(g_best_eye_fov[0].LeftTan, t);
+			g_eye_fov[0].RightTan = std::min(g_best_eye_fov[0].RightTan, t);
+			g_eye_fov[0].UpTan = std::min(g_best_eye_fov[0].UpTan, t);
+			g_eye_fov[0].DownTan = std::min(g_best_eye_fov[0].DownTan, t);
+			g_eye_fov[1].LeftTan = std::min(g_best_eye_fov[1].LeftTan, t);
+			g_eye_fov[1].RightTan = std::min(g_best_eye_fov[1].RightTan, t);
+			g_eye_fov[1].UpTan = std::min(g_best_eye_fov[1].UpTan, t);
+			g_eye_fov[1].DownTan = std::min(g_best_eye_fov[1].DownTan, t);
+		}
+		else
+		{
+			memcpy(g_eye_fov, g_best_eye_fov, 2 * sizeof(g_eye_fov[0]));
+		}
+		g_fov_changed = memcmp(g_eye_fov, g_last_eye_fov, 2 * sizeof(g_eye_fov[0])) != 0;
+		memcpy(g_last_eye_fov, g_eye_fov, 2 * sizeof(g_eye_fov[0]));
+	}
+#endif
 }
 
 void InitVR()
@@ -131,8 +174,12 @@ void InitVR()
 			g_has_hmd = true;
 			g_hmd_window_width = hmdDesc.Resolution.w;
 			g_hmd_window_height = hmdDesc.Resolution.h;
-			g_eye_fov[0] = hmdDesc.DefaultEyeFov[0];
-			g_eye_fov[1] = hmdDesc.DefaultEyeFov[1];
+			g_best_eye_fov[0] = hmdDesc.DefaultEyeFov[0];
+			g_best_eye_fov[1] = hmdDesc.DefaultEyeFov[1];
+			g_eye_fov[0] = g_best_eye_fov[0];
+			g_eye_fov[1] = g_best_eye_fov[1];
+			g_last_eye_fov[0] = g_eye_fov[0];
+			g_last_eye_fov[1] = g_eye_fov[1];
 			g_hmd_window_x = hmdDesc.WindowsPos.x;
 			g_hmd_window_y = hmdDesc.WindowsPos.y;
 			g_is_direct_mode = !(hmdDesc.HmdCaps & ovrHmdCap_ExtendDesktop);

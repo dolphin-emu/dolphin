@@ -15,6 +15,9 @@
 namespace HydraTLayer
 {
 
+float vr_gc_dpad_speed = 0, vr_gc_leftstick_speed = 0, vr_gc_rightstick_speed = 0;
+float vr_cc_dpad_speed = 0, vr_wm_dpad_speed = 0, vr_wm_leftstick_speed = 0, vr_wm_rightstick_speed = 0;
+
 void GetButtons(int index, bool sideways, bool has_extension, wm_buttons * butt, bool * cycle_extension)
 {
 	u32 mask;
@@ -31,6 +34,10 @@ void GetButtons(int index, bool sideways, bool has_extension, wm_buttons * butt,
 		butt->hex |= (mask & UDPWM_BD) ? WiimoteEmu::Wiimote::PAD_DOWN : 0;
 		butt->hex |= (mask & UDPWM_BL) ? WiimoteEmu::Wiimote::PAD_LEFT : 0;
 		butt->hex |= (mask & UDPWM_BR) ? WiimoteEmu::Wiimote::PAD_RIGHT : 0;
+	}
+	if (index == 0)
+	{
+		vr_wm_dpad_speed = (butt->hex & (WiimoteEmu::Wiimote::PAD_UP | WiimoteEmu::Wiimote::PAD_DOWN | WiimoteEmu::Wiimote::PAD_LEFT | WiimoteEmu::Wiimote::PAD_RIGHT)) ? 1.0f : 0.0f;;
 	}
 }
 
@@ -72,6 +79,10 @@ void GetNunchuk(int index, u8 *jx, u8 *jy, wm_nc_core *butt)
 		*jx = u8(0x80 + x * 127);
 		*jy = u8(0x80 + y * 127);
 	}
+	if (index == 0)
+	{
+		vr_wm_leftstick_speed = fabs((*jx - 0x80) / 127.0f) + fabs((*jy - 0x80) / 127.0f);
+	}
 }
 
 void GetClassic(int index, wm_classic_extension *ccdata)
@@ -109,6 +120,12 @@ void GetClassic(int index, wm_classic_extension *ccdata)
 		trigger = (u8)(r * 31);
 		ccdata->rt = trigger;
 	}
+	if (index == 0)
+	{
+		vr_cc_dpad_speed = (ccdata->bt.hex & (WiimoteEmu::Classic::PAD_UP | WiimoteEmu::Classic::PAD_DOWN | WiimoteEmu::Classic::PAD_LEFT | WiimoteEmu::Classic::PAD_RIGHT)) ? 1.0f : 0.0f;
+		vr_wm_leftstick_speed = fabs((ccdata->regular_data.lx - 31.5f) / 31.5f) + fabs((ccdata->regular_data.ly - 31.5f) / 31.5f);
+		vr_wm_rightstick_speed = fabs((ccdata->rx1 + (ccdata->rx2 << 1) + (ccdata->rx3 << 3) - 15.5f) / 15.5f) + fabs((ccdata->ry - 15.5f) / 15.5f);
+	}
 }
 
 void GetGameCube(int index, u16 *butt, u8 *stick_x, u8 *stick_y, u8 *substick_x, u8 *substick_y, u8 *ltrigger, u8 *rtrigger)
@@ -135,6 +152,12 @@ void GetGameCube(int index, u16 *butt, u8 *stick_x, u8 *stick_y, u8 *substick_x,
 		*substick_y = (u8)(0x80 + ry * 127);
 		*ltrigger = (u8)(l * 255);
 		*rtrigger = (u8)(r * 255);
+	}
+	if (index == 0)
+	{
+		vr_gc_dpad_speed = (*butt & (PAD_BUTTON_UP | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT | PAD_BUTTON_RIGHT)) ? 1.0f : 0.0f;
+		vr_gc_leftstick_speed = fabs((*stick_x - 0x80) / 127.0f) + fabs((*stick_y - 0x80) / 127.0f);
+		vr_gc_rightstick_speed = fabs((*substick_x - 0x80) / 127.0f) + fabs((*substick_y - 0x80) / 127.0f);
 	}
 }
 
