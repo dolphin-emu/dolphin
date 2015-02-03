@@ -607,9 +607,6 @@ void Interpreter::stfdx(UGeckoInstruction _inst)
 	Memory::Write_U64(riPS0(_inst.FS), Helper_Get_EA_X(_inst));
 }
 
-// __________________________________________________________________________________________________
-// stfiwx
-// TODO - examine what this really does
 // Stores Floating points into Integers indeXed
 void Interpreter::stfiwx(UGeckoInstruction _inst)
 {

@@ -797,7 +797,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Check what XFB we are supposed to draw
-	// VR - currently we never use the XFB and bUseXFB is forced to false in VR mode
+	// If we are using virtual XFB, but there is no XFB, then count it as an empty frame and exit
 	u32 xfbCount = 0;
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
@@ -815,6 +815,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle targetRc = GetTargetRectangle();
 
+	// TODO: Do we still need to set and clear the backbuffer like this in VR mode with the Oculus Rift?
 	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -832,52 +833,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		s_television.Submit(xfbAddr, fbStride, fbWidth, fbHeight);
 		s_television.Render();
 	}
-	else if (g_ActiveConfig.bUseXFB)
-	{
-		const XFBSource* xfbSource;
-
-		// draw each xfb source
-		for (u32 i = 0; i < xfbCount; ++i)
-		{
-			xfbSource = (const XFBSource*)xfbSourceList[i];
-
-			TargetRectangle drawRc;
-
-			// use virtual xfb with offset
-			int xfbHeight = xfbSource->srcHeight;
-			int xfbWidth = xfbSource->srcWidth;
-			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
-			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
-			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
-			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
-
-			// The following code disables auto stretch.  Kept for reference.
-			// scale draw area for a 1 to 1 pixel mapping with the draw target
-			//float vScale = (float)fbHeight / (float)s_backbuffer_height;
-			//float hScale = (float)fbWidth / (float)s_backbuffer_width;
-			//drawRc.top *= vScale;
-			//drawRc.bottom *= vScale;
-			//drawRc.left *= hScale;
-			//drawRc.right *= hScale;
-
-			TargetRectangle sourceRc;
-			sourceRc.left = 0;
-			sourceRc.top = 0;
-			sourceRc.right = (int)xfbSource->texWidth;
-			sourceRc.bottom = (int)xfbSource->texHeight;
-
-			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-
-			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
-		}
-	}
-#ifdef HAVE_OCULUSSDK
 	else if (g_has_rift && g_ActiveConfig.bEnableVR)
 	{
 		// Draw our Razer Hydra
-		DX11::s_avatarDrawer.Draw();
+		if (!g_ActiveConfig.bUseXFB)
+			DX11::s_avatarDrawer.Draw();
 
 		EFBRectangle sourceRc;
 		// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
@@ -887,19 +847,65 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		sourceRc.bottom = EFB_HEIGHT;
 		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
-		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
-		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
+		if (g_ActiveConfig.bUseXFB)
+		{
+			const XFBSource* xfbSource;
 
-		D3D11_VIEWPORT Vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetTargetWidth(), (float)Renderer::GetTargetHeight());
+			// draw each xfb source
+			for (u32 i = 0; i < xfbCount; ++i)
+			{
+				xfbSource = (const XFBSource*)xfbSourceList[i];
 
-		// Render to left eye
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
-		D3D::context->RSSetViewports(1, &Vp);
-		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+				TargetRectangle drawRc;
 
-		// Render to right eye
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), nullptr);
-		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+				// use virtual xfb with offset
+				int xfbHeight = xfbSource->srcHeight;
+				int xfbWidth = xfbSource->srcWidth;
+				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+
+				drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
+				drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
+				drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
+				drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
+
+				TargetRectangle sourceRc;
+				sourceRc.left = 0;
+				sourceRc.top = 0;
+				sourceRc.right = (int)xfbSource->texWidth;
+				sourceRc.bottom = (int)xfbSource->texHeight;
+
+				sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+
+				D3DTexture2D* read_texture = xfbSource->tex;
+
+				D3D11_VIEWPORT Vp = CD3D11_VIEWPORT((float)drawRc.left, (float)drawRc.top, (float)drawRc.GetWidth(), (float)drawRc.GetHeight());
+
+				// Render to left eye
+				D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
+				D3D::context->RSSetViewports(1, &Vp);
+				D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth, xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+
+				// Render to right eye
+				D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), nullptr);
+				D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth, xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+			}
+		}
+		else
+		{
+			// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
+			D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
+
+			D3D11_VIEWPORT Vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetTargetWidth(), (float)Renderer::GetTargetHeight());
+
+			// Render to left eye
+			D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[0]->GetRTV(), nullptr);
+			D3D::context->RSSetViewports(1, &Vp);
+			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+
+			// Render to right eye
+			D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), nullptr);
+			D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+		}
 		// Reset viewport for drawing text
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(400.0f, 400.0f, Renderer::GetTargetWidth() - 400.0f, Renderer::GetTargetHeight() - 400.0f);
 		D3D::context->RSSetViewports(1, &vp);
@@ -963,7 +969,47 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// VR TODO - Direct3D Asynchronous timewarp
 		}
 	}
-#endif
+	else if (g_ActiveConfig.bUseXFB)
+	{
+		const XFBSource* xfbSource;
+
+		// draw each xfb source
+		for (u32 i = 0; i < xfbCount; ++i)
+		{
+			xfbSource = (const XFBSource*)xfbSourceList[i];
+
+			TargetRectangle drawRc;
+
+			// use virtual xfb with offset
+			int xfbHeight = xfbSource->srcHeight;
+			int xfbWidth = xfbSource->srcWidth;
+			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
+
+			drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
+			drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
+			drawRc.left = targetRc.left + (targetRc.GetWidth() - xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
+			drawRc.right = targetRc.left + (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
+
+			// The following code disables auto stretch.  Kept for reference.
+			// scale draw area for a 1 to 1 pixel mapping with the draw target
+			//float vScale = (float)fbHeight / (float)s_backbuffer_height;
+			//float hScale = (float)fbWidth / (float)s_backbuffer_width;
+			//drawRc.top *= vScale;
+			//drawRc.bottom *= vScale;
+			//drawRc.left *= hScale;
+			//drawRc.right *= hScale;
+
+			TargetRectangle sourceRc;
+			sourceRc.left = 0;
+			sourceRc.top = 0;
+			sourceRc.right = (int)xfbSource->texWidth;
+			sourceRc.bottom = (int)xfbSource->texHeight;
+
+			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+
+			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
+		}
+	}
 	else
 	{
 		TargetRectangle sourceRc = Renderer::ConvertEFBRectangle(rc);
@@ -1099,7 +1145,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (g_has_hmd)
 	{
 		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
-			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction)
+			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
+			g_Config.bNoMirrorToWindow != g_ActiveConfig.bNoMirrorToWindow)
 		{
 			VR_ConfigureHMDPrediction();
 		}
@@ -1131,10 +1178,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	// Enable configuration changes
 	UpdateActiveConfig();
-	// VR XFB isn't implemented yet, so always disable it for VR
+	// VR Real XFB isn't implemented yet, so always disable it for VR
 	if (g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
-		g_ActiveConfig.bUseXFB = false;
+		g_ActiveConfig.bUseRealXFB = false;
 		// always stretch to fit
 		g_ActiveConfig.iAspectRatio = 3;
 	}
@@ -1252,8 +1299,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (g_ActiveConfig.bAsynchronousTimewarp)
 			g_vr_lock.unlock();
 	}
-	else if (g_has_hmd)
+	else if (g_has_hmd && !g_ActiveConfig.bDontClearScreen)
 	{
+		// cegli - clearing the screen here causes flickering in games that fake 60fps by only actually updating
+		// the entire screen once every 2 frames.  They rely on the fact that nothing is cleared on the fake frame.
+		// An example of this is Beyond Good and Evil. Removing it aligns D3D with OGL, but adds the same smearing
+		// problem OGL has in the BG&E menu.  Without clearing the screen, some games like PM: TTYD have smearing
+		// around the edges.  How does OGL handle this gracefully?
+		// To Do: Figure out the best thing to do here.
+
 		// VR Clear screen before every frame
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);

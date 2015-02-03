@@ -235,11 +235,13 @@ void VR_ConfigureHMDPrediction()
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift)
 	{
-		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence | ovrHmdCap_NoMirrorToWindow);
 		if (g_Config.bLowPersistence)
 			caps |= ovrHmdCap_LowPersistence;
 		if (g_Config.bDynamicPrediction)
 			caps |= ovrHmdCap_DynamicPrediction;
+		if (g_Config.bNoMirrorToWindow)
+			caps |= ovrHmdCap_NoMirrorToWindow;
 
 		ovrHmd_SetEnabledCaps(hmd, caps);
 	}

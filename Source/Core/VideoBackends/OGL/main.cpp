@@ -272,6 +272,8 @@ void VideoBackend::Shutdown()
 void VideoBackend::ShutdownOtherThread()
 {
 	GLInterface->Shutdown();
+	delete GLInterface;
+	GLInterface = nullptr;
 }
 
 void VideoBackend::Video_Cleanup()

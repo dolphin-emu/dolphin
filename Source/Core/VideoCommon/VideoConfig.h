@@ -153,6 +153,7 @@ struct VideoConfig final
 	bool bEnableVR;
 	bool bLowPersistence;
 	bool bDynamicPrediction;
+	bool bNoMirrorToWindow;
 	bool bOrientationTracking;
 	bool bMagYawCorrection;
 	bool bPositionTracking;
@@ -212,6 +213,7 @@ struct VideoConfig final
 	bool bDisable3D;
 	bool bHudFullscreen;
 	bool bHudOnTop;
+	bool bDontClearScreen;
 	int iTelescopeEye;
 	int iMetroidPrime;
 	// VR layer debugging

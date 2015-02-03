@@ -27,7 +27,7 @@ void UpdateActiveConfig()
 		Movie::SetGraphicsConfig();
 	g_ActiveConfig = g_Config;
 	if (g_has_hmd)
-		g_ActiveConfig.bUseXFB = false;
+		g_ActiveConfig.bUseRealXFB = false;
 }
 
 VideoConfig::VideoConfig()
@@ -65,6 +65,7 @@ VideoConfig::VideoConfig()
 	bAsynchronousTimewarp = false;
 	bLowPersistence = true;
 	bDynamicPrediction = true;
+	bNoMirrorToWindow = false;
 	bOrientationTracking = true;
 	bMagYawCorrection = true;
 	bPositionTracking = true;
@@ -212,6 +213,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("EnableVR", &bEnableVR, true);
 	vr->Get("LowPersistence", &bLowPersistence, true);
 	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
+	vr->Get("NoMirrorToWindow", &bNoMirrorToWindow, true);
 	vr->Get("OrientationTracking", &bOrientationTracking, true);
 	vr->Get("MagYawCorrection", &bMagYawCorrection, true);
 	vr->Get("PositionTracking", &bPositionTracking, true);
@@ -410,6 +412,7 @@ void VideoConfig::GameIniLoad()
 	bDisable3D = false;
 	bHudFullscreen = false;
 	bHudOnTop = false;
+	bDontClearScreen = false;
 	iSelectedLayer = -2;
 	iFlashState = 0;
 
@@ -417,6 +420,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "Disable3D", bDisable3D);
 	CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
 	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
+	CHECK_SETTING("VR", "DontClearScreen", bDontClearScreen);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
@@ -473,6 +477,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
+	SAVE_IF_NOT_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -513,6 +518,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "UnitsPerMetre", fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
 	LOAD_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
+	LOAD_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
 	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	LOAD_DEFAULT("VR", "HudThickness", fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	LOAD_DEFAULT("VR", "Hud3DCloser", fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -628,6 +634,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("EnableVR", bEnableVR);
 	vr->Set("LowPersistence", bLowPersistence);
 	vr->Set("DynamicPrediction", bDynamicPrediction);
+	vr->Set("NoMirrorToWindow", bNoMirrorToWindow);
 	vr->Set("OrientationTracking", bOrientationTracking);
 	vr->Set("MagYawCorrection", bMagYawCorrection);
 	vr->Set("PositionTracking", bPositionTracking);
@@ -700,6 +707,7 @@ bool VideoConfig::VRSettingsModified()
 		|| bDisable3D != g_SavedConfig.bDisable3D
 		|| bHudFullscreen != g_SavedConfig.bHudFullscreen
 		|| bHudOnTop != g_SavedConfig.bHudOnTop
+		|| bDontClearScreen != g_SavedConfig.bDontClearScreen
 		|| iTelescopeEye != g_SavedConfig.iTelescopeEye
 		|| iMetroidPrime != g_SavedConfig.iMetroidPrime;
 }

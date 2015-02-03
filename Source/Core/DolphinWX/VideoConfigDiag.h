@@ -327,6 +327,7 @@ static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD
 static wxString player_desc = wxTRANSLATE("During split-screen games, which player is wearing the Oculus Rift?\nPlayer 1 is top left, player 2 is top right, player 3 is bottom left, player 4 is bottom right.\nThe player in the Rift will only see their player's view.\n\nIf unsure, say Player 1.");
 static wxString lowpersistence_desc = wxTRANSLATE("Use low persistence on DK2 to reduce motion blur when turning your head.\n\nIf unsure, leave this checked.");
 static wxString dynamicpred_desc = wxTRANSLATE("\"Adjust prediction dynamically based on internally measured latency.\"\n\nIf unsure, leave this checked.");
+static wxString nomirrortowindow_desc = wxTRANSLATE("Disable the mirrored window in direct mode.  Current tests show better performance with this unchecked and the mirrored window resized to 0 pixels by 0 pixels. Leave this unchecked.");
 static wxString orientation_desc = wxTRANSLATE("Use orientation tracking.\n\nLeave this checked.");
 static wxString magyaw_desc = wxTRANSLATE("Use the Rift's magnetometers to prevent yaw drift when out of camera range.\n\nIf unsure, leave this checked.");
 static wxString position_desc = wxTRANSLATE("Use position tracking (both from camera and head/neck model).\n\nLeave this checked.");

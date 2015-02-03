@@ -24,6 +24,7 @@ protected:
 
 	u32 s_opengl_mode;
 public:
+	virtual ~cInterfaceBase() {}
 	virtual void Swap() {}
 	virtual void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
 	virtual u32 GetMode() { return s_opengl_mode; }

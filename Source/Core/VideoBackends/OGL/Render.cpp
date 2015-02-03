@@ -2126,15 +2126,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	NewVRFrame();
 
 	// Clear framebuffer
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !g_ActiveConfig.bDontClearScreen)
 	{
 		glClearColor(0, 0, 0, 0);
 		if (g_has_hmd)
 			glClearDepth(1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-	// VR
-	//g_texture_cache->ClearRenderTargets();
 
 	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
@@ -2149,7 +2147,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (g_has_rift)
 	{
 		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
-			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction)
+			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
+			g_Config.bNoMirrorToWindow != g_ActiveConfig.bNoMirrorToWindow)
 		{
 			VR_ConfigureHMDPrediction();
 		}
