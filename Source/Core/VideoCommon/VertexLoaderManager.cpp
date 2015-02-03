@@ -171,9 +171,9 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		{
 			// Set lock so codes can be enabled/disabled in game without crashes.
 			m_LocalCoreStartupParameter.done = false;
-			for (int current_object_removal_code = 0; current_object_removal_code < m_LocalCoreStartupParameter.num_object_removal_codes; current_object_removal_code++)
+			for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
 			{
-				if (!memcmp(src.GetPointer(), &m_LocalCoreStartupParameter.object_removal_codes[current_object_removal_code][0], m_LocalCoreStartupParameter.num_object_removal_data_bytes[current_object_removal_code]))
+				if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
 				{
 					//Data didn't match, try next object_removal_code
 					return size;
