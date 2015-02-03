@@ -2,6 +2,7 @@
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 FramebufferManagerBase *g_framebuffer_manager;
 
@@ -166,7 +167,10 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = fbWidth;
 	vxfb->xfbSource->srcHeight = vxfb->xfbHeight = fbHeight;
 
-	vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(sourceRc);
+	if (g_has_hmd && g_ActiveConfig.bEnableVR)
+		vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(EFBRectangle(0, 0, EFB_WIDTH, EFB_HEIGHT));
+	else
+		vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(sourceRc);
 
 	// keep stale XFB data from being used
 	ReplaceVirtualXFB();
