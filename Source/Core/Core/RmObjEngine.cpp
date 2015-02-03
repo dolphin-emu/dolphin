@@ -133,7 +133,7 @@ namespace RmObjEngine
 			while (SConfig::GetInstance().m_LocalCoreStartupParameter.done == false) {}
 
 		SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.clear();
-		SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_skip_data_bytes.clear();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_removal_data_bytes.clear();
 
 		for (const RmObj& rmobject : rmobjects)
 		{
@@ -147,7 +147,7 @@ namespace RmObjEngine
 					int size = GetRmObjTypeCharLength(entry.type) >> 1;
 
 					//Save the size of each entry, so it doesn't have to be calculated over and over during the rendering loop.
-					SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_skip_data_bytes.push_back(size);
+					SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_removal_data_bytes.push_back(size);
 
 					if (size > 8) 
 					{
