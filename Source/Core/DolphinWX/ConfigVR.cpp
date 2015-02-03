@@ -466,7 +466,16 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iMotionSicknessMethod);
 		}
-	
+		// Motion Sickness FOV
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fMotionSicknessFOV,
+				wxGetTranslation(temp_desc), 1, 179, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Reduced FOV:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+
 		szr_vr->Add(CreateCheckBox(page_vr, _("Always"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessAlways));
 		szr_vr->Add(CreateCheckBox(page_vr, _("During Freelook"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessFreelook));
 		szr_vr->Add(CreateCheckBox(page_vr, _("On 2D Screens"), wxGetTranslation(temp_desc), vconfig.bMotionSickness2D));

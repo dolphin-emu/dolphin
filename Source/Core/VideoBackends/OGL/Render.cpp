@@ -2220,7 +2220,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			g_Config.bFlipVertical != g_ActiveConfig.bFlipVertical ||
 			g_Config.bSRGB != g_ActiveConfig.bSRGB ||
 			g_Config.bOverdrive != g_ActiveConfig.bOverdrive ||
-			g_Config.bHqDistortion != g_ActiveConfig.bHqDistortion)
+			g_Config.bHqDistortion != g_ActiveConfig.bHqDistortion ||
+			g_fov_changed)
 		{
 			VR_ConfigureHMD();
 		}
