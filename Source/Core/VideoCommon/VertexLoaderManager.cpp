@@ -173,7 +173,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 			m_LocalCoreStartupParameter.done = false;
 			for (int current_object_removal_code = 0; current_object_removal_code < m_LocalCoreStartupParameter.num_object_removal_codes; current_object_removal_code++)
 			{
-				for (int d = 0; d < m_LocalCoreStartupParameter.num_object_skip_data_bytes[current_object_removal_code]; d++)
+				for (int d = 0; d < m_LocalCoreStartupParameter.num_object_removal_data_bytes[current_object_removal_code]; d++)
 				{
 					if (src.Peek<u8, false>(d) != m_LocalCoreStartupParameter.object_removal_codes[current_object_removal_code][d])
 					{
@@ -182,7 +182,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 					}
 					else
 					{
-						if (d == (m_LocalCoreStartupParameter.num_object_skip_data_bytes[current_object_removal_code] - 1))
+						if (d == (m_LocalCoreStartupParameter.num_object_removal_data_bytes[current_object_removal_code] - 1))
 						{
 							//Data stream matched the entry, skip rendering it.
 							return size;
