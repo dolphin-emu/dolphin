@@ -1398,25 +1398,22 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		}
 
 		unsigned int i = NUM_HOTKEYS;
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
+		for (i = 0; i < NUM_HOTKEYS; i++)
 		{
-			for (i = 0; i < NUM_HOTKEYS; i++)
+			if (IsHotkey(event, i))
 			{
-				if (IsHotkey(event, i))
+				int cmd = GetCmdForHotkey(i);
+				if (cmd >= 0)
 				{
-					int cmd = GetCmdForHotkey(i);
-					if (cmd >= 0)
+					wxCommandEvent evt(wxEVT_MENU, cmd);
+					wxMenuItem *item = GetMenuBar()->FindItem(cmd);
+					if (item && item->IsCheckable())
 					{
-						wxCommandEvent evt(wxEVT_MENU, cmd);
-						wxMenuItem *item = GetMenuBar()->FindItem(cmd);
-						if (item && item->IsCheckable())
-						{
-							item->wxMenuItemBase::Toggle();
-							evt.SetInt(item->IsChecked());
-						}
-						GetEventHandler()->AddPendingEvent(evt);
-						break;
+						item->wxMenuItemBase::Toggle();
+						evt.SetInt(item->IsChecked());
 					}
+					GetEventHandler()->AddPendingEvent(evt);
+					break;
 				}
 			}
 		}
