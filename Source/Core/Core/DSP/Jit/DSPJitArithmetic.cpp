@@ -179,7 +179,7 @@ void DSPEmitter::cmp(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(acc0, res), isOverflow(acc0, -acc1, res)); // CF -> influence on ABS/0xa100
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -210,7 +210,7 @@ void DSPEmitter::cmpar(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(sr, res), isOverflow(sr, -rr, res));
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -239,7 +239,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(val, res), isOverflow(val, -imm, res));
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -268,7 +268,7 @@ void DSPEmitter::cmpis(const UDSPInstruction opc)
 		SUB(64, R(RAX), R(RDX));
 //		Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -val, res));
 		NEG(64, R(RDX));
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 		gpr.putXReg(tmp1);
 	}
 }
@@ -862,7 +862,7 @@ void DSPEmitter::subr(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -898,7 +898,7 @@ void DSPEmitter::subax(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -932,7 +932,7 @@ void DSPEmitter::sub(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -966,7 +966,7 @@ void DSPEmitter::subp(const UDSPInstruction opc)
 		NEG(64, R(RDX));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -999,7 +999,7 @@ void DSPEmitter::decm(const UDSPInstruction opc)
 		MOV(64, R(RDX), Imm64(-subtract));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
@@ -1031,7 +1031,7 @@ void DSPEmitter::dec(const UDSPInstruction opc)
 		MOV(64, R(RDX), Imm64(-1));
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1, true);
 	}
 	else
 	{
