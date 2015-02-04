@@ -346,7 +346,7 @@ private:
 	void PollHotkeys(wxTimerEvent&);
 	void ParseHotkeys(wxKeyEvent &event);
 
-	bool InitHotkeys();
+	bool InitControllers();
 
 	// Event table
 	DECLARE_EVENT_TABLE();

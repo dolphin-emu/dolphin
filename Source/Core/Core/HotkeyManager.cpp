@@ -48,7 +48,7 @@ const std::string hotkey_labels[] =
 	_trans("Change Disc"),
 	_trans("Refresh List"),
 
-	_trans("Play/Pause"),
+	_trans("Toggle Pause"),
 	_trans("Stop"),
 	_trans("Reset"),
 	_trans("Frame Advance"),
@@ -205,7 +205,8 @@ bool IsPressed(int Id, bool held)
 
 void Initialize(void* const hwnd)
 {
-	s_config.controllers.push_back(new HotkeyManager());
+	if (s_config.controllers.empty())
+		s_config.controllers.push_back(new HotkeyManager());
 
 	g_controller_interface.Initialize(hwnd);
 

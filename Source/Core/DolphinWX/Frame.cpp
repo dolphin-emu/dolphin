@@ -50,6 +50,9 @@
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/HW/DVDInterface.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/Wiimote.h"
 
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
@@ -345,15 +348,21 @@ END_EVENT_TABLE()
 // Creation and close, quit functions
 
 
-bool CFrame::InitHotkeys()
+bool CFrame::InitControllers()
 {
 	if (!g_controller_interface.IsInit())
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
+		Pad::Initialize(reinterpret_cast<void*>(win));
+		Keyboard::Initialize(reinterpret_cast<void*>(win));
+		Wiimote::Initialize(reinterpret_cast<void*>(win));
 #else
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
+		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
+		Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
+		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 		return true;
 	}
@@ -497,7 +506,7 @@ CFrame::CFrame(wxFrame* parent,
 		g_pCodeWindow->UpdateButtonStates();
 
 	// check if game is running
-	m_bHotkeysInit = InitHotkeys();
+	m_bHotkeysInit = InitControllers();
 
 	m_poll_hotkey_timer = new wxTimer(this);
 	Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
@@ -510,7 +519,11 @@ CFrame::~CFrame()
 
 	if (m_bHotkeysInit)
 	{
+		Wiimote::Shutdown();
+		Keyboard::Shutdown();
+		Pad::Shutdown();
 		HotkeyManagerEmu::Shutdown();
+		m_bHotkeysInit = false;
 	}
 
 	drives.clear();
@@ -938,6 +951,9 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 static bool IsHotkey(wxKeyEvent &event, int Id, bool keyUp = false)
 {
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		return false;
+
 	// Input event hotkey
 	if (event.GetKeyCode() == WXK_NONE)
 	{
@@ -1261,7 +1277,7 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
 	{
-		InitHotkeys();
+		m_bHotkeysInit = InitControllers();
 		g_controller_interface.UpdateInput();
 	}
 
