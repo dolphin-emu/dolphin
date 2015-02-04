@@ -203,7 +203,7 @@ IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
 	Section* section = GetSection(sectionName);
 	if (!section)
 	{
-		sections.push_back(Section(sectionName));
+		sections.emplace_back(sectionName);
 		section = &sections.back();
 	}
 	return section;

@@ -175,7 +175,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 					if (target != INVALID_TARGET && instr.LK)
 					{
 						//we found a branch-n-link!
-						func.calls.push_back(SCall(target,addr));
+						func.calls.emplace_back(target, addr);
 						func.flags &= ~FFLAG_LEAF;
 					}
 				}

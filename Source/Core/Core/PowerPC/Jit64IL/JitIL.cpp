@@ -186,7 +186,7 @@ namespace JitILProfiler
 	static Block& Add(u64 codeHash)
 	{
 		const u32 _blockIndex = (u32)blocks.size();
-		blocks.push_back(Block());
+		blocks.emplace_back();
 		Block& block = blocks.back();
 		block.index = _blockIndex;
 		block.codeHash = codeHash;

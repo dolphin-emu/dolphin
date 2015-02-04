@@ -128,9 +128,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 		if (m_virtualXFBList.size() < MAX_VIRTUAL_XFB)
 		{
 			// create a new Virtual XFB and place it at the front of the list
-			VirtualXFB v;
-			memset(&v, 0, sizeof v);
-			m_virtualXFBList.push_front(v);
+			m_virtualXFBList.emplace_front();
 			vxfb = m_virtualXFBList.begin();
 		}
 		else
