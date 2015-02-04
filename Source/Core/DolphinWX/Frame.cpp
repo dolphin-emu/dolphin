@@ -52,6 +52,7 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
+#include "Core/HW/Wiimote.h"
 
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
@@ -356,10 +357,12 @@ bool CFrame::InitControllers()
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
 		Pad::Initialize(reinterpret_cast<void*>(win));
 		Keyboard::Initialize(reinterpret_cast<void*>(win));
+		Wiimote::Initialize(reinterpret_cast<void*>(win));
 #else
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
 		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
 		Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
+		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 		return true;
 	}
@@ -516,9 +519,10 @@ CFrame::~CFrame()
 
 	if (m_bHotkeysInit)
 	{
-		HotkeyManagerEmu::Shutdown();
+		Wiimote::Shutdown();
 		Keyboard::Shutdown();
 		Pad::Shutdown();
+		HotkeyManagerEmu::Shutdown();
 		m_bHotkeysInit = false;
 	}
 

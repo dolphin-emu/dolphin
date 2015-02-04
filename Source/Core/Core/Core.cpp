@@ -484,10 +484,9 @@ void EmuThread()
 	HW::Shutdown();
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
 
-	Wiimote::Shutdown();
-
 	if (init_controllers)
 	{
+		Wiimote::Shutdown();
 		Keyboard::Shutdown();
 		Pad::Shutdown();
 		init_controllers = false;
