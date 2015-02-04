@@ -107,7 +107,6 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool 
 }
 
 // In: RAX: s64 _Value
-// Clobbers RDX
 void DSPEmitter::Update_SR_Register16(X64Reg val)
 {
 	OpArg sr_reg;
@@ -144,7 +143,7 @@ void DSPEmitter::Update_SR_Register16(X64Reg val)
 }
 
 // In: RAX: s64 _Value
-// Clobbers RDX
+// Clobbers RCX
 void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 {
 	OpArg sr_reg;
