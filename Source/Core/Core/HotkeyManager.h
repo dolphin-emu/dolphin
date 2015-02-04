@@ -36,6 +36,4 @@ namespace HotkeyManagerEmu
 	InputConfig* GetConfig();
 	void GetStatus(u8 _port, HotkeyStatus* _pKeyboardStatus);
 	bool IsPressed(int Id, bool held);
-
-	static u32 hotkeyDown[6];
 }

@@ -41,7 +41,7 @@ struct ShapePosition
 };
 
 // regular octagon
-void DrawOctagon(wxDC* dc, ShapePosition p)
+static void DrawOctagon(wxDC* dc, ShapePosition p)
 {
 	const int vertices = 8;
 	double radius = p.max;
@@ -63,7 +63,7 @@ void DrawOctagon(wxDC* dc, ShapePosition p)
 }
 
 // irregular dodecagon
-void DrawDodecagon(wxDC* dc, ShapePosition p)
+static void DrawDodecagon(wxDC* dc, ShapePosition p)
 {
 	const int vertices = 12;
 
@@ -108,7 +108,7 @@ static void DrawCoordinate(wxDC &dc, ControlState x, ControlState y)
 	DrawCenteredRectangle(dc, xc, yc, COORD_VIS_SIZE, COORD_VIS_SIZE);
 }
 
-void DrawButton(unsigned int* const bitmasks, unsigned int buttons, unsigned int n, wxDC& dc, ControlGroupBox* g, unsigned int row)
+static void DrawButton(unsigned int* const bitmasks, unsigned int buttons, unsigned int n, wxDC& dc, ControlGroupBox* g, unsigned int row)
 {
 	if (buttons & bitmasks[(row * 8) + n])
 	{
