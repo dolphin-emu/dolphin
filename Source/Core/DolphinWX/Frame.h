@@ -47,6 +47,8 @@ class wxAuiNotebook;
 class wxAuiNotebookEvent;
 class wxListEvent;
 class wxMenuItem;
+class wxTimer;
+class wxTimerEvent;
 class wxWindow;
 
 class CRenderFrame : public wxFrame
@@ -175,6 +177,7 @@ private:
 	bool m_bGameLoading;
 	bool m_bClosing;
 	bool m_confirmStop;
+	bool m_bHotkeysInit;
 
 	std::vector<std::string> drives;
 
@@ -194,6 +197,8 @@ private:
 		Toolbar_Controller,
 		EToolbar_Max
 	};
+
+	wxTimer* m_poll_hotkey_timer;
 
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
@@ -295,6 +300,7 @@ private:
 	void OnConfigAudio(wxCommandEvent& event);
 	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
+	void OnConfigMenuCommands(wxCommandEvent& event);
 
 	void OnToggleFullscreen(wxCommandEvent& event);
 	void OnToggleDualCore(wxCommandEvent& event);
@@ -336,6 +342,11 @@ private:
 	void OnSelectSlot(wxCommandEvent& event);
 	void OnSaveCurrentSlot(wxCommandEvent& event);
 	void OnLoadCurrentSlot(wxCommandEvent& event);
+
+	void PollHotkeys(wxTimerEvent&);
+	void ParseHotkeys(wxKeyEvent &event);
+
+	bool InitHotkeys();
 
 	// Event table
 	DECLARE_EVENT_TABLE();

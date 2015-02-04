@@ -119,12 +119,12 @@ void DrawButton(unsigned int* const bitmasks, unsigned int buttons, unsigned int
 		unsigned char amt = 255 - g->control_group->controls[(row * 8) + n]->control_ref->State() * 128;
 		dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
 	}
-	dc.DrawRectangle(n * 12, (row == 0) ? 0 : (row * 12 - 1), 14, 12);
+	dc.DrawRectangle(n * 12, (row == 0) ? 0 : (row * 11), 14, 12);
 
 	// text
 	const std::string name = g->control_group->controls[(row * 8) + n]->name;
 	// bit of hax so ZL, ZR show up as L, R
-	dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n * 12 + 2, 1 + ((row == 0) ? 0 : (row * 12 - 1)));
+	dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n * 12 + 2, 1 + ((row == 0) ? 0 : (row * 11)));
 }
 
 static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)

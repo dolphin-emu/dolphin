@@ -9,6 +9,7 @@ set(SRCS	ActionReplay.cpp
 			ec_wii.cpp
 			GeckoCodeConfig.cpp
 			GeckoCode.cpp
+			HotkeyManager.cpp
 			MemTools.cpp
 			Movie.cpp
 			NetPlayClient.cpp

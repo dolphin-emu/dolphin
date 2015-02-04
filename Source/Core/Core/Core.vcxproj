@@ -94,6 +94,7 @@
     <ClCompile Include="HLE\HLE.cpp" />
     <ClCompile Include="HLE\HLE_Misc.cpp" />
     <ClCompile Include="HLE\HLE_OS.cpp" />
+    <ClCompile Include="HotkeyManager.cpp" />
     <ClCompile Include="HW\AudioInterface.cpp" />
     <ClCompile Include="HW\BBA-TAP\TAP_Win32.cpp" />
     <ClCompile Include="HW\CPU.cpp" />
@@ -306,6 +307,7 @@
     <ClInclude Include="HLE\HLE_Misc.h" />
     <ClInclude Include="HLE\HLE_OS.h" />
     <ClInclude Include="Host.h" />
+    <ClInclude Include="HotkeyManager.h" />
     <ClInclude Include="HW\AudioInterface.h" />
     <ClInclude Include="HW\BBA-TAP\TAP_Win32.h" />
     <ClInclude Include="HW\CPU.h" />

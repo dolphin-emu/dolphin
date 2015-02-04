@@ -185,118 +185,118 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 
 #define HOTKEY_NUM_COLUMNS 2
 
+const wxString hkText[] =
+{
+	_("Open"),
+	_("Change Disc"),
+	_("Refresh List"),
+
+	_("Play/Pause"),
+	_("Stop"),
+	_("Reset"),
+	_("Frame Advance"),
+
+	_("Start Recording"),
+	_("Play Recording"),
+	_("Export Recording"),
+	_("Read-only mode"),
+
+	_("Toggle Fullscreen"),
+	_("Take Screenshot"),
+	_("Exit"),
+
+	_("Connect Wiimote 1"),
+	_("Connect Wiimote 2"),
+	_("Connect Wiimote 3"),
+	_("Connect Wiimote 4"),
+	_("Connect Balance Board"),
+
+	_("Volume Down"),
+	_("Volume Up"),
+	_("Volume Toggle Mute"),
+
+	_("Toggle IR"),
+	_("Toggle Aspect Ratio"),
+	_("Toggle EFB Copies"),
+	_("Toggle Fog"),
+	_("Toggle Frame limit"),
+	_("Decrease Frame limit"),
+	_("Increase Frame limit"),
+
+	_("Freelook Decrease Speed"),
+	_("Freelook Increase Speed"),
+	_("Freelook Reset Speed"),
+	_("Freelook Move Up"),
+	_("Freelook Move Down"),
+	_("Freelook Move Left"),
+	_("Freelook Move Right"),
+	_("Freelook Zoom In"),
+	_("Freelook Zoom Out"),
+	_("Freelook Reset"),
+
+	_("Decrease Depth"),
+	_("Increase Depth"),
+	_("Decrease Convergence"),
+	_("Increase Convergence"),
+
+	_("Load State Slot 1"),
+	_("Load State Slot 2"),
+	_("Load State Slot 3"),
+	_("Load State Slot 4"),
+	_("Load State Slot 5"),
+	_("Load State Slot 6"),
+	_("Load State Slot 7"),
+	_("Load State Slot 8"),
+	_("Load State Slot 9"),
+	_("Load State Slot 10"),
+
+	_("Save State Slot 1"),
+	_("Save State Slot 2"),
+	_("Save State Slot 3"),
+	_("Save State Slot 4"),
+	_("Save State Slot 5"),
+	_("Save State Slot 6"),
+	_("Save State Slot 7"),
+	_("Save State Slot 8"),
+	_("Save State Slot 9"),
+	_("Save State Slot 10"),
+
+	_("Select State Slot 1"),
+	_("Select State Slot 2"),
+	_("Select State Slot 3"),
+	_("Select State Slot 4"),
+	_("Select State Slot 5"),
+	_("Select State Slot 6"),
+	_("Select State Slot 7"),
+	_("Select State Slot 8"),
+	_("Select State Slot 9"),
+	_("Select State Slot 10"),
+
+	_("Save to selected slot"),
+	_("Load from selected slot"),
+
+	_("Load State Last 1"),
+	_("Load State Last 2"),
+	_("Load State Last 3"),
+	_("Load State Last 4"),
+	_("Load State Last 5"),
+	_("Load State Last 6"),
+	_("Load State Last 7"),
+	_("Load State Last 8"),
+
+	_("Save Oldest State"),
+	_("Undo Load State"),
+	_("Undo Save State"),
+	_("Save State"),
+	_("Load State"),
+};
+
 void HotkeyConfigDialog::CreateHotkeyGUIControls()
 {
 	const wxString pageNames[] =
 	{
 		_("General"),
 		_("State Saves")
-	};
-
-	const wxString hkText[] =
-	{
-		_("Open"),
-		_("Change Disc"),
-		_("Refresh List"),
-
-		_("Play/Pause"),
-		_("Stop"),
-		_("Reset"),
-		_("Frame Advance"),
-
-		_("Start Recording"),
-		_("Play Recording"),
-		_("Export Recording"),
-		_("Read-only mode"),
-
-		_("Toggle Fullscreen"),
-		_("Take Screenshot"),
-		_("Exit"),
-
-		_("Connect Wiimote 1"),
-		_("Connect Wiimote 2"),
-		_("Connect Wiimote 3"),
-		_("Connect Wiimote 4"),
-		_("Connect Balance Board"),
-
-		_("Volume Down"),
-		_("Volume Up"),
-		_("Volume Toggle Mute"),
-
-		_("Toggle IR"),
-		_("Toggle Aspect Ratio"),
-		_("Toggle EFB Copies"),
-		_("Toggle Fog"),
-		_("Toggle Frame limit"),
-		_("Decrease Frame limit"),
-		_("Increase Frame limit"),
-
-		_("Freelook Decrease Speed"),
-		_("Freelook Increase Speed"),
-		_("Freelook Reset Speed"),
-		_("Freelook Move Up"),
-		_("Freelook Move Down"),
-		_("Freelook Move Left"),
-		_("Freelook Move Right"),
-		_("Freelook Zoom In"),
-		_("Freelook Zoom Out"),
-		_("Freelook Reset"),
-
-		_("Decrease Depth"),
-		_("Increase Depth"),
-		_("Decrease Convergence"),
-		_("Increase Convergence"),
-
-		_("Load State Slot 1"),
-		_("Load State Slot 2"),
-		_("Load State Slot 3"),
-		_("Load State Slot 4"),
-		_("Load State Slot 5"),
-		_("Load State Slot 6"),
-		_("Load State Slot 7"),
-		_("Load State Slot 8"),
-		_("Load State Slot 9"),
-		_("Load State Slot 10"),
-
-		_("Save State Slot 1"),
-		_("Save State Slot 2"),
-		_("Save State Slot 3"),
-		_("Save State Slot 4"),
-		_("Save State Slot 5"),
-		_("Save State Slot 6"),
-		_("Save State Slot 7"),
-		_("Save State Slot 8"),
-		_("Save State Slot 9"),
-		_("Save State Slot 10"),
-
-		_("Select State Slot 1"),
-		_("Select State Slot 2"),
-		_("Select State Slot 3"),
-		_("Select State Slot 4"),
-		_("Select State Slot 5"),
-		_("Select State Slot 6"),
-		_("Select State Slot 7"),
-		_("Select State Slot 8"),
-		_("Select State Slot 9"),
-		_("Select State Slot 10"),
-
-		_("Save to selected slot"),
-		_("Load from selected slot"),
-
-		_("Load State Last 1"),
-		_("Load State Last 2"),
-		_("Load State Last 3"),
-		_("Load State Last 4"),
-		_("Load State Last 5"),
-		_("Load State Last 6"),
-		_("Load State Last 7"),
-		_("Load State Last 8"),
-
-		_("Save Oldest State"),
-		_("Undo Load State"),
-		_("Undo Save State"),
-		_("Save State"),
-		_("Load State"),
 	};
 
 	const int page_breaks[3] = {HK_OPEN, HK_LOAD_STATE_SLOT_1, NUM_HOTKEYS};

@@ -32,6 +32,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/EXI.h"
@@ -47,9 +48,12 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/HotkeyDlg.h"
+#include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
+
+#include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -924,8 +928,34 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_HOTKEY_CONFIG:
 		{
-			HotkeyConfigDialog m_HotkeyDialog(this);
-			m_HotkeyDialog.ShowModal();
+			bool was_init = false;
+
+			InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
+
+			// check if game is running
+			if (g_controller_interface.IsInit())
+			{
+				was_init = true;
+			}
+			else
+			{
+#if defined(HAVE_X11) && HAVE_X11
+				Window win = X11Utils::XWindowFromHandle(GetHandle());
+				HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
+#else
+				HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
+#endif
+			}
+
+			InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"), 0);
+			m_ConfigFrame.ShowModal();
+			m_ConfigFrame.Destroy();
+
+			// if game isn't running
+			if (!was_init)
+			{
+				HotkeyManagerEmu::Shutdown();
+			}
 		}
 		// Update the GUI in case menu accelerators were changed
 		main_frame->UpdateGUI();
