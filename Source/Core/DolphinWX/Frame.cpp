@@ -947,6 +947,9 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 static bool IsHotkey(wxKeyEvent &event, int Id, bool keyUp = false)
 {
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		return false;
+
 	// Input event hotkey
 	if (event.GetKeyCode() == WXK_NONE)
 	{
