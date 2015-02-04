@@ -83,53 +83,44 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsPostProcessing = false;
 
-	IDXGIFactory* factory;
-	IDXGIAdapter* ad;
-	hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	IDXGIFactory1* factory;
+	IDXGIAdapter1* ad;
+	hr = DX11::PCreateDXGIFactory1(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
 	// adapters
-	g_Config.backend_info.Adapters.clear();
 	g_Config.backend_info.AAModes.clear();
-	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
+	factory->EnumAdapters1(0, &ad);
+
+	DXGI_ADAPTER_DESC desc;
+	ad->GetDesc(&desc);
+
+	std::string samples;
+	std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
+	for (unsigned int i = 0; i < modes.size(); ++i)
 	{
-		const size_t adapter_index = g_Config.backend_info.Adapters.size();
+		if (i == 0)
+			samples = _trans("None");
+		else if (modes[i].Quality)
+			samples = StringFromFormat(_trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
+		else
+			samples = StringFromFormat(_trans("%d samples"), modes[i].Count);
 
-		DXGI_ADAPTER_DESC desc;
-		ad->GetDesc(&desc);
-
-		// TODO: These don't get updated on adapter change, yet
-		if (adapter_index == g_Config.iAdapter)
-		{
-			std::string samples;
-			std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
-			for (unsigned int i = 0; i < modes.size(); ++i)
-			{
-				if (i == 0)
-					samples = _trans("None");
-				else if (modes[i].Quality)
-					samples = StringFromFormat(_trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
-				else
-					samples = StringFromFormat(_trans("%d samples"), modes[i].Count);
-
-				g_Config.backend_info.AAModes.push_back(samples);
-			}
-
-			bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
-
-			// Requires the earlydepthstencil attribute (only available in shader model 5)
-			g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
-
-			// Requires full UAV functionality (only available in shader model 5)
-			g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
-
-			// Requires the instance attribute (only available in shader model 5)
-			g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
-		}
-		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
-		ad->Release();
+		g_Config.backend_info.AAModes.push_back(samples);
 	}
+
+	bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
+
+	// Requires the earlydepthstencil attribute (only available in shader model 5)
+	g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
+
+	// Requires full UAV functionality (only available in shader model 5)
+	g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
+
+	// Requires the instance attribute (only available in shader model 5)
+	g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
+
 	factory->Release();
 
 	// Clear ppshaders string vector

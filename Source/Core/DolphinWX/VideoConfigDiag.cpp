@@ -102,7 +102,6 @@ static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use int
 #else
 static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
-static wxString adapter_desc = wxTRANSLATE("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, select auto.");
 static wxString use_fullscreen_desc = wxTRANSLATE("Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a render window will be created instead.\n\nIf unsure, leave this unchecked.");
 static wxString auto_window_size_desc = wxTRANSLATE("Automatically adjusts the window size to your internal resolution.\n\nIf unsure, leave this unchecked.");
@@ -255,24 +254,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_basic->Add(choice_backend, 1, 0, 0);
 	}
-
-	// adapter (D3D only)
-	if (vconfig.backend_info.Adapters.size())
-	{
-		choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
-
-		for (const std::string& adapter : vconfig.backend_info.Adapters)
-		{
-			choice_adapter->AppendString(StrToWxStr(adapter));
-		}
-
-		choice_adapter->Select(vconfig.iAdapter);
-
-		label_adapter = new wxStaticText(page_general, wxID_ANY, _("Adapter:"));
-		szr_basic->Add(label_adapter, 1, wxALIGN_CENTER_VERTICAL, 5);
-		szr_basic->Add(choice_adapter, 1, 0, 0);
-	}
-
 
 	// - display
 	wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, 5, 5);
