@@ -2180,11 +2180,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	NewVRFrame();
 
 	// Clear framebuffer
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !g_ActiveConfig.bDontClearScreen)
+	if (g_has_hmd && g_ActiveConfig.bEnableVR)
+	{
+		if (!g_ActiveConfig.bDontClearScreen)
+		{
+			FramebufferManager::SetFramebuffer(0);
+			glClearDepth(1);
+			glClearColor(0, 0, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+	else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
 		glClearColor(0, 0, 0, 0);
-		if (g_has_hmd)
-			glClearDepth(1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
