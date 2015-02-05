@@ -307,7 +307,6 @@ void VideoBackend::Video_Cleanup()
 			GLInterface->ClearCurrentOffscreen();
 		else
 			GLInterface->ClearCurrent();
-		SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
 		ShutdownVR();
 	}
 }
