@@ -245,7 +245,6 @@ void VideoBackend::Shutdown()
 		delete g_renderer;
 		g_renderer = nullptr;
 		g_texture_cache = nullptr;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
 		ShutdownVR();
 	}
 }

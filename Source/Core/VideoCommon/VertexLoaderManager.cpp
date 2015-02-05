@@ -167,20 +167,14 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	// Object Removal Code code
 	if (m_LocalCoreStartupParameter.num_object_removal_codes)
 	{
-		if (m_LocalCoreStartupParameter.update)
+		for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
 		{
-			// Set lock so codes can be enabled/disabled in game without crashes.
-			m_LocalCoreStartupParameter.done = false;
-			for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
+			if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
 			{
-				if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
-				{
-					//Data didn't match, try next object_removal_code
-					return size;
-				}
+				//Data didn't match, try next object_removal_code
+				return size;
 			}
 		}
-		m_LocalCoreStartupParameter.done = true;
 	}
 
 	// If the native vertex format changed, force a flush.
