@@ -354,16 +354,6 @@ void ReleaseTraversalClient()
 	if (!g_TraversalClient)
 		return;
 
-	if (g_OldPort != 0)
-	{
-		// If we were listening at a specific port, kill the
-		// TraversalClient to avoid hanging on to the port.
-		g_TraversalClient.reset();
-		g_MainNetHost.reset();
-	}
-	else
-	{
-		// Reset any pending connection attempts.
-		g_TraversalClient->Reset();
-	}
+	g_TraversalClient.release();
+	g_MainNetHost.release();
 }

@@ -95,7 +95,7 @@ private:
 	PadMapping      m_pad_map[4];
 	PadMapping      m_wiimote_map[4];
 
-	std::map<u32, Client> m_players;
+	std::map<PlayerId, Client> m_players;
 
 	struct
 	{

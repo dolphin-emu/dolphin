@@ -150,7 +150,11 @@ void NetPlayServer::ThreadFunc()
 					// don't need to lock, this client isn't in the client map
 					std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 					Send(accept_peer, spac);
-
+					if (netEvent.peer->data)
+					{
+						delete (PlayerId *) netEvent.peer->data;
+						netEvent.peer->data = nullptr;
+					}
 					enet_peer_disconnect(accept_peer, 0);
 				}
 			}
@@ -160,13 +164,19 @@ void NetPlayServer::ThreadFunc()
 				sf::Packet rpac;
 				rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
 
-				auto it = m_players.find(netEvent.peer->connectID);
+				auto it = m_players.find(*(PlayerId *)netEvent.peer->data);
 				Client& client = it->second;
 				if (OnData(rpac, client) != 0)
 				{
 					// if a bad packet is received, disconnect the client
 					std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 					OnDisconnect(client);
+
+					if (netEvent.peer->data)
+					{
+						delete (PlayerId *)netEvent.peer->data;
+						netEvent.peer->data = nullptr;
+					}
 				}
 				enet_packet_destroy(netEvent.packet);
 			}
@@ -174,13 +184,17 @@ void NetPlayServer::ThreadFunc()
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
 				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-				auto it = m_players.find(netEvent.peer->connectID);
+				auto it = m_players.find(*(PlayerId *)netEvent.peer->data);
 				if (it != m_players.end())
 				{
 					Client& client = it->second;
 					OnDisconnect(client);
 
-					netEvent.peer->data = nullptr;
+					if (netEvent.peer->data)
+					{
+						delete (PlayerId *)netEvent.peer->data;
+						netEvent.peer->data = nullptr;
+					}
 				}
 			}
 			break;
@@ -192,7 +206,11 @@ void NetPlayServer::ThreadFunc()
 
 	// close listening socket and client sockets
 	for (auto& player_entry : m_players)
+	{
+		delete (PlayerId *)player_entry.second.socket->data;
+		player_entry.second.socket->data = nullptr;
 		enet_peer_disconnect(player_entry.second.socket, 0);
+	}
 }
 
 // called from ---NETPLAY--- thread
@@ -241,6 +259,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 		}
 	}
 	player.pid = pid;
+	socket->data = new PlayerId(pid);
 
 	// try to automatically assign new user a pad
 	for (PadMapping& mapping : m_pad_map)
@@ -296,7 +315,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	// add client to the player list
 	{
 		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		m_players.insert(std::pair<u32, Client>(player.socket->connectID, player));
+		m_players.insert(std::pair<PlayerId, Client>(*(PlayerId *)player.socket->data, player));
 		std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 		UpdatePadMapping(); // sync pad mappings with everyone
 		UpdateWiimoteMapping();
