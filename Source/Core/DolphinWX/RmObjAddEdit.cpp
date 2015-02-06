@@ -102,7 +102,7 @@ void CRmObjAddEdit::SaveRmObjData(wxCommandEvent& event)
 {
 	if (!UpdateTempEntryData(itCurEntry))
 		return;
-		
+
 	if (selection == -1)
 	{
 		for (int i = 0; i < rmObjCodes.size(); ++i)
@@ -145,18 +145,18 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	int length = EditRmObjValue->GetValue().length();
 
 	// Parse Upper If Needed
-	if (tempType > RmObjEngine::RMOBJ_64BIT) 
+	if (tempType > RmObjEngine::RMOBJ_64BIT)
 	{
-		if (length > 16) 
+		if (length > 16)
 		{
-			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) 
+			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16))
 			{
 				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType - 8)))
 					length = 16;
 				else
 					return;
 			}
-			else 
+			else
 			{
 				wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
 				return;
@@ -164,12 +164,12 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 		}
 	}
 	// Always Parse Lower
-	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16)) 
+	if (EditRmObjValue->GetValue().Right(length).ToULongLong(&value_lower, 16))
 	{
 		if (!ParseValue(value_lower, tempType))
 			return;
 	}
-	else 
+	else
 	{
 		wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
 		return;
@@ -177,7 +177,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 
 	// Now we have upper and lower
 
-	if (event.GetId() == ID_BUTTON_UP) 
+	if (event.GetId() == ID_BUTTON_UP)
 	{
 		if (value_lower == 0xFFFFFFFFFFFFFFFF)
 		{
@@ -185,7 +185,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 			{
 				return;
 			}
-			else 
+			else
 			{
 				value_lower = 0;
 				value_upper++;
@@ -196,7 +196,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 			value_lower++;
 		}
 	}
-	else 
+	else
 	{
 		if (value_lower == 0)
 		{
@@ -204,7 +204,7 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 			{
 				return;
 			}
-			else 
+			else
 			{
 				value_upper--;
 				value_lower = 0xFFFFFFFFFFFFFFFF;
@@ -217,12 +217,12 @@ void CRmObjAddEdit::ButtonUporDown(wxCommandEvent& event)
 	}
 
 	// Double check values are valid before updating the entry.
-	if (tempType > RmObjEngine::RMOBJ_64BIT) 
+	if (tempType > RmObjEngine::RMOBJ_64BIT)
 	{
 		if (!ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8)))
 			return;
 	}
-	else if (value_upper > 0) 
+	else if (value_upper > 0)
 	{
 			return;
 	}
@@ -280,7 +280,7 @@ bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::it
 	// Parse Upper If Needed
 	if (tempType > RmObjEngine::RMOBJ_64BIT) {
 		if (length > 16) {
-			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16)) 
+			if (EditRmObjValue->GetValue().Left(length - 16).ToULongLong(&value_upper, 16))
 			{
 				if (ParseValue(value_upper, (RmObjEngine::RmObjType)(tempType-8)))
 				{
@@ -292,13 +292,13 @@ bool CRmObjAddEdit::UpdateTempEntryData(std::vector<RmObjEngine::RmObjEntry>::it
 					return false;
 				}
 			}
-			else 
+			else
 			{
 				wxMessageBox(_("Invalid or non hex (0-9 or A-F) character entered.\nEntry not modified."), _("Error"));
 				return false;
 			}
 		}
-		else 
+		else
 		{
 			value_upper = 0;
 		}

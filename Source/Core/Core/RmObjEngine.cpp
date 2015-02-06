@@ -138,7 +138,7 @@ namespace RmObjEngine
 					SkipEntry skipEntry;
 					int size = GetRmObjTypeCharLength(entry.type) >> 1;
 
-					if (size > 8) 
+					if (size > 8)
 					{
 						size = size - 8;
 						for (int j = size; j > 0; --j)
@@ -147,12 +147,11 @@ namespace RmObjEngine
 						}
 						size = 8;
 					}
-					
+
 					for (int j = size; j > 0; --j)
 					{
 						skipEntry.push_back((0xFF & (value_add_lower >> ((j - 1) * 8))));
 					}
-					
 
 					SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.push_back(skipEntry);
 				}
