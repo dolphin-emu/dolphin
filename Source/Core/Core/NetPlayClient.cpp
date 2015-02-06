@@ -52,7 +52,6 @@ NetPlayClient::~NetPlayClient()
 	{
 		ReleaseTraversalClient();
 	}
-
 }
 
 // called from ---GUI--- thread
