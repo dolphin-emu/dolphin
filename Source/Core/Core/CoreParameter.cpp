@@ -376,28 +376,36 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 	}
 }
 
-IniFile SCoreStartupParameter::LoadGameIni() const
-{
-	IniFile game_ini;
-	game_ini.Load(m_strGameIniDefault);
-	if (m_strGameIniDefaultRevisionSpecific != "")
-		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
-	game_ini.Load(m_strGameIniLocal, true);
-	return game_ini;
-}
-
 IniFile SCoreStartupParameter::LoadDefaultGameIni() const
 {
 	IniFile game_ini;
-	game_ini.Load(m_strGameIniDefault);
-	if (m_strGameIniDefaultRevisionSpecific != "")
-		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
+	LoadDefaultGameIni(&game_ini);
 	return game_ini;
 }
 
 IniFile SCoreStartupParameter::LoadLocalGameIni() const
 {
 	IniFile game_ini;
-	game_ini.Load(m_strGameIniLocal);
+	LoadLocalGameIni(&game_ini);
 	return game_ini;
+}
+
+IniFile SCoreStartupParameter::LoadGameIni() const
+{
+	IniFile game_ini;
+	LoadDefaultGameIni(&game_ini);
+	LoadLocalGameIni(&game_ini);
+	return game_ini;
+}
+
+void SCoreStartupParameter::LoadDefaultGameIni(IniFile* game_ini) const
+{
+	game_ini->Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + GetUniqueID() + ".ini", true);
+	if (!m_strRevisionSpecificUniqueID.empty())
+		game_ini->Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + m_strRevisionSpecificUniqueID + ".ini", true);
+}
+
+void SCoreStartupParameter::LoadLocalGameIni(IniFile* game_ini) const
+{
+	game_ini->Load(File::GetUserPath(D_GAMESETTINGS_IDX) + GetUniqueID() + ".ini", true);
 }
