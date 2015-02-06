@@ -400,7 +400,14 @@ IniFile SCoreStartupParameter::LoadGameIni() const
 
 void SCoreStartupParameter::LoadGameIni(IniFile* game_ini, const std::string& path) const
 {
+	// INIs that match all regions
+	if (GetUniqueID().size() >= 4)
+		game_ini->Load(path + GetUniqueID().substr(0, 3) + ".ini", true);
+
+	// Regular INIs
 	game_ini->Load(path + GetUniqueID() + ".ini", true);
+
+	// INIs with specific revisions
 	if (!m_strRevisionSpecificUniqueID.empty())
 		game_ini->Load(path + m_strRevisionSpecificUniqueID + ".ini", true);
 }
