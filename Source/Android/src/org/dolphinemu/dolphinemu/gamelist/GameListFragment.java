@@ -128,6 +128,7 @@ public final class GameListFragment extends ListFragment
 		Intent intent = new Intent(getActivity(), EmulationActivity.class);
 		intent.putExtra("SelectedGame", item.getPath());
 		startActivity(intent);
+		startForeground();
 	}
 
 	@Override
