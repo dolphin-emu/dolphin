@@ -27,7 +27,7 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(true);
+	
 	u32 b = inst.FB;
 	u32 d = inst.FD;
 
@@ -135,6 +135,8 @@ void JitArm::fctiwzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
+	
+	//Pink in Animal Crossing
 	FALLBACK_IF(true);
 
 	u32 b = inst.FB;
@@ -418,6 +420,7 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 
 	fpr.Unlock(V0);
 }
+
 void JitArm::fnmaddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -496,7 +499,6 @@ void JitArm::frsqrtex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(true);
 
 	FALLBACK_IF(inst.Rc);
 
@@ -534,3 +536,48 @@ void JitArm::frsqrtex(UGeckoInstruction inst)
 	gpr.Unlock(fpscrReg, rA);
 }
 
+void JitArm::fmsubx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMUL(V0, vA0, vC0);
+
+	VSUB(vD0, V0, vB0);
+
+	fpr.Unlock(V0);
+}
+
+void JitArm::fnmsubx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMUL(V0, vA0, vC0);
+
+	VSUB(vD0, V0, vB0);
+
+	VNEG(vD0, vD0);
+
+	fpr.Unlock(V0);
+}

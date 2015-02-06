@@ -21,7 +21,6 @@ void JitArm::ps_rsqrte(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(true);
 
 	FALLBACK_IF(inst.Rc);
 
