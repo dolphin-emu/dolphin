@@ -27,6 +27,7 @@ import java.util.Set;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
+import org.dolphinemu.dolphinemu.emulation.GameListActivity;
 
 
 /**
@@ -123,12 +124,29 @@ public final class GameListFragment extends ListFragment
 
 		// Show a toast indicating which game was clicked.
 		Toast.makeText(getActivity(), String.format(getString(R.string.file_clicked), item.getPath()), Toast.LENGTH_SHORT).show();
+		
+		Notification note=new Notification(R.drawable.stat_notify_chat,
+                                          "Dolphin Emulator",
+                                          System.currentTimeMillis());
+		
+		Intent i=new Intent(this, GameListActivity.class);
+    
+		i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|
+				Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		
+		PendingIntent pi=PendingIntent.getActivity(this, 0,
+                                                  i, 0);
+      
+		note.setLatestEventInfo(this, "Dolphin Emulator",
+                              "Running",
+                              pi);
+		note.flags|=Notification.FLAG_NO_CLEAR;
 
 		// Start the emulation activity and send the path of the clicked ROM to it.
 		Intent intent = new Intent(getActivity(), EmulationActivity.class);
 		intent.putExtra("SelectedGame", item.getPath());
 		startActivity(intent);
-		startForeground();
+		startForeground(1337, note);
 	}
 
 	@Override
