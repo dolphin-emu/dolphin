@@ -1419,7 +1419,7 @@ void CISOProperties::RmObjList_Load()
 			DefaultRmObjs.insert(p.name);
 		++index;
 	}
-	
+
 	RmObjEngine::ApplyRmObjs(rmObjCodes);
 
 }

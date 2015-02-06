@@ -149,7 +149,7 @@ namespace RmObjEngine
 					//Save the size of each entry, so it doesn't have to be calculated over and over during the rendering loop.
 					SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_removal_data_bytes.push_back(size);
 
-					if (size > 8) 
+					if (size > 8)
 					{
 						size = size - 8;
 						for (int j = size; j > 0; --j)
@@ -158,12 +158,11 @@ namespace RmObjEngine
 						}
 						size = 8;
 					}
-					
+
 					for (int j = size; j > 0; --j)
 					{
 						skipEntry.push_back((0xFF & (value_add_lower >> ((j - 1) * 8))));
 					}
-					
 
 					SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.push_back(skipEntry);
 				}
