@@ -434,7 +434,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
 					int num_blocks = BE16(m_saves[i].m_gci_header.BlockCount);
 					while (num_blocks)
 					{
-						m_saves[i].m_save_data.push_back(GCMBlock());
+						m_saves[i].m_save_data.emplace_back();
 						num_blocks--;
 					}
 				}

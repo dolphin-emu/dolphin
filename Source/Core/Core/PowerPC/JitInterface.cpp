@@ -153,7 +153,7 @@ namespace JitInterface
 			u64 timecost = block->ticCounter;
 			// Todo: tweak.
 			if (block->runCount >= 1)
-				stats.push_back(BlockStat(i, cost));
+				stats.emplace_back(i, cost);
 			cost_sum += cost;
 			timecost_sum += timecost;
 		}

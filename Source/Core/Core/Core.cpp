@@ -496,8 +496,13 @@ void EmuThread()
 		return;
 	}
 
-	Keyboard::Initialize(s_window_handle);
-	Pad::Initialize(s_window_handle);
+	bool init_controllers = false;
+	if (!g_controller_interface.IsInit())
+	{
+		Pad::Initialize(s_window_handle);
+		Keyboard::Initialize(s_window_handle);
+		init_controllers = true;
+	}
 
 	// Load and Init Wiimotes - only if we are booting in Wii mode
 	if (core_parameter.bWii)
@@ -638,10 +643,13 @@ void EmuThread()
 	HW::Shutdown();
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
 
-	Wiimote::Shutdown();
-
-	Keyboard::Shutdown();
-	Pad::Shutdown();
+	if (init_controllers)
+	{
+		Wiimote::Shutdown();
+		Keyboard::Shutdown();
+		Pad::Shutdown();
+		init_controllers = false;
+	}
 
 
 	// Oculus Rift VR thread
