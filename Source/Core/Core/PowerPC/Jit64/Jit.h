@@ -240,7 +240,7 @@ public:
 	void negx(UGeckoInstruction inst);
 	void slwx(UGeckoInstruction inst);
 	void srwx(UGeckoInstruction inst);
-	void dcbst(UGeckoInstruction inst);
+	void dcbt(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
 
 	void subfic(UGeckoInstruction inst);

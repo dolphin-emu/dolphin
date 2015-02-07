@@ -197,10 +197,10 @@ static GekkoOPTemplate table31[] =
 	{824, &Jit64::srawix},                 //"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_SET_CA | FL_RC_BIT}},
 	{24,  &Jit64::slwx},                   //"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 
-	{54,   &Jit64::dcbst},                 //"dcbst",  OPTYPE_DCACHE, 0, 4}},
+	{54,   &Jit64::FallBackToInterpreter}, //"dcbst",  OPTYPE_DCACHE, 0, 4}},
 	{86,   &Jit64::FallBackToInterpreter}, //"dcbf",   OPTYPE_DCACHE, 0, 4}},
-	{246,  &Jit64::DoNothing},             //"dcbtst", OPTYPE_DCACHE, 0, 1}},
-	{278,  &Jit64::DoNothing},             //"dcbt",   OPTYPE_DCACHE, 0, 1}},
+	{246,  &Jit64::dcbt },                 //"dcbtst", OPTYPE_DCACHE, 0, 1}},
+	{278,  &Jit64::dcbt },                 //"dcbt",   OPTYPE_DCACHE, 0, 1}},
 	{470,  &Jit64::FallBackToInterpreter}, //"dcbi",   OPTYPE_DCACHE, 0, 4}},
 	{758,  &Jit64::DoNothing},             //"dcba",   OPTYPE_DCACHE, 0, 4}},
 	{1014, &Jit64::dcbz},                  //"dcbz",   OPTYPE_DCACHE, 0, 4}},
