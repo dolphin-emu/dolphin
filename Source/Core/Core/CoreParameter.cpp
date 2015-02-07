@@ -181,7 +181,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				}
 				m_strName = pVolume->GetName();
 				m_strUniqueID = pVolume->GetUniqueID();
-				m_strRevisionSpecificUniqueID = pVolume->GetRevisionSpecificUniqueID();
+				m_revision = pVolume->GetRevision();
 
 				// Check if we have a Wii disc
 				bWii = pVolume.get()->IsWiiDisc();
@@ -408,6 +408,5 @@ void SCoreStartupParameter::LoadGameIni(IniFile* game_ini, const std::string& pa
 	game_ini->Load(path + GetUniqueID() + ".ini", true);
 
 	// INIs with specific revisions
-	if (!m_strRevisionSpecificUniqueID.empty())
-		game_ini->Load(path + m_strRevisionSpecificUniqueID + ".ini", true);
+	game_ini->Load(path + GetUniqueID() + StringFromFormat("r%d", m_revision) + ".ini", true);
 }
