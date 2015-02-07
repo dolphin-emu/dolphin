@@ -57,14 +57,16 @@ public:
 protected:
 	struct VirtualXFB
 	{
-		VirtualXFB() : xfbSource(nullptr) {}
+		VirtualXFB()
+		{
+		}
 
 		// Address and size in GameCube RAM
-		u32 xfbAddr;
-		u32 xfbWidth;
-		u32 xfbHeight;
+		u32 xfbAddr = 0;
+		u32 xfbWidth = 0;
+		u32 xfbHeight = 0;
 
-		XFBSourceBase *xfbSource;
+		XFBSourceBase* xfbSource = nullptr;
 	};
 
 	typedef std::list<VirtualXFB> VirtualXFBListType;

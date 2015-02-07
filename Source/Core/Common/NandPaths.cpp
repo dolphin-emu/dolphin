@@ -101,7 +101,7 @@ void ReadReplacements(replace_v& replacements)
 	std::string replacement;
 
 	while (f >> letter >> replacement && replacement.size())
-		replacements.push_back(std::make_pair(letter, replacement));
+		replacements.emplace_back(letter, replacement);
 }
 
 }

@@ -36,8 +36,9 @@ void Shutdown()
 void Initialize(void* const hwnd)
 {
 	// add 4 gcpads
-	for (unsigned int i=0; i<4; ++i)
-		s_config.controllers.push_back(new GCPad(i));
+	if (s_config.controllers.empty())
+		for (unsigned int i = 0; i < 4; ++i)
+			s_config.controllers.push_back(new GCPad(i));
 
 	g_controller_interface.Initialize(hwnd);
 

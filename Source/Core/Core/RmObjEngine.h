@@ -56,7 +56,7 @@ void ApplyFrameRmObjs();
 void Shutdown();
 
 inline int GetRmObjTypeCharLength(RmObjType type)
-{	
+{
 	return (type + 1) << 1;
 }
 
