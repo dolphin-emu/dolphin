@@ -163,11 +163,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 	}
 
-	// Load game ini
+	// Is it really necessary to use GetTitleID in case GetUniqueID fails?
 	std::string _iniFilename = OpenISO->GetUniqueID();
-	std::string _iniFilenameRevisionSpecific = _iniFilename + "r" + std::to_string(OpenISO->GetRevision());
-
-	if (!_iniFilename.length())
+	if (_iniFilename.empty())
 	{
 		u8 title_id[8];
 		if (OpenISO->GetTitleID(title_id))
@@ -176,13 +174,11 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 	}
 
+	// Load game INIs
 	GameIniFileDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilename + ".ini";
-	std::string GameIniFileDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilenameRevisionSpecific + ".ini";
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + _iniFilename + ".ini";
-
-	GameIniDefault.Load(GameIniFileDefault);
-	GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
-	GameIniLocal.Load(GameIniFileLocal);
+	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(_iniFilename, OpenISO->GetRevision());
+	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(_iniFilename, OpenISO->GetRevision());
 
 	// Setup GUI
 	OpenGameListItem = new GameListItem(fileName);

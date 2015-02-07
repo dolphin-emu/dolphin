@@ -264,6 +264,10 @@ struct SCoreStartupParameter
 	IniFile LoadLocalGameIni() const;
 	IniFile LoadGameIni() const;
 
+	static IniFile LoadDefaultGameIni(const std::string& id, int revision);
+	static IniFile LoadLocalGameIni(const std::string& id, int revision);
+	static IniFile LoadGameIni(const std::string& id, int revision);
+
 private:
-	void LoadGameIni(IniFile* game_ini, const std::string& path) const;
+	static void LoadGameIni(IniFile* game_ini, const std::string& path, const std::string& id, int revision);
 };

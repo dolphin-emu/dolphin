@@ -126,10 +126,7 @@ GameFile::GameFile(const QString& fileName)
 
 	if (m_valid)
 	{
-		IniFile ini;
-		ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + m_unique_id.toStdString() + ".ini");
-		ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_unique_id.toStdString() + ".ini", true);
-
+		IniFile ini = SCoreStartupParameter::LoadGameIni(m_unique_id.toStdString(), m_revision);
 		std::string issues_temp;
 		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
 		ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);

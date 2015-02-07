@@ -378,34 +378,57 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 IniFile SCoreStartupParameter::LoadDefaultGameIni() const
 {
 	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP);
+	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, GetUniqueID(), m_revision);
 	return game_ini;
 }
 
 IniFile SCoreStartupParameter::LoadLocalGameIni() const
 {
 	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX));
+	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), GetUniqueID(), m_revision);
 	return game_ini;
 }
 
 IniFile SCoreStartupParameter::LoadGameIni() const
 {
 	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP);
-	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX));
+	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, GetUniqueID(), m_revision);
+	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), GetUniqueID(), m_revision);
 	return game_ini;
 }
 
-void SCoreStartupParameter::LoadGameIni(IniFile* game_ini, const std::string& path) const
+IniFile SCoreStartupParameter::LoadDefaultGameIni(const std::string& id, int revision)
+{
+	IniFile game_ini;
+	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, id, revision);
+	return game_ini;
+}
+
+IniFile SCoreStartupParameter::LoadLocalGameIni(const std::string& id, int revision)
+{
+	IniFile game_ini;
+	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), id, revision);
+	return game_ini;
+}
+
+IniFile SCoreStartupParameter::LoadGameIni(const std::string& id, int revision)
+{
+	IniFile game_ini;
+	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, id, revision);
+	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), id, revision);
+	return game_ini;
+}
+
+void SCoreStartupParameter::LoadGameIni(IniFile* game_ini, const std::string& path,
+                                        const std::string& id, int revision)
 {
 	// INIs that match all regions
-	if (GetUniqueID().size() >= 4)
-		game_ini->Load(path + GetUniqueID().substr(0, 3) + ".ini", true);
+	if (id.size() >= 4)
+		game_ini->Load(path + id.substr(0, 3) + ".ini", true);
 
 	// Regular INIs
-	game_ini->Load(path + GetUniqueID() + ".ini", true);
+	game_ini->Load(path + id + ".ini", true);
 
 	// INIs with specific revisions
-	game_ini->Load(path + GetUniqueID() + StringFromFormat("r%d", m_revision) + ".ini", true);
+	game_ini->Load(path + id + StringFromFormat("r%d", revision) + ".ini", true);
 }
