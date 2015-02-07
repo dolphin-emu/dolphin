@@ -63,7 +63,8 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 		case LIGHTATTN_NONE:
 		case LIGHTATTN_DIR:
 			object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
-			object.Write("attn = 1.0f;\n");
+			object.Write("attn = 1.0;\n");
+			object.Write("if (length(ldir) == 0.0)\n\t ldir = float3(1.0, 1.0, 1.0);\n");
 			break;
 		case LIGHTATTN_SPEC:
 			object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
@@ -82,6 +83,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 			object.Write("attn = max(0.0, " LIGHT_COSATT".x + " LIGHT_COSATT".y*attn + " LIGHT_COSATT".z*attn*attn) / dot(" LIGHT_DISTATT".xyz, float3(1.0,dist,dist2));\n",
 				LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_COSATT_PARAMS(index), LIGHT_DISTATT_PARAMS(index));
 			break;
+		default: _assert_(0);
 	}
 
 	switch (chan.diffusefunc)
