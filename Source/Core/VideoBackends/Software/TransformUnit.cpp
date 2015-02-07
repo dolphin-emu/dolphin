@@ -251,7 +251,7 @@ static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 			break;
 		}
 		default:
-			PanicAlert("LightColor");			
+			PanicAlert("LightColor");
 	}
 
 	float difAttn = ldir * normal;
@@ -260,7 +260,7 @@ static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 		case LIGHTDIF_NONE:
 			AddScaledIntegerColor(light->color, attn, lightCol);
 			break;
-		case LIGHTDIF_SIGN:			
+		case LIGHTDIF_SIGN:
 			AddScaledIntegerColor(light->color, attn * difAttn, lightCol);
 			break;
 		case LIGHTDIF_CLAMP:
@@ -283,7 +283,7 @@ static void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 		case LIGHTATTN_NONE:
 		case LIGHTATTN_DIR:
 		{
-			ldir = ldir.Normalized();			
+			ldir = ldir.Normalized();
 			break;
 		}
 		case LIGHTATTN_SPEC:
@@ -321,7 +321,7 @@ static void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 		case LIGHTDIF_NONE:
 			lightCol += light->color[0] * attn;
 			break;
-		case LIGHTDIF_SIGN:			
+		case LIGHTDIF_SIGN:
 			lightCol += light->color[0] * attn * difAttn;
 			break;
 		case LIGHTDIF_CLAMP:
