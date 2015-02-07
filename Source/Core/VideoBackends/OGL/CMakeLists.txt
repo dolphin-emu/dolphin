@@ -13,7 +13,8 @@ set(SRCS GLExtensions/GLExtensions.cpp
 	   StreamBuffer.cpp
 	   TextureCache.cpp
 	   TextureConverter.cpp
-	   VertexManager.cpp)
+	   VertexManager.cpp
+	   VROGL.cpp)
 
 if(USE_EGL)
     set(SRCS ${SRCS} GLInterface/EGL.cpp)
