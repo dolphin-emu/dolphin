@@ -211,7 +211,7 @@ static inline float SafeDivide(float n, float d)
 static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
 {
 	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
-	
+
 	Vec3 ldir = light->pos - pos;
 	float attn = 1.0f;
 
@@ -268,13 +268,13 @@ static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 			AddScaledIntegerColor(light->color, attn * difAttn, lightCol);
 			break;
 		default: _assert_(0);
-	}	
+	}
 }
 
 static void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, float &lightCol)
 {
 	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
-	
+
 	Vec3 ldir = light->pos - pos;
 	float attn = 1.0f;
 
