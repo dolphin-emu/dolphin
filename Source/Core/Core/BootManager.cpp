@@ -47,7 +47,7 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bFPRF, bBAT, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
+	bool valid, bCPUThread, bSkipIdle, bFPRF, bBAT, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread, pal60,
 	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bProgressive;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
@@ -130,6 +130,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
 		config_cache.bProgressive = StartUp.bProgressive;
+		config_cache.pal60 = !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60");
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
 			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
@@ -168,6 +169,10 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
 		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
+		bool tmp;
+		core_section->Get("Pal60",            &tmp, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"));
+		SConfig::GetInstance().m_SYSCONF->SetData<u8>("IPL.E60", tmp);
+
 		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
 		if (core_section->Get("FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
@@ -301,6 +306,7 @@ void Stop()
 		SConfig::GetInstance().m_DSPEnableJIT = config_cache.m_EnableJIT;
 		StartUp.bProgressive = config_cache.bProgressive;
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
+		SConfig::GetInstance().m_SYSCONF->SetData<u8>("IPL.E60", config_cache.pal60);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)
