@@ -247,8 +247,8 @@ struct SCoreStartupParameter
 	std::string m_strDVDRoot;
 	std::string m_strApploader;
 	std::string m_strUniqueID;
-	std::string m_strRevisionSpecificUniqueID;
 	std::string m_strName;
+	int m_revision;
 
 	std::string m_perfDir;
 

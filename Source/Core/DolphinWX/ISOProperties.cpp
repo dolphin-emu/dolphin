@@ -165,7 +165,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Load game ini
 	std::string _iniFilename = OpenISO->GetUniqueID();
-	std::string _iniFilenameRevisionSpecific = OpenISO->GetRevisionSpecificUniqueID();
+	std::string _iniFilenameRevisionSpecific = _iniFilename + "r" + std::to_string(OpenISO->GetRevision());
 
 	if (!_iniFilename.length())
 	{
@@ -181,8 +181,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + _iniFilename + ".ini";
 
 	GameIniDefault.Load(GameIniFileDefault);
-	if (_iniFilenameRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
+	GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
 	GameIniLocal.Load(GameIniFileLocal);
 
 	// Setup GUI
