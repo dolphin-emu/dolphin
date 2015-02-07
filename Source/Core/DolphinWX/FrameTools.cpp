@@ -386,7 +386,7 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu* helpMenu = new wxMenu;
 	// Re-enable when there's something useful to display */
 	// helpMenu->Append(wxID_HELP, _("&Help"));
-	helpMenu->Append(IDM_HELP_WEBSITE, _("Dolphin &Web Site"));
+	helpMenu->Append(IDM_HELP_WEBSITE, _("Dolphin &Website"));
 	helpMenu->Append(IDM_HELP_ONLINE_DOCS, _("Online &Documentation"));
 	helpMenu->Append(IDM_HELP_GITHUB, _("Dolphin at &GitHub"));
 	helpMenu->AppendSeparator();
