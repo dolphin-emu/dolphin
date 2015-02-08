@@ -64,7 +64,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 		case LIGHTATTN_DIR:
 			object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
 			object.Write("attn = 1.0;\n");
-			object.Write("if (length(ldir) == 0.0)\n\t ldir = float3(1.0, 1.0, 1.0);\n");
+			object.Write("if (length(ldir) == 0.0)\n\t ldir = _norm0;\n");
 			break;
 		case LIGHTATTN_SPEC:
 			object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(index));
