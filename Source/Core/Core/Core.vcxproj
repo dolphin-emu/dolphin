@@ -273,7 +273,7 @@
     <ClCompile Include="PowerPC\PPCTables.cpp" />
     <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="PowerPC\SignatureDB.cpp" />
-    <ClCompile Include="RmObjEngine.cpp" />
+    <ClCompile Include="HideObjectEngine.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
   </ItemGroup>
@@ -459,7 +459,7 @@
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="PowerPC\SignatureDB.h" />
-    <ClInclude Include="RmObjEngine.h" />
+    <ClInclude Include="HideObjectEngine.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="VolumeHandler.h" />
   </ItemGroup>

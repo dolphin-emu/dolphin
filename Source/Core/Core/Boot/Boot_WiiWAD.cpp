@@ -12,7 +12,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/PatchEngine.h"
-#include "Core/RmObjEngine.h"
+#include "Core/HideObjectEngine.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HLE/HLE.h"
@@ -125,8 +125,8 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	if (pVolume != nullptr)
 		PatchEngine::LoadPatches();
 
-	RmObjEngine::LoadRmObjs();
-	RmObjEngine::ApplyFrameRmObjs();
+	HideObjectEngine::LoadHideObjects();
+	HideObjectEngine::ApplyFrameHideObjects();
 
 	return true;
 }

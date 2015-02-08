@@ -88,10 +88,10 @@ private:
 	wxArrayString arrayStringFor_VRState;
 	wxChoice* EmuState;
 	wxTextCtrl* EmuIssues;
-	wxArrayString arrayStringFor_RmObjs;
-	wxCheckListBox* RmObjs;
-	wxButton* EditRmObj;
-	wxButton* RemoveRmObj;
+	wxArrayString arrayStringFor_HideObjects;
+	wxCheckListBox* HideObjects;
+	wxButton* EditHideObject;
+	wxButton* RemoveHideObject;
 	wxArrayString arrayStringFor_Patches;
 	wxCheckListBox* Patches;
 	wxButton* EditPatch;
@@ -174,7 +174,7 @@ private:
 		ID_SCREEN_RIGHT,
 		ID_SCREEN_UP,
 		ID_SCREEN_PITCH,
-		ID_RMOBJ_PAGE,
+		ID_HideObject_PAGE,
 		ID_PATCH_PAGE,
 		ID_ARCODE_PAGE,
 		ID_SPEEDHACK_PAGE,
@@ -197,11 +197,11 @@ private:
 		ID_SHOWDEFAULTCONFIG,
 		ID_EMUSTATE,
 		ID_EMU_ISSUES,
-		ID_RMOBJS_LIST,
-		ID_RMOBJS_CHECKBOX,
-		ID_EDITRMOBJ,
-		ID_ADDRMOBJ,
-		ID_REMOVERMOBJ,
+		ID_HideObjectS_LIST,
+		ID_HideObjectS_CHECKBOX,
+		ID_EDITHideObject,
+		ID_ADDHideObject,
+		ID_REMOVEHideObject,
 		ID_PATCHES_LIST,
 		ID_EDITPATCH,
 		ID_ADDPATCH,
@@ -248,7 +248,7 @@ private:
 	void OnEditConfig(wxCommandEvent& event);
 	void OnComputeMD5Sum(wxCommandEvent& event);
 	void OnShowDefaultConfig(wxCommandEvent& event);
-	void RmObjButtonClicked(wxCommandEvent& event);
+	void HideObjectButtonClicked(wxCommandEvent& event);
 	void ListSelectionChanged(wxCommandEvent& event);
 	void CheckboxSelectionChanged(wxCommandEvent& event);
 	void PatchButtonClicked(wxCommandEvent& event);
@@ -280,13 +280,13 @@ private:
 	std::string GameIniFileDefault;
 	std::string GameIniFileLocal;
 
-	std::set<std::string> DefaultRmObjs;
+	std::set<std::string> DefaultHideObjects;
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;
 
 	void LoadGameConfig();
-	void RmObjList_Load();
-	void RmObjList_Save();
+	void HideObjectList_Load();
+	void HideObjectList_Save();
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();
