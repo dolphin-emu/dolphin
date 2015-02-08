@@ -44,6 +44,10 @@ public:
 	bool ChangePartition(u64 offset) override;
 
 private:
+	static const unsigned int s_block_header_size = 0x0400;
+	static const unsigned int s_block_data_size   = 0x7C00;
+	static const unsigned int s_block_total_size  = s_block_header_size + s_block_data_size;
+
 	std::unique_ptr<IBlobReader> m_pReader;
 	std::unique_ptr<aes_context> m_AES_ctx;
 
@@ -53,7 +57,7 @@ private:
 	u64 m_dataOffset;
 
 	mutable u64 m_LastDecryptedBlockOffset;
-	mutable unsigned char m_LastDecryptedBlock[0x8000];
+	mutable unsigned char m_LastDecryptedBlock[s_block_data_size];
 };
 
 } // namespace
