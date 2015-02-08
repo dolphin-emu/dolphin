@@ -144,7 +144,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (!count)
 		return 0;
 
-	SCoreStartupParameter &m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 

@@ -8,7 +8,7 @@ class CRmObjAddEdit : public wxDialog
 {
 public:
 	CRmObjAddEdit(int _selection, wxWindow* parent,
-		wxWindowID id = 1,
+		wxWindowID id = wxID_ANY,
 		const wxString& title = _("Edit Object Removal Code"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
