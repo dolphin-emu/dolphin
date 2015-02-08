@@ -401,7 +401,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxPanel* const m_VR = new wxPanel(m_Notebook, ID_VR);
 	m_Notebook->AddPage(m_VR, _("VR"));
 	wxPanel* const m_HideObjectPage = new wxPanel(m_Notebook, ID_HideObject_PAGE);
-	m_Notebook->AddPage(m_HideObjectPage, _("Remove Object"));
+	m_Notebook->AddPage(m_HideObjectPage, _("Hide Objects"));
 	wxPanel* const m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE);
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
 	wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
@@ -627,7 +627,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
 
-	// Remove Object
+	// Hide Objects
 	wxBoxSizer* const sHideObjects = new wxBoxSizer(wxVERTICAL);
 
 	wxStaticBoxSizer * const sbObjRemovalRange = new wxStaticBoxSizer(wxVERTICAL, m_HideObjectPage, _("Object Range Removal"));
