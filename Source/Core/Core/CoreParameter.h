@@ -261,7 +261,7 @@ struct SCoreStartupParameter
 	void LoadDefaults();
 	bool AutoSetup(EBootBS2 _BootBS2);
 	const std::string &GetUniqueID() const { return m_strUniqueID; }
-	void CheckMemcardPath(std::string& memcardPath, std::string Region, bool isSlotA);
+	void CheckMemcardPath(std::string& memcardPath, std::string gameRegion, bool isSlotA);
 	IniFile LoadDefaultGameIni() const;
 	IniFile LoadLocalGameIni() const;
 	IniFile LoadGameIni() const;
