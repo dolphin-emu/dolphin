@@ -164,7 +164,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (skip_drawing || is_preprocess)
 		return size;
 
-	// Object Removal Code code
+	// Hide Objects Code code
 	if (m_LocalCoreStartupParameter.num_object_removal_codes)
 	{
 		for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)

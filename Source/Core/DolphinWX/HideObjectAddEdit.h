@@ -9,7 +9,7 @@ class CHideObjectAddEdit : public wxDialog
 public:
 	CHideObjectAddEdit(int _selection, wxWindow* parent,
 		wxWindowID id = wxID_ANY,
-		const wxString& title = _("Edit Object Removal Code"),
+		const wxString& title = _("Edit Hide Objects Code"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_DIALOG_STYLE);

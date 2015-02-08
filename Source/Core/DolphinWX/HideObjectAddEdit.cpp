@@ -82,7 +82,7 @@ void CHideObjectAddEdit::CreateGUIControls(int _selection)
 	sEditHideObjectName->Add(EditHideObjectNameText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEditHideObjectName->Add(EditHideObjectName, 1, wxEXPAND|wxALL, 5);
 	sEditHideObject->Add(sEditHideObjectName, 0, wxEXPAND);
-	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(_("Object Removal Code")));
+	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(_("Hide Objects Code")));
 
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
 	sgEntry->Add(EditHideObjectType, wxGBPosition(0, 0), wxGBSpan(2, 5), wxEXPAND|wxALL, 5);
