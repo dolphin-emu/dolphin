@@ -106,14 +106,6 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 			}
 		}
 		break;
-
-	// DEFAULT
-	default:
-		{
-			ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
-			PanicAlert("SI: Unknown command (0x%x)", command);
-		}
-		break;
 	}
 
 	return _iLength;

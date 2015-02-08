@@ -37,6 +37,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 				// enabled or disabled code
 			case '+' :
 				ss.seekg(1);
+			// Fallthrough
 			case '$' :
 				if (gcode.name.size())
 					gcodes.push_back(gcode);

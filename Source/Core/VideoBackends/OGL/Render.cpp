@@ -337,7 +337,12 @@ static void InitDriverInfo()
 		}
 		break;
 		// We don't care about these
-		default:
+		case DriverDetails::VENDOR_ALL:
+		case DriverDetails::VENDOR_ATI:
+		case DriverDetails::VENDOR_IMGTEC:
+		case DriverDetails::VENDOR_TEGRA:
+		case DriverDetails::VENDOR_UNKNOWN:
+		case DriverDetails::VENDOR_VIVANTE:
 		break;
 	}
 	DriverDetails::Init(vendor, driver, version, family);
@@ -1147,9 +1152,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		break;
 	}
-
-	default:
-		break;
 	}
 
 	return 0;

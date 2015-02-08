@@ -136,7 +136,6 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 		break;
 
 	case EXIDEVICE_NONE:
-	default:
 		result = new IEXIDevice();
 		break;
 	}

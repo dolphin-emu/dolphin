@@ -273,9 +273,10 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TlutFormat tlutfmt)
 		return DecodePixel_RGB565(Common::swap16(pixel));
 	case GX_TL_RGB5A3:
 		return DecodePixel_RGB5A3(Common::swap16(pixel));
-	default:
-		return 0;
 	}
+
+	// Never reached.
+	return 0;
 }
 
 struct DXTBlock

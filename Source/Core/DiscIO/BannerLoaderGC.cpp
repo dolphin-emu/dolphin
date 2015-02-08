@@ -82,7 +82,7 @@ std::vector<std::string> CBannerLoaderGC::GetNames()
 		name_count = 6;
 		break;
 
-	default:
+	case CBannerLoaderGC::BANNER_UNKNOWN:
 		break;
 	}
 
@@ -146,7 +146,7 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 		desc_count = 6;
 		break;
 
-	default:
+	case CBannerLoaderGC::BANNER_UNKNOWN:
 		break;
 	}
 

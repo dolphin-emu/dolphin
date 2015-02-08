@@ -303,7 +303,8 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 		case LogTypes::LOG_LEVELS::LWARNING: // light yellow
 			strcpy(ColorAttr, "\033[93m");
 			break;
-		default:
+		case LogTypes::LOG_LEVELS::LDEBUG:
+		case LogTypes::LOG_LEVELS::LINFO:
 			break;
 		}
 	}

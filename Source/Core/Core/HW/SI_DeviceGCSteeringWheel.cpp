@@ -25,12 +25,9 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
 		*(u32*)&_pBuffer[0] = SI_GC_STEERING;
 		break;
 
-	// DEFAULT
-	default:
-	{
+	case CMD_ORIGIN:
+	case CMD_RECALIBRATE:
 		return CSIDevice_GCController::RunBuffer(_pBuffer, _iLength);
-	}
-	break;
 	}
 
 	return _iLength;

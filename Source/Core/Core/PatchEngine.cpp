@@ -196,9 +196,6 @@ static void ApplyPatches(const std::vector<Patch> &patches)
 				case PATCH_32BIT:
 					Memory::Write_U32(value, addr);
 					break;
-				default:
-					//unknown patchtype
-					break;
 				}
 			}
 		}

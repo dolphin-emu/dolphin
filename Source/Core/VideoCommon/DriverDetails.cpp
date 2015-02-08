@@ -89,7 +89,12 @@ namespace DriverDetails
 				case VENDOR_VIVANTE:
 					m_driver = DRIVER_VIVANTE;
 					break;
-				default:
+
+				case VENDOR_ALL:
+				case VENDOR_ARM:
+				case VENDOR_MESA:
+				case VENDOR_QUALCOMM:
+				case VENDOR_UNKNOWN:
 					break;
 			}
 
