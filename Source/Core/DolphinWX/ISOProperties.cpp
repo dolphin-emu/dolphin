@@ -110,11 +110,11 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
-	EVT_LISTBOX(ID_HideObjectS_LIST, CISOProperties::ListSelectionChanged)
-	EVT_CHECKLISTBOX(ID_HideObjectS_LIST, CISOProperties::CheckboxSelectionChanged)
-	EVT_BUTTON(ID_EDITHideObject, CISOProperties::HideObjectButtonClicked)
+	EVT_LISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::ListSelectionChanged)
+	EVT_CHECKLISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::CheckboxSelectionChanged)
+	EVT_BUTTON(ID_EDITHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
 	EVT_BUTTON(ID_ADDHideObject, CISOProperties::HideObjectButtonClicked)
-	EVT_BUTTON(ID_REMOVEHideObject, CISOProperties::HideObjectButtonClicked)
+	EVT_BUTTON(ID_REMOVEHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -400,7 +400,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
 	wxPanel* const m_VR = new wxPanel(m_Notebook, ID_VR);
 	m_Notebook->AddPage(m_VR, _("VR"));
-	wxPanel* const m_HideObjectPage = new wxPanel(m_Notebook, ID_HideObject_PAGE);
+	wxPanel* const m_HideObjectPage = new wxPanel(m_Notebook, ID_HIDEOBJECT_PAGE);
 	m_Notebook->AddPage(m_HideObjectPage, _("Hide Objects"));
 	wxPanel* const m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE);
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
@@ -627,28 +627,28 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
 
-	// Hide Objects
+	// Hide Object Range
 	wxBoxSizer* const sHideObjects = new wxBoxSizer(wxVERTICAL);
 
-	wxStaticBoxSizer * const sbObjRemovalRange = new wxStaticBoxSizer(wxVERTICAL, m_HideObjectPage, _("Object Range Removal"));
-	sHideObjects->Add(sbObjRemovalRange, 0, wxEXPAND | wxALL, 5);
-	wxGridBagSizer *sbObjRemovalRangeGrid = new wxGridBagSizer();
-	sbObjRemovalRange->Add(sbObjRemovalRangeGrid, 0, wxEXPAND);
+	wxStaticBoxSizer * const sbHideObjectRange = new wxStaticBoxSizer(wxVERTICAL, m_HideObjectPage, _("Hide Object Range"));
+	sHideObjects->Add(sbHideObjectRange, 0, wxEXPAND | wxALL, 5);
+	wxGridBagSizer *sbHideObjectRangeGrid = new wxGridBagSizer();
+	sbHideObjectRange->Add(sbHideObjectRangeGrid, 0, wxEXPAND);
 
-	sbObjRemovalRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("From:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sbObjRemovalRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("To:")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	//To Do: Save to INI or Make Game Specific?
-	//wxSpinCtrlDouble* ObjectRemovalEnd = new wxSpinCtrlDouble(m_HideObjectPage, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_SCREEN_HEIGHT, 0.1);
-	U32Setting* ObjectRemovalStart = new U32Setting(m_HideObjectPage, _("Removal Start"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start, 0, 100000);
-	U32Setting* ObjectRemovalEnd = new U32Setting(m_HideObjectPage, _("Removal End"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end, 0, 100000);
-	sbObjRemovalRangeGrid->Add(ObjectRemovalStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sbObjRemovalRangeGrid->Add(ObjectRemovalEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("From:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("To:")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HideObjectS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_HideObjects, wxLB_HSCROLL);
+	U32Setting* HideObjectsStart = new U32Setting(m_HideObjectPage, _("Hide Start"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start, 0, 100000);
+	U32Setting* HideObjectsEnd = new U32Setting(m_HideObjectPage, _("Hide End"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end, 0, 100000);
+	sbHideObjectRangeGrid->Add(HideObjectsStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	sbHideObjectRangeGrid->Add(HideObjectsEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
+
+	// Hide Object Code
+	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_HideObjects, wxLB_HSCROLL);
 	wxBoxSizer* const sHideObjectsButtons = new wxBoxSizer(wxHORIZONTAL);
-	EditHideObject = new wxButton(m_HideObjectPage, ID_EDITHideObject, _("Edit..."));
+	EditHideObject = new wxButton(m_HideObjectPage, ID_EDITHIDEOBJECT, _("Edit..."));
 	wxButton* const AddHideObject = new wxButton(m_HideObjectPage, ID_ADDHideObject, _("Add..."));
-	RemoveHideObject = new wxButton(m_HideObjectPage, ID_REMOVEHideObject, _("Remove"));
+	RemoveHideObject = new wxButton(m_HideObjectPage, ID_REMOVEHIDEOBJECT, _("Remove"));
 	EditHideObject->Enable(false);
 	RemoveHideObject->Enable(false);
 
@@ -1603,7 +1603,7 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_HideObjectS_LIST:
+	case ID_HIDEOBJECTS_LIST:
 		if (HideObjects->GetSelection() == wxNOT_FOUND ||
 			DefaultHideObjects.find(HideObjects->GetString(HideObjects->GetSelection()).ToStdString()) != DefaultHideObjects.end())
 		{
@@ -1704,7 +1704,7 @@ void CISOProperties::HideObjectButtonClicked(wxCommandEvent& event)
 
 	switch (event.GetId())
 	{
-	case ID_EDITHideObject:
+	case ID_EDITHIDEOBJECT:
 	{
 		CHideObjectAddEdit dlg(selection, this);
 		dlg.ShowModal();
@@ -1712,7 +1712,7 @@ void CISOProperties::HideObjectButtonClicked(wxCommandEvent& event)
 	break;
 	case ID_ADDHideObject:
 	{
-		CHideObjectAddEdit dlg(-1, this, 1, _("Add Object to Remove"));
+		CHideObjectAddEdit dlg(-1, this, 1, _("Add Hide Object Code"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			HideObjects->Append(StrToWxStr(HideObjectCodes.back().name));
@@ -1720,7 +1720,7 @@ void CISOProperties::HideObjectButtonClicked(wxCommandEvent& event)
 		}
 	}
 	break;
-	case ID_REMOVEHideObject:
+	case ID_REMOVEHIDEOBJECT:
 		HideObjectCodes.erase(HideObjectCodes.begin() + HideObjects->GetSelection());
 		HideObjects->Delete(HideObjects->GetSelection());
 		break;
