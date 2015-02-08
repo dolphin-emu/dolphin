@@ -208,11 +208,8 @@ static inline float SafeDivide(float n, float d)
 	return (d==0) ? (n>0?1:0) : n/d;
 }
 
-static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
+static inline float CalculateLightAttn(const LightPointer *light, Vec3 &ldir, const Vec3 &normal, const LitChannel &chan)
 {
-	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
-
-	Vec3 ldir = light->pos - pos;
 	float attn = 1.0f;
 
 	switch (chan.attnfunc)
@@ -221,8 +218,8 @@ static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 		case LIGHTATTN_DIR:
 		{
 			ldir = ldir.Normalized();
-			if (ldir == Vec3(0, 0, 0))
-				ldir = Vec3(1, 1, 1);
+			if (ldir == Vec3(0.0f, 0.0f, 0.0f))
+				ldir = normal;
 			break;
 		}
 		case LIGHTATTN_SPEC:
@@ -253,6 +250,16 @@ static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 		default:
 			PanicAlert("LightColor");
 	}
+
+	return attn;
+}
+
+static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, LitChannel &chan, Vec3 &lightCol)
+{
+	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
+
+	Vec3 ldir = light->pos - pos;
+	float attn = CalculateLightAttn(light, ldir, normal, chan);
 
 	float difAttn = ldir * normal;
 	switch (chan.diffusefunc)
@@ -276,44 +283,7 @@ static void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
 
 	Vec3 ldir = light->pos - pos;
-	float attn = 1.0f;
-
-	switch (chan.attnfunc)
-	{
-		case LIGHTATTN_NONE:
-		case LIGHTATTN_DIR:
-		{
-			ldir = ldir.Normalized();
-			break;
-		}
-		case LIGHTATTN_SPEC:
-		{
-			ldir = ldir.Normalized();
-			attn = (ldir * normal) >= 0.0 ? std::max(0.0f, light->dir * normal) : 0;
-			Vec3 attLen = Vec3(1.0, attn, attn*attn);
-			Vec3 cosAttn = light->cosatt;
-			Vec3 distAttn = light->distatt;
-			if (chan.diffusefunc != LIGHTDIF_NONE)
-				distAttn = distAttn.Normalized();
-
-			attn = SafeDivide(std::max(0.0f, attLen * cosAttn), attLen * distAttn);
-			break;
-		}
-		case LIGHTATTN_SPOT:
-		{
-			float dist2 = ldir.Length2();
-			float dist = sqrtf(dist2);
-			ldir = ldir / dist;
-			attn = std::max(0.0f, ldir * light->dir);
-
-			float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
-			float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
-			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
-			break;
-		}
-		default:
-			PanicAlert("LightColor");
-	}
+	float attn = CalculateLightAttn(light, ldir, normal, chan);
 
 	float difAttn = ldir * normal;
 	switch (chan.diffusefunc)
