@@ -653,12 +653,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	RemoveRmObj->Enable(false);
 
 	wxBoxSizer* sRmObjPage = new wxBoxSizer(wxVERTICAL);
-	sRmObjs->Add(RmObjs, 1, wxEXPAND | wxALL, 0);
-	sRmObjsButtons->Add(EditRmObj, 0, wxEXPAND | wxALL, 0);
+	sRmObjs->Add(RmObjs, 1, wxEXPAND | wxALL);
+	sRmObjsButtons->Add(EditRmObj, 0, wxEXPAND | wxALL);
 	sRmObjsButtons->AddStretchSpacer();
-	sRmObjsButtons->Add(AddRmObj, 0, wxEXPAND | wxALL, 0);
-	sRmObjsButtons->Add(RemoveRmObj, 0, wxEXPAND | wxALL, 0);
-	sRmObjs->Add(sRmObjsButtons, 0, wxEXPAND | wxALL, 0);
+	sRmObjsButtons->Add(AddRmObj, 0, wxEXPAND | wxALL);
+	sRmObjsButtons->Add(RemoveRmObj, 0, wxEXPAND | wxALL);
+	sRmObjs->Add(sRmObjsButtons, 0, wxEXPAND | wxALL);
 	sRmObjPage->Add(sRmObjs, 1, wxEXPAND | wxALL, 5);
 	m_RmObjPage->SetSizer(sRmObjPage);
 
@@ -1732,8 +1732,8 @@ void CISOProperties::RmObjButtonClicked(wxCommandEvent& event)
 
 	RmObjEngine::ApplyRmObjs(rmObjCodes);
 
-	EditRmObj->Enable(false);
-	RemoveRmObj->Enable(false);
+	EditRmObj->Disable();
+	RemoveRmObj->Disable();
 }
 
 void CISOProperties::PatchList_Load()

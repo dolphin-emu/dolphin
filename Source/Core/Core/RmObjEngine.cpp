@@ -61,7 +61,7 @@ namespace RmObjEngine
 
 			for (std::string& line : lines)
 			{
-				if (line.size() == 0)
+				if (line.empty())
 					continue;
 
 				if (line[0] == '$')
@@ -80,7 +80,7 @@ namespace RmObjEngine
 				}
 				else
 				{
-					std::string::size_type loc = line.find_first_of('=', 0);
+					std::string::size_type loc = line.find('=');
 
 					if (loc != std::string::npos)
 					{
@@ -140,7 +140,7 @@ namespace RmObjEngine
 
 					if (size > 8)
 					{
-						size = size - 8;
+						size -= 8;
 						for (int j = size; j > 0; --j)
 						{
 							skipEntry.push_back((0xFF & (value_add_upper >> ((j - 1) * 8))));
