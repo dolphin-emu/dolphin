@@ -3,17 +3,17 @@
 // Refer to the license.txt file included.
 
 
-// RmObjEngine
+// HideObjectEngine
 // Supports the removal of objects/effects from the rendering loop
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/RmObjEngine.h"
+#include "Core/HideObjectEngine.h"
 
-namespace RmObjEngine
+namespace HideObjectEngine
 {
 
-	const char *RmObjTypeStrings[] =
+	const char *HideObjectTypeStrings[] =
 	{
 		"8bits",
 		"16bits",
@@ -33,11 +33,11 @@ namespace RmObjEngine
 		"128bits"
 	};
 
-	static std::vector<RmObj> rmObjCodes;
+	static std::vector<HideObject> HideObjectCodes;
 
-	void LoadRmObjSection(const std::string& section, std::vector<RmObj>& rmobjects, IniFile& globalIni, IniFile& localIni)
+	void LoadHideObjectSection(const std::string& section, std::vector<HideObject>& HideObjectects, IniFile& globalIni, IniFile& localIni)
 	{
-		// Load the name of all enabled rmobjects
+		// Load the name of all enabled HideObjectects
 		std::string enabledSectionName = section + "_Enabled";
 		std::vector<std::string> enabledLines;
 		std::set<std::string> enabledNames;
@@ -56,7 +56,7 @@ namespace RmObjEngine
 		for (const IniFile* ini : inis)
 		{
 			std::vector<std::string> lines;
-			RmObj currentRmObj;
+			HideObject currentHideObject;
 			ini->GetLines(section, &lines);
 
 			for (std::string& line : lines)
@@ -67,16 +67,16 @@ namespace RmObjEngine
 				if (line[0] == '$')
 				{
 					// Take care of the previous code
-					if (currentRmObj.name.size())
+					if (currentHideObject.name.size())
 					{
-						rmobjects.push_back(currentRmObj);
+						HideObjectects.push_back(currentHideObject);
 					}
-					currentRmObj.entries.clear();
+					currentHideObject.entries.clear();
 
 					// Set active and name
-					currentRmObj.name = line.substr(1, line.size() - 1);
-					currentRmObj.active = enabledNames.find(currentRmObj.name) != enabledNames.end();
-					currentRmObj.user_defined = (ini == &localIni);
+					currentHideObject.name = line.substr(1, line.size() - 1);
+					currentHideObject.active = enabledNames.find(currentHideObject.name) != enabledNames.end();
+					currentHideObject.user_defined = (ini == &localIni);
 				}
 				else
 				{
@@ -92,51 +92,51 @@ namespace RmObjEngine
 
 					if (items.size() >= 3)
 					{
-						RmObjEntry pE;
+						HideObjectEntry pE;
 						bool success = true;
 						success &= TryParse(items[1], &pE.value_upper);
 						success &= TryParse(items[2], &pE.value_lower);
 
-						pE.type = RmObjType(std::find(RmObjTypeStrings, RmObjTypeStrings + 16, items[0]) - RmObjTypeStrings);
-						success &= (pE.type != (RmObjType)16);
+						pE.type = HideObjectType(std::find(HideObjectTypeStrings, HideObjectTypeStrings + 16, items[0]) - HideObjectTypeStrings);
+						success &= (pE.type != (HideObjectType)16);
 						if (success)
 						{
-							currentRmObj.entries.push_back(pE);
+							currentHideObject.entries.push_back(pE);
 						}
 					}
 				}
 			}
 
-			if (currentRmObj.name.size() && currentRmObj.entries.size())
+			if (currentHideObject.name.size() && currentHideObject.entries.size())
 			{
-				rmobjects.push_back(currentRmObj);
+				HideObjectects.push_back(currentHideObject);
 			}
 		}
 	}
 
-	void LoadRmObjs()
+	void LoadHideObjects()
 	{
 		IniFile merged = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
 		IniFile globalIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
 		IniFile localIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
 
-		LoadRmObjSection("RmObjCodes", rmObjCodes, globalIni, localIni);
+		LoadHideObjectSection("HideObjectCodes", HideObjectCodes, globalIni, localIni);
 	}
 
-	void ApplyRmObjs(const std::vector<RmObj> &rmobjects)
+	void ApplyHideObjects(const std::vector<HideObject> &HideObjectects)
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.clear();
 
-		for (const RmObj& rmobject : rmobjects)
+		for (const HideObject& HideObjectect : HideObjectects)
 		{
-			if (rmobject.active)
+			if (HideObjectect.active)
 			{
-				for (const RmObjEntry& entry : rmobject.entries)
+				for (const HideObjectEntry& entry : HideObjectect.entries)
 				{
 					u64 value_add_lower = entry.value_lower;
 					u64 value_add_upper = entry.value_upper;
 					SkipEntry skipEntry;
-					int size = GetRmObjTypeCharLength(entry.type) >> 1;
+					int size = GetHideObjectTypeCharLength(entry.type) >> 1;
 
 					if (size > 8)
 					{
@@ -160,14 +160,14 @@ namespace RmObjEngine
 		SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_removal_codes = SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.size();
 	}
 
-	void ApplyFrameRmObjs()
+	void ApplyFrameHideObjects()
 	{
-		ApplyRmObjs(rmObjCodes);
+		ApplyHideObjects(HideObjectCodes);
 	}
 
 	void Shutdown()
 	{
-		rmObjCodes.clear();
+		HideObjectCodes.clear();
 	}
 
 }  // namespace

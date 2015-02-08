@@ -635,9 +635,6 @@
     <ClCompile Include="PowerPC\SignatureDB.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
-      <Filter>PowerPC\Jit64Common</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -727,7 +724,8 @@
     <ClCompile Include="HW\GCKeyboard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClCompile>
-    <ClCompile Include="RmObjEngine.cpp" />
+    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
+    <ClCompile Include="HideObjectEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -744,7 +742,6 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
-    <ClInclude Include="RmObjEngine.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="VolumeHandler.h" />
     <ClInclude Include="ActionReplay.h">
@@ -1197,9 +1194,6 @@
     <ClInclude Include="PowerPC\SignatureDB.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
-      <Filter>PowerPC\Jit64Common</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
@@ -1241,6 +1235,8 @@
     <ClInclude Include="HW\GCKeyboard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
+    <ClInclude Include="HideObjectEngine.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

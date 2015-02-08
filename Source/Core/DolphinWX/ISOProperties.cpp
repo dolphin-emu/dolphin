@@ -66,7 +66,7 @@
 #include "Core/CoreParameter.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
-#include "Core/RmObjEngine.h"
+#include "Core/HideObjectEngine.h"
 #include "Core/Boot/Boot.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -75,7 +75,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
-#include "DolphinWX/RmObjAddEdit.h"
+#include "DolphinWX/HideObjectAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/resources/isoprop_disc.xpm"
@@ -94,7 +94,7 @@ static DiscIO::IVolume *OpenISO = nullptr;
 static DiscIO::IFileSystem *pFileSystem = nullptr;
 
 std::vector<PatchEngine::Patch> onFrame;
-std::vector<RmObjEngine::RmObj> rmObjCodes;
+std::vector<HideObjectEngine::HideObject> HideObjectCodes;
 std::vector<ActionReplay::ARCode> arCodes;
 PHackData PHack_Data;
 
@@ -107,11 +107,11 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
-	EVT_LISTBOX(ID_RMOBJS_LIST, CISOProperties::ListSelectionChanged)
-	EVT_CHECKLISTBOX(ID_RMOBJS_LIST, CISOProperties::CheckboxSelectionChanged)
-	EVT_BUTTON(ID_EDITRMOBJ, CISOProperties::RmObjButtonClicked)
-	EVT_BUTTON(ID_ADDRMOBJ, CISOProperties::RmObjButtonClicked)
-	EVT_BUTTON(ID_REMOVERMOBJ, CISOProperties::RmObjButtonClicked)
+	EVT_LISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::ListSelectionChanged)
+	EVT_CHECKLISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::CheckboxSelectionChanged)
+	EVT_BUTTON(ID_EDITHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
+	EVT_BUTTON(ID_ADDHideObject, CISOProperties::HideObjectButtonClicked)
+	EVT_BUTTON(ID_REMOVEHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -395,8 +395,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxNotebook* const m_Notebook = new wxNotebook(this, ID_NOTEBOOK);
 	wxPanel* const m_GameConfig = new wxPanel(m_Notebook, ID_GAMECONFIG);
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
-	wxPanel* const m_RmObjPage = new wxPanel(m_Notebook, ID_RMOBJ_PAGE);
-	m_Notebook->AddPage(m_RmObjPage, _("Remove Object"));
+	wxPanel* const m_HideObjectPage = new wxPanel(m_Notebook, ID_HIDEOBJECT_PAGE);
+	m_Notebook->AddPage(m_HideObjectPage, _("Hide Objects"));
 	wxPanel* const m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE);
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
 	wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
@@ -514,26 +514,26 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
 
-	// Remove Object
-	wxBoxSizer* const sRmObjs = new wxBoxSizer(wxVERTICAL);
+	// Hide Objects
+	wxBoxSizer* const sHideObjects = new wxBoxSizer(wxVERTICAL);
 
-	RmObjs = new wxCheckListBox(m_RmObjPage, ID_RMOBJS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_RmObjs, wxLB_HSCROLL);
-	wxBoxSizer* const sRmObjsButtons = new wxBoxSizer(wxHORIZONTAL);
-	EditRmObj = new wxButton(m_RmObjPage, ID_EDITRMOBJ, _("Edit..."));
-	wxButton* const AddRmObj = new wxButton(m_RmObjPage, ID_ADDRMOBJ, _("Add..."));
-	RemoveRmObj = new wxButton(m_RmObjPage, ID_REMOVERMOBJ, _("Remove"));
-	EditRmObj->Enable(false);
-	RemoveRmObj->Enable(false);
+	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_HideObjects, wxLB_HSCROLL);
+	wxBoxSizer* const sHideObjectsButtons = new wxBoxSizer(wxHORIZONTAL);
+	EditHideObject = new wxButton(m_HideObjectPage, ID_EDITHIDEOBJECT, _("Edit..."));
+	wxButton* const AddHideObject = new wxButton(m_HideObjectPage, ID_ADDHideObject, _("Add..."));
+	RemoveHideObject = new wxButton(m_HideObjectPage, ID_REMOVEHIDEOBJECT, _("Remove"));
+	EditHideObject->Enable(false);
+	RemoveHideObject->Enable(false);
 
-	wxBoxSizer* sRmObjPage = new wxBoxSizer(wxVERTICAL);
-	sRmObjs->Add(RmObjs, 1, wxEXPAND | wxALL);
-	sRmObjsButtons->Add(EditRmObj, 0, wxEXPAND | wxALL);
-	sRmObjsButtons->AddStretchSpacer();
-	sRmObjsButtons->Add(AddRmObj, 0, wxEXPAND | wxALL);
-	sRmObjsButtons->Add(RemoveRmObj, 0, wxEXPAND | wxALL);
-	sRmObjs->Add(sRmObjsButtons, 0, wxEXPAND | wxALL);
-	sRmObjPage->Add(sRmObjs, 1, wxEXPAND | wxALL, 5);
-	m_RmObjPage->SetSizer(sRmObjPage);
+	wxBoxSizer* sHideObjectPage = new wxBoxSizer(wxVERTICAL);
+	sHideObjects->Add(HideObjects, 1, wxEXPAND | wxALL);
+	sHideObjectsButtons->Add(EditHideObject, 0, wxEXPAND | wxALL);
+	sHideObjectsButtons->AddStretchSpacer();
+	sHideObjectsButtons->Add(AddHideObject, 0, wxEXPAND | wxALL);
+	sHideObjectsButtons->Add(RemoveHideObject, 0, wxEXPAND | wxALL);
+	sHideObjects->Add(sHideObjectsButtons, 0, wxEXPAND | wxALL);
+	sHideObjectPage->Add(sHideObjects, 1, wxEXPAND | wxALL, 5);
+	m_HideObjectPage->SetSizer(sHideObjectPage);
 
 	// Patches
 	wxBoxSizer* const sPatches = new wxBoxSizer(wxVERTICAL);
@@ -1155,7 +1155,7 @@ void CISOProperties::LoadGameConfig()
 	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergenceMinimum", &iTemp);
 	ConvergenceMinimum->SetValue(iTemp);
 
-	RmObjList_Load();
+	HideObjectList_Load();
 	PatchList_Load();
 	ActionReplayList_Load();
 	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
@@ -1355,17 +1355,17 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_RMOBJS_LIST:
-		if (RmObjs->GetSelection() == wxNOT_FOUND ||
-			DefaultRmObjs.find(RmObjs->GetString(RmObjs->GetSelection()).ToStdString()) != DefaultRmObjs.end())
+	case ID_HIDEOBJECTS_LIST:
+		if (HideObjects->GetSelection() == wxNOT_FOUND ||
+			DefaultHideObjects.find(HideObjects->GetString(HideObjects->GetSelection()).ToStdString()) != DefaultHideObjects.end())
 		{
-			EditRmObj->Disable();
-			RemoveRmObj->Disable();
+			EditHideObject->Disable();
+			RemoveHideObject->Disable();
 		}
 		else
 		{
-			EditRmObj->Enable();
-			RemoveRmObj->Enable();
+			EditHideObject->Enable();
+			RemoveHideObject->Enable();
 		}
 		break;
 	case ID_PATCHES_LIST:
@@ -1399,93 +1399,93 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 
 void CISOProperties::CheckboxSelectionChanged(wxCommandEvent& event)
 {
-	RmObjList_Save();
-	RmObjList_Load();
+	HideObjectList_Save();
+	HideObjectList_Load();
 }
 
-void CISOProperties::RmObjList_Load()
+void CISOProperties::HideObjectList_Load()
 {
-	rmObjCodes.clear();
-	RmObjs->Clear();
+	HideObjectCodes.clear();
+	HideObjects->Clear();
 
-	RmObjEngine::LoadRmObjSection("RmObjCodes", rmObjCodes, GameIniDefault, GameIniLocal);
+	HideObjectEngine::LoadHideObjectSection("HideObjectCodes", HideObjectCodes, GameIniDefault, GameIniLocal);
 
 	u32 index = 0;
-	for (RmObjEngine::RmObj& p : rmObjCodes)
+	for (HideObjectEngine::HideObject& p : HideObjectCodes)
 	{
-		RmObjs->Append(StrToWxStr(p.name));
-		RmObjs->Check(index, p.active);
+		HideObjects->Append(StrToWxStr(p.name));
+		HideObjects->Check(index, p.active);
 		if (!p.user_defined)
-			DefaultRmObjs.insert(p.name);
+			DefaultHideObjects.insert(p.name);
 		++index;
 	}
 
-	RmObjEngine::ApplyRmObjs(rmObjCodes);
+	HideObjectEngine::ApplyHideObjects(HideObjectCodes);
 
 }
 
-void CISOProperties::RmObjList_Save()
+void CISOProperties::HideObjectList_Save()
 {
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
-	for (RmObjEngine::RmObj& p : rmObjCodes)
+	for (HideObjectEngine::HideObject& p : HideObjectCodes)
 	{
-		if (RmObjs->IsChecked(index))
+		if (HideObjects->IsChecked(index))
 			enabledLines.push_back("$" + p.name);
 
 		// Do not save default removed objects.
-		if (DefaultRmObjs.find(p.name) == DefaultRmObjs.end())
+		if (DefaultHideObjects.find(p.name) == DefaultHideObjects.end())
 		{
 			lines.push_back("$" + p.name);
-			for (const RmObjEngine::RmObjEntry& entry : p.entries)
+			for (const HideObjectEngine::HideObjectEntry& entry : p.entries)
 			{
-				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", RmObjEngine::RmObjTypeStrings[entry.type], (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
+				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", HideObjectEngine::HideObjectTypeStrings[entry.type], (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
 				lines.push_back(temp);
 			}
 		}
 		++index;
 	}
-	GameIniLocal.SetLines("RmObjCodes_Enabled", enabledLines);
-	GameIniLocal.SetLines("RmObjCodes", lines);
+	GameIniLocal.SetLines("HideObjectCodes_Enabled", enabledLines);
+	GameIniLocal.SetLines("HideObjectCodes", lines);
 }
 
-void CISOProperties::RmObjButtonClicked(wxCommandEvent& event)
+void CISOProperties::HideObjectButtonClicked(wxCommandEvent& event)
 {
-	int selection = RmObjs->GetSelection();
+	int selection = HideObjects->GetSelection();
 
 	switch (event.GetId())
 	{
-	case ID_EDITRMOBJ:
+	case ID_EDITHIDEOBJECT:
 	{
-		CRmObjAddEdit dlg(selection, this);
+		CHideObjectAddEdit dlg(selection, this);
 		dlg.ShowModal();
 	}
 	break;
-	case ID_ADDRMOBJ:
+	case ID_ADDHideObject:
 	{
-		CRmObjAddEdit dlg(-1, this, 1, _("Add Object to Remove"));
+		CHideObjectAddEdit dlg(-1, this, 1, _("Add Hide Object Code"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			RmObjs->Append(StrToWxStr(rmObjCodes.back().name));
-			RmObjs->Check((unsigned int)(rmObjCodes.size() - 1), rmObjCodes.back().active);
+			HideObjects->Append(StrToWxStr(HideObjectCodes.back().name));
+			HideObjects->Check((unsigned int)(HideObjectCodes.size() - 1), HideObjectCodes.back().active);
 		}
 	}
 	break;
-	case ID_REMOVERMOBJ:
-		rmObjCodes.erase(rmObjCodes.begin() + RmObjs->GetSelection());
-		RmObjs->Delete(RmObjs->GetSelection());
+	case ID_REMOVEHIDEOBJECT:
+		HideObjectCodes.erase(HideObjectCodes.begin() + HideObjects->GetSelection());
+		HideObjects->Delete(HideObjects->GetSelection());
 		break;
 	}
 
-	RmObjList_Save();
-	RmObjs->Clear();
-	RmObjList_Load();
+	HideObjectList_Save();
+	HideObjects->Clear();
+	HideObjectList_Load();
 
-	RmObjEngine::ApplyRmObjs(rmObjCodes);
+	HideObjectEngine::ApplyHideObjects(HideObjectCodes);
 
-	EditRmObj->Disable();
-	RemoveRmObj->Disable();
+	EditHideObject->Disable();
+	RemoveHideObject->Disable();
 }
 
 void CISOProperties::PatchList_Load()

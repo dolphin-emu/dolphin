@@ -42,7 +42,7 @@ set(GUI_SRCS
 	NetWindow.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp
-	RmObjAddEdit.cpp
+	HideObjectAddEdit.cpp
 	SoftwareVideoConfigDialog.cpp
 	TASInputDlg.cpp
 	VideoConfigDiag.cpp
