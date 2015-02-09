@@ -70,7 +70,7 @@ private:
 
 	// Core
 	wxCheckBox *CPUThread, *SkipIdle, *MMU, *BAT, *DCBZOFF, *FPRF;
-	wxCheckBox *VBeam, *SyncGPU, *FastDiscSpeed, *BlockMerging, *DSPHLE;
+	wxCheckBox *SyncGPU, *FastDiscSpeed, *BlockMerging, *DSPHLE;
 
 	wxArrayString arrayStringFor_GPUDeterminism;
 	wxChoice* GPUDeterminism;
@@ -136,7 +136,6 @@ private:
 		ID_IDLESKIP,
 		ID_MMU,
 		ID_DCBZOFF,
-		ID_VBEAM,
 		ID_SYNCGPU,
 		ID_DISCSPEED,
 		ID_MERGEBLOCKS,
