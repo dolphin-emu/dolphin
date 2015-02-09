@@ -478,10 +478,7 @@ void UpdateParameters()
 
 int GetNumFields()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeamSpeedHack)
-		return (2 / fields);
-	else
-		return 1;
+	return 1;
 }
 
 unsigned int GetTicksPerLine()
@@ -492,10 +489,7 @@ unsigned int GetTicksPerLine()
 	}
 	else
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeamSpeedHack)
-			return TicksPerFrame / s_lineCount;
-		else
-			return TicksPerFrame / (s_lineCount / (2 / fields)) ;
+		return TicksPerFrame / (s_lineCount / (2 / fields)) ;
 	}
 }
 
