@@ -211,8 +211,6 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 			efb_scale_denominatorX = efb_scale_denominatorY = 2;
 			break;
 
-		case SCALE_3X:
-		case SCALE_4X:
 		default:
 			efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 3;
 			efb_scale_denominatorX = efb_scale_denominatorY = 1;
@@ -328,7 +326,7 @@ void Renderer::DrawDebugText()
 
 	if ((u32)OSDTime > Common::Timer::GetTimeMs())
 	{
-		const char* res_text = "";
+		std::string res_text;
 		switch (g_ActiveConfig.iEFBScale)
 		{
 		case SCALE_AUTO:
@@ -349,14 +347,10 @@ void Renderer::DrawDebugText()
 		case SCALE_2_5X:
 			res_text = "2.5x";
 			break;
-		case SCALE_3X:
-			res_text = "3x";
-			break;
-		case SCALE_4X:
-			res_text = "4x";
+		default:
+			res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale - 3);
 			break;
 		}
-
 		const char* ar_text = "";
 		switch (g_ActiveConfig.iAspectRatio)
 		{
