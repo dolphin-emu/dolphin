@@ -32,6 +32,7 @@ namespace D3D
 ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
 static IDXGISwapChain* swapchain = nullptr;
+static ID3D11Debug* debug = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
 HWND hWnd;
@@ -302,6 +303,28 @@ HRESULT Create(HWND wnd)
 											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
 											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
 											&featlevel, &context);
+		// Debugbreak on D3D error
+		if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
+		{
+			ID3D11InfoQueue* infoQueue = nullptr;
+			if (SUCCEEDED(debug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&infoQueue)))
+			{
+				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+
+				D3D11_MESSAGE_ID hide[] =
+				{
+					D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS
+				};
+
+				D3D11_INFO_QUEUE_FILTER filter;
+				memset(&filter, 0, sizeof(filter));
+				filter.DenyList.NumIDs = sizeof(hide) / sizeof(D3D11_MESSAGE_ID);
+				filter.DenyList.pIDList = hide;
+				infoQueue->AddStorageFilterEntries(&filter);
+				infoQueue->Release();
+			}
+		}
 	}
 
 	if (FAILED(hr))
@@ -375,6 +398,21 @@ void Close()
 
 	SAFE_RELEASE(context);
 	ULONG references = device->Release();
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (debug)
+	{
+		--references; // we didn't release the debug interface yet
+		if (references)
+		{
+			// print out alive objects, but only if we actually have pending references
+			// note this will also print out internal live objects to the debug console
+			debug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
+		}
+		SAFE_RELEASE(debug)
+	}
+#endif
+
 	if (references)
 	{
 		ERROR_LOG(VIDEO, "Unreleased references: %i.", references);
