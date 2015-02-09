@@ -476,11 +476,6 @@ void UpdateParameters()
 	}
 }
 
-int GetNumFields()
-{
-	return 1;
-}
-
 unsigned int GetTicksPerLine()
 {
 	if (s_lineCount == 0)
