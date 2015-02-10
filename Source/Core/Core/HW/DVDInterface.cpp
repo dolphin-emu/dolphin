@@ -447,6 +447,7 @@ void ChangeDisc(const std::string& newFileName)
 	std::string* _FileName = new std::string(newFileName);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ejectDisc);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)_FileName);
+	// TODO: We shouldn't be modifying movie state from the GUI thread.
 	if (Movie::IsRecordingInput())
 	{
 		Movie::g_bDiscChange = true;

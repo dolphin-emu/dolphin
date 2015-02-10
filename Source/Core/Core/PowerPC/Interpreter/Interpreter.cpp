@@ -146,7 +146,7 @@ int Interpreter::SingleStepInner()
 				}
 				else
 				{
-					Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_FPU_UNAVAILABLE);
+					PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
 					PowerPC::CheckExceptions();
 					m_EndBlock = true;
 				}

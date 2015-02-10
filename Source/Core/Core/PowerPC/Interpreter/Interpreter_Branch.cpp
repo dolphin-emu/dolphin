@@ -124,7 +124,7 @@ void Interpreter::rfid(UGeckoInstruction _inst)
 // We do it anyway, though :P
 void Interpreter::sc(UGeckoInstruction _inst)
 {
-	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_SYSCALL);
+	PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
 	PowerPC::CheckExceptions();
 	m_EndBlock = true;
 }
