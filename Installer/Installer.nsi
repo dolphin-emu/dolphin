@@ -3,7 +3,7 @@
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
 
 ; HM NIS Edit Wizard helper defines
-!define PRODUCT_PUBLISHER "Dolphin Development Team"
+!define PRODUCT_PUBLISHER "Dolphin Team"
 !define PRODUCT_WEB_SITE "https://dolphin-emu.org/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"

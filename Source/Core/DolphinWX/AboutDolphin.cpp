@@ -41,7 +41,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 				"Today Dolphin is an open source project with many\n"
 				"contributors, too many to list.\n"
 				"If interested, just go check out the project page at\n"
-				"https://github.com/dolphin-emu/dolphin/ .\n"
+				"https://github.com/dolphin-emu/dolphin .\n"
 				"\n"
 				"Special thanks to Bushing, Costis, CrowTRobo,\n"
 				"Marcan, Segher, Titanik, or9 and Hotquik for their\n"

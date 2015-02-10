@@ -176,7 +176,8 @@ static int GetEmptySlot(std::map<double, int> m)
 				break;
 			}
 		}
-		if (!found) return i;
+		if (!found)
+			return i;
 	}
 	return -1;
 }
