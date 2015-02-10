@@ -353,6 +353,4 @@ union UVIHorizontalStepping
 
 	unsigned int GetTicksPerLine();
 	unsigned int GetTicksPerFrame();
-
-	int GetNumFields();
 }

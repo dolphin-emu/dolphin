@@ -78,16 +78,15 @@ void DSPHLE::DSP_Update(int cycles)
 u32 DSPHLE::DSP_UpdateRate()
 {
 	// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
-	int fields = VideoInterface::GetNumFields();
 	if (m_pUCode != nullptr)
 	{
 		// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
 		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
 		// back to 100% speed, it must be slowed down by 25%
 		if (g_has_hmd && !SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
-			return ((SystemTimers::GetTicksPerSecond() / 800) * m_pUCode->GetUpdateMs() / fields);
+			return (SystemTimers::GetTicksPerSecond() / 800) * m_pUCode->GetUpdateMs();
 		else
-			return ((SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs() / fields);
+			return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs();
 	}
 	else
 	{
