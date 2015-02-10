@@ -478,6 +478,10 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 				}
 				JitArmTables::CompileInstruction(ops[i]);
 
+				// FPR cache causes issues without fastmem
+				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem)
+					fpr.Flush();
+
 				// If we have a register that will never be used again, flush it.
 				for (int j : ~ops[i].gprInUse)
 					gpr.StoreFromRegister(j);
