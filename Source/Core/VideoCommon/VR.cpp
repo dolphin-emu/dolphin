@@ -649,7 +649,7 @@ void OpcodeReplayBuffer()
 				++extra_video_loops_count;
 				skipped_opcode_replay_count = 0;
 
-				for (auto&& entry: timewarp_logentries)
+				for (TimewarpLogEntry& entry : timewarp_logentries)
 				{
 					//VertexManager::s_pCurBufferPointer = s_pCurBufferPointer_log.at(i);
 					//VertexManager::s_pEndBufferPointer = s_pEndBufferPointer_log.at(i);

@@ -107,7 +107,7 @@ void CHideObjectAddEdit::SaveHideObjectData(wxCommandEvent& event)
 
 	if (selection == -1)
 	{
-		for (auto&& code: HideObjectCodes)
+		for (HideObjectEngine::HideObject& code : HideObjectCodes)
 		{
 			if (code.name == WxStrToStr(EditHideObjectName->GetValue()))
 			{
