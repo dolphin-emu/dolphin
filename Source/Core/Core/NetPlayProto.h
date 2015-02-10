@@ -32,7 +32,7 @@ typedef std::vector<u8> NetWiimote;
 
 #define NETPLAY_VERSION  "Dolphin NetPlay 2014-01-08"
 
-const int NETPLAY_INITIAL_GCTIME = 1272737767;
+extern int g_NetplayInitialGCTime = 1272737767;
 
 
 // messages
@@ -42,6 +42,8 @@ enum
 	NP_MSG_PLAYER_LEAVE     = 0x11,
 
 	NP_MSG_CHAT_MESSAGE     = 0x30,
+	
+	NP_MSG_INITIAL_GCTIME   = 0x40,
 
 	NP_MSG_PAD_DATA         = 0x60,
 	NP_MSG_PAD_MAPPING      = 0x61,

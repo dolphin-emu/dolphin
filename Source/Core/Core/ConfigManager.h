@@ -114,6 +114,9 @@ struct SConfig : NonCopyable
 	bool m_BackgroundInput;
 	bool m_GameCubeAdapter;
 	bool m_GameCubeAdapterThread;
+	
+	// Netplay Settings
+	int m_NetPlayInitialGCTime;
 
 	SysConf* m_SYSCONF;
 
@@ -143,6 +146,8 @@ private:
 	void SaveInputSettings(IniFile& ini);
 	void SaveMovieSettings(IniFile& ini);
 	void SaveFifoPlayerSettings(IniFile& ini);
+	void SaveNetPlaySettings(IniFile& ini);
+
 
 	void LoadGeneralSettings(IniFile& ini);
 	void LoadInterfaceSettings(IniFile& ini);
@@ -154,6 +159,7 @@ private:
 	void LoadInputSettings(IniFile& ini);
 	void LoadMovieSettings(IniFile& ini);
 	void LoadFifoPlayerSettings(IniFile& ini);
+	void LoadNetPlaySettings(IniFile& ini);
 
 	static SConfig* m_Instance;
 };

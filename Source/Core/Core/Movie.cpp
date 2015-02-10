@@ -454,7 +454,7 @@ bool BeginRecordingInput(int controllers)
 	if (NetPlay::IsNetPlayRunning())
 	{
 		s_bNetPlay = true;
-		s_recordingStartTime = NETPLAY_INITIAL_GCTIME;
+		s_recordingStartTime = g_NetplayInitialGCTime;
 	}
 	else
 	{

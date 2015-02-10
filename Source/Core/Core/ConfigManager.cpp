@@ -182,6 +182,7 @@ void SConfig::SaveSettings()
 	SaveDSPSettings(ini);
 	SaveInputSettings(ini);
 	SaveFifoPlayerSettings(ini);
+	SaveNetPlaySettings(ini);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -389,7 +390,12 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
 
 	fifoplayer->Set("LoopReplay", m_LocalCoreStartupParameter.bLoopFifoReplay);
 }
-
+void SConfig::SaveNetPlaySettings(IniFile& ini)
+{
+	IniFile::Section* netplay = ini.GetOrCreateSection("NetPlay");
+	
+	netplay->Set("InitialGCTime", m_NetPlayInitialGCTime);
+}
 void SConfig::LoadSettings()
 {
 	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
@@ -406,6 +412,7 @@ void SConfig::LoadSettings()
 	LoadDSPSettings(ini);
 	LoadInputSettings(ini);
 	LoadFifoPlayerSettings(ini);
+	LoadNetPlaySettings(ini);
 
 	m_SYSCONF = new SysConf();
 }
@@ -641,4 +648,9 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
 	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
 	fifoplayer->Get("LoopReplay", &m_LocalCoreStartupParameter.bLoopFifoReplay, true);
+}
+void SConfig::LoadNetPlaySettings(IniFile &ini)
+{
+	IniFile::Section* netplay = ini.GetOrCreateSection("NetPlay");
+	netplay->Get("InitialGCTime", &m_NetPlayInitialGCTime, 1272737767);
 }
