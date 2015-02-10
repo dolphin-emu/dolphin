@@ -156,15 +156,12 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 		return size;
 
 	// Hide Objects Code code
-	if (m_LocalCoreStartupParameter.num_object_removal_codes)
+	for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
 	{
-		for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
+		if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
 		{
-			if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
-			{
-				//Data didn't match, try next object_removal_code
-				return size;
-			}
+			//Data didn't match, try next object_removal_code
+			return size;
 		}
 	}
 

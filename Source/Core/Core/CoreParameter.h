@@ -206,9 +206,6 @@ struct SCoreStartupParameter
 
 	//Remove Layer
 	std::vector<SkipEntry> object_removal_codes;
-	u32 skip_objects_end = 0;
-	u32 skip_objects_start = 0;
-	size_t num_object_removal_codes = 0;
 
 	// Display settings
 	std::string strFullscreenResolution;

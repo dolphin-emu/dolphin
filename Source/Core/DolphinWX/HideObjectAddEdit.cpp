@@ -56,18 +56,18 @@ void CHideObjectAddEdit::CreateGUIControls(int _selection)
 	for (int i = 0; i < 16; ++i)
 		wxArrayStringFor_EditHideObjectType.Add(StrToWxStr(HideObjectEngine::HideObjectTypeStrings[i]));
 	EditHideObjectType = new wxRadioBox(this, wxID_ANY, _("Size"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditHideObjectType, 8, wxRA_SPECIFY_COLS);
-	EditHideObjectType->SetSelection((int)tempEntries.at(0).type);
+	EditHideObjectType->SetSelection((int)tempEntries[0].type);
 
 	wxStaticText* EditHideObjectValueText = new wxStaticText(this, wxID_ANY, _("Value:"));
 	EditHideObjectValue = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(225, 20));
-	if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 8)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type), (u32)tempEntries.at(0).value_lower));
-	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 16)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type)-8, (u32)((tempEntries.at(0).value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries.at(0).value_lower & 0xffffffff))));
-	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 24)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type)-16, (u32)(tempEntries.at(0).value_upper & 0xffffffff), (u32)((tempEntries.at(0).value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries.at(0).value_lower & 0xffffffff))));
-	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 32)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type)-24, (u32)((tempEntries.at(0).value_upper & 0xffffffff00000000) >> 32), (u32)(tempEntries.at(0).value_upper & 0xffffffff), (u32)((tempEntries.at(0).value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries.at(0).value_lower & 0xffffffff))));
+	if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 8)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type), (u32)tempEntries[0].value_lower));
+	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 16)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type)-8, (u32)((tempEntries[0].value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries[0].value_lower & 0xffffffff))));
+	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 24)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type)-16, (u32)(tempEntries[0].value_upper & 0xffffffff), (u32)((tempEntries[0].value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries[0].value_lower & 0xffffffff))));
+	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 32)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type)-24, (u32)((tempEntries[0].value_upper & 0xffffffff00000000) >> 32), (u32)(tempEntries[0].value_upper & 0xffffffff), (u32)((tempEntries[0].value_lower & 0xffffffff00000000) >> 32), (u32)((tempEntries[0].value_lower & 0xffffffff))));
 
 	wxButton* BruteForceUp = new wxButton(this, ID_BUTTON_UP, _("Up"));
 	wxButton* BruteForceDown = new wxButton(this, ID_BUTTON_DOWN, _("Down"));
@@ -233,14 +233,14 @@ void CHideObjectAddEdit::ButtonUporDown(wxCommandEvent& event)
 		return;
 
 	// Print new valid entry.
-	if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 8)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type), (u32)value_lower));
-	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 16)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) - 8, (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
-	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 24)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) - 16, (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
-	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) <= 32)
-		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries.at(0).type) - 24, (u32)((value_upper & 0xffffffff00000000) >> 32), (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
+	if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 8)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type), (u32)value_lower));
+	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 16)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) - 8, (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
+	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 24)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) - 16, (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
+	else if (HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) <= 32)
+		EditHideObjectValue->SetValue(wxString::Format("%0*X%08X%08X%08X", HideObjectEngine::GetHideObjectTypeCharLength(tempEntries[0].type) - 24, (u32)((value_upper & 0xffffffff00000000) >> 32), (u32)(value_upper & 0xffffffff), (u32)((value_lower & 0xffffffff00000000) >> 32), (u32)(value_lower & 0xffffffff)));
 
 	// Put the valid entry in the HideObjectEntry
 	(*itCurEntry).value_upper = value_upper;
