@@ -278,6 +278,7 @@ u8* GetPointer(const u32 address)
 		case 0xcc:
 		case 0xcd:
 			_dbg_assert_msg_(MEMMAP, 0, "GetPointer from IO Bridge doesnt work");
+			break;
 		case 0xc8:
 			// EFB. We don't want to return a pointer here since we have no memory mapped for it.
 			break;
@@ -286,6 +287,7 @@ u8* GetPointer(const u32 address)
 			if ((address & 0xfffffff) < REALRAM_SIZE)
 				return m_pRAM + (address & RAM_MASK);
 		}
+		break;
 
 	case 0x1:
 	case 0x9:
@@ -295,8 +297,7 @@ u8* GetPointer(const u32 address)
 			if ((address & 0xfffffff) < EXRAM_SIZE)
 				return m_pEXRAM + (address & EXRAM_MASK);
 		}
-		else
-			break;
+		break;
 
 	case 0xe:
 		if (address < (0xE0000000 + L1_CACHE_SIZE))
@@ -307,6 +308,7 @@ u8* GetPointer(const u32 address)
 	default:
 		if (bFakeVMEM)
 			return m_pFakeVMEM + (address & FAKEVMEM_MASK);
+		break;
 	}
 
 	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", address, PC, LR);
