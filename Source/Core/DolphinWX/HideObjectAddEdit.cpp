@@ -107,9 +107,9 @@ void CHideObjectAddEdit::SaveHideObjectData(wxCommandEvent& event)
 
 	if (selection == -1)
 	{
-		for (int i = 0; i < HideObjectCodes.size(); ++i)
+		for (auto&& code: HideObjectCodes)
 		{
-			if (HideObjectCodes[i].name == WxStrToStr(EditHideObjectName->GetValue()))
+			if (code.name == WxStrToStr(EditHideObjectName->GetValue()))
 			{
 				wxMessageBox(_("Name is already in use.  Please choose a unique name."), _("Error"));
 				return;

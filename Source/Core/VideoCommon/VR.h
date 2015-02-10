@@ -118,9 +118,12 @@ extern const char *g_hmd_device_name;
 extern bool g_fov_changed;
 
 //Opcode Replay Buffer
-extern std::vector<DataReader> timewarp_log;
-extern std::vector<bool> display_list_log;
-extern std::vector<bool> is_preprocess_log;
+struct TimewarpLogEntry {
+	DataReader timewarp_log;
+	bool display_list_log;
+	bool is_preprocess_log;
+};
+extern std::vector<TimewarpLogEntry> timewarp_logentries;
 extern bool opcode_replay_enabled;
 extern bool g_opcodereplay_frame;
 extern int skipped_opcode_replay_count;

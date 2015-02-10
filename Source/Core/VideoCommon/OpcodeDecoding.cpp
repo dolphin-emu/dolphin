@@ -143,12 +143,8 @@ void OpcodeDecoder_Shutdown()
 	if (g_has_hmd)
 	{
 		g_opcodereplay_frame = true;
-		is_preprocess_log.clear();
-		is_preprocess_log.resize(0);
-		timewarp_log.clear();
-		timewarp_log.resize(0);
-		display_list_log.clear();
-		display_list_log.resize(0);
+		timewarp_logentries.clear();
+		timewarp_logentries.resize(0);
 	}
 }
 
@@ -174,9 +170,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 
 	if (opcode_replay_enabled && !g_opcodereplay_frame && g_has_hmd && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
 	{
-		timewarp_log.push_back(src);
-		display_list_log.push_back(in_display_list);
-		is_preprocess_log.push_back(is_preprocess);
+		timewarp_logentries.push_back(TimewarpLogEntry{src, in_display_list, is_preprocess});
 
 		//s_pCurBufferPointer_log.push_back(VertexManager::s_pCurBufferPointer);
 		//s_pEndBufferPointer_log.push_back(VertexManager::s_pEndBufferPointer);
