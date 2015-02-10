@@ -156,7 +156,6 @@ namespace HideObjectEngine
 				}
 			}
 		}
-		SConfig::GetInstance().m_LocalCoreStartupParameter.num_object_removal_codes = SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.size();
 	}
 
 	void ApplyFrameHideObjects()
