@@ -9,12 +9,13 @@ set(SRCS	ActionReplay.cpp
 			ec_wii.cpp
 			GeckoCodeConfig.cpp
 			GeckoCode.cpp
+			HotkeyManager.cpp
 			MemTools.cpp
 			Movie.cpp
 			NetPlayClient.cpp
 			NetPlayServer.cpp
 			PatchEngine.cpp
-			RmObjEngine.cpp
+			HideObjectEngine.cpp
 			State.cpp
 			VolumeHandler.cpp
 			Boot/Boot_BS2Emu.cpp

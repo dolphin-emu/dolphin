@@ -129,7 +129,7 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
 						IniFile::ParseLine(line, &key, &value);
 
 						if (!(key == "" && value == ""))
-							current_strings->m_options.push_back(std::make_pair(key, value));
+							current_strings->m_options.emplace_back(key, value);
 					}
 				}
 			}

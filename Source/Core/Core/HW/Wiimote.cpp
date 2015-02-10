@@ -40,8 +40,9 @@ void Shutdown()
 void Initialize(void* const hwnd, bool wait)
 {
 	// add 4 Wiimotes
-	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
-		s_config.controllers.push_back(new WiimoteEmu::Wiimote(i));
+	if (s_config.controllers.empty())
+		for (unsigned int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+			s_config.controllers.push_back(new WiimoteEmu::Wiimote(i));
 
 	g_controller_interface.Initialize(hwnd);
 

@@ -113,7 +113,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 			u32 addr = std::stoul(pieces[0], nullptr, 16);
 			u32 value = std::stoul(pieces[1], nullptr, 16);
 
-			decryptedLines.push_back(ActionReplay::AREntry(addr, value));
+			decryptedLines.emplace_back(addr, value);
 			continue;
 		}
 		else if (pieces.size() == 1)

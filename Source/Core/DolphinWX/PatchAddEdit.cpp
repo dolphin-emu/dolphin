@@ -48,7 +48,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	if (_selection == -1)
 	{
 		tempEntries.clear();
-		tempEntries.push_back(PatchEngine::PatchEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000));
+		tempEntries.emplace_back(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
 	}
 	else
 	{

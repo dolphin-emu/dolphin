@@ -35,8 +35,9 @@ void Shutdown()
 // if plugin isn't initialized, init and load config
 void Initialize(void* const hwnd)
 {
-	for (unsigned int i=0; i<4; ++i)
-		s_config.controllers.push_back(new GCKeyboard(i));
+	if (s_config.controllers.empty())
+		for (unsigned int i = 0; i < 4; ++i)
+			s_config.controllers.push_back(new GCKeyboard(i));
 
 	g_controller_interface.Initialize(hwnd);
 
