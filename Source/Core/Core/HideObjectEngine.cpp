@@ -12,7 +12,6 @@
 
 namespace HideObjectEngine
 {
-
 	const char *HideObjectTypeStrings[] =
 	{
 		"8bits",
