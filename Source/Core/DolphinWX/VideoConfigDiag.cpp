@@ -98,9 +98,9 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 }
 
 #if defined(_WIN32)
-static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so you'll want to use either Direct3D or OpenGL. Different games and different GPUs will behave differently on each backend, so for the best emulation experience it's recommended to try both and choose the one that's less problematic.\n\nIf unsure, use OpenGL.");
+static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so you'll want to use either Direct3D or OpenGL. Different games and different GPUs will behave differently on each backend, so for the best emulation experience it's recommended to try both and choose the one that's less problematic.\n\nIf unsure, select OpenGL.");
 #else
-static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
+static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, select OpenGL.");
 #endif
 static wxString adapter_desc = wxTRANSLATE("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, select auto.");
