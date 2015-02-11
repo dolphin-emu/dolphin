@@ -164,8 +164,12 @@ void Init()
 						ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
 						Shutdown();
 					}
+					else
+					{
+						goto continue_setup;
+					}
 				}
-				else if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+				else if ((ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED))
 				{
 					ERROR_LOG(SERIALINTERFACE, "libusb_kernel_driver_active error ret = %d", ret);
 					Shutdown();
@@ -177,6 +181,7 @@ void Init()
 				}
 				else
 				{
+continue_setup:
 					libusb_config_descriptor *config = nullptr;
 					libusb_get_config_descriptor(device, 0, &config);
 					for (u8 ic = 0; ic < config->bNumInterfaces; ic++)
