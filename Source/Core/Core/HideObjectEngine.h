@@ -29,7 +29,7 @@ enum HideObjectType
 	HideObject_128BIT,
 };
 
-extern const char *HideObjectTypeStrings[];
+extern std::vector<std::string> HideObjectTypeStrings;
 
 struct HideObjectEntry
 {
