@@ -145,7 +145,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (!count)
 		return 0;
 
-	SCoreStartupParameter &m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 	int size = count * loader->m_VertexSize;
@@ -164,16 +164,13 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (skip_drawing || is_preprocess)
 		return size;
 
-	// Object Removal Code code
-	if (m_LocalCoreStartupParameter.num_object_removal_codes)
+	// Hide Objects Code code
+	for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
 	{
-		for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
+		if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
 		{
-			if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
-			{
-				//Data didn't match, try next object_removal_code
-				return size;
-			}
+			//Data didn't match, try next object_removal_code
+			return size;
 		}
 	}
 

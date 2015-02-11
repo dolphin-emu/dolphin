@@ -50,9 +50,8 @@ bool g_fov_changed = false;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
-std::vector<DataReader> timewarp_log;
-std::vector<bool> display_list_log;
-std::vector<bool> is_preprocess_log;
+std::vector<TimewarpLogEntry> timewarp_logentries;
+
 bool opcode_replay_enabled = false;
 bool g_opcodereplay_frame = false;
 int skipped_opcode_replay_count = 0;
@@ -650,7 +649,7 @@ void OpcodeReplayBuffer()
 				++extra_video_loops_count;
 				skipped_opcode_replay_count = 0;
 
-				for (int i = 0; i < timewarp_log.size(); ++i)
+				for (TimewarpLogEntry& entry : timewarp_logentries)
 				{
 					//VertexManager::s_pCurBufferPointer = s_pCurBufferPointer_log.at(i);
 					//VertexManager::s_pEndBufferPointer = s_pEndBufferPointer_log.at(i);
@@ -670,13 +669,13 @@ void OpcodeReplayBuffer()
 					//fifo.CPBreakpoint = CPBreakpoint_log.at(i);
 					//}
 
-					if (is_preprocess_log.at(i))
+					if (entry.is_preprocess_log)
 					{
-						OpcodeDecoder_Run<true>(timewarp_log.at(i), nullptr, display_list_log.at(i));
+						OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, entry.display_list_log);
 					}
 					else
 					{
-						OpcodeDecoder_Run<false>(timewarp_log.at(i), nullptr, display_list_log.at(i));
+						OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, entry.display_list_log);
 					}
 				}
 			}
@@ -706,24 +705,16 @@ void OpcodeReplayBuffer()
 			//s_pEndBufferPointer_log.resize(0);
 			//s_pBaseBufferPointer_log.clear();
 			//s_pBaseBufferPointer_log.resize(0);
-			is_preprocess_log.clear();
-			is_preprocess_log.resize(0);
-			timewarp_log.clear();
-			timewarp_log.resize(0);
-			display_list_log.clear();
-			display_list_log.resize(0);
+			timewarp_logentries.clear();
+			timewarp_logentries.resize(0);
 		}
 	}
 	else
 	{
 		if (opcode_replay_enabled)
 		{
-			is_preprocess_log.clear();
-			is_preprocess_log.resize(0);
-			timewarp_log.clear();
-			timewarp_log.resize(0);
-			display_list_log.clear();
-			display_list_log.resize(0);
+			timewarp_logentries.clear();
+			timewarp_logentries.resize(0);
 		}
 		opcode_replay_enabled = false;
 		g_opcodereplay_frame = true; //Don't log frames
