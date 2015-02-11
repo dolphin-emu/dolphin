@@ -103,7 +103,49 @@ bool IsInitialized()
 }
 
 
-// We don't declare the IO region in here since its handled by other means.
+// Dolphin allocates memory to represent four regions:
+// - 24MB RAM, available on Gamecube and Wii
+// - 64MB "EXRAM", RAM only available on Wii
+// - 64MB FakeVMem, allocated when MMU support is turned off. This is used
+//   to approximate the behavior of a common library which pages memory to
+//   and from the DSP's dedicated RAM, which isn't directly addressable on
+//   GameCube.
+// - 256KB Locked L1, to represent cache lines allocated out of the L1 data cache
+//   cache in Locked L1 mode.  Dolphin does not emulate this hardware feature
+//   accurately; it just pretends there is extra memory at 0xE0000000.
+//
+// The 4GB starting at physical_base represents access from the CPU
+// with address translation turned off. (This is only used by the CPU;
+// other devices, like the GPU, use other rules, approximated by
+// Memory::GetPointer.) This memory is laid out as follows:
+// [0x00000000, 0x01800000) - 24MB RAM
+// [0x08000000, 0x0C000000) - EFB "mapping" (not handled here)
+// [0x0C000000, 0x0E000000) - MMIO etc. (not handled here)
+// [0x10000000, 0x14000000) - 64MB RAM (Wii-only; slightly slower)
+//
+// The 4GB starting at logical_base represents access from the CPU
+// with address translation turned on.  Instead of changing the mapping
+// based on the BAT registers, we approximate the common BAT configuration
+// used by games:
+// [0x00000000, 0x01800000) - 24MB RAM, cached access, normally only mapped
+//                            during startup by Wii WADs
+// [0x40000000, 0x50000000) - FakeVMEM
+// [0x70000000, 0x80000000) - FakeVMEM
+// [0x80000000, 0x81800000) - 24MB RAM, cached access
+// [0x90000000, 0x94000000) - 64MB RAM, Wii-only, cached access
+// [0xC0000000, 0xC1800000) - 24MB RAM, uncached access
+// [0xC8000000, 0xCC000000) - EFB "mapping" (not handled here)
+// [0xCC000000, 0xCE000000) - MMIO etc. (not handled here)
+// [0xD0000000, 0xD4000000) - 64MB RAM, Wii-only, uncached access
+// [0xE0000000, 0xE0040000) - 256KB locked L1
+//
+// TODO: We shouldn't hardcode this mapping; we can generate it dynamically
+// based on the BAT registers.
+//
+// Each of these 4GB regions is followed by 4GB of empty space so overflows
+// in address computation in the JIT don't access the wrong memory.
+//
+// Dolphin doesn't emulate the difference between cached and uncached access.
 static MemoryView views[] =
 {
 	{&m_pRAM,      0x00000000, RAM_SIZE,      0},
