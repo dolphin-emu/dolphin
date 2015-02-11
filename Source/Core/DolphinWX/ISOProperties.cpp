@@ -513,7 +513,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_VRState.Add(_("Playable"));
 	arrayStringFor_VRState.Add(_("Good"));
 	arrayStringFor_VRState.Add(_("Perfect"));
-	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
+	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_VRState);
 	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("VR state:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sVRGrid->Add(VRState, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	VRIssues = new wxTextCtrl(m_VR, ID_EMU_ISSUES, wxEmptyString);
