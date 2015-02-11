@@ -12,7 +12,7 @@
 
 namespace HideObjectEngine
 {
-	const char *HideObjectTypeStrings[] =
+	std::vector<std::string> HideObjectTypeStrings =
 	{
 		"8bits",
 		"16bits",
@@ -91,16 +91,20 @@ namespace HideObjectEngine
 
 					if (items.size() >= 3)
 					{
-						HideObjectEntry pE;
+						HideObjectEntry parsedEntry;
+						std::vector<std::string>::iterator it;
 						bool success = true;
-						success &= TryParse(items[1], &pE.value_upper);
-						success &= TryParse(items[2], &pE.value_lower);
 
-						pE.type = HideObjectType(std::find(HideObjectTypeStrings, HideObjectTypeStrings + 16, items[0]) - HideObjectTypeStrings);
-						success &= (pE.type != (HideObjectType)16);
+						it = std::find(HideObjectTypeStrings.begin(), HideObjectTypeStrings.end(), items[0]);
+						parsedEntry.type = HideObjectType(it - HideObjectTypeStrings.begin());
+
+						success &= (it != HideObjectTypeStrings.end());
+						success &= TryParse(items[1], &parsedEntry.value_upper);
+						success &= TryParse(items[2], &parsedEntry.value_lower);
+
 						if (success)
 						{
-							currentHideObject.entries.push_back(pE);
+							currentHideObject.entries.push_back(parsedEntry);
 						}
 					}
 				}
