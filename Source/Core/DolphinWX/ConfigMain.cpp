@@ -947,9 +947,8 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 #endif
 			}
 
-			InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"), 0);
+			InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
 			m_ConfigFrame.ShowModal();
-			m_ConfigFrame.Destroy();
 
 			// if game isn't running
 			if (!was_init)

@@ -1079,13 +1079,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 	Center();
 
 	// live preview update timer
-	m_update_timer = new wxTimer(this);
+	m_update_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &InputConfigDialog::UpdateBitmaps, this);
-	m_update_timer->Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
-}
-
-bool InputConfigDialog::Destroy()
-{
-	m_update_timer->Stop();
-	return true;
+	m_update_timer.Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
 }
