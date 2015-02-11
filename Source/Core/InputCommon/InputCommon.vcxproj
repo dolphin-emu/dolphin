@@ -51,6 +51,7 @@
     </ClCompile>
     <ClCompile Include="ControllerInterface\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
+    <ClCompile Include="ControllerInterface\OSVR\OSVR.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="InputConfig.cpp" />
   </ItemGroup>
@@ -65,6 +66,7 @@
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h" />
     <ClInclude Include="ControllerInterface\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
+    <ClInclude Include="ControllerInterface\OSVR\OSVR.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
