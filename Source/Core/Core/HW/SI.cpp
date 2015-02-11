@@ -492,6 +492,7 @@ void ChangeDevice(SIDevices device, int channel)
 {
 	// Called from GUI, so we need to make it thread safe.
 	// Let the hardware see no device for .5b cycles
+	// TODO: Calling GetDeviceType here isn't threadsafe.
 	if (GetDeviceType(channel) != device)
 	{
 		CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);

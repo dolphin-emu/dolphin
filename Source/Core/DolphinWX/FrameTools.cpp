@@ -141,7 +141,7 @@ wxMenuBar* CFrame::CreateMenu()
 	fileMenu->Append(IDM_CHANGE_DISC, GetMenuLabel(HK_CHANGE_DISC));
 
 	wxMenu *externalDrive = new wxMenu;
-	fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Drive..."), externalDrive);
+	fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Backup..."), externalDrive);
 
 	drives = cdio_get_devices();
 	// Windows Limitation of 24 character drives
@@ -1535,7 +1535,7 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		WxUtils::Launch("https://dolphin-emu.org/docs/guides/");
 		break;
 	case IDM_HELP_GITHUB:
-		WxUtils::Launch("https://github.com/dolphin-emu/dolphin/");
+		WxUtils::Launch("https://github.com/dolphin-emu/dolphin");
 		break;
 	}
 }

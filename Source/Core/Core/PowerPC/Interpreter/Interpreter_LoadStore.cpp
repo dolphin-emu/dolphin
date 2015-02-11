@@ -395,10 +395,10 @@ void Interpreter::eciwx(UGeckoInstruction _inst)
 
 	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 	{
-		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
+		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
 	}
 	if (EA & 3)
-		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ALIGNMENT);
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
 
 // 	_assert_msg_(POWERPC,0,"eciwx - fill r%i with word @ %08x from device %02x",
 // 		_inst.RS, EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
@@ -417,10 +417,10 @@ void Interpreter::ecowx(UGeckoInstruction _inst)
 
 	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 	{
-		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
+		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
 	}
 	if (EA & 3)
-		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ALIGNMENT);
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
 
 // 	_assert_msg_(POWERPC,0,"ecowx - send stw request (%08x@%08x) to device %02x",
 // 		rGPR[_inst.RS], EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);

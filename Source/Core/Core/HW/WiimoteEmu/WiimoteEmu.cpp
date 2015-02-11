@@ -457,11 +457,13 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 	core.acc_y_lsb = (y >> 1) & 0x1;
 	core.acc_z_lsb = (z >> 1) & 0x1;
 }
-#define kCutoffFreq 5.0
-inline void LowPassFilter(double & var, double newval, double period)
+
+inline void LowPassFilter(double& var, double newval, double period)
 {
-	double RC=1.0/kCutoffFreq;
-	double alpha=period/(period+RC);
+	static const double CUTOFF_FREQUENCY = 5.0;
+
+	double RC = 1.0 / CUTOFF_FREQUENCY;
+	double alpha = period / (period + RC);
 	var = newval * alpha + var * (1.0 - alpha);
 }
 
