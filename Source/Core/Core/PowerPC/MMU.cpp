@@ -134,7 +134,7 @@ __forceinline static T ReadFromHardware(const u32 em_address)
 			if (em_address < 0xcc000000)
 				return EFB_Read(em_address);
 			else
-				return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
+				return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address & 0x0FFFFFFF);
 		}
 		if ((segment == 0x0 || segment == 0x8 || segment == 0xC) && (em_address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
 		{
@@ -163,7 +163,7 @@ __forceinline static T ReadFromHardware(const u32 em_address)
 			if (em_address < 0x0c000000)
 				return EFB_Read(em_address);
 			else
-				return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address | 0xC0000000);
+				return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
 		}
 		if (em_address < Memory::REALRAM_SIZE)
 		{
@@ -250,7 +250,7 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 			}
 			else
 			{
-				Memory::mmio_mapping->Write(em_address, data);
+				Memory::mmio_mapping->Write(em_address & 0x0FFFFFFF, data);
 				return;
 			}
 		}
@@ -300,7 +300,7 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 			}
 			else
 			{
-				Memory::mmio_mapping->Write(em_address | 0xC0000000, data);
+				Memory::mmio_mapping->Write(em_address, data);
 				return;
 			}
 		}
@@ -719,6 +719,21 @@ void ClearCacheLine(const u32 address)
 	// the FIFO? Do games even do that? Probably not, but we should try to be correct...
 	for (u32 i = 0; i < 32; i += 8)
 		Write_U64(0, address + i);
+}
+
+u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
+{
+	if (!UReg_MSR(MSR).DR)
+		return 0;
+
+	if ((address & 0xF0000000) != 0xC0000000)
+		return 0;
+
+	unsigned translated = address & 0x0FFFFFFF;
+	bool aligned = (translated & ((accessSize >> 3) - 1)) == 0;
+	if (!aligned || !MMIO::IsMMIOAddress(translated))
+		return 0;
+	return translated;
 }
 
 // *********************************************************************************
