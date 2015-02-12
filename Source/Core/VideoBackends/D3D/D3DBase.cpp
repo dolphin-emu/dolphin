@@ -264,8 +264,7 @@ HRESULT Create(HWND wnd)
 		UpdateActiveConfig();
 	}
 
-	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
-	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
+	DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
 	swap_chain_desc.BufferCount = 1;
 	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swap_chain_desc.OutputWindow = wnd;
@@ -273,12 +272,10 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.SampleDesc.Quality = 0;
 	swap_chain_desc.Windowed = !g_Config.bFullscreen;
 
-	DXGI_OUTPUT_DESC out_desc;
-	memset(&out_desc, 0, sizeof(out_desc));
+	DXGI_OUTPUT_DESC out_desc = {};
 	output->GetDesc(&out_desc);
 
-	DXGI_MODE_DESC mode_desc;
-	memset(&mode_desc, 0, sizeof(mode_desc));
+	DXGI_MODE_DESC mode_desc = {};
 	mode_desc.Width = out_desc.DesktopCoordinates.right - out_desc.DesktopCoordinates.left;
 	mode_desc.Height = out_desc.DesktopCoordinates.bottom - out_desc.DesktopCoordinates.top;
 	mode_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -317,8 +314,7 @@ HRESULT Create(HWND wnd)
 					D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS
 				};
 
-				D3D11_INFO_QUEUE_FILTER filter;
-				memset(&filter, 0, sizeof(filter));
+				D3D11_INFO_QUEUE_FILTER filter = {};
 				filter.DenyList.NumIDs = sizeof(hide) / sizeof(D3D11_MESSAGE_ID);
 				filter.DenyList.pIDList = hide;
 				infoQueue->AddStorageFilterEntries(&filter);
@@ -402,7 +398,7 @@ void Close()
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (debug)
 	{
-		--references; // we didn't release the debug interface yet
+		--references; // the debug interface increases the refcount of the device, subtract that.
 		if (references)
 		{
 			// print out alive objects, but only if we actually have pending references
