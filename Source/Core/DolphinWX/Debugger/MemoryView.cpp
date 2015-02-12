@@ -24,7 +24,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
@@ -324,7 +324,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			dc.SetTextForeground(*wxBLACK);
 		}
 
-		if (!Memory::IsRAMAddress(address))
+		if (!PowerPC::HostIsRAMAddress(address))
 			continue;
 
 		if (debugger->IsAlive())

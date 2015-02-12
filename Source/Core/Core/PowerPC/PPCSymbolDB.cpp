@@ -86,7 +86,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 
 Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-	if (!Memory::IsRAMAddress(addr))
+	if (!PowerPC::HostIsRAMAddress(addr))
 		return nullptr;
 
 	XFuncMap::iterator it = functions.find(addr);
@@ -333,11 +333,11 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 			if (!good)
 			{
 				// check for BLR before function
-				u32 opcode = Memory::Read_Instruction(vaddress - 4);
+				u32 opcode = PowerPC::HostRead_Instruction(vaddress - 4);
 				if (opcode == 0x4e800020)
 				{
 					// check for BLR at end of function
-					opcode = Memory::Read_Instruction(vaddress + size - 4);
+					opcode = PowerPC::HostRead_Instruction(vaddress + size - 4);
 					if (opcode == 0x4e800020)
 						good = true;
 				}

@@ -925,7 +925,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 						}
 						pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
-						PC = pDolLoader->GetEntryPoint() | 0x80000000;
+						PC = pDolLoader->GetEntryPoint();
 						IOSv = ContentLoader.GetIosVersion();
 						bSuccess = true;
 					}

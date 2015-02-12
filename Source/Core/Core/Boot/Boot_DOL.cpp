@@ -9,6 +9,7 @@
 
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 
 CDolLoader::CDolLoader(u8* _pBuffer, u32 _Size)
 	: m_isWii(false)

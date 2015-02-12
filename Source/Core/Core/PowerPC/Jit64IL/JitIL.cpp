@@ -521,6 +521,7 @@ void JitIL::Jit(u32 em_address)
 		NPC = nextPC;
 		PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
 		PowerPC::CheckExceptions();
+		WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
 		return;
 	}
 

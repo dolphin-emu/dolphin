@@ -107,7 +107,7 @@ int Interpreter::SingleStepInner()
 		#endif
 
 		NPC = PC + sizeof(UGeckoInstruction);
-		instCode.hex = Memory::Read_Opcode(PC);
+		instCode.hex = PowerPC::Read_Opcode(PC);
 
 		// Uncomment to trace the interpreter
 		//if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
@@ -283,7 +283,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 {
 	if (_inst.hex != 0)
 	{
-		std::string disasm = GekkoDisassembler::Disassemble(Memory::ReadUnchecked_U32(last_pc), last_pc);
+		std::string disasm = GekkoDisassembler::Disassemble(PowerPC::HostRead_U32(last_pc), last_pc);
 		NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
 		Dolphin_Debugger::PrintCallstack();
 		_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);

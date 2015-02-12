@@ -181,7 +181,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 	fprs_in_use[0] = 0; // Q0
 	fprs_in_use[VD - Q0] = 0;
 
-	if (is_immediate && Memory::IsRAMAddress(imm_addr))
+	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		EmitBackpatchRoutine(this, flags, true, false, VD, XA);
 	}
@@ -399,7 +399,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 			jit->js.fifoBytesThisBlock += accessSize >> 3;
 
 		}
-		else if (Memory::IsRAMAddress(imm_addr))
+		else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
 		{
 			EmitBackpatchRoutine(this, flags, true, false, V0, XA);
 		}

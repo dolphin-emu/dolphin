@@ -108,6 +108,8 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// (mb2): I agree,
 	// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 	// ... maybe the throttle one already do that :p
+	// TODO: We shouldn't use a debug read here.  It should be possible to get
+	// the following instructions out of the JIT state.
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
 	    PowerPC::GetState() != PowerPC::CPU_STEPPING &&
 	    inst.OPCD == 32 &&
@@ -335,7 +337,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, RSCRATCH);
+	ABI_CallFunctionR((void *)&PowerPC::ClearCacheLine, RSCRATCH);
 	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 	FixupBranch exit = J(true);
 
