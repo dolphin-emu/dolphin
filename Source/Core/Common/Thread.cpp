@@ -12,6 +12,11 @@
 #include <pthread_np.h>
 #endif
 
+#ifdef USE_VTUNE
+#include <ittnotify.h>
+#pragma comment(lib, "libittnotify.lib")
+#endif
+
 namespace Common
 {
 
@@ -122,6 +127,10 @@ void SetCurrentThreadName(const char* szThreadName)
 	pthread_setname_np(szThreadName);
 #else
 	pthread_setname_np(pthread_self(), szThreadName);
+#endif
+#ifdef USE_VTUNE
+	// VTune uses OS thread names by default but probably supports longer names when set via its own API.
+	__itt_thread_set_name(szThreadName);
 #endif
 }
 

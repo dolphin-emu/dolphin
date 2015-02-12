@@ -13,10 +13,6 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-// Define this in order to get VTune profile support for the Jit generated code.
-// Add the VTune include/lib directories to the project directories to get this to build.
-// #define USE_VTUNE
-
 // emulate CPU with unlimited instruction cache
 // the only way to invalidate a region is the "icbi" instruction
 #define JIT_UNLIMITED_ICACHE
