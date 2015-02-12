@@ -165,6 +165,25 @@ std::string StripQuotes(const std::string& s)
 		return s;
 }
 
+bool TryParse(const std::string &str, u64 *const output)
+{
+	char *endptr = nullptr;
+
+	// Reset errno to a value other than ERANGE
+	errno = 0;
+
+	unsigned long long value = strtoull(str.c_str(), &endptr, 0);
+
+	if (!endptr || *endptr)
+		return false;
+
+	if (errno == ERANGE)
+		return false;
+
+	*output = static_cast<u64>(value);
+	return true;
+}
+
 bool TryParse(const std::string &str, u32 *const output)
 {
 	char *endptr = nullptr;

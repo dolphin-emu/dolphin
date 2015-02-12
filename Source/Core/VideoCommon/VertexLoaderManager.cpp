@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonFuncs.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -143,6 +144,8 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (!count)
 		return 0;
 
+	SCoreStartupParameter& m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 
 	int size = count * loader->m_VertexSize;
@@ -151,6 +154,16 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 
 	if (skip_drawing || is_preprocess)
 		return size;
+
+	// Hide Objects Code code
+	for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
+	{
+		if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
+		{
+			//Data didn't match, try next object_removal_code
+			return size;
+		}
+	}
 
 	// If the native vertex format changed, force a flush.
 	if (loader->m_native_vertex_format != s_current_vtx_fmt)

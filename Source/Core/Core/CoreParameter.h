@@ -5,8 +5,11 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Common/IniFile.h"
+
+typedef std::vector<u8> SkipEntry;
 
 enum Hotkey
 {
@@ -198,6 +201,9 @@ struct SCoreStartupParameter
 	// Hotkeys
 	int iHotkey[NUM_HOTKEYS];
 	int iHotkeyModifier[NUM_HOTKEYS];
+
+	//Remove Layer
+	std::vector<SkipEntry> object_removal_codes;
 
 	// Display settings
 	std::string strFullscreenResolution;

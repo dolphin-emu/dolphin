@@ -66,6 +66,7 @@
 #include "Core/CoreParameter.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
+#include "Core/HideObjectEngine.h"
 #include "Core/Boot/Boot.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -74,6 +75,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
+#include "DolphinWX/HideObjectAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/resources/isoprop_disc.xpm"
@@ -92,6 +94,7 @@ static DiscIO::IVolume *OpenISO = nullptr;
 static DiscIO::IFileSystem *pFileSystem = nullptr;
 
 std::vector<PatchEngine::Patch> onFrame;
+std::vector<HideObjectEngine::HideObject> HideObjectCodes;
 std::vector<ActionReplay::ARCode> arCodes;
 PHackData PHack_Data;
 
@@ -104,6 +107,11 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
+	EVT_LISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::ListSelectionChanged)
+	EVT_CHECKLISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::CheckboxSelectionChanged)
+	EVT_BUTTON(ID_EDITHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
+	EVT_BUTTON(ID_ADDHideObject, CISOProperties::HideObjectButtonClicked)
+	EVT_BUTTON(ID_REMOVEHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -387,6 +395,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxNotebook* const m_Notebook = new wxNotebook(this, ID_NOTEBOOK);
 	wxPanel* const m_GameConfig = new wxPanel(m_Notebook, ID_GAMECONFIG);
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
+	wxPanel* const m_HideObjectPage = new wxPanel(m_Notebook, ID_HIDEOBJECT_PAGE);
+	m_Notebook->AddPage(m_HideObjectPage, _("Hide Objects"));
 	wxPanel* const m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE);
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
 	wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
@@ -499,6 +509,26 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
 
+	// Hide Objects
+	wxBoxSizer* const sHideObjects = new wxBoxSizer(wxVERTICAL);
+
+	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_HideObjects, wxLB_HSCROLL);
+	wxBoxSizer* const sHideObjectsButtons = new wxBoxSizer(wxHORIZONTAL);
+	EditHideObject = new wxButton(m_HideObjectPage, ID_EDITHIDEOBJECT, _("Edit..."));
+	wxButton* const AddHideObject = new wxButton(m_HideObjectPage, ID_ADDHideObject, _("Add..."));
+	RemoveHideObject = new wxButton(m_HideObjectPage, ID_REMOVEHIDEOBJECT, _("Remove"));
+	EditHideObject->Enable(false);
+	RemoveHideObject->Enable(false);
+
+	wxBoxSizer* sHideObjectPage = new wxBoxSizer(wxVERTICAL);
+	sHideObjects->Add(HideObjects, 1, wxEXPAND | wxALL);
+	sHideObjectsButtons->Add(EditHideObject, 0, wxEXPAND | wxALL);
+	sHideObjectsButtons->AddStretchSpacer();
+	sHideObjectsButtons->Add(AddHideObject, 0, wxEXPAND | wxALL);
+	sHideObjectsButtons->Add(RemoveHideObject, 0, wxEXPAND | wxALL);
+	sHideObjects->Add(sHideObjectsButtons, 0, wxEXPAND | wxALL);
+	sHideObjectPage->Add(sHideObjects, 1, wxEXPAND | wxALL, 5);
+	m_HideObjectPage->SetSizer(sHideObjectPage);
 
 	// Patches
 	wxBoxSizer* const sPatches = new wxBoxSizer(wxVERTICAL);
@@ -1118,6 +1148,7 @@ void CISOProperties::LoadGameConfig()
 	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergenceMinimum", &iTemp);
 	ConvergenceMinimum->SetValue(iTemp);
 
+	HideObjectList_Load();
 	PatchList_Load();
 	ActionReplayList_Load();
 	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
@@ -1315,6 +1346,19 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
+	case ID_HIDEOBJECTS_LIST:
+		if (HideObjects->GetSelection() == wxNOT_FOUND ||
+			DefaultHideObjects.find(HideObjects->GetString(HideObjects->GetSelection()).ToStdString()) != DefaultHideObjects.end())
+		{
+			EditHideObject->Disable();
+			RemoveHideObject->Disable();
+		}
+		else
+		{
+			EditHideObject->Enable();
+			RemoveHideObject->Enable();
+		}
+		break;
 	case ID_PATCHES_LIST:
 		if (Patches->GetSelection() == wxNOT_FOUND ||
 		    DefaultPatches.find(Patches->GetString(Patches->GetSelection()).ToStdString()) != DefaultPatches.end())
@@ -1342,6 +1386,97 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 		}
 		break;
 	}
+}
+
+void CISOProperties::CheckboxSelectionChanged(wxCommandEvent& event)
+{
+	HideObjectList_Save();
+	HideObjectList_Load();
+}
+
+void CISOProperties::HideObjectList_Load()
+{
+	HideObjectCodes.clear();
+	HideObjects->Clear();
+
+	HideObjectEngine::LoadHideObjectSection("HideObjectCodes", HideObjectCodes, GameIniDefault, GameIniLocal);
+
+	u32 index = 0;
+	for (HideObjectEngine::HideObject& p : HideObjectCodes)
+	{
+		HideObjects->Append(StrToWxStr(p.name));
+		HideObjects->Check(index, p.active);
+		if (!p.user_defined)
+			DefaultHideObjects.insert(p.name);
+		++index;
+	}
+
+	HideObjectEngine::ApplyHideObjects(HideObjectCodes);
+
+}
+
+void CISOProperties::HideObjectList_Save()
+{
+	std::vector<std::string> lines;
+	std::vector<std::string> enabledLines;
+	u32 index = 0;
+	for (HideObjectEngine::HideObject& p : HideObjectCodes)
+	{
+		if (HideObjects->IsChecked(index))
+			enabledLines.push_back("$" + p.name);
+
+		// Do not save default removed objects.
+		if (DefaultHideObjects.find(p.name) == DefaultHideObjects.end())
+		{
+			lines.push_back("$" + p.name);
+			for (const HideObjectEngine::HideObjectEntry& entry : p.entries)
+			{
+				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", HideObjectEngine::HideObjectTypeStrings[entry.type], (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
+				lines.push_back(temp);
+			}
+		}
+		++index;
+	}
+	GameIniLocal.SetLines("HideObjectCodes_Enabled", enabledLines);
+	GameIniLocal.SetLines("HideObjectCodes", lines);
+}
+
+void CISOProperties::HideObjectButtonClicked(wxCommandEvent& event)
+{
+	int selection = HideObjects->GetSelection();
+
+	switch (event.GetId())
+	{
+	case ID_EDITHIDEOBJECT:
+	{
+		CHideObjectAddEdit dlg(selection, this);
+		dlg.ShowModal();
+	}
+	break;
+	case ID_ADDHideObject:
+	{
+		CHideObjectAddEdit dlg(-1, this, 1, _("Add Hide Object Code"));
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			HideObjects->Append(StrToWxStr(HideObjectCodes.back().name));
+			HideObjects->Check((unsigned int)(HideObjectCodes.size() - 1), HideObjectCodes.back().active);
+		}
+	}
+	break;
+	case ID_REMOVEHIDEOBJECT:
+		HideObjectCodes.erase(HideObjectCodes.begin() + HideObjects->GetSelection());
+		HideObjects->Delete(HideObjects->GetSelection());
+		break;
+	}
+
+	HideObjectList_Save();
+	HideObjects->Clear();
+	HideObjectList_Load();
+
+	HideObjectEngine::ApplyHideObjects(HideObjectCodes);
+
+	EditHideObject->Disable();
+	RemoveHideObject->Disable();
 }
 
 void CISOProperties::PatchList_Load()

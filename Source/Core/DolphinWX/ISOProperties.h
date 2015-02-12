@@ -28,6 +28,7 @@ class wxCheckListBox;
 class wxChoice;
 class wxSlider;
 class wxSpinCtrl;
+class wxSpinCtrlDouble;
 class wxStaticBitmap;
 class wxTextCtrl;
 class wxTreeCtrl;
@@ -85,6 +86,10 @@ private:
 	wxArrayString arrayStringFor_EmuState;
 	wxChoice* EmuState;
 	wxTextCtrl* EmuIssues;
+	wxArrayString arrayStringFor_HideObjects;
+	wxCheckListBox* HideObjects;
+	wxButton* EditHideObject;
+	wxButton* RemoveHideObject;
 	wxArrayString arrayStringFor_Patches;
 	wxCheckListBox* Patches;
 	wxButton* EditPatch;
@@ -126,6 +131,7 @@ private:
 
 		ID_NOTEBOOK,
 		ID_GAMECONFIG,
+		ID_HIDEOBJECT_PAGE,
 		ID_PATCH_PAGE,
 		ID_ARCODE_PAGE,
 		ID_SPEEDHACK_PAGE,
@@ -146,6 +152,11 @@ private:
 		ID_SHOWDEFAULTCONFIG,
 		ID_EMUSTATE,
 		ID_EMU_ISSUES,
+		ID_HIDEOBJECTS_LIST,
+		ID_HIDEOBJECTS_CHECKBOX,
+		ID_EDITHIDEOBJECT,
+		ID_ADDHideObject,
+		ID_REMOVEHIDEOBJECT,
 		ID_PATCHES_LIST,
 		ID_EDITPATCH,
 		ID_ADDPATCH,
@@ -192,7 +203,9 @@ private:
 	void OnEditConfig(wxCommandEvent& event);
 	void OnComputeMD5Sum(wxCommandEvent& event);
 	void OnShowDefaultConfig(wxCommandEvent& event);
+	void HideObjectButtonClicked(wxCommandEvent& event);
 	void ListSelectionChanged(wxCommandEvent& event);
+	void CheckboxSelectionChanged(wxCommandEvent& event);
 	void PatchButtonClicked(wxCommandEvent& event);
 	void ActionReplayButtonClicked(wxCommandEvent& event);
 	void RightClickOnBanner(wxMouseEvent& event);
@@ -222,10 +235,13 @@ private:
 	std::string GameIniFileDefault;
 	std::string GameIniFileLocal;
 
+	std::set<std::string> DefaultHideObjects;
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;
 
 	void LoadGameConfig();
+	void HideObjectList_Load();
+	void HideObjectList_Save();
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();
