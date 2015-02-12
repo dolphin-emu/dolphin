@@ -104,13 +104,13 @@ bool IsInitialized()
 
 
 // Dolphin allocates memory to represent four regions:
-// - 24MB RAM, available on Gamecube and Wii
+// - 32MB RAM (actually 24MB on hardware), available on Gamecube and Wii
 // - 64MB "EXRAM", RAM only available on Wii
-// - 64MB FakeVMem, allocated when MMU support is turned off. This is used
+// - 32MB FakeVMem, allocated when MMU support is turned off. This is used
 //   to approximate the behavior of a common library which pages memory to
 //   and from the DSP's dedicated RAM, which isn't directly addressable on
 //   GameCube.
-// - 256KB Locked L1, to represent cache lines allocated out of the L1 data cache
+// - 256KB Locked L1, to represent cache lines allocated out of the L1 data
 //   cache in Locked L1 mode.  Dolphin does not emulate this hardware feature
 //   accurately; it just pretends there is extra memory at 0xE0000000.
 //

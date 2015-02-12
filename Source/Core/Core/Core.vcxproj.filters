@@ -723,6 +723,7 @@
     </ClCompile>
     <ClCompile Include="HW\GCKeyboard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\MMU.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
