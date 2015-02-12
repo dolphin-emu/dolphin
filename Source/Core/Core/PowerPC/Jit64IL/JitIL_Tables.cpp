@@ -403,15 +403,15 @@ void InitTables()
 	//clear
 	for (auto& tpl : dynaOpTable59)
 	{
-		tpl = &JitIL::unknown_instruction;
+		tpl = &JitIL::FallBackToInterpreter;
 	}
 
 	for (int i = 0; i < 1024; i++)
 	{
-		dynaOpTable4 [i] = &JitIL::unknown_instruction;
-		dynaOpTable19[i] = &JitIL::unknown_instruction;
-		dynaOpTable31[i] = &JitIL::unknown_instruction;
-		dynaOpTable63[i] = &JitIL::unknown_instruction;
+		dynaOpTable4 [i] = &JitIL::FallBackToInterpreter;
+		dynaOpTable19[i] = &JitIL::FallBackToInterpreter;
+		dynaOpTable31[i] = &JitIL::FallBackToInterpreter;
+		dynaOpTable63[i] = &JitIL::FallBackToInterpreter;
 	}
 
 	for (auto& tpl : primarytable)

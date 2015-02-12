@@ -246,11 +246,6 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
-void Jit64::unknown_instruction(UGeckoInstruction inst)
-{
-	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
-}
-
 void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	WriteCallInterpreter(_inst.hex);

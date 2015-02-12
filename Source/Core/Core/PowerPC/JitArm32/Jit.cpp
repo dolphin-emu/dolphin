@@ -64,10 +64,6 @@ void JitArm::WriteCallInterpreter(UGeckoInstruction inst)
 	MOVI2R(R12, (u32)instr);
 	BL(R12);
 }
-void JitArm::unknown_instruction(UGeckoInstruction inst)
-{
-	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
-}
 
 void JitArm::FallBackToInterpreter(UGeckoInstruction _inst)
 {
