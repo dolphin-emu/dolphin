@@ -358,7 +358,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	//if not early z culling will improve speed
 	if (api_type == API_D3D)
 	{
-		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
+		out.Write("o.pos.z *= -1.0;\n");
 	}
 	else // OGL
 	{

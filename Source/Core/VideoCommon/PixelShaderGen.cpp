@@ -528,7 +528,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("\tint zCoord = iround(rawpos.z * float(0xFFFFFF));\n");
+	{
+		out.Write("\tint zCoord = 0xFFFFFF - iround(rawpos.z * float(0xFFFFFF));\n");
+		out.Write("zCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
+	}
 	else
 	{
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
@@ -1018,7 +1021,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (per_pixel_depth)
-		out.Write("\t\tdepth = 1.0;\n");
+		out.Write("\t\tdepth = 0.0f;\n");
 
 	// ZCOMPLOC HACK:
 	// The only way to emulate alpha test + early-z is to force early-z in the shader.
@@ -1125,11 +1128,11 @@ static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, A
 		if (ApiType == API_OPENGL)
 			out.Write("\tscreenpos.y = %i - screenpos.y;\n", EFB_HEIGHT);
 
-		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xFFFFFF);\n");
+		out.Write("\tdepth = float(0xFFFFFF - ("I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y)) / float(0xFFFFFF);\n");
 	}
 	else
 	{
-		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+		out.Write("\tdepth =  float(0xFFFFFF - zCoord) / float(0xFFFFFF);\n");
 	}
 }
 
