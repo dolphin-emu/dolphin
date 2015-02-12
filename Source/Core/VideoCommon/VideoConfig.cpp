@@ -54,7 +54,6 @@ void VideoConfig::Load(const std::string& ini_file)
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
 	hardware->Get("VSync", &bVSync, 0);
-	hardware->Get("Adapter", &iAdapter, 0);
 
 	IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
 	settings->Get("wideScreenHack", &bWidescreenHack, false);
@@ -216,7 +215,6 @@ void VideoConfig::GameIniLoad()
 void VideoConfig::VerifyValidity()
 {
 	// TODO: Check iMaxAnisotropy value
-	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
 
 	if (iStereoMode > 0)
@@ -242,7 +240,6 @@ void VideoConfig::Save(const std::string& ini_file)
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
 	hardware->Set("VSync", bVSync);
-	hardware->Set("Adapter", iAdapter);
 
 	IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
 	settings->Set("AspectRatio", iAspectRatio);

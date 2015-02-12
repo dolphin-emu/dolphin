@@ -218,13 +218,6 @@ protected:
 			choice_backend->Disable();
 			label_backend->Disable();
 
-			// D3D only
-			if (vconfig.backend_info.Adapters.size())
-			{
-				choice_adapter->Disable();
-				label_adapter->Disable();
-			}
-
 #ifndef __APPLE__
 			// This isn't supported on OS X.
 
@@ -252,11 +245,9 @@ protected:
 	void PopulatePostProcessingShaders();
 
 	wxChoice* choice_backend;
-	wxChoice* choice_adapter;
 	wxChoice* choice_display_resolution;
 
 	wxStaticText* label_backend;
-	wxStaticText* label_adapter;
 
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;

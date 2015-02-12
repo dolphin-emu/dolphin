@@ -131,9 +131,6 @@ struct VideoConfig final
 	int iStereoDepthPercentage;
 	int iStereoConvergenceMinimum;
 
-	// D3D only config, mostly to be merged into the above
-	int iAdapter;
-
 	// Debugging
 	bool bEnableShaderDebugging;
 
@@ -143,7 +140,6 @@ struct VideoConfig final
 	{
 		API_TYPE APIType;
 
-		std::vector<std::string> Adapters; // for D3D
 		std::vector<std::string> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 		std::vector<std::string> AnaglyphShaders; // anaglyph shaders

@@ -141,8 +141,6 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsPostProcessing = true;
 
-	g_Config.backend_info.Adapters.clear();
-
 	// aamodes
 	const char* caamodes[] = {_trans("None"), "2x", "4x", "8x", "4x SSAA"};
 	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
