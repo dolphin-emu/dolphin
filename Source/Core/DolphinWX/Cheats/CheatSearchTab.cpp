@@ -138,14 +138,14 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 
 	// Set up the search results efficiently to prevent automatic re-allocations.
 	m_search_results.clear();
-	m_search_results.reserve(Memory::RAM_SIZE / m_search_type_size);
+	m_search_results.reserve(Memory::REALRAM_SIZE / m_search_type_size);
 
 	// Enable the "Next Scan" button.
 	m_btn_next_scan->Enable();
 
 	CheatSearchResult r;
 	// can I assume cheatable values will be aligned like this?
-	for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += m_search_type_size)
+	for (u32 addr = 0; addr != Memory::REALRAM_SIZE; addr += m_search_type_size)
 	{
 		r.address = addr;
 		memcpy(&r.old_value, memptr + addr, m_search_type_size);

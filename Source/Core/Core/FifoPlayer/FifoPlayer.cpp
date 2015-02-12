@@ -273,10 +273,12 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
 	u8 *mem = nullptr;
 
-	if (memUpdate.address & 0x10000000)
-		mem = &Memory::m_pEXRAM[memUpdate.address & Memory::EXRAM_MASK];
+	if ((memUpdate.address & 0x10000000) != 0 && (memUpdate.address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+		mem = &Memory::m_pEXRAM[memUpdate.address & 0x0FFFFFFF];
+	else if ((memUpdate.address & 0x10000000) == 0 && (memUpdate.address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
+		mem = &Memory::m_pRAM[memUpdate.address & 0x0FFFFFFF];
 	else
-		mem = &Memory::m_pRAM[memUpdate.address & Memory::RAM_MASK];
+		return;
 
 	memcpy(mem, memUpdate.data, memUpdate.size);
 }

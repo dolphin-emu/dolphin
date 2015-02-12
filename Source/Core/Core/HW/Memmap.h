@@ -39,13 +39,7 @@ extern bool bFakeVMEM;
 
 enum
 {
-	// RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
-	// what will be reported in lowmem, and thus used by emulated software.
-	// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
-	// always be set to 24MB.
 	REALRAM_SIZE  = 0x01800000,
-	RAM_SIZE      = ROUND_UP_POW2(REALRAM_SIZE),
-	RAM_MASK      = RAM_SIZE - 1,
 	FAKEVMEM_SIZE = 0x02000000,
 	FAKEVMEM_MASK = FAKEVMEM_SIZE - 1,
 	L1_CACHE_SIZE = 0x00040000,

@@ -19,42 +19,52 @@ class CMailHandler;
 
 inline bool ExramRead(u32 address)
 {
-	if (address & 0x10000000)
-		return true;
-	else
-		return false;
+	return (address & 0x10000000) && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE;
+}
+
+inline bool RamRead(u32 address)
+{
+	return (address & 0x1FFFFFFF) < Memory::REALRAM_SIZE;
 }
 
 inline u8 HLEMemory_Read_U8(u32 address)
 {
 	if (ExramRead(address))
-		return Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
-	else
-		return Memory::m_pRAM[address & Memory::RAM_MASK];
+		return Memory::m_pEXRAM[address & 0x0FFFFFFF];
+	if (RamRead(address))
+		return Memory::m_pRAM[address & 0x0FFFFFFF];
+	_assert_msg_(DSPHLE, 0, "Unexpected address in DSP 0x%08x", address);
+	return 0;
 }
 
 inline u16 HLEMemory_Read_U16(u32 address)
 {
 	if (ExramRead(address))
-		return Common::swap16(*(u16*)&Memory::m_pEXRAM[address & Memory::EXRAM_MASK]);
-	else
-		return Common::swap16(*(u16*)&Memory::m_pRAM[address & Memory::RAM_MASK]);
+		return Common::swap16(*(u16*)&Memory::m_pEXRAM[address & 0x0FFFFFFF]);
+	if (RamRead(address))
+		return Common::swap16(*(u16*)&Memory::m_pRAM[address & 0x0FFFFFFF]);
+	_assert_msg_(DSPHLE, 0, "Unexpected address in DSP 0x%08x", address);
+	return 0;
 }
 
 inline u32 HLEMemory_Read_U32(u32 address)
 {
 	if (ExramRead(address))
-		return Common::swap32(*(u32*)&Memory::m_pEXRAM[address & Memory::EXRAM_MASK]);
-	else
-		return Common::swap32(*(u32*)&Memory::m_pRAM[address & Memory::RAM_MASK]);
+		return Common::swap32(*(u32*)&Memory::m_pEXRAM[address & 0x0FFFFFFF]);
+	if (RamRead(address))
+		return Common::swap32(*(u32*)&Memory::m_pRAM[address & 0x0FFFFFFF]);
+	_assert_msg_(DSPHLE, 0, "Unexpected address in DSP 0x%08x", address);
+	return 0;
 }
 
 inline void* HLEMemory_Get_Pointer(u32 address)
 {
 	if (ExramRead(address))
-		return &Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
-	else
-		return &Memory::m_pRAM[address & Memory::RAM_MASK];
+		return &Memory::m_pEXRAM[address & 0x0FFFFFFF];
+	if (RamRead(address))
+		return &Memory::m_pRAM[address & 0x0FFFFFFF];
+	_assert_msg_(DSPHLE, 0, "Unexpected address in DSP 0x%08x", address);
+	return 0;
 }
 
 class UCodeInterface
