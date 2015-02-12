@@ -380,9 +380,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	SetJumpTarget(noExceptionsPending);
 	SetJumpTarget(eeDisabled);
 
-	WriteExit(js.compilerPC + 4);
-
-	js.firstFPInstructionFound = false;
+	MOV(32, R(RSCRATCH), Imm32(js.compilerPC + 4));
+	WriteExitDestInRSCRATCH();
 }
 
 void Jit64::mfmsr(UGeckoInstruction inst)

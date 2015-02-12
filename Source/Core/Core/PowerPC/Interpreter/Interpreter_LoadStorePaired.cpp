@@ -53,7 +53,7 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const E
 	switch (_quantizeType)
 	{
 	case QUANTIZE_FLOAT:
-		Memory::Write_U32(ConvertToSingleFTZ(*(u64*)&_fValue), _Addr);
+		PowerPC::Write_U32(ConvertToSingleFTZ(*(u64*)&_fValue), _Addr);
 		break;
 
 	// used for THP player
@@ -61,7 +61,7 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const E
 		{
 			float fResult = (float)_fValue * m_quantizeTable[_uScale];
 			MathUtil::Clamp(&fResult, 0.0f, 255.0f);
-			Memory::Write_U8((u8)fResult, _Addr);
+			PowerPC::Write_U8((u8)fResult, _Addr);
 		}
 		break;
 
@@ -69,7 +69,7 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const E
 		{
 			float fResult = (float)_fValue * m_quantizeTable[_uScale];
 			MathUtil::Clamp(&fResult, 0.0f, 65535.0f);
-			Memory::Write_U16((u16)fResult, _Addr);
+			PowerPC::Write_U16((u16)fResult, _Addr);
 		}
 		break;
 
@@ -77,7 +77,7 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const E
 		{
 			float fResult = (float)_fValue * m_quantizeTable[_uScale];
 			MathUtil::Clamp(&fResult, -128.0f, 127.0f);
-			Memory::Write_U8((u8)(s8)fResult, _Addr);
+			PowerPC::Write_U8((u8)(s8)fResult, _Addr);
 		}
 		break;
 
@@ -85,7 +85,7 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const E
 		{
 			float fResult = (float)_fValue * m_quantizeTable[_uScale];
 			MathUtil::Clamp(&fResult, -32768.0f, 32767.0f);
-			Memory::Write_U16((u16)(s16)fResult, _Addr);
+			PowerPC::Write_U16((u16)(s16)fResult, _Addr);
 		}
 		break;
 
@@ -103,26 +103,26 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 	{
 	case QUANTIZE_FLOAT:
 		{
-			u32 dwValue = Memory::Read_U32(_Addr);
+			u32 dwValue = PowerPC::Read_U32(_Addr);
 			fResult = *(float*)&dwValue;
 		}
 		break;
 
 	case QUANTIZE_U8:
-		fResult = static_cast<float>(Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>(PowerPC::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
 		break;
 
 	case QUANTIZE_U16:
-		fResult = static_cast<float>(Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>(PowerPC::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
 		break;
 
 	case QUANTIZE_S8:
-		fResult = static_cast<float>((s8)Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>((s8)PowerPC::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
 		break;
 
 		// used for THP player
 	case QUANTIZE_S16:
-		fResult = static_cast<float>((s16)Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>((s16)PowerPC::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
 		break;
 
 	default:

@@ -425,5 +425,5 @@ void Interpreter::ps_cmpo1(UGeckoInstruction _inst)
 void Interpreter::dcbz_l(UGeckoInstruction _inst)
 {
 	//FAKE: clear memory instead of clearing the cache block
-	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	PowerPC::ClearCacheLine(Helper_Get_EA_X(_inst) & (~31));
 }

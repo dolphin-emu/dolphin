@@ -49,7 +49,7 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bFPRF, bBAT, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-	     bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bProgressive;
+	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
@@ -107,7 +107,6 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bDCBZOFF = StartUp.bDCBZOFF;
 		config_cache.bSyncGPU = StartUp.bSyncGPU;
 		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
-		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.m_strGPUDeterminismMode = StartUp.m_strGPUDeterminismMode;
@@ -148,7 +147,6 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
 		core_section->Get("SyncGPU",          &StartUp.bSyncGPU, StartUp.bSyncGPU);
 		core_section->Get("FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-		core_section->Get("BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		core_section->Get("DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
 		core_section->Get("GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
 		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
@@ -281,7 +279,6 @@ void Stop()
 		StartUp.bDCBZOFF = config_cache.bDCBZOFF;
 		StartUp.bSyncGPU = config_cache.bSyncGPU;
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
-		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		StartUp.m_strGPUDeterminismMode = config_cache.m_strGPUDeterminismMode;

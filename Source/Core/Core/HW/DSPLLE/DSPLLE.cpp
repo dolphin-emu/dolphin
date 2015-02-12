@@ -185,7 +185,9 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 		return false;
 
 	// DSPLLE directly accesses the fastmem arena.
-	g_dsp.cpu_ram = Memory::base;
+	// TODO: The fastmem arena is only supposed to be used by the JIT:
+	// among other issues, its size is only 1GB on 32-bit targets.
+	g_dsp.cpu_ram = Memory::physical_base;
 	DSPCore_Reset();
 
 	InitInstructionTable();

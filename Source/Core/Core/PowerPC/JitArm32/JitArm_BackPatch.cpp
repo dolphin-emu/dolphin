@@ -189,7 +189,7 @@ bool JitArm::DisasmLoadStore(const u8* ptr, u32* flags, ARMReg* rD, ARMReg* V1)
 
 bool JitArm::HandleFault(uintptr_t access_address, SContext* ctx)
 {
-	if (access_address < (uintptr_t)Memory::base)
+	if (access_address < (uintptr_t)Memory::physical_base)
 		PanicAlertT("Exception handler - access below memory space. 0x%08x", access_address);
 	return BackPatch(ctx);
 }
@@ -323,12 +323,12 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 				emit->MOV(R1, addr);
 				emit->VCVT(S0, RS, 0);
 				emit->VMOV(R0, S0);
-				emit->MOVI2R(temp, (u32)&Memory::Write_U32);
+				emit->MOVI2R(temp, (u32)&PowerPC::Write_U32);
 				emit->BL(temp);
 			}
 			else
 			{
-				emit->MOVI2R(temp, (u32)&Memory::Write_F64);
+				emit->MOVI2R(temp, (u32)&PowerPC::Write_F64);
 #if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
 				emit->VMOV(R0, RS);
 				emit->MOV(R2, addr);
@@ -347,7 +347,7 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 			emit->MOV(R0, addr);
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
-				emit->MOVI2R(temp, (u32)&Memory::Read_U32);
+				emit->MOVI2R(temp, (u32)&PowerPC::Read_U32);
 				emit->BL(temp);
 				emit->VMOV(S0, R0);
 				emit->VCVT(RS, S0, 0);
@@ -355,7 +355,7 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 			}
 			else
 			{
-				emit->MOVI2R(temp, (u32)&Memory::Read_F64);
+				emit->MOVI2R(temp, (u32)&PowerPC::Read_F64);
 				emit->BL(temp);
 
 #if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
@@ -373,11 +373,11 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 			emit->MOV(R1, addr);
 
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				emit->MOVI2R(temp, (u32)&Memory::Write_U32);
+				emit->MOVI2R(temp, (u32)&PowerPC::Write_U32);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				emit->MOVI2R(temp, (u32)&Memory::Write_U16);
+				emit->MOVI2R(temp, (u32)&PowerPC::Write_U16);
 			else
-				emit->MOVI2R(temp, (u32)&Memory::Write_U8);
+				emit->MOVI2R(temp, (u32)&PowerPC::Write_U8);
 
 			emit->BL(temp);
 			emit->POP(4, R0, R1, R2, R3);
@@ -388,11 +388,11 @@ u32 JitArm::EmitBackpatchRoutine(ARMXEmitter* emit, u32 flags, bool fastmem, boo
 			emit->MOV(R0, addr);
 
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				emit->MOVI2R(temp, (u32)&Memory::Read_U32);
+				emit->MOVI2R(temp, (u32)&PowerPC::Read_U32);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				emit->MOVI2R(temp, (u32)&Memory::Read_U16);
+				emit->MOVI2R(temp, (u32)&PowerPC::Read_U16);
 			else if (flags & BackPatchInfo::FLAG_SIZE_8)
-				emit->MOVI2R(temp, (u32)&Memory::Read_U8);
+				emit->MOVI2R(temp, (u32)&PowerPC::Read_U8);
 
 			emit->BL(temp);
 			emit->MOV(temp, R0);

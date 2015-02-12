@@ -470,7 +470,7 @@ void SetLidOpen(bool _bOpen)
 
 bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool decrypt)
 {
-		return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength, decrypt);
+	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength, decrypt);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)

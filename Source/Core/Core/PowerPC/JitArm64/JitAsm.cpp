@@ -113,14 +113,14 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		BRK(100);
 	const u8* loadPairedFloatTwo = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LD1(32, 1, D0, addr_reg);
 		float_emit.REV32(8, D0, D0);
 		RET(X30);
 	}
 	const u8* loadPairedU8Two = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
 		float_emit.UXTL(8, D0, D0);
 		float_emit.UXTL(16, D0, D0);
@@ -134,7 +134,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	}
 	const u8* loadPairedS8Two = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
 		float_emit.SXTL(8, D0, D0);
 		float_emit.SXTL(16, D0, D0);
@@ -148,7 +148,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	}
 	const u8* loadPairedU16Two = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LD1(16, 1, D0, addr_reg);
 		float_emit.REV16(8, D0, D0);
 		float_emit.UXTL(16, D0, D0);
@@ -162,7 +162,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	}
 	const u8* loadPairedS16Two = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LD1(16, 1, D0, addr_reg);
 		float_emit.REV16(8, D0, D0);
 		float_emit.SXTL(16, D0, D0);
@@ -177,14 +177,14 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 	const u8* loadPairedFloatOne = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LDR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
 		float_emit.REV32(8, D0, D0);
 		RET(X30);
 	}
 	const u8* loadPairedU8One = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
 		float_emit.UXTL(8, D0, D0);
 		float_emit.UXTL(16, D0, D0);
@@ -198,7 +198,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	}
 	const u8* loadPairedS8One = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
 		float_emit.SXTL(8, D0, D0);
 		float_emit.SXTL(16, D0, D0);
@@ -212,7 +212,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	}
 	const u8* loadPairedU16One = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
 		float_emit.REV16(8, D0, D0);
 		float_emit.UXTL(16, D0, D0);
@@ -226,7 +226,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	}
 	const u8* loadPairedS16One = GetCodePtr();
 	{
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
 		float_emit.REV16(8, D0, D0);
 		float_emit.SXTL(16, D0, D0);
@@ -272,7 +272,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		FixupBranch argh = B(CC_NEQ);
 
 		float_emit.REV32(8, D0, D0);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.ST1(64, Q0, 0, addr_reg, SP);
 		RET(X30);
 
@@ -282,7 +282,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.UMOV(64, X0, Q0, 0);
 		ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
-		MOVI2R(X30, (u64)Memory::Write_U64);
+		MOVI2R(X30, (u64)PowerPC::Write_U64);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -304,7 +304,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
 
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.ST1(16, Q0, 0, addr_reg, SP);
 		RET(X30);
 
@@ -313,7 +313,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.UMOV(16, W0, Q0, 0);
 		REV16(W0, W0);
-		MOVI2R(X30, (u64)Memory::Write_U16);
+		MOVI2R(X30, (u64)PowerPC::Write_U16);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -335,7 +335,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
 
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.ST1(16, Q0, 0, addr_reg, SP);
 		RET(X30);
 
@@ -344,7 +344,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.UMOV(16, W0, Q0, 0);
 		REV16(W0, W0);
-		MOVI2R(X30, (u64)Memory::Write_U16);
+		MOVI2R(X30, (u64)PowerPC::Write_U16);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -366,7 +366,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.ST1(32, Q0, 0, addr_reg, SP);
 		RET(X30);
 
@@ -375,7 +375,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.REV32(8, D0, D0);
 		float_emit.UMOV(32, W0, Q0, 0);
-		MOVI2R(X30, (u64)Memory::Write_U32);
+		MOVI2R(X30, (u64)PowerPC::Write_U32);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -396,7 +396,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.ST1(32, Q0, 0, addr_reg, SP);
 		RET(X30);
 
@@ -405,7 +405,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.REV32(8, D0, D0);
 		float_emit.UMOV(32, W0, Q0, 0);
-		MOVI2R(X30, (u64)Memory::Write_U32);
+		MOVI2R(X30, (u64)PowerPC::Write_U32);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -421,7 +421,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		FixupBranch argh = B(CC_NEQ);
 
 		float_emit.REV32(8, D0, D0);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.STR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
 		RET(X30);
 
@@ -430,7 +430,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		ABI_PushRegisters(gprs);
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.UMOV(32, W0, Q0, 0);
-		MOVI2R(X30, (u64)&Memory::Write_U32);
+		MOVI2R(X30, (u64)&PowerPC::Write_U32);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -451,7 +451,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.ST1(8, Q0, 0, addr_reg);
 		RET(X30);
 
@@ -459,7 +459,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		ABI_PushRegisters(gprs);
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.UMOV(32, W0, Q0, 0);
-		MOVI2R(X30, (u64)&Memory::Write_U8);
+		MOVI2R(X30, (u64)&PowerPC::Write_U8);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -480,7 +480,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.ST1(8, Q0, 0, addr_reg);
 		RET(X30);
 
@@ -488,7 +488,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		ABI_PushRegisters(gprs);
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.SMOV(32, W0, Q0, 0);
-		MOVI2R(X30, (u64)&Memory::Write_U8);
+		MOVI2R(X30, (u64)&PowerPC::Write_U8);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -508,7 +508,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.REV16(8, D0, D0);
 		float_emit.ST1(16, Q0, 0, addr_reg);
 		RET(X30);
@@ -517,7 +517,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		ABI_PushRegisters(gprs);
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.UMOV(32, W0, Q0, 0);
-		MOVI2R(X30, (u64)&Memory::Write_U16);
+		MOVI2R(X30, (u64)&PowerPC::Write_U16);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);
@@ -537,7 +537,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		TST(DecodeReg(addr_reg), 6, 1);
 		FixupBranch argh = B(CC_NEQ);
-		MOVK(addr_reg, ((u64)Memory::base >> 32) & 0xFFFF, SHIFT_32);
+		MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
 		float_emit.REV16(8, D0, D0);
 		float_emit.ST1(16, Q0, 0, addr_reg);
 		RET(X30);
@@ -546,7 +546,7 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		ABI_PushRegisters(gprs);
 		float_emit.ABI_PushRegisters(fprs);
 		float_emit.SMOV(32, W0, Q0, 0);
-		MOVI2R(X30, (u64)&Memory::Write_U16);
+		MOVI2R(X30, (u64)&PowerPC::Write_U16);
 		BLR(X30);
 		float_emit.ABI_PopRegisters(fprs);
 		ABI_PopRegisters(gprs);

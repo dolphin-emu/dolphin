@@ -30,8 +30,11 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress)
 bool Jitx86Base::HandleFault(uintptr_t access_address, SContext* ctx)
 {
 	// TODO: do we properly handle off-the-end?
-	if (access_address >= (uintptr_t)Memory::base && access_address < (uintptr_t)Memory::base + 0x100010000)
-		return BackPatch((u32)(access_address - (uintptr_t)Memory::base), ctx);
+	if (access_address >= (uintptr_t)Memory::physical_base && access_address < (uintptr_t)Memory::physical_base + 0x100010000)
+		return BackPatch((u32)(access_address - (uintptr_t)Memory::physical_base), ctx);
+	if (access_address >= (uintptr_t)Memory::logical_base && access_address < (uintptr_t)Memory::logical_base + 0x100010000)
+		return BackPatch((u32)(access_address - (uintptr_t)Memory::logical_base), ctx);
+
 
 	return false;
 }

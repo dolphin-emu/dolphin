@@ -160,7 +160,6 @@
     <ClCompile Include="HW\GPFifo.cpp" />
     <ClCompile Include="HW\HW.cpp" />
     <ClCompile Include="HW\Memmap.cpp" />
-    <ClCompile Include="HW\MemmapFunctions.cpp" />
     <ClCompile Include="HW\MemoryInterface.cpp" />
     <ClCompile Include="HW\MMIO.cpp" />
     <ClCompile Include="HW\ProcessorInterface.cpp" />
@@ -266,6 +265,7 @@
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp" />
     <ClCompile Include="PowerPC\JitCommon\TrampolineCache.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
+    <ClCompile Include="PowerPC\MMU.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
     <ClCompile Include="PowerPC\PPCAnalyst.cpp" />
     <ClCompile Include="PowerPC\PPCCache.cpp" />

@@ -512,9 +512,6 @@
     <ClCompile Include="HW\Memmap.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
-    <ClCompile Include="HW\MemmapFunctions.cpp">
-      <Filter>HW %28Flipper/Hollywood%29</Filter>
-    </ClCompile>
     <ClCompile Include="HW\MMIO.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
@@ -635,6 +632,9 @@
     <ClCompile Include="PowerPC\SignatureDB.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -724,10 +724,12 @@
     <ClCompile Include="HW\GCKeyboard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\MMU.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
     <ClCompile Include="HW\WiimoteEmu\HydraTLayer.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
     <ClCompile Include="HideObjectEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -1197,6 +1199,9 @@
     <ClInclude Include="PowerPC\SignatureDB.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
@@ -1241,7 +1246,6 @@
     <ClInclude Include="HW\WiimoteEmu\HydraTLayer.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
     <ClInclude Include="HideObjectEngine.h" />
   </ItemGroup>
   <ItemGroup>

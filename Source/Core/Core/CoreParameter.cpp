@@ -37,7 +37,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   m_GPUDeterminismMode(GPU_DETERMINISM_AUTO),
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
-  bMergeBlocks(false), bEnableMemcardSaving(true),
+  bEnableMemcardSaving(true),
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
   bBAT(false), bMMU(false), bDCBZOFF(false),
@@ -82,7 +82,6 @@ void SCoreStartupParameter::LoadDefaults()
 	iBBDumpPort = -1;
 	bSyncGPU = false;
 	bFastDiscSpeed = false;
-	bMergeBlocks = false;
 	bEnableMemcardSaving = true;
 	SelectedLanguage = 0;
 	bWii = false;

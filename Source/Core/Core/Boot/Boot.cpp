@@ -45,10 +45,10 @@ void CBoot::Load_FST(bool _bIsWii)
 		return;
 
 	// copy first 20 bytes of disc to start of Mem 1
-	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20, false);
+	DVDInterface::DVDRead(/*offset*/0, /*address*/0, /*length*/0x20, false);
 
 	// copy of game id
-	Memory::Write_U32(Memory::Read_U32(0x80000000), 0x80003180);
+	Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
 
 	u32 shift = 0;
 	if (_bIsWii)
@@ -62,7 +62,7 @@ void CBoot::Load_FST(bool _bIsWii)
 	Memory::Write_U32(arenaHigh, 0x00000034);
 
 	// load FST
-	VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize, _bIsWii);
+	DVDInterface::DVDRead(fstOffset, arenaHigh, fstSize, _bIsWii);
 	Memory::Write_U32(arenaHigh, 0x00000038);
 	Memory::Write_U32(maxFstSize, 0x0000003c);
 }
@@ -194,9 +194,9 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 	// Run the descrambler over the encrypted section containing BS1/BS2
 	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);
 
-	Memory::CopyToEmu(0x81200000, data.data() + 0x100, 0x700);
-	Memory::CopyToEmu(0x81300000, data.data() + 0x820, 0x1AFE00);
-	PC = 0x81200000;
+	Memory::CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
+	Memory::CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
+	PC = 0x01200000;
 	return true;
 }
 
@@ -292,7 +292,7 @@ bool CBoot::BootUp()
 		}
 
 		// Scan for common HLE functions
-		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
+		if (_StartupPara.bSkipIdle && _StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
 		{
 			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
 			SignatureDB db;
@@ -346,6 +346,25 @@ bool CBoot::BootUp()
 
 		if (!BS2Success)
 		{
+			// Set up MSR and the BAT SPR registers.
+			UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+			m_MSR.FP = 1;
+			m_MSR.DR = 1;
+			m_MSR.IR = 1;
+			m_MSR.EE = 1;
+			PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
+			PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+			PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
+			PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
+			PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
+			PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+			PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+			PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+			PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
+			PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
+			PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
+			PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+
 			dolLoader.Load();
 			PC = dolLoader.GetEntryPoint();
 		}
@@ -440,7 +459,7 @@ bool CBoot::BootUp()
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
 		HLE::Patch(0x80001800, "HBReload");
-		Memory::CopyToEmu(0x80001804, "STUBHAXX", 8);
+		Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
 	}
 
 	// Not part of the binary itself, but either we or Gecko OS might insert
