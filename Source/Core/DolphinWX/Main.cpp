@@ -209,6 +209,7 @@ bool DolphinApp::OnInit()
 
 	// Gets the command line parameters
 	wxCmdLineParser parser(cmdLineDesc, argc, argv);
+	LoadFile = false;
 	if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
 	{
 		LoadFile = true;
