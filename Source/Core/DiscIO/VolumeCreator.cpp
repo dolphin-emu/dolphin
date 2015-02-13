@@ -26,7 +26,6 @@ namespace DiscIO
 enum EDiscType
 {
 	DISC_TYPE_UNK,
-	DISC_TYPE_WII,
 	DISC_TYPE_WII_CONTAINER,
 	DISC_TYPE_GC,
 	DISC_TYPE_WAD
@@ -80,7 +79,6 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 
 	switch (GetDiscType(*pReader))
 	{
-		case DISC_TYPE_WII:
 		case DISC_TYPE_GC:
 			return new CVolumeGC(pReader);
 
@@ -217,8 +215,6 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 	u32 GCMagic = Reader.Read32(0x1C);
 
 	// check for Wii
-	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic != 0)
-		return DISC_TYPE_WII;
 	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic == 0)
 		return DISC_TYPE_WII_CONTAINER;
 
