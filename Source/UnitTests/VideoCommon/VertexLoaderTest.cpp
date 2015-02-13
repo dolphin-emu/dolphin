@@ -105,7 +105,7 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZ)
 	Input(0.0f); Input(0.0f); Input(1.0f);
 
 	// Convert 4 points. "7" -> primitive are points.
-	int count = loader->RunVertices(7, 4, src, dst);
+	int count = loader->RunVertices(src, dst, 4, 7);
 	src.Skip(4 * loader->m_VertexSize);
 	dst.Skip(count * loader->m_native_vtx_decl.stride);
 	delete loader;
@@ -119,7 +119,7 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZ)
 	Input(1.0f); Input(2.0f); Input(4.0f);
 	m_vtx_attr.g0.PosFrac = 1;
 	loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
-	count = loader->RunVertices(7, 1, src, dst);
+	count = loader->RunVertices(src, dst, 1, 7);
 	src.Skip(1 * loader->m_VertexSize);
 	dst.Skip(count * loader->m_native_vtx_decl.stride);
 	ExpectOut(1.0f); ExpectOut(2.0f); ExpectOut(4.0f);
@@ -145,7 +145,7 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 	Input<u16>(12345); Input<u16>(54321);
 
 	// Convert 5 points. "7" -> primitive are points.
-	int count = loader->RunVertices(7, 5, src, dst);
+	int count = loader->RunVertices(src, dst, 5, 7);
 	src.Skip(5 * loader->m_VertexSize);
 	dst.Skip(count * loader->m_native_vtx_decl.stride);
 	delete loader;
@@ -161,7 +161,7 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 	m_vtx_attr.g0.PosFrac = 1;
 	m_vtx_attr.g0.ByteDequant = 1;
 	loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
-	count = loader->RunVertices(7, 1, src, dst);
+	count = loader->RunVertices(src, dst, 1, 7);
 	src.Skip(1 * loader->m_VertexSize);
 	dst.Skip(count * loader->m_native_vtx_decl.stride);
 	ExpectOut(21.0f); ExpectOut(12.0f); ExpectOut(0.0f);
@@ -182,7 +182,7 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZSpeed)
 	for (int i = 0; i < 1000; ++i)
 	{
 		ResetPointers();
-		int count = loader->RunVertices(7, 100000, src, dst);
+		int count = loader->RunVertices(src, dst, 100000, 7);
 		src.Skip(100000 * loader->m_VertexSize);
 		dst.Skip(count * loader->m_native_vtx_decl.stride);
 	}
@@ -203,7 +203,7 @@ TEST_F(VertexLoaderTest, PositionDirectU16XYSpeed)
 	for (int i = 0; i < 1000; ++i)
 	{
 		ResetPointers();
-		int count = loader->RunVertices(7, 100000, src, dst);
+		int count = loader->RunVertices(src, dst, 100000, 7);
 		src.Skip(100000 * loader->m_VertexSize);
 		dst.Skip(count * loader->m_native_vtx_decl.stride);
 	}
@@ -267,7 +267,7 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
 	for (int i = 0; i < 100; ++i)
 	{
 		ResetPointers();
-		int count = loader->RunVertices(7, 100000, src, dst);
+		int count = loader->RunVertices(src, dst, 100000, 7);
 		src.Skip(100000 * loader->m_VertexSize);
 		dst.Skip(count * loader->m_native_vtx_decl.stride);
 	}
