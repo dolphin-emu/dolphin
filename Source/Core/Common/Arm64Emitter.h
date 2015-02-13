@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "Common/ArmCommon.h"
 #include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
