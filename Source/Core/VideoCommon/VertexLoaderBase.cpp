@@ -12,6 +12,8 @@
 
 #ifdef _M_X86_64
 #include "VideoCommon/VertexLoaderX64.h"
+#elif defined(_M_ARM_64)
+#include "VideoCommon/VertexLoaderARM64.h"
 #endif
 
 VertexLoaderBase::VertexLoaderBase(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
@@ -205,6 +207,11 @@ VertexLoaderBase* VertexLoaderBase::CreateVertexLoader(const TVtxDesc& vtx_desc,
 	delete loader;
 #elif defined(_M_X86_64)
 	loader = new VertexLoaderX64(vtx_desc, vtx_attr);
+	if (loader->IsInitialized())
+		return loader;
+	delete loader;
+#elif defined(_M_ARM_64)
+	loader = new VertexLoaderARM64(vtx_desc, vtx_attr);
 	if (loader->IsInitialized())
 		return loader;
 	delete loader;
