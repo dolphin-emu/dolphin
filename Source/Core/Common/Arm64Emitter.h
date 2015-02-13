@@ -78,8 +78,8 @@ enum ARM64Reg
 };
 
 inline bool Is64Bit(ARM64Reg reg) { return reg & 0x20; }
-inline bool IsSingle(ARM64Reg reg) { return reg & 0x40; }
-inline bool IsDouble(ARM64Reg reg) { return reg & 0x80; }
+inline bool IsSingle(ARM64Reg reg) { return (reg & 0xC0) == 0x40; }
+inline bool IsDouble(ARM64Reg reg) { return (reg & 0xC0) == 0x80; }
 inline bool IsQuad(ARM64Reg reg) { return (reg & 0xC0) == 0xC0; }
 inline bool IsVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
 inline ARM64Reg DecodeReg(ARM64Reg reg) { return (ARM64Reg)(reg & 0x1F); }
@@ -479,6 +479,7 @@ public:
 	void MADD(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void MSUB(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void SMADDL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
+	void SMULL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void SMSUBL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void SMULH(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void UMADDL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
@@ -641,6 +642,7 @@ public:
 
 	// Loadstore multiple structure
 	void LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
+	void ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
 
 	// Scalar - 1 Source
 	void FABS(ARM64Reg Rd, ARM64Reg Rn);
@@ -725,6 +727,9 @@ public:
 	void SXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn);
 	void UXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn);
 
+	// vector x indexed element
+	void FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index);
+
 	// ABI related
 	void ABI_PushRegisters(BitSet32 registers);
 	void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
@@ -750,6 +755,7 @@ private:
 	void EmitShiftImm(bool U, u32 immh, u32 immb, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn);
 	void EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
+	void EmitVectorxElement(bool U, u32 size, bool L, u32 opcode, bool H, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 };
 
 class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>

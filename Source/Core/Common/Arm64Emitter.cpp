@@ -1006,6 +1006,10 @@ void ARM64XEmitter::SMADDL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra)
 {
 	EncodeData3SrcInst(2, Rd, Rn, Rm, Ra);
 }
+void ARM64XEmitter::SMULL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+	SMADDL(Rd, Rn, Rm, SP);
+}
 void ARM64XEmitter::SMSUBL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra)
 {
 	EncodeData3SrcInst(3, Rd, Rn, Rm, Ra);
@@ -1850,6 +1854,18 @@ void ARM64FloatEmitter::EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, 
 	        (opcode << 15) | (1 << 14) | (Rn << 5) | Rd);
 }
 
+void ARM64FloatEmitter::EmitVectorxElement(bool U, u32 size, bool L, u32 opcode, bool H, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+	bool quad = IsQuad(Rd);
+
+	Rd = DecodeReg(Rd);
+	Rn = DecodeReg(Rn);
+	Rm = DecodeReg(Rm);
+
+	Write32((quad << 30) | (U << 29) | (0b01111 <<  24) | (size << 22) | (L << 21) | \
+	        (Rm << 16) | (opcode << 12) | (H << 11) | (Rn << 5) | Rd);
+}
+
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	EmitLoadStoreImmediate(size, 1, type, Rt, Rn, imm);
@@ -2092,6 +2108,21 @@ void ARM64FloatEmitter::LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 		opcode = 0b0010;
 	EmitLoadStoreMultipleStructure(size, 1, opcode, Rt, Rn);
 }
+void ARM64FloatEmitter::ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
+{
+	_assert_msg_(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!", __FUNCTION__);
+	u32 opcode = 0;
+	if (count == 1)
+		opcode = 0b111;
+	else if (count == 2)
+		opcode = 0b1010;
+	else if (count == 3)
+		opcode = 0b0110;
+	else if (count == 4)
+		opcode = 0b0010;
+	EmitLoadStoreMultipleStructure(size, 0, opcode, Rt, Rn);
+}
+
 // Scalar - 1 Source
 void ARM64FloatEmitter::FABS(ARM64Reg Rd, ARM64Reg Rn)
 {
@@ -2579,6 +2610,27 @@ void ARM64FloatEmitter::SXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn)
 void ARM64FloatEmitter::UXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn)
 {
 	USHLL(src_size, Rd, Rn, 0);
+}
+
+// vector x indexed element
+void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index)
+{
+	_assert_msg_(DYNA_REC, size == 32 || size == 64, "%s only supports 32bit or 64bit size!", __FUNCTION__);
+
+	bool L = false;
+	bool H = false;
+
+	if (size == 32)
+	{
+		L = index & 1;
+		H = (index >> 1) & 1;
+	}
+	else if (size == 64)
+	{
+		H = index == 1;
+	}
+
+	EmitVectorxElement(0, 2 | (size >> 6), L, 0b1001, H, Rd, Rn, Rm);
 }
 
 void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers)
