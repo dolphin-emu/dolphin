@@ -689,7 +689,7 @@ private:
 	void PoisonMemory() override
 	{
 		u32* ptr = (u32*)region;
-		u32* maxptr = (u32*)region + region_size;
+		u32* maxptr = (u32*)(region + region_size);
 		// If our memory isn't a multiple of u32 then this won't write the last remaining bytes with anything
 		// Less than optimal, but there would be nothing we could do but throw a runtime warning anyway.
 		// ARM: 0x01200070 = BKPT 0
