@@ -174,9 +174,9 @@ void SWVertexLoader::LoadVertex()
 	// convert the vertex from the gc format to the videocommon (hardware optimized) format
 	u8* old = g_video_buffer_read_ptr;
 	int converted_vertices = m_CurrentLoader->RunVertices(
-		m_primitiveType, 1,
 		DataReader(g_video_buffer_read_ptr, nullptr), // src
-		DataReader(m_LoadedVertices.data(), m_LoadedVertices.data() + m_LoadedVertices.size()) // dst
+		DataReader(m_LoadedVertices.data(), m_LoadedVertices.data() + m_LoadedVertices.size()), // dst
+		1, m_primitiveType
 	);
 	g_video_buffer_read_ptr = old + m_CurrentLoader->m_VertexSize;
 

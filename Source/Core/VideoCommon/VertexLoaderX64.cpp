@@ -457,7 +457,7 @@ bool VertexLoaderX64::IsInitialized()
 	return cpu_info.bSSSE3;
 }
 
-int VertexLoaderX64::RunVertices(int primitive, int count, DataReader src, DataReader dst)
+int VertexLoaderX64::RunVertices(DataReader src, DataReader dst, int count, int primitive)
 {
 	m_numLoadedVertices += count;
 	return ((int (*)(u8* src, u8* dst, int count))region)(src.GetPointer(), dst.GetPointer(), count);
