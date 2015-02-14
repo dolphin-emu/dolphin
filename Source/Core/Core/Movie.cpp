@@ -79,8 +79,6 @@ static u32 s_DSPcoefHash = 0;
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
 
-static std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
-
 static std::string s_InputDisplay[8];
 
 static GCManipFunction gcmfunc = nullptr;
@@ -469,10 +467,10 @@ bool BeginRecordingInput(int controllers)
 
 	if (Core::IsRunningAndStarted())
 	{
-		if (File::Exists(tmpStateFilename))
-			File::Delete(tmpStateFilename);
+		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav"))
+			File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav");
 
-		State::SaveAs(tmpStateFilename);
+		State::SaveAs(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav");
 		s_bRecordingFromSaveState = true;
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
@@ -1242,7 +1240,7 @@ void SaveRecording(const std::string& filename)
 	if (success && s_bRecordingFromSaveState)
 	{
 		std::string stateFilename = filename + ".sav";
-		success = File::Copy(tmpStateFilename, stateFilename);
+		success = File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
 	}
 
 	if (success)
