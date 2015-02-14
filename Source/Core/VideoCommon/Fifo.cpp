@@ -23,6 +23,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 bool g_bSkipCurrentFrame = false;
 
@@ -254,6 +255,16 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 	}
 	Memory::CopyFromEmu(s_video_buffer_write_ptr, readPtr, len);
 	s_video_buffer_pp_read_ptr = OpcodeDecoder_Run<true>(DataReader(s_video_buffer_pp_read_ptr, write_ptr + len), nullptr, false);
+
+#ifdef INLINE_OPCODE
+	//Render Extra Headtracking Frames for VR.
+	if (g_new_frame_just_rendered && g_has_hmd)
+	{
+		OpcodeReplayBufferInline();
+	}
+	g_new_frame_just_rendered = false;
+#endif
+
 	// This would have to be locked if the GPU thread didn't spin.
 	s_video_buffer_write_ptr = write_ptr + len;
 }
@@ -297,6 +308,15 @@ void RunGpuLoop()
 			{
 				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), nullptr, false);
 
+#ifdef INLINE_OPCODE
+				//Render Extra Headtracking Frames for VR.
+				if (g_new_frame_just_rendered && g_has_hmd)
+				{
+					OpcodeReplayBufferInline();
+				}
+				g_new_frame_just_rendered = false;
+#endif
+
 				{
 					std::lock_guard<std::mutex> vblk(s_video_buffer_lock);
 					s_video_buffer_seen_ptr = write_ptr;
@@ -333,6 +353,14 @@ void RunGpuLoop()
 					u8* write_ptr = s_video_buffer_write_ptr;
 					s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
 
+#ifdef INLINE_OPCODE
+					//Render Extra Headtracking Frames for VR.
+					if (g_new_frame_just_rendered && g_has_hmd)
+					{
+						OpcodeReplayBufferInline();
+					}
+					g_new_frame_just_rendered = false;
+#endif
 
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) >= cyclesExecuted)
 						Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
@@ -405,6 +433,16 @@ void RunGpu()
 			FPURoundMode::LoadDefaultSIMDState();
 			ReadDataFromFifo(fifo.CPReadPointer);
 			s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
+
+#ifdef INLINE_OPCODE
+			//Render Extra Headtracking Frames for VR.
+			if (g_new_frame_just_rendered && g_has_hmd)
+			{
+				OpcodeReplayBufferInline();
+			}
+			g_new_frame_just_rendered = false;
+#endif
+
 			FPURoundMode::LoadSIMDState();
 		}
 

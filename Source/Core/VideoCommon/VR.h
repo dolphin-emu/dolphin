@@ -49,6 +49,8 @@ Error, Oculus SDK 0.3.x is no longer supported
 #endif
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / M_PI))
 #define DEGREES_TO_RADIANS(deg) ((float) deg * (float) (M_PI / 180.0))
+//#define RECURSIVE_OPCODE
+#define INLINE_OPCODE
 
 typedef enum
 {
@@ -104,6 +106,7 @@ bool VR_GetRightHydraPos(float *pos);
 ControllerStyle VR_GetHydraStyle(int hand);
 
 void OpcodeReplayBuffer();
+void OpcodeReplayBufferInline();
 
 extern bool g_force_vr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920, g_is_direct_mode, g_is_nes;
@@ -120,11 +123,11 @@ extern bool g_fov_changed;
 //Opcode Replay Buffer
 struct TimewarpLogEntry {
 	DataReader timewarp_log;
-	bool display_list_log;
 	bool is_preprocess_log;
 };
 extern std::vector<TimewarpLogEntry> timewarp_logentries;
-extern bool opcode_replay_enabled;
+extern bool g_opcode_replay_enabled;
+extern bool g_new_frame_just_rendered;
 extern bool g_opcodereplay_frame;
 extern int skipped_opcode_replay_count;
 
