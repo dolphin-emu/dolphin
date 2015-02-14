@@ -397,11 +397,22 @@ TryReadInstResult TryReadInstruction(u32 address)
 		{
 			int segment = address >> 28;
 			if ((segment == 0x8 || segment == 0x0) && (address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
+			{
 				address = address & 0x3FFFFFFF;
+			}
 			else if (segment == 0x9 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+			{
 				address = address & 0x3FFFFFFF;
+			}
+			else if (Memory::bFakeVMEM && (segment == 0x7 || segment == 0x4))
+			{
+				u32 hex = bswap((*(const u32*)&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]));
+				return TryReadInstResult{ true, true, hex };
+			}
 			else
+			{
 				return TryReadInstResult{ false, false, 0 };
+			}
 		}
 	}
 	else
