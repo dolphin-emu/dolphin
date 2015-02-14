@@ -467,10 +467,11 @@ bool BeginRecordingInput(int controllers)
 
 	if (Core::IsRunningAndStarted())
 	{
-		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav"))
-			File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav");
+		const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+		if (File::Exists(save_path))
+			File::Delete(save_path);
 
-		State::SaveAs(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav");
+		State::SaveAs(save_path);
 		s_bRecordingFromSaveState = true;
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
