@@ -1,4 +1,4 @@
-// This file is under the public domain.
+// This file is in the public domain.
 
 #pragma once
 
