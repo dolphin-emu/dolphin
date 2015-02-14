@@ -23,6 +23,7 @@
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/string.h>
+#include <wx/timer.h>
 #include <wx/translation.h>
 
 #include "InputCommon/ControllerEmu.h"
@@ -39,7 +40,6 @@ class wxSlider;
 class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
-class wxTimer;
 class wxTimerEvent;
 class wxWindow;
 
@@ -224,9 +224,6 @@ class InputConfigDialog : public wxDialog
 {
 public:
 	InputConfigDialog(wxWindow* const parent, InputConfig& config, const wxString& name, const int tab_num = 0);
-	//~InputConfigDialog();
-
-	bool Destroy() override;
 
 	void ClickSave(wxCommandEvent& event);
 
@@ -241,5 +238,5 @@ private:
 	wxNotebook*               m_pad_notebook;
 	std::vector<GamepadPage*> m_padpages;
 	InputConfig&              m_config;
-	wxTimer*                  m_update_timer;
+	wxTimer                   m_update_timer;
 };
