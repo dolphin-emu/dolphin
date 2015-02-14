@@ -88,8 +88,11 @@ bool AVIDump::CreateFile()
 	// Ask to delete file
 	if (File::Exists(movie_file_name))
 	{
-		if (AskYesNoT("Delete the existing file '%s'?", movie_file_name.c_str()))
+		if (SConfig::GetInstance().m_DumpFramesSilent ||
+		    AskYesNoT("Delete the existing file '%s'?", movie_file_name.c_str()))
+		{
 			File::Delete(movie_file_name);
+		}
 	}
 
 	AVIFileInit();
@@ -291,7 +294,16 @@ bool AVIDump::SetCompressionOptions()
 	memset(&s_options, 0, sizeof(s_options));
 	s_array_options[0] = &s_options;
 
-	return (AVISaveOptions(s_emu_wnd, 0, 1, &s_stream, s_array_options) != 0);
+	if (SConfig::GetInstance().m_DumpFramesSilent)
+	{
+		s_options.fccType = streamtypeVIDEO;
+		s_options.fccHandler = mmioFOURCC('D', 'I', 'B', ' ');  // Uncompressed
+		return true;
+	}
+	else
+	{
+		return (AVISaveOptions(s_emu_wnd, 0, 1, &s_stream, s_array_options) != 0);
+	}
 }
 
 bool AVIDump::SetVideoFormat()
