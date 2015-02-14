@@ -189,7 +189,7 @@ void Jit64AsmRoutineManager::Generate()
 			// Jit might have cleared the code cache
 			ResetStack();
 
-			JMP(dispatcherNoCheck); // no point in special casing this
+			JMP(dispatcherNoCheck, true); // no point in special casing this
 
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();

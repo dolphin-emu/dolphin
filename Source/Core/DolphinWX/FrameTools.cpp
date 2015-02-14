@@ -1442,7 +1442,6 @@ void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED (event))
 {
 	ControllerConfigDiag config_dlg(this);
 	config_dlg.ShowModal();
-	config_dlg.Destroy();
 }
 
 void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
@@ -1474,9 +1473,8 @@ void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED (event))
 {
-	HotkeyConfigDialog *m_HotkeyDialog = new HotkeyConfigDialog(this);
-	m_HotkeyDialog->ShowModal();
-	m_HotkeyDialog->Destroy();
+	HotkeyConfigDialog m_HotkeyDialog(this);
+	m_HotkeyDialog.ShowModal();
 
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
@@ -1504,9 +1502,8 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 #endif
 	}
 
-	InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"), 0);
+	InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
 	m_ConfigFrame.ShowModal();
-	m_ConfigFrame.Destroy();
 
 	// if game isn't running
 	if (!was_init)
