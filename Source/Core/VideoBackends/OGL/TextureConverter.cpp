@@ -117,17 +117,27 @@ static void CreatePrograms()
 		"void main()\n"
 		"{\n"
 		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
-			// We switch top/bottom here. TODO: move this to screen blit.
+		// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x>>1, ts.y-uv.y-1), 0);\n"
-		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
-		"	float yComp = 1.164 * (y - 0.0625);\n"
-		"	float uComp = c0.g - 0.5;\n"
-		"	float vComp = c0.a - 0.5;\n"
-		"	ocol0 = vec4(yComp + (1.596 * vComp),\n"
-		"		yComp - (0.813 * vComp) - (0.391 * uComp),\n"
-		"		yComp + (2.018 * uComp),\n"
-		"		1.0);\n"
+		// Only Y values between 16 and 236 (and UV values between 16 and 240) are used in the  BT.601 color space
+		// So we are using a special value (YUYV == 01, 128, 01, 128) outside this range do colour keying and 
+		// implement transparency for hybrid XFB.
+		"   if (c0.r > 0.0625 && c0.b > 0.0625)\n"
+		"   {\n"
+		"		float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
+		"		float yComp = 1.164 * (y - 0.0625);\n"
+		"		float uComp = c0.g - 0.5;\n"
+		"		float vComp = c0.a - 0.5;\n"
+		"		ocol0 = vec4(yComp + (1.596 * vComp),\n"
+		"			yComp - (0.813 * vComp) - (0.391 * uComp),\n"
+		"			yComp + (2.018 * uComp),\n"
+		"			1.0);\n"
+		"	}\n"
+		"	else\n"
+		"	{\n"
+		"		ocol0 = vec4(0.0, 0.0, 0.0, 0.0);\n"
+		"	}\n"
 		"}\n";
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
