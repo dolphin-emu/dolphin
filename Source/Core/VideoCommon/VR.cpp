@@ -52,7 +52,8 @@ ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYD
 
 std::vector<TimewarpLogEntry> timewarp_logentries;
 
-bool opcode_replay_enabled = false;
+bool g_opcode_replay_enabled = false;
+bool g_new_frame_just_rendered = false;
 bool g_opcodereplay_frame = false;
 int skipped_opcode_replay_count = 0;
 
@@ -592,7 +593,7 @@ void OpcodeReplayBuffer()
 	static int real_frame_count = 0;
 	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
-		opcode_replay_enabled = true;
+		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
 		{
 			if (real_frame_count % 4 == 1)
@@ -671,11 +672,11 @@ void OpcodeReplayBuffer()
 
 					if (entry.is_preprocess_log)
 					{
-						OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, entry.display_list_log);
+						OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, false);
 					}
 					else
 					{
-						OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, entry.display_list_log);
+						OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, false);
 					}
 				}
 			}
@@ -711,12 +712,86 @@ void OpcodeReplayBuffer()
 	}
 	else
 	{
-		if (opcode_replay_enabled)
+		if (g_opcode_replay_enabled)
 		{
 			timewarp_logentries.clear();
 			timewarp_logentries.resize(0);
 		}
-		opcode_replay_enabled = false;
+		g_opcode_replay_enabled = false;
+		g_opcodereplay_frame = true; //Don't log frames
+	}
+}
+
+void OpcodeReplayBufferInline()
+{
+	// Opcode Replay Buffer Code.  This enables the capture of all the Video Opcodes that occur during a frame,
+	// and then plays them back with new headtracking information.  Allows ways to easily set headtracking at 75fps
+	// for various games.  In Alpha right now, will crash many games/cause corruption.
+	static int extra_video_loops_count = 0;
+	static int real_frame_count = 0;
+	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	{
+		g_opcode_replay_enabled = true;
+		if (g_ActiveConfig.bPullUp20fps)
+		{
+			if (real_frame_count % 4 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 3;
+			}
+		}
+		else if (g_ActiveConfig.bPullUp30fps)
+		{
+			if (real_frame_count % 2 == 1)
+			{
+				g_ActiveConfig.iExtraVideoLoops = 1;
+			}
+			else
+			{
+				g_ActiveConfig.iExtraVideoLoops = 2;
+			}
+		}
+		else if (g_ActiveConfig.bPullUp60fps)
+		{
+			if (real_frame_count % 4 == 0)
+				g_ActiveConfig.iExtraVideoLoops = 1;
+			else
+				g_ActiveConfig.iExtraVideoLoops = 0;
+		}
+
+		++real_frame_count;
+		g_opcodereplay_frame = true;
+		skipped_opcode_replay_count = 0;
+
+		for (int num_extra_frames = 0; num_extra_frames < (int)g_ActiveConfig.iExtraVideoLoops; ++num_extra_frames)
+		{
+			for (TimewarpLogEntry& entry : timewarp_logentries)
+			{
+				if (entry.is_preprocess_log)
+				{
+					OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, false);
+				}
+				else
+				{
+					OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, false);
+				}
+			}
+		}
+		timewarp_logentries.clear();
+		timewarp_logentries.resize(0);
+		g_opcodereplay_frame = false;
+	}
+	else
+	{
+		if (g_opcode_replay_enabled)
+		{
+			timewarp_logentries.clear();
+			timewarp_logentries.resize(0);
+		}
+		g_opcode_replay_enabled = false;
 		g_opcodereplay_frame = true; //Don't log frames
 	}
 }

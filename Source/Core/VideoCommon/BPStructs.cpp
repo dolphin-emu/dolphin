@@ -281,6 +281,7 @@ static void BPWritten(const BPCmd& bp)
 				u32 width = bpmem.copyMipMapStrideChannels << 4;
 
 				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
+				g_new_frame_just_rendered = true;
 				new_frame_just_rendered = true;
 			}
 
@@ -290,11 +291,13 @@ static void BPWritten(const BPCmd& bp)
 				ClearScreen(srcRect, new_frame_just_rendered);
 			}
 
+#ifdef RECURSIVE_OPCODE
 			//Render Extra Headtracking Frames for VR.
 			if (new_frame_just_rendered && g_has_hmd)
 			{
 				OpcodeReplayBuffer();
 			}
+#endif
 
 			return;
 		}
