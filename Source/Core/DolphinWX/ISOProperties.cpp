@@ -507,8 +507,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	EditPatch = new wxButton(m_PatchPage, ID_EDITPATCH, _("Edit..."));
 	wxButton* const AddPatch = new wxButton(m_PatchPage, ID_ADDPATCH, _("Add..."));
 	RemovePatch = new wxButton(m_PatchPage, ID_REMOVEPATCH, _("Remove"));
-	EditPatch->Enable(false);
-	RemovePatch->Enable(false);
+	EditPatch->Disable();
+	RemovePatch->Disable();
 
 	wxBoxSizer* sPatchPage = new wxBoxSizer(wxVERTICAL);
 	sPatches->Add(Patches, 1, wxEXPAND|wxALL, 0);
@@ -528,8 +528,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	EditCheat = new wxButton(m_CheatPage, ID_EDITCHEAT, _("Edit..."));
 	wxButton * const AddCheat = new wxButton(m_CheatPage, ID_ADDCHEAT, _("Add..."));
 	RemoveCheat = new wxButton(m_CheatPage, ID_REMOVECHEAT, _("Remove"));
-	EditCheat->Enable(false);
-	RemoveCheat->Enable(false);
+	EditCheat->Disable();
+	RemoveCheat->Disable();
 
 	wxBoxSizer* sCheatPage = new wxBoxSizer(wxVERTICAL);
 	sCheats->Add(Cheats, 1, wxEXPAND|wxALL, 0);
@@ -1420,8 +1420,8 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 	Patches->Clear();
 	PatchList_Load();
 
-	EditPatch->Enable(false);
-	RemovePatch->Enable(false);
+	EditPatch->Disable();
+	RemovePatch->Disable();
 }
 
 void CISOProperties::ActionReplayList_Load()
@@ -1500,8 +1500,8 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 	Cheats->Clear();
 	ActionReplayList_Load();
 
-	EditCheat->Enable(false);
-	RemoveCheat->Enable(false);
+	EditCheat->Disable();
+	RemoveCheat->Disable();
 }
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)

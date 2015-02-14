@@ -753,7 +753,7 @@ void CConfigMain::CreateGUIControls()
 	RecursiveISOPath = new wxCheckBox(PathsPage, ID_RECURSIVEISOPATH, _("Search Subfolders"));
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, _("Add..."));
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, _("Remove"));
-	RemoveISOPath->Enable(false);
+	RemoveISOPath->Disable();
 
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
 		_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") + wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad|%s", wxGetTranslation(wxALL_FILES)),
