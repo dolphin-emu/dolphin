@@ -36,6 +36,7 @@ public:
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
+	int GetRevision() const override;
 
 private:
 	std::unique_ptr<IBlobReader> m_pReader;
