@@ -534,8 +534,13 @@ include_directories(Source/Core)
 #
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
-include_directories(Externals)
-add_subdirectory(Externals/enet)
+
+if(NOT ENET_FOUND)
+	message("Using static enet from Externals")
+	include_directories(Externals)
+	add_subdirectory(Externals/enet)
+endif()
+LIST(APPEND LIBS enet)
 
 if(NOT XXHASH_FOUND)
 	message("Using static xxhash from Externals")

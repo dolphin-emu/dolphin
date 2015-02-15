@@ -7,7 +7,7 @@
 #include "Common/Common.h"
 #include "Common/Thread.h"
 #include "Common/TraversalProto.h"
-#include "enet/enet.h"
+#include "enet/include/enet/enet.h"
 
 class TraversalClientClient
 {
