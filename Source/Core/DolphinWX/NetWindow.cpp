@@ -68,7 +68,7 @@ static std::string BuildGameName(const GameListItem& game)
 
 static void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
 {
-	for (u32 i = 0 ; auto game = game_list.GetISO(i); ++i)
+	for (u32 i = 0; auto game = game_list.GetISO(i); ++i)
 		game_lbox->Append(StrToWxStr(BuildGameName(*game)));
 }
 
@@ -373,7 +373,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		m_start_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnStart, this);
 		bottom_szr->Add(m_start_btn);
 
-		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
+		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5);
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, std::to_string(INITIAL_PAD_BUFFER_SIZE)
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
 		padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDiag::OnAdjustBuffer, this);
@@ -447,7 +447,7 @@ void NetPlayDiag::GetNetSettings(NetSettings &settings)
 std::string NetPlayDiag::FindGame()
 {
 	// find path for selected game, sloppy..
-	for (u32 i = 0 ; auto game = m_game_list->GetISO(i); ++i)
+	for (u32 i = 0; auto game = m_game_list->GetISO(i); ++i)
 		if (m_selected_game == BuildGameName(*game))
 			return game->GetFileName();
 
@@ -573,7 +573,7 @@ void NetPlayDiag::OnThread(wxThreadEvent& event)
 
 	switch (event.GetId())
 	{
-	case NP_GUI_EVT_CHANGE_GAME :
+	case NP_GUI_EVT_CHANGE_GAME:
 		// update selected game :/
 		{
 		m_selected_game.assign(WxStrToStr(event.GetString()));
@@ -690,7 +690,7 @@ void ChangeGameDiag::OnPick(wxCommandEvent& event)
 PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiimotemap[], std::vector<const Player *>& player_list)
 	: wxDialog(parent, wxID_ANY, _("Configure Pads"))
 	, m_mapping(map)
-	, m_wiimapping (wiimotemap)
+	, m_wiimapping(wiimotemap)
 	, m_player_list(player_list)
 {
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -701,11 +701,11 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiim
 	for (auto& player : m_player_list)
 		player_names.Add(player->name);
 
-	for (unsigned int i=0; i<4; ++i)
+	for (unsigned int i = 0; i < 4; ++i)
 	{
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Pad ")) + (wxChar)('0'+i))),
-					    1, wxALIGN_CENTER_HORIZONTAL);
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Pad ")) + (wxChar)('0' + i))),
+		                            1, wxALIGN_CENTER_HORIZONTAL);
 
 		m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
 		m_map_cbox[i]->Bind(wxEVT_CHOICE, &PadMapDiag::OnAdjust, this);
@@ -722,11 +722,11 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiim
 		h_szr->AddSpacer(10);
 	}
 
-	for (unsigned int i=0; i<4; ++i)
+	for (unsigned int i = 0; i < 4; ++i)
 	{
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('0'+i))),
-					    1, wxALIGN_CENTER_HORIZONTAL);
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('0' + i))),
+		                            1, wxALIGN_CENTER_HORIZONTAL);
 
 		m_map_cbox[i+4] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
 		m_map_cbox[i+4]->Bind(wxEVT_CHOICE, &PadMapDiag::OnAdjust, this);

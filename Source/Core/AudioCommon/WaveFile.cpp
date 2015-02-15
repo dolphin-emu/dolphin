@@ -8,7 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 
-enum {BUF_SIZE = 32*1024};
+enum { BUF_SIZE = 32*1024 };
 
 WaveFileWriter::WaveFileWriter():
 	skip_silence(false),
@@ -19,7 +19,7 @@ WaveFileWriter::WaveFileWriter():
 
 WaveFileWriter::~WaveFileWriter()
 {
-	delete [] conv_buffer;
+	delete[] conv_buffer;
 	Stop();
 }
 

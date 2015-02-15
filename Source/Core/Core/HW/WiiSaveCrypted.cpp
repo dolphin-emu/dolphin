@@ -55,7 +55,7 @@ bool CWiiSaveCrypted::ExportWiiSave(u64 title_id)
 	}
 	else
 	{
-		 PanicAlertT("Export failed");
+		PanicAlertT("Export failed");
 	}
 	return export_save.m_valid;
 }
@@ -205,7 +205,7 @@ void CWiiSaveCrypted::WriteHDR()
 
 	std::string banner_file_path = m_wii_title_path + "banner.bin";
 	u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
-	m_header.hdr.BannerSize =  Common::swap32(banner_size);
+	m_header.hdr.BannerSize = Common::swap32(banner_size);
 
 	m_header.hdr.SaveGameTitle = Common::swap64(m_title_id);
 	memcpy(m_header.hdr.Md5, s_md5_blanker, 0x10);
@@ -391,7 +391,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 		std::string name;
 		memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
 
-		u32 file_size =  0;
+		u32 file_size = 0;
 		if (File::IsDirectory(m_files_list[i]))
 		{
 			file_hdr_tmp.type = 2;
@@ -513,7 +513,7 @@ void CWiiSaveCrypted::do_sig()
 	generate_ecdsa(ap_sig, ap_sig + 30, ng_priv, hash);
 	make_ec_cert(ap_cert, ap_sig, signer, name, ap_priv, 0);
 
-	data_size = Common::swap32(m_bk_hdr.sizeOfFiles)  + 0x80;
+	data_size = Common::swap32(m_bk_hdr.sizeOfFiles) + 0x80;
 
 	File::IOFile data_file(m_encrypted_save_path, "rb");
 	if (!data_file)
@@ -575,7 +575,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
 		char game_id[5];
 		sprintf(game_id, "%c%c%c%c",
 			(u8)(m_title_id >> 24) & 0xFF, (u8)(m_title_id >> 16) & 0xFF,
-			(u8)(m_title_id >>  8) & 0xFF, (u8)m_title_id & 0xFF);
+			(u8)(m_title_id >> 8) & 0xFF, (u8)m_title_id & 0xFF);
 
 		if (!File::IsDirectory(m_wii_title_path))
 		{

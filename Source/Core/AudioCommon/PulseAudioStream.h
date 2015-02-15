@@ -23,7 +23,7 @@ public:
 	virtual bool Start() override;
 	virtual void Stop() override;
 
-	static bool isValid() {return true;}
+	static bool isValid() { return true; }
 
 	virtual void Update() override;
 

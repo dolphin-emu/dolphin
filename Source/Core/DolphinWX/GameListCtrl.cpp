@@ -1028,7 +1028,7 @@ void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem* iso =  GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -1118,10 +1118,10 @@ bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void
 {
 	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
 	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
-				m_currentFilename.c_str(), (int)m_currentItem+1,
+				m_currentFilename.c_str(), (int)m_currentItem + 1,
 				(int)m_numberItem, text.c_str())));
 
-	return ((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
+	return ((wxProgressDialog*)arg)->Update((int)(percent * 1000), textString);
 }
 
 void CGameListCtrl::OnMultiCompressISO(wxCommandEvent& /*event*/)
@@ -1160,7 +1160,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 		m_currentItem = 0;
 		m_numberItem = GetSelectedItemCount();
-		for (u32 i=0; i < m_numberItem; i++)
+		for (u32 i = 0; i < m_numberItem; i++)
 		{
 			const GameListItem* iso = GetSelectedISO();
 			if (iso->GetPlatform() == GameListItem::WII_WAD || iso->GetFileName().rfind(".wbfs") != std::string::npos)
@@ -1230,7 +1230,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 bool CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
 {
 	return ((wxProgressDialog*)arg)->
-		Update((int)(percent*1000), StrToWxStr(text));
+		Update((int)(percent * 1000), StrToWxStr(text));
 }
 
 void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
@@ -1374,7 +1374,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 
 void CGameListCtrl::UnselectAll()
 {
-	for (int i=0; i<GetItemCount(); i++)
+	for (int i = 0; i < GetItemCount(); i++)
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
 	}

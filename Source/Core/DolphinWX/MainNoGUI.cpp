@@ -132,7 +132,7 @@ class PlatformX11 : public Platform
 		XSetWMProtocols(dpy, win, wmProtocols, 1);
 		XMapRaised(dpy, win);
 		XFlush(dpy);
-		s_window_handle = (void*) win;
+		s_window_handle = (void*)win;
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
@@ -146,10 +146,10 @@ class PlatformX11 : public Platform
 			// make a blank cursor
 			Pixmap Blank;
 			XColor DummyColor;
-			char ZeroData[1] = {0};
-			Blank = XCreateBitmapFromData (dpy, win, ZeroData, 1, 1);
+			char ZeroData[1] = { 0 };
+			Blank = XCreateBitmapFromData(dpy, win, ZeroData, 1, 1);
 			blankCursor = XCreatePixmapCursor(dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
-			XFreePixmap (dpy, Blank);
+			XFreePixmap(dpy, Blank);
 			XDefineCursor(dpy, win, blankCursor);
 		}
 	}

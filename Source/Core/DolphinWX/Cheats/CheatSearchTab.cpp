@@ -42,7 +42,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	m_btn_next_scan->Disable();
 
 	// data sizes radiobox
-	std::array<wxString, 3> data_size_names = {{ _("8-bit"), _("16-bit"), _("32-bit") }};
+	std::array<wxString, 3> data_size_names = { { _("8-bit"), _("16-bit"), _("32-bit") } };
 	m_data_sizes = new wxRadioBox(this, wxID_ANY, _("Data Size"), wxDefaultPosition, wxDefaultSize, static_cast<int>(data_size_names.size()), data_size_names.data());
 
 	// Listbox for search results (shown in monospace font).
@@ -111,7 +111,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// right sizer
 	wxBoxSizer* const sizer_right = new wxBoxSizer(wxVERTICAL);
-	sizer_right->Add(m_data_sizes, 0,  wxEXPAND | wxBOTTOM, 5);
+	sizer_right->Add(m_data_sizes, 0, wxEXPAND | wxBOTTOM, 5);
 	sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxBOTTOM, 5);
 	sizer_right->AddStretchSpacer(1);
 	sizer_right->Add(boxButtons, 0, wxTOP | wxEXPAND, 5);
@@ -124,7 +124,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
+void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED(event))
 {
 	const u8* const memptr = Memory::m_pRAM;
 	if (memptr == nullptr)
@@ -174,7 +174,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	// 2 : greater-than
 	// 4 : less-than
 
-	const int filters[] = {7, 6, 1, 2, 4};
+	const int filters[] = { 7, 6, 1, 2, 4 };
 	int filter_mask = filters[m_search_type->GetSelection()];
 
 	if (m_value_x_radiobtn.rad_oldvalue->GetValue()) // using old value comparison
@@ -182,7 +182,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 		for (CheatSearchResult& result : m_search_results)
 		{
 			// with big endian, can just use memcmp for ><= comparison
-			int cmp_result = memcmp(memptr + result.address, &result.old_value,m_search_type_size);
+			int cmp_result = memcmp(memptr + result.address, &result.old_value, m_search_type_size);
 			if (cmp_result < 0)
 				cmp_result = 4;
 			else
@@ -216,12 +216,12 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 			// #ifdef LIL_ENDIAN :p
 			switch (m_search_type_size)
 			{
-			case 1 :
+			case 1:
 				break;
-			case 2 :
+			case 2:
 				*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
 				break;
-			case 4 :
+			case 4:
 				user_x_val = Common::swap32(user_x_val);
 				break;
 			}
@@ -279,12 +279,12 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 			// #ifdef LIL_ENDIAN :p
 			switch (m_search_type_size)
 			{
-			case 1 :
+			case 1:
 				break;
-			case 2 :
+			case 2:
 				*(u16*)&display_value = Common::swap16((u8*)&display_value);
 				break;
-			case 4 :
+			case 4:
 				display_value = Common::swap32(display_value);
 				break;
 			}

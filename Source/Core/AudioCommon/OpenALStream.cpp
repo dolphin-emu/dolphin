@@ -172,7 +172,7 @@ void OpenALStream::SoundLoop()
 	ALint iBuffersFilled = 0;
 	ALint iBuffersProcessed = 0;
 	ALint iState = 0;
-	ALuint uiBufferTemp[OAL_MAX_BUFFERS] = {0};
+	ALuint uiBufferTemp[OAL_MAX_BUFFERS] = { 0 };
 
 	soundTouch.setChannels(2);
 	soundTouch.setSampleRate(ulFrequency);
@@ -255,7 +255,7 @@ void OpenALStream::SoundLoop()
 				// good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
 				// AL_FORMAT_50CHN32 to make this super-explicit.
 				// DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-				for (u32 i=0; i < nSamples; ++i)
+				for (u32 i = 0; i < nSamples; ++i)
 				{
 					dpl2[i*SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
 				}

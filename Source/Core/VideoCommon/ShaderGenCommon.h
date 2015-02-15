@@ -113,7 +113,6 @@ class ShaderCode : public ShaderGeneratorInterface
 public:
 	ShaderCode() : buf(nullptr), write_ptr(nullptr)
 	{
-
 	}
 
 	void Write(const char* fmt, ...)
@@ -142,7 +141,7 @@ public:
 
 	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
 	{
-		for (unsigned int i = first_index; i < last_index+1; ++i)
+		for (unsigned int i = first_index; i < last_index + 1; ++i)
 			constant_usage[i] = true;
 	}
 
@@ -198,7 +197,7 @@ public:
 					u8 value = new_uid.GetUidDataRaw()[i];
 					if ((i % 4) == 0)
 					{
-						auto last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
+						auto last_value = (i + 3 < new_uid.GetUidDataSize() - 1) ? i + 3 : new_uid.GetUidDataSize();
 						file << std::setfill(' ') << std::dec;
 						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
 					}
@@ -216,7 +215,7 @@ public:
 	}
 
 private:
-	std::map<UidT,std::string> m_shaders;
+	std::map<UidT, std::string> m_shaders;
 	std::vector<UidT> m_uids;
 };
 
