@@ -12,13 +12,14 @@ static void GetRandomishBytes(u8* buf, size_t size)
 		buf[i] = rand() & 0xff;
 }
 
-TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server)
+TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port)
 	: m_NetHost(netHost)
 	, m_Client(nullptr)
 	, m_FailureReason(0)
 	, m_ConnectRequestId(0)
 	, m_PendingConnect(false)
 	, m_Server(server)
+	, m_port(port)
 	, m_PingTime(0)
 {
 	netHost->intercept = TraversalClient::InterceptCallback;
@@ -34,13 +35,12 @@ TraversalClient::~TraversalClient()
 
 void TraversalClient::ReconnectToServer()
 {
-	m_Server = "vps.qoid.us"; // XXX
 	if (enet_address_set_host(&m_ServerAddress, m_Server.c_str()))
 	{
 		OnFailure(BadHost);
 		return;
 	}
-	m_ServerAddress.port = 6262;
+	m_ServerAddress.port = m_port;
 
 	m_State = Connecting;
 
@@ -326,12 +326,13 @@ static u16 g_OldPort;
 
 bool EnsureTraversalClient(const std::string& server, u16 port)
 {
+
 	if (!g_MainNetHost || !g_TraversalClient || server != g_OldServer || port != g_OldPort)
 	{
 		g_OldServer = server;
-		g_OldPort = port;
+		g_OldPort = port ;
 
-		ENetAddress addr = { ENET_HOST_ANY, port };
+		ENetAddress addr = { ENET_HOST_ANY, 0 };
 		ENetHost* host = enet_host_create(
 			&addr, // address
 			50, // peerCount
@@ -344,7 +345,7 @@ bool EnsureTraversalClient(const std::string& server, u16 port)
 			return false;
 		}
 		g_MainNetHost.reset(host);
-		g_TraversalClient.reset(new TraversalClient(g_MainNetHost.get(), server));
+		g_TraversalClient.reset(new TraversalClient(g_MainNetHost.get(), server, port));
 	}
 	return true;
 }

@@ -36,7 +36,7 @@ public:
 		ResendTimeout,
 		ConnectFailedError = 0x400,
 	};
-	TraversalClient(ENetHost* netHost, const std::string& server);
+	TraversalClient(ENetHost* netHost, const std::string& server, const u16 port);
 	~TraversalClient();
 	void Reset();
 	void ConnectToClient(const std::string& host);
@@ -70,6 +70,7 @@ private:
 	std::list<OutgoingTraversalPacketInfo> m_OutgoingTraversalPackets;
 	ENetAddress m_ServerAddress;
 	std::string m_Server;
+	u16         m_port;
 	enet_uint32 m_PingTime;
 };
 extern std::unique_ptr<TraversalClient> g_TraversalClient;

@@ -4,8 +4,8 @@
 #include <array>
 #include "Common/CommonTypes.h"
 
-
-typedef std::array<char, 8> TraversalHostId;
+#define NETPLAY_CODE_SIZE 8
+typedef std::array<char, NETPLAY_CODE_SIZE> TraversalHostId;
 typedef u64 TraversalRequestId;
 
 enum TraversalPacketType
