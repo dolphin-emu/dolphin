@@ -36,16 +36,16 @@ public:
 private:
 	void CreateGUIControls();
 
-	void OnPaint( wxPaintEvent& event );
-	void OnFrameFrom( wxSpinEvent& event );
-	void OnFrameTo( wxSpinEvent& event );
-	void OnObjectFrom( wxSpinEvent& event );
-	void OnObjectTo( wxSpinEvent& event );
-	void OnCheckEarlyMemoryUpdates( wxCommandEvent& event );
-	void OnRecordStop( wxCommandEvent& event );
-	void OnSaveFile( wxCommandEvent& event );
-	void OnNumFramesToRecord( wxSpinEvent& event );
-	void OnCloseClick( wxCommandEvent& event );
+	void OnPaint(wxPaintEvent& event);
+	void OnFrameFrom(wxSpinEvent& event);
+	void OnFrameTo(wxSpinEvent& event);
+	void OnObjectFrom(wxSpinEvent& event);
+	void OnObjectTo(wxSpinEvent& event);
+	void OnCheckEarlyMemoryUpdates(wxCommandEvent& event);
+	void OnRecordStop(wxCommandEvent& event);
+	void OnSaveFile(wxCommandEvent& event);
+	void OnNumFramesToRecord(wxSpinEvent& event);
+	void OnCloseClick(wxCommandEvent& event);
 
 	void OnBeginSearch(wxCommandEvent& event);
 	void OnFindNextClick(wxCommandEvent& event);

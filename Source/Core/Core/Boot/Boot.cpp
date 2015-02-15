@@ -186,7 +186,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 		PanicAlert("%s IPL found in %s directory. The disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
 
 	// Run the descrambler over the encrypted section containing BS1/BS2
-	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);
+	CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
 
 	Memory::CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
 	Memory::CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);

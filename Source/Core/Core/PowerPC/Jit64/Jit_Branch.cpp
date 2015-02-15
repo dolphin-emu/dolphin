@@ -136,9 +136,9 @@ void Jit64::bcx(UGeckoInstruction inst)
 	WriteExit(destination, inst.LK, js.compilerPC + 4);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
-		SetJumpTarget( pConditionDontBranch );
+		SetJumpTarget(pConditionDontBranch);
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
-		SetJumpTarget( pCTRDontBranch );
+		SetJumpTarget(pCTRDontBranch);
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
@@ -242,9 +242,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	WriteBLRExit();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
-		SetJumpTarget( pConditionDontBranch );
+		SetJumpTarget(pConditionDontBranch);
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
-		SetJumpTarget( pCTRDontBranch );
+		SetJumpTarget(pCTRDontBranch);
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{

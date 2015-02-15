@@ -189,7 +189,7 @@ private:
 	void DoSock(u32 _CommandAddress, NET_IOCTL type);
 	void DoSock(u32 _CommandAddress, SSL_IOCTL type);
 	void Update(bool read, bool write, bool except);
-	bool IsValid() {return fd >= 0;}
+	bool IsValid() { return fd >= 0; }
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
@@ -211,7 +211,7 @@ public:
 	void Update();
 	static void EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandType CommandType);
 	static void Convert(WiiSockAddrIn const & from, sockaddr_in& to);
-	static void Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen=-1);
+	static void Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen = -1);
 	// NON-BLOCKING FUNCTIONS
 	s32 NewSocket(s32 af, s32 type, s32 protocol);
 	void AddSocket(s32 fd);

@@ -130,7 +130,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	char temp[MAX_MSGLEN];
 	LogContainer *log = m_Log[type];
 
-	if (!log->IsEnabled() || level > log->GetLevel() || ! log->HasListeners())
+	if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
 		return;
 
 	CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);

@@ -123,7 +123,6 @@ void CEXIAgp::LoadFileToEEPROM(const std::string& filename)
 		m_eeprom_size = 0;
 		m_eeprom.clear();
 	}
-
 }
 
 void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
@@ -139,7 +138,7 @@ void CEXIAgp::SaveFileFromEEPROM(const std::string& filename)
 			{
 				u64 NewVal = ((u64*)(m_eeprom.data()))[index];
 				for (u32 indexb = 0; indexb < 8; indexb++)
-					temp_eeprom[index * 8 + (7-indexb)] = (NewVal >> (indexb * 8)) & 0xFF;
+					temp_eeprom[index * 8 + (7 - indexb)] = (NewVal >> (indexb * 8)) & 0xFF;
 			}
 			pStream.WriteBytes(temp_eeprom.data(), m_eeprom_size);
 		}

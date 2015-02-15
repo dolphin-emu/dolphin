@@ -81,7 +81,7 @@ void Interpreter::andi_rc(UGeckoInstruction _inst)
 
 void Interpreter::andis_rc(UGeckoInstruction _inst)
 {
-	rGPR[_inst.RA] = rGPR[_inst.RS] & ((u32)_inst.UIMM<<16);
+	rGPR[_inst.RA] = rGPR[_inst.RS] & ((u32)_inst.UIMM << 16);
 	Helper_UpdateCR0(rGPR[_inst.RA]);
 }
 

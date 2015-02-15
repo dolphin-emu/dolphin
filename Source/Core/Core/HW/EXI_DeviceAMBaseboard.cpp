@@ -59,7 +59,7 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 
 	if ((m_position >= 2) && (m_command[0] == 0 && m_command[1] == 0))
 	{
-		_byte = "\x06\x04\x10\x00"[(m_position-2)&3];
+		_byte = "\x06\x04\x10\x00"[(m_position - 2) & 3];
 	}
 	else if (m_position == 3)
 	{

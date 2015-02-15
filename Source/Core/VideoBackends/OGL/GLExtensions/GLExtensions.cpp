@@ -1916,7 +1916,7 @@ namespace GLExtensions
 		// Grab a few functions for initial checking
 		// We need them to grab the extension list
 		// Also to check if there is an error grabbing the version
-		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
+		if (GetFuncAddress("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
 			return false;
 		if (GetFuncAddress("glGetString", (void**)&glGetString) == nullptr)
 			return false;

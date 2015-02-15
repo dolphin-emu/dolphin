@@ -629,7 +629,7 @@ void CConfigMain::CreateGUIControls()
 	// Audio page
 	DSPEngine = new wxRadioBox(AudioPage, ID_DSPENGINE, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_DSPEngine, 0, wxRA_SPECIFY_ROWS);
 	DPL2Decoder = new wxCheckBox(AudioPage, ID_DPL2DECODER, _("Dolby Pro Logic II decoder"));
-	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
 	VolumeText = new wxStaticText(AudioPage, wxID_ANY, "");
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition, wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 	Latency = new wxSpinCtrl(AudioPage, ID_LATENCY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
@@ -649,24 +649,24 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(DPL2Decoder, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
-	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT, 13);
-	sbVolume->Add(VolumeText, 0, wxALIGN_CENTER|wxALL, 5);
+	sbVolume->Add(VolumeSlider, 1, wxLEFT | wxRIGHT, 13);
+	sbVolume->Add(VolumeText, 0, wxALIGN_CENTER | wxALL, 5);
 
 	wxGridBagSizer *sBackend = new wxGridBagSizer();
-	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBackend->Add(BackendSelection, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBackend->Add(Latency, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
 	sbBackend->Add(sBackend, 0, wxEXPAND);
 
 	wxBoxSizer *sAudio = new wxBoxSizer(wxHORIZONTAL);
-	sAudio->Add(sbAudioSettings, 1, wxEXPAND|wxALL, 5);
-	sAudio->Add(sbVolume, 0, wxEXPAND|wxALL, 5);
+	sAudio->Add(sbAudioSettings, 1, wxEXPAND | wxALL, 5);
+	sAudio->Add(sbVolume, 0, wxEXPAND | wxALL, 5);
 
 	sAudioPage = new wxBoxSizer(wxVERTICAL);
-	sAudioPage->Add(sAudio, 0, wxALL|wxEXPAND);
-	sAudioPage->Add(sbBackend, 0, wxALL|wxEXPAND, 5);
+	sAudioPage->Add(sAudio, 0, wxALL | wxEXPAND);
+	sAudioPage->Add(sbBackend, 0, wxALL | wxEXPAND, 5);
 	AudioPage->SetSizerAndFit(sAudioPage);
 
 
@@ -704,8 +704,8 @@ void CConfigMain::CreateGUIControls()
 	sGamecubeIPLSettings = new wxGridBagSizer();
 	sGamecubeIPLSettings->Add(GCAlwaysHLE_BS2, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sGamecubeIPLSettings->Add(TEXT_BOX(GamecubePage, _("System Language:")),
-			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5);
-	sGamecubeIPLSettings->Add(GCSystemLang, wxGBPosition(1, 1), wxDefaultSpan, wxLEFT|wxRIGHT|wxBOTTOM, 5);
+			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	sGamecubeIPLSettings->Add(GCSystemLang, wxGBPosition(1, 1), wxDefaultSpan, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, _("IPL Settings"));
 	sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
@@ -714,16 +714,17 @@ void CConfigMain::CreateGUIControls()
 	for (int i = 0; i < 3; ++i)
 	{
 		sbGamecubeEXIDevSettings->Add(GCEXIDeviceText[i], wxGBPosition(i, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-		sbGamecubeEXIDevSettings->Add(GCEXIDevice[i], wxGBPosition(i, 1), wxGBSpan(1, (i < 2)?1:2), wxALIGN_CENTER_VERTICAL);
-		if (i < 2) sbGamecubeEXIDevSettings->Add(GCMemcardPath[i], wxGBPosition(i, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+		sbGamecubeEXIDevSettings->Add(GCEXIDevice[i], wxGBPosition(i, 1), wxGBSpan(1, (i < 2) ? 1 : 2), wxALIGN_CENTER_VERTICAL);
+		if (i < 2)
+			sbGamecubeEXIDevSettings->Add(GCMemcardPath[i], wxGBPosition(i, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 		if (NetPlay::IsNetPlayRunning())
 			GCEXIDevice[i]->Disable();
 	}
 	sbGamecubeDeviceSettings->Add(sbGamecubeEXIDevSettings, 0, wxALL, 5);
 
 	sGamecubePage = new wxBoxSizer(wxVERTICAL);
-	sGamecubePage->Add(sbGamecubeIPLSettings, 0, wxEXPAND|wxALL, 5);
-	sGamecubePage->Add(sbGamecubeDeviceSettings, 0, wxEXPAND|wxALL, 5);
+	sGamecubePage->Add(sbGamecubeIPLSettings, 0, wxEXPAND | wxALL, 5);
+	sGamecubePage->Add(sbGamecubeDeviceSettings, 0, wxEXPAND | wxALL, 5);
 	GamecubePage->SetSizer(sGamecubePage);
 
 	// Wii page
@@ -742,10 +743,10 @@ void CConfigMain::CreateGUIControls()
 	sWiiIPLSettings->Add(WiiScreenSaver, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sWiiIPLSettings->Add(WiiPAL60, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sWiiIPLSettings->Add(TEXT_BOX(WiiPage, _("Aspect Ratio:")),
-			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sWiiIPLSettings->Add(WiiAspectRatio, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 	sWiiIPLSettings->Add(TEXT_BOX(WiiPage, _("System Language:")),
-			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, _("Misc Settings"));
 	sbWiiIPLSettings->Add(sWiiIPLSettings);
@@ -755,8 +756,8 @@ void CConfigMain::CreateGUIControls()
 	sbWiiDeviceSettings->Add(WiiKeyboard, 0, wxALL, 5);
 
 	sWiiPage = new wxBoxSizer(wxVERTICAL);
-	sWiiPage->Add(sbWiiIPLSettings, 0, wxEXPAND|wxALL, 5);
-	sWiiPage->Add(sbWiiDeviceSettings, 0, wxEXPAND|wxALL, 5);
+	sWiiPage->Add(sbWiiIPLSettings, 0, wxEXPAND | wxALL, 5);
+	sWiiPage->Add(sbWiiDeviceSettings, 0, wxEXPAND | wxALL, 5);
 	WiiPage->SetSizer(sWiiPage);
 
 
@@ -769,46 +770,46 @@ void CConfigMain::CreateGUIControls()
 
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
 		_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") + wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
 		_("apploader (.img)") + wxString::Format("|*.img|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
 	NANDRoot = new wxDirPickerCtrl(PathsPage, ID_NANDROOT, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 
 	// Populate the settings
 	wxBoxSizer* sISOButtons = new wxBoxSizer(wxHORIZONTAL);
-	sISOButtons->Add(RecursiveISOPath, 0, wxALL|wxALIGN_CENTER, 0);
+	sISOButtons->Add(RecursiveISOPath, 0, wxALL | wxALIGN_CENTER, 0);
 	sISOButtons->AddStretchSpacer();
 	sISOButtons->Add(AddISOPath, 0, wxALL, 0);
 	sISOButtons->Add(RemoveISOPath, 0, wxALL, 0);
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, _("ISO Directories"));
-	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 0);
-	sbISOPaths->Add(sISOButtons, 0, wxEXPAND|wxALL, 5);
+	sbISOPaths->Add(ISOPaths, 1, wxEXPAND | wxALL, 0);
+	sbISOPaths->Add(sISOButtons, 0, wxEXPAND | wxALL, 5);
 
 	sOtherPaths = new wxGridBagSizer();
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Default ISO:")),
-			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("DVD Root:")),
-			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Apploader:")),
-			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Wii NAND Root:")),
-			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(NANDRoot, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(NANDRoot, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->AddGrowableCol(1);
 
 	// Populate the Paths page
 	sPathsPage = new wxBoxSizer(wxVERTICAL);
-	sPathsPage->Add(sbISOPaths, 1, wxEXPAND|wxALL, 5);
-	sPathsPage->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
+	sPathsPage->Add(sbISOPaths, 1, wxEXPAND | wxALL, 5);
+	sPathsPage->Add(sOtherPaths, 0, wxEXPAND | wxALL, 5);
 	PathsPage->SetSizer(sPathsPage);
 
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(Notebook, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(Notebook, 1, wxEXPAND | wxALL, 5);
 	sMain->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	wxStaticBoxSizer* sbCPUOptions = new wxStaticBoxSizer(wxVERTICAL, AdvancedPage, _("CPU Options"));
@@ -848,12 +849,12 @@ void CConfigMain::CreateGUIControls()
 	SetFocus();
 }
 
-void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
+void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
 {
 	EndModal((bRefreshList) ? wxID_OK : wxID_CANCEL);
 }
 
-void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::OnOk(wxCommandEvent& WXUNUSED(event))
 {
 	Close();
 
@@ -1100,7 +1101,7 @@ void CConfigMain::ChooseSlotPath(bool isSlotA, TEXIDevices device_type)
 				if (!memorycard.IsValid())
 				{
 					WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n" \
-						"is not a valid gamecube memory card file"), filename.c_str()));
+						"is not a valid GameCube memory card file"), filename.c_str()));
 					return;
 				}
 			}
@@ -1239,7 +1240,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 
 // Paths settings
 // -------------------
-void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED(event))
 {
 	RemoveISOPath->Enable(ISOPaths->GetSelection() != wxNOT_FOUND);
 }
@@ -1282,28 +1283,28 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 		SConfig::GetInstance().m_ISOFolder.push_back(WxStrToStr(ISOPaths->GetStrings()[i]));
 }
 
-void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_RecursiveISOFolder = RecursiveISOPath->IsChecked();
 	bRefreshList = true;
 }
 
-void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = WxStrToStr(DefaultISO->GetPath());
 }
 
-void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = WxStrToStr(DVDRoot->GetPath());
 }
 
-void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = WxStrToStr(ApploaderPath->GetPath());
 }
 
-void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	std::string NANDPath =
 		SConfig::GetInstance().m_NANDPath =

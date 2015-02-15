@@ -78,7 +78,7 @@ bool CEXIETHERNET::IsInterruptSet()
 	return !!(exi_status.interrupt & exi_status.interrupt_mask);
 }
 
-void CEXIETHERNET::ImmWrite(u32 data,  u32 size)
+void CEXIETHERNET::ImmWrite(u32 data, u32 size)
 {
 	data >>= (4 - size) * 8;
 

@@ -133,7 +133,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)) )
+		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)))
 		{
 			// This'll cause issues, but  it can't be helped
 			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");
@@ -218,36 +218,36 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+			_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 			out.Write("coord = rawpos;\n"); // pos.w is 1
 			break;
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0)
 			{
-				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
 			}
 			break;
 		case XF_SRCCOLORS_INROW:
-			_assert_( texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1 );
+			_assert_(texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1);
 			break;
 		case XF_SRCBINORMAL_T_INROW:
 			if (components & VB_HAS_NRM1)
 			{
-				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
 			if (components & VB_HAS_NRM2)
 			{
-				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
+				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
 				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
 			}
 			break;
 		default:
 			_assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
-			if (components & (VB_HAS_UV0<<(texinfo.sourcerow - XF_SRCTEX0_INROW)) )
+			if (components & (VB_HAS_UV0 << (texinfo.sourcerow - XF_SRCTEX0_INROW)))
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
@@ -314,7 +314,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 				"float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 				"float4 P2 = " I_POSTTRANSFORMMATRICES"[%d];\n",
-				postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
+				postidx & 0x3f, (postidx + 1) & 0x3f, (postidx + 2) & 0x3f);
 
 			if (texGenSpecialCase)
 			{

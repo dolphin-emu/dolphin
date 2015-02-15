@@ -77,7 +77,7 @@ void TASInputDlg::CreateBaseLayout()
 }
 
 const int TASInputDlg::m_gc_pad_buttons_bitmask[12] = {
-	PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT,PAD_BUTTON_RIGHT, PAD_BUTTON_A, PAD_BUTTON_B,
+	PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT, PAD_BUTTON_A, PAD_BUTTON_B,
 	PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_TRIGGER_L, PAD_TRIGGER_R, PAD_BUTTON_START
 };
 
@@ -133,7 +133,7 @@ void TASInputDlg::CreateWiiLayout(int num)
 		IniFile ini;
 		ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
 		std::string extension;
-		ini.GetIfExists("Wiimote" + std::to_string(num+1), "Extension", &extension);
+		ini.GetIfExists("Wiimote" + std::to_string(num + 1), "Extension", &extension);
 
 		if (extension == "Nunchuk")
 			m_ext = 1;
@@ -288,7 +288,7 @@ TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick, int xRange, int yRange
 	tempStick.bitmap->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
 	tempStick.bitmap->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
 	tempStick.x_cont = CreateControl(wxSL_HORIZONTAL | (reverseX ? wxSL_INVERSE : 0), 120, -1, reverseX, xRange, defaultX);
-	tempStick.y_cont = CreateControl(wxSL_VERTICAL | (reverseY ?  wxSL_INVERSE : 0), -1, 120, reverseY, yRange, defaultY);
+	tempStick.y_cont = CreateControl(wxSL_VERTICAL | (reverseY ? wxSL_INVERSE : 0), -1, 120, reverseY, yRange, defaultY);
 	return tempStick;
 }
 
@@ -528,7 +528,7 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 			wm_ir_basic* ir_data = (wm_ir_basic*)irData;
 			for (unsigned int i = 0; i < 2; ++i)
 			{
-				if (x[i*2] < 1024 && y < 768)
+				if (x[i * 2] < 1024 && y < 768)
 				{
 					ir_data[i].x1 = static_cast<u8>(x[i*2]);
 					ir_data[i].x1hi = x[i*2] >> 8;
@@ -536,10 +536,10 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 					ir_data[i].y1 = static_cast<u8>(y);
 					ir_data[i].y1hi = y >> 8;
 				}
-				if (x[i*2+1] < 1024 && y < 768)
+				if (x[i*2 + 1] < 1024 && y < 768)
 				{
-					ir_data[i].x2 = static_cast<u8>(x[i*2+1]);
-					ir_data[i].x2hi = x[i*2+1] >> 8;
+					ir_data[i].x2 = static_cast<u8>(x[i*2 + 1]);
+					ir_data[i].x2hi = x[i*2 + 1] >> 8;
 
 					ir_data[i].y2 = static_cast<u8>(y);
 					ir_data[i].y2hi = y >> 8;
@@ -656,7 +656,7 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 			text = control->text;
 	}
 
-	int value = ((wxSlider*) event.GetEventObject())->GetValue();
+	int value = ((wxSlider*)event.GetEventObject())->GetValue();
 	if (text)
 		text->SetValue(std::to_string(value));
 }
@@ -665,7 +665,7 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 {
 	unsigned long value;
 
-	if (!((wxTextCtrl*) event.GetEventObject())->GetValue().ToULong(&value))
+	if (!((wxTextCtrl*)event.GetEventObject())->GetValue().ToULong(&value))
 		return;
 
 	for (Control* const control : m_controls)
@@ -742,7 +742,7 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 
 	stick->x_cont.value = stick->x_cont.default_value;
 	stick->y_cont.value = stick->y_cont.default_value;
-	stick->bitmap->SetBitmap(CreateStickBitmap(128,128));
+	stick->bitmap->SetBitmap(CreateStickBitmap(128, 128));
 	stick->x_cont.text->SetValue(std::to_string(stick->x_cont.default_value));
 	stick->y_cont.text->SetValue(std::to_string(stick->y_cont.default_value));
 	stick->x_cont.slider->SetValue(stick->x_cont.default_value);
@@ -862,7 +862,7 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 	memDC.SetBrush(*wxRED_BRUSH);
 	memDC.DrawLine(64, 64, x, y);
 	memDC.DrawLine(63, 64, x - 1, y);
-	memDC.DrawLine(65, 64, x + 1 , y);
+	memDC.DrawLine(65, 64, x + 1, y);
 	memDC.DrawLine(64, 63, x, y - 1);
 	memDC.DrawLine(64, 65, x, y + 1);
 	memDC.SetPen(*wxBLACK_PEN);

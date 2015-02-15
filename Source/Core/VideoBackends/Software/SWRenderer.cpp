@@ -42,8 +42,8 @@ void SWRenderer::Init()
 
 void SWRenderer::Shutdown()
 {
-	delete [] s_xfbColorTexture[0];
-	delete [] s_xfbColorTexture[1];
+	delete[] s_xfbColorTexture[0];
+	delete[] s_xfbColorTexture[1];
 	glDeleteProgram(program);
 	glDeleteTextures(1, &s_RenderTarget);
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
@@ -87,8 +87,8 @@ static void CreateShaders()
 
 void SWRenderer::Prepare()
 {
-	s_xfbColorTexture[0] = new u8[MAX_XFB_WIDTH*MAX_XFB_HEIGHT*4];
-	s_xfbColorTexture[1] = new u8[MAX_XFB_WIDTH*MAX_XFB_HEIGHT*4];
+	s_xfbColorTexture[0] = new u8[MAX_XFB_WIDTH * MAX_XFB_HEIGHT * 4];
+	s_xfbColorTexture[1] = new u8[MAX_XFB_WIDTH * MAX_XFB_HEIGHT * 4];
 
 	s_currentColorTexture = 0;
 
@@ -118,8 +118,8 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 		return;
 	int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
-	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
-			((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+	glColor4f(((color >> 16) & 0xff) / 255.0f, ((color >> 8) & 0xff) / 255.0f,
+			((color >> 0) & 0xff) / 255.0f, ((color >> 24) & 0xFF) / 255.0f);
 	s_pfont->printMultilineText(pstr,
 			left * 2.0f / (float)nBackbufferWidth - 1,
 			1 - top * 2.0f / (float)nBackbufferHeight,
@@ -169,7 +169,7 @@ void SWRenderer::SwapColorTexture()
 
 void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
-	if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT)
+	if (fbWidth * fbHeight > MAX_XFB_WIDTH * MAX_XFB_HEIGHT)
 	{
 		ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 		return;
@@ -184,9 +184,9 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 		{
 			// We do this one color sample (aka 2 RGB pixles) at a time
 			int Y1 = xfb[x].Y - 16;
-			int Y2 = xfb[x+1].Y - 16;
+			int Y2 = xfb[x + 1].Y - 16;
 			int U  = int(xfb[x].UV) - 128;
-			int V  = int(xfb[x+1].UV) - 128;
+			int V  = int(xfb[x + 1].UV) - 128;
 
 			// We do the inverse BT.601 conversion for YCbCr to RGB
 			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
@@ -225,7 +225,7 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		TextureToPng(texture, width*4, s_sScreenshotName, width, height, false);
+		TextureToPng(texture, width * 4, s_sScreenshotName, width, height, false);
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;

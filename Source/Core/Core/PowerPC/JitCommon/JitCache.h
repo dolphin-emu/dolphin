@@ -106,7 +106,7 @@ class JitBaseBlockCache
 	std::array<JitBlock, MAX_NUM_BLOCKS> blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
-	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
+	std::map<std::pair<u32, u32>, u32> block_map; // (end_addr, start_addr) -> number
 	ValidBlockBitSet valid_block;
 
 	bool m_initialized;

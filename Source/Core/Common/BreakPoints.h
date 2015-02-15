@@ -68,7 +68,7 @@ public:
 	bool IsTempBreakPoint(u32 _iAddress);
 
 	// Add BreakPoint
-	void Add(u32 em_address, bool temp=false);
+	void Add(u32 em_address, bool temp = false);
 	void Add(const TBreakPoint& bp);
 
 	// Remove Breakpoint
