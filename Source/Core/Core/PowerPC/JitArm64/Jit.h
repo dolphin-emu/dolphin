@@ -57,7 +57,6 @@ public:
 	}
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction inst);
 	void FallBackToInterpreter(UGeckoInstruction inst);
 	void DoNothing(UGeckoInstruction inst);
 	void HLEFunction(UGeckoInstruction inst);
