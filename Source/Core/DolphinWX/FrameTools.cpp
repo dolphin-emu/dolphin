@@ -1211,7 +1211,6 @@ void CFrame::DoStop()
 			Movie::EndPlayInput(false);
 		NetPlay::StopGame();
 
-		wxBeginBusyCursor();
 		BootManager::Stop();
 		UpdateGUI();
 	}
@@ -1219,8 +1218,6 @@ void CFrame::DoStop()
 
 void CFrame::OnStopped()
 {
-	wxEndBusyCursor();
-
 	m_confirmStop = false;
 
 #if defined(HAVE_X11) && HAVE_X11
