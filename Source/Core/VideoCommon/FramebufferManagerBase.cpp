@@ -220,7 +220,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	}
 
 	for (u32 i = 0; i < fbWidth*fbHeight; i++)
-		xfb_in_ram[i] = 0x8001; // YU/YV = (1, 128)
+		xfb_in_ram[i] = 0xfe01; // YU/YV = (1, 254)
 }
 
 FramebufferManagerBase::VirtualXFBListType::iterator FramebufferManagerBase::FindVirtualXFB(u32 xfbAddr, u32 width, u32 height)

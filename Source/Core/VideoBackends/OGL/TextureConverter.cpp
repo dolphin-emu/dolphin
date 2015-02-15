@@ -120,10 +120,13 @@ static void CreatePrograms()
 		// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x>>1, ts.y-uv.y-1), 0);\n"
+		"   ivec4 icol = ivec4(round(c0 * vec4(255.0)));\n"
 		// Only Y values between 16 and 236 (and UV values between 16 and 240) are used in the  BT.601 color space
-		// So we are using a special value (YUYV == 01, 128, 01, 128) outside this range do colour keying and 
-		// implement transparency for hybrid XFB.
-		"   if (c0.r > 0.0625 && c0.b > 0.0625)\n"
+		// Idealy We could treat any color out of this range as transparent, but some games have encoded their
+		// cutscene videos out of spec. VI and/or the TV will clamp these out of range values.
+		// So we are using one really ugly color of Y=1,U=254,V=254 as a key, it's Fuchsia so hopefully no
+		// videos will use that exact 'out of range' color.
+		"   if (icol.rg != ivec2(1, 254) && icol.ba != ivec2(1, 254))\n"
 		"   {\n"
 		"		float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
 		"		float yComp = 1.164 * (y - 0.0625);\n"
