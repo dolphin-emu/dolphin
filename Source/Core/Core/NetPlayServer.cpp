@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include "Common/IniFile.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/NetPlayClient.h" //for NetPlayUI
@@ -50,7 +51,7 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, bool traversal)
+NetPlayServer::NetPlayServer(const u16 port, bool traversal, std::string centralServer, u16 centralPort)
 	: is_connected(false)
 	, m_is_running(false)
 	, m_do_loop(false)
@@ -73,7 +74,7 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal)
 	memset(m_wiimote_map, -1, sizeof(m_wiimote_map));
 	if (traversal)
 	{
-		if (!EnsureTraversalClient("dolphin-emu.org", 0))
+		if (!EnsureTraversalClient(centralServer, centralPort))
 			return;
 
 		g_TraversalClient->m_Client = this;
@@ -797,10 +798,10 @@ void NetPlayServer::TryPortmapping(u16 port)
 // UPnP thread: try to map a port
 void NetPlayServer::mapPortThread(const u16 port)
 {
-	ENetAddress adr;
+	ENetAddress adr = { ENET_HOST_ANY, port };
 	char cIP[20];
 
-	enet_address_get_host_ip(&adr, cIP, 20);
+	enet_address_get_host(&adr, cIP, 20);
 	std::string ourIP(cIP);
 
 	if (!m_upnp_inited)
@@ -895,8 +896,8 @@ bool NetPlayServer::UPnPMapPort(const std::string& addr, const u16 port)
 	std::string port_str = StringFromFormat("%d", port);
 	int result = UPNP_AddPortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
 		port_str.c_str(), port_str.c_str(), addr.c_str(),
-		(std::string("dolphin-emu TCP on ") + addr).c_str(),
-		"TCP", nullptr, nullptr);
+		(std::string("dolphin-emu UDP on ") + addr).c_str(),
+		"UDP", nullptr, nullptr);
 
 	if (result != 0)
 		return false;
@@ -918,7 +919,7 @@ bool NetPlayServer::UPnPUnmapPort(const u16 port)
 {
 	std::string port_str = StringFromFormat("%d", port);
 	UPNP_DeletePortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
-		port_str.c_str(), "TCP", nullptr);
+		port_str.c_str(), "UDP", nullptr);
 
 	return true;
 }

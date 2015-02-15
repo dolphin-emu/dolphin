@@ -55,7 +55,7 @@ NetPlayClient::~NetPlayClient()
 }
 
 // called from ---GUI--- thread
-NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal)
+NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, std::string centralServer, u16 centralPort)
 	: m_state(Failure)
 	, m_dialog(dialog)
 	, m_client(nullptr)
@@ -113,8 +113,13 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 	}
 	else
 	{
-		//Traversal Server
-		if (!EnsureTraversalClient("dolphin-emu.org", 0))
+		if (address.size() > NETPLAY_CODE_SIZE)
+		{
+			PanicAlertT("Host code size is to large.\nPlease recheck that you have the correct code");
+			return;
+		}
+
+		if (!EnsureTraversalClient(centralServer, centralPort))
 			return;
 		m_client = g_MainNetHost.get();
 
@@ -446,8 +451,13 @@ void NetPlayClient::Send(sf::Packet& packet)
 void NetPlayClient::Disconnect()
 {
 	ENetEvent netEvent;
+	m_connecting = false;
 	m_state = Failure;
-	enet_peer_disconnect(m_server, 0);
+	if (m_server)
+		enet_peer_disconnect(m_server, 0);
+	else
+		return;
+
 	while (enet_host_service(m_client, &netEvent, 3000) > 0)
 	{
 		switch (netEvent.type)
@@ -539,7 +549,7 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 			else
 				ss << '-';
 		}
-		ss << " | " << player->ping << "ms\n";
+		ss << " |\nPing: " << player->ping << "ms\n\n";
 		pid_list.push_back(player->pid);
 	}
 
