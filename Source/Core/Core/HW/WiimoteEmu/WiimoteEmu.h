@@ -85,6 +85,13 @@ inline double trim(double a)
 	return a;
 }
 
+enum
+{
+	ACCEL_ZERO_G = 0x80,
+	ACCEL_ONE_G = 0x9A,
+	ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
+};
+
 class Wiimote : public ControllerEmu
 {
 friend class WiimoteReal::Wiimote;
@@ -104,13 +111,6 @@ public:
 		BUTTON_A     = 0x0800,
 		BUTTON_MINUS = 0x1000,
 		BUTTON_HOME  = 0x8000,
-	};
-
-	enum
-	{
-		ACCEL_ZERO_G = 0x80,
-		ACCEL_ONE_G = 0x9A,
-		ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
 	};
 
 	Wiimote(const unsigned int index);
