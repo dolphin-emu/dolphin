@@ -1013,79 +1013,12 @@ static __forceinline u32 TranslatePageAddress(const u32 address, const XCheckTLB
 	return 0;
 }
 
-#define BATU_BEPI(v) ((v)&0xfffe0000)
-#define BATU_BL(v)   (((v)&0x1ffc)>>2)
-#define BATU_Vs      (1<<1)
-#define BATU_Vp      (1)
-#define BATL_BRPN(v) ((v)&0xfffe0000)
-
-#define BAT_EA_OFFSET(v) ((v)&0x1ffff)
-#define BAT_EA_11(v)     ((v)&0x0ffe0000)
-#define BAT_EA_4(v)      ((v)&0xf0000000)
-
-static inline bool CheckAddrBats(const u32 addr, u32* result, u32 batu, u32 spr)
-{
-	for (int i = 0; i < 4; i++)
-	{
-		u32 bl17 = ~(BATU_BL(PowerPC::ppcState.spr[spr + i * 2]) << 17);
-		u32 addr2 = addr & (bl17 | 0xf001ffff);
-
-		if (BATU_BEPI(addr2) == BATU_BEPI(PowerPC::ppcState.spr[spr + i * 2]))
-		{
-			// bat applies to this address
-			if (PowerPC::ppcState.spr[spr + i * 2] & batu)
-			{
-				// bat entry valid
-				u32 offset = BAT_EA_OFFSET(addr);
-				u32 page = BAT_EA_11(addr);
-				page &= ~bl17;
-				page |= BATL_BRPN(PowerPC::ppcState.spr[spr + 1 + i * 2]);
-				// fixme: check access rights
-				*result = page | offset;
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-// Block Address Translation
-static u32 TranslateBlockAddress(const u32 address, const XCheckTLBFlag flag)
-{
-	u32 result = 0;
-	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
-	u32 batu = (m_MSR.PR ? BATU_Vp : BATU_Vs);
-
-	// Check for enhanced mode (secondary BAT enable) using 8 BATs
-	bool enhanced_bats = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && HID4.SBE;
-
-	if (flag != FLAG_OPCODE)
-	{
-		if (!CheckAddrBats(address, &result, batu, SPR_DBAT0U) && enhanced_bats)
-			CheckAddrBats(address, &result, batu, SPR_DBAT4U);
-	}
-	else
-	{
-		if (!CheckAddrBats(address, &result, batu, SPR_IBAT0U) && enhanced_bats)
-			CheckAddrBats(address, &result, batu, SPR_IBAT4U);
-	}
-	return result;
-}
-
 // Translate effective address using BAT or PAT.  Returns 0 if the address cannot be translated.
 template <const XCheckTLBFlag flag>
 __forceinline u32 TranslateAddress(const u32 address)
 {
-	// TODO: bBAT in theory should allow dynamic changes to the BAT registers.
-	// In reality, the option is mostly useless at the moment because we don't
-	// always translate addresses when we should. ReadFromHardware/WriteFromHardware,
-	// fastmem, the JIT cache, and some misc code in the JIT assume default BATs.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bBAT)
-	{
-		u32 tlb_addr = TranslateBlockAddress(address, flag);
-		if (tlb_addr)
-			return tlb_addr;
-	}
+	// TODO: Perform BAT translation.  (At the moment, we hardcode an assumed BAT
+	// configuration, so there's no reason to actually check the registers.)
 	return TranslatePageAddress(address, flag);
 }
 
