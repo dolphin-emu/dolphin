@@ -51,7 +51,7 @@ static _ftype_t DotProduct(int count,const T *buf,const _ftype_t *coefficients)
 	}
 
 	while (count--)
-		sum0+= *buf++ * *coefficients++;
+		sum0+=*buf++**coefficients++;
 
 	return sum0+sum1+sum2+sum3;
 }
