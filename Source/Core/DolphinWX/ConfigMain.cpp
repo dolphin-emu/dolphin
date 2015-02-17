@@ -946,6 +946,7 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_HOTKEY_CONFIG:
 		{
+#ifdef NEW_HOTKEYS
 			bool was_init = false;
 
 			InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
@@ -973,6 +974,10 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 			{
 				HotkeyManagerEmu::Shutdown();
 			}
+#else
+			HotkeyConfigDialog m_HotkeyDialog(this);
+			m_HotkeyDialog.ShowModal();
+#endif
 		}
 		// Update the GUI in case menu accelerators were changed
 		main_frame->UpdateGUI();
