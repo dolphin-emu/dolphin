@@ -105,6 +105,12 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
+static bool MsgAlert(const char* caption, const char* text, bool /*yes_no*/, int /*Style*/)
+{
+	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "%s:%s", caption, text);
+	return false;
+}
+
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 std::vector<std::string> m_volume_names;
@@ -343,6 +349,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	// Install our callbacks
 	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
 	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
+
+	RegisterMsgAlertHandler(&MsgAlert);
 
 	UICommon::Init();
 

@@ -12,6 +12,8 @@
 
 #ifdef _M_X86_64
 #include "VideoCommon/VertexLoaderX64.h"
+#elif defined(_M_ARM_64)
+#include "VideoCommon/VertexLoaderARM64.h"
 #endif
 
 VertexLoaderBase::VertexLoaderBase(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
@@ -159,13 +161,13 @@ public:
 		delete b;
 	}
 
-	int RunVertices(int primitive, int count, DataReader src, DataReader dst) override
+	int RunVertices(DataReader src, DataReader dst, int count, int primitive) override
 	{
 		buffer_a.resize(count * a->m_native_vtx_decl.stride + 4);
 		buffer_b.resize(count * b->m_native_vtx_decl.stride + 4);
 
-		int count_a = a->RunVertices(primitive, count, src, DataReader(buffer_a.data(), buffer_a.data()+buffer_a.size()));
-		int count_b = b->RunVertices(primitive, count, src, DataReader(buffer_b.data(), buffer_b.data()+buffer_b.size()));
+		int count_a = a->RunVertices(src, DataReader(buffer_a.data(), buffer_a.data()+buffer_a.size()), count, primitive);
+		int count_b = b->RunVertices(src, DataReader(buffer_b.data(), buffer_b.data()+buffer_b.size()), count, primitive);
 
 		if (count_a != count_b)
 			ERROR_LOG(VIDEO, "The two vertex loaders have loaded a different amount of vertices (a: %d, b: %d).", count_a, count_b);
@@ -205,6 +207,11 @@ VertexLoaderBase* VertexLoaderBase::CreateVertexLoader(const TVtxDesc& vtx_desc,
 	delete loader;
 #elif defined(_M_X86_64)
 	loader = new VertexLoaderX64(vtx_desc, vtx_attr);
+	if (loader->IsInitialized())
+		return loader;
+	delete loader;
+#elif defined(_M_ARM_64)
+	loader = new VertexLoaderARM64(vtx_desc, vtx_attr);
 	if (loader->IsInitialized())
 		return loader;
 	delete loader;

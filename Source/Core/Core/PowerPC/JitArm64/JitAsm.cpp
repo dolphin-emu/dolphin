@@ -128,8 +128,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 	const u8* loadPairedS8Two = GetCodePtr();
@@ -142,8 +142,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 	const u8* loadPairedU16Two = GetCodePtr();
@@ -156,8 +156,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 	const u8* loadPairedS16Two = GetCodePtr();
@@ -170,8 +170,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 
@@ -192,8 +192,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 	const u8* loadPairedS8One = GetCodePtr();
@@ -206,8 +206,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 	const u8* loadPairedU16One = GetCodePtr();
@@ -220,8 +220,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 	const u8* loadPairedS16One = GetCodePtr();
@@ -234,8 +234,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
 		ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		RET(X30);
 	}
 
@@ -295,8 +295,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(X2, (u64)&m_quantizeTableS);
 		ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		float_emit.FCVTZU(32, D0, D0);
 		float_emit.XTN(16, D0, D0);
 		float_emit.XTN(8, D0, D0);
@@ -326,8 +326,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(X2, (u64)&m_quantizeTableS);
 		ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		float_emit.FCVTZS(32, D0, D0);
 		float_emit.XTN(16, D0, D0);
 		float_emit.XTN(8, D0, D0);
@@ -358,8 +358,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(X2, (u64)&m_quantizeTableS);
 		ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		float_emit.FCVTZU(32, D0, D0);
 		float_emit.XTN(16, D0, D0);
 		float_emit.REV16(8, D0, D0);
@@ -388,8 +388,8 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		MOVI2R(X2, (u64)&m_quantizeTableS);
 		ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
-		float_emit.LD1R(32, D1, scale_reg);
-		float_emit.FMUL(32, D0, D0, D1);
+		float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
+		float_emit.FMUL(32, D0, D0, D1, 0);
 		float_emit.FCVTZS(32, D0, D0);
 		float_emit.XTN(16, D0, D0);
 		float_emit.REV16(8, D0, D0);

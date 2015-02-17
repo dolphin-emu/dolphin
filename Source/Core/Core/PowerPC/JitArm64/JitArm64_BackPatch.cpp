@@ -137,7 +137,7 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			ARM64FloatEmitter float_emit(emit);
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
-				float_emit.FCVT(32, 64, Q0, RS);
+				float_emit.FCVT(32, 64, D0, RS);
 				float_emit.REV32(8, D0, D0);
 				trouble_offset = (emit->GetCodePtr() - code_base) / 4;
 				float_emit.STR(32, INDEX_UNSIGNED, D0, addr, 0);
@@ -215,7 +215,7 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			ARM64FloatEmitter float_emit(emit);
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
-				float_emit.FCVT(32, 64, Q0, RS);
+				float_emit.FCVT(32, 64, D0, RS);
 				float_emit.UMOV(32, W0, Q0, 0);
 				emit->MOVI2R(X30, (u64)&PowerPC::Write_U32);
 				emit->BLR(X30);
