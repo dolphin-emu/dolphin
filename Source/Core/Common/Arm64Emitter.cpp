@@ -540,6 +540,15 @@ void ARM64XEmitter::EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm)
 	        ((imm & 0x1FFFFC) << 3) | Rd);
 }
 
+void ARM64XEmitter::EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	_assert_msg_(DYNA_REC, !(imm < -256 || imm > 255), "%s received too large offset: %d", __FUNCTION__, imm);
+	Rt = DecodeReg(Rt);
+	Rn = DecodeReg(Rn);
+
+	Write32((size << 30) | (0b111 << 27) | (op << 22) | ((imm & 0x1FF) << 12) | (Rn << 5) | Rt);
+}
+
 // FixupBranch branching
 void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 {
@@ -1424,6 +1433,45 @@ void ARM64XEmitter::PRFM(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm)
 	EncodeLoadStoreRegisterOffset(3, 2, Rt, Rn, Rm);
 }
 
+// Load/Store register (unscaled offset)
+void ARM64XEmitter::STURB(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(0, 0, Rt, Rn, imm);
+}
+void ARM64XEmitter::LDURB(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(0, 1, Rt, Rn, imm);
+}
+void ARM64XEmitter::LDURSB(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(0, Is64Bit(Rt) ? 2 : 3, Rt, Rn, imm);
+}
+void ARM64XEmitter::STURH(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(1, 0, Rt, Rn, imm);
+}
+void ARM64XEmitter::LDURH(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(1, 1, Rt, Rn, imm);
+}
+void ARM64XEmitter::LDURSH(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(1, Is64Bit(Rt) ? 2 : 3, Rt, Rn, imm);
+}
+void ARM64XEmitter::STUR(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(Is64Bit(Rt) ? 3 : 2, 0, Rt, Rn, imm);
+}
+void ARM64XEmitter::LDUR(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStoreUnscaled(Is64Bit(Rt) ? 3 : 2, 1, Rt, Rn, imm);
+}
+void ARM64XEmitter::LDURSW(ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	_assert_msg_(DYNA_REC, !Is64Bit(Rt), "%s must have a 64bit destination register!", __FUNCTION__);
+	EncodeLoadStoreUnscaled(2, 2, Rt, Rn, imm);
+}
+
 // Address of label/page PC-relative
 void ARM64XEmitter::ADR(ARM64Reg Rd, s32 imm)
 {
@@ -1866,6 +1914,15 @@ void ARM64FloatEmitter::EmitVectorxElement(bool U, u32 size, bool L, u32 opcode,
 	        (Rm << 16) | (opcode << 12) | (H << 11) | (Rn << 5) | Rd);
 }
 
+void ARM64FloatEmitter::EmitLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	_assert_msg_(DYNA_REC, !(imm < -256 || imm > 255), "%s received too large offset: %d", __FUNCTION__, imm);
+	Rt = DecodeReg(Rt);
+	Rn = DecodeReg(Rn);
+
+	Write32((size << 30) | (0b1111 << 26) | (op << 22) | ((imm & 0x1FF) << 12) | (Rn << 5) | Rt);
+}
+
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	EmitLoadStoreImmediate(size, 1, type, Rt, Rn, imm);
@@ -1873,6 +1930,75 @@ void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s
 void ARM64FloatEmitter::STR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	EmitLoadStoreImmediate(size, 0, type, Rt, Rn, imm);
+}
+
+// Loadstore unscaled
+void ARM64FloatEmitter::LDUR(u8 size, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	u32 encoded_size = 0;
+	u32 encoded_op = 0;
+
+	if (size == 8)
+	{
+		encoded_size = 0;
+		encoded_op = 1;
+	}
+	else if (size == 16)
+	{
+		encoded_size = 1;
+		encoded_op = 1;
+	}
+	else if (size == 32)
+	{
+		encoded_size = 2;
+		encoded_op = 1;
+	}
+	else if (size == 64)
+	{
+		encoded_size = 3;
+		encoded_op = 1;
+	}
+	else if (size == 128)
+	{
+		encoded_size = 0;
+		encoded_op = 3;
+	}
+
+	EmitLoadStoreUnscaled(encoded_size, encoded_op, Rt, Rn, imm);
+}
+void ARM64FloatEmitter::STUR(u8 size, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
+{
+	u32 encoded_size = 0;
+	u32 encoded_op = 0;
+
+	if (size == 8)
+	{
+		encoded_size = 0;
+		encoded_op = 0;
+	}
+	else if (size == 16)
+	{
+		encoded_size = 1;
+		encoded_op = 0;
+	}
+	else if (size == 32)
+	{
+		encoded_size = 2;
+		encoded_op = 0;
+	}
+	else if (size == 64)
+	{
+		encoded_size = 3;
+		encoded_op = 0;
+	}
+	else if (size == 128)
+	{
+		encoded_size = 0;
+		encoded_op = 2;
+	}
+
+	EmitLoadStoreUnscaled(encoded_size, encoded_op, Rt, Rn, imm);
+
 }
 
 // Loadstore single structure

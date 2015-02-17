@@ -334,6 +334,7 @@ private:
 	void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 	void EncodeAddressInst(u32 op, ARM64Reg Rd, s32 imm);
+	void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
 protected:
 	inline void Write32(u32 value)
@@ -585,6 +586,17 @@ public:
 	void LDRSW(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
 	void PRFM(ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm);
 
+	// Load/Store register (unscaled offset)
+	void STURB(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDURB(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDURSB(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void STURH(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDURH(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDURSH(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void STUR(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDUR(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void LDURSW(ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+
 	// Load/Store pair
 	void LDP(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 	void LDPSW(IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
@@ -632,6 +644,10 @@ public:
 
 	void LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 	void STR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+
+	// Loadstore unscaled
+	void LDUR(u8 size, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void STUR(u8 size, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
 	// Loadstore single structure
 	void LD1(u8 size, ARM64Reg Rt, u8 index, ARM64Reg Rn);
@@ -756,6 +772,7 @@ private:
 	void EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn);
 	void EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitVectorxElement(bool U, u32 size, bool L, u32 opcode, bool H, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
+	void EmitLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 };
 
 class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>
