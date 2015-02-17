@@ -39,21 +39,25 @@ static float *filter_coefs_lfe;
 static unsigned int len125;
 
 template<class T, class _ftype_t>
-static _ftype_t DotProduct(int count,const T *buf,const _ftype_t *coefficients)
+static _ftype_t DotProduct(int count, const T *buf, const _ftype_t *coefficients)
 {
-	float sum0=0,sum1=0,sum2=0,sum3=0;
-	for (;count>=4;buf+=4,coefficients+=4,count-=4)
+	int i;
+	float sum0 = 0.0f, sum1 = 0.0f, sum2 = 0.0f, sum3 = 0.0f;
+
+	// Unrolled loop
+	for (i = 0; (i + 3) < count; i += 4)
 	{
-		sum0+=buf[0]*coefficients[0];
-		sum1+=buf[1]*coefficients[1];
-		sum2+=buf[2]*coefficients[2];
-		sum3+=buf[3]*coefficients[3];
+		sum0 += buf[i + 0] * coefficients[i + 0];
+		sum1 += buf[i + 1] * coefficients[i + 1];
+		sum2 += buf[i + 2] * coefficients[i + 2];
+		sum3 += buf[i + 3] * coefficients[i + 3];
 	}
 
-	while (count--)
-		sum0+= *buf++ * *coefficients++;
+	// Epilogue of unrolled loop
+	for (; i < count; i++)
+		sum0 += buf[i] * coefficients[i];
 
-	return sum0+sum1+sum2+sum3;
+	return sum0 + sum1 + sum2 + sum3;
 }
 
 template<class T>

@@ -767,7 +767,7 @@ void CConfigMain::CreateGUIControls()
 	RecursiveISOPath = new wxCheckBox(PathsPage, ID_RECURSIVEISOPATH, _("Search Subfolders"));
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, _("Add..."));
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, _("Remove"));
-	RemoveISOPath->Enable(false);
+	RemoveISOPath->Disable();
 
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
 		_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") + wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad|%s", wxGetTranslation(wxALL_FILES)),
@@ -946,6 +946,7 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_HOTKEY_CONFIG:
 		{
+#ifdef NEW_HOTKEYS
 			bool was_init = false;
 
 			InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
@@ -973,6 +974,10 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 			{
 				HotkeyManagerEmu::Shutdown();
 			}
+#else
+			HotkeyConfigDialog m_HotkeyDialog(this);
+			m_HotkeyDialog.ShowModal();
+#endif
 		}
 		// Update the GUI in case menu accelerators were changed
 		main_frame->UpdateGUI();

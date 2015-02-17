@@ -681,11 +681,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		num_inst++;
 		memset(&code[i], 0, sizeof(CodeOp));
 		GekkoOPInfo *opinfo = GetOpInfo(inst);
-		if (!opinfo)
-		{
-			PanicAlert("Invalid PowerPC opcode: %x.", inst.hex);
-			Crash();
-		}
 
 		code[i].opinfo = opinfo;
 		code[i].address = address;

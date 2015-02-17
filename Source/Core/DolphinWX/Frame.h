@@ -4,6 +4,8 @@
 
 #pragma once
 
+//#define NEW_HOTKEYS
+
 #include <cstddef>
 #include <mutex>
 #include <string>
@@ -302,7 +304,9 @@ private:
 	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigVR(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
+#ifdef NEW_HOTKEYS
 	void OnConfigMenuCommands(wxCommandEvent& event);
+#endif
 
 	void OnToggleFullscreen(wxCommandEvent& event);
 	void OnToggleDualCore(wxCommandEvent& event);

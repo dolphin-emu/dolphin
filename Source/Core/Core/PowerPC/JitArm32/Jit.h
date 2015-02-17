@@ -134,7 +134,6 @@ public:
 	void SafeLoadToReg(ArmGen::ARMReg dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse, bool update);
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst);
 	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);

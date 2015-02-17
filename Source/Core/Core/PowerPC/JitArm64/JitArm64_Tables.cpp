@@ -400,15 +400,15 @@ void InitTables()
 	//clear
 	for (int i = 0; i < 32; i++)
 	{
-		dynaOpTable59[i] = &JitArm64::unknown_instruction;
+		dynaOpTable59[i] = &JitArm64::FallBackToInterpreter;
 	}
 
 	for (int i = 0; i < 1024; i++)
 	{
-		dynaOpTable4 [i] = &JitArm64::unknown_instruction;
-		dynaOpTable19[i] = &JitArm64::unknown_instruction;
-		dynaOpTable31[i] = &JitArm64::unknown_instruction;
-		dynaOpTable63[i] = &JitArm64::unknown_instruction;
+		dynaOpTable4 [i] = &JitArm64::FallBackToInterpreter;
+		dynaOpTable19[i] = &JitArm64::FallBackToInterpreter;
+		dynaOpTable31[i] = &JitArm64::FallBackToInterpreter;
+		dynaOpTable63[i] = &JitArm64::FallBackToInterpreter;
 	}
 
 	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)

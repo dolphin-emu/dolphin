@@ -305,12 +305,6 @@ void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
 	}
 }
 
-void JitIL::unknown_instruction(UGeckoInstruction inst)
-{
-	// CCPU::Break();
-	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
-}
-
 void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	ibuild.EmitFallBackToInterpreter(

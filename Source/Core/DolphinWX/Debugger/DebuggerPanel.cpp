@@ -223,24 +223,24 @@ void GFXDebuggerPanel::CreateGUIControls()
 
 void GFXDebuggerPanel::OnPause()
 {
-	m_pButtonDump->Enable(true);
-	m_pDumpList->Enable(true);
-	m_pButtonUpdateScreen->Enable(true);
-	m_pButtonClearScreen->Enable(true);
-	m_pButtonClearTextureCache->Enable(true);
-	m_pButtonClearVertexShaderCache->Enable(true);
-	m_pButtonClearPixelShaderCache->Enable(true);
+	m_pButtonDump->Enable();
+	m_pDumpList->Enable();
+	m_pButtonUpdateScreen->Enable();
+	m_pButtonClearScreen->Enable();
+	m_pButtonClearTextureCache->Enable();
+	m_pButtonClearVertexShaderCache->Enable();
+	m_pButtonClearPixelShaderCache->Enable();
 }
 
 void GFXDebuggerPanel::OnContinue()
 {
-	m_pButtonDump->Enable(false);
-	m_pDumpList->Enable(false);
-	m_pButtonUpdateScreen->Enable(false);
-	m_pButtonClearScreen->Enable(false);
-	m_pButtonClearTextureCache->Enable(false);
-	m_pButtonClearVertexShaderCache->Enable(false);
-	m_pButtonClearPixelShaderCache->Enable(false);
+	m_pButtonDump->Disable();
+	m_pDumpList->Disable();
+	m_pButtonUpdateScreen->Disable();
+	m_pButtonClearScreen->Disable();
+	m_pButtonClearTextureCache->Disable();
+	m_pButtonClearVertexShaderCache->Disable();
+	m_pButtonClearPixelShaderCache->Disable();
 }
 
 
