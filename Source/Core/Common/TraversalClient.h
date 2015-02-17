@@ -4,10 +4,10 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <enet/include/enet/enet.h>
 #include "Common/Common.h"
 #include "Common/Thread.h"
 #include "Common/TraversalProto.h"
-#include "enet/include/enet/enet.h"
 
 class TraversalClientClient
 {
@@ -62,7 +62,7 @@ private:
 	void HandleServerPacket(TraversalPacket* packet);
 	void ResendPacket(OutgoingTraversalPacketInfo* info);
 	TraversalRequestId SendTraversalPacket(const TraversalPacket& packet);
-	void OnFailure(int reason);
+	void OnFailure(FailureReason reason);
 	void HandlePing();
 	static int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
 	TraversalRequestId m_ConnectRequestId;

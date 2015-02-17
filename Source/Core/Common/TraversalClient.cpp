@@ -1,6 +1,6 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
-#include "Timer.h"
+#include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 
 static void GetRandomishBytes(u8* buf, size_t size)
@@ -207,7 +207,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
 	}
 }
 
-void TraversalClient::OnFailure(int reason)
+void TraversalClient::OnFailure(FailureReason reason)
 {
 	m_State = Failure;
 	m_FailureReason = reason;
@@ -216,8 +216,7 @@ void TraversalClient::OnFailure(int reason)
 	{
 	case TraversalClient::BadHost:
 	{
-		auto server = "dolphin-emu.org";
-		PanicAlertT("Couldn't look up central server %s", server);
+		PanicAlertT("Couldn't look up central server %s", m_Server.c_str());
 		break;
 	}
 	case TraversalClient::VersionTooOld:
@@ -231,9 +230,6 @@ void TraversalClient::OnFailure(int reason)
 		break;
 	case TraversalClient::ResendTimeout:
 		PanicAlertT("Timeout connecting to traversal server");
-		break;
-	default:
-		PanicAlertT("Unknown error %x", reason);
 		break;
 	}
 
@@ -279,7 +275,7 @@ void TraversalClient::HandlePing()
 	enet_uint32 now = enet_time_get();
 	if (m_State == Connected && now - m_PingTime >= 500)
 	{
-		TraversalPacket ping = {0};
+		TraversalPacket ping = {};
 		ping.type = TraversalPacketPing;
 		ping.ping.hostId = m_HostId;
 		SendTraversalPacket(ping);

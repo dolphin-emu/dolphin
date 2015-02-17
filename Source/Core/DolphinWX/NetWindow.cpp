@@ -135,14 +135,14 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	nick_szr->Add(m_nickname_text, 0, wxALL, 5);
 
 	std::string centralServer;
-	netplay_section.Get("TraversalServer", &centralServer, "vps.qoid.us");
+	netplay_section.Get("TraversalServer", &centralServer, "");
 	m_traversal_server_lbl = new wxStaticText(panel, wxID_ANY, _("Traversal:"));
 	m_traversal_server = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(centralServer));
 	nick_szr->Add(m_traversal_server_lbl, 0, wxCENTER);
 	nick_szr->Add(m_traversal_server, 0, wxALL, 5);
 
 	std::string centralPort;
-	netplay_section.Get("TraversalPort", &centralPort, "6262");
+	netplay_section.Get("TraversalPort", &centralPort, "");
 	m_traversal_port_lbl = new wxStaticText(panel, wxID_ANY, _("Port:"));
 	m_traversal_port = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(centralPort));
 	nick_szr->Add(m_traversal_port_lbl, 0, wxCENTER);
