@@ -45,12 +45,11 @@ set(SRCS	BoundingBox.cpp
 set(LIBS core png)
 
 if(_M_X86)
-	set(SRCS ${SRCS}	TextureDecoder_x64.cpp VertexLoaderX64.cpp)
+	set(SRCS ${SRCS} TextureDecoder_x64.cpp VertexLoaderX64.cpp)
+elseif(_M_ARM_64)
+	set(SRCS ${SRCS} VertexLoaderARM64.cpp TextureDecoder_Generic.cpp)
 else()
-	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp)
-endif()
-if(NOT ${CL} STREQUAL CL-NOTFOUND)
-	list(APPEND LIBS ${CL})
+	set(SRCS ${SRCS} TextureDecoder_Generic.cpp)
 endif()
 
 if(LIBAV_FOUND OR WIN32)

@@ -316,7 +316,7 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 	m_PipelineStages[m_numPipelineStages++] = func;
 }
 
-int VertexLoader::RunVertices(int primitive, int count, DataReader src, DataReader dst)
+int VertexLoader::RunVertices(DataReader src, DataReader dst, int count, int primitive)
 {
 	g_vertex_manager_write_ptr = dst.GetPointer();
 	g_video_buffer_read_ptr = src.GetPointer();
