@@ -213,6 +213,22 @@ union UDICFG
 	UDICFG(u32 _hex) {Hex = _hex;}
 };
 
+struct DVDReadCommand
+{
+	bool is_valid;
+
+	u64 DVD_offset;
+	u32 output_address;
+	u32 length;
+	bool decrypt;
+
+	DIInterruptType interrupt_type;
+
+	// Used to notify emulated software after executing command.
+	// Pointers don't work with savestates, so CoreTiming events are used instead
+	int callback_event_type;
+};
+
 
 // STATE_TO_SAVE
 // hardware registers
@@ -224,6 +240,8 @@ static UDILENGTH m_DILENGTH;
 static UDICR     m_DICR;
 static UDIIMMBUF m_DIIMMBUF;
 static UDICFG    m_DICFG;
+
+static DVDReadCommand current_read_command;
 
 static u32 AudioPos;
 static u32 CurrentStart;
@@ -237,6 +255,7 @@ static bool g_bDiscInside = false;
 bool g_bStream = false;
 static bool g_bStopAtTrackEnd = false;
 static int  finish_execute_command = 0;
+static int  finish_execute_read_command = 0;
 static int  dtk = 0;
 
 static u64 g_last_read_offset;
@@ -257,8 +276,8 @@ void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
 void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF);
-void ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
-                        bool decrypt, DIInterruptType* interrupt_type, u64* ticks_until_completion);
+DVDReadCommand ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
+                                  bool decrypt, DIInterruptType* interrupt_type, u64* ticks_until_completion);
 
 u64 SimulateDiscReadTime(u64 offset, u32 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
@@ -273,6 +292,8 @@ void DoState(PointerWrap &p)
 	p.Do(m_DICR);
 	p.Do(m_DIIMMBUF);
 	p.DoPOD(m_DICFG);
+
+	p.Do(current_read_command);
 
 	p.Do(NextStart);
 	p.Do(AudioPos);
@@ -299,6 +320,30 @@ static void FinishExecuteCommand(u64 userdata, int cyclesLate)
 		m_DILENGTH.Length = 0;
 		GenerateDIInterrupt((DIInterruptType)userdata);
 	}
+}
+
+static void FinishExecuteReadCommand(u64 userdata, int cyclesLate)
+{
+	if (!current_read_command.is_valid)
+	{
+		PanicAlertT("DVDInterface tried to execute non-existing command");
+	}
+	else
+	{
+		// Here is the actual disc reading
+		if (!DVDRead(current_read_command.DVD_offset, current_read_command.output_address,
+		             current_read_command.length, current_read_command.decrypt))
+		{
+			PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+		}
+	}
+
+	// The command is marked as invalid because it shouldn't be used again
+	current_read_command.is_valid = false;
+
+	// The final step is to notify the emulated software that the command has been executed
+	CoreTiming::ScheduleEvent_Immediate(current_read_command.callback_event_type,
+	                                    current_read_command.interrupt_type);
 }
 
 static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
@@ -376,6 +421,8 @@ void Init()
 	m_DICFG.Hex       = 0;
 	m_DICFG.CONFIG    = 1; // Disable bootrom descrambler
 
+	current_read_command.is_valid = false;
+
 	AudioPos = 0;
 	NextStart = 0;
 	NextLength = 0;
@@ -394,6 +441,7 @@ void Init()
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
 	finish_execute_command = CoreTiming::RegisterEvent("FinishExecuteCommand", FinishExecuteCommand);
+	finish_execute_read_command = CoreTiming::RegisterEvent("FinishExecuteReadCommand", FinishExecuteReadCommand);
 	dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
 
 	CoreTiming::ScheduleEvent(0, dtk);
@@ -598,14 +646,19 @@ void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF)
 		Memory::Write_U32(value, output_address);
 }
 
-void ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
-                        bool decrypt, DIInterruptType* interrupt_type, u64* ticks_until_completion)
+// If the returned DVDReadCommand has is_valid set to true,
+// FinishExecuteReadCommand must be used to finish executing it
+DVDReadCommand ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
+                                  bool decrypt, DIInterruptType* interrupt_type, u64* ticks_until_completion)
 {
+	DVDReadCommand command;
+
 	if (!g_bDiscInside)
 	{
 		g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
 		*interrupt_type = INT_DEINT;
-		return;
+		command.is_valid = false;
+		return command;
 	}
 
 	if (DVD_length > output_length)
@@ -619,10 +672,13 @@ void ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 	else
 		*ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
-	if (!DVDRead(DVD_offset, output_address, DVD_length, decrypt))
-		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
-
 	*interrupt_type = INT_TCINT;
+	command.is_valid = true;
+	command.DVD_offset = DVD_offset;
+	command.output_address = output_address;
+	command.length = DVD_length;
+	command.decrypt = decrypt;
+	return command;
 }
 
 // When the command has finished executing, callback_event_type
@@ -633,6 +689,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 {
 	DIInterruptType interrupt_type = INT_TCINT;
 	u64 ticks_until_completion = SystemTimers::GetTicksPerSecond() / 15000;
+	DVDReadCommand read_command;
+	read_command.is_valid = false;
 
 	bool GCAM = (SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD) &&
 	            (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD);
@@ -677,15 +735,15 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 	// Only seems to be used from WII_IPC, not through direct access
 	case DVDLowReadDiskID:
 		INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
-		ExecuteReadCommand(0, output_address, 0x20, output_length,
-		                   false, &interrupt_type, &ticks_until_completion);
+		read_command = ExecuteReadCommand(0, output_address, 0x20, output_length,
+		                                  false, &interrupt_type, &ticks_until_completion);
 		break;
 
 	// Only used from WII_IPC. This is the only read command that decrypts data
 	case DVDLowRead:
 		INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
-		ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length,
-		                   true, &interrupt_type, &ticks_until_completion);
+		read_command = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length,
+		                                  true, &interrupt_type, &ticks_until_completion);
 		break;
 
 	// Probably only used by Wii
@@ -764,8 +822,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 			(command_2 > 0x7ed40000 && command_2 < 0x7ed40008) ||
 			(((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
 		{
-			ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length,
-			                   false, &interrupt_type, &ticks_until_completion);
+			read_command = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length,
+			                                  false, &interrupt_type, &ticks_until_completion);
 		}
 		else
 		{
@@ -861,15 +919,15 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 					}
 				}
 
-				ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length,
-				                   false, &interrupt_type, &ticks_until_completion);
+				read_command = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length,
+				                                  false, &interrupt_type, &ticks_until_completion);
 			}
 			break;
 
 		case 0x40: // Read DiscID
 			INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
-			ExecuteReadCommand(0, output_address, 0x20, output_length,
-			                   false, &interrupt_type, &ticks_until_completion);
+			read_command = ExecuteReadCommand(0, output_address, 0x20, output_length,
+			                                  false, &interrupt_type, &ticks_until_completion);
 			break;
 
 		default:
@@ -1206,7 +1264,21 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
 	// The command will finish executing after a delay,
 	// to simulate the speed of a real disc drive
-	CoreTiming::ScheduleEvent((int)ticks_until_completion, callback_event_type, interrupt_type);
+	if (read_command.is_valid)
+	{
+		// We schedule a FinishExecuteReadCommand (which will call the actual callback
+		// once it's done) so that the data transfer isn't completed too early.
+		// Most games don't care about it, but if it's done wrong, Resident Evil 3
+		// plays some extra noise when playing the menu selection sound effect.
+		read_command.callback_event_type = callback_event_type;
+		read_command.interrupt_type = interrupt_type;
+		current_read_command = read_command;
+		CoreTiming::ScheduleEvent((int)ticks_until_completion, finish_execute_read_command);
+	}
+	else
+	{
+		CoreTiming::ScheduleEvent((int)ticks_until_completion, callback_event_type, interrupt_type);
+	}
 }
 
 // Simulates the timing aspects of reading data from a disc.
