@@ -109,8 +109,35 @@ public:
 	virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
 
 	// Register locking.
-	void Lock(int p1, int p2=0xff, int p3=0xff, int p4=0xff);
-	void LockX(int x1, int x2=0xff, int x3=0xff, int x4=0xff);
+
+	// these are powerpc reg indices
+	template<typename T>
+	void Lock(T p)
+	{
+		regs[p].locked = true;
+	}
+	template<typename T, typename... Args>
+	void Lock(T first, Args... args)
+	{
+		Lock(first);
+		Lock(args...);
+	}
+
+	// these are x64 reg indices
+	template<typename T>
+	void LockX(T x)
+	{
+		if (xregs[x].locked)
+			PanicAlert("RegCache: x %i already locked!", x);
+		xregs[x].locked = true;
+	}
+	template<typename T, typename... Args>
+	void LockX(T first, Args... args)
+	{
+		LockX(first);
+		LockX(args...);
+	}
+
 	void UnlockAll();
 	void UnlockAllX();
 
