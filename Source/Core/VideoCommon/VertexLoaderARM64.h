@@ -23,7 +23,7 @@ private:
 	Arm64Gen::ARM64FloatEmitter m_float_emit;
 	void GetVertexAddr(int array, u64 attribute, Arm64Gen::ARM64Reg reg);
 	s32 GetAddressImm(int array, u64 attribute, Arm64Gen::ARM64Reg reg, u32 align);
-	int ReadVertex(u64 attribute, int format, int count_in, int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format);
+	int ReadVertex(u64 attribute, int format, int count_in, int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format, s32 offset = -1);
 	void ReadColor(u64 attribute, int format, s32 offset);
 	void GenerateVertexLoader();
 };
