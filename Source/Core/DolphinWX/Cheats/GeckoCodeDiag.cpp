@@ -63,7 +63,7 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	// button sizer
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
 	btn_download = new wxButton(this, wxID_ANY, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
-	btn_download->Enable(false);
+	btn_download->Disable();
 	btn_download->Bind(wxEVT_BUTTON, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);

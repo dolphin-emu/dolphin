@@ -99,7 +99,6 @@ public:
 	void WriteCode(u32 exitAddress);
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst) override;
 	void FallBackToInterpreter(UGeckoInstruction _inst) override;
 	void DoNothing(UGeckoInstruction _inst) override;
 	void HLEFunction(UGeckoInstruction _inst) override;

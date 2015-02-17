@@ -225,7 +225,6 @@ struct SCoreStartupParameter
 	bool bRunCompareServer;
 	bool bRunCompareClient;
 
-	bool bBAT;
 	bool bMMU;
 	bool bDCBZOFF;
 	int iBBDumpPort;

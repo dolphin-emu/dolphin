@@ -1,0 +1,7 @@
+Dolphin-specific changes (as of 2015-02-12)
+-------------------------------------------
+
+- removed all toplevel directories save msvc/ & libusb/
+- removed all files save AUTHORS, Changelog, COPYING, INSTALL, NEWS,
+  PORTING, README and TODO
+- patched the VS project file to insert dolphin-specific props

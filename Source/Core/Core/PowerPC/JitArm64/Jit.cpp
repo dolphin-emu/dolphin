@@ -43,11 +43,6 @@ void JitArm64::Shutdown()
 	asm_routines.Shutdown();
 }
 
-void JitArm64::unknown_instruction(UGeckoInstruction inst)
-{
-	WARN_LOG(DYNA_REC, "unknown_instruction %08x - Fix me ;)", inst.hex);
-}
-
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush(FlushMode::FLUSH_INTERPRETER, js.op);
