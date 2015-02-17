@@ -17,6 +17,11 @@ static void* s_saved_rsp;
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
 
+static void DispatchSlow()
+{
+	jit->GetBlockCache()->MoveBlockIntoFastCache(PC);
+}
+
 void Jit64AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
@@ -95,28 +100,10 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(64, R(RMEM), Imm64((u64)Memory::logical_base));
 			SetJumpTarget(membaseend);
 
+			// Translate PC.
 			MOV(32, R(RSCRATCH), PPCSTATE(pc));
-
-			// TODO: We need to handle code which executes the same PC with
-			// different values of MSR.IR. It probably makes sense to handle
-			// MSR.DR here too, to allow IsOptimizableRAMAddress-based
-			// optimizations safe, because IR and DR are usually set/cleared together.
-			// TODO: Branching based on the 20 most significant bits of instruction
-			// addresses without translating them is wrong.
 			u64 icache = (u64)jit->GetBlockCache()->iCache.data();
-			u64 icacheVmem = (u64)jit->GetBlockCache()->iCacheVMEM.data();
-			u64 icacheEx = (u64)jit->GetBlockCache()->iCacheEx.data();
-			u32 mask = 0;
-			FixupBranch no_mem;
-			FixupBranch exit_mem;
-			FixupBranch exit_vmem;
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				mask = JIT_ICACHE_EXRAM_BIT;
-			mask |= JIT_ICACHE_VMEM_BIT;
-			TEST(32, R(RSCRATCH), Imm32(mask));
-			no_mem = J_CC(CC_NZ);
-			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-
+			AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::iCache_Mask << 2));
 			if (icache <= INT_MAX)
 			{
 				MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icache));
@@ -124,66 +111,33 @@ void Jit64AsmRoutineManager::Generate()
 			else
 			{
 				MOV(64, R(RSCRATCH2), Imm64(icache));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
-			exit_mem = J();
-			SetJumpTarget(no_mem);
-			TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
-			FixupBranch no_vmem = J_CC(CC_Z);
-			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-			if (icacheVmem <= INT_MAX)
+			u64 blocks = (u64)jit->GetBlockCache()->GetBlocks();
+			IMUL(32, RSCRATCH, R(RSCRATCH), Imm32(sizeof(JitBlock)));
+			if (blocks <= INT_MAX)
 			{
-				MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheVmem));
+				ADD(32, R(RSCRATCH), Imm32((s32)blocks));
 			}
 			else
 			{
-				MOV(64, R(RSCRATCH2), Imm64(icacheVmem));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+				MOV(64, R(RSCRATCH2), Imm64(blocks));
+				ADD(32, R(RSCRATCH), R(RSCRATCH2));
 			}
-
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
-			SetJumpTarget(no_vmem);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-			{
-				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
-				FixupBranch no_exram = J_CC(CC_Z);
-				AND(32, R(RSCRATCH), Imm32(JIT_ICACHEEX_MASK));
-
-				if (icacheEx <= INT_MAX)
-				{
-					MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheEx));
-				}
-				else
-				{
-					MOV(64, R(RSCRATCH2), Imm64(icacheEx));
-					MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
-				}
-
-				SetJumpTarget(no_exram);
-			}
-			SetJumpTarget(exit_mem);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				SetJumpTarget(exit_vmem);
-
-			TEST(32, R(RSCRATCH), R(RSCRATCH));
-			FixupBranch notfound = J_CC(CC_L);
-			//grab from list and jump to it
-			u64 codePointers = (u64)jit->GetBlockCache()->GetCodePointers();
-			if (codePointers <= INT_MAX)
-			{
-				JMPptr(MScaled(RSCRATCH, 8, (s32)codePointers));
-			}
-			else
-			{
-				MOV(64, R(RSCRATCH2), Imm64(codePointers));
-				JMPptr(MComplex(RSCRATCH2, RSCRATCH, 8, 0));
-			}
+			MOV(32, R(RSCRATCH2), PPCSTATE(msr));
+			AND(32, R(RSCRATCH2), Imm32(0x30));
+			SHL(64, R(RSCRATCH2), Imm8(32));
+			MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
+			OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
+			CMP(64, R(RSCRATCH2), MDisp(RSCRATCH, (s32)offsetof(JitBlock, effectiveAddress)));
+			FixupBranch notfound = J_CC(CC_NE);
+			JMPptr(MDisp(RSCRATCH, (s32)offsetof(JitBlock, normalEntry)));
 			SetJumpTarget(notfound);
 
-			//Ok, no block, let's jit
+			// Slow path.
 			ABI_PushRegistersAndAdjustStack({}, 0);
-			ABI_CallFunctionA(32, (void *)&Jit, PPCSTATE(pc));
+			ABI_CallFunction((void*)DispatchSlow);
 			ABI_PopRegistersAndAdjustStack({}, 0);
 
 			// Jit might have cleared the code cache

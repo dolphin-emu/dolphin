@@ -49,7 +49,7 @@ void JitArm64AsmRoutineManager::Generate()
 
 		FixupBranch JitBlock = TBNZ(W27, 7); // Test the 7th bit
 			// Success, it is our Jitblock.
-			MOVI2R(X30, (u64)jit->GetBlockCache()->GetCodePointers());
+			MOVI2R(X30, (u64)jit->GetBlockCache()->GetBlocks());
 			UBFM(X27, X27, 61, 60); // Same as X27 << 3
 			LDR(X30, X30, X27); // Load the block address in to R14
 			BR(X30);

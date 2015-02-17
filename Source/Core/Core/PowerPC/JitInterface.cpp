@@ -152,13 +152,13 @@ namespace JitInterface
 			const JitBlock *block = jit->GetBlockCache()->GetBlock(stat.blockNum);
 			if (block)
 			{
-				std::string name = g_symbolDB.GetDescription(block->originalAddress);
+				std::string name = g_symbolDB.GetDescription(block->effectiveAddress);
 				double percent = 100.0 * (double)stat.cost / (double)cost_sum;
 				double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
 				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.2f\t%.2f\t%.2f\t%i\n",
-						block->originalAddress, name.c_str(), stat.cost,
-						block->ticCounter, percent, timePercent,
-						(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
+				    block->effectiveAddress, name.c_str(), stat.cost,
+				    block->ticCounter, percent, timePercent,
+				    (double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
 			}
 		}
 	}
