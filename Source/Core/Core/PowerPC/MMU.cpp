@@ -72,7 +72,14 @@ enum XCheckTLBFlag
 	FLAG_READ,
 	FLAG_WRITE,
 	FLAG_OPCODE,
+	FLAG_OPCODE_NO_EXCEPTION
 };
+
+static bool IsOpcodeFlag(XCheckTLBFlag flag)
+{
+	return flag == FLAG_OPCODE || flag == FLAG_OPCODE_NO_EXCEPTION;
+}
+
 template <const XCheckTLBFlag flag> static u32 TranslateAddress(const u32 address);
 
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
@@ -771,6 +778,43 @@ bool IsOptimizableGatherPipeWrite(u32 address)
 	return address == 0xCC008000;
 }
 
+TranslateResult JitCache_TranslateAddress(u32 address)
+{
+	if (!UReg_MSR(MSR).IR)
+		return TranslateResult{ true, true, address };
+
+	bool from_bat = true;
+
+	int segment = address >> 28;
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & Memory::ADDR_MASK_MEM1))
+	{
+		u32 tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
+		if (tlb_addr == 0)
+		{
+			return TranslateResult{ false, false, 0 };
+		}
+		else
+		{
+			address = tlb_addr;
+			from_bat = false;
+		}
+	}
+	else
+	{
+		if ((segment == 0x8 || segment == 0x0) && (address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
+			address = address & 0x3FFFFFFF;
+		else if (segment == 0x9 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+			address = address & 0x3FFFFFFF;
+		else if (Memory::bFakeVMEM && (segment == 0x7 || segment == 0x4))
+			address = 0x7E000000 | (address & Memory::FAKEVMEM_MASK);
+		else
+			return TranslateResult{ false, false, 0 };
+	}
+
+	return TranslateResult{ true, from_bat, address };
+}
+
 // *********************************************************************************
 // Warning: Test Area
 //
@@ -928,7 +972,7 @@ enum TLBLookupResult
 static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32 *paddr)
 {
 	u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
-	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 	if (tlbe->tag[0] == tag)
 	{
 		// Check if C bit requires updating
@@ -944,7 +988,7 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag fl
 			}
 		}
 
-		if (flag != FLAG_NO_EXCEPTION)
+		if (flag != FLAG_NO_EXCEPTION && flag != FLAG_OPCODE_NO_EXCEPTION)
 			tlbe->recent = 0;
 
 		*paddr = tlbe->paddr[0] | (vpa & 0xfff);
@@ -966,7 +1010,7 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag fl
 			}
 		}
 
-		if (flag != FLAG_NO_EXCEPTION)
+		if (flag != FLAG_NO_EXCEPTION && flag != FLAG_OPCODE_NO_EXCEPTION)
 			tlbe->recent = 1;
 
 		*paddr = tlbe->paddr[1] | (vpa & 0xfff);
@@ -978,11 +1022,11 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag fl
 
 static __forceinline void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
 {
-	if (flag == FLAG_NO_EXCEPTION)
+	if (flag == FLAG_NO_EXCEPTION || flag == FLAG_OPCODE_NO_EXCEPTION)
 		return;
 
 	int tag = address >> HW_PAGE_INDEX_SHIFT;
-	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[flag == FLAG_OPCODE][tag & HW_PAGE_INDEX_MASK];
+	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 	int index = tlbe->recent == 0 && tlbe->tag[0] != TLB_TAG_INVALID;
 	tlbe->recent = index;
 	tlbe->paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
@@ -1043,13 +1087,14 @@ static __forceinline u32 TranslatePageAddress(const u32 address, const XCheckTLB
 				// set the access bits
 				switch (flag)
 				{
-				case FLAG_NO_EXCEPTION: break;
+				case FLAG_NO_EXCEPTION:
+				case FLAG_OPCODE_NO_EXCEPTION: break;
 				case FLAG_READ:     PTE2.R = 1; break;
 				case FLAG_WRITE:    PTE2.R = 1; PTE2.C = 1; break;
 				case FLAG_OPCODE:   PTE2.R = 1; break;
 				}
 
-				if (flag != FLAG_NO_EXCEPTION)
+				if (flag != FLAG_NO_EXCEPTION && flag != FLAG_OPCODE_NO_EXCEPTION)
 					*(u32*)&Memory::physical_base[pteg_addr + 4] = bswap(PTE2.Hex);
 
 				// We already updated the TLB entry if this was caused by a C bit.

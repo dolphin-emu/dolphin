@@ -159,8 +159,8 @@ std::string HostDisassembler::DisassembleBlock(u32* address, u32* host_instructi
 		if (block_num >= 0)
 		{
 			JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
-			if (!(block->originalAddress <= *address &&
-			    block->originalSize + block->originalAddress >= *address))
+			if (!(block->effectiveAddress <= *address &&
+				block->originalSize + block->effectiveAddress >= *address))
 				block_num = -1;
 		}
 
@@ -175,10 +175,10 @@ std::string HostDisassembler::DisassembleBlock(u32* address, u32* host_instructi
 
 	JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
 
-	const u8* code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
+	const u8* code = block->normalEntry;
 
 	*code_size = block->codeSize;
-	*address = block->originalAddress;
+	*address = block->effectiveAddress;
 	return DisassembleHostBlock(code, block->codeSize, host_instructions_count);
 }
 
