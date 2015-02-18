@@ -80,6 +80,7 @@ void ExecuteCommand(u32 _Address);
 void EnqueueRequest(u32 address);
 void EnqueueReply(u32 address, int cycles_in_future = 0);
 void EnqueueReply_Threadsafe(u32 address, int cycles_in_future = 0);
+void EnqueueReply_Immediate(u32 address);
 void EnqueueCommandAcknowledgement(u32 _Address, int cycles_in_future = 0);
 
 } // end of namespace WII_IPC_HLE_Interface
