@@ -191,7 +191,7 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 
 void SetInterrupt(u32 _causemask, bool _bSet)
 {
-	_assert_msg_(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
+	_dbg_assert_msg_(POWERPC, Core::IsCPUThread(), "SetInterrupt from wrong thread");
 
 	if (_bSet && !(m_InterruptCause & _causemask))
 	{
