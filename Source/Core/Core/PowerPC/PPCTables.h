@@ -80,20 +80,6 @@ enum
 	OPTYPE_UNKNOWN ,
 };
 
-enum
-{
-	OPCD_HLEFUNCTION   = 1,
-	OPCD_COMPILEDBLOCK = 2,
-	OPCD_BCx           = 16,
-	OPCD_SC            = 17,
-	OPCD_Bx            = 18,
-};
-
-enum
-{
-	OP_BLR = 0x4e800020,
-};
-
 struct GekkoOPInfo
 {
 	const char *opname;
