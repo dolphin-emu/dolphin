@@ -18,7 +18,7 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 	{
 		// Region free - Uses European flag as placeholder
 		case 'A':
-			return IVolume::COUNTRY_INTERNATIONAL;
+			return IVolume::COUNTRY_WORLD;
 
 		// PAL
 		case 'D':

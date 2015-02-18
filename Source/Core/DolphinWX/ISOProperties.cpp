@@ -215,8 +215,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(_("France"));
 		break;
-	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
-		m_Country->SetValue(_("International"));
+	case DiscIO::IVolume::COUNTRY_WORLD:
+		m_Country->SetValue(_("World"));
 		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(_("Italy"));
@@ -234,7 +234,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Country->SetValue(_("Spain"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		m_Country->SetValue(_("United States"));
+		m_Country->SetValue(_("USA"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
 			m_Lang->SetSelection(0);
