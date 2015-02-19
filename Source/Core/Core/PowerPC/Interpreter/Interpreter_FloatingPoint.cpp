@@ -5,17 +5,11 @@
 #include <cmath>
 #include <limits>
 
-#ifdef _WIN32
-#include <intrin.h>
-#endif
-
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 using namespace MathUtil;
-
-void UpdateSSEState();
 
 // Extremely rare - actually, never seen.
 // Star Wars : Rogue Leader spams that at some point :|
