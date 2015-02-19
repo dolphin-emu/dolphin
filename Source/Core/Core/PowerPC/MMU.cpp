@@ -136,12 +136,17 @@ __forceinline static T ReadFromHardware(const u32 em_address)
 			else
 				return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
 		}
-		if ((segment == 0x0 || segment == 0x8 || segment == 0xC) && (em_address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
+		if (segment == 0x0 || segment == 0x8 || segment == 0xC)
 		{
-			return bswap((*(const T*)&Memory::m_pRAM[em_address & 0x0FFFFFFF]));
+			// Handle RAM; the masking intentionally discards bits (essentially creating
+			// mirrors of memory).
+			// TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+			return bswap((*(const T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK]));
 		}
 		if (Memory::m_pEXRAM && (segment == 0x9 || segment == 0xD) && (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
 		{
+			// Handle EXRAM.
+			// TODO: Is this supposed to be mirrored like main RAM?
 			return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
 		}
 		if (segment == 0xE && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
@@ -165,9 +170,12 @@ __forceinline static T ReadFromHardware(const u32 em_address)
 			else
 				return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address | 0xC0000000);
 		}
-		if (em_address < Memory::REALRAM_SIZE)
+		if (segment == 0x0)
 		{
-			return bswap((*(const T*)&Memory::m_pRAM[em_address]));
+			// Handle RAM; the masking intentionally discards bits (essentially creating
+			// mirrors of memory).
+			// TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+			return bswap((*(const T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK]));
 		}
 		if (Memory::m_pEXRAM && segment == 0x1 && (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
 		{
@@ -254,13 +262,18 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 				return;
 			}
 		}
-		if ((segment == 0x8 || segment == 0xC) && (em_address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
+		if (segment == 0x0 || segment == 0x8 || segment == 0xC)
 		{
-			*(T*)&Memory::m_pRAM[em_address & 0x0FFFFFFF] = bswap(data);
+			// Handle RAM; the masking intentionally discards bits (essentially creating
+			// mirrors of memory).
+			// TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+			*(T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK] = bswap(data);
 			return;
 		}
 		if (Memory::m_pEXRAM && (segment == 0x9 || segment == 0xD) && (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
 		{
+			// Handle EXRAM.
+			// TODO: Is this supposed to be mirrored like main RAM?
 			*(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
 			return;
 		}
@@ -304,9 +317,12 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 				return;
 			}
 		}
-		if (em_address < Memory::REALRAM_SIZE)
+		if (segment == 0x0)
 		{
-			*(T*)&Memory::m_pRAM[em_address] = bswap(data);
+			// Handle RAM; the masking intentionally discards bits (essentially creating
+			// mirrors of memory).
+			// TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+			*(T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK] = bswap(data);
 			return;
 		}
 		if (Memory::m_pEXRAM && segment == 0x1 && (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
