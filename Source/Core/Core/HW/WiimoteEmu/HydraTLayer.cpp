@@ -16,7 +16,7 @@ namespace HydraTLayer
 {
 
 float vr_gc_dpad_speed = 0, vr_gc_leftstick_speed = 0, vr_gc_rightstick_speed = 0;
-float vr_cc_dpad_speed = 0, vr_wm_dpad_speed = 0, vr_wm_leftstick_speed = 0, vr_wm_rightstick_speed = 0;
+float vr_cc_dpad_speed = 0, vr_wm_dpad_speed = 0, vr_wm_leftstick_speed = 0, vr_wm_rightstick_speed = 0, vr_ir_speed = 0;
 
 void GetButtons(int index, bool sideways, bool has_extension, wm_buttons * butt, bool * cycle_extension)
 {
@@ -55,6 +55,10 @@ void GetAcceleration(int index, bool sideways, bool has_extension, WiimoteEmu::A
 void GetIR(int index, double * x,  double * y,  double * z)
 {
 	RazerHydra::getIR(index, x, y, z);
+	if (index == 0)
+	{
+		HydraTLayer::vr_ir_speed = (float)((int)(fabs(*x) > 0.5 && fabs(*x) <= 1) + (int)(fabs(*y) > 0.5 && fabs(*y) <= 1));
+	}
 }
 
 void GetNunchukAcceleration(int index, WiimoteEmu::AccelData * const data)
