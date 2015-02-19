@@ -203,10 +203,10 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
-	if (g_is_direct_mode && !g_force_vr && StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
-		PanicAlert("The Rift is running in direct mode without 'deterministic dual core' set to 'fake-completion'."
-				    " This has been known to cause judder.  Try changing this setting located in the"
-					" 'config' tab if you experience issues.");
+	if (g_is_direct_mode && !g_force_vr && StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && !StartUp.bSyncGPU)
+		PanicAlert("Detected that the Rift is running in direct mode without 'deterministic dual core' set to 'fake-completion' or 'synchronize GPU thread' enabled."
+				    " This has been known to cause judder.  Try enabling one of these two settings if you experience issues.  They can be found in the"
+					" 'config' tab or by right clicking on the game then clicking properties.");
 
 	StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
