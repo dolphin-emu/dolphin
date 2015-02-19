@@ -93,49 +93,11 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 namespace PPCTables
 {
 
-bool UsesFPU(UGeckoInstruction _inst)
+bool UsesFPU(UGeckoInstruction inst)
 {
-	switch (_inst.OPCD)
-	{
-	case 04: // PS
-		return _inst.SUBOP10 != 1014;
+	GekkoOPInfo* const info = GetOpInfo(inst);
 
-	case 48: // lfs
-	case 49: // lfsu
-	case 50: // lfd
-	case 51: // lfdu
-	case 52: // stfs
-	case 53: // stfsu
-	case 54: // stfd
-	case 55: // stfdu
-	case 56: // psq_l
-	case 57: // psq_lu
-
-	case 59: // FPU-sgl
-	case 60: // psq_st
-	case 61: // psq_stu
-	case 63: // FPU-dbl
-		return true;
-
-	case 31:
-		switch (_inst.SUBOP10)
-		{
-		case 535:
-		case 567:
-		case 599:
-		case 631:
-		case 663:
-		case 695:
-		case 727:
-		case 759:
-		case 983:
-			return true;
-		default:
-			return false;
-		}
-	default:
-		return false;
-	}
+	return (info->flags & FL_USE_FPU) != 0;
 }
 
 void InitTables(int cpu_core)
