@@ -2,10 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifdef _WIN32
-#include <intrin.h>
-#endif
-
 #include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
 #include "Core/HW/GPFifo.h"
