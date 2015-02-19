@@ -66,6 +66,17 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
+// This can mostly be removed when we move to VS2015
+// to use the thread_local keyword
+#ifdef _MSC_VER
+#define ThreadLocalStorage __declspec(thread)
+#elif defined __ANDROID__ || defined __APPLE__
+// This will most likely have to stay, to support android
+#include <pthread.h>
+#else // Everything besides VS and Android
+#define ThreadLocalStorage __thread
+#endif
+
 // TODO: ugly, remove
 bool g_aspect_wide;
 
@@ -129,6 +140,17 @@ static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
 static bool s_is_framelimiter_temp_disabled = false;
 
+#ifdef ThreadLocalStorage
+ThreadLocalStorage bool tls_is_cpu_thread = false;
+#else
+static pthread_key_t s_tls_is_cpu_key;
+static pthread_once_t s_cpu_key_is_init = PTHREAD_ONCE_INIT;
+static void InitIsCPUKey()
+{
+	pthread_key_create(&s_tls_is_cpu_key, nullptr);
+}
+#endif
+
 bool GetIsFramelimiterTempDisabled()
 {
 	return s_is_framelimiter_temp_disabled;
@@ -181,7 +203,14 @@ bool IsRunningInCurrentThread()
 
 bool IsCPUThread()
 {
-	return (s_cpu_thread.joinable() ? (s_cpu_thread.get_id() == std::this_thread::get_id()) : !s_is_started);
+#ifdef ThreadLocalStorage
+	return tls_is_cpu_thread;
+#else
+	// Use pthread implementation for Android and Mac
+	// Make sure that s_tls_is_cpu_key is initialized
+	pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
+	return pthread_getspecific(s_tls_is_cpu_key);
+#endif
 }
 
 bool IsGPUThread()
@@ -290,9 +319,35 @@ void Stop()  // - Hammertime!
 	}
 }
 
+static void DeclareAsCPUThread()
+{
+#ifdef ThreadLocalStorage
+	tls_is_cpu_thread = true;
+#else
+	// Use pthread implementation for Android and Mac
+	// Make sure that s_tls_is_cpu_key is initialized
+	pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
+	pthread_setspecific(s_tls_is_cpu_key, (void*)true);
+#endif
+}
+
+static void UndeclareAsCPUThread()
+{
+#ifdef ThreadLocalStorage
+	tls_is_cpu_thread = false;
+#else
+	// Use pthread implementation for Android and Mac
+	// Make sure that s_tls_is_cpu_key is initialized
+	pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
+	pthread_setspecific(s_tls_is_cpu_key, (void*)false);
+#endif
+}
+
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
 static void CpuThread()
 {
+	DeclareAsCPUThread();
+
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -434,6 +489,9 @@ void EmuThread()
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(core_parameter.m_strFilename, 3000);
 
+	// For a time this acts as the CPU thread...
+	DeclareAsCPUThread();
+
 	Movie::Init();
 
 	HW::Init();
@@ -528,6 +586,9 @@ void EmuThread()
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
 	CBoot::BootUp();
+
+	// Thread is no longer acting as CPU Thread
+	UndeclareAsCPUThread();
 
 	// Setup our core, but can't use dynarec if we are compare server
 	if (core_parameter.iCPUCore != PowerPC::CORE_INTERPRETER
