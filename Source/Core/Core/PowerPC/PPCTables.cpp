@@ -11,6 +11,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
@@ -104,19 +105,9 @@ void InitTables(int cpu_core)
 {
 	// Interpreter ALWAYS needs to be initialized
 	InterpreterTables::InitTables();
-	switch (cpu_core)
-	{
-	case 0:
-		{
-			// Interpreter
-			break;
-		}
-	default:
-		{
-			JitInterface::InitTables(cpu_core);
-			break;
-		}
-	}
+
+	if (cpu_core != PowerPC::CORE_INTERPRETER)
+		JitInterface::InitTables(cpu_core);
 }
 
 #define OPLOG

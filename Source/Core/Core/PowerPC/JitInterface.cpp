@@ -15,6 +15,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -54,38 +55,28 @@ namespace JitInterface
 		CPUCoreBase *ptr = nullptr;
 		switch (core)
 		{
-			#if _M_X86
-			case 1:
-			{
-				ptr = new Jit64();
-				break;
-			}
-			case 2:
-			{
-				ptr = new JitIL();
-				break;
-			}
-			#endif
-			#if _M_ARM_32
-			case 3:
-			{
-				ptr = new JitArm();
-				break;
-			}
-			#endif
-			#if _M_ARM_64
-			case 4:
-			{
-				ptr = new JitArm64();
-				break;
-			}
-			#endif
-			default:
-			{
-				PanicAlert("Unrecognizable cpu_core: %d", core);
-				jit = nullptr;
-				return nullptr;
-			}
+		#if _M_X86
+		case PowerPC::CORE_JIT64:
+			ptr = new Jit64();
+			break;
+		case PowerPC::CORE_JITIL64:
+			ptr = new JitIL();
+			break;
+		#endif
+		#if _M_ARM_32
+		case PowerPC::CORE_JITARM:
+			ptr = new JitArm();
+			break;
+		#endif
+		#if _M_ARM_64
+		case PowerPC::CORE_JITARM64:
+			ptr = new JitArm64();
+			break;
+		#endif
+		default:
+			PanicAlert("Unrecognizable cpu_core: %d", core);
+			jit = nullptr;
+			return nullptr;
 		}
 		jit = static_cast<JitBase*>(ptr);
 		jit->Init();
@@ -95,37 +86,27 @@ namespace JitInterface
 	{
 		switch (core)
 		{
-			#if _M_X86
-			case 1:
-			{
-				Jit64Tables::InitTables();
-				break;
-			}
-			case 2:
-			{
-				JitILTables::InitTables();
-				break;
-			}
-			#endif
-			#if _M_ARM_32
-			case 3:
-			{
-				JitArmTables::InitTables();
-				break;
-			}
-			#endif
-			#if _M_ARM_64
-			case 4:
-			{
-				JitArm64Tables::InitTables();
-				break;
-			}
-			#endif
-			default:
-			{
-				PanicAlert("Unrecognizable cpu_core: %d", core);
-				break;
-			}
+		#if _M_X86
+		case PowerPC::CORE_JIT64:
+			Jit64Tables::InitTables();
+			break;
+		case PowerPC::CORE_JITIL64:
+			JitILTables::InitTables();
+			break;
+		#endif
+		#if _M_ARM_32
+		case PowerPC::CORE_JITARM:
+			JitArmTables::InitTables();
+			break;
+		#endif
+		#if _M_ARM_64
+		case PowerPC::CORE_JITARM64:
+			JitArm64Tables::InitTables();
+			break;
+		#endif
+		default:
+			PanicAlert("Unrecognizable cpu_core: %d", core);
+			break;
 		}
 	}
 	CPUCoreBase *GetCore()

@@ -21,6 +21,15 @@ extern CPUCoreBase *cpu_core_base;
 namespace PowerPC
 {
 
+enum
+{
+	CORE_INTERPRETER,
+	CORE_JIT64,
+	CORE_JITIL64,
+	CORE_JITARM,
+	CORE_JITARM64
+};
+
 enum CoreMode
 {
 	MODE_INTERPRETER,

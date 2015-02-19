@@ -17,6 +17,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/VolumeCreator.h"
@@ -66,7 +67,7 @@ void SCoreStartupParameter::LoadDefaults()
 	iGDBPort = -1;
 	#endif
 
-	iCPUCore = CORE_JIT64;
+	iCPUCore = PowerPC::CORE_JIT64;
 	bCPUThread = false;
 	bSkipIdle = false;
 	bSyncGPUOnSkipIdleHack = true;
