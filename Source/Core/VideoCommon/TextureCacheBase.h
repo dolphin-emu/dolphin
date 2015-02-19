@@ -43,59 +43,16 @@ public:
 		};
 
 	};
-	class TextureAddress
-	{
-		u32 address1;
-		u32 address2;
-		enum AddressKind
-		{
-			// A texture in RAM
-			RAM,
-			// A texture loaded into TMEM
-			TMEM,
-			// A texture in RAM, fully decoded using a palette.
-			RAM_PALETTE,
-			// An RGBA8 texture in TMEM.
-			TMEM_RGBA8,
-			// A palette texture in TMEM.
-			TMEM_PALETTE,
-			// Uninitialized address.
-			INVALID
-		};
-		AddressKind kind;
-		TextureAddress(u32 a, u32 b, AddressKind k) : address1(a), address2(b), kind(k) {}
-	public:
-		TextureAddress() : kind(INVALID), address1(0), address2(0) {}
-		static TextureAddress Mem(u32 a) { return TextureAddress(a, 0, RAM); }
-		static TextureAddress MemPalette(u32 a, u32 b) { return TextureAddress(a, b, RAM_PALETTE); }
-		static TextureAddress TMem(u32 a) { return TextureAddress(a, 0, TMEM); }
-		static TextureAddress TMemRGBA8(u32 a, u32 b) { return TextureAddress(a, b, TMEM_RGBA8); }
-		static TextureAddress TMemPalette(u32 a, u32 b) { return TextureAddress(a, b, TMEM_PALETTE); }
-		bool operator == (const TextureAddress& b) const
-		{
-			return kind == b.kind && address1 == b.address1 && address2 == b.address2;
-		}
-		bool operator < (const TextureAddress& b) const
-		{
-			if (kind != b.kind)
-				return kind < b.kind;
-			if (address1 != b.address1)
-				return address1 < b.address1;
-			 return address2 < b.address2;
-		}
-		bool IsMemOnlyAddress() const { return kind == RAM; }
-		bool HasMemAddress() const { return kind == RAM || kind == RAM_PALETTE; }
-		u32 GetMemAddress() const { return address1; }
-	};
 	struct TCacheEntryBase
 	{
 		const TCacheEntryConfig config;
 
 		// common members
-		TextureAddress addr;
+		u32 addr;
 		u32 size_in_bytes;
 		u64 hash;
 		u32 format;
+		bool is_efb_copy;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -104,7 +61,7 @@ public:
 		int frameCount;
 
 
-		void SetGeneralParameters(TextureAddress _addr, u32 _size, u32 _format)
+		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
 			addr = _addr;
 			size_in_bytes = _size;
@@ -138,8 +95,7 @@ public:
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
-		bool IsEfbCopy() { return config.rendertarget; }
-		bool IsUnrecoverable() { return IsEfbCopy() && addr.IsMemOnlyAddress(); }
+		bool IsEfbCopy() { return is_efb_copy; }
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
@@ -183,7 +139,7 @@ private:
 
 	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
-	typedef std::multimap<TextureAddress, TCacheEntryBase*> TexCache;
+	typedef std::multimap<u32, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
 
 	static TexCache textures;

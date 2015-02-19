@@ -146,7 +146,7 @@ void TextureCache::Cleanup(int _frameCount)
 		}
 		if (_frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
 		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
-		    !iter->second->IsUnrecoverable())
+		    !iter->second->IsEfbCopy())
 		{
 			FreeTexture(iter->second);
 			iter = textures.erase(iter);
@@ -198,14 +198,10 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 
 bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 range_size) const
 {
-	if (!addr.HasMemAddress())
+	if (addr + size_in_bytes <= range_address)
 		return false;
 
-	u32 memaddr = addr.GetMemAddress();
-	if (memaddr + size_in_bytes <= range_address)
-		return false;
-
-	if (memaddr >= range_address + range_size)
+	if (addr >= range_address + range_size)
 		return false;
 
 	return true;
@@ -322,32 +318,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,0x0, so we limit the mipmap count to 6 there
 	tex_levels = std::min<u32>(IntLog2(std::max(width, height)) + 1, tex_levels);
 
-	// Compute a texture ID; this isn't everything about a texture, rather just
-	// enough to group together textures with related memory addresses.
-	TextureAddress texID;
-	TextureAddress paletteDecodedID;
-	if (from_tmem)
-	{
-		u32 tmem_addr = bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE;
-		if (texformat == GX_TF_RGBA8 && from_tmem)
-		{
-			u32 tmem_odd_addr = bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE;
-			texID = TextureAddress::TMemRGBA8(tmem_addr, tmem_odd_addr);
-		}
-		else
-		{
-			texID = TextureAddress::TMem(tmem_addr);
-			if (isPaletteTexture)
-				paletteDecodedID = TextureAddress::TMemPalette(tmem_addr, tlutaddr);
-		}
-	}
-	else
-	{
-		texID = TextureAddress::Mem(address);
-		if (isPaletteTexture)
-			paletteDecodedID = TextureAddress::MemPalette(address, tlutaddr);
-	}
-
 	// Find all texture cache entries for the current texture address, and decide whether to use one of
 	// them, or to create a new one
 	//
@@ -372,16 +342,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	//
 	// For efb copies, the entry created in CopyRenderTargetToTexture always has to be used, or else it was
 	// done in vain.
-	std::pair<TexCache::iterator, TexCache::iterator> iter_range = textures.equal_range(texID);
-	bool palette_decoded_entry = false;
-	if (isPaletteTexture && iter_range.first == iter_range.second)
-	{
-		iter_range = textures.equal_range(paletteDecodedID);
-		palette_decoded_entry = true;
-	}
+	std::pair <TexCache::iterator, TexCache::iterator> iter_range = textures.equal_range(address);
 	TexCache::iterator iter = iter_range.first;
 	TexCache::iterator oldest_entry = iter;
 	int temp_frameCount = 0x7fffffff;
+	TexCache::iterator unconverted_copy = textures.end();
 
 	while (iter != iter_range.second)
 	{
@@ -398,35 +363,21 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 				// format is complicated because EFB copy formats don't exactly match
 				// texture formats. I'm not sure what effect checking width/height/levels
 				// would have.
-				if (!palette_decoded_entry && isPaletteTexture && g_Config.backend_info.bSupportsPaletteConversion)
-				{
-					// Perform palette decoding.
-					// TODO: Skip decoding if we find a match.
-					std::pair<TexCache::iterator, TexCache::iterator> decoded_iter_range = textures.equal_range(paletteDecodedID);
-					while (decoded_iter_range.first != decoded_iter_range.second)
-					{
-						// Pool this texture and make a new one later.
-						FreeTexture(decoded_iter_range.first->second);
-						decoded_iter_range.first = textures.erase(decoded_iter_range.first);
-					}
+				if (!isPaletteTexture || !g_Config.backend_info.bSupportsPaletteConversion)
+					return ReturnEntry(stage, entry);
 
-					TCacheEntryBase *decoded_entry = AllocateTexture(entry->config);
-
-					decoded_entry->SetGeneralParameters(paletteDecodedID, texture_size, full_format);
-					decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
-					decoded_entry->SetHashes(TEXHASH_INVALID);
-					decoded_entry->frameCount = FRAMECOUNT_INVALID;
-
-					g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
-					textures.insert(TexCache::value_type(paletteDecodedID, decoded_entry));
-					entry = decoded_entry;
-				}
-				return ReturnEntry(stage, entry);
+				// Note that we found an unconverted EFB copy, then continue.  We'll
+				// perform the conversion later.  Currently, we only convert EFB copies to
+				// palette textures; we could do other conversions if it proved to be
+				// beneficial.
+				unconverted_copy = iter;
 			}
 			else
 			{
-				// Keeping an unused entry for an efb copy in the cache is pointless, because a new entry
-				// will be created in CopyRenderTargetToTexture
+				// Aggressively prune EFB copies: if it isn't useful here, it will probably
+				// never be useful again.  It's theoretically possible for a game to do
+				// something weird where the copy could become useful in the future, but in
+				// practice it doesn't happen.
 				FreeTexture(entry);
 				iter = textures.erase(iter);
 				continue;
@@ -449,6 +400,23 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			oldest_entry = iter;
 		}
 		++iter;
+	}
+
+	if (unconverted_copy != textures.end())
+	{
+		// Perform palette decoding.
+		TCacheEntryBase *entry = unconverted_copy->second;
+		TCacheEntryBase *decoded_entry = AllocateTexture(entry->config);
+
+		decoded_entry->SetGeneralParameters(address, texture_size, full_format);
+		decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
+		decoded_entry->SetHashes(tex_hash ^ tlut_hash);
+		decoded_entry->frameCount = FRAMECOUNT_INVALID;
+		decoded_entry->is_efb_copy = false;
+
+		g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
+		textures.insert(TexCache::value_type(address, decoded_entry));
+		return ReturnEntry(stage, decoded_entry);
 	}
 
 	// If at least one entry was not used for the same frame, overwrite the oldest one
@@ -513,11 +481,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	TCacheEntryBase* entry = AllocateTexture(config);
 	GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 
-	textures.insert(TexCache::value_type(isPaletteTexture ? paletteDecodedID : texID, entry));
+	textures.insert(TexCache::value_type(address, entry));
 
-	entry->SetGeneralParameters(isPaletteTexture ? paletteDecodedID : texID, texture_size, full_format);
+	entry->SetGeneralParameters(address, texture_size, full_format);
 	entry->SetDimensions(nativeW, nativeH, tex_levels);
 	entry->hash = tex_hash ^ tlut_hash;
+	entry->is_efb_copy = false;
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0);
@@ -873,7 +842,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
 	// remove all texture cache entries at dstAddr
-	std::pair <TexCache::iterator, TexCache::iterator> iter_range = textures.equal_range(TextureAddress::Mem(dstAddr));
+	std::pair <TexCache::iterator, TexCache::iterator> iter_range = textures.equal_range(dstAddr);
 	TexCache::iterator iter = iter_range.first;
 	while (iter != iter_range.second)
 	{
@@ -891,15 +860,16 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase* entry = AllocateTexture(config);
 
 	// TODO: Using the wrong dstFormat, dumb...
-	entry->SetGeneralParameters(TextureAddress::Mem(dstAddr), 0, dstFormat);
+	entry->SetGeneralParameters(dstAddr, 0, dstFormat);
 	entry->SetDimensions(tex_w, tex_h, 1);
 	entry->SetHashes(TEXHASH_INVALID);
 
 	entry->frameCount = FRAMECOUNT_INVALID;
+	entry->is_efb_copy = true;
 
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
-	textures.insert(TexCache::value_type(TextureAddress::Mem(dstAddr), entry));
+	textures.insert(TexCache::value_type(dstAddr, entry));
 }
 
 TextureCache::TCacheEntryBase* TextureCache::AllocateTexture(const TCacheEntryConfig& config)
