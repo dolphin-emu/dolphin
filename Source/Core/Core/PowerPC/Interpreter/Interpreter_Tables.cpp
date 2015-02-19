@@ -31,7 +31,7 @@ static GekkoOPTemplate primarytable[] =
 	{3,  Interpreter::twi,          {"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK, 1, 0, 0, 0}},
 	{17, Interpreter::sc,           {"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 2, 0, 0, 0}},
 
-	{7,  Interpreter::mulli,        {"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 3, 0, 0, 0}},
+	{7,  Interpreter::mulli,        {"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A, 3, 0, 0, 0}},
 	{8,  Interpreter::subfic,       {"subfic",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA, 1, 0, 0, 0}},
 	{10, Interpreter::cmpli,        {"cmpli",    OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn, 1, 0, 0, 0}},
 	{11, Interpreter::cmpi,         {"cmpi",     OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn, 1, 0, 0, 0}},

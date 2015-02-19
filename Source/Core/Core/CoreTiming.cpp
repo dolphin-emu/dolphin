@@ -234,8 +234,14 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	tsQueue.Push(ne);
 }
 
+// Executes an event immediately, then returns.
+void ScheduleEvent_Immediate(int event_type, u64 userdata)
+{
+	event_types[event_type].callback(userdata, 0);
+}
+
 // Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
-// in which case the event will get handled immediately, before returning.
+// in which case this is the same as ScheduleEvent_Immediate.
 void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
 	if (Core::IsCPUThread())

@@ -43,11 +43,11 @@ void DoState(PointerWrap &p);
 int RegisterEvent(const std::string& name, TimedCallback callback);
 void UnregisterAllEvents();
 
-// userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from disk,
-// when we implement state saves.
-void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata=0);
-void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata=0);
-void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata=0);
+// userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from savestates.
+void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata = 0);
+void ScheduleEvent_Immediate(int event_type, u64 userdata = 0);
+void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata = 0);
+void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata = 0);
 
 // We only permit one event of each type in the queue at a time.
 void RemoveEvent(int event_type);

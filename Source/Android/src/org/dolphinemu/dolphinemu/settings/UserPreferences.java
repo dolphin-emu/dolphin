@@ -61,7 +61,7 @@ public final class UserPreferences
 		editor.putBoolean("forceTextureFiltering", getConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", "False").equals("True"));
 		editor.putBoolean("disableFog",            getConfig("gfx_opengl.ini", "Settings", "DisableFog", "False").equals("True"));
 		editor.putBoolean("skipEFBAccess",         getConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", "False").equals("True"));
-		editor.putBoolean("ignoreFormatChanges",   getConfig("gfx_opengl.ini", "Hacks", "EFBEmulateFormatChanges", "False").equals("False"));
+		editor.putBoolean("ignoreFormatChanges",   getConfig("gfx_opengl.ini", "Hacks", "EFBEmulateFormatChanges", "False").equals("True"));
 		editor.putString("stereoscopyMode", getConfig("gfx_opengl.ini", "Enhancements", "StereoMode", "0"));
 		editor.putBoolean("stereoSwapEyes",        getConfig("gfx_opengl.ini", "Enhancements", "StereoSwapEyes", "False").equals("True"));
 		editor.putString("stereoDepth",            getConfig("gfx_opengl.ini", "Enhancements", "StereoDepth", "20"));
