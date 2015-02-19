@@ -192,6 +192,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "int3 iround(float3 x) { return int3(round(x)); }\n"
 	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
+	out.Write("int  itrunc(float  x) { return int (trunc(x)); }\n"
+	          "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
+	          "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
+	          "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
+
+
 	if (ApiType == API_OPENGL)
 	{
 		// Declare samplers
@@ -430,7 +436,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS+numTexgen-1);
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
-			out.Write("\tint2 fixpoint_uv%d = iround(", i);
+			out.Write("\tint2 fixpoint_uv%d = itrunc(", i);
 			// optional perspective divides
 			uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
 			if (xfmem.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
