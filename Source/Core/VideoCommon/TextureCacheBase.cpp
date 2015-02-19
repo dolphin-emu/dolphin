@@ -406,7 +406,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 	{
 		// Perform palette decoding.
 		TCacheEntryBase *entry = unconverted_copy->second;
-		TCacheEntryBase *decoded_entry = AllocateTexture(entry->config);
+
+		TCacheEntryConfig config;
+		config.rendertarget = true;
+		config.width = entry->config.width;
+		config.height = entry->config.height;
+		config.layers = FramebufferManagerBase::GetEFBLayers();
+		TCacheEntryBase *decoded_entry = AllocateTexture(config);
 
 		decoded_entry->SetGeneralParameters(address, texture_size, full_format);
 		decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
