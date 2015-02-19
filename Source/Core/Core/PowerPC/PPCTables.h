@@ -105,8 +105,6 @@ extern int m_numInstructions;
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
 
-class cJit64;
-
 namespace PPCTables
 {
 
