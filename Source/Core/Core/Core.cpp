@@ -395,7 +395,7 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (core_parameter.iCPUCore != SCoreStartupParameter::CORE_INTERPRETER
+	if (core_parameter.iCPUCore != PowerPC::CORE_INTERPRETER
 	    && (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
 	{
 		PowerPC::SetMode(PowerPC::MODE_JIT);
