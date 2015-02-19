@@ -136,6 +136,9 @@
     <Filter Include="PowerPC\JitILCommon">
       <UniqueIdentifier>{827afa93-1a80-4835-93ae-b5516d95867f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PowerPC\Jit64Common">
+      <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -632,9 +635,6 @@
     <ClCompile Include="PowerPC\SignatureDB.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
-      <Filter>PowerPC\Jit64Common</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -716,8 +716,6 @@
     <ClCompile Include="PowerPC\JitILCommon\IR.cpp">
       <Filter>PowerPC\JitILCommon</Filter>
     </ClCompile>
-    <ClCompile Include="HW\SI_GCAdapter.cpp" />
-    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp" />
     <ClCompile Include="HW\GCKeyboardEmu.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClCompile>
@@ -726,6 +724,15 @@
     </ClCompile>
     <ClCompile Include="PowerPC\MMU.cpp">
       <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_GCAdapter.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1195,9 +1202,6 @@
     <ClInclude Include="PowerPC\SignatureDB.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
-      <Filter>PowerPC\Jit64Common</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
@@ -1231,13 +1235,18 @@
     <ClInclude Include="PowerPC\JitILCommon\IR.h">
       <Filter>PowerPC\JitILCommon</Filter>
     </ClInclude>
-    <ClInclude Include="HW\SI_GCAdapter.h" />
     <ClInclude Include="MachineContext.h" />
     <ClInclude Include="HW\GCKeyboardEmu.h">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCKeyboard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_GCAdapter.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
+      <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
