@@ -111,10 +111,8 @@ void EmulateSwing(AccelData* const accel
 
 inline double trim(double a)
 {
-	if (a<=0)
-		return 0;
-	if (a>=255)
-		return 255;
+	if (a<=0) return 0;
+	if (a>=255) return 255;
 	return a;
 }
 
@@ -127,6 +125,13 @@ inline u32 trim10bit(double a)
 		return 1023;
 	return (u32)a*4;
 }
+
+enum
+{
+	ACCEL_ZERO_G = 0x80,
+	ACCEL_ONE_G = 0x9A,
+	ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
+};
 
 class Wiimote : public ControllerEmu
 {
@@ -147,13 +152,6 @@ public:
 		BUTTON_A     = 0x0800,
 		BUTTON_MINUS = 0x1000,
 		BUTTON_HOME  = 0x8000,
-	};
-
-	enum
-	{
-		ACCEL_ZERO_G = 0x80,
-		ACCEL_ONE_G = 0x9A,
-		ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
 	};
 
 	Wiimote(const unsigned int index);

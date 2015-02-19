@@ -390,7 +390,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 			}
 			else if (accessSize == 32)
 			{
-				m_float_emit.FCVT(32, 64, Q0, V0);
+				m_float_emit.FCVT(32, 64, D0, EncodeRegToDouble(V0));
 				m_float_emit.REV32(8, D0, D0);
 				m_float_emit.STR(32, INDEX_UNSIGNED, D0, X1, 0);
 			}

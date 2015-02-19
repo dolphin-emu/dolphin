@@ -135,7 +135,7 @@ private:
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
 	static void FreeTexture(TCacheEntryBase* entry);
 
-	typedef std::map<u32, TCacheEntryBase*> TexCache;
+	typedef std::multimap<u32, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
 
 	static TexCache textures;
