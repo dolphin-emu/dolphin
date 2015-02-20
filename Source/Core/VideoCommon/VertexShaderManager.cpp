@@ -61,10 +61,6 @@ int debug_projNum = 0;
 float debug_projList[64][7] = { 0 };
 bool debug_newScene = true, debug_nextScene = false;
 int vr_widest_3d_projNum = -1;
-float vr_widest_3d_HFOV = 0;
-float vr_widest_3d_VFOV = 0;
-float vr_widest_3d_zNear = 0;
-float vr_widest_3d_zFar = 0;
 EFBRectangle g_final_screen_region = EFBRectangle(0, 0, 640, 528);
 EFBRectangle g_requested_viewport = EFBRectangle(0, 0, 640, 528), g_rendered_viewport = EFBRectangle(0, 0, 640, 528);
 enum ViewportType g_viewport_type = VIEW_FULLSCREEN, g_old_viewport_type = VIEW_FULLSCREEN;
@@ -952,8 +948,8 @@ void VertexShaderManager::SetProjectionConstants()
 	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4 && g_ActiveConfig.iVRPlayer!=g_viewport_type-VIEW_PLAYER_1)));
 	// flash selected layer for debugging
 	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
-	// hide skybox to reduce motion sickness
-	bHide = bHide || (g_is_skybox && g_ActiveConfig.iMotionSicknessSkybox == 1);
+	// hide skybox or everything to reduce motion sickness
+	bHide = bHide || (g_is_skybox && g_ActiveConfig.iMotionSicknessSkybox == 1) || g_vr_black_screen;
 
 	// Split WidthHack and HeightHack into left and right versions for telescopes
 	float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
@@ -1916,7 +1912,10 @@ void VertexShaderManager::TranslateView(float left_metres, float forward_metres,
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 
 	for (int i = 0; i < 3; i++)
+	{
 		s_fViewTranslationVector[i] += result[i];
+		vr_freelook_speed += result[i];
+	}
 
 	if (s_fViewTranslationVector[0] || s_fViewTranslationVector[1] || s_fViewTranslationVector[2])
 		bFreeLookChanged = true;

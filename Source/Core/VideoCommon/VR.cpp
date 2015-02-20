@@ -46,7 +46,12 @@ float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
 float g_vr_speed = 0;
-bool g_fov_changed = false;
+float vr_freelook_speed = 0;
+bool g_fov_changed = false, g_vr_black_screen = false;
+float vr_widest_3d_HFOV = 0;
+float vr_widest_3d_VFOV = 0;
+float vr_widest_3d_zNear = 0;
+float vr_widest_3d_zFar = 0;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -95,14 +100,27 @@ void NewVRFrame()
 			g_vr_speed += HydraTLayer::vr_gc_leftstick_speed + HydraTLayer::vr_wm_leftstick_speed;
 		if (g_ActiveConfig.bMotionSicknessRightStick)
 			g_vr_speed += HydraTLayer::vr_gc_rightstick_speed + HydraTLayer::vr_wm_rightstick_speed;
+		if (g_ActiveConfig.bMotionSickness2D && vr_widest_3d_HFOV <= 0)
+			g_vr_speed += 1.0f;
+		if (g_ActiveConfig.bMotionSicknessIR)
+			g_vr_speed += HydraTLayer::vr_ir_speed;
+		if (g_ActiveConfig.bMotionSicknessFreelook)
+			g_vr_speed += vr_freelook_speed;
+		vr_freelook_speed = 0;
+	}
+	if (g_has_hmd && g_ActiveConfig.iMotionSicknessMethod == 2)
+	{
+		// black the screen if we are moving fast
+		g_vr_black_screen = (g_vr_speed > 0.15f);
 	}
 #ifdef HAVE_OCULUSSDK
-	if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1)
+	else if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1)
 	{
+		g_vr_black_screen = false;
 		// reduce the FOV if we are moving fast
 		if (g_vr_speed > 0.15f)
 		{
-			float t = tan(g_ActiveConfig.fMotionSicknessFOV / 2);
+			float t = tan(DEGREES_TO_RADIANS(g_ActiveConfig.fMotionSicknessFOV / 2));
 			g_eye_fov[0].LeftTan = std::min(g_best_eye_fov[0].LeftTan, t);
 			g_eye_fov[0].RightTan = std::min(g_best_eye_fov[0].RightTan, t);
 			g_eye_fov[0].UpTan = std::min(g_best_eye_fov[0].UpTan, t);
@@ -120,6 +138,10 @@ void NewVRFrame()
 		memcpy(g_last_eye_fov, g_eye_fov, 2 * sizeof(g_eye_fov[0]));
 	}
 #endif
+	else
+	{
+		g_vr_black_screen = false;
+	}
 }
 
 void InitVR()

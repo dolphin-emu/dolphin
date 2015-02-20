@@ -450,7 +450,7 @@ void CConfigVR::CreateGUIControls()
 
 		// Sky / Background
 		{
-			const wxString vr_choices[] = { _("normal"), _("hide"), _("lock"), };
+			const wxString vr_choices[] = { _("normal"), _("hide") };
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Sky / Background:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessSkybox, wxGetTranslation(hideskybox_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
