@@ -369,8 +369,12 @@ void VertexShaderManager::SetConstants()
 		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
 		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
 		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
-		constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
-		constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
+		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
+		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
+		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
+		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
+
+
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();

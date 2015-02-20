@@ -521,9 +521,8 @@ void Renderer::SetViewport()
 	Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
 	Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-		std::max(0.0f, std::min(1.0f, 1.0f - xfmem.viewport.farZ / 16777216.0f)),
-		std::max(0.0f, std::min(1.0f, 1.0f - (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f)));
+	// handle depth it in the vertex shader
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, .0f, 1.f);
 	D3D::context->RSSetViewports(1, &vp);
 }
 
