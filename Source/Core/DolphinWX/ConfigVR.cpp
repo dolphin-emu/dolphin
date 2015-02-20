@@ -658,36 +658,35 @@ void CConfigVR::CreateGUIControls()
 			//Create "Device" box, and all buttons/options within it/
 			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Instructions"));
 
-			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,  
+			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,
 				_("Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
 				"guide to help.\n\nDirect mode is working, but the performance on many games is poor. It is recommended to run in "
-				"extended mode! If you do run in direct mode, make sure Aero is enabled. The only judder free configuration for direct mode "
-				"found so far is  'dual core determinism' set to 'fake-completion', the mirrored window enabled, and "
-				"the mirrored window manually resized to 0 pixels by 0 pixles. Testing has been limited so your mileage may vary."
+				"extended mode! If you do run in direct mode, make sure Aero is enabled. The only judder free configurations for direct mode "
+				"found so far are either 'dual core determinism' set to 'fake-completion' or 'synchronize GPU thread' enabled. The mirrored window must also "
+				"be enabled and manually resized to 0 pixels by 0 pixles. Testing has been limited so your mileage may vary."
 				"\n\nIn the 'Config' tab, 'Framelimit' should be set to match your Rift's refresh rate (most likely 75fps). "
-				"Games will run 25% too fast, but this will avoid judder. There are two options available to bring the game frame rate back down "
+				"Games will run 25% too fast, but this will avoid judder. There are two options available to bring the game frame rate back down to "
 				"normal speed. The first is the 'Opcode Replay Buffer', which rerenders game frames so headtracking runs at 75fps forcing "
-				"the game to maintain its normal speed.  This feature only currently works in around 50% of games, but is the preferred "
+				"the game to maintain its normal speed.  This feature only currently works in around 60% of games, but is the preferred "
 				"method.  Synchronous timewarp smudges the image to fake head-tracking at a higher rate.  This can be tried if 'Opcode Replay Buffer' fails "
 				"but sometimes introduces artifacts and may judder depending on the game. As a last resort, the the Rift can be "
 				"set to run at 60hz from your AMD/Nvidia control panel and still run with low persistence, but flickering can be seen "
 				"in bright scenes. Different games run at differnet frame-rates, so choose the correct opcode replay/timewarp setting for the game.\n\n"
 				"Under Graphics->Hacks->EFB Copies, 'Disable' and 'Remove Blank EFB Copy Box' can fix many games "
 				"that display black, or large black boxes that can't be removed by the 'Hide Objects Codes. It can also cause "
-				"corruption in some games, so try it both ways.\n\n"
-				"Right-clicking on each game will give you the options to adjust VR settings, and remove rendered objects. "
+				"corruption in some games, so only enable it if it's needed.\n\n"
+				"Right-clicking on each game will give you the options to adjust VR settings, remove rendered objects, and in "
+				"a limited number of games, AR codes, which can be used to disable culling. "
 				"Objects such as fake 16:9 bars can be removed from the game.  Some games already have hide objects codes, "
 				"so make sure to check them if you would like the object removed.  You can find your own codes by starting "
 				"with an 8-bit code and clicking the up button until the object disappears.  Then move to 16bit, add two zeros "
 				"to the right side of your 8bit code, and continue hitting the up button until the object disappears again. "
-				"Continue until you have a long enough code for it to be unique.\n\nThere are also AR codes that disable culling "
-				"for a small amount of games.  Make sure to check the AR codes to see if this is an option for the game you are playing"
-				"\n\nTake time to set "
+				"Continue until you have a long enough code for it to be unique.\n\nTake time to set "
 				"the VR-Hotkeys. You can create combinations for XInput by right clicking on the buttons. Remember you can also set "
 				"a the gamecube/wii controller emulation to not happen during a certain button press, so setting freelook to 'Left "
-				"Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. The "
-				"freelook step size varies per game, so play with the 'Freelook Sensitivity' option to set it right for your game.\n\n"
-				"Enjoy and watch for new updates, because we're making progress fast!"));
+				"Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. If you're "
+				"changing the scale in game, use the 'global scale' instead of 'units per metre' to maintain a consistent free look step size.\n\n"
+				"Enjoy and watch for new updates!"));
 
 			instruction_box->Wrap(630);
 
