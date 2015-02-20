@@ -343,9 +343,10 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 	u64 dma_in_progress = DSP::DMAInProgress();
 	if (dma_in_progress != 0)
 	{
-		u32 start_addr = (dma_in_progress >> 32) & Memory::RAM_MASK;
-		u32 end_addr = (dma_in_progress & Memory::RAM_MASK) & 0xffffffff;
-		u32 invalidated_addr = (address & Memory::RAM_MASK) & ~0x1f;
+		u32 start_addr = (u32)(dma_in_progress >> 32);
+		u32 end_addr = (u32)(dma_in_progress);
+		// TODO: perform real address translation on address.
+		u32 invalidated_addr = (address & 0x1FFFFFFF) & ~0x1f;
 
 		if (invalidated_addr >= start_addr && invalidated_addr <= end_addr)
 		{

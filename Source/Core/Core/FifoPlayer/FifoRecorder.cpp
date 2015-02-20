@@ -23,7 +23,7 @@ FifoRecorder::FifoRecorder() :
 	m_SkipNextData(true),
 	m_SkipFutureData(true),
 	m_FrameEnded(false),
-	m_Ram(Memory::RAM_SIZE),
+	m_Ram(Memory::REALRAM_SIZE),
 	m_ExRam(Memory::EXRAM_SIZE)
 {
 }
@@ -105,15 +105,19 @@ void FifoRecorder::WriteMemory(u32 address, u32 size, MemoryUpdate::Type type)
 {
 	u8 *curData;
 	u8 *newData;
-	if (address & 0x10000000)
+	if ((address & 0x10000000) != 0 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
 	{
-		curData = &m_ExRam[address & Memory::EXRAM_MASK];
-		newData = &Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
+		curData = &m_ExRam[address & 0x0FFFFFFF];
+		newData = &Memory::m_pEXRAM[address & 0x0FFFFFFF];
+	}
+	else if ((address & 0x10000000) == 0 && (address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
+	{
+		curData = &m_Ram[address & 0x0FFFFFFF];
+		newData = &Memory::m_pRAM[address & 0x0FFFFFFF];
 	}
 	else
 	{
-		curData = &m_Ram[address & Memory::RAM_MASK];
-		newData = &Memory::m_pRAM[address & Memory::RAM_MASK];
+		return;
 	}
 
 	if (memcmp(curData, newData, size) != 0)
