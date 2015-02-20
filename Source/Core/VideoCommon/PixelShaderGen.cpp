@@ -149,6 +149,8 @@ template<class T> static inline void WritePerPixelDepth(T& out, pixel_shader_uid
 template<class T>
 static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
+	bool bUseFastDepth = g_ActiveConfig.bFastDepthCalc || ApiType == API_D3D;
+
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
 	pixel_shader_uid_data* uid_data = out.template GetUidData<pixel_shader_uid_data>();
@@ -272,11 +274,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
-	                            && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
+	                            && (bUseFastDepth || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
 	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
 	                            // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
 	                            && !bpmem.genMode.zfreeze;
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!bUseFastDepth && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
 
 	if (forced_early_z)
 	{
@@ -300,7 +302,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			out.Write("[earlydepthstencil]\n");
 		}
 	}
-	else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
+	else if (bpmem.UseEarlyDepthTest() && (bUseFastDepth || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
 	{
 		static bool warn_once = true;
 		if (warn_once)
@@ -527,7 +529,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// For disabled FastDepth we just calculate the depth value again.
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
-	if (g_ActiveConfig.bFastDepthCalc)
+	if (bUseFastDepth)
 	{
 		out.Write("\tint zCoord = 0xFFFFFF - iround(rawpos.z * float(0xFFFFFF));\n");
 		out.Write("zCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
@@ -545,7 +547,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	uid_data->ztex_op = bpmem.ztex2.op;
 	uid_data->per_pixel_depth = per_pixel_depth;
 	uid_data->forced_early_z = forced_early_z;
-	uid_data->fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
+	uid_data->fast_depth_calc = bUseFastDepth;
 	uid_data->early_ztest = bpmem.UseEarlyDepthTest();
 	uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 	uid_data->zfreeze = bpmem.genMode.zfreeze;
