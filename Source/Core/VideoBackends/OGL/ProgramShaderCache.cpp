@@ -528,6 +528,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // storage buffer
 		"%s\n" // shader5
 		"%s\n" // AEP
+		"%s\n" // texture buffer
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -563,6 +564,7 @@ void ProgramShaderCache::CreateHeader()
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
 		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
+		, v<GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""
