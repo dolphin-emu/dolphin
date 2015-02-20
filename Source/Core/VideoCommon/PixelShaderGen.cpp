@@ -275,8 +275,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	                            && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
 	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
 	                            // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
-	                            && !bpmem.genMode.zfreeze;
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
+	                            && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest())
+	                             || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z)
+	                             || (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
 	if (forced_early_z)
 	{
@@ -369,7 +371,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("void main(\n");
 		out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-			(per_pixel_depth && bpmem.zmode.testenable) ? "\n  out float depth : SV_Depth," : "");
+			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
 		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
 		out.Write("  in centroid float4 colors_1 : COLOR1\n");
