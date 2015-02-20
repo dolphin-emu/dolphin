@@ -434,12 +434,12 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
-	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
+	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_RGBA, width, height);
 
-	// Convert image from BGR24 to desired pixel format, and scale to initial
+	// Convert image from RGBA to desired pixel format, and scale to initial
 	// width and height
 	if ((s_sws_context = sws_getCachedContext(s_sws_context,
-	                                          width, height, AV_PIX_FMT_BGR24,
+	                                          width, height, AV_PIX_FMT_RGBA,
 	                                          s_width, s_height, s_stream->codec->pix_fmt,
 	                                          SWS_BICUBIC, nullptr, nullptr, nullptr)))
 	{
