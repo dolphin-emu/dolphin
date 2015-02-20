@@ -159,6 +159,13 @@ private:
 - Empty-bodied loops should use braces after their header, not a semicolon.
   - Yes: `while (condition) {}`
   - No: `while (condition);`
+- For do-while loops, place 'while' on the same line as the closing brackets
+
+  ```c++
+  do
+  {
+  } while (false);
+  ```
 
 ### Functions
 - If a function parameter is a pointer or reference and its value or data isn't intended to be changed, please mark that parameter as `const`.
