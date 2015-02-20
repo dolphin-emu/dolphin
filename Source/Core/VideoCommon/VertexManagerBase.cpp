@@ -209,6 +209,7 @@ void VertexManager::Flush()
 				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 					usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
+		TextureCache::UnbindTextures();
 		for (unsigned int i : usedtextures)
 		{
 			g_renderer->SetSamplerState(i & 3, i >> 2);
@@ -224,6 +225,7 @@ void VertexManager::Flush()
 				ERROR_LOG(VIDEO, "error loading texture");
 			}
 		}
+		TextureCache::BindTextures();
 	}
 
 	// set global vertex constants
