@@ -8,6 +8,7 @@
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SI.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "DiscIO/NANDContentLoader.h"
 
 SConfig* SConfig::m_Instance;
@@ -728,13 +729,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 
 	core->Get("HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
 #ifdef _M_X86
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JIT64);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JIT64);
 #elif _M_ARM_32
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JITARM);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JITARM);
 #elif _M_ARM_64
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JITARM64);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JITARM64);
 #else
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_INTERPRETER);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_INTERPRETER);
 #endif
 	core->Get("Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
 	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.bDSPHLE,       true);

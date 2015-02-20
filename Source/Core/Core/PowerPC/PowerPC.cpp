@@ -143,18 +143,17 @@ void Init(int cpu_core)
 
 	switch (cpu_core)
 	{
-		case 0:
+	case PowerPC::CORE_INTERPRETER:
+		cpu_core_base = interpreter;
+		break;
+
+	default:
+		cpu_core_base = JitInterface::InitJitCore(cpu_core);
+		if (!cpu_core_base) // Handle Situations where JIT core isn't available
 		{
+			WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
 			cpu_core_base = interpreter;
-			break;
 		}
-		default:
-			cpu_core_base = JitInterface::InitJitCore(cpu_core);
-			if (!cpu_core_base) // Handle Situations where JIT core isn't available
-			{
-				WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
-				cpu_core_base = interpreter;
-			}
 		break;
 	}
 

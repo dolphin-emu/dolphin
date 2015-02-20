@@ -17,10 +17,10 @@ enum
 	FL_SET_CA          = (1<<3),  // Sets the carry flag.
 	FL_READ_CA         = (1<<4),  // Reads the carry flag.
 	FL_RC_BIT          = (1<<5),  // Sets the record bit.
-	FL_RC_BIT_F        = (1<<6),  // Sets the record bit. Used for floatig point instructions that do this.
-	FL_ENDBLOCK        = (1<<7),  // Specifies the end of a JIT block.
+	FL_RC_BIT_F        = (1<<6),  // Sets the record bit. Used for floating point instructions that do this.
+	FL_ENDBLOCK        = (1<<7),  // Specifies that the instruction can be used as an exit point for a JIT block.
 	FL_IN_A            = (1<<8),  // Uses rA as an input.
-	FL_IN_A0           = (1<<9),  // Uses rA as an input. Indicates when rA is used with an instruction, it's treated as if it has the value zero in it.
+	FL_IN_A0           = (1<<9),  // Uses rA as an input. Indicates that if rA is zero, the value zero is used, not the contents of r0.
 	FL_IN_B            = (1<<10), // Uses rB as an input.
 	FL_IN_C            = (1<<11), // Uses rC as an input.
 	FL_IN_S            = (1<<12), // Uses rS as an input.
@@ -104,8 +104,6 @@ extern int m_numInstructions;
 
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
-
-class cJit64;
 
 namespace PPCTables
 {

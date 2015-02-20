@@ -181,14 +181,6 @@ struct SCoreStartupParameter
 	bool bAutomaticStart;
 	bool bBootToPause;
 
-	enum
-	{
-		CORE_INTERPRETER,
-		CORE_JIT64,
-		CORE_JITIL64,
-		CORE_JITARM,
-		CORE_JITARM64
-	};
 	int iCPUCore;
 
 	// JIT (shared between JIT and JITIL)

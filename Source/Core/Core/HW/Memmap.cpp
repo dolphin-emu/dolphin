@@ -118,7 +118,8 @@ bool IsInitialized()
 // with address translation turned off. (This is only used by the CPU;
 // other devices, like the GPU, use other rules, approximated by
 // Memory::GetPointer.) This memory is laid out as follows:
-// [0x00000000, 0x01800000) - 24MB RAM
+// [0x00000000, 0x02000000) - 32MB RAM
+// [0x02000000, 0x08000000) - Mirrors of 32MB RAM
 // [0x08000000, 0x0C000000) - EFB "mapping" (not handled here)
 // [0x0C000000, 0x0E000000) - MMIO etc. (not handled here)
 // [0x10000000, 0x14000000) - 64MB RAM (Wii-only; slightly slower)
@@ -127,13 +128,16 @@ bool IsInitialized()
 // with address translation turned on.  Instead of changing the mapping
 // based on the BAT registers, we approximate the common BAT configuration
 // used by games:
-// [0x00000000, 0x01800000) - 24MB RAM, cached access, normally only mapped
+// [0x00000000, 0x02000000) - 32MB RAM, cached access, normally only mapped
 //                            during startup by Wii WADs
+// [0x02000000, 0x08000000) - Mirrors of 32MB RAM (not implemented here)
 // [0x40000000, 0x50000000) - FakeVMEM
 // [0x70000000, 0x80000000) - FakeVMEM
-// [0x80000000, 0x81800000) - 24MB RAM, cached access
+// [0x80000000, 0x82000000) - 32MB RAM, cached access
+// [0x82000000, 0x88000000) - Mirrors of 32MB RAM (not implemented here)
 // [0x90000000, 0x94000000) - 64MB RAM, Wii-only, cached access
-// [0xC0000000, 0xC1800000) - 24MB RAM, uncached access
+// [0xC0000000, 0xC2000000) - 32MB RAM, uncached access
+// [0xC2000000, 0xC8000000) - Mirrors of 32MB RAM (not implemented here)
 // [0xC8000000, 0xCC000000) - EFB "mapping" (not handled here)
 // [0xCC000000, 0xCE000000) - MMIO etc. (not handled here)
 // [0xD0000000, 0xD4000000) - 64MB RAM, Wii-only, uncached access
@@ -145,7 +149,16 @@ bool IsInitialized()
 // Each of these 4GB regions is followed by 4GB of empty space so overflows
 // in address computation in the JIT don't access the wrong memory.
 //
+// The neighboring mirrors of RAM ([0x02000000, 0x08000000), etc.) exist because
+// the bus masks off the bits in question for RAM accesses; using them is a
+// terrible idea because the CPU cache won't handle them correctly, but a
+// few buggy games (notably Rogue Squadron 2) use them by accident. They
+// aren't backed by memory mappings because they are used very rarely.
+//
 // Dolphin doesn't emulate the difference between cached and uncached access.
+//
+// TODO: The actual size of RAM is REALRAM_SIZE (24MB); the other 8MB shouldn't
+// be backed by actual memory.
 static MemoryView views[] =
 {
 	{&m_pRAM,      0x00000000, RAM_SIZE,      0},

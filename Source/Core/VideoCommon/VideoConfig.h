@@ -248,6 +248,7 @@ struct VideoConfig final
 		bool bSupportsBBox;
 		bool bSupportsGSInstancing; // Needed by GeometryShaderGen, so must stay in VideoCommon
 		bool bSupportsPostProcessing;
+		bool bSupportsPaletteConversion;
 	} backend_info;
 
 	// Utility
