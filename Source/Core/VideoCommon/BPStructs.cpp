@@ -231,7 +231,7 @@ static void BPWritten(const BPCmd& bp)
 				// So we want to copy a fraction of the whole screen, instead of a fraction of the viewport.
 				// Currently this will only work will copying the EFB to a texture.
 				if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport==g_requested_viewport) 
-					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bCopyEFBToTexture)
+					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bSkipEFBCopyToRam)
 				{
 					if (debug_newScene)
 						HACK_LOG(VR, "VR Resized EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 

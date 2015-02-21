@@ -1292,7 +1292,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			}
 			else
 			{
-				g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+				g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
 			}
 		}
 		else if (IsHotkey(event, HK_TOGGLE_FOG))
@@ -1878,7 +1878,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		}
 		else
 		{
-			g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+			g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
 		}
 	}
 	else if (IsHotkey(event, HK_TOGGLE_FOG))

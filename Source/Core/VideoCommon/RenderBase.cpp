@@ -385,7 +385,7 @@ void Renderer::DrawDebugText()
 		}
 
 		const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
-			(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
+			(g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM") : "Disabled";
 
 		// The rows
 		const std::string lines[] =

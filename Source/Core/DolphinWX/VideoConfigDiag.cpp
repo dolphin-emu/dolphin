@@ -144,6 +144,7 @@ static wxString efb_copy_desc = wxTRANSLATE("Disable emulation of EFB copies.\nT
 static wxString efb_copy_clear_desc = wxTRANSLATE("Disables the black box or screen that appears where an EFB copy should have been rendered.  Use only if you are seeing a black box or screen after disabling EFB copies, or if a game is not rendering properly.  May cause artifacts such as bad blending on shadows or phantom images.\n\nIf unsure, leave this unchecked.");
 static wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture objects.\nThis isn't particularly accurate, but it works well enough for most games and gives a great speedup over EFB to RAM.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nNumerous games depend on this for certain graphical effects or gameplay functionality.\nThis is much slower than EFB to Texture.\n\nIf unsure, check EFB to Texture instead.");
+static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE("Skip GPU synchronizing on EFB copies. Causes graphical defects in a small number of games.\n\nIf unsure, leave this checked.");
 static wxString stc_desc = wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates from RAM.\nLower accuracies cause in-game text to appear garbled in certain games.\n\nIf unsure, use the rightmost value.");
 static wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
 static wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
@@ -513,8 +514,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	SettingCheckBox* efbcopy_disable = CreateCheckBox(page_hacks, _("Disable"), wxGetTranslation(efb_copy_desc), vconfig.bEFBCopyEnable, true);
 	efbcopy_clear_disable = CreateCheckBox(page_hacks, _("Remove Blank EFB Copy Box"), wxGetTranslation(efb_copy_clear_desc), vconfig.bEFBCopyClearDisable, false);
-	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(efb_copy_texture_desc), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
-	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bCopyEFBToTexture, true);
+	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(skip_efb_copy_to_ram_desc), vconfig.bSkipEFBCopyToRam, false, wxRB_GROUP);
+	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bSkipEFBCopyToRam, true);
 
 	group_efbcopy->Add(efbcopy_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->Add(efbcopy_clear_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);

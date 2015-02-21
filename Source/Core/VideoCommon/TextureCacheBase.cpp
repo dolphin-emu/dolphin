@@ -363,7 +363,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			// EFB copies have slightly different rules: the hash doesn't need to match
 			// in EFB2Tex mode, and EFB copy formats have different meanings from texture
 			// formats.
-			if (g_ActiveConfig.bCopyEFBToTexture ||
+			if (g_ActiveConfig.bSkipEFBCopyToRam ||
 				(tex_hash == entry->hash && (!isPaletteTexture || g_Config.backend_info.bSupportsPaletteConversion)))
 			{
 				// TODO: We should check format/width/height/levels for EFB copies. Checking
