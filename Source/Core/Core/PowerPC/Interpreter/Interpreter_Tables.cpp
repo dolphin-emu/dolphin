@@ -264,7 +264,7 @@ static GekkoOPTemplate table31[] =
 
 	// Unused instructions on GC
 	{310, Interpreter::eciwx,       {"eciwx",   OPTYPE_SYSTEM, FL_IN_A0B | FL_OUT_D, 1, 0, 0, 0}},
-	{438, Interpreter::ecowx,       {"ecowx",   OPTYPE_SYSTEM, FL_IN_AB | FL_IN_S, 1, 0, 0, 0}},
+	{438, Interpreter::ecowx,       {"ecowx",   OPTYPE_SYSTEM, FL_IN_A0B | FL_IN_S, 1, 0, 0, 0}},
 	{854, Interpreter::eieio,       {"eieio",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
 	{306, Interpreter::tlbie,       {"tlbie",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
 	{370, Interpreter::tlbia,       {"tlbia",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
