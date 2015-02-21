@@ -24,6 +24,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/VideoBackendBase.h"
@@ -1020,6 +1021,14 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag fl
 	return TLB_NOTFOUND;
 }
 
+static void EvictInstructionTLBEntry(PowerPC::tlb_entry *tlbe, int index)
+{
+	if (tlbe->tag[index] == TLB_TAG_INVALID)
+		return;
+
+	JitInterface::EvictTLBEntry(tlbe->paddr[index]);
+}
+
 static __forceinline void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
 {
 	if (flag == FLAG_NO_EXCEPTION || flag == FLAG_OPCODE_NO_EXCEPTION)
@@ -1028,6 +1037,10 @@ static __forceinline void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, c
 	int tag = address >> HW_PAGE_INDEX_SHIFT;
 	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
 	int index = tlbe->recent == 0 && tlbe->tag[0] != TLB_TAG_INVALID;
+
+	if (IsOpcodeFlag(flag))
+		EvictInstructionTLBEntry(tlbe, index);
+
 	tlbe->recent = index;
 	tlbe->paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 	tlbe->pte[index] = PTE2.Hex;
@@ -1039,7 +1052,10 @@ void InvalidateTLBEntry(u32 address)
 	PowerPC::tlb_entry *tlbe = &PowerPC::ppcState.tlb[0][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
 	tlbe->tag[0] = TLB_TAG_INVALID;
 	tlbe->tag[1] = TLB_TAG_INVALID;
+
 	PowerPC::tlb_entry *tlbe_i = &PowerPC::ppcState.tlb[1][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+	EvictInstructionTLBEntry(tlbe_i, 0);
+	EvictInstructionTLBEntry(tlbe_i, 1);
 	tlbe_i->tag[0] = TLB_TAG_INVALID;
 	tlbe_i->tag[1] = TLB_TAG_INVALID;
 }

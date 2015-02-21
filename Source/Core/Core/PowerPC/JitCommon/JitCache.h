@@ -97,7 +97,6 @@ class JitBaseBlockCache
 	std::map<u32, u32> start_block_map; // start_addr -> number
 	ValidBlockBitSet valid_block;
 
-	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 	void LinkBlockExits(int i);
 	void LinkBlock(int i);
 	void UnlinkBlock(int i);
@@ -107,6 +106,7 @@ class JitBaseBlockCache
 	// Virtual for overloaded
 	virtual void WriteLinkBlock(u8* location, const u8* address) = 0;
 	virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
+	virtual void WriteUndestroyBlock(const u8* location, u32 address) = 0;
 
 public:
 	JitBaseBlockCache() : num_blocks(0)
@@ -136,8 +136,8 @@ public:
 
 	void MoveBlockIntoFastCache(u32 em_address);
 
-	// DOES NOT WORK CORRECTLY WITH INLINING
 	void InvalidateICache(u32 address, const u32 length, bool forced);
+	void EvictTLBEntry(u32 address);
 };
 
 // x86 BlockCache
@@ -146,4 +146,5 @@ class JitBlockCache : public JitBaseBlockCache
 private:
 	void WriteLinkBlock(u8* location, const u8* address) override;
 	void WriteDestroyBlock(const u8* location, u32 address) override;
+	void WriteUndestroyBlock(const u8* location, u32 address) override;
 };
