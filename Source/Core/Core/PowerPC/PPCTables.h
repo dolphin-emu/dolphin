@@ -51,7 +51,6 @@ enum
 	FL_IN_FLOAT_AC     = FL_IN_FLOAT_A | FL_IN_FLOAT_C,
 	FL_IN_FLOAT_ABC    = FL_IN_FLOAT_A | FL_IN_FLOAT_B | FL_IN_FLOAT_C,
 	FL_OUT_FLOAT_D     = (1<<28),  // frD is used as a destination.
-	FL_OUT_FLOAT_S     = (1<<29),  // frS is used as a destination.
 	// Used in the case of double ops (they don't modify the top half of the output)
 	FL_INOUT_FLOAT_D   = FL_IN_FLOAT_D | FL_OUT_FLOAT_D,
 };

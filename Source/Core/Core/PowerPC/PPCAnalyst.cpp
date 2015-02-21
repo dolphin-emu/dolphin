@@ -589,8 +589,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	code->fregOut = -1;
 	if (opinfo->flags & FL_OUT_FLOAT_D)
 		code->fregOut = code->inst.FD;
-	else if (opinfo->flags & FL_OUT_FLOAT_S)
-		code->fregOut = code->inst.FS;
+
 	code->fregsIn = BitSet32(0);
 	if (opinfo->flags & FL_IN_FLOAT_A)
 		code->fregsIn[code->inst.FA] = true;
