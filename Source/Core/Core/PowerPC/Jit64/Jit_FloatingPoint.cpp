@@ -359,6 +359,39 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 		output[3 - (next.CRBB & 3)] |= 1 << dst;
 	}
 
+	bool merge_branch = CheckMergedBranch(crf, js.skipInstructions + 1);
+	// True if we're taking the main path, false if we need to jump over it.
+	// e.g. with a non-forward-jump branch, true means going into the branch code,
+	// false means jumping to the end.
+	// Without branch merging, we default to the main path.
+	bool direction[4] = { true, true, true, true };
+	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
+	bool jumpInBlock = false;
+	u32 destination, nextPC;
+	if (merge_branch)
+	{
+		js.downcountAmount++;
+		js.skipInstructions++;
+		next = js.op[js.skipInstructions].inst;
+		nextPC = js.op[js.skipInstructions].address;
+		int test_bit = 8 >> (next.BI & 3);
+		bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
+		if (next.OPCD == 16 && cc && forwardJumps)
+		{
+			if (next.AA)
+				destination = SignExt16(next.BD << 2);
+			else
+				destination = nextPC + SignExt16(next.BD << 2);
+			jumpInBlock = destination > nextPC && destination < js.blockEnd;
+		}
+		// If condition, branch taken (direction = true) if test_bit is set.
+		// Otherwise, branch taken if test_bit is not set.
+		// Forward jumps inverts the conditions.
+		for (int i = 0; i < 4; i++)
+			direction[i] = !(output[i] & test_bit) ^ condition ^ jumpInBlock;
+	}
+
 	fpr.Lock(a, b);
 	fpr.BindToRegister(b, true, false);
 
@@ -379,7 +412,9 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 	}
 
 	FixupBranch pNaN, pLesser, pGreater;
-	FixupBranch continue1, continue2, continue3;
+	// In branch merging mode, the continue jumps go to the branch, not the end of the instruction.
+	FixupBranch pContinue[4];
+	bool continueBranch[4] = { false, false, false, false };
 
 	if (a != b)
 	{
@@ -388,7 +423,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 	}
 
 	// if (B != B) or (A != A), goto NaN's jump target
-	pNaN = J_CC(CC_P);
+	pNaN = J_CC(CC_P, true);
 
 	if (a != b)
 	{
@@ -400,39 +435,99 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_EQ_BIT])));
 	if (fprf)
 		OR(32, PPCSTATE(fpscr), Imm32(CR_EQ << FPRF_SHIFT));
+	// FIXME: if the jump is in the block, we have to store the CRval here before taking that path.
+	if (jumpInBlock && !direction[CR_EQ_BIT])
+		MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+	// We need a branch if this isn't the last case, or if we're not going directly into the branch.
+	if (a != b || !direction[CR_EQ_BIT])
+	{
+		pContinue[CR_EQ_BIT] = J(!direction[CR_EQ_BIT]);
+		continueBranch[CR_EQ_BIT] = true;
+	}
 
-	continue1 = J();
-
+	// NaN is an incredibly rare result, so put this branch in farcode.
+	SwitchToFarCode();
 	SetJumpTarget(pNaN);
 	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_SO_BIT])));
 	if (fprf)
 		OR(32, PPCSTATE(fpscr), Imm32(CR_SO << FPRF_SHIFT));
+	if (jumpInBlock && !direction[CR_SO_BIT])
+		MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+	pContinue[CR_SO_BIT] = J(true);
+	continueBranch[CR_SO_BIT] = true;
+	SwitchToNearCode();
 
 	if (a != b)
 	{
-		continue2 = J();
-
 		SetJumpTarget(pGreater);
 		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_GT_BIT])));
 		if (fprf)
 			OR(32, PPCSTATE(fpscr), Imm32(CR_GT << FPRF_SHIFT));
-		continue3 = J();
+		if (jumpInBlock && !direction[CR_GT_BIT])
+			MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+		pContinue[CR_GT_BIT] = J(!direction[CR_GT_BIT]);
+		continueBranch[CR_GT_BIT] = true;
 
 		SetJumpTarget(pLesser);
 		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_LT_BIT])));
 		if (fprf)
 			OR(32, PPCSTATE(fpscr), Imm32(CR_LT << FPRF_SHIFT));
+		if (!direction[CR_LT_BIT])
+		{
+			if (jumpInBlock)
+				MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+			pContinue[CR_LT_BIT] = J(true);
+			continueBranch[CR_LT_BIT] = true;
+		}
 	}
 
-	SetJumpTarget(continue1);
-	if (a != b)
-	{
-		SetJumpTarget(continue2);
-		SetJumpTarget(continue3);
-	}
-
-	MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
 	fpr.UnlockAll();
+
+	if (merge_branch)
+	{
+		if (jumpInBlock)
+		{
+			BranchTarget branchData = { {}, 0, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, &js.op[1] };
+			for (int i = 0; i < 4; i++)
+				if (continueBranch[i] && !direction[i])
+					branchData.sourceBranch[branchData.branchCount++] = pContinue[i];
+			branch_targets.insert(std::make_pair(destination, branchData));
+
+			for (int i = 0; i < 4; i++)
+				if (continueBranch[i] && direction[i])
+					SetJumpTarget(pContinue[i]);
+			MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+		}
+		else
+		{
+			for (int i = 0; i < 4; i++)
+				if (continueBranch[i] && direction[i])
+					SetJumpTarget(pContinue[i]);
+			MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+			gpr.Flush(FLUSH_MAINTAIN_STATE);
+			fpr.Flush(FLUSH_MAINTAIN_STATE);
+			DoMergedBranch(js.skipInstructions);
+			for (int i = 0; i < 4; i++)
+				if (continueBranch[i] && !direction[i])
+					SetJumpTarget(pContinue[i]);
+			MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+
+			if (!cc)
+			{
+				gpr.Flush();
+				fpr.Flush();
+				WriteExit(nextPC + 4);
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < 4; i++)
+			if (continueBranch[i])
+				SetJumpTarget(pContinue[i]);
+
+		MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+	}
 }
 
 void Jit64::fcmpx(UGeckoInstruction inst)

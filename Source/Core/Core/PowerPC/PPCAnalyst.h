@@ -204,7 +204,6 @@ public:
 		// Similar to complex blocks.
 		// Instead of jumping backwards, this jumps forwards within the block.
 		// Requires JIT support to work.
-		// XXX: NOT COMPLETE
 		OPTION_FORWARD_JUMP = (1 << 3),
 
 		// Reorder compare/Rc instructions next to their associated branches and

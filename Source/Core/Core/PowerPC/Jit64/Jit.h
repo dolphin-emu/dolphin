@@ -45,6 +45,19 @@ private:
 	GPRRegCache gpr;
 	FPURegCache fpr;
 
+	struct BranchTarget
+	{
+		Gen::FixupBranch sourceBranch[4];
+		int branchCount;
+		int downcountAmount;
+		int fifoBytesThisBlock;
+		bool firstFPInstructionFound;
+		GPRRegCache gpr;
+		FPURegCache fpr;
+		PPCAnalyst::CodeOp* sourceOp;
+	};
+	std::unordered_multimap<u32, BranchTarget> branch_targets;
+
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
 	PPCAnalyst::CodeBuffer code_buffer;
@@ -67,6 +80,8 @@ public:
 	void Shutdown() override;
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+
+	void DoForwardBranches(u32 address);
 
 	// Jit!
 
@@ -123,8 +138,8 @@ public:
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(int reg, int offset);
 	void AndWithMask(Gen::X64Reg reg, u32 mask);
-	bool CheckMergedBranch(int crf);
-	void DoMergedBranch();
+	bool CheckMergedBranch(int crf, int insts = 1);
+	void DoMergedBranch(int insts = 1);
 	void DoMergedBranchCondition();
 	void DoMergedBranchImmediate(s64 val);
 
