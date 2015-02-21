@@ -270,6 +270,7 @@ void InvalidateTLBEntry(u32 address);
 // memory access.  Does not consider page tables.
 bool IsOptimizableRAMAddress(const u32 address);
 u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize);
+bool IsOptimizableGatherPipeWrite(u32 address);
 
 }  // namespace
 

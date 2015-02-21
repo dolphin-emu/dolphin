@@ -763,6 +763,14 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 	return translated;
 }
 
+bool IsOptimizableGatherPipeWrite(u32 address)
+{
+	if (!UReg_MSR(MSR).DR)
+		return false;
+
+	return address == 0xCC008000;
+}
+
 // *********************************************************************************
 // Warning: Test Area
 //
