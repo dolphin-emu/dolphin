@@ -776,6 +776,15 @@ PFNGLPUSHDEBUGGROUPPROC glPushDebugGroup;
 PFNGLBUFFERSTORAGEPROC glBufferStorage;
 PFNGLNAMEDBUFFERSTORAGEEXTPROC glNamedBufferStorageEXT;
 
+// GL_NV_occlusion_query_samples
+PFNGLGENOCCLUSIONQUERIESNVPROC glGenOcclusionQueriesNV;
+PFNGLDELETEOCCLUSIONQUERIESNVPROC glDeleteOcclusionQueriesNV;
+PFNGLISOCCLUSIONQUERYNVPROC glIsOcclusionQueryNV;
+PFNGLBEGINOCCLUSIONQUERYNVPROC glBeginOcclusionQueryNV;
+PFNGLENDOCCLUSIONQUERYNVPROC glEndOcclusionQueryNV;
+PFNGLGETOCCLUSIONQUERYIVNVPROC glGetOcclusionQueryivNV;
+PFNGLGETOCCLUSIONQUERYUIVNVPROC glGetOcclusionQueryuivNV;
+
 // Creates a GLFunc object that requires a feature
 #define GLFUNC_REQUIRES(x, y) { (void**)&x, #x, y }
 // Creates a GLFunc object with a different function suffix
@@ -1253,6 +1262,15 @@ const GLFunc gl_function_array[] =
 
 	// EXT_geometry_shader
 	GLFUNC_SUFFIX(glFramebufferTexture, EXT, "GL_EXT_geometry_shader !VERSION_3_2"),
+
+	// NV_occlusion_query_samples
+	GLFUNC_REQUIRES(glGenOcclusionQueriesNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glDeleteOcclusionQueriesNV, "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glIsOcclusionQueryNV,       "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glBeginOcclusionQueryNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glEndOcclusionQueryNV,      "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glGetOcclusionQueryivNV,    "GL_NV_occlusion_query_samples"),
+	GLFUNC_REQUIRES(glGetOcclusionQueryuivNV,   "GL_NV_occlusion_query_samples"),
 
 	// gl_1_1
 	// OpenGL 1.1 is at the end due to a bug in Android's EGL stack.

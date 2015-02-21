@@ -31,6 +31,7 @@
 #include "VideoBackends/OGL/GLExtensions/gl_3_1.h"
 #include "VideoBackends/OGL/GLExtensions/gl_3_2.h"
 #include "VideoBackends/OGL/GLExtensions/KHR_debug.h"
+#include "VideoBackends/OGL/GLExtensions/NV_occlusion_query_samples.h"
 #include "VideoBackends/OGL/GLExtensions/NV_primitive_restart.h"
 
 namespace GLExtensions
