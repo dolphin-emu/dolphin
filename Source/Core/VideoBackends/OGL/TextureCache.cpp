@@ -197,7 +197,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	if (false == g_ActiveConfig.bCopyEFBToTexture)
+	if (!g_ActiveConfig.bSkipEFBCopyToRam)
 	{
 		int encoded_size = TextureConverter::EncodeToRamFromTexture(
 			dstAddr,
