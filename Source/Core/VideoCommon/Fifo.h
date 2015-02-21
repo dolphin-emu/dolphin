@@ -27,7 +27,6 @@ void Fifo_UpdateWantDeterminism(bool want);
 // Used for diagnostics.
 enum SyncGPUReason
 {
-	SYNC_GPU_NONE,
 	SYNC_GPU_OTHER,
 	SYNC_GPU_WRAPAROUND,
 	SYNC_GPU_EFB_POKE,
