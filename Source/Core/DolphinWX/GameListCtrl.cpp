@@ -462,24 +462,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		titlestxt.close();
 	}
 
-	std::string GameIni[3];
-	GameIni[0] = File::GetUserPath(D_GAMESETTINGS_IDX) + rISOFile.GetUniqueID() + ".ini";
-	GameIni[1] = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + rISOFile.GetUniqueID() + std::to_string(rISOFile.GetRevision()) + ".ini";
-	GameIni[2] = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + rISOFile.GetUniqueID() + ".ini";
 	std::string title;
-	IniFile gameini;
-	for (int i = 0; i < 3; ++i)
-	{
-		if (File::Exists(GameIni[i]))
-		{
-			gameini.Load(GameIni[i]);
-			if (gameini.GetIfExists("EmuState", "Title", &title))
-			{
-				name = title;
-				break;
-			}
-		}
-	}
+	IniFile gameini = SCoreStartupParameter::LoadGameIni(rISOFile.GetUniqueID(), rISOFile.GetRevision());
+	if (gameini.GetIfExists("EmuState", "Title", &title))
+		name = title;
 
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 

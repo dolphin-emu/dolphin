@@ -159,9 +159,10 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 void wxCheatsWindow::UpdateGUI()
 {
 	// load code
-	m_gameini_default = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
-	m_gameini_local = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
-	m_gameini_local_path = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal;
+	SCoreStartupParameter parameters = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	m_gameini_default = parameters.LoadDefaultGameIni();
+	m_gameini_local = parameters.LoadLocalGameIni();
+	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + parameters.GetUniqueID() + ".ini";
 	Load_ARCodes();
 	Load_GeckoCodes();
 

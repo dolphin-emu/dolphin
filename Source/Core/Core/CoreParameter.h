@@ -236,11 +236,8 @@ struct SCoreStartupParameter
 	std::string m_strDVDRoot;
 	std::string m_strApploader;
 	std::string m_strUniqueID;
-	std::string m_strRevisionSpecificUniqueID;
 	std::string m_strName;
-	std::string m_strGameIniDefault;
-	std::string m_strGameIniDefaultRevisionSpecific;
-	std::string m_strGameIniLocal;
+	int m_revision;
 
 	std::string m_perfDir;
 
@@ -251,7 +248,15 @@ struct SCoreStartupParameter
 	bool AutoSetup(EBootBS2 _BootBS2);
 	const std::string &GetUniqueID() const { return m_strUniqueID; }
 	void CheckMemcardPath(std::string& memcardPath, std::string gameRegion, bool isSlotA);
+
 	IniFile LoadDefaultGameIni() const;
 	IniFile LoadLocalGameIni() const;
 	IniFile LoadGameIni() const;
+
+	static IniFile LoadDefaultGameIni(const std::string& id, int revision);
+	static IniFile LoadLocalGameIni(const std::string& id, int revision);
+	static IniFile LoadGameIni(const std::string& id, int revision);
+
+private:
+	static void LoadGameIni(IniFile* game_ini, const std::string& path, const std::string& id, int revision);
 };
