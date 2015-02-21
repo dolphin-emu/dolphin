@@ -386,12 +386,7 @@ void Interpreter::dcbz(UGeckoInstruction _inst)
 // We just do it instantly from ppc...and hey, it works! :D
 void Interpreter::eciwx(UGeckoInstruction _inst)
 {
-	u32 EA, b;
-	if (_inst.RA == 0)
-		b = 0;
-	else
-		b = rGPR[_inst.RA];
-	EA = b + rGPR[_inst.RB];
+	u32 EA = Helper_Get_EA_X(_inst);
 
 	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 	{
@@ -408,12 +403,7 @@ void Interpreter::eciwx(UGeckoInstruction _inst)
 
 void Interpreter::ecowx(UGeckoInstruction _inst)
 {
-	u32 EA, b;
-	if (_inst.RA == 0)
-		b = 0;
-	else
-		b = rGPR[_inst.RA];
-	EA = b + rGPR[_inst.RB];
+	u32 EA = Helper_Get_EA_X(_inst);
 
 	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 	{
