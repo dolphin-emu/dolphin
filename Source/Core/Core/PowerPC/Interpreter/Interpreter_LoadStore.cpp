@@ -403,7 +403,7 @@ void Interpreter::eciwx(UGeckoInstruction _inst)
 // 	_assert_msg_(POWERPC,0,"eciwx - fill r%i with word @ %08x from device %02x",
 // 		_inst.RS, EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
 
-	rGPR[_inst.RS] = PowerPC::Read_U32(EA);
+	rGPR[_inst.RD] = PowerPC::Read_U32(EA);
 }
 
 void Interpreter::ecowx(UGeckoInstruction _inst)
