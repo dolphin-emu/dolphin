@@ -246,11 +246,11 @@ void DSPEmitter::Compile(u16 start_addr)
 		if (DSPAnalyzer::code_flags[compilePC-1] & DSPAnalyzer::CODE_LOOP_END)
 		{
 			MOVZX(32, 16, EAX, M(&(g_dsp.r.st[2])));
-			CMP(32, R(EAX), Imm32(0));
+			TEST(32, R(EAX), R(EAX));
 			FixupBranch rLoopAddressExit = J_CC(CC_LE, true);
 
 			MOVZX(32, 16, EAX, M(&g_dsp.r.st[3]));
-			CMP(32, R(EAX), Imm32(0));
+			TEST(32, R(EAX), R(EAX));
 			FixupBranch rLoopCounterExit = J_CC(CC_LE, true);
 
 			if (!opcode->branch)

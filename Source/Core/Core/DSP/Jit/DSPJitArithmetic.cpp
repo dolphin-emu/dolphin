@@ -1075,7 +1075,7 @@ void DSPEmitter::abs(const UDSPInstruction opc)
 //	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg);
 //	if (acc < 0) acc = 0 - acc;
-	CMP(64, R(RAX), Imm8(0));
+	TEST(64, R(RAX), R(RAX));
 	FixupBranch GreaterThanOrEqual = J_CC(CC_GE);
 	NEG(64, R(RAX));
 	set_long_acc(dreg);
@@ -1367,7 +1367,7 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	//		acc <<= -shift;
 	//	}
 
-	CMP(64, R(RDX), Imm8(0));//is this actually worth the branch cost?
+	TEST(64, R(RDX), R(RDX));//is this actually worth the branch cost?
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));//is this actually worth the branch cost?
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1426,7 +1426,7 @@ void DSPEmitter::asrn(const UDSPInstruction opc)
 //		acc <<= -shift;
 //	}
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1489,7 +1489,7 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 //		acc >>= -shift;
 //	}
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1546,7 +1546,7 @@ void DSPEmitter::asrnrx(const UDSPInstruction opc)
 //		acc >>= -shift;
 //	}
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1604,7 +1604,7 @@ void DSPEmitter::lsrnr(const UDSPInstruction opc)
 //	else if (shift < 0)
 //		acc >>= -shift;
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
@@ -1659,7 +1659,7 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
 //	else if (shift < 0)
 //		acc >>= -shift;
 
-	CMP(64, R(RDX), Imm8(0));
+	TEST(64, R(RDX), R(RDX));
 	FixupBranch zero = J_CC(CC_E);
 	TEST(16, R(RAX), Imm16(0x3f));
 	FixupBranch noShift = J_CC(CC_Z);
