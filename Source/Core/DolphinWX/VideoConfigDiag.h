@@ -200,10 +200,6 @@ protected:
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 
-		// EFB copy
-		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
-		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
-
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
@@ -267,9 +263,6 @@ protected:
 
 	SettingCheckBox* borderless_fullscreen;
 	SettingCheckBox* render_to_main_checkbox;
-
-	SettingRadioButton* efbcopy_texture;
-	SettingRadioButton* efbcopy_ram;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;

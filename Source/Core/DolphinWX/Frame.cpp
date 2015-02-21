@@ -1344,14 +1344,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 	{
 		OSDChoice = 3;
 		// Toggle EFB copies between EFB2RAM and EFB2Texture
-		if (!g_Config.bEFBCopyEnable)
-		{
-			OSD::AddMessage("EFB Copies are disabled, enable them in Graphics settings for toggling", 6000);
-		}
-		else
-		{
-			g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
-		}
+		g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
 	}
 	else if (IsHotkey(event, HK_TOGGLE_FOG))
 	{
