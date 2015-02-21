@@ -115,16 +115,6 @@ void Fifo_Shutdown()
 	s_fifo_aux_read_ptr = nullptr;
 }
 
-u8* GetVideoBufferStartPtr()
-{
-	return s_video_buffer;
-}
-
-u8* GetVideoBufferEndPtr()
-{
-	return s_video_buffer_write_ptr;
-}
-
 void Fifo_SetRendering(bool enabled)
 {
 	g_bSkipCurrentFrame = !enabled;
