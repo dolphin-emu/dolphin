@@ -60,7 +60,7 @@ if(WIN32)
     set(SRCS ${SRCS} ExtendedTrace.cpp)
 endif(WIN32)
 
-set(LIBS "${CMAKE_THREAD_LIBS_INIT}")
+set(LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
 if(NOT APPLE AND NOT ANDROID)
 	set(LIBS ${LIBS} rt)
 endif()
