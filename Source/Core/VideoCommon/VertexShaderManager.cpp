@@ -36,6 +36,8 @@ static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
+static Matrix44 s_VRTransformationMatrix;
+
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
 
@@ -490,29 +492,34 @@ void VertexShaderManager::SetConstants()
 
 		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-		if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
+		Matrix44 projMtx;
+		Matrix44::Set(projMtx, g_fProjectionMatrix);
+		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
-			Matrix44 mtxA;
-			Matrix44 mtxB;
-			Matrix44 viewMtx;
+			if (g_ActiveConfig.bFreeLook)
+			{
+				Matrix44 mtxA;
+				Matrix44 mtxB;
+				Matrix44 viewMtx;
 
-			Matrix44::Translate(mtxA, s_fViewTranslationVector);
-			Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
-			Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
-			Matrix44::Set(mtxB, g_fProjectionMatrix);
-			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
-			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
-			memcpy(constants.projection, mtxB.data, 4*16);
-		}
-		else
-		{
-			Matrix44 projMtx;
-			Matrix44::Set(projMtx, g_fProjectionMatrix);
+				Matrix44::Translate(mtxA, s_fViewTranslationVector);
+				Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
+				Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
+				Matrix44::Set(mtxB, g_fProjectionMatrix);
+				Matrix44::Multiply(mtxB, viewMtx, projMtx); // projection = projection x view
+			}
 
-			Matrix44 correctedMtx;
-			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-			memcpy(constants.projection, correctedMtx.data, 4*16);
+			if (g_ActiveConfig.iStereoMode == STEREO_VR)
+			{
+				Matrix44 tempMtx;
+				Matrix44::Set(tempMtx, g_fProjectionMatrix);
+				Matrix44::Multiply(tempMtx, s_VRTransformationMatrix, projMtx);
+			}
 		}
+
+		Matrix44 correctedMtx;
+		Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
+		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 
 		dirty = true;
 	}
@@ -697,6 +704,30 @@ void VertexShaderManager::ResetView()
 	Matrix33::LoadIdentity(s_viewRotationMatrix);
 	Matrix33::LoadIdentity(s_viewInvRotationMatrix);
 	s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
+
+	bProjectionChanged = true;
+}
+
+void VertexShaderManager::SetVRPose(const float* orientation, const float* position)
+{
+	Quaternion rotationQuat;
+	Matrix33 rotationMtx;
+
+	Quaternion::Set(rotationQuat, orientation);
+	Quaternion::Invert(rotationQuat);
+	Matrix33::LoadQuaternion(rotationMtx, rotationQuat);
+
+	if (position != nullptr)
+	{
+		Matrix44 translateMtx, transformMtx;
+		Matrix44::LoadMatrix33(transformMtx, rotationMtx);
+		Matrix44::Translate(translateMtx, position);
+		Matrix44::Multiply(transformMtx, translateMtx, s_VRTransformationMatrix);
+	}
+	else
+	{
+		Matrix44::LoadMatrix33(s_VRTransformationMatrix, rotationMtx);
+	}
 
 	bProjectionChanged = true;
 }
