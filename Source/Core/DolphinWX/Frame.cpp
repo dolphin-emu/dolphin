@@ -577,13 +577,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-			{
-#ifdef __WXMSW__
-				::SetFocus((HWND)m_RenderParent->GetHandle());
-#else
 				m_RenderParent->SetFocus();
-#endif
-			}
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
