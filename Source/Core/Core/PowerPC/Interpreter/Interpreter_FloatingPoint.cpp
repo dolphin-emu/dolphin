@@ -22,19 +22,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 {
 	int compareResult;
 
-	if (fa < fb)
-	{
-		compareResult = FPCC::FL;
-	}
-	else if (fa > fb)
-	{
-		compareResult = FPCC::FG;
-	}
-	else if (fa == fb)
-	{
-		compareResult = FPCC::FE;
-	}
-	else // NaN
+	if (IsNAN(fa) || IsNAN(fb))
 	{
 		FPSCR.FX = 1;
 		compareResult = FPCC::FU;
@@ -51,6 +39,18 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 			SetFPException(FPSCR_VXVC);
 		}
 	}
+	else if (fa < fb)
+	{
+		compareResult = FPCC::FL;
+	}
+	else if (fa > fb)
+	{
+		compareResult = FPCC::FG;
+	}
+	else // Equals
+	{
+		compareResult = FPCC::FE;
+	}
 
 	FPSCR.FPRF = compareResult;
 	SetCRField(_inst.CRFD, compareResult);
@@ -60,7 +60,17 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 {
 	int compareResult;
 
-	if (fa < fb)
+	if (IsNAN(fa) || IsNAN(fb))
+	{
+		compareResult = FPCC::FU;
+
+		if (IsSNAN(fa) || IsSNAN(fb))
+		{
+			FPSCR.FX = 1;
+			SetFPException(FPSCR_VXSNAN);
+		}
+	}
+	else if (fa < fb)
 	{
 		compareResult = FPCC::FL;
 	}
@@ -68,18 +78,9 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 	{
 		compareResult = FPCC::FG;
 	}
-	else if (fa == fb)
+	else // Equals
 	{
 		compareResult = FPCC::FE;
-	}
-	else
-	{
-		compareResult = FPCC::FU;
-		if (IsSNAN(fa) || IsSNAN(fb))
-		{
-			FPSCR.FX = 1;
-			SetFPException(FPSCR_VXSNAN);
-		}
 	}
 
 	FPSCR.FPRF = compareResult;
