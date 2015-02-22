@@ -147,15 +147,20 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 	if (update)
 		MOV(gpr.R(addr), addr_reg);
 
+	u32 access_size = BackPatchInfo::GetFlagSize(flags);
+	u32 mmio_address = 0;
+	if (is_immediate)
+		mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
+
 	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		EmitBackpatchRoutine(this, flags, true, false, dest_reg, XA);
 	}
-	else if (is_immediate && MMIO::IsMMIOAddress(imm_addr))
+	else if (mmio_address)
 	{
 		MMIOLoadToReg(Memory::mmio_mapping, this,
 		              regs_in_use, fprs_in_use, dest_reg,
-		              imm_addr, flags);
+		              mmio_address, flags);
 	}
 	else
 	{
@@ -288,18 +293,22 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
 	ARM64Reg XA = EncodeRegTo64(addr_reg);
 
+	u32 access_size = BackPatchInfo::GetFlagSize(flags);
+	u32 mmio_address = 0;
+	if (is_immediate)
+		mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
+
 	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		MOVI2R(XA, imm_addr);
 
 		EmitBackpatchRoutine(this, flags, true, false, RS, XA);
 	}
-	else if (is_immediate && MMIO::IsMMIOAddress(imm_addr) &&
-	         !(flags & BackPatchInfo::FLAG_REVERSE))
+	else if (mmio_address && !(flags & BackPatchInfo::FLAG_REVERSE))
 	{
 		MMIOWriteRegToAddr(Memory::mmio_mapping, this,
 		                   regs_in_use, fprs_in_use, RS,
-		                   imm_addr, flags);
+		                   mmio_address, flags);
 	}
 	else
 	{
