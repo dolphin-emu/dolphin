@@ -52,7 +52,9 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 		compareResult = FPCC::FE;
 	}
 
-	FPSCR.FPRF = compareResult;
+	// Clear and set the FPCC bits accordingly.
+	FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compareResult;
+
 	SetCRField(_inst.CRFD, compareResult);
 }
 
@@ -83,7 +85,9 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 		compareResult = FPCC::FE;
 	}
 
-	FPSCR.FPRF = compareResult;
+	// Clear and set the FPCC bits accordingly.
+	FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compareResult;
+
 	SetCRField(_inst.CRFD, compareResult);
 }
 
