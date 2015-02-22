@@ -1238,7 +1238,7 @@ void Renderer::BBoxWrite(int index, u16 _value)
 
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture, u32 src_width, u32 src_height, float Gamma)
 {
-	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB || g_ActiveConfig.iStereoMode == STEREO_VR)
 	{
 		TargetRectangle leftRc, rightRc;
 		ConvertStereoRectangle(dst, leftRc, rightRc);

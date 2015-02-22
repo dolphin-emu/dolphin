@@ -251,7 +251,7 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
 		drawRc.top += height / 4;
 		drawRc.bottom -= height / 4;
 	}
-	else
+	else if (g_ActiveConfig.iStereoMode == STEREO_SBS)
 	{
 		int width = rc.right - rc.left;
 		drawRc.left += width / 4;
@@ -267,12 +267,17 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
 		rightRc.top += s_backbuffer_height / 4;
 		rightRc.bottom += s_backbuffer_height / 4;
 	}
-	else
+	else if (g_ActiveConfig.iStereoMode == STEREO_SBS)
 	{
 		leftRc.left -= s_backbuffer_width / 4;
 		leftRc.right -= s_backbuffer_width / 4;
 		rightRc.left += s_backbuffer_width / 4;
 		rightRc.right += s_backbuffer_width / 4;
+	}
+	else
+	{
+		rightRc.left += s_backbuffer_width / 2;
+		rightRc.right += s_backbuffer_width / 2;
 	}
 }
 
@@ -419,7 +424,7 @@ void Renderer::DrawDebugText()
 
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 {
-	float FloatGLWidth = (float)backbuffer_width;
+	float FloatGLWidth = (g_ActiveConfig.iStereoMode == STEREO_VR) ? (float)backbuffer_width / 2.0f : (float)backbuffer_width;
 	float FloatGLHeight = (float)backbuffer_height;
 	float FloatXOffset = 0;
 	float FloatYOffset = 0;
