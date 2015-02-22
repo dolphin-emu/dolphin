@@ -420,9 +420,12 @@ IniFile SCoreStartupParameter::LoadGameIni(const std::string& id, int revision)
 void SCoreStartupParameter::LoadGameIni(IniFile* game_ini, const std::string& path,
                                         const std::string& id, int revision)
 {
-	// INIs that match all regions
+	// INIs that match all regions (Without publisher codes)
 	if (id.size() >= 4)
 		game_ini->Load(path + id.substr(0, 3) + ".ini", true);
+
+	// INIs that match all regions (With publisher codes)
+	game_ini->Load(path + id.substr(0, 3) + "-" + id.substr(4) + ".ini", true);
 
 	// Regular INIs
 	game_ini->Load(path + id + ".ini", true);
