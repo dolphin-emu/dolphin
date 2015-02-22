@@ -348,8 +348,10 @@ if(VTUNE)
 	endif()
 	add_definitions(-DUSE_VTUNE)
 	include_directories("${VTUNE_DIR}/include")
-	list(APPEND LIBS "${VTUNE_DIR}/lib64/libjitprofiling.a")
-	list(APPEND LIBS "${VTUNE_DIR}/lib64/libittnotify.a")
+	set(VTUNE_LIBRARIES
+		"${VTUNE_DIR}/lib64/libjitprofiling.a"
+		"${VTUNE_DIR}/lib64/libittnotify.a"
+	)
 endif(VTUNE)
 
 if(ANDROID)
