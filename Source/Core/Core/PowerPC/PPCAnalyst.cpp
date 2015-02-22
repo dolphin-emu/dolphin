@@ -544,11 +544,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->regsOut[code->inst.RD] = true;
 		block->m_gpa->SetOutputRegister(code->inst.RD, index);
 	}
-	if (opinfo->flags & FL_OUT_S)
-	{
-		code->regsOut[code->inst.RS] = true;
-		block->m_gpa->SetOutputRegister(code->inst.RS, index);
-	}
 	if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
 	{
 		code->regsIn[code->inst.RA] = true;

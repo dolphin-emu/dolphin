@@ -31,7 +31,6 @@ enum
 	FL_IN_A0B          = FL_IN_A0 | FL_IN_B,
 	FL_IN_A0BC         = FL_IN_A0 | FL_IN_B | FL_IN_C,
 	FL_OUT_D           = (1<<13),  // rD is used as a destination.
-	FL_OUT_S           = FL_OUT_D, // rS is used as a destination.
 	FL_OUT_A           = (1<<14),  // rA is used as a destination.
 	FL_OUT_AD          = FL_OUT_A | FL_OUT_D,
 	FL_TIMER           = (1<<15),  // Used only for mftb.
