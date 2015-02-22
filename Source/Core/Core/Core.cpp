@@ -141,7 +141,7 @@ static int s_pause_and_lock_depth = 0;
 static bool s_is_framelimiter_temp_disabled = false;
 
 #ifdef ThreadLocalStorage
-ThreadLocalStorage bool tls_is_cpu_thread = false;
+static ThreadLocalStorage bool tls_is_cpu_thread = false;
 #else
 static pthread_key_t s_tls_is_cpu_key;
 static pthread_once_t s_cpu_key_is_init = PTHREAD_ONCE_INIT;
