@@ -69,8 +69,10 @@ public final class NativeLibrary
 	 * @param Device The input descriptor of the gamepad.
 	 * @param Button Key code identifying which button was pressed.
 	 * @param Action Mask identifying which action is happing (button pressed down, or button released).
+	 *
+	 * @return If we handled the button press.
 	 */
-	public static native void onGamePadEvent(String Device, int Button, int Action);
+	public static native boolean onGamePadEvent(String Device, int Button, int Action);
 
 	/**
 	 * Handles gamepad movement events.

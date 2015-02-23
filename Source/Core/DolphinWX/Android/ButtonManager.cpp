@@ -156,16 +156,14 @@ namespace ButtonManager
 		}
 		return value;
 	}
-	void GamepadEvent(std::string dev, int button, int action)
+	bool GamepadEvent(std::string dev, int button, int action)
 	{
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
-		{
-			it->second->PressEvent(button, action);
-			return;
-		}
+			return it->second->PressEvent(button, action);
+
 		m_controllers[dev] = new InputDevice(dev);
-		m_controllers[dev]->PressEvent(button, action);
+		return m_controllers[dev]->PressEvent(button, action);
 	}
 	void GamepadAxisEvent(std::string dev, int axis, float value)
 	{
@@ -186,8 +184,9 @@ namespace ButtonManager
 	}
 
 	// InputDevice
-	void InputDevice::PressEvent(int button, int action)
+	bool InputDevice::PressEvent(int button, int action)
 	{
+		bool handled = false;
 		for (const auto& binding : _inputbinds)
 		{
 			if (binding.second->_bind == button)
@@ -196,8 +195,10 @@ namespace ButtonManager
 					_buttons[binding.second->_buttontype] = action == BUTTON_PRESSED ? true : false;
 				else
 					_axises[binding.second->_buttontype] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
+				handled = true;
 			}
 		}
+		return handled;
 	}
 	void InputDevice::AxisEvent(int axis, float value)
 	{
