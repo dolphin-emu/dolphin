@@ -191,6 +191,7 @@ void VertexShaderManager::Init()
 
 	// TODO: should these go inside ResetView()?
 	Matrix44::LoadIdentity(s_viewportCorrection);
+	Matrix44::LoadIdentity(s_VRTransformationMatrix);
 	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
 	for (int i = 0; i < 4; ++i)
 		g_fProjectionMatrix[i*5] = 1.0f;
