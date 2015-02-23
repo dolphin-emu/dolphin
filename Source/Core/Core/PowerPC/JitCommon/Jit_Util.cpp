@@ -477,7 +477,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, B
 
 	// If we already know the address through constant folding, we can do some
 	// fun tricks...
-	if ((address & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
+	if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
 	{
 		if (!arg.IsSimpleReg() || arg.GetSimpleReg() != RSCRATCH)
 			MOV(accessSize, R(RSCRATCH), arg);
