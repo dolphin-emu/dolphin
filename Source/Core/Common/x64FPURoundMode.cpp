@@ -7,12 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
-
-#ifdef _WIN32
-#	include <mmintrin.h>
-#else
-#	include <xmmintrin.h>
-#endif
+#include "Common/Intrinsics.h"
 
 namespace FPURoundMode
 {

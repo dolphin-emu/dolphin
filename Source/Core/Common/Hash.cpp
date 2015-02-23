@@ -4,11 +4,9 @@
 
 #include <algorithm>
 #include "Common/CommonFuncs.h"
-#include "Common/Hash.h"
-#if _M_SSE >= 0x402
 #include "Common/CPUDetect.h"
-#include <nmmintrin.h>
-#endif
+#include "Common/Hash.h"
+#include "Common/Intrinsics.h"
 
 static u64 (*ptrHashFunction)(const u8 *src, u32 len, u32 samples) = &GetMurmurHash3;
 

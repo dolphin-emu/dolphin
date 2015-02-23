@@ -7,13 +7,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
+#include "Common/Intrinsics.h"
 
-#ifdef _WIN32
-#include <intrin.h>
-#else
-
-//#include <config/i386/cpuid.h>
-#include <xmmintrin.h>
+#ifndef _WIN32
 
 #if defined __FreeBSD__
 #include <sys/types.h>
