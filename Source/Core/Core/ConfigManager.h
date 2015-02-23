@@ -70,7 +70,7 @@ struct SConfig : NonCopyable
 	bool m_ListAustralia;
 	bool m_ListFrance;
 	bool m_ListGermany;
-	bool m_ListInternational;
+	bool m_ListWorld;
 	bool m_ListItaly;
 	bool m_ListKorea;
 	bool m_ListNetherlands;
