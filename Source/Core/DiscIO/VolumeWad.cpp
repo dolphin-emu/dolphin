@@ -81,11 +81,11 @@ std::string CVolumeWAD::GetUniqueID() const
 
 std::string CVolumeWAD::GetMakerID() const
 {
-	u32 Offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
+	u32 TmdOffset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
 
 	char temp[3] = {1};
 	// Some weird channels use 0x0000 in place of the MakerID, so we need a check there
-	if (!Read(0x198 + Offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
+	if (!Read(0x198 + TmdOffset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
 		return "00";
 
 	temp[2] = 0;
