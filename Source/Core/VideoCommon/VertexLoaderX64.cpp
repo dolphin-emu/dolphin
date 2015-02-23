@@ -1,10 +1,5 @@
-#ifdef _MSC_VER
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#endif
-
 #include "Common/CPUDetect.h"
+#include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
 #include "VideoCommon/VertexLoaderX64.h"

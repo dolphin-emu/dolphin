@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/Intrinsics.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/PatchEngine.h"
@@ -135,11 +136,9 @@ ps_adds1
 
 #ifdef _WIN32
 #include <windows.h>
-#include <intrin.h>
 #else
 #include <memory>
 #include <stdint.h>
-#include <x86intrin.h>
 
 #if defined(__clang__)
 #if !__has_builtin(__builtin_ia32_rdtsc)
