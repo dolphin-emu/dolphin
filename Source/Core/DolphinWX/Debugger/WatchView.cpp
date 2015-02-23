@@ -81,11 +81,11 @@ static wxString GetValueByRowCol(int row, int col)
 		// Column Labels
 		switch (col)
 		{
-		case 0: return wxString::Format("Label");
-		case 1: return wxString::Format("Addr");
-		case 2: return wxString::Format("Hex");
-		case 3: return wxString::Format("Dec");
-		case 4: return wxString::Format("Str");
+		case 0: return _("Label");
+		case 1: return _("Address");
+		case 2: return _("Hexadecimal");
+		case 3: return _("Decimal");
+		case 4: return _("String");
 		default: return wxEmptyString;
 		}
 	}
