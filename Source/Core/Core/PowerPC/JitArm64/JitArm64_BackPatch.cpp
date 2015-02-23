@@ -101,10 +101,16 @@ bool JitArm64::DisasmLoadStore(const u8* ptr, u32* flags, ARM64Reg* reg)
 	{
 		*flags |= BackPatchInfo::FLAG_LOAD;
 		*reg = (ARM64Reg)(inst & 0x1F);
-		if ((next_inst & 0x7FFFF000) != 0x5AC00000) // REV
+		if ((next_inst & 0x7FFFF000) == 0x5AC00000) // REV
+		{
+			u32 sxth_inst = *(u32*)(ptr + 8);
+			if ((sxth_inst & 0x7F800000) == 0x13000000) // SXTH
+				*flags |= BackPatchInfo::FLAG_EXTEND;
+		}
+		else
+		{
 			*flags |= BackPatchInfo::FLAG_REVERSE;
-		if ((next_inst & 0x7F800000) == 0x13000000) // SXTH
-			*flags |= BackPatchInfo::FLAG_EXTEND;
+		}
 		return true;
 	}
 	else if (op == 0xE4) // Store
