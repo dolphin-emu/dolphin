@@ -11,9 +11,6 @@
 
 #include "AudioCommon/WaveFile.h"
 
-// Dither define
-#define DITHER_NOISE    (rand() / (float) RAND_MAX - 0.5f)
-
 class CMixer
 {
 public:
@@ -223,13 +220,13 @@ private:
 		return (s > 0) ? (float) (s / (float) 0x7fff) : (float) (s / (float) 0x8000);
 	}
 
-	// converts [-1.0, 1.0] -> [-32768, 32767]
-	static inline s16 FloatToSigned16(const float f)
+	// scales float [-1.f, 1.f] -> [-32768.f, 32767.f]
+	static inline float Scale16bit(const float f)
 	{
-		return (f > 0) ? (s16) (f * 0x7fff) : (s16) (f * 0x8000);
+		return (f > 0) ? (f * 32767) : (f * 32768);
 	}
 
-	void TriangleDither(float* l_sample, float* r_sample);
+	void TriangleDither(const float l_in, const float r_in, float* l_out, float* r_out);
 
 	std::vector<float> m_output_buffer;
 	float m_l_dither_prev;
