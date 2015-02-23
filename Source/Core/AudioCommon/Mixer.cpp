@@ -19,6 +19,9 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+// Dither define
+#define DITHER_NOISE    (rand() / (float) RAND_MAX - 0.5f)
+
 const float CMixer::LOW_WATERMARK = 1280;
 const float CMixer::MAX_FREQ_SHIFT = 200;
 const float CMixer::CONTROL_FACTOR = 0.2f;
@@ -148,12 +151,12 @@ void CMixer::MixerFifo::Mix(std::vector<float>& samples, u32 numSamples, bool co
 }
 
 // we NEED dithering going from float -> 16bit
-void CMixer::TriangleDither(float* l_sample, float* r_sample)
+void CMixer::TriangleDither(const float l_in, const float r_in, float* l_out, float* r_out)
 {
 	float left_dither = DITHER_NOISE;
 	float right_dither = DITHER_NOISE;
-	*l_sample = (*l_sample) + left_dither - m_l_dither_prev;
-	*r_sample = (*r_sample) + right_dither - m_r_dither_prev;
+	*l_out = l_in + left_dither - m_l_dither_prev;
+	*r_out = r_in + right_dither - m_r_dither_prev;
 	m_l_dither_prev = left_dither;
 	m_r_dither_prev = right_dither;
 }
@@ -173,8 +176,7 @@ u32 CMixer::Mix(s16* samples, u32 num_samples, bool consider_framelimit)
 	}
 
 	// reset float output buffer
-	m_output_buffer.resize(num_samples * 2);
-	std::fill_n(m_output_buffer.begin(), num_samples * 2, 0.f);
+	m_output_buffer.resize(num_samples * 2, 0);
 
 	m_dma_mixer.Mix(m_output_buffer, num_samples, consider_framelimit);
 	m_streaming_mixer.Mix(m_output_buffer, num_samples, consider_framelimit);
@@ -185,13 +187,13 @@ u32 CMixer::Mix(s16* samples, u32 num_samples, bool consider_framelimit)
 	{
 		float l_output = m_output_buffer[i + 1];
 		float r_output = m_output_buffer[i];
-		TriangleDither(&m_output_buffer[i + 1], &m_output_buffer[i]);
-
 		MathUtil::Clamp(&l_output, -1.f, 1.f);
-		samples[i + 1] = FloatToSigned16(l_output);
-
 		MathUtil::Clamp(&r_output, -1.f, 1.f);
-		samples[i] = FloatToSigned16(r_output);
+
+		TriangleDither(Scale16bit(l_output), Scale16bit(r_output), &l_output, &r_output);
+
+		samples[i + 1] = (s16) MathUtil::Clamp((s32) lrintf(l_output), -32768, 32767);
+		samples[i] = (s16) MathUtil::Clamp((s32) lrintf(r_output), -32768, 32767);
 	}
 
 	return num_samples;
