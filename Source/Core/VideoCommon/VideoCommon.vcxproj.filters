@@ -146,6 +146,9 @@
     <ClCompile Include="TextureDecoder_x64.cpp">
       <Filter>Decoding</Filter>
     </ClCompile>
+    <ClCompile Include="AsyncRequests.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Util</Filter>
     </ClCompile>
@@ -289,6 +292,9 @@
     </ClInclude>
     <ClInclude Include="VertexLoaderUtils.h">
       <Filter>Vertex Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="AsyncRequests.h">
+      <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="BoundingBox.h">
       <Filter>Util</Filter>

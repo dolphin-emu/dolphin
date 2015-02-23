@@ -35,6 +35,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="AsyncRequests.cpp" />
     <ClCompile Include="AVIDump.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="BPFunctions.cpp" />
@@ -84,6 +85,7 @@
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AsyncRequests.h" />
     <ClInclude Include="AVIDump.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BPFunctions.h" />

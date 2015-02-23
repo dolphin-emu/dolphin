@@ -15,6 +15,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -282,11 +283,14 @@ void RunGpuLoop()
 	// This allows a system that we are maxing out in dual core mode to do other things
 	bool yield_cpu = cpu_info.num_cores <= 2;
 
+	AsyncRequests::GetInstance()->SetEnable(true);
+	AsyncRequests::GetInstance()->SetPassthrough(false);
+
 	while (GpuRunningState)
 	{
 		g_video_backend->PeekMessages();
 
-		VideoFifo_CheckAsyncRequest();
+		AsyncRequests::GetInstance()->PullEvents();
 		if (g_use_deterministic_gpu_thread)
 		{
 			// All the fifo/CP stuff is on the CPU.  We just need to run the opcode decoder.
@@ -348,7 +352,7 @@ void RunGpuLoop()
 				// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
 				// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 				// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
-				VideoFifo_CheckAsyncRequest();
+				AsyncRequests::GetInstance()->PullEvents();
 				CommandProcessor::isPossibleWaitingSetDrawDone = false;
 			}
 
@@ -377,6 +381,8 @@ void RunGpuLoop()
 	}
 	// wake up SyncGPU if we were interrupted
 	s_video_buffer_cond.notify_all();
+	AsyncRequests::GetInstance()->SetEnable(false);
+	AsyncRequests::GetInstance()->SetPassthrough(true);
 }
 
 
