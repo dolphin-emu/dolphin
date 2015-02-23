@@ -15,7 +15,7 @@ using namespace MathUtil;
 // Star Wars : Rogue Leader spams that at some point :|
 void Interpreter::Helper_UpdateCR1()
 {
-	SetCRField(1, (FPSCR.FX << 4) | (FPSCR.FEX << 3) | (FPSCR.VX << 2) | FPSCR.OX);
+	SetCRField(1, (FPSCR.FX << 3) | (FPSCR.FEX << 2) | (FPSCR.VX << 1) | FPSCR.OX);
 }
 
 void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa, double fb)
