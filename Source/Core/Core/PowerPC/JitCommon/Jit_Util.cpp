@@ -2,9 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <emmintrin.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Intrinsics.h"
 #include "Common/MathUtil.h"
 
 #include "Core/HW/MMIO.h"

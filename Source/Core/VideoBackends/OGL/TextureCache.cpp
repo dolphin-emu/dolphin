@@ -6,10 +6,6 @@
 #include <fstream>
 #include <vector>
 
-#ifdef _WIN32
-#include <intrin.h>
-#endif
-
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
