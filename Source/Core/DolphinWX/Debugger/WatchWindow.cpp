@@ -71,7 +71,7 @@ CWatchWindow::CWatchWindow(wxWindow* parent, wxWindowID id,
 	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
 	wxBoxSizer *sGrid = new wxBoxSizer(wxVERTICAL);
-	m_GPRGridView = new CWatchView(this, ID_GPR);
+	m_GPRGridView = new CWatchView(this);
 	sGrid->Add(m_GPRGridView, 1, wxGROW);
 	SetSizer(sGrid);
 

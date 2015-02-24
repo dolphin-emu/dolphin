@@ -36,11 +36,6 @@ public:
 private:
 	wxAuiManager m_mgr;
 
-	enum
-	{
-		ID_GPR = 1002
-	};
-
 	CWatchView* m_GPRGridView;
 	void CreateGUIControls();
 };
