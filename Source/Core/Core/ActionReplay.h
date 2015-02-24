@@ -36,4 +36,5 @@ void UpdateActiveList();
 void EnableSelfLogging(bool enable);
 const std::vector<std::string> &GetSelfLog();
 bool IsSelfLogging();
+std::vector<ARCode> GetARCodes();
 }  // namespace

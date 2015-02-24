@@ -71,6 +71,8 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/GameListCtrl.h"
+//#include "DolphinWX/Frame.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
@@ -79,22 +81,6 @@
 #include "DolphinWX/resources/isoprop_disc.xpm"
 #include "DolphinWX/resources/isoprop_file.xpm"
 #include "DolphinWX/resources/isoprop_folder.xpm"
-
-struct WiiPartition
-{
-	DiscIO::IVolume *Partition;
-	DiscIO::IFileSystem *FileSystem;
-	std::vector<const DiscIO::SFileInfo *> Files;
-};
-static std::vector<WiiPartition> WiiDisc;
-
-static DiscIO::IVolume *OpenISO = nullptr;
-static DiscIO::IFileSystem *pFileSystem = nullptr;
-
-std::vector<PatchEngine::Patch> onFrame;
-std::vector<ActionReplay::ARCode> arCodes;
-PHackData PHack_Data;
-
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
@@ -675,8 +661,9 @@ void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
 		WxUtils::ShowErrorDialog(wxString::Format(_("Could not save %s."), GameIniFileLocal.c_str()));
-
-	EndModal(bRefreshList ? wxID_OK : wxID_CANCEL);
+	if (bRefreshList)
+		((CGameListCtrl*)GetParent())->Update();
+	Destroy();
 }
 
 void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED (event))
@@ -1059,20 +1046,20 @@ void CISOProperties::LoadGameConfig()
 
 	int iTemp;
 	default_video->Get("ProjectionHack", &iTemp);
-	default_video->Get("PH_SZNear", &PHack_Data.PHackSZNear);
+	default_video->Get("PH_SZNear", &m_PHack_Data.PHackSZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
-		PHack_Data.PHackSZNear = !!iTemp;
-	default_video->Get("PH_SZFar", &PHack_Data.PHackSZFar);
+		m_PHack_Data.PHackSZNear = !!iTemp;
+	default_video->Get("PH_SZFar", &m_PHack_Data.PHackSZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZFar", &iTemp))
-		PHack_Data.PHackSZFar = !!iTemp;
+		m_PHack_Data.PHackSZFar = !!iTemp;
 
 	std::string sTemp;
-	default_video->Get("PH_ZNear", &PHack_Data.PHZNear);
+	default_video->Get("PH_ZNear", &m_PHack_Data.PHZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZNear", &sTemp))
-		PHack_Data.PHZNear = sTemp;
-	default_video->Get("PH_ZFar", &PHack_Data.PHZFar);
+		m_PHack_Data.PHZNear = sTemp;
+	default_video->Get("PH_ZFar", &m_PHack_Data.PHZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
-		PHack_Data.PHZFar = sTemp;
+		m_PHack_Data.PHZFar = sTemp;
 
 	IniFile::Section* default_emustate = GameIniDefault.GetOrCreateSection("EmuState");
 	default_emustate->Get("EmulationStateId", &iTemp, 0/*Not Set*/);
@@ -1163,10 +1150,10 @@ bool CISOProperties::SaveGameConfig()
 			GameIniLocal.DeleteKey((section), (key)); \
 	} while (0)
 
-	SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (PHack_Data.PHackSZNear ? 1 : 0), 0);
-	SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (PHack_Data.PHackSZFar ? 1 : 0), 0);
-	SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", PHack_Data.PHZNear, "");
-	SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", PHack_Data.PHZFar, "");
+	SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (m_PHack_Data.PHackSZNear ? 1 : 0), 0);
+	SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (m_PHack_Data.PHackSZFar ? 1 : 0), 0);
+	SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", m_PHack_Data.PHZNear, "");
+	SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", m_PHack_Data.PHZFar, "");
 	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationStateId", EmuState->GetSelection(), 0);
 
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
@@ -1386,13 +1373,13 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 	{
 	case ID_EDITPATCH:
 		{
-		CPatchAddEdit dlg(selection, this);
+		CPatchAddEdit dlg(selection, onFrame, this);
 		dlg.ShowModal();
 		}
 		break;
 	case ID_ADDPATCH:
 		{
-		CPatchAddEdit dlg(-1, this, 1, _("Add Patch"));
+		CPatchAddEdit dlg(-1, onFrame, this, 1, _("Add Patch"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			Patches->Append(StrToWxStr(onFrame.back().name));
@@ -1466,13 +1453,13 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 	{
 	case ID_EDITCHEAT:
 		{
-		CARCodeAddEdit dlg(selection, this);
+		CARCodeAddEdit dlg(selection, arCodes, this);
 		dlg.ShowModal();
 		}
 		break;
 	case ID_ADDCHEAT:
 		{
-			CARCodeAddEdit dlg(-1, this, 1, _("Add ActionReplay Code"));
+			CARCodeAddEdit dlg(-1, arCodes, this, 1, _("Add ActionReplay Code"));
 			if (dlg.ShowModal() == wxID_OK)
 			{
 				Cheats->Append(StrToWxStr(arCodes.back().name));
