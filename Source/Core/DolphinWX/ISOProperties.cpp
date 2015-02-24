@@ -1674,7 +1674,7 @@ void CISOProperties::HideObjectList_Save()
 			lines.push_back("$" + p.name);
 			for (const HideObjectEngine::HideObjectEntry& entry : p.entries)
 			{
-				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", HideObjectEngine::HideObjectTypeStrings[entry.type], (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
+				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", HideObjectEngine::HideObjectTypeStrings[entry.type].c_str(), (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
 				lines.push_back(temp);
 			}
 		}
