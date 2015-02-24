@@ -12,6 +12,7 @@
 #include <wx/string.h>
 #include <wx/translation.h>
 #include <wx/windowid.h>
+#include <wx/aui/framemanager.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -43,6 +44,7 @@ public:
 	            const wxSize& size = wxDefaultSize,
 	            long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
 	            const wxString& name = _("Code"));
+	~CCodeWindow();
 
 	void Load();
 	void Save();
@@ -133,4 +135,6 @@ private:
 	wxListBox* callers;
 	wxListBox* calls;
 	Common::Event sync_event;
+
+	wxAuiManager m_aui_manager;
 };
