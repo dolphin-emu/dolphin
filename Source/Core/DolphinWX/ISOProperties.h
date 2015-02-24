@@ -297,8 +297,8 @@ private:
 
 	IniFile GameIniDefault;
 	IniFile GameIniLocal;
-	std::string GameIniFileDefault;
 	std::string GameIniFileLocal;
+	std::string game_id;
 
 	std::set<std::string> DefaultHideObjects;
 	std::set<std::string> DefaultPatches;

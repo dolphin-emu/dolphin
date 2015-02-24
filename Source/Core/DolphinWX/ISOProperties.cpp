@@ -161,22 +161,21 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 	}
 
-	// Is it really necessary to use GetTitleID in case GetUniqueID fails?
-	std::string _iniFilename = OpenISO->GetUniqueID();
-	if (_iniFilename.empty())
+	// TODO: Is it really necessary to use GetTitleID in case GetUniqueID fails?
+	game_id = OpenISO->GetUniqueID();
+	if (game_id.empty())
 	{
-		u8 title_id[8];
-		if (OpenISO->GetTitleID(title_id))
+		u8 game_id_bytes[8];
+		if (OpenISO->GetTitleID(game_id_bytes))
 		{
-			_iniFilename = StringFromFormat("%016" PRIx64, Common::swap64(title_id));
+			game_id = StringFromFormat("%016" PRIx64, Common::swap64(game_id_bytes));
 		}
 	}
 
 	// Load game INIs
-	GameIniFileDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilename + ".ini";
-	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + _iniFilename + ".ini";
-	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(_iniFilename, OpenISO->GetRevision());
-	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(_iniFilename, OpenISO->GetRevision());
+	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
+	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(game_id, OpenISO->GetRevision());
+	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(game_id, OpenISO->GetRevision());
 
 	// Setup GUI
 	OpenGameListItem = new GameListItem(fileName);
@@ -801,7 +800,16 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sButtons->Add(new wxButton(this, wxID_OK, _("Close")));
 
 	// If there is no default gameini, disable the button.
-	if (!File::Exists(GameIniFileDefault))
+	bool game_ini_exists = false;
+	for (const std::string& ini_filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	{
+		if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
+		{
+			game_ini_exists = true;
+			break;
+		}
+	}
+	if (!game_ini_exists)
 		EditConfigDefault->Disable();
 
 	// Add notebook and buttons to the dialog
@@ -1563,9 +1571,16 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 	m_MD5Sum->SetValue(output_string);
 }
 
+// Opens all pre-defined INIs for the game. If there are multiple ones,
+// they will all be opened, but there is usually only one
 void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED (event))
 {
-	LaunchExternalEditor(GameIniFileDefault);
+	for (const std::string& filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	{
+		std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
+		if (File::Exists(path))
+			LaunchExternalEditor(path);
+	}
 }
 
 void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
