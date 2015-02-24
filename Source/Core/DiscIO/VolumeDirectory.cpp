@@ -174,9 +174,9 @@ void CVolumeDirectory::SetUniqueID(const std::string& id)
 
 IVolume::ECountry CVolumeDirectory::GetCountry() const
 {
-	u8 CountryCode = m_diskHeader[3];
+	u8 country_code = m_diskHeader[3];
 
-	return CountrySwitch(CountryCode);
+	return CountrySwitch(country_code);
 }
 
 std::string CVolumeDirectory::GetMakerID() const

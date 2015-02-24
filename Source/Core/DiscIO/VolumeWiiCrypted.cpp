@@ -158,10 +158,10 @@ IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
 	if (!m_pReader)
 		return COUNTRY_UNKNOWN;
 
-	u8 CountryCode;
-	m_pReader->Read(3, 1, &CountryCode);
+	u8 country_code;
+	m_pReader->Read(3, 1, &country_code);
 
-	return CountrySwitch(CountryCode);
+	return CountrySwitch(country_code);
 }
 
 std::string CVolumeWiiCrypted::GetMakerID() const

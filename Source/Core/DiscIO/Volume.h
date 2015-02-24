@@ -71,7 +71,7 @@ public:
 };
 
 // Generic Switch function for all volumes
-IVolume::ECountry CountrySwitch(u8 CountryCode);
+IVolume::ECountry CountrySwitch(u8 country_code);
 u8 GetSysMenuRegion(u16 _TitleVersion);
 
 } // namespace

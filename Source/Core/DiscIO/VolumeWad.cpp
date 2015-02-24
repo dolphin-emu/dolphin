@@ -54,17 +54,17 @@ IVolume::ECountry CVolumeWAD::GetCountry() const
 		return COUNTRY_UNKNOWN;
 
 	// read the last digit of the titleID in the ticket
-	u8 CountryCode;
-	Read(m_tmd_offset + 0x0193, 1, &CountryCode);
+	u8 country_code;
+	Read(m_tmd_offset + 0x0193, 1, &country_code);
 
-	if (CountryCode == 2) // SYSMENU
+	if (country_code == 2) // SYSMENU
 	{
 		u16 titlever = 0;
 		Read(m_tmd_offset + 0x01dc, 2, (u8*)&titlever);
-		CountryCode = GetSysMenuRegion(Common::swap16(titlever));
+		country_code = GetSysMenuRegion(Common::swap16(titlever));
 	}
 
-	return CountrySwitch(CountryCode);
+	return CountrySwitch(country_code);
 }
 
 std::string CVolumeWAD::GetUniqueID() const

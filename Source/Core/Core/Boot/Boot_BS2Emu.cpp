@@ -307,10 +307,10 @@ bool CBoot::EmulatedBS2_Wii()
 	INFO_LOG(BOOT, "Faking Wii BS2...");
 
 	// setup Wii memory
-	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
+	DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	if (VolumeHandler::IsValid())
-		CountryCode = VolumeHandler::GetVolume()->GetCountry();
-	if (SetupWiiMemory(CountryCode) == false)
+		country_code = VolumeHandler::GetVolume()->GetCountry();
+	if (SetupWiiMemory(country_code) == false)
 		return false;
 
 	// This is some kind of consistency check that is compared to the 0x00
