@@ -40,6 +40,8 @@ public:
 
 private:
 	std::unique_ptr<IBlobReader> m_pReader;
+	u32 m_offset;
+	u32 m_tmd_offset;
 	u32 m_opening_bnr_offset;
 	u32 m_hdr_size;
 	u32 m_cert_size;
