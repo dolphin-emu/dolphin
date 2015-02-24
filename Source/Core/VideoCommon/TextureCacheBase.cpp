@@ -23,7 +23,7 @@
 static const u64 TEXHASH_INVALID = 0;
 static const int TEXTURE_KILL_THRESHOLD = 10;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
-static const u64 FRAMECOUNT_INVALID = 0;
+static const int FRAMECOUNT_INVALID = 0;
 
 TextureCache *g_texture_cache;
 
