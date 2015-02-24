@@ -29,14 +29,16 @@ public:
 	bool GetTitleID(u8* _pBuffer) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
+	int GetRevision() const override;
 	std::vector<std::string> GetNames() const override;
 	u32 GetFSTSize() const override               { return 0; }
 	std::string GetApploaderDate() const override { return "0"; }
+
 	bool IsWadFile() const override;
+
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
-	int GetRevision() const override;
 
 private:
 	std::unique_ptr<IBlobReader> m_pReader;
