@@ -720,9 +720,10 @@ void VertexShaderManager::SetVRPose(const float* orientation, const float* posit
 
 	if (position != nullptr)
 	{
+		const float inv[3] = { -position[0], -position[1], -position[2] };
 		Matrix44 translateMtx, transformMtx;
 		Matrix44::LoadMatrix33(transformMtx, rotationMtx);
-		Matrix44::Translate(translateMtx, position);
+		Matrix44::Translate(translateMtx, inv);
 		Matrix44::Multiply(transformMtx, translateMtx, s_VRTransformationMatrix);
 	}
 	else
