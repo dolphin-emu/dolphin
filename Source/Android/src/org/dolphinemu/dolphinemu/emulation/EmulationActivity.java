@@ -285,8 +285,8 @@ public final class EmulationActivity extends Activity
 					return false;
 			}
 			InputDevice input = event.getDevice();
-			NativeLibrary.onGamePadEvent(InputConfigFragment.getInputDesc(input), event.getKeyCode(), action);
-			return true;
+			boolean handled = NativeLibrary.onGamePadEvent(InputConfigFragment.getInputDesc(input), event.getKeyCode(), action);
+			return handled;
 		}
 		return false;
 	}
