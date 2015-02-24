@@ -265,7 +265,7 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 		{
 			const __m128i kMask_x0f = _mm_set1_epi32(0x0f0f0f0fL);
 			const __m128i kMask_xf0 = _mm_set1_epi32(0xf0f0f0f0L);
-#if _M_SSE >= 0x301
+#if _M_X86
 			// xsacha optimized with SSSE3 intrinsics
 			// Produces a ~40% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
@@ -375,7 +375,7 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 		break;
 	case GX_TF_I8:  // speed critical
 		{
-#if _M_SSE >= 0x301
+#if _M_X86
 			// xsacha optimized with SSSE3 intrinsics
 			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
@@ -522,7 +522,7 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 		break;
 	case GX_TF_IA8:
 		{
-#if _M_SSE >= 0x301
+#if _M_X86
 			// xsacha optimized with SSSE3 intrinsics.
 			// Produces an ~50% speed improvement over SSE2 implementation.
 			if (cpu_info.bSSSE3)
@@ -696,7 +696,7 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 			// for the RGB555 case when (s[x] & 0x8000) is true for all pixels.
 			const __m128i aVxff00   = _mm_set1_epi32(0xFF000000L);
 
-#if _M_SSE >= 0x301
+#if _M_X86
 			// xsacha optimized with SSSE3 intrinsics (2 in 4 cases)
 			// Produces a ~10% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
@@ -901,7 +901,7 @@ void _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, in
 		break;
 	case GX_TF_RGBA8:  // speed critical
 		{
-#if _M_SSE >= 0x301
+#if _M_X86
 			// xsacha optimized with SSSE3 instrinsics
 			// Produces a ~30% speed improvement over SSE2 implementation
 			if (cpu_info.bSSSE3)
