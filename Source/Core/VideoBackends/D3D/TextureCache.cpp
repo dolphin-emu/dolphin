@@ -172,7 +172,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	g_renderer->RestoreAPIState();
 
-	if (!g_ActiveConfig.bCopyEFBToTexture)
+	if (!g_ActiveConfig.bSkipEFBCopyToRam)
 	{
 		u8* dst = Memory::GetPointer(dstAddr);
 		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);

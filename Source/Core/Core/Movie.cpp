@@ -1211,8 +1211,8 @@ void SaveRecording(const std::string& filename)
 	strncpy((char *)header.videoBackend, s_videoBackend.c_str(),ArraySize(header.videoBackend));
 	header.CPUCore = s_iCPUCore;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
-	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
-	header.bCopyEFBToTexture = g_ActiveConfig.bCopyEFBToTexture;
+	header.bEFBCopyEnable = true;
+	header.bSkipEFBCopyToRam = g_ActiveConfig.bSkipEFBCopyToRam;
 	header.bEFBCopyCacheEnable = false;
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
@@ -1273,8 +1273,7 @@ void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controller
 void SetGraphicsConfig()
 {
 	g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
-	g_Config.bEFBCopyEnable = tmpHeader.bEFBCopyEnable;
-	g_Config.bCopyEFBToTexture = tmpHeader.bCopyEFBToTexture;
+	g_Config.bSkipEFBCopyToRam = tmpHeader.bSkipEFBCopyToRam;
 	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
 	g_Config.bUseXFB = tmpHeader.bUseXFB;
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
