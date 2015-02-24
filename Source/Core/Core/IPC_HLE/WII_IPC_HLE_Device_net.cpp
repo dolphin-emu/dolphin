@@ -1057,7 +1057,9 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				}
 
 				Memory::Memset(BufferOut, 0, BufferOutSize);
-				u32 wii_addr = BufferOut + 4 * 3 + 2 * 2;
+
+				// TODO: This is really hacky; is it actually what IOS does?
+				u32 wii_addr = 0x80000000 | (BufferOut + 4 * 3 + 2 * 2);
 
 				u32 name_length = (u32)strlen(remoteHost->h_name) + 1;
 				Memory::CopyToEmu(wii_addr, remoteHost->h_name, name_length);
