@@ -390,7 +390,8 @@ static void CpuThread()
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
-	EMM::UninstallExceptionHandler();
+	if (_CoreParameter.bFastmem)
+		EMM::UninstallExceptionHandler();
 
 	return;
 }
