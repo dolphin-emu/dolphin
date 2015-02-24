@@ -20,9 +20,10 @@
 // Fired when an ActionReplay code is created.
 wxDEFINE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
 
-CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
+CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address, const std::vector<ActionReplay::ARCode>& _arCodes)
 	: wxDialog(parent, wxID_ANY, _("Create AR Code"))
 	, m_code_address(address)
+	, arCodes(_arCodes)
 {
 	wxStaticText* const label_name = new wxStaticText(this, wxID_ANY, _("Name: "));
 	m_textctrl_name = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(256, -1));

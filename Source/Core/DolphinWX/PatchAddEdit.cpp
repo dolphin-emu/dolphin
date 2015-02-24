@@ -28,11 +28,12 @@
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 
-CPatchAddEdit::CPatchAddEdit(int _selection, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CPatchAddEdit::CPatchAddEdit(int _selection, const std::vector<PatchEngine::Patch>& _onFrame, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	selection = _selection;
 	CreateGUIControls(selection);
+	onFrame = _onFrame;
 
 	Bind(wxEVT_BUTTON, &CPatchAddEdit::SavePatchData, this, wxID_OK);
 }

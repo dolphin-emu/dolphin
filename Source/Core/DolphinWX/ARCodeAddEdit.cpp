@@ -26,12 +26,12 @@
 #include "Core/ActionReplay.h"
 #include "Core/ARDecrypt.h"
 #include "DolphinWX/ARCodeAddEdit.h"
-#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
-CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::ARCode>& _arCodes, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 	, selection(_selection)
+	, arCodes(_arCodes)
 {
 	Bind(wxEVT_BUTTON, &CARCodeAddEdit::SaveCheatData, this, wxID_OK);
 
