@@ -31,15 +31,6 @@ CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
 	m_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size);
 	m_tmd_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
 	m_opening_bnr_offset = m_tmd_offset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_size);
-
-	// read the last digit of the titleID in the ticket
-	Read(m_tmd_offset + 0x0193, 1, &m_Country);
-	if (m_Country == 2) // SYSMENU
-	{
-		u16 titlever = 0;
-		Read(m_tmd_offset + 0x01dc, 2, (u8*)&titlever);
-		m_Country = GetSysMenuRegion(Common::swap16(titlever));
-	}
 }
 
 CVolumeWAD::~CVolumeWAD()
@@ -62,7 +53,18 @@ IVolume::ECountry CVolumeWAD::GetCountry() const
 	if (!m_pReader)
 		return COUNTRY_UNKNOWN;
 
-	return CountrySwitch(m_Country);
+	// read the last digit of the titleID in the ticket
+	u8 CountryCode;
+	Read(m_tmd_offset + 0x0193, 1, &CountryCode);
+
+	if (CountryCode == 2) // SYSMENU
+	{
+		u16 titlever = 0;
+		Read(m_tmd_offset + 0x01dc, 2, (u8*)&titlever);
+		CountryCode = GetSysMenuRegion(Common::swap16(titlever));
+	}
+
+	return CountrySwitch(CountryCode);
 }
 
 std::string CVolumeWAD::GetUniqueID() const

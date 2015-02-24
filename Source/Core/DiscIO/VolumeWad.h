@@ -48,7 +48,6 @@ private:
 	u32 m_tick_size;
 	u32 m_tmd_size;
 	u32 m_data_size;
-	u8 m_Country;
 };
 
 } // namespace
