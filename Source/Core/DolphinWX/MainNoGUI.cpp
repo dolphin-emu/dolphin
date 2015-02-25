@@ -324,6 +324,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	UICommon::SetUserDirectory(""); // Auto-detect user folder
 	UICommon::Init();
 
 	platform->Init();

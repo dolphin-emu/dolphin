@@ -170,6 +170,12 @@ public final class NativeLibrary
 	public static native void CreateUserFolders();
 
 	/**
+	 * Sets the current working user directory
+	 * If not set, it auto-detects a location
+	 */
+	public static native void SetUserDirectory(String directory);
+
+	/**
 	 * Begins emulation.
 	 * 
 	 * @param surf The surface to render to.
