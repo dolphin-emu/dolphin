@@ -1344,7 +1344,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 	{
 		OSDChoice = 3;
 		// Toggle EFB copies between EFB2RAM and EFB2Texture
-		g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
+		g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
 	}
 	else if (IsHotkey(event, HK_TOGGLE_FOG))
 	{
