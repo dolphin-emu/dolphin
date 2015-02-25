@@ -98,7 +98,6 @@ struct SConfig : NonCopyable
 	bool m_ShowLag;
 	bool m_ShowFrameCount;
 	std::string m_strMovieAuthor;
-	unsigned int m_FrameSkip;
 	bool m_DumpFrames;
 	bool m_DumpFramesSilent;
 	bool m_ShowInputDisplay;

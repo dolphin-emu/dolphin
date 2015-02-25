@@ -165,13 +165,6 @@ wxMenuBar* CFrame::CreateMenu()
 	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));
 	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
-	wxMenu *skippingMenu = new wxMenu;
-	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
-	for (int i = 0; i < 10; i++)
-		skippingMenu->Append(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
-	skippingMenu->Check(IDM_FRAME_SKIP_0 + SConfig::GetInstance().m_FrameSkip, true);
-	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
-
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_SCREENSHOT, GetMenuLabel(HK_SCREENSHOT));
 
@@ -1686,14 +1679,6 @@ void CFrame::OnSaveState(wxCommandEvent& event)
 		int slot = id - IDM_SAVE_SLOT_1 + 1;
 		State::Save(slot);
 	}
-}
-
-void CFrame::OnFrameSkip(wxCommandEvent& event)
-{
-	int amount = event.GetId() - IDM_FRAME_SKIP_0;
-
-	Movie::SetFrameSkipping((unsigned int)amount);
-	SConfig::GetInstance().m_FrameSkip = amount;
 }
 
 void CFrame::OnSelectSlot(wxCommandEvent& event)
