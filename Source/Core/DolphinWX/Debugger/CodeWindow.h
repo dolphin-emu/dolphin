@@ -29,10 +29,11 @@ class DSPDebuggerLLE;
 class GFXDebuggerPanel;
 struct SCoreStartupParameter;
 
-class wxToolBar;
+class wxAuiToolBar;
 class wxListBox;
 class wxMenu;
 class wxMenuBar;
+class wxToolBar;
 
 class CCodeWindow : public wxPanel
 {
@@ -136,5 +137,6 @@ private:
 	wxListBox* calls;
 	Common::Event sync_event;
 
-	wxAuiManager m_aui_manager;
+	wxAuiManager  m_aui_manager;
+	wxAuiToolBar* m_aui_toolbar;
 };
