@@ -68,8 +68,8 @@ const std::string hotkey_labels[] =
 	_trans("Connect Wiimote 4"),
 	_trans("Connect Balance Board"),
 
-	_trans("Volume Up"),
 	_trans("Volume Down"),
+	_trans("Volume Up"),
 	_trans("Volume Toggle Mute"),
 
 	_trans("Toggle IR"),
@@ -77,8 +77,8 @@ const std::string hotkey_labels[] =
 	_trans("Toggle EFB Copies"),
 	_trans("Toggle Fog"),
 	_trans("Toggle Frame limit"),
-	_trans("Increase Frame limit"),
 	_trans("Decrease Frame limit"),
+	_trans("Increase Frame limit"),
 
 	_trans("Freelook Decrease Speed"),
 	_trans("Freelook Increase Speed"),
@@ -91,10 +91,10 @@ const std::string hotkey_labels[] =
 	_trans("Freelook Zoom Out"),
 	_trans("Freelook Reset"),
 
-	_trans("Increase Depth"),
 	_trans("Decrease Depth"),
-	_trans("Increase Convergence"),
+	_trans("Increase Depth"),
 	_trans("Decrease Convergence"),
+	_trans("Increase Convergence"),
 
 	_trans("Load State Slot 1"),
 	_trans("Load State Slot 2"),
