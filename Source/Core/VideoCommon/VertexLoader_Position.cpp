@@ -31,7 +31,7 @@ void LOADERDECL Pos_ReadDirect(VertexLoader* loader)
 	DataReader src(g_video_buffer_read_ptr, nullptr);
 
 	for (int i = 0; i < 3; ++i)
-		dst.Write(i<N ? PosScale(src.Read<T>(), scale) : 0.f);
+		dst.Write(i < N ? PosScale(src.Read<T>(), scale) : 0.f);
 
 	g_vertex_manager_write_ptr = dst.GetPointer();
 	g_video_buffer_read_ptr = src.GetPointer();
@@ -51,7 +51,7 @@ void LOADERDECL Pos_ReadIndex(VertexLoader* loader)
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
 
 	for (int i = 0; i < 3; ++i)
-		dst.Write(i<N ? PosScale(Common::FromBigEndian(data[i]), scale) : 0.f);
+		dst.Write(i < N ? PosScale(Common::FromBigEndian(data[i]), scale) : 0.f);
 
 	g_vertex_manager_write_ptr = dst.GetPointer();
 	LOG_VTX();

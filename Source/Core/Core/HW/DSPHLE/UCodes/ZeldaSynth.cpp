@@ -25,7 +25,7 @@ void ZeldaUCode::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	if (PB.NeedsReset)
 	{
 		PB.RemLength = PB.Length - PB.RestartPos;
-		PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
+		PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1);
 		PB.ReachedEnd = 0;
 	}
 
@@ -45,7 +45,7 @@ _lRestart:
 		{
 			PB.RestartPos = PB.LoopStartPos;
 			PB.RemLength = PB.Length - PB.RestartPos;
-			PB.CurAddr =  PB.StartAddr + (PB.RestartPos << 1);
+			PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1);
 			pos[1] = 0; pos[0] = 0;
 		}
 	}

@@ -120,7 +120,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidt
 
 	if (g_ActiveConfig.bUseXFB)
 	{
-		FramebufferManagerBase::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
+		FramebufferManagerBase::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc, Gamma);
 	}
 	else
 	{
@@ -328,7 +328,6 @@ void Renderer::DrawDebugText()
 
 	if ((u32)OSDTime > Common::Timer::GetTimeMs())
 	{
-
 		const char* res_text = "";
 		switch (g_ActiveConfig.iEFBScale)
 		{
@@ -386,7 +385,7 @@ void Renderer::DrawDebugText()
 			std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
 		};
 
-		enum { lines_count = sizeof(lines)/sizeof(*lines) };
+		enum { lines_count = sizeof(lines) / sizeof(*lines) };
 
 		// The latest changed setting in yellow
 		for (int i = 0; i != lines_count; ++i)
@@ -436,34 +435,34 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// Update aspect ratio hack values
 	// Won't take effect until next frame
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
-	if ( g_ActiveConfig.bWidescreenHack )
+	if (g_ActiveConfig.bWidescreenHack)
 	{
 		float source_aspect = use16_9 ? (16.0f / 9.0f) : (4.0f / 3.0f);
 		float target_aspect;
 
-		switch ( g_ActiveConfig.iAspectRatio )
+		switch (g_ActiveConfig.iAspectRatio)
 		{
-		case ASPECT_FORCE_16_9 :
+		case ASPECT_FORCE_16_9:
 			target_aspect = 16.0f / 9.0f;
 			break;
-		case ASPECT_FORCE_4_3 :
+		case ASPECT_FORCE_4_3:
 			target_aspect = 4.0f / 3.0f;
 			break;
-		case ASPECT_STRETCH :
+		case ASPECT_STRETCH:
 			target_aspect = WinWidth / WinHeight;
 			break;
-		default :
+		default:
 			// ASPECT_AUTO == no hacking
 			target_aspect = source_aspect;
 			break;
 		}
 
 		float adjust = source_aspect / target_aspect;
-		if ( adjust > 1 )
+		if (adjust > 1)
 		{
 			// Vert+
 			g_Config.fAspectRatioHackW = 1;
-			g_Config.fAspectRatioHackH = 1/adjust;
+			g_Config.fAspectRatioHackH = 1 / adjust;
 		}
 		else
 		{

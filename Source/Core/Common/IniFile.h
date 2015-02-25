@@ -63,7 +63,6 @@ public:
 		void Set(const std::string& key, bool newValue)
 		{
 			Set(key, StringFromBool(newValue));
-
 		}
 
 		template<typename T>

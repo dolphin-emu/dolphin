@@ -82,7 +82,7 @@ public:
 	}
 
 	void Flush(FlushMode mode = FLUSH_ALL, BitSet32 regsToFlush = BitSet32::AllTrue(32));
-	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
+	void Flush(PPCAnalyst::CodeOp *op) { Flush(); }
 	int SanityCheck() const;
 	void KillImmediate(size_t preg, bool doLoad, bool makeDirty);
 
@@ -103,7 +103,7 @@ public:
 		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
 
-		PanicAlert("Not so simple - %u", (unsigned int) preg);
+		PanicAlert("Not so simple - %u", (unsigned int)preg);
 		return Gen::INVALID_REG;
 	}
 	virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;

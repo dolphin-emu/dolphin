@@ -55,7 +55,7 @@ public:
 			const wxString& title = _("Properties"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
+			long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 	virtual ~CISOProperties();
 
 	bool bRefreshList;

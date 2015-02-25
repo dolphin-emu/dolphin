@@ -49,8 +49,8 @@ void Interpreter::ps_nabs(UGeckoInstruction _inst)
 
 void Interpreter::ps_abs(UGeckoInstruction _inst)
 {
-	riPS0(_inst.FD) = riPS0(_inst.FB) &~ (1ULL << 63);
-	riPS1(_inst.FD) = riPS1(_inst.FB) &~ (1ULL << 63);
+	riPS0(_inst.FD) = riPS0(_inst.FB) & ~(1ULL << 63);
+	riPS1(_inst.FD) = riPS1(_inst.FB) & ~(1ULL << 63);
 
 	if (_inst.Rc)
 		Helper_UpdateCR1();

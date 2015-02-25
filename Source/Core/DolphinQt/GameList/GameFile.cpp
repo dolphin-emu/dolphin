@@ -68,7 +68,7 @@ GameFile::GameFile(const QString& fileName)
 
 			m_volume_names = VectorToStringList(volume->GetNames());
 
-			m_country  = volume->GetCountry();
+			m_country = volume->GetCountry();
 			m_file_size = volume->GetRawSize();
 			m_volume_size = volume->GetSize();
 

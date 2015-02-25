@@ -64,7 +64,7 @@ bool CBoot::Boot_ELF(const std::string& filename)
 
 	// Load ELF into GameCube Memory
 	ElfReader reader(elf.get());
-	if(!reader.LoadIntoMemory())
+	if (!reader.LoadIntoMemory())
 		return false;
 
 	// Set up MSR and the BAT SPR registers.

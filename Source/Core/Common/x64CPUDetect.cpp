@@ -21,7 +21,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 #if defined _LP64
 	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to
 	// restored at the end of the asm block.
-	__asm__ (
+	__asm__(
 		"cpuid;"
 		"movl  %%ebx,%1;"
 		: "=a" (*eax),
@@ -32,7 +32,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 		: "rbx"
 		);
 #else
-	__asm__ (
+	__asm__(
 		"cpuid;"
 		"movl  %%ebx,%1;"
 		: "=a" (*eax),
@@ -219,7 +219,8 @@ void CPUInfo::Detect()
 					logical_cpu_count /= cores_x_package;
 				}
 			}
-		} else
+		}
+		else
 		{
 			// Use AMD's new method.
 			num_cores = (cpu_id[2] & 0xFF) + 1;

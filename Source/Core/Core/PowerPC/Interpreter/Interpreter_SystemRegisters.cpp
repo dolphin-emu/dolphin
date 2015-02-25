@@ -26,7 +26,6 @@ mffsx: 80036650 (huh?)
 
 static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 {
-
 	FPURoundMode::SetRoundMode(fp.RN);
 
 	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)

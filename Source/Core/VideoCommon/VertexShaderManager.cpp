@@ -60,10 +60,10 @@ static float PHackValue(std::string sValue)
 	float f = 0;
 	bool fp = false;
 	const char *cStr = sValue.c_str();
-	char *c = new char[strlen(cStr)+1];
+	char *c = new char[strlen(cStr) + 1];
 	std::istringstream sTof("");
 
-	for (unsigned int i=0; i<=strlen(cStr); ++i)
+	for (unsigned int i = 0; i <= strlen(cStr); ++i)
 	{
 		if (i == 20)
 		{
@@ -71,7 +71,7 @@ static float PHackValue(std::string sValue)
 			break;
 		}
 
-		c[i] = (cStr[i] == ',') ? '.' : *(cStr+i);
+		c[i] = (cStr[i] == ',') ? '.' : *(cStr + i);
 		if (c[i] == '.')
 			fp = true;
 	}
@@ -83,7 +83,7 @@ static float PHackValue(std::string sValue)
 	if (!fp)
 		f /= 0xF4240;
 
-	delete [] c;
+	delete[] c;
 	return f;
 }
 
@@ -159,10 +159,10 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 	if (Wd == 0 || Ht == 0)
 		return;
 
-	result.data[4*0+0] = intendedWd / Wd;
-	result.data[4*0+3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
-	result.data[4*1+1] = intendedHt / Ht;
-	result.data[4*1+3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
+	result.data[4*0 + 0] = intendedWd / Wd;
+	result.data[4*0 + 3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
+	result.data[4*1 + 1] = intendedHt / Ht;
+	result.data[4*1 + 3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
 }
 
 void VertexShaderManager::Init()
@@ -184,7 +184,7 @@ void VertexShaderManager::Init()
 	bViewportChanged = false;
 
 	memset(&xfmem, 0, sizeof(xfmem));
-	memset(&constants, 0 , sizeof(constants));
+	memset(&constants, 0, sizeof(constants));
 	ResetView();
 
 	// TODO: should these go inside ResetView()?
@@ -226,7 +226,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
-		for (int i=startn; i<endn; i++)
+		for (int i = startn; i < endn; i++)
 		{
 			memcpy(constants.normalmatrices[i], &xfmem.normalMatrices[3*i], 12);
 		}
@@ -237,7 +237,7 @@ void VertexShaderManager::SetConstants()
 	if (nPostTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
-		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
+		int endn = (nPostTransformMatricesChanged[1] + 3) / 4;
 		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
@@ -315,8 +315,8 @@ void VertexShaderManager::SetConstants()
 		const float *pos = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
 		const float *norm = (const float *)xfmem.normalMatrices + 3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31);
 
-		memcpy(constants.posnormalmatrix, pos, 3*16);
-		memcpy(constants.posnormalmatrix[3], norm, 12);
+		memcpy(constants.posnormalmatrix,    pos,    3*16);
+		memcpy(constants.posnormalmatrix[3], norm,   12);
 		memcpy(constants.posnormalmatrix[4], norm+3, 12);
 		memcpy(constants.posnormalmatrix[5], norm+6, 12);
 		dirty = true;
@@ -335,7 +335,7 @@ void VertexShaderManager::SetConstants()
 
 		for (int i = 0; i < 4; ++i)
 		{
-			memcpy(constants.texmatrices[3*i], fptrs[i], 3*16);
+			memcpy(constants.texmatrices[3 * i], fptrs[i], 3 * 16);
 		}
 		dirty = true;
 	}
@@ -352,7 +352,7 @@ void VertexShaderManager::SetConstants()
 
 		for (int i = 0; i < 4; ++i)
 		{
-			memcpy(constants.texmatrices[3*i+12], fptrs[i], 3*16);
+			memcpy(constants.texmatrices[3*i + 12], fptrs[i], 3*16);
 		}
 		dirty = true;
 	}
@@ -417,16 +417,16 @@ void VertexShaderManager::SetConstants()
 			g_fProjectionMatrix[14] = -1.0f;
 			g_fProjectionMatrix[15] = 0.0f;
 
-			SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
-			SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix[1]);
-			SETSTAT_FT(stats.gproj_2, g_fProjectionMatrix[2]);
-			SETSTAT_FT(stats.gproj_3, g_fProjectionMatrix[3]);
-			SETSTAT_FT(stats.gproj_4, g_fProjectionMatrix[4]);
-			SETSTAT_FT(stats.gproj_5, g_fProjectionMatrix[5]);
-			SETSTAT_FT(stats.gproj_6, g_fProjectionMatrix[6]);
-			SETSTAT_FT(stats.gproj_7, g_fProjectionMatrix[7]);
-			SETSTAT_FT(stats.gproj_8, g_fProjectionMatrix[8]);
-			SETSTAT_FT(stats.gproj_9, g_fProjectionMatrix[9]);
+			SETSTAT_FT(stats.gproj_0,  g_fProjectionMatrix[0]);
+			SETSTAT_FT(stats.gproj_1,  g_fProjectionMatrix[1]);
+			SETSTAT_FT(stats.gproj_2,  g_fProjectionMatrix[2]);
+			SETSTAT_FT(stats.gproj_3,  g_fProjectionMatrix[3]);
+			SETSTAT_FT(stats.gproj_4,  g_fProjectionMatrix[4]);
+			SETSTAT_FT(stats.gproj_5,  g_fProjectionMatrix[5]);
+			SETSTAT_FT(stats.gproj_6,  g_fProjectionMatrix[6]);
+			SETSTAT_FT(stats.gproj_7,  g_fProjectionMatrix[7]);
+			SETSTAT_FT(stats.gproj_8,  g_fProjectionMatrix[8]);
+			SETSTAT_FT(stats.gproj_9,  g_fProjectionMatrix[9]);
 			SETSTAT_FT(stats.gproj_10, g_fProjectionMatrix[10]);
 			SETSTAT_FT(stats.gproj_11, g_fProjectionMatrix[11]);
 			SETSTAT_FT(stats.gproj_12, g_fProjectionMatrix[12]);
@@ -460,28 +460,28 @@ void VertexShaderManager::SetConstants()
 			// Hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
 			g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON;
 
-			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
-			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
-			SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
-			SETSTAT_FT(stats.g2proj_3, g_fProjectionMatrix[3]);
-			SETSTAT_FT(stats.g2proj_4, g_fProjectionMatrix[4]);
-			SETSTAT_FT(stats.g2proj_5, g_fProjectionMatrix[5]);
-			SETSTAT_FT(stats.g2proj_6, g_fProjectionMatrix[6]);
-			SETSTAT_FT(stats.g2proj_7, g_fProjectionMatrix[7]);
-			SETSTAT_FT(stats.g2proj_8, g_fProjectionMatrix[8]);
-			SETSTAT_FT(stats.g2proj_9, g_fProjectionMatrix[9]);
+			SETSTAT_FT(stats.g2proj_0,  g_fProjectionMatrix[0]);
+			SETSTAT_FT(stats.g2proj_1,  g_fProjectionMatrix[1]);
+			SETSTAT_FT(stats.g2proj_2,  g_fProjectionMatrix[2]);
+			SETSTAT_FT(stats.g2proj_3,  g_fProjectionMatrix[3]);
+			SETSTAT_FT(stats.g2proj_4,  g_fProjectionMatrix[4]);
+			SETSTAT_FT(stats.g2proj_5,  g_fProjectionMatrix[5]);
+			SETSTAT_FT(stats.g2proj_6,  g_fProjectionMatrix[6]);
+			SETSTAT_FT(stats.g2proj_7,  g_fProjectionMatrix[7]);
+			SETSTAT_FT(stats.g2proj_8,  g_fProjectionMatrix[8]);
+			SETSTAT_FT(stats.g2proj_9,  g_fProjectionMatrix[9]);
 			SETSTAT_FT(stats.g2proj_10, g_fProjectionMatrix[10]);
 			SETSTAT_FT(stats.g2proj_11, g_fProjectionMatrix[11]);
 			SETSTAT_FT(stats.g2proj_12, g_fProjectionMatrix[12]);
 			SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
 			SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
 			SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
-			SETSTAT_FT(stats.proj_0, rawProjection[0]);
-			SETSTAT_FT(stats.proj_1, rawProjection[1]);
-			SETSTAT_FT(stats.proj_2, rawProjection[2]);
-			SETSTAT_FT(stats.proj_3, rawProjection[3]);
-			SETSTAT_FT(stats.proj_4, rawProjection[4]);
-			SETSTAT_FT(stats.proj_5, rawProjection[5]);
+			SETSTAT_FT(stats.proj_0,    rawProjection[0]);
+			SETSTAT_FT(stats.proj_1,    rawProjection[1]);
+			SETSTAT_FT(stats.proj_2,    rawProjection[2]);
+			SETSTAT_FT(stats.proj_3,    rawProjection[3]);
+			SETSTAT_FT(stats.proj_4,    rawProjection[4]);
+			SETSTAT_FT(stats.proj_5,    rawProjection[5]);
 			break;
 
 		default:
@@ -549,12 +549,15 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		if (nTransformMatricesChanged[0] == -1)
 		{
 			nTransformMatricesChanged[0] = start;
-			nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END?XFMEM_POSMATRICES_END:end;
+			nTransformMatricesChanged[1] = end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
 		}
 		else
 		{
-			if (nTransformMatricesChanged[0] > start) nTransformMatricesChanged[0] = start;
-			if (nTransformMatricesChanged[1] < end) nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END?XFMEM_POSMATRICES_END:end;
+			if (nTransformMatricesChanged[0] > start)
+				nTransformMatricesChanged[0] = start;
+
+			if (nTransformMatricesChanged[1] < end)
+				nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
 		}
 	}
 
@@ -570,8 +573,11 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		}
 		else
 		{
-			if (nNormalMatricesChanged[0] > _start) nNormalMatricesChanged[0] = _start;
-			if (nNormalMatricesChanged[1] < _end) nNormalMatricesChanged[1] = _end;
+			if (nNormalMatricesChanged[0] > _start)
+				nNormalMatricesChanged[0] = _start;
+
+			if (nNormalMatricesChanged[1] < _end)
+				nNormalMatricesChanged[1] = _end;
 		}
 	}
 
@@ -587,8 +593,11 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		}
 		else
 		{
-			if (nPostTransformMatricesChanged[0] > _start) nPostTransformMatricesChanged[0] = _start;
-			if (nPostTransformMatricesChanged[1] < _end) nPostTransformMatricesChanged[1] = _end;
+			if (nPostTransformMatricesChanged[0] > _start)
+				nPostTransformMatricesChanged[0] = _start;
+
+			if (nPostTransformMatricesChanged[1] < _end)
+				nPostTransformMatricesChanged[1] = _end;
 		}
 	}
 
@@ -597,15 +606,18 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start-XFMEM_LIGHTS;
 		int _end = end < XFMEM_LIGHTS_END ? end-XFMEM_LIGHTS : XFMEM_LIGHTS_END-XFMEM_LIGHTS;
 
-		if (nLightsChanged[0] == -1 )
+		if (nLightsChanged[0] == -1)
 		{
 			nLightsChanged[0] = _start;
 			nLightsChanged[1] = _end;
 		}
 		else
 		{
-			if (nLightsChanged[0] > _start) nLightsChanged[0] = _start;
-			if (nLightsChanged[1] < _end)   nLightsChanged[1] = _end;
+			if (nLightsChanged[0] > _start)
+				nLightsChanged[0] = _start;
+
+			if (nLightsChanged[1] < _end)
+				nLightsChanged[1] = _end;
 		}
 	}
 }
@@ -615,7 +627,7 @@ void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 	if (g_main_cp_state.matrix_index_a.Hex != Value)
 	{
 		VertexManager::Flush();
-		if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value&0x3f))
+		if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
 			bPosNormalMatrixChanged = true;
 		bTexMatricesChanged[0] = true;
 		g_main_cp_state.matrix_index_a.Hex = Value;
@@ -650,7 +662,7 @@ void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
 void VertexShaderManager::TranslateView(float x, float y, float z)
 {
 	float result[3];
-	float vector[3] = { x,z,y };
+	float vector[3] = { x, z, y };
 
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 

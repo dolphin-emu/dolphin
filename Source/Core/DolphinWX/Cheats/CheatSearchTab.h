@@ -50,7 +50,6 @@ private:
 	{
 		wxRadioButton* rad_oldvalue;
 		wxRadioButton* rad_uservalue;
-
 	} m_value_x_radiobtn;
 
 	void UpdateCheatSearchResultsList();

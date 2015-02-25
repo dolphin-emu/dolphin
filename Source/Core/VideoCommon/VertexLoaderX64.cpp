@@ -16,7 +16,7 @@ static const X64Reg scratch3 = ABI_PARAM4;
 static const X64Reg count_reg = R10;
 static const X64Reg skipped_reg = R11;
 
-VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att): VertexLoaderBase(vtx_desc, vtx_att)
+VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att) : VertexLoaderBase(vtx_desc, vtx_att)
 {
 	if (!IsInitialized())
 		return;
@@ -97,7 +97,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 	X64Reg coords = XMM0;
 
 	int elem_size = 1 << (format / 2);
-	int load_bytes  = elem_size * count_in;
+	int load_bytes = elem_size * count_in;
 	if (load_bytes >= 8)
 		MOVDQU(coords, data);
 	else if (load_bytes >= 4)
@@ -337,7 +337,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 
 	if (m_VtxDesc.Normal)
 	{
-		static const u8 map[8] = {7, 6, 15, 14};
+		static const u8 map[8] = { 7, 6, 15, 14 };
 		u8 scaling_exponent = map[m_VtxAttr.NormalFormat];
 
 		for (int i = 0; i < (m_VtxAttr.NormalElements ? 3 : 1); i++)
@@ -357,7 +357,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 			m_native_components |= VB_HAS_NRM1 | VB_HAS_NRM2;
 	}
 
-	const u64 col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	const u64 col[2] = { m_VtxDesc.Color0, m_VtxDesc.Color1 };
 	for (int i = 0; i < 2; i++)
 	{
 		if (col[i])

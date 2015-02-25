@@ -10,8 +10,8 @@
 #include "VideoCommon/sfont.inc"
 #include "VideoCommon/TextureDecoder.h"
 
-static bool TexFmt_Overlay_Enable=false;
-static bool TexFmt_Overlay_Center=false;
+static bool TexFmt_Overlay_Enable = false;
+static bool TexFmt_Overlay_Center = false;
 
 // TRAM
 // STATE_TO_SAVE
@@ -185,11 +185,11 @@ static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat
 
 	if (!TexFmt_Overlay_Center)
 	{
-		xoff=0;
-		yoff=0;
+		xoff = 0;
+		yoff = 0;
 	}
 
-	const char* fmt = texfmt[texformat&15];
+	const char* fmt = texfmt[texformat & 15];
 	while (*fmt)
 	{
 		int xcnt = 0;
@@ -197,16 +197,16 @@ static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat
 
 		const unsigned char *ptr = sfont_raw[nchar]; // each char is up to 9x10
 
-		for (int x = 0; x < 9;x++)
+		for (int x = 0; x < 9; x++)
 		{
 			if (ptr[x] == 0x78)
 				break;
 			xcnt++;
 		}
 
-		for (int y=0; y < 10; y++)
+		for (int y = 0; y < 10; y++)
 		{
-			for (int x=0; x < xcnt; x++)
+			for (int x = 0; x < xcnt; x++)
 			{
 				int  *dtp = (int*)dst;
 				dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
@@ -230,7 +230,7 @@ static inline u32 DecodePixel_IA8(u16 val)
 {
 	int a = val & 0xFF;
 	int i = val >> 8;
-	return i | (i<<8) | (i<<16) | (a<<24);
+	return i | (i << 8) | (i << 16) | (a << 24);
 }
 
 static inline u32 DecodePixel_RGB565(u16 val)

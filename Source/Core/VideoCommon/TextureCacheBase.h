@@ -41,7 +41,6 @@ public:
 				return std::hash<u64>::operator()(id);
 			}
 		};
-
 	};
 	struct TCacheEntryBase
 	{
