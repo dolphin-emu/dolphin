@@ -152,9 +152,6 @@ void DoFrameStep();
 void SetFrameStopping(bool bEnabled);
 void SetReadOnly(bool bEnabled);
 
-void SetFrameSkipping(unsigned int framesToSkip);
-void FrameSkipping();
-
 bool BeginRecordingInput(int controllers);
 void RecordInput(GCPadStatus* PadStatus, int controllerID);
 void RecordWiimote(int wiimote, u8 *data, u8 size);

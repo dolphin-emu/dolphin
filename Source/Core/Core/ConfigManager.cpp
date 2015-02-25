@@ -347,7 +347,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
 	core->Set("FrameLimit", m_Framelimit);
-	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
 	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
@@ -591,7 +590,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
-	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);

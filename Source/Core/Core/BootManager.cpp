@@ -52,11 +52,11 @@ struct ConfigCache
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
-	unsigned int framelimit, frameSkip;
+	unsigned int framelimit;
 	TEXIDevices m_EXIDevice[MAX_EXI_CHANNELS];
 	std::string strBackend, sBackend;
 	std::string m_strGPUDeterminismMode;
-	bool bSetFramelimit, bSetEXIDevice[MAX_EXI_CHANNELS], bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES], bSetFrameSkip;
+	bool bSetFramelimit, bSetEXIDevice[MAX_EXI_CHANNELS], bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES];
 };
 static ConfigCache config_cache;
 
@@ -116,7 +116,6 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
-		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
 		config_cache.bProgressive = StartUp.bProgressive;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
@@ -134,7 +133,6 @@ bool BootCore(const std::string& _rFilename)
 		std::fill_n(config_cache.bSetPads, (int)MAX_SI_CHANNELS, false);
 		std::fill_n(config_cache.bSetEXIDevice, (int)MAX_EXI_CHANNELS, false);
 		config_cache.bSetFramelimit = false;
-		config_cache.bSetFrameSkip = false;
 
 		// General settings
 		IniFile::Section* core_section     = game_ini.GetOrCreateSection("Core");
@@ -155,11 +153,6 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
 		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
-		if (core_section->Get("FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
-		{
-			config_cache.bSetFrameSkip = true;
-			Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
-		}
 
 		if (dsp_section->Get("Volume",        &SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
 			config_cache.bSetVolume = true;
@@ -287,11 +280,6 @@ void Stop()
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)
 			SConfig::GetInstance().m_Framelimit = config_cache.framelimit;
-		if (config_cache.bSetFrameSkip)
-		{
-			SConfig::GetInstance().m_FrameSkip = config_cache.frameSkip;
-			Movie::SetFrameSkipping(config_cache.frameSkip);
-		}
 		if (config_cache.bSetVolume)
 			SConfig::GetInstance().m_Volume = config_cache.Volume;
 
