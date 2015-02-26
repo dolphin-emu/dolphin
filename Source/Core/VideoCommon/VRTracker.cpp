@@ -87,11 +87,12 @@ namespace VRTracker
 		if (!s_device)
 			return;
 
+		// Make sure we have the most recent state available
 		s_device->UpdateInput();
 
 		float position[3], orientation[4];
 
-		// Get the inverted position states
+		// Get the inverted position states offset from the initial position
 		for (int i = 0; i < 3; i++)
 			position[i] = -((float)s_position_inputs[i]->State() - s_initial_position[i]);
 
@@ -99,20 +100,26 @@ namespace VRTracker
 		for (int i = 0; i < 4; i++)
 			orientation[i] = (float)s_orientation_inputs[i]->State();
 
-		Quaternion rotationQuat, initialQuat, orientationQuat;
-		Matrix33 rotationMtx;
+		Quaternion worldQuat, initialQuat, orientationQuat;
+		Matrix33 worldMtx;
 
+		// Get the initial and current orientation quaternions
 		Quaternion::Set(orientationQuat, orientation);
 		Quaternion::Set(initialQuat, s_initial_orientation);
-		Quaternion::Invert(initialQuat);
-		Quaternion::Multiply(orientationQuat, initialQuat, rotationQuat);
-		Quaternion::Invert(rotationQuat);
-		Matrix33::LoadQuaternion(rotationMtx, rotationQuat);
 
-		Matrix44 translateMtx, transformMtx;
-		Matrix44::LoadMatrix33(transformMtx, rotationMtx);
+		// Rotate the current orientation by the inverse of the initial orientation
+		Quaternion::Invert(initialQuat);
+		Quaternion::Multiply(orientationQuat, initialQuat, worldQuat);
+
+		// Invert the quaternion to get the world orientation
+		Quaternion::Invert(worldQuat);
+		Matrix33::LoadQuaternion(worldMtx, worldQuat);
+
+		// Translate the transformation matrix by the position
+		Matrix44 translateMtx, transformationMtx;
+		Matrix44::LoadMatrix33(transformationMtx, worldMtx);
 		Matrix44::Translate(translateMtx, position);
-		Matrix44::Multiply(transformMtx, translateMtx, mtx);
+		Matrix44::Multiply(transformationMtx, translateMtx, mtx);
 	}
 
 }
