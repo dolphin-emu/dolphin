@@ -28,11 +28,6 @@ public:
 	void NotifyUpdate();
 
 private:
-	enum
-	{
-		ID_GPR = 1002
-	};
-
 	CRegisterView* m_GPRGridView;
 	void CreateGUIControls();
 };

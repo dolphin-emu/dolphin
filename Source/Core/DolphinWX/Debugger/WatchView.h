@@ -44,7 +44,7 @@ private:
 class CWatchView : public wxGrid
 {
 public:
-	CWatchView(wxWindow* parent, wxWindowID id);
+	CWatchView(wxWindow* parent, wxWindowID id = wxID_ANY);
 	void Update() override;
 	void OnMouseDownR(wxGridEvent& event);
 	void OnPopupMenu(wxCommandEvent& event);
