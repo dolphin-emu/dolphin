@@ -18,6 +18,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VRTracker.h"
 #include "VideoCommon/XFMemory.h"
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
@@ -386,6 +387,7 @@ void VertexShaderManager::SetConstants()
 		}
 	}
 
+	// Always update the perspective projection matrix every frame when we're in VR mode
 	if (bProjectionChanged)
 	{
 		bProjectionChanged = false;
@@ -512,9 +514,10 @@ void VertexShaderManager::SetConstants()
 
 			if (g_ActiveConfig.iStereoMode == STEREO_VR)
 			{
-				Matrix44 tempMtx;
+				Matrix44 tempMtx, tranformMtx;
+				VRTracker::GetTransformMatrix(tranformMtx);
 				Matrix44::Set(tempMtx, g_fProjectionMatrix);
-				Matrix44::Multiply(tempMtx, s_VRTransformationMatrix, projMtx);
+				Matrix44::Multiply(tempMtx, tranformMtx, projMtx);
 			}
 		}
 
@@ -705,31 +708,6 @@ void VertexShaderManager::ResetView()
 	Matrix33::LoadIdentity(s_viewRotationMatrix);
 	Matrix33::LoadIdentity(s_viewInvRotationMatrix);
 	s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
-
-	bProjectionChanged = true;
-}
-
-void VertexShaderManager::SetVRPose(const float* orientation, const float* position)
-{
-	Quaternion rotationQuat;
-	Matrix33 rotationMtx;
-
-	Quaternion::Set(rotationQuat, orientation);
-	Quaternion::Invert(rotationQuat);
-	Matrix33::LoadQuaternion(rotationMtx, rotationQuat);
-
-	if (position != nullptr)
-	{
-		const float inv[3] = { -position[0], -position[1], -position[2] };
-		Matrix44 translateMtx, transformMtx;
-		Matrix44::LoadMatrix33(transformMtx, rotationMtx);
-		Matrix44::Translate(translateMtx, inv);
-		Matrix44::Multiply(transformMtx, translateMtx, s_VRTransformationMatrix);
-	}
-	else
-	{
-		Matrix44::LoadMatrix33(s_VRTransformationMatrix, rotationMtx);
-	}
 
 	bProjectionChanged = true;
 }

@@ -61,6 +61,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VRTracker.h"
 
 // This can mostly be removed when we move to VS2015
 // to use the thread_local keyword
@@ -440,6 +441,7 @@ void EmuThread()
 	{
 		Pad::Initialize(s_window_handle);
 		Keyboard::Initialize(s_window_handle);
+		VRTracker::Initialize(s_window_handle);
 		init_controllers = true;
 	}
 	else
@@ -574,6 +576,7 @@ void EmuThread()
 		Wiimote::Shutdown();
 		Keyboard::Shutdown();
 		Pad::Shutdown();
+		VRTracker::Shutdown();
 		init_controllers = false;
 	}
 

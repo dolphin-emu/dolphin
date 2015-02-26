@@ -1,9 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
 #include "InputCommon/ControllerInterface/OSVR/OSVR.h"
-#include "VideoCommon/VertexShaderManager.h"
 
 namespace ciface
 {
@@ -56,23 +55,6 @@ void Device::TrackerCallback(void* userdata, const OSVR_TimeValue* timestamp, co
 	Device* device = (Device*)userdata;
 	device->m_last_update = *timestamp;
 	device->m_pose_report = *report;
-
-	const OSVR_Quaternion* quat = &report->pose.rotation;
-	float orientation[] = {
-		(float)osvrQuatGetW(quat),
-		(float)osvrQuatGetX(quat),
-		(float)osvrQuatGetY(quat),
-		(float)osvrQuatGetZ(quat)
-	};
-
-	const OSVR_Vec3* pos = &report->pose.translation;
-	float position[] = {
-		(float)pos->data[0],
-		(float)pos->data[1],
-		(float)pos->data[2]
-	};
-
-	VertexShaderManager::SetVRPose(orientation, position);
 }
 
 Device::Device(const OSVR_ClientInterface& device, const char* path, u8 index)
