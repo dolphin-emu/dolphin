@@ -460,8 +460,8 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_keys[0], 0, "(`Control_L` | `Control_R`) & `O`"); // Open
 	set_control(m_keys[0], 1, ""); // ChangeDisc
 	set_control(m_keys[0], 2, ""); // RefreshList
-	set_control(m_keys[0], 3, "`F10`"); // PlayPause
-	set_control(m_keys[0], 4, "Escape"); // Stop
+	set_control(m_keys[0], 3, "`F10` & !(`Alt_L` | `Alt_R`)"); // PlayPause
+	set_control(m_keys[0], 4, "Escape & !(`Alt_L` | `Alt_R`)"); // Stop
 	set_control(m_keys[0], 5, ""); // Reset
 	set_control(m_keys[0], 6, ""); // FrameAdvance
 	set_control(m_keys[0], 7, ""); // StartRecording
@@ -483,19 +483,19 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_keys[0], 23, ""); // ToggleAspectRatio
 	set_control(m_keys[0], 24, ""); // ToggleEFBCopies
 	set_control(m_keys[0], 25, ""); // ToggleFog
-	set_control(m_keys[0], 26, "Tab"); // ToggleThrottle
+	set_control(m_keys[0], 26, "Tab & !(`Alt_L` | `Alt_R`)"); // ToggleThrottle
 	set_control(m_keys[0], 27, ""); // DecreaseFrameLimit
 	set_control(m_keys[0], 28, ""); // IncreaseFrameLimit
-	set_control(m_keys[0], 29, "1"); // FreelookDecreaseSpeed
-	set_control(m_keys[0], 30, "2"); // FreelookIncreaseSpeed
-	set_control(m_keys[0], 31, "F"); // FreelookResetSpeed
-	set_control(m_keys[1], 0, "E"); // FreelookUp
-	set_control(m_keys[1], 1, "Q"); // FreelookDown
-	set_control(m_keys[1], 2, "A"); // FreelookLeft
-	set_control(m_keys[1], 3, "D"); // FreelookRight
-	set_control(m_keys[1], 4, "W"); // FreelookZoomIn
-	set_control(m_keys[1], 5, "S"); // FreelookZoomOut
-	set_control(m_keys[1], 6, "R"); // FreelookReset
+	set_control(m_keys[0], 29, "1 & !(`Alt_L` | `Alt_R`)"); // FreelookDecreaseSpeed
+	set_control(m_keys[0], 30, "2 & !(`Alt_L` | `Alt_R`)"); // FreelookIncreaseSpeed
+	set_control(m_keys[0], 31, "F & !(`Alt_L` | `Alt_R`)"); // FreelookResetSpeed
+	set_control(m_keys[1], 0, "E & !(`Alt_L` | `Alt_R`)"); // FreelookUp
+	set_control(m_keys[1], 1, "Q & !(`Alt_L` | `Alt_R`)"); // FreelookDown
+	set_control(m_keys[1], 2, "A & !(`Alt_L` | `Alt_R`)"); // FreelookLeft
+	set_control(m_keys[1], 3, "D & !(`Alt_L` | `Alt_R`)"); // FreelookRight
+	set_control(m_keys[1], 4, "W & !(`Alt_L` | `Alt_R`)"); // FreelookZoomIn
+	set_control(m_keys[1], 5, "S & !(`Alt_L` | `Alt_R`)"); // FreelookZoomOut
+	set_control(m_keys[1], 6, "R & !(`Alt_L` | `Alt_R`)"); // FreelookReset
 	set_control(m_keys[1], 7, ""); // DecreaseDepth
 	set_control(m_keys[1], 8, ""); // IncreaseDepth
 	set_control(m_keys[1], 9, ""); // DecreaseConvergence
@@ -510,14 +510,14 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_keys[1], 18, "`F8` & !(`Shift_L` | `Shift_R`) & !(`Alt_L` | `Alt_R`)"); // LoadStateSlot8
 	set_control(m_keys[1], 19, ""); // LoadStateSlot9
 	set_control(m_keys[1], 20, ""); // LoadStateSlot10
-	set_control(m_keys[1], 21, "(`Shift_L` | `Shift_R`) & `F1`"); // SaveStateSlot1
-	set_control(m_keys[1], 22, "(`Shift_L` | `Shift_R`) & `F2`"); // SaveStateSlot2
-	set_control(m_keys[1], 23, "(`Shift_L` | `Shift_R`) & `F3`"); // SaveStateSlot3
-	set_control(m_keys[1], 24, "(`Shift_L` | `Shift_R`) & `F4`"); // SaveStateSlot4
-	set_control(m_keys[1], 25, "(`Shift_L` | `Shift_R`) & `F5`"); // SaveStateSlot5
-	set_control(m_keys[1], 26, "(`Shift_L` | `Shift_R`) & `F6`"); // SaveStateSlot6
-	set_control(m_keys[1], 27, "(`Shift_L` | `Shift_R`) & `F7`"); // SaveStateSlot7
-	set_control(m_keys[1], 28, "(`Shift_L` | `Shift_R`) & `F8`"); // SaveStateSlot8
+	set_control(m_keys[1], 21, "(`Shift_L` | `Shift_R`) & `F1` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot1
+	set_control(m_keys[1], 22, "(`Shift_L` | `Shift_R`) & `F2` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot2
+	set_control(m_keys[1], 23, "(`Shift_L` | `Shift_R`) & `F3` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot3
+	set_control(m_keys[1], 24, "(`Shift_L` | `Shift_R`) & `F4` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot4
+	set_control(m_keys[1], 25, "(`Shift_L` | `Shift_R`) & `F5` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot5
+	set_control(m_keys[1], 26, "(`Shift_L` | `Shift_R`) & `F6` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot6
+	set_control(m_keys[1], 27, "(`Shift_L` | `Shift_R`) & `F7` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot7
+	set_control(m_keys[1], 28, "(`Shift_L` | `Shift_R`) & `F8` & !(`Alt_L` | `Alt_R`)"); // SaveStateSlot8
 	set_control(m_keys[1], 29, ""); // SaveStateSlot9
 	set_control(m_keys[1], 30, ""); // SaveStateSlot10
 	set_control(m_keys[1], 31, ""); // SelectStateSlot1
@@ -541,8 +541,8 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_keys[2], 17, ""); // LoadLastState7
 	set_control(m_keys[2], 18, ""); // LoadLastState8
 	set_control(m_keys[2], 19, ""); // SaveFirstState
-	set_control(m_keys[2], 20, "`F12` & !(`Shift_L` | `Shift_R`)"); // UndoLoadState
-	set_control(m_keys[2], 21, "(`Shift_L` | `Shift_R`) & `F12`"); // UndoSaveState
+	set_control(m_keys[2], 20, "`F12` & !(`Shift_L` | `Shift_R`) & !(`Alt_L` | `Alt_R`)"); // UndoLoadState
+	set_control(m_keys[2], 21, "(`Shift_L` | `Shift_R`) & `F12` & !(`Alt_L` | `Alt_R`)"); // UndoSaveState
 	set_control(m_keys[2], 22, ""); // SaveStateFile
 	set_control(m_keys[2], 23, ""); // LoadStateFile
 #endif
