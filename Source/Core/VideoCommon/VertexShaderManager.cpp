@@ -189,6 +189,7 @@ void VertexShaderManager::Init()
 	memset(&xfmem, 0, sizeof(xfmem));
 	memset(&constants, 0, sizeof(constants));
 	ResetView();
+	VRTracker::ResetView();
 
 	// TODO: should these go inside ResetView()?
 	Matrix44::LoadIdentity(s_viewportCorrection);

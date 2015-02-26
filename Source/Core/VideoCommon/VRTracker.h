@@ -10,5 +10,6 @@ namespace VRTracker
 {
 	void Shutdown();
 	void Initialize(void* const hwnd);
+	void ResetView();
 	void GetTransformMatrix(Matrix44& mtx);
 }

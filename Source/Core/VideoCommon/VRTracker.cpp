@@ -26,6 +26,9 @@ namespace VRTracker
 	static ControllerInterface::ControlReference* s_position_inputs[3];
 	static ControllerInterface::ControlReference* s_orientation_inputs[4];
 
+	static float s_initial_position[3];
+	static float s_initial_orientation[4];
+
 	void Shutdown()
 	{
 		for (int i = 0; i < 3; i++)
@@ -63,6 +66,20 @@ namespace VRTracker
 		}
 	}
 
+	void ResetView()
+	{
+		if (!s_device)
+			return;
+
+		s_device->UpdateInput();
+
+		for (int i = 0; i < 3; i++)
+			s_initial_position[i] = (float)s_position_inputs[i]->State();
+
+		for (int i = 0; i < 4; i++)
+			s_initial_orientation[i] = (float)s_orientation_inputs[i]->State();
+	}
+
 	void GetTransformMatrix(Matrix44& mtx)
 	{
 		Matrix44::LoadIdentity(mtx);
@@ -76,16 +93,19 @@ namespace VRTracker
 
 		// Get the inverted position states
 		for (int i = 0; i < 3; i++)
-			position[i] = (float)-s_position_inputs[i]->State();
+			position[i] = -((float)s_position_inputs[i]->State() - s_initial_position[i]);
 
 		// Get the orientation quaternion
 		for (int i = 0; i < 4; i++)
 			orientation[i] = (float)s_orientation_inputs[i]->State();
 
-		Quaternion rotationQuat;
+		Quaternion rotationQuat, initialQuat, orientationQuat;
 		Matrix33 rotationMtx;
 
-		Quaternion::Set(rotationQuat, orientation);
+		Quaternion::Set(orientationQuat, orientation);
+		Quaternion::Set(initialQuat, s_initial_orientation);
+		Quaternion::Invert(initialQuat);
+		Quaternion::Multiply(orientationQuat, initialQuat, rotationQuat);
 		Quaternion::Invert(rotationQuat);
 		Matrix33::LoadQuaternion(rotationMtx, rotationQuat);
 
