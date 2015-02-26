@@ -7,17 +7,15 @@
 #include <map>
 #include <queue>
 #include <sstream>
-
-#include <SFML/Network.hpp>
-
+#include <SFML/Network/Packet.hpp>
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
+#include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
-
 #include "InputCommon/GCPadStatus.h"
+
 
 class NetPlayUI
 {
@@ -38,19 +36,19 @@ public:
 
 class Player
 {
- public:
+public:
 	PlayerId    pid;
 	std::string name;
 	std::string revision;
 	u32         ping;
 };
 
-class NetPlayClient
+class NetPlayClient : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
 
-	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name);
+	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, std::string centralServer, u16 centralPort);
 	~NetPlayClient();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
@@ -68,10 +66,24 @@ public:
 	bool WiimoteUpdate(int _number, u8* data, const u8 size);
 	bool GetNetPads(const u8 pad_nb, GCPadStatus* pad_status);
 
+	void OnTraversalStateChanged() override;
+	void OnConnectReady(ENetAddress addr) override;
+	void OnConnectFailed(u8 reason) override;
+
 	u8 LocalPadToInGamePad(u8 localPad);
 	u8 InGamePadToLocalPad(u8 localPad);
 
 	u8 LocalWiimoteToInGameWiimote(u8 local_pad);
+
+	enum State
+	{
+		WaitingForTraversalClientConnection,
+		WaitingForTraversalClientConnectReady,
+		Connecting,
+		WaitingForHelloResponse,
+		Connected,
+		Failure
+	} m_state;
 
 protected:
 	void ClearBuffers();
@@ -86,10 +98,11 @@ protected:
 	Common::FifoQueue<GCPadStatus> m_pad_buffer[4];
 	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];
 
-	NetPlayUI*    m_dialog;
-	sf::TcpSocket m_socket;
-	std::thread   m_thread;
-	sf::SocketSelector m_selector;
+	NetPlayUI*   m_dialog;
+
+	ENetHost*    m_client;
+	ENetPeer*    m_server;
+	std::thread  m_thread;
 
 	std::string   m_selected_game;
 	volatile bool m_is_running;
@@ -111,9 +124,18 @@ private:
 	void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
 	void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
 	unsigned int OnData(sf::Packet& packet);
+	void Send(sf::Packet& packet);
+	void Disconnect();
+	bool Connect();
+
+	void OnTraversalDisconnect(int fail);
 
 	PlayerId m_pid;
 	std::map<PlayerId, Player> m_players;
+	std::string m_host_spec;
+	std::string m_player_name;
+	bool m_connecting;
+	TraversalClient* m_traversal_client;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
