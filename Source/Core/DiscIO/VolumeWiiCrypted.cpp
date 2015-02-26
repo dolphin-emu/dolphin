@@ -237,6 +237,14 @@ bool CVolumeWiiCrypted::IsWiiDisc() const
 	return true;
 }
 
+bool CVolumeWiiCrypted::IsDiscTwo() const
+{
+	bool discTwo = false;
+	m_pReader->Read(6, 1, (u8*)&discTwo);
+	return discTwo;
+}
+
+
 u64 CVolumeWiiCrypted::GetSize() const
 {
 	if (m_pReader)

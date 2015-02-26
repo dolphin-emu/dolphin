@@ -34,6 +34,7 @@ public:
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
 
+	bool IsDiscTwo() const override;
 	bool IsWiiDisc() const override;
 	bool SupportsIntegrityCheck() const override { return true; }
 	bool CheckIntegrity() const override;
