@@ -64,6 +64,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/resources/Flag_Australia.xpm"
 #include "DolphinWX/resources/Flag_Europe.xpm"
@@ -199,6 +200,7 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 
 	Bind(wxEVT_MENU, &CGameListCtrl::OnProperties, this, IDM_PROPERTIES);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnWiki, this, IDM_GAME_WIKI);
+	Bind(wxEVT_MENU, &CGameListCtrl::OnHostNetplay, this, IDM_HOST_NETPLAY);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenContainingFolder, this, IDM_OPEN_CONTAINING_FOLDER);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnOpenSaveFolder, this, IDM_OPEN_SAVE_FOLDER);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnExportSave, this, IDM_EXPORT_SAVE);
@@ -923,6 +925,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			wxMenu popupMenu;
 			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
 			popupMenu.Append(IDM_GAME_WIKI, _("&Wiki"));
+			popupMenu.Append(IDM_HOST_NETPLAY, _("Host Netplay"));
+
 			popupMenu.AppendSeparator();
 
 			if (selected_iso->GetPlatform() != GameListItem::GAMECUBE_DISC)
@@ -1104,6 +1108,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 		Update();
 }
 
+
 void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 {
 	const GameListItem* iso = GetSelectedISO();
@@ -1113,6 +1118,27 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	std::string wikiUrl = "https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=" + iso->GetUniqueID();
 	WxUtils::Launch(wikiUrl);
 }
+void CGameListCtrl::OnHostNetplay(wxCommandEvent& WXUNUSED (event))
+{
+	const GameListItem* iso = GetSelectedISO();
+	if (!iso)
+		return;
+	NetPlaySetupDiag* npsd = new NetPlaySetupDiag(this, this);
+	// Lang needs to be consistent
+	auto const lang = 0;
+	std::string name(iso->GetName(lang));
+	if (iso->GetRevision() != 0)
+		name = name + " (" + iso->GetUniqueID() + ", Revision " + std::to_string((long long)iso->GetRevision()) + ")";
+	else
+		name = name + " (" + iso->GetUniqueID() + ")";
+	IniFile inifile;
+	inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+	std::string port;
+	netplay_section.Get("HostPort", &port, "2626");
+	npsd->HostGame(name, std::stol(port));
+}
+
 
 bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
 {
