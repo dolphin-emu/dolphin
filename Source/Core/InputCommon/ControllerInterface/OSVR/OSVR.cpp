@@ -60,7 +60,9 @@ void Device::TrackerCallback(void* userdata, const OSVR_TimeValue* timestamp, co
 Device::Device(const OSVR_ClientInterface& device, const char* path, u8 index)
 	: m_device(device), m_path(path), m_index(index)
 {
+	memset(&m_last_update, 0, sizeof(m_last_update));
 	memset(&m_pose_report, 0, sizeof(m_pose_report));
+	osvrQuatSetIdentity(&m_pose_report.pose.rotation);
 
 	osvrRegisterPoseCallback(m_device, &TrackerCallback, this);
 
