@@ -490,6 +490,7 @@ if(NOT ANDROID)
 		int main(int argc, char **argv)
 		{ if(Pa_GetVersion() >= 1890) return 0; else return 1; }"
 		PORTAUDIO)
+	unset(CMAKE_REQUIRED_LIBRARIES)
 	if(PORTAUDIO)
 		message("PortAudio found, enabling mic support")
 		add_definitions(-DHAVE_PORTAUDIO=1)
