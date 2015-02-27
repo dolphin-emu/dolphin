@@ -375,58 +375,59 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 
 IniFile SCoreStartupParameter::LoadDefaultGameIni() const
 {
-	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, GetUniqueID(), m_revision);
-	return game_ini;
+	return LoadDefaultGameIni(GetUniqueID(), m_revision);
 }
 
 IniFile SCoreStartupParameter::LoadLocalGameIni() const
 {
-	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), GetUniqueID(), m_revision);
-	return game_ini;
+	return LoadLocalGameIni(GetUniqueID(), m_revision);
 }
 
 IniFile SCoreStartupParameter::LoadGameIni() const
 {
-	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, GetUniqueID(), m_revision);
-	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), GetUniqueID(), m_revision);
-	return game_ini;
+	return LoadGameIni(GetUniqueID(), m_revision);
 }
 
 IniFile SCoreStartupParameter::LoadDefaultGameIni(const std::string& id, int revision)
 {
 	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, id, revision);
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
 	return game_ini;
 }
 
 IniFile SCoreStartupParameter::LoadLocalGameIni(const std::string& id, int revision)
 {
 	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), id, revision);
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
 	return game_ini;
 }
 
 IniFile SCoreStartupParameter::LoadGameIni(const std::string& id, int revision)
 {
 	IniFile game_ini;
-	LoadGameIni(&game_ini, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, id, revision);
-	LoadGameIni(&game_ini, File::GetUserPath(D_GAMESETTINGS_IDX), id, revision);
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
 	return game_ini;
 }
 
-void SCoreStartupParameter::LoadGameIni(IniFile* game_ini, const std::string& path,
-                                        const std::string& id, int revision)
+// Returns all possible filenames in ascending order of priority
+std::vector<std::string> SCoreStartupParameter::GetGameIniFilenames(const std::string& id, int revision)
 {
+	std::vector<std::string> filenames;
+
 	// INIs that match all regions
 	if (id.size() >= 4)
-		game_ini->Load(path + id.substr(0, 3) + ".ini", true);
+		filenames.push_back(id.substr(0, 3) + ".ini");
 
 	// Regular INIs
-	game_ini->Load(path + id + ".ini", true);
+	filenames.push_back(id + ".ini");
 
 	// INIs with specific revisions
-	game_ini->Load(path + id + StringFromFormat("r%d", revision) + ".ini", true);
+	filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
+
+	return filenames;
 }
