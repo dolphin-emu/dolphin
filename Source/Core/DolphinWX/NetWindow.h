@@ -52,10 +52,6 @@ private:
 	wxTextCtrl*   m_connect_port_text;
 	wxTextCtrl*   m_connect_ip_text;
 	wxChoice*     m_direct_traversal;
-	wxStaticText* m_traversal_server_lbl;
-	wxTextCtrl*   m_traversal_server;
-	wxStaticText* m_traversal_port_lbl;
-	wxTextCtrl*   m_traversal_port;
 
 	wxListBox*  m_game_lbox;
 #ifdef USE_UPNP
@@ -63,6 +59,9 @@ private:
 #endif
 
 	const CGameListCtrl* const m_game_list;
+
+	std::string m_central_server;
+	u16         m_central_port;
 };
 
 class NetPlayDiag : public wxFrame, public NetPlayUI
