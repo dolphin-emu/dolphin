@@ -21,7 +21,6 @@
 #include <direct.h>    // getcwd
 #include <io.h>
 #include <shellapi.h>
-#include <shlobj.h>    // for SHGetFolderPath
 #include <windows.h>
 #else
 #include <dirent.h>
@@ -743,66 +742,6 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 	// Set up all paths and files on the first run
 	if (paths[D_USER_IDX].empty())
 	{
-#ifdef _WIN32
-		// Detect where the User directory is. There are five different cases (on top of the
-		// command line flag, which overrides all this):
-		// 1. GetExeDirectory()\portable.txt exists
-		//    -> Use GetExeDirectory()\User
-		// 2. HKCU\Software\Dolphin Emulator\LocalUserConfig exists and is true
-		//    -> Use GetExeDirectory()\User
-		// 3. HKCU\Software\Dolphin Emulator\UserConfigPath exists
-		//    -> Use this as the user directory path
-		// 4. My Documents exists
-		//    -> Use My Documents\Dolphin Emulator as the User directory path
-		// 5. Default
-		//    -> Use GetExeDirectory()\User
-
-		// Check our registry keys
-		HKEY hkey;
-		DWORD local = 0;
-		TCHAR configPath[MAX_PATH] = {0};
-		if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0, KEY_QUERY_VALUE, &hkey) == ERROR_SUCCESS)
-		{
-			DWORD size = 4;
-			if (RegQueryValueEx(hkey, TEXT("LocalUserConfig"), nullptr, nullptr, reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
-				local = 0;
-
-			size = MAX_PATH;
-			if (RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr, (LPBYTE)configPath, &size) != ERROR_SUCCESS)
-				configPath[0] = 0;
-			RegCloseKey(hkey);
-		}
-
-		local = local || File::Exists(GetExeDirectory() + DIR_SEP "portable.txt");
-
-		// Get Program Files path in case we need it.
-		TCHAR my_documents[MAX_PATH];
-		bool my_documents_found = SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, my_documents));
-
-		if (local) // Case 1-2
-			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
-		else if (configPath[0]) // Case 3
-			paths[D_USER_IDX] = TStrToUTF8(configPath);
-		else if (my_documents_found) // Case 4
-			paths[D_USER_IDX] = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
-		else // Case 5
-			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
-
-		// Prettify the path: it will be displayed in some places, we don't want a mix of \ and /.
-		paths[D_USER_IDX] = ReplaceAll(paths[D_USER_IDX], "\\", DIR_SEP);
-
-		// Make sure it ends in DIR_SEP.
-		if (*paths[D_USER_IDX].rbegin() != DIR_SEP_CHR)
-			paths[D_USER_IDX] += DIR_SEP;
-#else
-		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
-			paths[D_USER_IDX] = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
-		else
-			paths[D_USER_IDX] = std::string(getenv("HOME") ?
-				getenv("HOME") : getenv("PWD") ?
-				getenv("PWD") : "") + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
-#endif
-
 		paths[D_GCUSER_IDX]         = paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
 		paths[D_WIIROOT_IDX]        = paths[D_USER_IDX] + WII_USER_DIR;
 		paths[D_WIIUSER_IDX]        = paths[D_WIIROOT_IDX] + DIR_SEP;
@@ -869,6 +808,7 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 			paths[D_SHADERS_IDX]        = paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
 			paths[D_STATESAVES_IDX]     = paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
 			paths[D_SCREENSHOTS_IDX]    = paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
+			paths[D_LOAD_IDX]           = paths[D_USER_IDX] + LOAD_DIR DIR_SEP;
 			paths[D_HIRESTEXTURES_IDX]  = paths[D_LOAD_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
 			paths[D_DUMP_IDX]           = paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
 			paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
