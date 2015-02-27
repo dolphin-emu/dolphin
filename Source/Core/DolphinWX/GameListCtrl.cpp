@@ -1099,9 +1099,8 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	CISOProperties ISOProperties(iso->GetFileName(), this);
-	if (ISOProperties.ShowModal() == wxID_OK)
-		Update();
+	CISOProperties* ISOProperties = new CISOProperties(iso->GetFileName(), this);
+	ISOProperties->Show();
 }
 
 void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))

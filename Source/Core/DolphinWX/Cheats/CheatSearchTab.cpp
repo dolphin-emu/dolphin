@@ -19,6 +19,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/ActionReplay.h"
 #include "Core/HW/Memmap.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatSearchTab.h"
@@ -308,7 +309,7 @@ void CheatSearchTab::CreateARCode(wxCommandEvent&)
 	{
 		const u32 address = m_search_results[sel].address | ((m_search_type_size & ~1) << 24);
 
-		CreateCodeDialog arcode_dlg(this, address);
+		CreateCodeDialog arcode_dlg(this, address, ActionReplay::GetARCodes());
 		arcode_dlg.SetExtraStyle(arcode_dlg.GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
 		arcode_dlg.ShowModal();
 	}
