@@ -1440,30 +1440,27 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			OnConnectWiimote(evt);
 		}
 
-		if (g_Config.bFreeLook)
-		{
-			static float debugSpeed = 1.0f;
+		static float debugSpeed = 1.0f;
 
-			if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
-				debugSpeed /= 2.0f;
-			else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
-				debugSpeed *= 2.0f;
-			else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
-				debugSpeed = 1.0f;
-			else if (IsHotkey(event, HK_FREELOOK_UP))
-				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_DOWN))
-				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_LEFT))
-				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-			else if (IsHotkey(event, HK_FREELOOK_RIGHT))
-				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-			else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
-				VertexShaderManager::TranslateView(0.0f, debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
-				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-			else if (IsHotkey(event, HK_FREELOOK_RESET))
-				VertexShaderManager::ResetView();
-		}
+		if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+			debugSpeed /= 2.0f;
+		else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
+			debugSpeed *= 2.0f;
+		else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
+			debugSpeed = 1.0f;
+		else if (IsHotkey(event, HK_FREELOOK_UP))
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+		else if (IsHotkey(event, HK_FREELOOK_DOWN))
+			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+		else if (IsHotkey(event, HK_FREELOOK_LEFT))
+			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+		else if (IsHotkey(event, HK_FREELOOK_RIGHT))
+			VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+		else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
+			VertexShaderManager::TranslateView(0.0f, debugSpeed);
+		else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
+			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+		else if (IsHotkey(event, HK_FREELOOK_RESET))
+			VertexShaderManager::ResetView();
 	}
 }
