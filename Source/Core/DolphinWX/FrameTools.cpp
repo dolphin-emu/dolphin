@@ -686,7 +686,8 @@ void CFrame::BootGame(const std::string& filename)
 // Open file to boot
 void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
-	DoOpen(true);
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		DoOpen(true);
 }
 
 void CFrame::DoOpen(bool Boot)
