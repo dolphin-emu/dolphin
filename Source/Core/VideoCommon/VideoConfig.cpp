@@ -26,12 +26,9 @@ void UpdateActiveConfig()
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 		Movie::SetGraphicsConfig();
 
-	if (!g_opcodereplay_frame || !g_opcode_replay_enabled)
-	{
-		g_ActiveConfig = g_Config;
-		if (g_has_hmd)
-			g_ActiveConfig.bUseRealXFB = false;
-	}
+	g_ActiveConfig = g_Config;
+	if (g_has_hmd)
+		g_ActiveConfig.bUseRealXFB = false;
 }
 
 VideoConfig::VideoConfig()
