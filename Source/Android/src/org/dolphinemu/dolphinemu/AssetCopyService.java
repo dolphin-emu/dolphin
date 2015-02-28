@@ -36,7 +36,7 @@ public final class AssetCopyService extends IntentService
 	@Override
 	protected void onHandleIntent(Intent intent)
 	{
-		String BaseDir = Environment.getExternalStorageDirectory() + File.separator + "dolphin-emu";
+		String BaseDir = NativeLibrary.GetUserDirectory();
 		String ConfigDir = BaseDir + File.separator + "Config";
 		String GCDir = BaseDir + File.separator + "GC";
 

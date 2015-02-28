@@ -176,6 +176,11 @@ public final class NativeLibrary
 	public static native void SetUserDirectory(String directory);
 
 	/**
+	 * Returns the current working user directory
+	 */
+	public static native String GetUserDirectory();
+
+	/**
 	 * Begins emulation.
 	 * 
 	 * @param surf The surface to render to.
