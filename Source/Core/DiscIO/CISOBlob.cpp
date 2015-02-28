@@ -77,8 +77,8 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 		}
 
 		out_ptr += bytes_to_read;
-		offset += bytes_to_read;
-		nbytes -= bytes_to_read;
+		offset  += bytes_to_read;
+		nbytes  -= bytes_to_read;
 	}
 
 	return true;

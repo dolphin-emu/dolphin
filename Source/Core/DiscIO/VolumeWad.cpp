@@ -22,6 +22,7 @@ CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
 	: m_pReader(_pReader), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
 	m_hdr_size(0), m_cert_size(0), m_tick_size(0), m_tmd_size(0), m_data_size(0)
 {
+	// Source: http://wiibrew.org/wiki/WAD_files
 	Read(0x00, 4, (u8*)&m_hdr_size);
 	Read(0x08, 4, (u8*)&m_cert_size);
 	Read(0x10, 4, (u8*)&m_tick_size);

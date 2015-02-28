@@ -95,7 +95,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 		memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
 
 		// Update offsets
-		_Length -= CopySize;
+		_Length     -= CopySize;
 		_pBuffer    += CopySize;
 		_ReadOffset += CopySize;
 	}

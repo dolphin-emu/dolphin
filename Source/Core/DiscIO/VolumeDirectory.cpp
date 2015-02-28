@@ -140,9 +140,9 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 			if (!reader->Read(fileOffset, fileBytes, _pBuffer))
 				return false;
 
-			_Length -= fileBytes;
+			_Length  -= fileBytes;
 			_pBuffer += fileBytes;
-			_Offset += fileBytes;
+			_Offset  += fileBytes;
 		}
 
 		++fileIter;
