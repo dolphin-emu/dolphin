@@ -177,12 +177,18 @@ void VertexLoader_Normal::Init()
 unsigned int VertexLoader_Normal::GetSize(u64 _type,
 	unsigned int _format, unsigned int _elements, unsigned int _index3)
 {
+	// FIXME: This is only a workaround for the FIFA Street fifo log.
+	_format = std::min(_format, 4u);
+
 	return m_Table[_type][_index3][_elements][_format].gc_size;
 }
 
 TPipelineFunction VertexLoader_Normal::GetFunction(u64 _type,
 	unsigned int _format, unsigned int _elements, unsigned int _index3)
 {
+	// FIXME: This is only a workaround for the FIFA Street fifo log.
+	_format = std::min(_format, 4u);
+
 	TPipelineFunction pFunc = m_Table[_type][_index3][_elements][_format].function;
 	return pFunc;
 }
