@@ -206,6 +206,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 			Core::ch_next_code = false;
 			Core::ch_codigoactual = 0;
 			Core::ch_codigoactual = ch_cargar_ultimaposicion();
+			ch_guardar_ultimaposicion(Core::ch_codigoactual);
 			State::Load(1);
 		}
 		else

@@ -1362,16 +1362,10 @@ void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
 {
 	ResetAPIState();
 
-	// color
-	GLboolean const
-		color_mask = colorEnable ? GL_TRUE : GL_FALSE,
-		alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
-	glColorMask(color_mask, color_mask, color_mask, alpha_mask);
-
 	// depth
 	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	RestoreAPIState();
 
