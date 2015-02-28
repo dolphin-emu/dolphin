@@ -1404,7 +1404,11 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		unsigned int i = NUM_HOTKEYS;
 		for (i = 0; i < NUM_HOTKEYS; i++)
 		{
-			if (IsHotkey(event, i))
+			bool held = false;
+			if (i == HK_FRAME_ADVANCE)
+				held = true;
+
+			if (IsHotkey(event, i, held))
 			{
 				int cmd = GetCmdForHotkey(i);
 				if (cmd >= 0)
