@@ -1433,7 +1433,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 	// Actually perform the Wiimote connection or disconnection
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if (WiimoteId >= 0)
+		if (WiimoteId >= 0 && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			wxCommandEvent evt;
 			evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
