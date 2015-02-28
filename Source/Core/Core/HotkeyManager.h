@@ -24,7 +24,7 @@ public:
 	void LoadDefaults(const ControllerInterface& ciface);
 
 private:
-	Buttons* m_keys[6];
+	Buttons* m_keys[3];
 	ControlGroup* m_options;
 };
 
@@ -34,6 +34,7 @@ namespace HotkeyManagerEmu
 	void Shutdown();
 
 	InputConfig* GetConfig();
-	void GetStatus(u8 _port, HotkeyStatus* _pKeyboardStatus);
+	void GetStatus();
+	bool IsReady();
 	bool IsPressed(int Id, bool held);
 }

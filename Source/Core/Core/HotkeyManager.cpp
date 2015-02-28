@@ -153,7 +153,8 @@ const int num_hotkeys = (sizeof(hotkey_labels) / sizeof(hotkey_labels[0]));
 namespace HotkeyManagerEmu
 {
 
-static u32 hotkeyDown[6];
+static u32 hotkeyDown[3];
+static HotkeyStatus hotkey;
 
 static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
 InputConfig* GetConfig()
@@ -161,31 +162,22 @@ InputConfig* GetConfig()
 	return &s_config;
 }
 
-void GetStatus(u8 _port, HotkeyStatus* _pHotkeyStatus)
+void GetStatus()
 {
-	memset(_pHotkeyStatus, 0, sizeof(*_pHotkeyStatus));
-	_pHotkeyStatus->err = PAD_ERR_NONE;
-
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
-	if (!lk.owns_lock())
-	{
-		// if gui has lock (messing with controls), skip this input cycle
-		for (int i = 0; i < 6; i++)
-			_pHotkeyStatus->button[i] = 0;
-
-		return;
-	}
+	hotkey.err = PAD_ERR_NONE;
 
 	// get input
-	((HotkeyManager*)s_config.controllers[_port])->GetInput(_pHotkeyStatus);
+	((HotkeyManager*)s_config.controllers[0])->GetInput(&hotkey);
+}
+
+bool IsReady()
+{
+	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
+	return lk.owns_lock();
 }
 
 bool IsPressed(int Id, bool held)
 {
-	HotkeyStatus hotkey;
-	memset(&hotkey, 0, sizeof(hotkey));
-	GetStatus(0, &hotkey);
 	unsigned int set = Id / 32;
 	unsigned int setKey = Id % 32;
 	if (hotkey.button[set] & (1 << setKey))
@@ -215,7 +207,7 @@ void Initialize(void* const hwnd)
 	// load the saved controller config
 	s_config.LoadConfig(true);
 
-	for (unsigned int i = 0; i < 6; ++i)
+	for (unsigned int i = 0; i < 3; ++i)
 		hotkeyDown[i] = 0;
 }
 
@@ -235,7 +227,7 @@ void Shutdown()
 
 HotkeyManager::HotkeyManager()
 {
-	for (int set = 0; set < 6; set++)
+	for (int set = 0; set < 3; set++)
 	{
 		// buttons
 		if ((set * 32) < num_hotkeys)
@@ -266,9 +258,14 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
-	for (int set = 0; set < 6; set++)
+	for (int set = 0; set < 3; set++)
+	{
 		if ((set * 32) < num_hotkeys)
+		{
+			kb->button[set] = 0;
 			m_keys[set]->GetState(&kb->button[set], hotkey_bitmasks);
+		}
+	}
 }
 
 void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)

@@ -1263,11 +1263,15 @@ const CGameListCtrl *CFrame::GetGameListCtrl() const
 
 void CFrame::PollHotkeys(wxTimerEvent& event)
 {
+	if (!HotkeyManagerEmu::IsReady())
+		return;
+
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
 		g_controller_interface.UpdateInput();
 
 	if (Core::GetState() != Core::CORE_STOPPING)
 	{
+		HotkeyManagerEmu::GetStatus();
 		wxKeyEvent keyevent = 0;
 
 		if (IsHotkey(keyevent, HK_TOGGLE_THROTTLE))
