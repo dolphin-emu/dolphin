@@ -155,6 +155,7 @@ void Setup()
 				else
 				{
 					AddGCAdapter(device);
+					break;
 				}
 			}
 			else if ((ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED))
@@ -170,6 +171,7 @@ void Setup()
 			else
 			{
 				AddGCAdapter(device);
+				break;
 			}
 		}
 	}
