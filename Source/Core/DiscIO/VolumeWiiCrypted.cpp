@@ -239,9 +239,9 @@ bool CVolumeWiiCrypted::IsWiiDisc() const
 
 bool CVolumeWiiCrypted::IsDiscTwo() const
 {
-	bool discTwo = false;
-	m_pReader->Read(6, 1, (u8*)&discTwo);
-	return discTwo;
+	u8 disc_two_check;
+	m_pReader->Read(6, 1, &disc_two_check);
+	return (disc_two_check == 1);
 }
 
 

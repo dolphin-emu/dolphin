@@ -149,9 +149,9 @@ u64 CVolumeGC::GetRawSize() const
 
 bool CVolumeGC::IsDiscTwo() const
 {
-	bool discTwo = false;
-	Read(6,1, (u8*) &discTwo);
-	return discTwo;
+	u8 disc_two_check;
+	Read(6, 1, &disc_two_check);
+	return (disc_two_check == 1);
 }
 
 CVolumeGC::StringDecoder CVolumeGC::GetStringDecoder(ECountry country)
