@@ -14,7 +14,7 @@ public:
 	SamplerCache();
 	~SamplerCache();
 
-	void SetSamplerState(int stage, const TexMode0& tm0, const TexMode1& tm1);
+	void SetSamplerState(int stage, const TexMode0& tm0, const TexMode1& tm1, bool custom_tex);
 	void Clear();
 
 private:

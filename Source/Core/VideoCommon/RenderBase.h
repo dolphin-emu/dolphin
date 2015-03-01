@@ -57,7 +57,7 @@ public:
 	virtual void SetDepthMode() = 0;
 	virtual void SetLogicOpMode() = 0;
 	virtual void SetDitherMode() = 0;
-	virtual void SetSamplerState(int stage,int texindex) = 0;
+	virtual void SetSamplerState(int stage, int texindex, bool custom_tex) = 0;
 	virtual void SetInterlacingMode() = 0;
 	virtual void SetViewport() = 0;
 
