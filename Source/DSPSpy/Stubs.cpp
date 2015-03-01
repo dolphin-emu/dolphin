@@ -18,8 +18,8 @@
 // Stubs to make DSPCore compile as part of DSPSpy.
 
 /*
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <string>
 

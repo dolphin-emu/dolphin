@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <cstring>
 #include <cctype>
+#include <cstring>
 #include <disasm.h>  // From Bochs, fallback included in Externals.
 #include <map>
 #include <memory>

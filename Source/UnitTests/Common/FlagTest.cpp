@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <array>
-#include <gtest/gtest.h>
 #include <thread>
+#include <gtest/gtest.h>
 
 #include "Common/Flag.h"
 
