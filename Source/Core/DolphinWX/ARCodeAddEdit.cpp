@@ -30,8 +30,8 @@
 
 CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::ARCode>& _arCodes, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
-	, selection(_selection)
 	, arCodes(_arCodes)
+	, selection(_selection)
 {
 	Bind(wxEVT_BUTTON, &CARCodeAddEdit::SaveCheatData, this, wxID_OK);
 
