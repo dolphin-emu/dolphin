@@ -91,7 +91,7 @@ struct DTMHeader
 	u8   CPUCore;           // 0 = interpreter, 1 = JIT, 2 = JITIL
 	bool bEFBAccessEnable;
 	bool bEFBCopyEnable;
-	bool bSkipEFBCopyToRam;
+	bool bCopyEFBToTexture;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
 	bool bUseXFB;

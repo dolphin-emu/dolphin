@@ -114,7 +114,7 @@ struct VideoConfig final
 	bool bPerfQueriesEnable;
 
 	bool bEFBEmulateFormatChanges;
-	bool bSkipEFBCopyToRam;
+	bool bCopyEFBToTexture;
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[3];
@@ -164,6 +164,8 @@ struct VideoConfig final
 	// Utility
 	bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
 	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+	bool EFBCopiesToTextureEnabled() const { return bCopyEFBToTexture; }
+	bool EFBCopiesToRamEnabled() const { return !bCopyEFBToTexture; }
 	bool ExclusiveFullscreenEnabled() const { return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen; }
 };
 
