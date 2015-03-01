@@ -506,7 +506,7 @@ CFrame::CFrame(wxFrame* parent,
 		g_pCodeWindow->UpdateButtonStates();
 
 	// check if game is running
-	m_bHotkeysInit = InitControllers();
+	InitControllers();
 
 	m_poll_hotkey_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
@@ -515,14 +515,10 @@ CFrame::CFrame(wxFrame* parent,
 // Destructor
 CFrame::~CFrame()
 {
-	if (m_bHotkeysInit)
-	{
-		Wiimote::Shutdown();
-		Keyboard::Shutdown();
-		Pad::Shutdown();
-		HotkeyManagerEmu::Shutdown();
-		m_bHotkeysInit = false;
-	}
+	Wiimote::Shutdown();
+	Keyboard::Shutdown();
+	Pad::Shutdown();
+	HotkeyManagerEmu::Shutdown();
 
 	drives.clear();
 
@@ -1268,10 +1264,7 @@ const CGameListCtrl *CFrame::GetGameListCtrl() const
 void CFrame::PollHotkeys(wxTimerEvent& event)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
-	{
-		m_bHotkeysInit = InitControllers();
 		g_controller_interface.UpdateInput();
-	}
 
 	if (Core::GetState() != Core::CORE_STOPPING)
 	{
