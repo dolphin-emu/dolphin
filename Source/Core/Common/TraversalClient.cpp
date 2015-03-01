@@ -215,10 +215,8 @@ void TraversalClient::OnFailure(FailureReason reason)
 	switch (reason)
 	{
 	case TraversalClient::BadHost:
-	{
 		PanicAlertT("Couldn't look up central server %s", m_Server.c_str());
 		break;
-	}
 	case TraversalClient::VersionTooOld:
 		PanicAlertT("Dolphin too old for traversal server");
 		break;

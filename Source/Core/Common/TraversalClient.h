@@ -34,7 +34,6 @@ public:
 		ServerForgotAboutUs,
 		SocketSendError,
 		ResendTimeout,
-		ConnectFailedError = 0x400,
 	};
 	TraversalClient(ENetHost* netHost, const std::string& server, const u16 port);
 	~TraversalClient();

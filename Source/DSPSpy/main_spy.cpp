@@ -9,17 +9,17 @@
 // Use Dolphin's dsptool to generate a new dsp_code.h.
 // Originally written by duddie and modified by FIRES. Then further modified by ector.
 
+#include <debug.h>
+#include <fat.h>
+#include <fcntl.h>
 #include <gccore.h>
 #include <malloc.h>
+#include <network.h>
+#include <ogcsys.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <network.h>
-#include <ogcsys.h>
 #include <time.h>
-#include <fat.h>
-#include <fcntl.h>
-#include <debug.h>
 
 #include <unistd.h>
 #include <ogc/color.h>
