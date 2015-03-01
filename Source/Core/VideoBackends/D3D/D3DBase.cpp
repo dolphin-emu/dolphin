@@ -257,6 +257,8 @@ HRESULT Create(HWND wnd)
 		UpdateActiveConfig();
 	}
 
+	const bool stereo_enabled = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER && factory->IsWindowedStereoEnabled();
+
 	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc;
 	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
 	swap_chain_desc.BufferCount = 1;
@@ -268,6 +270,7 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swap_chain_desc.Width = xres;
 	swap_chain_desc.Height = yres;
+	swap_chain_desc.Stereo = stereo_enabled;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	// Creating debug devices can sometimes fail if the user doesn't have the correct
