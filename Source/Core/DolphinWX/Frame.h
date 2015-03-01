@@ -176,7 +176,6 @@ private:
 	bool m_bGameLoading;
 	bool m_bClosing;
 	bool m_confirmStop;
-	bool m_bHotkeysInit;
 
 	std::vector<std::string> drives;
 
