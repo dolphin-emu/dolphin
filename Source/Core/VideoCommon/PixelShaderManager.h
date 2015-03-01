@@ -33,7 +33,7 @@ public:
 	static void SetTevKonstColor(int index, int component, s32 value);
 	static void SetAlpha();
 	static void SetDestAlpha();
-	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
+	static void SetTexDims(int texmapid, u32 width, u32 height);
 	static void SetZTextureBias();
 	static void SetViewportChanged();
 	static void SetEfbScaleChanged();

@@ -210,13 +210,12 @@ void VertexManager::Flush()
 		TextureCache::UnbindTextures();
 		for (unsigned int i : usedtextures)
 		{
-			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i);
 
 			if (tentry)
 			{
-				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
+				g_renderer->SetSamplerState(i & 3, i >> 2, tentry->is_custom_tex);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
 			}
 			else
 			{
