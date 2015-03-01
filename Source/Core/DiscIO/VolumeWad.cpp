@@ -60,9 +60,9 @@ IVolume::ECountry CVolumeWAD::GetCountry() const
 
 	if (country_code == 2) // SYSMENU
 	{
-		u16 titlever = 0;
-		Read(m_tmd_offset + 0x01dc, 2, (u8*)&titlever);
-		country_code = GetSysMenuRegion(Common::swap16(titlever));
+		u16 title_version = 0;
+		Read(m_tmd_offset + 0x01dc, 2, (u8*)&title_version);
+		country_code = GetSysMenuRegion(Common::swap16(title_version));
 	}
 
 	return CountrySwitch(country_code);
