@@ -744,20 +744,19 @@ void NetPlayClient::OnConnectFailed(u8 reason)
 {
 	m_connecting = false;
 	m_state = Failure;
-	int swtch = TraversalClient::ConnectFailedError + reason;
-	switch (swtch)
+	switch (reason)
 	{
-	case TraversalClient::ConnectFailedError + TraversalConnectFailedClientDidntRespond:
+	case TraversalConnectFailedClientDidntRespond:
 		PanicAlertT("Traversal server timed out connecting to the host");
 		break;
-	case TraversalClient::ConnectFailedError + TraversalConnectFailedClientFailure:
+	case TraversalConnectFailedClientFailure:
 		PanicAlertT("Server rejected traversal attempt");
 		break;
-	case TraversalClient::ConnectFailedError + TraversalConnectFailedNoSuchClient:
+	case TraversalConnectFailedNoSuchClient:
 		PanicAlertT("Invalid host");
 		break;
 	default:
-		PanicAlertT("Unknown error %x", swtch);
+		PanicAlertT("Unknown error %x", reason);
 		break;
 	}
 }
