@@ -1868,13 +1868,13 @@ void Renderer::SetDitherMode()
 		glDisable(GL_DITHER);
 }
 
-void Renderer::SetSamplerState(int stage, int texindex)
+void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 {
 	auto const& tex = bpmem.tex[texindex];
 	auto const& tm0 = tex.texMode0[stage];
 	auto const& tm1 = tex.texMode1[stage];
 
-	g_sampler_cache->SetSamplerState((texindex * 4) + stage, tm0, tm1);
+	g_sampler_cache->SetSamplerState((texindex * 4) + stage, tm0, tm1, custom_tex);
 }
 
 void Renderer::SetInterlacingMode()

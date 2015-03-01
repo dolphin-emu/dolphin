@@ -1154,7 +1154,7 @@ void Renderer::SetDitherMode()
 	// TODO: Set dither mode to bpmem.blendmode.dither
 }
 
-void Renderer::SetSamplerState(int stage, int texindex)
+void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 {
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
@@ -1179,6 +1179,12 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
 	gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
 	gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
+
+	// custom textures may have higher resolution, so disable the max_lod
+	if (custom_tex)
+	{
+		gx_state.sampler[stage].max_lod = 255;
+	}
 }
 
 void Renderer::SetInterlacingMode()
