@@ -103,7 +103,7 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_ClickSave(wxCommandEvent&)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal != "")
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID != "")
 		g_Config.GameIniSave();
 }
 

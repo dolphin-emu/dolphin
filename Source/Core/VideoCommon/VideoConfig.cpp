@@ -450,15 +450,9 @@ void VideoConfig::GameIniLoad()
 void VideoConfig::GameIniSave()
 {
 	// Load game ini
-	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
-	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
-	std::string GameIniFileLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal;
-
 	IniFile GameIniDefault, GameIniLocal;
-	GameIniDefault.Load(GameIniFileDefault);
-	if (GameIniFileDefaultRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
-	GameIniLocal.Load(GameIniFileLocal);
+	GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
+	GameIniLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
@@ -492,20 +486,15 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, DEFAULT_VR_SCREEN_UP);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
-	GameIniLocal.Save(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal);
+	
+	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 	g_SavedConfig = *this;
 }
 
 void VideoConfig::GameIniReset()
 {
 	// Load game ini
-	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
-	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
-
-	IniFile GameIniDefault;
-	GameIniDefault.Load(GameIniFileDefault);
-	if (GameIniFileDefaultRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
+	IniFile GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
 
 #define LOAD_DEFAULT(section, key, var, def) do { \
 			decltype(var) temp = var; \
