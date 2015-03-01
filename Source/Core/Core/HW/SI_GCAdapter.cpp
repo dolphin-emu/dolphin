@@ -143,14 +143,12 @@ void Setup()
 					if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 						s_libusb_driver_not_supported = true;
 				}
-				Shutdown();
 			}
 			else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
 			{
 				if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 				{
 					ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
-					Shutdown();
 				}
 				else
 				{
@@ -161,12 +159,10 @@ void Setup()
 			else if ((ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED))
 			{
 				ERROR_LOG(SERIALINTERFACE, "libusb_kernel_driver_active error ret = %d", ret);
-				Shutdown();
 			}
 			else if ((ret = libusb_claim_interface(s_handle, 0)))
 			{
 				ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
-				Shutdown();
 			}
 			else
 			{
@@ -175,6 +171,8 @@ void Setup()
 			}
 		}
 	}
+	if (!s_detected)
+		Shutdown();
 
 	libusb_free_device_list(list, 1);
 }
