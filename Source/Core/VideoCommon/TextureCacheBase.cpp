@@ -60,8 +60,7 @@ TextureCache::TextureCache()
 
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
-	if (g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
-		HiresTexture::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
+	HiresTexture::Init();
 
 	SetHash64Function();
 
@@ -92,6 +91,7 @@ void TextureCache::Invalidate()
 
 TextureCache::~TextureCache()
 {
+	HiresTexture::Shutdown();
 	Invalidate();
 	FreeAlignedMemory(temp);
 	temp = nullptr;
@@ -101,6 +101,12 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 {
 	if (g_texture_cache)
 	{
+		if (config.bHiresTextures != backup_config.s_hires_textures ||
+			config.bCacheHiresTextures != backup_config.s_cache_hires_textures)
+		{
+			HiresTexture::Update();
+		}
+
 		// TODO: Invalidating texcache is really stupid in some of these cases
 		if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
 			config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
@@ -109,9 +115,6 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			invalidate_texture_cache_requested)
 		{
 			g_texture_cache->Invalidate();
-
-			if (g_ActiveConfig.bHiresTextures)
-				HiresTexture::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
 			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
@@ -130,6 +133,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
 	backup_config.s_hires_textures = config.bHiresTextures;
+	backup_config.s_cache_hires_textures = config.bCacheHiresTextures;
 	backup_config.s_stereo_3d = config.iStereoMode > 0;
 	backup_config.s_efb_mono_depth = config.bStereoEFBMonoDepth;
 }
@@ -433,15 +437,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		textures.erase(oldest_entry);
 	}
 
-	std::unique_ptr<HiresTexture> hires_tex;
+	std::shared_ptr<HiresTexture> hires_tex;
 	if (g_ActiveConfig.bHiresTextures)
 	{
-		hires_tex.reset(HiresTexture::Search(
+		hires_tex = HiresTexture::Search(
 			src_data, texture_size,
 			&texMem[tlutaddr], palette_size,
 			width, height,
 			texformat, use_mipmaps
-		));
+		);
 
 		if (hires_tex)
 		{

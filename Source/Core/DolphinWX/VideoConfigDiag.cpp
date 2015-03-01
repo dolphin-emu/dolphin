@@ -130,6 +130,7 @@ static wxString xfb_virtual_desc = _("Emulate XFBs using GPU texture objects.\nF
 static wxString xfb_real_desc = _("Emulate XFBs accurately.\nSlows down emulation a lot and prohibits high-resolution rendering but is necessary to emulate a number of games properly.\n\nIf unsure, check virtual XFB emulation instead.");
 static wxString dump_textures_desc = _("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave this unchecked.");
 static wxString load_hires_textures_desc = _("Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this unchecked.");
+static wxString cache_hires_textures_desc = _("Cache custom textures to system RAM on startup.\nThis can require exponentially more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
 static wxString dump_efb_desc = _("Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
 #if !defined WIN32 && defined HAVE_LIBAV
 static wxString use_ffv1_desc = _("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
@@ -554,6 +555,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump Textures"), dump_textures_desc, vconfig.bDumpTextures));
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Load Custom Textures"), load_hires_textures_desc, vconfig.bHiresTextures));
+	cache_hires_textures = CreateCheckBox(page_advanced, _("Prefetch Custom Textures"), cache_hires_textures_desc, vconfig.bCacheHiresTextures);
+	szr_utility->Add(cache_hires_textures);
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"), dump_efb_desc, vconfig.bDumpEFBTarget));
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"), free_look_desc, vconfig.bFreeLook));
 #if !defined WIN32 && defined HAVE_LIBAV
