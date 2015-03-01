@@ -937,7 +937,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED(event))
 	}
 }
 
-static bool IsHotkey(wxKeyEvent &event, int Id, bool keyUp = false)
+static bool IsHotkey(wxKeyEvent &event, int id, bool held = false)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		return false;
@@ -945,7 +945,7 @@ static bool IsHotkey(wxKeyEvent &event, int Id, bool keyUp = false)
 	// Input event hotkey
 	if (event.GetKeyCode() == WXK_NONE)
 	{
-		return HotkeyManagerEmu::IsPressed(Id, keyUp);
+		return HotkeyManagerEmu::IsPressed(id, held);
 	}
 
 	return false;
@@ -1450,25 +1450,25 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 
 		static float debugSpeed = 1.0f;
 
-		if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED))
+		if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED, true))
 			debugSpeed /= 2.0f;
-		else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED))
+		else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED, true))
 			debugSpeed *= 2.0f;
-		else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED))
+		else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED, true))
 			debugSpeed = 1.0f;
-		else if (IsHotkey(event, HK_FREELOOK_UP))
+		else if (IsHotkey(event, HK_FREELOOK_UP, true))
 			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
-		else if (IsHotkey(event, HK_FREELOOK_DOWN))
+		else if (IsHotkey(event, HK_FREELOOK_DOWN, true))
 			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
-		else if (IsHotkey(event, HK_FREELOOK_LEFT))
+		else if (IsHotkey(event, HK_FREELOOK_LEFT, true))
 			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-		else if (IsHotkey(event, HK_FREELOOK_RIGHT))
+		else if (IsHotkey(event, HK_FREELOOK_RIGHT, true))
 			VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-		else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN))
+		else if (IsHotkey(event, HK_FREELOOK_ZOOM_IN, true))
 			VertexShaderManager::TranslateView(0.0f, debugSpeed);
-		else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT))
+		else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT, true))
 			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-		else if (IsHotkey(event, HK_FREELOOK_RESET))
+		else if (IsHotkey(event, HK_FREELOOK_RESET, true))
 			VertexShaderManager::ResetView();
 	}
 }
