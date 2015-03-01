@@ -14,6 +14,7 @@
 #include <wx/gdicmn.h>
 #include <wx/panel.h>
 #include <wx/string.h>
+#include <wx/timer.h>
 #include <wx/translation.h>
 #include <wx/windowid.h>
 
@@ -25,8 +26,6 @@ class wxBoxSizer;
 class wxCheckBox;
 class wxChoice;
 class wxTextCtrl;
-class wxTimer;
-class wxTimerEvent;
 
 // Uses multiple inheritance - only sane because LogListener is a pure virtual interface.
 class CLogWindow : public wxPanel, LogListener
@@ -50,8 +49,7 @@ private:
 	CFrame* Parent;
 	wxFont DefaultFont, MonoSpaceFont;
 	std::vector<wxFont> LogFont;
-	wxTimer* m_LogTimer;
-	bool m_ignoreLogTimer;
+	wxTimer m_LogTimer;
 	LogManager* m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
 	bool m_writeFile, m_writeWindow, m_writeDebugger, m_LogAccess;

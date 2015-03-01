@@ -508,15 +508,13 @@ CFrame::CFrame(wxFrame* parent,
 	// check if game is running
 	m_bHotkeysInit = InitControllers();
 
-	m_poll_hotkey_timer = new wxTimer(this);
+	m_poll_hotkey_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
-	m_poll_hotkey_timer->Start(1000 / 60, wxTIMER_CONTINUOUS);
+	m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
 }
 // Destructor
 CFrame::~CFrame()
 {
-	m_poll_hotkey_timer->Stop();
-
 	if (m_bHotkeysInit)
 	{
 		Wiimote::Shutdown();
