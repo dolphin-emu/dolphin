@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <iostream>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <iostream>
 
 #define CON_BLACK 		0
 #define CON_RED			1
