@@ -367,8 +367,8 @@ void VertexShaderManager::SetConstants()
 		// NOTE: If we ever emulate antialiasing, the sample locations set by
 		// BP registers 0x01-0x04 need to be considered here.
 		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
-		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
+		const float pixel_size_x = 1.f / xfmem.viewport.wd;
+		const float pixel_size_y = 1.f / xfmem.viewport.ht;
 		constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
 		constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 		dirty = true;
