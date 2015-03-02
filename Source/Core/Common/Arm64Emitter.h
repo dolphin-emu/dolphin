@@ -755,8 +755,8 @@ public:
 	void FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index);
 
 	// ABI related
-	void ABI_PushRegisters(BitSet32 registers);
-	void ABI_PopRegisters(BitSet32 registers);
+	void ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp = INVALID_REG);
+	void ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp = INVALID_REG);
 
 private:
 	ARM64XEmitter* m_emit;

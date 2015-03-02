@@ -2874,7 +2874,7 @@ void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 	EmitVectorxElement(0, 2 | (size >> 6), L, 0b1001, H, Rd, Rn, Rm);
 }
 
-void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers)
+void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
 {
 	bool bundled_loadstore = false;
 	int num_regs = registers.Count();
@@ -2904,15 +2904,10 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers)
 		}
 	}
 
-	if (!bundled_loadstore)
+	if (bundled_loadstore && tmp != INVALID_REG)
 	{
-		for (auto it : registers)
-			STR(128, INDEX_PRE, (ARM64Reg)(Q0 + it), SP, -16);
-	}
-	else
-	{
-		// Violating the AAPCS64 never felt so right.
 		m_emit->SUB(SP, SP, num_regs * 16);
+		m_emit->ADD(tmp, SP, 0);
 		for (int i = 0; i < 32; ++i)
 		{
 			if (!registers[i])
@@ -2927,14 +2922,18 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers)
 			// 4 < 4 && registers[i + 4] false!
 			while (++count < 4 && (i + count) < 32 && registers[i + count]) {}
 
-			ST1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), SP);
+			ST1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), tmp);
 
 			i += count - 1;
 		}
-		m_emit->SUB(SP, SP, num_regs * 16);
+	}
+	else
+	{
+		for (auto it : registers)
+			STR(128, INDEX_PRE, (ARM64Reg)(Q0 + it), SP, -16);
 	}
 }
-void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers)
+void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 {
 	bool bundled_loadstore = false;
 	int num_regs = registers.Count();
@@ -2964,18 +2963,9 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers)
 		}
 	}
 
-	if (!bundled_loadstore)
+	if (bundled_loadstore && tmp != INVALID_REG)
 	{
-		for (int i = 31; i >= 0; --i)
-		{
-			if (!registers[i])
-				continue;
-
-			LDR(128, INDEX_POST, (ARM64Reg)(Q0 + i), SP, 16);
-		}
-	}
-	else
-	{
+		// The temporary register is only used to indicate that we can use this code path
 		for (int i = 0; i < 32; ++i)
 		{
 			if (!registers[i])
@@ -2987,6 +2977,16 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers)
 			LD1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), SP);
 
 			i += count - 1;
+		}
+	}
+	else
+	{
+		for (int i = 31; i >= 0; --i)
+		{
+			if (!registers[i])
+				continue;
+
+			LDR(128, INDEX_POST, (ARM64Reg)(Q0 + i), SP, 16);
 		}
 	}
 }
