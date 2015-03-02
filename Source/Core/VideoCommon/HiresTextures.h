@@ -33,9 +33,21 @@ public:
 
 	struct Level
 	{
-		u8* data;
+		std::unique_ptr<u8[]> data;
 		size_t data_size;
 		u32 width, height;
+
+		// Work around VS 2013 bugs.
+		// TODO: Get rid of this when we bump up the minimum requirement
+		// to VS 2015.
+		Level() = default;
+		Level(Level&& other)
+		{
+			data = std::move(other.data);
+			data_size = other.data_size;
+			width = other.width;
+			height = other.height;
+		}
 	};
 	std::vector<Level> m_levels;
 
