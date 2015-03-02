@@ -23,7 +23,7 @@
 static const u64 TEXHASH_INVALID = 0;
 static const int TEXTURE_KILL_THRESHOLD = 10;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
-static const u64 FRAMECOUNT_INVALID = 0;
+static const int FRAMECOUNT_INVALID = 0;
 
 TextureCache *g_texture_cache;
 
@@ -140,7 +140,7 @@ void TextureCache::Cleanup(int _frameCount)
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if(iter->second->frameCount == FRAMECOUNT_INVALID)
+		if (iter->second->frameCount == FRAMECOUNT_INVALID)
 		{
 			iter->second->frameCount = _frameCount;
 		}
@@ -161,7 +161,7 @@ void TextureCache::Cleanup(int _frameCount)
 	TexPool::iterator tcend2 = texture_pool.end();
 	while (iter2 != tcend2)
 	{
-		if(iter2->second->frameCount == FRAMECOUNT_INVALID)
+		if (iter2->second->frameCount == FRAMECOUNT_INVALID)
 		{
 			iter2->second->frameCount = _frameCount;
 		}
@@ -474,7 +474,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		}
 		else
 		{
-			u8* src_data_gb = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
+			u8* src_data_gb = &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
 			TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
 		}
 	}
@@ -527,8 +527,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		const u8* ptr_odd = nullptr;
 		if (from_tmem)
 		{
-			ptr_even = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE + texture_size];
-			ptr_odd = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
+			ptr_even = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE + texture_size];
+			ptr_odd = &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
 		}
 
 		for (; level != texLevels; ++level)
@@ -542,7 +542,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 				? ((level % 2) ? ptr_odd : ptr_even)
 				: src_data;
 			const u8* tlut = &texMem[tlutaddr];
-			TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlut, (TlutFormat) tlutfmt);
+			TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlut, (TlutFormat)tlutfmt);
 			mip_src_data += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 
 			entry->Load(mip_width, mip_height, expanded_mip_width, level);
@@ -676,7 +676,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	}
 	else if (isIntensity)
 	{
-		fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
+		fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f / 255.0f;
 		switch (dstFormat)
 		{
 		case 0: // I4
@@ -692,7 +692,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			if (dstFormat < 2 || dstFormat == 8)
 			{
 				colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
-				fConstAdd[3] = 16.0f/255.0f;
+				fConstAdd[3] = 16.0f / 255.0f;
 				if (dstFormat == 0)
 				{
 					ColorMask[0] = ColorMask[1] = ColorMask[2] = 15.0f;
@@ -848,8 +848,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		}
 	}
 
-	const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth()/2 : srcRect.GetWidth();
-	const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight()/2 : srcRect.GetHeight();
+	const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
+	const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
 
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;

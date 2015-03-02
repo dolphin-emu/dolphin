@@ -13,10 +13,6 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-// Define this in order to get VTune profile support for the Jit generated code.
-// Add the VTune include/lib directories to the project directories to get this to build.
-// #define USE_VTUNE
-
 // emulate CPU with unlimited instruction cache
 // the only way to invalidate a region is the "icbi" instruction
 #define JIT_UNLIMITED_ICACHE
@@ -110,7 +106,7 @@ class JitBaseBlockCache
 	std::array<JitBlock, MAX_NUM_BLOCKS> blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
-	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
+	std::map<std::pair<u32, u32>, u32> block_map; // (end_addr, start_addr) -> number
 	ValidBlockBitSet valid_block;
 
 	bool m_initialized;

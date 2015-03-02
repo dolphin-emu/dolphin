@@ -21,7 +21,8 @@ namespace ActionReplay { struct ARCode; }
 class CARCodeAddEdit : public wxDialog
 {
 public:
-	CARCodeAddEdit(int _selection, wxWindow* parent,
+	CARCodeAddEdit(int _selection, const std::vector<ActionReplay::ARCode>& _arCodes,
+		wxWindow* parent,
 		wxWindowID id = wxID_ANY,
 		const wxString& title = _("Edit ActionReplay Code"),
 		const wxPoint& pos = wxDefaultPosition,
@@ -32,6 +33,8 @@ private:
 	wxTextCtrl* EditCheatName;
 	wxSpinButton* EntrySelection;
 	wxTextCtrl* EditCheatCode;
+
+	std::vector<ActionReplay::ARCode> arCodes;
 
 	void SaveCheatData(wxCommandEvent& event);
 	void ChangeEntry(wxSpinEvent& event);

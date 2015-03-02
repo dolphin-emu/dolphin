@@ -350,7 +350,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 
 	if (is_immediate)
 	{
-		if ((imm_addr & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
+		if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
 		{
 			int accessSize;
 			if (flags & BackPatchInfo::FLAG_SIZE_F64)

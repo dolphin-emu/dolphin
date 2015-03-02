@@ -126,7 +126,7 @@ static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
 	case DiscIO::IVolume::COUNTRY_EUROPE:
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 	case DiscIO::IVolume::COUNTRY_GERMANY:
-	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
+	case DiscIO::IVolume::COUNTRY_WORLD:
 	case DiscIO::IVolume::COUNTRY_ITALY:
 	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
 	case DiscIO::IVolume::COUNTRY_RUSSIA:
@@ -181,7 +181,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				}
 				m_strName = pVolume->GetName();
 				m_strUniqueID = pVolume->GetUniqueID();
-				m_strRevisionSpecificUniqueID = pVolume->GetRevisionSpecificUniqueID();
+				m_revision = pVolume->GetRevision();
 
 				// Check if we have a Wii disc
 				bWii = pVolume.get()->IsWiiDisc();
@@ -376,28 +376,61 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 	}
 }
 
-IniFile SCoreStartupParameter::LoadGameIni() const
-{
-	IniFile game_ini;
-	game_ini.Load(m_strGameIniDefault);
-	if (m_strGameIniDefaultRevisionSpecific != "")
-		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
-	game_ini.Load(m_strGameIniLocal, true);
-	return game_ini;
-}
-
 IniFile SCoreStartupParameter::LoadDefaultGameIni() const
 {
-	IniFile game_ini;
-	game_ini.Load(m_strGameIniDefault);
-	if (m_strGameIniDefaultRevisionSpecific != "")
-		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
-	return game_ini;
+	return LoadDefaultGameIni(GetUniqueID(), m_revision);
 }
 
 IniFile SCoreStartupParameter::LoadLocalGameIni() const
 {
+	return LoadLocalGameIni(GetUniqueID(), m_revision);
+}
+
+IniFile SCoreStartupParameter::LoadGameIni() const
+{
+	return LoadGameIni(GetUniqueID(), m_revision);
+}
+
+IniFile SCoreStartupParameter::LoadDefaultGameIni(const std::string& id, int revision)
+{
 	IniFile game_ini;
-	game_ini.Load(m_strGameIniLocal);
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
 	return game_ini;
+}
+
+IniFile SCoreStartupParameter::LoadLocalGameIni(const std::string& id, int revision)
+{
+	IniFile game_ini;
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+	return game_ini;
+}
+
+IniFile SCoreStartupParameter::LoadGameIni(const std::string& id, int revision)
+{
+	IniFile game_ini;
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+	for (const std::string& filename : GetGameIniFilenames(id, revision))
+		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+	return game_ini;
+}
+
+// Returns all possible filenames in ascending order of priority
+std::vector<std::string> SCoreStartupParameter::GetGameIniFilenames(const std::string& id, int revision)
+{
+	std::vector<std::string> filenames;
+
+	// INIs that match all regions
+	if (id.size() >= 4)
+		filenames.push_back(id.substr(0, 3) + ".ini");
+
+	// Regular INIs
+	filenames.push_back(id + ".ini");
+
+	// INIs with specific revisions
+	filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
+
+	return filenames;
 }

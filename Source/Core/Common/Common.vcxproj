@@ -80,6 +80,8 @@
     <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TraversalClient.h" />
+    <ClInclude Include="TraversalProto.h" />
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Analyzer.h" />
     <ClInclude Include="x64Emitter.h" />
@@ -116,6 +118,7 @@
     <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TraversalClient.cpp" />
     <ClCompile Include="Version.cpp" />
     <ClCompile Include="x64ABI.cpp" />
     <ClCompile Include="x64Analyzer.cpp" />

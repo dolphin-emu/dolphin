@@ -103,7 +103,7 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_ClickSave(wxCommandEvent&)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal != "")
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID != "")
 		g_Config.GameIniSave();
 }
 
@@ -709,7 +709,7 @@ SettingNumber* VideoConfigDiag::CreateNumber(wxWindow* parent, float &setting, c
 /* Use this to register descriptions for controls which have NOT been created using the Create* functions from above */
 wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
 {
-	ctrl_descs.insert(std::pair<wxWindow*,wxString>(control, description));
+	ctrl_descs.insert(std::pair<wxWindow*, wxString>(control, description));
 	control->Bind(wxEVT_ENTER_WINDOW, &VideoConfigDiag::Evt_EnterControl, this);
 	control->Bind(wxEVT_LEAVE_WINDOW, &VideoConfigDiag::Evt_LeaveControl, this);
 	return control;
@@ -764,7 +764,7 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 	desc_sizer->Add(desc_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	// Store description text object for later lookup
-	desc_texts.insert(std::pair<wxWindow*,wxStaticText*>(page, desc_text));
+	desc_texts.insert(std::pair<wxWindow*, wxStaticText*>(page, desc_text));
 }
 
 void VideoConfigDiag::PopulatePostProcessingShaders()

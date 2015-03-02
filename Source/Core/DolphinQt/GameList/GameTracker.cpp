@@ -145,7 +145,7 @@ void DGameTracker::ScanForGames()
 			{
 				bool list = true;
 
-				switch(obj->GetCountry())
+				switch (obj->GetCountry())
 				{
 					case DiscIO::IVolume::COUNTRY_AUSTRALIA:
 						if (!SConfig::GetInstance().m_ListAustralia)
@@ -163,8 +163,8 @@ void DGameTracker::ScanForGames()
 						if (!SConfig::GetInstance().m_ListGermany)
 							list = false;
 						break;
-					case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
-						if (!SConfig::GetInstance().m_ListInternational)
+					case DiscIO::IVolume::COUNTRY_WORLD:
+						if (!SConfig::GetInstance().m_ListWorld)
 							list = false;
 						break;
 					case DiscIO::IVolume::COUNTRY_ITALY:
@@ -251,7 +251,6 @@ void DGameTracker::SelectLastBootedGame()
 				m_tree_widget->SelectGame(game);
 				break;
 			}
-
 		}
 	}
 }

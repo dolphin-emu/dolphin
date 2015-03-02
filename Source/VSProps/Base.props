@@ -131,6 +131,25 @@
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
       <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
     </Lib>
+    <!--
+    Prefer VTune 2015 over 2013 but support both since there is no non-commercial license for 2015 :(
+    -->
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2013_DIR)') And !Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

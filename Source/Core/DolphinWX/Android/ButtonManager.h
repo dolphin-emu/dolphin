@@ -99,7 +99,7 @@ namespace ButtonManager
 			_inputbinds.clear();
 		}
 		void AddBind(sBind* bind) { _inputbinds[std::make_pair(bind->_padID, bind->_buttontype)] = bind; }
-		void PressEvent(int button, int action);
+		bool PressEvent(int button, int action);
 		void AxisEvent(int axis, float value);
 		bool ButtonValue(int padID, ButtonType button);
 		float AxisValue(int padID, ButtonType axis);
@@ -108,7 +108,7 @@ namespace ButtonManager
 	void Init();
 	bool GetButtonPressed(int padID, ButtonType button);
 	float GetAxisValue(int padID, ButtonType axis);
-	void GamepadEvent(std::string dev, int button, int action);
+	bool GamepadEvent(std::string dev, int button, int action);
 	void GamepadAxisEvent(std::string dev, int axis, float value);
 	void Shutdown();
 }

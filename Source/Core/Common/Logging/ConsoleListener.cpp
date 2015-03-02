@@ -41,7 +41,8 @@ void ConsoleListener::Open(bool Hidden, int Width, int Height, const char *Title
 		// Open the console window and create the window handle for GetStdHandle()
 		AllocConsole();
 		// Hide
-		if (Hidden) ShowWindow(GetConsoleWindow(), SW_HIDE);
+		if (Hidden)
+			ShowWindow(GetConsoleWindow(), SW_HIDE);
 		// Save the window handle that AllocConsole() created
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		// Set the console window title
@@ -133,9 +134,9 @@ void ConsoleListener::LetterSpace(int Width, int Height)
 	int NewScreenHeight = OldScreenHeight;
 
 	// Width
-	BufferWidthHeight(NewBufferWidth, OldBufferHeight, NewScreenWidth, OldScreenHeight, (NewBufferWidth > OldScreenWidth-1));
+	BufferWidthHeight(NewBufferWidth, OldBufferHeight, NewScreenWidth, OldScreenHeight, (NewBufferWidth > OldScreenWidth - 1));
 	// Height
-	BufferWidthHeight(NewBufferWidth, NewBufferHeight, NewScreenWidth, NewScreenHeight, (NewBufferHeight > OldScreenHeight-1));
+	BufferWidthHeight(NewBufferWidth, NewBufferHeight, NewScreenWidth, NewScreenHeight, (NewBufferHeight > OldScreenHeight - 1));
 
 	// Resize the window too
 	//MoveWindow(GetConsoleWindow(), 200,200, (Width*8 + 50),(NewScreenHeight*12 + 200), true);
@@ -157,7 +158,8 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 {
 #ifdef _WIN32
 	// Check size
-	if (Width < 8 || Height < 12) return;
+	if (Width < 8 || Height < 12)
+		return;
 
 	bool DBef = true;
 	bool DAft = true;
@@ -233,10 +235,12 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	COORD Coo = GetCoordinates(OldCursor, LBufWidth);
 	SetConsoleCursorPosition(hConsole, Coo);
 
-	if (SLog.length() > 0) Log(LogTypes::LNOTICE, SLog.c_str());
+	if (SLog.length() > 0)
+		Log(LogTypes::LNOTICE, SLog.c_str());
 
 	// Resize the window too
-	if (Resize) MoveWindow(GetConsoleWindow(), Left,Top, (Width + 100),Height, true);
+	if (Resize)
+		MoveWindow(GetConsoleWindow(), Left, Top, (Width + 100), Height, true);
 #endif
 }
 
@@ -328,7 +332,8 @@ void ConsoleListener::ClearScreen(bool Cursor)
 	GetConsoleScreenBufferInfo(hConsole, &csbi);
 	FillConsoleOutputAttribute(hConsole, csbi.wAttributes, dwConSize, coordScreen, &cCharsWritten);
 	// Reset cursor
-	if (Cursor) SetConsoleCursorPosition(hConsole, coordScreen);
+	if (Cursor)
+		SetConsoleCursorPosition(hConsole, coordScreen);
 #endif
 }
 

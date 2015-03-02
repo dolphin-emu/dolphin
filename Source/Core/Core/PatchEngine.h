@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/PatchEngine.h"
 
 class IniFile;
 

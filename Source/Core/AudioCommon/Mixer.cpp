@@ -229,3 +229,4 @@ void CMixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
 	m_LVolume = lvolume + (lvolume >> 7);
 	m_RVolume = rvolume + (rvolume >> 7);
 }
+

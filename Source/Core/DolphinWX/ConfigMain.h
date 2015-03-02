@@ -269,7 +269,7 @@ private:
 	void AddRemoveISOPaths(wxCommandEvent& event);
 	void DefaultISOChanged(wxFileDirPickerEvent& event);
 	void DVDRootChanged(wxFileDirPickerEvent& event);
-	void ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event));
+	void ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED(event));
 	void NANDRootChanged(wxFileDirPickerEvent& event);
 
 private:

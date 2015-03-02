@@ -158,8 +158,8 @@ void PixelShaderManager::SetViewportChanged()
 
 void PixelShaderManager::SetEfbScaleChanged()
 {
-	constants.efbscale[0] = 1.0f / float(Renderer::EFBToScaledXf(1));
-	constants.efbscale[1] = 1.0f / float(Renderer::EFBToScaledYf(1));
+	constants.efbscale[0] = 1.0f / Renderer::EFBToScaledXf(1);
+	constants.efbscale[1] = 1.0f / Renderer::EFBToScaledYf(1);
 	dirty = true;
 }
 

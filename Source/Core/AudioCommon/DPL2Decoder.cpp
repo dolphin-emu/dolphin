@@ -80,9 +80,9 @@ static T FIRFilter(const T *buf, int pos, int len, int count, const float *coeff
 	// high part of window
 	const T *ptr = &buf[pos];
 
-	float r1=DotProduct(count1,ptr,coefficients);coefficients+=count1;
-	float r2=DotProduct(count2,buf,coefficients);
-	return T(r1+r2);
+	float r1 = DotProduct(count1, ptr, coefficients); coefficients += count1;
+	float r2 = DotProduct(count2, buf, coefficients);
+	return T(r1 + r2);
 }
 
 /*
@@ -96,7 +96,7 @@ static T FIRFilter(const T *buf, int pos, int len, int count, const float *coeff
 */
 static void Hamming(int n, float* w)
 {
-	float k = float(2*M_PI/((float)(n-1))); // 2*pi/(N-1)
+	float k = float(2*M_PI/((float)(n - 1))); // 2*pi/(N-1)
 
 	// Calculate window coefficients
 	for (int i = 0; i < n; i++)
@@ -122,27 +122,28 @@ returns 0 if OK, -1 if fail
 */
 static float* DesignFIR(unsigned int *n, float* fc, float opt)
 {
-	unsigned int  o   = *n & 1;              // Indicator for odd filter length
+	unsigned int  o = *n & 1;                // Indicator for odd filter length
 	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end
 
 	float k1 = 2 * float(M_PI);              // 2*pi*fc1
 	float k2 = 0.5f * (float)(1 - o);        // Constant used if the filter has even length
-	float g  = 0.0f;                         // Gain
+	float g = 0.0f;                          // Gain
 	float t1;                                // Temporary variables
 	float fc1;                               // Cutoff frequencies
 
 	// Sanity check
-	if (*n==0) return nullptr;
-	MathUtil::Clamp(&fc[0],float(0.001),float(1));
+	if (*n == 0)
+		return nullptr;
+	MathUtil::Clamp(&fc[0], float(0.001), float(1));
 
-	float *w=(float*)calloc(sizeof(float),*n);
+	float *w = (float*)calloc(sizeof(float), *n);
 
 	// Get window coefficients
-	Hamming(*n,w);
+	Hamming(*n, w);
 
-	fc1=*fc;
+	fc1 = *fc;
 	// Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
-	fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1/2 : 0.25f;
+	fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1 / 2 : 0.25f;
 	k1 *= fc1;
 
 	// Low pass filter
@@ -154,20 +155,20 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 	if (o)
 	{
 		w[end] = fc1 * w[end] * 2.0f;
-		g=w[end];
+		g = w[end];
 	}
 
 	// Create filter
 	for (u32 i = 0; i < end; i++)
 	{
-		t1 = (float)(i+1) - k2;
-		w[end-i-1] = w[*n-end+i] = float(w[end-i-1] * sin(k1 * t1)/(M_PI * t1)); // Sinc
-		g += 2*w[end-i-1]; // Total gain in filter
+		t1 = (float)(i + 1) - k2;
+		w[end - i - 1] = w[*n - end + i] = float(w[end - i - 1] * sin(k1 * t1)/(M_PI * t1)); // Sinc
+		g += 2*w[end - i - 1]; // Total gain in filter
 	}
 
 
 	// Normalize gain
-	g=1/g;
+	g = 1/g;
 	for (u32 i = 0; i < *n; i++)
 		w[i] *= g;
 

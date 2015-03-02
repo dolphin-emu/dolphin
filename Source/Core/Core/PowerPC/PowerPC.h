@@ -269,6 +269,8 @@ void InvalidateTLBEntry(u32 address);
 // it's safe to optimize a read or write to this address to an unguarded
 // memory access.  Does not consider page tables.
 bool IsOptimizableRAMAddress(const u32 address);
+u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize);
+bool IsOptimizableGatherPipeWrite(u32 address);
 
 }  // namespace
 

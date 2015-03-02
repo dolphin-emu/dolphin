@@ -230,7 +230,7 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_AUSTRALIA]     = m_imageListSmall->Add(wxBitmap(Flag_Australia_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]        = m_imageListSmall->Add(wxBitmap(Flag_France_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY]       = m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_INTERNATIONAL] = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm)); // Uses European flag as a placeholder
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]         = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm)); // Uses European flag as a placeholder
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]         = m_imageListSmall->Add(wxBitmap(Flag_Italy_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]         = m_imageListSmall->Add(wxBitmap(Flag_Korea_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_NETHERLANDS]   = m_imageListSmall->Add(wxBitmap(Flag_Netherlands_xpm));
@@ -462,24 +462,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		titlestxt.close();
 	}
 
-	std::string GameIni[3];
-	GameIni[0] = File::GetUserPath(D_GAMESETTINGS_IDX) + rISOFile.GetUniqueID() + ".ini";
-	GameIni[1] = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + rISOFile.GetUniqueID() + std::to_string(rISOFile.GetRevision()) + ".ini";
-	GameIni[2] = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + rISOFile.GetUniqueID() + ".ini";
 	std::string title;
-	IniFile gameini;
-	for (int i = 0; i < 3; ++i)
-	{
-		if (File::Exists(GameIni[i]))
-		{
-			gameini.Load(GameIni[i]);
-			if (gameini.GetIfExists("EmuState", "Title", &title))
-			{
-				name = title;
-				break;
-			}
-		}
-	}
+	IniFile gameini = SCoreStartupParameter::LoadGameIni(rISOFile.GetUniqueID(), rISOFile.GetRevision());
+	if (gameini.GetIfExists("EmuState", "Title", &title))
+		name = title;
 
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
@@ -644,8 +630,8 @@ void CGameListCtrl::ScanForISOs()
 						if (!SConfig::GetInstance().m_ListGermany)
 							list = false;
 						break;
-					case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
-						if (!SConfig::GetInstance().m_ListInternational)
+					case DiscIO::IVolume::COUNTRY_WORLD:
+						if (!SConfig::GetInstance().m_ListWorld)
 							list = false;
 						break;
 					case DiscIO::IVolume::COUNTRY_ITALY:
@@ -1042,7 +1028,7 @@ void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem* iso =  GetSelectedISO();
+	const GameListItem* iso = GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -1113,9 +1099,8 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	CISOProperties ISOProperties(iso->GetFileName(), this);
-	if (ISOProperties.ShowModal() == wxID_OK)
-		Update();
+	CISOProperties* ISOProperties = new CISOProperties(iso->GetFileName(), this);
+	ISOProperties->Show();
 }
 
 void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
@@ -1132,10 +1117,10 @@ bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void
 {
 	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
 	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
-				m_currentFilename.c_str(), (int)m_currentItem+1,
+				m_currentFilename.c_str(), (int)m_currentItem + 1,
 				(int)m_numberItem, text.c_str())));
 
-	return ((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
+	return ((wxProgressDialog*)arg)->Update((int)(percent * 1000), textString);
 }
 
 void CGameListCtrl::OnMultiCompressISO(wxCommandEvent& /*event*/)
@@ -1174,7 +1159,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 		m_currentItem = 0;
 		m_numberItem = GetSelectedItemCount();
-		for (u32 i=0; i < m_numberItem; i++)
+		for (u32 i = 0; i < m_numberItem; i++)
 		{
 			const GameListItem* iso = GetSelectedISO();
 			if (iso->GetPlatform() == GameListItem::WII_WAD || iso->GetFileName().rfind(".wbfs") != std::string::npos)
@@ -1244,7 +1229,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 bool CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
 {
 	return ((wxProgressDialog*)arg)->
-		Update((int)(percent*1000), StrToWxStr(text));
+		Update((int)(percent * 1000), StrToWxStr(text));
 }
 
 void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
@@ -1388,7 +1373,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 
 void CGameListCtrl::UnselectAll()
 {
-	for (int i=0; i<GetItemCount(); i++)
+	for (int i = 0; i < GetItemCount(); i++)
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
 	}

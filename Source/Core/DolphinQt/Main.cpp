@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
 	app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 	// TODO: Add command line options
 
+	UICommon::SetUserDirectory(""); // Auto-detect user folder
 	UICommon::CreateDirectories();
 	UICommon::Init();
 

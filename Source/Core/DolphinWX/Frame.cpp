@@ -949,7 +949,7 @@ bool CFrame::UIHasFocus()
 	return (focusWindow != nullptr);
 }
 
-void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
+void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED(event))
 {
 	// Show all platforms and regions if...
 	// 1. All platforms are set to hide
@@ -968,7 +968,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		SConfig::GetInstance().m_ListAustralia &&
 		SConfig::GetInstance().m_ListFrance &&
 		SConfig::GetInstance().m_ListGermany &&
-		SConfig::GetInstance().m_ListInternational &&
+		SConfig::GetInstance().m_ListWorld &&
 		SConfig::GetInstance().m_ListItaly &&
 		SConfig::GetInstance().m_ListKorea &&
 		SConfig::GetInstance().m_ListNetherlands &&
@@ -986,7 +986,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		SConfig::GetInstance().m_ListAustralia =
 		SConfig::GetInstance().m_ListFrance =
 		SConfig::GetInstance().m_ListGermany =
-		SConfig::GetInstance().m_ListInternational =
+		SConfig::GetInstance().m_ListWorld =
 		SConfig::GetInstance().m_ListItaly =
 		SConfig::GetInstance().m_ListKorea =
 		SConfig::GetInstance().m_ListNetherlands =
@@ -1004,7 +1004,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_LIST_AUSTRALIA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_FRANCE)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_GERMANY)->Check(true);
-		GetMenuBar()->FindItem(IDM_LIST_INTERNATIONAL)->Check(true);
+		GetMenuBar()->FindItem(IDM_LIST_WORLD)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_ITALY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_KOREA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_NETHERLANDS)->Check(true);
@@ -1719,12 +1719,12 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	ToggleDisplayMode(enable_fullscreen);
 
 #if defined(__APPLE__)
-	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSView *view = (NSView *)m_RenderFrame->GetHandle();
 	NSWindow *window = [view window];
 
 	if (enable_fullscreen != RendererIsFullscreen())
 	{
-		[window toggleFullScreen:nil];
+		[window toggleFullScreen : nil];
 	}
 #else
 	if (enable_fullscreen)

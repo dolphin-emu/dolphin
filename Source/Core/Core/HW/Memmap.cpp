@@ -74,27 +74,27 @@ MMIO::Mapping* mmio_mapping;
 
 static void InitMMIO(MMIO::Mapping* mmio)
 {
-	g_video_backend->RegisterCPMMIO(mmio, 0xCC000000);
-	PixelEngine::RegisterMMIO(mmio, 0xCC001000);
-	VideoInterface::RegisterMMIO(mmio, 0xCC002000);
-	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
-	MemoryInterface::RegisterMMIO(mmio, 0xCC004000);
-	DSP::RegisterMMIO(mmio, 0xCC005000);
-	DVDInterface::RegisterMMIO(mmio, 0xCC006000);
-	SerialInterface::RegisterMMIO(mmio, 0xCC006400);
-	ExpansionInterface::RegisterMMIO(mmio, 0xCC006800);
-	AudioInterface::RegisterMMIO(mmio, 0xCC006C00);
+	g_video_backend->RegisterCPMMIO(mmio, 0x0C000000);
+	PixelEngine::RegisterMMIO(mmio, 0x0C001000);
+	VideoInterface::RegisterMMIO(mmio, 0x0C002000);
+	ProcessorInterface::RegisterMMIO(mmio, 0x0C003000);
+	MemoryInterface::RegisterMMIO(mmio, 0x0C004000);
+	DSP::RegisterMMIO(mmio, 0x0C005000);
+	DVDInterface::RegisterMMIO(mmio, 0x0C006000);
+	SerialInterface::RegisterMMIO(mmio, 0x0C006400);
+	ExpansionInterface::RegisterMMIO(mmio, 0x0C006800);
+	AudioInterface::RegisterMMIO(mmio, 0x0C006C00);
 }
 
 static void InitMMIOWii(MMIO::Mapping* mmio)
 {
 	InitMMIO(mmio);
 
-	WII_IPCInterface::RegisterMMIO(mmio, 0xCD000000);
-	DVDInterface::RegisterMMIO(mmio, 0xCD006000);
-	SerialInterface::RegisterMMIO(mmio, 0xCD006400);
-	ExpansionInterface::RegisterMMIO(mmio, 0xCD006800);
-	AudioInterface::RegisterMMIO(mmio, 0xCD006C00);
+	WII_IPCInterface::RegisterMMIO(mmio, 0x0D000000);
+	DVDInterface::RegisterMMIO(mmio, 0x0D006000);
+	SerialInterface::RegisterMMIO(mmio, 0x0D006400);
+	ExpansionInterface::RegisterMMIO(mmio, 0x0D006800);
+	AudioInterface::RegisterMMIO(mmio, 0x0D006C00);
 }
 
 bool IsInitialized()

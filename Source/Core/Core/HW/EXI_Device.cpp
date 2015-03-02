@@ -36,7 +36,7 @@ u32 IEXIDevice::ImmRead(u32 _uSize)
 	{
 		u8 uByte = 0;
 		TransferByte(uByte);
-		uResult |= uByte << (24-(uPosition++ * 8));
+		uResult |= uByte << (24 - (uPosition++ * 8));
 	}
 	return uResult;
 }

@@ -25,7 +25,6 @@ public:
 	~CVolumeGC();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
 	std::string GetUniqueID() const override;
-	std::string GetRevisionSpecificUniqueID() const override;
 	std::string GetMakerID() const override;
 	int GetRevision() const override;
 	std::vector<std::string> GetNames() const override;

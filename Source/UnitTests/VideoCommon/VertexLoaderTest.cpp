@@ -13,9 +13,9 @@ TEST(VertexLoaderUID, UniqueEnough)
 	std::unordered_set<VertexLoaderUID> uids;
 
 	TVtxDesc vtx_desc;
-	memset(&vtx_desc, 0, sizeof (vtx_desc));
+	memset(&vtx_desc, 0, sizeof(vtx_desc));
 	VAT vat;
-	memset(&vat, 0, sizeof (vat));
+	memset(&vat, 0, sizeof(vat));
 	uids.insert(VertexLoaderUID(vtx_desc, vat));
 
 	vtx_desc.Hex = 0xFEDCBA9876543210ull;
@@ -38,11 +38,11 @@ protected:
 
 	void SetUp() override
 	{
-		memset(&input_memory[0], 0, sizeof (input_memory));
-		memset(&output_memory[0], 0, sizeof (input_memory));
+		memset(&input_memory[0], 0, sizeof(input_memory));
+		memset(&output_memory[0], 0, sizeof(input_memory));
 
-		memset(&m_vtx_desc, 0, sizeof (m_vtx_desc));
-		memset(&m_vtx_attr, 0, sizeof (m_vtx_attr));
+		memset(&m_vtx_desc, 0, sizeof(m_vtx_desc));
+		memset(&m_vtx_attr, 0, sizeof(m_vtx_attr));
 
 		ResetPointers();
 	}
@@ -53,7 +53,7 @@ protected:
 	{
 		// Converts *to* big endian, not from.
 		*(T*)(&input_memory[m_input_pos]) = Common::FromBigEndian(val);
-		m_input_pos += sizeof (val);
+		m_input_pos += sizeof(val);
 	}
 
 	// Reads a value from the output stream.
@@ -61,7 +61,7 @@ protected:
 	T Output()
 	{
 		T out = *(T*)&output_memory[m_output_pos];
-		m_output_pos += sizeof (out);
+		m_output_pos += sizeof(out);
 		return out;
 	}
 
@@ -75,8 +75,8 @@ protected:
 	void ResetPointers()
 	{
 		m_input_pos = m_output_pos = 0;
-		src = DataReader(input_memory, input_memory+sizeof(input_memory));
-		dst = DataReader(output_memory, output_memory+sizeof(output_memory));
+		src = DataReader(input_memory, input_memory + sizeof(input_memory));
+		dst = DataReader(output_memory, output_memory + sizeof(output_memory));
 	}
 
 	u32 m_input_pos, m_output_pos;
@@ -95,8 +95,8 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZ)
 
 	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
-	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
-	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_VertexSize);
+	ASSERT_EQ(3 * sizeof(float), (u32)loader->m_native_vtx_decl.stride);
+	ASSERT_EQ(3 * sizeof(float), (u32)loader->m_VertexSize);
 
 	// Write some vertices.
 	Input(0.0f); Input(0.0f); Input(0.0f);
@@ -134,8 +134,8 @@ TEST_F(VertexLoaderTest, PositionDirectU16XY)
 
 	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
-	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
-	ASSERT_EQ(2 * sizeof (u16), (u32)loader->m_VertexSize);
+	ASSERT_EQ(3 * sizeof(float), (u32)loader->m_native_vtx_decl.stride);
+	ASSERT_EQ(2 * sizeof(u16), (u32)loader->m_VertexSize);
 
 	// Write some vertices.
 	Input<u16>(0); Input<u16>(0);
@@ -176,8 +176,8 @@ TEST_F(VertexLoaderTest, PositionDirectFloatXYZSpeed)
 
 	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
-	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
-	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_VertexSize);
+	ASSERT_EQ(3 * sizeof(float), (u32)loader->m_native_vtx_decl.stride);
+	ASSERT_EQ(3 * sizeof(float), (u32)loader->m_VertexSize);
 
 	for (int i = 0; i < 1000; ++i)
 	{
@@ -197,8 +197,8 @@ TEST_F(VertexLoaderTest, PositionDirectU16XYSpeed)
 
 	VertexLoaderBase* loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 
-	ASSERT_EQ(3 * sizeof (float), (u32)loader->m_native_vtx_decl.stride);
-	ASSERT_EQ(2 * sizeof (u16), (u32)loader->m_VertexSize);
+	ASSERT_EQ(3 * sizeof(float), (u32)loader->m_native_vtx_decl.stride);
+	ASSERT_EQ(2 * sizeof(u16), (u32)loader->m_VertexSize);
 
 	for (int i = 0; i < 1000; ++i)
 	{

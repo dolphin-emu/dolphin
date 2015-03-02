@@ -136,7 +136,6 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
-
 	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	auto strUniqueID = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
@@ -315,14 +314,14 @@ void CEXIMemoryCard::SetCS(int cs)
 			if (m_uPosition >= 5)
 			{
 				int count = m_uPosition - 5;
-				int i=0;
+				int i = 0;
 				status &= ~0x80;
 
 				while (count--)
 				{
 					memorycard->Write(address, 1, &(programming_buffer[i++]));
 					i &= 127;
-					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
+					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 				}
 
 				CmdDoneLater(5000);
@@ -423,7 +422,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				// after 9 bytes, we start incrementing the address,
 				// but only the sector offset - the pointer wraps around
 				if (m_uPosition >= 9)
-					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
+					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 			}
 			break;
 

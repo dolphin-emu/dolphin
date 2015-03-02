@@ -43,7 +43,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 				hid->deviceCommandAddress = 0;
 			}
 		}
-		timeToFill+=8;
+		timeToFill += 8;
 		libusb_handle_events_timeout(nullptr, &tv);
 	}
 
@@ -175,13 +175,13 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			-4 Can't find device specified
 		*/
 
-		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
-		u8 bmRequestType = Memory::Read_U8(BufferIn+0x14);
-		u8 bRequest = Memory::Read_U8(BufferIn+0x15);
-		u16 wValue = Memory::Read_U16(BufferIn+0x16);
-		u16 wIndex = Memory::Read_U16(BufferIn+0x18);
-		u16 wLength = Memory::Read_U16(BufferIn+0x1A);
-		u32 data = Memory::Read_U32(BufferIn+0x1C);
+		u32 dev_num = Memory::Read_U32(BufferIn + 0x10);
+		u8 bmRequestType = Memory::Read_U8(BufferIn + 0x14);
+		u8 bRequest = Memory::Read_U8(BufferIn + 0x15);
+		u16 wValue = Memory::Read_U16(BufferIn + 0x16);
+		u16 wIndex = Memory::Read_U16(BufferIn + 0x18);
+		u16 wLength = Memory::Read_U16(BufferIn + 0x1A);
+		u32 data = Memory::Read_U32(BufferIn + 0x1C);
 
 		ReturnValue = HIDERR_NO_DEVICE_FOUND;
 
@@ -210,11 +210,11 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	case IOCTL_HID_INTERRUPT_OUT:
 	case IOCTL_HID_INTERRUPT_IN:
 	{
-		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
-		u32 endpoint = Memory::Read_U32(BufferIn+0x14);
-		u32 length = Memory::Read_U32(BufferIn+0x18);
+		u32 dev_num = Memory::Read_U32(BufferIn + 0x10);
+		u32 endpoint = Memory::Read_U32(BufferIn + 0x14);
+		u32 length = Memory::Read_U32(BufferIn + 0x18);
 
-		u32 data = Memory::Read_U32(BufferIn+0x1C);
+		u32 data = Memory::Read_U32(BufferIn + 0x1C);
 
 		ReturnValue = HIDERR_NO_DEVICE_FOUND;
 

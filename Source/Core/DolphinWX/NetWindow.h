@@ -42,10 +42,20 @@ private:
 
 	void MakeNetPlayDiag(int port, const std::string &game, bool is_hosting);
 
-	wxTextCtrl* m_nickname_text;
-	wxTextCtrl* m_host_port_text;
-	wxTextCtrl* m_connect_port_text;
-	wxTextCtrl* m_connect_ip_text;
+	void OnChoice(wxCommandEvent& event);
+
+	wxStaticText* m_ip_lbl;
+	wxStaticText* m_client_port_lbl;
+	wxTextCtrl*   m_nickname_text;
+	wxStaticText* m_host_port_lbl;
+	wxTextCtrl*   m_host_port_text;
+	wxTextCtrl*   m_connect_port_text;
+	wxTextCtrl*   m_connect_ip_text;
+	wxChoice*     m_direct_traversal;
+	wxStaticText* m_traversal_server_lbl;
+	wxTextCtrl*   m_traversal_server;
+	wxStaticText* m_traversal_port_lbl;
+	wxTextCtrl*   m_traversal_port;
 
 	wxListBox*  m_game_lbox;
 #ifdef USE_UPNP
@@ -93,16 +103,25 @@ private:
 	void GetNetSettings(NetSettings &settings);
 	std::string FindGame();
 
-	wxListBox*   m_player_lbox;
-	wxTextCtrl*  m_chat_text;
-	wxTextCtrl*  m_chat_msg_text;
-	wxCheckBox*  m_memcard_write;
-	wxCheckBox*  m_record_chkbox;
+	void OnCopyIP(wxCommandEvent&);
+	void OnChoice(wxCommandEvent& event);
+	void UpdateHostLabel();
 
-	std::string  m_selected_game;
-	wxButton*    m_game_btn;
-	wxButton*    m_start_btn;
-	wxButton*    m_kick_btn;
+	wxListBox*    m_player_lbox;
+	wxTextCtrl*   m_chat_text;
+	wxTextCtrl*   m_chat_msg_text;
+	wxCheckBox*   m_memcard_write;
+	wxCheckBox*   m_record_chkbox;
+
+	std::string   m_selected_game;
+	wxButton*     m_game_btn;
+	wxButton*     m_start_btn;
+	wxButton*     m_kick_btn;
+	wxStaticText* m_host_label;
+	wxChoice*     m_host_type_choice;
+	wxButton*     m_host_copy_btn;
+	bool          m_host_copy_btn_is_retry;
+	bool          m_is_hosting;
 
 	std::vector<int> m_playerids;
 

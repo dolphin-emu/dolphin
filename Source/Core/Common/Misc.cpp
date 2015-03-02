@@ -30,7 +30,8 @@ const char* GetLastErrorMsg()
 	static __thread char err_str[buff_size] = {};
 
 	// Thread safe (XSI-compliant)
-	strerror_r(errno, err_str, buff_size);
+	if (strerror_r(errno, err_str, buff_size))
+		return nullptr;
 #endif
 
 	return err_str;
