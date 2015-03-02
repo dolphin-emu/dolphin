@@ -512,6 +512,9 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
 	case INDEX_PRE:
 		type_encode = 0b011;
 		break;
+	case INDEX_SIGNED:
+		_assert_msg_(DYNA_REC, false, "%s doesn't support INDEX_SIGNED!", __FUNCTION__);
+		break;
 	}
 
 	if (b64Bit)
@@ -1944,6 +1947,55 @@ void ARM64FloatEmitter::EmitLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM
 	Write32((size << 30) | (0b1111 << 26) | (op << 22) | ((imm & 0x1FF) << 12) | (Rn << 5) | Rt);
 }
 
+void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	u32 type_encode = 0;
+	u32 opc = 0;
+
+	switch (type)
+	{
+	case INDEX_SIGNED:
+		type_encode = 0b010;
+		break;
+	case INDEX_POST:
+		type_encode = 0b001;
+		break;
+	case INDEX_PRE:
+		type_encode = 0b011;
+		break;
+	case INDEX_UNSIGNED:
+		_assert_msg_(DYNA_REC, false, "%s doesn't support INDEX_UNSIGNED!", __FUNCTION__);
+		break;
+	}
+
+	if (size == 128)
+	{
+		_assert_msg_(DYNA_REC, !(imm & 0xF), "%s received invalid offset 0x%x!", __FUNCTION__, imm);
+		opc = 2;
+		imm >>= 4;
+	}
+	else if (size == 64)
+	{
+		_assert_msg_(DYNA_REC, !(imm & 0x7), "%s received invalid offset 0x%x!", __FUNCTION__, imm);
+		opc = 1;
+		imm >>= 3;
+	}
+	else if (size == 32)
+	{
+		_assert_msg_(DYNA_REC, !(imm & 0x3), "%s received invalid offset 0x%x!", __FUNCTION__, imm);
+		opc = 0;
+		imm >>= 2;
+	}
+
+	Rt = DecodeReg(Rt);
+	Rt2 = DecodeReg(Rt2);
+	Rn = DecodeReg(Rn);
+
+	Write32((opc << 30) | (0b1011 << 26) | (type_encode << 23) | (load << 22) | \
+	        ((imm & 0x7F) << 15) | (Rt2 << 10) | (Rn << 5) | Rt);
+
+}
+
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	EmitLoadStoreImmediate(size, 1, type, Rt, Rn, imm);
@@ -2300,6 +2352,16 @@ void ARM64FloatEmitter::ST1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM6
 	else if (count == 4)
 		opcode = 0b0010;
 	EmitLoadStoreMultipleStructurePost(size, 0, opcode, Rt, Rn, Rm);
+}
+
+// Loadstore paired
+void ARM64FloatEmitter::LDP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStorePair(size, true, type, Rt, Rt2, Rn, imm);
+}
+void ARM64FloatEmitter::STP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStorePair(size, false, type, Rt, Rt2, Rn, imm);
 }
 
 // Scalar - 1 Source
