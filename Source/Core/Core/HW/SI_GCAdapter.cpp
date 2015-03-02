@@ -235,7 +235,6 @@ void Reset()
 	if (s_handle)
 	{
 		libusb_release_interface(s_handle, 0);
-		libusb_reset_device(s_handle);
 		libusb_close(s_handle);
 		s_handle = nullptr;
 	}
