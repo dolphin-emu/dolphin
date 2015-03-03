@@ -53,6 +53,7 @@ public:
 	// LoadStore
 	void lXzx(UGeckoInstruction inst);
 	void lhax(UGeckoInstruction inst);
+	void lhaux(UGeckoInstruction inst);
 	void stXx(UGeckoInstruction inst);
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
@@ -60,6 +61,7 @@ public:
 	void lXz(UGeckoInstruction inst);
 	void lbzu(UGeckoInstruction inst);
 	void lha(UGeckoInstruction inst);
+	void lhau(UGeckoInstruction inst);
 
 	// System Registers
 	void mtspr(UGeckoInstruction inst);
@@ -112,7 +114,9 @@ public:
 	void cntlzwx(UGeckoInstruction inst);
 
 	void lfs(UGeckoInstruction inst);
+	void lfsu(UGeckoInstruction inst);
 	void lfd(UGeckoInstruction inst);
+	void lfdu(UGeckoInstruction inst);
 	void stfd(UGeckoInstruction inst);
 	void stfs(UGeckoInstruction inst);
 	void stfsx(UGeckoInstruction inst);
