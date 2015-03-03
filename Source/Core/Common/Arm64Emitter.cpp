@@ -2877,18 +2877,6 @@ void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
 {
 	bool bundled_loadstore = false;
-	int num_regs = registers.Count();
-
-	if (num_regs == 2)
-	{
-		int i = 0;
-		ARM64Reg regs[2];
-		for (auto it : registers)
-			regs[i++] = (ARM64Reg)(Q0 + it);
-
-		STP(128, INDEX_PRE, regs[0], regs[1], SP, -32);
-		return;
-	}
 
 	for (int i = 0; i < 32; ++i)
 	{
@@ -2906,8 +2894,10 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
 
 	if (bundled_loadstore && tmp != INVALID_REG)
 	{
+		int num_regs = registers.Count();
 		m_emit->SUB(SP, SP, num_regs * 16);
 		m_emit->ADD(tmp, SP, 0);
+		std::vector<ARM64Reg> island_regs;
 		for (int i = 0; i < 32; ++i)
 		{
 			if (!registers[i])
@@ -2922,32 +2912,48 @@ void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
 			// 4 < 4 && registers[i + 4] false!
 			while (++count < 4 && (i + count) < 32 && registers[i + count]) {}
 
-			ST1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), tmp);
+			if (count == 1)
+				island_regs.push_back((ARM64Reg)(Q0 + i));
+			else
+				ST1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), tmp);
 
 			i += count - 1;
 		}
+
+		// Handle island registers
+		std::vector<ARM64Reg> pair_regs;
+		for (auto& it : island_regs)
+		{
+			pair_regs.push_back(it);
+			if (pair_regs.size() == 2)
+			{
+				STP(128, INDEX_POST, pair_regs[0], pair_regs[1], tmp, 32);
+				pair_regs.clear();
+			}
+		}
+		if (pair_regs.size())
+			STR(128, INDEX_POST, pair_regs[0], tmp, 16);
 	}
 	else
 	{
+		std::vector<ARM64Reg> pair_regs;
 		for (auto it : registers)
-			STR(128, INDEX_PRE, (ARM64Reg)(Q0 + it), SP, -16);
+		{
+			pair_regs.push_back((ARM64Reg)(Q0 + it));
+			if (pair_regs.size() == 2)
+			{
+				STP(128, INDEX_PRE, pair_regs[0], pair_regs[1], SP, -32);
+				pair_regs.clear();
+			}
+		}
+		if (pair_regs.size())
+			STR(128, INDEX_PRE, pair_regs[0], SP, -16);
 	}
 }
 void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 {
 	bool bundled_loadstore = false;
 	int num_regs = registers.Count();
-
-	if (num_regs == 2)
-	{
-		int i = 0;
-		ARM64Reg regs[2];
-		for (auto it : registers)
-			regs[i++] = (ARM64Reg)(Q0 + it);
-
-		LDP(128, INDEX_POST, regs[0], regs[1], SP, 32);
-		return;
-	}
 
 	for (int i = 0; i < 32; ++i)
 	{
@@ -2966,6 +2972,7 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 	if (bundled_loadstore && tmp != INVALID_REG)
 	{
 		// The temporary register is only used to indicate that we can use this code path
+		std::vector<ARM64Reg> island_regs;
 		for (int i = 0; i < 32; ++i)
 		{
 			if (!registers[i])
@@ -2974,19 +2981,52 @@ void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
 			int count = 0;
 			while (++count < 4 && (i + count) < 32 && registers[i + count]) {}
 
-			LD1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), SP);
+			if (count == 1)
+				island_regs.push_back((ARM64Reg)(Q0 + i));
+			else
+				LD1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), SP);
 
 			i += count - 1;
 		}
+
+		// Handle island registers
+		std::vector<ARM64Reg> pair_regs;
+		for (auto& it : island_regs)
+		{
+			pair_regs.push_back(it);
+			if (pair_regs.size() == 2)
+			{
+				LDP(128, INDEX_POST, pair_regs[0], pair_regs[1], SP, 32);
+				pair_regs.clear();
+			}
+		}
+		if (pair_regs.size())
+			LDR(128, INDEX_POST, pair_regs[0], SP, 16);
 	}
 	else
 	{
+		bool odd = num_regs % 2;
+		std::vector<ARM64Reg> pair_regs;
 		for (int i = 31; i >= 0; --i)
 		{
 			if (!registers[i])
 				continue;
 
-			LDR(128, INDEX_POST, (ARM64Reg)(Q0 + i), SP, 16);
+			if (odd)
+			{
+				// First load must be a regular LDR if odd
+				odd = false;
+				LDR(128, INDEX_POST, (ARM64Reg)(Q0 + i), SP, 16);
+			}
+			else
+			{
+				pair_regs.push_back((ARM64Reg)(Q0 + i));
+				if (pair_regs.size() == 2)
+				{
+					LDP(128, INDEX_POST, pair_regs[1], pair_regs[0], SP, 32);
+					pair_regs.clear();
+				}
+			}
 		}
 	}
 }
