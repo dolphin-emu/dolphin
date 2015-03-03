@@ -13,6 +13,7 @@
 #include "Common/Flag.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/Core.h"
@@ -20,6 +21,7 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/DVDThread.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 
 #include "DiscIO/Volume.h"
 
@@ -37,6 +39,7 @@ static Common::Event s_dvd_thread_done_working;
 static Common::Flag s_dvd_thread_exiting(false);
 
 static std::vector<u8> s_dvd_buffer;
+static u64 s_time_read_started;
 static bool s_dvd_success;
 
 static u64 s_dvd_offset;
@@ -47,6 +50,10 @@ static bool s_decrypt;
 // Used to notify emulated software after executing command.
 // Pointers don't work with savestates, so CoreTiming events are used instead
 static int s_callback_event_type;
+
+// The following time variables are only used for logging
+static u64 s_realtime_started_us;
+static u64 s_realtime_done_us;
 
 void Start()
 {
@@ -75,6 +82,7 @@ void DoState(PointerWrap &p)
 
 	// TODO: Savestates can be smaller if s_DVD_buffer is not saved
 	p.Do(s_dvd_buffer);
+	p.Do(s_time_read_started);
 	p.Do(s_dvd_success);
 
 	p.Do(s_dvd_offset);
@@ -82,6 +90,11 @@ void DoState(PointerWrap &p)
 	p.Do(s_length);
 	p.Do(s_decrypt);
 	p.Do(s_callback_event_type);
+
+	// s_realtime_started_us and s_realtime_done_us aren't savestated
+	// because they rely on the current system's time.
+	// This means that loading a savestate might cause
+	// incorrect times to be logged once.
 }
 
 void WaitUntilIdle()
@@ -108,6 +121,9 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt,
 	s_decrypt = decrypt;
 	s_callback_event_type = callback_event_type;
 
+	s_time_read_started = CoreTiming::GetTicks();
+	s_realtime_started_us = Common::Timer::GetTimeUs();
+
 	s_dvd_thread_start_working.Set();
 
 	CoreTiming::ScheduleEvent(ticks_until_completion, s_finish_read);
@@ -116,6 +132,12 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt,
 static void FinishRead(u64 userdata, int cyclesLate)
 {
 	WaitUntilIdle();
+
+	DEBUG_LOG(DVDINTERFACE, "Disc has been read. Real time: %" PRIu64 " us. "
+	          "Real time including delay: %" PRIu64 " us. Emulated time including delay: %" PRIu64 " us.",
+	          s_realtime_done_us - s_realtime_started_us,
+	          Common::Timer::GetTimeUs() - s_realtime_started_us,
+	          (CoreTiming::GetTicks() - s_time_read_started) / (SystemTimers::GetTicksPerSecond() / 1000 / 1000));
 
 	if (s_dvd_success)
 		Memory::CopyToEmu(s_output_address, s_dvd_buffer.data(), s_length);
@@ -148,6 +170,8 @@ static void DVDThread()
 		s_dvd_buffer.resize(s_length);
 
 		s_dvd_success = DVDInterface::GetVolume().Read(s_dvd_offset, s_length, s_dvd_buffer.data(), s_decrypt);
+
+		s_realtime_done_us = Common::Timer::GetTimeUs();
 	}
 }
 
