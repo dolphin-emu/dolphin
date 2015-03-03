@@ -129,22 +129,6 @@ private:
 // wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a
 
-#if defined _M_GENERIC
-#  define _M_SSE 0x0
-#elif defined __GNUC__
-# if defined __SSE4_2__
-#  define _M_SSE 0x402
-# elif defined __SSE4_1__
-#  define _M_SSE 0x401
-# elif defined __SSSE3__
-#  define _M_SSE 0x301
-# elif defined __SSE3__
-#  define _M_SSE 0x300
-# endif
-#elif (_MSC_VER >= 1500) || __INTEL_COMPILER // Visual Studio 2008
-#  define _M_SSE 0x402
-#endif
-
 // Host communication.
 enum HOST_COMM
 {

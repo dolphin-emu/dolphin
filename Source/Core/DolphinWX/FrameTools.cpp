@@ -191,7 +191,7 @@ wxMenuBar* CFrame::CreateMenu()
 	loadMenu->Append(IDM_UNDO_SAVE_STATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
 	saveMenu->AppendSeparator();
 
-	loadMenu->Append(IDM_LOAD_STATE_FILE,  GetMenuLabel(HK_LOAD_STATE_FILE));
+	loadMenu->Append(IDM_LOAD_STATE_FILE, GetMenuLabel(HK_LOAD_STATE_FILE));
 	loadMenu->Append(IDM_LOAD_SELECTED_SLOT, GetMenuLabel(HK_LOAD_STATE_SLOT_SELECTED));
 	loadMenu->Append(IDM_UNDO_LOAD_STATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
@@ -200,7 +200,7 @@ wxMenuBar* CFrame::CreateMenu()
 	{
 		loadMenu->Append(IDM_LOAD_SLOT_1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
 		saveMenu->Append(IDM_SAVE_SLOT_1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
-		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i - 1, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i -1));
+		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i - 1, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i - 1));
 	}
 
 	loadMenu->AppendSeparator();
@@ -341,8 +341,8 @@ wxMenuBar* CFrame::CreateMenu()
 	regionMenu->Check(IDM_LIST_FRANCE, SConfig::GetInstance().m_ListFrance);
 	regionMenu->AppendCheckItem(IDM_LIST_GERMANY, _("Show Germany"));
 	regionMenu->Check(IDM_LIST_GERMANY, SConfig::GetInstance().m_ListGermany);
-	regionMenu->AppendCheckItem(IDM_LIST_INTERNATIONAL, _("Show International"));
-	regionMenu->Check(IDM_LIST_INTERNATIONAL, SConfig::GetInstance().m_ListInternational);
+	regionMenu->AppendCheckItem(IDM_LIST_WORLD, _("Show World"));
+	regionMenu->Check(IDM_LIST_WORLD, SConfig::GetInstance().m_ListWorld);
 	regionMenu->AppendCheckItem(IDM_LIST_ITALY, _("Show Italy"));
 	regionMenu->Check(IDM_LIST_ITALY, SConfig::GetInstance().m_ListItaly);
 	regionMenu->AppendCheckItem(IDM_LIST_KOREA, _("Show Korea"));
@@ -965,12 +965,12 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 	if (bFullscreen && SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
 	{
 		DEVMODE dmScreenSettings;
-		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
 				"%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
 		dmScreenSettings.dmBitsPerPel = 32;
-		dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
 		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
 		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
@@ -1555,7 +1555,7 @@ void CFrame::ClearStatusBar()
 
 void CFrame::StatusBarMessage(const char * Text, ...)
 {
-	const int MAX_BYTES = 1024*10;
+	const int MAX_BYTES = 1024 * 10;
 	char Str[MAX_BYTES];
 	va_list ArgPtr;
 	va_start(ArgPtr, Text);
@@ -1564,7 +1564,7 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 
 	if (this->GetStatusBar()->IsEnabled())
 	{
-		this->GetStatusBar()->SetStatusText(StrToWxStr(Str),0);
+		this->GetStatusBar()->SetStatusText(StrToWxStr(Str), 0);
 	}
 }
 
@@ -2125,8 +2125,8 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 	case IDM_LIST_GERMANY:
 		SConfig::GetInstance().m_ListGermany = event.IsChecked();
 		break;
-	case IDM_LIST_INTERNATIONAL:
-		SConfig::GetInstance().m_ListInternational = event.IsChecked();
+	case IDM_LIST_WORLD:
+		SConfig::GetInstance().m_ListWorld = event.IsChecked();
 		break;
 	case IDM_LIST_ITALY:
 		SConfig::GetInstance().m_ListItaly = event.IsChecked();

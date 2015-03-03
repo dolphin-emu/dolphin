@@ -155,7 +155,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
-	fpr.Lock(a,b,c,d);
+	fpr.Lock(a, b, c, d);
 	switch (inst.SUBOP5)
 	{
 	case 10:
@@ -220,7 +220,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
-	fpr.Lock(a,b,d);
+	fpr.Lock(a, b, d);
 	fpr.BindToRegister(d, d == a || d == b);
 
 	switch (inst.SUBOP10)
@@ -310,7 +310,7 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	int d = inst.FD;
 	bool fma = cpu_info.bFMA && !Core::g_want_determinism;
 	bool round_input = !jit->js.op->fprIsSingle[c];
-	fpr.Lock(a,b,c,d);
+	fpr.Lock(a, b, c, d);
 
 	if (fma)
 		fpr.BindToRegister(b, true, false);

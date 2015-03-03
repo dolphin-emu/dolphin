@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <gtest/gtest.h>
 #include <thread>
+#include <gtest/gtest.h>
 
 #include "Common/Event.h"
 

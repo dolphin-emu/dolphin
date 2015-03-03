@@ -192,6 +192,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "int3 iround(float3 x) { return int3(round(x)); }\n"
 	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
+	out.Write("int  itrunc(float  x) { return int (trunc(x)); }\n"
+	          "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
+	          "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
+	          "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
+
+
 	if (ApiType == API_OPENGL)
 	{
 		// Declare samplers
@@ -275,8 +281,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	                            && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
 	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
 	                            // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
-	                            && !bpmem.genMode.zfreeze;
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z) || bpmem.genMode.zfreeze;
+	                            && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest())
+	                             || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z)
+	                             || (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
 	if (forced_early_z)
 	{
@@ -369,7 +377,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("void main(\n");
 		out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-			(per_pixel_depth && bpmem.zmode.testenable) ? "\n  out float depth : SV_Depth," : "");
+			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
 		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
 		out.Write("  in centroid float4 colors_1 : COLOR1\n");
@@ -430,7 +438,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS+numTexgen-1);
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
-			out.Write("\tint2 fixpoint_uv%d = iround(", i);
+			out.Write("\tint2 fixpoint_uv%d = itrunc(", i);
 			// optional perspective divides
 			uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
 			if (xfmem.texMtxInfo[i].projection == XF_TEXPROJ_STQ)

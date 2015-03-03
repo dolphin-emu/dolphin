@@ -15,7 +15,7 @@
 #include <wx/menu.h>
 #include <wx/menuitem.h>
 #include <wx/panel.h>
-#include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
@@ -75,31 +75,41 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 {
 	InitBitmaps();
 
-	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
-
 	DebugInterface* di = &PowerPC::debug_interface;
 
 	codeview = new CCodeView(di, &g_symbolDB, this, wxID_ANY);
-	sizerBig->Add(sizerLeft, 2, wxEXPAND);
-	sizerBig->Add(codeview, 5, wxEXPAND);
 
-	sizerLeft->Add(callstack = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
+	callstack = new wxListBox(this, wxID_ANY);
 	callstack->Bind(wxEVT_LISTBOX, &CCodeWindow::OnCallstackListChange, this);
 
-	sizerLeft->Add(symbols = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 1, wxEXPAND);
+	symbols = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	symbols->Bind(wxEVT_LISTBOX, &CCodeWindow::OnSymbolListChange, this);
 
-	sizerLeft->Add(calls = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
+	calls = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	calls->Bind(wxEVT_LISTBOX, &CCodeWindow::OnCallsListChange, this);
 
-	sizerLeft->Add(callers = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
+	callers = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	callers->Bind(wxEVT_LISTBOX, &CCodeWindow::OnCallersListChange, this);
 
-	SetSizer(sizerBig);
+	m_aui_toolbar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORIZONTAL | wxAUI_TB_PLAIN_BACKGROUND);
 
-	sizerLeft->Fit(this);
-	sizerBig->Fit(this);
+	wxTextCtrl* const address_textctrl = new wxTextCtrl(m_aui_toolbar, IDM_ADDRBOX);
+	address_textctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this);
+
+	m_aui_toolbar->AddControl(new wxStaticText(m_aui_toolbar, wxID_ANY, _("Address Search:")));
+	m_aui_toolbar->AddSpacer(5);
+	m_aui_toolbar->AddControl(address_textctrl);
+	m_aui_toolbar->Realize();
+
+	m_aui_manager.SetManagedWindow(this);
+	m_aui_manager.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
+	m_aui_manager.AddPane(m_aui_toolbar, wxAuiPaneInfo().ToolbarPane().Top().Floatable(false));
+	m_aui_manager.AddPane(callstack, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Callstack")));
+	m_aui_manager.AddPane(symbols, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Symbols")));
+	m_aui_manager.AddPane(calls, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Function calls")));
+	m_aui_manager.AddPane(callers, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Function callers")));
+	m_aui_manager.AddPane(codeview, wxAuiPaneInfo().CenterPane().CloseButton(false).Floatable(false));
+	m_aui_manager.Update();
 
 	// Menu
 	Bind(wxEVT_MENU, &CCodeWindow::OnCPUMode, this, IDM_INTERPRETER, IDM_JIT_SR_OFF);
@@ -110,10 +120,14 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 
 	// Toolbar
 	Bind(wxEVT_MENU, &CCodeWindow::OnCodeStep, this, IDM_STEP, IDM_GOTOPC);
-	Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this, IDM_ADDRBOX);
 
 	// Other
 	Bind(wxEVT_HOST_COMMAND, &CCodeWindow::OnHostMessage, this);
+}
+
+CCodeWindow::~CCodeWindow()
+{
+	m_aui_manager.UnInit();
 }
 
 wxMenuBar *CCodeWindow::GetMenuBar()
@@ -221,10 +235,7 @@ void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
 
 void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
-	if (!GetToolBar())
-		return;
-
-	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
+	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)m_aui_toolbar->FindControl(IDM_ADDRBOX);
 
 	// Trim leading and trailing whitespace.
 	wxString txt = pAddrCtrl->GetValue().Trim().Trim(false);
@@ -673,8 +684,6 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddSeparator();
 	WxUtils::AddToolbarButton(toolBar, IDM_GOTOPC,   _("Show PC"),   m_Bitmaps[Toolbar_GotoPC],   _("Go to the current instruction"));
 	WxUtils::AddToolbarButton(toolBar, IDM_SETPC,    _("Set PC"),    m_Bitmaps[Toolbar_SetPC],    _("Set the current instruction"));
-	toolBar->AddSeparator();
-	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, ""));
 }
 
 // Update GUI

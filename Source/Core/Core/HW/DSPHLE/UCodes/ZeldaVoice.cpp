@@ -461,7 +461,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16* _Buffer)
 	// ACC0 is the address
 	// ACC1 is the read size
 
-	const u16* src = (u16*) Memory::GetPointer(ACC0 & Memory::RAM_MASK);
+	const u16* src = (u16*)Memory::GetPointer(ACC0 & Memory::RAM_MASK);
 
 	for (u32 i = 0; i < (ACC1 >> 16); i++)
 	{

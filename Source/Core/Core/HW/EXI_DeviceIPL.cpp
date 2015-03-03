@@ -365,7 +365,7 @@ u32 CEXIIPL::GetGCTime()
 	// Get SRAM bias
 	u32 Bias;
 
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		((u8*)&Bias)[i] = sram_dump[0xc + (i^3)];
 	}

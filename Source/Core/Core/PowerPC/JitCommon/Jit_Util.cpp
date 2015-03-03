@@ -2,9 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <emmintrin.h>
-
 #include "Common/CommonTypes.h"
+#include "Common/Intrinsics.h"
 #include "Common/MathUtil.h"
 
 #include "Core/HW/MMIO.h"
@@ -289,116 +288,111 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 
 		registersInUseAtLoc[mov] = registersInUse;
 		jit->js.fastmemLoadStore = mov;
+		return;
 	}
-	else
+
+	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+	// The following masks the region used by the GC/Wii virtual memory lib
+	mem_mask |= Memory::ADDR_MASK_MEM1;
+
+	if (opAddress.IsImm())
 	{
-		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+		u32 address = (u32)opAddress.offset + offset;
 
-		// The following masks the region used by the GC/Wii virtual memory lib
-		mem_mask |= Memory::ADDR_MASK_MEM1;
-
-		if (opAddress.IsImm())
+		// If the address is known to be RAM, just load it directly.
+		if (PowerPC::IsOptimizableRAMAddress(address))
 		{
-			u32 address = (u32)opAddress.offset + offset;
-
-			// If we know the address, try the following loading methods in
-			// order:
-			//
-			// 1. If the address is in RAM, generate an unsafe load (directly
-			//    access the RAM buffer and load from there).
-			// 2. If the address is in the MMIO range, find the appropriate
-			//    MMIO handler and generate the code to load using the handler.
-			// 3. Otherwise, just generate a call to PowerPC::Read_* with the
-			//    address hardcoded.
-			if (PowerPC::IsOptimizableRAMAddress(address))
-			{
-				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
-			}
-			else if (MMIO::IsMMIOAddress(address) && accessSize != 64)
-			{
-				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
-				              address, accessSize, signExtend);
-			}
-			else
-			{
-				ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-				switch (accessSize)
-				{
-				case 64: ABI_CallFunctionC((void *)&PowerPC::Read_U64, address); break;
-				case 32: ABI_CallFunctionC((void *)&PowerPC::Read_U32, address); break;
-				case 16: ABI_CallFunctionC((void *)&PowerPC::Read_U16_ZX, address); break;
-				case 8:  ABI_CallFunctionC((void *)&PowerPC::Read_U8_ZX, address); break;
-				}
-				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-
-				MemoryExceptionCheck();
-				if (signExtend && accessSize < 32)
-				{
-					// Need to sign extend values coming from the Read_U* functions.
-					MOVSX(32, accessSize, reg_value, R(ABI_RETURN));
-				}
-				else if (reg_value != ABI_RETURN)
-				{
-					MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
-				}
-			}
+			UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
+			return;
 		}
-		else
+
+		// If the address maps to an MMIO register, inline MMIO read code.
+		u32 mmioAddress = PowerPC::IsOptimizableMMIOAccess(address, accessSize);
+		if (accessSize != 64 && mmioAddress)
 		{
-			_assert_msg_(DYNA_REC, opAddress.IsSimpleReg(), "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
-			X64Reg reg_addr = opAddress.GetSimpleReg();
-			if (offset)
-			{
-				reg_addr = RSCRATCH;
-				LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
-			}
-
-			FixupBranch slow, exit;
-			slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
-			UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
-			if (farcode.Enabled())
-				SwitchToFarCode();
-			else
-				exit = J(true);
-			SetJumpTarget(slow);
-			size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
-			ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
-			switch (accessSize)
-			{
-			case 64:
-				ABI_CallFunctionR((void *)&PowerPC::Read_U64, reg_addr);
-				break;
-			case 32:
-				ABI_CallFunctionR((void *)&PowerPC::Read_U32, reg_addr);
-				break;
-			case 16:
-				ABI_CallFunctionR((void *)&PowerPC::Read_U16_ZX, reg_addr);
-				break;
-			case 8:
-				ABI_CallFunctionR((void *)&PowerPC::Read_U8_ZX, reg_addr);
-				break;
-			}
-			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
-
-			MemoryExceptionCheck();
-			if (signExtend && accessSize < 32)
-			{
-				// Need to sign extend values coming from the Read_U* functions.
-				MOVSX(32, accessSize, reg_value, R(ABI_RETURN));
-			}
-			else if (reg_value != ABI_RETURN)
-			{
-				MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
-			}
-
-			if (farcode.Enabled())
-			{
-				exit = J(true);
-				SwitchToNearCode();
-			}
-			SetJumpTarget(exit);
+			MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
+				            address, accessSize, signExtend);
+			return;
 		}
+
+		// Fall back to general-case code.
+		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+		switch (accessSize)
+		{
+		case 64: ABI_CallFunctionC((void *)&PowerPC::Read_U64, address); break;
+		case 32: ABI_CallFunctionC((void *)&PowerPC::Read_U32, address); break;
+		case 16: ABI_CallFunctionC((void *)&PowerPC::Read_U16_ZX, address); break;
+		case 8:  ABI_CallFunctionC((void *)&PowerPC::Read_U8_ZX, address); break;
+		}
+		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+
+		MemoryExceptionCheck();
+		if (signExtend && accessSize < 32)
+		{
+			// Need to sign extend values coming from the Read_U* functions.
+			MOVSX(32, accessSize, reg_value, R(ABI_RETURN));
+		}
+		else if (reg_value != ABI_RETURN)
+		{
+			MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
+		}
+
+		return;
 	}
+
+	_assert_msg_(DYNA_REC, opAddress.IsSimpleReg(), "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
+	X64Reg reg_addr = opAddress.GetSimpleReg();
+	if (offset)
+	{
+		reg_addr = RSCRATCH;
+		LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
+	}
+
+	FixupBranch slow, exit;
+	slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
+	UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
+	if (farcode.Enabled())
+		SwitchToFarCode();
+	else
+		exit = J(true);
+	SetJumpTarget(slow);
+	size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
+	ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
+	switch (accessSize)
+	{
+	case 64:
+		ABI_CallFunctionR((void *)&PowerPC::Read_U64, reg_addr);
+		break;
+	case 32:
+		ABI_CallFunctionR((void *)&PowerPC::Read_U32, reg_addr);
+		break;
+	case 16:
+		ABI_CallFunctionR((void *)&PowerPC::Read_U16_ZX, reg_addr);
+		break;
+	case 8:
+		ABI_CallFunctionR((void *)&PowerPC::Read_U8_ZX, reg_addr);
+		break;
+	}
+	ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
+
+	MemoryExceptionCheck();
+	if (signExtend && accessSize < 32)
+	{
+		// Need to sign extend values coming from the Read_U* functions.
+		MOVSX(32, accessSize, reg_value, R(ABI_RETURN));
+	}
+	else if (reg_value != ABI_RETURN)
+	{
+		MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
+	}
+
+	if (farcode.Enabled())
+	{
+		exit = J(true);
+		SwitchToNearCode();
+	}
+	SetJumpTarget(exit);
 }
 
 static OpArg SwapImmediate(int accessSize, OpArg reg_value)
@@ -482,7 +476,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address, B
 
 	// If we already know the address through constant folding, we can do some
 	// fun tricks...
-	if ((address & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
+	if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
 	{
 		if (!arg.IsSimpleReg() || arg.GetSimpleReg() != RSCRATCH)
 			MOV(accessSize, R(RSCRATCH), arg);

@@ -270,11 +270,7 @@ bool DolphinApp::OnInit()
 		videoBackendName = "OGL";
 	}
 
-	if (parser.Found("user", &userPath))
-	{
-		File::CreateFullPath(WxStrToStr(userPath) + DIR_SEP);
-		File::GetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
-	}
+	parser.Found("user", &userPath);
 #endif // wxUSE_CMDLINE_PARSER
 
 	// Register message box and translation handlers
@@ -289,6 +285,7 @@ bool DolphinApp::OnInit()
 	wxHandleFatalExceptions(true);
 #endif
 
+	UICommon::SetUserDirectory(userPath.ToStdString());
 	UICommon::CreateDirectories();
 	UICommon::Init();
 
@@ -492,7 +489,6 @@ void DolphinApp::OnFatalException()
 {
 	WiimoteReal::Shutdown();
 }
-
 
 // ------------
 // Talk to GUI

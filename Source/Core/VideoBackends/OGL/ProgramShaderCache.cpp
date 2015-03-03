@@ -473,25 +473,33 @@ void ProgramShaderCache::Shutdown()
 	{
 		for (auto& entry : pshaders)
 		{
+			// Clear any prior error code
+			glGetError();
+
 			if (entry.second.in_cache)
 			{
 				continue;
 			}
 
-			GLint binary_size;
+			GLint link_status = GL_FALSE, delete_status = GL_TRUE, binary_size = 0;
+			glGetProgramiv(entry.second.shader.glprogid, GL_LINK_STATUS, &link_status);
+			glGetProgramiv(entry.second.shader.glprogid, GL_DELETE_STATUS, &delete_status);
 			glGetProgramiv(entry.second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
-			if (!binary_size)
+			if (glGetError() != GL_NO_ERROR || link_status == GL_FALSE || delete_status == GL_TRUE || !binary_size)
 			{
 				continue;
 			}
 
-			u8 *data = new u8[binary_size+sizeof(GLenum)];
-			u8 *binary = data + sizeof(GLenum);
-			GLenum *prog_format = (GLenum*)data;
+			std::vector<u8> data(binary_size + sizeof(GLenum));
+			u8* binary = &data[sizeof(GLenum)];
+			GLenum* prog_format = (GLenum*)&data[0];
 			glGetProgramBinary(entry.second.shader.glprogid, binary_size, nullptr, prog_format, binary);
+			if (glGetError() != GL_NO_ERROR)
+			{
+				continue;
+			}
 
-			g_program_disk_cache.Append(entry.first, data, binary_size+sizeof(GLenum));
-			delete [] data;
+			g_program_disk_cache.Append(entry.first, &data[0], binary_size + sizeof(GLenum));
 		}
 
 		g_program_disk_cache.Sync();
@@ -528,6 +536,7 @@ void ProgramShaderCache::CreateHeader()
 		"%s\n" // storage buffer
 		"%s\n" // shader5
 		"%s\n" // AEP
+		"%s\n" // texture buffer
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -563,6 +572,7 @@ void ProgramShaderCache::CreateHeader()
 		, g_ActiveConfig.backend_info.bSupportsBBox ? "#extension GL_ARB_shader_storage_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsGSInstancing ? "#extension GL_ARB_gpu_shader5 : enable" : ""
 		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
+		, v<GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""

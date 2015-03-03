@@ -93,7 +93,6 @@ bool CCPU::IsStepping()
 
 void CCPU::Reset()
 {
-
 }
 
 void CCPU::StepOpcode(Common::Event *event)

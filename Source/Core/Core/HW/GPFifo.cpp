@@ -55,37 +55,50 @@ void ResetGatherPipe()
 	m_gatherPipeCount = 0;
 }
 
+static void UpdateGatherPipe()
+{
+	u32 cnt;
+	u8* curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
+	for (cnt = 0; m_gatherPipeCount >= GATHER_PIPE_SIZE; cnt += GATHER_PIPE_SIZE)
+	{
+		// copy the GatherPipe
+		memcpy(curMem, m_gatherPipe + cnt, GATHER_PIPE_SIZE);
+		m_gatherPipeCount -= GATHER_PIPE_SIZE;
+
+		// increase the CPUWritePointer
+		if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
+		{
+			ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
+			curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
+		}
+		else
+		{
+			curMem += GATHER_PIPE_SIZE;
+			ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
+		}
+
+		g_video_backend->Video_GatherPipeBursted();
+	}
+
+	// move back the spill bytes
+	memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
+}
+
+void FastCheckGatherPipe()
+{
+	if (m_gatherPipeCount >= GATHER_PIPE_SIZE)
+	{
+		UpdateGatherPipe();
+	}
+}
+
 void CheckGatherPipe()
 {
 	if (m_gatherPipeCount >= GATHER_PIPE_SIZE)
 	{
-		u32 cnt;
-		u8* curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
-		for (cnt = 0; m_gatherPipeCount >= GATHER_PIPE_SIZE; cnt += GATHER_PIPE_SIZE)
-		{
-			// copy the GatherPipe
-			memcpy(curMem, m_gatherPipe + cnt, GATHER_PIPE_SIZE);
-			m_gatherPipeCount -= GATHER_PIPE_SIZE;
+		UpdateGatherPipe();
 
-			// increase the CPUWritePointer
-			if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
-			{
-				ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
-				curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
-			}
-			else
-			{
-				curMem += GATHER_PIPE_SIZE;
-				ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
-			}
-
-			g_video_backend->Video_GatherPipeBursted();
-		}
-
-		// move back the spill bytes
-		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
-
-		// Profile where the FIFO writes are occurring.
+		// Profile where slow FIFO writes are occurring.
 		JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::EXCEPTIONS_FIFO_WRITE);
 	}
 }

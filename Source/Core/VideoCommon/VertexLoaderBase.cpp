@@ -100,7 +100,7 @@ void VertexLoaderBase::AppendToString(std::string *dest) const
 			m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
 	}
 
-	u64 color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	u64 color_mode[2] = { m_VtxDesc.Color0, m_VtxDesc.Color1 };
 	for (int i = 0; i < 2; i++)
 	{
 		if (color_mode[i])

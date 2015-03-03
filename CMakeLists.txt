@@ -2,6 +2,7 @@
 # General setup
 #
 cmake_minimum_required(VERSION 2.8.8)
+project(dolphin-emu)
 
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
@@ -20,6 +21,9 @@ option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 option(FASTLOG "Enable all logs" OFF)
 option(OPROFILING "Enable profiling" OFF)
 option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	option(VTUNE "Enable Intel VTune integration for JIT symbols." OFF)
+endif()
 
 if(APPLE)
 	option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
@@ -45,7 +49,6 @@ if (APPLE)
 		endif()
 	endif()
 endif()
-project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
 # Libraries to link
@@ -335,6 +338,22 @@ if(GDBSTUB)
 	add_definitions(-DUSE_GDBSTUB)
 endif(GDBSTUB)
 
+if(VTUNE)
+	if(EXISTS "$ENV{VTUNE_AMPLIFIER_XE_2015_DIR}")
+		set(VTUNE_DIR "$ENV{VTUNE_AMPLIFIER_XE_2015_DIR}")
+	elseif(EXISTS "$ENV{VTUNE_AMPLIFIER_XE_2013_DIR}")
+		set(VTUNE_DIR "$ENV{VTUNE_AMPLIFIER_XE_2013_DIR}")
+	else()
+		message(ERROR "Could find neither VTUNE_AMPLIFIER_XE_2015_DIR nor VTUNE_AMPLIFIER_XE_2013_DIR.")
+	endif()
+	add_definitions(-DUSE_VTUNE)
+	include_directories("${VTUNE_DIR}/include")
+	set(VTUNE_LIBRARIES
+		"${VTUNE_DIR}/lib64/libjitprofiling.a"
+		"${VTUNE_DIR}/lib64/libittnotify.a"
+	)
+endif(VTUNE)
+
 if(ANDROID)
 	message("Building for Android")
 	add_definitions(-DANDROID)
@@ -471,6 +490,7 @@ if(NOT ANDROID)
 		int main(int argc, char **argv)
 		{ if(Pa_GetVersion() >= 1890) return 0; else return 1; }"
 		PORTAUDIO)
+	unset(CMAKE_REQUIRED_LIBRARIES)
 	if(PORTAUDIO)
 		message("PortAudio found, enabling mic support")
 		add_definitions(-DHAVE_PORTAUDIO=1)
@@ -515,6 +535,13 @@ include_directories(Source/Core)
 #
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
+
+if(NOT ENET_FOUND)
+	message("Using static enet from Externals")
+	include_directories(Externals)
+	add_subdirectory(Externals/enet)
+endif()
+LIST(APPEND LIBS enet)
 
 if(NOT XXHASH_FOUND)
 	message("Using static xxhash from Externals")

@@ -78,7 +78,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	else // D3D
 	{
 		WRITE(p, "sampler samp0 : register(s0);\n");
-		WRITE(p, "Texture2D Tex0 : register(t0);\n");
+		WRITE(p, "Texture2DArray Tex0 : register(t0);\n");
 
 		WRITE(p, "void main(\n");
 		WRITE(p, "  out float4 ocol0 : SV_Target, in float4 rawpos : SV_Position)\n");
@@ -126,7 +126,7 @@ static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, 
 	}
 	else
 	{
-		WRITE(p, "  %s = Tex0.Sample(samp0, uv0 + float2(%d, 0) * sample_offset).%s;\n",
+		WRITE(p, "  %s = Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
 			dest, xoffset, colorComp
 			);
 	}

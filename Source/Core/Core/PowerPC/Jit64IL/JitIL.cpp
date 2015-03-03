@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/Intrinsics.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/PatchEngine.h"
@@ -135,11 +136,9 @@ ps_adds1
 
 #ifdef _WIN32
 #include <windows.h>
-#include <intrin.h>
 #else
 #include <memory>
 #include <stdint.h>
-#include <x86intrin.h>
 
 #if defined(__clang__)
 #if !__has_builtin(__builtin_ia32_rdtsc)
@@ -147,18 +146,18 @@ static inline uint64_t __rdtsc()
 {
 	uint32_t lo, hi;
 #ifdef _LP64
-	__asm__ __volatile__ ("xorl %%eax,%%eax \n cpuid"
+	__asm__ __volatile__("xorl %%eax,%%eax \n cpuid"
 			::: "%rax", "%rbx", "%rcx", "%rdx");
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+	__asm__ __volatile__("rdtsc" : "=a" (lo), "=d" (hi));
 	return (uint64_t)hi << 32 | lo;
 #else
-	__asm__ __volatile__ (
+	__asm__ __volatile__(
 			"xor    %%eax,%%eax;"
 			"push   %%ebx;"
 			"cpuid;"
 			"pop    %%ebx;"
 			::: "%eax", "%ecx", "%edx");
-	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+	__asm__ __volatile__("rdtsc" : "=a" (lo), "=d" (hi));
 #endif
 	return (uint64_t)hi << 32 | lo;
 }
@@ -355,11 +354,6 @@ static void ImHere()
 
 void JitIL::Cleanup()
 {
-	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
-	{
-		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
-	}
-
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
 	if (MMCR0.Hex || MMCR1.Hex)
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);

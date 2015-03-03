@@ -452,7 +452,7 @@ bool BeginRecordingInput(int controllers)
 	if (NetPlay::IsNetPlayRunning())
 	{
 		s_bNetPlay = true;
-		s_recordingStartTime = NETPLAY_INITIAL_GCTIME;
+		s_recordingStartTime = g_netplay_initial_gctime;
 	}
 	else
 	{
@@ -1212,7 +1212,7 @@ void SaveRecording(const std::string& filename)
 	header.CPUCore = s_iCPUCore;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
 	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
-	header.bCopyEFBToTexture = g_ActiveConfig.bCopyEFBToTexture;
+	header.bSkipEFBCopyToRam = g_ActiveConfig.bSkipEFBCopyToRam;
 	header.bEFBCopyCacheEnable = false;
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
@@ -1274,7 +1274,7 @@ void SetGraphicsConfig()
 {
 	g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
 	g_Config.bEFBCopyEnable = tmpHeader.bEFBCopyEnable;
-	g_Config.bCopyEFBToTexture = tmpHeader.bCopyEFBToTexture;
+	g_Config.bSkipEFBCopyToRam = tmpHeader.bSkipEFBCopyToRam;
 	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
 	g_Config.bUseXFB = tmpHeader.bUseXFB;
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;

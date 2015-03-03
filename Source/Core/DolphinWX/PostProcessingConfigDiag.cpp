@@ -290,7 +290,6 @@ void PostProcessingConfigDiag::Event_Slider(wxCommandEvent &ev)
 			s32 value = option_data.m_integer_step_values[i] * current_step + option_data.m_integer_min_values[i];
 			m_post_processor->SetOptioni(config->GetOption(), i, value);
 			string_value = std::to_string(value);
-
 		}
 		else
 		{

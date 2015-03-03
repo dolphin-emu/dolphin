@@ -133,7 +133,7 @@ void PixelShaderManager::SetDestAlpha()
 	dirty = true;
 }
 
-void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt)
+void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
 {
 	// TODO: move this check out to callee. There we could just call this function on texture changes
 	// or better, use textureSize() in glsl
@@ -158,8 +158,8 @@ void PixelShaderManager::SetViewportChanged()
 
 void PixelShaderManager::SetEfbScaleChanged()
 {
-	constants.efbscale[0] = 1.0f / float(Renderer::EFBToScaledXf(1));
-	constants.efbscale[1] = 1.0f / float(Renderer::EFBToScaledYf(1));
+	constants.efbscale[0] = 1.0f / Renderer::EFBToScaledXf(1);
+	constants.efbscale[1] = 1.0f / Renderer::EFBToScaledYf(1);
 	dirty = true;
 }
 

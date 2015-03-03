@@ -26,11 +26,11 @@
 #include "Core/ActionReplay.h"
 #include "Core/ARDecrypt.h"
 #include "DolphinWX/ARCodeAddEdit.h"
-#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
-CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::ARCode>& _arCodes, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
+	, arCodes(_arCodes)
 	, selection(_selection)
 {
 	Bind(wxEVT_BUTTON, &CARCodeAddEdit::SaveCheatData, this, wxID_OK);
@@ -64,15 +64,15 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	EditCheatCode = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
 	UpdateTextCtrl(tempEntries);
 
-	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER|wxALL, 5);
-	sgEntry->Add(EditCheatName,     wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sgEntry->Add(EntrySelection,    wxGBPosition(0, 2), wxGBSpan(2, 1), wxEXPAND|wxALL, 5);
-	sgEntry->Add(EditCheatCode,     wxGBPosition(1, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
+	sgEntry->Add(EditCheatName,     wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+	sgEntry->Add(EntrySelection,    wxGBPosition(0, 2), wxGBSpan(2, 1), wxEXPAND | wxALL, 5);
+	sgEntry->Add(EditCheatCode,     wxGBPosition(1, 0), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
 	sgEntry->AddGrowableCol(1);
 	sgEntry->AddGrowableRow(1);
-	sbEntry->Add(sgEntry, 1, wxEXPAND|wxALL);
+	sbEntry->Add(sgEntry, 1, wxEXPAND | wxALL);
 
-	sEditCheat->Add(sbEntry, 1, wxEXPAND|wxALL, 5);
+	sEditCheat->Add(sbEntry, 1, wxEXPAND | wxALL, 5);
 	sEditCheat->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxALL, 5);
 
 	SetSizerAndFit(sEditCheat);
@@ -86,7 +86,7 @@ void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 	UpdateTextCtrl(currentCode);
 }
 
-void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
+void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED(event))
 {
 	std::vector<ActionReplay::AREntry> decryptedLines;
 	std::vector<std::string> encryptedLines;
@@ -95,7 +95,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 	std::vector<std::string> userInputLines;
 	SplitString(WxStrToStr(EditCheatCode->GetValue()), '\n', userInputLines);
 
-	for (size_t i = 0;  i < userInputLines.size();  i++)
+	for (size_t i = 0; i < userInputLines.size(); i++)
 	{
 		// Make sure to ignore unneeded whitespace characters.
 		std::string line_str = StripSpaces(userInputLines[i]);
@@ -131,7 +131,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		// If the above-mentioned conditions weren't met, then something went wrong.
 		if (!PanicYesNoT("Unable to parse line %u of the entered AR code as a valid "
 						"encrypted or decrypted code.  Make sure you typed it correctly.\n"
-						"Would you like to ignore this line and continue parsing?", (unsigned) (i + 1)))
+						"Would you like to ignore this line and continue parsing?", (unsigned)(i + 1)))
 		{
 			return;
 		}

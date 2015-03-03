@@ -411,7 +411,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 	gamelist->Set("ListAustralia", m_ListAustralia);
 	gamelist->Set("ListFrance", m_ListFrance);
 	gamelist->Set("ListGermany", m_ListGermany);
-	gamelist->Set("ListInternational", m_ListInternational);
+	gamelist->Set("ListWorld", m_ListWorld);
 	gamelist->Set("ListItaly", m_ListItaly);
 	gamelist->Set("ListKorea", m_ListKorea);
 	gamelist->Set("ListNetherlands", m_ListNetherlands);
@@ -699,7 +699,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 	gamelist->Get("ListAustralia",     &m_ListAustralia,     true);
 	gamelist->Get("ListFrance",        &m_ListFrance,        true);
 	gamelist->Get("ListGermany",       &m_ListGermany,       true);
-	gamelist->Get("ListInternational", &m_ListInternational, true);
+	gamelist->Get("ListWorld",         &m_ListWorld,         true);
 	gamelist->Get("ListItaly",         &m_ListItaly,         true);
 	gamelist->Get("ListKorea",         &m_ListKorea,         true);
 	gamelist->Get("ListNetherlands",   &m_ListNetherlands,   true);

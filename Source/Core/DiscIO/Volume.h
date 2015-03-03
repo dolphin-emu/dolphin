@@ -28,7 +28,6 @@ public:
 		return std::unique_ptr<u8[]>();
 	}
 	virtual std::string GetUniqueID() const = 0;
-	virtual std::string GetRevisionSpecificUniqueID() const { return ""; }
 	virtual std::string GetMakerID() const = 0;
 	virtual int GetRevision() const { return 0; }
 	// TODO: eliminate?
@@ -53,7 +52,7 @@ public:
 		COUNTRY_AUSTRALIA,
 		COUNTRY_FRANCE,
 		COUNTRY_GERMANY,
-		COUNTRY_INTERNATIONAL,
+		COUNTRY_WORLD,
 		COUNTRY_ITALY,
 		COUNTRY_KOREA,
 		COUNTRY_NETHERLANDS,

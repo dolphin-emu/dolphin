@@ -335,7 +335,7 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	// Create the popup menu
 	wxMenu MenuPopup;
 
-	wxMenuItem* Item =  new wxMenuItem(&MenuPopup, wxID_ANY, _("Select floating windows"));
+	wxMenuItem* Item = new wxMenuItem(&MenuPopup, wxID_ANY, _("Select floating windows"));
 	MenuPopup.Append(Item);
 	Item->Enable(false);
 	MenuPopup.Append(new wxMenuItem(&MenuPopup));
@@ -467,7 +467,7 @@ void CFrame::DoAddPage(wxWindow *Win, int i, bool Float)
 	if (!Win) return;
 
 	// Ensure accessor remains within valid bounds.
-	if (i < 0 || i > GetNotebookCount()-1)
+	if (i < 0 || i > GetNotebookCount() - 1)
 		i = 0;
 
 	// The page was already previously added, no need to add it again.
@@ -682,7 +682,7 @@ void CFrame::SetPaneSize()
 			// Convert percentages to pixel lengths
 			W = (W * iClientX) / 100;
 			H = (H * iClientY) / 100;
-			m_Mgr->GetAllPanes()[i].BestSize(W,H).MinSize(W,H);
+			m_Mgr->GetAllPanes()[i].BestSize(W, H).MinSize(W, H);
 
 			j++;
 		}
@@ -693,7 +693,7 @@ void CFrame::SetPaneSize()
 	{
 		if (!m_Mgr->GetAllPanes()[i].window->IsKindOf(CLASSINFO(wxAuiToolBar)))
 		{
-			m_Mgr->GetAllPanes()[i].MinSize(-1,-1);
+			m_Mgr->GetAllPanes()[i].MinSize(-1, -1);
 		}
 	}
 }
@@ -842,7 +842,7 @@ void CFrame::SaveIniPerspectives()
 	{
 		STmp += Perspective.Name + ",";
 	}
-	STmp = STmp.substr(0, STmp.length()-1);
+	STmp = STmp.substr(0, STmp.length() - 1);
 
 	IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
 	perspectives->Set("Perspectives", STmp);
@@ -862,8 +862,8 @@ void CFrame::SaveIniPerspectives()
 			SHeight += StringFromFormat("%i,", Perspective.Height[j]);
 		}
 		// Remove the ending ","
-		SWidth = SWidth.substr(0, SWidth.length()-1);
-		SHeight = SHeight.substr(0, SHeight.length()-1);
+		SWidth = SWidth.substr(0, SWidth.length() - 1);
+		SHeight = SHeight.substr(0, SHeight.length() - 1);
 
 		perspec_section->Set("Width", SWidth);
 		perspec_section->Set("Height", SHeight);

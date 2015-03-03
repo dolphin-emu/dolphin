@@ -104,7 +104,8 @@ void Fifo_Init()
 
 void Fifo_Shutdown()
 {
-	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
+	if (GpuRunningState)
+		PanicAlert("Fifo shutting down while active");
 	FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
 	s_video_buffer = nullptr;
 	s_video_buffer_write_ptr = nullptr;
@@ -113,16 +114,6 @@ void Fifo_Shutdown()
 	s_video_buffer_seen_ptr = nullptr;
 	s_fifo_aux_write_ptr = nullptr;
 	s_fifo_aux_read_ptr = nullptr;
-}
-
-u8* GetVideoBufferStartPtr()
-{
-	return s_video_buffer;
-}
-
-u8* GetVideoBufferEndPtr()
-{
-	return s_video_buffer_write_ptr;
 }
 
 void Fifo_SetRendering(bool enabled)
@@ -137,7 +128,8 @@ void ExitGpuLoop()
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while (fifo.isGpuReadingData) Common::YieldCPU();
+	while (fifo.isGpuReadingData)
+		Common::YieldCPU();
 	// Terminate GPU thread loop
 	GpuRunningState = false;
 	EmuRunningState = true;

@@ -26,12 +26,9 @@ void UpdateActiveConfig()
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 		Movie::SetGraphicsConfig();
 
-	if (!g_opcodereplay_frame || !g_opcode_replay_enabled)
-	{
-		g_ActiveConfig = g_Config;
-		if (g_has_hmd)
-			g_ActiveConfig.bUseRealXFB = false;
-	}
+	g_ActiveConfig = g_Config;
+	if (g_has_hmd)
+		g_ActiveConfig.bUseRealXFB = false;
 }
 
 VideoConfig::VideoConfig()
@@ -138,7 +135,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("Crop", &bCrop, false);
 	settings->Get("UseXFB", &bUseXFB, 0);
 	settings->Get("UseRealXFB", &bUseRealXFB, 0);
-	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
+	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples, 128);
 	settings->Get("ShowFPS", &bShowFPS, false);
 	settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
 	settings->Get("OverlayStats", &bOverlayStats, false);
@@ -153,7 +150,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
 	settings->Get("MSAA", &iMultisampleMode, 0);
-	settings->Get("EFBScale", &iEFBScale, (int) SCALE_1X); // native
+	settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
 	settings->Get("DstAlphaPass", &bDstAlphaPass, false);
 	settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
@@ -177,7 +174,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
 	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
-	hacks->Get("EFBToTextureEnable", &bCopyEFBToTexture, true);
+	hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
@@ -379,7 +376,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
-	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
+	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 	if (g_has_hmd)
@@ -387,7 +384,7 @@ void VideoConfig::GameIniLoad()
 		CHECK_SETTING("Video_Hacks_VR", "EFBAccessEnable", bEFBAccessEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyEnable", bEFBCopyEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyClearDisable", bEFBCopyClearDisable);
-		CHECK_SETTING("Video_Hacks_VR", "EFBToTextureEnable", bCopyEFBToTexture);
+		CHECK_SETTING("Video_Hacks_VR", "EFBToTextureEnable", bSkipEFBCopyToRam);
 		CHECK_SETTING("Video_Hacks_VR", "EFBScaledCopy", bCopyEFBScaled);
 		CHECK_SETTING("Video_Hacks_VR", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 	}
@@ -453,15 +450,9 @@ void VideoConfig::GameIniLoad()
 void VideoConfig::GameIniSave()
 {
 	// Load game ini
-	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
-	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
-	std::string GameIniFileLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal;
-
 	IniFile GameIniDefault, GameIniLocal;
-	GameIniDefault.Load(GameIniFileDefault);
-	if (GameIniFileDefaultRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
-	GameIniLocal.Load(GameIniFileLocal);
+	GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
+	GameIniLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
@@ -495,20 +486,15 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, DEFAULT_VR_SCREEN_UP);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
-	GameIniLocal.Save(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal);
+	
+	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 	g_SavedConfig = *this;
 }
 
 void VideoConfig::GameIniReset()
 {
 	// Load game ini
-	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
-	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
-
-	IniFile GameIniDefault;
-	GameIniDefault.Load(GameIniFileDefault);
-	if (GameIniFileDefaultRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
+	IniFile GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
 
 #define LOAD_DEFAULT(section, key, var, def) do { \
 			decltype(var) temp = var; \
@@ -618,7 +604,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
 	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
-	hacks->Set("EFBToTextureEnable", bCopyEFBToTexture);
+	hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 

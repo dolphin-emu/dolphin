@@ -20,10 +20,6 @@ extern std::atomic<u8*> g_video_buffer_write_ptr_xthread;
 
 void Fifo_Init();
 void Fifo_Shutdown();
-
-u8* GetVideoBufferStartPtr();
-u8* GetVideoBufferEndPtr();
-
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void Fifo_UpdateWantDeterminism(bool want);
@@ -31,7 +27,6 @@ void Fifo_UpdateWantDeterminism(bool want);
 // Used for diagnostics.
 enum SyncGPUReason
 {
-	SYNC_GPU_NONE,
 	SYNC_GPU_OTHER,
 	SYNC_GPU_WRAPAROUND,
 	SYNC_GPU_EFB_POKE,

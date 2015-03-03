@@ -144,7 +144,7 @@ namespace PowerPC
 			else if (addr & ICACHE_EXRAM_BIT)
 				lookup_table_ex[(addr >> 5) & 0x1fffff] = t;
 			else
-				lookup_table[(addr>>5) & 0xfffff] = t;
+				lookup_table[(addr >> 5) & 0xfffff] = t;
 			tags[set][t] = tag;
 			valid[set] |= (1 << t);
 		}

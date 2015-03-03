@@ -749,8 +749,8 @@ void OpcodeReplayBufferInline()
 	// Opcode Replay Buffer Code.  This enables the capture of all the Video Opcodes that occur during a frame,
 	// and then plays them back with new headtracking information.  Allows ways to easily set headtracking at 75fps
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
-	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
+	int extra_video_loops;
 	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
@@ -758,37 +758,42 @@ void OpcodeReplayBufferInline()
 		{
 			if (real_frame_count % 4 == 1)
 			{
-				g_ActiveConfig.iExtraVideoLoops = 2;
+				extra_video_loops = 2;
 			}
 			else
 			{
-				g_ActiveConfig.iExtraVideoLoops = 3;
+				extra_video_loops = 3;
 			}
 		}
 		else if (g_ActiveConfig.bPullUp30fps)
 		{
 			if (real_frame_count % 2 == 1)
 			{
-				g_ActiveConfig.iExtraVideoLoops = 1;
+				extra_video_loops = 1;
 			}
 			else
 			{
-				g_ActiveConfig.iExtraVideoLoops = 2;
+				extra_video_loops = 2;
 			}
 		}
 		else if (g_ActiveConfig.bPullUp60fps)
 		{
 			if (real_frame_count % 4 == 0)
-				g_ActiveConfig.iExtraVideoLoops = 1;
+				extra_video_loops = 1;
 			else
-				g_ActiveConfig.iExtraVideoLoops = 0;
+				extra_video_loops = 0;
 		}
 
 		++real_frame_count;
 		g_opcodereplay_frame = true;
 		skipped_opcode_replay_count = 0;
 
-		for (int num_extra_frames = 0; num_extra_frames < (int)g_ActiveConfig.iExtraVideoLoops; ++num_extra_frames)
+		if (!(g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps))
+		{
+			extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
+		}
+
+		for (int num_extra_frames = 0; num_extra_frames < extra_video_loops; ++num_extra_frames)
 		{
 			for (TimewarpLogEntry& entry : timewarp_logentries)
 			{

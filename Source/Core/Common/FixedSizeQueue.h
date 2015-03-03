@@ -33,7 +33,7 @@ public:
 
 	~FixedSizeQueue()
 	{
-		delete [] storage;
+		delete[] storage;
 	}
 
 	void clear()

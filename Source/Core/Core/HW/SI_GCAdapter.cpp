@@ -331,6 +331,7 @@ void Input(int chan, GCPadStatus* pad)
 
 		if (s_controller_type[chan] != CONTROLLER_NONE)
 		{
+			memset(pad, 0, sizeof(*pad));
 			u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
 			u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 

@@ -26,7 +26,6 @@
 
 #if defined USE_VTUNE
 #include <jitprofiling.h>
-#pragma comment(lib, "libittnotify.lib")
 #pragma comment(lib, "jitprofiling.lib")
 #endif
 
@@ -89,12 +88,9 @@ void RegisterV(const void* base_address, u32 code_size,
 #ifdef USE_VTUNE
 	iJIT_Method_Load jmethod = {0};
 	jmethod.method_id = iJIT_GetNewMethodID();
-	jmethod.class_file_name = "";
-	jmethod.source_file_name = __FILE__;
-	jmethod.method_load_address = base_address;
+	jmethod.method_load_address = const_cast<void*>(base_address);
 	jmethod.method_size = code_size;
-	jmethod.line_number_size = 0;
-	jmethod.method_name = symbol_name.data();
+	jmethod.method_name = const_cast<char*>(symbol_name.data());
 	iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
 #endif
 

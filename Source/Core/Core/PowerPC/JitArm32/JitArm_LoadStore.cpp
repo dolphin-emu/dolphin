@@ -120,7 +120,7 @@ void JitArm::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, int accessSize
 
 	if (is_immediate)
 	{
-		if ((imm_addr & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
+		if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
 		{
 			MOVI2R(R14, (u32)&GPFifo::m_gatherPipeCount);
 			MOVI2R(R10, (u32)GPFifo::m_gatherPipe);

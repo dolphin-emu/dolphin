@@ -130,7 +130,7 @@ public:
 	BitField() = default;
 
 #ifndef _WIN32
-	// We explicitly delete the copy assigment operator here, because the
+	// We explicitly delete the copy assignment operator here, because the
 	// default copy assignment would copy the full storage value, rather than
 	// just the bits relevant to this particular bit field.
 	// Ideally, we would just implement the copy assignment to copy only the
@@ -183,7 +183,7 @@ private:
 
 	__forceinline StorageType GetMask() const
 	{
-		return ((~(StorageTypeU)0) >> (8*sizeof(T) - bits)) << position;
+		return ((~(StorageTypeU)0) >> (8 * sizeof(T) - bits)) << position;
 	}
 
 	StorageType storage;
