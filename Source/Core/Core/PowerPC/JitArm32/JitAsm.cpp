@@ -97,7 +97,7 @@ void JitArmAsmRoutineManager::Generate()
 
 			FixupBranch no_block = B_CC(CC_NEQ);
 				// Success, it is our Jitblock.
-				MOVI2R(R14, (u32)jit->GetBlockCache()->GetCodePointers());
+				MOVI2R(R14, (u32)jit->GetBlockCache()->GetBlocks());
 				// LDR R14 right here to get CodePointers()[0] pointer.
 				LSL(R12, R12, 2); // Multiply by four because address locations are u32 in size
 				LDR(R14, R14, R12); // Load the block address in to R14

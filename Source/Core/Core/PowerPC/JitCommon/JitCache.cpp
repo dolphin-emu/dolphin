@@ -30,26 +30,15 @@ using namespace Gen;
 
 	void JitBaseBlockCache::Init()
 	{
-		if (m_initialized)
-		{
-			PanicAlert("JitBaseBlockCache::Init() - iCache is already initialized");
-			return;
-		}
-
 		JitRegister::Init();
 
-		iCache.fill(JIT_ICACHE_INVALID_BYTE);
-		iCacheEx.fill(JIT_ICACHE_INVALID_BYTE);
-		iCacheVMEM.fill(JIT_ICACHE_INVALID_BYTE);
+		iCache.fill(0);
 		Clear();
-
-		m_initialized = true;
 	}
 
 	void JitBaseBlockCache::Shutdown()
 	{
 		num_blocks = 0;
-		m_initialized = false;
 
 		JitRegister::Shutdown();
 	}
@@ -76,7 +65,8 @@ using namespace Gen;
 		valid_block.ClearAll();
 
 		num_blocks = 0;
-		blockCodePointers.fill(nullptr);
+		blocks[0].msrBits = 0xFFFFFFFF;
+		blocks[0].invalid = true;
 	}
 
 	void JitBaseBlockCache::Reset()
@@ -95,23 +85,13 @@ using namespace Gen;
 		return num_blocks;
 	}
 
-	bool JitBaseBlockCache::RangeIntersect(int s1, int e1, int s2, int e2) const
-	{
-		// check if any endpoint is inside the other range
-		if ((s1 >= s2 && s1 <= e2) ||
-		    (e1 >= s2 && e1 <= e2) ||
-		    (s2 >= s1 && s2 <= e1) ||
-		    (e2 >= s1 && e2 <= e1))
-			return true;
-		else
-			return false;
-	}
-
 	int JitBaseBlockCache::AllocateBlock(u32 em_address)
 	{
 		JitBlock &b = blocks[num_blocks];
 		b.invalid = false;
-		b.originalAddress = em_address;
+		b.effectiveAddress = em_address;
+		b.physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
+		b.msrBits = MSR & 0x30;
 		b.linkData.clear();
 		num_blocks++; //commit the current block
 		return num_blocks - 1;
@@ -119,13 +99,21 @@ using namespace Gen;
 
 	void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr)
 	{
-		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];
-		u32* icp = GetICachePtr(b.originalAddress);
-		*icp = block_num;
+		if (start_block_map.count(b.physicalAddress))
+		{
+			// We already have a block at this address; invalidate the old block.
+			// This should be very rare.
+			WARN_LOG(DYNA_REC, "Invalidating compiled block at same address %08x", b.physicalAddress);
+			int old_block_num = start_block_map[b.physicalAddress];
+			JitBlock &old_b = blocks[old_block_num];
+			block_map.erase(std::make_pair(old_b.physicalAddress + 4 * old_b.originalSize - 1, old_b.physicalAddress));
+			DestroyBlock(old_block_num, true);
+		}
+		start_block_map[b.physicalAddress] = block_num;
+		iCache[(b.effectiveAddress >> 2) & iCache_Mask] = block_num;
 
-		// Convert the logical address to a physical address for the block map
-		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
+		u32 pAddr = b.physicalAddress;
 
 		for (u32 block = pAddr / 32; block <= (pAddr + (b.originalSize - 1) * 4) / 32; ++block)
 			valid_block.Set(block);
@@ -143,43 +131,47 @@ using namespace Gen;
 			LinkBlockExits(block_num);
 		}
 
-		JitRegister::Register(blockCodePointers[block_num], b.codeSize,
-			"JIT_PPC_%08x", b.originalAddress);
-	}
-
-	const u8 **JitBaseBlockCache::GetCodePointers()
-	{
-		return blockCodePointers.data();
-	}
-
-	u32* JitBaseBlockCache::GetICachePtr(u32 addr)
-	{
-		if (addr & JIT_ICACHE_VMEM_BIT)
-			return (u32*)(&jit->GetBlockCache()->iCacheVMEM[addr & JIT_ICACHE_MASK]);
-		else if (addr & JIT_ICACHE_EXRAM_BIT)
-			return (u32*)(&jit->GetBlockCache()->iCacheEx[addr & JIT_ICACHEEX_MASK]);
-		else
-			return (u32*)(&jit->GetBlockCache()->iCache[addr & JIT_ICACHE_MASK]);
+		JitRegister::Register(b.normalEntry, b.codeSize,
+			"JIT_PPC_%08x", b.physicalAddress);
 	}
 
 	int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 	{
-		u32 inst = *GetICachePtr(addr);
-		if (inst & 0xfc000000) // definitely not a JIT block
-			return -1;
+		u32 translated_addr = addr;
+		if (UReg_MSR(MSR).IR)
+		{
+			auto translated = PowerPC::JitCache_TranslateAddress(addr);
+			if (!translated.valid)
+			{
+				return -1;
+			}
+			translated_addr = translated.address;
+		}
 
-		if ((int)inst >= num_blocks)
+		auto map_result = start_block_map.find(translated_addr);
+		if (map_result == start_block_map.end())
 			return -1;
-
-		if (blocks[inst].originalAddress != addr)
+		int block_num = map_result->second;
+		if (blocks[block_num].invalid)
 			return -1;
-
-		return inst;
+		if (blocks[block_num].effectiveAddress != addr)
+			return -1;
+		return block_num;
 	}
 
-	CompiledCode JitBaseBlockCache::GetCompiledCodeFromBlock(int block_num)
+	void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr)
 	{
-		return (CompiledCode)blockCodePointers[block_num];
+		int block_num = GetBlockNumberFromStartAddress(addr);
+		if (block_num < 0 || blocks[block_num].msrBits != (MSR & 0x30))
+		{
+			Jit(addr);
+		}
+		else
+		{
+			iCache[(addr >> 2) & iCache_Mask] = block_num;
+			JitBlock &b = blocks[block_num];
+			WriteUndestroyBlock(b.checkedEntry, b.effectiveAddress);
+		}
 	}
 
 	//Block linker
@@ -201,7 +193,7 @@ using namespace Gen;
 			if (!e.linkStatus)
 			{
 				int destinationBlock = GetBlockNumberFromStartAddress(e.exitAddress);
-				if (destinationBlock != -1)
+				if (destinationBlock != -1 && blocks[destinationBlock].msrBits == b.msrBits)
 				{
 					WriteLinkBlock(e.exitPtrs, blocks[destinationBlock].checkedEntry);
 					e.linkStatus = true;
@@ -214,16 +206,10 @@ using namespace Gen;
 	{
 		LinkBlockExits(i);
 		JitBlock &b = blocks[i];
-		// equal_range(b) returns pair<iterator,iterator> representing the range
-		// of element with key b
-		auto ppp = links_to.equal_range(b.originalAddress);
-
-		if (ppp.first == ppp.second)
-			return;
+		auto ppp = links_to.equal_range(b.effectiveAddress);
 
 		for (auto iter = ppp.first; iter != ppp.second; ++iter)
 		{
-			// PanicAlert("Linking block %i to block %i", iter->second, i);
 			LinkBlockExits(iter->second);
 		}
 	}
@@ -231,21 +217,18 @@ using namespace Gen;
 	void JitBaseBlockCache::UnlinkBlock(int i)
 	{
 		JitBlock &b = blocks[i];
-		auto ppp = links_to.equal_range(b.originalAddress);
-
-		if (ppp.first == ppp.second)
-			return;
+		auto ppp = links_to.equal_range(b.effectiveAddress);
 
 		for (auto iter = ppp.first; iter != ppp.second; ++iter)
 		{
 			JitBlock &sourceBlock = blocks[iter->second];
 			for (auto& e : sourceBlock.linkData)
 			{
-				if (e.exitAddress == b.originalAddress)
+				if (e.exitAddress == b.effectiveAddress)
 					e.linkStatus = false;
 			}
 		}
-		links_to.erase(b.originalAddress);
+		links_to.erase(b.effectiveAddress);
 	}
 
 	void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
@@ -263,20 +246,23 @@ using namespace Gen;
 			return;
 		}
 		b.invalid = true;
-		*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
+		start_block_map.erase(b.physicalAddress);
+		iCache[(b.effectiveAddress >> 2) & iCache_Mask] = 0;
 
 		UnlinkBlock(block_num);
 
 		// Send anyone who tries to run this block back to the dispatcher.
 		// Not entirely ideal, but .. pretty good.
 		// Spurious entrances from previously linked blocks can only come through checkedEntry
-		WriteDestroyBlock(b.checkedEntry, b.originalAddress);
+		WriteDestroyBlock(b.checkedEntry, b.effectiveAddress);
 	}
 
 	void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool forced)
 	{
-		// Convert the logical address to a physical address for the block map
-		u32 pAddr = address & 0x1FFFFFFF;
+		auto translated = PowerPC::JitCache_TranslateAddress(address);
+		if (!translated.valid)
+			return;
+		u32 pAddr = translated.address;
 
 		// Optimize the common case of length == 32 which is used by Interpreter::dcb*
 		bool destroy_block = true;
@@ -295,8 +281,6 @@ using namespace Gen;
 			std::map<std::pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1;
 			while (it2 != block_map.end() && it2->first.second < pAddr + length)
 			{
-				JitBlock &b = blocks[it2->second];
-				*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
 				DestroyBlock(it2->second, true);
 				++it2;
 			}
@@ -320,6 +304,24 @@ using namespace Gen;
 		}
 	}
 
+	void JitBaseBlockCache::EvictTLBEntry(u32 address)
+	{
+		auto iter = start_block_map.lower_bound(address);
+		while (iter != start_block_map.end() && (iter->first & ~0xFFF) == address)
+		{
+			// Remove the block from the fast lookup map, so we re-verify the address
+			// before using it again.
+			iCache[(iter->first >> 2) & iCache_Mask] = 0;
+
+			// Unlink the block
+			JitBlock &b = blocks[iter->second];
+			WriteDestroyBlock(b.checkedEntry, b.effectiveAddress);
+
+			++iter;
+		}
+	}
+
+
 	void JitBlockCache::WriteLinkBlock(u8* location, const u8* address)
 	{
 		XEmitter emit(location);
@@ -334,4 +336,13 @@ using namespace Gen;
 		XEmitter emit((u8 *)location);
 		emit.MOV(32, PPCSTATE(pc), Imm32(address));
 		emit.JMP(jit->GetAsmRoutines()->dispatcher, true);
+	}
+
+	void JitBlockCache::WriteUndestroyBlock(const u8* location, u32 address)
+	{
+		XEmitter emit((u8 *)location);
+		FixupBranch skip = emit.J_CC(CC_NBE);
+		emit.MOV(32, PPCSTATE(pc), Imm32(address));
+		emit.JMP(jit->GetAsmRoutines()->doTiming, true);  // downcount hit zero - go doTiming.
+		emit.SetJumpTarget(skip);
 	}
