@@ -97,6 +97,8 @@ private:
 
 	wxArrayString arrayStringFor_GPUDeterminism;
 	wxChoice* GPUDeterminism;
+	wxSpinCtrlDouble* AudioSlowDown;
+
 	// Wii
 	wxCheckBox* EnableWideScreen;
 
@@ -231,6 +233,7 @@ private:
 		ID_ADDCHEAT,
 		ID_REMOVECHEAT,
 		ID_GPUDETERMINISM,
+		ID_AUDIOSLOWDOWN,
 		ID_DEPTHPERCENTAGE,
 		ID_CONVERGENCEMINIMUM,
 		ID_MONODEPTH,

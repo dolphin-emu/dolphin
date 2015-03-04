@@ -210,6 +210,7 @@ struct SCoreStartupParameter
 	bool bHLE_BS2;
 	bool bEnableCheats;
 	bool bEnableMemcardSaving;
+	float fAudioSlowDown = 1;
 
 	bool bDPL2Decoder;
 	int iLatency;

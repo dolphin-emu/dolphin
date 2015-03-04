@@ -53,6 +53,7 @@ struct SConfig : NonCopyable
 	unsigned int m_Framelimit;
 	bool m_OCEnable;
 	float m_OCFactor;
+	float m_AudioSlowDown;
 	// other interface settings
 	bool m_InterfaceToolbar;
 	bool m_InterfaceStatusbar;

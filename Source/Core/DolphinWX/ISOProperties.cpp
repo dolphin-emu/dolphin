@@ -518,6 +518,13 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access. This can cause crashes and other problems in some games. (ON = Fast, OFF = Compatible)"));
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
 
+	wxBoxSizer* const sAudioSlowDown = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const AudioSlowDownText = new wxStaticText(m_GameConfig, wxID_ANY, _("Frame Rate Hack Audio Synchronization: "));
+	AudioSlowDown = new wxSpinCtrlDouble(m_GameConfig, ID_AUDIOSLOWDOWN, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10, 1, 0.01);
+	AudioSlowDown->SetToolTip(_("Leave at 1 unless using a frame rate hack. Input a multiplier equivilent to the amount the frame rate has been altered. e.g. If a 30fps game is hacked to 75fps, input 2.5"));
+	sAudioSlowDown->Add(AudioSlowDownText);
+	sAudioSlowDown->Add(AudioSlowDown);
+
 	wxBoxSizer* const sGPUDeterminism = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const GPUDeterminismText = new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core: "));
 	arrayStringFor_GPUDeterminism.Add(_("Not Set"));
@@ -573,6 +580,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND|wxALL, 5);
+	sbCoreOverrides->Add(sAudioSlowDown, 0, wxEXPAND | wxALL, 5);
 
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile())
@@ -1254,6 +1262,12 @@ void CISOProperties::LoadGameConfig()
 	else if (sTemp == "fake-completion")
 		GPUDeterminism->SetSelection(3);
 
+	float fTemp;
+
+	fTemp = 1;
+	GameIniLocal.GetIfExists("Core", "AudioSlowDown", &fTemp);
+	AudioSlowDown->SetValue(fTemp);
+
 	IniFile::Section* default_stereoscopy = GameIniDefault.GetOrCreateSection("Video_Stereoscopy");
 	default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
 	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
@@ -1264,7 +1278,6 @@ void CISOProperties::LoadGameConfig()
 	//SetCheckboxValueFromGameini("VR", "Disable3D", Disable3D);
 	SetCheckboxValueFromGameini("VR", "HudFullscreen", HudFullscreen);
 	SetCheckboxValueFromGameini("VR", "HudOnTop", HudOnTop);
-	float fTemp;
 
 	fTemp = DEFAULT_VR_UNITS_PER_METRE;
 	if (GameIniDefault.GetIfExists("VR", "UnitsPerMetre", &fTemp))
@@ -1438,6 +1451,7 @@ bool CISOProperties::SaveGameConfig()
 		tmp = "fake-completion";
 
 	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
+	SAVE_IF_NOT_DEFAULT("Core", "AudioSlowDown", AudioSlowDown->GetValue(), 1);
 
 	int depth = DepthPercentage->GetValue() > 0 ? DepthPercentage->GetValue() : 100;
 	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
