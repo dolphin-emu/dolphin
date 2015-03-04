@@ -155,6 +155,7 @@ bool BootCore(const std::string& _rFilename)
 		dsp_section->Get("Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode, StartUp.m_strGPUDeterminismMode);
+		core_section->Get("AudioSlowDown", &SConfig::GetInstance().m_AudioSlowDown, StartUp.fAudioSlowDown);
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
