@@ -297,32 +297,32 @@ void CConfigMain::InitializeGUILists()
 
 	// GUI language arrayStrings
 	// keep these in sync with the langIds array at the beginning of this file
-	arrayStringFor_InterfaceLang.Add(_("<System>"));
-	arrayStringFor_InterfaceLang.Add(_("Arabic"));
-	arrayStringFor_InterfaceLang.Add(_("Catalan"));
-	arrayStringFor_InterfaceLang.Add(_("Chinese (Simplified)"));
-	arrayStringFor_InterfaceLang.Add(_("Chinese (Traditional)"));
-	arrayStringFor_InterfaceLang.Add(_("Czech"));
-	arrayStringFor_InterfaceLang.Add(_("Dutch"));
-	arrayStringFor_InterfaceLang.Add(_("English"));
-	arrayStringFor_InterfaceLang.Add(_("Farsi"));
-	arrayStringFor_InterfaceLang.Add(_("French"));
-	arrayStringFor_InterfaceLang.Add(_("German"));
-	arrayStringFor_InterfaceLang.Add(_("Greek"));
-	arrayStringFor_InterfaceLang.Add(_("Hebrew"));
-	arrayStringFor_InterfaceLang.Add(_("Hungarian"));
-	arrayStringFor_InterfaceLang.Add(_("Italian"));
-	arrayStringFor_InterfaceLang.Add(_("Japanese"));
-	arrayStringFor_InterfaceLang.Add(_("Korean"));
-	arrayStringFor_InterfaceLang.Add(_("Norwegian Bokmaal"));
-	arrayStringFor_InterfaceLang.Add(_("Polish"));
-	arrayStringFor_InterfaceLang.Add(_("Portuguese"));
-	arrayStringFor_InterfaceLang.Add(_("Portuguese (Brazilian)"));
-	arrayStringFor_InterfaceLang.Add(_("Russian"));
-	arrayStringFor_InterfaceLang.Add(_("Serbian"));
-	arrayStringFor_InterfaceLang.Add(_("Spanish"));
-	arrayStringFor_InterfaceLang.Add(_("Swedish"));
-	arrayStringFor_InterfaceLang.Add(_("Turkish"));
+	arrayStringFor_InterfaceLang.Add(_("<System Language>"));
+	arrayStringFor_InterfaceLang.Add(L"\u0627\u0644\u0639\u0631\u0628\u064A\u0629");        // Arabic
+	arrayStringFor_InterfaceLang.Add(L"Catal\u00E0");                                       // Catalan
+	arrayStringFor_InterfaceLang.Add(L"\u7B80\u4F53\u4E2D\u6587");                          // Simplified Chinese
+	arrayStringFor_InterfaceLang.Add(L"\u7E41\u9AD4\u4E2D\u6587");                          // Traditional Chinese
+	arrayStringFor_InterfaceLang.Add(L"\u010Ce\u0161tina");                                 // Czech
+	arrayStringFor_InterfaceLang.Add(L"Nederlands");                                        // Dutch
+	arrayStringFor_InterfaceLang.Add(L"English");                                           // English
+	arrayStringFor_InterfaceLang.Add(L"\u0641\u0627\u0631\u0633\u06CC");                    // Farsi
+	arrayStringFor_InterfaceLang.Add(L"Fran\u00E7ais");                                     // French
+	arrayStringFor_InterfaceLang.Add(L"Deutsch");                                           // German
+	arrayStringFor_InterfaceLang.Add(L"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC");  // Greek
+	arrayStringFor_InterfaceLang.Add(L"\u05E2\u05D1\u05E8\u05D9\u05EA");                    // Hebrew
+	arrayStringFor_InterfaceLang.Add(L"Magyar");                                            // Hungarian
+	arrayStringFor_InterfaceLang.Add(L"Italiano");                                          // Italian
+	arrayStringFor_InterfaceLang.Add(L"\u65E5\u672C\u8A9E");                                // Japanese
+	arrayStringFor_InterfaceLang.Add(L"\uD55C\uAD6D\uC5B4");                                // Korean
+	arrayStringFor_InterfaceLang.Add(L"Norsk bokm\u00E5l");                                 // Norwegian
+	arrayStringFor_InterfaceLang.Add(L"Polski");                                            // Polish
+	arrayStringFor_InterfaceLang.Add(L"Portugu\u00EAs");                                    // Portuguese
+	arrayStringFor_InterfaceLang.Add(L"Portugu\u00EAs (Brasil)");                           // Portuguese (Brazil)
+	arrayStringFor_InterfaceLang.Add(L"\u0420\u0443\u0441\u0441\u043A\u0438\u0439");        // Russian
+	arrayStringFor_InterfaceLang.Add(L"Srpski");                                            // Serbian
+	arrayStringFor_InterfaceLang.Add(L"Espa\u00F1ol");                                      // Spanish
+	arrayStringFor_InterfaceLang.Add(L"Svenska");                                           // Swedish
+	arrayStringFor_InterfaceLang.Add(L"T\u00FCrk\u00E7e");                                  // Turkish
 }
 
 void CConfigMain::InitializeGUIValues()
