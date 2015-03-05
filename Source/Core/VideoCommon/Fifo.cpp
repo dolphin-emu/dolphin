@@ -5,6 +5,7 @@
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CPUDetect.h"
+#include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
@@ -57,6 +58,9 @@ static u8* s_video_buffer_pp_read_ptr;
 // FIFO.  Maybe someday it will be under the lock.  For now, because RunGpuLoop
 // polls, it's just atomic.
 // - The pp_read_ptr is the CPU preprocessing version of the read_ptr.
+
+static Common::Flag s_gpu_is_running; // If this one is set, the gpu loop will be called at least once again
+static Common::Event s_gpu_new_work_event;
 
 void Fifo_DoState(PointerWrap &p)
 {
@@ -133,11 +137,13 @@ void ExitGpuLoop()
 	// Terminate GPU thread loop
 	GpuRunningState = false;
 	EmuRunningState = true;
+	s_gpu_new_work_event.Set();
 }
 
 void EmulatorState(bool running)
 {
 	EmuRunningState = running;
+	s_gpu_new_work_event.Set();
 }
 
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
@@ -271,10 +277,6 @@ void RunGpuLoop()
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	u32 cyclesExecuted = 0;
 
-	// If the host CPU has only two cores, idle loop instead of busy loop
-	// This allows a system that we are maxing out in dual core mode to do other things
-	bool yield_cpu = cpu_info.num_cores <= 2;
-
 	AsyncRequests::GetInstance()->SetEnable(true);
 	AsyncRequests::GetInstance()->SetPassthrough(false);
 
@@ -353,11 +355,15 @@ void RunGpuLoop()
 
 		if (EmuRunningState)
 		{
-			// NOTE(jsd): Calling SwitchToThread() on Windows 7 x64 is a hot spot, according to profiler.
-			// See https://docs.google.com/spreadsheet/ccc?key=0Ah4nh0yGtjrgdFpDeF9pS3V6RUotRVE3S3J4TGM1NlE#gid=0
-			// for benchmark details.
-			if (yield_cpu)
-				Common::YieldCPU();
+			if (s_gpu_is_running.IsSet())
+			{
+				// reset the atomic flag. But as the CPU thread might have pushed some new data, we have to rerun the GPU loop
+				s_gpu_is_running.Clear();
+			}
+			else
+			{
+				s_gpu_new_work_event.WaitFor(std::chrono::milliseconds(100));
+			}
 		}
 		else
 		{
@@ -386,36 +392,44 @@ bool AtBreakpoint()
 
 void RunGpu()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread &&
-	    !g_use_deterministic_gpu_thread)
-		return;
-
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
+
+	// execute GPU
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
 	{
-		if (g_use_deterministic_gpu_thread)
+		while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 		{
-			ReadDataFromFifoOnCPU(fifo.CPReadPointer);
+			if (g_use_deterministic_gpu_thread)
+			{
+				ReadDataFromFifoOnCPU(fifo.CPReadPointer);
+			}
+			else
+			{
+				FPURoundMode::SaveSIMDState();
+				FPURoundMode::LoadDefaultSIMDState();
+				ReadDataFromFifo(fifo.CPReadPointer);
+				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
+				FPURoundMode::LoadSIMDState();
+			}
+
+			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
+
+			if (fifo.CPReadPointer == fifo.CPEnd)
+				fifo.CPReadPointer = fifo.CPBase;
+			else
+				fifo.CPReadPointer += 32;
+
+			fifo.CPReadWriteDistance -= 32;
 		}
-		else
-		{
-			FPURoundMode::SaveSIMDState();
-			FPURoundMode::LoadDefaultSIMDState();
-			ReadDataFromFifo(fifo.CPReadPointer);
-			s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
-			FPURoundMode::LoadSIMDState();
-		}
-
-		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
-
-		if (fifo.CPReadPointer == fifo.CPEnd)
-			fifo.CPReadPointer = fifo.CPBase;
-		else
-			fifo.CPReadPointer += 32;
-
-		fifo.CPReadWriteDistance -= 32;
+		CommandProcessor::SetCPStatusFromGPU();
 	}
-	CommandProcessor::SetCPStatusFromGPU();
+
+	// wake up GPU thread
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread && !s_gpu_is_running.IsSet())
+	{
+		s_gpu_is_running.Set();
+		s_gpu_new_work_event.Set();
+	}
 }
 
 void Fifo_UpdateWantDeterminism(bool want)

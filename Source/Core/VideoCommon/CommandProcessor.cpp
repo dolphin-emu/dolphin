@@ -322,10 +322,7 @@ void GatherPipeBursted()
 				ProcessFifoAllDistance();
 			}
 		}
-		else
-		{
-			RunGpu();
-		}
+		RunGpu();
 		return;
 	}
 
@@ -375,6 +372,7 @@ void UpdateInterrupts(u64 userdata)
 	}
 	CoreTiming::ForceExceptionCheck(0);
 	interruptWaiting = false;
+	RunGpu();
 }
 
 void UpdateInterruptsFromVideoBackend(u64 userdata)
@@ -551,5 +549,7 @@ void Update()
 
 	if (fifo.isGpuReadingData)
 		Common::AtomicAdd(VITicks, SystemTimers::GetTicksPerSecond() / 10000);
+
+	RunGpu();
 }
 } // end of namespace CommandProcessor
