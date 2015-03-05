@@ -1333,37 +1333,37 @@ void CConfigMain::OnConfig(wxCommandEvent&)
 inline u8 CConfigMain::GetSADRCountryCode(int language)
 {
 	//http://wiibrew.org/wiki/Country_Codes
-	u8 countrycode = language;
-	switch (countrycode)
+	u8 country_code = language;
+	switch (country_code)
 	{
 	case 0: //Japanese
-		countrycode = 1; //Japan
+		country_code = 1; //Japan
 		break;
 	case 1: //English
-		countrycode = 49; //USA
+		country_code = 49; //USA
 		break;
 	case 2: //German
-		countrycode = 78; //Germany
+		country_code = 78; //Germany
 		break;
 	case 3: //French
-		countrycode = 77; //France
+		country_code = 77; //France
 		break;
 	case 4: //Spanish
-		countrycode = 105; //Spain
+		country_code = 105; //Spain
 		break;
 	case 5: //Italian
-		countrycode = 83; //Italy
+		country_code = 83; //Italy
 		break;
 	case 6: //Dutch
-		countrycode = 94; //Netherlands
+		country_code = 94; //Netherlands
 		break;
 	case 7: //Simplified Chinese
 	case 8: //Traditional Chinese
-		countrycode = 157; //China
+		country_code = 157; //China
 		break;
 	case 9: //Korean
-		countrycode = 136; //Korea
+		country_code = 136; //Korea
 		break;
 	}
-	return countrycode;
+	return country_code;
 }

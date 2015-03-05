@@ -19,25 +19,19 @@
 namespace DiscIO
 {
 CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
-	: m_pReader(_pReader), m_opening_bnr_offset(0), m_hdr_size(0)
-	, m_cert_size(0), m_tick_size(0), m_tmd_size(0), m_data_size(0)
+	: m_pReader(_pReader), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
+	m_hdr_size(0), m_cert_size(0), m_tick_size(0), m_tmd_size(0), m_data_size(0)
 {
+	// Source: http://wiibrew.org/wiki/WAD_files
 	Read(0x00, 4, (u8*)&m_hdr_size);
 	Read(0x08, 4, (u8*)&m_cert_size);
 	Read(0x10, 4, (u8*)&m_tick_size);
 	Read(0x14, 4, (u8*)&m_tmd_size);
 	Read(0x18, 4, (u8*)&m_data_size);
 
-	u32 TmdOffset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
-	m_opening_bnr_offset = TmdOffset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_size);
-	// read the last digit of the titleID in the ticket
-	Read(TmdOffset + 0x0193, 1, &m_Country);
-	if (m_Country == 2) // SYSMENU
-	{
-		u16 titlever = 0;
-		Read(TmdOffset + 0x01dc, 2, (u8*)&titlever);
-		m_Country = GetSysMenuRegion(Common::swap16(titlever));
-	}
+	m_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size);
+	m_tmd_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
+	m_opening_bnr_offset = m_tmd_offset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_size);
 }
 
 CVolumeWAD::~CVolumeWAD()
@@ -60,16 +54,26 @@ IVolume::ECountry CVolumeWAD::GetCountry() const
 	if (!m_pReader)
 		return COUNTRY_UNKNOWN;
 
-	return CountrySwitch(m_Country);
+	// read the last digit of the titleID in the ticket
+	u8 country_code;
+	Read(m_tmd_offset + 0x0193, 1, &country_code);
+
+	if (country_code == 2) // SYSMENU
+	{
+		u16 title_version = 0;
+		Read(m_tmd_offset + 0x01dc, 2, (u8*)&title_version);
+		country_code = GetSysMenuRegion(Common::swap16(title_version));
+	}
+
+	return CountrySwitch(country_code);
 }
 
 std::string CVolumeWAD::GetUniqueID() const
 {
 	std::string temp = GetMakerID();
-	u32 Offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size);
 
 	char GameCode[8];
-	if (!Read(Offset + 0x01E0, 4, (u8*)GameCode))
+	if (!Read(m_offset + 0x01E0, 4, (u8*)GameCode))
 		return "0";
 
 	GameCode[4] = temp.at(0);
@@ -81,11 +85,9 @@ std::string CVolumeWAD::GetUniqueID() const
 
 std::string CVolumeWAD::GetMakerID() const
 {
-	u32 Offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
-
 	char temp[3] = {1};
 	// Some weird channels use 0x0000 in place of the MakerID, so we need a check there
-	if (!Read(0x198 + Offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
+	if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
 		return "00";
 
 	temp[2] = 0;
@@ -95,9 +97,7 @@ std::string CVolumeWAD::GetMakerID() const
 
 bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 {
-	u32 Offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size);
-
-	if (!Read(Offset + 0x01DC, 8, _pBuffer))
+	if (!Read(m_offset + 0x01DC, 8, _pBuffer))
 		return false;
 
 	return true;
@@ -105,10 +105,8 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 
 int CVolumeWAD::GetRevision() const
 {
-	u32 TmdOffset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
-
 	u16 revision;
-	if (!m_pReader->Read(TmdOffset + 0x1dc, 2, (u8*)&revision))
+	if (!m_pReader->Read(m_tmd_offset + 0x1dc, 2, (u8*)&revision))
 		return 0;
 
 	return Common::swap16(revision);

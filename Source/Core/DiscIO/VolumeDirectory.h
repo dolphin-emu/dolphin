@@ -108,7 +108,7 @@ private:
 		u32 debug_flag;
 		u32 track_location;
 		u32 track_size;
-		u32 countrycode;
+		u32 country_code;
 		u32 unknown;
 		u32 unknown2;
 
@@ -121,7 +121,7 @@ private:
 			debug_flag = 0;
 			track_location = 0;
 			track_size = 0;
-			countrycode = 0;
+			country_code = 0;
 			unknown = 0;
 			unknown2 = 0;
 		}
