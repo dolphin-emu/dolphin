@@ -21,8 +21,6 @@ enum ControllerTypes
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
-static libusb_transfer* s_irq_transfer_read = nullptr;
-static libusb_transfer* s_irq_transfer_write = nullptr;
 static u8 s_controller_type[MAX_SI_CHANNELS] = { CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE };
 static u8 s_controller_rumble[4];
 
