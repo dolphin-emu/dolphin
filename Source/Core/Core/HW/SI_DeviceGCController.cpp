@@ -270,7 +270,13 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 #if defined(__LIBUSB__) || defined (_WIN32)
-			SI_GCAdapter::Output(numPAD, command.Parameter1 & 0xff);
+			if (numPAD < 4)
+			{
+				if (uType == 1 && uStrength > 2)
+					SI_GCAdapter::Output(numPAD, 1);
+				else
+					SI_GCAdapter::Output(numPAD, 0);
+			}
 #endif
 			if (numPAD < 4)
 			{
