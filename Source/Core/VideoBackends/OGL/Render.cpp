@@ -1868,7 +1868,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			else
 			{
 				g_synchronous_timewarp_enabled = false;
-				SConfig::GetInstance().m_AudioSlowDown = 1.00;
+				SConfig::GetInstance().m_AudioSlowDown = SConfig::GetInstance().m_LocalCoreStartupParameter.fAudioSlowDown;
 			}
 
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
