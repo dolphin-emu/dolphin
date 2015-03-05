@@ -128,7 +128,6 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
-	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*8+disp32] without a base register!
 	if (w)
 	{
 		// One value
