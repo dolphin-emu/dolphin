@@ -45,7 +45,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 		const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
 	, x(0), y(0), winpos(0)
-	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
+	, Parent(parent), m_LogAccess(true)
 	, m_Log(nullptr), m_cmdline(nullptr), m_FontChoice(nullptr)
 {
 	Bind(wxEVT_CLOSE_WINDOW, &CLogWindow::OnClose, this);
@@ -55,8 +55,8 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 
 	CreateGUIControls();
 
-	m_LogTimer = new wxTimer(this);
-	m_LogTimer->Start(UPDATETIME);
+	m_LogTimer.SetOwner(this);
+	m_LogTimer.Start(UPDATETIME);
 }
 
 void CLogWindow::CreateGUIControls()
@@ -177,8 +177,6 @@ CLogWindow::~CLogWindow()
 	{
 		m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, this);
 	}
-	m_LogTimer->Stop();
-	delete m_LogTimer;
 }
 
 void CLogWindow::OnClose(wxCloseEvent& event)
@@ -287,7 +285,7 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 
 void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 {
-	if (!m_LogAccess || m_ignoreLogTimer)
+	if (!m_LogAccess)
 		return;
 
 	UpdateLog();
@@ -302,13 +300,10 @@ void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 
 void CLogWindow::UpdateLog()
 {
-	if (!m_LogAccess || !m_Log)
+	if (!m_LogAccess || !m_Log || msgQueue.empty())
 		return;
 
-	// m_LogTimer->Stop();
-	// instead of stopping the timer, let's simply ignore its calls during UpdateLog,
-	// because repeatedly stopping and starting a timer churns memory (and potentially leaks it).
-	m_ignoreLogTimer = true;
+	m_LogTimer.Stop();
 
 	std::lock_guard<std::mutex> lk(m_LogSection);
 	while (!msgQueue.empty())
@@ -351,7 +346,7 @@ void CLogWindow::UpdateLog()
 		msgQueue.pop();
 	}
 
-	m_ignoreLogTimer = false;
+	m_LogTimer.Start();
 }
 
 void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)

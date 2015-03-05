@@ -69,7 +69,7 @@ private:
 class CRegisterView : public wxGrid
 {
 public:
-	CRegisterView(wxWindow* parent, wxWindowID id);
+	CRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
 	void Update() override;
 	void OnMouseDownR(wxGridEvent& event);
 	void OnPopupMenu(wxCommandEvent& event);

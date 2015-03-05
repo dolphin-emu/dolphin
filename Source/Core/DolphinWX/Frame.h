@@ -20,6 +20,7 @@
 #include <wx/mstream.h>
 #include <wx/panel.h>
 #include <wx/string.h>
+#include <wx/timer.h>
 #include <wx/toplevel.h>
 #include <wx/windowid.h>
 
@@ -49,8 +50,6 @@ class wxAuiNotebook;
 class wxAuiNotebookEvent;
 class wxListEvent;
 class wxMenuItem;
-class wxTimer;
-class wxTimerEvent;
 class wxWindow;
 
 class CRenderFrame : public wxFrame
@@ -179,7 +178,6 @@ private:
 	bool m_bGameLoading;
 	bool m_bClosing;
 	bool m_confirmStop;
-	bool m_bHotkeysInit;
 
 	std::vector<std::string> drives;
 
@@ -201,7 +199,7 @@ private:
 		EToolbar_Max
 	};
 
-	wxTimer* m_poll_hotkey_timer;
+	wxTimer m_poll_hotkey_timer;
 
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];

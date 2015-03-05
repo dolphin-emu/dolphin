@@ -580,11 +580,11 @@ CFrame::CFrame(wxFrame* parent,
 
 #ifdef NEW_HOTKEYS
 	// check if game is running
-	m_bHotkeysInit = InitControllers();
+	InitControllers();
 
-	m_poll_hotkey_timer = new wxTimer(this);
+	m_poll_hotkey_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
-	m_poll_hotkey_timer->Start(1000 / 60, wxTIMER_CONTINUOUS);
+	m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
 #endif
 }
 // Destructor
@@ -593,14 +593,12 @@ CFrame::~CFrame()
 #ifdef NEW_HOTKEYS
 	m_poll_hotkey_timer->Stop();
 
-	if (m_bHotkeysInit)
-	{
-		Wiimote::Shutdown();
-		Keyboard::Shutdown();
-		Pad::Shutdown();
-		HotkeyManagerEmu::Shutdown();
-		m_bHotkeysInit = false;
-	}
+	Wiimote::Shutdown();
+	Keyboard::Shutdown();
+	Pad::Shutdown();
+	HotkeyManagerEmu::Shutdown();
+
+
 #endif
 
 	drives.clear();
@@ -654,13 +652,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-			{
-#ifdef __WXMSW__
-				::SetFocus((HWND)m_RenderParent->GetHandle());
-#else
 				m_RenderParent->SetFocus();
-#endif
-			}
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
@@ -1798,10 +1790,7 @@ const CGameListCtrl *CFrame::GetGameListCtrl() const
 void CFrame::PollHotkeys(wxTimerEvent& event)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
-	{
-		m_bHotkeysInit = InitControllers();
 		g_controller_interface.UpdateInput();
-	}
 
 	if (Core::GetState() != Core::CORE_STOPPING)
 	{

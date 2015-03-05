@@ -36,7 +36,6 @@ private:
 		ID_RUNTOOL,
 		ID_STEPTOOL,
 		ID_SHOWPCTOOL,
-		ID_DSP_REGS
 	};
 
 	DSPDebugInterface debug_interface;
