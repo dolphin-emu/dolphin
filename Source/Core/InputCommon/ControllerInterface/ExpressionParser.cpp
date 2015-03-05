@@ -219,6 +219,33 @@ public:
 	virtual operator std::string() { return ""; }
 };
 
+class DummyExpression : public ExpressionNode
+{
+public:
+	std::string name;
+
+	DummyExpression(const std::string& name_) : name(name_) {}
+
+	ControlState GetValue() override
+	{
+		return 0.0;
+	}
+
+	void SetValue(ControlState value) override
+	{
+	}
+
+	int CountNumControls() override
+	{
+		return 0;
+	}
+
+	operator std::string() override
+	{
+		return "`" + name + "`";
+	}
+};
+
 class ControlExpression : public ExpressionNode
 {
 public:
@@ -416,7 +443,10 @@ private:
 			{
 				Device::Control *control = finder.FindControl(tok.qualifier);
 				if (control == nullptr)
-					return EXPRESSION_PARSE_NO_DEVICE;
+				{
+					*expr_out = new DummyExpression(tok.qualifier);
+					return EXPRESSION_PARSE_SUCCESS;
+				}
 
 				*expr_out = new ControlExpression(tok.qualifier, control);
 				return EXPRESSION_PARSE_SUCCESS;

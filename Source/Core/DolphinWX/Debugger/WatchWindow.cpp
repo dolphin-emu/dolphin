@@ -69,7 +69,7 @@ CWatchWindow::CWatchWindow(wxWindow* parent, wxWindowID id,
 	m_mgr.SetManagedWindow(this);
 	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
-	m_GPRGridView = new CWatchView(this, ID_GPR);
+	m_GPRGridView = new CWatchView(this);
 
 	m_mgr.AddPane(new CWatchToolbar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
 		LeftDockable(true).RightDockable(true).BottomDockable(false).Floatable(false));

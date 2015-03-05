@@ -27,7 +27,7 @@ CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
 void CRegisterWindow::CreateGUIControls()
 {
 	wxBoxSizer *sGrid = new wxBoxSizer(wxVERTICAL);
-	m_GPRGridView = new CRegisterView(this, ID_GPR);
+	m_GPRGridView = new CRegisterView(this);
 	sGrid->Add(m_GPRGridView, 1, wxGROW);
 	SetSizer(sGrid);
 

@@ -89,7 +89,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	mem_panel->SetSizer(mem_sizer);
 	m_MainNotebook->AddPage(mem_panel, _("Memory"));
 
-	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);
+	m_Regs = new DSPRegisterView(this);
 
 	// add the panes to the manager
 	m_mgr.AddPane(m_Toolbar, wxAuiPaneInfo().

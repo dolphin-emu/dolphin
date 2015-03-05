@@ -24,7 +24,6 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
-#include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/PatchAddEdit.h"
 
 class GameListItem;

@@ -42,6 +42,6 @@ public:
 class DSPRegisterView : public wxGrid
 {
 public:
-	DSPRegisterView(wxWindow* parent, wxWindowID id);
+	DSPRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
 	void Update() override;
 };

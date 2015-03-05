@@ -45,6 +45,7 @@ void Init()
 	for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
 		map_entry = nullptr;
 	RecomputeCachedArraybases();
+	SETSTAT(stats.numVertexLoaders, 0);
 }
 
 void Shutdown()
