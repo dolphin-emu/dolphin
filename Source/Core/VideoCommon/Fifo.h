@@ -41,6 +41,7 @@ void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr = true);
 void PushFifoAuxBuffer(void* ptr, size_t size);
 void* PopFifoAuxBuffer(size_t size);
 
+void FlushGpu();
 void RunGpu();
 void RunGpuLoop();
 void ExitGpuLoop();

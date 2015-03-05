@@ -62,6 +62,9 @@ static u8* s_video_buffer_pp_read_ptr;
 static Common::Flag s_gpu_is_running; // If this one is set, the gpu loop will be called at least once again
 static Common::Event s_gpu_new_work_event;
 
+static Common::Flag s_gpu_is_pending; // If this one is set, there might still be work to do
+static Common::Event s_gpu_done_event;
+
 void Fifo_DoState(PointerWrap &p)
 {
 	p.DoArray(s_video_buffer, FIFO_SIZE);
@@ -85,7 +88,6 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 		EmulatorState(false);
 		if (!Core::IsGPUThread())
 			m_csHWVidOccupied.lock();
-		_dbg_assert_(COMMON, !CommandProcessor::fifo.isGpuReadingData);
 	}
 	else
 	{
@@ -131,9 +133,8 @@ void ExitGpuLoop()
 {
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;
-	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while (fifo.isGpuReadingData)
-		Common::YieldCPU();
+	FlushGpu();
+
 	// Terminate GPU thread loop
 	GpuRunningState = false;
 	EmuRunningState = true;
@@ -317,7 +318,6 @@ void RunGpuLoop()
 			while (GpuRunningState && EmuRunningState && run_loop && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 			{
 				fifo.isGpuReadingData = true;
-				CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
 
 				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin)
 				{
@@ -356,18 +356,21 @@ void RunGpuLoop()
 				// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 				// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
 				AsyncRequests::GetInstance()->PullEvents();
-				CommandProcessor::isPossibleWaitingSetDrawDone = false;
 			}
 
 			// don't release the GPU running state on sync GPU waits
 			fifo.isGpuReadingData = !run_loop;
 		}
 
+		s_gpu_is_pending.Clear();
+		s_gpu_done_event.Set();
+
 		if (EmuRunningState)
 		{
 			if (s_gpu_is_running.IsSet())
 			{
 				// reset the atomic flag. But as the CPU thread might have pushed some new data, we have to rerun the GPU loop
+				s_gpu_is_pending.Set();
 				s_gpu_is_running.Clear();
 			}
 			else
@@ -393,6 +396,16 @@ void RunGpuLoop()
 	AsyncRequests::GetInstance()->SetPassthrough(true);
 }
 
+void FlushGpu()
+{
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
+		return;
+
+	while (s_gpu_is_running.IsSet() || s_gpu_is_pending.IsSet())
+	{
+		s_gpu_done_event.Wait();
+	}
+}
 
 bool AtBreakpoint()
 {
@@ -437,6 +450,7 @@ void RunGpu()
 	// wake up GPU thread
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread && !s_gpu_is_running.IsSet())
 	{
+		s_gpu_is_pending.Set();
 		s_gpu_is_running.Set();
 		s_gpu_new_work_event.Set();
 	}

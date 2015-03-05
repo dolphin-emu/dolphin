@@ -17,7 +17,6 @@ namespace CommandProcessor
 
 extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread.
 
-extern volatile bool isPossibleWaitingSetDrawDone; //This one is used for sync gfx thread and emulator thread.
 extern volatile bool interruptSet;
 extern volatile bool interruptWaiting;
 extern volatile bool interruptTokenWaiting;
@@ -145,7 +144,6 @@ void UpdateInterruptsFromVideoBackend(u64 userdata);
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
-void ProcessFifoAllDistance();
 void ProcessFifoEvents();
 
 void Update();
