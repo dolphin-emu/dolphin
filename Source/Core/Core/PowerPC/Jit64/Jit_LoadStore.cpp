@@ -234,7 +234,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 				}
 				else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 				{
-					LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+					LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
 				}
 				else
 				{
@@ -451,7 +451,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 
 	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
-		LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+		LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
 	}
 	else
 	{

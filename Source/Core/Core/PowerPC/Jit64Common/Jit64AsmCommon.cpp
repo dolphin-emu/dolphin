@@ -428,12 +428,12 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	}
 	else if (cpu_info.bSSSE3)
 	{
-		MOVQ_xmm(XMM0, MComplex(RMEM, RSCRATCH_EXTRA, 1, 0));
+		MOVQ_xmm(XMM0, MRegSum(RMEM, RSCRATCH_EXTRA));
 		PSHUFB(XMM0, M(pbswapShuffle2x4));
 	}
 	else
 	{
-		LoadAndSwap(64, RSCRATCH_EXTRA, MComplex(RMEM, RSCRATCH_EXTRA, 1, 0));
+		LoadAndSwap(64, RSCRATCH_EXTRA, MRegSum(RMEM, RSCRATCH_EXTRA));
 		ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
 		MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));
 	}
@@ -448,13 +448,13 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	}
 	else if (cpu_info.bSSSE3)
 	{
-		MOVD_xmm(XMM0, MComplex(RMEM, RSCRATCH_EXTRA, 1, 0));
+		MOVD_xmm(XMM0, MRegSum(RMEM, RSCRATCH_EXTRA));
 		PSHUFB(XMM0, M(pbswapShuffle1x4));
 		UNPCKLPS(XMM0, M(m_one));
 	}
 	else
 	{
-		LoadAndSwap(32, RSCRATCH_EXTRA, MComplex(RMEM, RSCRATCH_EXTRA, 1, 0));
+		LoadAndSwap(32, RSCRATCH_EXTRA, MRegSum(RMEM, RSCRATCH_EXTRA));
 		MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
 		UNPCKLPS(XMM0, M(m_one));
 	}

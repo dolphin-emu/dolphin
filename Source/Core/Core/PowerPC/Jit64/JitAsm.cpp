@@ -124,7 +124,7 @@ void Jit64AsmRoutineManager::Generate()
 			else
 			{
 				MOV(64, R(RSCRATCH2), Imm64(icache));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
 			exit_mem = J();
@@ -139,7 +139,7 @@ void Jit64AsmRoutineManager::Generate()
 			else
 			{
 				MOV(64, R(RSCRATCH2), Imm64(icacheVmem));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+				MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 			}
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
@@ -157,7 +157,7 @@ void Jit64AsmRoutineManager::Generate()
 				else
 				{
 					MOV(64, R(RSCRATCH2), Imm64(icacheEx));
-					MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+					MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
 				}
 
 				SetJumpTarget(no_exram);
@@ -172,12 +172,12 @@ void Jit64AsmRoutineManager::Generate()
 			u64 codePointers = (u64)jit->GetBlockCache()->GetCodePointers();
 			if (codePointers <= INT_MAX)
 			{
-				JMPptr(MScaled(RSCRATCH, 8, (s32)codePointers));
+				JMPptr(MScaled(RSCRATCH, SCALE_8, (s32)codePointers));
 			}
 			else
 			{
 				MOV(64, R(RSCRATCH2), Imm64(codePointers));
-				JMPptr(MComplex(RSCRATCH2, RSCRATCH, 8, 0));
+				JMPptr(MComplex(RSCRATCH2, RSCRATCH, SCALE_8, 0));
 			}
 			SetJumpTarget(notfound);
 

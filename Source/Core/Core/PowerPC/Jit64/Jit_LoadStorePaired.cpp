@@ -57,7 +57,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 				addr = RSCRATCH2;
 				if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 				{
-					LEA(32, addr, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+					LEA(32, addr, MRegSum(gpr.RX(a), gpr.RX(b)));
 				}
 				else
 				{
@@ -105,7 +105,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
 	{
 		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+			LEA(32, RSCRATCH_EXTRA, MRegSum(gpr.RX(a), gpr.RX(b)));
 		else
 			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
 	}
@@ -128,7 +128,6 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
-	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*8+disp32] without a base register!
 	if (w)
 	{
 		// One value
@@ -191,7 +190,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 				addr = RSCRATCH2;
 				if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 				{
-					LEA(32, addr, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+					LEA(32, addr, MRegSum(gpr.RX(a), gpr.RX(b)));
 				}
 				else
 				{
@@ -283,7 +282,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
 	{
 		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+			LEA(32, RSCRATCH_EXTRA, MRegSum(gpr.RX(a), gpr.RX(b)));
 		else
 			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
 	}
