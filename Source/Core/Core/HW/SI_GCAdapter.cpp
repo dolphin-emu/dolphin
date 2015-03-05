@@ -376,7 +376,8 @@ void Output(int chan, u8 rumble_command)
 		if (SConfig::GetInstance().m_GameCubeAdapterThread)
 		{
 			libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
-			if (size != 0x05)
+			// Netplay sends invalid data which results in size = 0x00.  Ignore it.
+			if (size != 0x05 && size != 0x00)
 			{
 				INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
 				Shutdown();
