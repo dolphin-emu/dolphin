@@ -43,26 +43,6 @@ static u8 s_endpoint_out = 0;
 
 static u64 s_last_init = 0;
 
-#if defined(_WIN32)
-#define LIBUSB_CALL WINAPI
-#else
-#define LIBUSB_CALL
-#endif
-extern "C"
-{
-	void LIBUSB_CALL read_callback(libusb_transfer* transfer);
-}
-
-static void HandleEvents()
-{
-	timeval tv = {1, 0};
-	while (s_adapter_thread_running.IsSet())
-	{
-		libusb_handle_events_timeout_completed(s_libusb_context, &tv, NULL);
-		Common::YieldCPU();
-	}
-}
-
 static void Read()
 {
 	while (s_adapter_thread_running.IsSet())
@@ -225,28 +205,14 @@ void AddGCAdapter(libusb_device* device)
 	unsigned char payload = 0x13;
 	libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 16);
 
-	if (SConfig::GetInstance().m_GameCubeAdapterThread)
-	{
-		s_adapter_thread_running.Set(true);
-		s_adapter_thread = std::thread(Read);
-	}
-	else
-	{
-		s_irq_transfer_read = libusb_alloc_transfer(0);
-		s_irq_transfer_write = libusb_alloc_transfer(0);
-		libusb_fill_interrupt_transfer(s_irq_transfer_read, s_handle, s_endpoint_in, s_controller_payload_swap, sizeof(s_controller_payload_swap), read_callback, NULL, 0);
-		libusb_submit_transfer(s_irq_transfer_read);
-
-		s_adapter_thread_running.Set(true);
-		s_adapter_thread = std::thread(HandleEvents);
-	}
+	s_adapter_thread_running.Set(true);
+	s_adapter_thread = std::thread(Read);
 
 	s_detected = true;
 }
 
 void Shutdown()
 {
-
 	Reset();
 
 	if (s_libusb_context)
@@ -263,24 +229,9 @@ void Reset()
 	if (!SConfig::GetInstance().m_GameCubeAdapter)
 		return;
 
-	if (!SConfig::GetInstance().m_GameCubeAdapterThread)
-	{
-
-		if (s_irq_transfer_read)
-			libusb_cancel_transfer(s_irq_transfer_read);
-		if (s_irq_transfer_write)
-			libusb_cancel_transfer(s_irq_transfer_write);
-	}
-
 	if (s_adapter_thread_running.TestAndClear())
 	{
 		s_adapter_thread.join();
-	}
-
-	if (!SConfig::GetInstance().m_GameCubeAdapterThread)
-	{
-		libusb_free_transfer(s_irq_transfer_read);
-		libusb_free_transfer(s_irq_transfer_write);
 	}
 
 	if (s_handle)
@@ -373,20 +324,12 @@ void Output(int chan, u8 rumble_command)
 		unsigned char rumble[5] = { 0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2], s_controller_rumble[3] };
 		int size = 0;
 
-		if (SConfig::GetInstance().m_GameCubeAdapterThread)
+		libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+		// Netplay sends invalid data which results in size = 0x00.  Ignore it.
+		if (size != 0x05 && size != 0x00)
 		{
-			libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
-			// Netplay sends invalid data which results in size = 0x00.  Ignore it.
-			if (size != 0x05 && size != 0x00)
-			{
-				INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
-				Shutdown();
-			}
-		}
-		else
-		{
-			libusb_fill_interrupt_transfer(s_irq_transfer_write, s_handle, s_endpoint_out, rumble, sizeof(rumble), NULL, &size, 16);
-			libusb_submit_transfer(s_irq_transfer_write);
+			INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
+			Shutdown();
 		}
 	}
 }
@@ -399,19 +342,6 @@ bool IsDetected()
 bool IsDriverDetected()
 {
 	return !s_libusb_driver_not_supported;
-}
-
-void LIBUSB_CALL read_callback(libusb_transfer *transfer)
-{
-	if (transfer->status == LIBUSB_TRANSFER_COMPLETED)
-	{
-		{
-		std::lock_guard<std::mutex> lk(s_mutex);
-		s_controller_payload_size = transfer->actual_length;
-		memcpy(s_controller_payload, s_controller_payload_swap, s_controller_payload_size);
-		}
-		libusb_submit_transfer(s_irq_transfer_read);
-	}
 }
 
 } // end of namespace SI_GCAdapter
