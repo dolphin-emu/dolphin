@@ -32,9 +32,13 @@ namespace HotkeyManagerEmu
 {
 	void Initialize(void* const hwnd);
 	void Shutdown();
+	void LoadConfig();
 
 	InputConfig* GetConfig();
 	void GetStatus();
-	bool IsReady();
+	bool IsEnabled();
+	void Enable(bool enable_toggle);
 	bool IsPressed(int Id, bool held);
+
+	static bool enabled;
 }

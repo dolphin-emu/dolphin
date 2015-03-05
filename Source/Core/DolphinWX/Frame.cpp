@@ -1263,7 +1263,7 @@ const CGameListCtrl *CFrame::GetGameListCtrl() const
 
 void CFrame::PollHotkeys(wxTimerEvent& event)
 {
-	if (!HotkeyManagerEmu::IsReady())
+	if (!HotkeyManagerEmu::IsEnabled())
 		return;
 
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)

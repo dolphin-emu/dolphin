@@ -157,6 +157,7 @@ static u32 hotkeyDown[3];
 static HotkeyStatus hotkey;
 
 static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
+
 InputConfig* GetConfig()
 {
 	return &s_config;
@@ -170,10 +171,14 @@ void GetStatus()
 	((HotkeyManager*)s_config.controllers[0])->GetInput(&hotkey);
 }
 
-bool IsReady()
+bool IsEnabled()
 {
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-	return lk.owns_lock();
+	return enabled;
+}
+
+void Enable(bool enable_toggle)
+{
+	enabled = enable_toggle;
 }
 
 bool IsPressed(int Id, bool held)
@@ -209,6 +214,13 @@ void Initialize(void* const hwnd)
 
 	for (unsigned int i = 0; i < 3; ++i)
 		hotkeyDown[i] = 0;
+
+	enabled = true;
+}
+
+void LoadConfig()
+{
+	s_config.LoadConfig(true);
 }
 
 void Shutdown()

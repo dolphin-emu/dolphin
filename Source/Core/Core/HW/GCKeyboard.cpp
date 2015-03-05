@@ -45,25 +45,17 @@ void Initialize(void* const hwnd)
 	s_config.LoadConfig(true);
 }
 
+void LoadConfig()
+{
+	s_config.LoadConfig(true);
+}
+
 void GetStatus(u8 _port, KeyboardStatus* _pKeyboardStatus)
 {
 	memset(_pKeyboardStatus, 0, sizeof(*_pKeyboardStatus));
 	_pKeyboardStatus->err = PAD_ERR_NONE;
 
 	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
-	if (!lk.owns_lock())
-	{
-		// if gui has lock (messing with controls), skip this input cycle
-		// center axes and return
-		_pKeyboardStatus->key0x = 0;
-		_pKeyboardStatus->key1x = 0;
-		_pKeyboardStatus->key2x = 0;
-		_pKeyboardStatus->key3x = 0;
-		_pKeyboardStatus->key4x = 0;
-		_pKeyboardStatus->key5x = 0;
-		return;
-	}
 
 	// get input
 	((GCKeyboard*)s_config.controllers[_port])->GetInput(_pKeyboardStatus);

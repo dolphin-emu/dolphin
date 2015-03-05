@@ -136,9 +136,6 @@ void ControllerInterface::UpdateInput()
 {
 	std::unique_lock<std::recursive_mutex> lk(update_lock, std::defer_lock);
 
-	if (!lk.try_lock())
-		return;
-
 	for (ciface::Core::Device* d : m_devices)
 		d->UpdateInput();
 }

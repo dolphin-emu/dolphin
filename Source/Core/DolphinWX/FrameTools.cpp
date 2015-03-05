@@ -51,6 +51,7 @@
 #include "Core/State.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
+#include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI_Device.h"
@@ -1366,27 +1367,31 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 	InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
 
 	// check if game is running
-	if (g_controller_interface.IsInit())
+	bool game_running = false;
+	if (Core::GetState() == Core::CORE_RUN)
 	{
-		was_init = true;
+		Core::SetState(Core::CORE_PAUSE);
+		game_running = true;
 	}
-	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
-#else
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
-#endif
-	}
+
+	HotkeyManagerEmu::Enable(false);
 
 	InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
 	m_ConfigFrame.ShowModal();
 
+	// Update references in case controllers were refreshed
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		Wiimote::LoadConfig();
+	Keyboard::LoadConfig();
+	Pad::LoadConfig();
+	HotkeyManagerEmu::LoadConfig();
+
+	HotkeyManagerEmu::Enable(true);
+
 	// if game isn't running
-	if (!was_init)
+	if (game_running)
 	{
-		HotkeyManagerEmu::Shutdown();
+		Core::SetState(Core::CORE_RUN);
 	}
 
 	// Update the GUI in case menu accelerators were changed
