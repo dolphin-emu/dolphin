@@ -948,7 +948,9 @@ static bool IsHotkey(wxKeyEvent &event, int id, bool held = false)
 		return HotkeyManagerEmu::IsPressed(id, held);
 	}
 
-	return false;
+	return (event.GetKeyCode() != WXK_NONE &&
+		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[id] &&
+		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
