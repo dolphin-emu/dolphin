@@ -1265,6 +1265,7 @@ void CISOProperties::LoadGameConfig()
 	float fTemp;
 
 	fTemp = 1;
+	GameIniDefault.GetIfExists("Core", "AudioSlowDown", &fTemp);
 	GameIniLocal.GetIfExists("Core", "AudioSlowDown", &fTemp);
 	AudioSlowDown->SetValue(fTemp);
 
@@ -1451,7 +1452,7 @@ bool CISOProperties::SaveGameConfig()
 		tmp = "fake-completion";
 
 	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
-	SAVE_IF_NOT_DEFAULT("Core", "AudioSlowDown", AudioSlowDown->GetValue(), 1);
+	SAVE_IF_NOT_DEFAULT("Core", "AudioSlowDown", AudioSlowDown->GetValue(), 1.00f);
 
 	int depth = DepthPercentage->GetValue() > 0 ? DepthPercentage->GetValue() : 100;
 	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
