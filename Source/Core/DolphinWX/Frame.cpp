@@ -1414,7 +1414,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 				if (cmd >= 0)
 				{
 					wxCommandEvent evt(wxEVT_MENU, cmd);
-					wxMenuItem *item = GetMenuBar()->FindItem(cmd);
+					wxMenuItem* item = GetMenuBar()->FindItem(cmd);
 					if (item && item->IsCheckable())
 					{
 						item->wxMenuItemBase::Toggle();

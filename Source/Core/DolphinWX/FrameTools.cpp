@@ -239,8 +239,8 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_MENU_COMMANDS, _("&Key Shortcuts"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_MENU_COMMANDS, _("&Menu Accelerators"));
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
@@ -1767,7 +1767,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);
 
-	// Update Menu Accelerators
+	// Update Key Shortcuts
 	for (unsigned int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		if (GetCmdForHotkey(i) == -1)
