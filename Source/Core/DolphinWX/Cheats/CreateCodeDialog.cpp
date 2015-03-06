@@ -20,7 +20,7 @@
 // Fired when an ActionReplay code is created.
 wxDEFINE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
 
-CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address, const std::vector<ActionReplay::ARCode>& _arCodes)
+CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address, std::vector<ActionReplay::ARCode>* _arCodes)
 	: wxDialog(parent, wxID_ANY, _("Create AR Code"))
 	, m_code_address(address)
 	, arCodes(_arCodes)
@@ -92,7 +92,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	{
 	CISOProperties isoprops(SConfig::GetInstance().m_LastFilename, this);
 	// add the code to the isoproperties arcode list
-	arCodes.push_back(new_cheat);
+	arCodes->push_back(new_cheat);
 	// save the gameini
 	isoprops.SaveGameConfig();
 	isoprops.ActionReplayList_Load(); // loads the new arcodes

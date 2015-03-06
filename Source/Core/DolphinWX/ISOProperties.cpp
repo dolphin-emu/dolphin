@@ -1388,13 +1388,13 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 	{
 	case ID_EDITPATCH:
 		{
-		CPatchAddEdit dlg(selection, onFrame, this);
+		CPatchAddEdit dlg(selection, &onFrame, this);
 		dlg.ShowModal();
 		}
 		break;
 	case ID_ADDPATCH:
 		{
-		CPatchAddEdit dlg(-1, onFrame, this, 1, _("Add Patch"));
+		CPatchAddEdit dlg(-1, &onFrame, this, 1, _("Add Patch"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			Patches->Append(StrToWxStr(onFrame.back().name));
@@ -1468,13 +1468,13 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 	{
 	case ID_EDITCHEAT:
 		{
-		CARCodeAddEdit dlg(selection, arCodes, this);
+		CARCodeAddEdit dlg(selection, &arCodes, this);
 		dlg.ShowModal();
 		}
 		break;
 	case ID_ADDCHEAT:
 		{
-			CARCodeAddEdit dlg(-1, arCodes, this, 1, _("Add ActionReplay Code"));
+			CARCodeAddEdit dlg(-1, &arCodes, this, 1, _("Add ActionReplay Code"));
 			if (dlg.ShowModal() == wxID_OK)
 			{
 				Cheats->Append(StrToWxStr(arCodes.back().name));
