@@ -1370,24 +1370,26 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 	{
 		State::Load(g_saveSlot);
 	}
-	else if (IsHotkey(event, HK_DECREASE_DEPTH))
+	else if (IsHotkey(event, HK_DECREASE_DEPTH, true))
 	{
 		if (--g_Config.iStereoDepth < 0)
 			g_Config.iStereoDepth = 0;
 	}
-	else if (IsHotkey(event, HK_INCREASE_DEPTH))
+	else if (IsHotkey(event, HK_INCREASE_DEPTH, true))
 	{
 		if (++g_Config.iStereoDepth > 100)
 			g_Config.iStereoDepth = 100;
 	}
-	else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
+	else if (IsHotkey(event, HK_DECREASE_CONVERGENCE, true))
 	{
-		if (--g_Config.iStereoConvergence < 0)
+		g_Config.iStereoConvergence -= 5;
+		if (g_Config.iStereoConvergence < 0)
 			g_Config.iStereoConvergence = 0;
 	}
-	else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+	else if (IsHotkey(event, HK_INCREASE_CONVERGENCE, true))
 	{
-		if (++g_Config.iStereoConvergence > 500)
+		g_Config.iStereoConvergence += 5;
+		if (g_Config.iStereoConvergence > 500)
 			g_Config.iStereoConvergence = 500;
 	}
 
@@ -1453,9 +1455,9 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		static float debugSpeed = 1.0f;
 
 		if (IsHotkey(event, HK_FREELOOK_DECREASE_SPEED, true))
-			debugSpeed /= 2.0f;
+			debugSpeed /= 1.1f;
 		else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED, true))
-			debugSpeed *= 2.0f;
+			debugSpeed *= 1.1f;
 		else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED, true))
 			debugSpeed = 1.0f;
 		else if (IsHotkey(event, HK_FREELOOK_UP, true))
