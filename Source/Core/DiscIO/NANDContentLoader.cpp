@@ -37,7 +37,7 @@ CSharedContent::CSharedContent()
 void CSharedContent::UpdateLocation()
 {
 	m_Elements.clear();
-	m_lastID = 0;
+	m_last_ID = 0;
 	m_contentMap = StringFromFormat("%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
 
 	File::IOFile pFile(m_contentMap, "rb");
@@ -45,7 +45,7 @@ void CSharedContent::UpdateLocation()
 	while (pFile.ReadArray(&Element, 1))
 	{
 		m_Elements.push_back(Element);
-		m_lastID++;
+		m_last_ID++;
 	}
 }
 
@@ -72,7 +72,7 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 
 	if (strcasecmp(filename.c_str(), "unk") == 0)
 	{
-		std::string id = StringFromFormat("%08x", m_lastID);
+		std::string id = StringFromFormat("%08x", m_last_ID);
 		SElement Element;
 		memcpy(Element.FileName, id.c_str(), 8);
 		memcpy(Element.SHA1Hash, _pHash, 20);
@@ -84,7 +84,7 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 		pFile.WriteArray(&Element, 1);
 
 		filename = StringFromFormat("%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX).c_str(), id.c_str());
-		m_lastID++;
+		m_last_ID++;
 	}
 
 	return filename;
@@ -100,37 +100,37 @@ public:
 
 	bool IsValid() const override { return m_Valid; }
 	void RemoveTitle() const override;
-	u64 GetTitleID() const override  { return m_TitleID; }
+	u64 GetTitleID() const override  { return m_title_ID; }
 	u16 GetIosVersion() const override { return m_IosVersion; }
-	u32 GetBootIndex() const override  { return m_BootIndex; }
+	u32 GetBootIndex() const override  { return m_boot_index; }
 	size_t GetContentSize() const override { return m_Content.size(); }
 	const SNANDContent* GetContentByIndex(int _Index) const override;
-	const u8* GetTMDView() const override { return m_TMDView; }
-	const u8* GetTMDHeader() const override { return m_TMDHeader; }
-	u32 GetTIKSize() const override { return m_TIKSize; }
-	const u8* GetTIK() const override { return m_TIK; }
+	const u8* GetTMDView() const override { return m_TMD_view; }
+	const u8* GetTMDHeader() const override { return m_TMD_header; }
+	u32 GetTIKSize() const override { return m_ticket_size; }
+	const u8* GetTIK() const override { return m_ticket; }
 
 	const std::vector<SNANDContent>& GetContent() const override { return m_Content; }
 
-	u16 GetTitleVersion() const override {return m_TitleVersion;}
-	u16 GetNumEntries() const override {return m_numEntries;}
+	u16 GetTitleVersion() const override { return m_title_version; }
+	u16 GetNumEntries() const override { return m_num_entries; }
 	DiscIO::IVolume::ECountry GetCountry() const override;
-	u8 GetCountryChar() const override {return m_Country; }
+	u8 GetCountryChar() const override { return m_country; }
 
 private:
 	bool m_Valid;
-	bool m_isWAD;
+	bool m_is_WAD;
 	std::string m_Path;
-	u64 m_TitleID;
+	u64 m_title_ID;
 	u16 m_IosVersion;
-	u32 m_BootIndex;
-	u16 m_numEntries;
-	u16 m_TitleVersion;
-	u8 m_TMDView[TMD_VIEW_SIZE];
-	u8 m_TMDHeader[TMD_HEADER_SIZE];
-	u32 m_TIKSize;
-	u8* m_TIK;
-	u8 m_Country;
+	u32 m_boot_index;
+	u16 m_num_entries;
+	u16 m_title_version;
+	u8  m_TMD_view[TMD_VIEW_SIZE];
+	u8  m_TMD_header[TMD_HEADER_SIZE];
+	u32 m_ticket_size;
+	u8* m_ticket;
+	u8  m_country;
 
 	std::vector<SNANDContent> m_Content;
 
@@ -145,12 +145,12 @@ private:
 
 CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	: m_Valid(false)
-	, m_isWAD(false)
-	, m_TitleID(-1)
+	, m_is_WAD(false)
+	, m_title_ID(-1)
 	, m_IosVersion(0x09)
-	, m_BootIndex(-1)
-	, m_TIKSize(0)
-	, m_TIK(nullptr)
+	, m_boot_index(-1)
+	, m_ticket_size(0)
+	, m_ticket(nullptr)
 {
 	m_Valid = Initialize(_rName);
 }
@@ -162,10 +162,10 @@ CNANDContentLoader::~CNANDContentLoader()
 		delete [] content.m_pData;
 	}
 	m_Content.clear();
-	if (m_TIK)
+	if (m_ticket)
 	{
-		delete []m_TIK;
-		m_TIK = nullptr;
+		delete []m_ticket;
+		m_ticket = nullptr;
 	}
 }
 
@@ -189,15 +189,15 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	WiiWAD Wad(_rName);
 	u8* pDataApp = nullptr;
 	u8* pTMD = nullptr;
-	u8 DecryptTitleKey[16];
-	u8 IV[16];
+	u8  decrypt_title_key[16];
+	u8  IV[16];
 	if (Wad.IsValid())
 	{
-		m_isWAD = true;
-		m_TIKSize = Wad.GetTicketSize();
-		m_TIK = new u8[m_TIKSize];
-		memcpy(m_TIK, Wad.GetTicket(), m_TIKSize);
-		GetKeyFromTicket(m_TIK, DecryptTitleKey);
+		m_is_WAD = true;
+		m_ticket_size = Wad.GetTicketSize();
+		m_ticket = new u8[m_ticket_size];
+		memcpy(m_ticket, Wad.GetTicket(), m_ticket_size);
+		GetKeyFromTicket(m_ticket, decrypt_title_key);
 		u32 pTMDSize = Wad.GetTMDSize();
 		pTMD = new u8[pTMDSize];
 		memcpy(pTMD, Wad.GetTMD(), pTMDSize);
@@ -224,23 +224,23 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		pTMDFile.Close();
 	}
 
-	memcpy(m_TMDView, pTMD + 0x180, TMD_VIEW_SIZE);
-	memcpy(m_TMDHeader, pTMD, TMD_HEADER_SIZE);
+	memcpy(m_TMD_view, pTMD + 0x180, TMD_VIEW_SIZE);
+	memcpy(m_TMD_header, pTMD, TMD_HEADER_SIZE);
 
 
-	m_TitleVersion = Common::swap16(pTMD + 0x01dc);
-	m_numEntries = Common::swap16(pTMD + 0x01de);
-	m_BootIndex = Common::swap16(pTMD + 0x01e0);
-	m_TitleID = Common::swap64(pTMD + 0x018c);
-	m_IosVersion = Common::swap16(pTMD + 0x018a);
-	m_Country = *(u8*)&m_TitleID;
-	if (m_Country == 2) // SYSMENU
-		m_Country = GetSysMenuRegion(m_TitleVersion);
+	m_title_version = Common::swap16(pTMD + 0x01dc);
+	m_num_entries   = Common::swap16(pTMD + 0x01de);
+	m_boot_index    = Common::swap16(pTMD + 0x01e0);
+	m_title_ID      = Common::swap64(pTMD + 0x018c);
+	m_IosVersion    = Common::swap16(pTMD + 0x018a);
+	m_country       = *(u8*)&m_title_ID;
+	if (m_country == 2) // SYSMENU
+		m_country = GetSysMenuRegion(m_title_version);
 
-	m_Content.resize(m_numEntries);
+	m_Content.resize(m_num_entries);
 
 
-	for (u32 i=0; i < m_numEntries; i++)
+	for (u32 i=0; i < m_num_entries; i++)
 	{
 		SNANDContent& rContent = m_Content[i];
 
@@ -251,14 +251,14 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
 		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
 
-		if (m_isWAD)
+		if (m_is_WAD)
 		{
 			u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
 			rContent.m_pData = new u8[RoundedSize];
 
 			memset(IV, 0, sizeof IV);
 			memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-			AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
+			AESDecode(decrypt_title_key, IV, pDataApp, RoundedSize, rContent.m_pData);
 
 			pDataApp += RoundedSize;
 			continue;
@@ -267,13 +267,13 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		rContent.m_pData = nullptr;
 
 		if (rContent.m_Type & 0x8000)  // shared app
-			rContent.m_Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(rContent.m_SHA1Hash);
+			rContent.m_file_name = CSharedContent::AccessInstance().GetFilenameFromSHA1(rContent.m_SHA1Hash);
 		else
-			rContent.m_Filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
+			rContent.m_file_name = StringFromFormat("%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
 
 		// Be graceful about incorrect TMDs.
-		if (File::Exists(rContent.m_Filename))
-			rContent.m_Size = (u32) File::GetSize(rContent.m_Filename);
+		if (File::Exists(rContent.m_file_name))
+			rContent.m_Size = (u32) File::GetSize(rContent.m_file_name);
 	}
 
 	delete [] pTMD;
@@ -302,7 +302,7 @@ DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
 	if (!IsValid())
 		return DiscIO::IVolume::COUNTRY_UNKNOWN;
 
-	return CountrySwitch(m_Country);
+	return CountrySwitch(m_country);
 }
 
 
@@ -352,15 +352,15 @@ bool CNANDContentManager::RemoveTitle(u64 _titleID)
 
 void CNANDContentLoader::RemoveTitle() const
 {
-	INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+	INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_title_ID >> 32), (u32)m_title_ID);
 	if (IsValid())
 	{
 		// remove TMD?
-		for (u32 i = 0; i < m_numEntries; i++)
+		for (u32 i = 0; i < m_num_entries; i++)
 		{
 			if (!(m_Content[i].m_Type & 0x8000)) // skip shared apps
 			{
-				std::string filename = StringFromFormat("%s%08x.app", Common::GetTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
+				std::string filename = StringFromFormat("%s%08x.app", Common::GetTitleContentPath(m_title_ID).c_str(), m_Content[i].m_ContentID);
 				INFO_LOG(DISCIO, "Delete %s", filename.c_str());
 				File::Delete(filename);
 			}

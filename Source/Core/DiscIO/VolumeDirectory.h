@@ -32,7 +32,7 @@ public:
 
 	static bool IsValidDirectory(const std::string& _rDirectory);
 
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
+	bool Read(u64 _Offset, u64 _length, u8* _pBuffer, bool decrypt) const override;
 
 	std::string GetUniqueID() const override;
 	void SetUniqueID(const std::string& _ID);
@@ -66,16 +66,16 @@ private:
 
 	// writing to read buffer
 	void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const u8* _Src,
-					   u64& _Address, u64& _Length, u8*& _pBuffer) const;
+					   u64& _address, u64& _length, u8*& _pBuffer) const;
 
-	void PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const;
+	void PadToAddress(u64 _StartAddress, u64& _address, u64& _length, u8*& _pBuffer) const;
 
 	void Write32(u32 data, u32 offset, std::vector<u8>* const buffer);
 
 	// FST creation
-	void WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u32 length);
-	void WriteEntryName(u32& nameOffset, const std::string& name);
-	void WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum);
+	void WriteEntryData(u32& entryOffset, u8 type, u32 name_offset, u64 dataOffset, u32 length);
+	void WriteEntryName(u32& name_offset, const std::string& name);
+	void WriteEntry(const File::FSTEntry& entry, u32& FST_offset, u32& name_offset, u64& dataOffset, u32 parentEntryNum);
 
 	// returns number of entries found in _Directory
 	u32 AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry);

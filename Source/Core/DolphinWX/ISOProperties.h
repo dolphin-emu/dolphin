@@ -234,8 +234,8 @@ private:
 
 	size_t CreateDirectoryTree(wxTreeItemId& parent,
 			std::vector<const DiscIO::SFileInfo*> fileInfos,
-			const size_t _FirstIndex,
-			const size_t _LastIndex);
+			const size_t _first_index,
+			const size_t _last_index);
 	void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
 			const int partitionNum = 0);
 

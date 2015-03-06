@@ -24,7 +24,7 @@ CVolumeGC::~CVolumeGC()
 {
 }
 
-bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
+bool CVolumeGC::Read(u64 _offset, u64 _length, u8* _pBuffer, bool decrypt) const
 {
 	if (decrypt)
 		PanicAlertT("Tried to decrypt data from a non-Wii volume");
@@ -32,9 +32,9 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 	if (m_pReader == nullptr)
 		return false;
 
-	FileMon::FindFilename(_Offset);
+	FileMon::FindFilename(_offset);
 
-	return m_pReader->Read(_Offset, _Length, _pBuffer);
+	return m_pReader->Read(_offset, _length, _pBuffer);
 }
 
 std::string CVolumeGC::GetUniqueID() const
@@ -72,12 +72,12 @@ std::string CVolumeGC::GetMakerID() const
 	if (m_pReader == nullptr)
 		return std::string();
 
-	char makerID[3];
-	if (!Read(0x4, 0x2, (u8*)&makerID))
+	char maker_ID[3];
+	if (!Read(0x4, 0x2, (u8*)&maker_ID))
 		return std::string();
-	makerID[2] = '\0';
+	maker_ID[2] = '\0';
 
-	return makerID;
+	return maker_ID;
 }
 
 int CVolumeGC::GetRevision() const

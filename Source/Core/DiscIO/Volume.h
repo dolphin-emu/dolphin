@@ -19,7 +19,7 @@ public:
 	virtual ~IVolume() {}
 
 	// decrypt parameter must be false if not reading a Wii disc
-	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const = 0;
+	virtual bool Read(u64 _offset, u64 _length, u8* _pBuffer, bool decrypt) const = 0;
 
 	virtual bool GetTitleID(u8*) const { return false; }
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const
@@ -72,6 +72,6 @@ public:
 
 // Generic Switch function for all volumes
 IVolume::ECountry CountrySwitch(u8 country_code);
-u8 GetSysMenuRegion(u16 _TitleVersion);
+u8 GetSysMenuRegion(u16 title_version);
 
 } // namespace
