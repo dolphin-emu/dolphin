@@ -196,6 +196,23 @@ private:
 		EToolbar_Max
 	};
 
+	enum
+	{
+		Toolbar_Delete,
+		Toolbar_Add_BP,
+		Toolbar_Add_MC,
+		Num_Bitmaps
+	};
+
+	enum
+	{
+		ADD_PANE_TOP,
+		ADD_PANE_BOTTOM,
+		ADD_PANE_LEFT,
+		ADD_PANE_RIGHT,
+		ADD_PANE_CENTER
+	};
+
 	wxTimer m_poll_hotkey_timer;
 
 	wxBitmap m_Bitmaps[EToolbar_Max];
@@ -239,7 +256,7 @@ private:
 			const wxString& title = "",
 			wxWindow * = nullptr);
 	wxString AuiFullscreen, AuiCurrent;
-	void AddPane();
+	void AddPane(int dir);
 	void UpdateCurrentPerspective();
 	void SaveIniPerspectives();
 	void LoadIniPerspectives();
