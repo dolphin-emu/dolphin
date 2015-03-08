@@ -510,7 +510,13 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& core_startup_parameter
 	pPerspectives->AppendSubMenu(Parent->m_SavedPerspectives, _("Saved perspectives"));
 	Parent->PopulateSavedPerspectives();
 	pPerspectives->AppendSeparator();
-	pPerspectives->Append(IDM_PERSPECTIVES_ADD_PANE, _("Add new pane"));
+	wxMenu* pAddPane = new wxMenu;
+	pPerspectives->AppendSubMenu(pAddPane, _("Add new pane to"));
+	pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_TOP, _("Top"));
+	pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_BOTTOM, _("Bottom"));
+	pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_LEFT, _("Left"));
+	pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_RIGHT, _("Right"));
+	pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_CENTER, _("Center"));
 	pPerspectives->Append(IDM_TAB_SPLIT, _("Tab split"), "", wxITEM_CHECK);
 	pPerspectives->Append(IDM_NO_DOCKING, _("Disable docking"), "Disable docking of perspective panes to main window", wxITEM_CHECK);
 

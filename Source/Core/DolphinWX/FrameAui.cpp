@@ -527,8 +527,20 @@ void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
 			GetStatusBar()->SetStatusText(StrToWxStr(std::string
 						("Saved " + Perspectives[ActivePerspective].Name)), 0);
 			break;
-		case IDM_PERSPECTIVES_ADD_PANE:
-			AddPane();
+		case IDM_PERSPECTIVES_ADD_PANE_TOP:
+			AddPane(ADD_PANE_TOP);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_BOTTOM:
+			AddPane(ADD_PANE_BOTTOM);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_LEFT:
+			AddPane(ADD_PANE_LEFT);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_RIGHT:
+			AddPane(ADD_PANE_RIGHT);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_CENTER:
+			AddPane(ADD_PANE_CENTER);
 			break;
 		case IDM_EDIT_PERSPECTIVES:
 			m_bEdit = event.IsChecked();
@@ -877,14 +889,37 @@ void CFrame::SaveIniPerspectives()
 	TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES);
 }
 
-void CFrame::AddPane()
+void CFrame::AddPane(int dir)
 {
 	int PaneNum = GetNotebookCount() + 1;
 	wxString PaneName = wxString::Format("Pane %i", PaneNum);
-	m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
+	wxAuiPaneInfo PaneInfo = wxAuiPaneInfo()
 		.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking)
 		.Name(PaneName).Caption(PaneName)
-		.Position(GetNotebookCount()));
+		.Position(GetNotebookCount());
+
+	switch (dir)
+	{
+		case ADD_PANE_TOP:
+			PaneInfo = PaneInfo.Top();
+			break;
+		case ADD_PANE_BOTTOM:
+			PaneInfo = PaneInfo.Bottom();
+			break;
+		case ADD_PANE_LEFT:
+			PaneInfo = PaneInfo.Left();
+			break;
+		case ADD_PANE_RIGHT:
+			PaneInfo = PaneInfo.Right();
+			break;
+		case ADD_PANE_CENTER:
+			PaneInfo = PaneInfo.Center();
+			break;
+		default:
+			break;
+	}
+
+	m_Mgr->AddPane(CreateEmptyNotebook(), PaneInfo);
 
 	AddRemoveBlankPage();
 	m_Mgr->Update();
