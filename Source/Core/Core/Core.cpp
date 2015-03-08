@@ -997,14 +997,7 @@ void UpdateTitle()
 	if (g_sound_stream)
 	{
 		CMixer* pMixer = g_sound_stream->GetMixer();
-
-		// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
-		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
-		// back to 100% speed, it must be slowed down by 25%
-		if (g_has_hmd && !SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
-			pMixer->UpdateSpeed((float)Speed / 125);
-		else
-			pMixer->UpdateSpeed((float)Speed / 100);
+		pMixer->UpdateSpeed((float)Speed / (100 * SConfig::GetInstance().m_AudioSlowDown));
 	}
 
 	Host_UpdateTitle(SMessage);

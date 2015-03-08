@@ -119,13 +119,7 @@ static void DSPCallback(u64 userdata, int cyclesLate)
 static void AudioDMACallback(u64 userdata, int cyclesLate)
 {
 	int period;
-	// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
-	// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
-	// back to 100% speed, it must be slowed down by 25%
-	if (g_has_hmd &&  !SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
-		period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 40);
-	else
-		period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
+	period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / (32 * SConfig::GetInstance().m_AudioSlowDown));
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }

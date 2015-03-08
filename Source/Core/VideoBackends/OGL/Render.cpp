@@ -1824,41 +1824,52 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
 
-			if (g_ActiveConfig.bPullUp20fpsTimewarp)
+			if (g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp)
 			{
-				if (real_frame_count_for_timewarp % 4 == 1)
-				{
-					g_ActiveConfig.iExtraFrames = 2;
-				}
+				g_synchronous_timewarp_enabled = true;
+
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
+					SConfig::GetInstance().m_AudioSlowDown = 1.25;
+
+				if (g_ActiveConfig.bPullUp20fpsTimewarp)
 				{
-					g_ActiveConfig.iExtraFrames = 3;
+					if (real_frame_count_for_timewarp % 4 == 1)
+						g_ActiveConfig.iExtraFrames = 2;
+					else
+						g_ActiveConfig.iExtraFrames = 3;
 				}
+				else if (g_ActiveConfig.bPullUp30fpsTimewarp)
+				{
+					if (real_frame_count_for_timewarp % 2 == 1)
+						g_ActiveConfig.iExtraFrames = 1;
+					else
+						g_ActiveConfig.iExtraFrames = 2;
+				}
+				else if (g_ActiveConfig.bPullUp60fpsTimewarp)
+				{
+					if (real_frame_count_for_timewarp % 4 == 0)
+						g_ActiveConfig.iExtraFrames = 1;
+					else
+						g_ActiveConfig.iExtraFrames = 0;
+				}
+				++real_frame_count_for_timewarp;
 			}
-			else if (g_ActiveConfig.bPullUp30fpsTimewarp)
+			else if (g_opcode_replay_enabled)
 			{
-				if (real_frame_count_for_timewarp % 2 == 1)
-				{
-					g_ActiveConfig.iExtraFrames = 1;
-				}
+				g_synchronous_timewarp_enabled = false;
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
-				{
-					g_ActiveConfig.iExtraFrames = 2;
-				}
-			}
-			else if (g_ActiveConfig.bPullUp60fpsTimewarp)
-			{
-				if (real_frame_count_for_timewarp % 4 == 0)
-					g_ActiveConfig.iExtraFrames = 1;
-				else
-					g_ActiveConfig.iExtraFrames = 0;
-			}
-			else if (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps)
-			{
+					SConfig::GetInstance().m_AudioSlowDown = 1.25;
 				g_ActiveConfig.iExtraFrames = 0;
 			}
-
-			++real_frame_count_for_timewarp;
+			else
+			{
+				g_synchronous_timewarp_enabled = false;
+				SConfig::GetInstance().m_AudioSlowDown = SConfig::GetInstance().m_LocalCoreStartupParameter.fAudioSlowDown;
+			}
 
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{

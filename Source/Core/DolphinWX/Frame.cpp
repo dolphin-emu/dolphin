@@ -591,16 +591,12 @@ CFrame::CFrame(wxFrame* parent,
 CFrame::~CFrame()
 {
 #ifdef NEW_HOTKEYS
-	m_poll_hotkey_timer->Stop();
-
 	Wiimote::Shutdown();
 	Keyboard::Shutdown();
 	Pad::Shutdown();
 	HotkeyManagerEmu::Shutdown();
 
-
 #endif
-
 	drives.clear();
 
 	#if defined(HAVE_XRANDR) && HAVE_XRANDR

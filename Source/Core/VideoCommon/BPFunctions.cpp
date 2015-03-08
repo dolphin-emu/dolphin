@@ -91,8 +91,11 @@ void CopyEFB(u32 dstAddr, const EFBRectangle& srcRect,
 	     bool isIntensity, bool scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
-	TextureCache::CopyRenderTargetToTexture(dstAddr, dstFormat, srcFormat,
-		srcRect, isIntensity, scaleByHalf);
+	if (g_ActiveConfig.bEFBCopyEnable)
+	{
+		TextureCache::CopyRenderTargetToTexture(dstAddr, dstFormat, srcFormat,
+			srcRect, isIntensity, scaleByHalf);
+	}
 }
 
 /* Explanation of the magic behind ClearScreen:

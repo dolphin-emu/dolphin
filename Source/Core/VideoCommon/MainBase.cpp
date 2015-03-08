@@ -56,7 +56,6 @@ void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 	Fifo_SetRendering(bEnabled);
 }
 
-
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight)
 {
