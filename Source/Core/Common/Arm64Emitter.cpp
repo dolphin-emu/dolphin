@@ -512,6 +512,9 @@ void ARM64XEmitter::EncodeLoadStorePair(u32 op, u32 load, IndexType type, ARM64R
 	case INDEX_PRE:
 		type_encode = 0b011;
 		break;
+	case INDEX_SIGNED:
+		_assert_msg_(DYNA_REC, false, "%s doesn't support INDEX_SIGNED!", __FUNCTION__);
+		break;
 	}
 
 	if (b64Bit)
@@ -1891,6 +1894,27 @@ void ARM64FloatEmitter::EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opc
 	        (encoded_size << 10) | (Rn << 5) | Rt);
 }
 
+void ARM64FloatEmitter::EmitLoadStoreMultipleStructurePost(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm)
+{
+	bool quad = IsQuad(Rt);
+	u32 encoded_size = 0;
+
+	if (size == 16)
+		encoded_size = 1;
+	else if (size == 32)
+		encoded_size = 2;
+	else if (size == 64)
+		encoded_size = 3;
+
+	Rt = DecodeReg(Rt);
+	Rn = DecodeReg(Rn);
+	Rm = DecodeReg(Rm);
+
+	Write32((quad << 30) | (0b11001 << 23) | (L << 22) | (Rm << 16) | (opcode << 12) | \
+	        (encoded_size << 10) | (Rn << 5) | Rt);
+
+}
+
 void ARM64FloatEmitter::EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn)
 {
 	_assert_msg_(DYNA_REC, !IsQuad(Rd), "%s doesn't support vector!", __FUNCTION__);
@@ -1921,6 +1945,55 @@ void ARM64FloatEmitter::EmitLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM
 	Rn = DecodeReg(Rn);
 
 	Write32((size << 30) | (0b1111 << 26) | (op << 22) | ((imm & 0x1FF) << 12) | (Rn << 5) | Rt);
+}
+
+void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	u32 type_encode = 0;
+	u32 opc = 0;
+
+	switch (type)
+	{
+	case INDEX_SIGNED:
+		type_encode = 0b010;
+		break;
+	case INDEX_POST:
+		type_encode = 0b001;
+		break;
+	case INDEX_PRE:
+		type_encode = 0b011;
+		break;
+	case INDEX_UNSIGNED:
+		_assert_msg_(DYNA_REC, false, "%s doesn't support INDEX_UNSIGNED!", __FUNCTION__);
+		break;
+	}
+
+	if (size == 128)
+	{
+		_assert_msg_(DYNA_REC, !(imm & 0xF), "%s received invalid offset 0x%x!", __FUNCTION__, imm);
+		opc = 2;
+		imm >>= 4;
+	}
+	else if (size == 64)
+	{
+		_assert_msg_(DYNA_REC, !(imm & 0x7), "%s received invalid offset 0x%x!", __FUNCTION__, imm);
+		opc = 1;
+		imm >>= 3;
+	}
+	else if (size == 32)
+	{
+		_assert_msg_(DYNA_REC, !(imm & 0x3), "%s received invalid offset 0x%x!", __FUNCTION__, imm);
+		opc = 0;
+		imm >>= 2;
+	}
+
+	Rt = DecodeReg(Rt);
+	Rt2 = DecodeReg(Rt2);
+	Rn = DecodeReg(Rn);
+
+	Write32((opc << 30) | (0b1011 << 26) | (type_encode << 23) | (load << 22) | \
+	        ((imm & 0x7F) << 15) | (Rt2 << 10) | (Rn << 5) | Rt);
+
 }
 
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
@@ -2234,6 +2307,22 @@ void ARM64FloatEmitter::LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 		opcode = 0b0010;
 	EmitLoadStoreMultipleStructure(size, 1, opcode, Rt, Rn);
 }
+void ARM64FloatEmitter::LD1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm)
+{
+	_assert_msg_(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!", __FUNCTION__);
+	_assert_msg_(DYNA_REC, type == INDEX_POST, "%s only supports post indexing!", __FUNCTION__);
+
+	u32 opcode = 0;
+	if (count == 1)
+		opcode = 0b111;
+	else if (count == 2)
+		opcode = 0b1010;
+	else if (count == 3)
+		opcode = 0b0110;
+	else if (count == 4)
+		opcode = 0b0010;
+	EmitLoadStoreMultipleStructurePost(size, 1, opcode, Rt, Rn, Rm);
+}
 void ARM64FloatEmitter::ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 {
 	_assert_msg_(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!", __FUNCTION__);
@@ -2247,6 +2336,32 @@ void ARM64FloatEmitter::ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn)
 	else if (count == 4)
 		opcode = 0b0010;
 	EmitLoadStoreMultipleStructure(size, 0, opcode, Rt, Rn);
+}
+void ARM64FloatEmitter::ST1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm)
+{
+	_assert_msg_(DYNA_REC, !(count == 0 || count > 4), "%s must have a count of 1 to 4 registers!", __FUNCTION__);
+	_assert_msg_(DYNA_REC, type == INDEX_POST, "%s only supports post indexing!", __FUNCTION__);
+
+	u32 opcode = 0;
+	if (count == 1)
+		opcode = 0b111;
+	else if (count == 2)
+		opcode = 0b1010;
+	else if (count == 3)
+		opcode = 0b0110;
+	else if (count == 4)
+		opcode = 0b0010;
+	EmitLoadStoreMultipleStructurePost(size, 0, opcode, Rt, Rn, Rm);
+}
+
+// Loadstore paired
+void ARM64FloatEmitter::LDP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStorePair(size, true, type, Rt, Rt2, Rn, imm);
+}
+void ARM64FloatEmitter::STP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
+{
+	EncodeLoadStorePair(size, false, type, Rt, Rt2, Rn, imm);
 }
 
 // Scalar - 1 Source
@@ -2759,23 +2874,160 @@ void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 	EmitVectorxElement(0, 2 | (size >> 6), L, 0b1001, H, Rd, Rn, Rm);
 }
 
-void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers)
+void ARM64FloatEmitter::ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp)
 {
-	for (auto it : registers)
-		STR(128, INDEX_PRE, (ARM64Reg)(Q0 + it), SP, -16);
+	bool bundled_loadstore = false;
 
-}
-void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
-{
-	for (int i = 31; i >= 0; --i)
+	for (int i = 0; i < 32; ++i)
 	{
 		if (!registers[i])
 			continue;
 
-		if (ignore_mask[i])
-			m_emit->ADD(SP, SP, 16);
-		else
-			LDR(128, INDEX_POST, (ARM64Reg)(Q0 + i), SP, 16);
+		int count = 0;
+		while (++count < 4 && (i + count) < 32 && registers[i + count]) {}
+		if (count > 1)
+		{
+			bundled_loadstore = true;
+			break;
+		}
+	}
+
+	if (bundled_loadstore && tmp != INVALID_REG)
+	{
+		int num_regs = registers.Count();
+		m_emit->SUB(SP, SP, num_regs * 16);
+		m_emit->ADD(tmp, SP, 0);
+		std::vector<ARM64Reg> island_regs;
+		for (int i = 0; i < 32; ++i)
+		{
+			if (!registers[i])
+				continue;
+
+			int count = 0;
+
+			// 0 = true
+			// 1 < 4 && registers[i + 1] true!
+			// 2 < 4 && registers[i + 2] true!
+			// 3 < 4 && registers[i + 3] true!
+			// 4 < 4 && registers[i + 4] false!
+			while (++count < 4 && (i + count) < 32 && registers[i + count]) {}
+
+			if (count == 1)
+				island_regs.push_back((ARM64Reg)(Q0 + i));
+			else
+				ST1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), tmp);
+
+			i += count - 1;
+		}
+
+		// Handle island registers
+		std::vector<ARM64Reg> pair_regs;
+		for (auto& it : island_regs)
+		{
+			pair_regs.push_back(it);
+			if (pair_regs.size() == 2)
+			{
+				STP(128, INDEX_POST, pair_regs[0], pair_regs[1], tmp, 32);
+				pair_regs.clear();
+			}
+		}
+		if (pair_regs.size())
+			STR(128, INDEX_POST, pair_regs[0], tmp, 16);
+	}
+	else
+	{
+		std::vector<ARM64Reg> pair_regs;
+		for (auto it : registers)
+		{
+			pair_regs.push_back((ARM64Reg)(Q0 + it));
+			if (pair_regs.size() == 2)
+			{
+				STP(128, INDEX_PRE, pair_regs[0], pair_regs[1], SP, -32);
+				pair_regs.clear();
+			}
+		}
+		if (pair_regs.size())
+			STR(128, INDEX_PRE, pair_regs[0], SP, -16);
+	}
+}
+void ARM64FloatEmitter::ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp)
+{
+	bool bundled_loadstore = false;
+	int num_regs = registers.Count();
+
+	for (int i = 0; i < 32; ++i)
+	{
+		if (!registers[i])
+			continue;
+
+		int count = 0;
+		while (++count < 4 && (i + count) < 32 && registers[i + count]) {}
+		if (count > 1)
+		{
+			bundled_loadstore = true;
+			break;
+		}
+	}
+
+	if (bundled_loadstore && tmp != INVALID_REG)
+	{
+		// The temporary register is only used to indicate that we can use this code path
+		std::vector<ARM64Reg> island_regs;
+		for (int i = 0; i < 32; ++i)
+		{
+			if (!registers[i])
+				continue;
+
+			int count = 0;
+			while (++count < 4 && (i + count) < 32 && registers[i + count]) {}
+
+			if (count == 1)
+				island_regs.push_back((ARM64Reg)(Q0 + i));
+			else
+				LD1(64, count, INDEX_POST, (ARM64Reg)(Q0 + i), SP);
+
+			i += count - 1;
+		}
+
+		// Handle island registers
+		std::vector<ARM64Reg> pair_regs;
+		for (auto& it : island_regs)
+		{
+			pair_regs.push_back(it);
+			if (pair_regs.size() == 2)
+			{
+				LDP(128, INDEX_POST, pair_regs[0], pair_regs[1], SP, 32);
+				pair_regs.clear();
+			}
+		}
+		if (pair_regs.size())
+			LDR(128, INDEX_POST, pair_regs[0], SP, 16);
+	}
+	else
+	{
+		bool odd = num_regs % 2;
+		std::vector<ARM64Reg> pair_regs;
+		for (int i = 31; i >= 0; --i)
+		{
+			if (!registers[i])
+				continue;
+
+			if (odd)
+			{
+				// First load must be a regular LDR if odd
+				odd = false;
+				LDR(128, INDEX_POST, (ARM64Reg)(Q0 + i), SP, 16);
+			}
+			else
+			{
+				pair_regs.push_back((ARM64Reg)(Q0 + i));
+				if (pair_regs.size() == 2)
+				{
+					LDP(128, INDEX_POST, pair_regs[1], pair_regs[0], SP, 32);
+					pair_regs.clear();
+				}
+			}
+		}
 	}
 }
 

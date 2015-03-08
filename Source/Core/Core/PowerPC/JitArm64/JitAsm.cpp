@@ -279,12 +279,12 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		SetJumpTarget(argh);
 
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.UMOV(64, X0, Q0, 0);
 		ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
 		MOVI2R(X30, (u64)PowerPC::Write_U64);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -310,12 +310,12 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.UMOV(16, W0, Q0, 0);
 		REV16(W0, W0);
 		MOVI2R(X30, (u64)PowerPC::Write_U16);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -341,12 +341,12 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.UMOV(16, W0, Q0, 0);
 		REV16(W0, W0);
 		MOVI2R(X30, (u64)PowerPC::Write_U16);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -372,12 +372,12 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.REV32(8, D0, D0);
 		float_emit.UMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)PowerPC::Write_U32);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -402,12 +402,12 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.REV32(8, D0, D0);
 		float_emit.UMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)PowerPC::Write_U32);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -428,11 +428,11 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 		SetJumpTarget(argh);
 
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.UMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)&PowerPC::Write_U32);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -457,11 +457,11 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.UMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)&PowerPC::Write_U8);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -486,11 +486,11 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.SMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)&PowerPC::Write_U8);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -515,11 +515,11 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.UMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)&PowerPC::Write_U16);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}
@@ -544,11 +544,11 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 
 		SetJumpTarget(argh);
 		ABI_PushRegisters(gprs);
-		float_emit.ABI_PushRegisters(fprs);
+		float_emit.ABI_PushRegisters(fprs, X3);
 		float_emit.SMOV(32, W0, Q0, 0);
 		MOVI2R(X30, (u64)&PowerPC::Write_U16);
 		BLR(X30);
-		float_emit.ABI_PopRegisters(fprs);
+		float_emit.ABI_PopRegisters(fprs, X3);
 		ABI_PopRegisters(gprs);
 		RET(X30);
 	}

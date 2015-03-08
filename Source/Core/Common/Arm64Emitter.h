@@ -109,6 +109,8 @@ enum IndexType
 	INDEX_UNSIGNED,
 	INDEX_POST,
 	INDEX_PRE,
+	// Only for VFP loadstore paired
+	INDEX_SIGNED,
 };
 
 enum ShiftAmount
@@ -658,7 +660,13 @@ public:
 
 	// Loadstore multiple structure
 	void LD1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
+	void LD1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm = SP);
 	void ST1(u8 size, u8 count, ARM64Reg Rt, ARM64Reg Rn);
+	void ST1(u8 size, u8 count, IndexType type, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm = SP);
+
+	// Loadstore paired
+	void LDP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
+	void STP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 
 	// Scalar - 1 Source
 	void FABS(ARM64Reg Rd, ARM64Reg Rn);
@@ -747,8 +755,8 @@ public:
 	void FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index);
 
 	// ABI related
-	void ABI_PushRegisters(BitSet32 registers);
-	void ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask = BitSet32(0));
+	void ABI_PushRegisters(BitSet32 registers, ARM64Reg tmp = INVALID_REG);
+	void ABI_PopRegisters(BitSet32 registers, ARM64Reg tmp = INVALID_REG);
 
 private:
 	ARM64XEmitter* m_emit;
@@ -770,9 +778,11 @@ private:
 	void EmitScalarImm(bool M, bool S, u32 type, u32 imm5, ARM64Reg Rd, u32 imm);
 	void EmitShiftImm(bool U, u32 immh, u32 immb, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitLoadStoreMultipleStructure(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn);
+	void EmitLoadStoreMultipleStructurePost(u32 size, bool L, u32 opcode, ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm);
 	void EmitScalar1Source(bool M, bool S, u32 type, u32 opcode, ARM64Reg Rd, ARM64Reg Rn);
 	void EmitVectorxElement(bool U, u32 size, bool L, u32 opcode, bool H, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void EmitLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
+	void EncodeLoadStorePair(u32 size, bool load, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm);
 };
 
 class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>
