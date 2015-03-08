@@ -44,6 +44,10 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Core/Core.h"
+#include "Core/HotkeyManager.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
@@ -740,6 +744,8 @@ void InputConfigDialog::UpdateDeviceComboBox()
 
 void GamepadPage::RefreshDevices(wxCommandEvent&)
 {
+	bool was_unpaused = Core::PauseAndLock(true);
+
 	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 
 	// refresh devices
@@ -750,6 +756,14 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
 
 	// update device cbox
 	m_config_dialog->UpdateDeviceComboBox();
+
+	//if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	Wiimote::LoadConfig();
+	Keyboard::LoadConfig();
+	Pad::LoadConfig();
+	HotkeyManagerEmu::LoadConfig();
+
+	Core::PauseAndLock(false, was_unpaused);
 }
 
 ControlGroupBox::~ControlGroupBox()

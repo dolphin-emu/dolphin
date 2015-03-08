@@ -24,7 +24,7 @@ public:
 	void LoadDefaults(const ControllerInterface& ciface);
 
 private:
-	Buttons* m_keys[6];
+	Buttons* m_keys[3];
 	ControlGroup* m_options;
 };
 
@@ -32,8 +32,13 @@ namespace HotkeyManagerEmu
 {
 	void Initialize(void* const hwnd);
 	void Shutdown();
+	void LoadConfig();
 
 	InputConfig* GetConfig();
-	void GetStatus(u8 _port, HotkeyStatus* _pKeyboardStatus);
+	void GetStatus();
+	bool IsEnabled();
+	void Enable(bool enable_toggle);
 	bool IsPressed(int Id, bool held);
+
+	static bool enabled;
 }

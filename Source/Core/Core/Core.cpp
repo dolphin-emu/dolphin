@@ -427,11 +427,20 @@ void EmuThread()
 		Keyboard::Initialize(s_window_handle);
 		init_controllers = true;
 	}
+	else
+	{
+		// Update references in case controllers were refreshed
+		Pad::LoadConfig();
+		Keyboard::LoadConfig();
+	}
 
 	// Load and Init Wiimotes - only if we are booting in Wii mode
 	if (core_parameter.bWii)
 	{
-		Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
+		if (init_controllers)
+			Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
+		else
+			Wiimote::LoadConfig();
 
 		// Activate Wiimotes which don't have source set to "None"
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)

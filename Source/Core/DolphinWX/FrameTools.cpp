@@ -51,6 +51,7 @@
 #include "Core/State.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
+#include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI_Device.h"
@@ -238,8 +239,8 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_MENU_COMMANDS, _("&Key Shortcuts"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_MENU_COMMANDS, _("&Menu Accelerators"));
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
@@ -686,7 +687,8 @@ void CFrame::BootGame(const std::string& filename)
 // Open file to boot
 void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
-	DoOpen(true);
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		DoOpen(true);
 }
 
 void CFrame::DoOpen(bool Boot)
@@ -1365,27 +1367,31 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 	InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
 
 	// check if game is running
-	if (g_controller_interface.IsInit())
+	bool game_running = false;
+	if (Core::GetState() == Core::CORE_RUN)
 	{
-		was_init = true;
+		Core::SetState(Core::CORE_PAUSE);
+		game_running = true;
 	}
-	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
-#else
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
-#endif
-	}
+
+	HotkeyManagerEmu::Enable(false);
 
 	InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
 	m_ConfigFrame.ShowModal();
 
+	// Update references in case controllers were refreshed
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		Wiimote::LoadConfig();
+	Keyboard::LoadConfig();
+	Pad::LoadConfig();
+	HotkeyManagerEmu::LoadConfig();
+
+	HotkeyManagerEmu::Enable(true);
+
 	// if game isn't running
-	if (!was_init)
+	if (game_running)
 	{
-		HotkeyManagerEmu::Shutdown();
+		Core::SetState(Core::CORE_RUN);
 	}
 
 	// Update the GUI in case menu accelerators were changed
@@ -1761,7 +1767,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);
 
-	// Update Menu Accelerators
+	// Update Key Shortcuts
 	for (unsigned int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		if (GetCmdForHotkey(i) == -1)
