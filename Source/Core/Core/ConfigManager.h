@@ -118,6 +118,8 @@ struct SConfig : NonCopyable
 	bool m_GameCubeAdapter;
 	bool m_AdapterRumble;
 
+	bool m_NetplayDesyncCheck;
+
 	SysConf* m_SYSCONF;
 
 	// Save settings
