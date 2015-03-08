@@ -2618,6 +2618,7 @@ void ARM64FloatEmitter::SMOV(u8 size, ARM64Reg Rd, ARM64Reg Rn, u8 index)
 	bool b64Bit = Is64Bit(Rd);
 	_assert_msg_(DYNA_REC, Rd < SP, "%s destination must be a GPR!", __FUNCTION__);
 	_assert_msg_(DYNA_REC, size != 64, "%s doesn't support 64bit destination. Use UMOV!", __FUNCTION__);
+	_assert_msg_(DYNA_REC, !b64Bit && size != 32, "%s doesn't support 32bit move to 32bit register. Use UMOV!", __FUNCTION__);
 	u32 imm5 = 0;
 
 	if (size == 8)
