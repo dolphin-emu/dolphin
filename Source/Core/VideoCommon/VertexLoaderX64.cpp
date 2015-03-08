@@ -98,9 +98,9 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 
 	int elem_size = 1 << (format / 2);
 	int load_bytes = elem_size * count_in;
-	if (load_bytes >= 8)
+	if (load_bytes > 8)
 		MOVDQU(coords, data);
-	else if (load_bytes >= 4)
+	else if (load_bytes > 4)
 		MOVQ_xmm(coords, data);
 	else
 		MOVD_xmm(coords, data);
