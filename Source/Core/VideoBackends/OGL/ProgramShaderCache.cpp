@@ -524,6 +524,7 @@ void ProgramShaderCache::Shutdown()
 void ProgramShaderCache::CreateHeader()
 {
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
+	bool is_glsles = v >= GLSLES_300;
 
 	snprintf(s_glsl_header, sizeof(s_glsl_header),
 		"%s\n"
@@ -564,7 +565,7 @@ void ProgramShaderCache::CreateHeader()
 
 		, GetGLSLVersionString().c_str()
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
-		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
+		, !is_glsles && g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
 		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 		, (g_ogl_config.bSupportsMSAA && v < GLSL_150) ? "#extension GL_ARB_texture_multisample : enable" : ""
 		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
@@ -574,9 +575,9 @@ void ProgramShaderCache::CreateHeader()
 		, g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : ""
 		, v<GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ? "#extension GL_ARB_texture_buffer_object : enable" : ""
 
-		, v>=GLSLES_300 ? "precision highp float;" : ""
-		, v>=GLSLES_300 ? "precision highp int;" : ""
-		, v>=GLSLES_300 ? "precision highp sampler2DArray;" : ""
+		, is_glsles ? "precision highp float;" : ""
+		, is_glsles ? "precision highp int;" : ""
+		, is_glsles ? "precision highp sampler2DArray;" : ""
 
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""
