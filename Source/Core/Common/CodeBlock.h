@@ -28,7 +28,7 @@ public:
 	virtual ~CodeBlock() { if (region) FreeCodeSpace(); }
 
 	// Call this before you generate any code.
-	void AllocCodeSpace(int size)
+	void AllocCodeSpace(size_t size)
 	{
 		region_size = size;
 		region = (u8*)AllocateExecutableMemory(region_size);

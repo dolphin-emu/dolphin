@@ -319,9 +319,9 @@ u8 *ARMXEmitter::GetWritableCodePtr()
 	return code;
 }
 
-void ARMXEmitter::ReserveCodeSpace(u32 bytes)
+void ARMXEmitter::ReserveCodeSpace(size_t bytes)
 {
-	for (u32 i = 0; i < bytes/4; i++)
+	for (size_t i = 0; i < bytes/4; i++)
 		Write32(0xE1200070); //bkpt 0
 }
 

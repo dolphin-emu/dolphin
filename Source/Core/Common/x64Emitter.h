@@ -320,7 +320,7 @@ public:
 	void WriteSIB(int scale, int index, int base);
 
 	void SetCodePtr(u8 *ptr);
-	void ReserveCodeSpace(int bytes);
+	void ReserveCodeSpace(size_t bytes);
 	const u8 *AlignCode4();
 	const u8 *AlignCode16();
 	const u8 *AlignCodePage();

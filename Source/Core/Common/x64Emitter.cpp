@@ -91,10 +91,10 @@ u8 *XEmitter::GetWritableCodePtr()
 	return code;
 }
 
-void XEmitter::ReserveCodeSpace(int bytes)
+void XEmitter::ReserveCodeSpace(size_t bytes)
 {
-	for (int i = 0; i < bytes; i++)
-		*code++ = 0xCC;
+	for (size_t i = 0; i < bytes; i++)
+		INT3();
 }
 
 const u8 *XEmitter::AlignCode4()

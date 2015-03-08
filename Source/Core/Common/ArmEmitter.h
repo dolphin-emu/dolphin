@@ -360,7 +360,7 @@ public:
 	virtual ~ARMXEmitter() {}
 
 	void SetCodePtr(u8 *ptr);
-	void ReserveCodeSpace(u32 bytes);
+	void ReserveCodeSpace(size_t bytes);
 	const u8 *AlignCode16();
 	const u8 *AlignCodePage();
 	const u8 *GetCodePtr() const;

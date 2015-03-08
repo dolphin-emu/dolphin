@@ -27,9 +27,9 @@ u8* ARM64XEmitter::GetWritableCodePtr()
 	return m_code;
 }
 
-void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
+void ARM64XEmitter::ReserveCodeSpace(size_t bytes)
 {
-	for (u32 i = 0; i < bytes/4; i++)
+	for (size_t i = 0; i < bytes/4; i++)
 		BRK(0);
 }
 
