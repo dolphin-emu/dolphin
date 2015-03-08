@@ -757,7 +757,6 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
 	// update device cbox
 	m_config_dialog->UpdateDeviceComboBox();
 
-	//if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	Wiimote::LoadConfig();
 	Keyboard::LoadConfig();
 	Pad::LoadConfig();
