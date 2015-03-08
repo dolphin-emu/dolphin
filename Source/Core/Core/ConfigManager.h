@@ -115,6 +115,8 @@ struct SConfig : NonCopyable
 	bool m_BackgroundInput;
 	bool m_GameCubeAdapter;
 
+	bool m_NetplayDesyncCheck;
+
 	SysConf* m_SYSCONF;
 
 	// Save settings

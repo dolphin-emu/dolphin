@@ -77,6 +77,8 @@ public:
 
 	u8 LocalWiimoteToInGameWiimote(u8 local_pad);
 
+	static void SendTimeBase();
+
 	enum State
 	{
 		WaitingForTraversalClientConnection,

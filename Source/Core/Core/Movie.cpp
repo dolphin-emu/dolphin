@@ -16,6 +16,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/DSP/DSPCore.h"
@@ -161,6 +162,9 @@ void FrameUpdate()
 		FrameSkipping();
 
 	s_bPolled = false;
+
+	if (NetPlay::IsNetPlayRunning() && SConfig::GetInstance().m_NetplayDesyncCheck)
+		NetPlayClient::SendTimeBase();
 }
 
 // called when game is booting up, even if no movie is active,
