@@ -27,22 +27,19 @@ using namespace ArmGen;
 
 JitArmAsmRoutineManager asm_routines;
 
-static void WriteDual32(u32 value1, u32 value2, u32 address)
+static void WriteDual8(u32 val1, u32 val2, u32 addr)
 {
-	PowerPC::Write_U32(value1, address);
-	PowerPC::Write_U32(value2, address + 4);
+	PowerPC::Write_U16(((u16)(u8)val1 << 8) | (u16)(u8)val2, addr);
 }
 
-static void WriteDual16(u32 value1, u32 value2, u32 address)
+static void WriteDual16(u32 val1, u32 val2, u32 addr)
 {
-	PowerPC::Write_U16(value1, address);
-	PowerPC::Write_U16(value2, address + 2);
+	PowerPC::Write_U32(((u32)(u16)val1 << 16) | (u32)(u16)val2, addr);
 }
 
-static void WriteDual8(u32 value1, u32 value2, u32 address)
+static void WriteDual32(u32 val1, u32 val2, u32 addr)
 {
-	PowerPC::Write_U8(value1, address);
-	PowerPC::Write_U8(value2, address + 1);
+	PowerPC::Write_U64(((u64)val1 << 32) | (u64)val2, addr);
 }
 
 void JitArmAsmRoutineManager::Generate()

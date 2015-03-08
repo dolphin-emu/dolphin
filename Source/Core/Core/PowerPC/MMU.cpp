@@ -238,7 +238,7 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 	{
 		// First, let's check for FIFO writes, since they are probably the most common
 		// reason we end up in this function:
-		if (flag == FLAG_WRITE && (em_address & 0xFFFFF000) == 0xCC008000)
+		if (flag == FLAG_WRITE && em_address == 0xCC008000)
 		{
 			switch (sizeof(T))
 			{
