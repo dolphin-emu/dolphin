@@ -544,11 +544,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		code->regsOut[code->inst.RD] = true;
 		block->m_gpa->SetOutputRegister(code->inst.RD, index);
 	}
-	if (opinfo->flags & FL_OUT_S)
-	{
-		code->regsOut[code->inst.RS] = true;
-		block->m_gpa->SetOutputRegister(code->inst.RS, index);
-	}
 	if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
 	{
 		code->regsIn[code->inst.RA] = true;
@@ -589,8 +584,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	code->fregOut = -1;
 	if (opinfo->flags & FL_OUT_FLOAT_D)
 		code->fregOut = code->inst.FD;
-	else if (opinfo->flags & FL_OUT_FLOAT_S)
-		code->fregOut = code->inst.FS;
+
 	code->fregsIn = BitSet32(0);
 	if (opinfo->flags & FL_IN_FLOAT_A)
 		code->fregsIn[code->inst.FA] = true;

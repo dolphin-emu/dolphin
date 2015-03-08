@@ -155,8 +155,8 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = ps1;
 	}
 	else
 	{
@@ -165,8 +165,8 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = 1.0f;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = 1.0f;
 	}
 }
 
@@ -191,8 +191,8 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = ps1;
 	}
 	else
 	{
@@ -201,8 +201,8 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = 1.0f;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = 1.0f;
 	}
 	rGPR[_inst.RA] = EA;
 }
@@ -284,8 +284,8 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 			return;
 		}
 
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = ps1;
 	}
 	else
 	{
@@ -297,8 +297,8 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 			return;
 		}
 
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = ps1;
 	}
 }
 
@@ -347,8 +347,8 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = ps1;
 	}
 	else
 	{
@@ -357,8 +357,8 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = 1.0f;
+		rPS0(_inst.RD) = ps0;
+		rPS1(_inst.RD) = 1.0f;
 	}
 	rGPR[_inst.RA] = EA;
 }

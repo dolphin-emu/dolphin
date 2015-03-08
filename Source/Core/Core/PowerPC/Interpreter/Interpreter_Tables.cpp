@@ -51,21 +51,21 @@ static GekkoOPTemplate primarytable[] =
 	{28, Interpreter::andi_rc,      {"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0, 1, 0, 0, 0}},
 	{29, Interpreter::andis_rc,     {"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0, 1, 0, 0, 0}},
 
-	{32, Interpreter::lwz,          {"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
+	{32, Interpreter::lwz,          {"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_LOADSTORE, 1, 0, 0, 0}},
 	{33, Interpreter::lwzu,         {"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
-	{34, Interpreter::lbz,          {"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
+	{34, Interpreter::lbz,          {"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_LOADSTORE, 1, 0, 0, 0}},
 	{35, Interpreter::lbzu,         {"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
-	{40, Interpreter::lhz,          {"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
+	{40, Interpreter::lhz,          {"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_LOADSTORE, 1, 0, 0, 0}},
 	{41, Interpreter::lhzu,         {"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
 
-	{42, Interpreter::lha,          {"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
+	{42, Interpreter::lha,          {"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_LOADSTORE, 1, 0, 0, 0}},
 	{43, Interpreter::lhau,         {"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
 
-	{44, Interpreter::sth,          {"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
+	{44, Interpreter::sth,          {"sth",  OPTYPE_STORE, FL_IN_A0 | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
 	{45, Interpreter::sthu,         {"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
-	{36, Interpreter::stw,          {"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
+	{36, Interpreter::stw,          {"stw",  OPTYPE_STORE, FL_IN_A0 | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
 	{37, Interpreter::stwu,         {"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
-	{38, Interpreter::stb,          {"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
+	{38, Interpreter::stb,          {"stb",  OPTYPE_STORE, FL_IN_A0 | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
 	{39, Interpreter::stbu,         {"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
 
 	{46, Interpreter::lmw,          {"lmw",   OPTYPE_SYSTEM, FL_EVIL | FL_IN_A0 | FL_LOADSTORE, 11, 0, 0, 0}},
@@ -76,14 +76,14 @@ static GekkoOPTemplate primarytable[] =
 	{50, Interpreter::lfd,          {"lfd",  OPTYPE_LOADFP, FL_INOUT_FLOAT_D | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{51, Interpreter::lfdu,         {"lfdu", OPTYPE_LOADFP, FL_INOUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
-	{52, Interpreter::stfs,         {"stfs",  OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{52, Interpreter::stfs,         {"stfs",  OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{53, Interpreter::stfsu,        {"stfsu", OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{54, Interpreter::stfd,         {"stfd",  OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{54, Interpreter::stfd,         {"stfd",  OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{55, Interpreter::stfdu,        {"stfdu", OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
-	{56, Interpreter::psq_l,        {"psq_l",   OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{57, Interpreter::psq_lu,       {"psq_lu",  OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{60, Interpreter::psq_st,       {"psq_st",  OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{56, Interpreter::psq_l,        {"psq_l",   OPTYPE_LOADPS, FL_OUT_FLOAT_D | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{57, Interpreter::psq_lu,       {"psq_lu",  OPTYPE_LOADPS, FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{60, Interpreter::psq_st,       {"psq_st",  OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{61, Interpreter::psq_stu,      {"psq_stu", OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
@@ -91,17 +91,17 @@ static GekkoOPTemplate primarytable[] =
 
 static GekkoOPTemplate table4[] =
 {    //SUBOP10
-	{0,    Interpreter::ps_cmpu0,   {"ps_cmpu0",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
-	{32,   Interpreter::ps_cmpo0,   {"ps_cmpo0",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
+	{0,    Interpreter::ps_cmpu0,   {"ps_cmpu0",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 1, 0, 0, 0}},
+	{32,   Interpreter::ps_cmpo0,   {"ps_cmpo0",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 1, 0, 0, 0}},
 	{40,   Interpreter::ps_neg,     {"ps_neg",     OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{136,  Interpreter::ps_nabs,    {"ps_nabs",    OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{264,  Interpreter::ps_abs,     {"ps_abs",     OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{64,   Interpreter::ps_cmpu1,   {"ps_cmpu1",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
+	{64,   Interpreter::ps_cmpu1,   {"ps_cmpu1",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 1, 0, 0, 0}},
 	{72,   Interpreter::ps_mr,      {"ps_mr",      OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{96,   Interpreter::ps_cmpo1,   {"ps_cmpo1",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
-	{528, Interpreter::ps_merge00, { "ps_merge00", OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{96,   Interpreter::ps_cmpo1,   {"ps_cmpo1",   OPTYPE_PS, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 1, 0, 0, 0}},
+	{528,  Interpreter::ps_merge00, {"ps_merge00", OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{560,  Interpreter::ps_merge01, {"ps_merge01", OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{592, Interpreter::ps_merge10, {"ps_merge10",  OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{592,  Interpreter::ps_merge10, {"ps_merge10", OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{624,  Interpreter::ps_merge11, {"ps_merge11", OPTYPE_PS, FL_OUT_FLOAT_D | FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 
 	{1014, Interpreter::dcbz_l,     {"dcbz_l",     OPTYPE_SYSTEM, FL_IN_A0B | FL_LOADSTORE, 1, 0, 0, 0}},
@@ -131,9 +131,9 @@ static GekkoOPTemplate table4_2[] =
 
 static GekkoOPTemplate table4_3[] =
 {
-	{6,  Interpreter::psq_lx,       {"psq_lx",   OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{6,  Interpreter::psq_lx,       {"psq_lx",   OPTYPE_LOADPS, FL_OUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{7,  Interpreter::psq_stx,      {"psq_stx",  OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{38, Interpreter::psq_lux,      {"psq_lux",  OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{38, Interpreter::psq_lux,      {"psq_lux",  OPTYPE_LOADPS, FL_OUT_FLOAT_D | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{39, Interpreter::psq_stux,     {"psq_stux", OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_AB | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 };
 
@@ -175,14 +175,14 @@ static GekkoOPTemplate table31[] =
 	{954, Interpreter::extsbx,      {"extsbx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
 	{536, Interpreter::srwx,        {"srwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT, 1, 0, 0, 0}},
 	{792, Interpreter::srawx,       {"srawx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
-	{824, Interpreter::srawix,      {"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{824, Interpreter::srawix,      {"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{24,  Interpreter::slwx,        {"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT, 1, 0, 0, 0}},
 
-	{54,   Interpreter::dcbst,      {"dcbst",  OPTYPE_DCACHE, 0, 5, 0, 0, 0}},
-	{86,   Interpreter::dcbf,       {"dcbf",   OPTYPE_DCACHE, 0, 5, 0, 0, 0}},
+	{54,   Interpreter::dcbst,      {"dcbst",  OPTYPE_DCACHE, FL_IN_A0B | FL_LOADSTORE, 5, 0, 0, 0}},
+	{86,   Interpreter::dcbf,       {"dcbf",   OPTYPE_DCACHE, FL_IN_A0B | FL_LOADSTORE, 5, 0, 0, 0}},
 	{246,  Interpreter::dcbtst,     {"dcbtst", OPTYPE_DCACHE, 0, 2, 0, 0, 0}},
 	{278,  Interpreter::dcbt,       {"dcbt",   OPTYPE_DCACHE, 0, 2, 0, 0, 0}},
-	{470,  Interpreter::dcbi,       {"dcbi",   OPTYPE_DCACHE, 0, 5, 0, 0, 0}},
+	{470,  Interpreter::dcbi,       {"dcbi",   OPTYPE_DCACHE, FL_IN_A0B | FL_LOADSTORE, 5, 0, 0, 0}},
 	{758,  Interpreter::dcba,       {"dcba",   OPTYPE_DCACHE, 0, 5, 0, 0, 0}},
 	{1014, Interpreter::dcbz,       {"dcbz",   OPTYPE_DCACHE, FL_IN_A0B | FL_LOADSTORE, 5, 0, 0, 0}},
 
@@ -212,7 +212,7 @@ static GekkoOPTemplate table31[] =
 
 	//load string (Inst these)
 	{533, Interpreter::lswx,        {"lswx",  OPTYPE_LOAD, FL_EVIL | FL_IN_A0B | FL_OUT_D | FL_LOADSTORE, 1, 0, 0, 0}},
-	{597, Interpreter::lswi,        {"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_A | FL_OUT_D | FL_LOADSTORE, 1, 0, 0, 0}},
+	{597, Interpreter::lswi,        {"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_A0 | FL_OUT_D | FL_LOADSTORE, 1, 0, 0, 0}},
 
 	//store word
 	{151, Interpreter::stwx,        {"stwx",   OPTYPE_STORE, FL_IN_S | FL_IN_A0B | FL_LOADSTORE, 1, 0, 0, 0}},
@@ -231,7 +231,7 @@ static GekkoOPTemplate table31[] =
 	{918, Interpreter::sthbrx,      {"sthbrx", OPTYPE_STORE, FL_IN_S | FL_IN_A0B | FL_LOADSTORE, 1, 0, 0, 0}},
 
 	{661, Interpreter::stswx,       {"stswx",  OPTYPE_STORE, FL_EVIL | FL_IN_A0B | FL_LOADSTORE, 1, 0, 0, 0}},
-	{725, Interpreter::stswi,       {"stswi",  OPTYPE_STORE, FL_EVIL | FL_IN_A | FL_LOADSTORE, 1, 0, 0, 0}},
+	{725, Interpreter::stswi,       {"stswi",  OPTYPE_STORE, FL_EVIL | FL_IN_A0 | FL_LOADSTORE, 1, 0, 0, 0}},
 
 	// fp load/store
 	{535, Interpreter::lfsx,        {"lfsx",  OPTYPE_LOADFP, FL_OUT_FLOAT_D | FL_IN_A0B | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
@@ -254,19 +254,19 @@ static GekkoOPTemplate table31[] =
 	{339, Interpreter::mfspr,       {"mfspr",  OPTYPE_SPR, FL_OUT_D, 1, 0, 0, 0}},
 	{467, Interpreter::mtspr,       {"mtspr",  OPTYPE_SPR, FL_IN_S, 2, 0, 0, 0}},
 	{371, Interpreter::mftb,        {"mftb",   OPTYPE_SYSTEM, FL_OUT_D | FL_TIMER, 1, 0, 0, 0}},
-	{512, Interpreter::mcrxr,       {"mcrxr",  OPTYPE_SYSTEM, FL_READ_CA | FL_SET_CA, 1, 0, 0, 0}},
+	{512, Interpreter::mcrxr,       {"mcrxr",  OPTYPE_SYSTEM, FL_SET_CRn | FL_READ_CA | FL_SET_CA, 1, 0, 0, 0}},
 	{595, Interpreter::mfsr,        {"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 3, 0, 0, 0}},
 	{659, Interpreter::mfsrin,      {"mfsrin", OPTYPE_SYSTEM, FL_OUT_D | FL_IN_B, 3, 0, 0, 0}},
 
-	{4,   Interpreter::tw,          {"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 2, 0, 0, 0}},
+	{4,   Interpreter::tw,          {"tw",     OPTYPE_SYSTEM, FL_IN_AB | FL_ENDBLOCK, 2, 0, 0, 0}},
 	{598, Interpreter::sync,        {"sync",   OPTYPE_SYSTEM, 0, 3, 0, 0, 0}},
-	{982, Interpreter::icbi,        {"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 4, 0, 0, 0}},
+	{982, Interpreter::icbi,        {"icbi",   OPTYPE_SYSTEM, FL_IN_A0B | FL_ENDBLOCK | FL_LOADSTORE, 4, 0, 0, 0}},
 
 	// Unused instructions on GC
-	{310, Interpreter::eciwx,       {"eciwx",   OPTYPE_SYSTEM, FL_IN_AB | FL_OUT_S, 1, 0, 0, 0}},
-	{438, Interpreter::ecowx,       {"ecowx",   OPTYPE_SYSTEM, FL_IN_AB | FL_IN_S, 1, 0, 0, 0}},
+	{310, Interpreter::eciwx,       {"eciwx",   OPTYPE_SYSTEM, FL_IN_A0B | FL_OUT_D | FL_LOADSTORE, 1, 0, 0, 0}},
+	{438, Interpreter::ecowx,       {"ecowx",   OPTYPE_SYSTEM, FL_IN_A0B | FL_IN_S | FL_LOADSTORE, 1, 0, 0, 0}},
 	{854, Interpreter::eieio,       {"eieio",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
-	{306, Interpreter::tlbie,       {"tlbie",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
+	{306, Interpreter::tlbie,       {"tlbie",   OPTYPE_SYSTEM, FL_IN_B, 1, 0, 0, 0}},
 	{370, Interpreter::tlbia,       {"tlbia",   OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
 	{566, Interpreter::tlbsync,     {"tlbsync", OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
 };
@@ -274,9 +274,9 @@ static GekkoOPTemplate table31[] =
 static GekkoOPTemplate table31_2[] =
 {
 	{266,  Interpreter::addx,        {"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 1, 0, 0, 0}},
-	{778,  Interpreter::addx,        {"addox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 1, 0, 0, 0}},
+	{778,  Interpreter::addx,        {"addox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
 	{10,   Interpreter::addcx,       {"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
-	{522,  Interpreter::addcx,       {"addcox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{522,  Interpreter::addcx,       {"addcox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
 	{138,  Interpreter::addex,       {"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{650,  Interpreter::addex,       {"addeox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
 	{234,  Interpreter::addmex,      {"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
@@ -291,7 +291,7 @@ static GekkoOPTemplate table31_2[] =
 	{747,  Interpreter::mullwx,      {"mullwox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE, 5, 0, 0, 0}},
 	{104,  Interpreter::negx,        {"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 1, 0, 0, 0}},
 	{40,   Interpreter::subfx,       {"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 1, 0, 0, 0}},
-	{552,  Interpreter::subfx,       {"subox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
+	{552,  Interpreter::subfx,       {"subfox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
 	{8,    Interpreter::subfcx,      {"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{520,  Interpreter::subfcx,      {"subfcox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT | FL_SET_OE, 1, 0, 0, 0}},
 	{136,  Interpreter::subfex,      {"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
@@ -316,21 +316,27 @@ static GekkoOPTemplate table59[] =
 static GekkoOPTemplate table63[] =
 {
 	{264, Interpreter::fabsx,       {"fabsx",   OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{32,  Interpreter::fcmpo,       {"fcmpo",   OPTYPE_DOUBLEFP, FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
-	{0,   Interpreter::fcmpu,       {"fcmpu",   OPTYPE_DOUBLEFP, FL_IN_FLOAT_AB | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
+
+	// FIXME: fcmp modifies the FPRF flags, but if the flags are clobbered later,
+	// we don't actually need to calculate or store them here. So FL_READ_FPRF and FL_SET_FPRF is not
+	// an ideal representation of fcmp's effect on FPRF flags and might result in
+	// slightly sub-optimal code.
+	{32,  Interpreter::fcmpo,       {"fcmpo",   OPTYPE_DOUBLEFP, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 1, 0, 0, 0}},
+	{0,   Interpreter::fcmpu,       {"fcmpu",   OPTYPE_DOUBLEFP, FL_IN_FLOAT_AB | FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 1, 0, 0, 0}},
+
 	{14,  Interpreter::fctiwx,      {"fctiwx",  OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{15,  Interpreter::fctiwzx,     {"fctiwzx", OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{72,  Interpreter::fmrx,        {"fmrx",    OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
+	{72,  Interpreter::fmrx,        {"fmrx",    OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{136, Interpreter::fnabsx,      {"fnabsx",  OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
 	{40,  Interpreter::fnegx,       {"fnegx",   OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU, 1, 0, 0, 0}},
-	{12,  Interpreter::frspx,       {"frspx",   OPTYPE_DOUBLEFP, FL_OUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
+	{12,  Interpreter::frspx,       {"frspx",   OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_B | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 
 	{64,  Interpreter::mcrfs,       {"mcrfs",   OPTYPE_SYSTEMFP, FL_SET_CRn | FL_USE_FPU | FL_READ_FPRF, 1, 0, 0, 0}},
-	{583, Interpreter::mffsx,       {"mffsx",   OPTYPE_SYSTEMFP, FL_OUT_D | FL_USE_FPU | FL_READ_FPRF, 1, 0, 0, 0}},
-	{70,  Interpreter::mtfsb0x,     {"mtfsb0x", OPTYPE_SYSTEMFP, FL_USE_FPU | FL_READ_FPRF, 3, 0, 0, 0}},
-	{38,  Interpreter::mtfsb1x,     {"mtfsb1x", OPTYPE_SYSTEMFP, FL_USE_FPU | FL_READ_FPRF, 3, 0, 0, 0}},
-	{134, Interpreter::mtfsfix,     {"mtfsfix", OPTYPE_SYSTEMFP, FL_USE_FPU | FL_READ_FPRF, 3, 0, 0, 0}},
-	{711, Interpreter::mtfsfx,      {"mtfsfx",  OPTYPE_SYSTEMFP, FL_IN_B | FL_USE_FPU | FL_READ_FPRF, 3, 0, 0, 0}},
+	{583, Interpreter::mffsx,       {"mffsx",   OPTYPE_SYSTEMFP, FL_RC_BIT_F | FL_INOUT_FLOAT_D | FL_USE_FPU | FL_READ_FPRF, 1, 0, 0, 0}},
+	{70,  Interpreter::mtfsb0x,     {"mtfsb0x", OPTYPE_SYSTEMFP, FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 3, 0, 0, 0}},
+	{38,  Interpreter::mtfsb1x,     {"mtfsb1x", OPTYPE_SYSTEMFP, FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 3, 0, 0, 0}},
+	{134, Interpreter::mtfsfix,     {"mtfsfix", OPTYPE_SYSTEMFP, FL_RC_BIT_F | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 3, 0, 0, 0}},
+	{711, Interpreter::mtfsfx,      {"mtfsfx",  OPTYPE_SYSTEMFP, FL_RC_BIT_F | FL_IN_FLOAT_B | FL_USE_FPU | FL_READ_FPRF | FL_SET_FPRF, 3, 0, 0, 0}},
 };
 
 static GekkoOPTemplate table63_2[] =

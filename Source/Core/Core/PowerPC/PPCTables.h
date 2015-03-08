@@ -31,7 +31,6 @@ enum
 	FL_IN_A0B          = FL_IN_A0 | FL_IN_B,
 	FL_IN_A0BC         = FL_IN_A0 | FL_IN_B | FL_IN_C,
 	FL_OUT_D           = (1<<13),  // rD is used as a destination.
-	FL_OUT_S           = FL_OUT_D, // rS is used as a destination.
 	FL_OUT_A           = (1<<14),  // rA is used as a destination.
 	FL_OUT_AD          = FL_OUT_A | FL_OUT_D,
 	FL_TIMER           = (1<<15),  // Used only for mftb.
@@ -51,7 +50,6 @@ enum
 	FL_IN_FLOAT_AC     = FL_IN_FLOAT_A | FL_IN_FLOAT_C,
 	FL_IN_FLOAT_ABC    = FL_IN_FLOAT_A | FL_IN_FLOAT_B | FL_IN_FLOAT_C,
 	FL_OUT_FLOAT_D     = (1<<28),  // frD is used as a destination.
-	FL_OUT_FLOAT_S     = (1<<29),  // frS is used as a destination.
 	// Used in the case of double ops (they don't modify the top half of the output)
 	FL_INOUT_FLOAT_D   = FL_IN_FLOAT_D | FL_OUT_FLOAT_D,
 };
