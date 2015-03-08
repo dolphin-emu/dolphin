@@ -29,7 +29,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<u8> NetWiimote;
 
-#define NETPLAY_VERSION  "Dolphin NetPlay 2014-01-08"
+#define NETPLAY_VERSION  "Dolphin NetPlay 2015-03-10"
 
 extern u64 g_netplay_initial_gctime;
 
@@ -52,6 +52,9 @@ enum
 	NP_MSG_CHANGE_GAME = 0xA1,
 	NP_MSG_STOP_GAME = 0xA2,
 	NP_MSG_DISABLE_GAME = 0xA3,
+
+	NP_MSG_TIMEBASE = 0xB0,
+	NP_MSG_DESYNC_DETECTED = 0xB1,
 
 	NP_MSG_READY = 0xD0,
 	NP_MSG_NOT_READY = 0xD1,

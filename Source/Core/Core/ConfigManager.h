@@ -119,6 +119,8 @@ struct SConfig : NonCopyable
 	bool m_GameCubeAdapter;
 	bool m_AdapterRumble;
 
+	bool m_NetplayDesyncCheck;
+
 	SysConf* m_SYSCONF;
 
 	// For special cases, don't save the window position and resolution.
