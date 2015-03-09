@@ -20,6 +20,8 @@ class NetPlayServer : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
+	void RunOnThread(std::function<void()> func);
+	void WakeupThread(ENetHost* host);
 
 	NetPlayServer(const u16 port, bool traversal, std::string centralServer, u16 centralPort);
 	~NetPlayServer();
@@ -101,11 +103,13 @@ private:
 	{
 		std::recursive_mutex game;
 		// lock order
-		std::recursive_mutex players, send;
+		std::recursive_mutex players;
+		std::recursive_mutex run_queue_write;
 	} m_crit;
 
 	std::string m_selected_game;
 	std::thread m_thread;
+	Common::FifoQueue<std::function<void()>, false> m_run_queue;
 
 	ENetHost*        m_server;
 	TraversalClient* m_traversal_client;
