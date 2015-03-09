@@ -72,7 +72,7 @@ static GekkoOPTemplate primarytable[] =
 	{40, &JitIL::lXz},                   //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{41, &JitIL::lXz},                   //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{42, &JitIL::lha},                   //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{43, &JitIL::FallBackToInterpreter}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{43, &JitIL::lhau},                  //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
 	{44, &JitIL::stX},                   //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
 	{45, &JitIL::stX},                   //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
@@ -85,14 +85,14 @@ static GekkoOPTemplate primarytable[] =
 	{47, &JitIL::stmw},                  //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
 
 	{48, &JitIL::lfs},                   //"lfs",  OPTYPE_LOADFP, FL_IN_A}},
-	{49, &JitIL::FallBackToInterpreter}, //"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
+	{49, &JitIL::lfsu},                  //"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
 	{50, &JitIL::lfd},                   //"lfd",  OPTYPE_LOADFP, FL_IN_A}},
-	{51, &JitIL::FallBackToInterpreter}, //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
+	{51, &JitIL::lfdu},                  //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
 
 	{52, &JitIL::stfs},                  //"stfs",  OPTYPE_STOREFP, FL_IN_A}},
 	{53, &JitIL::stfs},                  //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 	{54, &JitIL::stfd},                  //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
-	{55, &JitIL::FallBackToInterpreter}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
+	{55, &JitIL::stfd},                  //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
 	{56, &JitIL::psq_l},                 //"psq_l",   OPTYPE_PS, FL_IN_A}},
 	{57, &JitIL::psq_l},                 //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
@@ -216,7 +216,7 @@ static GekkoOPTemplate table31[] =
 
 	//load halfword signextend
 	{343, &JitIL::lhax},                   //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{375, &JitIL::FallBackToInterpreter},  //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{375, &JitIL::lhaux},                  //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte
 	{87,  &JitIL::lXzx},                   //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},

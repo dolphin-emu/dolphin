@@ -20,6 +20,21 @@ void JitILBase::lhax(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
+void JitILBase::lhaux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
+
+	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
+	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
+	IREmitter::InstLoc val = ibuild.EmitLoad16(addr);
+	val = ibuild.EmitSExt16(val);
+	ibuild.EmitStoreGReg(val, inst.RD);
+	ibuild.EmitStoreGReg(addr, inst.RA);
+}
+
 void JitILBase::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -96,6 +111,22 @@ void JitILBase::lha(UGeckoInstruction inst)
 	IREmitter::InstLoc val = ibuild.EmitLoad16(addr);
 	val = ibuild.EmitSExt16(val);
 	ibuild.EmitStoreGReg(val, inst.RD);
+}
+
+void JitILBase::lhau(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
+
+	IREmitter::InstLoc addr = ibuild.EmitIntConst((s32)inst.SIMM_16);
+
+	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
+	IREmitter::InstLoc val = ibuild.EmitLoad16(addr);
+	val = ibuild.EmitSExt16(val);
+	ibuild.EmitStoreGReg(val, inst.RD);
+	ibuild.EmitStoreGReg(addr, inst.RA);
 }
 
 void JitILBase::lXzx(UGeckoInstruction inst)
