@@ -61,10 +61,10 @@ IVolume::ECountry CVolumeGC::GetCountry() const
 	if (!m_pReader)
 		return COUNTRY_UNKNOWN;
 
-	u8 CountryCode;
-	m_pReader->Read(3, 1, &CountryCode);
+	u8 country_code;
+	m_pReader->Read(3, 1, &country_code);
 
-	return CountrySwitch(CountryCode);
+	return CountrySwitch(country_code);
 }
 
 std::string CVolumeGC::GetMakerID() const
@@ -149,9 +149,9 @@ u64 CVolumeGC::GetRawSize() const
 
 bool CVolumeGC::IsDiscTwo() const
 {
-	bool discTwo = false;
-	Read(6,1, (u8*) &discTwo);
-	return discTwo;
+	u8 disc_two_check;
+	Read(6, 1, &disc_two_check);
+	return (disc_two_check == 1);
 }
 
 CVolumeGC::StringDecoder CVolumeGC::GetStringDecoder(ECountry country)

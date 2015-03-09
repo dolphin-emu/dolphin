@@ -7,13 +7,6 @@
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/InputConfig.h"
 
-InputConfig::~InputConfig()
-{
-	// delete pads
-	for (ControllerEmu* pad : controllers)
-		delete pad;
-}
-
 bool InputConfig::LoadConfig(bool isGC)
 {
 	IniFile inifile;

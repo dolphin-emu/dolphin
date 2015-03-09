@@ -21,8 +21,6 @@ public:
 		const char* const _profile_name)
 		: ini_name(_ini_name), gui_name(_gui_name), profile_name(_profile_name) {}
 
-	~InputConfig();
-
 	bool LoadConfig(bool isGC);
 	void SaveConfig();
 

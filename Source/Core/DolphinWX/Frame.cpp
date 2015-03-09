@@ -350,7 +350,11 @@ EVT_MENU(IDM_CONFIG_MENU_COMMANDS, CFrame::OnConfigMenuCommands)
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
 EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnPerspectiveMenu)
 // Drop down
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_TOP, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_BOTTOM, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_LEFT, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_RIGHT, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_CENTER, CFrame::OnPerspectiveMenu)
 EVT_MENU_RANGE(IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100, CFrame::OnSelectPerspective)
 EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnPerspectiveMenu)
 EVT_MENU(IDM_TAB_SPLIT, CFrame::OnPerspectiveMenu)
@@ -1014,7 +1018,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED(event))
 	}
 }
 
-static bool IsHotkey(wxKeyEvent &event, int Id, bool keyUp = false)
+static bool IsHotkey(wxKeyEvent &event, int id, bool held = false)
 {
 #ifdef NEW_HOTKEYS
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
@@ -1023,15 +1027,17 @@ static bool IsHotkey(wxKeyEvent &event, int Id, bool keyUp = false)
 	// Input event hotkey
 	if (event.GetKeyCode() == WXK_NONE)
 	{
-		return HotkeyManagerEmu::IsPressed(Id, keyUp);
+		return HotkeyManagerEmu::IsPressed(id, held);
 	}
 
-	return false;
+	return (event.GetKeyCode() != WXK_NONE &&
+		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[id] &&
+		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[id]);
 #else
 	return (event.GetKeyCode() != WXK_NONE &&
-		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id] &&
-		true == SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[Id]);
+		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[id] &&
+		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[id] &&
+		true == SConfig::GetInstance().m_LocalCoreStartupParameter.bHotkeyKBM[id]);
 #endif
 
 }
@@ -1785,11 +1791,15 @@ const CGameListCtrl *CFrame::GetGameListCtrl() const
 
 void CFrame::PollHotkeys(wxTimerEvent& event)
 {
+	if (!HotkeyManagerEmu::IsEnabled())
+		return;
+
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
 		g_controller_interface.UpdateInput();
 
 	if (Core::GetState() != Core::CORE_STOPPING)
 	{
+		HotkeyManagerEmu::GetStatus();
 		wxKeyEvent keyevent = 0;
 
 		if (IsHotkey(keyevent, HK_TOGGLE_THROTTLE))
@@ -1893,24 +1903,26 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 	{
 		State::Load(g_saveSlot);
 	}
-	else if (IsHotkey(event, HK_DECREASE_DEPTH))
+	else if (IsHotkey(event, HK_DECREASE_DEPTH, true))
 	{
 		if (--g_Config.iStereoDepth < 0)
 			g_Config.iStereoDepth = 0;
 	}
-	else if (IsHotkey(event, HK_INCREASE_DEPTH))
+	else if (IsHotkey(event, HK_INCREASE_DEPTH, true))
 	{
 		if (++g_Config.iStereoDepth > 100)
 			g_Config.iStereoDepth = 100;
 	}
-	else if (IsHotkey(event, HK_DECREASE_CONVERGENCE))
+	else if (IsHotkey(event, HK_DECREASE_CONVERGENCE, true))
 	{
-		if (--g_Config.iStereoConvergence < 0)
+		g_Config.iStereoConvergence -= 5;
+		if (g_Config.iStereoConvergence < 0)
 			g_Config.iStereoConvergence = 0;
 	}
-	else if (IsHotkey(event, HK_INCREASE_CONVERGENCE))
+	else if (IsHotkey(event, HK_INCREASE_CONVERGENCE, true))
 	{
-		if (++g_Config.iStereoConvergence > 500)
+		g_Config.iStereoConvergence += 5;
+		if (g_Config.iStereoConvergence > 500)
 			g_Config.iStereoConvergence = 500;
 	}
 
@@ -1927,25 +1939,26 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		}
 
 		unsigned int i = NUM_HOTKEYS;
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
+		for (i = 0; i < NUM_HOTKEYS; i++)
 		{
-			for (i = 0; i < NUM_HOTKEYS; i++)
+			bool held = false;
+			if (i == HK_FRAME_ADVANCE)
+				held = true;
+
+			if (IsHotkey(event, i, held))
 			{
-				if (IsHotkey(event, i))
+				int cmd = GetCmdForHotkey(i);
+				if (cmd >= 0)
 				{
-					int cmd = GetCmdForHotkey(i);
-					if (cmd >= 0)
+					wxCommandEvent evt(wxEVT_MENU, cmd);
+					wxMenuItem* item = GetMenuBar()->FindItem(cmd);
+					if (item && item->IsCheckable())
 					{
-						wxCommandEvent evt(wxEVT_MENU, cmd);
-						wxMenuItem *item = GetMenuBar()->FindItem(cmd);
-						if (item && item->IsCheckable())
-						{
-							item->wxMenuItemBase::Toggle();
-							evt.SetInt(item->IsChecked());
-						}
-						GetEventHandler()->AddPendingEvent(evt);
-						break;
+						item->wxMenuItemBase::Toggle();
+						evt.SetInt(item->IsChecked());
 					}
+					GetEventHandler()->AddPendingEvent(evt);
+					break;
 				}
 			}
 		}
@@ -1965,7 +1978,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 	// Actually perform the Wiimote connection or disconnection
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if (WiimoteId >= 0)
+		if (WiimoteId >= 0 && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			wxCommandEvent evt;
 			evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);

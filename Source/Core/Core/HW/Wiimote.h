@@ -36,6 +36,7 @@ namespace Wiimote
 
 void Shutdown();
 void Initialize(void* const hwnd, bool wait = false);
+void LoadConfig();
 void Resume();
 void Pause();
 

@@ -79,11 +79,11 @@ private:
 		ARM64FloatEmitter float_emit(m_emit);
 
 		m_emit->ABI_PushRegisters(m_gprs_in_use);
-		float_emit.ABI_PushRegisters(m_fprs_in_use);
+		float_emit.ABI_PushRegisters(m_fprs_in_use, X1);
 			m_emit->MOVI2R(W1, m_address);
 			m_emit->MOV(W2, m_src_reg);
 			m_emit->BLR(m_emit->ABI_SetupLambda(lambda));
-		float_emit.ABI_PopRegisters(m_fprs_in_use);
+		float_emit.ABI_PopRegisters(m_fprs_in_use, X1);
 		m_emit->ABI_PopRegisters(m_gprs_in_use);
 	}
 
@@ -179,10 +179,10 @@ private:
 		ARM64FloatEmitter float_emit(m_emit);
 
 		m_emit->ABI_PushRegisters(m_gprs_in_use);
-		float_emit.ABI_PushRegisters(m_fprs_in_use);
+		float_emit.ABI_PushRegisters(m_fprs_in_use, X1);
 			m_emit->MOVI2R(W1, m_address);
 			m_emit->BLR(m_emit->ABI_SetupLambda(lambda));
-		float_emit.ABI_PopRegisters(m_fprs_in_use);
+		float_emit.ABI_PopRegisters(m_fprs_in_use, X1);
 		m_emit->ABI_PopRegisters(m_gprs_in_use);
 
 		if (m_sign_extend)

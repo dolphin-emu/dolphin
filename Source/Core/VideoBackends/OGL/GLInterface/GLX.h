@@ -17,7 +17,6 @@ private:
 	Display *dpy, *dpy_offscreen;
 	Window win;//, win_offscreen;
 	GLXContext ctx, ctx_offscreen;
-	XVisualInfo *vi;
 	GLXFBConfig fbconfig;
 public:
 	const Display* getDisplay() {return dpy;};

@@ -138,8 +138,6 @@ bool DolphinApp::OnInit()
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
 	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
 
-	InitLanguageSupport();
-
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
@@ -287,6 +285,7 @@ bool DolphinApp::OnInit()
 
 	UICommon::SetUserDirectory(userPath.ToStdString());
 	UICommon::CreateDirectories();
+	InitLanguageSupport();	// The language setting is loaded from the user directory
 	UICommon::Init();
 
 	if (selectPerfDir)

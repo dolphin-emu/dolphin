@@ -12,11 +12,15 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -28,11 +32,13 @@ import org.dolphinemu.dolphinemu.AssetCopyService;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.about.AboutActivity;
+import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
 import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowser;
 import org.dolphinemu.dolphinemu.settings.PrefsActivity;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuAdapter;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuItem;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +55,8 @@ public final class GameListActivity extends Activity
 	private DrawerLayout mDrawerLayout;
 	private SideMenuAdapter mDrawerAdapter;
 	private ListView mDrawerList;
+	private boolean mAutoStart = false;
+	private String mAutoStartFile = "";
 
 	/**
 	 * Called from the {@link GameListFragment}.
@@ -65,6 +73,7 @@ public final class GameListActivity extends Activity
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.gamelist_activity);
 
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -104,6 +113,13 @@ public final class GameListActivity extends Activity
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
+		CheckForIntent();
+
+		String BaseDir = NativeLibrary.GetUserDirectory();
+		final String DefaultDir = Environment.getExternalStorageDirectory() + File.separator + "dolphin-emu";
+		if (BaseDir.isEmpty())
+			BaseDir = DefaultDir;
+		NativeLibrary.SetUserDirectory(BaseDir);
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
@@ -118,7 +134,6 @@ public final class GameListActivity extends Activity
 			ft.replace(R.id.content_frame, gameList);
 			ft.commit();
 		}
-		
 
 		// Create an alert telling them that their phone sucks
 		if (Build.CPU_ABI.contains("arm") && !NativeLibrary.SupportsNEON())
@@ -135,6 +150,49 @@ public final class GameListActivity extends Activity
 			});
 			builder.show();
 		}
+
+		if (mAutoStart)
+		{
+			// Start the emulation activity
+			Intent intent = new Intent(this, EmulationActivity.class);
+			intent.putExtra("SelectedGame", mAutoStartFile);
+			startActivity(intent);
+		}
+	}
+
+	private void CheckForIntent()
+	{
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		boolean handled = prefs.getBoolean("HandledIntent", false);
+
+		// Get an editor.
+		SharedPreferences.Editor editor = prefs.edit();
+
+		Bundle extras = getIntent().getExtras();
+
+		if (!handled && extras != null)
+		{
+			// Application got passed extra data
+			editor.putBoolean("HandledIntent", true);
+			editor.apply();
+
+			// Did we get passed a new user directory?
+			String user_dir = extras.getString("UserDir");
+			if (user_dir != null && user_dir.length() != 0)
+				NativeLibrary.SetUserDirectory(user_dir);
+
+			// Did we get passed a file?
+			String start_file = extras.getString("AutoStartFile");
+			if (start_file != null && start_file.length() != 0)
+			{
+				mAutoStart = true;
+				mAutoStartFile = start_file;
+			}
+			return;
+		}
+
+		editor.putBoolean("HandledIntent", false);
+		editor.apply();
 	}
 
 	/**

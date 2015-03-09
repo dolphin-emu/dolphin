@@ -476,7 +476,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
 	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
-	core->Set("GameCubeAdapterThread", m_GameCubeAdapterThread);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -782,7 +781,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
 	m_LocalCoreStartupParameter.m_GPUDeterminismMode = ParseGPUDeterminismMode(m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
-	core->Get("GameCubeAdapterThread",     &m_GameCubeAdapterThread,                       true);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

@@ -312,7 +312,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		if (accessSize != 64 && mmioAddress)
 		{
 			MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
-				            address, accessSize, signExtend);
+			              mmioAddress, accessSize, signExtend);
 			return;
 		}
 

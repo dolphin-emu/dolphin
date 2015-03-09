@@ -35,12 +35,12 @@ public:
 	virtual std::vector<std::string> GetNames() const = 0;
 	virtual u32 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
+
 	virtual bool IsDiscTwo() const { return false; }
 	virtual bool IsWiiDisc() const { return false; }
 	virtual bool IsWadFile() const { return false; }
 	virtual bool SupportsIntegrityCheck() const { return false; }
 	virtual bool CheckIntegrity() const { return false; }
-
 	virtual bool ChangePartition(u64 offset) { return false; }
 
 	// Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
@@ -71,7 +71,7 @@ public:
 };
 
 // Generic Switch function for all volumes
-IVolume::ECountry CountrySwitch(u8 CountryCode);
+IVolume::ECountry CountrySwitch(u8 country_code);
 u8 GetSysMenuRegion(u16 _TitleVersion);
 
 } // namespace

@@ -190,12 +190,12 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
-		m_float_emit.ABI_PushRegisters(fprs_in_use);
+		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
 		EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			VD, XA);
-		m_float_emit.ABI_PopRegisters(fprs_in_use);
+		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
 		ABI_PopRegisters(regs_in_use);
 	}
 
@@ -406,9 +406,9 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 		else
 		{
 			ABI_PushRegisters(regs_in_use);
-			m_float_emit.ABI_PushRegisters(fprs_in_use);
+			m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
 			EmitBackpatchRoutine(this, flags, false, false, V0, XA);
-			m_float_emit.ABI_PopRegisters(fprs_in_use);
+			m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
 			ABI_PopRegisters(regs_in_use);
 		}
 	}
@@ -417,12 +417,12 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
-		m_float_emit.ABI_PushRegisters(fprs_in_use);
+		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
 		EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			V0, XA);
-		m_float_emit.ABI_PopRegisters(fprs_in_use);
+		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
 		ABI_PopRegisters(regs_in_use);
 	}
 	gpr.Unlock(W0, W1, W30);

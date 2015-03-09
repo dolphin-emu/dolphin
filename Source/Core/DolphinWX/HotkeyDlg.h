@@ -29,7 +29,7 @@ class HotkeyConfigDialog : public wxDialog
 public:
 	HotkeyConfigDialog(wxWindow* parent,
 			wxWindowID id = wxID_ANY,
-			const wxString &title = _("Menu Accelerators"),
+			const wxString &title = _("Key Shortcuts"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);

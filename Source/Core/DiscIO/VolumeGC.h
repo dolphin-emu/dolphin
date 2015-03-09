@@ -30,10 +30,12 @@ public:
 	std::vector<std::string> GetNames() const override;
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
+
+	bool IsDiscTwo() const override;
+
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
-	bool IsDiscTwo() const override;
 
 	typedef std::string(*StringDecoder)(const std::string&);
 

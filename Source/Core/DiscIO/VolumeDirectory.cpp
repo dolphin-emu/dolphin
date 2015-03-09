@@ -140,9 +140,9 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
 			if (!reader->Read(fileOffset, fileBytes, _pBuffer))
 				return false;
 
-			_Length -= fileBytes;
+			_Length  -= fileBytes;
 			_pBuffer += fileBytes;
-			_Offset += fileBytes;
+			_Offset  += fileBytes;
 		}
 
 		++fileIter;
@@ -174,9 +174,9 @@ void CVolumeDirectory::SetUniqueID(const std::string& id)
 
 IVolume::ECountry CVolumeDirectory::GetCountry() const
 {
-	u8 CountryCode = m_diskHeader[3];
+	u8 country_code = m_diskHeader[3];
 
-	return CountrySwitch(CountryCode);
+	return CountrySwitch(country_code);
 }
 
 std::string CVolumeDirectory::GetMakerID() const
