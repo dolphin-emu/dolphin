@@ -66,6 +66,8 @@ protected:
 	// Set on connection and (standard pad only) on button combo
 	SOrigin m_Origin;
 
+	bool m_Calibrated;
+
 	// PADAnalogMode
 	u8 m_Mode;
 
@@ -101,6 +103,9 @@ public:
 
 	// Savestate support
 	virtual void DoState(PointerWrap& p) override;
+
+private:
+	void Calibrate();
 };
 
 
