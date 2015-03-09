@@ -183,7 +183,7 @@ bool cInterfaceGLX::CreateOffscreen()
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
 
 	// Get an appropriate visual
-	vi = glXChooseVisual(dpy_offscreen, screen, attrListDbl);
+	XVisualInfo* vi = glXChooseVisual(dpy_offscreen, screen, attrListDbl);
 	if (vi == nullptr)
 	{
 		vi = glXChooseVisual(dpy_offscreen, screen, attrListSgl);
