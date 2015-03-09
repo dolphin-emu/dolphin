@@ -42,7 +42,7 @@ void Resources::Init()
 
 	m_platforms.resize(3);
 	m_platforms[0].load(GIFN("Platform_Gamecube"));
-	m_platforms[1].load(GIFN("Platform_Wii"));
+	m_platforms[1].load(GIFN("Platform_wii"));
 	m_platforms[2].load(GIFN("Platform_Wad"));
 
 	m_ratings.resize(6);
@@ -84,10 +84,10 @@ QString Resources::GetImageFilename(QString name, QString dir)
 {
 	if (qApp->devicePixelRatio() >= 2)
 	{
-		QString fileName = name;
-		fileName.prepend(dir).append(SL("@2x.png"));
-		if (QFile::exists(fileName))
-			return fileName;
+		QString file_name = name;
+		file_name.prepend(dir).append(SL("@2x.png"));
+		if (QFile::exists(file_name))
+			return file_name;
 	}
 	return name.prepend(dir).append(SL(".png"));
 }

@@ -47,14 +47,14 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
 	, m_Revision(0)
-	, m_Valid(false)
+	, m_valid(false)
 	, m_BlobCompressed(false)
 	, m_ImageWidth(0)
 	, m_ImageHeight(0)
 {
 	if (LoadFromCache())
 	{
-		m_Valid = true;
+		m_valid = true;
 	}
 	else
 	{
@@ -110,7 +110,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			delete pVolume;
 
-			m_Valid = true;
+			m_valid = true;
 
 			// Create a cache file only if we have an image.
 			// Wii ISOs create their images after you have generated the first savegame

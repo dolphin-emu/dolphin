@@ -132,8 +132,8 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 	for (const TMemCheck& bp : m_MemChecks)
 	{
 		std::stringstream mc;
-		mc << std::hex << bp.StartAddress;
-		mc << " " << (bp.bRange ? bp.EndAddress : bp.StartAddress) << " " <<
+		mc << std::hex << bp.start_address;
+		mc << " " << (bp.bRange ? bp.end_address : bp.start_address) << " " <<
 			(bp.bRange ? "n" : "") << (bp.OnRead ? "r" : "") <<
 			(bp.OnWrite ? "w" : "") << (bp.Log ? "l" : "") << (bp.Break ? "p" : "");
 		mcs.push_back(mc.str());
@@ -149,23 +149,23 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 		TMemCheck mc;
 		std::stringstream ss;
 		ss << std::hex << mcstr;
-		ss >> mc.StartAddress;
+		ss >> mc.start_address;
 		mc.bRange  = mcstr.find("n") != mcstr.npos;
 		mc.OnRead  = mcstr.find("r") != mcstr.npos;
 		mc.OnWrite = mcstr.find("w") != mcstr.npos;
 		mc.Log     = mcstr.find("l") != mcstr.npos;
 		mc.Break   = mcstr.find("p") != mcstr.npos;
 		if (mc.bRange)
-			ss >> mc.EndAddress;
+			ss >> mc.end_address;
 		else
-			mc.EndAddress = mc.StartAddress;
+			mc.end_address = mc.start_address;
 		Add(mc);
 	}
 }
 
 void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 {
-	if (GetMemCheck(_rMemoryCheck.StartAddress) == nullptr)
+	if (GetMemCheck(_rMemoryCheck.start_address) == nullptr)
 		m_MemChecks.push_back(_rMemoryCheck);
 }
 
@@ -173,7 +173,7 @@ void MemChecks::Remove(u32 _Address)
 {
 	for (auto i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
 	{
-		if (i->StartAddress == _Address)
+		if (i->start_address == _Address)
 		{
 			m_MemChecks.erase(i);
 			return;
@@ -187,10 +187,10 @@ TMemCheck *MemChecks::GetMemCheck(u32 address)
 	{
 		if (bp.bRange)
 		{
-			if (address >= bp.StartAddress && address <= bp.EndAddress)
+			if (address >= bp.start_address && address <= bp.end_address)
 				return &(bp);
 		}
-		else if (bp.StartAddress == address)
+		else if (bp.start_address == address)
 		{
 			return &(bp);
 		}

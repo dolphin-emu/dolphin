@@ -98,7 +98,7 @@ public:
 	CNANDContentLoader(const std::string& _rName);
 	virtual ~CNANDContentLoader();
 
-	bool IsValid() const override { return m_Valid; }
+	bool IsValid() const override { return m_valid; }
 	void RemoveTitle() const override;
 	u64 GetTitleID() const override  { return m_title_ID; }
 	u16 GetIosVersion() const override { return m_IosVersion; }
@@ -118,7 +118,7 @@ public:
 	u8 GetCountryChar() const override { return m_country; }
 
 private:
-	bool m_Valid;
+	bool m_valid;
 	bool m_is_WAD;
 	std::string m_Path;
 	u64 m_title_ID;
@@ -144,7 +144,7 @@ private:
 
 
 CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
-	: m_Valid(false)
+	: m_valid(false)
 	, m_is_WAD(false)
 	, m_title_ID(-1)
 	, m_IosVersion(0x09)
@@ -152,7 +152,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	, m_ticket_size(0)
 	, m_ticket(nullptr)
 {
-	m_Valid = Initialize(_rName);
+	m_valid = Initialize(_rName);
 }
 
 CNANDContentLoader::~CNANDContentLoader()
@@ -445,11 +445,11 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 	}
 }
 
-u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
+u64 CNANDContentManager::Install_WiiWAD(std::string &file_name)
 {
-	if (fileName.find(".wad") == std::string::npos)
+	if (file_name.find(".wad") == std::string::npos)
 		return 0;
-	const INANDContentLoader& ContentLoader = GetNANDLoader(fileName);
+	const INANDContentLoader& ContentLoader = GetNANDLoader(file_name);
 	if (ContentLoader.IsValid() == false)
 		return 0;
 

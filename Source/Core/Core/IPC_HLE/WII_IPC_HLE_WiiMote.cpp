@@ -905,7 +905,7 @@ namespace Core
 		DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(pData, _Size, 50).c_str());
 		DEBUG_LOG(WIIMOTE, "   Channel: %x", _channelID);
 
-		s_Usb->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
+		s_Usb->m_wiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
 	}
 }
 

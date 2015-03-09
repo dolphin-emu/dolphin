@@ -69,7 +69,7 @@ class CNANDContentManager
 {
 public:
 	static CNANDContentManager& Access() { return m_Instance; }
-	u64 Install_WiiWAD(std::string &fileName);
+	u64 Install_WiiWAD(std::string &file_name);
 
 	const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
 	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);

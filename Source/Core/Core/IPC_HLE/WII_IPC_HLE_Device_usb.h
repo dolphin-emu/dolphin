@@ -67,7 +67,7 @@ public:
 
 // hack for Wiimote plugin
 public:
-	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
+	std::vector<CWII_IPC_HLE_WiiMote> m_wiiMotes;
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
 

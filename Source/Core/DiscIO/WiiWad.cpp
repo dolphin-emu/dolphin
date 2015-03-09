@@ -38,16 +38,16 @@ WiiWAD::WiiWAD(const std::string& name)
 	std::unique_ptr<IBlobReader> reader(DiscIO::CreateBlobReader(name));
 	if (reader == nullptr || File::IsDirectory(name))
 	{
-		m_Valid = false;
+		m_valid = false;
 		return;
 	}
 
-	m_Valid = ParseWAD(*reader);
+	m_valid = ParseWAD(*reader);
 }
 
 WiiWAD::~WiiWAD()
 {
-	if (m_Valid)
+	if (m_valid)
 	{
 		delete m_pCertificateChain;
 		delete m_pTicket;

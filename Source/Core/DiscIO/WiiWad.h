@@ -21,7 +21,7 @@ public:
 
 	~WiiWAD();
 
-	bool IsValid() const { return m_Valid; }
+	bool IsValid() const { return m_valid; }
 	u32 GetCertificateChainSize() const { return m_cert_chain_size; }
 	u32 GetTicketSize() const { return m_ticket_size; }
 	u32 GetTMDSize() const { return m_TMD_size; }
@@ -38,7 +38,7 @@ public:
 
 private:
 
-	bool m_Valid;
+	bool m_valid;
 
 	u32 m_cert_chain_size;
 	u32 m_ticket_size;

@@ -94,7 +94,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 // Disc detection and swapping
 void SetDiscInside(bool _DiscInside);
 bool IsDiscInside();
-void ChangeDisc(const std::string& fileName);
+void ChangeDisc(const std::string& file_name);
 
 // DVD Access Functions
 bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool decrypt);

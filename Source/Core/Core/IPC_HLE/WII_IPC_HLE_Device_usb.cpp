@@ -77,7 +77,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 			memcpy(BT_DINF.active[i].name, wmName, 20);
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
+			m_wiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
 			i++;
 		}
 
@@ -102,7 +102,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {
-	m_WiiMotes.clear();
+	m_wiiMotes.clear();
 	SetUsbPointer(nullptr);
 }
 
@@ -121,7 +121,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	m_acl_pool.DoState(p);
 
 	for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-		m_WiiMotes[i].DoState(p);
+		m_wiiMotes[i].DoState(p);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle)
@@ -449,7 +449,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Create ACL connection
 	if (m_HCIEndpoint.IsValid() && (m_ScanEnable & HCI_PAGE_SCAN_ENABLE))
 	{
-		for (auto& wiimote : m_WiiMotes)
+		for (auto& wiimote : m_wiiMotes)
 		{
 			if (wiimote.EventPagingChanged(m_ScanEnable))
 			{
@@ -462,7 +462,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Link channels when connected
 	if (m_ACLEndpoint.IsValid())
 	{
-		for (auto& wiimote : m_WiiMotes)
+		for (auto& wiimote : m_wiiMotes)
 		{
 			if (wiimote.LinkChannel())
 				break;
@@ -475,8 +475,8 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	if (now - m_last_ticks > interval)
 	{
-		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
-			if (m_WiiMotes[i].IsConnected())
+		for (unsigned int i = 0; i < m_wiiMotes.size(); i++)
+			if (m_wiiMotes[i].IsConnected())
 			{
 				Wiimote::Update(i);
 			}
@@ -552,31 +552,31 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryComplete()
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 {
-	if (m_WiiMotes.empty())
+	if (m_wiiMotes.empty())
 		return false;
 
-	_dbg_assert_(WII_IPC_WIIMOTE, sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response)) < 256);
+	_dbg_assert_(WII_IPC_WIIMOTE, sizeof(SHCIEventInquiryResult) - 2 + (m_wiiMotes.size() * sizeof(hci_inquiry_response)) < 256);
 
-	SQueuedEvent Event(static_cast<u32>(sizeof(SHCIEventInquiryResult) + m_WiiMotes.size()*sizeof(hci_inquiry_response)), 0);
+	SQueuedEvent Event(static_cast<u32>(sizeof(SHCIEventInquiryResult) + m_wiiMotes.size()*sizeof(hci_inquiry_response)), 0);
 
 	SHCIEventInquiryResult* pInquiryResult = (SHCIEventInquiryResult*)Event.m_buffer;
 
 	pInquiryResult->EventType = HCI_EVENT_INQUIRY_RESULT;
-	pInquiryResult->PayloadLength = (u8)(sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response)));
-	pInquiryResult->num_responses = (u8)m_WiiMotes.size();
+	pInquiryResult->PayloadLength = (u8)(sizeof(SHCIEventInquiryResult) - 2 + (m_wiiMotes.size() * sizeof(hci_inquiry_response)));
+	pInquiryResult->num_responses = (u8)m_wiiMotes.size();
 
-	for (size_t i=0; i < m_WiiMotes.size(); i++)
+	for (size_t i=0; i < m_wiiMotes.size(); i++)
 	{
-		if (m_WiiMotes[i].IsConnected())
+		if (m_wiiMotes[i].IsConnected())
 			continue;
 
 		u8* pBuffer = Event.m_buffer + sizeof(SHCIEventInquiryResult) + i*sizeof(hci_inquiry_response);
 		hci_inquiry_response* pResponse = (hci_inquiry_response*)pBuffer;
 
-		pResponse->bdaddr = m_WiiMotes[i].GetBD();
-		pResponse->uclass[0]= m_WiiMotes[i].GetClass()[0];
-		pResponse->uclass[1]= m_WiiMotes[i].GetClass()[1];
-		pResponse->uclass[2]= m_WiiMotes[i].GetClass()[2];
+		pResponse->bdaddr = m_wiiMotes[i].GetBD();
+		pResponse->uclass[0]= m_wiiMotes[i].GetClass()[0];
+		pResponse->uclass[1]= m_wiiMotes[i].GetClass()[1];
+		pResponse->uclass[2]= m_wiiMotes[i].GetClass()[2];
 
 		pResponse->page_scan_rep_mode = 1;
 		pResponse->page_scan_period_mode = 0;
@@ -879,7 +879,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 {
-	SQueuedEvent Event((u32)(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) + (sizeof(hci_num_compl_pkts_info) * m_WiiMotes.size())), 0);
+	SQueuedEvent Event((u32)(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) + (sizeof(hci_num_compl_pkts_info) * m_wiiMotes.size())), 0);
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");
 
@@ -893,12 +893,12 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 
 	u32 acc = 0;
 
-	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+	for (unsigned int i = 0; i < m_wiiMotes.size(); i++)
 	{
 		event_hdr->length += sizeof(hci_num_compl_pkts_info);
 		event->num_con_handles++;
 		info->compl_pkts = m_PacketCount[i];
-		info->con_handle = m_WiiMotes[i].GetConnectionHandle();
+		info->con_handle = m_wiiMotes[i].GetConnectionHandle();
 
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", info->con_handle);
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Number_Of_Completed_Packets: %i", info->compl_pkts);
@@ -964,8 +964,8 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventLinkKeyNotification(const u8 
 	{
 		hci_link_key_rep_cp* link_key_info
 			= (hci_link_key_rep_cp*)((u8*)&pEventLinkKey->bdaddr + sizeof(hci_link_key_rep_cp) * i);
-		link_key_info->bdaddr = m_WiiMotes[i].GetBD();
-		memcpy(link_key_info->key, m_WiiMotes[i].GetLinkKey(), HCI_KEY_SIZE);
+		link_key_info->bdaddr = m_wiiMotes[i].GetBD();
+		memcpy(link_key_info->key, m_wiiMotes[i].GetLinkKey(), HCI_KEY_SIZE);
 
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 			link_key_info->bdaddr.b[0], link_key_info->bdaddr.b[1], link_key_info->bdaddr.b[2],
@@ -1517,7 +1517,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 
 	if (ReadStoredLinkKey->read_all == 1)
 	{
-		Reply.num_keys_read = (u16)m_WiiMotes.size();
+		Reply.num_keys_read = (u16)m_wiiMotes.size();
 	}
 	else
 	{
@@ -1832,7 +1832,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 //
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const bdaddr_t& _rAddr)
 {
-	for (auto& wiimote : m_WiiMotes)
+	for (auto& wiimote : m_wiiMotes)
 	{
 		const bdaddr_t& BD = wiimote.GetBD();
 		if ((_rAddr.b[0] == BD.b[0]) &&
@@ -1851,7 +1851,7 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _ConnectionHandle)
 {
-	for (auto& wiimote : m_WiiMotes)
+	for (auto& wiimote : m_wiiMotes)
 	{
 		if (wiimote.GetConnectionHandle() == _ConnectionHandle)
 			return &wiimote;

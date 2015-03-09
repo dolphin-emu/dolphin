@@ -340,7 +340,7 @@ private:
 
 public:
 
-	GCMemcard(const std::string& fileName, bool forceCreation=false, bool sjis=false);
+	GCMemcard(const std::string& file_name, bool forceCreation=false, bool sjis=false);
 	bool IsValid() const { return m_valid; }
 	bool IsAsciiEncoding() const;
 	bool Save();
@@ -399,7 +399,7 @@ public:
 	u32 ImportGci(const std::string& inputFile,const std::string &outputFile);
 
 	// writes a .gci file to disk containing index
-	u32 ExportGci(u8 index, const std::string& fileName, const std::string &directory) const;
+	u32 ExportGci(u8 index, const std::string& file_name, const std::string &directory) const;
 
 	// GCI files are untouched, SAV files are byteswapped
 	// GCS files have the block count set, default is 1 (For export as GCS)

@@ -45,8 +45,8 @@ static QStringList VectorToStringList(std::vector<std::string> vec, bool trim = 
 	return result;
 }
 
-GameFile::GameFile(const QString& fileName)
-    : m_file_name(fileName)
+GameFile::GameFile(const QString& file_name)
+    : m_file_name(file_name)
 {
 	bool hasBanner = false;
 
@@ -57,7 +57,7 @@ GameFile::GameFile(const QString& fileName)
 	}
 	else
 	{
-		DiscIO::IVolume* volume = DiscIO::CreateVolumeFromFilename(fileName.toStdString());
+		DiscIO::IVolume* volume = DiscIO::CreateVolumeFromFilename(file_name.toStdString());
 
 		if (volume != nullptr)
 		{
@@ -73,7 +73,7 @@ GameFile::GameFile(const QString& fileName)
 			m_volume_size = volume->GetSize();
 
 			m_unique_id = QString::fromStdString(volume->GetUniqueID());
-			m_compressed = DiscIO::IsCompressedBlob(fileName.toStdString());
+			m_compressed = DiscIO::IsCompressedBlob(file_name.toStdString());
 			m_is_disc_two = volume->IsDiscTwo();
 			m_revision = volume->GetRevision();
 

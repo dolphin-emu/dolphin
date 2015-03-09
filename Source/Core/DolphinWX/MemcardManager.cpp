@@ -533,7 +533,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot = SLOT_A;
 	case ID_SAVEIMPORT_B:
 	{
-		wxString fileName = wxFileSelector(
+		wxString file_name = wxFileSelector(
 			_("Select a save file to import"),
 			(strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0)
 				? StrToWxStr("")
@@ -544,7 +544,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			_("MadCatz Gameshark files(*.gcs)") + wxString("|*.gcs|") +
 			_("Datel MaxDrive/Pro files(*.sav)") + wxString("|*.sav"),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
-		if (!fileName.empty() && !fileName2.empty())
+		if (!file_name.empty() && !fileName2.empty())
 		{
 			wxString temp2 = wxFileSelector(_("Save GCI as..."),
 				wxEmptyString, wxEmptyString, ".gci",
@@ -556,9 +556,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 			fileName2 = WxStrToStr(temp2);
 		}
-		if (fileName.length() > 0)
+		if (file_name.length() > 0)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ImportGci(WxStrToStr(fileName), fileName2), slot);
+			CopyDeleteSwitch(memoryCard[slot]->ImportGci(WxStrToStr(file_name), fileName2), slot);
 		}
 	}
 	break;
@@ -575,7 +575,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				wxMessageBox(_("Invalid index"), _("Error"));
 				return;
 			}
-			wxString fileName = wxFileSelector(
+			wxString file_name = wxFileSelector(
 				_("Export save as..."),
 				StrToWxStr(DefaultIOPath),
 				StrToWxStr(gciFilename), ".gci",
@@ -584,11 +584,11 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				_("Datel MaxDrive/Pro files(*.sav)") + wxString("|*.sav"),
 				wxFD_OVERWRITE_PROMPT | wxFD_SAVE, this);
 
-			if (fileName.length() > 0)
+			if (file_name.length() > 0)
 			{
-				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, WxStrToStr(fileName), ""), -1))
+				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, WxStrToStr(file_name), ""), -1))
 				{
-					File::Delete(WxStrToStr(fileName));
+					File::Delete(WxStrToStr(file_name));
 				}
 			}
 		}
@@ -628,12 +628,12 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	}
 }
 
-bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
+bool CMemcardManager::ReloadMemcard(const std::string& file_name, int card)
 {
 	if (memoryCard[card]) delete memoryCard[card];
 
 	// TODO: add error checking and animate icons
-	memoryCard[card] = new GCMemcard(fileName);
+	memoryCard[card] = new GCMemcard(file_name);
 
 	if (!memoryCard[card]->IsValid())
 		return false;

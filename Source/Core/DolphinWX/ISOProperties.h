@@ -61,7 +61,7 @@ extern PHackData PHack_Data;
 class CISOProperties : public wxDialog
 {
 public:
-	CISOProperties(const std::string fileName,
+	CISOProperties(const std::string file_name,
 			wxWindow* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = _("Properties"),

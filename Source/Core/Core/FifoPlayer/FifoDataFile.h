@@ -85,7 +85,7 @@ private:
 	bool GetFlag(u32 flag) const;
 
 	u64 WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates, File::IOFile &file);
-	static void ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector<MemoryUpdate> &memUpdates, File::IOFile &file);
+	static void ReadMemoryUpdates(u64 file_offset, u32 numUpdates, std::vector<MemoryUpdate> &memUpdates, File::IOFile &file);
 
 	u32 m_BPMem[BP_MEM_SIZE];
 	u32 m_CPMem[CP_MEM_SIZE];

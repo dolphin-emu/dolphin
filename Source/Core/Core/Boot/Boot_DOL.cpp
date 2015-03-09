@@ -84,10 +84,10 @@ void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 
 	for (int i = 0; i < DOL_NUM_DATA; i++)
 	{
-		if (m_dolheader.dataOffset[i] != 0)
+		if (m_dolheader.data_offset[i] != 0)
 		{
 			data_section[i] = new u8[m_dolheader.dataSize[i]];
-			memcpy(data_section[i], _pBuffer + m_dolheader.dataOffset[i], m_dolheader.dataSize[i]);
+			memcpy(data_section[i], _pBuffer + m_dolheader.data_offset[i], m_dolheader.dataSize[i]);
 		}
 	}
 }
@@ -107,7 +107,7 @@ void CDolLoader::Load()
 	// load all data sections
 	for (int i = 0; i < DOL_NUM_DATA; i++)
 	{
-		if (m_dolheader.dataOffset[i] != 0)
+		if (m_dolheader.data_offset[i] != 0)
 		{
 			for (u32 num = 0; num < m_dolheader.dataSize[i]; num++)
 				Memory::Write_U8(data_section[i][num], m_dolheader.dataAddress[i] + num);

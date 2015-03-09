@@ -59,7 +59,7 @@ void stopdamnwav(){wav.Stop();ofile.close();}
 
 void Wiimote::SpeakerData(wm_speaker_data* sd)
 {
-	if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
+	if (!SConfig::GetInstance().m_wiimoteEnableSpeaker)
 		return;
 	if (m_reg_speaker.volume == 0 || m_reg_speaker.sample_rate == 0 || sd->length == 0)
 		return;

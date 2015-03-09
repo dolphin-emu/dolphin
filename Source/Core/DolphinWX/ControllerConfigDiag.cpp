@@ -295,7 +295,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 
 	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
 	continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);
-	continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
+	continuous_scanning->SetValue(SConfig::GetInstance().m_wiimoteContinuousScanning);
 
 	real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
 	real_wiimotes_sizer->AddStretchSpacer(1);
@@ -316,7 +316,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGeneralWiimoteSettingsSizer()
 
 	auto wiimote_speaker = new wxCheckBox(this, wxID_ANY, _("Enable Speaker Data"));
 	wiimote_speaker->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnEnableSpeaker, this);
-	wiimote_speaker->SetValue(SConfig::GetInstance().m_WiimoteEnableSpeaker);
+	wiimote_speaker->SetValue(SConfig::GetInstance().m_wiimoteEnableSpeaker);
 
 	wxStaticText* const WiiSensBarPosText = new wxStaticText(this, wxID_ANY, _("Sensor Bar Position:"));
 	wxStaticText* const WiiSensBarSensText = new wxStaticText(this, wxID_ANY, _("IR Sensitivity:"));

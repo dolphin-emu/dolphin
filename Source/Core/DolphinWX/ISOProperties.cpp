@@ -109,11 +109,11 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
-CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CISOProperties::CISOProperties(const std::string file_name, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	// Load ISO data
-	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
+	OpenISO = DiscIO::CreateVolumeFromFilename(file_name);
 	bool IsWad = OpenISO->IsWadFile();
 	if (OpenISO->IsWiiDisc())
 	{
@@ -122,7 +122,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 			{
 				WiiPartition temp;
-				if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
+				if ((temp.Partition = DiscIO::CreateVolumeFromFilename(file_name, group, i)) != nullptr)
 				{
 					if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
 					{
@@ -166,7 +166,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(game_id, OpenISO->GetRevision());
 
 	// Setup GUI
-	OpenGameListItem = new GameListItem(fileName);
+	OpenGameListItem = new GameListItem(file_name);
 
 	bRefreshList = false;
 

@@ -21,7 +21,7 @@ class CFileSystemGCWii : public IFileSystem
 public:
 	CFileSystemGCWii(const IVolume* _rVolume);
 	virtual ~CFileSystemGCWii();
-	virtual bool IsValid() const override { return m_Valid; }
+	virtual bool IsValid() const override { return m_valid; }
 	virtual u64 GetFileSize(const std::string& _rFullPath) override;
 	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) override;
 	virtual const std::string GetFileName(u64 _address) override;
@@ -33,13 +33,13 @@ public:
 	virtual u32 GetBootDOLSize() const override;
 
 private:
-	bool m_Initialized;
-	bool m_Valid;
-	bool m_Wii;
+	bool m_initialized;
+	bool m_valid;
+	bool m_wii;
 
 	std::vector <SFileInfo> m_FileInfoVector;
-	u32 Read32(u64 _Offset) const;
-	std::string GetStringFromOffset(u64 _Offset) const;
+	u32 Read32(u64 _offset) const;
+	std::string GetStringFromOffset(u64 _offset) const;
 	const SFileInfo* FindFileInfo(const std::string& _rFullPath);
 	bool DetectFileSystem();
 	void InitFileSystem();

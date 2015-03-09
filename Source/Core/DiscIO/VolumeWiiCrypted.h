@@ -24,7 +24,7 @@ class CVolumeWiiCrypted : public IVolume
 public:
 	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _volume_offset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
-	bool Read(u64 _Offset, u64 _length, u8* _pBuffer, bool decrypt) const override;
+	bool Read(u64 _offset, u64 _length, u8* _pBuffer, bool decrypt) const override;
 	bool GetTitleID(u8* _pBuffer) const override;
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
 	std::string GetUniqueID() const override;

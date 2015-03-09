@@ -1499,7 +1499,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
 {
-	std::string fileName;
+	std::string file_name;
 
 	switch (event.GetId())
 	{
@@ -1508,7 +1508,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 		const GameListItem *iso = m_GameListCtrl->GetSelectedISO();
 		if (!iso)
 			return;
-		fileName = iso->GetFileName();
+		file_name = iso->GetFileName();
 		break;
 	}
 	case IDM_MENU_INSTALL_WAD:
@@ -1519,7 +1519,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 			"Wii WAD file (*.wad)|*.wad",
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
-		fileName = WxStrToStr(path);
+		file_name = WxStrToStr(path);
 		break;
 	}
 	default:
@@ -1535,7 +1535,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 		wxPD_SMOOTH
 		);
 
-	u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
+	u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(file_name);
 	if (titleID == TITLEID_SYSMENU)
 	{
 		UpdateWiiMenuChoice();
