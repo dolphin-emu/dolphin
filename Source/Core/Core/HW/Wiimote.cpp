@@ -57,7 +57,7 @@ void Initialize(void* const hwnd, bool wait)
 
 void LoadConfig()
 {
-	s_config.LoadConfig(true);
+	s_config.LoadConfig(false);
 }
 
 

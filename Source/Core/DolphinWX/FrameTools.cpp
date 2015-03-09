@@ -1362,8 +1362,6 @@ void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 {
-	bool was_init = false;
-
 	InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
 
 	// check if game is running
@@ -1380,8 +1378,7 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 	m_ConfigFrame.ShowModal();
 
 	// Update references in case controllers were refreshed
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-		Wiimote::LoadConfig();
+	Wiimote::LoadConfig();
 	Keyboard::LoadConfig();
 	Pad::LoadConfig();
 	HotkeyManagerEmu::LoadConfig();
