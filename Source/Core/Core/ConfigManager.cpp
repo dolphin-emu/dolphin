@@ -332,7 +332,6 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
 	hotkeys->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
-	hotkeys->Set("FreeLookSensitivity", m_LocalCoreStartupParameter.fFreeLookSensitivity);
 
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
@@ -617,7 +616,6 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
 	hotkeys->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
-	hotkeys->Get("FreeLookSensitivity", &m_LocalCoreStartupParameter.fFreeLookSensitivity, 1.00);
 
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
