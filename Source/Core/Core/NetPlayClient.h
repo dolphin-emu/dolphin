@@ -9,6 +9,7 @@
 #include <sstream>
 #include <SFML/Network/Packet.hpp>
 #include "Common/CommonTypes.h"
+#include "Common/ENetUtil.h"
 #include "Common/FifoQueue.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -48,7 +49,6 @@ class NetPlayClient : public TraversalClientClient
 public:
 	void ThreadFunc();
 	void RunOnThread(std::function<void()> func);
-	void WakeupThread(ENetHost* host);
 
 	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, std::string centralServer, u16 centralPort);
 	~NetPlayClient();
