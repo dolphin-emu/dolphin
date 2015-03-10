@@ -150,15 +150,12 @@ void Setup()
 				{
 					ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
 				}
-				else
-				{
-					AddGCAdapter(device);
-					break;
-				}
 			}
-			else if ((ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED))
+			// this split is needed so that we don't avoid claiming the interface when
+			// detaching the kernel driver is successful
+			if (ret != 0)
 			{
-				ERROR_LOG(SERIALINTERFACE, "libusb_kernel_driver_active error ret = %d", ret);
+				continue;
 			}
 			else if ((ret = libusb_claim_interface(s_handle, 0)))
 			{
@@ -224,7 +221,7 @@ void Shutdown()
 
 void Reset()
 {
-	if (!SConfig::GetInstance().m_GameCubeAdapter)
+	if (!s_detected)
 		return;
 
 	if (s_adapter_thread_running.TestAndClear())
@@ -333,7 +330,7 @@ void Output(int chan, u8 rumble_command)
 
 bool IsDetected()
 {
-	return s_handle != nullptr;
+	return s_detected;
 }
 
 bool IsDriverDetected()
