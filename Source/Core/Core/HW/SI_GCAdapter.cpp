@@ -249,9 +249,15 @@ void Input(int chan, GCPadStatus* pad)
 	if (s_handle == nullptr)
 	{
 		if (s_detected)
+		{
 			Init();
+			if (s_handle == nullptr)
+				return;
+		}
 		else
+		{
 			return;
+		}
 	}
 
 	u8 controller_payload_copy[37];
