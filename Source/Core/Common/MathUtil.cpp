@@ -320,6 +320,22 @@ void Matrix33::Multiply(const Matrix33 &a, const float vec[3], float result[3])
 	}
 }
 
+void Matrix33::GetPieYawPitchRollR(const Matrix33 &m, float &yaw, float &pitch, float &roll)
+{
+	float s, c, cp;
+	pitch = asin(m.data[2 * 3 + 1]);
+	cp = cos(pitch);
+
+	//yaw:=arcsin(m[2][0]/cp);
+	s = m.data[2 * 3 + 0] / cp;
+	c = m.data[2 * 3 + 2] / cp;
+	yaw = atan2(s, c);
+
+	s = -m.data[0 * 3 + 1] / cp;
+	c = m.data[1 * 3 + 1] / cp;
+	roll = atan2(s, c);
+}
+
 void Matrix44::LoadIdentity(Matrix44 &mtx)
 {
 	memset(mtx.data, 0, sizeof(mtx.data));

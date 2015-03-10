@@ -48,10 +48,13 @@ const char *g_hmd_device_name = nullptr;
 float g_vr_speed = 0;
 float vr_freelook_speed = 0;
 bool g_fov_changed = false, g_vr_black_screen = false;
+bool g_vr_had_3D_already = false;
 float vr_widest_3d_HFOV = 0;
 float vr_widest_3d_VFOV = 0;
 float vr_widest_3d_zNear = 0;
 float vr_widest_3d_zFar = 0;
+float g_game_camera_pos[3];
+Matrix44 g_game_camera_rotmat;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -84,6 +87,7 @@ void NewVRFrame()
 {
 	g_new_tracking_frame = true;
 	g_new_frame_tracker_for_efb_skip = true;
+	g_vr_had_3D_already = false;
 	skip_objects_count = 0;
 	ClearDebugProj();
 

@@ -127,6 +127,16 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_lean);
 		}
+		// Game Camera Control
+		{
+			const wxString vr_choices[] = { _("Yaw, Pitch, and Roll"), _("Yaw and Pitch"), _("Yaw only"), _("None") };
+
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Let The Game Control:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iGameCameraControl, wxGetTranslation(cameracontrol_desc),
+				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+			szr_vr->Add(choice_vr, 1, 0, 0);
+			choice_vr->Select(vconfig.iGameCameraControl);
+		}
 		// VR Player
 		{
 			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
@@ -389,7 +399,8 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(spin);
 		}
 		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Don't Clear Screen"), wxGetTranslation(hudontop_desc), vconfig.bDontClearScreen));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Read Camera Angles"), wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For This Game Only"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

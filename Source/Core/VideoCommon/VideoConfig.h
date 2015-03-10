@@ -55,6 +55,14 @@ enum StereoMode
 	STEREO_VR920,
 };
 
+enum TGameCamera
+{
+	CAMERA_YAWPITCHROLL = 0,
+	CAMERA_YAWPITCH,
+	CAMERA_YAW,
+	CAMERA_NONE
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -188,6 +196,7 @@ struct VideoConfig final
 	float fMotionSicknessFOV;
 
 	int iVRPlayer;
+	int iGameCameraControl;
 	float fTimeWarpTweak;
 	u32 iExtraFrames;
 	u32 iExtraVideoLoops;
@@ -214,6 +223,7 @@ struct VideoConfig final
 	bool bHudFullscreen;
 	bool bHudOnTop;
 	bool bDontClearScreen;
+	bool bCanReadCameraAngles;
 	int iTelescopeEye;
 	int iMetroidPrime;
 	// VR layer debugging

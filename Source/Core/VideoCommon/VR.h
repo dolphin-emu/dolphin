@@ -119,12 +119,14 @@ extern float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3]
 extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
 extern const char *g_hmd_device_name;
 extern bool g_fov_changed, g_vr_black_screen;
+extern bool g_vr_had_3D_already;
 extern float vr_freelook_speed;
 extern float vr_widest_3d_HFOV;
 extern float vr_widest_3d_VFOV;
 extern float vr_widest_3d_zNear;
 extern float vr_widest_3d_zFar;
-
+extern float g_game_camera_pos[3];
+extern Matrix44 g_game_camera_rotmat;
 
 //Opcode Replay Buffer
 struct TimewarpLogEntry {

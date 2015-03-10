@@ -100,6 +100,7 @@ VideoConfig::VideoConfig()
 	fMotionSicknessFOV = 45.0f;
 
 	iVRPlayer = 0;
+	iGameCameraControl = CAMERA_YAW;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
 	iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
@@ -246,6 +247,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("MotionSicknessMethod", &iMotionSicknessMethod, 0);
 	vr->Get("MotionSicknessSkybox", &iMotionSicknessSkybox, 0);
 	vr->Get("MotionSicknessFOV", &fMotionSicknessFOV, DEFAULT_VR_MOTION_SICKNESS_FOV);
+	vr->Get("GameCameraControl", &iGameCameraControl, CAMERA_YAW);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
@@ -414,6 +416,7 @@ void VideoConfig::GameIniLoad()
 	bHudFullscreen = false;
 	bHudOnTop = false;
 	bDontClearScreen = false;
+	bCanReadCameraAngles = false;
 	iSelectedLayer = -2;
 	iFlashState = 0;
 
@@ -422,6 +425,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
 	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
 	CHECK_SETTING("VR", "DontClearScreen", bDontClearScreen);
+	CHECK_SETTING("VR", "CanReadCameraAngles", bCanReadCameraAngles);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
@@ -473,6 +477,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
+	SAVE_IF_NOT_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -509,6 +514,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	LOAD_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
+	LOAD_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
 	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	LOAD_DEFAULT("VR", "HudThickness", fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	LOAD_DEFAULT("VR", "Hud3DCloser", fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -657,6 +663,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("MotionSicknessSkybox", iMotionSicknessSkybox);
 	vr->Set("MotionSicknessFOV", fMotionSicknessFOV);
 	vr->Set("Player", iVRPlayer);
+	vr->Set("GameCameraControl", iGameCameraControl);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);
 	vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
@@ -698,6 +705,7 @@ bool VideoConfig::VRSettingsModified()
 		|| bHudFullscreen != g_SavedConfig.bHudFullscreen
 		|| bHudOnTop != g_SavedConfig.bHudOnTop
 		|| bDontClearScreen != g_SavedConfig.bDontClearScreen
+		|| bCanReadCameraAngles != g_SavedConfig.bCanReadCameraAngles
 		|| iTelescopeEye != g_SavedConfig.iTelescopeEye
 		|| iMetroidPrime != g_SavedConfig.iMetroidPrime;
 }

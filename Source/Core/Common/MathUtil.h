@@ -229,6 +229,8 @@ public:
 	static void Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result);
 	static void Multiply(const Matrix33 &a, const float vec[3], float result[3]);
 
+	static void GetPieYawPitchRollR(const Matrix33 &m, float &yaw, float &pitch, float &roll);
+
 	float data[9];
 };
 
