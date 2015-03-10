@@ -104,7 +104,7 @@ void Setup()
 		int dRet = libusb_get_device_descriptor(device, &desc);
 		if (dRet)
 		{
-			// could not aquire the descriptor, no point in trying to use it.
+			// could not acquire the descriptor, no point in trying to use it.
 			ERROR_LOG(SERIALINTERFACE, "libusb_get_device_descriptor failed with error: %d", dRet);
 			continue;
 		}
@@ -153,7 +153,7 @@ void Setup()
 			}
 			// this split is needed so that we don't avoid claiming the interface when
 			// detaching the kernel driver is successful
-			if (ret != 0)
+			if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 			{
 				continue;
 			}
