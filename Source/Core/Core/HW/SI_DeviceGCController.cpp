@@ -26,6 +26,23 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNum
 {
 	// Dunno if we need to do this, game/lib should set it?
 	m_Mode                   = 0x03;
+
+	m_Calibrated = false;
+}
+
+void CSIDevice_GCController::Calibrate()
+{
+	GCPadStatus pad_origin = GetPadStatus();
+	memset(&m_Origin, 0, sizeof(SOrigin));
+	m_Origin.uButton = pad_origin.button;
+	m_Origin.uOriginStickX = pad_origin.stickX;
+	m_Origin.uOriginStickY = pad_origin.stickY;
+	m_Origin.uSubStickStickX = pad_origin.substickX;
+	m_Origin.uSubStickStickY = pad_origin.substickY;
+	m_Origin.uTrigger_L = pad_origin.triggerLeft;
+	m_Origin.uTrigger_R = pad_origin.triggerRight;
+
+	m_Calibrated = true;
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
@@ -61,19 +78,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
 
-			GCPadStatus pad_origin;
-			memset(&m_Origin, 0, sizeof(SOrigin));
-			memset(&pad_origin, 0, sizeof(GCPadStatus));
-
-			pad_origin = GetPadStatus();
-
-			m_Origin.uButton = pad_origin.button;
-			m_Origin.uOriginStickX = pad_origin.stickX;
-			m_Origin.uOriginStickY = pad_origin.stickY;
-			m_Origin.uSubStickStickX = pad_origin.substickX;
-			m_Origin.uSubStickStickY = pad_origin.substickY;
-			m_Origin.uTrigger_L = pad_origin.triggerLeft;
-			m_Origin.uTrigger_R = pad_origin.triggerRight;
+			Calibrate();
 
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
@@ -87,6 +92,10 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	case CMD_RECALIBRATE:
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
+
+			if (!m_Calibrated)
+				Calibrate();
+
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
@@ -306,6 +315,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 // Savestate support
 void CSIDevice_GCController::DoState(PointerWrap& p)
 {
+	p.Do(m_Calibrated);
 	p.Do(m_Origin);
 	p.Do(m_Mode);
 	p.Do(m_TButtonComboStart);
