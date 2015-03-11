@@ -128,10 +128,12 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		case CGameListCtrl::COLUMN_TITLE:
 			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
 			{
-				if (iso1->IsDiscTwo())
-					return 1 * t;
-				else if (iso2->IsDiscTwo())
-					return -1 * t;
+				if (iso1->GetUniqueID() != iso2->GetUniqueID())
+					return t * (iso1->GetUniqueID() > iso2->GetUniqueID() ? 1 : -1);
+				if (iso1->GetRevision() != iso2->GetRevision())
+					return  t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
+				if (iso1->IsDiscTwo() != iso2->IsDiscTwo())
+					return t * iso1->IsDiscTwo() ? 1 : -1;
 			}
 			return strcasecmp(iso1->GetName(indexOne).c_str(),
 					iso2->GetName(indexOther).c_str()) * t;
