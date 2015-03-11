@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -28,7 +29,7 @@
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 
-CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::ARCode>& _arCodes, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CARCodeAddEdit::CARCodeAddEdit(int _selection, std::vector<ActionReplay::ARCode>* _arCodes, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 	, arCodes(_arCodes)
 	, selection(_selection)
@@ -36,7 +37,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::A
 	Bind(wxEVT_BUTTON, &CARCodeAddEdit::SaveCheatData, this, wxID_OK);
 
 	ActionReplay::ARCode tempEntries;
-	wxString currentName = _("Insert name here..");
+	wxString currentName = _("Insert name here...");
 
 	if (selection == wxNOT_FOUND)
 	{
@@ -44,8 +45,8 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::A
 	}
 	else
 	{
-		currentName = StrToWxStr(arCodes.at(selection).name);
-		tempEntries = arCodes.at(selection);
+		currentName = StrToWxStr(arCodes->at(selection).name);
+		tempEntries = arCodes->at(selection);
 	}
 
 	wxBoxSizer* sEditCheat = new wxBoxSizer(wxVERTICAL);
@@ -57,8 +58,8 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::A
 	EditCheatName->SetValue(currentName);
 
 	EntrySelection = new wxSpinButton(this);
-	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1);
-	EntrySelection->SetValue((int)(arCodes.size() - selection));
+	EntrySelection->SetRange(1, std::max((int)arCodes->size(), 1));
+	EntrySelection->SetValue((int)(arCodes->size() - selection));
 	EntrySelection->Bind(wxEVT_SPIN, &CARCodeAddEdit::ChangeEntry, this);
 
 	EditCheatCode = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
@@ -81,7 +82,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, const std::vector<ActionReplay::A
 
 void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 {
-	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size() - event.GetPosition());
+	ActionReplay::ARCode currentCode = arCodes->at((int)arCodes->size() - event.GetPosition());
 	EditCheatName->SetValue(StrToWxStr(currentCode.name));
 	UpdateTextCtrl(currentCode);
 }
@@ -161,13 +162,13 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED(event))
 		newCheat.ops = decryptedLines;
 		newCheat.active = true;
 
-		arCodes.push_back(newCheat);
+		arCodes->push_back(newCheat);
 	}
 	else
 	{
 		// Update the currently-selected AR cheat code.
-		arCodes.at(selection).name = WxStrToStr(EditCheatName->GetValue());
-		arCodes.at(selection).ops = decryptedLines;
+		arCodes->at(selection).name = WxStrToStr(EditCheatName->GetValue());
+		arCodes->at(selection).ops = decryptedLines;
 	}
 
 	AcceptAndClose();
