@@ -24,7 +24,7 @@ struct SNANDContent
 	u8 m_SHA1Hash[20];
 	u8 m_Header[36]; //all of the above
 
-	std::string m_Filename;
+	std::string m_file_name;
 	u8* m_pData;
 };
 
@@ -69,7 +69,7 @@ class CNANDContentManager
 {
 public:
 	static CNANDContentManager& Access() { return m_Instance; }
-	u64 Install_WiiWAD(std::string &fileName);
+	u64 Install_WiiWAD(std::string &file_name);
 
 	const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
 	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);
@@ -106,7 +106,7 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 m_lastID;
+	u32 m_last_ID;
 	std::string m_contentMap;
 	std::vector<SElement> m_Elements;
 	static CSharedContent m_Instance;

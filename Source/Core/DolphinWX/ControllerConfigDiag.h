@@ -50,13 +50,13 @@ public:
 	}
 	void OnContinuousScanning(wxCommandEvent& event)
 	{
-		SConfig::GetInstance().m_WiimoteContinuousScanning = event.IsChecked();
+		SConfig::GetInstance().m_wiimoteContinuousScanning = event.IsChecked();
 		WiimoteReal::Initialize();
 		event.Skip();
 	}
 	void OnEnableSpeaker(wxCommandEvent& event)
 	{
-		SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
+		SConfig::GetInstance().m_wiimoteEnableSpeaker = event.IsChecked();
 		event.Skip();
 	}
 	void OnGameCubeAdapter(wxCommandEvent& event)

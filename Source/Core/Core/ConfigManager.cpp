@@ -340,10 +340,10 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	{
 		core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
 	}
-	core->Set("WiiSDCard", m_WiiSDCard);
-	core->Set("WiiKeyboard", m_WiiKeyboard);
-	core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
-	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
+	core->Set("WiiSDCard", m_wiiSDCard);
+	core->Set("WiiKeyboard", m_wiiKeyboard);
+	core->Set("WiimoteContinuousScanning", m_wiimoteContinuousScanning);
+	core->Set("WiimoteEnableSpeaker", m_wiimoteEnableSpeaker);
 	core->Set("RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
 	core->Set("FrameLimit", m_Framelimit);
@@ -576,10 +576,10 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	{
 		core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
 	}
-	core->Get("WiiSDCard",                 &m_WiiSDCard,                                   false);
-	core->Get("WiiKeyboard",               &m_WiiKeyboard,                                 false);
-	core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning,                   false);
-	core->Get("WiimoteEnableSpeaker",      &m_WiimoteEnableSpeaker,                        false);
+	core->Get("WiiSDCard",                 &m_wiiSDCard,                                   false);
+	core->Get("WiiKeyboard",               &m_wiiKeyboard,                                 false);
+	core->Get("WiimoteContinuousScanning", &m_wiimoteContinuousScanning,                   false);
+	core->Get("WiimoteEnableSpeaker",      &m_wiimoteEnableSpeaker,                        false);
 	core->Get("RunCompareServer",          &m_LocalCoreStartupParameter.bRunCompareServer, false);
 	core->Get("RunCompareClient",          &m_LocalCoreStartupParameter.bRunCompareClient, false);
 	core->Get("MMU",                       &m_LocalCoreStartupParameter.bMMU,              false);

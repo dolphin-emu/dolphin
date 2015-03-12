@@ -904,12 +904,12 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const
 	return ret;
 }
 
-u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::string &directory) const
+u32 GCMemcard::ExportGci(u8 index, const std::string& file_name, const std::string &directory) const
 {
 	File::IOFile gci;
 	int offset = GCI;
 
-	if (!fileName.length())
+	if (!file_name.length())
 	{
 		std::string gciFilename;
 		// GCI_FileName should only fail if the gamecode is 0xFFFFFFFF
@@ -919,8 +919,8 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
 	else
 	{
 		std::string fileType;
-		gci.Open(fileName, "wb");
-		SplitPath(fileName, nullptr, nullptr, &fileType);
+		gci.Open(file_name, "wb");
+		SplitPath(file_name, nullptr, nullptr, &fileType);
 		if (!strcasecmp(fileType.c_str(), ".gcs"))
 		{
 			offset = GCS;
@@ -1042,10 +1042,10 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 	if (bnrFormat == 0)
 		return false;
 
-	u32 DataOffset = BE32(CurrentDir->Dir[index].ImageOffset);
+	u32 data_offset = BE32(CurrentDir->Dir[index].ImageOffset);
 	u32 DataBlock = BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
 
-	if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
+	if ((DataBlock > maxBlock) || (data_offset == 0xFFFFFFFF))
 	{
 		return false;
 	}
@@ -1054,14 +1054,14 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 
 	if (bnrFormat&1)
 	{
-		u8  *pxdata  = (u8* )(mc_data_blocks[DataBlock].block + DataOffset);
-		u16 *paldata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset + pixels);
+		u8  *pxdata  = (u8* )(mc_data_blocks[DataBlock].block + data_offset);
+		u16 *paldata = (u16*)(mc_data_blocks[DataBlock].block + data_offset + pixels);
 
 		ColorUtil::decodeCI8image(buffer, pxdata, paldata, 96, 32);
 	}
 	else
 	{
-		u16 *pxdata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset);
+		u16 *pxdata = (u16*)(mc_data_blocks[DataBlock].block + data_offset);
 
 		ColorUtil::decode5A3image(buffer, pxdata, 96, 32);
 	}
@@ -1089,15 +1089,15 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 
 	int bnrFormat = (flags&3);
 
-	u32 DataOffset = BE32(CurrentDir->Dir[index].ImageOffset);
+	u32 data_offset = BE32(CurrentDir->Dir[index].ImageOffset);
 	u32 DataBlock = BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
 
-	if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
+	if ((DataBlock > maxBlock) || (data_offset == 0xFFFFFFFF))
 	{
 		return 0;
 	}
 
-	u8* animData = (u8*)(mc_data_blocks[DataBlock].block + DataOffset);
+	u8* animData = (u8*)(mc_data_blocks[DataBlock].block + data_offset);
 
 	switch (bnrFormat)
 	{

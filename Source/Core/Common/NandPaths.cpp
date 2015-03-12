@@ -66,7 +66,7 @@ bool CheckTitleTIK(u64 _titleID)
 		if (pTIKFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
 			return true;
 	}
-	INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_titleID >> 32), (u32)(_titleID & 0xFFFFFFFF));
+	INFO_LOG(DISCIO, "Invalid or no ticket for title %08x %08x", (u32)(_titleID >> 32), (u32)(_titleID & 0xFFFFFFFF));
 	return false;
 }
 

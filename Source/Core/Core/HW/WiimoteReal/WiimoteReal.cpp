@@ -174,7 +174,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 		}
 	}
 	else if (rpt[1] == WM_WRITE_SPEAKER_DATA &&
-	         (!SConfig::GetInstance().m_WiimoteEnableSpeaker ||
+	         (!SConfig::GetInstance().m_wiimoteEnableSpeaker ||
 	         (!wm->m_status.speaker || wm->m_speaker_mute)))
 	{
 		// Translate speaker data reports into rumble reports.
@@ -587,7 +587,7 @@ void LoadSettings()
 // config dialog calls this when some settings change
 void Initialize(bool wait)
 {
-	if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+	if (SConfig::GetInstance().m_wiimoteContinuousScanning)
 		g_wiimote_scanner.StartScanning();
 	else
 		g_wiimote_scanner.StopScanning();
@@ -604,7 +604,7 @@ void Initialize(bool wait)
 		std::vector<Wiimote*> found_wiimotes;
 		Wiimote* found_board = nullptr;
 		g_wiimote_scanner.FindWiimotes(found_wiimotes, found_board);
-		if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+		if (SConfig::GetInstance().m_wiimoteContinuousScanning)
 		{
 			while (CalculateWantedWiimotes() && CalculateConnectedWiimotes() < found_wiimotes.size() && timeout)
 			{

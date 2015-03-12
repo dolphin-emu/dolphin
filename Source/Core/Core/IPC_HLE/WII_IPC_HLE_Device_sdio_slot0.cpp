@@ -48,8 +48,8 @@ void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
 
 void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 {
-	if ((SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_INSERT) ||
-		(!SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_REMOVE))
+	if ((SConfig::GetInstance().m_wiiSDCard && m_event.type == EVENT_INSERT) ||
+		(!SConfig::GetInstance().m_wiiSDCard && m_event.type == EVENT_REMOVE))
 	{
 		EnqueueReply(m_event.addr, m_event.type);
 		m_event.addr = 0;
@@ -194,7 +194,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_GETSTATUS:
-		if (SConfig::GetInstance().m_WiiSDCard)
+		if (SConfig::GetInstance().m_wiiSDCard)
 			m_Status |= CARD_INSERTED;
 		else
 			m_Status = CARD_NOT_EXIST;

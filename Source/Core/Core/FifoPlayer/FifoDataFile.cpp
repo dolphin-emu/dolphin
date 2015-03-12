@@ -101,14 +101,14 @@ bool FifoDataFile::Save(const std::string& filename)
 
 		// Write FIFO data
 		file.Seek(0, SEEK_END);
-		u64 dataOffset = file.Tell();
+		u64 data_offset = file.Tell();
 		file.WriteBytes(srcFrame.fifoData, srcFrame.fifoDataSize);
 
 		u64 memoryUpdatesOffset = WriteMemoryUpdates(srcFrame.memoryUpdates, file);
 
 		FileFrameInfo dstFrame;
 		dstFrame.fifoDataSize = srcFrame.fifoDataSize;
-		dstFrame.fifoDataOffset = dataOffset;
+		dstFrame.fifodata_offset = data_offset;
 		dstFrame.fifoStart = srcFrame.fifoStart;
 		dstFrame.fifoEnd = srcFrame.fifoEnd;
 		dstFrame.memoryUpdatesOffset = memoryUpdatesOffset;
@@ -182,7 +182,7 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 		dstFrame.fifoStart = srcFrame.fifoStart;
 		dstFrame.fifoEnd = srcFrame.fifoEnd;
 
-		file.Seek(srcFrame.fifoDataOffset, SEEK_SET);
+		file.Seek(srcFrame.fifodata_offset, SEEK_SET);
 		file.ReadBytes(dstFrame.fifoData, srcFrame.fifoDataSize);
 
 		ReadMemoryUpdates(srcFrame.memoryUpdatesOffset, srcFrame.numMemoryUpdates, dstFrame.memoryUpdates, file);
@@ -226,12 +226,12 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 
 		// Write memory
 		file.Seek(0, SEEK_END);
-		u64 dataOffset = file.Tell();
+		u64 data_offset = file.Tell();
 		file.WriteBytes(srcUpdate.data, srcUpdate.size);
 
 		FileMemoryUpdate dstUpdate;
 		dstUpdate.address = srcUpdate.address;
-		dstUpdate.dataOffset = dataOffset;
+		dstUpdate.data_offset = data_offset;
 		dstUpdate.dataSize = srcUpdate.size;
 		dstUpdate.fifoPosition = srcUpdate.fifoPosition;
 		dstUpdate.type = srcUpdate.type;
@@ -244,13 +244,13 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 	return updateListOffset;
 }
 
-void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector<MemoryUpdate> &memUpdates, File::IOFile &file)
+void FifoDataFile::ReadMemoryUpdates(u64 file_offset, u32 numUpdates, std::vector<MemoryUpdate> &memUpdates, File::IOFile &file)
 {
 	memUpdates.resize(numUpdates);
 
 	for (u32 i = 0; i < numUpdates; ++i)
 	{
-		u64 updateOffset = fileOffset + (i * sizeof(FileMemoryUpdate));
+		u64 updateOffset = file_offset + (i * sizeof(FileMemoryUpdate));
 		file.Seek(updateOffset, SEEK_SET);
 		FileMemoryUpdate srcUpdate;
 		file.ReadBytes(&srcUpdate, sizeof(FileMemoryUpdate));
@@ -262,7 +262,7 @@ void FifoDataFile::ReadMemoryUpdates(u64 fileOffset, u32 numUpdates, std::vector
 		dstUpdate.data = new u8[srcUpdate.dataSize];
 		dstUpdate.type = (MemoryUpdate::Type)srcUpdate.type;
 
-		file.Seek(srcUpdate.dataOffset, SEEK_SET);
+		file.Seek(srcUpdate.data_offset, SEEK_SET);
 		file.ReadBytes(dstUpdate.data, srcUpdate.dataSize);
 	}
 }

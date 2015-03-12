@@ -24,10 +24,10 @@
 struct SConfig : NonCopyable
 {
 	// Wii Devices
-	bool m_WiiSDCard;
-	bool m_WiiKeyboard;
-	bool m_WiimoteContinuousScanning;
-	bool m_WiimoteEnableSpeaker;
+	bool m_wiiSDCard;
+	bool m_wiiKeyboard;
+	bool m_wiimoteContinuousScanning;
+	bool m_wiimoteEnableSpeaker;
 
 	// name of the last used filename
 	std::string m_LastFilename;

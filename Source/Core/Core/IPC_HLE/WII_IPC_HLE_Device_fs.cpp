@@ -55,10 +55,10 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress, bool _bForce
 
 // Get total filesize of contents of a directory (recursive)
 // Only used for ES_GetUsage atm, could be useful elsewhere?
-static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
+static u64 ComputeTotalFileSize(const File::FSTEntry& parent_entry)
 {
 	u64 sizeOfFiles = 0;
-	for (const File::FSTEntry& entry : parentEntry.children)
+	for (const File::FSTEntry& entry : parent_entry.children)
 	{
 		if (entry.isDirectory)
 			sizeOfFiles += ComputeTotalFileSize(entry);
@@ -543,11 +543,11 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 	{
 		//recurse through tmp and save dirs and files
 
-		File::FSTEntry parentEntry;
-		File::ScanDirectoryTree(Path, parentEntry);
+		File::FSTEntry parent_entry;
+		File::ScanDirectoryTree(Path, parent_entry);
 		std::deque<File::FSTEntry> todo;
-		todo.insert(todo.end(), parentEntry.children.begin(),
-			    parentEntry.children.end());
+		todo.insert(todo.end(), parent_entry.children.begin(),
+			    parent_entry.children.end());
 
 		while (!todo.empty())
 		{

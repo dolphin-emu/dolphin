@@ -23,12 +23,12 @@ struct TMemCheck
 	TMemCheck()
 	{
 		numHits = 0;
-		StartAddress = EndAddress = 0;
+		start_address = end_address = 0;
 		bRange = OnRead = OnWrite = Log = Break = false;
 	}
 
-	u32 StartAddress;
-	u32 EndAddress;
+	u32 start_address;
+	u32 end_address;
 
 	bool bRange;
 

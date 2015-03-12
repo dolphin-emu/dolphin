@@ -285,8 +285,8 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
 		}
 		break;
 	case IDM_ADDMEMCHECK:
-		MemCheck.StartAddress = m_selectedAddress;
-		MemCheck.EndAddress = m_selectedAddress;
+		MemCheck.start_address = m_selectedAddress;
+		MemCheck.end_address = m_selectedAddress;
 		MemCheck.bRange = false;
 		MemCheck.OnRead = true;
 		MemCheck.OnWrite = true;

@@ -104,7 +104,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	}
 	else
 	{
-		pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
+		pDolLoader = std::make_unique<CDolLoader>(pContent->m_file_name);
 	}
 	pDolLoader->Load();
 	PC = pDolLoader->GetEntryPoint();

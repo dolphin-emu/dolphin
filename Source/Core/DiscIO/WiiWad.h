@@ -21,12 +21,12 @@ public:
 
 	~WiiWAD();
 
-	bool IsValid() const { return m_Valid; }
-	u32 GetCertificateChainSize() const { return m_CertificateChainSize; }
-	u32 GetTicketSize() const { return m_TicketSize; }
-	u32 GetTMDSize() const { return m_TMDSize; }
-	u32 GetDataAppSize() const { return m_DataAppSize; }
-	u32 GetFooterSize() const { return m_FooterSize; }
+	bool IsValid() const { return m_valid; }
+	u32 GetCertificateChainSize() const { return m_cert_chain_size; }
+	u32 GetTicketSize() const { return m_ticket_size; }
+	u32 GetTMDSize() const { return m_TMD_size; }
+	u32 GetDataAppSize() const { return m_data_app_size; }
+	u32 GetFooterSize() const { return m_footer_size; }
 
 	u8* GetCertificateChain() const { return m_pCertificateChain; }
 	u8* GetTicket() const { return m_pTicket; }
@@ -38,13 +38,13 @@ public:
 
 private:
 
-	bool m_Valid;
+	bool m_valid;
 
-	u32 m_CertificateChainSize;
-	u32 m_TicketSize;
-	u32 m_TMDSize;
-	u32 m_DataAppSize;
-	u32 m_FooterSize;
+	u32 m_cert_chain_size;
+	u32 m_ticket_size;
+	u32 m_TMD_size;
+	u32 m_data_app_size;
+	u32 m_footer_size;
 
 	u8* m_pCertificateChain;
 	u8* m_pTicket;
@@ -52,7 +52,7 @@ private:
 	u8* m_pDataApp;
 	u8* m_pFooter;
 
-	u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset);
+	u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _size, u64 _offset);
 	bool ParseWAD(DiscIO::IBlobReader& _rReader);
 };
 

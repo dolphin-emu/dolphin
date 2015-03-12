@@ -22,7 +22,7 @@ public:
 	GameListItem(const std::string& _rFileName);
 	~GameListItem();
 
-	bool IsValid() const {return m_Valid;}
+	bool IsValid() const {return m_valid;}
 	const std::string& GetFileName() const {return m_FileName;}
 	std::string GetBannerName(int index) const;
 	std::string GetVolumeName(int index) const;
@@ -80,7 +80,7 @@ private:
 #if defined(HAVE_WX) && HAVE_WX
 	wxBitmap m_Bitmap;
 #endif
-	bool m_Valid;
+	bool m_valid;
 	bool m_BlobCompressed;
 	std::vector<u8> m_pImage;
 	int m_ImageWidth, m_ImageHeight;

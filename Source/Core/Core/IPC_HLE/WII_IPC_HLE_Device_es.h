@@ -116,7 +116,7 @@ private:
 	struct SContentAccess
 	{
 		u32 m_Position;
-		u64 m_TitleID;
+		u64 m_title_ID;
 		const DiscIO::SNANDContent* m_pContent;
 		// This is a (raw) pointer to work around a MSVC bug.
 		File::IOFile* m_pFile;
@@ -131,7 +131,7 @@ private:
 	const DiscIO::INANDContentLoader* m_pContentLoader;
 
 	std::vector<u64> m_TitleIDs;
-	u64 m_TitleID;
+	u64 m_title_ID;
 	u32 m_AccessIdentID;
 
 	static u8 *keyTable[11];

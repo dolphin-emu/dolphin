@@ -337,9 +337,9 @@ public:
 			return false;
 
 		// Check file size
-		const u64 fileSize = File::GetSize(_rFilename);
+		const u64 file_size = File::GetSize(_rFilename);
 		static const u64 headerSize = sizeof(SChunkHeader);
-		if (fileSize < headerSize)
+		if (file_size < headerSize)
 		{
 			ERROR_LOG(COMMON, "ChunkReader: File too small");
 			return false;
@@ -369,7 +369,7 @@ public:
 		}
 
 		// get size
-		const u32 sz = (u32)(fileSize - headerSize);
+		const u32 sz = (u32)(file_size - headerSize);
 		if (header.ExpectedSize != sz)
 		{
 			ERROR_LOG(COMMON, "ChunkReader: Bad file size, got %d expected %d",

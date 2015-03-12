@@ -37,23 +37,23 @@ class CBlobBigEndianReader
 public:
 	CBlobBigEndianReader(IBlobReader& _rReader) : m_rReader(_rReader) {}
 
-	u32 Read32(u64 _Offset)
+	u32 Read32(u64 _offset)
 	{
-		u32 Temp;
-		m_rReader.Read(_Offset, 4, (u8*)&Temp);
-		return Common::swap32(Temp);
+		u32 temp;
+		m_rReader.Read(_offset, 4, (u8*)&temp);
+		return Common::swap32(temp);
 	}
-	u16 Read16(u64 _Offset)
+	u16 Read16(u64 _offset)
 	{
-		u16 Temp;
-		m_rReader.Read(_Offset, 2, (u8*)&Temp);
-		return Common::swap16(Temp);
+		u16 temp;
+		m_rReader.Read(_offset, 2, (u8*)&temp);
+		return Common::swap16(temp);
 	}
-	u8 Read8(u64 _Offset)
+	u8 Read8(u64 _offset)
 	{
-		u8 Temp;
-		m_rReader.Read(_Offset, 1, &Temp);
-		return Temp;
+		u8 temp;
+		m_rReader.Read(_offset, 1, &temp);
+		return temp;
 	}
 private:
 	IBlobReader& m_rReader;
@@ -69,10 +69,10 @@ static const unsigned char s_master_key_korean[16] = {
 	0x13,0xf2,0xfe,0xfb,0xba,0x4c,0x9b,0x7e
 };
 
-static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum);
+static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _partition_group, u32 _volume_type, u32 _volume_num);
 EDiscType GetDiscType(IBlobReader& _rReader);
 
-IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionGroup, u32 _VolumeNum)
+IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _partition_group, u32 _volume_num)
 {
 	IBlobReader* pReader = CreateBlobReader(_rFilename);
 	if (pReader == nullptr)
@@ -89,7 +89,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 
 		case DISC_TYPE_WII_CONTAINER:
 		{
-			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, _PartitionGroup, 0, _VolumeNum);
+			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, _partition_group, 0, _volume_num);
 
 			if (pVolume == nullptr)
 			{
@@ -105,7 +105,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 			SplitPath(_rFilename, nullptr, &Filename, &ext);
 			Filename += ext;
 			NOTICE_LOG(DISCIO, "%s does not have the Magic word for a gcm, wiidisc or wad file\n"
-						"Set Log Verbosity to Warning and attempt to load the game again to view the values", Filename.c_str());
+			                   "Set Log Verbosity to Warning and attempt to load the game again to view the values", Filename.c_str());
 			delete pReader;
 	}
 
@@ -122,13 +122,13 @@ IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii,
 
 bool IsVolumeWadFile(const IVolume *_rVolume)
 {
-	u32 MagicWord = 0;
-	_rVolume->Read(0x02, 4, (u8*)&MagicWord, false);
+	u32 magic_word = 0;
+	_rVolume->Read(0x02, 4, (u8*)&magic_word, false);
 
-	return (Common::swap32(MagicWord) == 0x00204973 || Common::swap32(MagicWord) == 0x00206962);
+	return (Common::swap32(magic_word) == 0x00204973 || Common::swap32(magic_word) == 0x00206962);
 }
 
-void VolumeKeyForParition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
+void VolumeKeyForParition(IBlobReader& _rReader, u64 offset, u8* volume_key)
 {
 	CBlobBigEndianReader Reader(_rReader);
 
@@ -150,30 +150,30 @@ void VolumeKeyForParition(IBlobReader& _rReader, u64 offset, u8* VolumeKey)
 	aes_context AES_ctx;
 	aes_setkey_dec(&AES_ctx, (usingKoreanKey ? s_master_key_korean : s_master_key), 128);
 
-	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey);
+	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, volume_key);
 }
 
-static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGroup, u32 _VolumeType, u32 _VolumeNum)
+static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _partition_group, u32 _volume_type, u32 _volume_num)
 {
 	CBlobBigEndianReader Reader(_rReader);
 
-	u32 numPartitions = Reader.Read32(0x40000 + (_PartitionGroup * 8));
-	u64 PartitionsOffset = (u64)Reader.Read32(0x40000 + (_PartitionGroup * 8) + 4) << 2;
+	u32 num_partitions = Reader.Read32(0x40000 + (_partition_group * 8));
+	u64 partitions_offset = (u64)Reader.Read32(0x40000 + (_partition_group * 8) + 4) << 2;
 
 	// Check if we're looking for a valid partition
-	if ((int)_VolumeNum != -1 && _VolumeNum > numPartitions)
+	if ((int)_volume_num != -1 && _volume_num > num_partitions)
 		return nullptr;
 
 	struct SPartition
 	{
-		u64 Offset;
-		u32 Type;
+		u64 offset;
+		u32 type;
 	};
 
 	struct SPartitionGroup
 	{
-		u32 numPartitions;
-		u64 PartitionsOffset;
+		u32 num_partitions;
+		u64 partitions_offset;
 		std::vector<SPartition> PartitionsVec;
 	};
 	SPartitionGroup PartitionGroup[4];
@@ -181,27 +181,27 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 	// read all partitions
 	for (SPartitionGroup& group : PartitionGroup)
 	{
-		for (u32 i = 0; i < numPartitions; i++)
+		for (u32 i = 0; i < num_partitions; i++)
 		{
 			SPartition Partition;
-			Partition.Offset = ((u64)Reader.Read32(PartitionsOffset + (i * 8) + 0)) << 2;
-			Partition.Type   = Reader.Read32(PartitionsOffset + (i * 8) + 4);
+			Partition.offset = ((u64)Reader.Read32(partitions_offset + (i * 8) + 0)) << 2;
+			Partition.type   = Reader.Read32(partitions_offset + (i * 8) + 4);
 			group.PartitionsVec.push_back(Partition);
 		}
 	}
 
 	// return the partition type specified or number
 	// types: 0 = game, 1 = firmware update, 2 = channel installer
-	//  some partitions on ssbb use the ascii title id of the demo VC game they hold...
-	for (size_t i = 0; i < PartitionGroup[_PartitionGroup].PartitionsVec.size(); i++)
+	//  some partitions on SSBB use the ascii title id of the demo VC game they hold...
+	for (size_t i = 0; i < PartitionGroup[_partition_group].PartitionsVec.size(); i++)
 	{
-		const SPartition& rPartition = PartitionGroup[_PartitionGroup].PartitionsVec.at(i);
+		const SPartition& rPartition = PartitionGroup[_partition_group].PartitionsVec.at(i);
 
-		if ((rPartition.Type == _VolumeType && (int)_VolumeNum == -1) || i == _VolumeNum)
+		if ((rPartition.type == _volume_type && (int)_volume_num == -1) || i == _volume_num)
 		{
-			u8 VolumeKey[16];
-			VolumeKeyForParition(_rReader, rPartition.Offset, VolumeKey);
-			return new CVolumeWiiCrypted(&_rReader, rPartition.Offset, VolumeKey);
+			u8 volume_key[16];
+			VolumeKeyForParition(_rReader, rPartition.offset, volume_key);
+			return new CVolumeWiiCrypted(&_rReader, rPartition.offset, volume_key);
 		}
 	}
 
@@ -211,31 +211,31 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 EDiscType GetDiscType(IBlobReader& _rReader)
 {
 	CBlobBigEndianReader Reader(_rReader);
-	u32 WiiMagic = Reader.Read32(0x18);
-	u32 WiiContainerMagic = Reader.Read32(0x60);
-	u32 WADMagic = Reader.Read32(0x02);
-	u32 GCMagic = Reader.Read32(0x1C);
+	u32 wii_magic           = Reader.Read32(0x18);
+	u32 wii_container_magic = Reader.Read32(0x60);
+	u32 WAD_magic           = Reader.Read32(0x02);
+	u32 GC_magic            = Reader.Read32(0x1C);
 
 	// check for Wii
-	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic != 0)
+	if (wii_magic == 0x5D1C9EA3 && wii_container_magic != 0)
 		return DISC_TYPE_WII;
-	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic == 0)
+	if (wii_magic == 0x5D1C9EA3 && wii_container_magic == 0)
 		return DISC_TYPE_WII_CONTAINER;
 
 	// check for WAD
 	// 0x206962 for boot2 wads
-	if (WADMagic == 0x00204973 || WADMagic == 0x00206962)
+	if (WAD_magic == 0x00204973 || WAD_magic == 0x00206962)
 		return DISC_TYPE_WAD;
 
 	// check for GC
-	if (GCMagic == 0xC2339F3D)
+	if (GC_magic == 0xC2339F3D)
 		return DISC_TYPE_GC;
 
 	WARN_LOG(DISCIO, "No known magic words found");
-	WARN_LOG(DISCIO, "Wii  offset: 0x18 value: 0x%08x", WiiMagic);
-	WARN_LOG(DISCIO, "WiiC offset: 0x60 value: 0x%08x", WiiContainerMagic);
-	WARN_LOG(DISCIO, "WAD  offset: 0x02 value: 0x%08x", WADMagic);
-	WARN_LOG(DISCIO, "GC   offset: 0x1C value: 0x%08x", GCMagic);
+	WARN_LOG(DISCIO, "Wii  offset: 0x18 value: 0x%08x", wii_magic);
+	WARN_LOG(DISCIO, "WiiC offset: 0x60 value: 0x%08x", wii_container_magic);
+	WARN_LOG(DISCIO, "WAD  offset: 0x02 value: 0x%08x", WAD_magic);
+	WARN_LOG(DISCIO, "GC   offset: 0x1C value: 0x%08x", GC_magic);
 
 	return DISC_TYPE_UNK;
 }

@@ -53,12 +53,12 @@ void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii, const std::
 	g_pVolume = DiscIO::CreateVolumeFromDirectory(_rFullPath, _bIsWii, _rApploader, _rDOL);
 }
 
-u32 Read32(u64 _Offset, bool decrypt)
+u32 Read32(u64 _offset, bool decrypt)
 {
 	if (g_pVolume != nullptr)
 	{
 		u32 Temp;
-		g_pVolume->Read(_Offset, 4, (u8*)&Temp, decrypt);
+		g_pVolume->Read(_offset, 4, (u8*)&Temp, decrypt);
 		return Common::swap32(Temp);
 	}
 	return 0;

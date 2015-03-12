@@ -64,7 +64,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 {
 	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 
-	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
+	if (SConfig::GetInstance().m_wiiKeyboard && !m_MessageQueue.empty())
 	{
 		Memory::CopyToEmu(BufferOut, &m_MessageQueue.front(), sizeof(SMessageData));
 		m_MessageQueue.pop();
@@ -89,7 +89,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 
 u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 {
-	if (!SConfig::GetInstance().m_WiiKeyboard || !m_Active)
+	if (!SConfig::GetInstance().m_wiiKeyboard || !m_Active)
 		return 0;
 
 	u8 Modifiers = 0x00;

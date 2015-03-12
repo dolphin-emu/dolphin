@@ -22,9 +22,9 @@ class IBlobReader;
 class CVolumeWiiCrypted : public IVolume
 {
 public:
-	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _volume_offset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
+	bool Read(u64 _offset, u64 _length, u8* _pBuffer, bool decrypt) const override;
 	bool GetTitleID(u8* _pBuffer) const override;
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
 	std::string GetUniqueID() const override;
@@ -56,11 +56,11 @@ private:
 
 	u8* m_pBuffer;
 
-	u64 m_VolumeOffset;
-	u64 m_dataOffset;
+	u64 m_volume_offset;
+	u64 m_data_offset;
 
-	mutable u64 m_LastDecryptedBlockOffset;
-	mutable unsigned char m_LastDecryptedBlock[s_block_data_size];
+	mutable u64 m_last_decrypted_block_offset;
+	mutable unsigned char m_last_decrypted_block[s_block_data_size];
 };
 
 } // namespace

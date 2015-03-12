@@ -107,9 +107,9 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename);
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string &filename);
 
-// Scans the directory tree gets, starting from _Directory and adds the
-// results into parentEntry. Returns the number of files+directories found
-u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry);
+// Scans the directory tree gets, starting from _directory and adds the
+// results into parent_entry. Returns the number of files+directories found
+u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parent_entry);
 
 // deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string &directory);

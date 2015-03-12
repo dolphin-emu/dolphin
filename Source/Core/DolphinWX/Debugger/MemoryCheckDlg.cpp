@@ -77,21 +77,21 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 	bool Log = m_log_flag->GetValue();
 	bool Break = m_break_flag->GetValue();
 
-	u32 StartAddress, EndAddress;
+	u32 start_address, end_address;
 	bool EndAddressOK = EndAddressString.Len() &&
-		AsciiToHex(WxStrToStr(EndAddressString), EndAddress);
+		AsciiToHex(WxStrToStr(EndAddressString), end_address);
 
-	if (AsciiToHex(WxStrToStr(StartAddressString), StartAddress) &&
+	if (AsciiToHex(WxStrToStr(StartAddressString), start_address) &&
 		(OnRead || OnWrite) && (Log || Break))
 	{
 		TMemCheck MemCheck;
 
 		if (!EndAddressOK)
-			EndAddress = StartAddress;
+			end_address = start_address;
 
-		MemCheck.StartAddress = StartAddress;
-		MemCheck.EndAddress = EndAddress;
-		MemCheck.bRange = StartAddress != EndAddress;
+		MemCheck.start_address = start_address;
+		MemCheck.end_address = end_address;
+		MemCheck.bRange = start_address != end_address;
 		MemCheck.OnRead = OnRead;
 		MemCheck.OnWrite = OnWrite;
 		MemCheck.Log = Log;

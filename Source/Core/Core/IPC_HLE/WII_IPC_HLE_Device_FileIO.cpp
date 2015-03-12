@@ -157,14 +157,14 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
-		const s32 fileSize = (s32) file.GetSize();
-		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), fileSize);
+		const s32 file_size = (s32) file.GetSize();
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), file_size);
 
 		switch (Mode)
 		{
 			case WII_SEEK_SET:
 			{
-				if ((SeekPosition >=0) && (SeekPosition <= fileSize))
+				if ((SeekPosition >=0) && (SeekPosition <= file_size))
 				{
 					m_SeekPos = SeekPosition;
 					ReturnValue = m_SeekPos;
@@ -175,7 +175,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			case WII_SEEK_CUR:
 			{
 				s32 wantedPos = SeekPosition+m_SeekPos;
-				if (wantedPos >=0 && wantedPos <= fileSize)
+				if (wantedPos >=0 && wantedPos <= file_size)
 				{
 					m_SeekPos = wantedPos;
 					ReturnValue = m_SeekPos;
@@ -185,8 +185,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 			case WII_SEEK_END:
 			{
-				s32 wantedPos = SeekPosition+fileSize;
-				if (wantedPos >=0 && wantedPos <= fileSize)
+				s32 wantedPos = SeekPosition+file_size;
+				if (wantedPos >=0 && wantedPos <= file_size)
 				{
 					m_SeekPos = wantedPos;
 					ReturnValue = m_SeekPos;

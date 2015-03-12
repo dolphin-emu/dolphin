@@ -13,17 +13,17 @@
 const int NO_INDEX = -1;
 static const char *MC_HDR = "MC_SYSTEM_AREA";
 
-int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly)
+int GCMemcardDirectory::LoadGCI(const std::string& file_name, DiscIO::IVolume::ECountry card_region, bool currentGameOnly)
 {
-	File::IOFile gcifile(fileName, "rb");
+	File::IOFile gcifile(file_name, "rb");
 	if (gcifile)
 	{
 		GCIFile gci;
-		gci.m_filename = fileName;
+		gci.m_filename = file_name;
 		gci.m_dirty = false;
 		if (!gcifile.ReadBytes(&(gci.m_gci_header), DENTRY_SIZE))
 		{
-			ERROR_LOG(EXPANSIONINTERFACE, "%s failed to read header", fileName.c_str());
+			ERROR_LOG(EXPANSIONINTERFACE, "%s failed to read header", file_name.c_str());
 			return NO_INDEX;
 		}
 
@@ -50,7 +50,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
 		if (gci_region != card_region)
 		{
 			PanicAlertT("GCI save file was not loaded because it is the wrong region for this memory card:\n%s",
-				fileName.c_str());
+				file_name.c_str());
 			return NO_INDEX;
 		}
 
@@ -111,7 +111,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
 		if (first_block == 0xFFFF)
 		{
 			PanicAlertT("%s\nwas not loaded because there are not enough free blocks on virtual memorycard",
-						fileName.c_str());
+						file_name.c_str());
 			return NO_INDEX;
 		}
 		*(u16 *)&gci.m_gci_header.FirstBlock = first_block;

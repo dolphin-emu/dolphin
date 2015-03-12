@@ -63,7 +63,7 @@ std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 	, m_pContentLoader(nullptr)
-	, m_TitleID(-1)
+	, m_title_ID(-1)
 	, m_AccessIdentID(0x6000000)
 {
 }
@@ -102,7 +102,7 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
 	// check for cd ...
 	if (m_pContentLoader->IsValid())
 	{
-		m_TitleID = m_pContentLoader->GetTitleID();
+		m_title_ID = m_pContentLoader->GetTitleID();
 
 		m_TitleIDs.clear();
 		DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
@@ -114,15 +114,15 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
 	{
 		// blindly grab the titleID from the disc - it's unencrypted at:
 		// offset 0x0F8001DC and 0x0F80044C
-		VolumeHandler::GetVolume()->GetTitleID((u8*)&m_TitleID);
-		m_TitleID = Common::swap64(m_TitleID);
+		VolumeHandler::GetVolume()->GetTitleID((u8*)&m_title_ID);
+		m_title_ID = Common::swap64(m_title_ID);
 	}
 	else
 	{
-		m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
+		m_title_ID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
 	}
 
-	INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
+	INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_title_ID>>32), (u32)m_title_ID);
 }
 
 void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
@@ -162,7 +162,7 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
 			CFD = pair.first;
 			SContentAccess& Access = pair.second;
 			Position = Access.m_Position;
-			TitleID = Access.m_TitleID;
+			TitleID = Access.m_title_ID;
 			Index = Access.m_pContent->m_Index;
 			p.Do(CFD);
 			p.Do(Position);
@@ -194,7 +194,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce
 	m_ContentAccessMap.clear();
 	m_pContentLoader = nullptr;
 	m_TitleIDs.clear();
-	m_TitleID = -1;
+	m_title_ID = -1;
 	m_AccessIdentID = 0x6000000;
 
 	INFO_LOG(WII_IPC_ES, "ES: Close");
@@ -224,12 +224,12 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	SContentAccess Access;
 	Access.m_Position = 0;
 	Access.m_pContent = pContent;
-	Access.m_TitleID = TitleID;
+	Access.m_title_ID = TitleID;
 	Access.m_pFile = nullptr;
 
 	if (!pContent->m_pData)
 	{
-		std::string Filename = pContent->m_Filename;
+		std::string Filename = pContent->m_file_name;
 		INFO_LOG(WII_IPC_ES, "ES: load %s", Filename.c_str());
 
 		Access.m_pFile = new File::IOFile(Filename, "rb");
@@ -370,7 +370,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
 			u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-			u32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
+			u32 CFD = OpenTitleContent(m_AccessIdentID++, m_title_ID, Index);
 			Memory::Write_U32(CFD, _CommandAddress + 0x4);
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
@@ -519,8 +519,8 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			_dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 0);
 			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETTITLEID no out buffer");
 
-			Memory::Write_U64(m_TitleID, Buffer.PayloadBuffer[0].m_Address);
-			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
+			Memory::Write_U64(m_title_ID, Buffer.PayloadBuffer[0].m_Address);
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_title_ID>>32), (u32)m_title_ID);
 		}
 		break;
 
@@ -922,7 +922,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						}
 						else
 						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
+							pDolLoader = std::make_unique<CDolLoader>(pContent->m_file_name);
 						}
 						pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
 						PC = pDolLoader->GetEntryPoint();
@@ -948,24 +948,24 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			else
 			{
 				CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-				size_t size = s_Usb->m_WiiMotes.size();
+				size_t size = s_Usb->m_wiiMotes.size();
 				bool* wiiMoteConnected = new bool[size];
 				for (unsigned int i = 0; i < size; i++)
-					wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
+					wiiMoteConnected[i] = s_Usb->m_wiiMotes[i].IsConnected();
 
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
 				s_Usb = GetUsbPointer();
-				for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
+				for (unsigned int i = 0; i < s_Usb->m_wiiMotes.size(); i++)
 				{
 					if (wiiMoteConnected[i])
 					{
-						s_Usb->m_WiiMotes[i].Activate(false);
-						s_Usb->m_WiiMotes[i].Activate(true);
+						s_Usb->m_wiiMotes[i].Activate(false);
+						s_Usb->m_wiiMotes[i].Activate(true);
 					}
 					else
 					{
-						s_Usb->m_WiiMotes[i].Activate(false);
+						s_Usb->m_wiiMotes[i].Activate(false);
 					}
 				}
 
@@ -1028,7 +1028,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 
 			EcWii &ec = EcWii::GetInstance();
-			get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(), ec.getNgId());
+			get_ap_sig_and_cert(sig_out, ap_cert_out, m_title_ID, data, data_size, ec.getNgPriv(), ec.getNgId());
 		}
 		break;
 

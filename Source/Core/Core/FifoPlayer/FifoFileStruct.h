@@ -44,7 +44,7 @@ union FileFrameInfo
 {
 	struct
 	{
-		u64 fifoDataOffset;
+		u64 fifodata_offset;
 		u32 fifoDataSize;
 		u32 fifoStart;
 		u32 fifoEnd;
@@ -59,7 +59,7 @@ struct FileMemoryUpdate
 {
 	u32 fifoPosition;
 	u32 address;
-	u64 dataOffset;
+	u64 data_offset;
 	u32 dataSize;
 	u8 type;
 };

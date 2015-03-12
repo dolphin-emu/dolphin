@@ -16,8 +16,8 @@
 class GameFile final
 {
 public:
-	GameFile(const QString& fileName);
-	GameFile(const std::string& fileName) : GameFile(QString::fromStdString(fileName)) {}
+	GameFile(const QString& file_name);
+	GameFile(const std::string& file_name) : GameFile(QString::fromStdString(file_name)) {}
 
 	bool IsValid() const { return m_valid; }
 	QString GetFileName() { return m_file_name; }

@@ -459,8 +459,8 @@ void CConfigMain::InitializeGUIValues()
 	WiiSystemLang->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
 
 	// Wii - Devices
-	WiiSDCard->SetValue(SConfig::GetInstance().m_WiiSDCard);
-	WiiKeyboard->SetValue(SConfig::GetInstance().m_WiiKeyboard);
+	WiiSDCard->SetValue(SConfig::GetInstance().m_wiiSDCard);
+	WiiKeyboard->SetValue(SConfig::GetInstance().m_wiiKeyboard);
 
 
 	// Paths
@@ -1232,11 +1232,11 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 	}
 	// Wii - Devices
 	case ID_WII_SD_CARD:
-		SConfig::GetInstance().m_WiiSDCard = WiiSDCard->IsChecked();
+		SConfig::GetInstance().m_wiiSDCard = WiiSDCard->IsChecked();
 		WII_IPC_HLE_Interface::SDIO_EventNotify();
 		break;
 	case ID_WII_KEYBOARD:
-		SConfig::GetInstance().m_WiiKeyboard = WiiKeyboard->IsChecked();
+		SConfig::GetInstance().m_wiiKeyboard = WiiKeyboard->IsChecked();
 		break;
 	}
 }

@@ -451,13 +451,13 @@ bool CreateEmptyFile(const std::string &filename)
 }
 
 
-// Scans the directory tree gets, starting from _Directory and adds the
-// results into parentEntry. Returns the number of files+directories found
-u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
+// Scans the directory tree gets, starting from _directory and adds the
+// results into parent_entry. Returns the number of files+directories found
+u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parent_entry)
 {
 	INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
 	// How many files + directories we found
-	u32 foundEntries = 0;
+	u32 found_entries = 0;
 #ifdef _WIN32
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
@@ -466,7 +466,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
-		return foundEntries;
+		return found_entries;
 	}
 	// Windows loop
 	do
@@ -500,16 +500,16 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 			entry.isDirectory = true;
 			// is a directory, lets go inside
 			entry.size = ScanDirectoryTree(entry.physicalName, entry);
-			foundEntries += (u32)entry.size;
+			found_entries += (u32)entry.size;
 		}
 		else
 		{ // is a file
 			entry.isDirectory = false;
 			entry.size = GetSize(entry.physicalName.c_str());
 		}
-		++foundEntries;
+		++found_entries;
 		// Push into the tree
-		parentEntry.children.push_back(entry);
+		parent_entry.children.push_back(entry);
 #ifdef _WIN32
 	} while (FindNextFile(hFind, &ffd) != 0);
 	FindClose(hFind);
@@ -518,7 +518,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	closedir(dirp);
 #endif
 	// Return number of entries found.
-	return foundEntries;
+	return found_entries;
 }
 
 

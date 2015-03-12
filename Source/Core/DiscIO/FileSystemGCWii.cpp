@@ -21,11 +21,11 @@ namespace DiscIO
 {
 CFileSystemGCWii::CFileSystemGCWii(const IVolume *_rVolume)
 	: IFileSystem(_rVolume)
-	, m_Initialized(false)
-	, m_Valid(false)
-	, m_Wii(false)
+	, m_initialized(false)
+	, m_valid(false)
+	, m_wii(false)
 {
-	m_Valid = DetectFileSystem();
+	m_valid = DetectFileSystem();
 }
 
 CFileSystemGCWii::~CFileSystemGCWii()
@@ -35,56 +35,56 @@ CFileSystemGCWii::~CFileSystemGCWii()
 
 u64 CFileSystemGCWii::GetFileSize(const std::string& _rFullPath)
 {
-	if (!m_Initialized)
+	if (!m_initialized)
 		InitFileSystem();
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
 	if (pFileInfo != nullptr && !pFileInfo->IsDirectory())
-		return pFileInfo->m_FileSize;
+		return pFileInfo->m_file_size;
 
 	return 0;
 }
 
-const std::string CFileSystemGCWii::GetFileName(u64 _Address)
+const std::string CFileSystemGCWii::GetFileName(u64 _address)
 {
-	if (!m_Initialized)
+	if (!m_initialized)
 		InitFileSystem();
 
 	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if ((fileInfo.m_Offset <= _Address) &&
-		    ((fileInfo.m_Offset + fileInfo.m_FileSize) > _Address))
+		if ((fileInfo.m_offset <= _address) &&
+		    ((fileInfo.m_offset + fileInfo.m_file_size) > _address))
 		{
-			return fileInfo.m_FullPath;
+			return fileInfo.m_full_path;
 		}
 	}
 
 	return "";
 }
 
-u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize)
+u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _max_buffer_size)
 {
-	if (!m_Initialized)
+	if (!m_initialized)
 		InitFileSystem();
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 	if (pFileInfo == nullptr)
 		return 0;
 
-	if (pFileInfo->m_FileSize > _MaxBufferSize)
+	if (pFileInfo->m_file_size > _max_buffer_size)
 		return 0;
 
 	DEBUG_LOG(DISCIO, "Filename: %s. Offset: %" PRIx64 ". Size: %" PRIx64, _rFullPath.c_str(),
-		pFileInfo->m_Offset, pFileInfo->m_FileSize);
+		pFileInfo->m_offset, pFileInfo->m_file_size);
 
-	m_rVolume->Read(pFileInfo->m_Offset, pFileInfo->m_FileSize, _pBuffer, m_Wii);
-	return pFileInfo->m_FileSize;
+	m_rVolume->Read(pFileInfo->m_offset, pFileInfo->m_file_size, _pBuffer, m_wii);
+	return pFileInfo->m_file_size;
 }
 
 bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename)
 {
-	if (!m_Initialized)
+	if (!m_initialized)
 		InitFileSystem();
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
@@ -92,8 +92,8 @@ bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::stri
 	if (!pFileInfo)
 		return false;
 
-	u64 remainingSize = pFileInfo->m_FileSize;
-	u64 fileOffset = pFileInfo->m_Offset;
+	u64 remaining_size = pFileInfo->m_file_size;
+	u64 file_offset = pFileInfo->m_offset;
 
 	File::IOFile f(_rExportFilename, "wb");
 	if (!f)
@@ -101,22 +101,22 @@ bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::stri
 
 	bool result = true;
 
-	while (remainingSize)
+	while (remaining_size)
 	{
 		// Limit read size to 128 MB
-		size_t readSize = (size_t)std::min(remainingSize, (u64)0x08000000);
+		size_t readSize = (size_t)std::min(remaining_size, (u64)0x08000000);
 
 		std::vector<u8> buffer(readSize);
 
-		result = m_rVolume->Read(fileOffset, readSize, &buffer[0], m_Wii);
+		result = m_rVolume->Read(file_offset, readSize, &buffer[0], m_wii);
 
 		if (!result)
 			break;
 
 		f.WriteBytes(&buffer[0], readSize);
 
-		remainingSize -= readSize;
-		fileOffset += readSize;
+		remaining_size -= readSize;
+		file_offset += readSize;
 	}
 
 	return result;
@@ -130,7 +130,7 @@ bool CFileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 	DEBUG_LOG(DISCIO,"AppSize -> %x", AppSize);
 
 	std::vector<u8> buffer(AppSize);
-	if (m_rVolume->Read(0x2440, AppSize, &buffer[0], m_Wii))
+	if (m_rVolume->Read(0x2440, AppSize, &buffer[0], m_wii))
 	{
 		std::string exportName(_rExportFolder + "/apploader.img");
 
@@ -147,49 +147,49 @@ bool CFileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 
 u32 CFileSystemGCWii::GetBootDOLSize() const
 {
-	u32 DolOffset = Read32(0x420) << GetOffsetShift();
-	u32 DolSize = 0, offset = 0, size = 0;
+	u32 DOL_offset = Read32(0x420) << GetOffsetShift();
+	u32 DOL_size = 0, offset = 0, size = 0;
 
 	// Iterate through the 7 code segments
 	for (u8 i = 0; i < 7; i++)
 	{
-		offset = Read32(DolOffset + 0x00 + i * 4);
-		size   = Read32(DolOffset + 0x90 + i * 4);
-		if (offset + size > DolSize)
-			DolSize = offset + size;
+		offset = Read32(DOL_offset + 0x00 + i * 4);
+		size   = Read32(DOL_offset + 0x90 + i * 4);
+		if (offset + size > DOL_size)
+			DOL_size = offset + size;
 	}
 
 	// Iterate through the 11 data segments
 	for (u8 i = 0; i < 11; i++)
 	{
-		offset = Read32(DolOffset + 0x1c + i * 4);
-		size   = Read32(DolOffset + 0xac + i * 4);
-		if (offset + size > DolSize)
-			DolSize = offset + size;
+		offset = Read32(DOL_offset + 0x1c + i * 4);
+		size   = Read32(DOL_offset + 0xac + i * 4);
+		if (offset + size > DOL_size)
+			DOL_size = offset + size;
 	}
-	return DolSize;
+	return DOL_size;
 }
 
-bool CFileSystemGCWii::GetBootDOL(u8* &buffer, u32 DolSize) const
+bool CFileSystemGCWii::GetBootDOL(u8* &buffer, u32 DOL_size) const
 {
-	u32 DolOffset = Read32(0x420) << GetOffsetShift();
-	return m_rVolume->Read(DolOffset, DolSize, buffer, m_Wii);
+	u32 DOL_offset = Read32(0x420) << GetOffsetShift();
+	return m_rVolume->Read(DOL_offset, DOL_size, buffer, m_wii);
 }
 
 bool CFileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
 {
-	u32 DolOffset = Read32(0x420) << GetOffsetShift();
-	u32 DolSize = GetBootDOLSize();
+	u32 DOL_offset = Read32(0x420) << GetOffsetShift();
+	u32 DOL_size = GetBootDOLSize();
 
-	std::vector<u8> buffer(DolSize);
-	if (m_rVolume->Read(DolOffset, DolSize, &buffer[0], m_Wii))
+	std::vector<u8> buffer(DOL_size);
+	if (m_rVolume->Read(DOL_offset, DOL_size, &buffer[0], m_wii))
 	{
 		std::string exportName(_rExportFolder + "/boot.dol");
 
 		File::IOFile DolFile(exportName, "wb");
 		if (DolFile)
 		{
-			DolFile.WriteBytes(&buffer[0], DolSize);
+			DolFile.WriteBytes(&buffer[0], DOL_size);
 			return true;
 		}
 	}
@@ -197,17 +197,17 @@ bool CFileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
 	return false;
 }
 
-u32 CFileSystemGCWii::Read32(u64 _Offset) const
+u32 CFileSystemGCWii::Read32(u64 _offset) const
 {
 	u32 Temp = 0;
-	m_rVolume->Read(_Offset, 4, (u8*)&Temp, m_Wii);
+	m_rVolume->Read(_offset, 4, (u8*)&Temp, m_wii);
 	return Common::swap32(Temp);
 }
 
-std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
+std::string CFileSystemGCWii::GetStringFromOffset(u64 _offset) const
 {
 	std::string data(255, 0x00);
-	m_rVolume->Read(_Offset, data.size(), (u8*)&data[0], m_Wii);
+	m_rVolume->Read(_offset, data.size(), (u8*)&data[0], m_wii);
 	data.erase(std::find(data.begin(), data.end(), 0x00), data.end());
 
 	// TODO: Should we really always use SHIFT-JIS?
@@ -217,7 +217,7 @@ std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
 
 size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames)
 {
-	if (!m_Initialized)
+	if (!m_initialized)
 		InitFileSystem();
 
 	if (_rFilenames.size())
@@ -231,12 +231,12 @@ size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames
 
 const SFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
 {
-	if (!m_Initialized)
+	if (!m_initialized)
 		InitFileSystem();
 
 	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if (!strcasecmp(fileInfo.m_FullPath.c_str(), _rFullPath.c_str()))
+		if (!strcasecmp(fileInfo.m_full_path.c_str(), _rFullPath.c_str()))
 			return &fileInfo;
 	}
 
@@ -247,12 +247,12 @@ bool CFileSystemGCWii::DetectFileSystem()
 {
 	if (Read32(0x18) == 0x5D1C9EA3)
 	{
-		m_Wii = true;
+		m_wii = true;
 		return true;
 	}
 	else if (Read32(0x1c) == 0xC2339F3D)
 	{
-		m_Wii = false;
+		m_wii = false;
 		return true;
 	}
 
@@ -261,21 +261,21 @@ bool CFileSystemGCWii::DetectFileSystem()
 
 void CFileSystemGCWii::InitFileSystem()
 {
-	m_Initialized = true;
+	m_initialized = true;
 	u32 const shift = GetOffsetShift();
 
 	// read the whole FST
-	u64 FSTOffset = static_cast<u64>(Read32(0x424)) << shift;
-	// u32 FSTSize     = Read32(0x428);
-	// u32 FSTMaxSize  = Read32(0x42C);
+	u64 FST_offset = static_cast<u64>(Read32(0x424)) << shift;
+	// u32 FST_size     = Read32(0x428);
+	// u32 FST_max_size = Read32(0x42C);
 
 
 	// read all fileinfos
 	SFileInfo Root
 	{
-		Read32(FSTOffset + 0x0),
-		static_cast<u64>(FSTOffset + 0x4) << shift,
-		Read32(FSTOffset + 0x8)
+		Read32(FST_offset + 0x0),
+		static_cast<u64>(FST_offset + 0x4) << shift,
+		Read32(FST_offset + 0x8)
 	};
 
 	if (!Root.IsDirectory())
@@ -283,12 +283,12 @@ void CFileSystemGCWii::InitFileSystem()
 
 	if (m_FileInfoVector.size())
 		PanicAlert("Wtf?");
-	u64 NameTableOffset = FSTOffset;
+	u64 NameTableOffset = FST_offset;
 
-	m_FileInfoVector.reserve((size_t)Root.m_FileSize);
-	for (u32 i = 0; i < Root.m_FileSize; i++)
+	m_FileInfoVector.reserve((size_t)Root.m_file_size);
+	for (u32 i = 0; i < Root.m_file_size; i++)
 	{
-		u64 const read_offset = FSTOffset + (i * 0xC);
+		u64 const read_offset = FST_offset + (i * 0xC);
 		u64 const name_offset = Read32(read_offset + 0x0);
 		u64 const offset = static_cast<u64>(Read32(read_offset + 0x4)) << shift;
 		u64 const size = Read32(read_offset + 0x8);
@@ -299,21 +299,21 @@ void CFileSystemGCWii::InitFileSystem()
 	BuildFilenames(1, m_FileInfoVector.size(), "", NameTableOffset);
 }
 
-size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, u64 _NameTableOffset)
+size_t CFileSystemGCWii::BuildFilenames(const size_t _first_index, const size_t _last_index, const std::string& _szDirectory, u64 _name_table_offset)
 {
-	size_t CurrentIndex = _FirstIndex;
+	size_t CurrentIndex = _first_index;
 
-	while (CurrentIndex < _LastIndex)
+	while (CurrentIndex < _last_index)
 	{
 		SFileInfo& rFileInfo = m_FileInfoVector[CurrentIndex];
-		u64 const uOffset = _NameTableOffset + (rFileInfo.m_NameOffset & 0xFFFFFF);
+		u64 const uOffset = _name_table_offset + (rFileInfo.m_name_offset & 0xFFFFFF);
 		std::string const offset_str { GetStringFromOffset(uOffset) };
 		bool const is_dir = rFileInfo.IsDirectory();
-		rFileInfo.m_FullPath.reserve(_szDirectory.size() + offset_str.size());
+		rFileInfo.m_full_path.reserve(_szDirectory.size() + offset_str.size());
 
-		rFileInfo.m_FullPath.append(_szDirectory.data(), _szDirectory.size())
-		                    .append(offset_str.data(), offset_str.size())
-		                    .append("/", size_t(is_dir));
+		rFileInfo.m_full_path.append(_szDirectory.data(), _szDirectory.size())
+		                     .append(offset_str.data(), offset_str.size())
+		                     .append("/", size_t(is_dir));
 
 		if (!is_dir)
 		{
@@ -322,7 +322,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		}
 
 		// check next index
-		CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _NameTableOffset);
+		CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_file_size, rFileInfo.m_full_path, _name_table_offset);
 	}
 
 	return CurrentIndex;
@@ -330,7 +330,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 
 u32 CFileSystemGCWii::GetOffsetShift() const
 {
-	return m_Wii ? 2 : 0;
+	return m_wii ? 2 : 0;
 }
 
 }  // namespace

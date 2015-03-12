@@ -31,7 +31,7 @@ private:
 	struct SDolHeader
 	{
 		u32 textOffset[DOL_NUM_TEXT];
-		u32 dataOffset[DOL_NUM_DATA];
+		u32 data_offset[DOL_NUM_DATA];
 
 		u32 textAddress[DOL_NUM_TEXT];
 		u32 dataAddress[DOL_NUM_DATA];
