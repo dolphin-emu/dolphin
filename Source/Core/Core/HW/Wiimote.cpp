@@ -118,9 +118,6 @@ void Update(int _number)
 {
 	//PanicAlert( "Wiimote_Update" );
 
-	// TODO: change this to a try_to_lock, and make it give empty input on failure
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
 	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
 	else

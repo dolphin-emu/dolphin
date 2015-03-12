@@ -26,8 +26,6 @@ public:
 
 	std::vector<ControllerEmu*>  controllers;
 
-	std::recursive_mutex controls_lock; // for changing any control references
-
 	const char* const ini_name;
 	const char* const gui_name;
 	const char* const profile_name;
