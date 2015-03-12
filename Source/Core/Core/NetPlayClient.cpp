@@ -397,7 +397,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_DISABLE_GAME:
 	{
-		PanicAlertT("Other client disconnected while game is running!! NetPlay is disabled. You manually stop the game.");
+		PanicAlertT("Other client disconnected while game is running!! NetPlay is disabled. You must manually stop the game.");
 		std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 		m_is_running = false;
 		NetPlay_Disable();

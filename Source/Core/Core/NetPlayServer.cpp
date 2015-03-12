@@ -334,7 +334,7 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 	{
 		for (PadMapping mapping : m_pad_map)
 		{
-			if (mapping == pid)
+			if (mapping == pid && pid != 1)
 			{
 				PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game.");
 				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
@@ -344,7 +344,7 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
 				spac << (MessageId)NP_MSG_DISABLE_GAME;
 				// this thread doesn't need players lock
 				std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-				SendToClients(spac);
+				SendToClients(spac, 1);
 				break;
 			}
 		}
