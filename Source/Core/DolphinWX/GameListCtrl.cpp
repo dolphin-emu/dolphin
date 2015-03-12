@@ -773,11 +773,7 @@ void CGameListCtrl::OnKeyPress(wxListEvent& event)
 
 		wxString text = bleh.GetText();
 
-#ifdef __WXGTK__
-		if (text.MakeLower()[0] == event.GetKeyCode())
-#else
 		if (text.MakeUpper()[0] == event.GetKeyCode())
-#endif
 		{
 			if (lastKey == event.GetKeyCode() && Loop < sLoop)
 			{
