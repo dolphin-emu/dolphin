@@ -133,7 +133,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 				if (iso1->GetRevision() != iso2->GetRevision())
 					return  t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
 				if (iso1->IsDiscTwo() != iso2->IsDiscTwo())
-					return t * iso1->IsDiscTwo() ? 1 : -1;
+					return t * (iso1->IsDiscTwo() ? 1 : -1);
 			}
 			return strcasecmp(iso1->GetName(indexOne).c_str(),
 					iso2->GetName(indexOther).c_str()) * t;
