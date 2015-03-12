@@ -405,3 +405,92 @@ int RegCache::NumFreeRegisters()
 			count++;
 	return count;
 }
+
+// Step 1 for forward branches: modify the main path register cache to match.
+// We have to do this in two cases that can't be covered by modifying the branch-path
+// register cache.
+// If they disagree on immediates, we must flush the immediates.
+// If the main path has a register that's not dirty, but the branch path's is dirty, we have
+// to explicitly mark the main path's as dirty.
+void GPRRegCache::PrepareRegCache(GPRRegCache other)
+{
+	for (int i = 0; i < 32; i++)
+	{
+		if (R(i).IsImm() && (!other.R(i).IsImm() || other.R(i).offset != R(i).offset))
+			KillImmediate(i, true, false);
+		if (R(i).IsSimpleReg() && other.R(i).IsSimpleReg() && RX(i) == other.RX(i) && other.xregs[RX(i)].dirty)
+			xregs[RX(i)].dirty = true;
+	}
+}
+
+void FPURegCache::PrepareRegCache(FPURegCache other)
+{
+	for (int i = 0; i < 32; i++)
+	{
+		if (R(i).IsSimpleReg() && other.R(i).IsSimpleReg() && RX(i) == other.RX(i) && other.xregs[RX(i)].dirty)
+			xregs[RX(i)].dirty = true;
+	}
+}
+
+void GPRRegCache::ConvertRegCache(GPRRegCache target)
+{
+	for (int i = 0; i < 32; i++)
+	{
+		OpArg src = R(i);
+		OpArg dst = target.R(i);
+		if (dst.IsImm())
+		{
+			if (!src.IsImm() || src.offset != dst.offset)
+			{
+				PanicAlert("Cannot convert register cache!");
+				return;
+			}
+			// Immediates are the same, nothing to do
+		}
+		else if (dst.IsSimpleReg())
+		{
+			if (src.IsSimpleReg() && src.GetSimpleReg() == dst.GetSimpleReg())
+			{
+				// Nothing to do
+			}
+			else
+			{
+				FlushR(dst.GetSimpleReg());
+				emit->MOV(32, dst, src);
+				// we don't actually have to update the reg cache state, because this reg
+				// cache is going to be discarded after we're done.
+			}
+		}
+		else
+		{
+			// Target is in the cache, just store.
+			StoreFromRegister(i);
+		}
+	}
+}
+
+void FPURegCache::ConvertRegCache(FPURegCache target)
+{
+	for (int i = 0; i < 32; i++)
+	{
+		OpArg src = R(i);
+		OpArg dst = target.R(i);
+		if (dst.IsSimpleReg())
+		{
+			if (src.IsSimpleReg() && src.GetSimpleReg() == dst.GetSimpleReg())
+			{
+				// Nothing to do
+			}
+			else
+			{
+				FlushR(dst.GetSimpleReg());
+				emit->MOVAPD(dst.GetSimpleReg(), src);
+			}
+		}
+		else
+		{
+			// Target is in the cache, just store.
+			StoreFromRegister(i);
+		}
+	}
+}
