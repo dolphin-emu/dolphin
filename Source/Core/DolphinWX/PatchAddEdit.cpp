@@ -28,12 +28,12 @@
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 
-CPatchAddEdit::CPatchAddEdit(int _selection, const std::vector<PatchEngine::Patch>& _onFrame, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CPatchAddEdit::CPatchAddEdit(int _selection, std::vector<PatchEngine::Patch>* _onFrame, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
+	, onFrame(_onFrame)
+	, selection(_selection)
 {
-	selection = _selection;
 	CreateGUIControls(selection);
-	onFrame = _onFrame;
 
 	Bind(wxEVT_BUTTON, &CPatchAddEdit::SavePatchData, this, wxID_OK);
 }
@@ -53,8 +53,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	}
 	else
 	{
-		currentName = StrToWxStr(onFrame.at(_selection).name);
-		tempEntries = onFrame.at(_selection).entries;
+		currentName = StrToWxStr(onFrame->at(_selection).name);
+		tempEntries = onFrame->at(_selection).entries;
 	}
 
 	itCurEntry = tempEntries.begin();
@@ -142,12 +142,12 @@ void CPatchAddEdit::SavePatchData(wxCommandEvent& event)
 		newPatch.entries = tempEntries;
 		newPatch.active = true;
 
-		onFrame.push_back(newPatch);
+		onFrame->push_back(newPatch);
 	}
 	else
 	{
-		onFrame.at(selection).name = WxStrToStr(EditPatchName->GetValue());
-		onFrame.at(selection).entries = tempEntries;
+		onFrame->at(selection).name = WxStrToStr(EditPatchName->GetValue());
+		onFrame->at(selection).entries = tempEntries;
 	}
 
 	AcceptAndClose();

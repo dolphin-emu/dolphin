@@ -25,7 +25,7 @@ class wxWindow;
 class CPatchAddEdit : public wxDialog
 {
 public:
-	CPatchAddEdit(int _selection, const std::vector<PatchEngine::Patch>& _onFrame,
+	CPatchAddEdit(int _selection, std::vector<PatchEngine::Patch>* _onFrame,
 		wxWindow* parent,
 		wxWindowID id = wxID_ANY,
 		const wxString& title = _("Edit Patch"),
@@ -43,7 +43,7 @@ private:
 	wxButton* EntryAdd;
 	wxButton* EntryRemove;
 	wxStaticBoxSizer* sbEntry;
-	std::vector<PatchEngine::Patch> onFrame;
+	std::vector<PatchEngine::Patch>* onFrame;
 
 	void CreateGUIControls(int selection);
 	void ChangeEntry(wxSpinEvent& event);
