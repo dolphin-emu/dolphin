@@ -253,7 +253,7 @@ wxMenuBar* CFrame::CreateMenu()
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
 	toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save"));
 	toolsMenu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
-	toolsMenu->Append(IDM_CHEATS, _("&Cheats Manager"));
+	toolsMenu->Append(IDM_CHEATS, _("&Cheat Manager"));
 
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
 
