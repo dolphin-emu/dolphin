@@ -775,29 +775,29 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 
 void RunAllActive()
 {
-	// penkamaster's Action Replay culling code brue-forcing
-	if (Core::ch_bruteforce && Core::ch_codigoactual != 0 && Core::ch_codigoactual != -1)
+	// penkamaster's Action Replay culling code brute-forcing
+	if (Core::ch_bruteforce && Core::ch_current_position != 0 && Core::ch_current_position != -1)
 	{
 		ARCode ch_currentCode;
 
 		ch_currentCode.active = true;
-		ch_currentCode.name = "cullin";
+		ch_currentCode.name = "culling";
 		ch_currentCode.user_defined = true;
 
 		AREntry op;
 		bool success_addr;
 
-		success_addr = TryParse(std::string("0x") + Core::ch_map[Core::ch_codigoactual], &op.cmd_addr);
+		success_addr = TryParse(std::string("0x") + Core::ch_map[Core::ch_current_position], &op.cmd_addr);
 		bool success_val = TryParse(std::string("0x") + "3860000" + Core::ch_code, &op.value);
 		if (success_addr && success_val)
 		{
 			ch_currentCode.ops.push_back(op);
 		}
 
-		std::string ch_codigo_mas_cuatro = Core::ch_map[Core::ch_codigoactual];
+		//std::string ch_codigo_mas_cuatro = Core::ch_map[Core::ch_current_position];
 
 		std::stringstream str;
-		std::string s1 = Core::ch_map[Core::ch_codigoactual];
+		std::string s1 = Core::ch_map[Core::ch_current_position];
 		str << s1;
 		int value;
 		str >> std::hex >> value;

@@ -100,17 +100,17 @@ bool g_want_determinism;
 
 // Action Replay culling code brute-forcing by penkamaster
 // count down to take a screenshot
-int ch_tomarFoto;
+int ch_take_screenshot;
 // current code
-int ch_codigoactual;
+int ch_current_position;
 // move on to next code?
 bool ch_next_code;
 // start searching
-bool ch_comenzar_busqueda;
+bool ch_begin_search;
 // number of windows messages without saving a screenshot
-int ch_cicles_without_snapshot;
+int ch_cycles_without_snapshot;
 // search last
-bool ch_cacheo_pasado;
+bool ch_last_search;
 // emulator is in action replay culling code brute-forcing mode
 bool ch_bruteforce;
 

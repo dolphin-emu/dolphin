@@ -403,16 +403,16 @@ void DolphinApp::AfterInit()
 	}
 
 	// Action Replay culling code brute-forcing by penkamaster
-	Core::ch_tomarFoto = 0;
+	Core::ch_take_screenshot = 0;
 	Core::ch_next_code = false;
-	Core::ch_comenzar_busqueda = false;
-	Core::ch_cicles_without_snapshot = 0;
-	Core::ch_cacheo_pasado = false;
+	Core::ch_begin_search = false;
+	Core::ch_cycles_without_snapshot = 0;
+	Core::ch_last_search = false;
 
 	if (Core::ch_bruteforce)
 	{
 		std::string line;
-		std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "posicion.txt");
+		std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
 		std::string aux;
 
 		if (myfile.is_open())

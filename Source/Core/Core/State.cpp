@@ -473,7 +473,7 @@ void LoadAs(const std::string& filename)
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
 			// action replay culling code brute forcing by penkamaster
 			if (Core::ch_bruteforce)
-				Core::ch_tomarFoto = 3;	
+				Core::ch_take_screenshot = 3;	
 			if (File::Exists(filename + ".dtm"))
 				Movie::LoadInput(filename + ".dtm");
 			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
