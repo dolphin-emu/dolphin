@@ -270,8 +270,13 @@ bool CBoot::BootUp()
 			{
 				while (getline(myfile, line))
 				{
-					line = line.substr(2, 6);
-					Core::ch_map.push_back("04" + line);
+					std::string::size_type loc = line.find("80");
+					if (loc != std::string::npos && line.find("__start") == std::string::npos)
+					{
+						line = line.substr(loc + 2, 6);
+						if (line.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos && line.size() == 6)
+							Core::ch_map.push_back("04" + line);
+					}
 				}
 				myfile.close();
 			}
