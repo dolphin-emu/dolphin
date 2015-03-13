@@ -34,8 +34,6 @@ extern u8* logical_base;
 extern u8* m_pRAM;
 extern u8* m_pEXRAM;
 extern u8* m_pL1Cache;
-extern u8* m_pFakeVMEM;
-extern bool bFakeVMEM;
 
 enum
 {
@@ -46,8 +44,6 @@ enum
 	REALRAM_SIZE  = 0x01800000,
 	RAM_SIZE      = ROUND_UP_POW2(REALRAM_SIZE),
 	RAM_MASK      = RAM_SIZE - 1,
-	FAKEVMEM_SIZE = 0x02000000,
-	FAKEVMEM_MASK = FAKEVMEM_SIZE - 1,
 	L1_CACHE_SIZE = 0x00040000,
 	L1_CACHE_MASK = L1_CACHE_SIZE - 1,
 	IO_SIZE       = 0x00010000,

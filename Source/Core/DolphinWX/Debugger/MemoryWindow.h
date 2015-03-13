@@ -69,5 +69,4 @@ private:
 	void SetMemoryValue(wxCommandEvent& event);
 	void OnDumpMemory(wxCommandEvent& event);
 	void OnDumpMem2(wxCommandEvent& event);
-	void OnDumpFakeVMEM(wxCommandEvent& event);
 };

@@ -15,7 +15,6 @@ namespace PowerPC
 	const u32 ICACHE_BLOCK_SIZE = 8;
 
 	const u32 ICACHE_EXRAM_BIT = 0x10000000;
-	const u32 ICACHE_VMEM_BIT = 0x20000000;
 
 	struct InstructionCache
 	{
@@ -29,7 +28,6 @@ namespace PowerPC
 
 		u8 lookup_table[1<<20];
 		u8 lookup_table_ex[1<<21];
-		u8 lookup_table_vmem[1<<20];
 
 		InstructionCache();
 		u32 ReadInstruction(u32 addr);

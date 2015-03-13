@@ -41,5 +41,4 @@ namespace JitInterface
 
 	void Shutdown();
 }
-extern bool bMMU;
 

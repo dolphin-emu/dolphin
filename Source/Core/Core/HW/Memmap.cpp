@@ -40,16 +40,6 @@ namespace Memory
 {
 
 // =================================
-// LOCAL SETTINGS
-// ----------------
-
-// Enable the Translation Lookaside Buffer functions.
-bool bFakeVMEM = false;
-static bool bMMU = false;
-// ==============
-
-
-// =================================
 // Init() declarations
 // ----------------
 // Store the MemArena here
@@ -67,7 +57,6 @@ static bool m_IsInitialized = false; // Save the Init(), Shutdown() state
 u8* m_pRAM;
 u8* m_pL1Cache;
 u8* m_pEXRAM;
-u8* m_pFakeVMEM;
 
 // MMIO mapping object.
 MMIO::Mapping* mmio_mapping;
@@ -166,7 +155,6 @@ static MemoryView views[] =
 	{nullptr,      0x280000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
 	{nullptr,      0x2C0000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
 	{&m_pL1Cache,  0x2E0000000, L1_CACHE_SIZE, 0},
-	{&m_pFakeVMEM, 0x27E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
 	{&m_pEXRAM,    0x10000000, EXRAM_SIZE,    MV_WII_ONLY},
 	{nullptr,      0x290000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
 	{nullptr,      0x2D0000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
@@ -176,16 +164,9 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-#ifndef _ARCH_32
-	// The fake VMEM hack's address space is above the memory space that we allocate on 32bit targets
-	// Disable it entirely on 32bit targets.
-	bFakeVMEM = !bMMU;
-#endif
 
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
-	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	physical_base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 #ifndef _ARCH_32
 	logical_base = physical_base + 0x200000000;
@@ -208,9 +189,6 @@ void DoState(PointerWrap &p)
 	p.DoArray(m_pRAM, RAM_SIZE);
 	p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
-	if (bFakeVMEM)
-		p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
-	p.DoMarker("Memory FakeVMEM");
 	if (wii)
 		p.DoArray(m_pEXRAM, EXRAM_SIZE);
 	p.DoMarker("Memory EXRAM");
@@ -221,7 +199,6 @@ void Shutdown()
 	m_IsInitialized = false;
 	u32 flags = 0;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) flags |= MV_WII_ONLY;
-	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSHMSegment();
 	physical_base = nullptr;
