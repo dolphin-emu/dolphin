@@ -21,7 +21,7 @@
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
-		const wxSize& size, long style)
+		const wxSize   &size,  long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	wxMemoryInputStream istream(dolphin_logo_png, sizeof dolphin_logo_png);
