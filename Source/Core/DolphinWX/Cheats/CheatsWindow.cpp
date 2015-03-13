@@ -73,18 +73,18 @@ void wxCheatsWindow::Init_ChildControls()
 	m_tab_cheats = new wxPanel(m_notebook_main, wxID_ANY);
 
 	m_checklistbox_cheats_list = new wxCheckListBox(m_tab_cheats, wxID_ANY, wxDefaultPosition, wxSize(300, 0), m_cheat_string_list, wxLB_HSCROLL, wxDefaultValidator);
-	m_checklistbox_cheats_list->Bind(wxEVT_LISTBOX, &wxCheatsWindow::OnEvent_CheatsList_ItemSelected, this);
+	m_checklistbox_cheats_list->Bind(wxEVT_LISTBOX,      &wxCheatsWindow::OnEvent_CheatsList_ItemSelected, this);
 	m_checklistbox_cheats_list->Bind(wxEVT_CHECKLISTBOX, &wxCheatsWindow::OnEvent_CheatsList_ItemToggled, this);
 
 	m_label_code_name = new wxStaticText(m_tab_cheats, wxID_ANY, _("Name: "));
-	m_groupbox_info = new wxStaticBox(m_tab_cheats, wxID_ANY, _("Code Info"));
+	m_groupbox_info   = new wxStaticBox (m_tab_cheats, wxID_ANY, _("Code Info"));
 
-	m_label_num_codes = new wxStaticText(m_tab_cheats, wxID_ANY, _("Number Of Codes: "));
-	m_listbox_codes_list = new wxListBox(m_tab_cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, nullptr, wxLB_HSCROLL);
+	m_label_num_codes    = new wxStaticText(m_tab_cheats, wxID_ANY, _("Number Of Codes: "));
+	m_listbox_codes_list = new wxListBox   (m_tab_cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, nullptr, wxLB_HSCROLL);
 
 	wxStaticBoxSizer* sGroupBoxInfo = new wxStaticBoxSizer(m_groupbox_info, wxVERTICAL);
-	sGroupBoxInfo->Add(m_label_code_name, 0, wxALL, 5);
-	sGroupBoxInfo->Add(m_label_num_codes, 0, wxALL, 5);
+	sGroupBoxInfo->Add(m_label_code_name,    0, wxALL, 5);
+	sGroupBoxInfo->Add(m_label_num_codes,    0, wxALL, 5);
 	sGroupBoxInfo->Add(m_listbox_codes_list, 1, wxALL, 5);
 
 	wxBoxSizer* sizer_tab_cheats = new wxBoxSizer(wxHORIZONTAL);
@@ -110,7 +110,7 @@ void wxCheatsWindow::Init_ChildControls()
 
 	wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
 	HStrip1->Add(m_checkbox_log_ar, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-	HStrip1->Add(button_updatelog, 0, wxALL, 5);
+	HStrip1->Add(button_updatelog,  0, wxALL, 5);
 
 	wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
 	sTabLog->Add(HStrip1, 0, wxALL, 5);
@@ -161,7 +161,7 @@ void wxCheatsWindow::UpdateGUI()
 	// load code
 	SCoreStartupParameter parameters = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	m_gameini_default = parameters.LoadDefaultGameIni();
-	m_gameini_local = parameters.LoadLocalGameIni();
+	m_gameini_local   = parameters.LoadLocalGameIni();
 	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + parameters.GetUniqueID() + ".ini";
 	Load_ARCodes();
 	Load_GeckoCodes();
