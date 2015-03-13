@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;
@@ -21,6 +22,7 @@ extern volatile bool interruptSet;
 extern volatile bool interruptWaiting;
 extern volatile bool interruptTokenWaiting;
 extern volatile bool interruptFinishWaiting;
+extern Common::Flag s_gpuMaySleep;
 
 // internal hardware addresses
 enum

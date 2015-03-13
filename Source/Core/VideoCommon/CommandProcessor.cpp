@@ -45,6 +45,8 @@ volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
 
+Common::Flag s_gpuMaySleep;
+
 volatile u32 VITicks = CommandProcessor::m_cpClockOrigin;
 
 static bool IsOnThread()

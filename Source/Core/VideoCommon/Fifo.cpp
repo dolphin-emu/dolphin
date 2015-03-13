@@ -369,9 +369,13 @@ void RunGpuLoop()
 		{
 			if (s_gpu_is_running.IsSet())
 			{
-				// reset the atomic flag. But as the CPU thread might have pushed some new data, we have to rerun the GPU loop
-				s_gpu_is_pending.Set();
-				s_gpu_is_running.Clear();
+				if (CommandProcessor::s_gpuMaySleep.IsSet())
+				{
+					// Reset the atomic flag. But as the CPU thread might have pushed some new data, we have to rerun the GPU loop
+					s_gpu_is_pending.Set();
+					s_gpu_is_running.Clear();
+					CommandProcessor::s_gpuMaySleep.Clear();
+				}
 			}
 			else
 			{
@@ -403,6 +407,7 @@ void FlushGpu()
 
 	while (s_gpu_is_running.IsSet() || s_gpu_is_pending.IsSet())
 	{
+		CommandProcessor::s_gpuMaySleep.Set();
 		s_gpu_done_event.Wait();
 	}
 }

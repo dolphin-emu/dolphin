@@ -199,6 +199,9 @@ static void PatchEngineCallback(u64 userdata, int cyclesLate)
 
 static void ThrottleCallback(u64 last_time, int cyclesLate)
 {
+	// Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
+	CommandProcessor::s_gpuMaySleep.Set();
+
 	u32 time = Common::Timer::GetTimeMs();
 
 	int diff = (u32)last_time - time;
