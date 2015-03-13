@@ -341,7 +341,7 @@ void CVolumeDirectory::BuildFST()
 	m_dataStartAddress = ROUND_UP(m_fst_address + m_FSTData.size(), 0x8000ull);
 	u64 curDataAddress = m_dataStartAddress;
 
-	u32 fstOffset = 0;  // Offset within FST data
+	u32 fstOffset  = 0; // Offset within FST data
 	u32 nameOffset = 0; // Offset within name table
 	u32 rootOffset = 0; // Offset of root of FST
 
@@ -357,7 +357,7 @@ void CVolumeDirectory::BuildFST()
 	_dbg_assert_(DVDINTERFACE, nameOffset == m_totalNameSize);
 
 	// write FST size and location
-	Write32((u32)(m_fst_address >> m_addressShift), 0x0424, &m_diskHeader);
+	Write32((u32)(m_fst_address    >> m_addressShift), 0x0424, &m_diskHeader);
 	Write32((u32)(m_FSTData.size() >> m_addressShift), 0x0428, &m_diskHeader);
 	Write32((u32)(m_FSTData.size() >> m_addressShift), 0x042c, &m_diskHeader);
 }
@@ -380,7 +380,7 @@ void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const
 
 		memcpy(_pBuffer, _Src + srcOffset, (size_t)srcBytes);
 
-		_Length -= srcBytes;
+		_Length  -= srcBytes;
 		_pBuffer += srcBytes;
 		_Address += srcBytes;
 	}
@@ -398,7 +398,7 @@ void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64& _Address, u64& _Leng
 	if (_Length > 0)
 	{
 		memset(_pBuffer, 0, (size_t)padBytes);
-		_Length -= padBytes;
+		_Length  -= padBytes;
 		_pBuffer += padBytes;
 		_Address += padBytes;
 	}
@@ -408,8 +408,8 @@ void CVolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buff
 {
 	(*buffer)[offset++] = (data >> 24);
 	(*buffer)[offset++] = (data >> 16) & 0xff;
-	(*buffer)[offset++] = (data >> 8) & 0xff;
-	(*buffer)[offset] = (data) & 0xff;
+	(*buffer)[offset++] = (data >> 8)  & 0xff;
+	(*buffer)[offset]   = (data)       & 0xff;
 }
 
 void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u32 length)
@@ -417,8 +417,8 @@ void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset,
 	m_FSTData[entryOffset++] = type;
 
 	m_FSTData[entryOffset++] = (nameOffset >> 16) & 0xff;
-	m_FSTData[entryOffset++] = (nameOffset >> 8) & 0xff;
-	m_FSTData[entryOffset++] = (nameOffset) & 0xff;
+	m_FSTData[entryOffset++] = (nameOffset >> 8)  & 0xff;
+	m_FSTData[entryOffset++] = (nameOffset)       & 0xff;
 
 	Write32((u32)(dataOffset >> m_addressShift), entryOffset, &m_FSTData);
 	entryOffset += 4;
