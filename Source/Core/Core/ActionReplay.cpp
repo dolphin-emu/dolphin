@@ -776,7 +776,13 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 void RunAllActive()
 {
 	// penkamaster's Action Replay culling code brute-forcing
-	if (Core::ch_bruteforce && Core::ch_current_position != 0 && Core::ch_current_position != -1)
+	if (Core::ch_bruteforce && Core::ch_current_position >= Core::ch_map.size())
+	{
+		PanicAlert("Finished brute forcing! To start again, delete position.txt in the screenshots folder.");
+		Core::ch_bruteforce = 0;
+	}
+
+	if (Core::ch_bruteforce && Core::ch_current_position > -1)
 	{
 		ARCode ch_currentCode;
 
