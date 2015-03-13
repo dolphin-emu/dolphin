@@ -184,7 +184,7 @@ int ch_load_last_position()
 	{
 		while (getline(myfile, line))
 		{
-			aux= line;
+			aux = line;
 		}
 		myfile.close();
 
@@ -204,32 +204,19 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 		{
 			Core::ch_begin_search = false;
 			Core::ch_next_code = false;
-			Core::ch_current_position = 0;
 			Core::ch_current_position = ch_load_last_position();
-			ch_save_last_position(Core::ch_current_position);
 			State::Load(1);
 		}
-		else
+		// if we should move on to the next code then do so, and save where we are up to
+		// if we have received 65 windows messages without saving a screenshot, then this code is probably bad
+		// so skip to the next one
+		else if (Core::ch_next_code || (Core::ch_cycles_without_snapshot > 65 && Core::ch_last_search))
 		{
-			// if we should move on to the next code then do so, and save where we are up to
-			if (Core::ch_next_code)
-			{
-				Core::ch_next_code = false;
-				Core::ch_current_position += 1;
-				ch_save_last_position(Core::ch_current_position);
-				Core::ch_cycles_without_snapshot = 0;
-				State::Load(1);
-			}
-			// if we have received 65 windows messages without saving a screenshot, then this code is probably bad
-			// so skip to the next one
-			else if ( Core::ch_cycles_without_snapshot > 65 && Core::ch_last_search)
-			{
-				Core::ch_next_code = false;
-				Core::ch_current_position += 1;
-				ch_save_last_position(Core::ch_current_position);
-				Core::ch_cycles_without_snapshot = 0;
-				State::Load(1);
-			}
+			Core::ch_next_code = false;
+			++Core::ch_current_position;
+			ch_save_last_position(Core::ch_current_position);
+			Core::ch_cycles_without_snapshot = 0;
+			State::Load(1);
 		}
 	}
 
