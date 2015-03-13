@@ -479,11 +479,11 @@ void NetPlayClient::Disconnect()
 	m_server = nullptr;
 }
 
-void NetPlayClient::RunOnThread(std::function<void()> func)
+void NetPlayClient::SendAsync(sf::Packet* packet)
 {
 	{
-		std::lock_guard<std::recursive_mutex> lkq(m_crit.run_queue_write);
-		m_run_queue.Push(func);
+		std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
+		m_async_queue.Push(std::unique_ptr<sf::Packet>(packet));
 	}
 	ENetUtil::WakeupThread(m_client);
 }
@@ -498,10 +498,10 @@ void NetPlayClient::ThreadFunc()
 		if (m_traversal_client)
 			m_traversal_client->HandleResends();
 		net = enet_host_service(m_client, &netEvent, 4);
-		while (!m_run_queue.Empty())
+		while (!m_async_queue.Empty())
 		{
-			m_run_queue.Front()();
-			m_run_queue.Pop();
+			Send(*(m_async_queue.Front().get()));
+			m_async_queue.Pop();
 		}
 		if (net > 0)
 		{
@@ -586,57 +586,47 @@ void NetPlayClient::GetPlayers(std::vector<const Player *> &player_list)
 // called from ---GUI--- thread
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
-	RunOnThread([msg, this]() {
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-		spac << msg;
-		Send(spac);
-	});
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
+	*spac << msg;
+	SendAsync(spac);
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus& pad)
 {
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PAD_DATA;
-	spac << in_game_pad;
-	spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_PAD_DATA;
+	*spac << in_game_pad;
+	*spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
-	RunOnThread([spac, this]() mutable {
-		// send to server
-		Send(spac);
-	});
+	SendAsync(spac);
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw)
 {
-	RunOnThread([=]() {
-		// send to server
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_WIIMOTE_DATA;
-		spac << in_game_pad;
-		spac << (u8)nw.size();
-		for (auto it : nw)
-		{
-			spac << it;
-		}
-		Send(spac);
-	});
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_WIIMOTE_DATA;
+	*spac << in_game_pad;
+	*spac << (u8)nw.size();
+	for (auto it : nw)
+	{
+		*spac << it;
+	}
+	SendAsync(spac);
 }
 
 // called from ---GUI--- thread
 bool NetPlayClient::StartGame(const std::string &path)
 {
-	RunOnThread([this](){
-		std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-		// tell server i started the game
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_START_GAME;
-		spac << m_current_game;
-		spac << (char *)&g_NetPlaySettings;
-		Send(spac);
-	});
+	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+	// tell server i started the game
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_START_GAME;
+	*spac << m_current_game;
+	*spac << (char *)&g_NetPlaySettings;
+	SendAsync(spac);
 
 	if (m_is_running)
 	{
@@ -986,11 +976,9 @@ void NetPlayClient::Stop()
 	// tell the server to stop if we have a pad mapped in game.
 	if (isPadMapped)
 	{
-		RunOnThread([this](){
-			sf::Packet spac;
-			spac << (MessageId)NP_MSG_STOP_GAME;
-			Send(spac);
-		});
+		sf::Packet* spac = new sf::Packet;
+		*spac << (MessageId)NP_MSG_STOP_GAME;
+		SendAsync(spac);
 	}
 }
 

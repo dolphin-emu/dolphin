@@ -48,7 +48,7 @@ class NetPlayClient : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
-	void RunOnThread(std::function<void()> func);
+	void SendAsync(sf::Packet* packet);
 
 	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, std::string centralServer, u16 centralPort);
 	~NetPlayClient();
@@ -95,10 +95,10 @@ protected:
 		std::recursive_mutex game;
 		// lock order
 		std::recursive_mutex players;
-		std::recursive_mutex run_queue_write;
+		std::recursive_mutex async_queue_write;
 	} m_crit;
 
-	Common::FifoQueue<std::function<void()>, false> m_run_queue;
+	Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
 
 	Common::FifoQueue<GCPadStatus> m_pad_buffer[4];
 	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];

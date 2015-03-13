@@ -126,10 +126,13 @@ void NetPlayServer::ThreadFunc()
 		if (m_traversal_client)
 			m_traversal_client->HandleResends();
 		net = enet_host_service(m_server, &netEvent, 1000);
-		while (!m_run_queue.Empty())
+		while (!m_async_queue.Empty())
 		{
-			m_run_queue.Front()();
-			m_run_queue.Pop();
+			{
+				std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+				SendToClients(*(m_async_queue.Front().get()));
+			}
+			m_async_queue.Pop();
 		}
 		if (net > 0)
 		{
@@ -438,21 +441,18 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 	m_target_buffer_size = size;
 
 	// tell clients to change buffer size
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PAD_BUFFER;
-	spac << (u32)m_target_buffer_size;
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_PAD_BUFFER;
+	*spac << (u32)m_target_buffer_size;
 
-	RunOnThread([spac, this]() mutable {
-		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		SendToClients(spac);
-	});
+	SendAsyncToClients(spac);
 }
 
-void NetPlayServer::RunOnThread(std::function<void()> func)
+void NetPlayServer::SendAsyncToClients(sf::Packet* packet)
 {
 	{
-		std::lock_guard<std::recursive_mutex> lkq(m_crit.run_queue_write);
-		m_run_queue.Push(func);
+		std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
+		m_async_queue.Push(std::unique_ptr<sf::Packet>(packet));
 	}
 	ENetUtil::WakeupThread(m_server);
 }
@@ -598,15 +598,12 @@ void NetPlayServer::OnTraversalStateChanged()
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-	spac << (PlayerId)0; // server id always 0
-	spac << msg;
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
+	*spac << (PlayerId)0; // server id always 0
+	*spac << msg;
 
-	RunOnThread([spac, this]() mutable {
-		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		SendToClients(spac);
-	});
+	SendAsyncToClients(spac);
 }
 
 // called from ---GUI--- thread
@@ -617,14 +614,11 @@ bool NetPlayServer::ChangeGame(const std::string &game)
 	m_selected_game = game;
 
 	// send changed game to clients
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_CHANGE_GAME;
-	spac << game;
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_CHANGE_GAME;
+	*spac << game;
 
-	RunOnThread([spac, this]() mutable {
-		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		SendToClients(spac);
-	});
+	SendAsyncToClients(spac);
 
 	return true;
 }
@@ -647,25 +641,22 @@ bool NetPlayServer::StartGame()
 	g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
 	// tell clients to start game
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_START_GAME;
-	spac << m_current_game;
-	spac << m_settings.m_CPUthread;
-	spac << m_settings.m_CPUcore;
-	spac << m_settings.m_DSPEnableJIT;
-	spac << m_settings.m_DSPHLE;
-	spac << m_settings.m_WriteToMemcard;
-	spac << m_settings.m_OCEnable;
-	spac << m_settings.m_OCFactor;
-	spac << m_settings.m_EXIDevice[0];
-	spac << m_settings.m_EXIDevice[1];
-	spac << (u32)g_netplay_initial_gctime;
-	spac << (u32)g_netplay_initial_gctime << 32;
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_START_GAME;
+	*spac << m_current_game;
+	*spac << m_settings.m_CPUthread;
+	*spac << m_settings.m_CPUcore;
+	*spac << m_settings.m_DSPEnableJIT;
+	*spac << m_settings.m_DSPHLE;
+	*spac << m_settings.m_WriteToMemcard;
+	*spac << m_settings.m_OCEnable;
+	*spac << m_settings.m_OCFactor;
+	*spac << m_settings.m_EXIDevice[0];
+	*spac << m_settings.m_EXIDevice[1];
+	*spac << (u32)g_netplay_initial_gctime;
+	*spac << (u32)g_netplay_initial_gctime << 32;
 
-	RunOnThread([spac, this]() mutable {
-		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		SendToClients(spac);
-	});
+	SendAsyncToClients(spac);
 
 	m_is_running = true;
 
