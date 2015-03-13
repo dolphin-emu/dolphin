@@ -146,7 +146,7 @@ private:
 
 	// Advanced
 	wxRadioBox* CPUEngine;
-	wxCheckBox* _NTSCJ;
+	wxCheckBox* ForceNTSCJ;
 	wxSlider* OCSlider;
 	wxStaticText* OCText;
 	wxCheckBox* EnableOC;
