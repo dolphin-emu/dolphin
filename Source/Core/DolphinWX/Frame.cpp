@@ -161,25 +161,25 @@ bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 }
 
 // save last position
-void ch_guardar_ultimaposicion(int posicion){
-	std::ofstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "posicion.txt");
+void ch_save_last_position(int position)
+{
+	std::ofstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
 	if (myfile.is_open())
 	{
 		std::string Result;
 		std::ostringstream convert;   // stream used for the conversion
-		convert << posicion;      // insert the textual representation of 'Number' in the characters in the stream
+		convert << position;      // insert the textual representation of 'Number' in the characters in the stream
 		myfile << convert.str() + "\n";
 		myfile.close();
-	}	
+	}
 }
 // load last position
-int ch_cargar_ultimaposicion(){
-	
-	
+int ch_load_last_position()
+{
 	std::string line;
-	std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) +"posicion.txt");
+	std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) +"position.txt");
 	std::string aux;
-	
+
 	if (myfile.is_open())
 	{
 		while (getline(myfile, line))
@@ -187,7 +187,7 @@ int ch_cargar_ultimaposicion(){
 			aux= line;
 		}
 		myfile.close();
-		
+
 	}
 	return (atoi(aux.c_str())+1);
 }
@@ -198,15 +198,15 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 	// Action Replay culling code brute forcing by penkamaster
 	if (Core::ch_bruteforce)
 	{
-		Core::ch_cicles_without_snapshot += 1;
+		Core::ch_cycles_without_snapshot += 1;
 		// if begining searching, start from the most recently saved position
-		if (Core::ch_comenzar_busqueda)
+		if (Core::ch_begin_search)
 		{
-			Core::ch_comenzar_busqueda = false;
+			Core::ch_begin_search = false;
 			Core::ch_next_code = false;
-			Core::ch_codigoactual = 0;
-			Core::ch_codigoactual = ch_cargar_ultimaposicion();
-			ch_guardar_ultimaposicion(Core::ch_codigoactual);
+			Core::ch_current_position = 0;
+			Core::ch_current_position = ch_load_last_position();
+			ch_save_last_position(Core::ch_current_position);
 			State::Load(1);
 		}
 		else
@@ -215,21 +215,20 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 			if (Core::ch_next_code)
 			{
 				Core::ch_next_code = false;
-				Core::ch_codigoactual += 1;
-				ch_guardar_ultimaposicion(Core::ch_codigoactual);
-				Core::ch_cicles_without_snapshot = 0;
+				Core::ch_current_position += 1;
+				ch_save_last_position(Core::ch_current_position);
+				Core::ch_cycles_without_snapshot = 0;
 				State::Load(1);
 			}
 			// if we have received 65 windows messages without saving a screenshot, then this code is probably bad
 			// so skip to the next one
-			else if ( Core::ch_cicles_without_snapshot > 65 && Core::ch_cacheo_pasado)
+			else if ( Core::ch_cycles_without_snapshot > 65 && Core::ch_last_search)
 			{
 				Core::ch_next_code = false;
-				Core::ch_codigoactual += 1;
-				ch_guardar_ultimaposicion(Core::ch_codigoactual);
-				Core::ch_cicles_without_snapshot = 0;
+				Core::ch_current_position += 1;
+				ch_save_last_position(Core::ch_current_position);
+				Core::ch_cycles_without_snapshot = 0;
 				State::Load(1);
-			
 			}
 		}
 	}
