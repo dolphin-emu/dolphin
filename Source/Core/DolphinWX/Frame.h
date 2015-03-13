@@ -349,7 +349,7 @@ private:
 	void OnConnectWiimote(wxCommandEvent& event);
 	void GameListChanged(wxCommandEvent& event);
 
-	void OnGameListCtrl_ItemActivated(wxListEvent& event);
+	void OnGameListCtrlItemActivated(wxListEvent& event);
 	void OnRenderParentResize(wxSizeEvent& event);
 	void StartGame(const std::string& filename);
 	void OnChangeColumnsVisible(wxCommandEvent& event);
