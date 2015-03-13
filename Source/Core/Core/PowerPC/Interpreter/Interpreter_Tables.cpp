@@ -26,8 +26,6 @@ static GekkoOPTemplate primarytable[] =
 	{16, Interpreter::bcx,          {"bcx", OPTYPE_SYSTEM, FL_ENDBLOCK, 1, 0, 0, 0}},
 	{18, Interpreter::bx,           {"bx",  OPTYPE_SYSTEM, FL_ENDBLOCK, 1, 0, 0, 0}},
 
-	{1,  Interpreter::HLEFunction,  {"HLEFunction", OPTYPE_SYSTEM, FL_ENDBLOCK, 1, 0, 0, 0}},
-	{2,  Interpreter::CompiledBlock,{"DynaBlock",   OPTYPE_SYSTEM, 1, 0, 0, 0, 0}},
 	{3,  Interpreter::twi,          {"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK, 1, 0, 0, 0}},
 	{17, Interpreter::sc,           {"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 2, 0, 0, 0}},
 
@@ -86,7 +84,7 @@ static GekkoOPTemplate primarytable[] =
 	{60, Interpreter::psq_st,       {"psq_st",  OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_IN_A0 | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{61, Interpreter::psq_stu,      {"psq_stu", OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
-	//missing: 0, 5, 6, 9, 22, 30, 62, 58
+	//missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
 };
 
 static GekkoOPTemplate table4[] =
