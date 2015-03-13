@@ -25,9 +25,6 @@
 
 namespace DiscIO
 {
-CSharedContent CSharedContent::m_Instance;
-cUIDsys cUIDsys::m_Instance;
-
 
 CSharedContent::CSharedContent()
 {
@@ -304,9 +301,6 @@ DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
 
 	return CountrySwitch(m_Country);
 }
-
-
-CNANDContentManager CNANDContentManager::m_Instance;
 
 
 CNANDContentManager::~CNANDContentManager()
