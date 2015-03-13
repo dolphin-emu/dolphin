@@ -866,12 +866,6 @@ union UPTE2
 
 static void GenerateDSIException(u32 effectiveAddress, bool write)
 {
-	// These errors are expected in bruteforcing mode. Most likely will end up in Interpreter::unknown_instruction.
-	if (Core::ch_bruteforce)
-	{
-		return;
-	}
-
 	// DSI exceptions are only supported in MMU mode.
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
