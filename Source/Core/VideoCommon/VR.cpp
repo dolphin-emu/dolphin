@@ -409,12 +409,9 @@ void UpdateHeadTrackingIfNeeded()
 		g_head_tracking_position[1] = -y;
 		g_head_tracking_position[2] = 0.06f-z;
 		Matrix33 m, yp, ya, p, r;
-		Matrix33::LoadIdentity(ya);
 		Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
-		Matrix33::LoadIdentity(p);
 		Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
 		Matrix33::Multiply(p, ya, yp);
-		Matrix33::LoadIdentity(r);
 		Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
 		Matrix33::Multiply(r, yp, m);
 		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
