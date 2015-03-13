@@ -1484,7 +1484,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
 	if (!g_CheatsWindow)
 		g_CheatsWindow = new wxCheatsWindow(this);
