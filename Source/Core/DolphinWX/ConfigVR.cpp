@@ -131,7 +131,7 @@ void CConfigVR::CreateGUIControls()
 		{
 			const wxString vr_choices[] = { _("Yaw, Pitch, and Roll"), _("Yaw and Pitch"), _("Yaw only"), _("None") };
 
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Let The Game Control:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Let the Game Control:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iGameCameraControl, wxGetTranslation(cameracontrol_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);

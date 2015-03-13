@@ -1380,7 +1380,7 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
 
 			// camera pitch
-			if (g_ActiveConfig.iGameCameraControl >= CAMERA_NONE && g_ActiveConfig.bCanReadCameraAngles)
+			if (g_ActiveConfig.iGameCameraControl > CAMERA_YAWPITCHROLL && g_ActiveConfig.bCanReadCameraAngles)
 			{
 				Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
 			}
@@ -1771,7 +1771,6 @@ void VertexShaderManager::CheckOrientationConstants()
 #define sqr(a) ((a)*(a))
 	if (g_ActiveConfig.bCanReadCameraAngles)
 	{
-		//static float first_x = 0;
 		float *p = constants.posnormalmatrix[0];
 		float pos[3];
 		pos[0] = p[0 * 4 + 3];
@@ -1786,33 +1785,60 @@ void VertexShaderManager::CheckOrientationConstants()
 		for (int r = 0; r < 3; ++r)
 			for (int c = 0; c < 3; ++c)
 				rot.data[r * 3 + c] /= scale;
+		// extract yaw, pitch, and roll from rotation matrix
 		float yaw, pitch, roll;
 		Matrix33::GetPieYawPitchRollR(rot, yaw, pitch, roll);
-		yaw = RADIANS_TO_DEGREES(yaw);
-		pitch = RADIANS_TO_DEGREES(pitch);
-		roll = RADIANS_TO_DEGREES(roll);
-		NOTICE_LOG(VR, "Pos(%d): %5.2f, %5.2f, %5.2f; scale: x%5.2f", g_main_cp_state.matrix_index_a.PosNormalMtxIdx, pos[0], pos[1], pos[2], scale);
-		WARN_LOG(VR, "Yaw = %5.2f, Pitch = %5.2f, Roll = %5.2f", yaw, pitch, roll);
-		ERROR_LOG(VR, "Rot: [%5.2f, %5.2f, %5.2f][%5.2f, %5.2f, %5.2f][%5.2f, %5.2f, %5.2f]", rot.data[0 * 3 + 0], rot.data[0 * 3 + 1], rot.data[0 * 3 + 2], rot.data[1 * 3 + 0], rot.data[1 * 3 + 1], rot.data[1 * 3 + 2], rot.data[2 * 3 + 0], rot.data[2 * 3 + 1], rot.data[2 * 3 + 2]);
 
+		//NOTICE_LOG(VR, "Pos(%d): %5.2f, %5.2f, %5.2f; scale: x%5.2f", g_main_cp_state.matrix_index_a.PosNormalMtxIdx, pos[0], pos[1], pos[2], scale);
 		//debug - show which object is being used
+		//static float first_x = 0;
 		//if (first_x == 0)
 		//	first_x = pos[0];
 		//else if (g_ActiveConfig.iFlashState > 5)
 		//	constants.posnormalmatrix[0][0 * 4 + 3] = first_x;
 
-		// invert rotation matrix
-		float temp = rot.data[0 * 3 + 1];
-		rot.data[0 * 3 + 1] = rot.data[1 * 3 + 0];
-		rot.data[1 * 3 + 0] = temp;
-		temp = rot.data[0 * 3 + 2];
-		rot.data[0 * 3 + 2] = rot.data[2 * 3 + 0];
-		rot.data[2 * 3 + 0] = temp;
-		temp = rot.data[1 * 3 + 2];
-		rot.data[1 * 3 + 2] = rot.data[2 * 3 + 1];
-		rot.data[2 * 3 + 1] = temp;
+		switch (g_ActiveConfig.iGameCameraControl)
+		{
+		case CAMERA_NONE:
+			// invert rotation matrix to counteract all rotation
+			{
+				float temp = rot.data[0 * 3 + 1];
+				rot.data[0 * 3 + 1] = rot.data[1 * 3 + 0];
+				rot.data[1 * 3 + 0] = temp;
+				temp = rot.data[0 * 3 + 2];
+				rot.data[0 * 3 + 2] = rot.data[2 * 3 + 0];
+				rot.data[2 * 3 + 0] = temp;
+				temp = rot.data[1 * 3 + 2];
+				rot.data[1 * 3 + 2] = rot.data[2 * 3 + 1];
+				rot.data[2 * 3 + 1] = temp;
+			}
+			break;
+		case CAMERA_YAW:
+			// counteract roll and pitch
+			{
+				Matrix33 p, r;
+				Matrix33::RotateX(p, -pitch);
+				Matrix33::RotateZ(r, -roll);
+				Matrix33::Multiply(r, p, rot);
+			}
+			break;
+		case CAMERA_YAWPITCH:
+			// only counteract roll
+			Matrix33::RotateZ(rot, -roll);
+			break;
+		case CAMERA_YAWPITCHROLL:
+		default:
+			// don't counteract anything
+			Matrix33::LoadIdentity(rot);
+			break;
+		}
 		Matrix44::LoadMatrix33(g_game_camera_rotmat, rot);
 		memcpy(g_game_camera_pos, pos, 3 * sizeof(float));
+		//yaw = RADIANS_TO_DEGREES(yaw);
+		//pitch = RADIANS_TO_DEGREES(pitch);
+		//roll = RADIANS_TO_DEGREES(roll);
+		//WARN_LOG(VR, "Yaw = %5.2f, Pitch = %5.2f, Roll = %5.2f", yaw, pitch, roll);
+		//ERROR_LOG(VR, "Rot: [%5.2f, %5.2f, %5.2f][%5.2f, %5.2f, %5.2f][%5.2f, %5.2f, %5.2f]", rot.data[0 * 3 + 0], rot.data[0 * 3 + 1], rot.data[0 * 3 + 2], rot.data[1 * 3 + 0], rot.data[1 * 3 + 1], rot.data[1 * 3 + 2], rot.data[2 * 3 + 0], rot.data[2 * 3 + 1], rot.data[2 * 3 + 2]);
 	}
 	else
 	{

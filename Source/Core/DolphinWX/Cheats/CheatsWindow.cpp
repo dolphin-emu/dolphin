@@ -169,7 +169,7 @@ void wxCheatsWindow::UpdateGUI()
 	// enable controls
 	m_button_apply->Enable(Core::IsRunning());
 
-	wxString title = _("Cheats Manager");
+	wxString title = _("Cheat Manager");
 
 	// write the ISO name in the title
 	if (Core::IsRunning())

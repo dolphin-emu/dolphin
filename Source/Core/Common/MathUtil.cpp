@@ -320,6 +320,7 @@ void Matrix33::Multiply(const Matrix33 &a, const float vec[3], float result[3])
 	}
 }
 
+// GlovePIE function for extracting yaw, pitch, and roll from a rotation matrix
 void Matrix33::GetPieYawPitchRollR(const Matrix33 &m, float &yaw, float &pitch, float &roll)
 {
 	float s, c, cp;
