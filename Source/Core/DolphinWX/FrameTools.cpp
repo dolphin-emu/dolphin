@@ -136,7 +136,7 @@ wxMenuBar* CFrame::CreateMenu()
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
-	fileMenu->Append(wxID_OPEN, GetMenuLabel(HK_OPEN));
+	fileMenu->Append(wxID_OPEN,       GetMenuLabel(HK_OPEN));
 	fileMenu->Append(IDM_CHANGE_DISC, GetMenuLabel(HK_CHANGE_DISC));
 
 	wxMenu *externalDrive = new wxMenu;
@@ -159,12 +159,12 @@ wxMenuBar* CFrame::CreateMenu()
 
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
-	emulationMenu->Append(IDM_PLAY, GetMenuLabel(HK_PLAY_PAUSE));
-	emulationMenu->Append(IDM_STOP, GetMenuLabel(HK_STOP));
+	emulationMenu->Append(IDM_PLAY,  GetMenuLabel(HK_PLAY_PAUSE));
+	emulationMenu->Append(IDM_STOP,  GetMenuLabel(HK_STOP));
 	emulationMenu->Append(IDM_RESET, GetMenuLabel(HK_RESET));
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));
-	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
+	emulationMenu->Append(IDM_FRAMESTEP,         GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
@@ -387,12 +387,12 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu* helpMenu = new wxMenu;
 	// Re-enable when there's something useful to display */
 	// helpMenu->Append(wxID_HELP, _("&Help"));
-	helpMenu->Append(IDM_HELP_WEBSITE, _("Dolphin &Website"));
+	helpMenu->Append(IDM_HELP_WEBSITE,     _("Dolphin &Website"));
 	helpMenu->Append(IDM_HELP_ONLINE_DOCS, _("Online &Documentation"));
-	helpMenu->Append(IDM_HELP_GITHUB, _("Dolphin at &GitHub"));
+	helpMenu->Append(IDM_HELP_GITHUB,      _("Dolphin at &GitHub"));
 	helpMenu->AppendSeparator();
-	helpMenu->Append(wxID_ABOUT, _("&About..."));
-	menubar->Append(helpMenu, _("&Help"));
+	helpMenu->Append(wxID_ABOUT,           _("&About..."));
+	menubar->Append(helpMenu,              _("&Help"));
 
 	return menubar;
 }
@@ -926,7 +926,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 			!RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
 		{
 			m_RenderFrame->GetClientSize(&width, &height);
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
+			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth  = width;
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
 		}
 		m_LogWindow->Refresh();
@@ -985,7 +985,7 @@ void CFrame::StartGame(const std::string& filename)
 		m_GameListCtrl->Hide();
 
 		m_RenderParent = m_Panel;
-		m_RenderFrame = this;
+		m_RenderFrame  = this;
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
 		else
@@ -1010,13 +1010,13 @@ void CFrame::StartGame(const std::string& filename)
 #endif
 
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+		            SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 #ifdef _WIN32
 		// Out of desktop check
 		int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
-		int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
-		int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
-		int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		int topPos  = GetSystemMetrics(SM_YVIRTUALSCREEN);
+		int width   = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		int height  = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 		if ((leftPos + width) < (position.x + size.GetWidth()) || leftPos > position.x || (topPos + height) < (position.y + size.GetHeight()) || topPos > position.y)
 			position.x = position.y = wxDefaultCoord;
 #endif
@@ -1029,8 +1029,8 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderFrame->SetBackgroundColour(*wxBLACK);
 		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
 		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
-		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
-		m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
+		m_RenderFrame->Bind(wxEVT_ACTIVATE,     &CFrame::OnActive,            this);
+		m_RenderFrame->Bind(wxEVT_MOVE,         &CFrame::OnRenderParentMove,  this);
 #ifdef _WIN32
 		// The renderer should use a top-level window for exclusive fullscreen support.
 		m_RenderParent = m_RenderFrame;
@@ -1080,7 +1080,7 @@ void CFrame::StartGame(const std::string& filename)
 		wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse,   this);
 		wxTheApp->Bind(wxEVT_MIDDLE_UP,   &CFrame::OnMouse,   this);
 		wxTheApp->Bind(wxEVT_MOTION,      &CFrame::OnMouse,   this);
-		m_RenderParent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+		m_RenderParent->Bind(wxEVT_SIZE,  &CFrame::OnRenderParentResize, this);
 	}
 
 	wxEndBusyCursor();
@@ -1230,7 +1230,7 @@ void CFrame::OnStopped()
 	m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
 	// Destroy the renderer frame when not rendering to main
-	m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+	m_RenderParent->Unbind(wxEVT_SIZE,  &CFrame::OnRenderParentResize, this);
 
 	// Keyboard
 	wxTheApp->Unbind(wxEVT_KEY_DOWN,    &CFrame::OnKeyDown, this);
