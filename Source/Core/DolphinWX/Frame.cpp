@@ -187,9 +187,8 @@ int ch_load_last_position()
 			aux = line;
 		}
 		myfile.close();
-
 	}
-	return (atoi(aux.c_str())+1);
+	return (atoi(aux.c_str()));
 }
 
 #ifdef _WIN32
@@ -198,7 +197,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 	// Action Replay culling code brute forcing by penkamaster
 	if (Core::ch_bruteforce)
 	{
-		Core::ch_cycles_without_snapshot += 1;
+		++Core::ch_cycles_without_snapshot;
 		// if begining searching, start from the most recently saved position
 		if (Core::ch_begin_search)
 		{
@@ -208,9 +207,9 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 			State::Load(1);
 		}
 		// if we should move on to the next code then do so, and save where we are up to
-		// if we have received 65 windows messages without saving a screenshot, then this code is probably bad
+		// if we have received 30 windows messages without saving a screenshot, then this code is probably bad
 		// so skip to the next one
-		else if (Core::ch_next_code || (Core::ch_cycles_without_snapshot > 65 && Core::ch_last_search))
+		else if (Core::ch_next_code || (Core::ch_current_position && Core::ch_cycles_without_snapshot > 30 && Core::ch_last_search))
 		{
 			Core::ch_next_code = false;
 			++Core::ch_current_position;

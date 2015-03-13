@@ -787,7 +787,7 @@ void RunAllActive()
 		ARCode ch_currentCode;
 
 		ch_currentCode.active = true;
-		ch_currentCode.name = "culling";
+		ch_currentCode.name = "temporary_culling_code";
 		ch_currentCode.user_defined = true;
 
 		AREntry op;
@@ -799,8 +799,6 @@ void RunAllActive()
 		{
 			ch_currentCode.ops.push_back(op);
 		}
-
-		//std::string ch_codigo_mas_cuatro = Core::ch_map[Core::ch_current_position];
 
 		std::stringstream str;
 		std::string s1 = Core::ch_map[Core::ch_current_position];
