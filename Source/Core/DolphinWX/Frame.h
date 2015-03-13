@@ -342,7 +342,7 @@ private:
 
 	void OnNetPlay(wxCommandEvent& event);
 
-	void OnShow_CheatsWindow(wxCommandEvent& event);
+	void OnShowCheatsWindow(wxCommandEvent& event);
 	void OnLoadWiiMenu(wxCommandEvent& event);
 	void OnInstallWAD(wxCommandEvent& event);
 	void OnFifoPlayer(wxCommandEvent& event);
