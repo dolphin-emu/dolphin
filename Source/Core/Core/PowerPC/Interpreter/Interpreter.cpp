@@ -281,81 +281,16 @@ void Interpreter::Run()
 
 void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 {
-	if (!Core::ch_bruteforce)
+	if (Core::ch_bruteforce)
+	{
+		Core::KillDolphinAndRestart();
+	}
+	else
 	{
 		std::string disasm = GekkoDisassembler::Disassemble(PowerPC::HostRead_U32(last_pc), last_pc);
 		NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
 		Dolphin_Debugger::PrintCallstack();
 		_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
-	}
-	else
-	{
-		// If it's the first time through and it crashes on the first function, we must advance the position.
-		if (Core::ch_begin_search)
-		{
-			std::ifstream myfile_in(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
-
-			if (myfile_in.is_open())
-			{
-				std::string aux;
-				std::string line;
-
-				while (getline(myfile_in, line))
-				{
-					aux = line;
-				}
-
-				Core::ch_current_position = atoi(aux.c_str());
-				myfile_in.close();
-			}
-
-			std::ofstream myfile_out(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
-			if (myfile_out.is_open())
-			{
-				std::string Result;
-				std::ostringstream convert;   // stream used for the conversion
-				convert << ++Core::ch_current_position;      // insert the textual representation of 'Number' in the characters in the stream
-				myfile_out << convert.str() + "\n";
-				myfile_out.close();
-			}
-		}
-
-#if defined WIN32
-		// Restart Dolphin automatically after fatal crash.
-		PROCESS_INFORMATION ProcessInfo;
-		STARTUPINFO StartupInfo;
-
-		ZeroMemory(&StartupInfo, sizeof(StartupInfo));
-		StartupInfo.cb = sizeof StartupInfo; //Only compulsory field
-		ZeroMemory(&ProcessInfo, sizeof(ProcessInfo));
-
-		// To do: LPTSTR is terrible and it's really hard to convert a string to it.
-		// Figure out a less hacky way to do this...
-		if (Core::ch_code == "0")
-		{
-			LPTSTR szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 0"));
-			if (!CreateProcess(nullptr, szCmdline, nullptr, nullptr, false, NORMAL_PRIORITY_CLASS, nullptr, nullptr, &StartupInfo, &ProcessInfo))
-			{
-				PanicAlert("Failed to restart Dolphin.exe automatically after a bad bruteforcer instruction caused a crash.");
-			}
-		}
-		else if (Core::ch_code == "1")
-		{
-			LPTSTR szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 1"));
-			if (!CreateProcess(nullptr, szCmdline, nullptr, nullptr, false, NORMAL_PRIORITY_CLASS, nullptr, nullptr, &StartupInfo, &ProcessInfo))
-			{
-				PanicAlert("Failed to restart Dolphin.exe automatically after a bad bruteforcer instruction caused a crash.");
-			}
-		}
-		else
-		{
-			PanicAlert("Right now the bruteforcer can only be restarted automatically if -bruteforce 1 or 0 is used.\nIntCPU: Brute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
-		}
-
-		TerminateProcess(GetCurrentProcess(), 0);
-#else
-		PanicAlert("IntCPU: Brute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
-#endif
 	}
 }
 

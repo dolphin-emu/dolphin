@@ -50,8 +50,15 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	if (!DisassembleMov(codePtr, &info))
 	{
-		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
-		return false;
+		if (Core::ch_bruteforce)
+		{
+			Core::KillDolphinAndRestart();
+		}
+		else
+		{
+			BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
+			return false;
+		}
 	}
 
 	if (info.otherReg != RMEM)

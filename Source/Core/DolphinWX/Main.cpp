@@ -257,7 +257,7 @@ bool DolphinApp::OnInit()
 	g_force_vr = parser.Found("vr");
 	Core::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
 	Core::ch_code = WxStrToStr(bruteforceResult);
-	if (Core::ch_code.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos || Core::ch_code.size() != 1)
+	if (Core::ch_bruteforce && (Core::ch_code.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos || Core::ch_code.size() != 1))
 	{
 		PanicAlert("Valid option not specified in -bruteforce command.\nPlease use only a single hex digit: e.g. -bruteforce 1");
 		return false;

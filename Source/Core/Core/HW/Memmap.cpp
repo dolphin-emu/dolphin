@@ -316,7 +316,14 @@ u8* GetPointer(u32 address)
 			return m_pEXRAM + (address & EXRAM_MASK);
 	}
 
-	PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
+	if (Core::ch_bruteforce)
+	{
+		Core::KillDolphinAndRestart();
+	}
+	else
+	{
+		PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
+	}
 
 	return nullptr;
 }
