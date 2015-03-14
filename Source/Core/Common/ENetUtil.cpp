@@ -25,4 +25,16 @@ void WakeupThread(ENetHost* host)
 	enet_socket_send(host->socket, &address, &buf, 1);
 }
 
+int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event)
+{
+	// wakeup packet received
+	if (host->receivedDataLength == 1 && host->receivedData[0] == 0)
+	{
+		event->type = (ENetEventType) 42;
+		return 1;
+	}
+	return 0;
+}
+
+
 }

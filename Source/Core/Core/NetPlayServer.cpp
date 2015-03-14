@@ -91,6 +91,8 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, std::string central
 		serverAddr.host = ENET_HOST_ANY;
 		serverAddr.port = port;
 		m_server = enet_host_create(&serverAddr, 10, 3, 0, 0);
+		if (m_server != nullptr)
+			m_server->intercept = ENetUtil::InterceptCallback;
 	}
 	if (m_server != nullptr)
 	{

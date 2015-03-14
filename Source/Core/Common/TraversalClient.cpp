@@ -301,7 +301,8 @@ void TraversalClient::Reset()
 int ENET_CALLBACK TraversalClient::InterceptCallback(ENetHost* host, ENetEvent* event)
 {
 	auto traversalClient = g_TraversalClient.get();
-	if (traversalClient->TestPacket(host->receivedData, host->receivedDataLength, &host->receivedAddress))
+	if (traversalClient->TestPacket(host->receivedData, host->receivedDataLength, &host->receivedAddress)
+			|| (host->receivedDataLength == 1 && host->receivedData[0] == 0))
 	{
 		event->type = (ENetEventType)42;
 		return 1;

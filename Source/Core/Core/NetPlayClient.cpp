@@ -103,7 +103,10 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 		if (net > 0 && netEvent.type == ENET_EVENT_TYPE_CONNECT)
 		{
 			if (Connect())
+			{
+				m_client->intercept = ENetUtil::InterceptCallback;
 				m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
+			}
 		}
 		else
 		{
@@ -497,7 +500,7 @@ void NetPlayClient::ThreadFunc()
 		int net;
 		if (m_traversal_client)
 			m_traversal_client->HandleResends();
-		net = enet_host_service(m_client, &netEvent, 4);
+		net = enet_host_service(m_client, &netEvent, 250);
 		while (!m_async_queue.Empty())
 		{
 			Send(*(m_async_queue.Front().get()));
