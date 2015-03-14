@@ -5,10 +5,10 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
+#include <png.h>
 #include <string>
 #include <utility>
 #include <xxhash.h>
-#include <SOIL/SOIL.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
@@ -238,6 +238,102 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
 	return name;
 }
 
+static void PNGErrorFn(png_structp png_ptr, png_const_charp error_message)
+{
+	ERROR_LOG(VIDEO, "libpng error %s", error_message);
+	longjmp(png_ptr->jmpbuf, 1);
+}
+
+static void PNGWarnFn(png_structp png_ptr, png_const_charp error_message)
+{
+	WARN_LOG(VIDEO, "libpng warning %s", error_message);
+}
+
+static bool ReadPNG(File::IOFile *file, std::unique_ptr<u8[]> *output, size_t *out_data_size, u32 *out_width, u32 *out_height)
+{
+	// Set up libpng reading.
+	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, PNGErrorFn, PNGWarnFn);
+	if (!png_ptr)
+		return false;
+	png_infop info_ptr = png_create_info_struct(png_ptr);
+	if (!info_ptr)
+	{
+		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+		return false;
+	}
+	png_infop end_info = png_create_info_struct(png_ptr);
+	if (!end_info)
+	{
+		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+		return false;
+	}
+	if (setjmp(png_jmpbuf(png_ptr)))
+	{
+		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+		return false;
+	}
+
+	// We read using a FILE*; this could be changed.
+	png_init_io(png_ptr, file->GetHandle());
+	png_set_sig_bytes(png_ptr, 4);
+
+	// Process PNG header, etc.
+	png_read_info(png_ptr, info_ptr);
+	png_uint_32 width, height;
+	int bit_depth, color_type, interlace_type, compression_type, filter_method;
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, &compression_type, &filter_method);
+
+	// Force RGB (8 or 16-bit).
+	if (color_type == PNG_COLOR_TYPE_PALETTE)
+		png_set_palette_to_rgb(png_ptr);
+	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+		png_set_expand_gray_1_2_4_to_8(png_ptr);
+	if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+		png_set_gray_to_rgb(png_ptr);
+
+	// Force 8-bit RGB.
+	if (bit_depth == 16)
+		png_set_strip_16(png_ptr);
+
+	// Force alpha channel (combined with the above, 8-bit RGBA).
+	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+		png_set_tRNS_to_alpha(png_ptr);
+	else if ((color_type & PNG_COLOR_MASK_ALPHA) == 0)
+		png_set_add_alpha(png_ptr, 0xFF, PNG_FILLER_AFTER);
+
+	png_read_update_info(png_ptr, info_ptr);
+
+	*output = std::unique_ptr<u8[]>(new u8[width * height * 4]);
+	*out_width = width;
+	*out_height = height;
+	*out_data_size = width * height * 4;
+
+	std::vector<u8*> row_pointers(height);
+	u8* row_pointer = output->get();
+	for (unsigned i = 0; i < height; ++i)
+	{
+		row_pointers[i] = row_pointer;
+		row_pointer += width * 4;
+	}
+
+	png_read_image(png_ptr, row_pointers.data());
+	png_read_end(png_ptr, end_info);
+	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+	return true;
+}
+
+static bool ReadDDS(File::IOFile *file, std::unique_ptr<u8[]> *output, size_t *out_data_size, u32 *out_width, u32 *out_height)
+{
+	ERROR_LOG(VIDEO, "DDS decoding not yet implemented");
+	return false;
+}
+
+static bool ReadJPEG(File::IOFile *file, std::unique_ptr<u8[]> *output, size_t *out_data_size, u32 *out_width, u32 *out_height)
+{
+	ERROR_LOG(VIDEO, "JPEG decoding not yet implemented");
+	return false;
+}
+
 HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const u8* tlut, size_t tlut_size, u32 width, u32 height, int format, bool has_mipmaps)
 {
 	std::string base_filename = GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);
@@ -256,13 +352,42 @@ HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const
 			Level l;
 
 			File::IOFile file;
-			file.Open(s_textureMap[filename], "rb");
-			std::vector<u8> buffer(file.GetSize());
-			file.ReadBytes(buffer.data(), file.GetSize());
+			if (!file.Open(s_textureMap[filename], "rb"))
+			{
+				ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
+				break;
+			}
+			u8 signature_bytes[4];
+			if (!file.ReadBytes(signature_bytes, 4))
+			{
+				ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
+				break;
+			}
 
-			int channels;
-			l.data = SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width, (int*)&l.height, &channels, SOIL_LOAD_RGBA);
-			l.data_size = (size_t)l.width * l.height * 4;
+			if (png_sig_cmp(signature_bytes, 0, 4) == 0)
+			{
+				// Found a PNG file.
+				if (!ReadPNG(&file, &l.data, &l.data_size, &l.width, &l.height))
+					break;
+			}
+			else if (memcmp(signature_bytes, "DDS ", 4) == 0)
+			{
+				// Found a DDS file.
+				if (!ReadDDS(&file, &l.data, &l.data_size, &l.width, &l.height))
+					break;
+			}
+			else if (memcmp(signature_bytes, "\xFF\xD8xFF\xE0", 4) == 0)
+			{
+				// Found a JPEG file.
+				if (!ReadJPEG(&file, &l.data, &l.data_size, &l.width, &l.height))
+					break;
+			}
+			else
+			{
+				ERROR_LOG(VIDEO, "Unknown texture format for custom texture %s", filename.c_str());
+				break;
+			}
+
 
 			if (l.data == nullptr)
 			{
@@ -285,7 +410,6 @@ HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const
 			{
 				ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
 				          l.width, l.height, filename.c_str(), width, height);
-				SOIL_free_image_data(l.data);
 				break;
 			}
 
@@ -295,7 +419,7 @@ HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const
 
 			if (!ret)
 				ret = new HiresTexture();
-			ret->m_levels.push_back(l);
+			ret->m_levels.emplace_back(std::move(l));
 		}
 		else
 		{
@@ -308,9 +432,5 @@ HiresTexture* HiresTexture::Search(const u8* texture, size_t texture_size, const
 
 HiresTexture::~HiresTexture()
 {
-	for (auto& l : m_levels)
-	{
-		SOIL_free_image_data(l.data);
-	}
 }
 

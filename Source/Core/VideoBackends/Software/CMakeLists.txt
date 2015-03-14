@@ -22,7 +22,6 @@ set(SRCS BPMemLoader.cpp
 	   XFMemLoader.cpp)
 
 set(LIBS videocommon
-         SOIL
          common
          ${X11_LIBRARIES})
 

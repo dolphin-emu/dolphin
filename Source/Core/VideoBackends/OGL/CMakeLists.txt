@@ -43,7 +43,6 @@ set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
 
 set(LIBS	${LIBS}
 			videocommon
-			SOIL
 			common
 			dl
 			${X11_LIBRARIES})

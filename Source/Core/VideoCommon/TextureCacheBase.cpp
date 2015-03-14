@@ -454,7 +454,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 			expandedWidth = l.width;
 			expandedHeight = l.height;
 			CheckTempSize(l.data_size);
-			memcpy(temp, l.data, l.data_size);
+			memcpy(temp, l.data.get(), l.data_size);
 		}
 	}
 
@@ -514,7 +514,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(const u32 stage)
 		{
 			auto& l = hires_tex->m_levels[level];
 			CheckTempSize(l.data_size);
-			memcpy(temp, l.data, l.data_size);
+			memcpy(temp, l.data.get(), l.data_size);
 			entry->Load(l.width, l.height, l.width, level);
 		}
 	}
