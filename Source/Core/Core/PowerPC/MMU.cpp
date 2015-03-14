@@ -19,6 +19,7 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GPFifo.h"
@@ -181,6 +182,10 @@ __forceinline static T ReadFromHardware(const u32 em_address)
 		{
 			return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
 		}
+		if (ARBruteForcer::ch_bruteforce)
+		{
+			return 0;
+		}
 		PanicAlert("Unable to resolve read address %x PC %x", em_address, PC);
 		return 0;
 	}
@@ -328,6 +333,10 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 		if (Memory::m_pEXRAM && segment == 0x1 && (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
 		{
 			*(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
+			return;
+		}
+		if (ARBruteForcer::ch_bruteforce)
+		{
 			return;
 		}
 		PanicAlert("Unable to resolve write address %x PC %x", em_address, PC);
@@ -866,9 +875,9 @@ union UPTE2
 
 static void GenerateDSIException(u32 effectiveAddress, bool write)
 {
-	if (Core::ch_bruteforce)
+	if (ARBruteForcer::ch_bruteforce)
 	{
-		Core::KillDolphinAndRestart();
+		return;
 	}
 
 	// DSI exceptions are only supported in MMU mode.

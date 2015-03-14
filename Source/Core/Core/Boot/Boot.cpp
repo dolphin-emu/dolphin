@@ -15,6 +15,7 @@
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -249,38 +250,8 @@ bool CBoot::BootUp()
 
 		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
 
-		// Action Replay culling code brute-forcing by penkamaster
-		if (Core::ch_bruteforce)
-		{
-			// load the function addresses from the map file as potential action replay codes
-			std::string userPath = File::GetUserPath(D_MAPS_IDX);
-			std::string userPathScreens = File::GetUserPath(D_SCREENSHOTS_IDX);
-
-			std::string line;
-			std::ifstream myfile( userPath + unique_id + ".map"); //lego starwars
-			std::string gameScrenShotsPath = userPathScreens + unique_id;
-#ifdef _WIN32
-			mkdir(gameScrenShotsPath.c_str());
-#else
-			mkdir(gameScrenShotsPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-#endif
-
-			Core::ch_title_id = unique_id;
-			if (myfile.is_open())
-			{
-				while (getline(myfile, line))
-				{
-					std::string::size_type loc = line.find("80");
-					if (loc != std::string::npos && line.find("__start") == std::string::npos)
-					{
-						line = line.substr(loc + 2, 6);
-						if (line.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos && line.size() == 6)
-							Core::ch_map.push_back("04" + line);
-					}
-				}
-				myfile.close();
-			}
-		}
+		if (ARBruteForcer::ch_bruteforce)
+			ARBruteForcer::ParseMapFile(unique_id);
 
 		if (unique_id.size() >= 4)
 			VideoInterface::SetRegionReg(unique_id.at(3));

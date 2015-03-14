@@ -27,6 +27,7 @@
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ActionReplay.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ARDecrypt.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -772,17 +773,10 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 	return true;
 }
 
-
 void RunAllActive()
 {
 	// penkamaster's Action Replay culling code brute-forcing
-	if (Core::ch_bruteforce && Core::ch_current_position >= Core::ch_map.size())
-	{
-		PanicAlert("Finished brute forcing! To start again, delete position.txt in the screenshots folder.");
-		Core::ch_bruteforce = 0;
-	}
-
-	if (Core::ch_bruteforce && Core::ch_current_position > -1)
+	if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_current_position > -1 && ARBruteForcer::ch_current_position < ARBruteForcer::ch_map.size())
 	{
 		ARCode ch_currentCode;
 
@@ -793,15 +787,15 @@ void RunAllActive()
 		AREntry op;
 		bool success_addr;
 
-		success_addr = TryParse(std::string("0x") + Core::ch_map[Core::ch_current_position], &op.cmd_addr);
-		bool success_val = TryParse(std::string("0x") + "3860000" + Core::ch_code, &op.value);
+		success_addr = TryParse(std::string("0x") + ARBruteForcer::ch_map[ARBruteForcer::ch_current_position], &op.cmd_addr);
+		bool success_val = TryParse(std::string("0x") + "3860000" + ARBruteForcer::ch_code, &op.value);
 		if (success_addr && success_val)
 		{
 			ch_currentCode.ops.push_back(op);
 		}
 
 		std::stringstream str;
-		std::string s1 = Core::ch_map[Core::ch_current_position];
+		std::string s1 = ARBruteForcer::ch_map[ARBruteForcer::ch_current_position];
 		str << s1;
 		int value;
 		str >> std::hex >> value;

@@ -14,6 +14,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -77,7 +78,7 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 
 static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opcodereplay_frame, bool in_display_list, bool recursive_call)
 {
-	if (Core::ch_bruteforce)
+	if (ARBruteForcer::ch_bruteforce)
 	{
 		Core::KillDolphinAndRestart();
 	}

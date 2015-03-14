@@ -19,6 +19,7 @@
 #include "Common/Timer.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -593,8 +594,8 @@ Renderer::Renderer()
 
 	// Action Replay culling code brute-forcing
 	// begin searching
-	if (Core::ch_bruteforce)
-		Core::ch_begin_search = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_begin_search = true;
 
 	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
@@ -1661,8 +1662,8 @@ void Renderer::AsyncTimewarpDraw()
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
 	//rafa
-	if (Core::ch_bruteforce)
-		Core::ch_last_search = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_last_search = true;
 
 	if (g_ogl_config.bSupportsDebug)
 	{
@@ -1972,29 +1973,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
+	// Enable screenshot and write csv if bruteforcing is on
+	if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_take_screenshot > 0)
+		ARBruteForcer::SetupScreenshotAndWriteCSV(&s_bScreenshot, &s_sScreenshotName);
+
 	// Save screenshot
-	
-	if (Core::ch_bruteforce && Core::ch_take_screenshot > 0)
-	{
-		if (Core::ch_take_screenshot == 1)
-		{
-			Core::ch_take_screenshot = 0;
-			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			std::ostringstream s;
-			s << Core::ch_current_position;
-
-			s_bScreenshot = true;
-			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + Core::ch_map[Core::ch_current_position] + ".png";
-			Core::ch_cycles_without_snapshot = 0;
-			Core::ch_last_search = true;
-			Core::ch_next_code = true; //TODO next code quitar de aqui
-		}
-		else
-		{
-			Core::ch_take_screenshot -= 1;
-		}
-	}
-
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);

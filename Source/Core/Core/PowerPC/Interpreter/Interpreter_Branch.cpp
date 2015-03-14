@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/ARBruteForcer.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
@@ -94,7 +95,7 @@ void Interpreter::HLEFunction(UGeckoInstruction _inst)
 
 void Interpreter::CompiledBlock(UGeckoInstruction _inst)
 {
-	if (Core::ch_bruteforce)
+	if (ARBruteForcer::ch_bruteforce)
 	{
 		Core::KillDolphinAndRestart();
 	}
