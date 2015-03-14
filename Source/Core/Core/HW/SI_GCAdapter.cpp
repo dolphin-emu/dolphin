@@ -104,7 +104,7 @@ void Setup()
 		int dRet = libusb_get_device_descriptor(device, &desc);
 		if (dRet)
 		{
-			// could not aquire the descriptor, no point in trying to use it.
+			// could not acquire the descriptor, no point in trying to use it.
 			ERROR_LOG(SERIALINTERFACE, "libusb_get_device_descriptor failed with error: %d", dRet);
 			continue;
 		}
@@ -143,36 +143,33 @@ void Setup()
 					if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 						s_libusb_driver_not_supported = true;
 				}
-				Shutdown();
 			}
 			else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
 			{
 				if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 				{
 					ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
-					Shutdown();
-				}
-				else
-				{
-					AddGCAdapter(device);
 				}
 			}
-			else if ((ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED))
+			// this split is needed so that we don't avoid claiming the interface when
+			// detaching the kernel driver is successful
+			if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 			{
-				ERROR_LOG(SERIALINTERFACE, "libusb_kernel_driver_active error ret = %d", ret);
-				Shutdown();
+				continue;
 			}
 			else if ((ret = libusb_claim_interface(s_handle, 0)))
 			{
 				ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
-				Shutdown();
 			}
 			else
 			{
 				AddGCAdapter(device);
+				break;
 			}
 		}
 	}
+	if (!s_detected)
+		Shutdown();
 
 	libusb_free_device_list(list, 1);
 }
@@ -224,7 +221,7 @@ void Shutdown()
 
 void Reset()
 {
-	if (!SConfig::GetInstance().m_GameCubeAdapter)
+	if (!s_detected)
 		return;
 
 	if (s_adapter_thread_running.TestAndClear())
@@ -235,7 +232,6 @@ void Reset()
 	if (s_handle)
 	{
 		libusb_release_interface(s_handle, 0);
-		libusb_reset_device(s_handle);
 		libusb_close(s_handle);
 		s_handle = nullptr;
 	}
@@ -253,9 +249,15 @@ void Input(int chan, GCPadStatus* pad)
 	if (s_handle == nullptr)
 	{
 		if (s_detected)
+		{
 			Init();
+			if (s_handle == nullptr)
+				return;
+		}
 		else
+		{
 			return;
+		}
 	}
 
 	u8 controller_payload_copy[37];
@@ -334,7 +336,7 @@ void Output(int chan, u8 rumble_command)
 
 bool IsDetected()
 {
-	return s_handle != nullptr;
+	return s_detected;
 }
 
 bool IsDriverDetected()
