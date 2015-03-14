@@ -13,6 +13,7 @@
 #include "Common/MemArena.h"
 #include "Common/MemoryUtil.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -316,7 +317,7 @@ u8* GetPointer(u32 address)
 			return m_pEXRAM + (address & EXRAM_MASK);
 	}
 
-	if (Core::ch_bruteforce)
+	if (ARBruteForcer::ch_bruteforce)
 	{
 		Core::KillDolphinAndRestart();
 	}

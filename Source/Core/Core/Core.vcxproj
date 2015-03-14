@@ -274,6 +274,7 @@
     <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="PowerPC\SignatureDB.cpp" />
     <ClCompile Include="HideObjectEngine.cpp" />
+    <ClCompile Include="ARBruteForcer.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
   </ItemGroup>
@@ -325,6 +326,7 @@
     <ClInclude Include="FifoPlayer\FifoRecorder.h" />
     <ClInclude Include="GeckoCode.h" />
     <ClInclude Include="GeckoCodeConfig.h" />
+    <ClInclude Include="ARBruteForcer.h" />
     <ClInclude Include="HLE\HLE.h" />
     <ClInclude Include="HLE\HLE_Misc.h" />
     <ClInclude Include="HLE\HLE_OS.h" />

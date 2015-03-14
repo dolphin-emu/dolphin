@@ -43,6 +43,7 @@
 #include "Common/Thread.h"
 #include "Common/Logging/ConsoleListener.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
@@ -160,66 +161,11 @@ bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 	return internal_game_id == SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
 }
 
-// save last position
-void ch_save_last_position(int position)
-{
-	std::ofstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
-	if (myfile.is_open())
-	{
-		std::string Result;
-		std::ostringstream convert;   // stream used for the conversion
-		convert << position;      // insert the textual representation of 'Number' in the characters in the stream
-		myfile << convert.str() + "\n";
-		myfile.close();
-	}
-}
-// load last position
-int ch_load_last_position()
-{
-	std::string line;
-	std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) +"position.txt");
-	std::string aux;
-
-	if (myfile.is_open())
-	{
-		while (getline(myfile, line))
-		{
-			aux = line;
-		}
-		myfile.close();
-	}
-	return (atoi(aux.c_str()));
-}
-
 #ifdef _WIN32
 WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
-	// Action Replay culling code brute forcing by penkamaster
-	if (Core::ch_bruteforce)
-	{
-		++Core::ch_cycles_without_snapshot;
-		// if begining searching, start from the most recently saved position
-		if (Core::ch_begin_search)
-		{
-			Core::ch_begin_search = false;
-			Core::ch_first_search = true;
-			Core::ch_next_code = false;
-			Core::ch_current_position = ch_load_last_position();
-			State::Load(1);
-		}
-		// if we should move on to the next code then do so, and save where we are up to
-		// if we have received 30 windows messages without saving a screenshot, then this code is probably bad
-		// so skip to the next one
-		else if (Core::ch_next_code || (Core::ch_current_position && Core::ch_cycles_without_snapshot > 30 && Core::ch_last_search))
-		{
-			Core::ch_next_code = false;
-			Core::ch_first_search = false;
-			++Core::ch_current_position;
-			ch_save_last_position(Core::ch_current_position);
-			Core::ch_cycles_without_snapshot = 0;
-			State::Load(1);
-		}
-	}
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ARBruteForceDriver();
 
 	switch (nMsg)
 	{

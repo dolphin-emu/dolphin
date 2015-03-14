@@ -597,24 +597,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	if (XFBWrited && !g_opcodereplay_frame)
 		g_renderer->m_fps_counter.Update();
 
-
-	/*if (Core::ch_bruteforce && Core::ch_take_screenshot > 0)
-	{
-		if (Core::ch_take_screenshot == 1){
-			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/bruteforce.csv";
-			std::string s_sAux = std::to_string(Core::ch_current_position) + ";" + Core::ch_map[Core::ch_current_position] +
-			";" + Core::ch_code + ";" + std::to_string(stats.thisFrame.numPrims) + ";" + std::to_string(stats.thisFrame.numDrawCalls) + ";" + std::to_string(Core::ch_take_screenshot);
-			std::ofstream myfile;
-			myfile.open(s_sScreenshotName, std::ios_base::app);
-			myfile << s_sAux << "\n";
-			myfile.close();
-			Core::ch_cycles_without_snapshot = 0;
-			Core::ch_last_search = true;
-			Core::ch_next_code = true; //TODO next code quitar de aqui
-		}
-		Core::ch_take_screenshot -= 1;
-	}*/
-
 	frameCount++;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 	

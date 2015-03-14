@@ -6,6 +6,7 @@
 
 #include "disasm.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 using namespace Gen;
@@ -50,7 +51,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	if (!DisassembleMov(codePtr, &info))
 	{
-		if (Core::ch_bruteforce)
+		if (ARBruteForcer::ch_bruteforce)
 		{
 			Core::KillDolphinAndRestart();
 		}

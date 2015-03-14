@@ -7,6 +7,7 @@
 
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/Host.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -281,7 +282,7 @@ void Interpreter::Run()
 
 void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 {
-	if (Core::ch_bruteforce)
+	if (ARBruteForcer::ch_bruteforce)
 	{
 		Core::KillDolphinAndRestart();
 	}

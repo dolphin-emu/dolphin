@@ -12,6 +12,7 @@
 #include "Common/Atomic.h"
 #include "Common/Timer.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -275,8 +276,8 @@ Renderer::Renderer(void *&window_handle)
 
 	// Action Replay culling code brute-forcing
 	// begin searching
-	if (Core::ch_bruteforce)
-		Core::ch_begin_search = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_begin_search = true;
 }
 
 Renderer::~Renderer()
@@ -769,8 +770,8 @@ void Renderer::AsyncTimewarpDraw()
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
 	//rafa
-	if (Core::ch_bruteforce)
-		Core::ch_last_search = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_last_search = true;
 
 	// VR - before the first frame we need BeginFrame, and we need to configure the tracking
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
@@ -1030,26 +1031,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
 	}
 
+	// Enable screenshot and write csv if bruteforcing is on
+	if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_take_screenshot > 0)
+		ARBruteForcer::SetupScreenshotAndWriteCSV(&s_bScreenshot, &s_sScreenshotName);
+
 	// done with drawing the game stuff, good moment to save a screenshot
-	if (Core::ch_bruteforce && Core::ch_take_screenshot > 0)
-	{
-		std::string s_sAux = std::to_string(Core::ch_current_position) + "," + Core::ch_map[Core::ch_current_position] +
-			"," + Core::ch_code + "," + std::to_string(stats.thisFrame.numPrims) + "," + std::to_string(stats.thisFrame.numDrawCalls) + "," + std::to_string(Core::ch_take_screenshot);
-		std::ofstream myfile;
-		myfile.open(File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/bruteforce.csv" , std::ios_base::app);
-		myfile << s_sAux << "\n";
-		myfile.close();
-		if (Core::ch_take_screenshot == 1){
-			s_bScreenshot = true;
-			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + std::to_string(Core::ch_current_position) + "_" + Core::ch_map[Core::ch_current_position] + "_" + Core::ch_code + ".png";
-			Core::ch_cycles_without_snapshot = 0;
-			Core::ch_last_search = true;
-			Core::ch_next_code = true;
-		}
-
-		Core::ch_take_screenshot -= 1;
-	}
-
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());

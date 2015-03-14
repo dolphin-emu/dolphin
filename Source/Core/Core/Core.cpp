@@ -22,6 +22,7 @@
 #include "Common/Timer.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -97,28 +98,6 @@ namespace Core
 {
 
 bool g_want_determinism;
-
-// Action Replay culling code brute-forcing by penkamaster
-// count down to take a screenshot
-int ch_take_screenshot;
-// current code
-int ch_current_position;
-// move on to next code?
-bool ch_next_code;
-// start searching
-bool ch_begin_search;
-bool ch_first_search;
-// number of windows messages without saving a screenshot
-int ch_cycles_without_snapshot;
-// search last
-bool ch_last_search;
-// emulator is in action replay culling code brute-forcing mode
-bool ch_bruteforce;
-
-std::vector<std::string> ch_map;
-std::string ch_title_id;
-std::string ch_code;
-
 
 // Declarations and definitions
 static Common::Timer s_timer;
@@ -1022,37 +1001,8 @@ void Shutdown()
 void KillDolphinAndRestart()
 {
 	// If it's the first time through and it crashes on the first function, we must advance the position.
-	if (Core::ch_bruteforce && (Core::ch_begin_search || Core::ch_first_search))
-	{
-		if (Core::ch_begin_search)
-			PanicAlert("Entered with ch_begin_search = 1");
-
-		std::ifstream myfile_in(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
-
-		if (myfile_in.is_open())
-		{
-			std::string aux;
-			std::string line;
-
-			while (getline(myfile_in, line))
-			{
-				aux = line;
-			}
-
-			Core::ch_current_position = atoi(aux.c_str());
-			myfile_in.close();
-		}
-
-		std::ofstream myfile_out(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
-		if (myfile_out.is_open())
-		{
-			std::string Result;
-			std::ostringstream convert;   // stream used for the conversion
-			convert << ++Core::ch_current_position;      // insert the textual representation of 'Number' in the characters in the stream
-			myfile_out << convert.str() + "\n";
-			myfile_out.close();
-		}
-	}
+	if (ARBruteForcer::ch_bruteforce && (ARBruteForcer::ch_begin_search || ARBruteForcer::ch_first_search))
+		ARBruteForcer::IncrementPositionTxt();
 
 #if defined WIN32
 	// Restart Dolphin automatically after fatal crash.
@@ -1063,32 +1013,39 @@ void KillDolphinAndRestart()
 	StartupInfo.cb = sizeof StartupInfo; //Only compulsory field
 	ZeroMemory(&ProcessInfo, sizeof(ProcessInfo));
 
+	LPTSTR szCmdline;
+
 	// To do: LPTSTR is terrible and it's really hard to convert a string to it.
 	// Figure out a less hacky way to do this...
-	if (Core::ch_code == "0")
+	if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_code == "0")
 	{
-		LPTSTR szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 0"));
-		if (!CreateProcess(nullptr, szCmdline, nullptr, nullptr, false, NORMAL_PRIORITY_CLASS, nullptr, nullptr, &StartupInfo, &ProcessInfo))
-		{
-			PanicAlert("Failed to restart Dolphin.exe automatically after a bad bruteforcer instruction caused a crash.");
-		}
+		szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 0"));
 	}
-	else if (Core::ch_code == "1")
+	else if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_code == "1")
 	{
-		LPTSTR szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 1"));
-		if (!CreateProcess(nullptr, szCmdline, nullptr, nullptr, false, NORMAL_PRIORITY_CLASS, nullptr, nullptr, &StartupInfo, &ProcessInfo))
-		{
-			PanicAlert("Failed to restart Dolphin.exe automatically after a bad bruteforcer instruction caused a crash.");
-		}
+		szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 1"));
+	}
+	else if (ARBruteForcer::ch_bruteforce)
+	{
+		PanicAlert("Right now the bruteforcer can only be restarted automatically if -bruteforce 1 or 0 is used.\nBrute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
+		TerminateProcess(GetCurrentProcess(), 0);
 	}
 	else
 	{
-		PanicAlert("Right now the bruteforcer can only be restarted automatically if -bruteforce 1 or 0 is used.\nIntCPU: Brute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
+		szCmdline = _tcsdup(TEXT("Dolphin.exe"));
+	}
+
+	if (!CreateProcess(nullptr, szCmdline, nullptr, nullptr, false, NORMAL_PRIORITY_CLASS, nullptr, nullptr, &StartupInfo, &ProcessInfo))
+	{
+		if (ARBruteForcer::ch_bruteforce)
+			PanicAlert("Failed to restart Dolphin.exe automatically after a bad bruteforcer instruction caused a crash.");
+		else
+			PanicAlert("Failed to automatically restart Dolphin.exe. Program will now be terminated.");
 	}
 
 	TerminateProcess(GetCurrentProcess(), 0);
 #else
-	PanicAlert("IntCPU: Brute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
+	PanicAlert("Brute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
 #endif
 }
 

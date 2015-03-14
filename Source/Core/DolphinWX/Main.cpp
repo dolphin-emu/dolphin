@@ -37,6 +37,7 @@
 #include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
@@ -255,9 +256,9 @@ bool DolphinApp::OnInit()
 	selectPerfDir = parser.Found("perf_dir", &perfDir);
 	playMovie = parser.Found("movie", &movieFile);
 	g_force_vr = parser.Found("vr");
-	Core::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
-	Core::ch_code = WxStrToStr(bruteforceResult);
-	if (Core::ch_bruteforce && (Core::ch_code.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos || Core::ch_code.size() != 1))
+	ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
+	ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);
+	if (ARBruteForcer::ch_bruteforce && (ARBruteForcer::ch_code.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos || ARBruteForcer::ch_code.size() != 1))
 	{
 		PanicAlert("Valid option not specified in -bruteforce command.\nPlease use only a single hex digit: e.g. -bruteforce 1");
 		return false;
@@ -407,14 +408,14 @@ void DolphinApp::AfterInit()
 		}
 	}
 
-	// Action Replay culling code brute-forcing by penkamaster
-	Core::ch_take_screenshot = 0;
-	Core::ch_next_code = false;
-	Core::ch_begin_search = false;
-	Core::ch_cycles_without_snapshot = 0;
-	Core::ch_last_search = false;
+	// Action Replay Brute Forcing
+	ARBruteForcer::ch_take_screenshot = 0;
+	ARBruteForcer::ch_next_code = false;
+	ARBruteForcer::ch_begin_search = false;
+	ARBruteForcer::ch_cycles_without_snapshot = 0;
+	ARBruteForcer::ch_last_search = false;
 
-	if (Core::ch_bruteforce)
+	if (ARBruteForcer::ch_bruteforce)
 	{
 		std::string line;
 		std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");

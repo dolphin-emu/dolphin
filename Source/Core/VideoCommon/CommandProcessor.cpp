@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -350,7 +351,7 @@ void GatherPipeBursted()
 
 	RunGpu();
 
-	if (Core::ch_bruteforce && !(fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase))
+	if (ARBruteForcer::ch_bruteforce && !(fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase))
 		Core::KillDolphinAndRestart();
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase,

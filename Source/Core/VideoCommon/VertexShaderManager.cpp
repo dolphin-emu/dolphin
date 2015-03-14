@@ -22,6 +22,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/Core.h"
 
 #define HACK_LOG INFO_LOG
@@ -1130,7 +1131,7 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 mtxB;
 		Matrix44 viewMtx;
 
-		if ((bFreeLookChanged || Core::ch_bruteforce) && xfmem.projection.type == GX_PERSPECTIVE)
+		if ((bFreeLookChanged || ARBruteForcer::ch_bruteforce) && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			// use the freelook camera position, which should still be in metres even for non-VR so it is a consistent speed between games
 			float pos[3];

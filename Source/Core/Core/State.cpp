@@ -11,6 +11,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -471,9 +472,8 @@ void LoadAs(const std::string& filename)
 		if (loadedSuccessfully)
 		{
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
-			// action replay culling code brute forcing by penkamaster
-			if (Core::ch_bruteforce)
-				Core::ch_take_screenshot = 3;	
+			if (ARBruteForcer::ch_bruteforce)
+				ARBruteForcer::ch_take_screenshot = 3;	
 			if (File::Exists(filename + ".dtm"))
 				Movie::LoadInput(filename + ".dtm");
 			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
