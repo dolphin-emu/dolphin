@@ -350,6 +350,9 @@ void GatherPipeBursted()
 
 	RunGpu();
 
+	if (Core::ch_bruteforce && !(fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase))
+		Core::KillDolphinAndRestart();
+
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase,
 	"FIFO is overflowed by GatherPipe !\nCPU thread is too fast!");
 

@@ -202,6 +202,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 		if (Core::ch_begin_search)
 		{
 			Core::ch_begin_search = false;
+			Core::ch_first_search = true;
 			Core::ch_next_code = false;
 			Core::ch_current_position = ch_load_last_position();
 			State::Load(1);
@@ -212,6 +213,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 		else if (Core::ch_next_code || (Core::ch_current_position && Core::ch_cycles_without_snapshot > 30 && Core::ch_last_search))
 		{
 			Core::ch_next_code = false;
+			Core::ch_first_search = false;
 			++Core::ch_current_position;
 			ch_save_last_position(Core::ch_current_position);
 			Core::ch_cycles_without_snapshot = 0;

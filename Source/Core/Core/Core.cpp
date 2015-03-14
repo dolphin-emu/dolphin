@@ -107,6 +107,7 @@ int ch_current_position;
 bool ch_next_code;
 // start searching
 bool ch_begin_search;
+bool ch_first_search;
 // number of windows messages without saving a screenshot
 int ch_cycles_without_snapshot;
 // search last
@@ -1021,8 +1022,11 @@ void Shutdown()
 void KillDolphinAndRestart()
 {
 	// If it's the first time through and it crashes on the first function, we must advance the position.
-	if (Core::ch_bruteforce && Core::ch_begin_search)
+	if (Core::ch_bruteforce && (Core::ch_begin_search || Core::ch_first_search))
 	{
+		if (Core::ch_begin_search)
+			PanicAlert("Entered with ch_begin_search = 1");
+
 		std::ifstream myfile_in(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
 
 		if (myfile_in.is_open())

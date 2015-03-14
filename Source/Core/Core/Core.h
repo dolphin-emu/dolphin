@@ -39,6 +39,7 @@ extern int ch_current_position;
 extern bool ch_next_code;
 // start searching
 extern bool ch_begin_search;
+extern bool ch_first_search;
 // number of windows messages without saving a screenshot
 extern int ch_cycles_without_snapshot;
 // search last

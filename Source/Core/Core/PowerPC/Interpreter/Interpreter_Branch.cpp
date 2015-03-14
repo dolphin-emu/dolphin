@@ -94,6 +94,11 @@ void Interpreter::HLEFunction(UGeckoInstruction _inst)
 
 void Interpreter::CompiledBlock(UGeckoInstruction _inst)
 {
+	if (Core::ch_bruteforce)
+	{
+		Core::KillDolphinAndRestart();
+	}
+
 	_assert_msg_(POWERPC, 0, "CompiledBlock - shouldn't be here!");
 }
 
