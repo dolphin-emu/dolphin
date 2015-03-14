@@ -202,7 +202,7 @@ struct VideoConfig final
 	u32 iExtraVideoLoops;
 	u32 iExtraVideoLoopsDivider;
 
-	// VR
+	// VR per game
 	float fUnitsPerMetre;
 	float fFreeLookSensitivity;
 	float fHudThickness;
@@ -219,6 +219,7 @@ struct VideoConfig final
 	float fScreenUp;
 	float fScreenPitch;
 	float fTelescopeMaxFOV;
+	float fReadPitch;
 	bool bDisable3D;
 	bool bHudFullscreen;
 	bool bHudOnTop;
