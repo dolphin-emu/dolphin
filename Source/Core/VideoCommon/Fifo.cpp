@@ -425,6 +425,7 @@ void RunGpu()
 	// execute GPU
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
 	{
+		bool reset_simd_state = false;
 		while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 		{
 			if (g_use_deterministic_gpu_thread)
@@ -433,11 +434,14 @@ void RunGpu()
 			}
 			else
 			{
-				FPURoundMode::SaveSIMDState();
-				FPURoundMode::LoadDefaultSIMDState();
+				if (!reset_simd_state)
+				{
+					FPURoundMode::SaveSIMDState();
+					FPURoundMode::LoadDefaultSIMDState();
+					reset_simd_state = true;
+				}
 				ReadDataFromFifo(fifo.CPReadPointer);
 				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
-				FPURoundMode::LoadSIMDState();
 			}
 
 			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
@@ -450,6 +454,11 @@ void RunGpu()
 			fifo.CPReadWriteDistance -= 32;
 		}
 		CommandProcessor::SetCPStatusFromGPU();
+
+		if (reset_simd_state)
+		{
+			FPURoundMode::LoadSIMDState();
+		}
 	}
 
 	// wake up GPU thread
