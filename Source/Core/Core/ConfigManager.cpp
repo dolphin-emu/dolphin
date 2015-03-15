@@ -6,6 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SI.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -241,7 +242,8 @@ void SConfig::SaveSettings()
 	SaveGeneralSettings(ini);
 	SaveInterfaceSettings(ini);
 	SaveHotkeySettings(ini);
-	SaveDisplaySettings(ini);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		SaveDisplaySettings(ini);
 	SaveGameListSettings(ini);
 	SaveCoreSettings(ini);
 	SaveMovieSettings(ini);
@@ -468,7 +470,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	core->Set("RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
-	core->Set("FrameLimit", m_Framelimit);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		core->Set("FrameLimit", m_Framelimit);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
@@ -494,7 +497,8 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 
 	dsp->Set("EnableJIT", m_DSPEnableJIT);
 	dsp->Set("DumpAudio", m_DumpAudio);
-	dsp->Set("Backend", sBackend);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		dsp->Set("Backend", sBackend);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
@@ -660,18 +664,36 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 {
 	IniFile::Section* display = ini.GetOrCreateSection("Display");
 
-	display->Get("Fullscreen",           &m_LocalCoreStartupParameter.bFullscreen,             false);
-	display->Get("FullscreenResolution", &m_LocalCoreStartupParameter.strFullscreenResolution, "Auto");
-	display->Get("RenderToMain",         &m_LocalCoreStartupParameter.bRenderToMain,           false);
-	display->Get("RenderWindowXPos",     &m_LocalCoreStartupParameter.iRenderWindowXPos,       -1);
-	display->Get("RenderWindowYPos",     &m_LocalCoreStartupParameter.iRenderWindowYPos,       -1);
-	display->Get("RenderWindowWidth",    &m_LocalCoreStartupParameter.iRenderWindowWidth,      640);
-	display->Get("RenderWindowHeight",   &m_LocalCoreStartupParameter.iRenderWindowHeight,     480);
-	display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.bRenderWindowAutoSize,   false);
-	display->Get("KeepWindowOnTop",      &m_LocalCoreStartupParameter.bKeepWindowOnTop,        false);
-	display->Get("ProgressiveScan",      &m_LocalCoreStartupParameter.bProgressive,            false);
-	display->Get("DisableScreenSaver",   &m_LocalCoreStartupParameter.bDisableScreenSaver,     true);
-	display->Get("ForceNTSCJ",           &m_LocalCoreStartupParameter.bForceNTSCJ,             false);
+	if (ARBruteForcer::ch_bruteforce)
+	{
+		m_LocalCoreStartupParameter.bFullscreen = false;
+		m_LocalCoreStartupParameter.strFullscreenResolution = "Auto";
+		m_LocalCoreStartupParameter.bRenderToMain = false;
+		m_LocalCoreStartupParameter.iRenderWindowXPos = -1;
+		m_LocalCoreStartupParameter.iRenderWindowYPos = -1;
+		m_LocalCoreStartupParameter.iRenderWindowWidth = 640;
+		m_LocalCoreStartupParameter.iRenderWindowHeight = 480;
+		m_LocalCoreStartupParameter.bRenderWindowAutoSize = false;
+		m_LocalCoreStartupParameter.bKeepWindowOnTop = false;
+		m_LocalCoreStartupParameter.bProgressive = false;
+		m_LocalCoreStartupParameter.bDisableScreenSaver = true;
+		m_LocalCoreStartupParameter.bForceNTSCJ = false;
+	}
+	else
+	{
+		display->Get("Fullscreen", &m_LocalCoreStartupParameter.bFullscreen, false);
+		display->Get("FullscreenResolution", &m_LocalCoreStartupParameter.strFullscreenResolution, "Auto");
+		display->Get("RenderToMain", &m_LocalCoreStartupParameter.bRenderToMain, false);
+		display->Get("RenderWindowXPos", &m_LocalCoreStartupParameter.iRenderWindowXPos, -1);
+		display->Get("RenderWindowYPos", &m_LocalCoreStartupParameter.iRenderWindowYPos, -1);
+		display->Get("RenderWindowWidth", &m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
+		display->Get("RenderWindowHeight", &m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
+		display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.bRenderWindowAutoSize, false);
+		display->Get("KeepWindowOnTop", &m_LocalCoreStartupParameter.bKeepWindowOnTop, false);
+		display->Get("ProgressiveScan", &m_LocalCoreStartupParameter.bProgressive, false);
+		display->Get("DisableScreenSaver", &m_LocalCoreStartupParameter.bDisableScreenSaver, true);
+		display->Get("ForceNTSCJ", &m_LocalCoreStartupParameter.bForceNTSCJ, false);
+	}
 
 	IniFile::Section* vr = ini.GetOrCreateSection("VR");
 #ifdef OCULUSSDK042
@@ -771,7 +793,10 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SyncGPU",                   &m_LocalCoreStartupParameter.bSyncGPU,          false);
 	core->Get("FastDiscSpeed",             &m_LocalCoreStartupParameter.bFastDiscSpeed,    false);
 	core->Get("DCBZ",                      &m_LocalCoreStartupParameter.bDCBZOFF,          false);
-	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
+	if (ARBruteForcer::ch_bruteforce)
+		m_Framelimit = 0;
+	else
+		core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
@@ -811,6 +836,9 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+
+	if (ARBruteForcer::ch_bruteforce)
+		sBackend = BACKEND_NULLSOUND;
 
 	m_IsMuted = false;
 }

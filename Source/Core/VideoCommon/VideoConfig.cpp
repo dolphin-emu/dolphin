@@ -8,6 +8,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -127,7 +128,10 @@ void VideoConfig::Load(const std::string& ini_file)
 	iniFile.Load(ini_file);
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-	hardware->Get("VSync", &bVSync, 0);
+	if (ARBruteForcer::ch_bruteforce)
+		bVSync = false;
+	else
+		hardware->Get("VSync", &bVSync, 0);
 	hardware->Get("Adapter", &iAdapter, 0);
 
 	IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
@@ -150,8 +154,16 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("UseFFV1", &bUseFFV1, 0);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
-	settings->Get("MSAA", &iMultisampleMode, 0);
-	settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
+	if (ARBruteForcer::ch_bruteforce)
+	{
+		iMultisampleMode = 0;
+		iEFBScale = SCALE_1X;
+	}
+	else
+	{
+		settings->Get("MSAA", &iMultisampleMode, 0);
+		settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
+	}
 	settings->Get("DstAlphaPass", &bDstAlphaPass, false);
 	settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
@@ -564,7 +576,8 @@ void VideoConfig::Save(const std::string& ini_file)
 	iniFile.Load(ini_file);
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-	hardware->Set("VSync", bVSync);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		hardware->Set("VSync", bVSync);
 	hardware->Set("Adapter", iAdapter);
 
 	IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
@@ -587,8 +600,11 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
 	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);
-	settings->Set("MSAA", iMultisampleMode);
-	settings->Set("EFBScale", iEFBScale);
+	if (!ARBruteForcer::ch_dont_save_settings)
+	{
+		settings->Set("MSAA", iMultisampleMode);
+		settings->Set("EFBScale", iEFBScale);
+	}
 	settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	settings->Set("TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	settings->Set("Wireframe", bWireFrame);

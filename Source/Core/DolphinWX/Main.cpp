@@ -258,10 +258,14 @@ bool DolphinApp::OnInit()
 	g_force_vr = parser.Found("vr");
 	ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
 	ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);
-	if (ARBruteForcer::ch_bruteforce && (ARBruteForcer::ch_code.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos || ARBruteForcer::ch_code.size() != 1))
+	if (ARBruteForcer::ch_bruteforce)
 	{
-		PanicAlert("Valid option not specified in -bruteforce command.\nPlease use only a single hex digit: e.g. -bruteforce 1");
-		return false;
+		ARBruteForcer::ch_dont_save_settings = true;
+		if (ARBruteForcer::ch_code.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos || ARBruteForcer::ch_code.size() != 1)
+		{
+			PanicAlert("Valid option not specified in -bruteforce command.\nPlease use only a single hex digit: e.g. -bruteforce 1");
+			return false;
+		}
 	}
 	if (parser.Found("force-d3d11"))
 	{
