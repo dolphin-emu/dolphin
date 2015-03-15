@@ -76,7 +76,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 
 	BitSet32 registersInUse = it->second;
 
-	u8* exceptionHandler = NULL;
+	u8* exceptionHandler = nullptr;
 	if (jit->js.memcheck)
 	{
 		auto it2 = exceptionHandlerAtLoc.find(codePtr);

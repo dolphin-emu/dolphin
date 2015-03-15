@@ -179,7 +179,7 @@ void Jit64::Init()
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-	js.fastmemLoadStore = NULL;
+	js.fastmemLoadStore = nullptr;
 	js.compilerPC = 0;
 
 	gpr.SetEmitter(this);
@@ -642,7 +642,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
-		js.fastmemLoadStore = NULL;
+		js.fastmemLoadStore = nullptr;
 		js.fixupExceptionHandler = false;
 		js.revertGprLoad = -1;
 		js.revertFprLoad = -1;
@@ -803,7 +803,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SwitchToFarCode();
 				if (!js.fastmemLoadStore)
 				{
-					exceptionHandlerAtLoc[js.fastmemLoadStore] = NULL;
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
 					SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
 				}
 				else
