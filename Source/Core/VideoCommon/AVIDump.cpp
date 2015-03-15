@@ -192,9 +192,9 @@ void AVIDump::StoreFrame(const void* data)
 		else
 		{
 			free(s_stored_frame);
-			PanicAlert("Something has gone seriously wrong.\n"
-				"Stopping video recording.\n"
-				"Your video will likely be broken.");
+			PanicAlertT("Something has gone seriously wrong.\n"
+			            "Stopping video recording.\n"
+			            "Your video will likely be broken.");
 			Stop();
 		}
 		s_stored_frame_size = s_bitmap.biSizeImage;
@@ -219,9 +219,9 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 	static bool shown_error = false;
 	if ((w != s_bitmap.biWidth || h != s_bitmap.biHeight) && !shown_error)
 	{
-		PanicAlert("You have resized the window while dumping frames.\n"
-			"Nothing sane can be done to handle this.\n"
-			"Your video will likely be broken.");
+		PanicAlertT("You have resized the window while dumping frames.\n"
+		            "Nothing can be done to handle this properly.\n"
+		            "Your video will likely be broken.");
 		shown_error = true;
 
 		s_bitmap.biWidth = w;
