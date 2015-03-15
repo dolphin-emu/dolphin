@@ -360,10 +360,10 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	unsigned long centralPort = 0;
 	m_traversal_port->GetValue().ToULong(&centralPort);
 	netplay_server = new NetPlayServer(u16(port), trav, WxStrToStr(m_traversal_server->GetValue()), u16(centralPort));
-	netplay_server->ChangeGame(game);
-	netplay_server->AdjustPadBufferSize(INITIAL_PAD_BUFFER_SIZE);
 	if (netplay_server->is_connected)
 	{
+		netplay_server->ChangeGame(game);
+		netplay_server->AdjustPadBufferSize(INITIAL_PAD_BUFFER_SIZE);
 #ifdef USE_UPNP
 		if (m_upnp_chk->GetValue())
 			netplay_server->TryPortmapping(port);
