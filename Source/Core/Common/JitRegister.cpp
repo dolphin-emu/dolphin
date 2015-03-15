@@ -51,7 +51,7 @@ void Init()
 		s_perf_map_file.Open(filename, "w");
 		// Disable buffering in order to avoid missing some mappings
 		// if the event of a crash:
-		std::setvbuf(s_perf_map_file.GetHandle(), NULL, _IONBF, 0);
+		std::setvbuf(s_perf_map_file.GetHandle(), nullptr, _IONBF, 0);
 	}
 }
 
