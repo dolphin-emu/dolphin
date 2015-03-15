@@ -107,10 +107,10 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	// First, check hash.
 	u32 block_hash = HashAdler32(source, comp_block_size);
 	if (block_hash != m_hashes[block_num])
-		PanicAlert("Hash of block %" PRIu64 " is %08x instead of %08x.\n"
-		           "Your ISO, \"%s\", is corrupt.",
-		           block_num, block_hash, m_hashes[block_num],
-		           m_file_name.c_str());
+		PanicAlertT("The disc image \"%s\" is corrupt.\n"
+		            "Hash of block %" PRIu64 " is %08x instead of %08x.",
+		            m_file_name.c_str(),
+		            block_num, block_hash, m_hashes[block_num]);
 
 	if (uncompressed)
 	{
