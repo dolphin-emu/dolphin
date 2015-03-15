@@ -76,10 +76,10 @@ void CreateDirectories()
 
 void SetUserDirectory(const std::string& custom_path)
 {
-	if (custom_path.size() != 0)
+	if (!custom_path.empty())
 	{
 		File::CreateFullPath(custom_path + DIR_SEP);
-		File::GetUserPath(D_USER_IDX, custom_path + DIR_SEP);
+		File::SetUserPath(D_USER_IDX, custom_path + DIR_SEP);
 		return;
 	}
 
@@ -143,8 +143,7 @@ void SetUserDirectory(const std::string& custom_path)
 			getenv("HOME") : getenv("PWD") ?
 			getenv("PWD") : "") + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 #endif
-
-	File::GetUserPath(D_USER_IDX, user_path);
+	File::SetUserPath(D_USER_IDX, user_path);
 }
 
 } // namespace UICommon
