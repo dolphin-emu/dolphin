@@ -45,6 +45,7 @@ int ch_cycles_without_snapshot;
 // To Do: Is this actually needed?
 bool ch_last_search;
 bool ch_bruteforce;
+bool ch_dont_save_settings;
 
 std::vector<std::string> ch_map;
 std::string ch_title_id;
@@ -58,11 +59,11 @@ void ARBruteForceDriver()
 	{
 		ch_begin_search = false;
 		ch_next_code = false;
-		ch_current_position = ch_load_last_position();
-		if (ch_current_position >= ch_map.size())
+		ch_current_position = LoadLastPosition();
+		if (ch_current_position >= ch_map.size() && ch_bruteforce)
 		{
 			ch_first_search = false;
-			ch_bruteforce = 0;
+			ch_bruteforce = false;
 
 			PostProcessCSVFile();
 
@@ -82,7 +83,7 @@ void ARBruteForceDriver()
 		ch_next_code = false;
 		ch_first_search = false;
 		ch_current_position++;
-		ch_save_last_position(ch_current_position);
+		SaveLastPosition(ch_current_position);
 		ch_cycles_without_snapshot = 0;
 		if (ch_current_position >= ch_map.size())
 		{
@@ -152,38 +153,12 @@ void ParseMapFile(std::string unique_id)
 
 void IncrementPositionTxt()
 {
-	//if (ch_begin_search)
-	//	PanicAlert("Entered with ch_begin_search = 1");
-
-	std::ifstream myfile_in(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
-
-	if (myfile_in.is_open())
-	{
-		std::string aux;
-		std::string line;
-
-		while (getline(myfile_in, line))
-		{
-			aux = line;
-		}
-
-		ch_current_position = atoi(aux.c_str());
-		myfile_in.close();
-	}
-
-	std::ofstream myfile_out(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
-	if (myfile_out.is_open())
-	{
-		std::string Result;
-		std::ostringstream convert;   // stream used for the conversion
-		convert << ++ch_current_position;      // insert the textual representation of 'Number' in the characters in the stream
-		myfile_out << convert.str() + "\n";
-		myfile_out.close();
-	}
+	ch_current_position = LoadLastPosition();
+	SaveLastPosition(++ch_current_position);
 }
 
 // save last position
-void ch_save_last_position(int position)
+void SaveLastPosition(int position)
 {
 	std::ofstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
 	if (myfile.is_open())
@@ -196,7 +171,7 @@ void ch_save_last_position(int position)
 	}
 }
 // load last position
-int ch_load_last_position()
+int LoadLastPosition()
 {
 	std::string line;
 	std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
@@ -216,92 +191,88 @@ int ch_load_last_position()
 // Create a new processed.csv file that only contains the functions that changed how many objects were rendered.
 void PostProcessCSVFile()
 {
-	std::string mode1;
-	std::string mode2;
+	std::string most_common_num_prims;
+	std::string most_common_num_draw_calls;
 
 	std::string path_to_original_csv = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/bruteforce.csv";
 	std::string path_to_processed_csv = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/processed.csv";
 
-	FindModeOfCSV(path_to_original_csv, &mode1, &mode2);
-	StripModesFromCSV(path_to_original_csv, path_to_processed_csv, mode1, mode2);
+	FindModeOfCSV(path_to_original_csv, &most_common_num_prims, &most_common_num_draw_calls);
+	StripModesFromCSV(path_to_original_csv, path_to_processed_csv, most_common_num_prims, most_common_num_draw_calls);
 }
 
 // Find the most common amount of primitives and draw calls rendered.
-void FindModeOfCSV(std::string filename, std::string* thing1_mode, std::string* thing2_mode)
+void FindModeOfCSV(std::string filename, std::string* most_common_num_prims, std::string* most_common_num_draw_calls)
 {
-	std::unordered_map<std::string, int> things1_bins;
-	std::unordered_map<std::string, int> things2_bins;
+	std::unordered_map<std::string, int> num_prims_bins;
+	std::unordered_map<std::string, int> num_draw_calls_bins;
 
 	std::ifstream file(filename);
-	int max_things1 = 0;
-	int max_things2 = 0;
-	std::string maxthing1;
-	std::string maxthing2;
+	int current_largest_bin_prims = 0;
+	int current_largest_bin_draw_calls = 0;
 
-	std::string value1, value2, value3, things1, things2, frame;
+	std::string position, address, bruteforce_code, num_prims, num_draw_calls, frame;
 
-	while (getline(file, value1, ','))
+	while (getline(file, position, ','))
 	{
-		getline(file, value2, ',');
-		getline(file, value3, ',');
-		getline(file, things1, ',');
-		getline(file, things2, ',');
+		getline(file, address, ',');
+		getline(file, bruteforce_code, ',');
+		getline(file, num_prims, ',');
+		getline(file, num_draw_calls, ',');
 		getline(file, frame);
 
-		things1_bins.emplace(things1, -1);
-		things2_bins.emplace(things2, -1);
+		// Create bin and initialize to -1 if number has not been seen before.
+		// Otherwise, does nothing.
+		num_prims_bins.emplace(num_prims, -1);
+		num_draw_calls_bins.emplace(num_draw_calls, -1);
 
-		things1_bins[things1]++;
-		things2_bins[things2]++;
+		// Increment bin for number parsed
+		num_prims_bins[num_prims]++;
+		num_draw_calls_bins[num_draw_calls]++;
 	}
 
-	for (auto i : things1_bins)
+	for (std::pair<const std::string, int> i : num_prims_bins)
 	{
-		if (i.second > max_things1)
+		if (i.second > current_largest_bin_prims)
 		{
-			max_things1 = i.second;
-			maxthing1 = i.first;
+			current_largest_bin_prims = i.second;
+			*most_common_num_prims = i.first;
 		}
 	}
 
-	for (auto i : things2_bins)
+	for (std::pair<const std::string, int> i : num_draw_calls_bins)
 	{
-		if (i.second > max_things2)
+		if (i.second > current_largest_bin_draw_calls)
 		{
-			max_things2 = i.second;
-			maxthing2 = i.first;
+			current_largest_bin_draw_calls = i.second;
+			*most_common_num_draw_calls = i.first;
 		}
 	}
 
 	file.close();
-
-	*thing1_mode = maxthing1;
-	*thing2_mode = maxthing2;
 }
 
 // Remove the rows that contain the most common amount of objects. These are unlikely to be interesting to us.
-void StripModesFromCSV(std::string infilename, std::string outfilename, std::string thing1_mode, std::string thing2_mode)
+void StripModesFromCSV(std::string infilename, std::string outfilename, std::string most_common_num_prims, std::string most_common_num_draw_calls)
 {
 	std::ifstream infile(infilename);
 	std::ofstream ofile(outfilename);
 
-	int mode1 = atoi(thing1_mode.c_str());
-	int mode2 = atoi(thing2_mode.c_str());
-	std::string value1, value2, value3, things1, things2, frame;
+	std::string position, address, bruteforce_code, num_prims, num_draw_calls, frame;
 
-	while (getline(infile, value1, ','))
+	while (getline(infile, position, ','))
 	{
-		getline(infile, value2, ',');
-		getline(infile, value3, ',');
-		getline(infile, things1, ',');
-		getline(infile, things2, ',');
+		getline(infile, address, ',');
+		getline(infile, bruteforce_code, ',');
+		getline(infile, num_prims, ',');
+		getline(infile, num_draw_calls, ',');
 		getline(infile, frame);
 
-		if (atoi(frame.c_str()) == 1)
+		if (frame == "1")
 		{
-			if (!((atoi(things1.c_str()) == mode1) && (atoi(things2.c_str()) == mode2)))
+			if (!(num_prims == most_common_num_prims && num_draw_calls == most_common_num_draw_calls))
 			{
-				ofile << value1 << "," << value2 << "," << value3 << "," << things1 << "," << things2 << "," << frame << std::endl;
+				ofile << position << "," << address << "," << bruteforce_code << "," << num_prims << "," << num_draw_calls << "," << frame << std::endl;
 			}
 		}
 

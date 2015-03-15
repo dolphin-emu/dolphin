@@ -387,6 +387,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	if (type == POKE_Z)
 	{
+		if (ARBruteForcer::ch_bruteforce)
+		{
+			Core::KillDolphinAndRestart();
+		}
 		static bool alert_only_once = true;
 		if (!alert_only_once) return 0;
 		PanicAlert("EFB: Poke Z not implemented (tried to poke z value %#x at (%d,%d))", poke_data, x, y);
