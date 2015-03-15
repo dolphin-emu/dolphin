@@ -438,7 +438,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 	general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
 
 	general->Get("NANDRootPath", &m_NANDPath);
-	m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
+	File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
 	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 	DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 	general->Get("WirelessMac", &m_WirelessMac);

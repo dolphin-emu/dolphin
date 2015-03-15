@@ -1312,7 +1312,8 @@ void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	std::string NANDPath =
 		SConfig::GetInstance().m_NANDPath =
-			File::GetUserPath(D_WIIROOT_IDX, WxStrToStr(NANDRoot->GetPath()));
+		WxStrToStr(NANDRoot->GetPath());
+	File::SetUserPath(D_WIIROOT_IDX, NANDPath);
 	NANDRoot->SetPath(StrToWxStr(NANDPath));
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
 	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
