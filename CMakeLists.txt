@@ -440,8 +440,7 @@ if(NOT ANDROID)
 	set(USE_X11 0)
 
 	if(UNIX AND NOT APPLE)
-		# Note: We do not need to explicitly check for X11 as it is done in the cmake
-		# FindOpenGL module on linux.
+		include(FindX11)
 		if(TRY_X11 AND X11_FOUND)
 			set(USE_X11 1)
 			add_definitions(-DHAVE_X11=1)
