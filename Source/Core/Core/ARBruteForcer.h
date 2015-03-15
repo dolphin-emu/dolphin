@@ -22,6 +22,7 @@ extern int ch_cycles_without_snapshot;
 extern bool ch_last_search;
 // emulator is in action replay culling code brute-forcing mode
 extern bool ch_bruteforce;
+extern bool ch_dont_save_settings;
 
 extern std::vector<std::string> ch_map;
 extern std::string ch_title_id;
@@ -31,8 +32,8 @@ void ARBruteForceDriver();
 void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sScreenshotName);
 void ParseMapFile(std::string unique_id);
 void IncrementPositionTxt();
-void ch_save_last_position(int position);
-int ch_load_last_position();
+void SaveLastPosition(int position);
+int LoadLastPosition();
 void PostProcessCSVFile();
 void FindModeOfCSV(std::string filename, std::string* thing1_mode, std::string* thing2_mode);
 void StripModesFromCSV(std::string infilename, std::string outfilename, std::string thing1_mode, std::string thing2_mode);
