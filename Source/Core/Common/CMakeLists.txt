@@ -31,7 +31,7 @@ set(SRCS BreakPoints.cpp
          x64Emitter.cpp
          Crypto/bn.cpp
          Crypto/ec.cpp
-         Logging/ConsoleListener.cpp
+         Logging/ConsoleListenerNix.cpp
          Logging/LogManager.cpp)
 
 set(LIBS enet)
