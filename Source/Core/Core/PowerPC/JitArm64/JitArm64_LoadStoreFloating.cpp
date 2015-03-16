@@ -71,6 +71,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 	u32 imm_addr = 0;
 	bool is_immediate = false;
 
+	fpr.BindToRegister(inst.FD, false);
 	ARM64Reg VD = fpr.R(inst.FD);
 	ARM64Reg addr_reg = W0;
 
@@ -172,7 +173,10 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 		MOVI2R(XA, imm_addr);
 
 	if (update)
+	{
+		gpr.BindToRegister(a, false);
 		MOV(gpr.R(a), addr_reg);
+	}
 
 	BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
 	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
@@ -360,7 +364,10 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 		MOVI2R(XA, imm_addr);
 
 	if (update)
+	{
+		gpr.BindToRegister(a, false);
 		MOV(gpr.R(a), addr_reg);
+	}
 
 	BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
 	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();

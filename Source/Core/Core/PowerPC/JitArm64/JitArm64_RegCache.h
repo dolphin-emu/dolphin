@@ -85,6 +85,9 @@ public:
 	void ResetLastUsed() { m_last_used = 0; }
 	void IncrementLastUsed() { ++m_last_used; }
 
+	void SetDirty(bool dirty) { m_dirty = dirty; }
+	bool IsDirty() { return m_dirty; }
+
 private:
 	// For REG_REG
 	RegType m_type; // store type
@@ -94,6 +97,8 @@ private:
 	u32 m_value; // IMM value
 
 	u32 m_last_used;
+
+	bool m_dirty;
 };
 
 class HostReg
