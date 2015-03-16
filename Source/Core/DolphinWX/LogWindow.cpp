@@ -83,16 +83,6 @@ void CLogWindow::CreateGUIControls()
 	// Get the logger output settings from the config ini file.
 	options->Get("WriteToFile", &m_writeFile, false);
 	options->Get("WriteToWindow", &m_writeWindow, true);
-#ifdef _MSC_VER
-	if (IsDebuggerPresent())
-	{
-		options->Get("WriteToDebugger", &m_writeDebugger, true);
-	}
-	else
-#endif
-	{
-		m_writeDebugger = false;
-	}
 
 	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -109,11 +99,6 @@ void CLogWindow::CreateGUIControls()
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
 		else
 			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
-
-		if (m_writeDebugger && enable)
-			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
-		else
-			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
 
 		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
@@ -214,8 +199,6 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 	while (!msgQueue.empty())
 		msgQueue.pop();
 	}
-
-	m_LogManager->GetConsoleListener()->ClearScreen();
 }
 
 void CLogWindow::UnPopulateBottom()
