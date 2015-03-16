@@ -25,7 +25,6 @@
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
-    <ClInclude Include="ExtendedTrace.h" />
     <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
@@ -79,7 +78,6 @@
     <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
-    <ClCompile Include="ExtendedTrace.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
