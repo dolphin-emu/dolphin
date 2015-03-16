@@ -128,6 +128,8 @@ class XEmitter;
 // RIP addressing does not benefit from micro op fusion on Core arch
 struct OpArg
 {
+	friend class XEmitter; // For accessing offset and operandReg
+
 	OpArg() {}  // dummy op arg, used for storage
 	OpArg(u64 _offset, int _scale, X64Reg rmReg = RAX, X64Reg scaledReg = RAX)
 	{
@@ -148,9 +150,6 @@ struct OpArg
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
 	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
-	// This one is public - must be written to
-	u64 offset;  // use RIP-relative as much as possible - Also used to store immediates.
-	u16 operandReg;
 
 	u64 Imm64() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM64); return (u64)offset; }
 	u32 Imm32() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM32); return (u32)offset; }
@@ -198,10 +197,20 @@ struct OpArg
 		else
 			return INVALID_REG;
 	}
+
+	void AddMemOffset(int val)
+	{
+		_dbg_assert_msg_(DYNA_REC, scale == SCALE_RIP || (scale <= SCALE_ATREG && scale > SCALE_NONE),
+		                 "Tried to increment an OpArg which doesn't have an offset");
+		offset += val;
+	}
+
 private:
 	u8 scale;
 	u16 offsetOrBaseReg;
 	u16 indexReg;
+	u64 offset;  // Also used to store immediates.
+	u16 operandReg;
 };
 
 template <typename T>

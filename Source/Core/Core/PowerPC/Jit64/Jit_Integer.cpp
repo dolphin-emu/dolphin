@@ -178,7 +178,7 @@ OpArg Jit64::ExtractFromReg(int reg, int offset)
 	{
 		gpr.StoreFromRegister(reg, FLUSH_MAINTAIN_STATE);
 		src = gpr.GetDefaultLocation(reg);
-		src.offset += offset;
+		src.AddMemOffset(offset);
 	}
 	return src;
 }

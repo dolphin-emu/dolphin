@@ -354,10 +354,6 @@ void GPRRegCache::StoreRegister(size_t preg, OpArg newLoc)
 
 void FPURegCache::LoadRegister(size_t preg, X64Reg newLoc)
 {
-	if (!regs[preg].location.IsImm() && (regs[preg].location.offset & 0xF))
-	{
-		PanicAlert("WARNING - misaligned fp register location %u", (unsigned int) preg);
-	}
 	emit->MOVAPD(newLoc, regs[preg].location);
 }
 
