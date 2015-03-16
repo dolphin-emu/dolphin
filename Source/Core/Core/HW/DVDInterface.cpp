@@ -22,6 +22,8 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
+
 static const double PI = 3.14159265358979323846264338328;
 
 // Rate the drive can transfer data to main memory, given the data
@@ -1189,6 +1191,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 	case DVDLowStopMotor:
 		INFO_LOG(DVDINTERFACE, "DVDLowStopMotor %s %s",
 		         command_1 ? "eject" : "", command_2 ? "kill!" : "");
+
+		OSD::AddMessage("The disc is ready to be changed. You can use the Change Disc option in the game list.", 5000);
 
 		if (command_1 && !command_2)
 			EjectDiscCallback(0, 0);
