@@ -11,6 +11,8 @@
 
 #include <cstdint>
 
+#define VOLATILE_BUG volatile
+
 #ifdef _WIN32
 
 #include <tchar.h>

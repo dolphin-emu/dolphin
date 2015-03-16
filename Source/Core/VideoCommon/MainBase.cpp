@@ -25,7 +25,7 @@ bool s_BackendInitialized = false;
 
 static Common::Flag s_FifoShuttingDown;
 
-static volatile struct
+static VOLATILE_BUG struct
 {
 	u32 xfbAddr;
 	u32 fbWidth;

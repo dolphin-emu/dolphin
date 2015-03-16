@@ -9,6 +9,7 @@
 #include <atomic>
 #include <memory>
 #include <string>
+#include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
@@ -223,7 +224,7 @@ struct SDSP
 
 	u8 reg_stack_ptr[4];
 	u8 exceptions;   // pending exceptions
-	volatile bool external_interrupt_waiting;
+	VOLATILE_BUG bool external_interrupt_waiting;
 	bool reset_dspjit_codespace;
 
 	// DSP hardware stacks. They're mapped to a bunch of registers, such that writes
