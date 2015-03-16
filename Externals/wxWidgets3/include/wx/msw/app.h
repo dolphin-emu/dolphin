@@ -29,7 +29,7 @@ public:
     virtual ~wxApp();
 
     // override base class (pure) virtuals
-    virtual bool Initialize(int& argc, wxChar **argv);
+    virtual bool Initialize(int& _argc, wxChar **_argv);
     virtual void CleanUp();
 
     virtual void WakeUpIdle();

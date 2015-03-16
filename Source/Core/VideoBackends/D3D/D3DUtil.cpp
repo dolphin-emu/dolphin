@@ -399,10 +399,10 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 			D3D::context->Draw(3 * dwNumTriangles, 0);
 
 			dwNumTriangles = 0;
-			D3D11_MAPPED_SUBRESOURCE vbmap;
-			hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vbmap);
+			D3D11_MAPPED_SUBRESOURCE _vbmap;
+			hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &_vbmap);
 			if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
-			pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
+			pVertices = (D3D::FONT2DVERTEX*)_vbmap.pData;
 		}
 		sx += w + spacing * scalex * size;
 	}
