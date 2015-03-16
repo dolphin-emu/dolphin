@@ -61,7 +61,6 @@
 
 #ifdef _WIN32
 #include <shellapi.h>
-#include "Common/ExtendedTrace.h"
 
 #ifndef SM_XVIRTUALSCREEN
 #define SM_XVIRTUALSCREEN 76
@@ -93,32 +92,6 @@ bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
 
 CFrame* main_frame = nullptr;
-
-#ifdef WIN32
-//Has no error handling.
-//I think that if an error occurs here there's no way to handle it anyway.
-LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e)
-{
-	//EnterCriticalSection(&g_uefcs);
-
-	File::IOFile file("exceptioninfo.txt", "a");
-	file.Seek(0, SEEK_END);
-	etfprint(file.GetHandle(), "\n");
-	//etfprint(file, g_buildtime);
-	//etfprint(file, "\n");
-	//dumpCurrentDate(file);
-	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
-		e->ExceptionRecord->ExceptionCode);
-
-	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
-
-	file.Close();
-	_flushall();
-
-	//LeaveCriticalSection(&g_uefcs);
-	return EXCEPTION_CONTINUE_SEARCH;
-}
-#endif
 
 bool DolphinApp::Initialize(int& c, wxChar **v)
 {
@@ -234,11 +207,7 @@ bool DolphinApp::OnInit()
 	RegisterMsgAlertHandler(&wxMsgAlert);
 	RegisterStringTranslator(&wxStringTranslator);
 
-	// "ExtendedTrace" looks freakin' dangerous!!!
-#ifdef _WIN32
-	EXTENDEDTRACEINITIALIZE(".");
-	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
-#elif wxUSE_ON_FATAL_EXCEPTION
+#if wxUSE_ON_FATAL_EXCEPTION
 	wxHandleFatalExceptions(true);
 #endif
 
