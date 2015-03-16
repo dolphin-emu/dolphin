@@ -149,8 +149,18 @@ struct OpArg
 	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
-	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
+	u64 offset;  // use RIP-relative as much as possible - Also used to store immediates.
 	u16 operandReg;
+
+	u64 Imm64() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM64); return (u64)offset; }
+	u32 Imm32() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM32); return (u32)offset; }
+	u16 Imm16() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM16); return (u16)offset; }
+	u8  Imm8()  const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM8);  return (u8)offset; }
+
+	s64 SImm64() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM64); return (s64)offset; }
+	s32 SImm32() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM32); return (s32)offset; }
+	s16 SImm16() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM16); return (s16)offset; }
+	s8  SImm8()  const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM8);  return (s8)offset; }
 
 	void WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
 	bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}

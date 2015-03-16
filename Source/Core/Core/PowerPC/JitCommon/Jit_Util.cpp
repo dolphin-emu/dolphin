@@ -74,7 +74,7 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessS
 	}
 	else if (opAddress.IsImm())
 	{
-		MOV(32, R(reg_value), Imm32((u32)(opAddress.offset + offset)));
+		MOV(32, R(reg_value), Imm32((u32)(opAddress.Imm32() + offset)));
 		memOperand = MRegSum(RMEM, reg_value);
 	}
 	else
@@ -298,7 +298,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 
 	if (opAddress.IsImm())
 	{
-		u32 address = (u32)opAddress.offset + offset;
+		u32 address = opAddress.Imm32() + offset;
 
 		// If the address is known to be RAM, just load it directly.
 		if (PowerPC::IsOptimizableRAMAddress(address))
@@ -398,11 +398,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 static OpArg SwapImmediate(int accessSize, OpArg reg_value)
 {
 	if (accessSize == 32)
-		return Imm32(Common::swap32((u32)reg_value.offset));
+		return Imm32(Common::swap32(reg_value.Imm32()));
 	else if (accessSize == 16)
-		return Imm16(Common::swap16((u16)reg_value.offset));
+		return Imm16(Common::swap16(reg_value.Imm16()));
 	else
-		return Imm8((u8)reg_value.offset);
+		return Imm8(reg_value.Imm8());
 }
 
 u8 *EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
@@ -441,9 +441,9 @@ static OpArg FixImmediate(int accessSize, OpArg arg)
 {
 	if (arg.IsImm())
 	{
-		arg = accessSize == 8  ? Imm8((u8)arg.offset) :
-		      accessSize == 16 ? Imm16((u16)arg.offset) :
-		                         Imm32((u32)arg.offset);
+		arg = accessSize == 8  ? Imm8((u8)arg.Imm32()) :
+		      accessSize == 16 ? Imm16((u16)arg.Imm32()) :
+		                         Imm32((u32)arg.Imm32());
 	}
 	return arg;
 }

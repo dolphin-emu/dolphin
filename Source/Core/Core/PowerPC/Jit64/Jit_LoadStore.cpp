@@ -154,7 +154,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// Determine whether this instruction updates inst.RA
 	bool update;
 	if (inst.OPCD == 31)
-		update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.R(b).IsImm() || gpr.R(b).offset != 0);
+		update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.R(b).IsImm() || gpr.R(b).Imm32() != 0);
 	else
 		update = ((inst.OPCD & 1) != 0) && inst.SIMM_16 != 0;
 
@@ -184,14 +184,14 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	{
 		if ((inst.OPCD != 31) && gpr.R(a).IsImm() && !js.memcheck)
 		{
-			u32 val = (u32)gpr.R(a).offset + (s32)inst.SIMM_16;
+			u32 val = gpr.R(a).Imm32() + inst.SIMM_16;
 			opAddress = Imm32(val);
 			if (update)
 				gpr.SetImmediate32(a, val);
 		}
 		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !js.memcheck)
 		{
-			u32 val = (u32)gpr.R(a).offset + (u32)gpr.R(b).offset;
+			u32 val = gpr.R(a).Imm32() + gpr.R(b).Imm32();
 			opAddress = Imm32(val);
 			if (update)
 				gpr.SetImmediate32(a, val);
@@ -200,7 +200,10 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		{
 			// If we're using reg+reg mode and b is an immediate, pretend we're using constant offset mode
 			bool use_constant_offset = inst.OPCD != 31 || gpr.R(b).IsImm();
-			s32 offset = inst.OPCD == 31 ? (s32)gpr.R(b).offset : (s32)inst.SIMM_16;
+
+			s32 offset;
+			if (use_constant_offset)
+				offset = inst.OPCD == 31 ? gpr.R(b).SImm32() : (s32)inst.SIMM_16;
 			// Depending on whether we have an immediate and/or update, find the optimum way to calculate
 			// the load address.
 			if ((update || use_constant_offset) && !js.memcheck)
@@ -385,7 +388,7 @@ void Jit64::stX(UGeckoInstruction inst)
 	// If we already know the address of the write
 	if (!a || gpr.R(a).IsImm())
 	{
-		u32 addr = (a ? (u32)gpr.R(a).offset : 0) + offset;
+		u32 addr = (a ? gpr.R(a).Imm32() : 0) + offset;
 		bool exception = WriteToConstAddress(accessSize, gpr.R(s), addr, CallerSavedRegistersInUse());
 		if (update)
 		{
