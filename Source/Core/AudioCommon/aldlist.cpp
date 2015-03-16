@@ -53,7 +53,7 @@ ALDeviceList::ALDeviceList()
 	//if (LoadOAL10Library(nullptr, &ALFunction) == TRUE) {
 		if (alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
 		{
-			const char *devices = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
+			const char *devices           = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
 			const char *defaultDeviceName = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
 			// go through device list (each device terminated with a single nullptr, list terminated with double nullptr)
 			for (s32 index = 0; devices != nullptr && strlen(devices) > 0; index++, devices += strlen(devices) + 1)

@@ -359,14 +359,14 @@ bool CFrame::InitControllers()
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
-		Pad::Initialize(reinterpret_cast<void*>(win));
-		Keyboard::Initialize(reinterpret_cast<void*>(win));
-		Wiimote::Initialize(reinterpret_cast<void*>(win));
+		Pad::Initialize             (reinterpret_cast<void*>(win));
+		Keyboard::Initialize        (reinterpret_cast<void*>(win));
+		Wiimote::Initialize         (reinterpret_cast<void*>(win));
 #else
 		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
-		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
-		Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
-		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
+		Pad::Initialize             (reinterpret_cast<void*>(GetHandle()));
+		Keyboard::Initialize        (reinterpret_cast<void*>(GetHandle()));
+		Wiimote::Initialize         (reinterpret_cast<void*>(GetHandle()));
 #endif
 		return true;
 	}
@@ -383,14 +383,17 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
-	, g_pCodeWindow(nullptr), g_NetPlaySetupDiag(nullptr), g_CheatsWindow(nullptr)
-	, m_SavedPerspectives(nullptr), m_ToolBar(nullptr)
-	, m_GameListCtrl(nullptr), m_Panel(nullptr)
-	, m_RenderFrame(nullptr), m_RenderParent(nullptr)
-	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
-	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
-	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bGameLoading(false), m_bClosing(false), m_confirmStop(false), m_menubar_shadow(nullptr)
+	, g_pCodeWindow(nullptr),      g_NetPlaySetupDiag(nullptr)
+	, g_CheatsWindow(nullptr),     m_SavedPerspectives(nullptr)
+	, m_ToolBar(nullptr),          m_GameListCtrl(nullptr)
+	, m_Panel(nullptr),            m_RenderFrame(nullptr)
+	, m_RenderParent(nullptr),     m_LogWindow(nullptr)
+	, m_LogConfigWindow(nullptr),  m_FifoPlayerDlg(nullptr)
+	, UseDebugger(_UseDebugger),   m_bBatchMode(_BatchMode)
+	, m_bEdit(false),              m_bTabSplit(false)
+	, m_bNoDocking(false),         m_bGameLoading(false)
+	, m_bClosing(false),           m_confirmStop(false)
+	, m_menubar_shadow(nullptr)
 {
 	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
 		bFloatWindow[i] = false;
@@ -551,7 +554,7 @@ bool CFrame::RendererIsFullscreen()
 #if defined(__APPLE__)
 	if (m_RenderFrame != nullptr)
 	{
-		NSView *view = (NSView *) m_RenderFrame->GetHandle();
+		NSView   *view   = (NSView *) m_RenderFrame->GetHandle();
 		NSWindow *window = [view window];
 
 		fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
@@ -671,7 +674,7 @@ void CFrame::OnResize(wxSizeEvent& event)
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize))
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth  = GetSize().GetWidth();
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
 	}
 
@@ -953,7 +956,7 @@ static bool IsHotkey(wxKeyEvent &event, int id, bool held = false)
 	}
 
 	return (event.GetKeyCode() != WXK_NONE &&
-		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[id] &&
+		event.GetKeyCode()   == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[id] &&
 		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[id]);
 }
 
@@ -961,87 +964,87 @@ int GetCmdForHotkey(unsigned int key)
 {
 	switch (key)
 	{
-	case HK_OPEN: return wxID_OPEN;
-	case HK_CHANGE_DISC: return IDM_CHANGE_DISC;
-	case HK_REFRESH_LIST: return wxID_REFRESH;
-	case HK_PLAY_PAUSE: return IDM_PLAY;
-	case HK_STOP: return IDM_STOP;
-	case HK_RESET: return IDM_RESET;
-	case HK_FRAME_ADVANCE: return IDM_FRAMESTEP;
-	case HK_START_RECORDING: return IDM_RECORD;
-	case HK_PLAY_RECORDING: return IDM_PLAY_RECORD;
-	case HK_EXPORT_RECORDING: return IDM_RECORD_EXPORT;
-	case HK_READ_ONLY_MODE: return IDM_RECORD_READ_ONLY;
-	case HK_FULLSCREEN: return IDM_TOGGLE_FULLSCREEN;
-	case HK_SCREENSHOT: return IDM_SCREENSHOT;
-	case HK_EXIT: return wxID_EXIT;
+	case HK_OPEN:                     return wxID_OPEN;
+	case HK_CHANGE_DISC:              return IDM_CHANGE_DISC;
+	case HK_REFRESH_LIST:             return wxID_REFRESH;
+	case HK_PLAY_PAUSE:               return IDM_PLAY;
+	case HK_STOP:                     return IDM_STOP;
+	case HK_RESET:                    return IDM_RESET;
+	case HK_FRAME_ADVANCE:            return IDM_FRAMESTEP;
+	case HK_START_RECORDING:          return IDM_RECORD;
+	case HK_PLAY_RECORDING:           return IDM_PLAY_RECORD;
+	case HK_EXPORT_RECORDING:         return IDM_RECORD_EXPORT;
+	case HK_READ_ONLY_MODE:           return IDM_RECORD_READ_ONLY;
+	case HK_FULLSCREEN:               return IDM_TOGGLE_FULLSCREEN;
+	case HK_SCREENSHOT:               return IDM_SCREENSHOT;
+	case HK_EXIT:                     return wxID_EXIT;
 
-	case HK_WIIMOTE1_CONNECT: return IDM_CONNECT_WIIMOTE1;
-	case HK_WIIMOTE2_CONNECT: return IDM_CONNECT_WIIMOTE2;
-	case HK_WIIMOTE3_CONNECT: return IDM_CONNECT_WIIMOTE3;
-	case HK_WIIMOTE4_CONNECT: return IDM_CONNECT_WIIMOTE4;
-	case HK_BALANCEBOARD_CONNECT: return IDM_CONNECT_BALANCEBOARD;
+	case HK_WIIMOTE1_CONNECT:         return IDM_CONNECT_WIIMOTE1;
+	case HK_WIIMOTE2_CONNECT:         return IDM_CONNECT_WIIMOTE2;
+	case HK_WIIMOTE3_CONNECT:         return IDM_CONNECT_WIIMOTE3;
+	case HK_WIIMOTE4_CONNECT:         return IDM_CONNECT_WIIMOTE4;
+	case HK_BALANCEBOARD_CONNECT:     return IDM_CONNECT_BALANCEBOARD;
 
-	case HK_LOAD_STATE_SLOT_1: return IDM_LOAD_SLOT_1;
-	case HK_LOAD_STATE_SLOT_2: return IDM_LOAD_SLOT_2;
-	case HK_LOAD_STATE_SLOT_3: return IDM_LOAD_SLOT_3;
-	case HK_LOAD_STATE_SLOT_4: return IDM_LOAD_SLOT_4;
-	case HK_LOAD_STATE_SLOT_5: return IDM_LOAD_SLOT_5;
-	case HK_LOAD_STATE_SLOT_6: return IDM_LOAD_SLOT_6;
-	case HK_LOAD_STATE_SLOT_7: return IDM_LOAD_SLOT_7;
-	case HK_LOAD_STATE_SLOT_8: return IDM_LOAD_SLOT_8;
-	case HK_LOAD_STATE_SLOT_9: return IDM_LOAD_SLOT_9;
-	case HK_LOAD_STATE_SLOT_10: return IDM_LOAD_SLOT_10;
+	case HK_LOAD_STATE_SLOT_1:        return IDM_LOAD_SLOT_1;
+	case HK_LOAD_STATE_SLOT_2:        return IDM_LOAD_SLOT_2;
+	case HK_LOAD_STATE_SLOT_3:        return IDM_LOAD_SLOT_3;
+	case HK_LOAD_STATE_SLOT_4:        return IDM_LOAD_SLOT_4;
+	case HK_LOAD_STATE_SLOT_5:        return IDM_LOAD_SLOT_5;
+	case HK_LOAD_STATE_SLOT_6:        return IDM_LOAD_SLOT_6;
+	case HK_LOAD_STATE_SLOT_7:        return IDM_LOAD_SLOT_7;
+	case HK_LOAD_STATE_SLOT_8:        return IDM_LOAD_SLOT_8;
+	case HK_LOAD_STATE_SLOT_9:        return IDM_LOAD_SLOT_9;
+	case HK_LOAD_STATE_SLOT_10:       return IDM_LOAD_SLOT_10;
 
-	case HK_SAVE_STATE_SLOT_1: return IDM_SAVE_SLOT_1;
-	case HK_SAVE_STATE_SLOT_2: return IDM_SAVE_SLOT_2;
-	case HK_SAVE_STATE_SLOT_3: return IDM_SAVE_SLOT_3;
-	case HK_SAVE_STATE_SLOT_4: return IDM_SAVE_SLOT_4;
-	case HK_SAVE_STATE_SLOT_5: return IDM_SAVE_SLOT_5;
-	case HK_SAVE_STATE_SLOT_6: return IDM_SAVE_SLOT_6;
-	case HK_SAVE_STATE_SLOT_7: return IDM_SAVE_SLOT_7;
-	case HK_SAVE_STATE_SLOT_8: return IDM_SAVE_SLOT_8;
-	case HK_SAVE_STATE_SLOT_9: return IDM_SAVE_SLOT_9;
-	case HK_SAVE_STATE_SLOT_10: return IDM_SAVE_SLOT_10;
+	case HK_SAVE_STATE_SLOT_1:        return IDM_SAVE_SLOT_1;
+	case HK_SAVE_STATE_SLOT_2:        return IDM_SAVE_SLOT_2;
+	case HK_SAVE_STATE_SLOT_3:        return IDM_SAVE_SLOT_3;
+	case HK_SAVE_STATE_SLOT_4:        return IDM_SAVE_SLOT_4;
+	case HK_SAVE_STATE_SLOT_5:        return IDM_SAVE_SLOT_5;
+	case HK_SAVE_STATE_SLOT_6:        return IDM_SAVE_SLOT_6;
+	case HK_SAVE_STATE_SLOT_7:        return IDM_SAVE_SLOT_7;
+	case HK_SAVE_STATE_SLOT_8:        return IDM_SAVE_SLOT_8;
+	case HK_SAVE_STATE_SLOT_9:        return IDM_SAVE_SLOT_9;
+	case HK_SAVE_STATE_SLOT_10:       return IDM_SAVE_SLOT_10;
 
-	case HK_LOAD_LAST_STATE_1: return IDM_LOAD_LAST_1;
-	case HK_LOAD_LAST_STATE_2: return IDM_LOAD_LAST_2;
-	case HK_LOAD_LAST_STATE_3: return IDM_LOAD_LAST_3;
-	case HK_LOAD_LAST_STATE_4: return IDM_LOAD_LAST_4;
-	case HK_LOAD_LAST_STATE_5: return IDM_LOAD_LAST_5;
-	case HK_LOAD_LAST_STATE_6: return IDM_LOAD_LAST_6;
-	case HK_LOAD_LAST_STATE_7: return IDM_LOAD_LAST_7;
-	case HK_LOAD_LAST_STATE_8: return IDM_LOAD_LAST_8;
+	case HK_LOAD_LAST_STATE_1:        return IDM_LOAD_LAST_1;
+	case HK_LOAD_LAST_STATE_2:        return IDM_LOAD_LAST_2;
+	case HK_LOAD_LAST_STATE_3:        return IDM_LOAD_LAST_3;
+	case HK_LOAD_LAST_STATE_4:        return IDM_LOAD_LAST_4;
+	case HK_LOAD_LAST_STATE_5:        return IDM_LOAD_LAST_5;
+	case HK_LOAD_LAST_STATE_6:        return IDM_LOAD_LAST_6;
+	case HK_LOAD_LAST_STATE_7:        return IDM_LOAD_LAST_7;
+	case HK_LOAD_LAST_STATE_8:        return IDM_LOAD_LAST_8;
 
-	case HK_SAVE_FIRST_STATE: return IDM_SAVE_FIRST_STATE;
-	case HK_UNDO_LOAD_STATE: return IDM_UNDO_LOAD_STATE;
-	case HK_UNDO_SAVE_STATE: return IDM_UNDO_SAVE_STATE;
-	case HK_LOAD_STATE_FILE: return IDM_LOAD_STATE_FILE;
-	case HK_SAVE_STATE_FILE: return IDM_SAVE_STATE_FILE;
+	case HK_SAVE_FIRST_STATE:         return IDM_SAVE_FIRST_STATE;
+	case HK_UNDO_LOAD_STATE:          return IDM_UNDO_LOAD_STATE;
+	case HK_UNDO_SAVE_STATE:          return IDM_UNDO_SAVE_STATE;
+	case HK_LOAD_STATE_FILE:          return IDM_LOAD_STATE_FILE;
+	case HK_SAVE_STATE_FILE:          return IDM_SAVE_STATE_FILE;
 
-	case HK_SELECT_STATE_SLOT_1: return IDM_SELECT_SLOT_1;
-	case HK_SELECT_STATE_SLOT_2: return IDM_SELECT_SLOT_2;
-	case HK_SELECT_STATE_SLOT_3: return IDM_SELECT_SLOT_3;
-	case HK_SELECT_STATE_SLOT_4: return IDM_SELECT_SLOT_4;
-	case HK_SELECT_STATE_SLOT_5: return IDM_SELECT_SLOT_5;
-	case HK_SELECT_STATE_SLOT_6: return IDM_SELECT_SLOT_6;
-	case HK_SELECT_STATE_SLOT_7: return IDM_SELECT_SLOT_7;
-	case HK_SELECT_STATE_SLOT_8: return IDM_SELECT_SLOT_8;
-	case HK_SELECT_STATE_SLOT_9: return IDM_SELECT_SLOT_9;
-	case HK_SELECT_STATE_SLOT_10: return IDM_SELECT_SLOT_10;
+	case HK_SELECT_STATE_SLOT_1:      return IDM_SELECT_SLOT_1;
+	case HK_SELECT_STATE_SLOT_2:      return IDM_SELECT_SLOT_2;
+	case HK_SELECT_STATE_SLOT_3:      return IDM_SELECT_SLOT_3;
+	case HK_SELECT_STATE_SLOT_4:      return IDM_SELECT_SLOT_4;
+	case HK_SELECT_STATE_SLOT_5:      return IDM_SELECT_SLOT_5;
+	case HK_SELECT_STATE_SLOT_6:      return IDM_SELECT_SLOT_6;
+	case HK_SELECT_STATE_SLOT_7:      return IDM_SELECT_SLOT_7;
+	case HK_SELECT_STATE_SLOT_8:      return IDM_SELECT_SLOT_8;
+	case HK_SELECT_STATE_SLOT_9:      return IDM_SELECT_SLOT_9;
+	case HK_SELECT_STATE_SLOT_10:     return IDM_SELECT_SLOT_10;
 	case HK_SAVE_STATE_SLOT_SELECTED: return IDM_SAVE_SELECTED_SLOT;
 	case HK_LOAD_STATE_SLOT_SELECTED: return IDM_LOAD_SELECTED_SLOT;
 
-	case HK_FREELOOK_DECREASE_SPEED: return IDM_FREELOOK_DECREASE_SPEED;
-	case HK_FREELOOK_INCREASE_SPEED: return IDM_FREELOOK_INCREASE_SPEED;
-	case HK_FREELOOK_RESET_SPEED: return IDM_FREELOOK_RESET_SPEED;
-	case HK_FREELOOK_LEFT: return IDM_FREELOOK_LEFT;
-	case HK_FREELOOK_RIGHT: return IDM_FREELOOK_RIGHT;
-	case HK_FREELOOK_UP: return IDM_FREELOOK_UP;
-	case HK_FREELOOK_DOWN: return IDM_FREELOOK_DOWN;
-	case HK_FREELOOK_ZOOM_IN: return IDM_FREELOOK_ZOOM_IN;
-	case HK_FREELOOK_ZOOM_OUT: return IDM_FREELOOK_ZOOM_OUT;
-	case HK_FREELOOK_RESET: return IDM_FREELOOK_RESET;
+	case HK_FREELOOK_DECREASE_SPEED:  return IDM_FREELOOK_DECREASE_SPEED;
+	case HK_FREELOOK_INCREASE_SPEED:  return IDM_FREELOOK_INCREASE_SPEED;
+	case HK_FREELOOK_RESET_SPEED:     return IDM_FREELOOK_RESET_SPEED;
+	case HK_FREELOOK_LEFT:            return IDM_FREELOOK_LEFT;
+	case HK_FREELOOK_RIGHT:           return IDM_FREELOOK_RIGHT;
+	case HK_FREELOOK_UP:              return IDM_FREELOOK_UP;
+	case HK_FREELOOK_DOWN:            return IDM_FREELOOK_DOWN;
+	case HK_FREELOOK_ZOOM_IN:         return IDM_FREELOOK_ZOOM_IN;
+	case HK_FREELOOK_ZOOM_OUT:        return IDM_FREELOOK_ZOOM_OUT;
+	case HK_FREELOOK_RESET:           return IDM_FREELOOK_RESET;
 	}
 
 	return -1;
@@ -1159,7 +1162,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 		if (mouseLookEnabled)
 		{
 			VertexShaderManager::RotateView((event.GetX() - lastMouse[0]) / 200.0f,
-					(event.GetY() - lastMouse[1]) / 200.0f);
+			                                (event.GetY() - lastMouse[1]) / 200.0f);
 			lastMouse[0] = event.GetX();
 			lastMouse[1] = event.GetY();
 		}
@@ -1167,7 +1170,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 		if (mouseMoveEnabled)
 		{
 			VertexShaderManager::TranslateView((event.GetX() - lastMouse[0]) / 50.0f,
-					(event.GetY() - lastMouse[1]) / 50.0f);
+			                                   (event.GetY() - lastMouse[1]) / 50.0f);
 			lastMouse[0] = event.GetX();
 			lastMouse[1] = event.GetY();
 		}
@@ -1463,7 +1466,7 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		else if (IsHotkey(event, HK_FREELOOK_INCREASE_SPEED, true))
 			debugSpeed *= 1.1f;
 		else if (IsHotkey(event, HK_FREELOOK_RESET_SPEED, true))
-			debugSpeed = 1.0f;
+			debugSpeed  = 1.0f;
 		else if (IsHotkey(event, HK_FREELOOK_UP, true))
 			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
 		else if (IsHotkey(event, HK_FREELOOK_DOWN, true))

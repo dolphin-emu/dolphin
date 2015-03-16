@@ -157,7 +157,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 {
 	CBlobBigEndianReader Reader(_rReader);
 
-	u32 numPartitions = Reader.Read32(0x40000 + (_PartitionGroup * 8));
+	u32 numPartitions    =      Reader.Read32(0x40000 + (_PartitionGroup * 8));
 	u64 PartitionsOffset = (u64)Reader.Read32(0x40000 + (_PartitionGroup * 8) + 4) << 2;
 
 	// Check if we're looking for a valid partition
@@ -185,7 +185,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 		{
 			SPartition Partition;
 			Partition.Offset = ((u64)Reader.Read32(PartitionsOffset + (i * 8) + 0)) << 2;
-			Partition.Type   = Reader.Read32(PartitionsOffset + (i * 8) + 4);
+			Partition.Type   =       Reader.Read32(PartitionsOffset + (i * 8) + 4);
 			group.PartitionsVec.push_back(Partition);
 		}
 	}
@@ -211,10 +211,10 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 EDiscType GetDiscType(IBlobReader& _rReader)
 {
 	CBlobBigEndianReader Reader(_rReader);
-	u32 WiiMagic = Reader.Read32(0x18);
+	u32 WiiMagic          = Reader.Read32(0x18);
 	u32 WiiContainerMagic = Reader.Read32(0x60);
-	u32 WADMagic = Reader.Read32(0x02);
-	u32 GCMagic = Reader.Read32(0x1C);
+	u32 WADMagic          = Reader.Read32(0x02);
+	u32 GCMagic           = Reader.Read32(0x1C);
 
 	// check for Wii
 	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic != 0)

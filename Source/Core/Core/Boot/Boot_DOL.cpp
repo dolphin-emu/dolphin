@@ -62,7 +62,7 @@ void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 		sect = nullptr;
 
 	u32 HID4_pattern = 0x7c13fba6;
-	u32 HID4_mask = 0xfc1fffff;
+	u32 HID4_mask    = 0xfc1fffff;
 
 	for (int i = 0; i < DOL_NUM_TEXT; i++)
 	{
