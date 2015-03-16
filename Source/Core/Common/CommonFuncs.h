@@ -102,12 +102,6 @@ extern "C"
 	__declspec(dllimport) void __stdcall DebugBreak(void);
 }
 	#define Crash() {DebugBreak();}
-
-	#if (_MSC_VER > 1800)
-	#error alignof compat can be removed
-	#else
-	#define alignof(x) __alignof(x)
-	#endif
 #endif // WIN32 ndef
 
 // Generic function to get last error message.
