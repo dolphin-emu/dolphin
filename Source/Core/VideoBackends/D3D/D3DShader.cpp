@@ -173,6 +173,9 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
 		file << code;
 		file.close();
 
+		if (ARBruteForcer::ch_bruteforce)
+			Core::KillDolphinAndRestart();
+
 		PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
 						filename.c_str(),
 						D3D::PixelShaderVersionString(),

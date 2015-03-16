@@ -139,7 +139,7 @@ void ParseMapFile(std::string unique_id)
 		while (getline(myfile, line))
 		{
 			std::string::size_type loc = line.find("80");
-			if (loc != std::string::npos && line.find("__start") == std::string::npos)
+			if (loc != std::string::npos && line.find("__start") == std::string::npos && line.find("OS") == std::string::npos)
 			{
 				line = line.substr(loc + 2, 6);
 				// Double check it's hex and the correct size.
