@@ -1121,33 +1121,6 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 
 void CFrame::OnMouse(wxMouseEvent& event)
 {
-	if (SConfig::GetInstance().m_PauseOnFocusLost && 
-			event.GetEventObject() == (wxObject*)m_RenderParent)
-	{
-		if (event.Leaving())
-		{
-			if (Core::GetState() == Core::CORE_RUN)
-			{
-				Core::SetState(Core::CORE_PAUSE);
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-					m_RenderParent->SetCursor(wxNullCursor);
-				Core::UpdateTitle();
-			}
-			UpdateGUI();
-		}
-		else if (event.Entering())
-		{
-			if (Core::GetState() == Core::CORE_PAUSE)
-			{
-				Core::SetState(Core::CORE_RUN);
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-					m_RenderParent->SetCursor(wxCURSOR_BLANK);
-			}
-			UpdateGUI();
-		}
-	}
-
-
 	// next handlers are all for FreeLook, so we don't need to check them if disabled
 	if (!g_Config.bFreeLook)
 	{
@@ -1201,6 +1174,35 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	}
 
 	event.Skip();
+}
+
+void CFrame::OnFocusChange(wxFocusEvent& event)
+{
+	if (SConfig::GetInstance().m_PauseOnFocusLost)
+	{
+		if (RendererHasFocus())
+		{
+			if (Core::GetState() == Core::CORE_PAUSE)
+			{
+				Core::SetState(Core::CORE_RUN);
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					m_RenderParent->SetCursor(wxCURSOR_BLANK);
+			}
+			UpdateGUI();
+
+		}
+		else
+		{
+			if (Core::GetState() == Core::CORE_RUN)
+			{
+				Core::SetState(Core::CORE_PAUSE);
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					m_RenderParent->SetCursor(wxNullCursor);
+				Core::UpdateTitle();
+			}
+			UpdateGUI();
+		}
+	}
 }
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
