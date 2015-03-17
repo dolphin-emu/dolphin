@@ -193,8 +193,8 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	IniFile::Section* general = ini.GetOrCreateSection("General");
 
 	// General
-	general->Set("LastFilename", m_LastFilename);
-	general->Set("ShowLag", m_ShowLag);
+	general->Set("LastFilename",   m_LastFilename);
+	general->Set("ShowLag",        m_ShowLag);
 	general->Set("ShowFrameCount", m_ShowFrameCount);
 
 	// ISO folders
@@ -214,8 +214,8 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	}
 
 	general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
-	general->Set("NANDRootPath", m_NANDPath);
-	general->Set("WirelessMac", m_WirelessMac);
+	general->Set("NANDRootPath",      m_NANDPath);
+	general->Set("WirelessMac",       m_WirelessMac);
 
 #ifdef USE_GDBSTUB
 	general->Set("GDBPort", m_LocalCoreStartupParameter.iGDBPort);
@@ -261,107 +261,107 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 	IniFile::Section* display = ini.GetOrCreateSection("Display");
 
 	display->Set("FullscreenResolution", m_LocalCoreStartupParameter.strFullscreenResolution);
-	display->Set("Fullscreen", m_LocalCoreStartupParameter.bFullscreen);
-	display->Set("RenderToMain", m_LocalCoreStartupParameter.bRenderToMain);
-	display->Set("RenderWindowXPos", m_LocalCoreStartupParameter.iRenderWindowXPos);
-	display->Set("RenderWindowYPos", m_LocalCoreStartupParameter.iRenderWindowYPos);
-	display->Set("RenderWindowWidth", m_LocalCoreStartupParameter.iRenderWindowWidth);
-	display->Set("RenderWindowHeight", m_LocalCoreStartupParameter.iRenderWindowHeight);
+	display->Set("Fullscreen",           m_LocalCoreStartupParameter.bFullscreen);
+	display->Set("RenderToMain",         m_LocalCoreStartupParameter.bRenderToMain);
+	display->Set("RenderWindowXPos",     m_LocalCoreStartupParameter.iRenderWindowXPos);
+	display->Set("RenderWindowYPos",     m_LocalCoreStartupParameter.iRenderWindowYPos);
+	display->Set("RenderWindowWidth",    m_LocalCoreStartupParameter.iRenderWindowWidth);
+	display->Set("RenderWindowHeight",   m_LocalCoreStartupParameter.iRenderWindowHeight);
 	display->Set("RenderWindowAutoSize", m_LocalCoreStartupParameter.bRenderWindowAutoSize);
-	display->Set("KeepWindowOnTop", m_LocalCoreStartupParameter.bKeepWindowOnTop);
-	display->Set("ProgressiveScan", m_LocalCoreStartupParameter.bProgressive);
-	display->Set("DisableScreenSaver", m_LocalCoreStartupParameter.bDisableScreenSaver);
-	display->Set("ForceNTSCJ", m_LocalCoreStartupParameter.bForceNTSCJ);
+	display->Set("KeepWindowOnTop",      m_LocalCoreStartupParameter.bKeepWindowOnTop);
+	display->Set("ProgressiveScan",      m_LocalCoreStartupParameter.bProgressive);
+	display->Set("DisableScreenSaver",   m_LocalCoreStartupParameter.bDisableScreenSaver);
+	display->Set("ForceNTSCJ",           m_LocalCoreStartupParameter.bForceNTSCJ);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
 {
 	IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
 
-	gamelist->Set("ListDrives", m_ListDrives);
-	gamelist->Set("ListWad", m_ListWad);
-	gamelist->Set("ListWii", m_ListWii);
-	gamelist->Set("ListGC", m_ListGC);
-	gamelist->Set("ListJap", m_ListJap);
-	gamelist->Set("ListPal", m_ListPal);
-	gamelist->Set("ListUsa", m_ListUsa);
-	gamelist->Set("ListAustralia", m_ListAustralia);
-	gamelist->Set("ListFrance", m_ListFrance);
-	gamelist->Set("ListGermany", m_ListGermany);
-	gamelist->Set("ListWorld", m_ListWorld);
-	gamelist->Set("ListItaly", m_ListItaly);
-	gamelist->Set("ListKorea", m_ListKorea);
-	gamelist->Set("ListNetherlands", m_ListNetherlands);
-	gamelist->Set("ListRussia", m_ListRussia);
-	gamelist->Set("ListSpain", m_ListSpain);
-	gamelist->Set("ListTaiwan", m_ListTaiwan);
-	gamelist->Set("ListUnknown", m_ListUnknown);
-	gamelist->Set("ListSort", m_ListSort);
+	gamelist->Set("ListDrives",        m_ListDrives);
+	gamelist->Set("ListWad",           m_ListWad);
+	gamelist->Set("ListWii",           m_ListWii);
+	gamelist->Set("ListGC",            m_ListGC);
+	gamelist->Set("ListJap",           m_ListJap);
+	gamelist->Set("ListPal",           m_ListPal);
+	gamelist->Set("ListUsa",           m_ListUsa);
+	gamelist->Set("ListAustralia",     m_ListAustralia);
+	gamelist->Set("ListFrance",        m_ListFrance);
+	gamelist->Set("ListGermany",       m_ListGermany);
+	gamelist->Set("ListWorld",         m_ListWorld);
+	gamelist->Set("ListItaly",         m_ListItaly);
+	gamelist->Set("ListKorea",         m_ListKorea);
+	gamelist->Set("ListNetherlands",   m_ListNetherlands);
+	gamelist->Set("ListRussia",        m_ListRussia);
+	gamelist->Set("ListSpain",         m_ListSpain);
+	gamelist->Set("ListTaiwan",        m_ListTaiwan);
+	gamelist->Set("ListUnknown",       m_ListUnknown);
+	gamelist->Set("ListSort",          m_ListSort);
 	gamelist->Set("ListSortSecondary", m_ListSort2);
 
 	gamelist->Set("ColorCompressed", m_ColorCompressed);
 
 	gamelist->Set("ColumnPlatform", m_showSystemColumn);
-	gamelist->Set("ColumnBanner", m_showBannerColumn);
-	gamelist->Set("ColumnNotes", m_showNotesColumn);
-	gamelist->Set("ColumnID", m_showIDColumn);
-	gamelist->Set("ColumnRegion", m_showRegionColumn);
-	gamelist->Set("ColumnSize", m_showSizeColumn);
-	gamelist->Set("ColumnState", m_showStateColumn);
+	gamelist->Set("ColumnBanner",   m_showBannerColumn);
+	gamelist->Set("ColumnNotes",    m_showNotesColumn);
+	gamelist->Set("ColumnID",       m_showIDColumn);
+	gamelist->Set("ColumnRegion",   m_showRegionColumn);
+	gamelist->Set("ColumnSize",     m_showSizeColumn);
+	gamelist->Set("ColumnState",    m_showStateColumn);
 }
 
 void SConfig::SaveCoreSettings(IniFile& ini)
 {
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-	core->Set("HLE_BS2", m_LocalCoreStartupParameter.bHLE_BS2);
-	core->Set("CPUCore", m_LocalCoreStartupParameter.iCPUCore);
-	core->Set("Fastmem", m_LocalCoreStartupParameter.bFastmem);
-	core->Set("CPUThread", m_LocalCoreStartupParameter.bCPUThread);
-	core->Set("DSPHLE", m_LocalCoreStartupParameter.bDSPHLE);
-	core->Set("SkipIdle", m_LocalCoreStartupParameter.bSkipIdle);
-	core->Set("SyncOnSkipIdle", m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack);
-	core->Set("DefaultISO", m_LocalCoreStartupParameter.m_strDefaultISO);
-	core->Set("DVDRoot", m_LocalCoreStartupParameter.m_strDVDRoot);
-	core->Set("Apploader", m_LocalCoreStartupParameter.m_strApploader);
-	core->Set("EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
+	core->Set("HLE_BS2",          m_LocalCoreStartupParameter.bHLE_BS2);
+	core->Set("CPUCore",          m_LocalCoreStartupParameter.iCPUCore);
+	core->Set("Fastmem",          m_LocalCoreStartupParameter.bFastmem);
+	core->Set("CPUThread",        m_LocalCoreStartupParameter.bCPUThread);
+	core->Set("DSPHLE",           m_LocalCoreStartupParameter.bDSPHLE);
+	core->Set("SkipIdle",         m_LocalCoreStartupParameter.bSkipIdle);
+	core->Set("SyncOnSkipIdle",   m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack);
+	core->Set("DefaultISO",       m_LocalCoreStartupParameter.m_strDefaultISO);
+	core->Set("DVDRoot",          m_LocalCoreStartupParameter.m_strDVDRoot);
+	core->Set("Apploader",        m_LocalCoreStartupParameter.m_strApploader);
+	core->Set("EnableCheats",     m_LocalCoreStartupParameter.bEnableCheats);
 	core->Set("SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
-	core->Set("DPL2Decoder", m_LocalCoreStartupParameter.bDPL2Decoder);
-	core->Set("Latency", m_LocalCoreStartupParameter.iLatency);
-	core->Set("MemcardAPath", m_strMemoryCardA);
-	core->Set("MemcardBPath", m_strMemoryCardB);
-	core->Set("AgpCartAPath", m_strGbaCartA);
-	core->Set("AgpCartBPath", m_strGbaCartB);
-	core->Set("SlotA", m_EXIDevice[0]);
-	core->Set("SlotB", m_EXIDevice[1]);
-	core->Set("SerialPort1", m_EXIDevice[2]);
-	core->Set("BBA_MAC", m_bba_mac);
+	core->Set("DPL2Decoder",      m_LocalCoreStartupParameter.bDPL2Decoder);
+	core->Set("Latency",          m_LocalCoreStartupParameter.iLatency);
+	core->Set("MemcardAPath",     m_strMemoryCardA);
+	core->Set("MemcardBPath",     m_strMemoryCardB);
+	core->Set("AgpCartAPath",     m_strGbaCartA);
+	core->Set("AgpCartBPath",     m_strGbaCartB);
+	core->Set("SlotA",            m_EXIDevice[0]);
+	core->Set("SlotB",            m_EXIDevice[1]);
+	core->Set("SerialPort1",      m_EXIDevice[2]);
+	core->Set("BBA_MAC",          m_bba_mac);
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
 	}
-	core->Set("WiiSDCard", m_WiiSDCard);
-	core->Set("WiiKeyboard", m_WiiKeyboard);
+	core->Set("WiiSDCard",                 m_WiiSDCard);
+	core->Set("WiiKeyboard",               m_WiiKeyboard);
 	core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
-	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
-	core->Set("RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
-	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
-	core->Set("FrameLimit", m_Framelimit);
-	core->Set("FrameSkip", m_FrameSkip);
-	core->Set("Overclock", m_OCFactor);
-	core->Set("OverclockEnable", m_OCEnable);
-	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
-	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
-	core->Set("GameCubeAdapter", m_GameCubeAdapter);
+	core->Set("WiimoteEnableSpeaker",      m_WiimoteEnableSpeaker);
+	core->Set("RunCompareServer",          m_LocalCoreStartupParameter.bRunCompareServer);
+	core->Set("RunCompareClient",          m_LocalCoreStartupParameter.bRunCompareClient);
+	core->Set("FrameLimit",                m_Framelimit);
+	core->Set("FrameSkip",                 m_FrameSkip);
+	core->Set("Overclock",                 m_OCFactor);
+	core->Set("OverclockEnable",           m_OCEnable);
+	core->Set("GFXBackend",                m_LocalCoreStartupParameter.m_strVideoBackend);
+	core->Set("GPUDeterminismMode",        m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
+	core->Set("GameCubeAdapter",           m_GameCubeAdapter);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
 {
 	IniFile::Section* movie = ini.GetOrCreateSection("Movie");
 
-	movie->Set("PauseMovie", m_PauseMovie);
-	movie->Set("Author", m_strMovieAuthor);
-	movie->Set("DumpFrames", m_DumpFrames);
+	movie->Set("PauseMovie",       m_PauseMovie);
+	movie->Set("Author",           m_strMovieAuthor);
+	movie->Set("DumpFrames",       m_DumpFrames);
 	movie->Set("DumpFramesSilent", m_DumpFramesSilent);
 	movie->Set("ShowInputDisplay", m_ShowInputDisplay);
 }
@@ -370,10 +370,10 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 {
 	IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
 
-	dsp->Set("EnableJIT", m_DSPEnableJIT);
-	dsp->Set("DumpAudio", m_DumpAudio);
-	dsp->Set("Backend", sBackend);
-	dsp->Set("Volume", m_Volume);
+	dsp->Set("EnableJIT",  m_DSPEnableJIT);
+	dsp->Set("DumpAudio",  m_DumpAudio);
+	dsp->Set("Backend",    sBackend);
+	dsp->Set("Volume",     m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
 
@@ -415,8 +415,8 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 {
 	IniFile::Section* general = ini.GetOrCreateSection("General");
 
-	general->Get("LastFilename", &m_LastFilename);
-	general->Get("ShowLag", &m_ShowLag, false);
+	general->Get("LastFilename",   &m_LastFilename);
+	general->Get("ShowLag",        &m_ShowLag,        false);
 	general->Get("ShowFrameCount", &m_ShowFrameCount, false);
 #ifdef USE_GDBSTUB
 	general->Get("GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
@@ -600,9 +600,9 @@ void SConfig::LoadMovieSettings(IniFile& ini)
 {
 	IniFile::Section* movie = ini.GetOrCreateSection("Movie");
 
-	movie->Get("PauseMovie", &m_PauseMovie, false);
-	movie->Get("Author", &m_strMovieAuthor, "");
-	movie->Get("DumpFrames", &m_DumpFrames, false);
+	movie->Get("PauseMovie",       &m_PauseMovie,       false);
+	movie->Get("Author",           &m_strMovieAuthor,   "");
+	movie->Get("DumpFrames",       &m_DumpFrames,       false);
 	movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
 	movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
 }
