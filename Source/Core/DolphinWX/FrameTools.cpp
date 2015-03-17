@@ -1073,13 +1073,15 @@ void CFrame::StartGame(const std::string& filename)
 
 		m_RenderParent->SetFocus();
 
-		wxTheApp->Bind(wxEVT_KEY_DOWN,    &CFrame::OnKeyDown, this);
-		wxTheApp->Bind(wxEVT_KEY_UP,      &CFrame::OnKeyUp,   this);
-		wxTheApp->Bind(wxEVT_RIGHT_DOWN,  &CFrame::OnMouse,   this);
-		wxTheApp->Bind(wxEVT_RIGHT_UP,    &CFrame::OnMouse,   this);
-		wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse,   this);
-		wxTheApp->Bind(wxEVT_MIDDLE_UP,   &CFrame::OnMouse,   this);
-		wxTheApp->Bind(wxEVT_MOTION,      &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_KEY_DOWN,     &CFrame::OnKeyDown, this);
+		wxTheApp->Bind(wxEVT_KEY_UP,       &CFrame::OnKeyUp,   this);
+		wxTheApp->Bind(wxEVT_RIGHT_DOWN,   &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_RIGHT_UP,     &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_MIDDLE_DOWN,  &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_MIDDLE_UP,    &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_MOTION,       &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_ENTER_WINDOW, &CFrame::OnMouse,  this);
+		wxTheApp->Bind(wxEVT_LEAVE_WINDOW, &CFrame::OnMouse,  this);
 		m_RenderParent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 	}
 

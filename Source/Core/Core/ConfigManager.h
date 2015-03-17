@@ -103,6 +103,8 @@ struct SConfig : NonCopyable
 	bool m_DumpFramesSilent;
 	bool m_ShowInputDisplay;
 
+	bool m_PauseOnFocusLost;
+
 	// DSP settings
 	bool m_DSPEnableJIT;
 	bool m_DSPCaptureLog;
