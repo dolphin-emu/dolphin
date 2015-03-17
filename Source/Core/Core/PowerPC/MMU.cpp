@@ -237,8 +237,10 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 	if (!BitSet32(0xCFC)[segment] && performTranslation)
 	{
 		// First, let's check for FIFO writes, since they are probably the most common
-		// reason we end up in this function:
-		if (flag == FLAG_WRITE && em_address == 0xCC008000)
+		// reason we end up in this function.
+		// Note that we must mask the address to correctly emulate certain games;
+		// Pac-Man World 3 in particular is affected by this.
+		if (flag == FLAG_WRITE && (em_address & 0xFFFFF000) == 0xCC008000)
 		{
 			switch (sizeof(T))
 			{
