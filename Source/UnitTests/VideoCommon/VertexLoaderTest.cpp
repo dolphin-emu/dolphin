@@ -54,7 +54,7 @@ protected:
 		ResetPointers();
 	}
 
-	void CreateAndCheckSizes(size_t input_size, size_t output_size = 3 * sizeof(float))
+	void CreateAndCheckSizes(size_t input_size, size_t output_size)
 	{
 		m_loader.reset(VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr));
 		ASSERT_EQ((int)input_size, m_loader->m_VertexSize);
@@ -150,7 +150,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 		cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
 		g_main_cp_state.array_strides[ARRAY_POSITION] = elements * elem_size;
 	}
-	CreateAndCheckSizes(input_size);
+	CreateAndCheckSizes(input_size, elements * sizeof(float));
 	for (float value : values)
 	{
 		switch (format)
@@ -179,8 +179,6 @@ TEST_P(VertexLoaderParamTest, PositionAll)
 		}
 		ExpectOut(f * scale);
 		ExpectOut(g * scale);
-		if (elements == 2)
-			m_dst.Skip(sizeof(float));
 	}
 }
 
@@ -188,14 +186,14 @@ TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
 {
 	m_vtx_desc.Position = INDEX16;
 	m_vtx_attr.g0.PosFormat = FORMAT_FLOAT;
-	CreateAndCheckSizes(sizeof(u16));
+	CreateAndCheckSizes(sizeof(u16), 2 * sizeof(float));
 	Input<u16>(1); Input<u16>(0);
 	cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
 	g_main_cp_state.array_strides[ARRAY_POSITION] = sizeof(float); // ;)
 	Input(1.f); Input(2.f); Input(3.f);
 	RunVertices(2);
-	ExpectOut(2); ExpectOut(3); m_dst.Skip(sizeof(float));
-	ExpectOut(1); ExpectOut(2); m_dst.Skip(sizeof(float));
+	ExpectOut(2); ExpectOut(3);
+	ExpectOut(1); ExpectOut(2);
 }
 
 class VertexLoaderSpeedTest : public VertexLoaderTest, public ::testing::WithParamInterface<std::tuple<int, int>> {};
@@ -219,7 +217,7 @@ TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 	m_vtx_attr.g0.PosElements = elements;
 	elements += 2;
 	size_t elem_size = 1 << (format / 2);
-	CreateAndCheckSizes(elements * elem_size);
+	CreateAndCheckSizes(elements * elem_size, elements * sizeof(float));
 	for (int i = 0; i < 1000; ++i)
 		RunVertices(100000);
 }

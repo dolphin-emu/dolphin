@@ -332,7 +332,8 @@ void VertexLoaderX64::GenerateVertexLoader()
 	}
 
 	OpArg data = GetVertexAddr(ARRAY_POSITION, m_VtxDesc.Position);
-	ReadVertex(data, m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements + 2, 3,
+	int pos_elements = 2 + m_VtxAttr.PosElements;
+	ReadVertex(data, m_VtxDesc.Position, m_VtxAttr.PosFormat, pos_elements, pos_elements,
 	           m_VtxAttr.ByteDequant, m_VtxAttr.PosFrac, &m_native_vtx_decl.position);
 
 	if (m_VtxDesc.Normal)
@@ -408,7 +409,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 				m_native_vtx_decl.texcoords[i].offset = m_dst_ofs;
 				PXOR(XMM0, R(XMM0));
 				CVTSI2SS(XMM0, R(scratch1));
-				SHUFPS(XMM0, R(XMM0), 0x45);
+				SHUFPS(XMM0, R(XMM0), 0x45); // 000X -> 0X00
 				MOVUPS(MDisp(dst_reg, m_dst_ofs), XMM0);
 				m_dst_ofs += sizeof(float) * 3;
 			}
