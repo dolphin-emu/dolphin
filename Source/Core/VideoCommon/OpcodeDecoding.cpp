@@ -33,7 +33,7 @@
 
 
 bool g_bRecordFifoData = false;
-bool g_bFifoErrorSeen = false;
+static bool s_bFifoErrorSeen = false;
 
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
@@ -125,7 +125,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 
 void OpcodeDecoder_Init()
 {
-	g_bFifoErrorSeen = false;
+	s_bFifoErrorSeen = false;
 }
 
 
@@ -291,10 +291,10 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
 			}
 			else
 			{
-				if (!g_bFifoErrorSeen)
+				if (!s_bFifoErrorSeen)
 					UnknownOpcode(cmd_byte, opcodeStart, is_preprocess);
 				ERROR_LOG(VIDEO, "FIFO: Unknown Opcode(0x%02x @ %p, preprocessing = %s)", cmd_byte, opcodeStart, is_preprocess ? "yes" : "no");
-				g_bFifoErrorSeen = true;
+				s_bFifoErrorSeen = true;
 				totalCycles += 1;
 			}
 			break;
