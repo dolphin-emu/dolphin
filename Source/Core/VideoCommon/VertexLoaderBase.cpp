@@ -190,6 +190,13 @@ private:
 	std::vector<u8> buffer_a, buffer_b;
 };
 
+void VertexLoaderBase::Initialize()
+{
+#ifdef _M_X86_64
+	VertexLoaderX64::Initialize();
+#endif
+}
+
 VertexLoaderBase* VertexLoaderBase::CreateVertexLoader(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
 {
 	VertexLoaderBase* loader;

@@ -71,6 +71,7 @@ template <> struct hash<VertexLoaderUID>
 class VertexLoaderBase
 {
 public:
+	static void Initialize();
 	static VertexLoaderBase* CreateVertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
 	virtual ~VertexLoaderBase() {}
 

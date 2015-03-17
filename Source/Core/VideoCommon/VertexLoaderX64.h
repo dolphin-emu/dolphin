@@ -1,9 +1,10 @@
 #include "Common/x64Emitter.h"
 #include "VideoCommon/VertexLoaderBase.h"
 
-class VertexLoaderX64 : public VertexLoaderBase, public Gen::X64CodeBlock
+class VertexLoaderX64 : public VertexLoaderBase, public Gen::XEmitter
 {
 public:
+	static void Initialize();
 	VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att);
 
 protected:
@@ -12,11 +13,13 @@ protected:
 	int RunVertices(DataReader src, DataReader dst, int count, int primitive) override;
 
 private:
-	u32 m_src_ofs = 0;
-	u32 m_dst_ofs = 0;
-	Gen::FixupBranch m_skip_vertex;
 	Gen::OpArg GetVertexAddr(int array, u64 attribute);
 	int ReadVertex(Gen::OpArg data, u64 attribute, int format, int count_in, int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format);
 	void ReadColor(Gen::OpArg data, u64 attribute, int format);
 	void GenerateVertexLoader();
+
+	const u8* region = nullptr;
+	u32 m_src_ofs = 0;
+	u32 m_dst_ofs = 0;
+	Gen::FixupBranch m_skip_vertex;
 };

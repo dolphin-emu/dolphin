@@ -38,6 +38,7 @@ protected:
 
 	void SetUp() override
 	{
+		VertexLoaderBase::Initialize();
 		memset(&input_memory[0], 0, sizeof(input_memory));
 		memset(&output_memory[0], 0, sizeof(input_memory));
 
