@@ -14,6 +14,7 @@
 #include <wx/checkbox.h>
 #include <wx/clipbrd.h>
 #include <wx/dataobj.h>
+#include <wx/dcclient.h>
 #include <wx/defs.h>
 #include <wx/dialog.h>
 #include <wx/event.h>
@@ -332,6 +333,7 @@ void FifoPlayerDlg::CreateGUIControls()
 
 void FifoPlayerDlg::OnPaint(wxPaintEvent& event)
 {
+	wxPaintDC dc(this);
 	UpdatePlayGui();
 	UpdateRecorderGui();
 	UpdateAnalyzerGui();
@@ -643,10 +645,19 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 
 		wxString newLabel = wxString::Format("%08X:  %02X %04X  ", obj_offset, cmd, stream_size);
 
+		int data_count = 0;
+
 		while (objectdata < objectdata_end)
 		{
-			newLabel += wxString::Format("%02X", *objectdata++);
+			// Trying to put too much data into the newLabel results in it not showing up when appeneded.
+			if (data_count < 128)
+				newLabel += wxString::Format("%02X", *objectdata++);
+			else
+				*objectdata++;
+
+			data_count++;
 		}
+
 		m_objectCmdList->Append(newLabel);
 		m_objectCmdOffsets.push_back(0);
 
@@ -656,7 +667,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 			m_objectCmdList->Append(errorLabel);
 			m_objectCmdOffsets.push_back(0);
 		}
-		
+
 		// Between objectdata_end and next_objdata_start, there are register setting commands
 		if (object_idx + 1 < (int)frame.objectStarts.size())
 		{
