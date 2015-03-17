@@ -87,6 +87,10 @@ void NewVRFrame()
 {
 	g_new_tracking_frame = true;
 	g_new_frame_tracker_for_efb_skip = true;
+	if (!g_vr_had_3D_already)
+	{
+		Matrix44::LoadIdentity(g_game_camera_rotmat);
+	}
 	g_vr_had_3D_already = false;
 	skip_objects_count = 0;
 	ClearDebugProj();

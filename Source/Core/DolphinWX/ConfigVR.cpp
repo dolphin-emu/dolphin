@@ -398,6 +398,16 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
+		// Camera read pitch
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fReadPitch,
+				wxGetTranslation(temp_desc), -180, 360, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera Read Pitch:"));
+			label->SetToolTip(wxGetTranslation(readpitch_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+
 		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Read Camera Angles"), wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));

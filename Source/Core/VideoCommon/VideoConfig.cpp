@@ -424,6 +424,7 @@ void VideoConfig::GameIniLoad()
 	fScreenRight = DEFAULT_VR_SCREEN_RIGHT;
 	fScreenUp = DEFAULT_VR_SCREEN_UP;
 	fScreenPitch = DEFAULT_VR_SCREEN_PITCH;
+	fReadPitch = 0;
 	bDisable3D = false;
 	bHudFullscreen = false;
 	bHudOnTop = false;
@@ -455,6 +456,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "MetroidPrime", iMetroidPrime);
 	CHECK_SETTING("VR", "TelescopeEye", iTelescopeEye);
 	CHECK_SETTING("VR", "TelescopeFOV", fTelescopeMaxFOV);
+	CHECK_SETTING("VR", "ReadPitch", fReadPitch);
 
 	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick", fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
 
@@ -503,7 +505,8 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, DEFAULT_VR_SCREEN_UP);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
-	
+	SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
+
 	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 	g_SavedConfig = *this;
 }
@@ -540,6 +543,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "ScreenUp", fScreenUp, DEFAULT_VR_SCREEN_UP);
 	LOAD_DEFAULT("VR", "ScreenRight", fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	LOAD_DEFAULT("VR", "ScreenPitch", fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
+	LOAD_DEFAULT("VR", "ReadPitch", fReadPitch, 0.0f);
 }
 
 void VideoConfig::VerifyValidity()
@@ -717,6 +721,7 @@ bool VideoConfig::VRSettingsModified()
 		|| fScreenUp != g_SavedConfig.fScreenUp
 		|| fScreenPitch != g_SavedConfig.fScreenPitch
 		|| fTelescopeMaxFOV != g_SavedConfig.fTelescopeMaxFOV
+		|| fReadPitch != g_SavedConfig.fReadPitch
 		|| bDisable3D != g_SavedConfig.bDisable3D
 		|| bHudFullscreen != g_SavedConfig.bHudFullscreen
 		|| bHudOnTop != g_SavedConfig.bHudOnTop

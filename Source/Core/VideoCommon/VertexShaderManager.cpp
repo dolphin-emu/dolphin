@@ -698,6 +698,7 @@ void VertexShaderManager::Init()
 	g_old_viewport_type = VIEW_FULLSCREEN;
 	g_splitscreen_type = SS_FULLSCREEN;
 	g_old_splitscreen_type = SS_FULLSCREEN;
+	Matrix44::LoadIdentity(g_game_camera_rotmat);
 
 	dirty = true;
 }
@@ -1786,6 +1787,14 @@ void VertexShaderManager::CheckOrientationConstants()
 		for (int r = 0; r < 3; ++r)
 			for (int c = 0; c < 3; ++c)
 				rot.data[r * 3 + c] /= scale;
+		// add pitch to rotation matrix
+		if (g_ActiveConfig.fReadPitch != 0)
+		{
+			Matrix33 rp, result;
+			Matrix33::RotateX(rp, DEGREES_TO_RADIANS(g_ActiveConfig.fReadPitch));
+			Matrix33::Multiply(rot, rp, result);
+			memcpy(rot.data, result.data, 3*3*sizeof(float));
+		}
 		// extract yaw, pitch, and roll from rotation matrix
 		float yaw, pitch, roll;
 		Matrix33::GetPieYawPitchRollR(rot, yaw, pitch, roll);
