@@ -488,7 +488,7 @@ void CConfigMain::InitializeGUITooltips()
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
 	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all."));
 	OnScreenDisplayMessages->SetToolTip(_("Display messages over the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
-	PauseOnFocusLost->SetToolTip(_("Pauses the emulator when focus is taken away from the emulation screen."));
+	PauseOnFocusLost->SetToolTip(_("Pauses the emulator when focus is taken away from the emulation window."));
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 

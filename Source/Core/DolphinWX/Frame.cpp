@@ -1188,8 +1188,6 @@ void CFrame::OnFocusChange(wxFocusEvent& event)
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 					m_RenderParent->SetCursor(wxCURSOR_BLANK);
 			}
-			UpdateGUI();
-
 		}
 		else
 		{
@@ -1200,8 +1198,8 @@ void CFrame::OnFocusChange(wxFocusEvent& event)
 					m_RenderParent->SetCursor(wxNullCursor);
 				Core::UpdateTitle();
 			}
-			UpdateGUI();
 		}
+		UpdateGUI();
 	}
 }
 
