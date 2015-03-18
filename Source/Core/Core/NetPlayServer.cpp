@@ -20,7 +20,7 @@
 #include <arpa/inet.h>
 #endif
 
-int g_netplay_initial_gctime = 1272737767;
+u64 g_netplay_initial_gctime = 1272737767;
 
 NetPlayServer::~NetPlayServer()
 {
@@ -648,7 +648,7 @@ bool NetPlayServer::StartGame()
 	// no change, just update with clients
 	AdjustPadBufferSize(m_target_buffer_size);
 
-	g_netplay_initial_gctime = CEXIIPL::GetGCTime();
+	g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
 	// tell clients to start game
 	sf::Packet spac;
@@ -663,7 +663,8 @@ bool NetPlayServer::StartGame()
 	spac << m_settings.m_OCFactor;
 	spac << m_settings.m_EXIDevice[0];
 	spac << m_settings.m_EXIDevice[1];
-	spac << g_netplay_initial_gctime;
+	spac << (u32)g_netplay_initial_gctime;
+	spac << (u32)g_netplay_initial_gctime << 32;
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);

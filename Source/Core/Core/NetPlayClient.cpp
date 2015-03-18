@@ -382,7 +382,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> tmp;
 			g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices)tmp;
 
-			packet >> g_netplay_initial_gctime;
+			u32 x, y;
+			packet >> x;
+			packet >> y;
+			g_netplay_initial_gctime = x | ((u64)y >> 32);
 		}
 
 		m_dialog->OnMsgStartGame();
@@ -1061,7 +1064,7 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 
 // called from ---CPU--- thread
 // so all players' games get the same time
-u32 CEXIIPL::NetPlay_GetGCTime()
+u64 CEXIIPL::NetPlay_GetGCTime()
 {
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
