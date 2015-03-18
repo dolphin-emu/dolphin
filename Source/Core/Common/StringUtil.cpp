@@ -29,7 +29,7 @@
 #if !defined(_WIN32) && !defined(ANDROID)
 static locale_t GetCLocale()
 {
-	static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
+	static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
 	return c_locale;
 }
 #endif

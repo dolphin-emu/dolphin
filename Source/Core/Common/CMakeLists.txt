@@ -1,6 +1,7 @@
 set(SRCS BreakPoints.cpp
          CDUtils.cpp
          ColorUtil.cpp
+         ENetUtil.cpp
          FileSearch.cpp
          FileUtil.cpp
          GekkoDisassembler.cpp
@@ -31,7 +32,7 @@ set(SRCS BreakPoints.cpp
          x64Emitter.cpp
          Crypto/bn.cpp
          Crypto/ec.cpp
-         Logging/ConsoleListener.cpp
+         Logging/ConsoleListenerNix.cpp
          Logging/LogManager.cpp)
 
 set(LIBS enet)
@@ -57,9 +58,6 @@ else()
 		         GenericCPUDetect.cpp)
 	endif()
 endif()
-if(WIN32)
-    set(SRCS ${SRCS} ExtendedTrace.cpp)
-endif(WIN32)
 
 set(LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
 if(NOT APPLE AND NOT ANDROID)

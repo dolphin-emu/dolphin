@@ -20,7 +20,7 @@ public:
 	void DoState(PointerWrap &p) override;
 
 	static u32 GetGCTime();
-	static u32 NetPlay_GetGCTime();
+	static u64 NetPlay_GetGCTime();
 
 	static void Descrambler(u8* data, u32 size);
 

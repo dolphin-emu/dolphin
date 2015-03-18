@@ -103,7 +103,10 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 		if (net > 0 && netEvent.type == ENET_EVENT_TYPE_CONNECT)
 		{
 			if (Connect())
+			{
+				m_client->intercept = ENetUtil::InterceptCallback;
 				m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
+			}
 		}
 		else
 		{
@@ -382,7 +385,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> tmp;
 			g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices)tmp;
 
-			packet >> g_netplay_initial_gctime;
+			u32 x, y;
+			packet >> x;
+			packet >> y;
+			g_netplay_initial_gctime = x | ((u64)y >> 32);
 		}
 
 		m_dialog->OnMsgStartGame();
@@ -413,7 +419,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		spac << (MessageId)NP_MSG_PONG;
 		spac << ping_key;
 
-		std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 		Send(spac);
 	}
 	break;
@@ -477,6 +482,15 @@ void NetPlayClient::Disconnect()
 	m_server = nullptr;
 }
 
+void NetPlayClient::SendAsync(sf::Packet* packet)
+{
+	{
+		std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
+		m_async_queue.Push(std::unique_ptr<sf::Packet>(packet));
+	}
+	ENetUtil::WakeupThread(m_client);
+}
+
 // called from ---NETPLAY--- thread
 void NetPlayClient::ThreadFunc()
 {
@@ -484,11 +498,13 @@ void NetPlayClient::ThreadFunc()
 	{
 		ENetEvent netEvent;
 		int net;
+		if (m_traversal_client)
+			m_traversal_client->HandleResends();
+		net = enet_host_service(m_client, &netEvent, 250);
+		while (!m_async_queue.Empty())
 		{
-			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-			if (m_traversal_client)
-				m_traversal_client->HandleResends();
-			net = enet_host_service(m_client, &netEvent, 4);
+			Send(*(m_async_queue.Front().get()));
+			m_async_queue.Pop();
 		}
 		if (net > 0)
 		{
@@ -514,7 +530,6 @@ void NetPlayClient::ThreadFunc()
 				break;
 			}
 		}
-
 	}
 
 	Disconnect();
@@ -574,57 +589,47 @@ void NetPlayClient::GetPlayers(std::vector<const Player *> &player_list)
 // called from ---GUI--- thread
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-	spac << msg;
-
-	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	Send(spac);
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
+	*spac << msg;
+	SendAsync(spac);
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus& pad)
 {
-	// send to server
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PAD_DATA;
-	spac << in_game_pad;
-	spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_PAD_DATA;
+	*spac << in_game_pad;
+	*spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
-	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	Send(spac);
+	SendAsync(spac);
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw)
 {
-	// send to server
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_WIIMOTE_DATA;
-	spac << in_game_pad;
-	spac << (u8)nw.size();
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_WIIMOTE_DATA;
+	*spac << in_game_pad;
+	*spac << (u8)nw.size();
 	for (auto it : nw)
 	{
-		spac << it;
+		*spac << it;
 	}
-
-	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	Send(spac);
+	SendAsync(spac);
 }
 
 // called from ---GUI--- thread
 bool NetPlayClient::StartGame(const std::string &path)
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-
 	// tell server i started the game
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_START_GAME;
-	spac << m_current_game;
-	spac << (char *)&g_NetPlaySettings;
-
-	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	Send(spac);
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_START_GAME;
+	*spac << m_current_game;
+	*spac << (char *)&g_NetPlaySettings;
+	SendAsync(spac);
 
 	if (m_is_running)
 	{
@@ -951,6 +956,7 @@ bool NetPlayClient::StopGame()
 	return true;
 }
 
+// called from ---GUI--- thread
 void NetPlayClient::Stop()
 {
 	if (m_is_running == false)
@@ -973,9 +979,9 @@ void NetPlayClient::Stop()
 	// tell the server to stop if we have a pad mapped in game.
 	if (isPadMapped)
 	{
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_STOP_GAME;
-		Send(spac);
+		sf::Packet* spac = new sf::Packet;
+		*spac << (MessageId)NP_MSG_STOP_GAME;
+		SendAsync(spac);
 	}
 }
 
@@ -1061,7 +1067,7 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 
 // called from ---CPU--- thread
 // so all players' games get the same time
-u32 CEXIIPL::NetPlay_GetGCTime()
+u64 CEXIIPL::NetPlay_GetGCTime()
 {
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 

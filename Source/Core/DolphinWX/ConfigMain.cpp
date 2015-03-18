@@ -234,7 +234,7 @@ void CConfigMain::UpdateGUI()
 		EnableCheats->Disable();
 
 		CPUEngine->Disable();
-		_NTSCJ->Disable();
+		ForceNTSCJ->Disable();
 
 		// Disable stuff on AudioPage
 		DSPEngine->Disable();
@@ -350,7 +350,7 @@ void CConfigMain::InitializeGUIValues()
 	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
 		if (CPUCores[a].CPUid == startup_params.iCPUCore)
 			CPUEngine->SetSelection(a);
-	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
+	ForceNTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
 	// Display - Interface
@@ -483,7 +483,7 @@ void CConfigMain::InitializeGUITooltips()
 	Framelimit->SetToolTip(_("Limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
 
 	// General - Advanced
-	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
+	ForceNTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
@@ -560,7 +560,7 @@ void CConfigMain::CreateGUIControls()
 	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit);
 	// Core Settings - Advanced
 	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
-	_NTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Force Console as NTSC-J"));
+	ForceNTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Force Console as NTSC-J"));
 
 	// Populate the General settings
 	wxBoxSizer* sFramelimit = new wxBoxSizer(wxHORIZONTAL);
@@ -576,7 +576,7 @@ void CConfigMain::CreateGUIControls()
 
 	wxStaticBoxSizer* const sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Advanced Settings"));
 	sbAdvanced->Add(CPUEngine, 0, wxALL, 5);
-	sbAdvanced->Add(_NTSCJ, 0, wxALL, 5);
+	sbAdvanced->Add(ForceNTSCJ, 0, wxALL, 5);
 
 	wxBoxSizer* const sGeneralPage = new wxBoxSizer(wxVERTICAL);
 	sGeneralPage->Add(sbBasic, 0, wxEXPAND | wxALL, 5);
@@ -924,7 +924,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		}
 		break;
 	case ID_NTSCJ:
-		startup_params.bForceNTSCJ = _NTSCJ->IsChecked();
+		startup_params.bForceNTSCJ = ForceNTSCJ->IsChecked();
 		break;
 	case ID_ENABLEOVERCLOCK:
 		SConfig::GetInstance().m_OCEnable = EnableOC->IsChecked();
@@ -1335,7 +1335,8 @@ void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	std::string NANDPath =
 		SConfig::GetInstance().m_NANDPath =
-			File::GetUserPath(D_WIIROOT_IDX, WxStrToStr(NANDRoot->GetPath()));
+		WxStrToStr(NANDRoot->GetPath());
+	File::SetUserPath(D_WIIROOT_IDX, NANDPath);
 	NANDRoot->SetPath(StrToWxStr(NANDPath));
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
 	DiscIO::cUIDsys::AccessInstance().UpdateLocation();

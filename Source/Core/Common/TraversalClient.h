@@ -4,6 +4,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <random>
 #include <enet/enet.h>
 #include "Common/Common.h"
 #include "Common/Thread.h"

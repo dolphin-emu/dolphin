@@ -32,7 +32,7 @@ typedef std::vector<u8> NetWiimote;
 
 #define NETPLAY_VERSION  "Dolphin NetPlay 2014-01-08"
 
-extern int g_netplay_initial_gctime;
+extern u64 g_netplay_initial_gctime;
 
 // messages
 enum

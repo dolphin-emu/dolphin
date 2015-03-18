@@ -1034,6 +1034,13 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SO_GETHOSTBYNAME:
 		{
+			if (BufferOutSize != 0x460)
+			{
+				ERROR_LOG(WII_IPC_NET, "Bad buffer size for IOCTL_SO_GETHOSTBYNAME");
+				ReturnValue = -1;
+				break;
+			}
+
 			std::string hostname = Memory::GetString(BufferIn);
 			hostent* remoteHost = gethostbyname(hostname.c_str());
 
@@ -1057,50 +1064,56 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 				Memory::Memset(BufferOut, 0, BufferOutSize);
 
-				// TODO: This is really hacky; is it actually what IOS does?
-				u32 wii_addr = 0x80000000 | (BufferOut + 4 * 3 + 2 * 2);
-
+				// Host name; located immediately after struct
+				static const u32 GETHOSTBYNAME_STRUCT_SIZE = 0x10;
+				static const u32 GETHOSTBYNAME_IP_LIST_OFFSET = 0x110;
+				// Limit host name length to avoid buffer overflow.
 				u32 name_length = (u32)strlen(remoteHost->h_name) + 1;
-				Memory::CopyToEmu(wii_addr, remoteHost->h_name, name_length);
-				Memory::Write_U32(wii_addr, BufferOut);
-				wii_addr += (name_length + 4) & ~3;
+				if (name_length > (GETHOSTBYNAME_IP_LIST_OFFSET - GETHOSTBYNAME_STRUCT_SIZE))
+				{
+					ERROR_LOG(WII_IPC_NET, "Hostname too long in IOCTL_SO_GETHOSTBYNAME");
+					ReturnValue = -1;
+					break;
+				}
+				Memory::CopyToEmu(BufferOut + GETHOSTBYNAME_STRUCT_SIZE, remoteHost->h_name, name_length);
+				Memory::Write_U32(BufferOut + GETHOSTBYNAME_STRUCT_SIZE, BufferOut);
 
-				// aliases - empty
-				Memory::Write_U32(wii_addr, BufferOut + 4);
-				Memory::Write_U32(wii_addr + sizeof(u32), wii_addr);
-				wii_addr += sizeof(u32);
-				Memory::Write_U32(0, wii_addr);
-				wii_addr += sizeof(u32);
+				// IP address list; located at offset 0x110.
+				u32 num_ip_addr = 0;
+				while (remoteHost->h_addr_list[num_ip_addr])
+					num_ip_addr++;
+				// Limit number of IP addresses to avoid buffer overflow.
+				// (0x460 - 0x340) / sizeof(pointer) == 72
+				static const u32 GETHOSTBYNAME_MAX_ADDRESSES = 71;
+				num_ip_addr = std::min(num_ip_addr, GETHOSTBYNAME_MAX_ADDRESSES);
+				for (u32 i = 0; i < num_ip_addr; ++i)
+				{
+					u32 addr = BufferOut + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4;
+					Memory::Write_U32_Swap(*(u32*)(remoteHost->h_addr_list[i]), addr);
+				}
 
-				// hardcode to ipv4
-				_dbg_assert_msg_(WII_IPC_NET,
+				// List of pointers to IP addresses; located at offset 0x340.
+				// This must be exact: PPC code to convert the struct hardcodes
+				// this offset.
+				static const u32 GETHOSTBYNAME_IP_PTR_LIST_OFFSET = 0x340;
+				Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET, BufferOut + 12);
+				for (u32 i = 0; i < num_ip_addr; ++i)
+				{
+					u32 addr = BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + i * 4;
+					Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_LIST_OFFSET + i * 4, addr);
+				}
+				Memory::Write_U32(0, BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + num_ip_addr * 4);
+
+				// Aliases - empty. (Hardware doesn't return anything.)
+				Memory::Write_U32(BufferOut + GETHOSTBYNAME_IP_PTR_LIST_OFFSET + num_ip_addr * 4, BufferOut + 4);
+
+				// Returned struct must be ipv4.
+				_assert_msg_(WII_IPC_NET,
 					remoteHost->h_addrtype == AF_INET && remoteHost->h_length == sizeof(u32),
 					"returned host info is not IPv4");
 				Memory::Write_U16(AF_INET, BufferOut + 8);
 				Memory::Write_U16(sizeof(u32), BufferOut + 10);
 
-				// addrlist - probably only really need to return 1 anyways...
-				Memory::Write_U32(wii_addr, BufferOut + 12);
-				u32 num_addr = 0;
-				while (remoteHost->h_addr_list[num_addr])
-					num_addr++;
-				for (u32 i = 0; i < num_addr; ++i)
-				{
-					Memory::Write_U32(wii_addr + sizeof(u32) * (num_addr + 1), wii_addr);
-					wii_addr += sizeof(u32);
-				}
-				// null-terminated list
-				Memory::Write_U32(0, wii_addr);
-				wii_addr += sizeof(u32);
-				// The actual IPs
-				for (int i = 0; remoteHost->h_addr_list[i]; ++i)
-				{
-					Memory::Write_U32_Swap(*(u32*)(remoteHost->h_addr_list[i]), wii_addr);
-					wii_addr += sizeof(u32);
-				}
-
-				//ERROR_LOG(WII_IPC_NET, "\n%s",
-				// ArrayToString(Memory::GetPointer(BufferOut), BufferOutSize, 16).c_str());
 				ReturnValue = 0;
 			}
 			else

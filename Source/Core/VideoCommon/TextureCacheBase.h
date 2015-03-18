@@ -104,7 +104,7 @@ public:
 
 	// Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
 	// frameCount is the current frame number.
-	static void Cleanup(int frameCount);
+	static void Cleanup(int _frameCount);
 
 	static void Invalidate();
 	static void MakeRangeDynamic(u32 start_address, u32 size);

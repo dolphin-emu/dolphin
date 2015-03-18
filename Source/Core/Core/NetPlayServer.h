@@ -9,6 +9,7 @@
 #include <sstream>
 #include <unordered_set>
 #include <SFML/Network/Packet.hpp>
+#include "Common/ENetUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
@@ -20,6 +21,7 @@ class NetPlayServer : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
+	void SendAsyncToClients(sf::Packet* packet);
 
 	NetPlayServer(const u16 port, bool traversal, std::string centralServer, u16 centralPort);
 	~NetPlayServer();
@@ -101,11 +103,13 @@ private:
 	{
 		std::recursive_mutex game;
 		// lock order
-		std::recursive_mutex players, send;
+		std::recursive_mutex players;
+		std::recursive_mutex async_queue_write;
 	} m_crit;
 
 	std::string m_selected_game;
 	std::thread m_thread;
+	Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
 
 	ENetHost*        m_server;
 	TraversalClient* m_traversal_client;
