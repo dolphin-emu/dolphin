@@ -431,7 +431,7 @@ int main()
 		// note: switch to recvmmsg (yes, mmsg) if this becomes
 		// expensive
 		rv = recvfrom(sock, &packet, sizeof(packet), 0, (sockaddr*) &raddr, &addrLen);
-		if (gettimeofday(&tv, NULL) < 0)
+		if (gettimeofday(&tv, nullptr) < 0)
 		{
 			perror("gettimeofday");
 			exit(1);

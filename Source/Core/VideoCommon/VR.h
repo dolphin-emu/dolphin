@@ -17,21 +17,30 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
+#if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
+#else
+#define OCULUSSDK044ORABOVE
+#define OVR_DLL_IMPORT
+#endif
 #include "OVR_CAPI.h"
+#if OVR_MAJOR_VERSION >= 5
+#include "Extras/OVR_Math.h"
+#else
 #include "Kernel/OVR_Math.h"
 
 // Detect which version of the Oculus SDK we are using
 #if OVR_MINOR_VERSION >= 4
 #if OVR_BUILD_VERSION >= 4
-#define OCULUSSDK044
+#define OCULUSSDK044ORABOVE
 #elif OVR_BUILD_VERSION >= 3
 #define OCULUSSDK043
 #else
 #define OCULUSSDK042
 #endif
 #else
-Error, Oculus SDK 0.3.x is no longer supported   
+Error, Oculus SDK 0.3.x is no longer supported
+#endif
 #endif
 
 #define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING

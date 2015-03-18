@@ -65,7 +65,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 		D3D::context->CopyResource(pNewTexture, pSurface);
 
 		D3D11_MAPPED_SUBRESOURCE map;
-		HRESULT hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
+		hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 		if (SUCCEEDED(hr))
 		{
 			saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
@@ -177,13 +177,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		u8* dst = Memory::GetPointer(dstAddr);
 		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 
-		u64 hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
 		size_in_bytes = (u32)encoded_size;
 
 		TextureCache::MakeRangeDynamic(dstAddr, (u32)encoded_size);
 
-		this->hash = hash;
+		this->hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	}
 }
 

@@ -438,7 +438,7 @@ CFrame::CFrame(wxFrame* parent,
 	m_GameListCtrl = new CGameListCtrl(m_Panel, wxID_ANY,
 	        wxDefaultPosition, wxDefaultSize,
 	        wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
-	m_GameListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CFrame::OnGameListCtrl_ItemActivated, this);
+	m_GameListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CFrame::OnGameListCtrlItemActivated, this);
 
 	wxBoxSizer *sizerPanel = new wxBoxSizer(wxHORIZONTAL);
 	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
@@ -874,7 +874,7 @@ bool CFrame::UIHasFocus()
 	return (focusWindow != nullptr);
 }
 
-void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED(event))
+void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 {
 	// Show all platforms and regions if...
 	// 1. All platforms are set to hide

@@ -7,9 +7,10 @@ static void GetRandomishBytes(u8* buf, size_t size)
 {
 	// We don't need high quality random numbers (which might not be available),
 	// just non-repeating numbers!
-	srand(enet_time_get());
+	static std::mt19937 prng(enet_time_get());
+	static std::uniform_int_distribution<unsigned int> u8_distribution(0, 255);
 	for (size_t i = 0; i < size; i++)
-		buf[i] = rand() & 0xff;
+		buf[i] = u8_distribution(prng);
 }
 
 TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port)
@@ -301,7 +302,8 @@ void TraversalClient::Reset()
 int ENET_CALLBACK TraversalClient::InterceptCallback(ENetHost* host, ENetEvent* event)
 {
 	auto traversalClient = g_TraversalClient.get();
-	if (traversalClient->TestPacket(host->receivedData, host->receivedDataLength, &host->receivedAddress))
+	if (traversalClient->TestPacket(host->receivedData, host->receivedDataLength, &host->receivedAddress)
+			|| (host->receivedDataLength == 1 && host->receivedData[0] == 0))
 	{
 		event->type = (ENetEventType)42;
 		return 1;

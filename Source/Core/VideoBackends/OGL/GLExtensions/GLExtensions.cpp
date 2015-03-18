@@ -1912,7 +1912,7 @@ namespace GLExtensions
 			*func = dlsym(RTLD_NEXT, name.c_str());
 #endif
 			if (*func == nullptr && _isES)
-				*func = (void*)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
+				*func = (void*)(uintptr_t)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
 			if (*func == nullptr)
 				ERROR_LOG(VIDEO, "Couldn't load function %s", name.c_str());
 		}

@@ -40,7 +40,6 @@ static GekkoOPTemplate primarytable[] =
 	{16, &JitIL::bcx},                   //"bcx", OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{18, &JitIL::bx},                    //"bx",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
 
-	{1,  &JitIL::HLEFunction},           //"HLEFunction", OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{2,  &JitIL::FallBackToInterpreter}, //"DynaBlock",   OPTYPE_SYSTEM, 0}},
 	{3,  &JitIL::FallBackToInterpreter}, //"twi",         OPTYPE_SYSTEM, 0}},
 	{17, &JitIL::sc},                    //"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
@@ -99,15 +98,7 @@ static GekkoOPTemplate primarytable[] =
 	{60, &JitIL::psq_st},                //"psq_st",  OPTYPE_PS, FL_IN_A}},
 	{61, &JitIL::psq_st},                //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
 
-	//missing: 0, 5, 6, 9, 22, 30, 62, 58
-	{0,  &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
-	{5,  &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
-	{6,  &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
-	{9,  &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
-	{22, &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
-	{30, &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
-	{62, &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
-	{58, &JitIL::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
+	//missing: 0, 1, 2?, 5, 6, 9, 22, 30, 62, 58
 };
 
 static GekkoOPTemplate table4[] =
@@ -401,6 +392,11 @@ void InitTables()
 		return;
 
 	//clear
+	for (auto& tpl : dynaOpTable)
+	{
+		tpl = &JitIL::FallBackToInterpreter;
+	}
+
 	for (auto& tpl : dynaOpTable59)
 	{
 		tpl = &JitIL::FallBackToInterpreter;

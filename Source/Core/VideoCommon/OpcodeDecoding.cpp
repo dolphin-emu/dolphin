@@ -36,6 +36,7 @@
 
 
 bool g_bRecordFifoData = false;
+static bool s_bFifoErrorSeen = false;
 
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
@@ -82,17 +83,18 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 	{
 		Core::KillDolphinAndRestart();
 	}
-	else
+	else if (!s_bFifoErrorSeen)
 	{
 		// TODO(Omega): Maybe dump FIFO to file on this error
 		PanicAlert(
-			"GFX FIFO: Unknown Opcode (0x%x @ %p, preprocessing=%s).\n"
+			"GFX FIFO: Unknown Opcode (0x%02x @ %p, preprocessing=%s).\n"
 			"This means one of the following:\n"
 			"* The opcode replay buffer is enabled, which is currently buggy\n"
 			"* The emulated GPU got desynced, disabling dual core can help\n"
 			"* Command stream corrupted by some spurious memory bug\n"
 			"* This really is an unknown opcode (unlikely)\n"
 			"* Some other sort of bug\n\n"
+			"Further errors will be sent to the Video Backend log and\n"
 			"Dolphin will now likely crash or hang. \n"
 			"(timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
 			cmd_byte,
@@ -143,6 +145,7 @@ void OpcodeDecoder_Init()
 		g_opcode_replay_enabled = ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION);
 		g_opcodereplay_frame = !g_opcode_replay_enabled; // Don't log frames if not enabled
 	}
+	s_bFifoErrorSeen = false;
 }
 
 
@@ -221,7 +224,12 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 			totalCycles += 6; // Hm, this means that we scan over nop streams pretty slowly...
 			break;
 
-		case GX_LOAD_CP_REG: //0x08
+		case GX_UNKNOWN_RESET:
+			totalCycles += 6; // Datel software uses this command
+			DEBUG_LOG(VIDEO, "GX Reset?: %08x", cmd_byte);
+			break;
+
+		case GX_LOAD_CP_REG:
 			{
 				if (src.size() < 1 + 4)
 					goto end;
@@ -308,7 +316,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 			DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
 			break;
 
-		case GX_LOAD_BP_REG: //0x61
+		case GX_LOAD_BP_REG:
 			// In skipped_frame case: We have to let BP writes through because they set
 			// tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
 			{
@@ -358,6 +366,8 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 				{
 					UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcodereplay_frame, in_display_list, recursive_call);
 				}
+				ERROR_LOG(VIDEO, "FIFO: Unknown Opcode(0x%02x @ %p, preprocessing = %s)", cmd_byte, opcodeStart, is_preprocess ? "yes" : "no");
+				s_bFifoErrorSeen = true;
 				totalCycles += 1;
 			}
 			break;
