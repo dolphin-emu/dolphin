@@ -24,7 +24,7 @@ void VR_ConfigureHMD()
 #ifdef HAVE_OCULUSSDK
 	ovrD3D11Config cfg;
 	cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
-#ifdef OCULUSSDK044
+#ifdef OCULUSSDK044ORABOVE
 	cfg.D3D11.Header.BackBufferSize.w = hmdDesc.Resolution.w;
 	cfg.D3D11.Header.BackBufferSize.h = hmdDesc.Resolution.h;
 #else
@@ -45,8 +45,10 @@ void VR_ConfigureHMD()
 		D3D::LoadDXGI();
 	}
 	int caps = 0;
+#if OVR_MAJOR_VERSION <= 4
 	if (g_Config.bChromatic)
 		caps |= ovrDistortionCap_Chromatic;
+#endif
 	if (g_Config.bTimewarp)
 		caps |= ovrDistortionCap_TimeWarp;
 	if (g_Config.bVignette)

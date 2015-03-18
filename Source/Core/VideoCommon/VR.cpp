@@ -7,9 +7,18 @@
 #include "VideoCommon/VR920.h"
 #endif
 #ifdef HAVE_OCULUSSDK
+#include "OVR_Version.h"
+#if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
+#else
+#define OVR_DLL_IMPORT
+#endif
 #include "OVR_CAPI.h"
+#if OVR_MAJOR_VERSION >= 5
+#include "Extras/OVR_Math.h"
+#else
 #include "Kernel/OVR_Math.h"
+#endif
 #endif
 
 #include "Common/Common.h"
