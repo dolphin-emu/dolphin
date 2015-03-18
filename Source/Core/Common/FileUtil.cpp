@@ -822,6 +822,9 @@ const std::string& GetUserPath(unsigned int dir_index)
 // Rebuilds internal directory structure to compensate for the new directory
 void SetUserPath(unsigned int dir_index, const std::string& path)
 {
+	if (path.empty())
+		return;
+
 	s_user_paths[dir_index] = path;
 	RebuildUserDirectories(dir_index);
 }
