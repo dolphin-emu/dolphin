@@ -97,7 +97,7 @@ static GekkoOPTemplate primarytable[] =
 	{60, &JitIL::psq_st},                //"psq_st",  OPTYPE_PS, FL_IN_A}},
 	{61, &JitIL::psq_st},                //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
 
-	//missing: 0, 1, 2?, 5, 6, 9, 22, 30, 62, 58
+	//missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
 };
 
 static GekkoOPTemplate table4[] =
