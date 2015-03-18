@@ -14,7 +14,6 @@ class wxWindow;
 class CConfigMain : public wxDialog
 {
 public:
-
 	CConfigMain(wxWindow* parent,
 		wxWindowID id = wxID_ANY,
 		const wxString& title = _("Dolphin Configuration"),
@@ -45,7 +44,4 @@ private:
 	wxNotebook* Notebook;
 
 	bool bRefreshList;
-
-private:
-	DECLARE_EVENT_TABLE();
 };

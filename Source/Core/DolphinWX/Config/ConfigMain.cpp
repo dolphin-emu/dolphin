@@ -19,19 +19,15 @@
 #include "DolphinWX/Config/PathConfigPane.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 
-BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
-
-EVT_CLOSE(CConfigMain::OnClose)
-EVT_BUTTON(wxID_OK, CConfigMain::OnOk)
-
-END_EVENT_TABLE()
-
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 		const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	// Control refreshing of the ISOs list
 	bRefreshList = false;
+
+	Bind(wxEVT_CLOSE_WINDOW, &CConfigMain::OnClose, this);
+	Bind(wxEVT_BUTTON, &CConfigMain::OnOk, this, wxID_OK);
 
 	CreateGUIControls();
 }
