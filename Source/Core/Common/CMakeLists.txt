@@ -1,6 +1,7 @@
 set(SRCS BreakPoints.cpp
          CDUtils.cpp
          ColorUtil.cpp
+         ENetUtil.cpp
          FileSearch.cpp
          FileUtil.cpp
          GekkoDisassembler.cpp

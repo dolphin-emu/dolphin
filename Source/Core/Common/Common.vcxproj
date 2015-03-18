@@ -51,6 +51,7 @@
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="FileSearch.h" />
@@ -94,6 +95,7 @@
     <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
+    <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
