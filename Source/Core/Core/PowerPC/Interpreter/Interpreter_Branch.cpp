@@ -93,16 +93,6 @@ void Interpreter::HLEFunction(UGeckoInstruction _inst)
 	HLE::Execute(PC, _inst.hex);
 }
 
-void Interpreter::CompiledBlock(UGeckoInstruction _inst)
-{
-	if (ARBruteForcer::ch_bruteforce)
-	{
-		Core::KillDolphinAndRestart();
-	}
-
-	_assert_msg_(POWERPC, 0, "CompiledBlock - shouldn't be here!");
-}
-
 void Interpreter::rfi(UGeckoInstruction _inst)
 {
 	// Restore saved bits from SRR1 to MSR.

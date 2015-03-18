@@ -40,7 +40,6 @@ static GekkoOPTemplate primarytable[] =
 	{16, &JitIL::bcx},                   //"bcx", OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{18, &JitIL::bx},                    //"bx",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
 
-	{2,  &JitIL::FallBackToInterpreter}, //"DynaBlock",   OPTYPE_SYSTEM, 0}},
 	{3,  &JitIL::FallBackToInterpreter}, //"twi",         OPTYPE_SYSTEM, 0}},
 	{17, &JitIL::sc},                    //"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 

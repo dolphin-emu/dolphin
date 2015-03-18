@@ -44,7 +44,6 @@ public:
 	static void bcctrx(UGeckoInstruction _inst);
 	static void bclrx(UGeckoInstruction _inst);
 	static void HLEFunction(UGeckoInstruction _inst);
-	static void CompiledBlock(UGeckoInstruction _inst);
 
 	// Syscall Instruction
 	static void sc(UGeckoInstruction _inst);
