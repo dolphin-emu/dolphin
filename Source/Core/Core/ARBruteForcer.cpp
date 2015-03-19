@@ -87,10 +87,10 @@ void ARBruteForceDriver()
 		ch_cycles_without_snapshot = 0;
 		if (ch_current_position >= ch_map.size())
 		{
-			SuccessAlert("Finished brute forcing! To start again, delete position.txt in the screenshots folder.");
 			ch_bruteforce = 0;
-
 			PostProcessCSVFile();
+
+			SuccessAlert("Finished brute forcing! To start again, delete position.txt in the screenshots folder.");
 		}
 		else
 		{
