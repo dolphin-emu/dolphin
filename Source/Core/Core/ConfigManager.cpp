@@ -242,6 +242,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 	interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
 	interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
 	interface->Set("ThemeName40", m_LocalCoreStartupParameter.theme_name);
+	interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
 }
 
 void SConfig::SaveHotkeySettings(IniFile& ini)
@@ -464,6 +465,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 	interface->Get("ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
 	interface->Get("ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
 	interface->Get("ThemeName40",             &m_LocalCoreStartupParameter.theme_name,        "Clean");
+	interface->Get("PauseOnFocusLost",        &m_PauseOnFocusLost,                            false);
 }
 
 void SConfig::LoadHotkeySettings(IniFile& ini)

@@ -334,6 +334,8 @@ private:
 
 	void OnMouse(wxMouseEvent& event); // Mouse
 
+	void OnFocusChange(wxFocusEvent& event);
+
 	void OnHostMessage(wxCommandEvent& event);
 
 	void OnMemcard(wxCommandEvent& event); // Misc
