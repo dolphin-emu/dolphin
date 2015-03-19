@@ -19,6 +19,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Config/PathConfigPane.h"
 
 PathConfigPane::PathConfigPane(wxWindow* panel, wxWindowID id)
@@ -118,7 +119,7 @@ void PathConfigPane::OnRecursiveISOCheckBoxChanged(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_RecursiveISOFolder = m_recursive_iso_paths_checkbox->IsChecked();
 
-	// TODO: Fire an event back to ConfigMain, setting bRefreshList to true.
+	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
 
 void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
@@ -134,7 +135,7 @@ void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
 		}
 		else
 		{
-			// TODO: Send event back to ConfigMain setting bRefreshList to true.
+			AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 			m_iso_paths_listbox->Append(dialog.GetPath());
 		}
 	}
@@ -144,7 +145,7 @@ void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
 
 void PathConfigPane::OnRemoveISOPath(wxCommandEvent& event)
 {
-	// TODO: Set event back to ConfigMain to set bRefreshList to true.
+	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 	m_iso_paths_listbox->Delete(m_iso_paths_listbox->GetSelection());
 
 	// This seems to not be activated on Windows when it should be. wxw bug?

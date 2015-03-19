@@ -20,6 +20,7 @@
 #include "Core/HW/EXI.h"
 #include "Core/HW/GCMemcard.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Config/GameCubeConfigPane.h"
 
 #define DEV_NONE_STR        _trans("<Nothing>")
@@ -206,7 +207,7 @@ void GameCubeConfigPane::OnSystemLanguageChange(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = m_system_lang_choice->GetSelection();
 
-	// TODO: Signal back to config_main to set bRefreshList to true.
+	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
 
 void GameCubeConfigPane::OnSkipBiosCheckBoxChanged(wxCommandEvent& event)

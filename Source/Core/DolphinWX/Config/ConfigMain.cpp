@@ -19,15 +19,20 @@
 #include "DolphinWX/Config/PathConfigPane.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 
+// Sent by child panes to signify that the game list should
+// be updated when this modal dialog closes.
+wxDEFINE_EVENT(wxDOLPHIN_CFG_REFRESH_LIST, wxCommandEvent);
+
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 		const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	// Control refreshing of the ISOs list
-	bRefreshList = false;
+	m_refresh_game_list_on_close = false;
 
 	Bind(wxEVT_CLOSE_WINDOW, &CConfigMain::OnClose, this);
 	Bind(wxEVT_BUTTON, &CConfigMain::OnOk, this, wxID_OK);
+	Bind(wxDOLPHIN_CFG_REFRESH_LIST, &CConfigMain::OnSetRefreshGameListOnClose, this);
 
 	CreateGUIControls();
 }
@@ -79,7 +84,7 @@ void CConfigMain::CreateGUIControls()
 
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
 {
-	EndModal((bRefreshList) ? wxID_OK : wxID_CANCEL);
+	EndModal((m_refresh_game_list_on_close) ? wxID_OK : wxID_CANCEL);
 }
 
 void CConfigMain::OnOk(wxCommandEvent& WXUNUSED(event))
@@ -88,4 +93,9 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED(event))
 
 	// Save the config. Dolphin crashes too often to only save the settings on closing
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CConfigMain::OnSetRefreshGameListOnClose(wxCommandEvent& WXUNUSED(event))
+{
+	m_refresh_game_list_on_close = true;
 }

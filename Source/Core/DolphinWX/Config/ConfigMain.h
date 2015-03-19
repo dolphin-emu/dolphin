@@ -11,6 +11,8 @@ class wxNotebook;
 class wxPanel;
 class wxWindow;
 
+wxDECLARE_EVENT(wxDOLPHIN_CFG_REFRESH_LIST, wxCommandEvent);
+
 class CConfigMain : public wxDialog
 {
 public:
@@ -40,8 +42,9 @@ private:
 	void CreateGUIControls();
 	void OnClose(wxCloseEvent& event);
 	void OnOk(wxCommandEvent& event);
+	void OnSetRefreshGameListOnClose(wxCommandEvent& event);
 
 	wxNotebook* Notebook;
 
-	bool bRefreshList;
+	bool m_refresh_game_list_on_close;
 };
