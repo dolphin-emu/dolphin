@@ -18,7 +18,7 @@ namespace FPURoundMode
 	void SetRoundMode(int mode)
 	{
 		// Convert PowerPC to native rounding mode.
-		const int rounding_mode_lut[] = {
+		static const int rounding_mode_lut[] = {
 			FE_TONEAREST,
 			FE_TOWARDZERO,
 			FE_UPWARD,
