@@ -57,6 +57,7 @@ void CHideObjectAddEdit::CreateGUIControls(int _selection)
 		wxArrayStringFor_EditHideObjectType.Add(StrToWxStr(HideObjectEngine::HideObjectTypeStrings[i]));
 	EditHideObjectType = new wxRadioBox(this, wxID_ANY, _("Size"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditHideObjectType, 8, wxRA_SPECIFY_COLS);
 	EditHideObjectType->SetSelection((int)tempEntries[0].type);
+	EditHideObjectType->Bind(wxEVT_RADIOBOX, &CHideObjectAddEdit::ButtonSize, this);
 
 	wxStaticText* EditHideObjectValueText = new wxStaticText(this, wxID_ANY, _("Value:"));
 	EditHideObjectValue = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(225, 20));
@@ -133,6 +134,23 @@ void CHideObjectAddEdit::SaveHideObjectData(wxCommandEvent& event)
 	event.Skip();
 }
 
+// Change the number of bits by adding or removing digits on the right hand side of the string.
+void CHideObjectAddEdit::ButtonSize(wxCommandEvent& event)
+{
+	wxString s = EditHideObjectValue->GetValue();
+	size_t old_length = s.Length();
+	HideObjectEngine::HideObjectType temp_type = (HideObjectEngine::HideObjectType)EditHideObjectType->GetSelection();
+	size_t new_length = HideObjectEngine::GetHideObjectTypeCharLength(temp_type);
+	if (new_length <= old_length)
+		s = s.Left(new_length);
+	else
+		s.Append('0', new_length - old_length);
+	EditHideObjectValue->SetValue(s);
+
+	ButtonUporDown(event);
+}
+
+
 void CHideObjectAddEdit::ButtonUporDown(wxCommandEvent& event)
 {
 	if (!UpdateTempEntryData(itCurEntry))
@@ -198,7 +216,7 @@ void CHideObjectAddEdit::ButtonUporDown(wxCommandEvent& event)
 			value_lower++;
 		}
 	}
-	else
+	else if (event.GetId() == ID_BUTTON_DOWN)
 	{
 		if (value_lower == 0)
 		{
