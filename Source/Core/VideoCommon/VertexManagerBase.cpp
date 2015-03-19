@@ -1,5 +1,8 @@
 #include "Common/CommonTypes.h"
 
+#include "Core/ARBruteForcer.h"
+#include "Core/Core.h"
+
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -270,6 +273,8 @@ void VertexManager::Flush()
 void VertexManager::DoState(PointerWrap& p)
 {
 	p.Do(s_zslope);
+	if (!g_vertex_manager && ARBruteForcer::ch_bruteforce)
+		Core::KillDolphinAndRestart();
 	g_vertex_manager->vDoState(p);
 }
 

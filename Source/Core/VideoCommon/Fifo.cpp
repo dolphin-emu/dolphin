@@ -9,6 +9,7 @@
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -61,6 +62,8 @@ static u8* s_video_buffer_pp_read_ptr;
 
 void Fifo_DoState(PointerWrap &p)
 {
+	if (!s_video_buffer && ARBruteForcer::ch_bruteforce)
+		Core::KillDolphinAndRestart();
 	p.DoArray(s_video_buffer, FIFO_SIZE);
 	u8* write_ptr = s_video_buffer_write_ptr;
 	p.DoPointer(write_ptr, s_video_buffer);
