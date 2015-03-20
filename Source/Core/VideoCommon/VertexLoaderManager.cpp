@@ -44,6 +44,7 @@ void Init()
 		map_entry = nullptr;
 	RecomputeCachedArraybases();
 	SETSTAT(stats.numVertexLoaders, 0);
+	VertexLoaderBase::Initialize();
 }
 
 void Shutdown()

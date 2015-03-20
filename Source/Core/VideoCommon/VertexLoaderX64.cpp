@@ -1,6 +1,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
+#include "Common/StdMakeUnique.h"
 #include "Common/x64ABI.h"
 #include "VideoCommon/VertexLoaderX64.h"
 
@@ -16,15 +17,33 @@ static const X64Reg scratch3 = ABI_PARAM4;
 static const X64Reg count_reg = R10;
 static const X64Reg skipped_reg = R11;
 
+class VertexLoaderCode : public Gen::X64CodeBlock
+{
+public:
+	VertexLoaderCode(size_t size)
+	{
+		AllocCodeSpace(size);
+		ClearCodeSpace();
+	}
+};
+
+static std::unique_ptr<VertexLoaderCode> s_vertex_loader_code;
+
+
+void VertexLoaderX64::Initialize()
+{
+	s_vertex_loader_code = std::make_unique<VertexLoaderCode>(2 * 1024 * 1024);
+}
+
 VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att) : VertexLoaderBase(vtx_desc, vtx_att)
 {
 	if (!IsInitialized())
 		return;
 
-	AllocCodeSpace(4096);
-	ClearCodeSpace();
+	SetCodePtr(s_vertex_loader_code->GetWritableCodePtr());
+	region = GetCodePtr();
 	GenerateVertexLoader();
-	WriteProtect();
+	s_vertex_loader_code->SetCodePtr(GetWritableCodePtr());
 
 	std::string name;
 	AppendToString(&name);
