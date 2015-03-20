@@ -4,6 +4,8 @@
 
 #pragma once
 
+//#define NEW_HOTKEYS
+
 #include <cstddef>
 #include <mutex>
 #include <string>
@@ -18,6 +20,7 @@
 #include <wx/mstream.h>
 #include <wx/panel.h>
 #include <wx/string.h>
+#include <wx/timer.h>
 #include <wx/toplevel.h>
 #include <wx/windowid.h>
 
@@ -196,6 +199,25 @@ private:
 		EToolbar_Max
 	};
 
+	enum
+	{
+		Toolbar_Delete,
+		Toolbar_Add_BP,
+		Toolbar_Add_MC,
+		Num_Bitmaps
+	};
+
+	enum
+	{
+		ADD_PANE_TOP,
+		ADD_PANE_BOTTOM,
+		ADD_PANE_LEFT,
+		ADD_PANE_RIGHT,
+		ADD_PANE_CENTER
+	};
+
+	wxTimer m_poll_hotkey_timer;
+
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
@@ -237,7 +259,7 @@ private:
 			const wxString& title = "",
 			wxWindow * = nullptr);
 	wxString AuiFullscreen, AuiCurrent;
-	void AddPane();
+	void AddPane(int dir);
 	void UpdateCurrentPerspective();
 	void SaveIniPerspectives();
 	void LoadIniPerspectives();
@@ -297,6 +319,9 @@ private:
 	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigVR(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
+#ifdef NEW_HOTKEYS
+	void OnConfigMenuCommands(wxCommandEvent& event);
+#endif
 
 	void OnToggleFullscreen(wxCommandEvent& event);
 	void OnToggleDualCore(wxCommandEvent& event);
@@ -315,6 +340,8 @@ private:
 
 	void OnMouse(wxMouseEvent& event); // Mouse
 
+	void OnFocusChange(wxFocusEvent& event);
+
 	void OnHostMessage(wxCommandEvent& event);
 
 	void OnMemcard(wxCommandEvent& event); // Misc
@@ -323,7 +350,7 @@ private:
 
 	void OnNetPlay(wxCommandEvent& event);
 
-	void OnShow_CheatsWindow(wxCommandEvent& event);
+	void OnShowCheatsWindow(wxCommandEvent& event);
 	void OnLoadWiiMenu(wxCommandEvent& event);
 	void OnInstallWAD(wxCommandEvent& event);
 	void OnFifoPlayer(wxCommandEvent& event);
@@ -331,7 +358,7 @@ private:
 	void OnConnectWiimote(wxCommandEvent& event);
 	void GameListChanged(wxCommandEvent& event);
 
-	void OnGameListCtrl_ItemActivated(wxListEvent& event);
+	void OnGameListCtrlItemActivated(wxListEvent& event);
 	void OnRenderParentResize(wxSizeEvent& event);
 	void StartGame(const std::string& filename);
 	void OnChangeColumnsVisible(wxCommandEvent& event);
@@ -339,6 +366,11 @@ private:
 	void OnSelectSlot(wxCommandEvent& event);
 	void OnSaveCurrentSlot(wxCommandEvent& event);
 	void OnLoadCurrentSlot(wxCommandEvent& event);
+
+	void PollHotkeys(wxTimerEvent&);
+	void ParseHotkeys(wxKeyEvent &event);
+
+	bool InitControllers();
 
 	// Event table
 	DECLARE_EVENT_TABLE();

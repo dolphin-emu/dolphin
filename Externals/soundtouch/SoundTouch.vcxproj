@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -50,7 +42,7 @@
     <ClCompile Include="FIRFilter.cpp" />
     <ClCompile Include="InterpolateCubic.cpp" />
     <ClCompile Include="InterpolateLinear.cpp" />
-    <ClCompile Include="InterpolateShannon.cpp" />            
+    <ClCompile Include="InterpolateShannon.cpp" />
     <ClCompile Include="mmx_optimized.cpp" />
     <ClCompile Include="PeakFinder.cpp" />
     <ClCompile Include="RateTransposer.cpp" />
@@ -67,7 +59,7 @@
     <ClInclude Include="FIRFilter.h" />
     <ClInclude Include="InterpolateCubic.h" />
     <ClInclude Include="InterpolateLinear.h" />
-    <ClInclude Include="InterpolateShannon.h" />            
+    <ClInclude Include="InterpolateShannon.h" />
     <ClInclude Include="PeakFinder.h" />
     <ClInclude Include="RateTransposer.h" />
     <ClInclude Include="SoundTouch.h" />

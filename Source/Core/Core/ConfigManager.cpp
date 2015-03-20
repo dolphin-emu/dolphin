@@ -6,8 +6,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SI.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "DiscIO/NANDContentLoader.h"
 
 SConfig* SConfig::m_Instance;
@@ -240,7 +242,8 @@ void SConfig::SaveSettings()
 	SaveGeneralSettings(ini);
 	SaveInterfaceSettings(ini);
 	SaveHotkeySettings(ini);
-	SaveDisplaySettings(ini);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		SaveDisplaySettings(ini);
 	SaveGameListSettings(ini);
 	SaveCoreSettings(ini);
 	SaveMovieSettings(ini);
@@ -324,6 +327,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 	interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
 	interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
 	interface->Set("ThemeName40", m_LocalCoreStartupParameter.theme_name);
+	interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
 }
 
 void SConfig::SaveHotkeySettings(IniFile& ini)
@@ -331,7 +335,6 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
 	hotkeys->Set("XInputPolling", m_LocalCoreStartupParameter.bHotkeysXInput);
-	hotkeys->Set("FreeLookSensitivity", m_LocalCoreStartupParameter.fFreeLookSensitivity);
 
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
@@ -410,7 +413,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 	gamelist->Set("ListAustralia", m_ListAustralia);
 	gamelist->Set("ListFrance", m_ListFrance);
 	gamelist->Set("ListGermany", m_ListGermany);
-	gamelist->Set("ListInternational", m_ListInternational);
+	gamelist->Set("ListWorld", m_ListWorld);
 	gamelist->Set("ListItaly", m_ListItaly);
 	gamelist->Set("ListKorea", m_ListKorea);
 	gamelist->Set("ListNetherlands", m_ListNetherlands);
@@ -468,14 +471,14 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	core->Set("RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
-	core->Set("FrameLimit", m_Framelimit);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		core->Set("FrameLimit", m_Framelimit);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
 	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
 	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
-	core->Set("GameCubeAdapterThread", m_GameCubeAdapterThread);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -485,6 +488,7 @@ void SConfig::SaveMovieSettings(IniFile& ini)
 	movie->Set("PauseMovie", m_PauseMovie);
 	movie->Set("Author", m_strMovieAuthor);
 	movie->Set("DumpFrames", m_DumpFrames);
+	movie->Set("DumpFramesSilent", m_DumpFramesSilent);
 	movie->Set("ShowInputDisplay", m_ShowInputDisplay);
 }
 
@@ -494,7 +498,8 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 
 	dsp->Set("EnableJIT", m_DSPEnableJIT);
 	dsp->Set("DumpAudio", m_DumpAudio);
-	dsp->Set("Backend", sBackend);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		dsp->Set("Backend", sBackend);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
@@ -565,9 +570,9 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 			std::string tmpPath;
 			general->Get(StringFromFormat("GCMPath%i", i), &tmpPath, "");
 			bool found = false;
-			for (int j = 0; j < m_ISOFolder.size(); ++j)
+			for (std::string& folder : m_ISOFolder)
 			{
-				if (m_ISOFolder[j] == tmpPath)
+				if (folder == tmpPath)
 				{
 					found = true;
 					break;
@@ -583,7 +588,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 		general->Get("RecursiveGCMPaths", &m_RecursiveISOFolder, false);
 
 	general->Get("NANDRootPath", &m_NANDPath);
-	m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
+	File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
 	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 	DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 	general->Get("WirelessMac", &m_WirelessMac);
@@ -609,6 +614,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 	interface->Get("ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
 	interface->Get("ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
 	interface->Get("ThemeName40",             &m_LocalCoreStartupParameter.theme_name,        "Clean");
+	interface->Get("PauseOnFocusLost",        &m_PauseOnFocusLost,                            false);
 }
 
 void SConfig::LoadHotkeySettings(IniFile& ini)
@@ -616,7 +622,6 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
 
 	hotkeys->Get("XInputPolling", &m_LocalCoreStartupParameter.bHotkeysXInput, true);
-	hotkeys->Get("FreeLookSensitivity", &m_LocalCoreStartupParameter.fFreeLookSensitivity, 1.00);
 
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
@@ -661,18 +666,36 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 {
 	IniFile::Section* display = ini.GetOrCreateSection("Display");
 
-	display->Get("Fullscreen",           &m_LocalCoreStartupParameter.bFullscreen,             false);
-	display->Get("FullscreenResolution", &m_LocalCoreStartupParameter.strFullscreenResolution, "Auto");
-	display->Get("RenderToMain",         &m_LocalCoreStartupParameter.bRenderToMain,           false);
-	display->Get("RenderWindowXPos",     &m_LocalCoreStartupParameter.iRenderWindowXPos,       -1);
-	display->Get("RenderWindowYPos",     &m_LocalCoreStartupParameter.iRenderWindowYPos,       -1);
-	display->Get("RenderWindowWidth",    &m_LocalCoreStartupParameter.iRenderWindowWidth,      640);
-	display->Get("RenderWindowHeight",   &m_LocalCoreStartupParameter.iRenderWindowHeight,     480);
-	display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.bRenderWindowAutoSize,   false);
-	display->Get("KeepWindowOnTop",      &m_LocalCoreStartupParameter.bKeepWindowOnTop,        false);
-	display->Get("ProgressiveScan",      &m_LocalCoreStartupParameter.bProgressive,            false);
-	display->Get("DisableScreenSaver",   &m_LocalCoreStartupParameter.bDisableScreenSaver,     true);
-	display->Get("ForceNTSCJ",           &m_LocalCoreStartupParameter.bForceNTSCJ,             false);
+	if (ARBruteForcer::ch_bruteforce)
+	{
+		m_LocalCoreStartupParameter.bFullscreen = false;
+		m_LocalCoreStartupParameter.strFullscreenResolution = "Auto";
+		m_LocalCoreStartupParameter.bRenderToMain = false;
+		m_LocalCoreStartupParameter.iRenderWindowXPos = -1;
+		m_LocalCoreStartupParameter.iRenderWindowYPos = -1;
+		m_LocalCoreStartupParameter.iRenderWindowWidth = 640;
+		m_LocalCoreStartupParameter.iRenderWindowHeight = 480;
+		m_LocalCoreStartupParameter.bRenderWindowAutoSize = false;
+		m_LocalCoreStartupParameter.bKeepWindowOnTop = false;
+		m_LocalCoreStartupParameter.bProgressive = false;
+		m_LocalCoreStartupParameter.bDisableScreenSaver = true;
+		m_LocalCoreStartupParameter.bForceNTSCJ = false;
+	}
+	else
+	{
+		display->Get("Fullscreen", &m_LocalCoreStartupParameter.bFullscreen, false);
+		display->Get("FullscreenResolution", &m_LocalCoreStartupParameter.strFullscreenResolution, "Auto");
+		display->Get("RenderToMain", &m_LocalCoreStartupParameter.bRenderToMain, false);
+		display->Get("RenderWindowXPos", &m_LocalCoreStartupParameter.iRenderWindowXPos, -1);
+		display->Get("RenderWindowYPos", &m_LocalCoreStartupParameter.iRenderWindowYPos, -1);
+		display->Get("RenderWindowWidth", &m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
+		display->Get("RenderWindowHeight", &m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
+		display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.bRenderWindowAutoSize, false);
+		display->Get("KeepWindowOnTop", &m_LocalCoreStartupParameter.bKeepWindowOnTop, false);
+		display->Get("ProgressiveScan", &m_LocalCoreStartupParameter.bProgressive, false);
+		display->Get("DisableScreenSaver", &m_LocalCoreStartupParameter.bDisableScreenSaver, true);
+		display->Get("ForceNTSCJ", &m_LocalCoreStartupParameter.bForceNTSCJ, false);
+	}
 
 	IniFile::Section* vr = ini.GetOrCreateSection("VR");
 #ifdef OCULUSSDK042
@@ -697,7 +720,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 	gamelist->Get("ListAustralia",     &m_ListAustralia,     true);
 	gamelist->Get("ListFrance",        &m_ListFrance,        true);
 	gamelist->Get("ListGermany",       &m_ListGermany,       true);
-	gamelist->Get("ListInternational", &m_ListInternational, true);
+	gamelist->Get("ListWorld",         &m_ListWorld,         true);
 	gamelist->Get("ListItaly",         &m_ListItaly,         true);
 	gamelist->Get("ListKorea",         &m_ListKorea,         true);
 	gamelist->Get("ListNetherlands",   &m_ListNetherlands,   true);
@@ -727,13 +750,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 
 	core->Get("HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
 #ifdef _M_X86
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JIT64);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JIT64);
 #elif _M_ARM_32
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JITARM);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JITARM);
 #elif _M_ARM_64
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_JITARM64);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_JITARM64);
 #else
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, SCoreStartupParameter::CORE_INTERPRETER);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, PowerPC::CORE_INTERPRETER);
 #endif
 	core->Get("Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
 	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.bDSPHLE,       true);
@@ -769,11 +792,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("RunCompareClient",          &m_LocalCoreStartupParameter.bRunCompareClient, false);
 	core->Get("MMU",                       &m_LocalCoreStartupParameter.bMMU,              false);
 	core->Get("BBDumpPort",                &m_LocalCoreStartupParameter.iBBDumpPort,       -1);
-	core->Get("VBeam",                     &m_LocalCoreStartupParameter.bVBeamSpeedHack,   false);
 	core->Get("SyncGPU",                   &m_LocalCoreStartupParameter.bSyncGPU,          false);
 	core->Get("FastDiscSpeed",             &m_LocalCoreStartupParameter.bFastDiscSpeed,    false);
 	core->Get("DCBZ",                      &m_LocalCoreStartupParameter.bDCBZOFF,          false);
-	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
+	if (ARBruteForcer::ch_bruteforce)
+		m_Framelimit = 0;
+	else
+		core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
@@ -781,7 +806,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
 	m_LocalCoreStartupParameter.m_GPUDeterminismMode = ParseGPUDeterminismMode(m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
-	core->Get("GameCubeAdapterThread",     &m_GameCubeAdapterThread,                       true);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -791,6 +815,7 @@ void SConfig::LoadMovieSettings(IniFile& ini)
 	movie->Get("PauseMovie", &m_PauseMovie, false);
 	movie->Get("Author", &m_strMovieAuthor, "");
 	movie->Get("DumpFrames", &m_DumpFrames, false);
+	movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
 	movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
 }
 
@@ -813,6 +838,9 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+
+	if (ARBruteForcer::ch_bruteforce)
+		sBackend = BACKEND_NULLSOUND;
 
 	m_IsMuted = false;
 }

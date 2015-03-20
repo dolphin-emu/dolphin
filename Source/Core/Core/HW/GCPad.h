@@ -13,6 +13,7 @@ namespace Pad
 
 void Shutdown();
 void Initialize(void* const hwnd);
+void LoadConfig();
 
 InputConfig* GetConfig();
 

@@ -116,6 +116,11 @@ void Jit64::bcx(UGeckoInstruction inst)
 	int branchCount = 0;
 	FixupBranch branch[2];
 
+	// TODO: support ctr + condition branches. A bit of a catch because *both* branches have to be true
+	// for the branch to be taken. Maybe invert the condition?
+	if (!(inst.BO & BO_DONT_DECREMENT_FLAG) && !(inst.BO & BO_DONT_CHECK_CONDITION))
+		jumpInBlock = false;
+
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
 		bool dir = jumpInBlock ^ !!(inst.BO & BO_BRANCH_IF_CTR_0);
@@ -252,9 +257,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	WriteBLRExit();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
-		SetJumpTarget( pConditionDontBranch );
+		SetJumpTarget(pConditionDontBranch);
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
-		SetJumpTarget( pCTRDontBranch );
+		SetJumpTarget(pCTRDontBranch);
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{

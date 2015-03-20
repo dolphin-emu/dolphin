@@ -45,6 +45,7 @@ void Init()
 	for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
 		map_entry = nullptr;
 	RecomputeCachedArraybases();
+	SETSTAT(stats.numVertexLoaders, 0);
 }
 
 void Shutdown()
@@ -145,7 +146,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (!count)
 		return 0;
 
-	SCoreStartupParameter &m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& m_LocalCoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	VertexLoaderBase* loader = RefreshLoader(vtx_attr_group, is_preprocess);
 	int size = count * loader->m_VertexSize;
@@ -164,23 +165,14 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if (skip_drawing || is_preprocess)
 		return size;
 
-	// Object Removal Code code
-	if (m_LocalCoreStartupParameter.num_object_removal_codes)
+	// Hide Objects Code code
+	for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
 	{
-		if (m_LocalCoreStartupParameter.update)
+		if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
 		{
-			// Set lock so codes can be enabled/disabled in game without crashes.
-			m_LocalCoreStartupParameter.done = false;
-			for (int current_object_removal_code = 0; current_object_removal_code < m_LocalCoreStartupParameter.num_object_removal_codes; current_object_removal_code++)
-			{
-				if (!memcmp(src.GetPointer(), &m_LocalCoreStartupParameter.object_removal_codes[current_object_removal_code][0], m_LocalCoreStartupParameter.num_object_removal_data_bytes[current_object_removal_code]))
-				{
-					//Data didn't match, try next object_removal_code
-					return size;
-				}
-			}
+			//Data didn't match, try next object_removal_code
+			return size;
 		}
-		m_LocalCoreStartupParameter.done = true;
 	}
 
 	// If the native vertex format changed, force a flush.
@@ -195,7 +187,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	DataReader dst = VertexManager::PrepareForAdditionalData(primitive, count,
 			loader->m_native_vtx_decl.stride, cullall);
 
-	count = loader->RunVertices(primitive, count, src, dst);
+	count = loader->RunVertices(src, dst, count, primitive);
 
 	IndexGenerator::AddIndices(primitive, count);
 

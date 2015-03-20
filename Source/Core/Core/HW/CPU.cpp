@@ -42,7 +42,6 @@ void CCPU::Run()
 
 	while (true)
 	{
-reswitch:
 		switch (PowerPC::GetState())
 		{
 		case PowerPC::CPU_RUNNING:
@@ -60,7 +59,7 @@ reswitch:
 			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 				return;
 			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
-				goto reswitch;
+				continue;
 
 			//3: do a step
 			PowerPC::SingleStep();
@@ -94,7 +93,6 @@ bool CCPU::IsStepping()
 
 void CCPU::Reset()
 {
-
 }
 
 void CCPU::StepOpcode(Common::Event *event)

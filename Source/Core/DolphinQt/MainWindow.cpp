@@ -284,7 +284,7 @@ void DMainWindow::OnOpenDocs()
 
 void DMainWindow::OnOpenGitHub()
 {
-	QDesktopServices::openUrl(QUrl(SL("https://github.com/dolphin-emu/dolphin/")));
+	QDesktopServices::openUrl(QUrl(SL("https://github.com/dolphin-emu/dolphin")));
 }
 
 void DMainWindow::OnOpenSystemInfo()

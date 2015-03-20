@@ -29,21 +29,28 @@ public:
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
+	int GetRevision() const override;
 	std::vector<std::string> GetNames() const override;
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
+
+	bool IsDiscTwo() const override;
 	bool IsWiiDisc() const override;
+	bool SupportsIntegrityCheck() const override { return true; }
+	bool CheckIntegrity() const override;
+	bool ChangePartition(u64 offset) override;
+
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
-	int GetRevision() const override;
 
-	bool SupportsIntegrityCheck() const override { return true; }
-	bool CheckIntegrity() const override;
 
-	bool ChangePartition(u64 offset) override;
 
 private:
+	static const unsigned int s_block_header_size = 0x0400;
+	static const unsigned int s_block_data_size   = 0x7C00;
+	static const unsigned int s_block_total_size  = s_block_header_size + s_block_data_size;
+
 	std::unique_ptr<IBlobReader> m_pReader;
 	std::unique_ptr<aes_context> m_AES_ctx;
 
@@ -53,7 +60,7 @@ private:
 	u64 m_dataOffset;
 
 	mutable u64 m_LastDecryptedBlockOffset;
-	mutable unsigned char m_LastDecryptedBlock[0x8000];
+	mutable unsigned char m_LastDecryptedBlock[s_block_data_size];
 };
 
 } // namespace

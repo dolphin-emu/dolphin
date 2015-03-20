@@ -86,7 +86,7 @@ public:
 	// Jit!
 
 	void Jit(u32 em_address) override;
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b, u32 nextPC);
+	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC);
 
 	BitSet32 CallerSavedRegistersInUse();
 
@@ -138,8 +138,8 @@ public:
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(int reg, int offset);
 	void AndWithMask(Gen::X64Reg reg, u32 mask);
-	bool CheckMergedBranch(int crf, int inst = 1);
-	void DoMergedBranch(int inst = 1);
+	bool CheckMergedBranch(int crf);
+	void DoMergedBranch();
 	void DoMergedBranchCondition();
 	void DoMergedBranchImmediate(s64 val);
 
@@ -167,7 +167,6 @@ public:
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst);
 	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
@@ -255,7 +254,7 @@ public:
 	void negx(UGeckoInstruction inst);
 	void slwx(UGeckoInstruction inst);
 	void srwx(UGeckoInstruction inst);
-	void dcbst(UGeckoInstruction inst);
+	void dcbt(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
 
 	void subfic(UGeckoInstruction inst);

@@ -301,7 +301,7 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
 				result = METROID_CHARGE_BEAM_EFFECT;
 			}
 		}
-		else if (l = -1570)
+		else if (l == -1570)
 		{
 			// actually we know it is the menu's text
 			result = METROID_UNKNOWN_2D;

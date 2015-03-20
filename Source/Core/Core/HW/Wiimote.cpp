@@ -40,8 +40,9 @@ void Shutdown()
 void Initialize(void* const hwnd, bool wait)
 {
 	// add 4 Wiimotes
-	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
-		s_config.controllers.push_back(new WiimoteEmu::Wiimote(i));
+	if (s_config.controllers.empty())
+		for (unsigned int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+			s_config.controllers.push_back(new WiimoteEmu::Wiimote(i));
 
 	g_controller_interface.Initialize(hwnd);
 
@@ -53,6 +54,12 @@ void Initialize(void* const hwnd, bool wait)
 	if (Movie::IsMovieActive())
 		Movie::ChangeWiiPads();
 }
+
+void LoadConfig()
+{
+	s_config.LoadConfig(false);
+}
+
 
 void Resume()
 {
@@ -112,7 +119,7 @@ void Update(int _number)
 	//PanicAlert( "Wiimote_Update" );
 
 	// TODO: change this to a try_to_lock, and make it give empty input on failure
-	std::lock_guard<std::recursive_mutex> lk(s_config.controls_lock);
+	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
 	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();

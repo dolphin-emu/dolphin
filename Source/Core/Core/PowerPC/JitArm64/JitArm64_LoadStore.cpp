@@ -147,27 +147,32 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 	if (update)
 		MOV(gpr.R(addr), addr_reg);
 
-	if (is_immediate && Memory::IsRAMAddress(imm_addr))
+	u32 access_size = BackPatchInfo::GetFlagSize(flags);
+	u32 mmio_address = 0;
+	if (is_immediate)
+		mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
+
+	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		EmitBackpatchRoutine(this, flags, true, false, dest_reg, XA);
 	}
-	else if (is_immediate && MMIO::IsMMIOAddress(imm_addr))
+	else if (mmio_address)
 	{
 		MMIOLoadToReg(Memory::mmio_mapping, this,
 		              regs_in_use, fprs_in_use, dest_reg,
-		              imm_addr, flags);
+		              mmio_address, flags);
 	}
 	else
 	{
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
-		m_float_emit.ABI_PushRegisters(fprs_in_use);
+		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
 		EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			dest_reg, XA);
-		m_float_emit.ABI_PopRegisters(fprs_in_use);
+		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
 		ABI_PopRegisters(regs_in_use);
 	}
 
@@ -288,18 +293,22 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 
 	ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-	if (is_immediate && Memory::IsRAMAddress(imm_addr))
+	u32 access_size = BackPatchInfo::GetFlagSize(flags);
+	u32 mmio_address = 0;
+	if (is_immediate)
+		mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
+
+	if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
 	{
 		MOVI2R(XA, imm_addr);
 
 		EmitBackpatchRoutine(this, flags, true, false, RS, XA);
 	}
-	else if (is_immediate && MMIO::IsMMIOAddress(imm_addr) &&
-	         !(flags & BackPatchInfo::FLAG_REVERSE))
+	else if (mmio_address && !(flags & BackPatchInfo::FLAG_REVERSE))
 	{
 		MMIOWriteRegToAddr(Memory::mmio_mapping, this,
 		                   regs_in_use, fprs_in_use, RS,
-		                   imm_addr, flags);
+		                   mmio_address, flags);
 	}
 	else
 	{
@@ -309,12 +318,12 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 		// Has a chance of being backpatched which will destroy our state
 		// push and pop everything in this instance
 		ABI_PushRegisters(regs_in_use);
-		m_float_emit.ABI_PushRegisters(fprs_in_use);
+		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
 		EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
 			RS, XA);
-		m_float_emit.ABI_PopRegisters(fprs_in_use);
+		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
 		ABI_PopRegisters(regs_in_use);
 	}
 
@@ -401,9 +410,9 @@ void JitArm64::lXX(UGeckoInstruction inst)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
 	    inst.OPCD == 32 &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
-	    (Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
-	    Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+	    (PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
+	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
+	    PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		// if it's still 0, we can wait until the next event
 		FixupBranch noIdle = CBNZ(gpr.R(d));

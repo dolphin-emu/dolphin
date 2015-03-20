@@ -305,6 +305,9 @@ union UGeckoInstruction
 enum EQuantizeType : u32
 {
 	QUANTIZE_FLOAT = 0,
+	QUANTIZE_INVALID1 = 1,
+	QUANTIZE_INVALID2 = 2,
+	QUANTIZE_INVALID3 = 3,
 	QUANTIZE_U8    = 4,
 	QUANTIZE_U16   = 5,
 	QUANTIZE_S8    = 6,

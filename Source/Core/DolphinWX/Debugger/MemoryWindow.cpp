@@ -181,7 +181,7 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 		return;
 	}
 
-	Memory::Write_U32(val, addr);
+	PowerPC::HostWrite_U32(val, addr);
 	memview->Refresh();
 }
 

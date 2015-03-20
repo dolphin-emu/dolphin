@@ -1196,26 +1196,6 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 
 	switch (PPCGETIDX(in))
 	{
-	case 0:
-		{
-			int block = in & 0x3FFFFFF;
-			if (block)
-			{
-				m_opcode = "JITblock";
-				m_operands = StringFromFormat("%i", block);
-			}
-			else
-			{
-				m_opcode = "";
-				m_operands = "---";
-			}
-		}
-		break;
-
-	case 1: // HLE call
-		m_opcode = "HLE";
-		break;
-
 	case 2:
 		trapi(in, PPCF_64); // tdi
 		break;

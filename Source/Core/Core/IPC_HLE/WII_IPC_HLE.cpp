@@ -85,7 +85,7 @@ static u64 last_reply_time;
 
 static const u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static const u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
-static void EnqueueEventCallback(u64 userdata, int)
+static void EnqueueEvent(u64 userdata, int cycles_late = 0)
 {
 	if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
 	{
@@ -144,7 +144,7 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/oh1"); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, "_Unimplemented_Device_"); i++;
 
-	event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEventCallback);
+	event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEvent);
 }
 
 void Reset(bool _bHard)
@@ -561,6 +561,11 @@ void EnqueueReply(u32 address, int cycles_in_future)
 void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue, address);
+}
+
+void EnqueueReply_Immediate(u32 address)
+{
+	EnqueueEvent(address);
 }
 
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)

@@ -136,8 +136,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
-
-	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
+	DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	auto strUniqueID = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
 	u32 CurrentGameId = 0;
@@ -146,17 +145,17 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 		const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, false);
 		if (SysMenu_Loader.IsValid())
 		{
-			CountryCode = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
+			country_code = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
 		}
 	}
 	else if (strUniqueID.length() >= 4)
 	{
-		CountryCode = DiscIO::CountrySwitch(strUniqueID.at(3));
+		country_code = DiscIO::CountrySwitch(strUniqueID.at(3));
 		CurrentGameId = BE32((u8*)strUniqueID.c_str());
 	}
 	bool ascii = true;
 	std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
-	switch (CountryCode)
+	switch (country_code)
 	{
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		ascii = false;
@@ -183,20 +182,20 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 		std::string region = memcardFilename.substr(memcardFilename.size() - 7, 3);
 		if (region == JAP_DIR)
 		{
-			CountryCode = DiscIO::IVolume::COUNTRY_JAPAN;
+			country_code = DiscIO::IVolume::COUNTRY_JAPAN;
 			ascii = false;
 			strDirectoryName += JAP_DIR DIR_SEP;
 			break;
 		}
 		else if (region == USA_DIR)
 		{
-			CountryCode = DiscIO::IVolume::COUNTRY_USA;
+			country_code = DiscIO::IVolume::COUNTRY_USA;
 			strDirectoryName += USA_DIR DIR_SEP;
 			break;
 		}
 	}
 	default:
-		CountryCode = DiscIO::IVolume::COUNTRY_EUROPE;
+		country_code = DiscIO::IVolume::COUNTRY_EUROPE;
 		strDirectoryName += EUR_DIR DIR_SEP;
 	}
 	strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);
@@ -223,7 +222,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 	}
 
 	memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index, sizeMb, ascii,
-													  CountryCode, CurrentGameId);
+													  country_code, CurrentGameId);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
@@ -315,14 +314,14 @@ void CEXIMemoryCard::SetCS(int cs)
 			if (m_uPosition >= 5)
 			{
 				int count = m_uPosition - 5;
-				int i=0;
+				int i = 0;
 				status &= ~0x80;
 
 				while (count--)
 				{
 					memorycard->Write(address, 1, &(programming_buffer[i++]));
 					i &= 127;
-					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
+					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 				}
 
 				CmdDoneLater(5000);
@@ -423,7 +422,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				// after 9 bytes, we start incrementing the address,
 				// but only the sector offset - the pointer wraps around
 				if (m_uPosition >= 9)
-					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
+					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 			}
 			break;
 

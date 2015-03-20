@@ -100,7 +100,7 @@ namespace PowerPC
 	u32 InstructionCache::ReadInstruction(u32 addr)
 	{
 		if (!HID0.ICE) // instruction cache is disabled
-			return Memory::ReadUnchecked_U32(addr);
+			return Memory::Read_U32(addr);
 		u32 set = (addr >> 5) & 0x7f;
 		u32 tag = addr >> 12;
 
@@ -121,7 +121,7 @@ namespace PowerPC
 		if (t == 0xff) // load to the cache
 		{
 			if (HID0.ILOCK) // instruction cache is locked
-				return Memory::ReadUnchecked_U32(addr);
+				return Memory::Read_U32(addr);
 			// select a way
 			if (valid[set] != 0xff)
 				t = way_from_valid[valid[set]];
@@ -144,7 +144,7 @@ namespace PowerPC
 			else if (addr & ICACHE_EXRAM_BIT)
 				lookup_table_ex[(addr >> 5) & 0x1fffff] = t;
 			else
-				lookup_table[(addr>>5) & 0xfffff] = t;
+				lookup_table[(addr >> 5) & 0xfffff] = t;
 			tags[set][t] = tag;
 			valid[set] |= (1 << t);
 		}

@@ -8,6 +8,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -25,6 +26,7 @@ void UpdateActiveConfig()
 {
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 		Movie::SetGraphicsConfig();
+
 	g_ActiveConfig = g_Config;
 	if (g_has_hmd)
 		g_ActiveConfig.bUseRealXFB = false;
@@ -99,6 +101,7 @@ VideoConfig::VideoConfig()
 	fMotionSicknessFOV = 45.0f;
 
 	iVRPlayer = 0;
+	iGameCameraControl = CAMERA_YAW;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
 	iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
@@ -125,7 +128,10 @@ void VideoConfig::Load(const std::string& ini_file)
 	iniFile.Load(ini_file);
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-	hardware->Get("VSync", &bVSync, 0);
+	if (ARBruteForcer::ch_bruteforce)
+		bVSync = false;
+	else
+		hardware->Get("VSync", &bVSync, 0);
 	hardware->Get("Adapter", &iAdapter, 0);
 
 	IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
@@ -134,7 +140,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("Crop", &bCrop, false);
 	settings->Get("UseXFB", &bUseXFB, 0);
 	settings->Get("UseRealXFB", &bUseRealXFB, 0);
-	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
+	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples, 128);
 	settings->Get("ShowFPS", &bShowFPS, false);
 	settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
 	settings->Get("OverlayStats", &bOverlayStats, false);
@@ -148,8 +154,16 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("UseFFV1", &bUseFFV1, 0);
 	settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
-	settings->Get("MSAA", &iMultisampleMode, 0);
-	settings->Get("EFBScale", &iEFBScale, (int) SCALE_1X); // native
+	if (ARBruteForcer::ch_bruteforce)
+	{
+		iMultisampleMode = 0;
+		iEFBScale = SCALE_1X;
+	}
+	else
+	{
+		settings->Get("MSAA", &iMultisampleMode, 0);
+		settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
+	}
 	settings->Get("DstAlphaPass", &bDstAlphaPass, false);
 	settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
@@ -173,7 +187,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
 	hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
 	hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
-	hacks->Get("EFBToTextureEnable", &bCopyEFBToTexture, true);
+	hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
@@ -245,6 +259,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("MotionSicknessMethod", &iMotionSicknessMethod, 0);
 	vr->Get("MotionSicknessSkybox", &iMotionSicknessSkybox, 0);
 	vr->Get("MotionSicknessFOV", &fMotionSicknessFOV, DEFAULT_VR_MOTION_SICKNESS_FOV);
+	vr->Get("GameCameraControl", &iGameCameraControl, CAMERA_YAW);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
@@ -375,7 +390,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
-	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
+	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 	if (g_has_hmd)
@@ -383,7 +398,7 @@ void VideoConfig::GameIniLoad()
 		CHECK_SETTING("Video_Hacks_VR", "EFBAccessEnable", bEFBAccessEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyEnable", bEFBCopyEnable);
 		CHECK_SETTING("Video_Hacks_VR", "EFBCopyClearDisable", bEFBCopyClearDisable);
-		CHECK_SETTING("Video_Hacks_VR", "EFBToTextureEnable", bCopyEFBToTexture);
+		CHECK_SETTING("Video_Hacks_VR", "EFBToTextureEnable", bSkipEFBCopyToRam);
 		CHECK_SETTING("Video_Hacks_VR", "EFBScaledCopy", bCopyEFBScaled);
 		CHECK_SETTING("Video_Hacks_VR", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 	}
@@ -409,10 +424,12 @@ void VideoConfig::GameIniLoad()
 	fScreenRight = DEFAULT_VR_SCREEN_RIGHT;
 	fScreenUp = DEFAULT_VR_SCREEN_UP;
 	fScreenPitch = DEFAULT_VR_SCREEN_PITCH;
+	fReadPitch = 0;
 	bDisable3D = false;
 	bHudFullscreen = false;
 	bHudOnTop = false;
 	bDontClearScreen = false;
+	bCanReadCameraAngles = false;
 	iSelectedLayer = -2;
 	iFlashState = 0;
 
@@ -421,6 +438,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
 	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
 	CHECK_SETTING("VR", "DontClearScreen", bDontClearScreen);
+	CHECK_SETTING("VR", "CanReadCameraAngles", bCanReadCameraAngles);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
@@ -438,6 +456,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "MetroidPrime", iMetroidPrime);
 	CHECK_SETTING("VR", "TelescopeEye", iTelescopeEye);
 	CHECK_SETTING("VR", "TelescopeFOV", fTelescopeMaxFOV);
+	CHECK_SETTING("VR", "ReadPitch", fReadPitch);
 
 	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick", fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
 
@@ -449,15 +468,9 @@ void VideoConfig::GameIniLoad()
 void VideoConfig::GameIniSave()
 {
 	// Load game ini
-	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
-	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
-	std::string GameIniFileLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal;
-
 	IniFile GameIniDefault, GameIniLocal;
-	GameIniDefault.Load(GameIniFileDefault);
-	if (GameIniFileDefaultRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
-	GameIniLocal.Load(GameIniFileLocal);
+	GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
+	GameIniLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
@@ -478,6 +491,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
+	SAVE_IF_NOT_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -491,20 +505,16 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, DEFAULT_VR_SCREEN_UP);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
-	GameIniLocal.Save(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal);
+	SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
+
+	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 	g_SavedConfig = *this;
 }
 
 void VideoConfig::GameIniReset()
 {
 	// Load game ini
-	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
-	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
-
-	IniFile GameIniDefault;
-	GameIniDefault.Load(GameIniFileDefault);
-	if (GameIniFileDefaultRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
+	IniFile GameIniDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
 
 #define LOAD_DEFAULT(section, key, var, def) do { \
 			decltype(var) temp = var; \
@@ -519,6 +529,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	LOAD_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
+	LOAD_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
 	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	LOAD_DEFAULT("VR", "HudThickness", fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	LOAD_DEFAULT("VR", "Hud3DCloser", fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -532,6 +543,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "ScreenUp", fScreenUp, DEFAULT_VR_SCREEN_UP);
 	LOAD_DEFAULT("VR", "ScreenRight", fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	LOAD_DEFAULT("VR", "ScreenPitch", fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
+	LOAD_DEFAULT("VR", "ReadPitch", fReadPitch, 0.0f);
 }
 
 void VideoConfig::VerifyValidity()
@@ -568,7 +580,8 @@ void VideoConfig::Save(const std::string& ini_file)
 	iniFile.Load(ini_file);
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-	hardware->Set("VSync", bVSync);
+	if (!ARBruteForcer::ch_dont_save_settings)
+		hardware->Set("VSync", bVSync);
 	hardware->Set("Adapter", iAdapter);
 
 	IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
@@ -591,8 +604,11 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
 	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);
-	settings->Set("MSAA", iMultisampleMode);
-	settings->Set("EFBScale", iEFBScale);
+	if (!ARBruteForcer::ch_dont_save_settings)
+	{
+		settings->Set("MSAA", iMultisampleMode);
+		settings->Set("EFBScale", iEFBScale);
+	}
 	settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	settings->Set("TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	settings->Set("Wireframe", bWireFrame);
@@ -614,7 +630,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
 	hacks->Set("EFBCopyEnable", bEFBCopyEnable);
 	hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
-	hacks->Set("EFBToTextureEnable", bCopyEFBToTexture);
+	hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
@@ -667,6 +683,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("MotionSicknessSkybox", iMotionSicknessSkybox);
 	vr->Set("MotionSicknessFOV", fMotionSicknessFOV);
 	vr->Set("Player", iVRPlayer);
+	vr->Set("GameCameraControl", iGameCameraControl);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);
 	vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
@@ -704,10 +721,12 @@ bool VideoConfig::VRSettingsModified()
 		|| fScreenUp != g_SavedConfig.fScreenUp
 		|| fScreenPitch != g_SavedConfig.fScreenPitch
 		|| fTelescopeMaxFOV != g_SavedConfig.fTelescopeMaxFOV
+		|| fReadPitch != g_SavedConfig.fReadPitch
 		|| bDisable3D != g_SavedConfig.bDisable3D
 		|| bHudFullscreen != g_SavedConfig.bHudFullscreen
 		|| bHudOnTop != g_SavedConfig.bHudOnTop
 		|| bDontClearScreen != g_SavedConfig.bDontClearScreen
+		|| bCanReadCameraAngles != g_SavedConfig.bCanReadCameraAngles
 		|| iTelescopeEye != g_SavedConfig.iTelescopeEye
 		|| iMetroidPrime != g_SavedConfig.iMetroidPrime;
 }

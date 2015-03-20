@@ -5,42 +5,24 @@
 #include <cmath>
 #include <limits>
 
-#ifdef _WIN32
-#include <intrin.h>
-#endif
-
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 using namespace MathUtil;
 
-void UpdateSSEState();
-
 // Extremely rare - actually, never seen.
 // Star Wars : Rogue Leader spams that at some point :|
 void Interpreter::Helper_UpdateCR1()
 {
-	SetCRField(1, (FPSCR.FX << 4) | (FPSCR.FEX << 3) | (FPSCR.VX << 2) | FPSCR.OX);
+	SetCRField(1, (FPSCR.FX << 3) | (FPSCR.FEX << 2) | (FPSCR.VX << 1) | FPSCR.OX);
 }
 
 void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa, double fb)
 {
 	int compareResult;
 
-	if (fa < fb)
-	{
-		compareResult = FPCC::FL;
-	}
-	else if (fa > fb)
-	{
-		compareResult = FPCC::FG;
-	}
-	else if (fa == fb)
-	{
-		compareResult = FPCC::FE;
-	}
-	else // NaN
+	if (IsNAN(fa) || IsNAN(fb))
 	{
 		FPSCR.FX = 1;
 		compareResult = FPCC::FU;
@@ -57,16 +39,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 			SetFPException(FPSCR_VXVC);
 		}
 	}
-
-	FPSCR.FPRF = compareResult;
-	SetCRField(_inst.CRFD, compareResult);
-}
-
-void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double fa, double fb)
-{
-	int compareResult;
-
-	if (fa < fb)
+	else if (fa < fb)
 	{
 		compareResult = FPCC::FL;
 	}
@@ -74,21 +47,47 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 	{
 		compareResult = FPCC::FG;
 	}
-	else if (fa == fb)
+	else // Equals
 	{
 		compareResult = FPCC::FE;
 	}
-	else
+
+	// Clear and set the FPCC bits accordingly.
+	FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compareResult;
+
+	SetCRField(_inst.CRFD, compareResult);
+}
+
+void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double fa, double fb)
+{
+	int compareResult;
+
+	if (IsNAN(fa) || IsNAN(fb))
 	{
 		compareResult = FPCC::FU;
+
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
 			FPSCR.FX = 1;
 			SetFPException(FPSCR_VXSNAN);
 		}
 	}
+	else if (fa < fb)
+	{
+		compareResult = FPCC::FL;
+	}
+	else if (fa > fb)
+	{
+		compareResult = FPCC::FG;
+	}
+	else // Equals
+	{
+		compareResult = FPCC::FE;
+	}
 
-	FPSCR.FPRF = compareResult;
+	// Clear and set the FPCC bits accordingly.
+	FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compareResult;
+
 	SetCRField(_inst.CRFD, compareResult);
 }
 

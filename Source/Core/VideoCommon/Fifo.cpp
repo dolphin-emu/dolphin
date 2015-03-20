@@ -9,12 +9,14 @@
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -23,6 +25,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 bool g_bSkipCurrentFrame = false;
 
@@ -59,6 +62,8 @@ static u8* s_video_buffer_pp_read_ptr;
 
 void Fifo_DoState(PointerWrap &p)
 {
+	if (!s_video_buffer && ARBruteForcer::ch_bruteforce)
+		Core::KillDolphinAndRestart();
 	p.DoArray(s_video_buffer, FIFO_SIZE);
 	u8* write_ptr = s_video_buffer_write_ptr;
 	p.DoPointer(write_ptr, s_video_buffer);
@@ -103,7 +108,8 @@ void Fifo_Init()
 
 void Fifo_Shutdown()
 {
-	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
+	if (GpuRunningState)
+		PanicAlert("Fifo shutting down while active");
 	FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
 	s_video_buffer = nullptr;
 	s_video_buffer_write_ptr = nullptr;
@@ -112,16 +118,6 @@ void Fifo_Shutdown()
 	s_video_buffer_seen_ptr = nullptr;
 	s_fifo_aux_write_ptr = nullptr;
 	s_fifo_aux_read_ptr = nullptr;
-}
-
-u8* GetVideoBufferStartPtr()
-{
-	return s_video_buffer;
-}
-
-u8* GetVideoBufferEndPtr()
-{
-	return s_video_buffer_write_ptr;
 }
 
 void Fifo_SetRendering(bool enabled)
@@ -136,7 +132,8 @@ void ExitGpuLoop()
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while (fifo.isGpuReadingData) Common::YieldCPU();
+	while (fifo.isGpuReadingData)
+		Common::YieldCPU();
 	// Terminate GPU thread loop
 	GpuRunningState = false;
 	EmuRunningState = true;
@@ -254,6 +251,16 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 	}
 	Memory::CopyFromEmu(s_video_buffer_write_ptr, readPtr, len);
 	s_video_buffer_pp_read_ptr = OpcodeDecoder_Run<true>(DataReader(s_video_buffer_pp_read_ptr, write_ptr + len), nullptr, false);
+
+#ifdef INLINE_OPCODE
+	//Render Extra Headtracking Frames for VR.
+	if (g_new_frame_just_rendered && g_has_hmd)
+	{
+		OpcodeReplayBufferInline();
+	}
+	g_new_frame_just_rendered = false;
+#endif
+
 	// This would have to be locked if the GPU thread didn't spin.
 	s_video_buffer_write_ptr = write_ptr + len;
 }
@@ -282,11 +289,14 @@ void RunGpuLoop()
 	// This allows a system that we are maxing out in dual core mode to do other things
 	bool yield_cpu = cpu_info.num_cores <= 2;
 
+	AsyncRequests::GetInstance()->SetEnable(true);
+	AsyncRequests::GetInstance()->SetPassthrough(false);
+
 	while (GpuRunningState)
 	{
 		g_video_backend->PeekMessages();
 
-		VideoFifo_CheckAsyncRequest();
+		AsyncRequests::GetInstance()->PullEvents();
 		if (g_use_deterministic_gpu_thread)
 		{
 			// All the fifo/CP stuff is on the CPU.  We just need to run the opcode decoder.
@@ -296,6 +306,15 @@ void RunGpuLoop()
 			if (write_ptr > seen_ptr)
 			{
 				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), nullptr, false);
+
+#ifdef INLINE_OPCODE
+				//Render Extra Headtracking Frames for VR.
+				if (g_new_frame_just_rendered && g_has_hmd)
+				{
+					OpcodeReplayBufferInline();
+				}
+				g_new_frame_just_rendered = false;
+#endif
 
 				{
 					std::lock_guard<std::mutex> vblk(s_video_buffer_lock);
@@ -333,6 +352,14 @@ void RunGpuLoop()
 					u8* write_ptr = s_video_buffer_write_ptr;
 					s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
 
+#ifdef INLINE_OPCODE
+					//Render Extra Headtracking Frames for VR.
+					if (g_new_frame_just_rendered && g_has_hmd)
+					{
+						OpcodeReplayBufferInline();
+					}
+					g_new_frame_just_rendered = false;
+#endif
 
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) >= cyclesExecuted)
 						Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
@@ -348,7 +375,7 @@ void RunGpuLoop()
 				// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
 				// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 				// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
-				VideoFifo_CheckAsyncRequest();
+				AsyncRequests::GetInstance()->PullEvents();
 				CommandProcessor::isPossibleWaitingSetDrawDone = false;
 			}
 
@@ -377,6 +404,8 @@ void RunGpuLoop()
 	}
 	// wake up SyncGPU if we were interrupted
 	s_video_buffer_cond.notify_all();
+	AsyncRequests::GetInstance()->SetEnable(false);
+	AsyncRequests::GetInstance()->SetPassthrough(true);
 }
 
 
@@ -405,6 +434,16 @@ void RunGpu()
 			FPURoundMode::LoadDefaultSIMDState();
 			ReadDataFromFifo(fifo.CPReadPointer);
 			s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
+
+#ifdef INLINE_OPCODE
+			//Render Extra Headtracking Frames for VR.
+			if (g_new_frame_just_rendered && g_has_hmd)
+			{
+				OpcodeReplayBufferInline();
+			}
+			g_new_frame_just_rendered = false;
+#endif
+
 			FPURoundMode::LoadSIMDState();
 		}
 

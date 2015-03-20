@@ -48,7 +48,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		{
 			addr = R(RSCRATCH2);
 			if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-				LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
 			else
 			{
 				MOV(32, addr, gpr.R(b));
@@ -160,7 +160,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	if (indexed)
 	{
 		if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-			LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+			LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
 		else
 		{
 			MOV(32, R(RSCRATCH2), gpr.R(b));

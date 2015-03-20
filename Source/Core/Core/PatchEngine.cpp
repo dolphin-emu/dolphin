@@ -30,7 +30,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
-#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 
 using namespace Common;
 
@@ -188,13 +188,13 @@ static void ApplyPatches(const std::vector<Patch> &patches)
 				switch (entry.type)
 				{
 				case PATCH_8BIT:
-					Memory::Write_U8((u8)value, addr);
+					PowerPC::HostWrite_U8((u8)value, addr);
 					break;
 				case PATCH_16BIT:
-					Memory::Write_U16((u16)value, addr);
+					PowerPC::HostWrite_U16((u16)value, addr);
 					break;
 				case PATCH_32BIT:
-					Memory::Write_U32(value, addr);
+					PowerPC::HostWrite_U32(value, addr);
 					break;
 				default:
 					//unknown patchtype
@@ -207,15 +207,20 @@ static void ApplyPatches(const std::vector<Patch> &patches)
 
 void ApplyFramePatches()
 {
+	// TODO: Messing with MSR this way is really, really, evil; we should
+	// probably be using some sort of Gecko OS-style hooking mechanism
+	// so the emulated CPU is in a predictable state when we process cheats.
+	u32 oldMSR = MSR;
+	UReg_MSR newMSR = oldMSR;
+	newMSR.IR = 1;
+	newMSR.DR = 1;
+	MSR = newMSR.Hex;
 	ApplyPatches(onFrame);
 
 	// Run the Gecko code handler
 	Gecko::RunCodeHandler();
-}
-
-void ApplyARPatches()
-{
 	ActionReplay::RunAllActive();
+	MSR = oldMSR;
 }
 
 void Shutdown()

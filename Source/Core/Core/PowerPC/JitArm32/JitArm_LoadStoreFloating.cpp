@@ -183,7 +183,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 
 	EmitBackpatchRoutine(this, flags,
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
-			!(is_immediate && Memory::IsRAMAddress(imm_addr)), v0, v1);
+			!(is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr)), v0, v1);
 
 	SetJumpTarget(DoNotLoad);
 }
@@ -350,7 +350,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 
 	if (is_immediate)
 	{
-		if ((imm_addr & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
+		if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
 		{
 			int accessSize;
 			if (flags & BackPatchInfo::FLAG_SIZE_F64)
@@ -384,7 +384,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 			jit->js.fifoBytesThisBlock += accessSize >> 3;
 
 		}
-		else if (Memory::IsRAMAddress(imm_addr))
+		else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
 		{
 			MOVI2R(addr, imm_addr);
 			EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, false, v0);

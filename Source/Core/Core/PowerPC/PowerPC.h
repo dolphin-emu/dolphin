@@ -21,6 +21,15 @@ extern CPUCoreBase *cpu_core_base;
 namespace PowerPC
 {
 
+enum
+{
+	CORE_INTERPRETER,
+	CORE_JIT64,
+	CORE_JITIL64,
+	CORE_JITARM,
+	CORE_JITARM64
+};
+
 enum CoreMode
 {
 	MODE_INTERPRETER,
@@ -73,7 +82,7 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 fpscr;  // floating point flags/status bits
 
 	// Exception management.
-	volatile u32 Exceptions;
+	u32 Exceptions;
 
 	// Downcount for determining when we need to do timing
 	// This isn't quite the right location for it, but it is here to accelerate the ARM JIT
@@ -191,6 +200,77 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 
 #define riPS0(i) (*(u64*)(&PowerPC::ppcState.ps[i][0]))
 #define riPS1(i) (*(u64*)(&PowerPC::ppcState.ps[i][1]))
+
+// Routines for debugger UI, cheats, etc. to access emulated memory from the
+// perspective of the CPU.  Not for use by core emulation routines.
+// Use "Host_" prefix.
+u8 HostRead_U8(const u32 address);
+u16 HostRead_U16(const u32 address);
+u32 HostRead_U32(const u32 address);
+u32 HostRead_Instruction(const u32 address);
+
+void HostWrite_U8(const u8 var, const u32 address);
+void HostWrite_U16(const u16 var, const u32 address);
+void HostWrite_U32(const u32 var, const u32 address);
+void HostWrite_U64(const u64 var, const u32 address);
+
+// Returns whether a read or write to the given address will resolve to a RAM
+// access given the current CPU state.
+bool HostIsRAMAddress(const u32 address);
+
+std::string HostGetString(u32 em_address, size_t size = 0);
+
+// Routines for the CPU core to access memory.
+
+// Used by interpreter to read instructions, uses iCache
+u32 Read_Opcode(const u32 address);
+struct TryReadInstResult
+{
+	bool valid;
+	bool from_bat;
+	u32 hex;
+};
+TryReadInstResult TryReadInstruction(const u32 address);
+
+u8  Read_U8(const u32 address);
+u16 Read_U16(const u32 address);
+u32 Read_U32(const u32 address);
+u64 Read_U64(const u32 address);
+
+// Useful helper functions, used by ARM JIT
+float Read_F32(const u32 address);
+double Read_F64(const u32 address);
+
+// used by JIT. Return zero-extended 32bit values
+u32 Read_U8_ZX(const u32 address);
+u32 Read_U16_ZX(const u32 address);
+
+void Write_U8(const u8 var, const u32 address);
+void Write_U16(const u16 var, const u32 address);
+void Write_U32(const u32 var, const u32 address);
+void Write_U64(const u64 var, const u32 address);
+
+void Write_U16_Swap(const u16 var, const u32 address);
+void Write_U32_Swap(const u32 var, const u32 address);
+void Write_U64_Swap(const u64 var, const u32 address);
+
+// Useful helper functions, used by ARM JIT
+void Write_F64(const double var, const u32 address);
+
+void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks);
+void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks);
+void ClearCacheLine(const u32 address); // Zeroes 32 bytes; address should be 32-byte-aligned
+
+// TLB functions
+void SDRUpdated();
+void InvalidateTLBEntry(u32 address);
+
+// Result changes based on the BAT registers and MSR.DR.  Returns whether
+// it's safe to optimize a read or write to this address to an unguarded
+// memory access.  Does not consider page tables.
+bool IsOptimizableRAMAddress(const u32 address);
+u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize);
+bool IsOptimizableGatherPipeWrite(u32 address);
 
 }  // namespace
 

@@ -7,17 +7,9 @@
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/InputConfig.h"
 
-InputConfig::~InputConfig()
-{
-	// delete pads
-	for (ControllerEmu* pad : controllers)
-		delete pad;
-}
-
 bool InputConfig::LoadConfig(bool isGC)
 {
 	IniFile inifile;
-	IniFile game_ini;
 	bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
 	std::string num[MAX_BBMOTES] = {"1", "2", "3", "4", "BB"};
 	std::string profile[MAX_BBMOTES];
@@ -37,8 +29,7 @@ bool InputConfig::LoadConfig(bool isGC)
 			path = "Profiles/Wiimote/";
 		}
 
-		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
-		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", true);
+		IniFile game_ini = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
 		IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
 
 		for (int i = 0; i < 4; i++)
@@ -53,7 +44,7 @@ bool InputConfig::LoadConfig(bool isGC)
 					}
 					else
 					{
-						// TODO: Having a PanicAlert for this is dumb.
+						// TODO: PanicAlert shouldn't be used for this.
 						PanicAlertT("Selected controller profile does not exist");
 					}
 				}

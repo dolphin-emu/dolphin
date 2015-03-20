@@ -118,15 +118,8 @@ static void DSPCallback(u64 userdata, int cyclesLate)
 
 static void AudioDMACallback(u64 userdata, int cyclesLate)
 {
-	int fields = VideoInterface::GetNumFields();
 	int period;
-	// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
-	// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
-	// back to 100% speed, it must be slowed down by 25%
-	if (g_has_hmd &&  !SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
-		period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 40 * fields);
-	else
-		period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
+	period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / (32 * SConfig::GetInstance().m_AudioSlowDown));
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
@@ -176,7 +169,7 @@ static void CPCallback(u64 userdata, int cyclesLate)
 static void DecrementerCallback(u64 userdata, int cyclesLate)
 {
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
-	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DECREMENTER);
+	PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
 }
 
 void DecrementerSet()
@@ -213,7 +206,6 @@ static void PatchEngineCallback(u64 userdata, int cyclesLate)
 {
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
-	PatchEngine::ApplyARPatches();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
 }
 
@@ -262,7 +254,7 @@ void Init()
 
 		// FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
 		const int freq = 1500;
-		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * VideoInterface::GetNumFields());
+		IPC_HLE_PERIOD = GetTicksPerSecond() / freq;
 	}
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA

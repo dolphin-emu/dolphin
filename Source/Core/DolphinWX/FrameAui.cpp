@@ -335,7 +335,7 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	// Create the popup menu
 	wxMenu MenuPopup;
 
-	wxMenuItem* Item =  new wxMenuItem(&MenuPopup, wxID_ANY, _("Select floating windows"));
+	wxMenuItem* Item = new wxMenuItem(&MenuPopup, wxID_ANY, _("Select floating windows"));
 	MenuPopup.Append(Item);
 	Item->Enable(false);
 	MenuPopup.Append(new wxMenuItem(&MenuPopup));
@@ -467,7 +467,7 @@ void CFrame::DoAddPage(wxWindow *Win, int i, bool Float)
 	if (!Win) return;
 
 	// Ensure accessor remains within valid bounds.
-	if (i < 0 || i > GetNotebookCount()-1)
+	if (i < 0 || i > GetNotebookCount() - 1)
 		i = 0;
 
 	// The page was already previously added, no need to add it again.
@@ -527,8 +527,20 @@ void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
 			GetStatusBar()->SetStatusText(StrToWxStr(std::string
 						("Saved " + Perspectives[ActivePerspective].Name)), 0);
 			break;
-		case IDM_PERSPECTIVES_ADD_PANE:
-			AddPane();
+		case IDM_PERSPECTIVES_ADD_PANE_TOP:
+			AddPane(ADD_PANE_TOP);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_BOTTOM:
+			AddPane(ADD_PANE_BOTTOM);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_LEFT:
+			AddPane(ADD_PANE_LEFT);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_RIGHT:
+			AddPane(ADD_PANE_RIGHT);
+			break;
+		case IDM_PERSPECTIVES_ADD_PANE_CENTER:
+			AddPane(ADD_PANE_CENTER);
 			break;
 		case IDM_EDIT_PERSPECTIVES:
 			m_bEdit = event.IsChecked();
@@ -682,7 +694,7 @@ void CFrame::SetPaneSize()
 			// Convert percentages to pixel lengths
 			W = (W * iClientX) / 100;
 			H = (H * iClientY) / 100;
-			m_Mgr->GetAllPanes()[i].BestSize(W,H).MinSize(W,H);
+			m_Mgr->GetAllPanes()[i].BestSize(W, H).MinSize(W, H);
 
 			j++;
 		}
@@ -693,7 +705,7 @@ void CFrame::SetPaneSize()
 	{
 		if (!m_Mgr->GetAllPanes()[i].window->IsKindOf(CLASSINFO(wxAuiToolBar)))
 		{
-			m_Mgr->GetAllPanes()[i].MinSize(-1,-1);
+			m_Mgr->GetAllPanes()[i].MinSize(-1, -1);
 		}
 	}
 }
@@ -842,7 +854,7 @@ void CFrame::SaveIniPerspectives()
 	{
 		STmp += Perspective.Name + ",";
 	}
-	STmp = STmp.substr(0, STmp.length()-1);
+	STmp = STmp.substr(0, STmp.length() - 1);
 
 	IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
 	perspectives->Set("Perspectives", STmp);
@@ -862,8 +874,8 @@ void CFrame::SaveIniPerspectives()
 			SHeight += StringFromFormat("%i,", Perspective.Height[j]);
 		}
 		// Remove the ending ","
-		SWidth = SWidth.substr(0, SWidth.length()-1);
-		SHeight = SHeight.substr(0, SHeight.length()-1);
+		SWidth = SWidth.substr(0, SWidth.length() - 1);
+		SHeight = SHeight.substr(0, SHeight.length() - 1);
 
 		perspec_section->Set("Width", SWidth);
 		perspec_section->Set("Height", SHeight);
@@ -877,14 +889,37 @@ void CFrame::SaveIniPerspectives()
 	TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES);
 }
 
-void CFrame::AddPane()
+void CFrame::AddPane(int dir)
 {
 	int PaneNum = GetNotebookCount() + 1;
 	wxString PaneName = wxString::Format("Pane %i", PaneNum);
-	m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
+	wxAuiPaneInfo PaneInfo = wxAuiPaneInfo()
 		.CaptionVisible(m_bEdit).Dockable(!m_bNoDocking)
 		.Name(PaneName).Caption(PaneName)
-		.Position(GetNotebookCount()));
+		.Position(GetNotebookCount());
+
+	switch (dir)
+	{
+		case ADD_PANE_TOP:
+			PaneInfo = PaneInfo.Top();
+			break;
+		case ADD_PANE_BOTTOM:
+			PaneInfo = PaneInfo.Bottom();
+			break;
+		case ADD_PANE_LEFT:
+			PaneInfo = PaneInfo.Left();
+			break;
+		case ADD_PANE_RIGHT:
+			PaneInfo = PaneInfo.Right();
+			break;
+		case ADD_PANE_CENTER:
+			PaneInfo = PaneInfo.Center();
+			break;
+		default:
+			break;
+	}
+
+	m_Mgr->AddPane(CreateEmptyNotebook(), PaneInfo);
 
 	AddRemoveBlankPage();
 	m_Mgr->Update();

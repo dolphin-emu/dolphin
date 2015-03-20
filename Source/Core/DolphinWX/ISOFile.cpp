@@ -37,7 +37,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x119;
+static const u32 CACHE_REVISION = 0x121;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -121,13 +121,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 	if (IsValid())
 	{
-		IniFile ini;
-		ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + m_UniqueID + ".ini");
-		ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_UniqueID + ".ini", true);
-
-		IniFile::Section* emu_state = ini.GetOrCreateSection("EmuState");
-		emu_state->Get("EmulationStateId", &m_emu_state);
-		emu_state->Get("EmulationIssues", &m_issues);
+		IniFile ini = SCoreStartupParameter::LoadGameIni(m_UniqueID, m_Revision);
+		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
+		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
 	}
 
 	if (!m_pImage.empty())

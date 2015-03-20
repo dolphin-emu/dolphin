@@ -17,7 +17,6 @@ private:
 	Display *dpy, *dpy_offscreen;
 	Window win;//, win_offscreen;
 	GLXContext ctx, ctx_offscreen;
-	XVisualInfo *vi;
 	GLXFBConfig fbconfig;
 public:
 	const Display* getDisplay() {return dpy;};
@@ -25,7 +24,7 @@ public:
 	void SwapInterval(int Interval) override;
 	void Swap() override;
 	void* GetFuncAddress(const std::string& name) override;
-	bool Create(void *window_handle);
+	bool Create(void *window_handle) override;
 	bool CreateOffscreen();
 	bool MakeCurrent() override;
 	bool MakeCurrentOffscreen();

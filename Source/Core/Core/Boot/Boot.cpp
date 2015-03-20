@@ -15,11 +15,12 @@
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/PatchEngine.h"
-#include "Core/RmObjEngine.h"
+#include "Core/HideObjectEngine.h"
 #include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
@@ -45,10 +46,10 @@ void CBoot::Load_FST(bool _bIsWii)
 		return;
 
 	// copy first 20 bytes of disc to start of Mem 1
-	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20, false);
+	DVDInterface::DVDRead(/*offset*/0, /*address*/0, /*length*/0x20, false);
 
 	// copy of game id
-	Memory::Write_U32(Memory::Read_U32(0x80000000), 0x80003180);
+	Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
 
 	u32 shift = 0;
 	if (_bIsWii)
@@ -62,7 +63,7 @@ void CBoot::Load_FST(bool _bIsWii)
 	Memory::Write_U32(arenaHigh, 0x00000034);
 
 	// load FST
-	VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize, _bIsWii);
+	DVDInterface::DVDRead(fstOffset, arenaHigh, fstSize, _bIsWii);
 	Memory::Write_U32(arenaHigh, 0x00000038);
 	Memory::Write_U32(maxFstSize, 0x0000003c);
 }
@@ -192,11 +193,30 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 		PanicAlert("%s IPL found in %s directory. The disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
 
 	// Run the descrambler over the encrypted section containing BS1/BS2
-	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);
+	CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
 
-	Memory::CopyToEmu(0x81200000, data.data() + 0x100, 0x700);
-	Memory::CopyToEmu(0x81300000, data.data() + 0x820, 0x1AFE00);
-	PC = 0x81200000;
+	// TODO: Execution is supposed to start at 0xFFF00000, not 0x81200000;
+	// copying the initial boot code to 0x81200000 is a hack.
+	// For now, HLE the first few instructions and start at 0x81200150
+	// to work around this.
+	Memory::CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
+	Memory::CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
+	PowerPC::ppcState.gpr[3] = 0xfff0001f;
+	PowerPC::ppcState.gpr[4] = 0x00002030;
+	PowerPC::ppcState.gpr[5] = 0x0000009c;
+	PowerPC::ppcState.msr = 0x00002030;
+	PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
+	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
+	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_IBAT3U] = 0xfff0001f;
+	PowerPC::ppcState.spr[SPR_IBAT3L] = 0xfff00001;
+	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
+	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+	PowerPC::ppcState.spr[SPR_DBAT3U] = 0xfff0001f;
+	PowerPC::ppcState.spr[SPR_DBAT3L] = 0xfff00001;
+	PC = 0x81200150;
 	return true;
 }
 
@@ -230,33 +250,8 @@ bool CBoot::BootUp()
 
 		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
 
-		// Action Replay culling code brute-forcing by penkamaster
-		if (Core::ch_bruteforce)
-		{
-			// load the function addresses from the map file as potential action replay codes
-			std::string userPath = File::GetUserPath(D_MAPS_IDX);
-			std::string userPathScreens = File::GetUserPath(D_SCREENSHOTS_IDX);
-
-			std::string line;
-			std::ifstream myfile( userPath + unique_id + ".map"); //lego starwars
-			std::string gameScrenShotsPath = userPathScreens + unique_id;
-#ifdef _WIN32
-			mkdir(gameScrenShotsPath.c_str());
-#else
-			mkdir(gameScrenShotsPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-#endif
-
-			Core::ch_title_id = unique_id;
-			if (myfile.is_open())
-			{
-				while (getline(myfile, line))
-				{
-					line = line.substr(2, 6);
-					Core::ch_map.push_back("04" + line);
-				}
-				myfile.close();
-			}
-		}
+		if (ARBruteForcer::ch_bruteforce)
+			ARBruteForcer::ParseMapFile(unique_id);
 
 		if (unique_id.size() >= 4)
 			VideoInterface::SetRegionReg(unique_id.at(3));
@@ -287,12 +282,12 @@ bool CBoot::BootUp()
 		{
 			// Load patches if they weren't already
 			PatchEngine::LoadPatches();
-			RmObjEngine::LoadRmObjs();
-			RmObjEngine::ApplyFrameRmObjs();
+			HideObjectEngine::LoadHideObjects();
+			HideObjectEngine::ApplyFrameHideObjects();
 		}
 
 		// Scan for common HLE functions
-		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
+		if (_StartupPara.bSkipIdle && _StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
 		{
 			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
 			SignatureDB db;
@@ -346,6 +341,25 @@ bool CBoot::BootUp()
 
 		if (!BS2Success)
 		{
+			// Set up MSR and the BAT SPR registers.
+			UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+			m_MSR.FP = 1;
+			m_MSR.DR = 1;
+			m_MSR.IR = 1;
+			m_MSR.EE = 1;
+			PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
+			PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+			PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001fff;
+			PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
+			PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
+			PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+			PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+			PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+			PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
+			PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
+			PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
+			PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+
 			dolLoader.Load();
 			PC = dolLoader.GetEntryPoint();
 		}
@@ -440,7 +454,7 @@ bool CBoot::BootUp()
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
 		HLE::Patch(0x80001800, "HBReload");
-		Memory::CopyToEmu(0x80001804, "STUBHAXX", 8);
+		Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
 	}
 
 	// Not part of the binary itself, but either we or Gecko OS might insert

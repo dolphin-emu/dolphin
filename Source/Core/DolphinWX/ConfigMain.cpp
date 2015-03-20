@@ -32,6 +32,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/EXI.h"
@@ -40,6 +41,7 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPLLE/DSPLLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/NANDContentLoader.h"
 
@@ -47,9 +49,12 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/HotkeyDlg.h"
+#include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
+
+#include "InputCommon/InputConfig.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -76,31 +81,33 @@ const CPUCore CPUCores[] = {
 static const wxLanguage langIds[] =
 {
 	wxLANGUAGE_DEFAULT,
-	wxLANGUAGE_ARABIC,
+
 	wxLANGUAGE_CATALAN,
-	wxLANGUAGE_CHINESE_SIMPLIFIED,
-	wxLANGUAGE_CHINESE_TRADITIONAL,
 	wxLANGUAGE_CZECH,
-	wxLANGUAGE_DUTCH,
-	wxLANGUAGE_ENGLISH,
-	wxLANGUAGE_FARSI,
-	wxLANGUAGE_FRENCH,
 	wxLANGUAGE_GERMAN,
-	wxLANGUAGE_GREEK,
-	wxLANGUAGE_HEBREW,
-	wxLANGUAGE_HUNGARIAN,
+	wxLANGUAGE_ENGLISH,
+	wxLANGUAGE_SPANISH,
+	wxLANGUAGE_FRENCH,
 	wxLANGUAGE_ITALIAN,
-	wxLANGUAGE_JAPANESE,
-	wxLANGUAGE_KOREAN,
+	wxLANGUAGE_HUNGARIAN,
+	wxLANGUAGE_DUTCH,
 	wxLANGUAGE_NORWEGIAN_BOKMAL,
 	wxLANGUAGE_POLISH,
 	wxLANGUAGE_PORTUGUESE,
 	wxLANGUAGE_PORTUGUESE_BRAZILIAN,
-	wxLANGUAGE_RUSSIAN,
 	wxLANGUAGE_SERBIAN,
-	wxLANGUAGE_SPANISH,
 	wxLANGUAGE_SWEDISH,
 	wxLANGUAGE_TURKISH,
+
+	wxLANGUAGE_GREEK,
+	wxLANGUAGE_RUSSIAN,
+	wxLANGUAGE_HEBREW,
+	wxLANGUAGE_ARABIC,
+	wxLANGUAGE_FARSI,
+	wxLANGUAGE_KOREAN,
+	wxLANGUAGE_JAPANESE,
+	wxLANGUAGE_CHINESE_SIMPLIFIED,
+	wxLANGUAGE_CHINESE_TRADITIONAL,
 };
 
 // Strings for Device Selections
@@ -148,6 +155,7 @@ EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_ONSCREENDISPLAYMESSAGES, CConfigMain::DisplaySettingsChanged)
+EVT_CHECKBOX(ID_INTERFACE_PAUSEONFOCUSLOST, CConfigMain::DisplaySettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::DisplaySettingsChanged)
 EVT_BUTTON(ID_HOTKEY_CONFIG, CConfigMain::DisplaySettingsChanged)
 
@@ -227,7 +235,7 @@ void CConfigMain::UpdateGUI()
 		EnableCheats->Disable();
 
 		CPUEngine->Disable();
-		_NTSCJ->Disable();
+		ForceNTSCJ->Disable();
 
 		// Disable stuff on AudioPage
 		DSPEngine->Disable();
@@ -294,32 +302,34 @@ void CConfigMain::InitializeGUILists()
 
 	// GUI language arrayStrings
 	// keep these in sync with the langIds array at the beginning of this file
-	arrayStringFor_InterfaceLang.Add(_("<System>"));
-	arrayStringFor_InterfaceLang.Add(_("Arabic"));
-	arrayStringFor_InterfaceLang.Add(_("Catalan"));
-	arrayStringFor_InterfaceLang.Add(_("Chinese (Simplified)"));
-	arrayStringFor_InterfaceLang.Add(_("Chinese (Traditional)"));
-	arrayStringFor_InterfaceLang.Add(_("Czech"));
-	arrayStringFor_InterfaceLang.Add(_("Dutch"));
-	arrayStringFor_InterfaceLang.Add(_("English"));
-	arrayStringFor_InterfaceLang.Add(_("Farsi"));
-	arrayStringFor_InterfaceLang.Add(_("French"));
-	arrayStringFor_InterfaceLang.Add(_("German"));
-	arrayStringFor_InterfaceLang.Add(_("Greek"));
-	arrayStringFor_InterfaceLang.Add(_("Hebrew"));
-	arrayStringFor_InterfaceLang.Add(_("Hungarian"));
-	arrayStringFor_InterfaceLang.Add(_("Italian"));
-	arrayStringFor_InterfaceLang.Add(_("Japanese"));
-	arrayStringFor_InterfaceLang.Add(_("Korean"));
-	arrayStringFor_InterfaceLang.Add(_("Norwegian Bokmaal"));
-	arrayStringFor_InterfaceLang.Add(_("Polish"));
-	arrayStringFor_InterfaceLang.Add(_("Portuguese"));
-	arrayStringFor_InterfaceLang.Add(_("Portuguese (Brazilian)"));
-	arrayStringFor_InterfaceLang.Add(_("Russian"));
-	arrayStringFor_InterfaceLang.Add(_("Serbian"));
-	arrayStringFor_InterfaceLang.Add(_("Spanish"));
-	arrayStringFor_InterfaceLang.Add(_("Swedish"));
-	arrayStringFor_InterfaceLang.Add(_("Turkish"));
+	arrayStringFor_InterfaceLang.Add(_("<System Language>"));
+
+	arrayStringFor_InterfaceLang.Add(L"Catal\u00E0");                                       // Catalan
+	arrayStringFor_InterfaceLang.Add(L"\u010Ce\u0161tina");                                 // Czech
+	arrayStringFor_InterfaceLang.Add(L"Deutsch");                                           // German
+	arrayStringFor_InterfaceLang.Add(L"English");                                           // English
+	arrayStringFor_InterfaceLang.Add(L"Espa\u00F1ol");                                      // Spanish
+	arrayStringFor_InterfaceLang.Add(L"Fran\u00E7ais");                                     // French
+	arrayStringFor_InterfaceLang.Add(L"Italiano");                                          // Italian
+	arrayStringFor_InterfaceLang.Add(L"Magyar");                                            // Hungarian
+	arrayStringFor_InterfaceLang.Add(L"Nederlands");                                        // Dutch
+	arrayStringFor_InterfaceLang.Add(L"Norsk bokm\u00E5l");                                 // Norwegian
+	arrayStringFor_InterfaceLang.Add(L"Polski");                                            // Polish
+	arrayStringFor_InterfaceLang.Add(L"Portugu\u00EAs");                                    // Portuguese
+	arrayStringFor_InterfaceLang.Add(L"Portugu\u00EAs (Brasil)");                           // Portuguese (Brazil)
+	arrayStringFor_InterfaceLang.Add(L"Srpski");                                            // Serbian
+	arrayStringFor_InterfaceLang.Add(L"Svenska");                                           // Swedish
+	arrayStringFor_InterfaceLang.Add(L"T\u00FCrk\u00E7e");                                  // Turkish
+
+	arrayStringFor_InterfaceLang.Add(L"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC");  // Greek
+	arrayStringFor_InterfaceLang.Add(L"\u0420\u0443\u0441\u0441\u043A\u0438\u0439");        // Russian
+	arrayStringFor_InterfaceLang.Add(L"\u05E2\u05D1\u05E8\u05D9\u05EA");                    // Hebrew
+	arrayStringFor_InterfaceLang.Add(L"\u0627\u0644\u0639\u0631\u0628\u064A\u0629");        // Arabic
+	arrayStringFor_InterfaceLang.Add(L"\u0641\u0627\u0631\u0633\u06CC");                    // Farsi
+	arrayStringFor_InterfaceLang.Add(L"\uD55C\uAD6D\uC5B4");                                // Korean
+	arrayStringFor_InterfaceLang.Add(L"\u65E5\u672C\u8A9E");                                // Japanese
+	arrayStringFor_InterfaceLang.Add(L"\u7B80\u4F53\u4E2D\u6587");                          // Simplified Chinese
+	arrayStringFor_InterfaceLang.Add(L"\u7E41\u9AD4\u4E2D\u6587");                          // Traditional Chinese
 }
 
 void CConfigMain::InitializeGUIValues()
@@ -341,13 +351,14 @@ void CConfigMain::InitializeGUIValues()
 	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
 		if (CPUCores[a].CPUid == startup_params.iCPUCore)
 			CPUEngine->SetSelection(a);
-	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
+	ForceNTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
 	// Display - Interface
 	ConfirmStop->SetValue(startup_params.bConfirmStop);
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
 	OnScreenDisplayMessages->SetValue(startup_params.bOnScreenDisplayMessages);
+	PauseOnFocusLost->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
 	// need redesign
 	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
 	{
@@ -468,35 +479,47 @@ void CConfigMain::InitializeGUIValues()
 void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
-	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
-	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
+	CPUThread->SetToolTip(_("Splits the CPU and GPU threads so they can be run on separate cores.\nProvides major speed improvements on most modern PCs, but can cause occasional crashes/glitches."));
+	SkipIdle->SetToolTip(_("Attempt to detect and skip wait-loops.\nIf unsure, leave this checked."));
+	EnableCheats->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
+	Framelimit->SetToolTip(_("Limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
 
 	// General - Advanced
-	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
+	ForceNTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
-	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
-	OnScreenDisplayMessages->SetToolTip(_("Show messages on the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
+	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all."));
+	OnScreenDisplayMessages->SetToolTip(_("Display messages over the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
+	PauseOnFocusLost->SetToolTip(_("Pauses the emulator when focus is taken away from the emulation window."));
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
-	// Audio tooltips
-	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
+	// Audio - Backend
+	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running."));
+
+	// GameCube - IPL
+	GCSystemLang->SetToolTip(_("Sets the GameCube system language."));
 
 	// GameCube - Devices
-	GCEXIDevice[2]->SetToolTip(_("Serial Port 1 - This is the port which devices such as the net adapter use"));
+	GCEXIDevice[2]->SetToolTip(_("Serial Port 1 - This is the port which devices such as the net adapter use."));
+
+	// Wii - Misc
+	WiiScreenSaver->SetToolTip(_("Dims the screen after five minutes of inactivity."));
+	WiiPAL60->SetToolTip(_("Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL games.\nMay not work for all games."));
+	WiiSystemLang->SetToolTip(_("Sets the Wii system language."));
 
 	// Wii - Devices
-	WiiKeyboard->SetToolTip(_("This could cause slow down in Wii Menu and some games."));
+	WiiSDCard->SetToolTip(_("Saved to /Wii/sd.raw (default size is 128mb)"));
+	WiiKeyboard->SetToolTip(_("May cause slow down in Wii Menu and some games."));
 
 #if defined(__APPLE__)
-	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OSX."));
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OS X."));
 #else
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
 #endif
 
-	Latency->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
+	Latency->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL backend only."));
 }
 
 void CConfigMain::CreateGUIControls()
@@ -540,7 +563,7 @@ void CConfigMain::CreateGUIControls()
 	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit);
 	// Core Settings - Advanced
 	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
-	_NTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Force Console as NTSC-J"));
+	ForceNTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Force Console as NTSC-J"));
 
 	// Populate the General settings
 	wxBoxSizer* sFramelimit = new wxBoxSizer(wxHORIZONTAL);
@@ -556,7 +579,7 @@ void CConfigMain::CreateGUIControls()
 
 	wxStaticBoxSizer* const sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Advanced Settings"));
 	sbAdvanced->Add(CPUEngine, 0, wxALL, 5);
-	sbAdvanced->Add(_NTSCJ, 0, wxALL, 5);
+	sbAdvanced->Add(ForceNTSCJ, 0, wxALL, 5);
 
 	wxBoxSizer* const sGeneralPage = new wxBoxSizer(wxVERTICAL);
 	sGeneralPage->Add(sbBasic, 0, wxEXPAND | wxALL, 5);
@@ -571,6 +594,7 @@ void CConfigMain::CreateGUIControls()
 	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, _("Confirm on Stop"));
 	UsePanicHandlers = new wxCheckBox(DisplayPage, ID_INTERFACE_USEPANICHANDLERS, _("Use Panic Handlers"));
 	OnScreenDisplayMessages = new wxCheckBox(DisplayPage, ID_INTERFACE_ONSCREENDISPLAYMESSAGES, _("On-Screen Display Messages"));
+	PauseOnFocusLost = new wxCheckBox(DisplayPage, ID_INTERFACE_PAUSEONFOCUSLOST, _("Pause on Focus Lost"));
 
 	wxBoxSizer* sInterface = new wxBoxSizer(wxHORIZONTAL);
 	sInterface->Add(TEXT_BOX(DisplayPage, _("Language:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -617,6 +641,7 @@ void CConfigMain::CreateGUIControls()
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
 	sbInterface->Add(OnScreenDisplayMessages, 0, wxALL, 5);
+	sbInterface->Add(PauseOnFocusLost, 0, wxALL, 5);
 	sbInterface->Add(scInterface, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
 	sDisplayPage = new wxBoxSizer(wxVERTICAL);
@@ -627,7 +652,7 @@ void CConfigMain::CreateGUIControls()
 	// Audio page
 	DSPEngine = new wxRadioBox(AudioPage, ID_DSPENGINE, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_DSPEngine, 0, wxRA_SPECIFY_ROWS);
 	DPL2Decoder = new wxCheckBox(AudioPage, ID_DPL2DECODER, _("Dolby Pro Logic II decoder"));
-	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
 	VolumeText = new wxStaticText(AudioPage, wxID_ANY, "");
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition, wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 	Latency = new wxSpinCtrl(AudioPage, ID_LATENCY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
@@ -647,24 +672,24 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(DPL2Decoder, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
-	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT, 13);
-	sbVolume->Add(VolumeText, 0, wxALIGN_CENTER|wxALL, 5);
+	sbVolume->Add(VolumeSlider, 1, wxLEFT | wxRIGHT, 13);
+	sbVolume->Add(VolumeText, 0, wxALIGN_CENTER | wxALL, 5);
 
 	wxGridBagSizer *sBackend = new wxGridBagSizer();
-	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBackend->Add(BackendSelection, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBackend->Add(Latency, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
 	sbBackend->Add(sBackend, 0, wxEXPAND);
 
 	wxBoxSizer *sAudio = new wxBoxSizer(wxHORIZONTAL);
-	sAudio->Add(sbAudioSettings, 1, wxEXPAND|wxALL, 5);
-	sAudio->Add(sbVolume, 0, wxEXPAND|wxALL, 5);
+	sAudio->Add(sbAudioSettings, 1, wxEXPAND | wxALL, 5);
+	sAudio->Add(sbVolume, 0, wxEXPAND | wxALL, 5);
 
 	sAudioPage = new wxBoxSizer(wxVERTICAL);
-	sAudioPage->Add(sAudio, 0, wxALL|wxEXPAND);
-	sAudioPage->Add(sbBackend, 0, wxALL|wxEXPAND, 5);
+	sAudioPage->Add(sAudio, 0, wxALL | wxEXPAND);
+	sAudioPage->Add(sbBackend, 0, wxALL | wxEXPAND, 5);
 	AudioPage->SetSizerAndFit(sAudioPage);
 
 
@@ -702,8 +727,8 @@ void CConfigMain::CreateGUIControls()
 	sGamecubeIPLSettings = new wxGridBagSizer();
 	sGamecubeIPLSettings->Add(GCAlwaysHLE_BS2, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sGamecubeIPLSettings->Add(TEXT_BOX(GamecubePage, _("System Language:")),
-			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5);
-	sGamecubeIPLSettings->Add(GCSystemLang, wxGBPosition(1, 1), wxDefaultSpan, wxLEFT|wxRIGHT|wxBOTTOM, 5);
+			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	sGamecubeIPLSettings->Add(GCSystemLang, wxGBPosition(1, 1), wxDefaultSpan, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, _("IPL Settings"));
 	sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
@@ -712,16 +737,17 @@ void CConfigMain::CreateGUIControls()
 	for (int i = 0; i < 3; ++i)
 	{
 		sbGamecubeEXIDevSettings->Add(GCEXIDeviceText[i], wxGBPosition(i, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-		sbGamecubeEXIDevSettings->Add(GCEXIDevice[i], wxGBPosition(i, 1), wxGBSpan(1, (i < 2)?1:2), wxALIGN_CENTER_VERTICAL);
-		if (i < 2) sbGamecubeEXIDevSettings->Add(GCMemcardPath[i], wxGBPosition(i, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+		sbGamecubeEXIDevSettings->Add(GCEXIDevice[i], wxGBPosition(i, 1), wxGBSpan(1, (i < 2) ? 1 : 2), wxALIGN_CENTER_VERTICAL);
+		if (i < 2)
+			sbGamecubeEXIDevSettings->Add(GCMemcardPath[i], wxGBPosition(i, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 		if (NetPlay::IsNetPlayRunning())
 			GCEXIDevice[i]->Disable();
 	}
 	sbGamecubeDeviceSettings->Add(sbGamecubeEXIDevSettings, 0, wxALL, 5);
 
 	sGamecubePage = new wxBoxSizer(wxVERTICAL);
-	sGamecubePage->Add(sbGamecubeIPLSettings, 0, wxEXPAND|wxALL, 5);
-	sGamecubePage->Add(sbGamecubeDeviceSettings, 0, wxEXPAND|wxALL, 5);
+	sGamecubePage->Add(sbGamecubeIPLSettings, 0, wxEXPAND | wxALL, 5);
+	sGamecubePage->Add(sbGamecubeDeviceSettings, 0, wxEXPAND | wxALL, 5);
 	GamecubePage->SetSizer(sGamecubePage);
 
 	// Wii page
@@ -740,10 +766,10 @@ void CConfigMain::CreateGUIControls()
 	sWiiIPLSettings->Add(WiiScreenSaver, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sWiiIPLSettings->Add(WiiPAL60, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sWiiIPLSettings->Add(TEXT_BOX(WiiPage, _("Aspect Ratio:")),
-			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sWiiIPLSettings->Add(WiiAspectRatio, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 	sWiiIPLSettings->Add(TEXT_BOX(WiiPage, _("System Language:")),
-			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, _("Misc Settings"));
 	sbWiiIPLSettings->Add(sWiiIPLSettings);
@@ -753,8 +779,8 @@ void CConfigMain::CreateGUIControls()
 	sbWiiDeviceSettings->Add(WiiKeyboard, 0, wxALL, 5);
 
 	sWiiPage = new wxBoxSizer(wxVERTICAL);
-	sWiiPage->Add(sbWiiIPLSettings, 0, wxEXPAND|wxALL, 5);
-	sWiiPage->Add(sbWiiDeviceSettings, 0, wxEXPAND|wxALL, 5);
+	sWiiPage->Add(sbWiiIPLSettings, 0, wxEXPAND | wxALL, 5);
+	sWiiPage->Add(sbWiiDeviceSettings, 0, wxEXPAND | wxALL, 5);
 	WiiPage->SetSizer(sWiiPage);
 
 
@@ -763,50 +789,50 @@ void CConfigMain::CreateGUIControls()
 	RecursiveISOPath = new wxCheckBox(PathsPage, ID_RECURSIVEISOPATH, _("Search Subfolders"));
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, _("Add..."));
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, _("Remove"));
-	RemoveISOPath->Enable(false);
+	RemoveISOPath->Disable();
 
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
 		_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") + wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
 		_("apploader (.img)") + wxString::Format("|*.img|%s", wxGetTranslation(wxALL_FILES)),
-		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN);
 	NANDRoot = new wxDirPickerCtrl(PathsPage, ID_NANDROOT, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 
 	// Populate the settings
 	wxBoxSizer* sISOButtons = new wxBoxSizer(wxHORIZONTAL);
-	sISOButtons->Add(RecursiveISOPath, 0, wxALL|wxALIGN_CENTER, 0);
+	sISOButtons->Add(RecursiveISOPath, 0, wxALL | wxALIGN_CENTER, 0);
 	sISOButtons->AddStretchSpacer();
 	sISOButtons->Add(AddISOPath, 0, wxALL, 0);
 	sISOButtons->Add(RemoveISOPath, 0, wxALL, 0);
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, _("ISO Directories"));
-	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 0);
-	sbISOPaths->Add(sISOButtons, 0, wxEXPAND|wxALL, 5);
+	sbISOPaths->Add(ISOPaths, 1, wxEXPAND | wxALL, 0);
+	sbISOPaths->Add(sISOButtons, 0, wxEXPAND | wxALL, 5);
 
 	sOtherPaths = new wxGridBagSizer();
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Default ISO:")),
-			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("DVD Root:")),
-			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Apploader:")),
-			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->Add(TEXT_BOX(PathsPage, _("Wii NAND Root:")),
-			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sOtherPaths->Add(NANDRoot, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND|wxALL, 5);
+			wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sOtherPaths->Add(NANDRoot, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
 	sOtherPaths->AddGrowableCol(1);
 
 	// Populate the Paths page
 	sPathsPage = new wxBoxSizer(wxVERTICAL);
-	sPathsPage->Add(sbISOPaths, 1, wxEXPAND|wxALL, 5);
-	sPathsPage->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
+	sPathsPage->Add(sbISOPaths, 1, wxEXPAND | wxALL, 5);
+	sPathsPage->Add(sOtherPaths, 0, wxEXPAND | wxALL, 5);
 	PathsPage->SetSizer(sPathsPage);
 
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(Notebook, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(Notebook, 1, wxEXPAND | wxALL, 5);
 	sMain->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	wxStaticBoxSizer* sbCPUOptions = new wxStaticBoxSizer(wxVERTICAL, AdvancedPage, _("CPU Options"));
@@ -846,12 +872,12 @@ void CConfigMain::CreateGUIControls()
 	SetFocus();
 }
 
-void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
+void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
 {
 	EndModal((bRefreshList) ? wxID_OK : wxID_CANCEL);
 }
 
-void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::OnOk(wxCommandEvent& WXUNUSED(event))
 {
 	Close();
 
@@ -898,12 +924,12 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		startup_params.iCPUCore = CPUCores[CPUEngine->GetSelection()].CPUid;
 		if (main_frame->g_pCodeWindow)
 		{
-			bool using_interp = (startup_params.iCPUCore == SCoreStartupParameter::CORE_INTERPRETER);
+			bool using_interp = (startup_params.iCPUCore == PowerPC::CORE_INTERPRETER);
 			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, using_interp);
 		}
 		break;
 	case ID_NTSCJ:
-		startup_params.bForceNTSCJ = _NTSCJ->IsChecked();
+		startup_params.bForceNTSCJ = ForceNTSCJ->IsChecked();
 		break;
 	case ID_ENABLEOVERCLOCK:
 		SConfig::GetInstance().m_OCEnable = EnableOC->IsChecked();
@@ -935,6 +961,9 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = OnScreenDisplayMessages->IsChecked();
 		SetEnableAlert(OnScreenDisplayMessages->IsChecked());
 		break;
+	case ID_INTERFACE_PAUSEONFOCUSLOST:
+		SConfig::GetInstance().m_PauseOnFocusLost = PauseOnFocusLost->IsChecked();
+		break;
 	case ID_INTERFACE_LANG:
 		if (SConfig::GetInstance().m_InterfaceLanguage != langIds[InterfaceLang->GetSelection()])
 			SuccessAlertT("You must restart Dolphin in order for the change to take effect.");
@@ -942,8 +971,38 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_HOTKEY_CONFIG:
 		{
+#ifdef NEW_HOTKEYS
+			bool was_init = false;
+
+			InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
+
+			// check if game is running
+			if (g_controller_interface.IsInit())
+			{
+				was_init = true;
+			}
+			else
+			{
+#if defined(HAVE_X11) && HAVE_X11
+				Window win = X11Utils::XWindowFromHandle(GetHandle());
+				HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
+#else
+				HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
+#endif
+			}
+
+			InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
+			m_ConfigFrame.ShowModal();
+
+			// if game isn't running
+			if (!was_init)
+			{
+				HotkeyManagerEmu::Shutdown();
+			}
+#else
 			HotkeyConfigDialog m_HotkeyDialog(this);
 			m_HotkeyDialog.ShowModal();
+#endif
 		}
 		// Update the GUI in case menu accelerators were changed
 		main_frame->UpdateGUI();
@@ -1077,7 +1136,7 @@ void CConfigMain::ChooseSlotPath(bool isSlotA, TEXIDevices device_type)
 				if (!memorycard.IsValid())
 				{
 					WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n" \
-						"is not a valid gamecube memory card file"), filename.c_str()));
+						"is not a valid GameCube memory card file"), filename.c_str()));
 					return;
 				}
 			}
@@ -1216,7 +1275,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 
 // Paths settings
 // -------------------
-void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED(event))
 {
 	RemoveISOPath->Enable(ISOPaths->GetSelection() != wxNOT_FOUND);
 }
@@ -1259,32 +1318,33 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 		SConfig::GetInstance().m_ISOFolder.push_back(WxStrToStr(ISOPaths->GetStrings()[i]));
 }
 
-void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_RecursiveISOFolder = RecursiveISOPath->IsChecked();
 	bRefreshList = true;
 }
 
-void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultISO = WxStrToStr(DefaultISO->GetPath());
 }
 
-void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = WxStrToStr(DVDRoot->GetPath());
 }
 
-void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = WxStrToStr(ApploaderPath->GetPath());
 }
 
-void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
+void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED(event))
 {
 	std::string NANDPath =
 		SConfig::GetInstance().m_NANDPath =
-			File::GetUserPath(D_WIIROOT_IDX, WxStrToStr(NANDRoot->GetPath()));
+		WxStrToStr(NANDRoot->GetPath());
+	File::SetUserPath(D_WIIROOT_IDX, NANDPath);
 	NANDRoot->SetPath(StrToWxStr(NANDPath));
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
 	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
@@ -1309,37 +1369,37 @@ void CConfigMain::OnConfig(wxCommandEvent&)
 inline u8 CConfigMain::GetSADRCountryCode(int language)
 {
 	//http://wiibrew.org/wiki/Country_Codes
-	u8 countrycode = language;
-	switch (countrycode)
+	u8 country_code = language;
+	switch (country_code)
 	{
 	case 0: //Japanese
-		countrycode = 1; //Japan
+		country_code = 1; //Japan
 		break;
 	case 1: //English
-		countrycode = 49; //United States
+		country_code = 49; //USA
 		break;
 	case 2: //German
-		countrycode = 78; //Germany
+		country_code = 78; //Germany
 		break;
 	case 3: //French
-		countrycode = 77; //France
+		country_code = 77; //France
 		break;
 	case 4: //Spanish
-		countrycode = 105; //Spain
+		country_code = 105; //Spain
 		break;
 	case 5: //Italian
-		countrycode = 83; //Italy
+		country_code = 83; //Italy
 		break;
 	case 6: //Dutch
-		countrycode = 94; //Netherlands
+		country_code = 94; //Netherlands
 		break;
 	case 7: //Simplified Chinese
 	case 8: //Traditional Chinese
-		countrycode = 157; //China
+		country_code = 157; //China
 		break;
 	case 9: //Korean
-		countrycode = 136; //Korea
+		country_code = 136; //Korea
 		break;
 	}
-	return countrycode;
+	return country_code;
 }

@@ -22,6 +22,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/Core.h"
 
 #define HACK_LOG INFO_LOG
@@ -61,10 +62,6 @@ int debug_projNum = 0;
 float debug_projList[64][7] = { 0 };
 bool debug_newScene = true, debug_nextScene = false;
 int vr_widest_3d_projNum = -1;
-float vr_widest_3d_HFOV = 0;
-float vr_widest_3d_VFOV = 0;
-float vr_widest_3d_zNear = 0;
-float vr_widest_3d_zFar = 0;
 EFBRectangle g_final_screen_region = EFBRectangle(0, 0, 640, 528);
 EFBRectangle g_requested_viewport = EFBRectangle(0, 0, 640, 528), g_rendered_viewport = EFBRectangle(0, 0, 640, 528);
 enum ViewportType g_viewport_type = VIEW_FULLSCREEN, g_old_viewport_type = VIEW_FULLSCREEN;
@@ -563,10 +560,10 @@ static float PHackValue(std::string sValue)
 	float f = 0;
 	bool fp = false;
 	const char *cStr = sValue.c_str();
-	char *c = new char[strlen(cStr)+1];
+	char *c = new char[strlen(cStr) + 1];
 	std::istringstream sTof("");
 
-	for (unsigned int i=0; i<=strlen(cStr); ++i)
+	for (unsigned int i = 0; i <= strlen(cStr); ++i)
 	{
 		if (i == 20)
 		{
@@ -574,7 +571,7 @@ static float PHackValue(std::string sValue)
 			break;
 		}
 
-		c[i] = (cStr[i] == ',') ? '.' : *(cStr+i);
+		c[i] = (cStr[i] == ',') ? '.' : *(cStr + i);
 		if (c[i] == '.')
 			fp = true;
 	}
@@ -586,7 +583,7 @@ static float PHackValue(std::string sValue)
 	if (!fp)
 		f /= 0xF4240;
 
-	delete [] c;
+	delete[] c;
 	return f;
 }
 
@@ -662,10 +659,10 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 	if (Wd == 0 || Ht == 0)
 		return;
 
-	result.data[4*0+0] = intendedWd / Wd;
-	result.data[4*0+3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
-	result.data[4*1+1] = intendedHt / Ht;
-	result.data[4*1+3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
+	result.data[4*0 + 0] = intendedWd / Wd;
+	result.data[4*0 + 3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
+	result.data[4*1 + 1] = intendedHt / Ht;
+	result.data[4*1 + 3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
 }
 
 void VertexShaderManager::Init()
@@ -689,7 +686,7 @@ void VertexShaderManager::Init()
 	m_layer_on_top = false;
 
 	memset(&xfmem, 0, sizeof(xfmem));
-	memset(&constants, 0 , sizeof(constants));
+	memset(&constants, 0, sizeof(constants));
 	ResetView();
 
 	// TODO: should these go inside ResetView()?
@@ -701,6 +698,7 @@ void VertexShaderManager::Init()
 	g_old_viewport_type = VIEW_FULLSCREEN;
 	g_splitscreen_type = SS_FULLSCREEN;
 	g_old_splitscreen_type = SS_FULLSCREEN;
+	Matrix44::LoadIdentity(g_game_camera_rotmat);
 
 	dirty = true;
 }
@@ -736,7 +734,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
-		for (int i=startn; i<endn; i++)
+		for (int i = startn; i < endn; i++)
 		{
 			memcpy(constants.normalmatrices[i], &xfmem.normalMatrices[3*i], 12);
 		}
@@ -747,7 +745,7 @@ void VertexShaderManager::SetConstants()
 	if (nPostTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
-		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
+		int endn = (nPostTransformMatricesChanged[1] + 3) / 4;
 		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
@@ -825,8 +823,8 @@ void VertexShaderManager::SetConstants()
 		const float *pos = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
 		const float *norm = (const float *)xfmem.normalMatrices + 3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31);
 
-		memcpy(constants.posnormalmatrix, pos, 3*16);
-		memcpy(constants.posnormalmatrix[3], norm, 12);
+		memcpy(constants.posnormalmatrix,    pos,    3*16);
+		memcpy(constants.posnormalmatrix[3], norm,   12);
 		memcpy(constants.posnormalmatrix[4], norm+3, 12);
 		memcpy(constants.posnormalmatrix[5], norm+6, 12);
 		dirty = true;
@@ -845,7 +843,7 @@ void VertexShaderManager::SetConstants()
 
 		for (int i = 0; i < 4; ++i)
 		{
-			memcpy(constants.texmatrices[3*i], fptrs[i], 3*16);
+			memcpy(constants.texmatrices[3 * i], fptrs[i], 3 * 16);
 		}
 		dirty = true;
 	}
@@ -862,7 +860,7 @@ void VertexShaderManager::SetConstants()
 
 		for (int i = 0; i < 4; ++i)
 		{
-			memcpy(constants.texmatrices[3*i+12], fptrs[i], 3*16);
+			memcpy(constants.texmatrices[3*i + 12], fptrs[i], 3*16);
 		}
 		dirty = true;
 	}
@@ -952,8 +950,8 @@ void VertexShaderManager::SetProjectionConstants()
 	bHide = bHide || (g_has_hmd && (g_viewport_type == VIEW_OFFSCREEN || (g_viewport_type >= VIEW_PLAYER_1 && g_viewport_type <= VIEW_PLAYER_4 && g_ActiveConfig.iVRPlayer!=g_viewport_type-VIEW_PLAYER_1)));
 	// flash selected layer for debugging
 	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
-	// hide skybox to reduce motion sickness
-	bHide = bHide || (g_is_skybox && g_ActiveConfig.iMotionSicknessSkybox == 1);
+	// hide skybox or everything to reduce motion sickness
+	bHide = bHide || (g_is_skybox && g_ActiveConfig.iMotionSicknessSkybox == 1) || g_vr_black_screen;
 
 	// Split WidthHack and HeightHack into left and right versions for telescopes
 	float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
@@ -1054,8 +1052,7 @@ void VertexShaderManager::SetProjectionConstants()
 
 		g_fProjectionMatrix[14] = 0.0f;
 		// Hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
-		// Turn it off for Nvidia 3D Vision, because it can't handle such a projection matrix
-		g_fProjectionMatrix[15] = (g_ActiveConfig.iStereoMode == STEREO_3DVISION) ? 1.0f : 1.0f + FLT_EPSILON;
+		g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON;
 
 		SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 		SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
@@ -1135,7 +1132,7 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 mtxB;
 		Matrix44 viewMtx;
 
-		if ((bFreeLookChanged || Core::ch_bruteforce) && xfmem.projection.type == GX_PERSPECTIVE)
+		if ((bFreeLookChanged || ARBruteForcer::ch_bruteforce) && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			// use the freelook camera position, which should still be in metres even for non-VR so it is a consistent speed between games
 			float pos[3];
@@ -1229,6 +1226,13 @@ void VertexShaderManager::SetProjectionConstants()
 			// prevent near z-clipping by moving near clipping plane closer (may cause z-fighting though)
 			// needed for Animal Crossing on GameCube
 			// znear *= 0.3f;
+
+			// Find the game's camera angle and position by looking at the view/model matrix of the first real 3D object drawn.
+			// This won't work for all games.
+			if (!g_vr_had_3D_already) {
+				CheckOrientationConstants();
+				g_vr_had_3D_already = true;
+			}
 		}
 		// 2D layer we will turn into a 3D scene
 		// or 3D HUD element that we will treat like a part of the 2D HUD 
@@ -1378,12 +1382,19 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
 
 			// camera pitch
-			if (xfmem.projection.type == GX_PERSPECTIVE || vr_widest_3d_HFOV > 0)
-				extra_pitch = g_ActiveConfig.fCameraPitch;
+			if (g_ActiveConfig.iGameCameraControl > CAMERA_YAWPITCHROLL && g_ActiveConfig.bCanReadCameraAngles)
+			{
+				Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
+			}
 			else
-				extra_pitch = g_ActiveConfig.fScreenPitch;
-			Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
-			Matrix44::LoadMatrix33(camera_pitch_matrix, pitch_matrix33);
+			{
+				if (xfmem.projection.type == GX_PERSPECTIVE || vr_widest_3d_HFOV > 0)
+					extra_pitch = g_ActiveConfig.fCameraPitch;
+				else
+					extra_pitch = g_ActiveConfig.fScreenPitch;
+				Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
+				Matrix44::LoadMatrix33(camera_pitch_matrix, pitch_matrix33);
+			}
 		}
 
 		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
@@ -1756,6 +1767,96 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 	}
 }
+
+void VertexShaderManager::CheckOrientationConstants()
+{
+#define sqr(a) ((a)*(a))
+	if (g_ActiveConfig.bCanReadCameraAngles)
+	{
+		float *p = constants.posnormalmatrix[0];
+		float pos[3];
+		pos[0] = p[0 * 4 + 3];
+		pos[1] = p[1 * 4 + 3];
+		pos[2] = p[2 * 4 + 3];
+		Matrix33 rot;
+		memcpy(&rot.data[0 * 3], &p[0 * 4], 3 * sizeof(float));
+		memcpy(&rot.data[1 * 3], &p[1 * 4], 3 * sizeof(float));
+		memcpy(&rot.data[2 * 3], &p[2 * 4], 3 * sizeof(float));
+		// normalize rotation matrix
+		float scale = sqrt(sqr(rot.data[0 * 3 + 0]) + sqr(rot.data[0 * 3 + 1]) + sqr(rot.data[0 * 3 + 2]));
+		for (int r = 0; r < 3; ++r)
+			for (int c = 0; c < 3; ++c)
+				rot.data[r * 3 + c] /= scale;
+		// add pitch to rotation matrix
+		if (g_ActiveConfig.fReadPitch != 0)
+		{
+			Matrix33 rp, result;
+			Matrix33::RotateX(rp, DEGREES_TO_RADIANS(g_ActiveConfig.fReadPitch));
+			Matrix33::Multiply(rot, rp, result);
+			memcpy(rot.data, result.data, 3*3*sizeof(float));
+		}
+		// extract yaw, pitch, and roll from rotation matrix
+		float yaw, pitch, roll;
+		Matrix33::GetPieYawPitchRollR(rot, yaw, pitch, roll);
+
+		//NOTICE_LOG(VR, "Pos(%d): %5.2f, %5.2f, %5.2f; scale: x%5.2f", g_main_cp_state.matrix_index_a.PosNormalMtxIdx, pos[0], pos[1], pos[2], scale);
+		//debug - show which object is being used
+		//static float first_x = 0;
+		//if (first_x == 0)
+		//	first_x = pos[0];
+		//else if (g_ActiveConfig.iFlashState > 5)
+		//	constants.posnormalmatrix[0][0 * 4 + 3] = first_x;
+
+		switch (g_ActiveConfig.iGameCameraControl)
+		{
+		case CAMERA_NONE:
+			// invert rotation matrix to counteract all rotation
+			{
+				float temp = rot.data[0 * 3 + 1];
+				rot.data[0 * 3 + 1] = rot.data[1 * 3 + 0];
+				rot.data[1 * 3 + 0] = temp;
+				temp = rot.data[0 * 3 + 2];
+				rot.data[0 * 3 + 2] = rot.data[2 * 3 + 0];
+				rot.data[2 * 3 + 0] = temp;
+				temp = rot.data[1 * 3 + 2];
+				rot.data[1 * 3 + 2] = rot.data[2 * 3 + 1];
+				rot.data[2 * 3 + 1] = temp;
+			}
+			break;
+		case CAMERA_YAW:
+			// counteract roll and pitch
+			{
+				Matrix33 p, r;
+				Matrix33::RotateX(p, -pitch);
+				Matrix33::RotateZ(r, -roll);
+				Matrix33::Multiply(r, p, rot);
+			}
+			break;
+		case CAMERA_YAWPITCH:
+			// only counteract roll
+			Matrix33::RotateZ(rot, -roll);
+			break;
+		case CAMERA_YAWPITCHROLL:
+		default:
+			// don't counteract anything
+			Matrix33::LoadIdentity(rot);
+			break;
+		}
+		Matrix44::LoadMatrix33(g_game_camera_rotmat, rot);
+		memcpy(g_game_camera_pos, pos, 3 * sizeof(float));
+		//yaw = RADIANS_TO_DEGREES(yaw);
+		//pitch = RADIANS_TO_DEGREES(pitch);
+		//roll = RADIANS_TO_DEGREES(roll);
+		//WARN_LOG(VR, "Yaw = %5.2f, Pitch = %5.2f, Roll = %5.2f", yaw, pitch, roll);
+		//ERROR_LOG(VR, "Rot: [%5.2f, %5.2f, %5.2f][%5.2f, %5.2f, %5.2f][%5.2f, %5.2f, %5.2f]", rot.data[0 * 3 + 0], rot.data[0 * 3 + 1], rot.data[0 * 3 + 2], rot.data[1 * 3 + 0], rot.data[1 * 3 + 1], rot.data[1 * 3 + 2], rot.data[2 * 3 + 0], rot.data[2 * 3 + 1], rot.data[2 * 3 + 2]);
+	}
+	else
+	{
+		Matrix44::LoadIdentity(g_game_camera_rotmat);
+		memset(g_game_camera_pos, 0, 3 * sizeof(float));
+	}
+}
+
 //#pragma optimize("", on)
 
 
@@ -1790,12 +1891,15 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		if (nTransformMatricesChanged[0] == -1)
 		{
 			nTransformMatricesChanged[0] = start;
-			nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END?XFMEM_POSMATRICES_END:end;
+			nTransformMatricesChanged[1] = end > XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
 		}
 		else
 		{
-			if (nTransformMatricesChanged[0] > start) nTransformMatricesChanged[0] = start;
-			if (nTransformMatricesChanged[1] < end) nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END?XFMEM_POSMATRICES_END:end;
+			if (nTransformMatricesChanged[0] > start)
+				nTransformMatricesChanged[0] = start;
+
+			if (nTransformMatricesChanged[1] < end)
+				nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END ? XFMEM_POSMATRICES_END : end;
 		}
 	}
 
@@ -1811,8 +1915,11 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		}
 		else
 		{
-			if (nNormalMatricesChanged[0] > _start) nNormalMatricesChanged[0] = _start;
-			if (nNormalMatricesChanged[1] < _end) nNormalMatricesChanged[1] = _end;
+			if (nNormalMatricesChanged[0] > _start)
+				nNormalMatricesChanged[0] = _start;
+
+			if (nNormalMatricesChanged[1] < _end)
+				nNormalMatricesChanged[1] = _end;
 		}
 	}
 
@@ -1828,8 +1935,11 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		}
 		else
 		{
-			if (nPostTransformMatricesChanged[0] > _start) nPostTransformMatricesChanged[0] = _start;
-			if (nPostTransformMatricesChanged[1] < _end) nPostTransformMatricesChanged[1] = _end;
+			if (nPostTransformMatricesChanged[0] > _start)
+				nPostTransformMatricesChanged[0] = _start;
+
+			if (nPostTransformMatricesChanged[1] < _end)
+				nPostTransformMatricesChanged[1] = _end;
 		}
 	}
 
@@ -1838,15 +1948,18 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start-XFMEM_LIGHTS;
 		int _end = end < XFMEM_LIGHTS_END ? end-XFMEM_LIGHTS : XFMEM_LIGHTS_END-XFMEM_LIGHTS;
 
-		if (nLightsChanged[0] == -1 )
+		if (nLightsChanged[0] == -1)
 		{
 			nLightsChanged[0] = _start;
 			nLightsChanged[1] = _end;
 		}
 		else
 		{
-			if (nLightsChanged[0] > _start) nLightsChanged[0] = _start;
-			if (nLightsChanged[1] < _end)   nLightsChanged[1] = _end;
+			if (nLightsChanged[0] > _start)
+				nLightsChanged[0] = _start;
+
+			if (nLightsChanged[1] < _end)
+				nLightsChanged[1] = _end;
 		}
 	}
 }
@@ -1856,7 +1969,7 @@ void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 	if (g_main_cp_state.matrix_index_a.Hex != Value)
 	{
 		VertexManager::Flush();
-		if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value&0x3f))
+		if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
 			bPosNormalMatrixChanged = true;
 		bTexMatricesChanged[0] = true;
 		g_main_cp_state.matrix_index_a.Hex = Value;
@@ -1916,7 +2029,10 @@ void VertexShaderManager::TranslateView(float left_metres, float forward_metres,
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 
 	for (int i = 0; i < 3; i++)
+	{
 		s_fViewTranslationVector[i] += result[i];
+		vr_freelook_speed += result[i];
+	}
 
 	if (s_fViewTranslationVector[0] || s_fViewTranslationVector[1] || s_fViewTranslationVector[2])
 		bFreeLookChanged = true;

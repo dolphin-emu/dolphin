@@ -23,6 +23,7 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/GCKeyboard.h"
@@ -152,11 +153,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	wxCheckBox* const gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
 	gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
 
-	wxCheckBox* const gamecube_adapter_thread = new wxCheckBox(this, wxID_ANY, _("Use Thread"));
-	gamecube_adapter_thread->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapterThread, this);
-
 	gamecube_adapter_sizer->Add(gamecube_adapter, 0, wxEXPAND);
-	gamecube_adapter_sizer->Add(gamecube_adapter_thread, 0, wxEXPAND);
 	gamecube_adapter_group->Add(gamecube_adapter_sizer, 0, wxEXPAND);
 	gamecube_static_sizer->Add(gamecube_adapter_group, 0, wxEXPAND);
 
@@ -169,17 +166,13 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 			gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
 		gamecube_adapter->SetValue(false);
 		gamecube_adapter->Disable();
-		gamecube_adapter_thread->SetValue(false);
-		gamecube_adapter_thread->Disable();
 	}
 	else
 	{
 		gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
-		gamecube_adapter_thread->SetValue(SConfig::GetInstance().m_GameCubeAdapterThread);
 		if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		{
 			gamecube_adapter->Disable();
-			gamecube_adapter_thread->Disable();
 		}
 	}
 #endif
@@ -215,12 +208,13 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		wiimote_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::ConfigEmulatedWiimote, this);
 
 		// Disable controller type selection for certain circumstances.
-		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+		bool wii_game_started = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
+		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || !wii_game_started)
 			wiimote_source_ch[i]->Disable();
 
 		m_orig_wiimote_sources[i] = g_wiimote_sources[i];
 		wiimote_source_ch[i]->Select(m_orig_wiimote_sources[i]);
-		if (m_orig_wiimote_sources[i] != WIIMOTE_SRC_EMU && m_orig_wiimote_sources[i] != WIIMOTE_SRC_HYBRID)
+		if (!wii_game_started || (m_orig_wiimote_sources[i] != WIIMOTE_SRC_EMU && m_orig_wiimote_sources[i] != WIIMOTE_SRC_HYBRID))
 			wiimote_configure_bt[i]->Disable();
 	}
 
@@ -398,31 +392,13 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGeneralWiimoteSettingsSizer()
 void ControllerConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 {
 	InputConfig* const wiimote_plugin = Wiimote::GetConfig();
-	bool was_init = false;
-	if (g_controller_interface.IsInit()) // check if game is running
-	{
-		was_init = true;
-	}
-	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		Wiimote::Initialize(reinterpret_cast<void*>(win));
-#else
-		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
-#endif
-	}
+
+	HotkeyManagerEmu::Enable(false);
+
 	InputConfigDialog m_ConfigFrame(this, *wiimote_plugin, _("Dolphin Emulated Wiimote Configuration"), m_wiimote_index_from_conf_bt_id[ev.GetId()]);
 	m_ConfigFrame.ShowModal();
-	m_ConfigFrame.Destroy();
-	if (!was_init) // if game isn't running
-	{
-		Wiimote::Shutdown();
-	}
 
-	//InputConfigDialog* const m_emu_config_diag = new InputConfigDialog(this, *Wiimote::GetConfig(), _trans("Dolphin Emulated Wiimote Configuration"), m_wiimote_index_from_conf_bt_id[ev.GetId()]);
-	//m_emu_config_diag->ShowModal();
-	//m_emu_config_diag->Destroy();
+	HotkeyManagerEmu::Enable(true);
 }
 
 void ControllerConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
@@ -546,42 +522,18 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 	InputConfig* const key_plugin = Keyboard::GetConfig();
 	const int port_num = m_gc_port_config_ids[event.GetId()];
 
-	bool was_init = false;
-
-	// check if game is running
-	if (g_controller_interface.IsInit())
-	{
-		was_init = true;
-	}
-	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		Pad::Initialize(reinterpret_cast<void*>(win));
-		Keyboard::Initialize(reinterpret_cast<void*>(win));
-#else
-		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
-		Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
-#endif
-	}
+	HotkeyManagerEmu::Enable(false);
 
 	if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
 	{
 		InputConfigDialog m_ConfigFrame(this, *key_plugin, _("GameCube Controller Configuration"), port_num);
 		m_ConfigFrame.ShowModal();
-		m_ConfigFrame.Destroy();
 	}
 	else
 	{
 		InputConfigDialog m_ConfigFrame(this, *pad_plugin, _("GameCube Controller Configuration"), port_num);
 		m_ConfigFrame.ShowModal();
-		m_ConfigFrame.Destroy();
 	}
 
-	// if game isn't running
-	if (!was_init)
-	{
-		Keyboard::Shutdown();
-		Pad::Shutdown();
-	}
+	HotkeyManagerEmu::Enable(true);
 }

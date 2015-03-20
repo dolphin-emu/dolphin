@@ -14,6 +14,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -35,13 +36,14 @@
 
 
 bool g_bRecordFifoData = false;
+static bool s_bFifoErrorSeen = false;
 
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
 	u8* startAddress;
 
 	if (g_use_deterministic_gpu_thread)
-		startAddress = (u8*) PopFifoAuxBuffer(size);
+		startAddress = (u8*)PopFifoAuxBuffer(size);
 	else
 		startAddress = Memory::GetPointer(address);
 
@@ -77,54 +79,62 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 
 static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opcodereplay_frame, bool in_display_list, bool recursive_call)
 {
-	// TODO(Omega): Maybe dump FIFO to file on this error
-	PanicAlert(
-	    "GFX FIFO: Unknown Opcode (0x%x @ %p, preprocessing=%s).\n"
-	    "This means one of the following:\n"
-		"* The opcode replay buffer is enabled, which is currently buggy\n"
-	    "* The emulated GPU got desynced, disabling dual core can help\n"
-	    "* Command stream corrupted by some spurious memory bug\n"
-	    "* This really is an unknown opcode (unlikely)\n"
-	    "* Some other sort of bug\n\n"
-	    "Dolphin will now likely crash or hang. \n"
-		"(timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
-	    cmd_byte,
-	    buffer,
-	    preprocess ? "yes" : "no",
-		g_opcodereplay_frame ? "yes" : "no",
-		in_display_list ? "yes" : "no",
-		recursive_call ? "yes" : "no");
-
+	if (ARBruteForcer::ch_bruteforce)
 	{
-		SCPFifoStruct &fifo = CommandProcessor::fifo;
-
+		Core::KillDolphinAndRestart();
+	}
+	else if (!s_bFifoErrorSeen)
+	{
+		// TODO(Omega): Maybe dump FIFO to file on this error
 		PanicAlert(
-		    "Illegal command %02x\n"
-		    "CPBase: 0x%08x\n"
-		    "CPEnd: 0x%08x\n"
-		    "CPHiWatermark: 0x%08x\n"
-		    "CPLoWatermark: 0x%08x\n"
-		    "CPReadWriteDistance: 0x%08x\n"
-		    "CPWritePointer: 0x%08x\n"
-		    "CPReadPointer: 0x%08x\n"
-		    "CPBreakpoint: 0x%08x\n"
-		    "bFF_GPReadEnable: %s\n"
-		    "bFF_BPEnable: %s\n"
-		    "bFF_BPInt: %s\n"
-		    "bFF_Breakpoint: %s\n"
-		    "bFF_GPLinkEnable: %s\n"
-		    "bFF_HiWatermarkInt: %s\n"
-		    "bFF_LoWatermarkInt: %s\n"
-		    ,cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
-		    ,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint
-		    ,fifo.bFF_GPReadEnable ? "true" : "false"
-		    ,fifo.bFF_BPEnable ? "true" : "false"
-		    ,fifo.bFF_BPInt ? "true" : "false"
-		    ,fifo.bFF_Breakpoint ? "true" : "false"
-		    ,fifo.bFF_GPLinkEnable ? "true" : "false"
-		    ,fifo.bFF_HiWatermarkInt ? "true" : "false"
-		    ,fifo.bFF_LoWatermarkInt ? "true" : "false"
-		    );
+			"GFX FIFO: Unknown Opcode (0x%02x @ %p, preprocessing=%s).\n"
+			"This means one of the following:\n"
+			"* The opcode replay buffer is enabled, which is currently buggy\n"
+			"* The emulated GPU got desynced, disabling dual core can help\n"
+			"* Command stream corrupted by some spurious memory bug\n"
+			"* This really is an unknown opcode (unlikely)\n"
+			"* Some other sort of bug\n\n"
+			"Further errors will be sent to the Video Backend log and\n"
+			"Dolphin will now likely crash or hang. \n"
+			"(timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
+			cmd_byte,
+			buffer,
+			preprocess ? "yes" : "no",
+			g_opcodereplay_frame ? "yes" : "no",
+			in_display_list ? "yes" : "no",
+			recursive_call ? "yes" : "no");
+
+		{
+			SCPFifoStruct &fifo = CommandProcessor::fifo;
+
+			PanicAlert(
+				"Illegal command %02x\n"
+				"CPBase: 0x%08x\n"
+				"CPEnd: 0x%08x\n"
+				"CPHiWatermark: 0x%08x\n"
+				"CPLoWatermark: 0x%08x\n"
+				"CPReadWriteDistance: 0x%08x\n"
+				"CPWritePointer: 0x%08x\n"
+				"CPReadPointer: 0x%08x\n"
+				"CPBreakpoint: 0x%08x\n"
+				"bFF_GPReadEnable: %s\n"
+				"bFF_BPEnable: %s\n"
+				"bFF_BPInt: %s\n"
+				"bFF_Breakpoint: %s\n"
+				"bFF_GPLinkEnable: %s\n"
+				"bFF_HiWatermarkInt: %s\n"
+				"bFF_LoWatermarkInt: %s\n"
+				, cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
+				, fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint
+				, fifo.bFF_GPReadEnable ? "true" : "false"
+				, fifo.bFF_BPEnable ? "true" : "false"
+				, fifo.bFF_BPInt ? "true" : "false"
+				, fifo.bFF_Breakpoint ? "true" : "false"
+				, fifo.bFF_GPLinkEnable ? "true" : "false"
+				, fifo.bFF_HiWatermarkInt ? "true" : "false"
+				, fifo.bFF_LoWatermarkInt ? "true" : "false"
+				);
+		}
 	}
 }
 
@@ -132,9 +142,10 @@ void OpcodeDecoder_Init()
 {
 	if (g_has_hmd)
 	{
-		opcode_replay_enabled = ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION);
-		g_opcodereplay_frame = !opcode_replay_enabled; // Don't log frames if not enabled
+		g_opcode_replay_enabled = ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION);
+		g_opcodereplay_frame = !g_opcode_replay_enabled; // Don't log frames if not enabled
 	}
+	s_bFifoErrorSeen = false;
 }
 
 
@@ -143,12 +154,8 @@ void OpcodeDecoder_Shutdown()
 	if (g_has_hmd)
 	{
 		g_opcodereplay_frame = true;
-		is_preprocess_log.clear();
-		is_preprocess_log.resize(0);
-		timewarp_log.clear();
-		timewarp_log.resize(0);
-		display_list_log.clear();
-		display_list_log.resize(0);
+		timewarp_logentries.clear();
+		timewarp_logentries.resize(0);
 	}
 }
 
@@ -172,11 +179,14 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 	//		);
 	//}
 
-	if (opcode_replay_enabled && !g_opcodereplay_frame && g_has_hmd && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
+	if (g_opcode_replay_enabled && !g_opcodereplay_frame && g_has_hmd && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
 	{
-		timewarp_log.push_back(src);
-		display_list_log.push_back(in_display_list);
-		is_preprocess_log.push_back(is_preprocess);
+		timewarp_logentries.push_back(TimewarpLogEntry{src, is_preprocess});
+
+		if (in_display_list)
+		{
+			PanicAlert("A display list call was recorded in the opcode replay buffer!");
+		}
 
 		//s_pCurBufferPointer_log.push_back(VertexManager::s_pCurBufferPointer);
 		//s_pEndBufferPointer_log.push_back(VertexManager::s_pEndBufferPointer);
@@ -214,7 +224,12 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 			totalCycles += 6; // Hm, this means that we scan over nop streams pretty slowly...
 			break;
 
-		case GX_LOAD_CP_REG: //0x08
+		case GX_UNKNOWN_RESET:
+			totalCycles += 6; // Datel software uses this command
+			DEBUG_LOG(VIDEO, "GX Reset?: %08x", cmd_byte);
+			break;
+
+		case GX_LOAD_CP_REG:
 			{
 				if (src.size() < 1 + 4)
 					goto end;
@@ -301,7 +316,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 			DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
 			break;
 
-		case GX_LOAD_BP_REG: //0x61
+		case GX_LOAD_BP_REG:
 			// In skipped_frame case: We have to let BP writes through because they set
 			// tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
 			{
@@ -351,6 +366,8 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 				{
 					UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcodereplay_frame, in_display_list, recursive_call);
 				}
+				ERROR_LOG(VIDEO, "FIFO: Unknown Opcode(0x%02x @ %p, preprocessing = %s)", cmd_byte, opcodeStart, is_preprocess ? "yes" : "no");
+				s_bFifoErrorSeen = true;
 				totalCycles += 1;
 			}
 			break;

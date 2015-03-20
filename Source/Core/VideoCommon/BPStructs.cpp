@@ -231,7 +231,7 @@ static void BPWritten(const BPCmd& bp)
 				// So we want to copy a fraction of the whole screen, instead of a fraction of the viewport.
 				// Currently this will only work will copying the EFB to a texture.
 				if (g_has_hmd && g_viewport_type != VIEW_RENDER_TO_TEXTURE && !(g_rendered_viewport==g_requested_viewport) 
-					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bCopyEFBToTexture)
+					&& g_ActiveConfig.bEnableVR && g_ActiveConfig.bSkipEFBCopyToRam)
 				{
 					if (debug_newScene)
 						HACK_LOG(VR, "VR Resized EFB Copy (%d, %d) %dx%d to %8x, %d, %d, %d, %d", 
@@ -281,6 +281,7 @@ static void BPWritten(const BPCmd& bp)
 				u32 width = bpmem.copyMipMapStrideChannels << 4;
 
 				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
+				g_new_frame_just_rendered = true;
 				new_frame_just_rendered = true;
 			}
 
@@ -290,11 +291,13 @@ static void BPWritten(const BPCmd& bp)
 				ClearScreen(srcRect, new_frame_just_rendered);
 			}
 
+#ifdef RECURSIVE_OPCODE
 			//Render Extra Headtracking Frames for VR.
 			if (new_frame_just_rendered && g_has_hmd)
 			{
 				OpcodeReplayBuffer();
 			}
+#endif
 
 			return;
 		}

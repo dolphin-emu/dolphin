@@ -4,11 +4,9 @@
 
 #include <algorithm>
 #include "Common/CommonFuncs.h"
-#include "Common/Hash.h"
-#if _M_SSE >= 0x402
 #include "Common/CPUDetect.h"
-#include <nmmintrin.h>
-#endif
+#include "Common/Hash.h"
+#include "Common/Intrinsics.h"
 
 static u64 (*ptrHashFunction)(const u8 *src, u32 len, u32 samples) = &GetMurmurHash3;
 
@@ -26,11 +24,11 @@ u32 HashFletcher(const u8* data_u8, size_t length)
 		size_t tlen = len > 360 ? 360 : len;
 		len -= tlen;
 
-		do {
+		do
+		{
 			sum1 += *data++;
 			sum2 += sum1;
-		}
-		while (--tlen);
+		} while (--tlen);
 
 		sum1 = (sum1 & 0xffff) + (sum1 >> 16);
 		sum2 = (sum2 & 0xffff) + (sum2 >> 16);
@@ -60,8 +58,7 @@ u32 HashAdler32(const u8* data, size_t len)
 		{
 			a += *data++;
 			b += a;
-		}
-		while (--tlen);
+		} while (--tlen);
 
 		a = (a & 0xffff) + (a >> 16) * (65536 - MOD_ADLER);
 		b = (b & 0xffff) + (b >> 16) * (65536 - MOD_ADLER);
@@ -117,24 +114,24 @@ inline u64 getblock(const u64 * p, int i)
 inline void bmix64(u64 & h1, u64 & h2, u64 & k1, u64 & k2, u64 & c1, u64 & c2)
 {
 	k1 *= c1;
-	k1  = _rotl64(k1,23);
+	k1  = _rotl64(k1, 23);
 	k1 *= c2;
 	h1 ^= k1;
 	h1 += h2;
 
-	h2 = _rotl64(h2,41);
+	h2  = _rotl64(h2, 41);
 
 	k2 *= c2;
-	k2  = _rotl64(k2,23);
+	k2  = _rotl64(k2, 23);
 	k2 *= c1;
 	h2 ^= k2;
 	h2 += h1;
 
-	h1 = h1*3+0x52dce729;
-	h2 = h2*3+0x38495ab5;
+	h1 = h1 * 3 + 0x52dce729;
+	h2 = h2 * 3 + 0x38495ab5;
 
-	c1 = c1*5+0x7b7d159c;
-	c2 = c2*5+0x6bce6396;
+	c1 = c1 * 5 + 0x7b7d159c;
+	c2 = c2 * 5 + 0x6bce6396;
 }
 
 //----------
@@ -156,9 +153,11 @@ u64 GetMurmurHash3(const u8 *src, u32 len, u32 samples)
 	const u8 * data = (const u8*)src;
 	const int nblocks = len / 16;
 	u32 Step = (len / 8);
-	if (samples == 0) samples = std::max(Step, 1u);
+	if (samples == 0)
+		samples = std::max(Step, 1u);
 	Step = Step / samples;
-	if (Step < 1) Step = 1;
+	if (Step < 1)
+		Step = 1;
 
 	u64 h1 = 0x9368e53c2f6af274;
 	u64 h2 = 0x586dcd208f7cd3fd;
@@ -174,8 +173,8 @@ u64 GetMurmurHash3(const u8 *src, u32 len, u32 samples)
 
 	for (int i = 0; i < nblocks; i+=Step)
 	{
-		u64 k1 = getblock(blocks,i*2+0);
-		u64 k2 = getblock(blocks,i*2+1);
+		u64 k1 = getblock(blocks, i*2+0);
+		u64 k2 = getblock(blocks, i*2+1);
 
 		bmix64(h1,h2,k1,k2,c1,c2);
 	}
@@ -234,9 +233,11 @@ u64 GetCRC32(const u8 *src, u32 len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if (samples == 0) samples = std::max(Step, 1u);
+	if (samples == 0)
+		samples = std::max(Step, 1u);
 	Step = Step / samples;
-	if (Step < 1) Step = 1;
+	if (Step < 1)
+		Step = 1;
 	while (data < end - Step * 3)
 	{
 		h[0] = _mm_crc32_u64(h[0], data[Step * 0]);
@@ -252,9 +253,14 @@ u64 GetCRC32(const u8 *src, u32 len, u32 samples)
 	if (data < end - Step * 2)
 		h[2] = _mm_crc32_u64(h[2], data[Step * 2]);
 
-	const u8 *data2 = (const u8*)end;
+	if (len & 7)
+	{
+		u64 temp = 0;
+		memcpy(&temp, end, len & 7);
+		h[0] = _mm_crc32_u64(h[0], temp);
+	}
+
 	// FIXME: is there a better way to combine these partial hashes?
-	h[0] = _mm_crc32_u64(h[0], u64(data2[0]));
 	return h[0] + (h[1] << 10) + (h[2] << 21) + (h[3] << 32);
 #else
 	return 0;
@@ -277,9 +283,11 @@ u64 GetHashHiresTexture(const u8 *src, u32 len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if (samples == 0) samples = std::max(Step, 1u);
+	if (samples == 0)
+		samples = std::max(Step, 1u);
 	Step = Step / samples;
-	if (Step < 1) Step = 1;
+	if (Step < 1)
+		Step = 1;
 	while (data < end)
 	{
 		u64 k = data[0];
@@ -320,9 +328,11 @@ u64 GetCRC32(const u8 *src, u32 len, u32 samples)
 	u32 Step = (len/4);
 	const u32 *data = (const u32 *)src;
 	const u32 *end = data + Step;
-	if (samples == 0) samples = std::max(Step, 1u);
+	if (samples == 0)
+		samples = std::max(Step, 1u);
 	Step  = Step / samples;
-	if (Step < 1) Step = 1;
+	if (Step < 1)
+		Step = 1;
 	while (data < end)
 	{
 		h = _mm_crc32_u32(h, data[0]);
@@ -364,24 +374,24 @@ inline u32 fmix32(u32 h)
 inline void bmix32(u32 & h1, u32 & h2, u32 & k1, u32 & k2, u32 & c1, u32 & c2)
 {
 	k1 *= c1;
-	k1  = _rotl(k1,11);
+	k1  = _rotl(k1, 11);
 	k1 *= c2;
 	h1 ^= k1;
 	h1 += h2;
 
-	h2 = _rotl(h2,17);
+	h2  = _rotl(h2, 17);
 
 	k2 *= c2;
-	k2  = _rotl(k2,11);
+	k2  = _rotl(k2, 11);
 	k2 *= c1;
 	h2 ^= k2;
 	h2 += h1;
 
-	h1 = h1*3+0x52dce729;
-	h2 = h2*3+0x38495ab5;
+	h1  = h1*3+0x52dce729;
+	h2  = h2*3+0x38495ab5;
 
-	c1 = c1*5+0x7b7d159c;
-	c2 = c2*5+0x6bce6396;
+	c1  = c1*5+0x7b7d159c;
+	c2  = c2*5+0x6bce6396;
 }
 
 //----------
@@ -392,9 +402,11 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 	u32 out[2];
 	const int nblocks = len / 8;
 	u32 Step = (len / 4);
-	if (samples == 0) samples = std::max(Step, 1u);
+	if (samples == 0)
+		samples = std::max(Step, 1u);
 	Step = Step / samples;
-	if (Step < 1) Step = 1;
+	if (Step < 1)
+		Step = 1;
 
 	u32 h1 = 0x8de1c3ac;
 	u32 h2 = 0xbab98226;
@@ -443,8 +455,8 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 	h1 += h2;
 	h2 += h1;
 
-	h1 = fmix32(h1);
-	h2 = fmix32(h2);
+	h1  = fmix32(h1);
+	h2  = fmix32(h2);
 
 	h1 += h2;
 	h2 += h1;
@@ -468,9 +480,11 @@ u64 GetHashHiresTexture(const u8 *src, u32 len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if (samples == 0) samples = std::max(Step, 1u);
+	if (samples == 0)
+		samples = std::max(Step, 1u);
 	Step = Step / samples;
-	if (Step < 1) Step = 1;
+	if (Step < 1)
+		Step = 1;
 	while (data < end)
 	{
 		u64 k = data[0];

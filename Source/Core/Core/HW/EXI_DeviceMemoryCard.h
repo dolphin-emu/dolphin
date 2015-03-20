@@ -17,7 +17,7 @@ public:
 	bool UseDelayedTransferCompletion() override;
 	bool IsPresent() override;
 	void DoState(PointerWrap &p) override;
-	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1) override;
 	void DMARead(u32 _uAddr, u32 _uSize) override;
 	void DMAWrite(u32 _uAddr, u32 _uSize) override;
 

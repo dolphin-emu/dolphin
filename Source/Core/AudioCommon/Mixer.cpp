@@ -53,33 +53,33 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
 		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
 		// back to 100% speed, it must be slowed down by 25%
-		if (g_has_hmd && !SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
-			aid_sample_rate = aid_sample_rate * (framelimit - 1) * 4 / VideoInterface::TargetRefreshRate;
+		if ((g_synchronous_timewarp_enabled && SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle) || ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION) && framelimit == 16 && (g_opcode_replay_enabled || g_synchronous_timewarp_enabled)))
+			aid_sample_rate = aid_sample_rate * 60 / VideoInterface::TargetRefreshRate;
 		else
-			aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+			aid_sample_rate = aid_sample_rate * (framelimit - 1) * (5 / SConfig::GetInstance().m_AudioSlowDown) / VideoInterface::TargetRefreshRate;
 	}
 
-	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );
+	const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
 
 	s32 lvolume = m_LVolume;
 	s32 rvolume = m_RVolume;
 
 	// TODO: consider a higher-quality resampling algorithm.
-	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2)
+	for (; currentSample < numSamples * 2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample += 2)
 	{
 		u32 indexR2 = indexR + 2; //next sample
 
 		s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
 		s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
-		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac)  >> 16;
+		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac) >> 16;
 		sampleL = (sampleL * lvolume) >> 8;
 		sampleL += samples[currentSample + 1];
 		MathUtil::Clamp(&sampleL, -32767, 32767);
-		samples[currentSample+1] = sampleL;
+		samples[currentSample + 1] = sampleL;
 
 		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
 		s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
-		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac)  >> 16;
+		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac) >> 16;
 		sampleR = (sampleR * rvolume) >> 8;
 		sampleR += samples[currentSample];
 		MathUtil::Clamp(&sampleR, -32767, 32767);
@@ -226,3 +226,4 @@ void CMixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
 	m_LVolume = lvolume + (lvolume >> 7);
 	m_RVolume = rvolume + (rvolume >> 7);
 }
+

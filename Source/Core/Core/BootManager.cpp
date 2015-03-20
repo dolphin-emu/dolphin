@@ -48,8 +48,8 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bFPRF, bBAT, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bProgressive;
+	bool valid, bCPUThread, bSkipIdle, bFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
+	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
@@ -84,16 +84,7 @@ bool BootCore(const std::string& _rFilename)
 		return false;
 
 	// Load game specific settings
-	std::string unique_id = StartUp.GetUniqueID();
-	std::string revision_specific = StartUp.m_strRevisionSpecificUniqueID;
-	StartUp.m_strGameIniDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + unique_id + ".ini";
-	if (revision_specific != "")
-		StartUp.m_strGameIniDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + revision_specific + ".ini";
-	else
-		StartUp.m_strGameIniDefaultRevisionSpecific = "";
-	StartUp.m_strGameIniLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + unique_id + ".ini";
-
-	if (unique_id.size() == 6)
+	if (StartUp.GetUniqueID().size() == 6)
 	{
 		IniFile game_ini = StartUp.LoadGameIni();
 
@@ -102,13 +93,10 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bSkipIdle = StartUp.bSkipIdle;
 		config_cache.iCPUCore = StartUp.iCPUCore;
 		config_cache.bFPRF = StartUp.bFPRF;
-		config_cache.bBAT = StartUp.bBAT;
 		config_cache.bMMU = StartUp.bMMU;
 		config_cache.bDCBZOFF = StartUp.bDCBZOFF;
-		config_cache.bVBeamSpeedHack = StartUp.bVBeamSpeedHack;
 		config_cache.bSyncGPU = StartUp.bSyncGPU;
 		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
-		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.m_strGPUDeterminismMode = StartUp.m_strGPUDeterminismMode;
@@ -144,13 +132,10 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
 		core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		core_section->Get("FPRF",             &StartUp.bFPRF, StartUp.bFPRF);
-		core_section->Get("BAT",              &StartUp.bBAT, StartUp.bBAT);
 		core_section->Get("MMU",              &StartUp.bMMU, StartUp.bMMU);
 		core_section->Get("DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
-		core_section->Get("VBeam",            &StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
 		core_section->Get("SyncGPU",          &StartUp.bSyncGPU, StartUp.bSyncGPU);
 		core_section->Get("FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-		core_section->Get("BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		core_section->Get("DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
 		core_section->Get("GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
 		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
@@ -170,6 +155,16 @@ bool BootCore(const std::string& _rFilename)
 		dsp_section->Get("Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode, StartUp.m_strGPUDeterminismMode);
+		if (core_section->Get("AudioSlowDown", &StartUp.fAudioSlowDown, StartUp.fAudioSlowDown))
+		{
+			SConfig::GetInstance().m_AudioSlowDown = StartUp.fAudioSlowDown;
+		}
+		else
+		{
+			SConfig::GetInstance().m_AudioSlowDown = 1;
+			StartUp.fAudioSlowDown = 1;
+		}
+
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
@@ -209,10 +204,10 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
-	if (g_is_direct_mode && !g_force_vr && StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
-		PanicAlert("The Rift is running in direct mode without 'deterministic dual core' set to 'fake-completion'."
-				    " This has been known to cause judder.  Try changing this setting located in the"
-					" 'config' tab if you experience issues.");
+	if (g_is_direct_mode && !g_force_vr && StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && !StartUp.bSyncGPU)
+		PanicAlert("Detected that the Rift is running in direct mode without 'deterministic dual core' set to 'fake-completion' or 'synchronize GPU thread' enabled."
+				    " This has been known to cause judder.  Try enabling one of these two settings if you experience issues.  They can be found in the"
+					" 'config' tab or by right clicking on the game then clicking properties.");
 
 	StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
@@ -278,13 +273,10 @@ void Stop()
 		StartUp.bSkipIdle = config_cache.bSkipIdle;
 		StartUp.iCPUCore = config_cache.iCPUCore;
 		StartUp.bFPRF = config_cache.bFPRF;
-		StartUp.bBAT = config_cache.bBAT;
 		StartUp.bMMU = config_cache.bMMU;
 		StartUp.bDCBZOFF = config_cache.bDCBZOFF;
-		StartUp.bVBeamSpeedHack = config_cache.bVBeamSpeedHack;
 		StartUp.bSyncGPU = config_cache.bSyncGPU;
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
-		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		StartUp.m_strGPUDeterminismMode = config_cache.m_strGPUDeterminismMode;

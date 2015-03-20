@@ -44,6 +44,10 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Core/Core.h"
+#include "Core/HotkeyManager.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
@@ -740,6 +744,8 @@ void InputConfigDialog::UpdateDeviceComboBox()
 
 void GamepadPage::RefreshDevices(wxCommandEvent&)
 {
+	bool was_unpaused = Core::PauseAndLock(true);
+
 	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
 
 	// refresh devices
@@ -750,6 +756,13 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
 
 	// update device cbox
 	m_config_dialog->UpdateDeviceComboBox();
+
+	Wiimote::LoadConfig();
+	Keyboard::LoadConfig();
+	Pad::LoadConfig();
+	HotkeyManagerEmu::LoadConfig();
+
+	Core::PauseAndLock(false, was_unpaused);
 }
 
 ControlGroupBox::~ControlGroupBox()
@@ -839,7 +852,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			// Draw buttons in rows of 8
 			unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
 			unsigned int button_rows = ceil((float)group->controls.size() / 8.0f);
-			wxBitmap bitmap(int(12 * button_cols + 1), (12 * button_rows) - (button_rows - 1));
+			wxBitmap bitmap(int(12 * button_cols + 1), (11 * button_rows) + 1);
 
 			dc.SelectObject(bitmap);
 			dc.Clear();
@@ -1082,17 +1095,12 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
 	szr->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxEXPAND|wxALL, 5);
 
+	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
 	SetSizerAndFit(szr);
 	Center();
 
 	// live preview update timer
-	m_update_timer = new wxTimer(this);
+	m_update_timer.SetOwner(this);
 	Bind(wxEVT_TIMER, &InputConfigDialog::UpdateBitmaps, this);
-	m_update_timer->Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
-}
-
-bool InputConfigDialog::Destroy()
-{
-	m_update_timer->Stop();
-	return true;
+	m_update_timer.Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
 }

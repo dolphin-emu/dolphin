@@ -126,9 +126,13 @@ bool SetCurrentDir(const std::string &directory);
 // Get a filename that can hopefully be atomically renamed to the given path.
 std::string GetTempFilenameForAtomicWrite(const std::string &path);
 
-// Returns a pointer to a string with a Dolphin data dir in the user's home
-// directory. To be used in "multi-user" mode (that is, installed).
-const std::string& GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
+// Gets a set user directory path
+// Don't call prior to setting the base user directory
+const std::string& GetUserPath(unsigned int dir_index);
+
+// Sets a user directory path
+// Rebuilds internal directory structure to compensate for the new directory
+void SetUserPath(unsigned int dir_index, const std::string& path);
 
 // probably doesn't belong here
 std::string GetThemeDir(const std::string& theme_name);

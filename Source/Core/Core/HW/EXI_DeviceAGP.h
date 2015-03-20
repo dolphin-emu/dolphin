@@ -23,7 +23,10 @@ public:
 private:
 	enum
 	{
-		EE_READ   = 0x80
+		EE_IGNORE_BITS = 0x4,
+		EE_DATA_BITS   = 0x40,
+		EE_READ_FALSE  = 0xA,
+		EE_READ_TRUE   = 0xB,
 	};
 
 	int m_slot;
@@ -41,8 +44,13 @@ private:
 	u32 m_address = 0;
 	u32 m_rw_offset = 0;
 	u64 m_eeprom_data = 0;
-	u8  m_eeprom_pos = 0;
-	u16 m_eeprom_cmd = 0;
+	u16 m_eeprom_pos = 0;
+	u32 m_eeprom_cmd = 0;
+	u16 m_eeprom_add_end = 0;
+	u16 m_eeprom_add_mask = 0;
+	u16 m_eeprom_read_mask = 0;
+	u32 m_eeprom_status_mask = 0;
+	bool m_eeprom_write_status = false;
 
 	void LoadFileToROM(const std::string& filename);
 	void LoadFileToEEPROM(const std::string& filename);

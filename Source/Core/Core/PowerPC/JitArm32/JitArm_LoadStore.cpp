@@ -120,7 +120,7 @@ void JitArm::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, int accessSize
 
 	if (is_immediate)
 	{
-		if ((imm_addr & 0xFFFFF000) == 0xCC008000 && jit->jo.optimizeGatherPipe)
+		if (jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
 		{
 			MOVI2R(R14, (u32)&GPFifo::m_gatherPipeCount);
 			MOVI2R(R10, (u32)GPFifo::m_gatherPipe);
@@ -145,7 +145,7 @@ void JitArm::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, int accessSize
 			STR(R11, R14);
 			jit->js.fifoBytesThisBlock += accessSize >> 3;
 		}
-		else if (Memory::IsRAMAddress(imm_addr))
+		else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
 		{
 			MOVI2R(rA, imm_addr);
 			EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, true, RS);
@@ -450,9 +450,9 @@ void JitArm::lXX(UGeckoInstruction inst)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
 	    inst.OPCD == 32 &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
-	    (Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
-	    Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+	    (PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		// if it's still 0, we can wait until the next event
 		TST(RD, RD);
@@ -536,7 +536,7 @@ void JitArm::dcbst(UGeckoInstruction inst)
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
 	// will be the same.
 	// dcbt = 0x7c00022c
-	FALLBACK_IF((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
+	FALLBACK_IF((PowerPC::HostRead_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
 }
 
 void JitArm::icbi(UGeckoInstruction inst)

@@ -10,10 +10,19 @@
 #endif
 #ifdef HAVE_OCULUSSDK
 
+#include "OVR_Version.h"
+#if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
+#else
+#define OVR_DLL_IMPORT
+#endif
 #include "OVR_CAPI.h"
 #include "OVR_CAPI_GL.h"
+#if OVR_MAJOR_VERSION >= 5
+#include "Extras/OVR_Math.h"
+#else
 #include "Kernel/OVR_Math.h"
+#endif
 
 extern "C"
 {

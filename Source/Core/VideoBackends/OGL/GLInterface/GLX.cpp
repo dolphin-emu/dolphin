@@ -92,7 +92,7 @@ bool cInterfaceGLX::Create(void *window_handle)
 	XFree(fbc);
 
 	// Get an appropriate visual
-	vi = glXGetVisualFromFBConfig(dpy, fbconfig);
+	XVisualInfo* vi = glXGetVisualFromFBConfig(dpy, fbconfig);
 
 	// Create a GLX context.
 	// We try to get a 3.3 core profile, else we try it with anything we get.
@@ -142,6 +142,8 @@ bool cInterfaceGLX::Create(void *window_handle)
 	s_backbuffer_height = attribs.height;
 
 	win = XWindow.CreateXWindow(parent, vi);
+	XFree(vi);
+
 	return true;
 }
 
@@ -181,7 +183,7 @@ bool cInterfaceGLX::CreateOffscreen()
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
 
 	// Get an appropriate visual
-	vi = glXChooseVisual(dpy_offscreen, screen, attrListDbl);
+	XVisualInfo* vi = glXChooseVisual(dpy_offscreen, screen, attrListDbl);
 	if (vi == nullptr)
 	{
 		vi = glXChooseVisual(dpy_offscreen, screen, attrListSgl);

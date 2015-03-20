@@ -90,16 +90,17 @@ static bool InstallCodeHandler()
 	}
 
 	// Install code handler
-	Memory::CopyToEmu(INSTALLER_BASE_ADDRESS, data.data(), data.length());
+	for (size_t i = 0, e = data.length(); i < e; ++i)
+		PowerPC::HostWrite_U8(data[i], (u32)(INSTALLER_BASE_ADDRESS + i));
 
 	// Patch the code handler to the system starting up
 	for (unsigned int h = 0; h < data.length(); h += 4)
 	{
 		// Patch MMIO address
-		if (Memory::ReadUnchecked_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000u | ((mmioAddr ^ 1) << 8)))
+		if (PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000u | ((mmioAddr ^ 1) << 8)))
 		{
 			NOTICE_LOG(ACTIONREPLAY, "Patching MMIO access at %08x", INSTALLER_BASE_ADDRESS + h);
-			Memory::Write_U32(0x3f000000u | mmioAddr << 8, INSTALLER_BASE_ADDRESS + h);
+			PowerPC::HostWrite_U32(0x3f000000u | mmioAddr << 8, INSTALLER_BASE_ADDRESS + h);
 		}
 	}
 
@@ -107,11 +108,11 @@ static bool InstallCodeHandler()
 	u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
 	// Write a magic value to 'gameid' (codehandleronly does not actually read this).
-	Memory::Write_U32(0xd01f1bad, INSTALLER_BASE_ADDRESS);
+	PowerPC::HostWrite_U32(0xd01f1bad, INSTALLER_BASE_ADDRESS);
 
 	// Create GCT in memory
-	Memory::Write_U32(0x00d0c0de, codelist_base_address);
-	Memory::Write_U32(0x00d0c0de, codelist_base_address + 4);
+	PowerPC::HostWrite_U32(0x00d0c0de, codelist_base_address);
+	PowerPC::HostWrite_U32(0x00d0c0de, codelist_base_address + 4);
 
 	std::lock_guard<std::mutex> lk(active_codes_lock);
 
@@ -126,19 +127,19 @@ static bool InstallCodeHandler()
 				// Make sure we have enough memory to hold the code list
 				if ((codelist_base_address + 24 + i) < codelist_end_address)
 				{
-					Memory::Write_U32(code.address, codelist_base_address + 8 + i);
-					Memory::Write_U32(code.data, codelist_base_address + 12 + i);
+					PowerPC::HostWrite_U32(code.address, codelist_base_address + 8 + i);
+					PowerPC::HostWrite_U32(code.data, codelist_base_address + 12 + i);
 					i += 8;
 				}
 			}
 		}
 	}
 
-	Memory::Write_U32(0xff000000, codelist_base_address + 8 + i);
-	Memory::Write_U32(0x00000000, codelist_base_address + 12 + i);
+	PowerPC::HostWrite_U32(0xff000000, codelist_base_address + 8 + i);
+	PowerPC::HostWrite_U32(0x00000000, codelist_base_address + 12 + i);
 
 	// Turn on codes
-	Memory::Write_U8(1, INSTALLER_BASE_ADDRESS + 7);
+	PowerPC::HostWrite_U8(1, INSTALLER_BASE_ADDRESS + 7);
 
 	// Invalidate the icache and any asm codes
 	for (unsigned int j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
@@ -156,7 +157,7 @@ void RunCodeHandler()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
 	{
-		if (!code_handler_installed || Memory::Read_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
+		if (!code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
 			code_handler_installed = InstallCodeHandler();
 
 		if (!code_handler_installed)

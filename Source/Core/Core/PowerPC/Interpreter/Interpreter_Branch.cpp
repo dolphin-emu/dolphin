@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/ARBruteForcer.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
@@ -92,11 +93,6 @@ void Interpreter::HLEFunction(UGeckoInstruction _inst)
 	HLE::Execute(PC, _inst.hex);
 }
 
-void Interpreter::CompiledBlock(UGeckoInstruction _inst)
-{
-	_assert_msg_(POWERPC, 0, "CompiledBlock - shouldn't be here!");
-}
-
 void Interpreter::rfi(UGeckoInstruction _inst)
 {
 	// Restore saved bits from SRR1 to MSR.
@@ -124,7 +120,7 @@ void Interpreter::rfid(UGeckoInstruction _inst)
 // We do it anyway, though :P
 void Interpreter::sc(UGeckoInstruction _inst)
 {
-	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_SYSCALL);
+	PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
 	PowerPC::CheckExceptions();
 	m_EndBlock = true;
 }

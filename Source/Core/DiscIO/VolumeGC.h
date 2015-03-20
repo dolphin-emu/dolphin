@@ -25,16 +25,17 @@ public:
 	~CVolumeGC();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
 	std::string GetUniqueID() const override;
-	std::string GetRevisionSpecificUniqueID() const override;
 	std::string GetMakerID() const override;
 	int GetRevision() const override;
 	std::vector<std::string> GetNames() const override;
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
+
+	bool IsDiscTwo() const override;
+
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
-	bool IsDiscTwo() const override;
 
 	typedef std::string(*StringDecoder)(const std::string&);
 

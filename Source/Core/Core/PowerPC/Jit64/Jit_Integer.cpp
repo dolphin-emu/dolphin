@@ -326,15 +326,15 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	}
 }
 
-bool Jit64::CheckMergedBranch(int crf, int inst)
+bool Jit64::CheckMergedBranch(int crf)
 {
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
 		return false;
 
-	if (!MergeAllowedNextInstructions(inst))
+	if (!MergeAllowedNextInstructions(1))
 		return false;
 
-	const UGeckoInstruction& next = js.op[inst].inst;
+	const UGeckoInstruction& next = js.op[1].inst;
 	return (((next.OPCD == 16 /* bcx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
@@ -343,11 +343,11 @@ bool Jit64::CheckMergedBranch(int crf, int inst)
 	         (next.BI >> 2) == crf);
 }
 
-void Jit64::DoMergedBranch(int inst)
+void Jit64::DoMergedBranch()
 {
 	// Code that handles successful PPC branching.
-	const UGeckoInstruction& next = js.op[inst].inst;
-	const u32 nextPC = js.op[inst].address;
+	const UGeckoInstruction& next = js.op[1].inst;
+	const u32 nextPC = js.op[1].address;
 	if (next.OPCD == 16) // bcx
 	{
 		if (next.LK)
@@ -388,8 +388,8 @@ void Jit64::DoMergedBranchCondition()
 	js.downcountAmount++;
 	js.skipInstructions = 1;
 	const UGeckoInstruction& next = js.op[1].inst;
-	const u32 nextPC = js.op[1].address;
 	int test_bit = 8 >> (next.BI & 3);
+	const u32 nextPC = js.op[1].address;
 	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 	bool jumpInBlock = false;
@@ -444,8 +444,8 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 	js.downcountAmount++;
 	js.skipInstructions = 1;
 	const UGeckoInstruction& next = js.op[1].inst;
-	const u32 nextPC = js.op[1].address;
 	int test_bit = 8 >> (next.BI & 3);
+	const u32 nextPC = js.op[1].address;
 	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 	bool jumpInBlock = false;
@@ -1323,7 +1323,7 @@ void Jit64::addx(UGeckoInstruction inst)
 	{
 		gpr.Lock(a, b, d);
 		gpr.BindToRegister(d, false);
-		LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(b), 1, 0));
+		LEA(32, gpr.RX(d), MRegSum(gpr.RX(a), gpr.RX(b)));
 		needs_test = true;
 	}
 	else
@@ -1575,7 +1575,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 			bool isRightShift = mask == (1U << inst.SH) - 1;
 			if (gpr.R(a).IsImm())
 			{
-				u32 maskA = gpr.R(a).offset & ~mask;
+				u32 maskA = (u32)gpr.R(a).offset & ~mask;
 				gpr.BindToRegister(a, false, true);
 				MOV(32, gpr.R(a), gpr.R(s));
 				if (isLeftShift)

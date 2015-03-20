@@ -103,7 +103,7 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_ClickSave(wxCommandEvent&)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal != "")
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID != "")
 		g_Config.GameIniSave();
 }
 
@@ -115,9 +115,9 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 }
 
 #if defined(_WIN32)
-static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so you'll want to use either Direct3D or OpenGL. Different games and different GPUs will behave differently on each backend, so for the best emulation experience it's recommended to try both and choose the one that's less problematic.\n\nIf unsure, use OpenGL.");
+static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so you'll want to use either Direct3D or OpenGL. Different games and different GPUs will behave differently on each backend, so for the best emulation experience it's recommended to try both and choose the one that's less problematic.\n\nIf unsure, select OpenGL.");
 #else
-static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
+static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely slow and only useful for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, select OpenGL.");
 #endif
 static wxString adapter_desc = wxTRANSLATE("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, select auto.");
@@ -141,9 +141,10 @@ static wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used t
 static wxString efb_access_desc = wxTRANSLATE("Ignore any requests from the CPU to read from or write to the EFB.\nImproves performance in some games, but might disable some gameplay-related features or graphical effects.\n\nIf unsure, leave this unchecked.");
 static wxString efb_emulate_format_changes_desc = wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games without any negative effect. Causes graphical defects in a small number of other games.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_desc = wxTRANSLATE("Disable emulation of EFB copies.\nThese are often used for post-processing or render-to-texture effects, so while checking this setting may give a minor speedup over EFB to Texture it almost invariably also causes issues.\n\nIf unsure, leave this unchecked.");
-static wxString efb_copy_clear_desc = wxTRANSLATE("Disables the black box that appears where an EFB copy should have been rendered.  Use only if you are seeing a black box after disabling EFB copies, or a game is not rendering properly.  May cause artifacts such as bad blending on shadows.\nIf unsure, leave this unchecked.");
+static wxString efb_copy_clear_desc = wxTRANSLATE("Disables the black box or screen that appears where an EFB copy should have been rendered.  Use only if you are seeing a black box or screen after disabling EFB copies, or if a game is not rendering properly.  May cause artifacts such as bad blending on shadows or phantom images.\n\nIf unsure, leave this unchecked.");
 static wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture objects.\nThis isn't particularly accurate, but it works well enough for most games and gives a great speedup over EFB to RAM.\n\nIf unsure, leave this checked.");
 static wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nNumerous games depend on this for certain graphical effects or gameplay functionality.\nThis is much slower than EFB to Texture.\n\nIf unsure, check EFB to Texture instead.");
+static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE("Skip GPU synchronizing on EFB copies. Causes graphical defects in a small number of games.\n\nIf unsure, leave this checked.");
 static wxString stc_desc = wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates from RAM.\nLower accuracies cause in-game text to appear garbled in certain games.\n\nIf unsure, use the rightmost value.");
 static wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
 static wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
@@ -513,8 +514,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	SettingCheckBox* efbcopy_disable = CreateCheckBox(page_hacks, _("Disable"), wxGetTranslation(efb_copy_desc), vconfig.bEFBCopyEnable, true);
 	efbcopy_clear_disable = CreateCheckBox(page_hacks, _("Remove Blank EFB Copy Box"), wxGetTranslation(efb_copy_clear_desc), vconfig.bEFBCopyClearDisable, false);
-	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(efb_copy_texture_desc), vconfig.bCopyEFBToTexture, false, wxRB_GROUP);
-	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bCopyEFBToTexture, true);
+	efbcopy_texture = CreateRadioButton(page_hacks, _("Texture"), wxGetTranslation(skip_efb_copy_to_ram_desc), vconfig.bSkipEFBCopyToRam, false, wxRB_GROUP);
+	efbcopy_ram = CreateRadioButton(page_hacks, _("RAM"), wxGetTranslation(efb_copy_ram_desc), vconfig.bSkipEFBCopyToRam, true);
 
 	group_efbcopy->Add(efbcopy_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	group_efbcopy->Add(efbcopy_clear_disable, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -525,6 +526,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_efb->Add(CreateCheckBox(page_hacks, _("Skip EFB Access from CPU"), wxGetTranslation(efb_access_desc), vconfig.bEFBAccessEnable, true), 0, wxBOTTOM | wxLEFT, 5);
 	szr_efb->Add(CreateCheckBox(page_hacks, _("Ignore Format Changes"), wxGetTranslation(efb_emulate_format_changes_desc), vconfig.bEFBEmulateFormatChanges, true), 0, wxBOTTOM | wxLEFT, 5);
 	szr_efb->Add(group_efbcopy, 0, wxEXPAND | wxALL, 5);
+	// szr_efb->Add(CreateCheckBox(page_hacks, _("Store EFB Copies to Texture Only"), wxGetTranslation(skip_efb_copy_to_ram_desc), vconfig.bSkipEFBCopyToRam), 0, wxBOTTOM | wxLEFT, 5);
+
 	szr_hacks->Add(szr_efb, 0, wxEXPAND | wxALL, 5);
 
 	// Texture cache
@@ -709,7 +712,7 @@ SettingNumber* VideoConfigDiag::CreateNumber(wxWindow* parent, float &setting, c
 /* Use this to register descriptions for controls which have NOT been created using the Create* functions from above */
 wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
 {
-	ctrl_descs.insert(std::pair<wxWindow*,wxString>(control, description));
+	ctrl_descs.insert(std::pair<wxWindow*, wxString>(control, description));
 	control->Bind(wxEVT_ENTER_WINDOW, &VideoConfigDiag::Evt_EnterControl, this);
 	control->Bind(wxEVT_LEAVE_WINDOW, &VideoConfigDiag::Evt_LeaveControl, this);
 	return control;
@@ -764,7 +767,7 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 	desc_sizer->Add(desc_text, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	// Store description text object for later lookup
-	desc_texts.insert(std::pair<wxWindow*,wxStaticText*>(page, desc_text));
+	desc_texts.insert(std::pair<wxWindow*, wxStaticText*>(page, desc_text));
 }
 
 void VideoConfigDiag::PopulatePostProcessingShaders()

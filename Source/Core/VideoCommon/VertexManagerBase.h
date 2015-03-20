@@ -32,10 +32,10 @@ private:
 	static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
 
 public:
-	static const u32 MAXVBUFFERSIZE = ROUND_UP_POW2 (MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
+	static const u32 MAXVBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
 
 	// We may convert triangle-fans to triangle-lists, almost 3x as many indices.
-	static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2 (MAX_PRIMITIVES_PER_COMMAND * 3);
+	static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
 
 	VertexManager();
 	// needs to be virtual for DX11's dtor

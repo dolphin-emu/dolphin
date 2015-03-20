@@ -8,6 +8,7 @@
 #include "VideoCommon/DataReader.h"
 
 #define GX_NOP                      0x00
+#define GX_UNKNOWN_RESET            0x01
 
 #define GX_LOAD_BP_REG              0x61
 #define GX_LOAD_CP_REG              0x08

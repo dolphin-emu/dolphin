@@ -62,7 +62,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 	{
 		// already got it, let's just update name, checksum & size to be sure.
 		Symbol *tempfunc = &iter->second;
-		tempfunc->name = name;
+		tempfunc->name = Demangle(name);
 		tempfunc->hash = SignatureDB::ComputeCodeChecksum(startAddr, startAddr + size - 4);
 		tempfunc->type = type;
 		tempfunc->size = size;
@@ -71,7 +71,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 	{
 		// new symbol. run analyze.
 		Symbol tf;
-		tf.name = name;
+		tf.name = Demangle(name);
 		tf.type = type;
 		tf.address = startAddr;
 		if (tf.type == Symbol::SYMBOL_FUNCTION)
@@ -86,7 +86,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 
 Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-	if (!Memory::IsRAMAddress(addr))
+	if (!PowerPC::HostIsRAMAddress(addr))
 		return nullptr;
 
 	XFuncMap::iterator it = functions.find(addr);
@@ -194,6 +194,218 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 		f.numCalls++;
 	}
 }
+
+const std::string DemangleParam(const std::string& s, size_t &p)
+{
+	if (p >= s.length())
+		return "";
+	switch (s[p])
+	{
+	case 'v':
+		++p;
+		return "void";
+	case 'a':
+		++p;
+		return "s8";
+	case 'b':
+		++p;
+		return "bool";
+	case 'c':
+		++p;
+		return "char";
+	case 'd':
+		++p;
+		return "double";
+	case 'e':
+		++p;
+		return "Extended";
+	case 'f':
+		++p;
+		return "float";
+	case 'g':
+		++p;
+		return "__float128";
+	case 'h':
+		++p;
+		return "u8";
+	case 'i':
+		++p;
+		return "int";
+	case 'j':
+		++p;
+		return "unsigned";
+	case 'l':
+		++p;
+		return "long";
+	case 'm':
+		++p;
+		return "unsigned_long";
+	case 'n':
+		++p;
+		return "__int128";
+	case 'o':
+		++p;
+		return "u128";
+	case 's':
+		++p;
+		return "short";
+	case 't':
+		++p;
+		return "u16";
+	case 'w':
+		++p;
+		return "wchar_t";
+	case 'x':
+		++p;
+		return "__int64";
+	case 'y':
+		++p;
+		return "u64";
+	case 'z':
+		++p;
+		return "...";
+	case 'C':
+		++p;
+		// const
+		return DemangleParam(s, p);
+	case 'P':
+		++p;
+		return DemangleParam(s, p) + "*";
+	case 'R':
+		++p;
+		return DemangleParam(s, p) + "&";
+	case 'U':
+		++p;
+		// unsigned
+		return "u" + DemangleParam(s, p);
+	case 'Q':
+		{
+			++p;
+			if (p >= s.length() || s[p] < '1' || s[p] > '9')
+				return "";
+			int count = s[p] - '0';
+			++p;
+			std::string result;
+			for (int i = 1; i < count; ++i)
+				result.append(DemangleParam(s, p) + "::");
+			result.append(DemangleParam(s, p));
+			return result;
+		}
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		{
+			int count = 0;
+			while (p + count < s.length() && s[p + count] >= '0' && s[p + count] <= '9')
+				++count;
+			int class_name_length = atoi(s.substr(p, count).c_str());
+			p += count + class_name_length;
+			if (class_name_length > 0)
+				return s.substr(p - class_name_length, class_name_length);
+			else
+				return "";
+		}
+	default:
+		++p;
+		return s.substr(p-1, 1);
+	}
+}
+
+void RenameFunc(std::string& func, const std::string &class_name)
+{
+	if (func == "__ct" && !class_name.empty())
+		func = class_name;
+	else if (func == "__dt" && !class_name.empty())
+		func = "~" + class_name;
+	else if (func == "__as")
+		func = "operator=";
+	else if (func == "__eq")
+		func = "operator==";
+	else if (func == "__ne")
+		func = "operator!=";
+	//else if (func == "__RTTI")
+	//	func = "__RTTI";
+	//else if (func == "__vt")
+	//	func = "__vt";
+	//// not sure about these ones:
+	//else if (func == "__vc")
+	//	func = "__vc";
+	//else if (func == "__dl")
+	//	func = "__dl";
+}
+
+// converts "GetMode__12CStageCameraFv" into "CStageCamera::GetMode()"
+const std::string PPCSymbolDB::Demangle(const std::string& name)
+{
+	size_t p = name.find("__", 1);
+	if (p != std::string::npos)
+	{
+		std::string result;
+		std::string class_name;
+		std::string func;
+		// check for Class::__ct
+		if (p >= 2 && name[p - 2] == ':' && name[p - 1] == ':')
+		{
+			class_name = name.substr(0, p - 2);
+			func = name.substr(p, std::string::npos);
+			RenameFunc(func, class_name);
+			result = class_name + "::" + func;
+		}
+		else
+		{
+			func = name.substr(0, p);
+			p += 2;
+			// Demangle class name
+			if (p < name.length() && ((name[p] >= '0' && name[p] <= '9') || (name[p] == 'Q')))
+			{
+				class_name = DemangleParam(name, p);
+				RenameFunc(func, class_name);
+				result = class_name + "::" + func;
+			}
+			else
+			{
+				RenameFunc(func, class_name);
+				result = func;
+			}
+		}
+		// const function
+		if (p < name.length() && name[p] == 'C')
+			++p;
+		// Demangle function parameters
+		if (p < name.length() && name[p] == 'F')
+		{
+			++p;
+			result.append("(");
+			while (p < name.length())
+			{
+				if (name[p] != 'v')
+					result.append(DemangleParam(name, p));
+				else
+					++p;
+				if (p < name.length())
+					result.append(",");
+			}
+			result.append(")");
+			return result;
+		}
+		else
+		{
+			return result + "__" + name.substr(p, std::string::npos);
+		}
+	}
+	else
+	{
+		return name;
+	}
+}
+
 
 // The use case for handling bad map files is when you have a game with a map file on the disc,
 // but you can't tell whether that map file is for the particular release version used in that game,
@@ -333,11 +545,11 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 			if (!good)
 			{
 				// check for BLR before function
-				u32 opcode = Memory::Read_Instruction(vaddress - 4);
+				u32 opcode = PowerPC::HostRead_Instruction(vaddress - 4);
 				if (opcode == 0x4e800020)
 				{
 					// check for BLR at end of function
-					opcode = Memory::Read_Instruction(vaddress + size - 4);
+					opcode = PowerPC::HostRead_Instruction(vaddress + size - 4);
 					if (opcode == 0x4e800020)
 						good = true;
 				}

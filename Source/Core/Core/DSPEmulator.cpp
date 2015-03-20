@@ -10,11 +10,7 @@
 DSPEmulator *CreateDSPEmulator(bool HLE)
 {
 	if (HLE)
-	{
 		return new DSPHLE();
-	}
 	else
-	{
 		return new DSPLLE();
-	}
 }

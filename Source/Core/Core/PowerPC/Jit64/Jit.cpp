@@ -179,7 +179,8 @@ void Jit64::Init()
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = true;
 	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-	js.fastmemLoadStore = NULL;
+	js.fastmemLoadStore = nullptr;
+	js.compilerPC = 0;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
@@ -245,11 +246,6 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
-void Jit64::unknown_instruction(UGeckoInstruction inst)
-{
-	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
-}
-
 void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	WriteCallInterpreter(_inst.hex);
@@ -300,7 +296,7 @@ bool Jit64::Cleanup()
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
 		ABI_PushRegistersAndAdjustStack({}, 0);
-		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+		ABI_CallFunction((void *)&GPFifo::FastCheckGatherPipe);
 		ABI_PopRegistersAndAdjustStack({}, 0);
 		did_something = true;
 	}
@@ -579,6 +575,7 @@ void Jit64::Jit(u32 em_address)
 		NPC = nextPC;
 		PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
 		PowerPC::CheckExceptions();
+		WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
 		return;
 	}
 
@@ -677,6 +674,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
+	branch_targets.clear();
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -685,7 +683,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionNumber = i;
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
-		js.fastmemLoadStore = NULL;
+		js.fastmemLoadStore = nullptr;
 		js.fixupExceptionHandler = false;
 		js.revertGprLoad = -1;
 		js.revertFprLoad = -1;
@@ -711,14 +709,44 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		// We have to do this after DoForwardBranches, so the correct cycle count delta gets used.
 		js.downcountAmount += opinfo->numCycles;
 
+		// Gather pipe writes using a non-immediate address are discovered by profiling.
+		bool gatherPipeIntCheck = jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
+
+		// Gather pipe writes using an immediate address are explicitly tracked.
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
-			MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 			BitSet32 registersInUse = CallerSavedRegistersInUse();
 			ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+			ABI_CallFunction((void *)&GPFifo::FastCheckGatherPipe);
 			ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+			gatherPipeIntCheck = true;
+		}
+
+		// Gather pipe writes can generate an exception; add an exception check.
+		// TODO: This doesn't really match hardware; the CP interrupt is
+		// asynchronous.
+		if (gatherPipeIntCheck)
+		{
+			TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+			FixupBranch extException = J_CC(CC_NZ, true);
+			SwitchToFarCode();
+			SetJumpTarget(extException);
+			TEST(32, PPCSTATE(msr), Imm32(0x0008000));
+			FixupBranch noExtIntEnable = J_CC(CC_Z, true);
+			TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+			FixupBranch noCPInt = J_CC(CC_Z, true);
+
+			gpr.Flush(FLUSH_MAINTAIN_STATE);
+			fpr.Flush(FLUSH_MAINTAIN_STATE);
+
+			MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+			WriteExternalExceptionExit();
+
+			SwitchToNearCode();
+
+			SetJumpTarget(noCPInt);
+			SetJumpTarget(noExtIntEnable);
 		}
 
 		u32 function = HLE::GetFunctionIndex(ops[i].address);
@@ -762,33 +790,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 				SwitchToNearCode();
 				js.firstFPInstructionFound = true;
-			}
-
-			// Add an external exception check if the instruction writes to the FIFO.
-			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
-			{
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
-				FixupBranch clearInt = J_CC(CC_NZ);
-				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-				FixupBranch extException = J_CC(CC_NZ, true);
-				SwitchToFarCode();
-				SetJumpTarget(extException);
-				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
-				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-				TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-				FixupBranch noCPInt = J_CC(CC_Z, true);
-
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
-
-				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
-				WriteExternalExceptionExit();
-
-				SwitchToNearCode();
-
-				SetJumpTarget(noCPInt);
-				SetJumpTarget(noExtIntEnable);
-				SetJumpTarget(clearInt);
 			}
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
@@ -849,7 +850,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SwitchToFarCode();
 				if (!js.fastmemLoadStore)
 				{
-					exceptionHandlerAtLoc[js.fastmemLoadStore] = NULL;
+					exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
 					SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
 				}
 				else

@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include "Core/ARBruteForcer.h"
+#include "Core/Core.h"
 #include "Common/StringUtil.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
@@ -53,6 +55,9 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
 		OpenFStream(file, filename, std::ios_base::out);
 		file << code;
 		file.close();
+
+		if (ARBruteForcer::ch_bruteforce)
+			Core::KillDolphinAndRestart();
 
 		PanicAlert("Failed to compile vertex shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
 						filename.c_str(),
@@ -167,6 +172,9 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
 		OpenFStream(file, filename, std::ios_base::out);
 		file << code;
 		file.close();
+
+		if (ARBruteForcer::ch_bruteforce)
+			Core::KillDolphinAndRestart();
 
 		PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s):\n%s",
 						filename.c_str(),

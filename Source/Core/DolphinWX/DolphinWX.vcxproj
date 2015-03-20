@@ -40,11 +40,14 @@
       <BaseAddress>0x00400000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR')">libovr64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(ExternalsDir)LibOVR')">libovrd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(ExternalsDir)LibOVR')">libovr64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64d.lib')">libovr64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(ExternalsDir)LibOVR/Lib/Win32/VS2013/libovr64d.lib')">libovrd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/Win32/Debug/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64.lib')">libovr64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64' And Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Release/VS2013/libovr.lib')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32' And Exists('$(ExternalsDir)LibOVR')">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
@@ -109,7 +112,7 @@
     <ClCompile Include="MemcardManager.cpp" />
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
-    <ClCompile Include="RmObjAddEdit.cpp" />
+    <ClCompile Include="HideObjectAddEdit.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
@@ -159,7 +162,7 @@
     <ClInclude Include="MemcardManager.h" />
     <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
-    <ClInclude Include="RmObjAddEdit.h" />
+    <ClInclude Include="HideObjectAddEdit.h" />
     <ClInclude Include="SoftwareVideoConfigDialog.h" />
     <ClInclude Include="TASInputDlg.h" />
     <ClInclude Include="VideoConfigDiag.h" />

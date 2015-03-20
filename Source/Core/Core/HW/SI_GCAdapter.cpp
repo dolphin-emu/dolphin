@@ -21,8 +21,6 @@ enum ControllerTypes
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
-static libusb_transfer* s_irq_transfer_read = nullptr;
-static libusb_transfer* s_irq_transfer_write = nullptr;
 static u8 s_controller_type[MAX_SI_CHANNELS] = { CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE, CONTROLLER_NONE };
 static u8 s_controller_rumble[4];
 
@@ -42,25 +40,6 @@ static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
 
 static u64 s_last_init = 0;
-
-#if defined(_WIN32)
-#define LIBUSB_CALL WINAPI
-#else
-#define LIBUSB_CALL
-#endif
-extern "C"
-{
-	void LIBUSB_CALL read_callback(libusb_transfer* transfer);
-}
-
-static void HandleEvents()
-{
-	while (s_adapter_thread_running.IsSet())
-	{
-		libusb_handle_events(NULL);
-		Common::YieldCPU();
-	}
-}
 
 static void Read()
 {
@@ -92,12 +71,6 @@ void Init()
 
 	s_libusb_driver_not_supported = false;
 
-	for (int i = 0; i < MAX_SI_CHANNELS; i++)
-	{
-		s_controller_type[i] = CONTROLLER_NONE;
-		s_controller_rumble[i] = 0;
-	}
-
 	int ret = libusb_init(&s_libusb_context);
 
 	if (ret)
@@ -107,150 +80,135 @@ void Init()
 	}
 	else
 	{
-		libusb_device** list;
-		ssize_t cnt = libusb_get_device_list(nullptr, &list);
-		for (int d = 0; d < cnt; d++)
+		Setup();
+	}
+}
+
+void Setup()
+{
+	int ret;
+	libusb_device** list;
+	ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
+
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
+	{
+		s_controller_type[i] = CONTROLLER_NONE;
+		s_controller_rumble[i] = 0;
+	}
+
+
+	for (int d = 0; d < cnt; d++)
+	{
+		libusb_device* device = list[d];
+		libusb_device_descriptor desc;
+		int dRet = libusb_get_device_descriptor(device, &desc);
+		if (dRet)
 		{
-			libusb_device* device = list[d];
-			libusb_device_descriptor desc;
-			int dRet = libusb_get_device_descriptor(device, &desc);
-			if (dRet)
-			{
-				// could not aquire the descriptor, no point in trying to use it.
-				ERROR_LOG(SERIALINTERFACE, "libusb_get_device_descriptor failed with error: %d", dRet);
-				continue;
-			}
+			// could not acquire the descriptor, no point in trying to use it.
+			ERROR_LOG(SERIALINTERFACE, "libusb_get_device_descriptor failed with error: %d", dRet);
+			continue;
+		}
 
-			if (desc.idVendor == 0x057e && desc.idProduct == 0x0337)
-			{
-				NOTICE_LOG(SERIALINTERFACE, "Found GC Adapter with Vendor: %X Product: %X Devnum: %d", desc.idVendor, desc.idProduct, 1);
+		if (desc.idVendor == 0x057e && desc.idProduct == 0x0337)
+		{
+			NOTICE_LOG(SERIALINTERFACE, "Found GC Adapter with Vendor: %X Product: %X Devnum: %d", desc.idVendor, desc.idProduct, 1);
 
-				u8 bus = libusb_get_bus_number(device);
-				u8 port = libusb_get_device_address(device);
-				ret = libusb_open(device, &s_handle);
-				if (ret)
+			u8 bus = libusb_get_bus_number(device);
+			u8 port = libusb_get_device_address(device);
+			ret = libusb_open(device, &s_handle);
+			if (ret)
+			{
+				if (ret == LIBUSB_ERROR_ACCESS)
 				{
-					if (ret == LIBUSB_ERROR_ACCESS)
+					if (dRet)
 					{
-						if (dRet)
-						{
-							ERROR_LOG(SERIALINTERFACE, "Dolphin does not have access to this device: Bus %03d Device %03d: ID ????:???? (couldn't get id).",
-								bus,
-								port
-								);
-						}
-						else
-						{
-							ERROR_LOG(SERIALINTERFACE, "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.",
-								bus,
-								port,
-								desc.idVendor,
-								desc.idProduct
-								);
-						}
+						ERROR_LOG(SERIALINTERFACE, "Dolphin does not have access to this device: Bus %03d Device %03d: ID ????:???? (couldn't get id).",
+							bus,
+							port
+							);
 					}
 					else
 					{
-						ERROR_LOG(SERIALINTERFACE, "libusb_open failed to open device with error = %d", ret);
-						if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
-							s_libusb_driver_not_supported = true;
+						ERROR_LOG(SERIALINTERFACE, "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.",
+							bus,
+							port,
+							desc.idVendor,
+							desc.idProduct
+							);
 					}
-					Shutdown();
-				}
-				else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
-				{
-					if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-					{
-						ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
-						Shutdown();
-					}
-				}
-				else if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-				{
-					ERROR_LOG(SERIALINTERFACE, "libusb_kernel_driver_active error ret = %d", ret);
-					Shutdown();
-				}
-				else if ((ret = libusb_claim_interface(s_handle, 0)))
-				{
-					ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
-					Shutdown();
 				}
 				else
 				{
-					libusb_config_descriptor *config = nullptr;
-					libusb_get_config_descriptor(device, 0, &config);
-					for (u8 ic = 0; ic < config->bNumInterfaces; ic++)
-					{
-						const libusb_interface *interfaceContainer = &config->interface[ic];
-						for (int i = 0; i < interfaceContainer->num_altsetting; i++)
-						{
-							const libusb_interface_descriptor *interface = &interfaceContainer->altsetting[i];
-							for (int e = 0; e < (int)interface->bNumEndpoints; e++)
-							{
-								const libusb_endpoint_descriptor *endpoint = &interface->endpoint[e];
-								if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)
-									s_endpoint_in = endpoint->bEndpointAddress;
-								else
-									s_endpoint_out = endpoint->bEndpointAddress;
-							}
-						}
-					}
-
-					int tmp = 0;
-					unsigned char payload = 0x13;
-					libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 16);
-
-					if (SConfig::GetInstance().m_GameCubeAdapterThread)
-					{
-						s_adapter_thread_running.Set(true);
-						s_adapter_thread = std::thread(Read);
-					}
-					else
-					{
-						s_irq_transfer_read = libusb_alloc_transfer(0);
-						s_irq_transfer_write = libusb_alloc_transfer(0);
-						libusb_fill_interrupt_transfer(s_irq_transfer_read, s_handle, s_endpoint_in, s_controller_payload_swap, sizeof(s_controller_payload_swap), read_callback, NULL, 16);
-						libusb_submit_transfer(s_irq_transfer_read);
-
-						s_adapter_thread_running.Set(true);
-						s_adapter_thread = std::thread(HandleEvents);
-					}
-
-					s_detected = true;
+					ERROR_LOG(SERIALINTERFACE, "libusb_open failed to open device with error = %d", ret);
+					if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
+						s_libusb_driver_not_supported = true;
 				}
 			}
+			else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
+			{
+				if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+				{
+					ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
+				}
+			}
+			// this split is needed so that we don't avoid claiming the interface when
+			// detaching the kernel driver is successful
+			if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+			{
+				continue;
+			}
+			else if ((ret = libusb_claim_interface(s_handle, 0)))
+			{
+				ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
+			}
+			else
+			{
+				AddGCAdapter(device);
+				break;
+			}
 		}
-
-		libusb_free_device_list(list, 1);
 	}
+	if (!s_detected)
+		Shutdown();
+
+	libusb_free_device_list(list, 1);
+}
+
+
+void AddGCAdapter(libusb_device* device)
+{
+	libusb_config_descriptor *config = nullptr;
+	libusb_get_config_descriptor(device, 0, &config);
+	for (u8 ic = 0; ic < config->bNumInterfaces; ic++)
+	{
+		const libusb_interface *interfaceContainer = &config->interface[ic];
+		for (int i = 0; i < interfaceContainer->num_altsetting; i++)
+		{
+			const libusb_interface_descriptor *interface = &interfaceContainer->altsetting[i];
+			for (u8 e = 0; e < interface->bNumEndpoints; e++)
+			{
+				const libusb_endpoint_descriptor *endpoint = &interface->endpoint[e];
+				if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)
+					s_endpoint_in = endpoint->bEndpointAddress;
+				else
+					s_endpoint_out = endpoint->bEndpointAddress;
+			}
+		}
+	}
+
+	int tmp = 0;
+	unsigned char payload = 0x13;
+	libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 16);
+
+	s_adapter_thread_running.Set(true);
+	s_adapter_thread = std::thread(Read);
+
+	s_detected = true;
 }
 
 void Shutdown()
 {
-	if (!SConfig::GetInstance().m_GameCubeAdapter)
-		return;
-
-	if (s_adapter_thread_running.TestAndClear())
-	{
-		s_adapter_thread.join();
-	}
-
-	if (!SConfig::GetInstance().m_GameCubeAdapterThread)
-	{
-		libusb_free_transfer(s_irq_transfer_read);
-		libusb_free_transfer(s_irq_transfer_write);
-	}
-
-	if (s_handle)
-	{
-		libusb_release_interface(s_handle, 0);
-		libusb_reset_device(s_handle);
-		libusb_close(s_handle);
-		s_handle = nullptr;
-	}
-
-	for (int i = 0; i < MAX_SI_CHANNELS; i++)
-		s_controller_type[i] = CONTROLLER_NONE;
+	Reset();
 
 	if (s_libusb_context)
 	{
@@ -261,6 +219,28 @@ void Shutdown()
 	s_libusb_driver_not_supported = false;
 }
 
+void Reset()
+{
+	if (!s_detected)
+		return;
+
+	if (s_adapter_thread_running.TestAndClear())
+	{
+		s_adapter_thread.join();
+	}
+
+	if (s_handle)
+	{
+		libusb_release_interface(s_handle, 0);
+		libusb_close(s_handle);
+		s_handle = nullptr;
+	}
+
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
+		s_controller_type[i] = CONTROLLER_NONE;
+}
+
+
 void Input(int chan, GCPadStatus* pad)
 {
 	if (!SConfig::GetInstance().m_GameCubeAdapter)
@@ -269,9 +249,15 @@ void Input(int chan, GCPadStatus* pad)
 	if (s_handle == nullptr)
 	{
 		if (s_detected)
+		{
 			Init();
+			if (s_handle == nullptr)
+				return;
+		}
 		else
+		{
 			return;
+		}
 	}
 
 	u8 controller_payload_copy[37];
@@ -296,6 +282,7 @@ void Input(int chan, GCPadStatus* pad)
 
 		if (s_controller_type[chan] != CONTROLLER_NONE)
 		{
+			memset(pad, 0, sizeof(*pad));
 			u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
 			u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 
@@ -337,44 +324,24 @@ void Output(int chan, u8 rumble_command)
 		unsigned char rumble[5] = { 0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2], s_controller_rumble[3] };
 		int size = 0;
 
-		if (SConfig::GetInstance().m_GameCubeAdapterThread)
+		libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+		// Netplay sends invalid data which results in size = 0x00.  Ignore it.
+		if (size != 0x05 && size != 0x00)
 		{
-			libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
-			if (size != 0x05)
-			{
-				INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
-				Shutdown();
-			}
-		}
-		else
-		{
-			libusb_fill_interrupt_transfer(s_irq_transfer_write, s_handle, s_endpoint_out, rumble, sizeof(rumble), NULL, &size, 16);
-			libusb_submit_transfer(s_irq_transfer_write);
+			INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
+			Shutdown();
 		}
 	}
 }
 
 bool IsDetected()
 {
-	return s_handle != nullptr;
+	return s_detected;
 }
 
 bool IsDriverDetected()
 {
 	return !s_libusb_driver_not_supported;
-}
-
-void LIBUSB_CALL read_callback(libusb_transfer *transfer)
-{
-	if (transfer->status == LIBUSB_TRANSFER_COMPLETED)
-	{
-		{
-		std::lock_guard<std::mutex> lk(s_mutex);
-		s_controller_payload_size = transfer->actual_length;
-		memcpy(s_controller_payload, s_controller_payload_swap, s_controller_payload_size);
-		}
-		libusb_submit_transfer(s_irq_transfer_read);
-	}
 }
 
 } // end of namespace SI_GCAdapter

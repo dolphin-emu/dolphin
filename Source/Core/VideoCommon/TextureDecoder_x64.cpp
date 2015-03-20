@@ -8,17 +8,11 @@
 #include "Common/Common.h"
 //#include "VideoCommon.h" // to get debug logs
 #include "Common/CPUDetect.h"
+#include "Common/Intrinsics.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
-
-#if _M_SSE >= 0x401
-#include <smmintrin.h>
-#include <emmintrin.h>
-#elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
-#include <tmmintrin.h>
-#endif
 
 // This avoids a harmless warning from a system header in Clang;
 // see http://llvm.org/bugs/show_bug.cgi?id=16093

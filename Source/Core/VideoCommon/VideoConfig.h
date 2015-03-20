@@ -55,6 +55,14 @@ enum StereoMode
 	STEREO_VR920,
 };
 
+enum TGameCamera
+{
+	CAMERA_YAWPITCHROLL = 0,
+	CAMERA_YAWPITCH,
+	CAMERA_YAW,
+	CAMERA_NONE
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -123,7 +131,7 @@ struct VideoConfig final
 	bool bEFBCopyEnable;
 	bool bEFBCopyClearDisable;
 	bool bEFBEmulateFormatChanges;
-	bool bCopyEFBToTexture;
+	bool bSkipEFBCopyToRam;
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[3];
@@ -188,12 +196,13 @@ struct VideoConfig final
 	float fMotionSicknessFOV;
 
 	int iVRPlayer;
+	int iGameCameraControl;
 	float fTimeWarpTweak;
 	u32 iExtraFrames;
 	u32 iExtraVideoLoops;
 	u32 iExtraVideoLoopsDivider;
 
-	// VR
+	// VR per game
 	float fUnitsPerMetre;
 	float fFreeLookSensitivity;
 	float fHudThickness;
@@ -210,10 +219,12 @@ struct VideoConfig final
 	float fScreenUp;
 	float fScreenPitch;
 	float fTelescopeMaxFOV;
+	float fReadPitch;
 	bool bDisable3D;
 	bool bHudFullscreen;
 	bool bHudOnTop;
 	bool bDontClearScreen;
+	bool bCanReadCameraAngles;
 	int iTelescopeEye;
 	int iMetroidPrime;
 	// VR layer debugging
@@ -248,13 +259,14 @@ struct VideoConfig final
 		bool bSupportsBBox;
 		bool bSupportsGSInstancing; // Needed by GeometryShaderGen, so must stay in VideoCommon
 		bool bSupportsPostProcessing;
+		bool bSupportsPaletteConversion;
 	} backend_info;
 
 	// Utility
 	bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
 	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
-	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
-	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
+	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bSkipEFBCopyToRam; }
+	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bSkipEFBCopyToRam; }
 	bool ExclusiveFullscreenEnabled() const { return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen; }
 };
 

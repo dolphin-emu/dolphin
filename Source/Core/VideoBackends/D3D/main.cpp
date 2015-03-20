@@ -83,6 +83,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsGeometryShaders = true;
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsPostProcessing = false;
+	g_Config.backend_info.bSupportsPaletteConversion = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -245,7 +246,6 @@ void VideoBackend::Shutdown()
 		delete g_renderer;
 		g_renderer = nullptr;
 		g_texture_cache = nullptr;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.done = true;
 		ShutdownVR();
 	}
 }

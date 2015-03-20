@@ -46,9 +46,9 @@ std::string Statistics::ToString()
 	str += StringFromFormat("CP loads (DL): %i\n", stats.thisFrame.numCPLoadsInDL);
 	str += StringFromFormat("BP loads: %i\n", stats.thisFrame.numBPLoads);
 	str += StringFromFormat("BP loads (DL): %i\n", stats.thisFrame.numBPLoadsInDL);
-	str += StringFromFormat("Vertex streamed: %i kB\n", stats.thisFrame.bytesVertexStreamed/1024);
-	str += StringFromFormat("Index streamed: %i kB\n", stats.thisFrame.bytesIndexStreamed/1024);
-	str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed/1024);
+	str += StringFromFormat("Vertex streamed: %i kB\n", stats.thisFrame.bytesVertexStreamed / 1024);
+	str += StringFromFormat("Index streamed: %i kB\n", stats.thisFrame.bytesIndexStreamed / 1024);
+	str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed / 1024);
 	str += StringFromFormat("Vertex Loaders: %i\n", stats.numVertexLoaders);
 
 	std::string vertex_list;

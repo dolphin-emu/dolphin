@@ -202,7 +202,7 @@ void PostProcessingConfigDiag::ConfigGrouping::GenerateUI(PostProcessingConfigDi
 			wxTextCtrl* text_ctrl = new wxTextCtrl(parent, wxID_ANY, string_value);
 
 			// Disable the textctrl, it's only there to show the absolute value from the slider
-			text_ctrl->Enable(false);
+			text_ctrl->Disable();
 
 			// wxWidget takes over the pointer provided to it in the event handler.
 			// This won't be a memory leak, it'll be destroyed on dialog close.
@@ -290,7 +290,6 @@ void PostProcessingConfigDiag::Event_Slider(wxCommandEvent &ev)
 			s32 value = option_data.m_integer_step_values[i] * current_step + option_data.m_integer_min_values[i];
 			m_post_processor->SetOptioni(config->GetOption(), i, value);
 			string_value = std::to_string(value);
-
 		}
 		else
 		{

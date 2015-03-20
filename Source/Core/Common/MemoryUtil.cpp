@@ -109,10 +109,10 @@ void* AllocateMemoryPages(size_t size)
 	return ptr;
 }
 
-void* AllocateAlignedMemory(size_t size,size_t alignment)
+void* AllocateAlignedMemory(size_t size, size_t alignment)
 {
 #ifdef _WIN32
-	void* ptr =  _aligned_malloc(size,alignment);
+	void* ptr = _aligned_malloc(size, alignment);
 #else
 	void* ptr = nullptr;
 	if (posix_memalign(&ptr, alignment, size) != 0)

@@ -15,6 +15,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -54,38 +55,28 @@ namespace JitInterface
 		CPUCoreBase *ptr = nullptr;
 		switch (core)
 		{
-			#if _M_X86
-			case 1:
-			{
-				ptr = new Jit64();
-				break;
-			}
-			case 2:
-			{
-				ptr = new JitIL();
-				break;
-			}
-			#endif
-			#if _M_ARM_32
-			case 3:
-			{
-				ptr = new JitArm();
-				break;
-			}
-			#endif
-			#if _M_ARM_64
-			case 4:
-			{
-				ptr = new JitArm64();
-				break;
-			}
-			#endif
-			default:
-			{
-				PanicAlert("Unrecognizable cpu_core: %d", core);
-				jit = nullptr;
-				return nullptr;
-			}
+		#if _M_X86
+		case PowerPC::CORE_JIT64:
+			ptr = new Jit64();
+			break;
+		case PowerPC::CORE_JITIL64:
+			ptr = new JitIL();
+			break;
+		#endif
+		#if _M_ARM_32
+		case PowerPC::CORE_JITARM:
+			ptr = new JitArm();
+			break;
+		#endif
+		#if _M_ARM_64
+		case PowerPC::CORE_JITARM64:
+			ptr = new JitArm64();
+			break;
+		#endif
+		default:
+			PanicAlert("Unrecognizable cpu_core: %d", core);
+			jit = nullptr;
+			return nullptr;
 		}
 		jit = static_cast<JitBase*>(ptr);
 		jit->Init();
@@ -95,37 +86,27 @@ namespace JitInterface
 	{
 		switch (core)
 		{
-			#if _M_X86
-			case 1:
-			{
-				Jit64Tables::InitTables();
-				break;
-			}
-			case 2:
-			{
-				JitILTables::InitTables();
-				break;
-			}
-			#endif
-			#if _M_ARM_32
-			case 3:
-			{
-				JitArmTables::InitTables();
-				break;
-			}
-			#endif
-			#if _M_ARM_64
-			case 4:
-			{
-				JitArm64Tables::InitTables();
-				break;
-			}
-			#endif
-			default:
-			{
-				PanicAlert("Unrecognizable cpu_core: %d", core);
-				break;
-			}
+		#if _M_X86
+		case PowerPC::CORE_JIT64:
+			Jit64Tables::InitTables();
+			break;
+		case PowerPC::CORE_JITIL64:
+			JitILTables::InitTables();
+			break;
+		#endif
+		#if _M_ARM_32
+		case PowerPC::CORE_JITARM:
+			JitArmTables::InitTables();
+			break;
+		#endif
+		#if _M_ARM_64
+		case PowerPC::CORE_JITARM64:
+			JitArm64Tables::InitTables();
+			break;
+		#endif
+		default:
+			PanicAlert("Unrecognizable cpu_core: %d", core);
+			break;
 		}
 	}
 	CPUCoreBase *GetCore()
@@ -153,7 +134,7 @@ namespace JitInterface
 			u64 timecost = block->ticCounter;
 			// Todo: tweak.
 			if (block->runCount >= 1)
-				stats.push_back(BlockStat(i, cost));
+				stats.emplace_back(i, cost);
 			cost_sum += cost;
 			timecost_sum += timecost;
 		}
@@ -207,27 +188,6 @@ namespace JitInterface
 			jit->GetBlockCache()->InvalidateICache(address, size, forced);
 	}
 
-	u32 ReadOpcodeJIT(u32 _Address)
-	{
-		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
-		{
-			_Address = Memory::TranslateAddress<Memory::FLAG_OPCODE>(_Address);
-			if (_Address == 0)
-			{
-				return 0;
-			}
-		}
-
-		u32 inst;
-		// Bypass the icache for the external interrupt exception handler
-		// -- this is stupid, should respect HID0
-		if ( (_Address & 0x0FFFFF00) == 0x00000500 )
-			inst = Memory::ReadUnchecked_U32(_Address);
-		else
-			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
-		return inst;
-	}
-
 	void CompileExceptionCheck(ExceptionType type)
 	{
 		if (!jit)
@@ -250,7 +210,7 @@ namespace JitInterface
 			if (type == ExceptionType::EXCEPTIONS_FIFO_WRITE)
 			{
 				// Check in case the code has been replaced since: do we need to do this?
-				int optype = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+				int optype = GetOpInfo(PowerPC::HostRead_U32(PC))->type;
 				if (optype != OPTYPE_STORE && optype != OPTYPE_STOREFP && (optype != OPTYPE_STOREPS))
 					return;
 			}

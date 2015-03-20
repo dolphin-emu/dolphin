@@ -12,6 +12,7 @@
 #include "Common/Atomic.h"
 #include "Common/Timer.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -199,6 +200,10 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 {
 	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, rc.GetWidth(), rc.GetHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
 	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
+	if (hr != S_OK && ARBruteForcer::ch_bruteforce)
+	{
+		Core::KillDolphinAndRestart();
+	}
 	CHECK(hr==S_OK, "Create screenshot staging texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
 }
@@ -275,8 +280,8 @@ Renderer::Renderer(void *&window_handle)
 
 	// Action Replay culling code brute-forcing
 	// begin searching
-	if (Core::ch_bruteforce)
-		Core::ch_comenzar_busqueda = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_begin_search = true;
 }
 
 Renderer::~Renderer()
@@ -386,6 +391,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	if (type == POKE_Z)
 	{
+		if (ARBruteForcer::ch_bruteforce)
+		{
+			Core::KillDolphinAndRestart();
+		}
 		static bool alert_only_once = true;
 		if (!alert_only_once) return 0;
 		PanicAlert("EFB: Poke Z not implemented (tried to poke z value %#x at (%d,%d))", poke_data, x, y);
@@ -769,8 +778,8 @@ void Renderer::AsyncTimewarpDraw()
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
 	//rafa
-	if (Core::ch_bruteforce)
-		Core::ch_cacheo_pasado = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_last_search = true;
 
 	// VR - before the first frame we need BeginFrame, and we need to configure the tracking
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
@@ -920,41 +929,52 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
 
-			if (g_ActiveConfig.bPullUp20fpsTimewarp)
+			if (g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp)
 			{
-				if (real_frame_count_for_timewarp % 4 == 1)
-				{
-					g_ActiveConfig.iExtraFrames = 2;
-				}
+				g_synchronous_timewarp_enabled = true;
+
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
+					SConfig::GetInstance().m_AudioSlowDown = 1.25;
+
+				if (g_ActiveConfig.bPullUp20fpsTimewarp)
 				{
-					g_ActiveConfig.iExtraFrames = 3;
+					if (real_frame_count_for_timewarp % 4 == 1)
+						g_ActiveConfig.iExtraFrames = 2;
+					else
+						g_ActiveConfig.iExtraFrames = 3;
 				}
+				else if (g_ActiveConfig.bPullUp30fpsTimewarp)
+				{
+					if (real_frame_count_for_timewarp % 2 == 1)
+						g_ActiveConfig.iExtraFrames = 1;
+					else
+						g_ActiveConfig.iExtraFrames = 2;
+				}
+				else if (g_ActiveConfig.bPullUp60fpsTimewarp)
+				{
+					if (real_frame_count_for_timewarp % 4 == 0)
+						g_ActiveConfig.iExtraFrames = 1;
+					else
+						g_ActiveConfig.iExtraFrames = 0;
+				}
+				++real_frame_count_for_timewarp;
 			}
-			else if (g_ActiveConfig.bPullUp30fpsTimewarp)
+			else if (g_opcode_replay_enabled)
 			{
-				if (real_frame_count_for_timewarp % 2 == 1)
-				{
-					g_ActiveConfig.iExtraFrames = 1;
-				}
+				g_synchronous_timewarp_enabled = false;
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
-				{
-					g_ActiveConfig.iExtraFrames = 2;
-				}
-			}
-			else if (g_ActiveConfig.bPullUp60fpsTimewarp)
-			{
-				if (real_frame_count_for_timewarp % 4 == 0)
-					g_ActiveConfig.iExtraFrames = 1;
-				else
-					g_ActiveConfig.iExtraFrames = 0;
-			}
-			else if (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps)
-			{
+					SConfig::GetInstance().m_AudioSlowDown = 1.25;
 				g_ActiveConfig.iExtraFrames = 0;
 			}
-
-			++real_frame_count_for_timewarp;
+			else
+			{
+				g_synchronous_timewarp_enabled = false;
+				SConfig::GetInstance().m_AudioSlowDown = SConfig::GetInstance().m_LocalCoreStartupParameter.fAudioSlowDown;
+			}
 
 			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
@@ -1019,26 +1039,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
 	}
 
-	// done with drawing the game stuff, good moment to save a screenshot
-	if (Core::ch_bruteforce && Core::ch_tomarFoto > 0)
-	{								 
-		std::string s_sAux = std::to_string(Core::ch_codigoactual) + "," + Core::ch_map[Core::ch_codigoactual] +
-			"," + Core::ch_code + "," + std::to_string(stats.thisFrame.numPrims) + "," + std::to_string(stats.thisFrame.numDrawCalls) + "," + std::to_string(Core::ch_tomarFoto);
-		std::ofstream myfile;
-		myfile.open(File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/bruteforce.csv" , std::ios_base::app);
-		myfile << s_sAux << "\n";
-		myfile.close();
-		if (Core::ch_tomarFoto == 1){
-			s_bScreenshot = true;
-			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + std::to_string(Core::ch_codigoactual) + "_" + Core::ch_map[Core::ch_codigoactual] + "_" + Core::ch_code + ".png";
-			Core::ch_cicles_without_snapshot = 0;
-			Core::ch_cacheo_pasado = true;
-			Core::ch_next_code = true; 
-		}
-		
-		Core::ch_tomarFoto -= 1;
-	}	
+	// Enable screenshot and write csv if bruteforcing is on
+	if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_take_screenshot > 0)
+		ARBruteForcer::SetupScreenshotAndWriteCSV(&s_bScreenshot, &s_sScreenshotName);
 
+	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
@@ -1178,10 +1183,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (FramebufferManagerBase::LastXfbWidth() != fbStride || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		unsigned int w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-		FramebufferManagerBase::SetLastXfbWidth(w);
-		FramebufferManagerBase::SetLastXfbHeight(h);
+		unsigned int xfb_w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
+		unsigned int xfb_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(xfb_w);
+		FramebufferManagerBase::SetLastXfbHeight(xfb_h);
 	}
 
 	// Flip/present backbuffer to frontbuffer here
@@ -1488,7 +1493,7 @@ void Renderer::SetDitherMode()
 	// TODO: Set dither mode to bpmem.blendmode.dither
 }
 
-void Renderer::SetSamplerState(int stage, int texindex)
+void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 {
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
@@ -1513,6 +1518,12 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
 	gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
 	gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
+
+	// custom textures may have higher resolution, so disable the max_lod
+	if (custom_tex)
+	{
+		gx_state.sampler[stage].max_lod = 255;
+	}
 }
 
 void Renderer::SetInterlacingMode()

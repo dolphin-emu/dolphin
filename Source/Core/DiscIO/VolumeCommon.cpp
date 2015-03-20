@@ -12,13 +12,13 @@
 // Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
 namespace DiscIO
 {
-IVolume::ECountry CountrySwitch(u8 CountryCode)
+IVolume::ECountry CountrySwitch(u8 country_code)
 {
-	switch (CountryCode)
+	switch (country_code)
 	{
 		// Region free - Uses European flag as placeholder
 		case 'A':
-			return IVolume::COUNTRY_INTERNATIONAL;
+			return IVolume::COUNTRY_WORLD;
 
 		// PAL
 		case 'D':
@@ -68,8 +68,8 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 			return IVolume::COUNTRY_TAIWAN;
 
 		default:
-			if (CountryCode > 'A') // Silently ignore IOS wads
-				WARN_LOG(DISCIO, "Unknown Country Code! %c", CountryCode);
+			if (country_code > 'A') // Silently ignore IOS wads
+				WARN_LOG(DISCIO, "Unknown Country Code! %c", country_code);
 			return IVolume::COUNTRY_UNKNOWN;
 	}
 }

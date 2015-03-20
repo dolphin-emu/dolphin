@@ -35,9 +35,10 @@
       <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ExternalsDir)libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)LZO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -87,7 +88,6 @@
       seem to be a way to only ignore the specific instance we don't care about...
       -->
       <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
-      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
@@ -131,6 +131,25 @@
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
       <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
     </Lib>
+    <!--
+    Prefer VTune 2015 over 2013 but support both since there is no non-commercial license for 2015 :(
+    -->
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2015_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="Exists('$(VTUNE_AMPLIFIER_XE_2013_DIR)') And !Exists('$(VTUNE_AMPLIFIER_XE_2015_DIR)')">
+      <ClCompile>
+        <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\include"</AdditionalIncludeDirectories>
+      </ClCompile>
+      <Link>
+        <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);"$(VTUNE_AMPLIFIER_XE_2013_DIR)\lib64"</AdditionalLibraryDirectories>
+      </Link>
+    </ItemDefinitionGroup>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

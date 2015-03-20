@@ -67,16 +67,18 @@
 #include "Core/CoreParameter.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
-#include "Core/RmObjEngine.h"
+#include "Core/HideObjectEngine.h"
 #include "Core/Boot/Boot.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/GameListCtrl.h"
+//#include "DolphinWX/Frame.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
-#include "DolphinWX/RmObjAddEdit.h"
+#include "DolphinWX/HideObjectAddEdit.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
@@ -85,22 +87,7 @@
 #include "DolphinWX/resources/isoprop_folder.xpm"
 #include "VideoCommon/VR.h"
 
-struct WiiPartition
-{
-	DiscIO::IVolume *Partition;
-	DiscIO::IFileSystem *FileSystem;
-	std::vector<const DiscIO::SFileInfo *> Files;
-};
-static std::vector<WiiPartition> WiiDisc;
-
-static DiscIO::IVolume *OpenISO = nullptr;
-static DiscIO::IFileSystem *pFileSystem = nullptr;
-
-std::vector<PatchEngine::Patch> onFrame;
-std::vector<RmObjEngine::RmObj> rmObjCodes;
-std::vector<ActionReplay::ARCode> arCodes;
-PHackData PHack_Data;
-
+std::vector<HideObjectEngine::HideObject> HideObjectCodes;
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
@@ -110,11 +97,11 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
-	EVT_LISTBOX(ID_RMOBJS_LIST, CISOProperties::ListSelectionChanged)
-	EVT_CHECKLISTBOX(ID_RMOBJS_LIST, CISOProperties::CheckboxSelectionChanged)
-	EVT_BUTTON(ID_EDITRMOBJ, CISOProperties::RmObjButtonClicked)
-	EVT_BUTTON(ID_ADDRMOBJ, CISOProperties::RmObjButtonClicked)
-	EVT_BUTTON(ID_REMOVERMOBJ, CISOProperties::RmObjButtonClicked)
+	EVT_LISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::ListSelectionChanged)
+	EVT_CHECKLISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::CheckboxSelectionChanged)
+	EVT_BUTTON(ID_EDITHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
+	EVT_BUTTON(ID_ADDHideObject, CISOProperties::HideObjectButtonClicked)
+	EVT_BUTTON(ID_REMOVEHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -174,27 +161,21 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 	}
 
-	// Load game ini
-	std::string _iniFilename = OpenISO->GetUniqueID();
-	std::string _iniFilenameRevisionSpecific = OpenISO->GetRevisionSpecificUniqueID();
-
-	if (!_iniFilename.length())
+	// TODO: Is it really necessary to use GetTitleID in case GetUniqueID fails?
+	game_id = OpenISO->GetUniqueID();
+	if (game_id.empty())
 	{
-		u8 title_id[8];
-		if (OpenISO->GetTitleID(title_id))
+		u8 game_id_bytes[8];
+		if (OpenISO->GetTitleID(game_id_bytes))
 		{
-			_iniFilename = StringFromFormat("%016" PRIx64, Common::swap64(title_id));
+			game_id = StringFromFormat("%016" PRIx64, Common::swap64(game_id_bytes));
 		}
 	}
 
-	GameIniFileDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilename + ".ini";
-	std::string GameIniFileDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilenameRevisionSpecific + ".ini";
-	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + _iniFilename + ".ini";
-
-	GameIniDefault.Load(GameIniFileDefault);
-	if (_iniFilenameRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
-	GameIniLocal.Load(GameIniFileLocal);
+	// Load game INIs
+	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
+	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(game_id, OpenISO->GetRevision());
+	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(game_id, OpenISO->GetRevision());
 
 	// Setup GUI
 	OpenGameListItem = new GameListItem(fileName);
@@ -220,8 +201,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(_("France"));
 		break;
-	case DiscIO::IVolume::COUNTRY_INTERNATIONAL:
-		m_Country->SetValue(_("International"));
+	case DiscIO::IVolume::COUNTRY_WORLD:
+		m_Country->SetValue(_("World"));
 		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(_("Italy"));
@@ -239,7 +220,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Country->SetValue(_("Spain"));
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		m_Country->SetValue(_("United States"));
+		m_Country->SetValue(_("USA"));
 		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
 		{
 			m_Lang->SetSelection(0);
@@ -400,8 +381,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
 	wxPanel* const m_VR = new wxPanel(m_Notebook, ID_VR);
 	m_Notebook->AddPage(m_VR, _("VR"));
-	wxPanel* const m_RmObjPage = new wxPanel(m_Notebook, ID_RMOBJ_PAGE);
-	m_Notebook->AddPage(m_RmObjPage, _("Remove Object"));
+	wxPanel* const m_HideObjectPage = new wxPanel(m_Notebook, ID_HIDEOBJECT_PAGE);
+	m_Notebook->AddPage(m_HideObjectPage, _("Hide Objects"));
 	wxPanel* const m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE);
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
 	wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
@@ -513,7 +494,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_VRState.Add(_("Playable"));
 	arrayStringFor_VRState.Add(_("Good"));
 	arrayStringFor_VRState.Add(_("Perfect"));
-	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
+	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_VRState);
 	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("VR state:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sVRGrid->Add(VRState, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	VRIssues = new wxTextCtrl(m_VR, ID_EMU_ISSUES, wxEmptyString);
@@ -527,20 +508,22 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "SkipIdle"));
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "MMU"));
 	MMU->SetToolTip(_("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
-	BAT = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable BAT"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "BAT"));
-	BAT->SetToolTip(_("Enables Block Address Translation, needed for a few games. Requires MMU. (ON = Compatible, OFF = Fast)"));
 	DCBZOFF = new wxCheckBox(m_GameConfig, ID_DCBZOFF, _("Skip DCBZ clearing"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DCBZ"));
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
-	FPRF = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable FPRF"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "FPRF"));
+	FPRF = new wxCheckBox(m_GameConfig, ID_FPRF, _("Enable FPRF"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "FPRF"));
 	FPRF->SetToolTip(_("Enables Floating Point Result Flag calculation, needed for a few games. (ON = Compatible, OFF = Fast)"));
-	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("VBeam Speed Hack"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "VBeam"));
-	VBeam->SetToolTip(_("Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF = Compatible)"));
 	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronize GPU thread"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "SyncGPU"));
 	SyncGPU->SetToolTip(_("Synchronizes the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "FastDiscSpeed"));
-	FastDiscSpeed->SetToolTip(_("Enable fast disc access. Needed for a few games. (ON = Fast, OFF = Compatible)"));
-	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "BlockMerging"));
+	FastDiscSpeed->SetToolTip(_("Enable fast disc access. This can cause crashes and other problems in some games. (ON = Fast, OFF = Compatible)"));
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
+
+	wxBoxSizer* const sAudioSlowDown = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText* const AudioSlowDownText = new wxStaticText(m_GameConfig, wxID_ANY, _("Frame Rate Hack Audio Synchronization: "));
+	AudioSlowDown = new wxSpinCtrlDouble(m_GameConfig, ID_AUDIOSLOWDOWN, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10, 1, 0.01);
+	AudioSlowDown->SetToolTip(_("Leave at 1 unless using a frame rate hack. Input a multiplier equivilent to the amount the frame rate has been altered. e.g. If a 30fps game is hacked to 75fps, input 2.5"));
+	sAudioSlowDown->Add(AudioSlowDownText);
+	sAudioSlowDown->Add(AudioSlowDown);
 
 	wxBoxSizer* const sGPUDeterminism = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const GPUDeterminismText = new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core: "));
@@ -590,16 +573,14 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
 	sbCoreOverrides->Add(CPUThread, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxLEFT, 5);
-	sbCoreOverrides->Add(BAT, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(FPRF, 0, wxLEFT, 5);
-	sbCoreOverrides->Add(VBeam, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SyncGPU, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
-	sbCoreOverrides->Add(BlockMerging, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND|wxALL, 5);
+	sbCoreOverrides->Add(sAudioSlowDown, 0, wxEXPAND | wxALL, 5);
 
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile())
@@ -627,40 +608,40 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
 
-	// Remove Object
-	wxBoxSizer* const sRmObjs = new wxBoxSizer(wxVERTICAL);
+	// Hide Object Range
+	wxBoxSizer* const sHideObjects = new wxBoxSizer(wxVERTICAL);
 
-	wxStaticBoxSizer * const sbObjRemovalRange = new wxStaticBoxSizer(wxVERTICAL, m_RmObjPage, _("Object Range Removal"));
-	sRmObjs->Add(sbObjRemovalRange, 0, wxEXPAND | wxALL, 5);
-	wxGridBagSizer *sbObjRemovalRangeGrid = new wxGridBagSizer();
-	sbObjRemovalRange->Add(sbObjRemovalRangeGrid, 0, wxEXPAND);
+	wxStaticBoxSizer * const sbHideObjectRange = new wxStaticBoxSizer(wxVERTICAL, m_HideObjectPage, _("Hide Object Range"));
+	sHideObjects->Add(sbHideObjectRange, 0, wxEXPAND | wxALL, 5);
+	wxGridBagSizer *sbHideObjectRangeGrid = new wxGridBagSizer();
+	sbHideObjectRange->Add(sbHideObjectRangeGrid, 0, wxEXPAND);
 
-	sbObjRemovalRangeGrid->Add(new wxStaticText(m_RmObjPage, wxID_ANY, _("From:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sbObjRemovalRangeGrid->Add(new wxStaticText(m_RmObjPage, wxID_ANY, _("To:")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	//To Do: Save to INI or Make Game Specific?
-	//wxSpinCtrlDouble* ObjectRemovalEnd = new wxSpinCtrlDouble(m_RmObjPage, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, DEFAULT_VR_SCREEN_HEIGHT, 0.1);
-	U32Setting* ObjectRemovalStart = new U32Setting(m_RmObjPage, _("Removal Start"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start, 0, 100000);
-	U32Setting* ObjectRemovalEnd = new U32Setting(m_RmObjPage, _("Removal End"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end, 0, 100000);
-	sbObjRemovalRangeGrid->Add(ObjectRemovalStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sbObjRemovalRangeGrid->Add(ObjectRemovalEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("From:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("To:")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	RmObjs = new wxCheckListBox(m_RmObjPage, ID_RMOBJS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_RmObjs, wxLB_HSCROLL);
-	wxBoxSizer* const sRmObjsButtons = new wxBoxSizer(wxHORIZONTAL);
-	EditRmObj = new wxButton(m_RmObjPage, ID_EDITRMOBJ, _("Edit..."));
-	wxButton* const AddRmObj = new wxButton(m_RmObjPage, ID_ADDRMOBJ, _("Add..."));
-	RemoveRmObj = new wxButton(m_RmObjPage, ID_REMOVERMOBJ, _("Remove"));
-	EditRmObj->Enable(false);
-	RemoveRmObj->Enable(false);
+	U32Setting* HideObjectsStart = new U32Setting(m_HideObjectPage, _("Hide Start"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start, 0, 100000);
+	U32Setting* HideObjectsEnd = new U32Setting(m_HideObjectPage, _("Hide End"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end, 0, 100000);
+	sbHideObjectRangeGrid->Add(HideObjectsStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	sbHideObjectRangeGrid->Add(HideObjectsEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
 
-	wxBoxSizer* sRmObjPage = new wxBoxSizer(wxVERTICAL);
-	sRmObjs->Add(RmObjs, 1, wxEXPAND | wxALL, 0);
-	sRmObjsButtons->Add(EditRmObj, 0, wxEXPAND | wxALL, 0);
-	sRmObjsButtons->AddStretchSpacer();
-	sRmObjsButtons->Add(AddRmObj, 0, wxEXPAND | wxALL, 0);
-	sRmObjsButtons->Add(RemoveRmObj, 0, wxEXPAND | wxALL, 0);
-	sRmObjs->Add(sRmObjsButtons, 0, wxEXPAND | wxALL, 0);
-	sRmObjPage->Add(sRmObjs, 1, wxEXPAND | wxALL, 5);
-	m_RmObjPage->SetSizer(sRmObjPage);
+	// Hide Object Code
+	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_HideObjects, wxLB_HSCROLL);
+	wxBoxSizer* const sHideObjectsButtons = new wxBoxSizer(wxHORIZONTAL);
+	EditHideObject = new wxButton(m_HideObjectPage, ID_EDITHIDEOBJECT, _("Edit..."));
+	wxButton* const AddHideObject = new wxButton(m_HideObjectPage, ID_ADDHideObject, _("Add..."));
+	RemoveHideObject = new wxButton(m_HideObjectPage, ID_REMOVEHIDEOBJECT, _("Remove"));
+	EditHideObject->Enable(false);
+	RemoveHideObject->Enable(false);
+
+	wxBoxSizer* sHideObjectPage = new wxBoxSizer(wxVERTICAL);
+	sHideObjects->Add(HideObjects, 1, wxEXPAND | wxALL);
+	sHideObjectsButtons->Add(EditHideObject, 0, wxEXPAND | wxALL);
+	sHideObjectsButtons->AddStretchSpacer();
+	sHideObjectsButtons->Add(AddHideObject, 0, wxEXPAND | wxALL);
+	sHideObjectsButtons->Add(RemoveHideObject, 0, wxEXPAND | wxALL);
+	sHideObjects->Add(sHideObjectsButtons, 0, wxEXPAND | wxALL);
+	sHideObjectPage->Add(sHideObjects, 1, wxEXPAND | wxALL, 5);
+	m_HideObjectPage->SetSizer(sHideObjectPage);
 
 	// Patches
 	wxBoxSizer* const sPatches = new wxBoxSizer(wxVERTICAL);
@@ -669,8 +650,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	EditPatch = new wxButton(m_PatchPage, ID_EDITPATCH, _("Edit..."));
 	wxButton* const AddPatch = new wxButton(m_PatchPage, ID_ADDPATCH, _("Add..."));
 	RemovePatch = new wxButton(m_PatchPage, ID_REMOVEPATCH, _("Remove"));
-	EditPatch->Enable(false);
-	RemovePatch->Enable(false);
+	EditPatch->Disable();
+	RemovePatch->Disable();
 
 	wxBoxSizer* sPatchPage = new wxBoxSizer(wxVERTICAL);
 	sPatches->Add(Patches, 1, wxEXPAND|wxALL, 0);
@@ -690,8 +671,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	EditCheat = new wxButton(m_CheatPage, ID_EDITCHEAT, _("Edit..."));
 	wxButton * const AddCheat = new wxButton(m_CheatPage, ID_ADDCHEAT, _("Add..."));
 	RemoveCheat = new wxButton(m_CheatPage, ID_REMOVECHEAT, _("Remove"));
-	EditCheat->Enable(false);
-	RemoveCheat->Enable(false);
+	EditCheat->Disable();
+	RemoveCheat->Disable();
 
 	wxBoxSizer* sCheatPage = new wxBoxSizer(wxVERTICAL);
 	sCheats->Add(Cheats, 1, wxEXPAND|wxALL, 0);
@@ -827,7 +808,16 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sButtons->Add(new wxButton(this, wxID_OK, _("Close")));
 
 	// If there is no default gameini, disable the button.
-	if (!File::Exists(GameIniFileDefault))
+	bool game_ini_exists = false;
+	for (const std::string& ini_filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	{
+		if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
+		{
+			game_ini_exists = true;
+			break;
+		}
+	}
+	if (!game_ini_exists)
 		EditConfigDefault->Disable();
 
 	// Add notebook and buttons to the dialog
@@ -845,8 +835,9 @@ void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
 		WxUtils::ShowErrorDialog(wxString::Format(_("Could not save %s."), GameIniFileLocal.c_str()));
-
-	EndModal(bRefreshList ? wxID_OK : wxID_CANCEL);
+	if (bRefreshList)
+		((CGameListCtrl*)GetParent())->Update();
+	Destroy();
 }
 
 void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED (event))
@@ -1217,13 +1208,10 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "CPUThread", CPUThread);
 	SetCheckboxValueFromGameini("Core", "SkipIdle", SkipIdle);
 	SetCheckboxValueFromGameini("Core", "MMU", MMU);
-	SetCheckboxValueFromGameini("Core", "BAT", BAT);
 	SetCheckboxValueFromGameini("Core", "DCBZ", DCBZOFF);
 	SetCheckboxValueFromGameini("Core", "FPRF", FPRF);
-	SetCheckboxValueFromGameini("Core", "VBeam", VBeam);
 	SetCheckboxValueFromGameini("Core", "SyncGPU", SyncGPU);
 	SetCheckboxValueFromGameini("Core", "FastDiscSpeed", FastDiscSpeed);
-	SetCheckboxValueFromGameini("Core", "BlockMerging", BlockMerging);
 	SetCheckboxValueFromGameini("Core", "DSPHLE", DSPHLE);
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
 	SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
@@ -1232,20 +1220,20 @@ void CISOProperties::LoadGameConfig()
 
 	int iTemp;
 	default_video->Get("ProjectionHack", &iTemp);
-	default_video->Get("PH_SZNear", &PHack_Data.PHackSZNear);
+	default_video->Get("PH_SZNear", &m_PHack_Data.PHackSZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
-		PHack_Data.PHackSZNear = !!iTemp;
-	default_video->Get("PH_SZFar", &PHack_Data.PHackSZFar);
+		m_PHack_Data.PHackSZNear = !!iTemp;
+	default_video->Get("PH_SZFar", &m_PHack_Data.PHackSZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZFar", &iTemp))
-		PHack_Data.PHackSZFar = !!iTemp;
+		m_PHack_Data.PHackSZFar = !!iTemp;
 
 	std::string sTemp;
-	default_video->Get("PH_ZNear", &PHack_Data.PHZNear);
+	default_video->Get("PH_ZNear", &m_PHack_Data.PHZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZNear", &sTemp))
-		PHack_Data.PHZNear = sTemp;
-	default_video->Get("PH_ZFar", &PHack_Data.PHZFar);
+		m_PHack_Data.PHZNear = sTemp;
+	default_video->Get("PH_ZFar", &m_PHack_Data.PHZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
-		PHack_Data.PHZFar = sTemp;
+		m_PHack_Data.PHZFar = sTemp;
 
 	IniFile::Section* default_emustate = GameIniDefault.GetOrCreateSection("EmuState");
 	default_emustate->Get("EmulationStateId", &iTemp, 0/*Not Set*/);
@@ -1274,6 +1262,13 @@ void CISOProperties::LoadGameConfig()
 	else if (sTemp == "fake-completion")
 		GPUDeterminism->SetSelection(3);
 
+	float fTemp;
+
+	fTemp = 1;
+	GameIniDefault.GetIfExists("Core", "AudioSlowDown", &fTemp);
+	GameIniLocal.GetIfExists("Core", "AudioSlowDown", &fTemp);
+	AudioSlowDown->SetValue(fTemp);
+
 	IniFile::Section* default_stereoscopy = GameIniDefault.GetOrCreateSection("Video_Stereoscopy");
 	default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
 	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
@@ -1284,7 +1279,6 @@ void CISOProperties::LoadGameConfig()
 	//SetCheckboxValueFromGameini("VR", "Disable3D", Disable3D);
 	SetCheckboxValueFromGameini("VR", "HudFullscreen", HudFullscreen);
 	SetCheckboxValueFromGameini("VR", "HudOnTop", HudOnTop);
-	float fTemp;
 
 	fTemp = DEFAULT_VR_UNITS_PER_METRE;
 	if (GameIniDefault.GetIfExists("VR", "UnitsPerMetre", &fTemp))
@@ -1383,7 +1377,7 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.GetIfExists("VR", "VRIssues", &sTemp))
 		VRIssues->SetValue(StrToWxStr(sTemp));
 
-	RmObjList_Load();
+	HideObjectList_Load();
 	PatchList_Load();
 	ActionReplayList_Load();
 	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
@@ -1416,13 +1410,10 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "CPUThread", CPUThread);
 	SaveGameIniValueFrom3StateCheckbox("Core", "SkipIdle", SkipIdle);
 	SaveGameIniValueFrom3StateCheckbox("Core", "MMU", MMU);
-	SaveGameIniValueFrom3StateCheckbox("Core", "BAT", BAT);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DCBZ", DCBZOFF);
 	SaveGameIniValueFrom3StateCheckbox("Core", "FPRF", FPRF);
-	SaveGameIniValueFrom3StateCheckbox("Core", "VBeam", VBeam);
 	SaveGameIniValueFrom3StateCheckbox("Core", "SyncGPU", SyncGPU);
 	SaveGameIniValueFrom3StateCheckbox("Core", "FastDiscSpeed", FastDiscSpeed);
-	SaveGameIniValueFrom3StateCheckbox("Core", "BlockMerging", BlockMerging);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
 	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
 	SaveGameIniValueFrom3StateCheckbox("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
@@ -1441,10 +1432,10 @@ bool CISOProperties::SaveGameConfig()
 			GameIniLocal.DeleteKey((section), (key)); \
 	} while (0)
 
-	SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (PHack_Data.PHackSZNear ? 1 : 0), 0);
-	SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (PHack_Data.PHackSZFar ? 1 : 0), 0);
-	SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", PHack_Data.PHZNear, "");
-	SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", PHack_Data.PHZFar, "");
+	SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (m_PHack_Data.PHackSZNear ? 1 : 0), 0);
+	SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (m_PHack_Data.PHackSZFar ? 1 : 0), 0);
+	SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", m_PHack_Data.PHZNear, "");
+	SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", m_PHack_Data.PHZFar, "");
 	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationStateId", EmuState->GetSelection(), 0);
 
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
@@ -1461,6 +1452,7 @@ bool CISOProperties::SaveGameConfig()
 		tmp = "fake-completion";
 
 	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
+	SAVE_IF_NOT_DEFAULT("Core", "AudioSlowDown", AudioSlowDown->GetValue(), 1.00f);
 
 	int depth = DepthPercentage->GetValue() > 0 ? DepthPercentage->GetValue() : 100;
 	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
@@ -1594,26 +1586,33 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 	m_MD5Sum->SetValue(output_string);
 }
 
+// Opens all pre-defined INIs for the game. If there are multiple ones,
+// they will all be opened, but there is usually only one
 void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED (event))
 {
-	LaunchExternalEditor(GameIniFileDefault);
+	for (const std::string& filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	{
+		std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
+		if (File::Exists(path))
+			LaunchExternalEditor(path);
+	}
 }
 
 void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_RMOBJS_LIST:
-		if (RmObjs->GetSelection() == wxNOT_FOUND ||
-			DefaultRmObjs.find(RmObjs->GetString(RmObjs->GetSelection()).ToStdString()) != DefaultRmObjs.end())
+	case ID_HIDEOBJECTS_LIST:
+		if (HideObjects->GetSelection() == wxNOT_FOUND ||
+			DefaultHideObjects.find(HideObjects->GetString(HideObjects->GetSelection()).ToStdString()) != DefaultHideObjects.end())
 		{
-			EditRmObj->Disable();
-			RemoveRmObj->Disable();
+			EditHideObject->Disable();
+			RemoveHideObject->Disable();
 		}
 		else
 		{
-			EditRmObj->Enable();
-			RemoveRmObj->Enable();
+			EditHideObject->Enable();
+			RemoveHideObject->Enable();
 		}
 		break;
 	case ID_PATCHES_LIST:
@@ -1647,93 +1646,93 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 
 void CISOProperties::CheckboxSelectionChanged(wxCommandEvent& event)
 {
-	RmObjList_Save();
-	RmObjList_Load();
+	HideObjectList_Save();
+	HideObjectList_Load();
 }
 
-void CISOProperties::RmObjList_Load()
+void CISOProperties::HideObjectList_Load()
 {
-	rmObjCodes.clear();
-	RmObjs->Clear();
+	HideObjectCodes.clear();
+	HideObjects->Clear();
 
-	RmObjEngine::LoadRmObjSection("RmObjCodes", rmObjCodes, GameIniDefault, GameIniLocal);
+	HideObjectEngine::LoadHideObjectSection("HideObjectCodes", HideObjectCodes, GameIniDefault, GameIniLocal);
 
 	u32 index = 0;
-	for (RmObjEngine::RmObj& p : rmObjCodes)
+	for (HideObjectEngine::HideObject& p : HideObjectCodes)
 	{
-		RmObjs->Append(StrToWxStr(p.name));
-		RmObjs->Check(index, p.active);
+		HideObjects->Append(StrToWxStr(p.name));
+		HideObjects->Check(index, p.active);
 		if (!p.user_defined)
-			DefaultRmObjs.insert(p.name);
+			DefaultHideObjects.insert(p.name);
 		++index;
 	}
-	
-	RmObjEngine::ApplyRmObjs(rmObjCodes);
+
+	HideObjectEngine::ApplyHideObjects(HideObjectCodes);
 
 }
 
-void CISOProperties::RmObjList_Save()
+void CISOProperties::HideObjectList_Save()
 {
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
-	for (RmObjEngine::RmObj& p : rmObjCodes)
+	for (HideObjectEngine::HideObject& p : HideObjectCodes)
 	{
-		if (RmObjs->IsChecked(index))
+		if (HideObjects->IsChecked(index))
 			enabledLines.push_back("$" + p.name);
 
 		// Do not save default removed objects.
-		if (DefaultRmObjs.find(p.name) == DefaultRmObjs.end())
+		if (DefaultHideObjects.find(p.name) == DefaultHideObjects.end())
 		{
 			lines.push_back("$" + p.name);
-			for (const RmObjEngine::RmObjEntry& entry : p.entries)
+			for (const HideObjectEngine::HideObjectEntry& entry : p.entries)
 			{
-				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", RmObjEngine::RmObjTypeStrings[entry.type], (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
+				std::string temp = StringFromFormat("%s:0x%08X%08X:0x%08X%08X", HideObjectEngine::HideObjectTypeStrings[entry.type].c_str(), (entry.value_upper & 0xffffffff00000000) >> 32, (entry.value_upper & 0xffffffff), (entry.value_lower & 0xffffffff00000000) >> 32, (entry.value_lower & 0xffffffff));
 				lines.push_back(temp);
 			}
 		}
 		++index;
 	}
-	GameIniLocal.SetLines("RmObjCodes_Enabled", enabledLines);
-	GameIniLocal.SetLines("RmObjCodes", lines);
+	GameIniLocal.SetLines("HideObjectCodes_Enabled", enabledLines);
+	GameIniLocal.SetLines("HideObjectCodes", lines);
 }
 
-void CISOProperties::RmObjButtonClicked(wxCommandEvent& event)
+void CISOProperties::HideObjectButtonClicked(wxCommandEvent& event)
 {
-	int selection = RmObjs->GetSelection();
+	int selection = HideObjects->GetSelection();
 
 	switch (event.GetId())
 	{
-	case ID_EDITRMOBJ:
+	case ID_EDITHIDEOBJECT:
 	{
-		CRmObjAddEdit dlg(selection, this);
+		CHideObjectAddEdit dlg(selection, this);
 		dlg.ShowModal();
 	}
 	break;
-	case ID_ADDRMOBJ:
+	case ID_ADDHideObject:
 	{
-		CRmObjAddEdit dlg(-1, this, 1, _("Add Object to Remove"));
+		CHideObjectAddEdit dlg(-1, this, 1, _("Add Hide Object Code"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			RmObjs->Append(StrToWxStr(rmObjCodes.back().name));
-			RmObjs->Check((unsigned int)(rmObjCodes.size() - 1), rmObjCodes.back().active);
+			HideObjects->Append(StrToWxStr(HideObjectCodes.back().name));
+			HideObjects->Check((unsigned int)(HideObjectCodes.size() - 1), HideObjectCodes.back().active);
 		}
 	}
 	break;
-	case ID_REMOVERMOBJ:
-		rmObjCodes.erase(rmObjCodes.begin() + RmObjs->GetSelection());
-		RmObjs->Delete(RmObjs->GetSelection());
+	case ID_REMOVEHIDEOBJECT:
+		HideObjectCodes.erase(HideObjectCodes.begin() + HideObjects->GetSelection());
+		HideObjects->Delete(HideObjects->GetSelection());
 		break;
 	}
 
-	RmObjList_Save();
-	RmObjs->Clear();
-	RmObjList_Load();
+	HideObjectList_Save();
+	HideObjects->Clear();
+	HideObjectList_Load();
 
-	RmObjEngine::ApplyRmObjs(rmObjCodes);
+	HideObjectEngine::ApplyHideObjects(HideObjectCodes);
 
-	EditRmObj->Enable(false);
-	RemoveRmObj->Enable(false);
+	EditHideObject->Disable();
+	RemoveHideObject->Disable();
 }
 
 void CISOProperties::PatchList_Load()
@@ -1788,13 +1787,13 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 	{
 	case ID_EDITPATCH:
 		{
-		CPatchAddEdit dlg(selection, this);
+		CPatchAddEdit dlg(selection, &onFrame, this);
 		dlg.ShowModal();
 		}
 		break;
 	case ID_ADDPATCH:
 		{
-		CPatchAddEdit dlg(-1, this, 1, _("Add Patch"));
+		CPatchAddEdit dlg(-1, &onFrame, this, 1, _("Add Patch"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			Patches->Append(StrToWxStr(onFrame.back().name));
@@ -1812,8 +1811,8 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 	Patches->Clear();
 	PatchList_Load();
 
-	EditPatch->Enable(false);
-	RemovePatch->Enable(false);
+	EditPatch->Disable();
+	RemovePatch->Disable();
 }
 
 void CISOProperties::ActionReplayList_Load()
@@ -1868,13 +1867,13 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 	{
 	case ID_EDITCHEAT:
 		{
-		CARCodeAddEdit dlg(selection, this);
+		CARCodeAddEdit dlg(selection, &arCodes, this);
 		dlg.ShowModal();
 		}
 		break;
 	case ID_ADDCHEAT:
 		{
-			CARCodeAddEdit dlg(-1, this, 1, _("Add ActionReplay Code"));
+			CARCodeAddEdit dlg(-1, &arCodes, this, 1, _("Add ActionReplay Code"));
 			if (dlg.ShowModal() == wxID_OK)
 			{
 				Cheats->Append(StrToWxStr(arCodes.back().name));
@@ -1892,8 +1891,8 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 	Cheats->Clear();
 	ActionReplayList_Load();
 
-	EditCheat->Enable(false);
-	RemoveCheat->Enable(false);
+	EditCheat->Disable();
+	RemoveCheat->Disable();
 }
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)

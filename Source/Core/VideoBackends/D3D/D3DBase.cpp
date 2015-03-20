@@ -155,41 +155,41 @@ void UnloadD3DCompiler()
 
 std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 {
-	std::vector<DXGI_SAMPLE_DESC> aa_modes;
+	std::vector<DXGI_SAMPLE_DESC> _aa_modes;
 
 	// NOTE: D3D 10.0 doesn't support multisampled resources which are bound as depth buffers AND shader resources.
 	// Thus, we can't have MSAA with 10.0 level hardware.
-	ID3D11Device* device;
-	ID3D11DeviceContext* context;
+	ID3D11Device* _device;
+	ID3D11DeviceContext* _context;
 	D3D_FEATURE_LEVEL feat_level;
-	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &device, &feat_level, &context);
+	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &_device, &feat_level, &_context);
 	if (FAILED(hr) || feat_level == D3D_FEATURE_LEVEL_10_0)
 	{
 		DXGI_SAMPLE_DESC desc;
 		desc.Count = 1;
 		desc.Quality = 0;
-		aa_modes.push_back(desc);
-		SAFE_RELEASE(context);
-		SAFE_RELEASE(device);
+		_aa_modes.push_back(desc);
+		SAFE_RELEASE(_context);
+		SAFE_RELEASE(_device);
 	}
 	else
 	{
 		for (int samples = 0; samples < D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
 		{
 			UINT quality_levels = 0;
-			device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples, &quality_levels);
+			_device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples, &quality_levels);
 			if (quality_levels > 0)
 			{
 				DXGI_SAMPLE_DESC desc;
 				desc.Count = samples;
 				for (desc.Quality = 0; desc.Quality < quality_levels; ++desc.Quality)
-					aa_modes.push_back(desc);
+					_aa_modes.push_back(desc);
 			}
 		}
-		context->Release();
-		device->Release();
+		_context->Release();
+		_device->Release();
 	}
-	return aa_modes;
+	return _aa_modes;
 }
 
 D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
@@ -300,11 +300,16 @@ HRESULT Create(HWND wnd)
 		if (FAILED(hr))
 		{
 			// try using the first one
-			hr = adapter->EnumOutputs(0, &output);
-			if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs!\n")
+			IDXGIAdapter* firstadapter;
+			hr = factory->EnumAdapters(0, &firstadapter);
+			if (!FAILED(hr))
+				hr = firstadapter->EnumOutputs(0, &output);
+			if (FAILED(hr)) MessageBox(wnd,
+				_T("Failed to enumerate outputs!\n")
 				_T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
 				_T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
 				_T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+			SAFE_RELEASE(firstadapter);
 		}
 	}
 

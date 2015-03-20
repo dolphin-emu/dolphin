@@ -96,7 +96,7 @@ void ReadFileSystem(const std::string& filename)
 void CheckFile(const std::string& file, u64 size)
 {
 	// Don't do anything if the log is unselected
-	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
 		return;
 	// Do nothing if we found the same file again
 	if (CurrentFile == file)
@@ -128,7 +128,7 @@ void FindFilename(u64 offset)
 		return;
 
 	// Or if the log is unselected
-	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
 		return;
 
 	// Or if we don't have file access

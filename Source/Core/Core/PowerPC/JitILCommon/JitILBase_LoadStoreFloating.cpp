@@ -15,16 +15,29 @@ void JitILBase::lfs(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreFloatingOff);
 	FALLBACK_IF(js.memcheck);
 
-	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 
-	val = ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
-	ibuild.EmitStoreFReg(val, inst.RD);
-	return;
+	IREmitter::InstLoc val = ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
+	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
+void JitILBase::lfsu(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
+
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
+
+	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
+	IREmitter::InstLoc val = ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
+	ibuild.EmitStoreFReg(val, inst.FD);
+	ibuild.EmitStoreGReg(addr, inst.RA);
+}
 
 void JitILBase::lfd(UGeckoInstruction inst)
 {
@@ -32,16 +45,31 @@ void JitILBase::lfd(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreFloatingOff);
 	FALLBACK_IF(js.memcheck);
 
-	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 
-	val = ibuild.EmitLoadFReg(inst.RD);
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.RD);
 	val = ibuild.EmitInsertDoubleInMReg(ibuild.EmitLoadDouble(addr), val);
 	ibuild.EmitStoreFReg(val, inst.RD);
 }
 
+void JitILBase::lfdu(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
+
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
+
+	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FD);
+	val = ibuild.EmitInsertDoubleInMReg(ibuild.EmitLoadDouble(addr), val);
+	ibuild.EmitStoreFReg(val, inst.FD);
+	ibuild.EmitStoreGReg(addr, inst.RA);
+}
 
 void JitILBase::stfd(UGeckoInstruction inst)
 {

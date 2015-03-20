@@ -36,14 +36,21 @@ void Shutdown()
 void Initialize(void* const hwnd)
 {
 	// add 4 gcpads
-	for (unsigned int i=0; i<4; ++i)
-		s_config.controllers.push_back(new GCPad(i));
+	if (s_config.controllers.empty())
+		for (unsigned int i = 0; i < 4; ++i)
+			s_config.controllers.push_back(new GCPad(i));
 
 	g_controller_interface.Initialize(hwnd);
 
 	// load the saved controller config
 	s_config.LoadConfig(true);
 }
+
+void LoadConfig()
+{
+	s_config.LoadConfig(true);
+}
+
 
 void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 {
@@ -52,16 +59,6 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 
 	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
-	if (!lk.owns_lock())
-	{
-		// if gui has lock (messing with controls), skip this input cycle
-		// center axes and return
-		_pPADStatus->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
-		_pPADStatus->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
-		_pPADStatus->substickX = GCPadStatus::C_STICK_CENTER_X;
-		_pPADStatus->substickY = GCPadStatus::C_STICK_CENTER_Y;
-		return;
-	}
 
 	// get input
 	((GCPad*)s_config.controllers[_numPAD])->GetInput(_pPADStatus);
@@ -71,9 +68,6 @@ void Rumble(u8 _numPAD, const ControlState strength)
 {
 	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
-	if (!lk.owns_lock())
-		return;
-
 	((GCPad*)s_config.controllers[ _numPAD ])->SetOutput(strength);
 }
 
@@ -82,8 +76,6 @@ bool GetMicButton(u8 pad)
 
 	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
-	if (!lk.owns_lock())
-		return false;
 
 	return ((GCPad*)s_config.controllers[pad])->GetMicButton();
 }

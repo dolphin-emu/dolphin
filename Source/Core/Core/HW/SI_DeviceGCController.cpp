@@ -24,28 +24,16 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNum
 	, m_TButtonCombo(0)
 	, m_LastButtonCombo(COMBO_NONE)
 {
-	GCPadStatus pad_origin;
-	memset(&m_Origin, 0, sizeof(SOrigin));
-	memset(&pad_origin, 0, sizeof(GCPadStatus));
-
-	pad_origin.button       = 0x00;
-	pad_origin.stickX       = 0x80; // center
-	pad_origin.stickY       = 0x80;
-	pad_origin.substickX    = 0x80;
-	pad_origin.substickY    = 0x80;
-	pad_origin.triggerLeft  = 0x1F; // 0-30 is the lower deadzone
-	pad_origin.triggerRight = 0x1F;
-
 	// Dunno if we need to do this, game/lib should set it?
 	m_Mode                   = 0x03;
 
-#if defined(__LIBUSB__) || defined (_WIN32)
-	if (SI_GCAdapter::IsDetected())
-	{
-		SI_GCAdapter::Input(ISIDevice::m_iDeviceNumber, &pad_origin);
-	}
-#endif
+	m_Calibrated = false;
+}
 
+void CSIDevice_GCController::Calibrate()
+{
+	GCPadStatus pad_origin = GetPadStatus();
+	memset(&m_Origin, 0, sizeof(SOrigin));
 	m_Origin.uButton = pad_origin.button;
 	m_Origin.uOriginStickX = pad_origin.stickX;
 	m_Origin.uOriginStickY = pad_origin.stickY;
@@ -53,6 +41,8 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNum
 	m_Origin.uSubStickStickY = pad_origin.substickY;
 	m_Origin.uTrigger_L = pad_origin.triggerLeft;
 	m_Origin.uTrigger_R = pad_origin.triggerRight;
+
+	m_Calibrated = true;
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
@@ -87,6 +77,9 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	case CMD_ORIGIN:
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
+
+			Calibrate();
+
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
@@ -99,6 +92,10 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	case CMD_RECALIBRATE:
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
+
+			if (!m_Calibrated)
+				Calibrate();
+
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
@@ -282,7 +279,13 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 #if defined(__LIBUSB__) || defined (_WIN32)
-			SI_GCAdapter::Output(numPAD, command.Parameter1 & 0xff);
+			if (numPAD < 4)
+			{
+				if (uType == 1 && uStrength > 2)
+					SI_GCAdapter::Output(numPAD, 1);
+				else
+					SI_GCAdapter::Output(numPAD, 0);
+			}
 #endif
 			if (numPAD < 4)
 			{
@@ -312,6 +315,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 // Savestate support
 void CSIDevice_GCController::DoState(PointerWrap& p)
 {
+	p.Do(m_Calibrated);
 	p.Do(m_Origin);
 	p.Do(m_Mode);
 	p.Do(m_TButtonComboStart);

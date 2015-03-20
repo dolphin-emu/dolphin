@@ -7,9 +7,18 @@
 #include "VideoCommon/VR920.h"
 #endif
 #ifdef HAVE_OCULUSSDK
+#include "OVR_Version.h"
+#if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
+#else
+#define OVR_DLL_IMPORT
+#endif
 #include "OVR_CAPI.h"
+#if OVR_MAJOR_VERSION >= 5
+#include "Extras/OVR_Math.h"
+#else
 #include "Kernel/OVR_Math.h"
+#endif
 #endif
 
 #include "Common/Common.h"
@@ -46,14 +55,23 @@ float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
 const char *g_hmd_device_name = nullptr;
 float g_vr_speed = 0;
-bool g_fov_changed = false;
+float vr_freelook_speed = 0;
+bool g_fov_changed = false, g_vr_black_screen = false;
+bool g_vr_had_3D_already = false;
+float vr_widest_3d_HFOV = 0;
+float vr_widest_3d_VFOV = 0;
+float vr_widest_3d_zNear = 0;
+float vr_widest_3d_zFar = 0;
+float g_game_camera_pos[3];
+Matrix44 g_game_camera_rotmat;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
-std::vector<DataReader> timewarp_log;
-std::vector<bool> display_list_log;
-std::vector<bool> is_preprocess_log;
-bool opcode_replay_enabled = false;
+std::vector<TimewarpLogEntry> timewarp_logentries;
+
+bool g_synchronous_timewarp_enabled = false;
+bool g_opcode_replay_enabled = false;
+bool g_new_frame_just_rendered = false;
 bool g_opcodereplay_frame = false;
 int skipped_opcode_replay_count = 0;
 
@@ -78,6 +96,11 @@ void NewVRFrame()
 {
 	g_new_tracking_frame = true;
 	g_new_frame_tracker_for_efb_skip = true;
+	if (!g_vr_had_3D_already)
+	{
+		Matrix44::LoadIdentity(g_game_camera_rotmat);
+	}
+	g_vr_had_3D_already = false;
 	skip_objects_count = 0;
 	ClearDebugProj();
 
@@ -95,14 +118,27 @@ void NewVRFrame()
 			g_vr_speed += HydraTLayer::vr_gc_leftstick_speed + HydraTLayer::vr_wm_leftstick_speed;
 		if (g_ActiveConfig.bMotionSicknessRightStick)
 			g_vr_speed += HydraTLayer::vr_gc_rightstick_speed + HydraTLayer::vr_wm_rightstick_speed;
+		if (g_ActiveConfig.bMotionSickness2D && vr_widest_3d_HFOV <= 0)
+			g_vr_speed += 1.0f;
+		if (g_ActiveConfig.bMotionSicknessIR)
+			g_vr_speed += HydraTLayer::vr_ir_speed;
+		if (g_ActiveConfig.bMotionSicknessFreelook)
+			g_vr_speed += vr_freelook_speed;
+		vr_freelook_speed = 0;
+	}
+	if (g_has_hmd && g_ActiveConfig.iMotionSicknessMethod == 2)
+	{
+		// black the screen if we are moving fast
+		g_vr_black_screen = (g_vr_speed > 0.15f);
 	}
 #ifdef HAVE_OCULUSSDK
-	if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1)
+	else if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1)
 	{
+		g_vr_black_screen = false;
 		// reduce the FOV if we are moving fast
 		if (g_vr_speed > 0.15f)
 		{
-			float t = tan(g_ActiveConfig.fMotionSicknessFOV / 2);
+			float t = tan(DEGREES_TO_RADIANS(g_ActiveConfig.fMotionSicknessFOV / 2));
 			g_eye_fov[0].LeftTan = std::min(g_best_eye_fov[0].LeftTan, t);
 			g_eye_fov[0].RightTan = std::min(g_best_eye_fov[0].RightTan, t);
 			g_eye_fov[0].UpTan = std::min(g_best_eye_fov[0].UpTan, t);
@@ -120,6 +156,10 @@ void NewVRFrame()
 		memcpy(g_last_eye_fov, g_eye_fov, 2 * sizeof(g_eye_fov[0]));
 	}
 #endif
+	else
+	{
+		g_vr_black_screen = false;
+	}
 }
 
 void InitVR()
@@ -382,12 +422,9 @@ void UpdateHeadTrackingIfNeeded()
 		g_head_tracking_position[1] = -y;
 		g_head_tracking_position[2] = 0.06f-z;
 		Matrix33 m, yp, ya, p, r;
-		Matrix33::LoadIdentity(ya);
 		Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
-		Matrix33::LoadIdentity(p);
 		Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
 		Matrix33::Multiply(p, ya, yp);
-		Matrix33::LoadIdentity(r);
 		Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
 		Matrix33::Multiply(r, yp, m);
 		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
@@ -593,7 +630,7 @@ void OpcodeReplayBuffer()
 	static int real_frame_count = 0;
 	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
-		opcode_replay_enabled = true;
+		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
 		{
 			if (real_frame_count % 4 == 1)
@@ -650,7 +687,7 @@ void OpcodeReplayBuffer()
 				++extra_video_loops_count;
 				skipped_opcode_replay_count = 0;
 
-				for (int i = 0; i < timewarp_log.size(); ++i)
+				for (TimewarpLogEntry& entry : timewarp_logentries)
 				{
 					//VertexManager::s_pCurBufferPointer = s_pCurBufferPointer_log.at(i);
 					//VertexManager::s_pEndBufferPointer = s_pEndBufferPointer_log.at(i);
@@ -670,13 +707,13 @@ void OpcodeReplayBuffer()
 					//fifo.CPBreakpoint = CPBreakpoint_log.at(i);
 					//}
 
-					if (is_preprocess_log.at(i))
+					if (entry.is_preprocess_log)
 					{
-						OpcodeDecoder_Run<true>(timewarp_log.at(i), nullptr, display_list_log.at(i));
+						OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, false);
 					}
 					else
 					{
-						OpcodeDecoder_Run<false>(timewarp_log.at(i), nullptr, display_list_log.at(i));
+						OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, false);
 					}
 				}
 			}
@@ -706,26 +743,97 @@ void OpcodeReplayBuffer()
 			//s_pEndBufferPointer_log.resize(0);
 			//s_pBaseBufferPointer_log.clear();
 			//s_pBaseBufferPointer_log.resize(0);
-			is_preprocess_log.clear();
-			is_preprocess_log.resize(0);
-			timewarp_log.clear();
-			timewarp_log.resize(0);
-			display_list_log.clear();
-			display_list_log.resize(0);
+			timewarp_logentries.clear();
+			timewarp_logentries.resize(0);
 		}
 	}
 	else
 	{
-		if (opcode_replay_enabled)
+		if (g_opcode_replay_enabled)
 		{
-			is_preprocess_log.clear();
-			is_preprocess_log.resize(0);
-			timewarp_log.clear();
-			timewarp_log.resize(0);
-			display_list_log.clear();
-			display_list_log.resize(0);
+			timewarp_logentries.clear();
+			timewarp_logentries.resize(0);
 		}
-		opcode_replay_enabled = false;
+		g_opcode_replay_enabled = false;
+		g_opcodereplay_frame = true; //Don't log frames
+	}
+}
+
+void OpcodeReplayBufferInline()
+{
+	// Opcode Replay Buffer Code.  This enables the capture of all the Video Opcodes that occur during a frame,
+	// and then plays them back with new headtracking information.  Allows ways to easily set headtracking at 75fps
+	// for various games.  In Alpha right now, will crash many games/cause corruption.
+	static int real_frame_count = 0;
+	int extra_video_loops;
+	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	{
+		g_opcode_replay_enabled = true;
+		if (g_ActiveConfig.bPullUp20fps)
+		{
+			if (real_frame_count % 4 == 1)
+			{
+				extra_video_loops = 2;
+			}
+			else
+			{
+				extra_video_loops = 3;
+			}
+		}
+		else if (g_ActiveConfig.bPullUp30fps)
+		{
+			if (real_frame_count % 2 == 1)
+			{
+				extra_video_loops = 1;
+			}
+			else
+			{
+				extra_video_loops = 2;
+			}
+		}
+		else if (g_ActiveConfig.bPullUp60fps)
+		{
+			if (real_frame_count % 4 == 0)
+				extra_video_loops = 1;
+			else
+				extra_video_loops = 0;
+		}
+
+		++real_frame_count;
+		g_opcodereplay_frame = true;
+		skipped_opcode_replay_count = 0;
+
+		if (!(g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps))
+		{
+			extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
+		}
+
+		for (int num_extra_frames = 0; num_extra_frames < extra_video_loops; ++num_extra_frames)
+		{
+			for (TimewarpLogEntry& entry : timewarp_logentries)
+			{
+				if (entry.is_preprocess_log)
+				{
+					OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, false);
+				}
+				else
+				{
+					OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, false);
+				}
+			}
+		}
+		timewarp_logentries.clear();
+		timewarp_logentries.resize(0);
+		g_opcodereplay_frame = false;
+	}
+	else
+	{
+		if (g_opcode_replay_enabled)
+		{
+			timewarp_logentries.clear();
+			timewarp_logentries.resize(0);
+		}
+		g_opcode_replay_enabled = false;
 		g_opcodereplay_frame = true; //Don't log frames
 	}
 }

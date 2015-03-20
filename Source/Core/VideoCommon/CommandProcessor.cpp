@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -349,6 +350,9 @@ void GatherPipeBursted()
 	Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
 	RunGpu();
+
+	if (ARBruteForcer::ch_bruteforce && !(fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase))
+		Core::KillDolphinAndRestart();
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase,
 	"FIFO is overflowed by GatherPipe !\nCPU thread is too fast!");

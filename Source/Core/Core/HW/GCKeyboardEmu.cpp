@@ -249,7 +249,7 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 
 std::string GCKeyboard::GetName() const
 {
-	return std::string("GCKeyboard") + char('1'+m_index);
+	return std::string("GCKeyboard") + char('1' + m_index);
 }
 
 void GCKeyboard::GetInput(KeyboardStatus* const kb)

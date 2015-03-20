@@ -9,7 +9,6 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/sizer.h>
 #include <wx/string.h>
 #include <wx/windowid.h>
 #include <wx/aui/auibar.h>
@@ -70,10 +69,7 @@ CWatchWindow::CWatchWindow(wxWindow* parent, wxWindowID id,
 	m_mgr.SetManagedWindow(this);
 	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
-	wxBoxSizer *sGrid = new wxBoxSizer(wxVERTICAL);
-	m_GPRGridView = new CWatchView(this, ID_GPR);
-	sGrid->Add(m_GPRGridView, 1, wxGROW);
-	SetSizer(sGrid);
+	m_GPRGridView = new CWatchView(this);
 
 	m_mgr.AddPane(new CWatchToolbar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
 		LeftDockable(true).RightDockable(true).BottomDockable(false).Floatable(false));

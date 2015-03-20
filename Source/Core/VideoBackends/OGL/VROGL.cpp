@@ -30,7 +30,7 @@ void VR_ConfigureHMD()
 	{
 		ovrGLConfig cfg;
 		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
-#ifdef OCULUSSDK044
+#ifdef OCULUSSDK044ORABOVE
 		cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
 		cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
 #else
@@ -54,8 +54,10 @@ void VR_ConfigureHMD()
 #endif
 #endif
 		int caps = 0;
+#if OVR_MAJOR_VERSION <= 4
 		if (g_Config.bChromatic)
 			caps |= ovrDistortionCap_Chromatic;
+#endif
 		if (g_Config.bTimewarp)
 			caps |= ovrDistortionCap_TimeWarp;
 		if (g_Config.bVignette)

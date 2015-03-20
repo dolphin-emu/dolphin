@@ -11,10 +11,19 @@
 #ifdef HAVE_OCULUSSDK
 #define OVR_D3D_VERSION 11
 
+#include "OVR_Version.h"
+#if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
+#else
+#define OVR_DLL_IMPORT
+#endif
 #include "OVR_CAPI.h"
 #include "OVR_CAPI_D3D.h"
+#if OVR_MAJOR_VERSION >= 5
+#include "Extras/OVR_Math.h"
+#else
 #include "Kernel/OVR_Math.h"
+#endif
 
 #include "d3d11.h"
 

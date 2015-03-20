@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -116,12 +116,12 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 			// Found the function. Let's rename it according to the symbol file.
 			if (entry.second.size == (unsigned int)function->size)
 			{
-				function->name = entry.second.name;
+				function->name = symbol_db->Demangle(entry.second.name);
 				INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(), function->address, function->size);
 			}
 			else
 			{
-				function->name = entry.second.name;
+				function->name = symbol_db->Demangle(entry.second.name);
 				ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!",
 				          entry.second.name.c_str(), function->address, function->size, entry.second.size);
 			}
@@ -150,7 +150,7 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const std::string& prefix)
 	u32 sum = 0;
 	for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)
 	{
-		u32 opcode = Memory::Read_Instruction(offset);
+		u32 opcode = PowerPC::HostRead_Instruction(offset);
 		u32 op = opcode & 0xFC000000;
 		u32 op2 = 0;
 		u32 op3 = 0;

@@ -94,9 +94,18 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	fpr.Lock(Q0, Q1);
 
 	ARM64Reg arm_addr = gpr.R(inst.RA);
+	ARM64Reg VS = fpr.R(inst.RS);
+
 	ARM64Reg scale_reg = W0;
 	ARM64Reg addr_reg = W1;
-	ARM64Reg type_reg = gpr.GetReg();
+	ARM64Reg type_reg = W2;
+
+	BitSet32 gprs_in_use = gpr.GetCallerSavedUsed();
+	BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+
+	// Wipe the registers we are using as temporaries
+	gprs_in_use &= BitSet32(~0x40000007);
+	fprs_in_use &= BitSet32(~3);
 
 	LDR(INDEX_UNSIGNED, scale_reg, X29, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 
@@ -118,13 +127,35 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	if (update)
 		MOV(arm_addr, addr_reg);
 
-	ARM64Reg VS = fpr.R(inst.RS);
 	m_float_emit.FCVTN(32, D0, VS);
-	MOVI2R(X30, (u64)&asm_routines.pairedStoreQuantized[inst.W * 8]);
-	LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
-	BLR(X30);
 
-	gpr.Unlock(W0, W1, W2, W30, type_reg);
+	// Inline address check
+	{
+		TST(addr_reg, 6, 1);
+		FixupBranch argh = B(CC_NEQ);
+
+		// Fast
+		MOVI2R(X30, (u64)&asm_routines.pairedStoreQuantized[inst.W * 8]);
+		LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
+		BLR(EncodeRegTo64(type_reg));
+
+		FixupBranch continue1 = B();
+		SetJumpTarget(argh);
+
+		// Slow
+		MOVI2R(X30, (u64)&asm_routines.pairedStoreQuantized[16 + inst.W * 8]);
+		LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
+
+		ABI_PushRegisters(gprs_in_use);
+		m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
+		BLR(EncodeRegTo64(type_reg));
+		m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
+		ABI_PushRegisters(gprs_in_use);
+
+		SetJumpTarget(continue1);
+	}
+
+	gpr.Unlock(W0, W1, W2, W30);
 	fpr.Unlock(Q0, Q1);
 }
 

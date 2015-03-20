@@ -49,6 +49,7 @@
 
 ANativeWindow* surf;
 std::string g_filename;
+std::string g_set_userpath = "";
 
 #define DOLPHIN_TAG "Dolphinemu"
 
@@ -104,6 +105,12 @@ void Host_ConnectWiimote(int wm_idx, bool connect) {}
 void Host_SetWiiMoteConnectionState(int _State) {}
 
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
+
+static bool MsgAlert(const char* caption, const char* text, bool /*yes_no*/, int /*Style*/)
+{
+	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "%s:%s", caption, text);
+	return false;
+}
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -208,6 +215,27 @@ extern "C"
 {
 #endif
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj);
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Axis, jfloat Value);
+JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBanner(JNIEnv *env, jobject obj, jstring jFile);
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(JNIEnv *env, jobject obj, jstring jFile);
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv *env, jobject obj);
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SupportsNEON(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(JNIEnv *env, jobject obj, jint api);
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jSection, jstring jKey, jstring jDefault);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jSection, jstring jKey, jstring jValue);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv *env, jobject obj, jstring jFile);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv *env, jobject obj, jint slot);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv *env, jobject obj, jint slot);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFolders(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(JNIEnv *env, jobject obj, jstring jDirectory);
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf);
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv *env, jobject obj)
 {
 	PowerPC::Start();
@@ -222,9 +250,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
 	Core::Stop();
 	updateMainFrameEvent.Set(); // Kick the waiting event
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
-	ButtonManager::GamepadEvent(GetJString(env, jDevice), Button, Action);
+	return ButtonManager::GamepadEvent(GetJString(env, jDevice), Button, Action);
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Axis, jfloat Value)
 {
@@ -336,6 +364,18 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(JNIEnv *env, jobject obj, jstring jDirectory)
+{
+	std::string directory = GetJString(env, jDirectory);
+	g_set_userpath = directory;
+	UICommon::SetUserDirectory(directory);
+}
+
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv *env, jobject obj)
+{
+	return env->NewStringUTF(File::GetUserPath(D_USER_IDX).c_str());
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
 {
 	surf = ANativeWindow_fromSurface(env, _surf);
@@ -344,6 +384,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
 	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
 
+	RegisterMsgAlertHandler(&MsgAlert);
+
+	UICommon::SetUserDirectory(g_set_userpath);
 	UICommon::Init();
 
 	// No use running the loop when booting fails

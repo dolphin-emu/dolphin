@@ -54,7 +54,7 @@ public:
 	// Jit!
 
 	void Jit(u32 em_address) override;
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b, u32 nextPC);
+	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC);
 
 	void Trace();
 
@@ -99,7 +99,6 @@ public:
 	void WriteCode(u32 exitAddress);
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst) override;
 	void FallBackToInterpreter(UGeckoInstruction _inst) override;
 	void DoNothing(UGeckoInstruction _inst) override;
 	void HLEFunction(UGeckoInstruction _inst) override;

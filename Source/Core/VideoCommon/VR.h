@@ -5,10 +5,10 @@
 #pragma once
 
 // Distances are in metres, angles are in degrees.
-const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_FREE_LOOK_SENSITIVITY = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, 
+const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_FREE_LOOK_SENSITIVITY = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f,
 	DEFAULT_VR_HUD_THICKNESS = 0.5f, DEFAULT_VR_HUD_3D_CLOSER = 0.5f,
-	DEFAULT_VR_CAMERA_FORWARD = 0.0f, DEFAULT_VR_CAMERA_PITCH = 0.0f, DEFAULT_VR_AIM_DISTANCE = 7.0f, 
-	DEFAULT_VR_SCREEN_HEIGHT = 2.0f, DEFAULT_VR_SCREEN_DISTANCE = 1.5f, DEFAULT_VR_SCREEN_THICKNESS = 0.5f, 
+	DEFAULT_VR_CAMERA_FORWARD = 0.0f, DEFAULT_VR_CAMERA_PITCH = 0.0f, DEFAULT_VR_AIM_DISTANCE = 7.0f,
+	DEFAULT_VR_SCREEN_HEIGHT = 2.0f, DEFAULT_VR_SCREEN_DISTANCE = 1.5f, DEFAULT_VR_SCREEN_THICKNESS = 0.5f,
 	DEFAULT_VR_SCREEN_UP = 0.0f, DEFAULT_VR_SCREEN_RIGHT = 0.0f, DEFAULT_VR_SCREEN_PITCH = 0.0f,
 	DEFAULT_VR_TIMEWARP_TWEAK = 0, DEFAULT_VR_MIN_FOV = 10.0f, DEFAULT_VR_MOTION_SICKNESS_FOV = 45.0f;
 const int DEFAULT_VR_EXTRA_FRAMES = 0;
@@ -17,21 +17,30 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
+#if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
+#else
+#define OCULUSSDK044ORABOVE
+#define OVR_DLL_IMPORT
+#endif
 #include "OVR_CAPI.h"
+#if OVR_MAJOR_VERSION >= 5
+#include "Extras/OVR_Math.h"
+#else
 #include "Kernel/OVR_Math.h"
 
 // Detect which version of the Oculus SDK we are using
 #if OVR_MINOR_VERSION >= 4
 #if OVR_BUILD_VERSION >= 4
-#define OCULUSSDK044
+#define OCULUSSDK044ORABOVE
 #elif OVR_BUILD_VERSION >= 3
 #define OCULUSSDK043
 #else
 #define OCULUSSDK042
 #endif
 #else
-Error, Oculus SDK 0.3.x is no longer supported   
+Error, Oculus SDK 0.3.x is no longer supported
+#endif
 #endif
 
 #define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
@@ -49,6 +58,8 @@ Error, Oculus SDK 0.3.x is no longer supported
 #endif
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / M_PI))
 #define DEGREES_TO_RADIANS(deg) ((float) deg * (float) (M_PI / 180.0))
+//#define RECURSIVE_OPCODE
+#define INLINE_OPCODE
 
 typedef enum
 {
@@ -104,6 +115,7 @@ bool VR_GetRightHydraPos(float *pos);
 ControllerStyle VR_GetHydraStyle(int hand);
 
 void OpcodeReplayBuffer();
+void OpcodeReplayBufferInline();
 
 extern bool g_force_vr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920, g_is_direct_mode, g_is_nes;
@@ -115,13 +127,25 @@ extern float g_head_tracking_position[3];
 extern float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
 extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
 extern const char *g_hmd_device_name;
-extern bool g_fov_changed;
+extern bool g_fov_changed, g_vr_black_screen;
+extern bool g_vr_had_3D_already;
+extern float vr_freelook_speed;
+extern float vr_widest_3d_HFOV;
+extern float vr_widest_3d_VFOV;
+extern float vr_widest_3d_zNear;
+extern float vr_widest_3d_zFar;
+extern float g_game_camera_pos[3];
+extern Matrix44 g_game_camera_rotmat;
 
 //Opcode Replay Buffer
-extern std::vector<DataReader> timewarp_log;
-extern std::vector<bool> display_list_log;
-extern std::vector<bool> is_preprocess_log;
-extern bool opcode_replay_enabled;
+struct TimewarpLogEntry {
+	DataReader timewarp_log;
+	bool is_preprocess_log;
+};
+extern std::vector<TimewarpLogEntry> timewarp_logentries;
+extern bool g_synchronous_timewarp_enabled;
+extern bool g_opcode_replay_enabled;
+extern bool g_new_frame_just_rendered;
 extern bool g_opcodereplay_frame;
 extern int skipped_opcode_replay_count;
 

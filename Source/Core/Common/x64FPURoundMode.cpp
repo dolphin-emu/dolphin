@@ -7,12 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
-
-#ifdef _WIN32
-#	include <mmintrin.h>
-#else
-#	include <xmmintrin.h>
-#endif
+#include "Common/Intrinsics.h"
 
 namespace FPURoundMode
 {
@@ -23,7 +18,7 @@ namespace FPURoundMode
 	void SetRoundMode(int mode)
 	{
 		// Convert PowerPC to native rounding mode.
-		const int rounding_mode_lut[] = {
+		static const int rounding_mode_lut[] = {
 			FE_TONEAREST,
 			FE_TOWARDZERO,
 			FE_UPWARD,

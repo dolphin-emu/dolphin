@@ -127,6 +127,16 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_lean);
 		}
+		// Game Camera Control
+		{
+			const wxString vr_choices[] = { _("Yaw, Pitch, and Roll"), _("Yaw and Pitch"), _("Yaw only"), _("None") };
+
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Let the Game Control:")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iGameCameraControl, wxGetTranslation(cameracontrol_desc),
+				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+			szr_vr->Add(choice_vr, 1, 0, 0);
+			choice_vr->Select(vconfig.iGameCameraControl);
+		}
 		// VR Player
 		{
 			const wxString vr_choices[] = { _("Player 1"), _("Player 2"), _("Player 3"), _("Player 4") };
@@ -388,8 +398,19 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
+		// Camera read pitch
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fReadPitch,
+				wxGetTranslation(temp_desc), -180, 360, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera Read Pitch:"));
+			label->SetToolTip(wxGetTranslation(readpitch_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+
 		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
-		szr_vr->Add(CreateCheckBox(page_vr, _("Don't Clear Screen"), wxGetTranslation(hudontop_desc), vconfig.bDontClearScreen));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Read Camera Angles"), wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For This Game Only"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -401,7 +422,7 @@ void CConfigVR::CreateGUIControls()
 		wxButton* const btn_reset = new wxButton(page_vr, wxID_ANY, _("Reset to Defaults"));
 		btn_reset->Bind(wxEVT_BUTTON, &CConfigVR::Event_ClickReset, this);
 		szr_vr->Add(btn_reset, 1, wxALIGN_CENTER_VERTICAL, 0);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal == "")
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID == "")
 		{
 			btn_save->Disable();
 			btn_reset->Disable();
@@ -450,7 +471,7 @@ void CConfigVR::CreateGUIControls()
 
 		// Sky / Background
 		{
-			const wxString vr_choices[] = { _("normal"), _("hide"), _("lock"), };
+			const wxString vr_choices[] = { _("Normal"), _("Hide") };
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Sky / Background:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessSkybox, wxGetTranslation(hideskybox_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
@@ -459,9 +480,9 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Motion Sickness Prevention Method
 		{
-			const wxString vr_choices[] = { _("none"), _("reduce FOV"), _("black screen"), _("PLCB") };
+			const wxString vr_choices[] = { _("None"), _("Reduce FOV"), _("Black Screen")};
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Motion Sickness Prevention Method:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessMethod, wxGetTranslation(temp_desc),
+			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessMethod, wxGetTranslation(motionsicknessprevention_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iMotionSicknessMethod);
@@ -469,20 +490,20 @@ void CConfigVR::CreateGUIControls()
 		// Motion Sickness FOV
 		{
 			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fMotionSicknessFOV,
-				wxGetTranslation(temp_desc), 1, 179, 1);
+				wxGetTranslation(motionsicknessfov_desc), 1, 179, 1);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Reduced FOV:"));
-			label->SetToolTip(wxGetTranslation(temp_desc));
+			label->SetToolTip(wxGetTranslation(motionsicknessfov_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
 
-		szr_vr->Add(CreateCheckBox(page_vr, _("Always"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessAlways));
-		szr_vr->Add(CreateCheckBox(page_vr, _("During Freelook"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessFreelook));
-		szr_vr->Add(CreateCheckBox(page_vr, _("On 2D Screens"), wxGetTranslation(temp_desc), vconfig.bMotionSickness2D));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With Left Stick"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessLeftStick));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With Right Stick"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessRightStick));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With D-Pad"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessDPad));
-		szr_vr->Add(CreateCheckBox(page_vr, _("With IR Pointer"), wxGetTranslation(temp_desc), vconfig.bMotionSicknessIR));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Always"), wxGetTranslation(motionsicknessalways_desc), vconfig.bMotionSicknessAlways));
+		szr_vr->Add(CreateCheckBox(page_vr, _("During Freelook"), wxGetTranslation(motionsicknessfreelook_desc), vconfig.bMotionSicknessFreelook));
+		szr_vr->Add(CreateCheckBox(page_vr, _("On 2D Screens"), wxGetTranslation(motionsickness2d_desc), vconfig.bMotionSickness2D));
+		szr_vr->Add(CreateCheckBox(page_vr, _("With Left Stick"), wxGetTranslation(motionsicknessleftstick_desc), vconfig.bMotionSicknessLeftStick));
+		szr_vr->Add(CreateCheckBox(page_vr, _("With Right Stick"), wxGetTranslation(motionsicknessrightstick_desc), vconfig.bMotionSicknessRightStick));
+		szr_vr->Add(CreateCheckBox(page_vr, _("With D-Pad"), wxGetTranslation(motionsicknessdpad_desc), vconfig.bMotionSicknessDPad));
+		szr_vr->Add(CreateCheckBox(page_vr, _("With IR Pointer"), wxGetTranslation(motionsicknessir_desc), vconfig.bMotionSicknessIR));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Motion Sickness"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -658,36 +679,38 @@ void CConfigVR::CreateGUIControls()
 			//Create "Device" box, and all buttons/options within it/
 			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Instructions"));
 
-			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,  
+			wxStaticText* const instruction_box = new wxStaticText(Page, wxID_ANY,
 				_("Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup "
 				"guide to help.\n\nDirect mode is working, but the performance on many games is poor. It is recommended to run in "
-				"extended mode! If you do run in direct mode, make sure Aero is enabled. The only judder free configuration for direct mode "
-				"found so far is  'dual core determinism' set to 'fake-completion', the mirrored window enabled, and "
-				"the mirrored window manually resized to 0 pixels by 0 pixles. Testing has been limited so your mileage may vary."
+				"extended mode! If you do run in direct mode, make sure Aero is enabled. The only judder free configurations for direct mode "
+				"found so far are either 'dual core determinism' set to 'fake-completion' or 'synchronize GPU thread' enabled. The mirrored window must also "
+				"be enabled and manually resized to 0 pixels by 0 pixles. Testing has been limited so your mileage may vary."
 				"\n\nIn the 'Config' tab, 'Framelimit' should be set to match your Rift's refresh rate (most likely 75fps). "
-				"Games will run 25% too fast, but this will avoid judder. There are two options available to bring the game frame rate back down "
+				"Games will run 25% too fast, but this will avoid judder. There are two options available to bring the game frame rate back down to "
 				"normal speed. The first is the 'Opcode Replay Buffer', which rerenders game frames so headtracking runs at 75fps forcing "
-				"the game to maintain its normal speed.  This feature only currently works in around 50% of games, but is the preferred "
+				"the game to maintain its normal speed.  This feature only currently works in around 60% of games, but is the preferred "
 				"method.  Synchronous timewarp smudges the image to fake head-tracking at a higher rate.  This can be tried if 'Opcode Replay Buffer' fails "
 				"but sometimes introduces artifacts and may judder depending on the game. As a last resort, the the Rift can be "
 				"set to run at 60hz from your AMD/Nvidia control panel and still run with low persistence, but flickering can be seen "
 				"in bright scenes. Different games run at differnet frame-rates, so choose the correct opcode replay/timewarp setting for the game.\n\n"
-				"Under Graphics->Hacks->EFB Copies, 'Disable' and 'Remove Blank EFB Copy Box' can fix many games "
-				"that display black, or large black boxes that can't be removed by the 'Object Removal Codes. It can also cause "
-				"corruption in some games, so try it both ways.\n\n"
-				"Right-clicking on each game will give you the options to adjust VR settings, and remove rendered objects. "
-				"Objects such as fake 16:9 bars can be removed from the game.  Some games already have object removal codes, "
+				"Under Graphics->Hacks->EFB Copies, 'Disable' and 'Remove Blank EFB Copy Box' can fix some games "
+				"that display black, or large black boxes that can't be removed by the 'Hide Objects Codes'. It can also cause "
+				"corruption in some games, so only enable it if it's needed.\n\n"
+				"Right-clicking on each game will give you the options to adjust VR settings, remove rendered objects, and (in "
+				"a limited number of games) disable culling through the use of included AR codes. Culling codes put extra strain "
+				"on the emulated CPU as well as your PC.  You may need to override the Dolphin CPU clockspeed under "
+				"the advanced section of the 'config' tab to maintain a full game speed. This will only help if gamecube/wii CPU is "
+				"not fast enough to render the game without culling. "
+				"Objects such as fake 16:9 bars can be removed from the game.  Some games already have hide objects codes, "
 				"so make sure to check them if you would like the object removed.  You can find your own codes by starting "
 				"with an 8-bit code and clicking the up button until the object disappears.  Then move to 16bit, add two zeros "
 				"to the right side of your 8bit code, and continue hitting the up button until the object disappears again. "
-				"Continue until you have a long enough code for it to be unique.\n\nThere are also AR codes that disable culling "
-				"for a small amount of games.  Make sure to check the AR codes to see if this is an option for the game you are playing"
-				"\n\nTake time to set "
+				"Continue until you have a long enough code for it to be unique.\n\nTake time to set "
 				"the VR-Hotkeys. You can create combinations for XInput by right clicking on the buttons. Remember you can also set "
 				"a the gamecube/wii controller emulation to not happen during a certain button press, so setting freelook to 'Left "
-				"Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. The "
-				"freelook step size varies per game, so play with the 'Freelook Sensitivity' option to set it right for your game.\n\n"
-				"Enjoy and watch for new updates, because we're making progress fast!"));
+				"Bumper + Right Analog Stick' and the gamecube C-Stick to '!Left Bumper + Right Analog Stick' works great. If you're "
+				"changing the scale in game, use the 'global scale' instead of 'units per metre' to maintain a consistent free look step size.\n\n"
+				"Enjoy and watch for new updates!"));
 
 			instruction_box->Wrap(630);
 
@@ -838,13 +861,13 @@ void CConfigVR::UpdateDeviceComboBox()
 
 void CConfigVR::Event_ClickSave(wxCommandEvent&)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal != "")
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID != "")
 		g_Config.GameIniSave();
 }
 
 void CConfigVR::Event_ClickReset(wxCommandEvent&)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal != "")
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID != "")
 	{
 		g_Config.GameIniReset();
 		Close();

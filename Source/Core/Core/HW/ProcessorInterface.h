@@ -35,8 +35,8 @@ enum InterruptCause
 };
 
 
-extern volatile u32 m_InterruptCause;
-extern volatile u32 m_InterruptMask;
+extern u32 m_InterruptCause;
+extern u32 m_InterruptMask;
 extern u32 Fifo_CPUBase;
 extern u32 Fifo_CPUEnd;
 extern u32 Fifo_CPUWritePointer;

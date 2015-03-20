@@ -11,6 +11,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -64,7 +65,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 39;
+static const u32 STATE_VERSION = 41;
 
 enum
 {
@@ -176,7 +177,8 @@ static int GetEmptySlot(std::map<double, int> m)
 				break;
 			}
 		}
-		if (!found) return i;
+		if (!found)
+			return i;
 	}
 	return -1;
 }
@@ -470,9 +472,8 @@ void LoadAs(const std::string& filename)
 		if (loadedSuccessfully)
 		{
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
-			// action replay culling code brute forcing by penkamaster
-			if (Core::ch_bruteforce)
-				Core::ch_tomarFoto = 3;	
+			if (ARBruteForcer::ch_bruteforce)
+				ARBruteForcer::ch_take_screenshot = 3;	
 			if (File::Exists(filename + ".dtm"))
 				Movie::LoadInput(filename + ".dtm");
 			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())

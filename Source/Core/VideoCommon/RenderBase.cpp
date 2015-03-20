@@ -123,18 +123,15 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidt
 	if (!fbWidth || !fbHeight)
 		return;
 
-	VideoFifo_CheckEFBAccess();
-	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	XFBWrited = true;
 
 	if (g_ActiveConfig.bUseXFB)
 	{
-		FramebufferManagerBase::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
+		FramebufferManagerBase::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc, Gamma);
 	}
 	else
 	{
 		Swap(xfbAddr, fbWidth, fbWidth, fbHeight, sourceRc, Gamma);
-		s_swapRequested.Clear();
 	}
 }
 
@@ -338,7 +335,6 @@ void Renderer::DrawDebugText()
 
 	if ((u32)OSDTime > Common::Timer::GetTimeMs())
 	{
-
 		const char* res_text = "";
 		switch (g_ActiveConfig.iEFBScale)
 		{
@@ -386,7 +382,7 @@ void Renderer::DrawDebugText()
 		}
 
 		const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
-			(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
+			(g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM") : "Disabled";
 
 		// The rows
 		const std::string lines[] =
@@ -397,7 +393,7 @@ void Renderer::DrawDebugText()
 			std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
 		};
 
-		enum { lines_count = sizeof(lines)/sizeof(*lines) };
+		enum { lines_count = sizeof(lines) / sizeof(*lines) };
 
 		// The latest changed setting in yellow
 		for (int i = 0; i != lines_count; ++i)
@@ -447,34 +443,34 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	// Update aspect ratio hack values
 	// Won't take effect until next frame
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
-	if ( g_ActiveConfig.bWidescreenHack )
+	if (g_ActiveConfig.bWidescreenHack)
 	{
 		float source_aspect = use16_9 ? (16.0f / 9.0f) : (4.0f / 3.0f);
 		float target_aspect;
 
-		switch ( g_ActiveConfig.iAspectRatio )
+		switch (g_ActiveConfig.iAspectRatio)
 		{
-		case ASPECT_FORCE_16_9 :
+		case ASPECT_FORCE_16_9:
 			target_aspect = 16.0f / 9.0f;
 			break;
-		case ASPECT_FORCE_4_3 :
+		case ASPECT_FORCE_4_3:
 			target_aspect = 4.0f / 3.0f;
 			break;
-		case ASPECT_STRETCH :
+		case ASPECT_STRETCH:
 			target_aspect = WinWidth / WinHeight;
 			break;
-		default :
+		default:
 			// ASPECT_AUTO == no hacking
 			target_aspect = source_aspect;
 			break;
 		}
 
 		float adjust = source_aspect / target_aspect;
-		if ( adjust > 1 )
+		if (adjust > 1)
 		{
 			// Vert+
 			g_Config.fAspectRatioHackW = 1;
-			g_Config.fAspectRatioHackH = 1/adjust;
+			g_Config.fAspectRatioHackH = 1 / adjust;
 		}
 		else
 		{
@@ -601,24 +597,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	if (XFBWrited && !g_opcodereplay_frame)
 		g_renderer->m_fps_counter.Update();
 
-
-	/*if (Core::ch_bruteforce && Core::ch_tomarFoto > 0)
-	{
-		if (Core::ch_tomarFoto == 1){
-			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/bruteforce.csv";
-			std::string s_sAux = std::to_string(Core::ch_codigoactual) + ";" + Core::ch_map[Core::ch_codigoactual] +
-			";" + Core::ch_code + ";" + std::to_string(stats.thisFrame.numPrims) + ";" + std::to_string(stats.thisFrame.numDrawCalls) + ";" + std::to_string(Core::ch_tomarFoto);
-			std::ofstream myfile;
-			myfile.open(s_sScreenshotName, std::ios_base::app);
-			myfile << s_sAux << "\n";
-			myfile.close();
-			Core::ch_cicles_without_snapshot = 0;
-			Core::ch_cacheo_pasado = true;
-			Core::ch_next_code = true; //TODO next code quitar de aqui
-		}
-		Core::ch_tomarFoto -= 1;
-	}*/
-
 	frameCount++;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 	
@@ -627,6 +605,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	// New frame
 	stats.ResetFrame();
 
-	Core::Callback_VideoCopiedToXFB((XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) && (!g_opcodereplay_frame || !opcode_replay_enabled));
+	Core::Callback_VideoCopiedToXFB((XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) && (!g_opcodereplay_frame || !g_opcode_replay_enabled));
 	XFBWrited = false;
 }

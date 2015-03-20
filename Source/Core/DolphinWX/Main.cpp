@@ -37,6 +37,7 @@
 #include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
@@ -64,7 +65,6 @@
 
 #ifdef _WIN32
 #include <shellapi.h>
-#include "Common/ExtendedTrace.h"
 
 #ifndef SM_XVIRTUALSCREEN
 #define SM_XVIRTUALSCREEN 76
@@ -97,32 +97,6 @@ std::string wxStringTranslator(const char *);
 
 CFrame* main_frame = nullptr;
 
-#ifdef WIN32
-//Has no error handling.
-//I think that if an error occurs here there's no way to handle it anyway.
-LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e)
-{
-	//EnterCriticalSection(&g_uefcs);
-
-	File::IOFile file("exceptioninfo.txt", "a");
-	file.Seek(0, SEEK_END);
-	etfprint(file.GetHandle(), "\n");
-	//etfprint(file, g_buildtime);
-	//etfprint(file, "\n");
-	//dumpCurrentDate(file);
-	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
-		e->ExceptionRecord->ExceptionCode);
-
-	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
-
-	file.Close();
-	_flushall();
-
-	//LeaveCriticalSection(&g_uefcs);
-	return EXCEPTION_CONTINUE_SEARCH;
-}
-#endif
-
 bool DolphinApp::Initialize(int& c, wxChar **v)
 {
 #if defined HAVE_X11 && HAVE_X11
@@ -137,8 +111,6 @@ bool DolphinApp::OnInit()
 {
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
 	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
-
-	InitLanguageSupport();
 
 	// Declarations and definitions
 	bool UseDebugger = false;
@@ -236,6 +208,7 @@ bool DolphinApp::OnInit()
 
 	// Gets the command line parameters
 	wxCmdLineParser parser(cmdLineDesc, argc, argv);
+	LoadFile = false;
 	if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
 	{
 		LoadFile = true;
@@ -256,8 +229,17 @@ bool DolphinApp::OnInit()
 	selectPerfDir = parser.Found("perf_dir", &perfDir);
 	playMovie = parser.Found("movie", &movieFile);
 	g_force_vr = parser.Found("vr");
-	Core::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
-	Core::ch_code = WxStrToStr(bruteforceResult);
+	ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
+	ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);
+	if (ARBruteForcer::ch_bruteforce)
+	{
+		ARBruteForcer::ch_dont_save_settings = true;
+		if (ARBruteForcer::ch_code.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos || ARBruteForcer::ch_code.size() != 1)
+		{
+			PanicAlert("Valid option not specified in -bruteforce command.\nPlease use only a single hex digit: e.g. -bruteforce 1");
+			return false;
+		}
+	}
 	if (parser.Found("force-d3d11"))
 	{
 		selectVideoBackend = true;
@@ -269,26 +251,20 @@ bool DolphinApp::OnInit()
 		videoBackendName = "OGL";
 	}
 
-	if (parser.Found("user", &userPath))
-	{
-		File::CreateFullPath(WxStrToStr(userPath) + DIR_SEP);
-		File::GetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
-	}
+	parser.Found("user", &userPath);
 #endif // wxUSE_CMDLINE_PARSER
 
 	// Register message box and translation handlers
 	RegisterMsgAlertHandler(&wxMsgAlert);
 	RegisterStringTranslator(&wxStringTranslator);
 
-	// "ExtendedTrace" looks freakin' dangerous!!!
-#ifdef _WIN32
-	EXTENDEDTRACEINITIALIZE(".");
-	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
-#elif wxUSE_ON_FATAL_EXCEPTION
+#if wxUSE_ON_FATAL_EXCEPTION
 	wxHandleFatalExceptions(true);
 #endif
 
+	UICommon::SetUserDirectory(userPath.ToStdString());
 	UICommon::CreateDirectories();
+	InitLanguageSupport();	// The language setting is loaded from the user directory
 	UICommon::Init();
 
 	if (selectPerfDir)
@@ -405,17 +381,17 @@ void DolphinApp::AfterInit()
 		}
 	}
 
-	// Action Replay culling code brute-forcing by penkamaster
-	Core::ch_tomarFoto = 0;
-	Core::ch_next_code = false;
-	Core::ch_comenzar_busqueda = false;
-	Core::ch_cicles_without_snapshot = 0;
-	Core::ch_cacheo_pasado = false;
+	// Action Replay Brute Forcing
+	ARBruteForcer::ch_take_screenshot = 0;
+	ARBruteForcer::ch_next_code = false;
+	ARBruteForcer::ch_begin_search = false;
+	ARBruteForcer::ch_cycles_without_snapshot = 0;
+	ARBruteForcer::ch_last_search = false;
 
-	if (Core::ch_bruteforce)
+	if (ARBruteForcer::ch_bruteforce)
 	{
 		std::string line;
-		std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "posicion.txt");
+		std::ifstream myfile(File::GetUserPath(D_SCREENSHOTS_IDX) + "position.txt");
 		std::string aux;
 
 		if (myfile.is_open())
@@ -491,7 +467,6 @@ void DolphinApp::OnFatalException()
 {
 	WiimoteReal::Shutdown();
 }
-
 
 // ------------
 // Talk to GUI

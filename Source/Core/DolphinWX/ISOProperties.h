@@ -20,7 +20,11 @@
 
 #include "Common/IniFile.h"
 #include "Core/ActionReplay.h"
-#include "DolphinWX/InputConfigDiag.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/PatchAddEdit.h"
 
 class GameListItem;
 class wxButton;
@@ -38,6 +42,13 @@ namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 
 extern std::vector<ActionReplay::ARCode> arCodes;
+
+struct WiiPartition
+{
+	DiscIO::IVolume *Partition;
+	DiscIO::IFileSystem *FileSystem;
+	std::vector<const DiscIO::SFileInfo *> Files;
+};
 
 struct PHackData
 {
@@ -57,7 +68,7 @@ public:
 			const wxString& title = _("Properties"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
+			long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 	virtual ~CISOProperties();
 
 	bool bRefreshList;
@@ -70,12 +81,23 @@ public:
 private:
 	DECLARE_EVENT_TABLE();
 
+	std::vector<WiiPartition> WiiDisc;
+
+	DiscIO::IVolume *OpenISO;
+	DiscIO::IFileSystem *pFileSystem;
+
+	std::vector<PatchEngine::Patch> onFrame;
+	std::vector<ActionReplay::ARCode> arCodes;
+	PHackData m_PHack_Data;
+
 	// Core
-	wxCheckBox *CPUThread, *SkipIdle, *MMU, *BAT, *DCBZOFF, *FPRF;
-	wxCheckBox *VBeam, *SyncGPU, *FastDiscSpeed, *BlockMerging, *DSPHLE;
+	wxCheckBox *CPUThread, *SkipIdle, *MMU, *DCBZOFF, *FPRF;
+	wxCheckBox *SyncGPU, *FastDiscSpeed, *DSPHLE;
 
 	wxArrayString arrayStringFor_GPUDeterminism;
 	wxChoice* GPUDeterminism;
+	wxSpinCtrlDouble* AudioSlowDown;
+
 	// Wii
 	wxCheckBox* EnableWideScreen;
 
@@ -88,10 +110,10 @@ private:
 	wxArrayString arrayStringFor_VRState;
 	wxChoice* EmuState;
 	wxTextCtrl* EmuIssues;
-	wxArrayString arrayStringFor_RmObjs;
-	wxCheckListBox* RmObjs;
-	wxButton* EditRmObj;
-	wxButton* RemoveRmObj;
+	wxArrayString arrayStringFor_HideObjects;
+	wxCheckListBox* HideObjects;
+	wxButton* EditHideObject;
+	wxButton* RemoveHideObject;
 	wxArrayString arrayStringFor_Patches;
 	wxCheckListBox* Patches;
 	wxButton* EditPatch;
@@ -174,7 +196,7 @@ private:
 		ID_SCREEN_RIGHT,
 		ID_SCREEN_UP,
 		ID_SCREEN_PITCH,
-		ID_RMOBJ_PAGE,
+		ID_HIDEOBJECT_PAGE,
 		ID_PATCH_PAGE,
 		ID_ARCODE_PAGE,
 		ID_SPEEDHACK_PAGE,
@@ -185,10 +207,9 @@ private:
 		ID_IDLESKIP,
 		ID_MMU,
 		ID_DCBZOFF,
-		ID_VBEAM,
+		ID_FPRF,
 		ID_SYNCGPU,
 		ID_DISCSPEED,
-		ID_MERGEBLOCKS,
 		ID_AUDIO_DSP_HLE,
 		ID_USE_BBOX,
 		ID_ENABLEPROGRESSIVESCAN,
@@ -197,11 +218,11 @@ private:
 		ID_SHOWDEFAULTCONFIG,
 		ID_EMUSTATE,
 		ID_EMU_ISSUES,
-		ID_RMOBJS_LIST,
-		ID_RMOBJS_CHECKBOX,
-		ID_EDITRMOBJ,
-		ID_ADDRMOBJ,
-		ID_REMOVERMOBJ,
+		ID_HIDEOBJECTS_LIST,
+		ID_HIDEOBJECTS_CHECKBOX,
+		ID_EDITHIDEOBJECT,
+		ID_ADDHideObject,
+		ID_REMOVEHIDEOBJECT,
 		ID_PATCHES_LIST,
 		ID_EDITPATCH,
 		ID_ADDPATCH,
@@ -211,6 +232,7 @@ private:
 		ID_ADDCHEAT,
 		ID_REMOVECHEAT,
 		ID_GPUDETERMINISM,
+		ID_AUDIOSLOWDOWN,
 		ID_DEPTHPERCENTAGE,
 		ID_CONVERGENCEMINIMUM,
 		ID_MONODEPTH,
@@ -248,7 +270,7 @@ private:
 	void OnEditConfig(wxCommandEvent& event);
 	void OnComputeMD5Sum(wxCommandEvent& event);
 	void OnShowDefaultConfig(wxCommandEvent& event);
-	void RmObjButtonClicked(wxCommandEvent& event);
+	void HideObjectButtonClicked(wxCommandEvent& event);
 	void ListSelectionChanged(wxCommandEvent& event);
 	void CheckboxSelectionChanged(wxCommandEvent& event);
 	void PatchButtonClicked(wxCommandEvent& event);
@@ -277,16 +299,16 @@ private:
 
 	IniFile GameIniDefault;
 	IniFile GameIniLocal;
-	std::string GameIniFileDefault;
 	std::string GameIniFileLocal;
+	std::string game_id;
 
-	std::set<std::string> DefaultRmObjs;
+	std::set<std::string> DefaultHideObjects;
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;
 
 	void LoadGameConfig();
-	void RmObjList_Load();
-	void RmObjList_Save();
+	void HideObjectList_Load();
+	void HideObjectList_Save();
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();

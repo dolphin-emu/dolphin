@@ -19,6 +19,7 @@
 #include "Common/Timer.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -473,6 +474,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsBBox = GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
+	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -507,6 +509,7 @@ Renderer::Renderer()
 			g_Config.backend_info.bSupportsBindingLayout = true;
 			g_Config.backend_info.bSupportsEarlyZ = true;
 			g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
+			//g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_EXT_texture_buffer");
 		}
 	}
 	else
@@ -591,8 +594,8 @@ Renderer::Renderer()
 
 	// Action Replay culling code brute-forcing
 	// begin searching
-	if (Core::ch_bruteforce)
-		Core::ch_comenzar_busqueda = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_begin_search = true;
 
 	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
@@ -1362,16 +1365,10 @@ void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
 {
 	ResetAPIState();
 
-	// color
-	GLboolean const
-		color_mask = colorEnable ? GL_TRUE : GL_FALSE,
-		alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
-	glColorMask(color_mask, color_mask, color_mask, alpha_mask);
-
 	// depth
 	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	RestoreAPIState();
 
@@ -1665,8 +1662,8 @@ void Renderer::AsyncTimewarpDraw()
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
 	//rafa
-	if (Core::ch_bruteforce)
-		Core::ch_cacheo_pasado = true;
+	if (ARBruteForcer::ch_bruteforce)
+		ARBruteForcer::ch_last_search = true;
 
 	if (g_ogl_config.bSupportsDebug)
 	{
@@ -1828,41 +1825,52 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
 
-			if (g_ActiveConfig.bPullUp20fpsTimewarp)
+			if (g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp)
 			{
-				if (real_frame_count_for_timewarp % 4 == 1)
-				{
-					g_ActiveConfig.iExtraFrames = 2;
-				}
+				g_synchronous_timewarp_enabled = true;
+
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
+					SConfig::GetInstance().m_AudioSlowDown = 1.25;
+
+				if (g_ActiveConfig.bPullUp20fpsTimewarp)
 				{
-					g_ActiveConfig.iExtraFrames = 3;
+					if (real_frame_count_for_timewarp % 4 == 1)
+						g_ActiveConfig.iExtraFrames = 2;
+					else
+						g_ActiveConfig.iExtraFrames = 3;
 				}
+				else if (g_ActiveConfig.bPullUp30fpsTimewarp)
+				{
+					if (real_frame_count_for_timewarp % 2 == 1)
+						g_ActiveConfig.iExtraFrames = 1;
+					else
+						g_ActiveConfig.iExtraFrames = 2;
+				}
+				else if (g_ActiveConfig.bPullUp60fpsTimewarp)
+				{
+					if (real_frame_count_for_timewarp % 4 == 0)
+						g_ActiveConfig.iExtraFrames = 1;
+					else
+						g_ActiveConfig.iExtraFrames = 0;
+				}
+				++real_frame_count_for_timewarp;
 			}
-			else if (g_ActiveConfig.bPullUp30fpsTimewarp)
+			else if (g_opcode_replay_enabled)
 			{
-				if (real_frame_count_for_timewarp % 2 == 1)
-				{
-					g_ActiveConfig.iExtraFrames = 1;
-				}
+				g_synchronous_timewarp_enabled = false;
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
-				{
-					g_ActiveConfig.iExtraFrames = 2;
-				}
-			}
-			else if (g_ActiveConfig.bPullUp60fpsTimewarp)
-			{
-				if (real_frame_count_for_timewarp % 4 == 0)
-					g_ActiveConfig.iExtraFrames = 1;
-				else
-					g_ActiveConfig.iExtraFrames = 0;
-			}
-			else if (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps)
-			{
+					SConfig::GetInstance().m_AudioSlowDown = 1.25;
 				g_ActiveConfig.iExtraFrames = 0;
 			}
-
-			++real_frame_count_for_timewarp;
+			else
+			{
+				g_synchronous_timewarp_enabled = false;
+				SConfig::GetInstance().m_AudioSlowDown = SConfig::GetInstance().m_LocalCoreStartupParameter.fAudioSlowDown;
+			}
 
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
 			{
@@ -1965,29 +1973,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
+	// Enable screenshot and write csv if bruteforcing is on
+	if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_take_screenshot > 0)
+		ARBruteForcer::SetupScreenshotAndWriteCSV(&s_bScreenshot, &s_sScreenshotName);
+
 	// Save screenshot
-	
-	if (Core::ch_bruteforce && Core::ch_tomarFoto>0)
-	{
-		if (Core::ch_tomarFoto == 1)
-		{
-			Core::ch_tomarFoto = 0;
-			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			std::ostringstream s;
-			s << Core::ch_codigoactual;
-
-			s_bScreenshot = true;
-			s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + Core::ch_title_id + "/" + Core::ch_map[Core::ch_codigoactual] + ".png";
-			Core::ch_cicles_without_snapshot = 0;
-			Core::ch_cacheo_pasado = true;
-			Core::ch_next_code = true; //TODO next code quitar de aqui
-		}
-		else
-		{
-			Core::ch_tomarFoto -= 1;
-		}
-	}
-
 	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
@@ -2180,11 +2170,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	NewVRFrame();
 
 	// Clear framebuffer
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !g_ActiveConfig.bDontClearScreen)
+	if (g_has_hmd && g_ActiveConfig.bEnableVR)
+	{
+		if (!g_ActiveConfig.bDontClearScreen)
+		{
+			FramebufferManager::SetFramebuffer(0);
+			glClearDepth(1);
+			glClearColor(0, 0, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+	else if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
 		glClearColor(0, 0, 0, 0);
-		if (g_has_hmd)
-			glClearDepth(1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
@@ -2402,13 +2400,13 @@ void Renderer::SetDitherMode()
 		glDisable(GL_DITHER);
 }
 
-void Renderer::SetSamplerState(int stage, int texindex)
+void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 {
 	auto const& tex = bpmem.tex[texindex];
 	auto const& tm0 = tex.texMode0[stage];
 	auto const& tm1 = tex.texMode1[stage];
 
-	g_sampler_cache->SetSamplerState((texindex * 4) + stage, tm0, tm1);
+	g_sampler_cache->SetSamplerState((texindex * 4) + stage, tm0, tm1, custom_tex);
 }
 
 void Renderer::SetInterlacingMode()

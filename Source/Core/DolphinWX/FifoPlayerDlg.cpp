@@ -14,6 +14,7 @@
 #include <wx/checkbox.h>
 #include <wx/clipbrd.h>
 #include <wx/dataobj.h>
+#include <wx/dcclient.h>
 #include <wx/defs.h>
 #include <wx/dialog.h>
 #include <wx/event.h>
@@ -115,7 +116,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_FrameToLabel->Wrap(-1);
 	sFrameRange->Add(m_FrameToLabel, 0, wxALL, 5);
 
-	m_FrameToCtrl = new wxSpinCtrl(m_PlayPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1,-1), wxSP_ARROW_KEYS, 0, 10, 0);
+	m_FrameToCtrl = new wxSpinCtrl(m_PlayPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1, -1), wxSP_ARROW_KEYS, 0, 10, 0);
 	sFrameRange->Add(m_FrameToCtrl, 0, wxALL, 5);
 
 	sPlayPage->Add(sFrameRange, 0, wxEXPAND, 5);
@@ -332,6 +333,7 @@ void FifoPlayerDlg::CreateGUIControls()
 
 void FifoPlayerDlg::OnPaint(wxPaintEvent& event)
 {
+	wxPaintDC dc(this);
 	UpdatePlayGui();
 	UpdateRecorderGui();
 	UpdateAnalyzerGui();
@@ -475,9 +477,9 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 	}
 
 	const u8* const start_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx]];
-	const u8* const end_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx+1]];
+	const u8* const end_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx + 1]];
 
-	for (const u8* ptr = start_ptr; ptr < end_ptr-val_length+1; ++ptr)
+	for (const u8* ptr = start_ptr; ptr < end_ptr - val_length + 1; ++ptr)
 	{
 		if (std::equal(search_val.begin(), search_val.end(), ptr))
 		{
@@ -490,7 +492,7 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 			{
 				if (ptr < start_ptr + m_objectCmdOffsets[cmd_idx])
 				{
-					result.cmd_idx = cmd_idx-1;
+					result.cmd_idx = cmd_idx - 1;
 					break;
 				}
 			}
@@ -540,7 +542,7 @@ void FifoPlayerDlg::OnFindPreviousClick(wxCommandEvent& event)
 	{
 		if (it->cmd_idx < cur_cmd_index)
 		{
-			ChangeSearchResult(search_results.size()-1 - (it - search_results.rbegin()));
+			ChangeSearchResult(search_results.size() - 1 - (it - search_results.rbegin()));
 			return;
 		}
 	}
@@ -575,7 +577,7 @@ void FifoPlayerDlg::ChangeSearchResult(unsigned int result_idx)
 			OnObjectCmdListSelectionChanged(ev);
 		}
 
-		m_findNext->Enable(result_idx+1 < search_results.size());
+		m_findNext->Enable(result_idx + 1 < search_results.size());
 		m_findPrevious->Enable(result_idx != 0);
 	}
 	else if (search_results.size())
@@ -643,10 +645,19 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 
 		wxString newLabel = wxString::Format("%08X:  %02X %04X  ", obj_offset, cmd, stream_size);
 
+		int data_count = 0;
+
 		while (objectdata < objectdata_end)
 		{
-			newLabel += wxString::Format("%02X", *objectdata++);
+			// Trying to put too much data into the newLabel results in it not showing up when appeneded.
+			if (data_count < 128)
+				newLabel += wxString::Format("%02X", *objectdata++);
+			else
+				*objectdata++;
+
+			data_count++;
 		}
+
 		m_objectCmdList->Append(newLabel);
 		m_objectCmdOffsets.push_back(0);
 
@@ -656,7 +667,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 			m_objectCmdList->Append(errorLabel);
 			m_objectCmdOffsets.push_back(0);
 		}
-		
+
 		// Between objectdata_end and next_objdata_start, there are register setting commands
 		if (object_idx + 1 < (int)frame.objectStarts.size())
 		{
@@ -758,7 +769,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 {
 	const int frame_idx = m_framesList->GetSelection();
-	const int object_idx =  m_objectsList->GetSelection();
+	const int object_idx = m_objectsList->GetSelection();
 
 	if (event.GetInt() == -1 || frame_idx == -1 || object_idx == -1)
 	{
@@ -777,10 +788,10 @@ void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 	{
 		std::string name;
 		std::string desc;
-		GetBPRegInfo(cmddata+1, &name, &desc);
+		GetBPRegInfo(cmddata + 1, &name, &desc);
 
 		newLabel = _("BP register ");
-		newLabel += (name.empty()) ? wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1)) : StrToWxStr(name);
+		newLabel += (name.empty()) ? wxString::Format(_("UNKNOWN_%02X"), *(cmddata + 1)) : StrToWxStr(name);
 		newLabel += ":\n";
 
 		if (desc.empty())

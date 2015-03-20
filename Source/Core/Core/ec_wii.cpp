@@ -47,7 +47,7 @@ static u8 default_NG_sig[] = {
 void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig)
 {
 	char name[64];
-	if ((NG_id==0)||(NG_key_id==0)||(NG_priv==nullptr)||(NG_sig==nullptr))
+	if ((NG_id == 0) || (NG_key_id == 0) || (NG_priv == nullptr) || (NG_sig == nullptr))
 	{
 		NG_id = default_NG_id;
 		NG_key_id = default_NG_key_id;
@@ -78,7 +78,7 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	char signer[64];
 	char name[64];
 
-	if ((NG_id==0)||(NG_priv == nullptr))
+	if ((NG_id == 0) || (NG_priv == nullptr))
 	{
 		NG_priv = default_NG_priv;
 		NG_id = default_NG_id;
@@ -91,14 +91,14 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	// get_rand_bytes(ap_priv, 0x1e);
 	// ap_priv[0] &= 1;
 
-	memset(ap_cert_out+4, 0, 60);
+	memset(ap_cert_out + 4, 0, 60);
 
 	sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", NG_id);
-	sprintf(name, "AP%08x%08x", (u32)(title_id>>32), (u32)(title_id&0xffffffff));
+	sprintf(name, "AP%08x%08x", (u32)(title_id >> 32), (u32)(title_id & 0xffffffff));
 	make_blanksig_ec_cert(ap_cert_out, signer, name, ap_priv, 0);
 
 	sha1(ap_cert_out + 0x80, 0x100, hash);
-	generate_ecdsa(ap_cert_out+4, ap_cert_out+34, NG_priv, hash);
+	generate_ecdsa(ap_cert_out + 4, ap_cert_out + 34, NG_priv, hash);
 
 	sha1(data, data_size, hash);
 	generate_ecdsa(sig_out, sig_out + 30, ap_priv, hash);

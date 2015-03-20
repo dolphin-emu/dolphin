@@ -25,6 +25,7 @@
 
 #include "Common/Atomic.h"
 #include "Common/CPUDetect.h"
+#include "Common/Intrinsics.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 
@@ -35,10 +36,6 @@
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
-
-#if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
-#include <tmmintrin.h>
-#endif
 
 static void gdsp_do_dma();
 

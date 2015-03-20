@@ -6,10 +6,6 @@
 #include <fstream>
 #include <vector>
 
-#ifdef _WIN32
-#include <intrin.h>
-#endif
-
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -22,6 +18,7 @@
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/TextureConverter.h"
 
@@ -46,6 +43,13 @@ static u32 s_DepthCbufid;
 
 static u32 s_Textures[8];
 static u32 s_ActiveTexture;
+
+static SHADER s_palette_pixel_shader[3];
+static StreamBuffer* s_palette_stream_buffer = nullptr;
+static GLuint s_palette_resolv_texture;
+static GLuint s_palette_buffer_offset_uniform[3];
+static GLuint s_palette_multiplier_uniform[3];
+static GLuint s_palette_copy_position_uniform[3];
 
 bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
@@ -201,10 +205,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	if (false == g_ActiveConfig.bCopyEFBToTexture)
+	if (!g_ActiveConfig.bSkipEFBCopyToRam)
 	{
 		int encoded_size = TextureConverter::EncodeToRamFromTexture(
-			addr,
+			dstAddr,
 			read_texture,
 			srcFormat == PEControl::Z24,
 			isIntensity,
@@ -212,12 +216,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			scaleByHalf,
 			srcRect);
 
-		u8* dst = Memory::GetPointer(addr);
+		u8* dst = Memory::GetPointer(dstAddr);
 		u64 const new_hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		size_in_bytes = (u32)encoded_size;
 
-		TextureCache::MakeRangeDynamic(addr,encoded_size);
+		TextureCache::MakeRangeDynamic(dstAddr, encoded_size);
 
 		hash = new_hash;
 	}
@@ -241,12 +245,27 @@ TextureCache::TextureCache()
 	s_ActiveTexture = -1;
 	for (auto& gtex : s_Textures)
 		gtex = -1;
+
+	if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
+	{
+		s_palette_stream_buffer = StreamBuffer::Create(GL_TEXTURE_BUFFER, 1024*1024);
+		glGenTextures(1, &s_palette_resolv_texture);
+		glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, s_palette_stream_buffer->m_buffer);
+	}
 }
 
 
 TextureCache::~TextureCache()
 {
 	DeleteShaders();
+
+	if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
+	{
+		delete s_palette_stream_buffer;
+		s_palette_stream_buffer = nullptr;
+		glDeleteTextures(1, &s_palette_resolv_texture);
+	}
 }
 
 void TextureCache::DisableStage(unsigned int stage)
@@ -351,12 +370,161 @@ void TextureCache::CompileShaders()
 
 	s_ColorCopyPositionUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "copy_position");
 	s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
+
+	std::string palette_shader =
+		R"GLSL(
+		uniform int texture_buffer_offset;
+		uniform float multiplier;
+		SAMPLER_BINDING(9) uniform sampler2DArray samp9;
+		SAMPLER_BINDING(10) uniform usamplerBuffer samp10;
+
+		in vec3 f_uv0;
+		out vec4 ocol0;
+
+		int Convert3To8(int v)
+		{
+			// Swizzle bits: 00000123 -> 12312312
+			return (v << 5) | (v << 2) | (v >> 1);
+		}
+
+		int Convert4To8(int v)
+		{
+			// Swizzle bits: 00001234 -> 12341234
+			return (v << 4) | v;
+		}
+
+		int Convert5To8(int v)
+		{
+			// Swizzle bits: 00012345 -> 12345123
+			return (v << 3) | (v >> 2);
+		}
+
+		int Convert6To8(int v)
+		{
+			// Swizzle bits: 00123456 -> 12345612
+			return (v << 2) | (v >> 4);
+		}
+
+		float4 DecodePixel_RGB5A3(int val)
+		{
+			int r,g,b,a;
+			if ((val&0x8000) > 0)
+			{
+				r=Convert5To8((val>>10) & 0x1f);
+				g=Convert5To8((val>>5 ) & 0x1f);
+				b=Convert5To8((val    ) & 0x1f);
+				a=0xFF;
+			}
+			else
+			{
+				a=Convert3To8((val>>12) & 0x7);
+				r=Convert4To8((val>>8 ) & 0xf);
+				g=Convert4To8((val>>4 ) & 0xf);
+				b=Convert4To8((val    ) & 0xf);
+			}
+			return float4(r, g, b, a) / 255.0;
+		}
+
+		float4 DecodePixel_RGB565(int val)
+		{
+			int r, g, b, a;
+			r = Convert5To8((val >> 11) & 0x1f);
+			g = Convert6To8((val >> 5) & 0x3f);
+			b = Convert5To8((val) & 0x1f);
+			a = 0xFF;
+			return float4(r, g, b, a) / 255.0;
+		}
+
+		float4 DecodePixel_IA8(int val)
+		{
+			int i = val & 0xFF;
+			int a = val >> 8;
+			return float4(i, i, i, a) / 255.0;
+		}
+
+		void main()
+		{
+			int src = int(round(texture(samp9, f_uv0).r * multiplier));
+			src = int(texelFetch(samp10, src + texture_buffer_offset).r);
+			src = ((src << 8) & 0xFF00) | (src >> 8);
+			ocol0 = DECODE(src);
+		}
+		)GLSL";
+
+	if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
+	{
+		ProgramShaderCache::CompileShader(
+			s_palette_pixel_shader[GX_TL_IA8],
+			StringFromFormat(VProgram, prefix, prefix).c_str(),
+			("#define DECODE DecodePixel_IA8" + palette_shader).c_str(),
+			GProgram);
+		s_palette_buffer_offset_uniform[GX_TL_IA8] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "texture_buffer_offset");
+		s_palette_multiplier_uniform[GX_TL_IA8] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "multiplier");
+		s_palette_copy_position_uniform[GX_TL_IA8] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_IA8].glprogid, "copy_position");
+
+		ProgramShaderCache::CompileShader(
+			s_palette_pixel_shader[GX_TL_RGB565],
+			StringFromFormat(VProgram, prefix, prefix).c_str(),
+			("#define DECODE DecodePixel_RGB565" + palette_shader).c_str(),
+			GProgram);
+		s_palette_buffer_offset_uniform[GX_TL_RGB565] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "texture_buffer_offset");
+		s_palette_multiplier_uniform[GX_TL_RGB565] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "multiplier");
+		s_palette_copy_position_uniform[GX_TL_RGB565] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB565].glprogid, "copy_position");
+
+		ProgramShaderCache::CompileShader(
+			s_palette_pixel_shader[GX_TL_RGB5A3],
+			StringFromFormat(VProgram, prefix, prefix).c_str(),
+			("#define DECODE DecodePixel_RGB5A3" + palette_shader).c_str(),
+			GProgram);
+		s_palette_buffer_offset_uniform[GX_TL_RGB5A3] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "texture_buffer_offset");
+		s_palette_multiplier_uniform[GX_TL_RGB5A3] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "multiplier");
+		s_palette_copy_position_uniform[GX_TL_RGB5A3] = glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "copy_position");
+	}
 }
 
 void TextureCache::DeleteShaders()
 {
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
+
+	if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
+		for (auto& shader : s_palette_pixel_shader)
+			shader.Destroy();
+}
+
+void TextureCache::ConvertTexture(TCacheEntryBase* _entry, TCacheEntryBase* _unconverted, void* palette, TlutFormat format)
+{
+	if (!g_ActiveConfig.backend_info.bSupportsPaletteConversion)
+		return;
+
+	g_renderer->ResetAPIState();
+
+	TCacheEntry* entry = (TCacheEntry*) _entry;
+	TCacheEntry* unconverted = (TCacheEntry*) _unconverted;
+
+	glActiveTexture(GL_TEXTURE0 + 9);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, unconverted->texture);
+
+	FramebufferManager::SetFramebuffer(entry->framebuffer);
+	glViewport(0, 0, entry->config.width, entry->config.height);
+	s_palette_pixel_shader[format].Bind();
+
+	int size = unconverted->format == 0 ? 32 : 512;
+	auto buffer = s_palette_stream_buffer->Map(size);
+	memcpy(buffer.first, palette, size);
+	s_palette_stream_buffer->Unmap(size);
+	glUniform1i(s_palette_buffer_offset_uniform[format], buffer.second / 2);
+	glUniform1f(s_palette_multiplier_uniform[format], unconverted->format == 0 ? 15.0f : 255.0f);
+	glUniform4f(s_palette_copy_position_uniform[format], 0.0f, 0.0f, (float)unconverted->config.width, (float)unconverted->config.height);
+
+	glActiveTexture(GL_TEXTURE0 + 10);
+	glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
+
+	OpenGL_BindAttributelessVAO();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	FramebufferManager::SetFramebuffer(0);
+	g_renderer->RestoreAPIState();
 }
 
 }

@@ -22,6 +22,7 @@
 #include "Common/Timer.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -66,6 +67,28 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
+// This can mostly be removed when we move to VS2015
+// to use the thread_local keyword
+#ifdef _MSC_VER
+#define ThreadLocalStorage __declspec(thread)
+#elif defined __ANDROID__ || defined __APPLE__
+// This will most likely have to stay, to support android
+#include <pthread.h>
+#else // Everything besides VS and Android
+#define ThreadLocalStorage __thread
+#endif
+
+// This can mostly be removed when we move to VS2015
+// to use the thread_local keyword
+#ifdef _MSC_VER
+#define ThreadLocalStorage __declspec(thread)
+#elif defined __ANDROID__ || defined __APPLE__
+// This will most likely have to stay, to support android
+#include <pthread.h>
+#else // Everything besides VS and Android
+#define ThreadLocalStorage __thread
+#endif
+
 // TODO: ugly, remove
 bool g_aspect_wide;
 
@@ -75,27 +98,6 @@ namespace Core
 {
 
 bool g_want_determinism;
-
-// Action Replay culling code brute-forcing by penkamaster
-// count down to take a screenshot
-int ch_tomarFoto;
-// current code
-int ch_codigoactual;
-// move on to next code?
-bool ch_next_code;
-// start searching
-bool ch_comenzar_busqueda;
-// number of windows messages without saving a screenshot
-int ch_cicles_without_snapshot;
-// search last
-bool ch_cacheo_pasado;
-// emulator is in action replay culling code brute-forcing mode
-bool ch_bruteforce;
-
-std::vector<std::string> ch_map;
-std::string ch_title_id;
-std::string ch_code;
-
 
 // Declarations and definitions
 static Common::Timer s_timer;
@@ -128,6 +130,17 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
 static bool s_is_framelimiter_temp_disabled = false;
+
+#ifdef ThreadLocalStorage
+static ThreadLocalStorage bool tls_is_cpu_thread = false;
+#else
+static pthread_key_t s_tls_is_cpu_key;
+static pthread_once_t s_cpu_key_is_init = PTHREAD_ONCE_INIT;
+static void InitIsCPUKey()
+{
+	pthread_key_create(&s_tls_is_cpu_key, nullptr);
+}
+#endif
 
 bool GetIsFramelimiterTempDisabled()
 {
@@ -181,7 +194,14 @@ bool IsRunningInCurrentThread()
 
 bool IsCPUThread()
 {
-	return (s_cpu_thread.joinable() ? (s_cpu_thread.get_id() == std::this_thread::get_id()) : !s_is_started);
+#ifdef ThreadLocalStorage
+	return tls_is_cpu_thread;
+#else
+	// Use pthread implementation for Android and Mac
+	// Make sure that s_tls_is_cpu_key is initialized
+	pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
+	return pthread_getspecific(s_tls_is_cpu_key);
+#endif
 }
 
 bool IsGPUThread()
@@ -290,9 +310,35 @@ void Stop()  // - Hammertime!
 	}
 }
 
+static void DeclareAsCPUThread()
+{
+#ifdef ThreadLocalStorage
+	tls_is_cpu_thread = true;
+#else
+	// Use pthread implementation for Android and Mac
+	// Make sure that s_tls_is_cpu_key is initialized
+	pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
+	pthread_setspecific(s_tls_is_cpu_key, (void*)true);
+#endif
+}
+
+static void UndeclareAsCPUThread()
+{
+#ifdef ThreadLocalStorage
+	tls_is_cpu_thread = false;
+#else
+	// Use pthread implementation for Android and Mac
+	// Make sure that s_tls_is_cpu_key is initialized
+	pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
+	pthread_setspecific(s_tls_is_cpu_key, (void*)false);
+#endif
+}
+
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
 static void CpuThread()
 {
+	DeclareAsCPUThread();
+
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -335,7 +381,8 @@ static void CpuThread()
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
-	EMM::UninstallExceptionHandler();
+	if (_CoreParameter.bFastmem)
+		EMM::UninstallExceptionHandler();
 
 	return;
 }
@@ -434,6 +481,9 @@ void EmuThread()
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(core_parameter.m_strFilename, 3000);
 
+	// For a time this acts as the CPU thread...
+	DeclareAsCPUThread();
+
 	Movie::Init();
 
 	HW::Init();
@@ -496,13 +546,27 @@ void EmuThread()
 		return;
 	}
 
-	Keyboard::Initialize(s_window_handle);
-	Pad::Initialize(s_window_handle);
+	bool init_controllers = false;
+	if (!g_controller_interface.IsInit())
+	{
+		Pad::Initialize(s_window_handle);
+		Keyboard::Initialize(s_window_handle);
+		init_controllers = true;
+	}
+	else
+	{
+		// Update references in case controllers were refreshed
+		Pad::LoadConfig();
+		Keyboard::LoadConfig();
+	}
 
 	// Load and Init Wiimotes - only if we are booting in Wii mode
 	if (core_parameter.bWii)
 	{
-		Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
+		if (init_controllers)
+			Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
+		else
+			Wiimote::LoadConfig();
 
 		// Activate Wiimotes which don't have source set to "None"
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
@@ -524,8 +588,11 @@ void EmuThread()
 
 	CBoot::BootUp();
 
+	// Thread is no longer acting as CPU Thread
+	UndeclareAsCPUThread();
+
 	// Setup our core, but can't use dynarec if we are compare server
-	if (core_parameter.iCPUCore != SCoreStartupParameter::CORE_INTERPRETER
+	if (core_parameter.iCPUCore != PowerPC::CORE_INTERPRETER
 	    && (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
 	{
 		PowerPC::SetMode(PowerPC::MODE_JIT);
@@ -638,10 +705,13 @@ void EmuThread()
 	HW::Shutdown();
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
 
-	Wiimote::Shutdown();
-
-	Keyboard::Shutdown();
-	Pad::Shutdown();
+	if (init_controllers)
+	{
+		Wiimote::Shutdown();
+		Keyboard::Shutdown();
+		Pad::Shutdown();
+		init_controllers = false;
+	}
 
 
 	// Oculus Rift VR thread
@@ -916,14 +986,7 @@ void UpdateTitle()
 	if (g_sound_stream)
 	{
 		CMixer* pMixer = g_sound_stream->GetMixer();
-
-		// VR requires a head-tracking rate greater than 60fps per second. This is solved by 
-		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio 
-		// back to 100% speed, it must be slowed down by 25%
-		if (g_has_hmd && !SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && (g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps || g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp))
-			pMixer->UpdateSpeed((float)Speed / 125);
-		else
-			pMixer->UpdateSpeed((float)Speed / 100);
+		pMixer->UpdateSpeed((float)Speed / (100 * SConfig::GetInstance().m_AudioSlowDown));
 	}
 
 	Host_UpdateTitle(SMessage);
@@ -933,6 +996,57 @@ void Shutdown()
 {
 	if (s_emu_thread.joinable())
 		s_emu_thread.join();
+}
+
+void KillDolphinAndRestart()
+{
+	// If it's the first time through and it crashes on the first function, we must advance the position.
+	if (ARBruteForcer::ch_bruteforce && (ARBruteForcer::ch_begin_search || ARBruteForcer::ch_first_search))
+		ARBruteForcer::IncrementPositionTxt();
+
+#if defined WIN32
+	// Restart Dolphin automatically after fatal crash.
+	PROCESS_INFORMATION ProcessInfo;
+	STARTUPINFO StartupInfo;
+
+	ZeroMemory(&StartupInfo, sizeof(StartupInfo));
+	StartupInfo.cb = sizeof StartupInfo; //Only compulsory field
+	ZeroMemory(&ProcessInfo, sizeof(ProcessInfo));
+
+	LPTSTR szCmdline;
+
+	// To do: LPTSTR is terrible and it's really hard to convert a string to it.
+	// Figure out a less hacky way to do this...
+	if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_code == "0")
+	{
+		szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 0"));
+	}
+	else if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_code == "1")
+	{
+		szCmdline = _tcsdup(TEXT("Dolphin.exe -bruteforce 1"));
+	}
+	else if (ARBruteForcer::ch_bruteforce)
+	{
+		PanicAlert("Right now the bruteforcer can only be restarted automatically if -bruteforce 1 or 0 is used.\nBrute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
+		TerminateProcess(GetCurrentProcess(), 0);
+	}
+	else
+	{
+		szCmdline = _tcsdup(TEXT("Dolphin.exe"));
+	}
+
+	if (!CreateProcess(nullptr, szCmdline, nullptr, nullptr, false, NORMAL_PRIORITY_CLASS, nullptr, nullptr, &StartupInfo, &ProcessInfo))
+	{
+		if (ARBruteForcer::ch_bruteforce)
+			PanicAlert("Failed to restart Dolphin.exe automatically after a bad bruteforcer instruction caused a crash.");
+		else
+			PanicAlert("Failed to automatically restart Dolphin.exe. Program will now be terminated.");
+	}
+
+	TerminateProcess(GetCurrentProcess(), 0);
+#else
+	PanicAlert("Brute forcing caused a bad instruction.  Restart Dolphin and this function will be skipped.");
+#endif
 }
 
 void SetOnStoppedCallback(StoppedCallbackFunc callback)

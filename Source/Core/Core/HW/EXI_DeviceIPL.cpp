@@ -12,6 +12,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/SystemTimers.h"
 
@@ -345,15 +346,16 @@ u32 CEXIIPL::GetGCTime()
 		// let's keep time moving forward, regardless of what it starts at
 		ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
 	}
-	else
+	else if (NetPlay::IsNetPlayRunning())
 	{
-		// hack in some netplay stuff
 		ltime = NetPlay_GetGCTime();
 
-		if (0 == ltime)
-			ltime = Common::Timer::GetLocalTimeSinceJan1970();
-		else
-			ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+		// let's keep time moving forward, regardless of what it starts at
+		ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+	}
+	else
+	{
+		ltime = Common::Timer::GetLocalTimeSinceJan1970();
 	}
 
 	return ((u32)ltime - cJanuary2000);
@@ -365,7 +367,7 @@ u32 CEXIIPL::GetGCTime()
 	// Get SRAM bias
 	u32 Bias;
 
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		((u8*)&Bias)[i] = sram_dump[0xc + (i^3)];
 	}

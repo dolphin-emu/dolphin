@@ -43,7 +43,7 @@ static u32 GetWatchAddr(int count)
 
 static u32 GetWatchValue(int count)
 {
-	return Memory::ReadUnchecked_U32(GetWatchAddr(count));
+	return PowerPC::HostRead_U32(GetWatchAddr(count));
 }
 
 static void AddWatchAddr(int count, u32 value)
@@ -71,7 +71,7 @@ static void SetWatchName(int count, const std::string& value)
 
 static void SetWatchValue(int count, u32 value)
 {
-	Memory::WriteUnchecked_U32(value, GetWatchAddr(count));
+	PowerPC::HostWrite_U32(value, GetWatchAddr(count));
 }
 
 static wxString GetValueByRowCol(int row, int col)
@@ -81,11 +81,11 @@ static wxString GetValueByRowCol(int row, int col)
 		// Column Labels
 		switch (col)
 		{
-		case 0: return wxString::Format("Label");
-		case 1: return wxString::Format("Addr");
-		case 2: return wxString::Format("Hex");
-		case 3: return wxString::Format("Dec");
-		case 4: return wxString::Format("Str");
+		case 0: return _("Label");
+		case 1: return _("Address");
+		case 2: return _("Hexadecimal");
+		case 3: return _("Decimal");
+		case 4: return _("String");
 		default: return wxEmptyString;
 		}
 	}
@@ -102,8 +102,8 @@ static wxString GetValueByRowCol(int row, int col)
 			case 4:
 			{
 				u32 addr = GetWatchAddr(row);
-				if (Memory::IsRAMAddress(addr))
-					return Memory::GetString(addr, 32).c_str();
+				if (PowerPC::HostIsRAMAddress(addr))
+					return PowerPC::HostGetString(addr, 32).c_str();
 				else
 					return wxEmptyString;
 			}

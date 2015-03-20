@@ -136,7 +136,7 @@ static void ExceptionThread(mach_port_t port)
 	mach_msg_header_t *send_msg = nullptr;
 	mach_msg_size_t send_size = 0;
 	mach_msg_option_t option = MACH_RCV_MSG;
-	while (1)
+	while (true)
 	{
 		// If this isn't the first run, send the reply message.  Then, receive
 		// a message: either a mach_exception_raise_state RPC due to

@@ -53,6 +53,7 @@ struct SConfig : NonCopyable
 	unsigned int m_Framelimit;
 	bool m_OCEnable;
 	float m_OCFactor;
+	float m_AudioSlowDown = 1;
 	// other interface settings
 	bool m_InterfaceToolbar;
 	bool m_InterfaceStatusbar;
@@ -70,7 +71,7 @@ struct SConfig : NonCopyable
 	bool m_ListAustralia;
 	bool m_ListFrance;
 	bool m_ListGermany;
-	bool m_ListInternational;
+	bool m_ListWorld;
 	bool m_ListItaly;
 	bool m_ListKorea;
 	bool m_ListNetherlands;
@@ -100,7 +101,10 @@ struct SConfig : NonCopyable
 	std::string m_strMovieAuthor;
 	unsigned int m_FrameSkip;
 	bool m_DumpFrames;
+	bool m_DumpFramesSilent;
 	bool m_ShowInputDisplay;
+
+	bool m_PauseOnFocusLost;
 
 	// DSP settings
 	bool m_DSPEnableJIT;
@@ -113,7 +117,6 @@ struct SConfig : NonCopyable
 	// Input settings
 	bool m_BackgroundInput;
 	bool m_GameCubeAdapter;
-	bool m_GameCubeAdapterThread;
 
 	SysConf* m_SYSCONF;
 
@@ -129,7 +132,7 @@ struct SConfig : NonCopyable
 	void LoadSettings();
 
 	// Return the permanent and somewhat globally used instance of this struct
-	static SConfig& GetInstance() {return(*m_Instance);}
+	static SConfig& GetInstance() { return(*m_Instance); }
 
 	static void Init();
 	static void Shutdown();

@@ -41,9 +41,7 @@ public:
 				return std::hash<u64>::operator()(id);
 			}
 		};
-
 	};
-
 	struct TCacheEntryBase
 	{
 		const TCacheEntryConfig config;
@@ -53,6 +51,8 @@ public:
 		u32 size_in_bytes;
 		u64 hash;
 		u32 format;
+		bool is_efb_copy;
+		bool is_custom_tex;
 
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int native_levels;
@@ -95,7 +95,7 @@ public:
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
-		bool IsEfbCopy() { return config.rendertarget; }
+		bool IsEfbCopy() { return is_efb_copy; }
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
@@ -104,12 +104,10 @@ public:
 
 	// Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
 	// frameCount is the current frame number.
-	static void Cleanup(int frameCount);
+	static void Cleanup(int _frameCount);
 
 	static void Invalidate();
-	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
-	static void ClearRenderTargets(); // currently only used by OGL
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
@@ -117,10 +115,14 @@ public:
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
 
 	static TCacheEntryBase* Load(const u32 stage);
+	static void UnbindTextures();
+	static void BindTextures();
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	static void RequestInvalidateTextureCache();
+
+	virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) = 0;
 
 protected:
 	TextureCache();
@@ -135,11 +137,14 @@ private:
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
 	static void FreeTexture(TCacheEntryBase* entry);
 
-	typedef std::map<u32, TCacheEntryBase*> TexCache;
+	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
+
+	typedef std::multimap<u32, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
 
 	static TexCache textures;
 	static TexPool texture_pool;
+	static TCacheEntryBase* bound_textures[8];
 
 	// Backup configuration values
 	static struct BackupConfig

@@ -79,8 +79,6 @@ static u32 s_DSPcoefHash = 0;
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
 
-static std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
-
 static std::string s_InputDisplay[8];
 
 static GCManipFunction gcmfunc = nullptr;
@@ -454,7 +452,7 @@ bool BeginRecordingInput(int controllers)
 	if (NetPlay::IsNetPlayRunning())
 	{
 		s_bNetPlay = true;
-		s_recordingStartTime = NETPLAY_INITIAL_GCTIME;
+		s_recordingStartTime = g_netplay_initial_gctime;
 	}
 	else
 	{
@@ -469,10 +467,11 @@ bool BeginRecordingInput(int controllers)
 
 	if (Core::IsRunningAndStarted())
 	{
-		if (File::Exists(tmpStateFilename))
-			File::Delete(tmpStateFilename);
+		const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+		if (File::Exists(save_path))
+			File::Delete(save_path);
 
-		State::SaveAs(tmpStateFilename);
+		State::SaveAs(save_path);
 		s_bRecordingFromSaveState = true;
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
@@ -1213,7 +1212,7 @@ void SaveRecording(const std::string& filename)
 	header.CPUCore = s_iCPUCore;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
 	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
-	header.bCopyEFBToTexture = g_ActiveConfig.bCopyEFBToTexture;
+	header.bSkipEFBCopyToRam = g_ActiveConfig.bSkipEFBCopyToRam;
 	header.bEFBCopyCacheEnable = false;
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
@@ -1242,7 +1241,7 @@ void SaveRecording(const std::string& filename)
 	if (success && s_bRecordingFromSaveState)
 	{
 		std::string stateFilename = filename + ".sav";
-		success = File::Copy(tmpStateFilename, stateFilename);
+		success = File::Copy(File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav", stateFilename);
 	}
 
 	if (success)
@@ -1275,7 +1274,7 @@ void SetGraphicsConfig()
 {
 	g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
 	g_Config.bEFBCopyEnable = tmpHeader.bEFBCopyEnable;
-	g_Config.bCopyEFBToTexture = tmpHeader.bCopyEFBToTexture;
+	g_Config.bSkipEFBCopyToRam = tmpHeader.bSkipEFBCopyToRam;
 	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
 	g_Config.bUseXFB = tmpHeader.bUseXFB;
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;

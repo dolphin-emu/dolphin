@@ -64,10 +64,6 @@ void JitArm::WriteCallInterpreter(UGeckoInstruction inst)
 	MOVI2R(R12, (u32)instr);
 	BL(R12);
 }
-void JitArm::unknown_instruction(UGeckoInstruction inst)
-{
-	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
-}
 
 void JitArm::FallBackToInterpreter(UGeckoInstruction _inst)
 {
@@ -123,7 +119,7 @@ void JitArm::Cleanup()
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
 		PUSH(4, R0, R1, R2, R3);
-		QuickCallFunction(R14, (void*)&GPFifo::CheckGatherPipe);
+		QuickCallFunction(R14, (void*)&GPFifo::FastCheckGatherPipe);
 		POP(4, R0, R1, R2, R3);
 	}
 }
@@ -465,7 +461,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		{
 			js.fifoBytesThisBlock -= 32;
 			PUSH(4, R0, R1, R2, R3);
-			QuickCallFunction(R14, (void*)&GPFifo::CheckGatherPipe);
+			QuickCallFunction(R14, (void*)&GPFifo::FastCheckGatherPipe);
 			POP(4, R0, R1, R2, R3);
 		}
 

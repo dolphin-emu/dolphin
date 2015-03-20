@@ -224,6 +224,8 @@ u64 GetIdleTicks()
 // schedule things to be executed on the main thread.
 void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
+	// TODO: Fix UI thread safety problems, and enable this assertion
+	// _assert_msg_(POWERPC, !Core::IsCPUThread(), "ScheduleEvent_Threadsafe from wrong thread");
 	std::lock_guard<std::mutex> lk(tsWriteLock);
 	Event ne;
 	ne.time = globalTimer + cyclesIntoFuture;
@@ -232,8 +234,14 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	tsQueue.Push(ne);
 }
 
+// Executes an event immediately, then returns.
+void ScheduleEvent_Immediate(int event_type, u64 userdata)
+{
+	event_types[event_type].callback(userdata, 0);
+}
+
 // Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
-// in which case the event will get handled immediately, before returning.
+// in which case this is the same as ScheduleEvent_Immediate.
 void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
 	if (Core::IsCPUThread())
@@ -279,6 +287,8 @@ static void AddEventToQueue(Event* ne)
 // than Advance
 void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 {
+	// TODO: Fix UI thread safety problems, and enable this assertion
+	//_assert_msg_(POWERPC, Core::IsCPUThread(), "ScheduleEvent from wrong thread");
 	Event *ne = GetNewEvent();
 	ne->userdata = userdata;
 	ne->type = event_type;

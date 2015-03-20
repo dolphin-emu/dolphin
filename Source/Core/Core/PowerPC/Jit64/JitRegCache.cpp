@@ -48,41 +48,6 @@ void RegCache::Start()
 	//But only preload IF written OR reads >= 3
 }
 
-// these are powerpc reg indices
-void RegCache::Lock(int p1, int p2, int p3, int p4)
-{
-	regs[p1].locked = true;
-
-	if (p2 != 0xFF)
-		regs[p2].locked = true;
-
-	if (p3 != 0xFF)
-		regs[p3].locked = true;
-
-	if (p4 != 0xFF)
-		regs[p4].locked = true;
-}
-
-// these are x64 reg indices
-void RegCache::LockX(int x1, int x2, int x3, int x4)
-{
-	if (xregs[x1].locked)
-	{
-		PanicAlert("RegCache: x %i already locked!", x1);
-	}
-
-	xregs[x1].locked = true;
-
-	if (x2 != 0xFF)
-		xregs[x2].locked = true;
-
-	if (x3 != 0xFF)
-		xregs[x3].locked = true;
-
-	if (x4 != 0xFF)
-		xregs[x4].locked = true;
-}
-
 void RegCache::UnlockAll()
 {
 	for (auto& reg : regs)

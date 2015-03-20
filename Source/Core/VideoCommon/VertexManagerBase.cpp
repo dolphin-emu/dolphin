@@ -1,5 +1,8 @@
 #include "Common/CommonTypes.h"
 
+#include "Core/ARBruteForcer.h"
+#include "Core/Core.h"
+
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -166,8 +169,6 @@ void VertexManager::Flush()
 	// loading a state will invalidate BP, so check for it
 	g_video_backend->CheckInvalidState();
 
-	VideoFifo_CheckEFBAccess();
-
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens,
 		xfmem.numChan.numColorChans, xfmem.dualTexTrans.enabled, bpmem.ztex2.op,
@@ -209,21 +210,22 @@ void VertexManager::Flush()
 				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 					usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
+		TextureCache::UnbindTextures();
 		for (unsigned int i : usedtextures)
 		{
-			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i);
 
 			if (tentry)
 			{
-				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
+				g_renderer->SetSamplerState(i & 3, i >> 2, tentry->is_custom_tex);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
 			}
 			else
 			{
 				ERROR_LOG(VIDEO, "error loading texture");
 			}
 		}
+		TextureCache::BindTextures();
 	}
 
 	// set global vertex constants
@@ -271,6 +273,8 @@ void VertexManager::Flush()
 void VertexManager::DoState(PointerWrap& p)
 {
 	p.Do(s_zslope);
+	if (!g_vertex_manager && ARBruteForcer::ch_bruteforce)
+		Core::KillDolphinAndRestart();
 	g_vertex_manager->vDoState(p);
 }
 
