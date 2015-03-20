@@ -39,6 +39,10 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 	return 0;
 }
 
+int ISIDevice::TransferInterval()
+{
+	return 0;
+}
 
 // Stub class for saying nothing is attached, and not having to deal with null pointers :)
 class CSIDevice_Null : public ISIDevice
