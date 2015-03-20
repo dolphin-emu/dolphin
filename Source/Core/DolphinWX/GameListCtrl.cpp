@@ -388,8 +388,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	wxString name = StrToWxStr(rISOFile.GetName());
 
+	// Attempt to load game titles from titles.txt
+	// http://www.gametdb.com/Wii/Downloads
 	std::ifstream titlestxt;
 	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
+
+	if (!titlestxt.is_open())
+	{
+		OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "wiitdb.txt", std::ios::in);
+	}
 
 	if (titlestxt.is_open() && rISOFile.GetUniqueID().size() > 3)
 	{
