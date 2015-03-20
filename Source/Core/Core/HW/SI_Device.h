@@ -73,6 +73,7 @@ public:
 
 	// Run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+	virtual int TransferInterval();
 
 	// Return true on new data
 	virtual bool GetData(u32& _Hi, u32& _Low) = 0;

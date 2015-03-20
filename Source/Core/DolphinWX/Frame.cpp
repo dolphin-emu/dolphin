@@ -1631,6 +1631,33 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	event.Skip();
 }
 
+void CFrame::OnFocusChange(wxFocusEvent& event)
+{
+	if (SConfig::GetInstance().m_PauseOnFocusLost)
+	{
+		if (RendererHasFocus())
+		{
+			if (Core::GetState() == Core::CORE_PAUSE)
+			{
+				Core::SetState(Core::CORE_RUN);
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					m_RenderParent->SetCursor(wxCURSOR_BLANK);
+			}
+		}
+		else
+		{
+			if (Core::GetState() == Core::CORE_RUN)
+			{
+				Core::SetState(Core::CORE_PAUSE);
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					m_RenderParent->SetCursor(wxNullCursor);
+				Core::UpdateTitle();
+			}
+		}
+		UpdateGUI();
+	}
+}
+
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
 	if (g_Config.bExclusiveMode && Core::GetState() == Core::CORE_PAUSE)

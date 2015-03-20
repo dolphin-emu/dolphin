@@ -25,6 +25,7 @@ private:
 	void CreateGUIControls(int selection);
 	void SaveHideObjectData(wxCommandEvent& event);
 	void ButtonUporDown(wxCommandEvent& event);
+	void ButtonSize(wxCommandEvent& event);
 	bool UpdateTempEntryData(std::vector<HideObjectEngine::HideObjectEntry>::iterator iterEntry);
 	bool ParseValue(unsigned long long value, HideObjectEngine::HideObjectType tempType);
 
