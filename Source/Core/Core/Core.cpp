@@ -26,6 +26,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
+#include "Core/HotkeyManager.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
@@ -96,6 +97,7 @@ static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static void* s_window_handle = nullptr;
+static bool s_window_handle_changed = false;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
 static StoppedCallbackFunc s_on_stopped_callback = nullptr;
@@ -228,7 +230,12 @@ bool Init()
 		     !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	}
 
-	s_window_handle = Host_GetRenderHandle();
+	s_window_handle_changed = false;
+	if (s_window_handle != Host_GetRenderHandle())
+	{
+		s_window_handle = Host_GetRenderHandle();
+		s_window_handle_changed = true;
+	}
 
 	// Start the emu thread
 	s_emu_thread = std::thread(EmuThread);
@@ -430,7 +437,11 @@ void EmuThread()
 	else
 	{
 		// Update references in case controllers were refreshed
-		g_controller_interface.Initialize(s_window_handle);
+		if (s_window_handle_changed)
+		{
+			g_controller_interface.Initialize(s_window_handle);
+			HotkeyManagerEmu::LoadConfig();
+		}
 		Pad::LoadConfig();
 		Keyboard::LoadConfig();
 	}
