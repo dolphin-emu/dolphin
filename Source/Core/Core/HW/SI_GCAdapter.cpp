@@ -168,10 +168,11 @@ void Setup()
 			}
 		}
 	}
-	if (!s_detected)
-		Shutdown();
 
 	libusb_free_device_list(list, 1);
+
+	if (!s_detected)
+		Shutdown();
 }
 
 
