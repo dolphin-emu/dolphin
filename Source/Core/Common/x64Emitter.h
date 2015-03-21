@@ -301,7 +301,7 @@ private:
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteMOVBE(int bits, u8 op, X64Reg regOp, OpArg arg);
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
-	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
+	void WriteNormalOp(int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 	void ABI_CalculateFrameSize(BitSet32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 
