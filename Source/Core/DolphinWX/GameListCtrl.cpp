@@ -407,9 +407,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			if (!std::getline(titlestxt, line) && titlestxt.eof())
 				break;
 
-			if (line.substr(0,rISOFile.GetUniqueID().size()) == rISOFile.GetUniqueID())
+			const size_t equals_index = line.find('=');
+			if (line.substr(0, equals_index - 1) == rISOFile.GetUniqueID())
 			{
-				name = StrToWxStr(line.substr(rISOFile.GetUniqueID().size() + 3));
+				name = StrToWxStr(line.substr(equals_index + 2));
 				break;
 			}
 		}
