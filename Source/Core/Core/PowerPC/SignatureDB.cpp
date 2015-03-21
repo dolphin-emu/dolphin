@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -116,12 +116,12 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 			// Found the function. Let's rename it according to the symbol file.
 			if (entry.second.size == (unsigned int)function->size)
 			{
-				function->name = entry.second.name;
+				function->name = symbol_db->Demangle(entry.second.name);
 				INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(), function->address, function->size);
 			}
 			else
 			{
-				function->name = entry.second.name;
+				function->name = symbol_db->Demangle(entry.second.name);
 				ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!",
 				          entry.second.name.c_str(), function->address, function->size, entry.second.size);
 			}

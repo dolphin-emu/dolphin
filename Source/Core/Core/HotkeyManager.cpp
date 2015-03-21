@@ -117,10 +117,11 @@ const int num_hotkeys = (sizeof(hotkey_labels) / sizeof(hotkey_labels[0]));
 namespace HotkeyManagerEmu
 {
 
-static u32 hotkeyDown[3];
-static HotkeyStatus hotkey;
+u32 hotkeyDown[3];
+HotkeyStatus hotkey;
+bool enabled;
 
-static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
+InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
 
 InputConfig* GetConfig()
 {

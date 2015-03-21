@@ -680,6 +680,7 @@ public:
 	void PUNPCKLBW(X64Reg dest, const OpArg &arg);
 	void PUNPCKLWD(X64Reg dest, const OpArg &arg);
 	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
+	void PUNPCKLQDQ(X64Reg dest, const OpArg &arg);
 
 	void PTEST(X64Reg dest, OpArg arg);
 	void PAND(X64Reg dest, OpArg arg);

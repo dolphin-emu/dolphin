@@ -556,6 +556,7 @@ void EmuThread()
 	else
 	{
 		// Update references in case controllers were refreshed
+		g_controller_interface.Initialize(s_window_handle);
 		Pad::LoadConfig();
 		Keyboard::LoadConfig();
 	}
@@ -570,9 +571,10 @@ void EmuThread()
 
 		// Activate Wiimotes which don't have source set to "None"
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
+		{
 			if (g_wiimote_sources[i])
 				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
-
+		}
 	}
 
 	AudioCommon::InitSoundStream();
@@ -707,7 +709,8 @@ void EmuThread()
 
 	if (init_controllers)
 	{
-		Wiimote::Shutdown();
+		if (core_parameter.bWii)
+			Wiimote::Shutdown();
 		Keyboard::Shutdown();
 		Pad::Shutdown();
 		init_controllers = false;
