@@ -11,7 +11,7 @@
 #if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
 #else
-#define OVR_DLL_IMPORT
+#define OVR_DLL_BUILD
 #endif
 #include "OVR_CAPI.h"
 #if OVR_MAJOR_VERSION >= 5
