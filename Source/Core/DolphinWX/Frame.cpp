@@ -1656,6 +1656,8 @@ void CFrame::OnFocusChange(wxFocusEvent& event)
 		}
 		UpdateGUI();
 	}
+
+	event.Skip();
 }
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
