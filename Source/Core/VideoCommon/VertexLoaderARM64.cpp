@@ -370,8 +370,9 @@ void VertexLoaderARM64::GenerateVertexLoader()
 		load_size <<= 3;
 
 		s32 offset = GetAddressImm(ARRAY_POSITION, m_VtxDesc.Position, EncodeRegTo64(scratch1_reg), load_size);
-		ReadVertex(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements + 2, 3,
-			     m_VtxAttr.ByteDequant, m_VtxAttr.PosFrac, &m_native_vtx_decl.position, offset);
+		int pos_elements = m_VtxAttr.PosElements + 2;
+		ReadVertex(m_VtxDesc.Position, m_VtxAttr.PosFormat, pos_elements, pos_elements,
+		           m_VtxAttr.ByteDequant, m_VtxAttr.PosFrac, &m_native_vtx_decl.position, offset);
 	}
 
 	if (m_VtxDesc.Normal)

@@ -1,3 +1,4 @@
+#include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
@@ -5,8 +6,6 @@
 #include "VideoCommon/VertexLoaderX64.h"
 
 using namespace Gen;
-
-#define VERTEX_LOADER_REGS {XMM0+16}
 
 static const X64Reg src_reg = ABI_PARAM1;
 static const X64Reg dst_reg = ABI_PARAM2;
@@ -66,7 +65,7 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 
 int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count_in, int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format)
 {
-	static const __m128i shuffle_lut[5][3] = {
+	static const __m128i shuffle_lut[4][3] = {
 		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF00L),  // 1x u8
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF01L, 0xFFFFFF00L),  // 2x u8
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFF02L, 0xFFFFFF01L, 0xFFFFFF00L)}, // 3x u8
@@ -79,9 +78,6 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x0001FFFFL),  // 1x s16
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x0203FFFFL, 0x0001FFFFL),  // 2x s16
 		 _mm_set_epi32(0xFFFFFFFFL, 0x0405FFFFL, 0x0203FFFFL, 0x0001FFFFL)}, // 3x s16
-		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x00010203L),  // 1x float
-		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L),  // 2x float
-		 _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L)}, // 3x float
 	};
 	static const __m128 scale_factors[32] = {
 		_mm_set_ps1(1./(1u<< 0)), _mm_set_ps1(1./(1u<< 1)), _mm_set_ps1(1./(1u<< 2)), _mm_set_ps1(1./(1u<< 3)),
@@ -98,46 +94,108 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 
 	int elem_size = 1 << (format / 2);
 	int load_bytes = elem_size * count_in;
-	if (load_bytes > 8)
-		MOVDQU(coords, data);
-	else if (load_bytes > 4)
-		MOVQ_xmm(coords, data);
-	else
-		MOVD_xmm(coords, data);
-
-	PSHUFB(coords, M(&shuffle_lut[format][count_in - 1]));
-
-	if (format != FORMAT_FLOAT)
-	{
-		// Sign extend
-		if (format == FORMAT_BYTE)
-			PSRAD(coords, 24);
-		if (format == FORMAT_SHORT)
-			PSRAD(coords, 16);
-
-		CVTDQ2PS(coords, R(coords));
-
-		if (dequantize && scaling_exponent)
-			MULPS(coords, M(&scale_factors[scaling_exponent]));
-	}
-
 	OpArg dest = MDisp(dst_reg, m_dst_ofs);
-	switch (count_out)
-	{
-		case 1: MOVSS(dest, coords); break;
-		case 2: MOVLPS(dest, coords); break;
-		case 3: MOVUPS(dest, coords); break;
-	}
 
 	native_format->components = count_out;
 	native_format->enable = true;
 	native_format->offset = m_dst_ofs;
 	native_format->type = VAR_FLOAT;
 	native_format->integer = false;
+
 	m_dst_ofs += sizeof(float) * count_out;
 
 	if (attribute == DIRECT)
 		m_src_ofs += load_bytes;
+
+	if (format == FORMAT_FLOAT)
+	{
+		// Floats don't need to be scaled or converted,
+		// so we can just load/swap/store them directly
+		// and return early.
+		for (int i = 0; i < count_in; i++)
+		{
+			LoadAndSwap(32, scratch3, data);
+			MOV(32, dest, R(scratch3));
+			data.offset += sizeof(float);
+			dest.offset += sizeof(float);
+		}
+		return load_bytes;
+	}
+
+	if (cpu_info.bSSSE3)
+	{
+		if (load_bytes > 8)
+			MOVDQU(coords, data);
+		else if (load_bytes > 4)
+			MOVQ_xmm(coords, data);
+		else
+			MOVD_xmm(coords, data);
+
+		PSHUFB(coords, M(&shuffle_lut[format][count_in - 1]));
+
+		// Sign-extend.
+		if (format == FORMAT_BYTE)
+			PSRAD(coords, 24);
+		if (format == FORMAT_SHORT)
+			PSRAD(coords, 16);
+	}
+	else
+	{
+		// SSE2
+		X64Reg temp = XMM1;
+		switch (format)
+		{
+		case FORMAT_UBYTE:
+			MOVD_xmm(coords, data);
+			PXOR(temp, R(temp));
+			PUNPCKLBW(coords, R(temp));
+			PUNPCKLWD(coords, R(temp));
+			break;
+		case FORMAT_BYTE:
+			MOVD_xmm(coords, data);
+			PUNPCKLBW(coords, R(coords));
+			PUNPCKLWD(coords, R(coords));
+			PSRAD(coords, 24);
+			break;
+		case FORMAT_USHORT:
+		case FORMAT_SHORT:
+			switch (count_in)
+			{
+			case 1:
+				LoadAndSwap(32, scratch3, data);
+				MOVD_xmm(coords, R(scratch3));    // ......X.
+				break;
+			case 2:
+				LoadAndSwap(32, scratch3, data);
+				MOVD_xmm(coords, R(scratch3));    // ......XY
+				PSHUFLW(coords, R(coords), 0x24); // ....Y.X.
+				break;
+			case 3:
+				LoadAndSwap(64, scratch3, data);
+				MOVQ_xmm(coords, R(scratch3));    // ....XYZ.
+				PUNPCKLQDQ(coords, R(coords));    // ..Z.XYZ.
+				PSHUFLW(coords, R(coords), 0xAC); // ..Z.Y.X.
+				break;
+			}
+			if (format == FORMAT_SHORT)
+				PSRAD(coords, 16);
+			else
+				PSRLD(coords, 16);
+			break;
+		}
+	}
+
+	CVTDQ2PS(coords, R(coords));
+
+	if (dequantize && scaling_exponent)
+		MULPS(coords, M(&scale_factors[scaling_exponent]));
+
+	switch (count_out)
+	{
+		case 1: MOVSS(dest, coords); break;
+		case 2: MOVLPS(dest, coords); break;
+		case 3: MOVUPS(dest, coords); break;
+	}
 
 	return load_bytes;
 }
@@ -290,7 +348,10 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format)
 
 void VertexLoaderX64::GenerateVertexLoader()
 {
-	ABI_PushRegistersAndAdjustStack(VERTEX_LOADER_REGS, 8);
+	BitSet32 xmm_regs;
+	xmm_regs[XMM0+16] = true;
+	xmm_regs[XMM1+16] = !cpu_info.bSSSE3;
+	ABI_PushRegistersAndAdjustStack(xmm_regs, 8);
 
 	// Backup count since we're going to count it down.
 	PUSH(32, R(ABI_PARAM3));
@@ -332,7 +393,8 @@ void VertexLoaderX64::GenerateVertexLoader()
 	}
 
 	OpArg data = GetVertexAddr(ARRAY_POSITION, m_VtxDesc.Position);
-	ReadVertex(data, m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements + 2, 3,
+	int pos_elements = 2 + m_VtxAttr.PosElements;
+	ReadVertex(data, m_VtxDesc.Position, m_VtxAttr.PosFormat, pos_elements, pos_elements,
 	           m_VtxAttr.ByteDequant, m_VtxAttr.PosFrac, &m_native_vtx_decl.position);
 
 	if (m_VtxDesc.Normal)
@@ -408,7 +470,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 				m_native_vtx_decl.texcoords[i].offset = m_dst_ofs;
 				PXOR(XMM0, R(XMM0));
 				CVTSI2SS(XMM0, R(scratch1));
-				SHUFPS(XMM0, R(XMM0), 0x45);
+				SHUFPS(XMM0, R(XMM0), 0x45); // 000X -> 0X00
 				MOVUPS(MDisp(dst_reg, m_dst_ofs), XMM0);
 				m_dst_ofs += sizeof(float) * 3;
 			}
@@ -426,7 +488,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 	// Get the original count.
 	POP(32, R(ABI_RETURN));
 
-	ABI_PopRegistersAndAdjustStack(VERTEX_LOADER_REGS, 8);
+	ABI_PopRegistersAndAdjustStack(xmm_regs, 8);
 
 	if (m_VtxDesc.Position & MASK_INDEXED)
 	{
@@ -444,12 +506,6 @@ void VertexLoaderX64::GenerateVertexLoader()
 
 	m_VertexSize = m_src_ofs;
 	m_native_vtx_decl.stride = m_dst_ofs;
-}
-
-bool VertexLoaderX64::IsInitialized()
-{
-	// Uses PSHUFB.
-	return cpu_info.bSSSE3;
 }
 
 int VertexLoaderX64::RunVertices(DataReader src, DataReader dst, int count, int primitive)
