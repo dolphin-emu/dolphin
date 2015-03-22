@@ -74,7 +74,9 @@ void VR_ConfigureHMD()
 			caps |= ovrDistortionCap_HqDistortion;
 		ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps,
 			g_eye_fov, g_eye_render_desc);
+#if OVR_MAJOR_VERSION <= 4
 		ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
+#endif
 	}
 #endif
 }

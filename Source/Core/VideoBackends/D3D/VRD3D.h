@@ -15,7 +15,7 @@
 #if OVR_MAJOR_VERSION <= 4
 #include "Kernel/OVR_Types.h"
 #else
-#define OVR_DLL_IMPORT
+#define OVR_DLL_BUILD
 #endif
 #include "OVR_CAPI.h"
 #include "OVR_CAPI_D3D.h"
@@ -27,10 +27,12 @@
 
 #include "d3d11.h"
 
+#if OVR_MAJOR_VERSION <= 4
 extern "C"
 {
 	void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
 }
+#endif
 #endif
 
 #include "VideoCommon/VR.h"
