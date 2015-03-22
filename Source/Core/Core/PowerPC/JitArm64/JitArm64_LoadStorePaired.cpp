@@ -57,7 +57,10 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	UBFM(scale_reg, scale_reg, 24, 29); // Scale
 
 	if (update)
+	{
+		gpr.BindToRegister(inst.RA, false);
 		MOV(arm_addr, addr_reg);
+	}
 
 	MOVI2R(X30, (u64)&asm_routines.pairedLoadQuantized[inst.W * 8]);
 	LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
@@ -125,7 +128,10 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	UBFM(scale_reg, scale_reg, 8, 13); // Scale
 
 	if (update)
+	{
+		gpr.BindToRegister(inst.RA, false);
 		MOV(arm_addr, addr_reg);
+	}
 
 	m_float_emit.FCVTN(32, D0, VS);
 
