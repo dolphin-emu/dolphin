@@ -408,9 +408,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 				break;
 
 			const size_t equals_index = line.find('=');
-			if (line.substr(0, equals_index - 1) == rISOFile.GetUniqueID())
+			std::string game_id = rISOFile.GetUniqueID();
+
+			// Ignore publisher ID for WAD files
+			if (rISOFile.GetPlatform() == DiscIO::IVolume::WII_WAD)
+				game_id.erase(game_id.size() - 2);
+
+			if (line.substr(0, equals_index - 1) == game_id)
 			{
-				name = StrToWxStr(line.substr(equals_index + 2));
+				name = StrToWxStr(StripSpaces(line.substr(equals_index + 1)));
 				break;
 			}
 		}
