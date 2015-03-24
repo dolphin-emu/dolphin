@@ -39,16 +39,8 @@
 
 namespace Memory
 {
-
-// =================================
-// LOCAL SETTINGS
-// ----------------
-
-// Enable the Translation Lookaside Buffer functions.
+// (See comment below describing memory map.)
 bool bFakeVMEM = false;
-static bool bMMU = false;
-// ==============
-
 
 // =================================
 // Init() declarations
@@ -107,10 +99,10 @@ bool IsInitialized()
 // Dolphin allocates memory to represent four regions:
 // - 32MB RAM (actually 24MB on hardware), available on Gamecube and Wii
 // - 64MB "EXRAM", RAM only available on Wii
-// - 32MB FakeVMem, allocated when MMU support is turned off. This is used
-//   to approximate the behavior of a common library which pages memory to
-//   and from the DSP's dedicated RAM, which isn't directly addressable on
-//   GameCube.
+// - 32MB FakeVMem, allocated in GameCube mode when MMU support is turned off.
+//   This is used to approximate the behavior of a common library which pages
+//   memory to and from the DSP's dedicated RAM. The DSP's RAM (ARAM) isn't
+//   directly addressable on GameCube.
 // - 256KB Locked L1, to represent cache lines allocated out of the L1 data
 //   cache in Locked L1 mode.  Dolphin does not emulate this hardware feature
 //   accurately; it just pretends there is extra memory at 0xE0000000.
@@ -177,11 +169,12 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	bool bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 #ifndef _ARCH_32
-	// The fake VMEM hack's address space is above the memory space that we allocate on 32bit targets
-	// Disable it entirely on 32bit targets.
-	bFakeVMEM = !bMMU;
+	// If MMU is turned off in GameCube mode, turn on fake VMEM hack.
+	// The fake VMEM hack's address space is above the memory space that we
+	// allocate on 32bit targets, so disable it there.
+	bFakeVMEM = !wii && !bMMU;
 #endif
 
 	u32 flags = 0;

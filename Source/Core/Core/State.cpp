@@ -65,7 +65,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 41;
+static const u32 STATE_VERSION = 42; // Last changed in PR2193
 
 enum
 {

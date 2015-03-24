@@ -95,7 +95,8 @@ void Arm64GPRCache::FlushRegister(u32 preg, bool maintain_state)
 	if (reg.GetType() == REG_REG)
 	{
 		ARM64Reg host_reg = reg.GetReg();
-		m_emit->STR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
+		if (reg.IsDirty())
+			m_emit->STR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
 
 		if (!maintain_state)
 		{
@@ -169,6 +170,7 @@ ARM64Reg Arm64GPRCache::R(u32 preg)
 		ARM64Reg host_reg = GetReg();
 		m_emit->MOVI2R(host_reg, reg.GetImm());
 		reg.LoadToReg(host_reg);
+		reg.SetDirty(true);
 		return host_reg;
 	}
 	break;
@@ -178,6 +180,7 @@ ARM64Reg Arm64GPRCache::R(u32 preg)
 		// This can also happen on cases where PPCAnalyst isn't feeing us proper register usage statistics
 		ARM64Reg host_reg = GetReg();
 		reg.LoadToReg(host_reg);
+		reg.SetDirty(false);
 		m_emit->LDR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
 		return host_reg;
 	}
@@ -202,6 +205,7 @@ void Arm64GPRCache::BindToRegister(u32 preg, bool do_load)
 {
 	OpArg& reg = m_guest_registers[preg];
 
+	reg.SetDirty(true);
 	if (reg.GetType() == REG_NOTLOADED)
 	{
 		ARM64Reg host_reg = GetReg();
@@ -292,6 +296,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg)
 	{
 		ARM64Reg host_reg = GetReg();
 		reg.LoadToReg(host_reg);
+		reg.SetDirty(false);
 		m_float_emit->LDR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
 		return host_reg;
 	}
@@ -308,6 +313,7 @@ void Arm64FPRCache::BindToRegister(u32 preg, bool do_load)
 {
 	OpArg& reg = m_guest_registers[preg];
 
+	reg.SetDirty(true);
 	if (reg.GetType() == REG_NOTLOADED)
 	{
 		ARM64Reg host_reg = GetReg();
@@ -355,7 +361,9 @@ void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 	{
 		ARM64Reg host_reg = reg.GetReg();
 
-		m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+		if (reg.IsDirty())
+			m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+
 		if (!maintain_state)
 		{
 			UnlockRegister(host_reg);

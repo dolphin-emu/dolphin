@@ -145,7 +145,10 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 		MOVI2R(XA, imm_addr);
 
 	if (update)
+	{
+		gpr.BindToRegister(addr, false);
 		MOV(gpr.R(addr), addr_reg);
+	}
 
 	u32 access_size = BackPatchInfo::GetFlagSize(flags);
 	u32 mmio_address = 0;
@@ -493,6 +496,8 @@ void JitArm64::stX(UGeckoInstruction inst)
 
 	if (update)
 	{
+		gpr.BindToRegister(a, false);
+
 		ARM64Reg WA = gpr.GetReg();
 		ARM64Reg RB;
 		ARM64Reg RA = gpr.R(a);
