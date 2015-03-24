@@ -358,15 +358,15 @@ bool CFrame::InitControllers()
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
 		Pad::Initialize(reinterpret_cast<void*>(win));
 		Keyboard::Initialize(reinterpret_cast<void*>(win));
 		Wiimote::Initialize(reinterpret_cast<void*>(win));
+		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
 #else
-		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
 		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
 		Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
 		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
+		HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 		return true;
 	}

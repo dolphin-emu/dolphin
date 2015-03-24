@@ -117,11 +117,11 @@ const int num_hotkeys = (sizeof(hotkey_labels) / sizeof(hotkey_labels[0]));
 namespace HotkeyManagerEmu
 {
 
-u32 hotkeyDown[3];
-HotkeyStatus hotkey;
-bool enabled;
+static u32 s_hotkeyDown[3];
+static HotkeyStatus s_hotkey;
+static bool s_enabled;
 
-InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
+static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
 
 InputConfig* GetConfig()
 {
@@ -130,36 +130,36 @@ InputConfig* GetConfig()
 
 void GetStatus()
 {
-	hotkey.err = PAD_ERR_NONE;
+	s_hotkey.err = PAD_ERR_NONE;
 
 	// get input
-	((HotkeyManager*)s_config.controllers[0])->GetInput(&hotkey);
+	((HotkeyManager*)s_config.controllers[0])->GetInput(&s_hotkey);
 }
 
 bool IsEnabled()
 {
-	return enabled;
+	return s_enabled;
 }
 
 void Enable(bool enable_toggle)
 {
-	enabled = enable_toggle;
+	s_enabled = enable_toggle;
 }
 
 bool IsPressed(int Id, bool held)
 {
 	unsigned int set = Id / 32;
 	unsigned int setKey = Id % 32;
-	if (hotkey.button[set] & (1 << setKey))
+	if (s_hotkey.button[set] & (1 << setKey))
 	{
-		hotkeyDown[set] |= (1 << setKey);
+		s_hotkeyDown[set] |= (1 << setKey);
 		if (held)
 			return true;
 	}
 	else
 	{
-		bool pressed = !!(hotkeyDown[set] & (1 << setKey));
-		hotkeyDown[set] &= ~(1 << setKey);
+		bool pressed = !!(s_hotkeyDown[set] & (1 << setKey));
+		s_hotkeyDown[set] &= ~(1 << setKey);
 		if (pressed)
 			return true;
 	}
@@ -178,9 +178,9 @@ void Initialize(void* const hwnd)
 	s_config.LoadConfig(true);
 
 	for (unsigned int i = 0; i < 3; ++i)
-		hotkeyDown[i] = 0;
+		s_hotkeyDown[i] = 0;
 
-	enabled = true;
+	s_enabled = true;
 }
 
 void LoadConfig()
