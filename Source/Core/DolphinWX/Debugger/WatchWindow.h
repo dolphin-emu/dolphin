@@ -34,8 +34,10 @@ public:
 	void LoadAll();
 
 private:
+	void CreateGUIControls();
+
 	wxAuiManager m_mgr;
 
+	// Owned by wx. Deleted implicitly upon destruction.
 	CWatchView* m_GPRGridView;
-	void CreateGUIControls();
 };
