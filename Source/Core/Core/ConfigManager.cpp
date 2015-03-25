@@ -435,8 +435,33 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 			m_ISOFolder.push_back(std::move(tmpPath));
 		}
 	}
+	// Check for old file path (Changed in 4.0-4003)
+	// This can probably be removed after 5.0 stable is launched
+	else if (general->Get("GCMPathes", &numISOPaths, 0))
+	{
+		for (int i = 0; i < numISOPaths; i++)
+		{
+			std::string tmpPath;
+			general->Get(StringFromFormat("GCMPath%i", i), &tmpPath, "");
+			bool found = false;
+			for (int j = 0; j < m_ISOFolder.size(); ++j)
+			{
+				if (m_ISOFolder[j] == tmpPath)
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+				m_ISOFolder.push_back(std::move(tmpPath));
+		}
+	}
 
-	general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
+	if (!general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false))
+	{
+		// Check for old name
+		general->Get("RecursiveGCMPaths", &m_RecursiveISOFolder, false);
+	}
 
 	general->Get("NANDRootPath", &m_NANDPath);
 	File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
