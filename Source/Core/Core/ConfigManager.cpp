@@ -279,12 +279,12 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	// Clear removed folders
 	int oldPaths;
 	int numPaths = (int)m_ISOFolder.size();
-	//general->Get("GCMPathes", &oldPaths, 0);
-	//for (int i = numPaths; i < oldPaths; i++)
-	//{
-	//	ini.DeleteKey("General", StringFromFormat("GCMPath%i", i));
-	//}
-	//ini.DeleteKey("General", "GCMPathes");
+	general->Get("GCMPathes", &oldPaths, 0);
+	for (int i = numPaths; i < oldPaths; i++)
+	{
+		ini.DeleteKey("General", StringFromFormat("GCMPath%i", i));
+	}
+	ini.DeleteKey("General", "GCMPathes");
 
 	general->Get("ISOPaths", &oldPaths, 0);
 	for (int i = numPaths; i < oldPaths; i++)
