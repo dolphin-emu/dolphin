@@ -25,6 +25,9 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{d6bc4dd6-06ed-46ad-b327-04afb26e10ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\Config">
+      <UniqueIdentifier>{9d8b4144-f335-4fa4-b995-852533298474}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -121,9 +124,6 @@
     <ClCompile Include="ARCodeAddEdit.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigMain.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="FifoPlayerDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -165,6 +165,30 @@
     </ClCompile>
     <ClCompile Include="ControllerConfigDiag.cpp">
       <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\ConfigMain.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\GeneralConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\InterfaceConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\AudioConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\GameCubeConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\WiiConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\PathConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\AdvancedConfigPane.cpp">
+      <Filter>GUI\Config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -258,9 +282,6 @@
     <ClInclude Include="ARCodeAddEdit.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigMain.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="FifoPlayerDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -299,6 +320,30 @@
     </ClInclude>
     <ClInclude Include="ControllerConfigDiag.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\ConfigMain.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\GeneralConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\InterfaceConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\AudioConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\GameCubeConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\WiiConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\PathConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\AdvancedConfigPane.h">
+      <Filter>GUI\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -65,7 +65,6 @@
 #include "DiscIO/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
-#include "DolphinWX/ConfigMain.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/Frame.h"
@@ -81,6 +80,7 @@
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
+#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
