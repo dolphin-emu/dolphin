@@ -30,6 +30,7 @@ CMakeLists.txt.user
 /.idea/
 # Ignore Oculus Rift SDK if present
 LibOVR
+LibOVRKernel
 # Ignore installer exe file
 /Installer/dolphin-vr-x64-4.0.exe
 # Ignore other files
