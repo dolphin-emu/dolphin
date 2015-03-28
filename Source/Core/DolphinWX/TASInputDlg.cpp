@@ -407,7 +407,7 @@ void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 
 void TASInputDlg::SetWiiButtons(u16* butt)
 {
-	for (unsigned int i = 0; i < 10; ++i)
+	for (unsigned int i = 0; i < 11; ++i)
 	{
 		if (m_buttons[i] != nullptr)
 			*butt |= (m_buttons[i]->checkbox->IsChecked()) ? m_wii_buttons_bitmask[i] : 0;
@@ -443,7 +443,7 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
 
 	if (coreData)
 	{
-		for (unsigned int i = 0; i < 10; ++i)
+		for (unsigned int i = 0; i < 11; ++i)
 		{
 			if (m_buttons[i] != nullptr)
 				SetButtonValue(m_buttons[i], (((wm_buttons*)coreData)->hex & m_wii_buttons_bitmask[i]) != 0);
