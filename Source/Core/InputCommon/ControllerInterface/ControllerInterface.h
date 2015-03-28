@@ -117,9 +117,6 @@ public:
 	void Initialize(void* const hwnd);
 	void Reinitialize();
 	void Shutdown();
-
-	void DeInit();
-
 	bool IsInit() const { return m_is_init; }
 
 	void UpdateReference(ControlReference* control, const ciface::Core::DeviceQualifier& default_device) const;

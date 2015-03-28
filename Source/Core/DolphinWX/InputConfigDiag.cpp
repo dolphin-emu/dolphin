@@ -1060,9 +1060,6 @@ GamepadPage::GamepadPage(wxWindow* parent, InputConfig& config, const unsigned i
 	mapping->Add(dio, 1, wxEXPAND|wxLEFT|wxTOP|wxBOTTOM, 5);
 	mapping->Add(control_group_sizer, 0, wxLEFT|wxEXPAND, 5);
 
-	wxCommandEvent event;
-	RefreshDevices(event);
-
 	UpdateGUI();
 
 	SetSizerAndFit(mapping); // needed
