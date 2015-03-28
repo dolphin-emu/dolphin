@@ -4,38 +4,19 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <windows.h>
-#include "VideoCommon/VR920.h"
-#endif
-#ifdef HAVE_OCULUSSDK
 #define OVR_D3D_VERSION 11
 
-#include "OVR_Version.h"
-#if OVR_MAJOR_VERSION <= 4
-#include "Kernel/OVR_Types.h"
-#else
-#define OVR_DLL_BUILD
-#endif
-#include "OVR_CAPI.h"
-#include "OVR_CAPI_D3D.h"
-#if OVR_MAJOR_VERSION >= 5
-#include "Extras/OVR_Math.h"
-#else
-#include "Kernel/OVR_Math.h"
-#endif
+#include <windows.h>
+#include "VideoCommon/VR.h"
+#include "VideoCommon/VR920.h"
 
 #include "d3d11.h"
 
-#if OVR_MAJOR_VERSION <= 4
-extern "C"
-{
-	void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
-}
+#ifdef HAVE_OCULUSSDK
+#include "OVR_CAPI_D3D.h"
+#else
+#include "OculusSystemLibraryHeaderD3D11.h"
 #endif
-#endif
-
-#include "VideoCommon/VR.h"
 
 namespace DX11
 {

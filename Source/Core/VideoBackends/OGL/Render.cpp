@@ -1673,7 +1673,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glDisable(GL_DEBUG_OUTPUT);
 	}
 
-#ifdef HAVE_OCULUSSDK
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
 	{
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
@@ -1686,7 +1685,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		VR_ConfigureHMDPrediction();
 		VR_ConfigureHMDTracking();
 	}
-#endif
 
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
@@ -1883,6 +1881,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
 			glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
 		}
+#ifdef OCULUSSDK042
 		else
 		{
 			// Wait for OpenGL to finish drawing the commands we have given it,
@@ -1908,6 +1907,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				}
 			} while (eyesFence != 0);
 		}
+#endif
 	}
 	else if (g_ActiveConfig.bUseXFB)
 	{

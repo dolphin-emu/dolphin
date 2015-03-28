@@ -16,7 +16,7 @@
 #include "VideoCommon/VR.h"
 
 // Oculus Rift
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 ovrGLTexture g_eye_texture[2];
 #endif
 
@@ -25,7 +25,7 @@ namespace OGL
 
 void VR_ConfigureHMD()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		ovrGLConfig cfg;
@@ -89,7 +89,7 @@ void VR_StartFramebuffer(int target_width, int target_height, GLuint left_textur
 		VR920_StartStereo3D();
 #endif
 	}
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	else if (g_has_rift)
 	{
 		g_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
@@ -109,7 +109,7 @@ void VR_StartFramebuffer(int target_width, int target_height, GLuint left_textur
 
 void VR_PresentHMDFrame()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
@@ -123,7 +123,7 @@ void VR_PresentHMDFrame()
 
 void VR_DrawTimewarpFrame()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
@@ -137,7 +137,7 @@ void VR_DrawTimewarpFrame()
 
 void VR_DrawAsyncTimewarpFrame()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		auto frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);

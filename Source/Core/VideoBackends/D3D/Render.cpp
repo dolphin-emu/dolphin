@@ -769,9 +769,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 
 void Renderer::AsyncTimewarpDraw()
 {
-#ifdef HAVE_OCULUSSDK
 	//TODO: D3D11 Asynchronous Timewarp
-#endif
 }
 
 // This function has the final picture. We adjust the aspect ratio here.

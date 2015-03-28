@@ -12,7 +12,7 @@
 #include "VideoCommon/VR.h"
 
 // Oculus Rift
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 ovrD3D11Texture g_eye_texture[2];
 #endif
 
@@ -21,7 +21,7 @@ namespace DX11
 
 void VR_ConfigureHMD()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	ovrD3D11Config cfg;
 	cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
 #ifdef OCULUSSDK044ORABOVE
@@ -79,9 +79,9 @@ void VR_StartFramebuffer()
 		VR920_StartStereo3D();
 #endif
 	}
+#ifdef OVR_MAJOR_VERSION
 	else if (g_has_rift)
 	{
-#ifdef HAVE_OCULUSSDK
 		g_eye_texture[0].D3D11.Header.API = ovrRenderAPI_D3D11;
 		g_eye_texture[0].D3D11.Header.TextureSize.w = Renderer::GetTargetWidth();
 		g_eye_texture[0].D3D11.Header.TextureSize.h = Renderer::GetTargetHeight();
@@ -103,7 +103,7 @@ void VR_StartFramebuffer()
 
 void VR_PresentHMDFrame()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
@@ -138,7 +138,7 @@ void VR_PresentHMDFrame()
 
 void VR_DrawTimewarpFrame()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		ovrFrameTiming frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);

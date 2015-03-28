@@ -95,7 +95,6 @@ FramebufferManager::FramebufferManager()
 
 	m_EFBLayers = m_efb.slices = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
 
-#ifdef HAVE_OCULUSSDK
 	if (g_has_rift)
 	{
 		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, sample_desc.Quality);
@@ -114,7 +113,6 @@ FramebufferManager::FramebufferManager()
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetSRV(), "Right eye color texture shader resource view");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.m_frontBuffer[1]->GetRTV(), "Right eye color texture render target view");
 	}
-#endif
 
 	// EFB color texture - primary render target
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);

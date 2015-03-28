@@ -369,9 +369,6 @@ void VideoSoftware::Video_ExitLoop()
 
 void VideoSoftware::Video_AsyncTimewarpDraw()
 {
-#ifdef HAVE_OCULUSSDK
-
-#endif
 }
 
 // TODO : could use the OSD class in video common, we would need to implement the Renderer class
