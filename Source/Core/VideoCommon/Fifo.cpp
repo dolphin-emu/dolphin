@@ -306,10 +306,15 @@ void RunGpuLoop()
 		{
 			CommandProcessor::SetCPStatusFromGPU();
 
-			Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
+			if (!fifo.isGpuReadingData)
+			{
+				Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
+			}
+
+			bool run_loop = true;
 
 			// check if we are able to run this buffer
-			while (GpuRunningState && EmuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
+			while (GpuRunningState && EmuRunningState && run_loop && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 			{
 				fifo.isGpuReadingData = true;
 				CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
@@ -340,6 +345,10 @@ void RunGpuLoop()
 					if ((write_ptr - s_video_buffer_read_ptr) == 0)
 						Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 				}
+				else
+				{
+					run_loop = false;
+				}
 
 				CommandProcessor::SetCPStatusFromGPU();
 
@@ -350,7 +359,8 @@ void RunGpuLoop()
 				CommandProcessor::isPossibleWaitingSetDrawDone = false;
 			}
 
-			fifo.isGpuReadingData = false;
+			// don't release the GPU running state on sync GPU waits
+			fifo.isGpuReadingData = !run_loop;
 		}
 
 		if (EmuRunningState)
