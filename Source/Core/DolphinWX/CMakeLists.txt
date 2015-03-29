@@ -60,7 +60,7 @@ endif()
 
 set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 
-list(APPEND LIBS core uicommon ovr)
+list(APPEND LIBS core uicommon OVR.a)
 
 if(ANDROID)
 	list(APPEND LIBS png)
