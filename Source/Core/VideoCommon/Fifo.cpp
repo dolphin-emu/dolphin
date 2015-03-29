@@ -30,7 +30,6 @@ bool g_bSkipCurrentFrame = false;
 
 static volatile bool GpuRunningState = false;
 static volatile bool EmuRunningState = false;
-static std::mutex m_csHWVidOccupied;
 
 // Most of this array is unlikely to be faulted in...
 static u8 s_fifo_aux_data[FIFO_SIZE];
@@ -86,15 +85,12 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
 		SyncGPU(SYNC_GPU_OTHER);
 		EmulatorState(false);
-		if (!Core::IsGPUThread())
-			m_csHWVidOccupied.lock();
+		FlushGpu();
 	}
 	else
 	{
 		if (unpauseOnUnlock)
 			EmulatorState(true);
-		if (!Core::IsGPUThread())
-			m_csHWVidOccupied.unlock();
 	}
 }
 
@@ -273,7 +269,6 @@ void ResetVideoBuffer()
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
 void RunGpuLoop()
 {
-	std::lock_guard<std::mutex> lk(m_csHWVidOccupied);
 	GpuRunningState = true;
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	u32 cyclesExecuted = 0;
@@ -285,9 +280,10 @@ void RunGpuLoop()
 	{
 		g_video_backend->PeekMessages();
 
-		AsyncRequests::GetInstance()->PullEvents();
-		if (g_use_deterministic_gpu_thread)
+		if (g_use_deterministic_gpu_thread && EmuRunningState)
 		{
+			AsyncRequests::GetInstance()->PullEvents();
+
 			// All the fifo/CP stuff is on the CPU.  We just need to run the opcode decoder.
 			u8* seen_ptr = s_video_buffer_seen_ptr;
 			u8* write_ptr = s_video_buffer_write_ptr;
@@ -303,8 +299,10 @@ void RunGpuLoop()
 				}
 			}
 		}
-		else
+		else if (EmuRunningState)
 		{
+			AsyncRequests::GetInstance()->PullEvents();
+
 			CommandProcessor::SetCPStatusFromGPU();
 
 			if (!fifo.isGpuReadingData)
@@ -315,7 +313,7 @@ void RunGpuLoop()
 			bool run_loop = true;
 
 			// check if we are able to run this buffer
-			while (GpuRunningState && EmuRunningState && run_loop && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
+			while (run_loop && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 			{
 				fifo.isGpuReadingData = true;
 
@@ -365,33 +363,19 @@ void RunGpuLoop()
 		s_gpu_is_pending.Clear();
 		s_gpu_done_event.Set();
 
-		if (EmuRunningState)
+		if (s_gpu_is_running.IsSet())
 		{
-			if (s_gpu_is_running.IsSet())
+			if (CommandProcessor::s_gpuMaySleep.IsSet())
 			{
-				if (CommandProcessor::s_gpuMaySleep.IsSet())
-				{
-					// Reset the atomic flag. But as the CPU thread might have pushed some new data, we have to rerun the GPU loop
-					s_gpu_is_pending.Set();
-					s_gpu_is_running.Clear();
-					CommandProcessor::s_gpuMaySleep.Clear();
-				}
-			}
-			else
-			{
-				s_gpu_new_work_event.WaitFor(std::chrono::milliseconds(100));
+				// Reset the atomic flag. But as the CPU thread might have pushed some new data, we have to rerun the GPU loop
+				s_gpu_is_pending.Set();
+				s_gpu_is_running.Clear();
+				CommandProcessor::s_gpuMaySleep.Clear();
 			}
 		}
 		else
 		{
-			// While the emu is paused, we still handle async requests then sleep.
-			while (!EmuRunningState)
-			{
-				g_video_backend->PeekMessages();
-				m_csHWVidOccupied.unlock();
-				Common::SleepCurrentThread(1);
-				m_csHWVidOccupied.lock();
-			}
+			s_gpu_new_work_event.WaitFor(std::chrono::milliseconds(100));
 		}
 	}
 	// wake up SyncGPU if we were interrupted
@@ -472,7 +456,7 @@ void RunGpu()
 
 void Fifo_UpdateWantDeterminism(bool want)
 {
-	// We are paused (or not running at all yet) and have m_csHWVidOccupied, so
+	// We are paused (or not running at all yet), so
 	// it should be safe to change this.
 	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	bool gpu_thread = false;
