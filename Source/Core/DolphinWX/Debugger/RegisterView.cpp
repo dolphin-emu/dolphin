@@ -248,7 +248,9 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
-	SetTable(new CRegTable(), true);
+	m_register_table = new CRegTable();
+
+	SetTable(m_register_table, true);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
@@ -262,7 +264,7 @@ CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 void CRegisterView::Update()
 {
 	ForceRefresh();
-	((CRegTable *)GetTable())->UpdateCachedRegs();
+	m_register_table->UpdateCachedRegs();
 }
 
 void CRegisterView::OnMouseDownR(wxGridEvent& event)

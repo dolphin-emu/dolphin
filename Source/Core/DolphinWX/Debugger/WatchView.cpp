@@ -215,7 +215,9 @@ wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 CWatchView::CWatchView(wxWindow* parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
-	SetTable(new CWatchTable(), false);
+	m_watch_table = new CWatchTable();
+
+	SetTable(m_watch_table, true);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
@@ -229,7 +231,7 @@ void CWatchView::Update()
 	if (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 	{
 		ForceRefresh();
-		((CWatchTable *)GetTable())->UpdateWatch();
+		m_watch_table->UpdateWatch();
 	}
 }
 
