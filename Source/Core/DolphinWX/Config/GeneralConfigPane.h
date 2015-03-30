@@ -23,6 +23,7 @@ private:
 	void RefreshGUI();
 
 	void OnDualCoreCheckBoxChanged(wxCommandEvent&);
+	void OnGPUDeterminsmChanged(wxCommandEvent&);
 	void OnIdleSkipCheckBoxChanged(wxCommandEvent&);
 	void OnCheatCheckBoxChanged(wxCommandEvent&);
 	void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
@@ -30,6 +31,7 @@ private:
 	void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
 
 	wxArrayString m_frame_limit_array_string;
+	wxArrayString m_gpu_determinism_string;
 	wxArrayString m_cpu_engine_array_string;
 
 	wxCheckBox* m_dual_core_checkbox;
@@ -38,6 +40,7 @@ private:
 	wxCheckBox* m_force_ntscj_checkbox;
 
 	wxChoice* m_frame_limit_choice;
+	wxChoice* m_gpu_determinism;
 
 	wxRadioBox* m_cpu_engine_radiobox;
 };
