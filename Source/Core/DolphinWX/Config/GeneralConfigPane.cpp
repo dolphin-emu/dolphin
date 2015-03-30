@@ -139,7 +139,7 @@ void GeneralConfigPane::OnIdleSkipCheckBoxChanged(wxCommandEvent& event)
 
 void GeneralConfigPane::OnCheatCheckBoxChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = m_cheats_checkbox->IsChecked();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = m_cheats_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnForceNTSCJCheckBoxChanged(wxCommandEvent& event)
