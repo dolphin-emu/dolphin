@@ -1,13 +1,20 @@
 set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
-	ConfigMain.cpp
 	ConfigVR.cpp
 	ControllerConfigDiag.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
 	Cheats/GeckoCodeDiag.cpp
+	Config/AdvancedConfigPane.cpp
+	Config/AudioConfigPane.cpp
+	Config/ConfigMain.cpp
+	Config/GameCubeConfigPane.cpp
+	Config/GeneralConfigPane.cpp
+	Config/InterfaceConfigPane.cpp
+	Config/PathConfigPane.cpp
+	Config/WiiConfigPane.cpp
 	Debugger/BreakpointDlg.cpp
 	Debugger/BreakpointView.cpp
 	Debugger/BreakpointWindow.cpp

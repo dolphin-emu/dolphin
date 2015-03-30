@@ -44,4 +44,8 @@ class DSPRegisterView : public wxGrid
 public:
 	DSPRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
 	void Update() override;
+
+private:
+	// Owned by wx. Deleted implicitly upon destruction.
+	CDSPRegTable* m_register_table;
 };

@@ -47,13 +47,7 @@ ControllerInterface g_controller_interface;
 void ControllerInterface::Initialize(void* const hwnd)
 {
 	if (m_is_init)
-	{
-#ifdef NEW_HOTKEYS
-		DeInit();
-#else
 		return;
-#endif
-	}
 
 	m_hwnd = hwnd;
 
@@ -115,11 +109,6 @@ void ControllerInterface::Shutdown()
 		delete d;
 	}
 
-	DeInit();
-}
-
-void ControllerInterface::DeInit()
-{
 	m_devices.clear();
 
 #ifdef CIFACE_USE_XINPUT
