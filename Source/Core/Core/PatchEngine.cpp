@@ -92,7 +92,7 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
 			}
 			else
 			{
-				std::string::size_type loc = line.find_first_of('=', 0);
+				std::string::size_type loc = line.find('=');
 
 				if (loc != std::string::npos)
 				{

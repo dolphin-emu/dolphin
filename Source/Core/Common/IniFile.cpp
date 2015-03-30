@@ -104,7 +104,7 @@ bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out
 	while (subStart != std::string::npos)
 	{
 		// Find next ,
-		size_t subEnd = temp.find_first_of(",", subStart);
+		size_t subEnd = temp.find(',', subStart);
 		if (subStart != subEnd)
 			// take from first char until next ,
 			out->push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
