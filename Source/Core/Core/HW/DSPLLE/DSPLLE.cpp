@@ -34,12 +34,13 @@
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
 DSPLLE::DSPLLE()
+	: m_hDSPThread()
+	, m_csDSPThreadActive()
+	, m_bWii(false)
+	, m_bDSPThread(false)
+	, m_bIsRunning(false)
+	, m_cycle_count(0)
 {
-	m_bIsRunning.Clear();
-	{
-	std::lock_guard<std::mutex> lk(m_csDSPCycleCountActive);
-	m_cycle_count = 0;
-	}
 }
 
 static Common::Event dspEvent;
@@ -93,12 +94,7 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
 
 	while (dsp_lle->m_bIsRunning.IsSet())
 	{
-		int cycles = 0;
-		{
-		std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPCycleCountActive);
-		cycles = (int)dsp_lle->m_cycle_count;
-		}
-
+		const int cycles = static_cast<int>(dsp_lle->m_cycle_count.load());
 		if (cycles > 0)
 		{
 			std::lock_guard<std::mutex> dsp_thread_lock(dsp_lle->m_csDSPThreadActive);
@@ -110,10 +106,7 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
 			{
 				DSPInterpreter::RunCyclesThread(cycles);
 			}
-			{
-			std::lock_guard<std::mutex> cycle_count_lock(dsp_lle->m_csDSPCycleCountActive);
-			dsp_lle->m_cycle_count = 0;
-			}
+			dsp_lle->m_cycle_count.store(0);
 		}
 		else
 		{
@@ -345,10 +338,7 @@ void DSPLLE::DSP_Update(int cycles)
 	{
 		// Wait for DSP thread to complete its cycle. Note: this logic should be thought through.
 		ppcEvent.Wait();
-		{
-		std::lock_guard<std::mutex> lk(m_csDSPCycleCountActive);
-		m_cycle_count += dsp_cycles;
-		}
+		m_cycle_count.fetch_add(dsp_cycles);
 		dspEvent.Set();
 	}
 }
