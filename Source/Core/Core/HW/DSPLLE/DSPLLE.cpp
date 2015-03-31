@@ -172,10 +172,6 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
 bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 {
-	m_bWii = bWii;
-	m_bDSPThread = true;
-	if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || Core::g_want_determinism || !bDSPThread || !dspjit)
-		m_bDSPThread = false;
 	requestDisableThread = false;
 
 	DSPInitOptions opts;
@@ -183,6 +179,15 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 		return false;
 	if (!DSPCore_Init(opts))
 		return false;
+
+	// needs to be after DSPCore_Init for the dspjit ptr
+	if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() ||
+	    Core::g_want_determinism    || !dspjit)
+	{
+		bDSPThread = false;
+	}
+	m_bWii = bWii;
+	m_bDSPThread = bDSPThread;
 
 	// DSPLLE directly accesses the fastmem arena.
 	// TODO: The fastmem arena is only supposed to be used by the JIT:
@@ -192,14 +197,13 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 
 	InitInstructionTable();
 
-	if (m_bDSPThread)
+	if (bDSPThread)
 	{
 		m_bIsRunning.Set(true);
 		m_hDSPThread = std::thread(DSPThread, this);
 	}
 
 	Host_RefreshDSPDebuggerWindow();
-
 	return true;
 }
 
