@@ -101,7 +101,6 @@ VideoConfig::VideoConfig()
 	fMotionSicknessFOV = 45.0f;
 
 	iVRPlayer = 0;
-	iGameCameraControl = CAMERA_YAW;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
 	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
 	iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
@@ -259,12 +258,14 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("MotionSicknessMethod", &iMotionSicknessMethod, 0);
 	vr->Get("MotionSicknessSkybox", &iMotionSicknessSkybox, 0);
 	vr->Get("MotionSicknessFOV", &fMotionSicknessFOV, DEFAULT_VR_MOTION_SICKNESS_FOV);
-	vr->Get("GameCameraControl", &iGameCameraControl, CAMERA_YAW);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
 	vr->Get("NumExtraVideoLoops", &iExtraVideoLoops, DEFAULT_VR_EXTRA_VIDEO_LOOPS);
 	vr->Get("NumExtraVideoLoopsDivider", &iExtraVideoLoopsDivider, DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER);
+	vr->Get("StabilizeRoll", &bStabilizeRoll, false);
+	vr->Get("StabilizePitch", &bStabilizePitch, false);
+	vr->Get("StabilizeYaw", &bStabilizeYaw, false);
 	vr->Get("PullUp20fps", &bPullUp20fps, false);
 	vr->Get("PullUp30fps", &bPullUp30fps, false);
 	vr->Get("PullUp60fps", &bPullUp60fps, false);
@@ -683,11 +684,13 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("MotionSicknessSkybox", iMotionSicknessSkybox);
 	vr->Set("MotionSicknessFOV", fMotionSicknessFOV);
 	vr->Set("Player", iVRPlayer);
-	vr->Set("GameCameraControl", iGameCameraControl);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
 	vr->Set("NumExtraFrames", iExtraFrames);
 	vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
 	vr->Set("NumExtraVideoLoopsDivider", iExtraVideoLoopsDivider);
+	vr->Set("StabilizeRoll", bStabilizeRoll);
+	vr->Set("StabilizePitch", bStabilizePitch);
+	vr->Set("StabilizeYaw", bStabilizeYaw);
 	vr->Set("PullUp20fps", bPullUp20fps);
 	vr->Set("PullUp30fps", bPullUp30fps);
 	vr->Set("PullUp60fps", bPullUp60fps);

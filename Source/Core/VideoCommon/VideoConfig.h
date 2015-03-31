@@ -150,6 +150,9 @@ struct VideoConfig final
 	// VR global
 	float fScale;
 	float fLeanBackAngle;
+	bool bStabilizeRoll;
+	bool bStabilizePitch;
+	bool bStabilizeYaw;
 	bool bPullUp20fps;
 	bool bPullUp30fps;
 	bool bPullUp60fps;
@@ -196,7 +199,6 @@ struct VideoConfig final
 	float fMotionSicknessFOV;
 
 	int iVRPlayer;
-	int iGameCameraControl;
 	float fTimeWarpTweak;
 	u32 iExtraFrames;
 	u32 iExtraVideoLoops;

@@ -1382,9 +1382,26 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
 
 			// camera pitch
-			if (g_ActiveConfig.iGameCameraControl > CAMERA_YAWPITCHROLL && g_ActiveConfig.bCanReadCameraAngles)
+			if ((g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw) && g_ActiveConfig.bCanReadCameraAngles)
 			{
-				Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
+				if (!g_ActiveConfig.bStabilizePitch)
+				{
+					Matrix44 user_pitch44;
+					Matrix44 roll_and_yaw_matrix;
+
+					if (xfmem.projection.type == GX_PERSPECTIVE || vr_widest_3d_HFOV > 0)
+						extra_pitch = g_ActiveConfig.fCameraPitch;
+					else
+						extra_pitch = g_ActiveConfig.fScreenPitch;
+					Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
+					Matrix44::LoadMatrix33(user_pitch44, pitch_matrix33);
+					Matrix44::Set(roll_and_yaw_matrix, g_game_camera_rotmat.data);
+					Matrix44::Multiply(roll_and_yaw_matrix, user_pitch44, camera_pitch_matrix);
+				}
+				else
+				{
+					Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
+				}
 			}
 			else
 			{
@@ -1682,7 +1699,7 @@ void VertexShaderManager::SetProjectionConstants()
 				posRight[i] *= UnitsPerMetre;
 			}
 		}
-		
+
 		Matrix44 view_matrix_left, view_matrix_right;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
@@ -1771,7 +1788,7 @@ void VertexShaderManager::SetProjectionConstants()
 void VertexShaderManager::CheckOrientationConstants()
 {
 #define sqr(a) ((a)*(a))
-	if (g_ActiveConfig.bCanReadCameraAngles)
+	if (g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw))
 	{
 		float *p = constants.posnormalmatrix[0];
 		float pos[3];
@@ -1799,6 +1816,16 @@ void VertexShaderManager::CheckOrientationConstants()
 		float yaw, pitch, roll;
 		Matrix33::GetPieYawPitchRollR(rot, yaw, pitch, roll);
 
+		if (abs(roll) == 3.1415926535f)
+		{
+			roll = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
+		}
+
+		if (abs(yaw) == 3.1415926535f)
+		{
+			yaw = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
+		}
+
 		//NOTICE_LOG(VR, "Pos(%d): %5.2f, %5.2f, %5.2f; scale: x%5.2f", g_main_cp_state.matrix_index_a.PosNormalMtxIdx, pos[0], pos[1], pos[2], scale);
 		//debug - show which object is being used
 		//static float first_x = 0;
@@ -1807,42 +1834,49 @@ void VertexShaderManager::CheckOrientationConstants()
 		//else if (g_ActiveConfig.iFlashState > 5)
 		//	constants.posnormalmatrix[0][0 * 4 + 3] = first_x;
 
-		switch (g_ActiveConfig.iGameCameraControl)
+		Matrix33 matrix_pitch, matrix_yaw, matrix_roll, temp;
+
+		if (g_ActiveConfig.bStabilizeRoll && g_ActiveConfig.bStabilizeYaw)
 		{
-		case CAMERA_NONE:
-			// invert rotation matrix to counteract all rotation
-			{
-				float temp = rot.data[0 * 3 + 1];
-				rot.data[0 * 3 + 1] = rot.data[1 * 3 + 0];
-				rot.data[1 * 3 + 0] = temp;
-				temp = rot.data[0 * 3 + 2];
-				rot.data[0 * 3 + 2] = rot.data[2 * 3 + 0];
-				rot.data[2 * 3 + 0] = temp;
-				temp = rot.data[1 * 3 + 2];
-				rot.data[1 * 3 + 2] = rot.data[2 * 3 + 1];
-				rot.data[2 * 3 + 1] = temp;
-			}
-			break;
-		case CAMERA_YAW:
-			// counteract roll and pitch
-			{
-				Matrix33 p, r;
-				Matrix33::RotateX(p, -pitch);
-				Matrix33::RotateZ(r, -roll);
-				Matrix33::Multiply(r, p, rot);
-			}
-			break;
-		case CAMERA_YAWPITCH:
-			// only counteract roll
-			Matrix33::RotateZ(rot, -roll);
-			break;
-		case CAMERA_YAWPITCHROLL:
-		default:
-			// don't counteract anything
-			Matrix33::LoadIdentity(rot);
-			break;
+			Matrix33::RotateZ(matrix_roll, -roll);
+			Matrix33::RotateY(matrix_yaw, yaw);
+			Matrix33::Multiply(matrix_roll, matrix_yaw, temp);
 		}
-		Matrix44::LoadMatrix33(g_game_camera_rotmat, rot);
+		else if (g_ActiveConfig.bStabilizeRoll)
+		{
+			Matrix33::RotateZ(matrix_roll, -roll);
+			memcpy(&temp, &matrix_roll, sizeof(matrix_roll));
+		}
+		else if (g_ActiveConfig.bStabilizeYaw)
+		{
+			Matrix33::RotateY(matrix_yaw, yaw);
+			memcpy(&temp, &matrix_yaw, sizeof(matrix_yaw));
+		}
+		else
+		{
+			Matrix33 identity_matrix = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+			memcpy(&temp, &identity_matrix, sizeof(identity_matrix));
+		}
+
+		if (g_ActiveConfig.bStabilizePitch)
+		{
+			Matrix33::RotateX(matrix_pitch, -pitch);
+			Matrix33::Multiply(temp, matrix_pitch, rot);
+			Matrix44::LoadMatrix33(g_game_camera_rotmat, rot);
+		}
+		else
+		{
+			Matrix44::LoadMatrix33(g_game_camera_rotmat, temp);
+		}
+
+		// A more elegant solution to all of the if statements above, but probably a lot slower.
+		// A lot of excess multiplication if everything is not checked.
+//#define GET_MATRIX_MULTIPLIER(a, b, aset) aset ? a : b
+
+		//Matrix33 identity_matrix = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+		//Matrix33::Multiply(GET_MATRIX_MULTIPLIER(matrix_roll, identity_matrix, g_ActiveConfig.bStabilizeRoll), GET_MATRIX_MULTIPLIER(matrix_yaw, identity_matrix, g_ActiveConfig.bStabilizeYaw), temp);
+		//Matrix33::Multiply(temp, GET_MATRIX_MULTIPLIER(matrix_pitch, identity_matrix, g_ActiveConfig.bStabilizePitch), rot);
+
 		memcpy(g_game_camera_pos, pos, 3 * sizeof(float));
 		//yaw = RADIANS_TO_DEGREES(yaw);
 		//pitch = RADIANS_TO_DEGREES(pitch);

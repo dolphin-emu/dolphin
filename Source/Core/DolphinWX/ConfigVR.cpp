@@ -129,13 +129,13 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Game Camera Control
 		{
-			const wxString vr_choices[] = { _("Yaw, Pitch, and Roll"), _("Yaw and Pitch"), _("Yaw only"), _("None") };
-
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Let the Game Control:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iGameCameraControl, wxGetTranslation(cameracontrol_desc),
-				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
-			szr_vr->Add(choice_vr, 1, 0, 0);
-			choice_vr->Select(vconfig.iGameCameraControl);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			checkbox_roll = CreateCheckBox(page_vr, _("Roll"), wxGetTranslation(stabilizeroll_desc), vconfig.bStabilizeRoll);
+			checkbox_pitch = CreateCheckBox(page_vr, _("Pitch"), wxGetTranslation(stabilizepitch_desc), vconfig.bStabilizePitch);
+			checkbox_yaw = CreateCheckBox(page_vr, _("Yaw"), wxGetTranslation(stabilizeyaw_desc), vconfig.bStabilizeYaw);
+			szr_vr->Add(checkbox_roll, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_pitch, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_yaw, 1, wxALIGN_CENTER_VERTICAL, 0);
 		}
 		// VR Player
 		{
