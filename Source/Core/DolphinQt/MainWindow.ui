@@ -122,7 +122,7 @@
   </action>
   <action name="actionGitHub">
    <property name="text">
-    <string>&amp;Dolphin at GitHub</string>
+    <string>&amp;GitHub Repository</string>
    </property>
   </action>
   <action name="actionAbout">
