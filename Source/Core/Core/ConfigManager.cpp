@@ -354,7 +354,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
 	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
-	core->Set("DolphinPro", m_DolphinPro);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -622,11 +621,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
-#ifdef DOLPHINPRO
-	m_DolphinPro = true;
-#else
-	core->Get("DolphinPro",                &m_DolphinPro,                                  false);
-#endif
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
