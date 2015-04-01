@@ -946,14 +946,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 					setting->wxcontrol->Bind(wxEVT_SPINCTRL, &GamepadPage::AdjustSetting, eventsink);
 					options.push_back(setting);
 					wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-					wxStaticText* nameBox = new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->name)));
-					if (groupSetting->name == "Battery" && !SConfig::GetInstance().m_DolphinPro)
-					{
-						setting->wxcontrol->Disable();
-						nameBox->SetToolTip(wxGetTranslation("Upgrade to Dolphin Pro™ to recharge batteries."));
-					}
-
-					szr->Add(nameBox, 0, wxCENTER | wxRIGHT, 3);
+					szr->Add(new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->name))), 0, wxCENTER | wxRIGHT, 3);
 					szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
 					Add(szr, 0, wxALL | wxCENTER, 3);
 				}

@@ -219,6 +219,7 @@ ControllerEmu::Cursor::Cursor(const std::string& _name)
 	settings.emplace_back(new Setting(_trans("Center"), 0.5));
 	settings.emplace_back(new Setting(_trans("Width"), 0.5));
 	settings.emplace_back(new Setting(_trans("Height"), 0.5));
+
 }
 
 void ControllerEmu::LoadDefaults(const ControllerInterface &ciface)
