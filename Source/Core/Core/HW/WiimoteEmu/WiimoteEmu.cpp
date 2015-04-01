@@ -21,6 +21,8 @@
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 namespace
 {
@@ -302,6 +304,7 @@ Wiimote::Wiimote( const unsigned int index )
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 	m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Speaker Pan"), 0, -127, 127));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Battery"), 95, 0, 255));
 
 	// TODO: This value should probably be re-read if SYSCONF gets changed
 	m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
@@ -635,6 +638,23 @@ void Wiimote::Update()
 	// returns true if a report was sent
 	if (Step())
 		return;
+
+	m_status.battery = (u8)(m_options->settings[5]->GetValue() * 100);
+	if (!m_status.battery)
+	{
+		GetUsbPointer()->AccessWiiMote(m_index | 0x100)->Activate(false);
+		return;
+	}
+
+	static u32 batteryCounter = 0;
+	// drop battery by 1 every 144000 times input is polled. At 200 hz polling, this is once per 12 mins. Gives 19 hours
+	// of battery life from the default of 95, or 51 hours at the max of 255.
+	if (++batteryCounter > 144000)
+	{
+		m_status.battery--;
+		m_options->settings[5]->SetValue(((ControlState)m_status.battery) / 100);
+		batteryCounter = 0;
+	}
 
 	u8 data[MAX_PAYLOAD];
 	memset(data, 0, sizeof(data));
