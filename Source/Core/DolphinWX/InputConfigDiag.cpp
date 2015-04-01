@@ -950,7 +950,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 					if (groupSetting->name == "Battery" && !SConfig::GetInstance().m_DolphinPro)
 					{
 						setting->wxcontrol->Disable();
-						nameBox->SetToolTip(wxGetTranslation("Upgrade to Dolphin Pro™ to recharge batteries."));
+						nameBox->SetToolTip(wxGetTranslation("Upgrade to Dolphin Pro to recharge batteries."));
 					}
 
 					szr->Add(nameBox, 0, wxCENTER | wxRIGHT, 3);
