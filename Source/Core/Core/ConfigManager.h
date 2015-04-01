@@ -119,8 +119,6 @@ struct SConfig : NonCopyable
 
 	SysConf* m_SYSCONF;
 
-	bool m_DolphinPro;
-
 	// Save settings
 	void SaveSettings();
 

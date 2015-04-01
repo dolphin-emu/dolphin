@@ -25,8 +25,6 @@ InputConfig* GetConfig()
 
 void Shutdown()
 {
-	s_config.SaveConfig();
-
 	for (const ControllerEmu* i : s_config.controllers)
 	{
 		delete i;
