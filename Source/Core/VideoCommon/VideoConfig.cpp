@@ -266,6 +266,8 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("StabilizeRoll", &bStabilizeRoll, false);
 	vr->Get("StabilizePitch", &bStabilizePitch, false);
 	vr->Get("StabilizeYaw", &bStabilizeYaw, false);
+	vr->Get("Keyhole", &bKeyhole, false);
+	vr->Get("KeyholeWidth", &fKeyholeWidth, 45.0f);
 	vr->Get("PullUp20fps", &bPullUp20fps, false);
 	vr->Get("PullUp30fps", &bPullUp30fps, false);
 	vr->Get("PullUp60fps", &bPullUp60fps, false);
@@ -691,6 +693,8 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("StabilizeRoll", bStabilizeRoll);
 	vr->Set("StabilizePitch", bStabilizePitch);
 	vr->Set("StabilizeYaw", bStabilizeYaw);
+	vr->Set("Keyhole", bKeyhole);
+	vr->Set("KeyholeWidth", fKeyholeWidth);
 	vr->Set("PullUp20fps", bPullUp20fps);
 	vr->Set("PullUp30fps", bPullUp30fps);
 	vr->Set("PullUp60fps", bPullUp60fps);

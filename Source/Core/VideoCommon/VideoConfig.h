@@ -153,6 +153,8 @@ struct VideoConfig final
 	bool bStabilizeRoll;
 	bool bStabilizePitch;
 	bool bStabilizeYaw;
+	bool bKeyhole;
+	float fKeyholeWidth;
 	bool bPullUp20fps;
 	bool bPullUp30fps;
 	bool bPullUp60fps;

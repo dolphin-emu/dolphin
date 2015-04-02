@@ -1826,6 +1826,49 @@ void VertexShaderManager::CheckOrientationConstants()
 			yaw = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
 		}
 
+		if (g_ActiveConfig.bKeyhole)
+		{
+			static float keyhole_center = 0;
+			float keyhole_width = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeWidth / 2);
+			float keyhole_left_bound = keyhole_center + keyhole_width;
+			float keyhole_right_bound = keyhole_center - keyhole_width;
+
+			// Correct left and right bounds if they calculated incorrectly and are out of the range of -PI to PI.
+			if (keyhole_left_bound > MATH_FLOAT_PI)
+				keyhole_left_bound -= (2 * MATH_FLOAT_PI);
+			else if (keyhole_right_bound < -MATH_FLOAT_PI)
+				keyhole_right_bound += (2 * MATH_FLOAT_PI);
+
+			// Crossing from positive to negative half, counter-clockwise
+			if (yaw < 0 && keyhole_left_bound > 0 && keyhole_right_bound > 0 && yaw < keyhole_width - MATH_FLOAT_PI)
+			{
+				keyhole_center = yaw - keyhole_width;
+			}
+			// Crossing from negative to positive half, clockwise
+			else if (yaw > 0 && keyhole_left_bound < 0 && keyhole_right_bound < 0 && yaw > MATH_FLOAT_PI - keyhole_width)
+			{
+				keyhole_center = yaw + keyhole_width;
+			}
+			// Already within the negative and positive range
+			else if (keyhole_left_bound < 0 && keyhole_right_bound > 0)
+			{
+				if (yaw < keyhole_right_bound && yaw > 0)
+					keyhole_center = yaw + keyhole_width;
+				else if (yaw > keyhole_left_bound && yaw < 0)
+					keyhole_center = yaw - keyhole_width;
+			}
+			// Anywhere within the normal range
+			else
+			{
+				if (yaw < keyhole_right_bound)
+					keyhole_center = yaw + keyhole_width;
+				else if (yaw > keyhole_left_bound)
+					keyhole_center = yaw - keyhole_width;
+			}
+
+			yaw -= keyhole_center;
+		}
+
 		//NOTICE_LOG(VR, "Pos(%d): %5.2f, %5.2f, %5.2f; scale: x%5.2f", g_main_cp_state.matrix_index_a.PosNormalMtxIdx, pos[0], pos[1], pos[2], scale);
 		//debug - show which object is being used
 		//static float first_x = 0;
@@ -1854,8 +1897,7 @@ void VertexShaderManager::CheckOrientationConstants()
 		}
 		else
 		{
-			Matrix33 identity_matrix = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
-			memcpy(&temp, &identity_matrix, sizeof(identity_matrix));
+			Matrix33::LoadIdentity(temp);
 		}
 
 		if (g_ActiveConfig.bStabilizePitch)
