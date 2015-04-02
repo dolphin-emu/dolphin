@@ -13,12 +13,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/FileMonitor.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
-#include "DiscIO/VolumeGC.h"
-#include "DiscIO/VolumeWiiCrypted.h"
+#include "DiscIO/Volume/FileMonitor.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
+#include "DiscIO/Volume/VolumeGC.h"
+#include "DiscIO/Volume/VolumeWiiCrypted.h"
+#include "DiscIO/Volume/Blob/Blob.h"
 
 namespace DiscIO
 {

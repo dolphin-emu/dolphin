@@ -7,7 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "DiscIO/CISOBlob.h"
+#include "DiscIO/Volume/Blob/CISOBlob.h"
 
 namespace DiscIO
 {

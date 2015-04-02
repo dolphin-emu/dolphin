@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/FileSystemGCWii.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/FileSystem/FileSystemGCWii.h"
 
 namespace DiscIO
 {

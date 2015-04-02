@@ -19,9 +19,9 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 
-#include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/WiiWad.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
+#include "DiscIO/NAND/WiiWad.h"
+#include "DiscIO/Volume/Volume.h"
 
 namespace DiscIO
 {

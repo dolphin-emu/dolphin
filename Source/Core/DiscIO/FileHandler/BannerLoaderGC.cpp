@@ -10,9 +10,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
-#include "DiscIO/BannerLoaderGC.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/FileHandler/BannerLoaderGC.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/Volume.h"
 
 namespace DiscIO
 {

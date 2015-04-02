@@ -7,7 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 // Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
 namespace DiscIO

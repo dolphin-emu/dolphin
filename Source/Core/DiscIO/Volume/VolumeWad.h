@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 // --- this volume type is used for Wad files ---
 // Some of this code might look redundant with the CNANDContentLoader class, however,

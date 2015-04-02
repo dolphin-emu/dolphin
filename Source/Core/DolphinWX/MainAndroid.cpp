@@ -38,9 +38,9 @@
 #include "Core/PowerPC/PowerPC.h"
 
 // Banner loading
-#include "DiscIO/BannerLoader.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/FileHandler/BannerLoader.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 #include "UICommon/UICommon.h"
 

@@ -4,10 +4,10 @@
 
 #include <cstddef>
 
-#include "DiscIO/BannerLoader.h"
-#include "DiscIO/BannerLoaderGC.h"
-#include "DiscIO/BannerLoaderWii.h"
-#include "DiscIO/Filesystem.h"
+#include "DiscIO/FileHandler/BannerLoader.h"
+#include "DiscIO/FileHandler/BannerLoaderGC.h"
+#include "DiscIO/FileHandler/BannerLoaderWii.h"
+#include "DiscIO/FileSystem/Filesystem.h"
 
 namespace DiscIO
 {

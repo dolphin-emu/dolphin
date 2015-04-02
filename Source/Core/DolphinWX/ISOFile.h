@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Common/Common.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/image.h>

@@ -15,7 +15,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"

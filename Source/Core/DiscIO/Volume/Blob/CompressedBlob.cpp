@@ -20,9 +20,9 @@
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/StringUtil.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/CompressedBlob.h"
-#include "DiscIO/DiscScrubber.h"
+#include "DiscIO/DiscScrubber/DiscScrubber.h"
+#include "DiscIO/Volume/Blob/Blob.h"
+#include "DiscIO/Volume/Blob/CompressedBlob.h"
 
 
 namespace DiscIO

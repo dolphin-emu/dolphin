@@ -10,7 +10,7 @@
 #include <polarssl/aes.h>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 // --- this volume type is used for encrypted Wii images ---
 

@@ -8,8 +8,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/DriveBlob.h"
+#include "DiscIO/Volume/Blob/Blob.h"
+#include "DiscIO/Volume/Blob/DriveBlob.h"
 
 #ifdef _WIN32
 #include "Common/StringUtil.h"

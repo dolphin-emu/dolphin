@@ -8,7 +8,7 @@
 #include <QPixmap>
 #include <QVector>
 
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 class Resources
 {

@@ -11,7 +11,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 namespace VolumeHandler
 {

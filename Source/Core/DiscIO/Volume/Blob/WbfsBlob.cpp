@@ -10,7 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "DiscIO/WbfsBlob.h"
+#include "DiscIO/Volume/Blob/WbfsBlob.h"
 
 namespace DiscIO
 {

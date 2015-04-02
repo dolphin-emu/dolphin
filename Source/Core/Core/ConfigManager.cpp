@@ -9,7 +9,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/SI.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
 
 SConfig* SConfig::m_Instance;
 

@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <string>
-#include "DiscIO/FileBlob.h"
+#include "DiscIO/Volume/Blob/FileBlob.h"
 
 namespace DiscIO
 {

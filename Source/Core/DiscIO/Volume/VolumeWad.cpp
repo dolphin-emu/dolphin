@@ -10,9 +10,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeWad.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeWad.h"
+#include "DiscIO/Volume/Blob/Blob.h"
 
 #define ALIGN_40(x) ROUND_UP(Common::swap32(x), 0x40)
 
