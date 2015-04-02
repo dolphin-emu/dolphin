@@ -56,6 +56,9 @@ VideoConfig::VideoConfig()
 	// VR
 	fScale = 1.0f;
 	fLeanBackAngle = 0;
+	bStabilizePitch = true;
+	bStabilizeRoll = true;
+	bStabilizeYaw = false;
 	bPullUp20fps = false;
 	bPullUp30fps = false;
 	bPullUp60fps = false;
@@ -263,8 +266,8 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
 	vr->Get("NumExtraVideoLoops", &iExtraVideoLoops, DEFAULT_VR_EXTRA_VIDEO_LOOPS);
 	vr->Get("NumExtraVideoLoopsDivider", &iExtraVideoLoopsDivider, DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER);
-	vr->Get("StabilizeRoll", &bStabilizeRoll, false);
-	vr->Get("StabilizePitch", &bStabilizePitch, false);
+	vr->Get("StabilizeRoll", &bStabilizeRoll, true);
+	vr->Get("StabilizePitch", &bStabilizePitch, true);
 	vr->Get("StabilizeYaw", &bStabilizeYaw, false);
 	vr->Get("PullUp20fps", &bPullUp20fps, false);
 	vr->Get("PullUp30fps", &bPullUp30fps, false);
