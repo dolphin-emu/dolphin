@@ -10,8 +10,8 @@
 
 #include <string>
 
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 class GameFile final
 {

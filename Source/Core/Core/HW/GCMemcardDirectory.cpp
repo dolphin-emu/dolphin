@@ -8,7 +8,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcardDirectory.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 const int NO_INDEX = -1;
 static const char *MC_HDR = "MC_SYSTEM_AREA";

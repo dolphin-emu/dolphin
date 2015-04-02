@@ -57,7 +57,7 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
-#include "DiscIO/FileMonitor.h"
+#include "DiscIO/Volume/FileMonitor.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"

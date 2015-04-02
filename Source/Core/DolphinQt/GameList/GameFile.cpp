@@ -18,9 +18,9 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DiscIO/BannerLoader.h"
-#include "DiscIO/CompressedBlob.h"
-#include "DiscIO/Filesystem.h"
+#include "DiscIO/FileHandler/BannerLoader.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/Blob/CompressedBlob.h"
 
 #include "DolphinQt/GameList/GameFile.h"
 #include "DolphinQt/Utils/Resources.h"

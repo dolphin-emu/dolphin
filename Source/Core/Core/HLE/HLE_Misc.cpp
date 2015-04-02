@@ -22,8 +22,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/SignatureDB.h"
 
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 #include "VideoCommon/TextureCacheBase.h"
 

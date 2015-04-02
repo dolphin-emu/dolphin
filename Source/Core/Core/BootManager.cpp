@@ -36,8 +36,8 @@
 #include "Core/HW/EXI.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace BootManager
