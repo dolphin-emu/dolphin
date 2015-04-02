@@ -12,10 +12,10 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "DiscIO/DiscScrubber.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/DiscScrubber/DiscScrubber.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 namespace DiscIO
 {

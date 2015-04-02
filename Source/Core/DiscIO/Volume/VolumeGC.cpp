@@ -9,10 +9,10 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/FileMonitor.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeGC.h"
+#include "DiscIO/Volume/FileMonitor.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeGC.h"
+#include "DiscIO/Volume/Blob/Blob.h"
 
 namespace DiscIO
 {

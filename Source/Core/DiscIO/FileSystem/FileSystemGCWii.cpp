@@ -13,9 +13,9 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/FileSystemGCWii.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/FileSystem/FileSystemGCWii.h"
+#include "DiscIO/Volume/Volume.h"
 
 namespace DiscIO
 {

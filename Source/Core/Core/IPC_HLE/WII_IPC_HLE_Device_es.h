@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
 
 class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {

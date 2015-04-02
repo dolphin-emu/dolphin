@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/BannerLoader.h"
+#include "DiscIO/FileHandler/BannerLoader.h"
 
 namespace DiscIO
 {

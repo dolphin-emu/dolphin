@@ -10,12 +10,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
-#include "DiscIO/Blob.h"
-#include "DiscIO/CISOBlob.h"
-#include "DiscIO/CompressedBlob.h"
-#include "DiscIO/DriveBlob.h"
-#include "DiscIO/FileBlob.h"
-#include "DiscIO/WbfsBlob.h"
+#include "DiscIO/Volume/Blob/Blob.h"
+#include "DiscIO/Volume/Blob/CISOBlob.h"
+#include "DiscIO/Volume/Blob/CompressedBlob.h"
+#include "DiscIO/Volume/Blob/DriveBlob.h"
+#include "DiscIO/Volume/Blob/FileBlob.h"
+#include "DiscIO/Volume/Blob/WbfsBlob.h"
 
 namespace DiscIO
 {

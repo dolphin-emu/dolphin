@@ -16,10 +16,10 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Core/VolumeHandler.h"
-#include "DiscIO/FileBlob.h"
-#include "DiscIO/FileMonitor.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeDirectory.h"
+#include "DiscIO/Volume/FileMonitor.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeDirectory.h"
+#include "DiscIO/Volume/Blob/FileBlob.h"
 
 namespace DiscIO
 {

@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 
 namespace File { struct FSTEntry; }
 

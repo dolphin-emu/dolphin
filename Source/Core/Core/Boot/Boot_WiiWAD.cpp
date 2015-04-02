@@ -20,10 +20,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
-#include "DiscIO/WiiWad.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
+#include "DiscIO/NAND/WiiWad.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 static u32 state_checksum(u32 *buf, int len)
 {

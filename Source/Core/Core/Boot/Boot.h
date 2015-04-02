@@ -9,7 +9,7 @@
 
 #include "Core/CoreParameter.h"
 
-#include "DiscIO/Volume.h"
+#include "DiscIO/Volume/Volume.h"
 using DiscIO::IVolume;
 
 struct CountrySetting

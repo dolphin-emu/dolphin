@@ -62,7 +62,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
-#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/ControllerConfigDiag.h"

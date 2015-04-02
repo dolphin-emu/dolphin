@@ -14,8 +14,8 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "DiscIO/BannerLoaderWii.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/FileHandler/BannerLoaderWii.h"
+#include "DiscIO/Volume/Volume.h"
 
 namespace DiscIO
 {

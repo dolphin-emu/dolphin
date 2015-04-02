@@ -28,11 +28,11 @@
 #include "Core/CoreParameter.h"
 #include "Core/Boot/Boot.h"
 
-#include "DiscIO/BannerLoader.h"
-#include "DiscIO/CompressedBlob.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/FileHandler/BannerLoader.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
+#include "DiscIO/Volume/Blob/CompressedBlob.h"
 
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"

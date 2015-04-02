@@ -17,10 +17,10 @@
 #include "Core/Core.h"
 #include "Core/Boot/Boot.h"
 
-#include "DiscIO/FileMonitor.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/FileMonitor.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 namespace FileMon
 {

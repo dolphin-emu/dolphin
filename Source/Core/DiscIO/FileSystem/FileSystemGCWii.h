@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Filesystem.h"
+#include "DiscIO/FileSystem/Filesystem.h"
 
 namespace DiscIO
 {
