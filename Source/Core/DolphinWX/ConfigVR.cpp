@@ -107,10 +107,10 @@ void CConfigVR::CreateGUIControls()
 
 		// Scale
 		{
-			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale,
+			SettingNumber* const spin_scale = CreateNumber(page_vr, vconfig.fScale,
 				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale Multiplier:   x"));
-			
+			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, _("Scale Multiplier:   x"));
+
 			spin_scale->SetToolTip(wxGetTranslation(scale_desc));
 			label->SetToolTip(wxGetTranslation(scale_desc));
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -118,9 +118,9 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Lean back angle
 		{
-			SettingNumber *const spin_lean = CreateNumber(page_vr, vconfig.fLeanBackAngle,
+			SettingNumber* const spin_lean = CreateNumber(page_vr, vconfig.fLeanBackAngle,
 				wxGetTranslation(lean_desc), -180.0f, 180.0f, 1.0f);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Lean Back Angle:"));
+			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, _("Lean Back Angle:"));
 
 			spin_lean->SetToolTip(wxGetTranslation(lean_desc));
 			label->SetToolTip(wxGetTranslation(lean_desc));
@@ -129,13 +129,25 @@ void CConfigVR::CreateGUIControls()
 		}
 		// Game Camera Control
 		{
-			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_roll = CreateCheckBox(page_vr, _("Roll"), wxGetTranslation(stabilizeroll_desc), vconfig.bStabilizeRoll);
 			checkbox_pitch = CreateCheckBox(page_vr, _("Pitch"), wxGetTranslation(stabilizepitch_desc), vconfig.bStabilizePitch);
 			checkbox_yaw = CreateCheckBox(page_vr, _("Yaw"), wxGetTranslation(stabilizeyaw_desc), vconfig.bStabilizeYaw);
+			checkbox_keyhole = CreateCheckBox(page_vr, _("Keyhole"), wxGetTranslation(keyhole_desc), vconfig.bKeyhole);
+			checkbox_yaw->Bind(wxEVT_CHECKBOX, &CConfigVR::OnYawCheckbox, this);
+			checkbox_keyhole->Bind(wxEVT_CHECKBOX, &CConfigVR::OnKeyholeCheckbox, this);
+
+			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Width:"));
+			keyhole_width = CreateNumber(page_vr, vconfig.fKeyholeWidth, wxGetTranslation(keyholewidth_desc), 10.0f, 175.0f, 1.0f);
+			keyhole_width->Enable(vconfig.bKeyhole);
+
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_roll, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_pitch, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_yaw, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Keyhole: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_keyhole, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(keyhole_width);
 		}
 		// VR Player
 		{
@@ -819,7 +831,39 @@ void CConfigVR::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const siz
 	desc_texts.insert(std::pair<wxWindow*, wxStaticText*>(page, desc_text));
 }
 
-// On Checkbox Click
+// On Keyhole Checkbox Click
+void CConfigVR::OnKeyholeCheckbox(wxCommandEvent& event)
+{
+	if (checkbox_keyhole->IsChecked())
+	{
+		keyhole_width->Enable();
+		checkbox_yaw->SetValue(true);
+		vconfig.bStabilizeYaw = true;
+		vconfig.bKeyhole = true;
+	}
+	else
+	{
+		keyhole_width->Disable();
+		vconfig.bKeyhole = false;
+	}
+}
+
+void CConfigVR::OnYawCheckbox(wxCommandEvent& event)
+{
+	if (checkbox_yaw->IsChecked())
+	{
+		vconfig.bStabilizeYaw = true;
+	}
+	else
+	{
+		checkbox_keyhole->SetValue(false);
+		vconfig.bStabilizeYaw = false;
+		vconfig.bKeyhole = false;
+		keyhole_width->Disable();
+	}
+}
+
+// On Pullup Checkbox Click
 void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 {
 	spin_replay_buffer->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());

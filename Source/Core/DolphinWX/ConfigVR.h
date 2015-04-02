@@ -89,7 +89,11 @@ private:
 	SettingCheckBox* checkbox_roll;
 	SettingCheckBox* checkbox_pitch;
 	SettingCheckBox* checkbox_yaw;
+	SettingCheckBox* checkbox_keyhole;
+	SettingNumber* keyhole_width;
 
+	void OnKeyholeCheckbox(wxCommandEvent& event);
+	void OnYawCheckbox(wxCommandEvent& event);
 	void OnPullupCheckbox(wxCommandEvent& event);
 
 	void OnOk(wxCommandEvent& event);
