@@ -44,7 +44,6 @@
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
-    <ClInclude Include="SoundStream.h" />
     <ClInclude Include="WaveFile.h" />
     <ClInclude Include="AOSoundStream.h">
       <Filter>SoundStreams</Filter>
@@ -53,6 +52,9 @@
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="OpenALStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="XAudio2Stream.h">
