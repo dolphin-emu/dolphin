@@ -11,9 +11,11 @@ if (NOT OCULUSSDK_FOUND)
 		PATHS
 		/usr/include/ovr-0.4.3/LibOVR/Include
 		/usr/include/ovr-0.4.4/LibOVR/Include
+		/usr/include/ovr-0.5.0.1/LibOVR/Include
 		/usr/include
 		/usr/local/include/ovr-0.4.3/LibOVR/Include
 		/usr/local/include/ovr-0.4.4/LibOVR/Include
+		/usr/local/include/ovr-0.5.0.1/LibOVR/Include
 		/usr/local/include
 		Externals/LibOVR/Include
 		Externals/
@@ -23,9 +25,11 @@ if (NOT OCULUSSDK_FOUND)
 		PATHS
 		/usr/include/ovr-0.4.3/LibOVR/Src
 		/usr/include/ovr-0.4.4/LibOVR/Src
+		/usr/include/ovr-0.5.0.1/LibOVR/Include
 		/usr/include
 		/usr/local/include/ovr-0.4.3/LibOVR/Src
 		/usr/local/include/ovr-0.4.4/LibOVR/Src
+		/usr/local/include/ovr-0.5.0.1/LibOVR/Src
 		/usr/local/include
 		Externals/LibOVR/Src
 		Externals/
