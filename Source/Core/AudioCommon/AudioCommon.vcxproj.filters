@@ -11,10 +11,25 @@
     <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="WaveFile.cpp" />
+    <ClCompile Include="AlsaSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="AOSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreAudioSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
     <ClCompile Include="NullSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
     <ClCompile Include="OpenALStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenSLESStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="PulseAudioStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
     <ClCompile Include="XAudio2Stream.cpp">
