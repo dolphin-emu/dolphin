@@ -19,7 +19,7 @@
 #include <wx/windowid.h>
 
 #include "Common/IniFile.h"
-#include "Core/ActionReplay.h"
+#include "Core/ActionReplay/ActionReplay.h"
 #include "DiscIO/FileSystem/Filesystem.h"
 #include "DiscIO/Volume/Volume.h"
 #include "DiscIO/Volume/VolumeCreator.h"

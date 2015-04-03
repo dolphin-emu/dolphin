@@ -19,7 +19,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-#include "Core/ActionReplay.h"
+#include "Core/ActionReplay/ActionReplay.h"
 #include "Core/HW/Memmap.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatSearchTab.h"

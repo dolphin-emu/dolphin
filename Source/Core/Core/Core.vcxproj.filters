@@ -155,10 +155,10 @@
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
-    <ClCompile Include="ActionReplay.cpp">
+    <ClCompile Include="ActionReplay\ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
-    <ClCompile Include="ARDecrypt.cpp">
+    <ClCompile Include="ActionReplay\ARDecrypt.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
     <ClCompile Include="Boot\Boot.cpp">
@@ -752,10 +752,10 @@
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="VolumeHandler.h" />
-    <ClInclude Include="ActionReplay.h">
+    <ClInclude Include="ActionReplay\ActionReplay.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>
-    <ClInclude Include="ARDecrypt.h">
+    <ClInclude Include="ActionReplay\ARDecrypt.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>
     <ClInclude Include="Boot\Boot.h">

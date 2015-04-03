@@ -26,10 +26,10 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/LogManager.h"
 
-#include "Core/ActionReplay.h"
-#include "Core/ARDecrypt.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/ActionReplay/ActionReplay.h"
+#include "Core/ActionReplay/ARDecrypt.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace ActionReplay

@@ -1,6 +1,4 @@
-set(SRCS	ActionReplay.cpp
-			ARDecrypt.cpp
-			BootManager.cpp
+set(SRCS	BootManager.cpp
 			ConfigManager.cpp
 			Core.cpp
 			CoreParameter.cpp
@@ -17,6 +15,8 @@ set(SRCS	ActionReplay.cpp
 			PatchEngine.cpp
 			State.cpp
 			VolumeHandler.cpp
+			ActionReplay/ActionReplay.cpp
+			ActionReplay/ARDecrypt.cpp
 			Boot/Boot_BS2Emu.cpp
 			Boot/Boot.cpp
 			Boot/Boot_DOL.cpp

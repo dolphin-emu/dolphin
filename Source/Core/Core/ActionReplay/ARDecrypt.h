@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Core/ActionReplay.h"
+#include "Core/ActionReplay/ActionReplay.h"
 
 namespace ActionReplay
 {

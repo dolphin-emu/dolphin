@@ -24,8 +24,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-#include "Core/ActionReplay.h"
-#include "Core/ARDecrypt.h"
+#include "Core/ActionReplay/ActionReplay.h"
+#include "Core/ActionReplay/ARDecrypt.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/WxUtils.h"
 

@@ -12,7 +12,7 @@
 #include <windows.h>
 #endif
 
-#include "Core/ARDecrypt.h"
+#include "Core/ActionReplay/ARDecrypt.h"
 
 namespace ActionReplay
 {

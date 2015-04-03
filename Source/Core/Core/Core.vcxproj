@@ -35,8 +35,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="ActionReplay.cpp" />
-    <ClCompile Include="ARDecrypt.cpp" />
+    <ClCompile Include="ActionReplay\ActionReplay.cpp" />
+    <ClCompile Include="ActionReplay\ARDecrypt.cpp" />
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
     <ClCompile Include="Boot\Boot_BS2Emu.cpp" />
@@ -256,8 +256,8 @@
     <ClCompile Include="VolumeHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ActionReplay.h" />
-    <ClInclude Include="ARDecrypt.h" />
+    <ClInclude Include="ActionReplay\ActionReplay.h" />
+    <ClInclude Include="ActionReplay\ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
     <ClInclude Include="Boot\Boot_DOL.h" />

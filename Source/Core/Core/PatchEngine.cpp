@@ -25,11 +25,11 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
-#include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
+#include "Core/ActionReplay/ActionReplay.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Common;
