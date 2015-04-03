@@ -1832,7 +1832,7 @@ void VertexShaderManager::CheckOrientationConstants()
 			float keyhole_snap = 0;
 
 			if (g_ActiveConfig.bKeyholeSnap)
-				float keyhole_snap = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeSnapSize);
+				keyhole_snap = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeSnapSize);
 
 			float keyhole_width = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeWidth / 2);
 			float keyhole_left_bound = keyhole_center + keyhole_width;
