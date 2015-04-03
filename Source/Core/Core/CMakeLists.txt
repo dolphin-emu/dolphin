@@ -30,23 +30,23 @@ set(SRCS	BootManager.cpp
 			DSP/DSPDisassembler.cpp
 			DSP/DSPAccelerator.cpp
 			DSP/DSPCaptureLogger.cpp
-			DSP/DSPIntCCUtil.cpp
-			DSP/DSPIntExtOps.cpp
 			DSP/DSPHWInterface.cpp
 			DSP/DSPMemoryMap.cpp
 			DSP/DSPStacks.cpp
 			DSP/DSPAnalyzer.cpp
-			DSP/DSPIntArithmetic.cpp
-			DSP/DSPIntBranch.cpp
-			DSP/DSPIntLoadStore.cpp
-			DSP/DSPIntMisc.cpp
-			DSP/DSPIntMultiplier.cpp
 			DSP/DSPEmitter.cpp
 			DSP/DSPCodeUtil.cpp
 			DSP/LabelMap.cpp
-			DSP/DSPInterpreter.cpp
 			DSP/DSPCore.cpp
 			DSP/DSPTables.cpp
+			DSP/Interpreter/DSPIntArithmetic.cpp
+			DSP/Interpreter/DSPIntBranch.cpp
+			DSP/Interpreter/DSPIntCCUtil.cpp
+			DSP/Interpreter/DSPInterpreter.cpp
+			DSP/Interpreter/DSPIntExtOps.cpp
+			DSP/Interpreter/DSPIntLoadStore.cpp
+			DSP/Interpreter/DSPIntMisc.cpp
+			DSP/Interpreter/DSPIntMultiplier.cpp
 			DSP/Jit/DSPJitRegCache.cpp
 			DSP/Jit/DSPJitExtOps.cpp
 			DSP/Jit/DSPJitBranch.cpp

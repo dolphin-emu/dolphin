@@ -24,8 +24,8 @@
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPHWInterface.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/Memmap.h"
 

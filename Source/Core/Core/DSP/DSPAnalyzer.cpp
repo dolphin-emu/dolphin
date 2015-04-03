@@ -5,9 +5,9 @@
 #include <array>
 
 #include "Core/DSP/DSPAnalyzer.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 namespace DSPAnalyzer {
 

@@ -49,8 +49,8 @@ Initial import
 
 #include "Core/DSP/DSPAssembler.h"
 #include "Core/DSP/DSPDisassembler.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 static const char *err_string[] =
 {

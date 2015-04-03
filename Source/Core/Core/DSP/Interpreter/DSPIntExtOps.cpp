@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPIntExtOps.h"
-#include "Core/DSP/DSPIntUtil.h"
 #include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/Interpreter/DSPIntExtOps.h"
+#include "Core/DSP/Interpreter/DSPIntUtil.h"
 
 //not needed for game ucodes (it slows down interpreter/dspjit32 + easier to compare int VS dspjit64 without it)
 //#define PRECISE_BACKLOG

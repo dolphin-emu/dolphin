@@ -188,28 +188,28 @@
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntArithmetic.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntArithmetic.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntBranch.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntBranch.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntCCUtil.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntCCUtil.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPInterpreter.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPInterpreter.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntExtOps.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntExtOps.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntLoadStore.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntLoadStore.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntMisc.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntMisc.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntMultiplier.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
@@ -782,16 +782,16 @@
     <ClInclude Include="Debugger\PPCDebugInterface.h">
       <Filter>Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPIntCCUtil.h">
+    <ClInclude Include="DSP\Interpreter\DSPIntCCUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPInterpreter.h">
+    <ClInclude Include="DSP\Interpreter\DSPInterpreter.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPIntExtOps.h">
+    <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPIntUtil.h">
+    <ClInclude Include="DSP\Interpreter\DSPIntUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="DSP\Jit\DSPJitRegCache.h">

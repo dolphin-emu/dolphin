@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/DSP/DSPEmitter.h"
-#include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/Interpreter/DSPIntUtil.h"
 
 using namespace Gen;
 

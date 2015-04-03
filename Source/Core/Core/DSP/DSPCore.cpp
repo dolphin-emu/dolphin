@@ -34,7 +34,7 @@
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPHWInterface.h"
-#include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/Interpreter/DSPIntUtil.h"
 
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;

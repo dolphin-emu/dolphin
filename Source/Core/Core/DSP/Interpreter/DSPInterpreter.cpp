@@ -26,8 +26,8 @@
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHWInterface.h"
-#include "Core/DSP/DSPIntUtil.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPIntUtil.h"
 
 namespace DSPInterpreter {
 
