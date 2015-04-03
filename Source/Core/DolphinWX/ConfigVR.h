@@ -91,8 +91,11 @@ private:
 	SettingCheckBox* checkbox_yaw;
 	SettingCheckBox* checkbox_keyhole;
 	SettingNumber* keyhole_width;
+	SettingCheckBox* checkbox_keyhole_snap;
+	SettingNumber* keyhole_snap_size;
 
 	void OnKeyholeCheckbox(wxCommandEvent& event);
+	void OnKeyholeSnapCheckbox(wxCommandEvent& event);
 	void OnYawCheckbox(wxCommandEvent& event);
 	void OnPullupCheckbox(wxCommandEvent& event);
 

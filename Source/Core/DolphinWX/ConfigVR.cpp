@@ -136,9 +136,17 @@ void CConfigVR::CreateGUIControls()
 			checkbox_yaw->Bind(wxEVT_CHECKBOX, &CConfigVR::OnYawCheckbox, this);
 			checkbox_keyhole->Bind(wxEVT_CHECKBOX, &CConfigVR::OnKeyholeCheckbox, this);
 
-			wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Width:"));
+			wxStaticText* label_keyhole_width = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Width:"));
 			keyhole_width = CreateNumber(page_vr, vconfig.fKeyholeWidth, wxGetTranslation(keyholewidth_desc), 10.0f, 175.0f, 1.0f);
 			keyhole_width->Enable(vconfig.bKeyhole);
+
+			wxStaticText* label_snap = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Snap:"));
+			checkbox_keyhole_snap = CreateCheckBox(page_vr, _("Keyhole Snap"), wxGetTranslation(keyholesnap_desc), vconfig.bKeyholeSnap);
+			checkbox_keyhole_snap->Bind(wxEVT_CHECKBOX, &CConfigVR::OnKeyholeSnapCheckbox, this);
+
+			wxStaticText* label_snap_size = new wxStaticText(page_vr, wxID_ANY, _("Keyhole Snap Size:"));
+			keyhole_snap_size = CreateNumber(page_vr, vconfig.fKeyholeSnapSize, wxGetTranslation(keyholesnapsize_desc), 10.0f, 120.0f, 1.0f);
+			keyhole_snap_size->Enable(vconfig.bKeyholeSnap);
 
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_roll, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -146,8 +154,12 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(checkbox_yaw, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Keyhole: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_keyhole, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(label_keyhole_width, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(keyhole_width);
+			szr_vr->Add(label_snap, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_keyhole_snap, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(label_snap_size, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(keyhole_snap_size);
 		}
 		// VR Player
 		{
@@ -836,15 +848,40 @@ void CConfigVR::OnKeyholeCheckbox(wxCommandEvent& event)
 {
 	if (checkbox_keyhole->IsChecked())
 	{
+		vconfig.bKeyhole = true;
 		keyhole_width->Enable();
+
 		checkbox_yaw->SetValue(true);
+		vconfig.bStabilizeYaw = true;
+	}
+	else
+	{
+		vconfig.bKeyhole = false;
+		keyhole_width->Disable();
+
+		checkbox_keyhole_snap->SetValue(false);
+		vconfig.bKeyholeSnap = false;
+		keyhole_snap_size->Disable();
+	}
+}
+
+// On Keyhole Checkbox Click
+void CConfigVR::OnKeyholeSnapCheckbox(wxCommandEvent& event)
+{
+	if (checkbox_keyhole_snap->IsChecked())
+	{
+		keyhole_snap_size->Enable();
+		vconfig.bKeyholeSnap = true;
+		checkbox_yaw->SetValue(true);
+		checkbox_keyhole->SetValue(true);
+		keyhole_width->Enable();
 		vconfig.bStabilizeYaw = true;
 		vconfig.bKeyhole = true;
 	}
 	else
 	{
-		keyhole_width->Disable();
-		vconfig.bKeyhole = false;
+		keyhole_snap_size->Disable();
+		vconfig.bKeyholeSnap = false;
 	}
 }
 
@@ -857,9 +894,12 @@ void CConfigVR::OnYawCheckbox(wxCommandEvent& event)
 	else
 	{
 		checkbox_keyhole->SetValue(false);
+		checkbox_keyhole_snap->SetValue(false);
+		vconfig.bKeyholeSnap = false;
 		vconfig.bStabilizeYaw = false;
 		vconfig.bKeyhole = false;
 		keyhole_width->Disable();
+		keyhole_snap_size->Disable();
 	}
 }
 

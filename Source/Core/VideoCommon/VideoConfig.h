@@ -155,6 +155,8 @@ struct VideoConfig final
 	bool bStabilizeYaw;
 	bool bKeyhole;
 	float fKeyholeWidth;
+	bool bKeyholeSnap;
+	float fKeyholeSnapSize;
 	bool bPullUp20fps;
 	bool bPullUp30fps;
 	bool bPullUp60fps;

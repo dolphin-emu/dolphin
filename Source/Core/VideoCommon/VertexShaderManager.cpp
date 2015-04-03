@@ -1829,6 +1829,11 @@ void VertexShaderManager::CheckOrientationConstants()
 		if (g_ActiveConfig.bKeyhole)
 		{
 			static float keyhole_center = 0;
+			float keyhole_snap = 0;
+
+			if (g_ActiveConfig.bKeyholeSnap)
+				float keyhole_snap = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeSnapSize);
+
 			float keyhole_width = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeWidth / 2);
 			float keyhole_left_bound = keyhole_center + keyhole_width;
 			float keyhole_right_bound = keyhole_center - keyhole_width;
@@ -1842,28 +1847,28 @@ void VertexShaderManager::CheckOrientationConstants()
 			// Crossing from positive to negative half, counter-clockwise
 			if (yaw < 0 && keyhole_left_bound > 0 && keyhole_right_bound > 0 && yaw < keyhole_width - MATH_FLOAT_PI)
 			{
-				keyhole_center = yaw - keyhole_width;
+				keyhole_center = yaw - keyhole_width + keyhole_snap;
 			}
 			// Crossing from negative to positive half, clockwise
 			else if (yaw > 0 && keyhole_left_bound < 0 && keyhole_right_bound < 0 && yaw > MATH_FLOAT_PI - keyhole_width)
 			{
-				keyhole_center = yaw + keyhole_width;
+				keyhole_center = yaw + keyhole_width - keyhole_snap;
 			}
 			// Already within the negative and positive range
 			else if (keyhole_left_bound < 0 && keyhole_right_bound > 0)
 			{
 				if (yaw < keyhole_right_bound && yaw > 0)
-					keyhole_center = yaw + keyhole_width;
+					keyhole_center = yaw + keyhole_width - keyhole_snap;
 				else if (yaw > keyhole_left_bound && yaw < 0)
-					keyhole_center = yaw - keyhole_width;
+					keyhole_center = yaw - keyhole_width + keyhole_snap;
 			}
 			// Anywhere within the normal range
 			else
 			{
 				if (yaw < keyhole_right_bound)
-					keyhole_center = yaw + keyhole_width;
+					keyhole_center = yaw + keyhole_width - keyhole_snap;
 				else if (yaw > keyhole_left_bound)
-					keyhole_center = yaw - keyhole_width;
+					keyhole_center = yaw - keyhole_width + keyhole_snap;
 			}
 
 			yaw -= keyhole_center;
