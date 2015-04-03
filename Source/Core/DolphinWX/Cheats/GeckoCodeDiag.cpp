@@ -25,8 +25,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
-#include "Core/GeckoCode.h"
-#include "Core/GeckoCodeConfig.h"
+#include "Core/GeckoCode/GeckoCode.h"
+#include "Core/GeckoCode/GeckoCodeConfig.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 

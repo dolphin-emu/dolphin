@@ -5,8 +5,6 @@ set(SRCS	BootManager.cpp
 			CoreTiming.cpp
 			DSPEmulator.cpp
 			ec_wii.cpp
-			GeckoCodeConfig.cpp
-			GeckoCode.cpp
 			HotkeyManager.cpp
 			MemTools.cpp
 			Movie.cpp
@@ -62,6 +60,8 @@ set(SRCS	BootManager.cpp
 			FifoPlayer/FifoPlayer.cpp
 			FifoPlayer/FifoRecordAnalyzer.cpp
 			FifoPlayer/FifoRecorder.cpp
+			GeckoCode/GeckoCodeConfig.cpp
+			GeckoCode/GeckoCode.cpp
 			HLE/HLE.cpp
 			HLE/HLE_Misc.cpp
 			HLE/HLE_OS.cpp

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <vector>
-#include "Core/GeckoCode.h"
+#include "Core/GeckoCode/GeckoCode.h"
 
 class IniFile;
 

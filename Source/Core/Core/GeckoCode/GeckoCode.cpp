@@ -8,7 +8,7 @@
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/GeckoCode.h"
+#include "Core/GeckoCode/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 

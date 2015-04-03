@@ -8,7 +8,7 @@
 
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
-#include "Core/GeckoCodeConfig.h"
+#include "Core/GeckoCode/GeckoCodeConfig.h"
 
 namespace Gecko
 {
