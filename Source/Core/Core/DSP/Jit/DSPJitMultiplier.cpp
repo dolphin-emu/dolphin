@@ -9,7 +9,7 @@
 
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPEmitter.h"
-#include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/Interpreter/DSPIntUtil.h"
 
 using namespace Gen;
 

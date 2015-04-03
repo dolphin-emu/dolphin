@@ -4,7 +4,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Core/VolumeHandler.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 namespace VolumeHandler
 {

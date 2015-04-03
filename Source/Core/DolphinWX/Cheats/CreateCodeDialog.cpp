@@ -11,8 +11,8 @@
 #include <wx/textctrl.h>
 #include <wx/window.h>
 
-#include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
+#include "Core/ActionReplay/ActionReplay.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"

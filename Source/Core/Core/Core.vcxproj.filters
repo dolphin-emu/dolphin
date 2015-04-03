@@ -155,10 +155,10 @@
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
-    <ClCompile Include="ActionReplay.cpp">
+    <ClCompile Include="ActionReplay\ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
-    <ClCompile Include="ARDecrypt.cpp">
+    <ClCompile Include="ActionReplay\ARDecrypt.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
     <ClCompile Include="Boot\Boot.cpp">
@@ -188,28 +188,28 @@
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntArithmetic.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntArithmetic.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntBranch.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntBranch.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntCCUtil.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntCCUtil.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPInterpreter.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPInterpreter.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntExtOps.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntExtOps.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntLoadStore.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntLoadStore.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntMisc.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntMisc.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DSPIntMultiplier.cpp">
+    <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
@@ -260,10 +260,10 @@
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp">
       <Filter>FifoPlayer</Filter>
     </ClCompile>
-    <ClCompile Include="GeckoCode.cpp">
+    <ClCompile Include="GeckoCode\GeckoCode.cpp">
       <Filter>GeckoCode</Filter>
     </ClCompile>
-    <ClCompile Include="GeckoCodeConfig.cpp">
+    <ClCompile Include="GeckoCode\GeckoCodeConfig.cpp">
       <Filter>GeckoCode</Filter>
     </ClCompile>
     <ClCompile Include="HLE\HLE.cpp">
@@ -752,10 +752,10 @@
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="VolumeHandler.h" />
-    <ClInclude Include="ActionReplay.h">
+    <ClInclude Include="ActionReplay\ActionReplay.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>
-    <ClInclude Include="ARDecrypt.h">
+    <ClInclude Include="ActionReplay\ARDecrypt.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>
     <ClInclude Include="Boot\Boot.h">
@@ -782,16 +782,16 @@
     <ClInclude Include="Debugger\PPCDebugInterface.h">
       <Filter>Debugger</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPIntCCUtil.h">
+    <ClInclude Include="DSP\Interpreter\DSPIntCCUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPInterpreter.h">
+    <ClInclude Include="DSP\Interpreter\DSPInterpreter.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPIntExtOps.h">
+    <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPIntUtil.h">
+    <ClInclude Include="DSP\Interpreter\DSPIntUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="DSP\Jit\DSPJitRegCache.h">
@@ -821,10 +821,10 @@
     <ClInclude Include="FifoPlayer\FifoRecorder.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
-    <ClInclude Include="GeckoCode.h">
+    <ClInclude Include="GeckoCode\GeckoCode.h">
       <Filter>GeckoCode</Filter>
     </ClInclude>
-    <ClInclude Include="GeckoCodeConfig.h">
+    <ClInclude Include="GeckoCode\GeckoCodeConfig.h">
       <Filter>GeckoCode</Filter>
     </ClInclude>
     <ClInclude Include="HLE\HLE.h">

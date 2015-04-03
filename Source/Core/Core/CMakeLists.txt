@@ -1,14 +1,10 @@
-set(SRCS	ActionReplay.cpp
-			ARDecrypt.cpp
-			BootManager.cpp
+set(SRCS	BootManager.cpp
 			ConfigManager.cpp
 			Core.cpp
 			CoreParameter.cpp
 			CoreTiming.cpp
 			DSPEmulator.cpp
 			ec_wii.cpp
-			GeckoCodeConfig.cpp
-			GeckoCode.cpp
 			HotkeyManager.cpp
 			MemTools.cpp
 			Movie.cpp
@@ -17,6 +13,8 @@ set(SRCS	ActionReplay.cpp
 			PatchEngine.cpp
 			State.cpp
 			VolumeHandler.cpp
+			ActionReplay/ActionReplay.cpp
+			ActionReplay/ARDecrypt.cpp
 			Boot/Boot_BS2Emu.cpp
 			Boot/Boot.cpp
 			Boot/Boot_DOL.cpp
@@ -30,23 +28,23 @@ set(SRCS	ActionReplay.cpp
 			DSP/DSPDisassembler.cpp
 			DSP/DSPAccelerator.cpp
 			DSP/DSPCaptureLogger.cpp
-			DSP/DSPIntCCUtil.cpp
-			DSP/DSPIntExtOps.cpp
 			DSP/DSPHWInterface.cpp
 			DSP/DSPMemoryMap.cpp
 			DSP/DSPStacks.cpp
 			DSP/DSPAnalyzer.cpp
-			DSP/DSPIntArithmetic.cpp
-			DSP/DSPIntBranch.cpp
-			DSP/DSPIntLoadStore.cpp
-			DSP/DSPIntMisc.cpp
-			DSP/DSPIntMultiplier.cpp
 			DSP/DSPEmitter.cpp
 			DSP/DSPCodeUtil.cpp
 			DSP/LabelMap.cpp
-			DSP/DSPInterpreter.cpp
 			DSP/DSPCore.cpp
 			DSP/DSPTables.cpp
+			DSP/Interpreter/DSPIntArithmetic.cpp
+			DSP/Interpreter/DSPIntBranch.cpp
+			DSP/Interpreter/DSPIntCCUtil.cpp
+			DSP/Interpreter/DSPInterpreter.cpp
+			DSP/Interpreter/DSPIntExtOps.cpp
+			DSP/Interpreter/DSPIntLoadStore.cpp
+			DSP/Interpreter/DSPIntMisc.cpp
+			DSP/Interpreter/DSPIntMultiplier.cpp
 			DSP/Jit/DSPJitRegCache.cpp
 			DSP/Jit/DSPJitExtOps.cpp
 			DSP/Jit/DSPJitBranch.cpp
@@ -62,6 +60,8 @@ set(SRCS	ActionReplay.cpp
 			FifoPlayer/FifoPlayer.cpp
 			FifoPlayer/FifoRecordAnalyzer.cpp
 			FifoPlayer/FifoRecorder.cpp
+			GeckoCode/GeckoCodeConfig.cpp
+			GeckoCode/GeckoCode.cpp
 			HLE/HLE.cpp
 			HLE/HLE_Misc.cpp
 			HLE/HLE_OS.cpp

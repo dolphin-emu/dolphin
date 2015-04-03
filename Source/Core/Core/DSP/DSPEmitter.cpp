@@ -8,8 +8,8 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHost.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 #define MAX_BLOCK_SIZE 250
 #define DSP_IDLE_SKIP_CYCLES 0x1000

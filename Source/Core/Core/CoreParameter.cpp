@@ -19,8 +19,8 @@
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 
 SCoreStartupParameter::SCoreStartupParameter()
 : bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),

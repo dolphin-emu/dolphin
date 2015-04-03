@@ -8,7 +8,7 @@
 #include <vector>
 #include <wx/panel.h>
 
-#include "Core/GeckoCode.h"
+#include "Core/GeckoCode/GeckoCode.h"
 
 class IniFile;
 class wxButton;

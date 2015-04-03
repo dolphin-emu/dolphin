@@ -7,9 +7,9 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPEmitter.h"
-#include "Core/DSP/DSPInterpreter.h"
-#include "Core/DSP/DSPIntExtOps.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
+#include "Core/DSP/Interpreter/DSPIntExtOps.h"
 
 void nop(const UDSPInstruction opc)
 {

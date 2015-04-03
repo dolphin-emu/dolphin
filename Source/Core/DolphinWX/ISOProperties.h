@@ -19,10 +19,10 @@
 #include <wx/windowid.h>
 
 #include "Common/IniFile.h"
-#include "Core/ActionReplay.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
+#include "Core/ActionReplay/ActionReplay.h"
+#include "DiscIO/FileSystem/Filesystem.h"
+#include "DiscIO/Volume/Volume.h"
+#include "DiscIO/Volume/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/PatchAddEdit.h"
 

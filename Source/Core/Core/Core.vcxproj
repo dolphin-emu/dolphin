@@ -35,8 +35,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="ActionReplay.cpp" />
-    <ClCompile Include="ARDecrypt.cpp" />
+    <ClCompile Include="ActionReplay\ActionReplay.cpp" />
+    <ClCompile Include="ActionReplay\ARDecrypt.cpp" />
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
     <ClCompile Include="Boot\Boot_BS2Emu.cpp" />
@@ -61,17 +61,17 @@
     <ClCompile Include="DSP\DSPCore.cpp" />
     <ClCompile Include="DSP\DSPEmitter.cpp" />
     <ClCompile Include="DSP\DSPHWInterface.cpp" />
-    <ClCompile Include="DSP\DSPIntArithmetic.cpp" />
-    <ClCompile Include="DSP\DSPIntBranch.cpp" />
-    <ClCompile Include="DSP\DSPIntCCUtil.cpp" />
-    <ClCompile Include="DSP\DSPInterpreter.cpp" />
-    <ClCompile Include="DSP\DSPIntExtOps.cpp" />
-    <ClCompile Include="DSP\DSPIntLoadStore.cpp" />
-    <ClCompile Include="DSP\DSPIntMisc.cpp" />
-    <ClCompile Include="DSP\DSPIntMultiplier.cpp" />
     <ClCompile Include="DSP\DSPMemoryMap.cpp" />
     <ClCompile Include="DSP\DSPStacks.cpp" />
     <ClCompile Include="DSP\DSPTables.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPIntArithmetic.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPIntBranch.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPIntCCUtil.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPInterpreter.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPIntExtOps.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPIntLoadStore.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPIntMisc.cpp" />
+    <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp" />
     <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp" />
     <ClCompile Include="DSP\Jit\DSPJitBranch.cpp" />
     <ClCompile Include="DSP\Jit\DSPJitCCUtil.cpp" />
@@ -89,8 +89,8 @@
     <ClCompile Include="FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp" />
-    <ClCompile Include="GeckoCode.cpp" />
-    <ClCompile Include="GeckoCodeConfig.cpp" />
+    <ClCompile Include="GeckoCode\GeckoCode.cpp" />
+    <ClCompile Include="GeckoCode\GeckoCodeConfig.cpp" />
     <ClCompile Include="HLE\HLE.cpp" />
     <ClCompile Include="HLE\HLE_Misc.cpp" />
     <ClCompile Include="HLE\HLE_OS.cpp" />
@@ -256,8 +256,8 @@
     <ClCompile Include="VolumeHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ActionReplay.h" />
-    <ClInclude Include="ARDecrypt.h" />
+    <ClInclude Include="ActionReplay\ActionReplay.h" />
+    <ClInclude Include="ActionReplay\ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
     <ClInclude Include="Boot\Boot_DOL.h" />
@@ -284,13 +284,13 @@
     <ClInclude Include="DSP\DSPEmitter.h" />
     <ClInclude Include="DSP\DSPHost.h" />
     <ClInclude Include="DSP\DSPHWInterface.h" />
-    <ClInclude Include="DSP\DSPIntCCUtil.h" />
-    <ClInclude Include="DSP\DSPInterpreter.h" />
-    <ClInclude Include="DSP\DSPIntExtOps.h" />
-    <ClInclude Include="DSP\DSPIntUtil.h" />
     <ClInclude Include="DSP\DSPMemoryMap.h" />
     <ClInclude Include="DSP\DSPStacks.h" />
     <ClInclude Include="DSP\DSPTables.h" />
+    <ClInclude Include="DSP\Interpreter\DSPIntCCUtil.h" />
+    <ClInclude Include="DSP\Interpreter\DSPInterpreter.h" />
+    <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h" />
+    <ClInclude Include="DSP\Interpreter\DSPIntUtil.h" />
     <ClInclude Include="DSP\Jit\DSPJitRegCache.h" />
     <ClInclude Include="DSP\LabelMap.h" />
     <ClInclude Include="ec_wii.h" />
@@ -301,8 +301,8 @@
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoRecorder.h" />
-    <ClInclude Include="GeckoCode.h" />
-    <ClInclude Include="GeckoCodeConfig.h" />
+    <ClInclude Include="GeckoCode\GeckoCode.h" />
+    <ClInclude Include="GeckoCode\GeckoCodeConfig.h" />
     <ClInclude Include="HLE\HLE.h" />
     <ClInclude Include="HLE\HLE_Misc.h" />
     <ClInclude Include="HLE\HLE_OS.h" />

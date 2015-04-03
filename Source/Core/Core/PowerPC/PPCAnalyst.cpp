@@ -9,7 +9,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/GeckoCode.h"
+#include "Core/GeckoCode/GeckoCode.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCAnalyst.h"

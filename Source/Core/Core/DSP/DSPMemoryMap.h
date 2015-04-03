@@ -28,7 +28,7 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 u16  dsp_imem_read(u16 addr);
 void dsp_dmem_write(u16 addr, u16 val);

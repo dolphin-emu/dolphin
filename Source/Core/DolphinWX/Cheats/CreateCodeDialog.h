@@ -8,7 +8,7 @@
 #include <wx/event.h>
 
 #include "Common/CommonTypes.h"
-#include "Core/ActionReplay.h"
+#include "Core/ActionReplay/ActionReplay.h"
 
 class wxCheckBox;
 class wxTextCtrl;

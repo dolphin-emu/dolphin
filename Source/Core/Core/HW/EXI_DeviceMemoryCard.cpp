@@ -20,7 +20,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/NAND/NANDContentLoader.h"
 
 #define MC_STATUS_BUSY              0x80
 #define MC_STATUS_UNLOCKED          0x40
