@@ -31,8 +31,6 @@
 
 namespace DSPInterpreter {
 
-static volatile u32 gdsp_running;
-
 // NOTE: These have nothing to do with g_dsp.r.cr !
 
 void WriteCR(u16 val)
@@ -223,11 +221,6 @@ int RunCycles(int cycles)
 			// it just won't call this function anymore.
 		}
 	}
-}
-
-void Stop()
-{
-	gdsp_running = false;
 }
 
 }  // namespace
