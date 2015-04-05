@@ -48,8 +48,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/ec_wii.h"
 #include "Core/Movie.h"
-#include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot_DOL.h"
+#include "Core/HW/DVDInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -110,11 +110,11 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
 		// m_TitleIDsOwned.clear();
 		// DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
 	}
-	else if (VolumeHandler::IsValid())
+	else if (DVDInterface::VolumeIsValid())
 	{
 		// blindly grab the titleID from the disc - it's unencrypted at:
 		// offset 0x0F8001DC and 0x0F80044C
-		VolumeHandler::GetVolume()->GetTitleID((u8*)&m_TitleID);
+		DVDInterface::GetVolume().GetTitleID((u8*)&m_TitleID);
 		m_TitleID = Common::swap64(m_TitleID);
 	}
 	else
@@ -1093,7 +1093,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 {
 	u64 titleID = 0xDEADBEEFDEADBEEFull;
 	u64 tmdTitleID = Common::swap64(*(u64*)(_pTMD+0x18c));
-	VolumeHandler::GetVolume()->GetTitleID((u8*)&titleID);
+	DVDInterface::GetVolume().GetTitleID((u8*)&titleID);
 	if (Common::swap64(titleID) != tmdTitleID)
 	{
 		return -1;
