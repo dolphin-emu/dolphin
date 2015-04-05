@@ -43,8 +43,18 @@ struct RegInfo
 	JitIL *Jit;
 	IRBuilder* Build;
 	InstLoc FirstI;
+
+	// IInfo contains (per instruction)
+	// Bits 0-1: Saturating count of number of instructions referencing this instruction.
+	// Bits 2-4: single bit per operand marking if this is the last instruction to reference that operand's result.
+	//           Used to decide if we should free any registers associated with the operands after this instruction
+	//           and if we can clobber the operands registers.
+	// Bits 15-31: Spill location
 	std::vector<unsigned> IInfo;
+
+	// The last instruction which uses the result of this instruction. Used by the register allocator.
 	std::vector<InstLoc> lastUsed;
+
 	InstLoc regs[MAX_NUMBER_OF_REGS];
 	InstLoc fregs[MAX_NUMBER_OF_REGS];
 	unsigned numSpills;
@@ -260,7 +270,10 @@ static void regClearInst(RegInfo& RI, InstLoc I)
 	for (auto& reg : RegAllocOrder)
 	{
 		if (RI.regs[reg] == I)
+		{
 			RI.regs[reg] = nullptr;
+			return;
+		}
 	}
 }
 
@@ -269,7 +282,10 @@ static void fregClearInst(RegInfo& RI, InstLoc I)
 	for (auto& reg : FRegAllocOrder)
 	{
 		if (RI.fregs[reg] == I)
+		{
 			RI.fregs[reg] = nullptr;
+			return;
+		}
 	}
 }
 
@@ -412,20 +428,27 @@ static X64Reg regBinLHSReg(RegInfo& RI, InstLoc I)
 	return reg;
 }
 
+// Clear any registers which end their lifetime at I
+// Don't use this for special instructions like memory load/stores
 static void regNormalRegClear(RegInfo& RI, InstLoc I)
 {
-	if (RI.IInfo[I - RI.FirstI] & 4)
+	if (RI.IInfo[I - RI.FirstI] & 0x04)
 		regClearInst(RI, getOp1(I));
-	if (RI.IInfo[I - RI.FirstI] & 8)
+	if (RI.IInfo[I - RI.FirstI] & 0x08)
 		regClearInst(RI, getOp2(I));
+	if (RI.IInfo[I - RI.FirstI] & 0x10)
+		regClearInst(RI, getOp3(I));
 }
 
+// Clear any floating point registers which end their lifetime at I
 static void fregNormalRegClear(RegInfo& RI, InstLoc I)
 {
-	if (RI.IInfo[I - RI.FirstI] & 4)
+	if (RI.IInfo[I - RI.FirstI] & 0x04)
 		fregClearInst(RI, getOp1(I));
-	if (RI.IInfo[I - RI.FirstI] & 8)
+	if (RI.IInfo[I - RI.FirstI] & 0x08)
 		fregClearInst(RI, getOp2(I));
+	if (RI.IInfo[I - RI.FirstI] & 0x10)
+		fregClearInst(RI, getOp3(I));
 }
 
 static void regEmitBinInst(RegInfo& RI, InstLoc I,
@@ -495,93 +518,48 @@ static void fregEmitBinInst(RegInfo& RI, InstLoc I, void (JitIL::*op)(X64Reg, Op
 
 // Mark and calculation routines for profiled load/store addresses
 // Could be extended to unprofiled addresses.
-static void regMarkMemAddress(RegInfo& RI, InstLoc I, InstLoc AI, unsigned OpNum)
+static void regMarkMemAddress(RegInfo& RI, InstLoc I, InstLoc base, unsigned OpNum)
 {
-	if (isImm(*AI))
+	if (isImm(*base))
 	{
-		unsigned addr = RI.Build->GetImmValue(AI);
+		unsigned addr = RI.Build->GetImmValue(base);
 		if (PowerPC::IsOptimizableRAMAddress(addr))
 			return;
 	}
-
-	if (getOpcode(*AI) == Add && isImm(*getOp2(AI)))
-	{
-		regMarkUse(RI, I, getOp1(AI), OpNum);
-		return;
-	}
-
-	regMarkUse(RI, I, AI, OpNum);
+	regMarkUse(RI, I, base, OpNum);
 }
 
-// in 64-bit build, this returns a completely bizarre address sometimes!
-static std::pair<OpArg, u32> regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
-                                                unsigned OpNum, X64Reg* dest)
+static std::pair<OpArg, u32> regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc base, InstLoc offset)
 {
-	if (isImm(*AI))
+	if (isImm(*base))
 	{
-		unsigned addr = RI.Build->GetImmValue(AI);
+		unsigned addr = RI.Build->GetImmValue(base);
 		if (PowerPC::IsOptimizableRAMAddress(addr))
-		{
-			if (dest)
-				*dest = regFindFreeReg(RI);
-
 			return std::make_pair(Imm32(addr), 0);
-		}
 	}
 
-	unsigned offset;
-	InstLoc AddrBase;
-	if (getOpcode(*AI) == Add && isImm(*getOp2(AI)))
-	{
-		offset = RI.Build->GetImmValue(getOp2(AI));
-		AddrBase = getOp1(AI);
-	}
-	else
-	{
-		offset = 0;
-		AddrBase = AI;
-	}
+	unsigned offsetImm = RI.Build->GetImmValue(offset);
+	X64Reg baseReg = regEnsureInReg(RI, base);
 
-	X64Reg baseReg;
-	// Ok, this stuff needs a comment or three :P -ector
-	if (RI.IInfo[I - RI.FirstI] & (2 << OpNum))
-	{
-		baseReg = regEnsureInReg(RI, AddrBase);
-		regClearInst(RI, AddrBase);
-		if (dest)
-			*dest = baseReg;
-	}
-	else if (dest)
-	{
-		X64Reg reg = regFindFreeReg(RI);
-		const OpArg loc = regLocForInst(RI, AddrBase);
-		if (!loc.IsSimpleReg())
-		{
-			RI.Jit->MOV(32, R(reg), loc);
-			baseReg = reg;
-		}
-		else
-		{
-			baseReg = loc.GetSimpleReg();
-		}
-		*dest = reg;
-	}
-	else
-	{
-		baseReg = regEnsureInReg(RI, AddrBase);
-	}
-
-	return std::make_pair(R(baseReg), offset);
+	return std::make_pair(R(baseReg), offsetImm);
 }
 
 static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size)
 {
-	X64Reg reg;
-	auto info = regBuildMemAddress(RI, I, getOp1(I), 1, &reg);
+	auto info = regBuildMemAddress(RI, I, getOp1(I), getOp2(I));
 
-	RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false);
+	X64Reg dest;
+	// Clobber the base register if possible.
+	if (info.first.IsSimpleReg() && RI.IInfo[I - RI.FirstI] & 0x4)
+		dest = info.first.GetSimpleReg();
+	else
+		dest = regFindFreeReg(RI);
+
+	RI.Jit->SafeLoadToReg(dest, info.first, Size, info.second, regsInUse(RI), false);
 	if (regReadUse(RI, I))
-		RI.regs[reg] = I;
+		RI.regs[dest] = I;
+
+	regNormalRegClear(RI, I);
 }
 
 static OpArg regImmForConst(RegInfo& RI, InstLoc I, unsigned Size)
@@ -604,7 +582,7 @@ static OpArg regImmForConst(RegInfo& RI, InstLoc I, unsigned Size)
 
 static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size)
 {
-	auto info = regBuildMemAddress(RI, I, getOp2(I), 2, nullptr);
+	auto info = regBuildMemAddress(RI, I, getOp2(I), getOp3(I));
 	if (info.first.IsImm())
 		RI.Jit->MOV(32, R(RSCRATCH2), info.first);
 	else
@@ -624,6 +602,8 @@ static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size)
 	RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, Size, 0, regsInUse(RI));
 	if (RI.IInfo[I - RI.FirstI] & 4)
 		regClearInst(RI, getOp1(I));
+
+	regNormalRegClear(RI, I);
 }
 
 static void regEmitShiftInst(RegInfo& RI, InstLoc I, void (JitIL::*op)(int, OpArg, OpArg))
@@ -1558,7 +1538,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = fregFindFreeReg(RI);
-			auto info = regBuildMemAddress(RI, I, getOp1(I), 1, nullptr);
+			auto info = regBuildMemAddress(RI, I, getOp1(I), getOp2(I));
 
 			RI.Jit->SafeLoadToReg(RSCRATCH2, info.first, 32, info.second, regsInUse(RI), false);
 			Jit->MOVD_xmm(reg, R(RSCRATCH2));
@@ -1572,7 +1552,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = fregFindFreeReg(RI);
-			auto info = regBuildMemAddress(RI, I, getOp1(I), 1, nullptr);
+			auto info = regBuildMemAddress(RI, I, getOp1(I), getOp2(I));
 
 			RI.Jit->SafeLoadToReg(RSCRATCH2, info.first, 64, info.second, regsInUse(RI), false);
 			Jit->MOVQ_xmm(reg, R(RSCRATCH2));
@@ -1614,7 +1594,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			else
 				Jit->MOV(32, R(RSCRATCH), loc1);
 
-			auto info = regBuildMemAddress(RI, I, getOp2(I), 2, nullptr);
+			auto info = regBuildMemAddress(RI, I, getOp2(I), getOp3(I));
 			if (info.first.IsImm())
 				RI.Jit->MOV(32, R(RSCRATCH2), info.first);
 			else
@@ -1636,7 +1616,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->MOVAPD(XMM0, value);
 			Jit->MOVQ_xmm(R(RSCRATCH), XMM0);
 
-			auto info = regBuildMemAddress(RI, I, getOp2(I), 2, nullptr);
+			auto info = regBuildMemAddress(RI, I, getOp2(I), getOp3(I));
 			if (info.first.IsImm())
 				RI.Jit->MOV(32, R(RSCRATCH2), info.first);
 			else
