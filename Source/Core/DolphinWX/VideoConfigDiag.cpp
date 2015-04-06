@@ -110,6 +110,7 @@ static wxString aa_desc = _("Reduces the amount of aliasing caused by rasterizin
 static wxString scaled_efb_copy_desc = _("Greatly increases quality of textures generated using render-to-texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly increases GPU load and causes relatively few graphical issues.\n\nIf unsure, leave this checked.");
 static wxString pixel_lighting_desc = _("Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the appearance of lit polygons and making individual triangles less noticeable.\nRarely causes slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
 static wxString fast_depth_calc_desc = _("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games, but can give a decent speedup depending on the game and/or your GPU.\n\nIf unsure, leave this checked.");
+static wxString disable_bbox_desc = _("Disable the bounding box emulation.\nThis may improve the GPU performance a lot, but some games will break.\n\nIf unsure, leave this checked.");
 static wxString force_filtering_desc = _("Filter all textures, including any that the game explicitly set as unfiltered.\nMay improve quality of certain textures in some games, but will cause issues in others.\nOn Direct3D, setting Anisotropic Filtering above 1x will also have the same effect as enabling this option.\n\nIf unsure, leave this unchecked.");
 static wxString borderless_fullscreen_desc = _("Implement fullscreen mode with a borderless window spanning the whole screen instead of using exclusive mode.\nAllows for faster transitions between fullscreen and windowed mode, but slightly increases input latency, makes movement less smooth and slightly decreases performance.\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D backend.\n\nIf unsure, leave this unchecked.");
 static wxString internal_res_desc = _("Specifies the resolution used to render at. A high resolution greatly improves visual quality, but also greatly increases GPU load and can cause issues in certain games.\n\"Multiple of 640x528\" will result in a size slightly larger than \"Window Size\" but yield fewer issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n\nIf unsure, select 640x528.");
@@ -517,6 +518,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Destination Alpha"), disable_dstalpha_desc, vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Depth Calculation"), fast_depth_calc_desc, vconfig.bFastDepthCalc));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Bounding Box"), disable_bbox_desc, vconfig.bBBoxEnable, true));
 
 	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
 	group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

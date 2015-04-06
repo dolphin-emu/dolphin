@@ -112,6 +112,7 @@ struct VideoConfig final
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bPerfQueriesEnable;
+	bool bBBoxEnable;
 
 	bool bEFBEmulateFormatChanges;
 	bool bSkipEFBCopyToRam;

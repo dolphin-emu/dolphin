@@ -88,7 +88,7 @@ void VertexLoader::CompileVertexTranslator()
 	m_numPipelineStages = 0;
 
 	// Get the pointer to this vertex's buffer data for the bounding box
-	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+	if (!g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
 		WriteCall(BoundingBox::SetVertexBufferPosition);
 
 	// Colors
@@ -299,7 +299,7 @@ void VertexLoader::CompileVertexTranslator()
 	}
 
 	// Update the bounding box
-	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+	if (!g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
 		WriteCall(BoundingBox::Update);
 
 	// indexed position formats may skip a the vertex
@@ -326,7 +326,7 @@ int VertexLoader::RunVertices(DataReader src, DataReader dst, int count, int pri
 	m_skippedVertices = 0;
 
 	// Prepare bounding box
-	if (!g_ActiveConfig.backend_info.bSupportsBBox)
+	if (!g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
 		BoundingBox::Prepare(m_vat, primitive, m_VtxDesc, m_native_vtx_decl);
 
 	for (int s = 0; s < count; s++)
