@@ -40,11 +40,12 @@ static u16 m_bboxright;
 static u16 m_bboxbottom;
 static u16 m_tokenReg;
 
-volatile bool isPossibleWaitingSetDrawDone = false;
 volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
+
+Common::Flag s_gpuMaySleep;
 
 volatile u32 VITicks = CommandProcessor::m_cpClockOrigin;
 
@@ -70,7 +71,6 @@ void DoState(PointerWrap &p)
 	p.Do(m_tokenReg);
 	p.Do(fifo);
 
-	p.Do(isPossibleWaitingSetDrawDone);
 	p.Do(interruptSet);
 	p.Do(interruptWaiting);
 	p.Do(interruptTokenWaiting);
@@ -122,8 +122,6 @@ void Init()
 	interruptWaiting = false;
 	interruptFinishWaiting = false;
 	interruptTokenWaiting = false;
-
-	isPossibleWaitingSetDrawDone = false;
 
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
@@ -319,13 +317,10 @@ void GatherPipeBursted()
 			    (ProcessorInterface::Fifo_CPUBase == fifo.CPBase) &&
 			    fifo.CPReadWriteDistance > 0)
 			{
-				ProcessFifoAllDistance();
+				FlushGpu();
 			}
 		}
-		else
-		{
-			RunGpu();
-		}
+		RunGpu();
 		return;
 	}
 
@@ -375,6 +370,7 @@ void UpdateInterrupts(u64 userdata)
 	}
 	CoreTiming::ForceExceptionCheck(0);
 	interruptWaiting = false;
+	RunGpu();
 }
 
 void UpdateInterruptsFromVideoBackend(u64 userdata)
@@ -470,15 +466,6 @@ void SetCPStatusFromCPU()
 	}
 }
 
-void ProcessFifoAllDistance()
-{
-	if (IsOnThread())
-	{
-		while (!interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
-			Common::YieldCPU();
-	}
-}
-
 void ProcessFifoEvents()
 {
 	if (IsOnThread() && (interruptWaiting || interruptFinishWaiting || interruptTokenWaiting))
@@ -520,7 +507,7 @@ void SetCpControlRegister()
 	if (fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{
 		fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable;
-		while (fifo.isGpuReadingData) Common::YieldCPU();
+		FlushGpu();
 	}
 	else
 	{
@@ -551,5 +538,7 @@ void Update()
 
 	if (fifo.isGpuReadingData)
 		Common::AtomicAdd(VITicks, SystemTimers::GetTicksPerSecond() / 10000);
+
+	RunGpu();
 }
 } // end of namespace CommandProcessor

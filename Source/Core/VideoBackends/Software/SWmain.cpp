@@ -360,11 +360,6 @@ void VideoSoftware::Video_GatherPipeBursted()
 	SWCommandProcessor::GatherPipeBursted();
 }
 
-bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone()
-{
-	return false;
-}
-
 void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	SWCommandProcessor::RegisterMMIO(mmio, base);
