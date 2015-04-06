@@ -209,7 +209,6 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 
 void DSPLLE::DSP_StopSoundStream()
 {
-	DSPInterpreter::Stop();
 	if (m_bDSPThread)
 	{
 		m_bIsRunning.Clear();

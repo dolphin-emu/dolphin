@@ -393,9 +393,9 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu* helpMenu = new wxMenu;
 	// Re-enable when there's something useful to display */
 	// helpMenu->Append(wxID_HELP, _("&Help"));
-	helpMenu->Append(IDM_HELP_WEBSITE, _("Dolphin &Website"));
+	helpMenu->Append(IDM_HELP_WEBSITE, _("&Website"));
 	helpMenu->Append(IDM_HELP_ONLINE_DOCS, _("Online &Documentation"));
-	helpMenu->Append(IDM_HELP_GITHUB, _("Dolphin at &GitHub"));
+	helpMenu->Append(IDM_HELP_GITHUB, _("&GitHub Repository"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(wxID_ABOUT, _("&About..."));
 	menubar->Append(helpMenu, _("&Help"));
@@ -1539,13 +1539,13 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		}
 		break;
 	case IDM_HELP_WEBSITE:
-		WxUtils::Launch("https://dolphin-emu.org/");
+		WxUtils::Launch("https://dolphinvr.wordpress.com/");
 		break;
 	case IDM_HELP_ONLINE_DOCS:
 		WxUtils::Launch("https://dolphin-emu.org/docs/guides/");
 		break;
 	case IDM_HELP_GITHUB:
-		WxUtils::Launch("https://github.com/dolphin-emu/dolphin");
+		WxUtils::Launch("https://github.com/CarlKenner/dolphin");
 		break;
 	}
 }

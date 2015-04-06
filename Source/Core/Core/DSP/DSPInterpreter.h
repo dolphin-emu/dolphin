@@ -22,8 +22,6 @@ int RunCyclesThread(int cycles);
 int RunCycles(int cycles);
 int RunCyclesDebug(int cycles);
 
-void Stop();
-
 void WriteCR(u16 val);
 u16  ReadCR();
 
