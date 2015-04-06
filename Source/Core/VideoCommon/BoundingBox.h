@@ -25,16 +25,6 @@ enum
 	BOTTOM = 3
 };
 
-// Current position matrix index
-extern u8 posMtxIdx;
-
-// Texture matrix indexes
-extern u8 texMtxIdx[8];
-
-void LOADERDECL SetVertexBufferPosition(VertexLoader* loader);
-void LOADERDECL Update(VertexLoader* loader);
-void Prepare(const VAT & vat, int primitive, const TVtxDesc & vtxDesc, const PortableVertexDeclaration & vtxDecl);
-
 // Save state
 void DoState(PointerWrap &p);
 

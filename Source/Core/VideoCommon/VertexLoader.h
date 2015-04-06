@@ -32,7 +32,7 @@ class VertexLoader : public VertexLoaderBase
 public:
 	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
 
-	int RunVertices(DataReader src, DataReader dst, int count, int primitive) override;
+	int RunVertices(DataReader src, DataReader dst, int count) override;
 	std::string GetName() const override { return "OldLoader"; }
 	bool IsInitialized() override { return true; } // This vertex loader supports all formats
 

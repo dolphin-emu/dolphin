@@ -161,13 +161,13 @@ public:
 		delete b;
 	}
 
-	int RunVertices(DataReader src, DataReader dst, int count, int primitive) override
+	int RunVertices(DataReader src, DataReader dst, int count) override
 	{
 		buffer_a.resize(count * a->m_native_vtx_decl.stride + 4);
 		buffer_b.resize(count * b->m_native_vtx_decl.stride + 4);
 
-		int count_a = a->RunVertices(src, DataReader(buffer_a.data(), buffer_a.data()+buffer_a.size()), count, primitive);
-		int count_b = b->RunVertices(src, DataReader(buffer_b.data(), buffer_b.data()+buffer_b.size()), count, primitive);
+		int count_a = a->RunVertices(src, DataReader(buffer_a.data(), buffer_a.data()+buffer_a.size()), count);
+		int count_b = b->RunVertices(src, DataReader(buffer_b.data(), buffer_b.data()+buffer_b.size()), count);
 
 		if (count_a != count_b)
 			ERROR_LOG(VIDEO, "The two vertex loaders have loaded a different amount of vertices (a: %d, b: %d).", count_a, count_b);

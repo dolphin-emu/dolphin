@@ -83,7 +83,7 @@ protected:
 		if (expected_count == -1)
 			expected_count = count;
 		ResetPointers();
-		int actual_count = m_loader->RunVertices(m_src, m_dst, count, GX_DRAW_POINTS);
+		int actual_count = m_loader->RunVertices(m_src, m_dst, count);
 		EXPECT_EQ(actual_count, expected_count);
 	}
 

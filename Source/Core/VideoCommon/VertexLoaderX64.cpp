@@ -508,7 +508,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 	m_native_vtx_decl.stride = m_dst_ofs;
 }
 
-int VertexLoaderX64::RunVertices(DataReader src, DataReader dst, int count, int primitive)
+int VertexLoaderX64::RunVertices(DataReader src, DataReader dst, int count)
 {
 	m_numLoadedVertices += count;
 	return ((int (*)(u8* src, u8* dst, int count))region)(src.GetPointer(), dst.GetPointer(), count);

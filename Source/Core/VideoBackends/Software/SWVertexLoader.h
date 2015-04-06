@@ -36,7 +36,6 @@ class SWVertexLoader
 	VertexLoaderBase* m_CurrentLoader;
 
 	u8 m_attributeIndex;
-	u8 m_primitiveType;
 
 public:
 	SWVertexLoader();
