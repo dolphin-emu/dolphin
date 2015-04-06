@@ -1539,13 +1539,13 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		}
 		break;
 	case IDM_HELP_WEBSITE:
-		WxUtils::Launch("https://dolphin-emu.org/");
+		WxUtils::Launch("https://dolphinvr.wordpress.com/");
 		break;
 	case IDM_HELP_ONLINE_DOCS:
 		WxUtils::Launch("https://dolphin-emu.org/docs/guides/");
 		break;
 	case IDM_HELP_GITHUB:
-		WxUtils::Launch("https://github.com/dolphin-emu/dolphin");
+		WxUtils::Launch("https://github.com/CarlKenner/dolphin");
 		break;
 	}
 }
