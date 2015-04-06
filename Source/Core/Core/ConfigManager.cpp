@@ -444,7 +444,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 			std::string tmpPath;
 			general->Get(StringFromFormat("GCMPath%i", i), &tmpPath, "");
 			bool found = false;
-			for (int j = 0; j < m_ISOFolder.size(); ++j)
+			for (size_t j = 0; j < m_ISOFolder.size(); ++j)
 			{
 				if (m_ISOFolder[j] == tmpPath)
 				{
