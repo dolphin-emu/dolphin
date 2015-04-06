@@ -1839,18 +1839,18 @@ void VertexShaderManager::CheckOrientationConstants()
 			float keyhole_right_bound = keyhole_center - keyhole_width;
 
 			// Correct left and right bounds if they calculated incorrectly and are out of the range of -PI to PI.
-			if (keyhole_left_bound > MATH_FLOAT_PI)
-				keyhole_left_bound -= (2 * MATH_FLOAT_PI);
-			else if (keyhole_right_bound < -MATH_FLOAT_PI)
-				keyhole_right_bound += (2 * MATH_FLOAT_PI);
+			if (keyhole_left_bound > (float)(M_PI))
+				keyhole_left_bound -= (2 * (float)(M_PI));
+			else if (keyhole_right_bound < -(float)(M_PI))
+				keyhole_right_bound += (2 * (float)(M_PI));
 
 			// Crossing from positive to negative half, counter-clockwise
-			if (yaw < 0 && keyhole_left_bound > 0 && keyhole_right_bound > 0 && yaw < keyhole_width - MATH_FLOAT_PI)
+			if (yaw < 0 && keyhole_left_bound > 0 && keyhole_right_bound > 0 && yaw < keyhole_width - (float)(M_PI))
 			{
 				keyhole_center = yaw - keyhole_width + keyhole_snap;
 			}
 			// Crossing from negative to positive half, clockwise
-			else if (yaw > 0 && keyhole_left_bound < 0 && keyhole_right_bound < 0 && yaw > MATH_FLOAT_PI - keyhole_width)
+			else if (yaw > 0 && keyhole_left_bound < 0 && keyhole_right_bound < 0 && yaw > (float)(M_PI) - keyhole_width)
 			{
 				keyhole_center = yaw + keyhole_width - keyhole_snap;
 			}
