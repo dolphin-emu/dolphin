@@ -97,7 +97,7 @@ bool IsDirectory(const std::string &filename)
 	if (result < 0)
 	{
 		WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s",
-				 filename.c_str(), GetLastErrorMsg());
+				 filename.c_str(), GetLastErrorMsg().c_str());
 		return false;
 	}
 
@@ -129,14 +129,14 @@ bool Delete(const std::string &filename)
 	if (!DeleteFile(UTF8ToTStr(filename).c_str()))
 	{
 		WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s",
-				 filename.c_str(), GetLastErrorMsg());
+				 filename.c_str(), GetLastErrorMsg().c_str());
 		return false;
 	}
 #else
 	if (unlink(filename.c_str()) == -1)
 	{
 		WARN_LOG(COMMON, "Delete: unlink failed on %s: %s",
-				 filename.c_str(), GetLastErrorMsg());
+				 filename.c_str(), GetLastErrorMsg().c_str());
 		return false;
 	}
 #endif
@@ -234,7 +234,7 @@ bool DeleteDir(const std::string &filename)
 	if (rmdir(filename.c_str()) == 0)
 		return true;
 #endif
-	ERROR_LOG(COMMON, "DeleteDir: %s: %s", filename.c_str(), GetLastErrorMsg());
+	ERROR_LOG(COMMON, "DeleteDir: %s: %s", filename.c_str(), GetLastErrorMsg().c_str());
 
 	return false;
 }
@@ -262,7 +262,7 @@ bool Rename(const std::string &srcFilename, const std::string &destFilename)
 		return true;
 #endif
 	ERROR_LOG(COMMON, "Rename: failed %s --> %s: %s",
-			  srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+			  srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg().c_str());
 	return false;
 }
 
@@ -311,7 +311,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 		return true;
 
 	ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s",
-			srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+			srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg().c_str());
 	return false;
 #else
 
@@ -326,7 +326,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	if (!input.is_open())
 	{
 		ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s",
-				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg().c_str());
 		return false;
 	}
 
@@ -336,7 +336,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	if (!output.IsOpen())
 	{
 		ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s",
-				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg().c_str());
 		return false;
 	}
 
@@ -349,7 +349,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 		{
 			ERROR_LOG(COMMON,
 					"Copy: failed reading from source, %s --> %s: %s",
-					srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+					srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg().c_str());
 			return false;
 		}
 
@@ -358,7 +358,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 		{
 			ERROR_LOG(COMMON,
 					"Copy: failed writing to output, %s --> %s: %s",
-					srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+					srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg().c_str());
 			return false;
 		}
 	}
@@ -395,7 +395,7 @@ u64 GetSize(const std::string &filename)
 	}
 
 	ERROR_LOG(COMMON, "GetSize: Stat failed %s: %s",
-			filename.c_str(), GetLastErrorMsg());
+			filename.c_str(), GetLastErrorMsg().c_str());
 	return 0;
 }
 
@@ -406,7 +406,7 @@ u64 GetSize(const int fd)
 	if (fstat64(fd, &buf) != 0)
 	{
 		ERROR_LOG(COMMON, "GetSize: stat failed %i: %s",
-			fd, GetLastErrorMsg());
+			fd, GetLastErrorMsg().c_str());
 		return 0;
 	}
 	return buf.st_size;
@@ -420,7 +420,7 @@ u64 GetSize(FILE *f)
 	if (fseeko(f, 0, SEEK_END) != 0)
 	{
 		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
-			  f, GetLastErrorMsg());
+			  f, GetLastErrorMsg().c_str());
 		return 0;
 	}
 
@@ -428,7 +428,7 @@ u64 GetSize(FILE *f)
 	if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
 	{
 		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
-			  f, GetLastErrorMsg());
+			  f, GetLastErrorMsg().c_str());
 		return 0;
 	}
 
@@ -443,7 +443,7 @@ bool CreateEmptyFile(const std::string &filename)
 	if (!File::IOFile(filename, "wb"))
 	{
 		ERROR_LOG(COMMON, "CreateEmptyFile: failed %s: %s",
-				  filename.c_str(), GetLastErrorMsg());
+				  filename.c_str(), GetLastErrorMsg().c_str());
 		return false;
 	}
 
@@ -656,7 +656,7 @@ std::string GetCurrentDir()
 	if (!(dir = __getcwd(nullptr, 0)))
 	{
 		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
-				GetLastErrorMsg());
+				GetLastErrorMsg().c_str());
 		return nullptr;
 	}
 	std::string strDir = dir;
