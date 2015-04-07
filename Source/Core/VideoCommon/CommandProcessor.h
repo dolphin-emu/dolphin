@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;
@@ -17,11 +18,11 @@ namespace CommandProcessor
 
 extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread.
 
-extern volatile bool isPossibleWaitingSetDrawDone; //This one is used for sync gfx thread and emulator thread.
 extern volatile bool interruptSet;
 extern volatile bool interruptWaiting;
 extern volatile bool interruptTokenWaiting;
 extern volatile bool interruptFinishWaiting;
+extern Common::Flag s_gpuMaySleep;
 
 // internal hardware addresses
 enum
@@ -145,7 +146,6 @@ void UpdateInterruptsFromVideoBackend(u64 userdata);
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
-void ProcessFifoAllDistance();
 void ProcessFifoEvents();
 
 void Update();
