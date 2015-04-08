@@ -883,13 +883,13 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 		SConfig::GetInstance().m_ListAustralia &&
 		SConfig::GetInstance().m_ListFrance &&
 		SConfig::GetInstance().m_ListGermany &&
-		SConfig::GetInstance().m_ListWorld &&
 		SConfig::GetInstance().m_ListItaly &&
 		SConfig::GetInstance().m_ListKorea &&
 		SConfig::GetInstance().m_ListNetherlands &&
 		SConfig::GetInstance().m_ListRussia &&
 		SConfig::GetInstance().m_ListSpain &&
 		SConfig::GetInstance().m_ListTaiwan &&
+		SConfig::GetInstance().m_ListWorld &&
 		SConfig::GetInstance().m_ListUnknown)))
 	{
 		SConfig::GetInstance().m_ListGC =
@@ -901,13 +901,13 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 		SConfig::GetInstance().m_ListAustralia =
 		SConfig::GetInstance().m_ListFrance =
 		SConfig::GetInstance().m_ListGermany =
-		SConfig::GetInstance().m_ListWorld =
 		SConfig::GetInstance().m_ListItaly =
 		SConfig::GetInstance().m_ListKorea =
 		SConfig::GetInstance().m_ListNetherlands =
 		SConfig::GetInstance().m_ListRussia =
 		SConfig::GetInstance().m_ListSpain =
 		SConfig::GetInstance().m_ListTaiwan =
+		SConfig::GetInstance().m_ListWorld =
 		SConfig::GetInstance().m_ListUnknown = true;
 
 		GetMenuBar()->FindItem(IDM_LIST_GC)->Check(true);
@@ -919,13 +919,13 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 		GetMenuBar()->FindItem(IDM_LIST_AUSTRALIA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_FRANCE)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_GERMANY)->Check(true);
-		GetMenuBar()->FindItem(IDM_LIST_WORLD)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_ITALY)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_KOREA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_NETHERLANDS)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_RUSSIA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_SPAIN)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_TAIWAN)->Check(true);
+		GetMenuBar()->FindItem(IDM_LIST_WORLD)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_UNKNOWN)->Check(true);
 
 		m_GameListCtrl->Update();
