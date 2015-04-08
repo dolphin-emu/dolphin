@@ -20,18 +20,18 @@ namespace DiscIO
 {
 CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
 	: m_pReader(_pReader), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
-	m_hdr_size(0), m_cert_size(0), m_tick_size(0), m_tmd_size(0), m_data_size(0)
+	m_header_size(0), m_cert_chain_size(0), m_ticket_size(0), m_tmd_size(0), m_data_app_size(0)
 {
 	// Source: http://wiibrew.org/wiki/WAD_files
-	Read(0x00, 4, (u8*)&m_hdr_size);
-	Read(0x08, 4, (u8*)&m_cert_size);
-	Read(0x10, 4, (u8*)&m_tick_size);
+	Read(0x00, 4, (u8*)&m_header_size);
+	Read(0x08, 4, (u8*)&m_cert_chain_size);
+	Read(0x10, 4, (u8*)&m_ticket_size);
 	Read(0x14, 4, (u8*)&m_tmd_size);
-	Read(0x18, 4, (u8*)&m_data_size);
+	Read(0x18, 4, (u8*)&m_data_app_size);
 
-	m_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size);
-	m_tmd_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
-	m_opening_bnr_offset = m_tmd_offset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_size);
+	m_offset = ALIGN_40(m_header_size) + ALIGN_40(m_cert_chain_size);
+	m_tmd_offset = ALIGN_40(m_header_size) + ALIGN_40(m_cert_chain_size) + ALIGN_40(m_ticket_size);
+	m_opening_bnr_offset = m_tmd_offset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_app_size);
 }
 
 CVolumeWAD::~CVolumeWAD()
