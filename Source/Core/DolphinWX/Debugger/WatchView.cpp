@@ -208,7 +208,7 @@ wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 			attr->SetBackgroundColour(*wxLIGHT_GREY);
 		}
 	}
-	attr->IncRef();
+
 	return attr;
 }
 
