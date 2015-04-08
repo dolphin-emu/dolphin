@@ -290,6 +290,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 
 		m_Treectrl->Expand(RootId);
+		delete OpenISO;
 	}
 }
 
@@ -301,7 +302,6 @@ CISOProperties::~CISOProperties()
 	WiiDisc.clear();
 	GCFiles.clear();
 	delete OpenGameListItem;
-	delete OpenISO;
 }
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
