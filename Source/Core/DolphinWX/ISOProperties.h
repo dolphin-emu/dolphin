@@ -246,6 +246,7 @@ private:
 
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;
+	int revision;
 
 	void LoadGameConfig();
 	void PatchList_Load();
