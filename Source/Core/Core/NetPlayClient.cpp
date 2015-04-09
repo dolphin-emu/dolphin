@@ -137,6 +137,9 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 		OnTraversalStateChanged();
 		m_connecting = true;
 
+		Common::Timer connect_timer;
+		connect_timer.Start();
+
 		while (m_connecting)
 		{
 			ENetEvent netEvent;
@@ -160,6 +163,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 					break;
 				}
 			}
+			if (connect_timer.GetTimeElapsed() > 5000)
+				break;
 		}
 		PanicAlertT("Failed To Connect!");
 	}

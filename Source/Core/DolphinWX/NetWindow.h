@@ -114,6 +114,7 @@ private:
 	wxCheckBox*   m_record_chkbox;
 
 	std::string   m_selected_game;
+	wxButton*     m_player_config_btn;
 	wxButton*     m_game_btn;
 	wxButton*     m_start_btn;
 	wxButton*     m_kick_btn;

@@ -546,9 +546,9 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		player_szr->Add(m_kick_btn, 0, wxEXPAND | wxTOP, 5);
 		m_kick_btn->Disable();
 
-		wxButton* const player_config_btn = new wxButton(panel, wxID_ANY, _("Configure Pads"));
-		player_config_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnConfigPads, this);
-		player_szr->Add(player_config_btn, 0, wxEXPAND | wxTOP, 5);
+		m_player_config_btn = new wxButton(panel, wxID_ANY, _("Configure Pads"));
+		m_player_config_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnConfigPads, this);
+		player_szr->Add(m_player_config_btn, 0, wxEXPAND | wxTOP, 5);
 	}
 
 	wxBoxSizer* const mid_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -691,8 +691,14 @@ void NetPlayDiag::OnMsgStartGame()
 {
 	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
-	if (m_start_btn)
+	if (m_is_hosting)
+	{
 		m_start_btn->Disable();
+		m_memcard_write->Disable();
+		m_game_btn->Disable();
+		m_player_config_btn->Disable();
+	}
+
 	m_record_chkbox->Disable();
 }
 
@@ -700,8 +706,13 @@ void NetPlayDiag::OnMsgStopGame()
 {
 	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
-	if (m_start_btn)
+	if (m_is_hosting)
+	{
 		m_start_btn->Enable();
+		m_memcard_write->Enable();
+		m_game_btn->Enable();
+		m_player_config_btn->Enable();
+	}
 	m_record_chkbox->Enable();
 }
 
