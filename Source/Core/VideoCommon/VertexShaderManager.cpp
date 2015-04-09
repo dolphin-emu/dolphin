@@ -80,6 +80,8 @@ enum SplitScreenType {
 enum SplitScreenType g_splitscreen_type = SS_FULLSCREEN, g_old_splitscreen_type = SS_FULLSCREEN;
 bool g_is_skybox = false;
 
+static float oldpos[3] = { 0, 0, 0 }, totalpos[3] = { 0, 0, 0 };
+
 void ScaleRequestedToRendered(EFBRectangle *src)
 {
 	float m = (float)g_rendered_viewport.GetWidth() / g_requested_viewport.GetWidth();
@@ -700,6 +702,11 @@ void VertexShaderManager::Init()
 	g_old_splitscreen_type = SS_FULLSCREEN;
 	Matrix44::LoadIdentity(g_game_camera_rotmat);
 
+	for (int i = 0; i < 3; ++i)
+	{
+		g_game_camera_pos[i] = totalpos[i] = oldpos[i] = 0;
+	}
+
 	dirty = true;
 }
 
@@ -921,8 +928,9 @@ void VertexShaderManager::SetProjectionConstants()
 {
 	// Transformations must be applied in the following order for VR:
 	// HUD
+	// camera position stabilisation
 	// camera forward
-	// camera pitch
+	// camera pitch or rotation stabilisation
 	// free look
 	// leaning back
 	// head position tracking
@@ -1449,11 +1457,12 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 
 		// Position matrices
-		Matrix44 head_position_matrix, free_look_matrix, camera_forward_matrix;
+		Matrix44 head_position_matrix, free_look_matrix, camera_forward_matrix, camera_position_matrix;
 		if (bStuckToHead || g_is_skybox)
 		{
 			Matrix44::LoadIdentity(head_position_matrix);
 			Matrix44::LoadIdentity(free_look_matrix);
+			Matrix44::LoadIdentity(camera_position_matrix);
 		}
 		else
 		{
@@ -1474,12 +1483,25 @@ void VertexShaderManager::SetProjectionConstants()
 			for (int i = 0; i < 3; ++i)
 				pos[i] = s_fViewTranslationVector[i] * UnitsPerMetre;
 			Matrix44::Translate(free_look_matrix, pos);
+
+			// camera position stabilisation
+			if (g_ActiveConfig.bStabilizeX || g_ActiveConfig.bStabilizeY || g_ActiveConfig.bStabilizeZ)
+			{
+				for (int i = 0; i < 3; ++i)
+					pos[i] = -g_game_camera_pos[i] * UnitsPerMetre;
+				Matrix44::Translate(camera_position_matrix, pos);
+			}
+			else
+			{
+				Matrix44::LoadIdentity(camera_position_matrix);
+			}
 		}
 
 		Matrix44 look_matrix;
 		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
 			// Transformations must be applied in the following order for VR:
+			// camera position stabilisation
 			// camera forward
 			// camera pitch
 			// free look
@@ -1500,7 +1522,8 @@ void VertexShaderManager::SetProjectionConstants()
 			}
 
 			Matrix44 A, B;
-			Matrix44::Multiply(camera_pitch_matrix, camera_forward_matrix, A);
+			Matrix44::Multiply(camera_position_matrix, camera_forward_matrix, B);
+			Matrix44::Multiply(camera_pitch_matrix, B, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
 			Matrix44::Multiply(lean_back_matrix, B, A);
 			Matrix44::Multiply(head_position_matrix, A, B);
@@ -1680,7 +1703,8 @@ void VertexShaderManager::SetProjectionConstants()
 			// order: scale, position
 			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
 
-			Matrix44::Multiply(camera_pitch_matrix, box_matrix, A);
+			Matrix44::Multiply(camera_position_matrix, box_matrix, B);
+			Matrix44::Multiply(camera_pitch_matrix, B, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
 			Matrix44::Multiply(lean_back_matrix, B, A);
 			Matrix44::Multiply(head_position_matrix, A, B);
@@ -1788,10 +1812,10 @@ void VertexShaderManager::SetProjectionConstants()
 void VertexShaderManager::CheckOrientationConstants()
 {
 #define sqr(a) ((a)*(a))
-	if (g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw))
+	if (g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw || g_ActiveConfig.bStabilizeX || g_ActiveConfig.bStabilizeY || g_ActiveConfig.bStabilizeZ))
 	{
 		float *p = constants.posnormalmatrix[0];
-		float pos[3];
+		float pos[3], worldspacepos[3], movement[3];
 		pos[0] = p[0 * 4 + 3];
 		pos[1] = p[1 * 4 + 3];
 		pos[2] = p[2 * 4 + 3];
@@ -1804,6 +1828,39 @@ void VertexShaderManager::CheckOrientationConstants()
 		for (int r = 0; r < 3; ++r)
 			for (int c = 0; c < 3; ++c)
 				rot.data[r * 3 + c] /= scale;
+		// Position is already in current camera space (has had rot matrix and scale applied to it).
+		// Convert camera-space position into world space position, by applying inverse rot matrix.
+		// Note that we are not undoing the scale, because game units are measured in camera space after the scale.
+		Matrix33 inverse;
+		for (int r = 0; r < 3; ++r)
+			for (int c = 0; c < 3; ++c)
+				inverse.data[r * 3 + c] = rot.data[c * 3 + r];
+		Matrix33::Multiply(inverse, pos, worldspacepos);
+		// Work out how far (in unscaled game units) and in which dimensions it has moved in world space since the previous frame
+		for (int i = 0; i < 3; ++i)
+			movement[i] = worldspacepos[i] - oldpos[i];
+		float distance = sqrt(sqr(movement[0]) + sqr(movement[1]) + sqr(movement[2]));
+
+		NOTICE_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: %5.2fm; Scale: x%5.2f",
+			pos[0] / g_ActiveConfig.fUnitsPerMetre, pos[1] / g_ActiveConfig.fUnitsPerMetre, pos[2] / g_ActiveConfig.fUnitsPerMetre, 
+			movement[0] / g_ActiveConfig.fUnitsPerMetre, movement[1] / g_ActiveConfig.fUnitsPerMetre, movement[2] / g_ActiveConfig.fUnitsPerMetre, distance / g_ActiveConfig.fUnitsPerMetre, scale);
+		// moving more than 2 metres per frame (before VR scaling down to toy size) means we probably jumped to a new object
+		// That is 216 kilometres per hour (135 miles per hour) at 30 FPS, or 432 kph (270 mph) at 60 FPS
+		// so only add actual camera motion, not jumps, to totalpos
+		if (distance / g_ActiveConfig.fUnitsPerMetre <= 2.0f && (oldpos[0] != 0 || oldpos[1] != 0 || oldpos[2] != 0))
+		{
+			for (int i = 0; i < 3; ++i)
+				totalpos[i] += movement[i];
+			ERROR_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
+		}
+		for (int i = 0; i < 3; ++i)
+			oldpos[i] = worldspacepos[i];
+		// rotate total position back into current game-camera space, and save it globally in metres
+		Matrix33::Multiply(rot, totalpos, g_game_camera_pos);
+		for (int i = 0; i < 3; ++i)
+			g_game_camera_pos[i] = g_game_camera_pos[i] / g_ActiveConfig.fUnitsPerMetre;
+		ERROR_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0], g_game_camera_pos[1], g_game_camera_pos[2]);
+
 		// add pitch to rotation matrix
 		if (g_ActiveConfig.fReadPitch != 0)
 		{
@@ -1821,10 +1878,10 @@ void VertexShaderManager::CheckOrientationConstants()
 			roll = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
 		}
 
-		if (abs(yaw) == 3.1415926535f)
-		{
-			yaw = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
-		}
+		//if (abs(yaw) == 3.1415926535f)
+		//{
+		//	yaw = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
+		//}
 
 		if (g_ActiveConfig.bKeyhole)
 		{
@@ -1924,7 +1981,6 @@ void VertexShaderManager::CheckOrientationConstants()
 		//Matrix33::Multiply(GET_MATRIX_MULTIPLIER(matrix_roll, identity_matrix, g_ActiveConfig.bStabilizeRoll), GET_MATRIX_MULTIPLIER(matrix_yaw, identity_matrix, g_ActiveConfig.bStabilizeYaw), temp);
 		//Matrix33::Multiply(temp, GET_MATRIX_MULTIPLIER(matrix_pitch, identity_matrix, g_ActiveConfig.bStabilizePitch), rot);
 
-		memcpy(g_game_camera_pos, pos, 3 * sizeof(float));
 		//yaw = RADIANS_TO_DEGREES(yaw);
 		//pitch = RADIANS_TO_DEGREES(pitch);
 		//roll = RADIANS_TO_DEGREES(roll);

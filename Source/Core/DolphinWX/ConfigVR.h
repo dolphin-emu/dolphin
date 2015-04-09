@@ -89,6 +89,9 @@ private:
 	SettingCheckBox* checkbox_roll;
 	SettingCheckBox* checkbox_pitch;
 	SettingCheckBox* checkbox_yaw;
+	SettingCheckBox* checkbox_x;
+	SettingCheckBox* checkbox_y;
+	SettingCheckBox* checkbox_z;
 	SettingCheckBox* checkbox_keyhole;
 	SettingNumber* keyhole_width;
 	SettingCheckBox* checkbox_keyhole_snap;

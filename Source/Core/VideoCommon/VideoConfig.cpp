@@ -59,6 +59,9 @@ VideoConfig::VideoConfig()
 	bStabilizePitch = true;
 	bStabilizeRoll = true;
 	bStabilizeYaw = false;
+	bStabilizeX = false;
+	bStabilizeY = false;
+	bStabilizeZ = false;
 	bPullUp20fps = false;
 	bPullUp30fps = false;
 	bPullUp60fps = false;
@@ -269,6 +272,9 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("StabilizeRoll", &bStabilizeRoll, true);
 	vr->Get("StabilizePitch", &bStabilizePitch, true);
 	vr->Get("StabilizeYaw", &bStabilizeYaw, false);
+	vr->Get("StabilizeX", &bStabilizeX, false);
+	vr->Get("StabilizeY", &bStabilizeY, false);
+	vr->Get("StabilizeZ", &bStabilizeZ, false);
 	vr->Get("Keyhole", &bKeyhole, false);
 	vr->Get("KeyholeWidth", &fKeyholeWidth, 45.0f);
 	vr->Get("KeyholeSnap", &bKeyholeSnap, false);
@@ -698,6 +704,9 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("StabilizeRoll", bStabilizeRoll);
 	vr->Set("StabilizePitch", bStabilizePitch);
 	vr->Set("StabilizeYaw", bStabilizeYaw);
+	vr->Set("StabilizeX", bStabilizeX);
+	vr->Set("StabilizeY", bStabilizeY);
+	vr->Set("StabilizeZ", bStabilizeZ);
 	vr->Set("Keyhole", bKeyhole);
 	vr->Set("KeyholeWidth", fKeyholeWidth);
 	vr->Set("KeyholeSnap", bKeyholeSnap);
