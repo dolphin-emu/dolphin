@@ -159,11 +159,12 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			game_id = StringFromFormat("%016" PRIx64, Common::swap64(game_id_bytes));
 		}
 	}
+	revision = OpenISO->GetRevision();
 
 	// Load game INIs
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
-	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(game_id, OpenISO->GetRevision());
-	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(game_id, OpenISO->GetRevision());
+	GameIniDefault = SCoreStartupParameter::LoadDefaultGameIni(game_id, revision);
+	GameIniLocal = SCoreStartupParameter::LoadLocalGameIni(game_id, revision);
 
 	// Setup GUI
 	OpenGameListItem = new GameListItem(fileName);
@@ -251,7 +252,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	wxString temp = "0x" + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
-	m_Revision->SetValue(wxString::Format("%u", OpenISO->GetRevision()));
+	m_Revision->SetValue(wxString::Format("%u", revision));
 	m_Date->SetValue(StrToWxStr(OpenISO->GetApploaderDate()));
 	m_FST->SetValue(wxString::Format("%u", OpenISO->GetFSTSize()));
 
@@ -643,7 +644,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	// If there is no default gameini, disable the button.
 	bool game_ini_exists = false;
-	for (const std::string& ini_filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	for (const std::string& ini_filename : SCoreStartupParameter::GetGameIniFilenames(game_id, revision))
 	{
 		if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
 		{
@@ -1299,7 +1300,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 // they will all be opened, but there is usually only one
 void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED (event))
 {
-	for (const std::string& filename : SCoreStartupParameter::GetGameIniFilenames(game_id, OpenISO->GetRevision()))
+	for (const std::string& filename : SCoreStartupParameter::GetGameIniFilenames(game_id, revision))
 	{
 		std::string path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename;
 		if (File::Exists(path))
