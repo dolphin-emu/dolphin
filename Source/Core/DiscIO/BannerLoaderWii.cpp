@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -91,14 +92,15 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::stri
 	return false;
 }
 
-std::vector<std::string> CBannerLoaderWii::GetNames()
+std::map<IVolume::ELanguage, std::string> CBannerLoaderWii::GetNames()
 {
-	std::vector<std::string> ret(1);
+	std::map<IVolume::ELanguage, std::string> result;
 
-	if (!GetStringFromComments(NAME_IDX, ret[0]))
-		ret.clear();
+	std::string name;
+	if (GetStringFromComments(NAME_IDX, name))
+		result[IVolume::ELanguage::LANGUAGE_UNKNOWN] = name;
 
-	return ret;
+	return result;
 }
 
 std::string CBannerLoaderWii::GetCompany()
@@ -106,11 +108,14 @@ std::string CBannerLoaderWii::GetCompany()
 	return "";
 }
 
-std::vector<std::string> CBannerLoaderWii::GetDescriptions()
+std::map<IVolume::ELanguage, std::string> CBannerLoaderWii::GetDescriptions()
 {
-	std::vector<std::string> result(1);
-	if (!GetStringFromComments(DESC_IDX, result[0]))
-		result.clear();
+	std::map<IVolume::ELanguage, std::string> result;
+
+	std::string name;
+	if (GetStringFromComments(DESC_IDX, name))
+		result[IVolume::ELanguage::LANGUAGE_UNKNOWN] = name;
+
 	return result;
 }
 

@@ -99,34 +99,13 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		sortData = -sortData;
 	}
 
-	int indexOne = 0;
-	int indexOther = 0;
-
-
-	// index only matters for WADS and PAL GC games, but invalid indicies for the others
-	// will return the (only) language in the list
-	if (iso1->GetPlatform() == GameListItem::WII_WAD)
-	{
-		indexOne = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
-	}
-	else // GC
-	{
-		indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	}
-
-	if (iso2->GetPlatform() == GameListItem::WII_WAD)
-	{
-		indexOther = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
-	}
-	else // GC
-	{
-		indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	}
+	IVolume::ELanguage languageOne = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso1->GetPlatform() != GameListItem::GAMECUBE_DISC);
+	IVolume::ELanguage languageOther = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso2->GetPlatform() != GameListItem::GAMECUBE_DISC);
 
 	switch (sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
-			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
+			if (!strcasecmp(iso1->GetName(languageOne).c_str(), iso2->GetName(languageOther).c_str()))
 			{
 				if (iso1->GetUniqueID() != iso2->GetUniqueID())
 					return t * (iso1->GetUniqueID() > iso2->GetUniqueID() ? 1 : -1);
@@ -135,16 +114,16 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 				if (iso1->IsDiscTwo() != iso2->IsDiscTwo())
 					return t * (iso1->IsDiscTwo() ? 1 : -1);
 			}
-			return strcasecmp(iso1->GetName(indexOne).c_str(),
-					iso2->GetName(indexOther).c_str()) * t;
+			return strcasecmp(iso1->GetName(languageOne).c_str(),
+			                  iso2->GetName(languageOther).c_str()) * t;
 		case CGameListCtrl::COLUMN_NOTES:
 			{
 				std::string cmp1 =
 					(iso1->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					iso1->GetCompany() : iso1->GetDescription(indexOne);
+					iso1->GetCompany() : iso1->GetDescription(languageOne);
 				std::string cmp2 =
 					(iso2->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					iso2->GetCompany() : iso2->GetDescription(indexOther);
+					iso2->GetCompany() : iso2->GetDescription(languageOther);
 				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
 			}
 		case CGameListCtrl::COLUMN_ID:
@@ -433,15 +412,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
-	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-
-	// Is this sane?
-	if  (rISOFile.GetPlatform() == GameListItem::WII_WAD)
-	{
-		SelectedLanguage = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
-	}
-
-	std::string name = rISOFile.GetName(SelectedLanguage);
+	std::string name = rISOFile.GetName();
 
 	std::ifstream titlestxt;
 	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
@@ -474,7 +445,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// We show the company string on GameCube only
 	// On Wii we show the description instead as the company string is empty
 	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
+		rISOFile.GetCompany() : rISOFile.GetDescription();
 	SetItem(_Index, COLUMN_NOTES, StrToWxStr(notes), -1);
 
 	// Emulation state

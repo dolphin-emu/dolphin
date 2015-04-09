@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -60,9 +61,9 @@ std::vector<u32> CBannerLoaderGC::GetBanner(int* pWidth, int* pHeight)
 }
 
 
-std::vector<std::string> CBannerLoaderGC::GetNames()
+std::map<IVolume::ELanguage, std::string> CBannerLoaderGC::GetNames()
 {
-	std::vector<std::string> names;
+	std::map<IVolume::ELanguage, std::string> names;
 
 	if (!IsValid())
 	{
@@ -70,16 +71,21 @@ std::vector<std::string> CBannerLoaderGC::GetNames()
 	}
 
 	u32 name_count = 0;
+	IVolume::ELanguage language;
+	bool is_japanese = m_country == IVolume::ECountry::COUNTRY_JAPAN;
 
 	// find Banner type
 	switch (m_BNRType)
 	{
 	case CBannerLoaderGC::BANNER_BNR1:
 		name_count = 1;
+		language = is_japanese ? IVolume::ELanguage::LANGUAGE_JAPANESE : IVolume::ELanguage::LANGUAGE_ENGLISH;
 		break;
 
+	// English, German, French, Spanish, Italian, Dutch
 	case CBannerLoaderGC::BANNER_BNR2:
 		name_count = 6;
+		language = IVolume::ELanguage::LANGUAGE_ENGLISH;
 		break;
 
 	default:
@@ -88,20 +94,16 @@ std::vector<std::string> CBannerLoaderGC::GetNames()
 
 	auto const banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
 
-	for (u32 i = 0; i != name_count; ++i)
+	for (u32 i = 0; i < name_count; ++i)
 	{
 		auto& comment = banner->comment[i];
+		std::string name = GetDecodedString(comment.longTitle);
 
-		if (comment.longTitle[0])
-		{
-			auto& data = comment.longTitle;
-			names.push_back(GetDecodedString(data));
-		}
-		else
-		{
-			auto& data = comment.shortTitle;
-			names.push_back(GetDecodedString(data));
-		}
+		if (name.empty())
+			name = GetDecodedString(comment.shortTitle);
+
+		if (!name.empty())
+			names[(IVolume::ELanguage)(language + i)] = name;
 	}
 
 	return names;
@@ -123,9 +125,9 @@ std::string CBannerLoaderGC::GetCompany()
 }
 
 
-std::vector<std::string> CBannerLoaderGC::GetDescriptions()
+std::map<IVolume::ELanguage, std::string> CBannerLoaderGC::GetDescriptions()
 {
-	std::vector<std::string> descriptions;
+	std::map<IVolume::ELanguage, std::string> descriptions;
 
 	if (!IsValid())
 	{
@@ -133,16 +135,20 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 	}
 
 	u32 desc_count = 0;
+	IVolume::ELanguage language;
+	bool is_japanese = m_country == IVolume::ECountry::COUNTRY_JAPAN;
 
 	// find Banner type
 	switch (m_BNRType)
 	{
 	case CBannerLoaderGC::BANNER_BNR1:
 		desc_count = 1;
+		language = is_japanese ? IVolume::ELanguage::LANGUAGE_JAPANESE : IVolume::ELanguage::LANGUAGE_ENGLISH;
 		break;
 
 	// English, German, French, Spanish, Italian, Dutch
 	case CBannerLoaderGC::BANNER_BNR2:
+		language = IVolume::ELanguage::LANGUAGE_ENGLISH;
 		desc_count = 6;
 		break;
 
@@ -152,10 +158,13 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 
 	auto banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
 
-	for (u32 i = 0; i != desc_count; ++i)
+	for (u32 i = 0; i < desc_count; ++i)
 	{
 		auto& data = banner->comment[i].comment;
-		descriptions.push_back(GetDecodedString(data));
+		std::string description = GetDecodedString(data);
+
+		if (!description.empty())
+			descriptions[(IVolume::ELanguage)(language + i)] = description;
 	}
 
 	return descriptions;
@@ -164,20 +173,15 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 CBannerLoaderGC::BANNER_TYPE CBannerLoaderGC::getBannerType()
 {
 	u32 bannerSignature = *(u32*)m_pBannerFile;
-	CBannerLoaderGC::BANNER_TYPE type = CBannerLoaderGC::BANNER_UNKNOWN;
 	switch (bannerSignature)
 	{
-	// "BNR1"
-	case 0x31524e42:
-		type = CBannerLoaderGC::BANNER_BNR1;
-		break;
-
-	// "BNR2"
-	case 0x32524e42:
-		type = CBannerLoaderGC::BANNER_BNR2;
-		break;
+	case 0x31524e42:	// "BNR1"
+		return CBannerLoaderGC::BANNER_BNR1;
+	case 0x32524e42:	// "BNR2"
+		return CBannerLoaderGC::BANNER_BNR2;
+	default:
+		return CBannerLoaderGC::BANNER_UNKNOWN;
 	}
-	return type;
 }
 
 } // namespace

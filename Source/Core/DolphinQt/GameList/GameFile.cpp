@@ -26,23 +26,48 @@
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x006;
+static const u32 CACHE_REVISION = 0x007;
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
-static QStringList VectorToStringList(std::vector<std::string> vec, bool trim = false)
+static QMap<IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<IVolume::ELanguage, std::string> strings)
 {
-	QStringList result;
-	if (trim)
-	{
-		for (const std::string& member : vec)
-			result.append(QString::fromStdString(member).trimmed());
-	}
-	else
-	{
-		for (const std::string& member : vec)
-			result.append(QString::fromStdString(member));
-	}
+	QMap<IVolume::ELanguage, QString> result;
+
+	for (auto entry : strings)
+		result.insert(entry.first, QString::fromStdString(entry.second).trimmed());
+
 	return result;
+}
+
+template<class to, class from>
+static QMap<to, QString> CastLocalizedStrings(QMap<from, QString> strings)
+{
+	QMap<to, QString> result;
+
+	auto end = strings.cend();
+	for (auto it = strings.cbegin(); it != end; ++it)
+		result.insert((to)it.key(), it.value());
+
+	return result;
+}
+
+static QString GetLanguageString(IVolume::ELanguage language, QMap<IVolume::ELanguage, QString> strings)
+{
+	if (strings.contains(language))
+		return strings.value(language);
+
+	// English tends to be a good fallback when the requested language isn't available
+	if (language != IVolume::ELanguage::LANGUAGE_ENGLISH)
+	{
+		if (strings.contains(IVolume::ELanguage::LANGUAGE_ENGLISH))
+			return strings.value(IVolume::ELanguage::LANGUAGE_ENGLISH);
+	}
+
+	// If English isn't available either, just pick something
+	if (!strings.empty())
+		return strings.cbegin().value();
+
+	return SL("");
 }
 
 GameFile::GameFile(const QString& fileName)
@@ -66,7 +91,7 @@ GameFile::GameFile(const QString& fileName)
 			else
 				m_platform = WII_WAD;
 
-			m_volume_names = VectorToStringList(volume->GetNames());
+			m_volume_names = ConvertLocalizedStrings(volume->GetNames());
 
 			m_country = volume->GetCountry();
 			m_file_size = volume->GetRawSize();
@@ -92,9 +117,9 @@ GameFile::GameFile(const QString& fileName)
 					if (bannerLoader->IsValid())
 					{
 						if (m_platform != WII_WAD)
-							m_names = VectorToStringList(bannerLoader->GetNames());
+							m_names = ConvertLocalizedStrings(bannerLoader->GetNames());
 						m_company = QString::fromStdString(bannerLoader->GetCompany());
-						m_descriptions = VectorToStringList(bannerLoader->GetDescriptions(), true);
+						m_descriptions = ConvertLocalizedStrings(bannerLoader->GetDescriptions());
 
 						int width, height;
 						std::vector<u32> buffer = bannerLoader->GetBanner(&width, &height);
@@ -158,11 +183,15 @@ bool GameFile::LoadFromCache()
 	if (cache_rev != CACHE_REVISION)
 		return false;
 
-	int country;
+	u32 country;
+	QMap<u8, QString> volume_names;
+	QMap<u8, QString> names;
+	QMap<u8, QString> descriptions;
 	stream >> m_folder_name
-	       >> m_volume_names
+		   >> volume_names
+	       >> names
 	       >> m_company
-	       >> m_descriptions
+	       >> descriptions
 	       >> m_unique_id
 	       >> m_file_size
 	       >> m_volume_size
@@ -173,6 +202,9 @@ bool GameFile::LoadFromCache()
 	       >> m_is_disc_two
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
+	m_volume_names = CastLocalizedStrings<IVolume::ELanguage>(volume_names);
+	m_names = CastLocalizedStrings<IVolume::ELanguage>(names);
+	m_descriptions = CastLocalizedStrings<IVolume::ELanguage>(descriptions);
 	file.close();
 	return true;
 }
@@ -198,13 +230,14 @@ void GameFile::SaveToCache()
 	stream << CACHE_REVISION;
 
 	stream << m_folder_name
-	       << m_volume_names
+	       << CastLocalizedStrings<u8>(m_volume_names)
+	       << CastLocalizedStrings<u8>(m_names)
 	       << m_company
-	       << m_descriptions
+	       << CastLocalizedStrings<u8>(m_descriptions)
 	       << m_unique_id
 	       << m_file_size
 	       << m_volume_size
-	       << (int)m_country
+	       << (u32)m_country
 	       << m_banner
 	       << m_compressed
 	       << m_platform
@@ -233,55 +266,36 @@ QString GameFile::CreateCacheFilename()
 
 QString GameFile::GetCompany() const
 {
-	if (m_company.isEmpty())
-		return QObject::tr("N/A");
-	else
-		return m_company;
+	return m_company;
 }
 
-// For all of the following functions that accept an "index" parameter,
-// (-1 = Japanese, 0 = English, etc)?
-
-QString GameFile::GetDescription(int index) const
+QString GameFile::GetDescription(IVolume::ELanguage language) const
 {
-	if (index < m_descriptions.size())
-		return m_descriptions[index];
-
-	if (!m_descriptions.empty())
-		return m_descriptions[0];
-
-	return SL("");
+	return GetLanguageString(language, m_descriptions);
 }
 
-QString GameFile::GetVolumeName(int index) const
+QString GameFile::GetDescription() const
 {
-	if (index < m_volume_names.size() && !m_volume_names[index].isEmpty())
-		return m_volume_names[index];
-
-	if (!m_volume_names.isEmpty())
-		return m_volume_names[0];
-
-	return SL("");
+	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 }
 
-QString GameFile::GetBannerName(int index) const
+QString GameFile::GetVolumeName(IVolume::ELanguage language) const
 {
-	if (index < m_names.size() && !m_names[index].isEmpty())
-		return m_names[index];
-
-	if (!m_names.isEmpty())
-		return m_names[0];
-
-	return SL("");
+	return GetLanguageString(language, m_volume_names);
 }
 
-QString GameFile::GetName(int index) const
+QString GameFile::GetBannerName(IVolume::ELanguage language) const
+{
+	return GetLanguageString(language, m_names);
+}
+
+QString GameFile::GetName(IVolume::ELanguage language) const
 {
 	// Prefer name from banner, fallback to name from volume, fallback to filename
-	QString name = GetBannerName(index);
+	QString name = GetBannerName(language);
 
 	if (name.isEmpty())
-		name = GetVolumeName(index);
+		name = GetVolumeName(language);
 
 	if (name.isEmpty())
 	{
@@ -292,6 +306,11 @@ QString GameFile::GetName(int index) const
 	}
 
 	return name;
+}
+
+QString GameFile::GetName() const
+{
+	return GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 }
 
 const QString GameFile::GetWiiFSPath() const

@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
@@ -28,9 +30,9 @@ public:
 
 	virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
 
-	virtual std::vector<std::string> GetNames() = 0;
+	virtual std::map<IVolume::ELanguage, std::string> GetNames() = 0;
 	virtual std::string GetCompany() = 0;
-	virtual std::vector<std::string> GetDescriptions() = 0;
+	virtual std::map<IVolume::ELanguage, std::string> GetDescriptions() = 0;
 
 	bool IsValid()
 	{

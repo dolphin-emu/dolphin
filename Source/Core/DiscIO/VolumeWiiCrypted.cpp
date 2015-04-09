@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <map>
 #include <string>
 #include <vector>
 #include <polarssl/aes.h>
@@ -191,15 +192,15 @@ int CVolumeWiiCrypted::GetRevision() const
 	return revision;
 }
 
-std::vector<std::string> CVolumeWiiCrypted::GetNames() const
+std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames() const
 {
-	std::vector<std::string> names;
+	std::map<IVolume::ELanguage, std::string> names;
 
 	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
 
 	char name[0xFF] = {};
 	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name, true))
-		names.push_back(string_decoder(name));
+		names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = string_decoder(name);
 
 	return names;
 }

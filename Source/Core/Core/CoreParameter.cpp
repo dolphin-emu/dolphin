@@ -373,6 +373,20 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 	}
 }
 
+IVolume::ELanguage SCoreStartupParameter::GetCurrentLanguage(bool wii) const
+{
+	IVolume::ELanguage language;
+	if (wii)
+		language = (IVolume::ELanguage)SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+	else
+		language = (IVolume::ELanguage)(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage + 1);
+
+	// Get rid of invalid values (probably doesn't matter, but might as well do it)
+	if (language > IVolume::ELanguage::LANGUAGE_UNKNOWN || language < 0)
+		language = IVolume::ELanguage::LANGUAGE_UNKNOWN;
+	return language;
+}
+
 IniFile SCoreStartupParameter::LoadDefaultGameIni() const
 {
 	return LoadDefaultGameIni(GetUniqueID(), m_revision);

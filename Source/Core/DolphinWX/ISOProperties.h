@@ -197,7 +197,7 @@ private:
 
 	void LaunchExternalEditor(const std::string& filename);
 
-	void CreateGUIControls(bool);
+	void CreateGUIControls();
 	void OnClose(wxCloseEvent& event);
 	void OnCloseClick(wxCommandEvent& event);
 	void OnEditConfig(wxCommandEvent& event);
@@ -240,7 +240,7 @@ private:
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();
-	void ChangeBannerDetails(int lang);
+	void ChangeBannerDetails(IVolume::ELanguage language);
 
 	long GetElementStyle(const char* section, const char* key);
 	void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);

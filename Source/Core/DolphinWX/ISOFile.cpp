@@ -7,6 +7,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <wx/app.h>
 #include <wx/bitmap.h>
@@ -37,10 +38,32 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x122;
+static const u32 CACHE_REVISION = 0x123;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
+
+static std::string GetLanguageString(IVolume::ELanguage language, std::map<IVolume::ELanguage, std::string> strings)
+{
+	auto end = strings.end();
+	auto it = strings.find(language);
+	if (it != end)
+		return it->second;
+
+	// English tends to be a good fallback when the requested language isn't available
+	if (language != IVolume::ELanguage::LANGUAGE_ENGLISH)
+	{
+		it = strings.find(IVolume::ELanguage::LANGUAGE_ENGLISH);
+		if (it != end)
+			return it->second;
+	}
+
+	// If English isn't available either, just pick something
+	if (!strings.empty())
+		return strings.cbegin()->second;
+
+	return "";
+}
 
 GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
@@ -202,63 +225,37 @@ std::string GameListItem::CreateCacheFilename()
 
 std::string GameListItem::GetCompany() const
 {
-	if (m_company.empty())
-		return "N/A";
-	else
-		return m_company;
+	return m_company;
 }
 
-// (-1 = Japanese, 0 = English, etc)?
-std::string GameListItem::GetDescription(int _index) const
+std::string GameListItem::GetDescription(IVolume::ELanguage language) const
 {
-	const u32 index = _index;
-
-	if (index < m_descriptions.size())
-		return m_descriptions[index];
-
-	if (!m_descriptions.empty())
-		return m_descriptions[0];
-
-	return "";
+	return GetLanguageString(language, m_descriptions);
 }
 
-// (-1 = Japanese, 0 = English, etc)?
-std::string GameListItem::GetVolumeName(int _index) const
+std::string GameListItem::GetDescription() const
 {
-	u32 const index = _index;
-
-	if (index < m_volume_names.size() && !m_volume_names[index].empty())
-		return m_volume_names[index];
-
-	if (!m_volume_names.empty())
-		return m_volume_names[0];
-
-	return "";
+	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
 }
 
-// (-1 = Japanese, 0 = English, etc)?
-std::string GameListItem::GetBannerName(int _index) const
+std::string GameListItem::GetVolumeName(IVolume::ELanguage language) const
 {
-	u32 const index = _index;
-
-	if (index < m_banner_names.size() && !m_banner_names[index].empty())
-		return m_banner_names[index];
-
-	if (!m_banner_names.empty())
-		return m_banner_names[0];
-
-	return "";
+	return GetLanguageString(language, m_volume_names);
 }
 
-// (-1 = Japanese, 0 = English, etc)?
-std::string GameListItem::GetName(int _index) const
+std::string GameListItem::GetBannerName(IVolume::ELanguage language) const
+{
+	return GetLanguageString(language, m_banner_names);
+}
+
+std::string GameListItem::GetName(IVolume::ELanguage language) const
 {
 	// Prefer name from banner, fallback to name from volume, fallback to filename
 
-	std::string name = GetBannerName(_index);
+	std::string name = GetBannerName(language);
 
 	if (name.empty())
-		name = GetVolumeName(_index);
+		name = GetVolumeName(language);
 
 	if (name.empty())
 	{
@@ -267,6 +264,23 @@ std::string GameListItem::GetName(int _index) const
 	}
 
 	return name;
+}
+
+std::string GameListItem::GetName() const
+{
+	return GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
+}
+
+std::vector<IVolume::ELanguage> GameListItem::GetLanguages() const
+{
+	std::map<IVolume::ELanguage, std::string> language_strings = m_banner_names;
+	if (m_volume_names.size() > m_banner_names.size())
+		language_strings = m_volume_names;
+
+	std::vector<IVolume::ELanguage> languages;
+	for (std::pair<IVolume::ELanguage, std::string> language_string : language_strings)
+		languages.emplace_back(language_string.first);
+	return languages;
 }
 
 const std::string GameListItem::GetWiiFSPath() const

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstring>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -28,9 +29,9 @@ public:
 
 	virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) override;
 
-	virtual std::vector<std::string> GetNames() override;
+	virtual std::map<IVolume::ELanguage, std::string> GetNames() override;
 	virtual std::string GetCompany() override;
-	virtual std::vector<std::string> GetDescriptions() override;
+	virtual std::map<IVolume::ELanguage, std::string> GetDescriptions() override;
 
 private:
 	enum

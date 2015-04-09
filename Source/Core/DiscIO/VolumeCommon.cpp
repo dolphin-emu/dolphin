@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -104,7 +105,7 @@ std::string IVolume::GetName() const
 	if (names.empty())
 		return "";
 	else
-		return names[0];
+		return names.cbegin()->second;
 }
 
 }

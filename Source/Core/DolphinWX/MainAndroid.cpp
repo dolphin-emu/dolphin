@@ -17,6 +17,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <map>
 #include <jni.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
@@ -114,8 +115,8 @@ static bool MsgAlert(const char* caption, const char* text, bool /*yes_no*/, int
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
-std::vector<std::string> m_volume_names;
-std::vector<std::string> m_names;
+std::map<DiscIO::IVolume::ELanguage, std::string> m_volume_names;
+std::map<DiscIO::IVolume::ELanguage, std::string> m_names;
 
 static inline u32 Average32(u32 a, u32 b) {
 	return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);

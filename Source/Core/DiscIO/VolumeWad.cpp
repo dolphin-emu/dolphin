@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -117,9 +118,9 @@ bool CVolumeWAD::IsWadFile() const
 	return true;
 }
 
-std::vector<std::string> CVolumeWAD::GetNames() const
+std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames() const
 {
-	std::vector<std::string> names;
+	std::map<IVolume::ELanguage, std::string> names;
 
 	u32 footer_size;
 	if (!Read(0x1C, 4, (u8*)&footer_size))
@@ -129,26 +130,23 @@ std::vector<std::string> CVolumeWAD::GetNames() const
 
 	footer_size = Common::swap32(footer_size);
 
-	//Japanese, English, German, French, Spanish, Italian, Dutch, unknown, unknown, Korean
-	for (int i = 0; i != 10; ++i)
+	//Japanese, English, German, French, Spanish, Italian, Dutch, Simplified Chinese, Traditional Chinese, Korean
+	for (int i = 0; i < 10; ++i)
 	{
 		static const u32 string_length = 42;
 		static const u32 bytes_length = string_length * sizeof(u16);
 
 		u16 temp[string_length];
 
-		if (footer_size < 0xF1 || !Read(0x9C + (i * bytes_length) + m_opening_bnr_offset, bytes_length, (u8*)&temp))
-		{
-			names.push_back("");
-		}
-		else
+		if (footer_size >= 0xF1 && Read(0x9C + (i * bytes_length) + m_opening_bnr_offset, bytes_length, (u8*)&temp))
 		{
 			std::wstring out_temp;
 			out_temp.resize(string_length);
 			std::transform(temp, temp + out_temp.size(), out_temp.begin(), (u16(&)(u16))Common::swap16);
 			out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
-
-			names.push_back(UTF16ToUTF8(out_temp));
+			std::string name = UTF16ToUTF8(out_temp);
+			if (!name.empty())
+				names[(IVolume::ELanguage)i] = name;
 		}
 	}
 

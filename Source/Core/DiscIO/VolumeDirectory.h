@@ -39,7 +39,7 @@ public:
 
 	std::string GetMakerID() const override;
 
-	std::vector<std::string> GetNames() const override;
+	std::map<IVolume::ELanguage, std::string> GetNames() const override;
 	void SetName(const std::string&);
 
 	u32 GetFSTSize() const override;
