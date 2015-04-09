@@ -17,9 +17,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/Frame.h"
-#ifndef NEW_HOTKEYS
-#include "DolphinWX/HotkeyDlg.h"
-#endif
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
@@ -190,7 +187,6 @@ void InterfaceConfigPane::LoadThemes()
 
 void InterfaceConfigPane::OnHotkeyConfigButtonClicked(wxCommandEvent& event)
 {
-#ifdef NEW_HOTKEYS
 	bool was_init = false;
 
 	InputConfig* const hotkey_plugin = HotkeyManagerEmu::GetConfig();
@@ -216,11 +212,6 @@ void InterfaceConfigPane::OnHotkeyConfigButtonClicked(wxCommandEvent& event)
 	// if game isn't running
 	if (!was_init)
 		HotkeyManagerEmu::Shutdown();
-
-#else
-	HotkeyConfigDialog m_HotkeyDialog(this);
-	m_HotkeyDialog.ShowModal();
-#endif
 
 	// Update the GUI in case menu accelerators were changed
 	main_frame->UpdateGUI();

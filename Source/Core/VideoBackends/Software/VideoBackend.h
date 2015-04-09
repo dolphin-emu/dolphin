@@ -50,7 +50,7 @@ class VideoSoftware : public VideoBackend
 	void Video_SetRendering(bool bEnabled) override;
 
 	void Video_GatherPipeBursted() override;
-	bool Video_IsPossibleWaitingSetDrawDone() override;
+	void Video_Sync() override {}
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 

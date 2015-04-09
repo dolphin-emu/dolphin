@@ -1462,7 +1462,7 @@ void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
 		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 	}
-	
+
 	CConfigVR ConfigVR(this);
 	ConfigVR.ShowModal();
 	ConfigVR.Destroy();
@@ -1472,7 +1472,6 @@ void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-#ifdef NEW_HOTKEYS
 void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED (event))
 {
 	HotkeyConfigDialog m_HotkeyDialog(this);
@@ -1481,7 +1480,6 @@ void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED (event))
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
 }
-
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 {
@@ -1517,16 +1515,6 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
 }
-#else
-void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED(event))
-{
-	HotkeyConfigDialog *m_HotkeyDialog = new HotkeyConfigDialog(this);
-	m_HotkeyDialog->ShowModal();
-	m_HotkeyDialog->Destroy();
-	// Update the GUI in case menu accelerators were changed
-	UpdateGUI();
-}
-#endif
 
 void CFrame::OnHelp(wxCommandEvent& event)
 {
