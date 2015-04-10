@@ -11,6 +11,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
 namespace DiscIO
 {
@@ -74,10 +75,12 @@ public:
 	}
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
-	virtual int GetRevision() const { return 0; }
-	// TODO: eliminate?
-	virtual std::string GetName() const;
+	virtual int GetRevision() const = 0;
+	virtual std::string GetName() const = 0;
 	virtual std::map<ELanguage, std::string> GetNames() const = 0;
+	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
+	virtual std::string GetCompany() const { return std::string(); }
+	virtual std::vector<u32> GetBanner(int* width, int* height) const;
 	virtual u32 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
 
@@ -93,6 +96,23 @@ public:
 
 	// Size on disc (compressed size)
 	virtual u64 GetRawSize() const = 0;
+
+protected:
+	template <u32 N>
+	std::string DecodeString(const char(&data)[N]) const
+	{
+		// strnlen to trim NULLs
+		std::string string(data, strnlen(data, sizeof(data)));
+
+		// There don't seem to be any GC discs with the country set to Taiwan...
+		// But maybe they would use Shift_JIS if they existed? Not sure
+		bool use_shift_jis = (COUNTRY_JAPAN == GetCountry() || COUNTRY_TAIWAN == GetCountry());
+
+		if (use_shift_jis)
+			return SHIFTJISToUTF8(string);
+		else
+			return CP1252ToUTF8(string);
+	}
 };
 
 // Generic Switch function for all volumes

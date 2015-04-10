@@ -192,16 +192,20 @@ int CVolumeWiiCrypted::GetRevision() const
 	return revision;
 }
 
+std::string CVolumeWiiCrypted::GetName() const
+{
+	char name_buffer[0x60];
+	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, false))
+		return DecodeString(name_buffer);
+
+	return "";
+}
+
 std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames() const
 {
+	// TODO: Read opening.bnr
 	std::map<IVolume::ELanguage, std::string> names;
-
-	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
-
-	char name[0xFF] = {};
-	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name, true))
-		names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = string_decoder(name);
-
+	names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = GetName();
 	return names;
 }
 

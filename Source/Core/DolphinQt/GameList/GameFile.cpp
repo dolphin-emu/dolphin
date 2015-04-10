@@ -18,7 +18,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DiscIO/BannerLoader.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/Filesystem.h"
 
@@ -82,7 +81,7 @@ GameFile::GameFile(const QString& fileName)
 	}
 	else
 	{
-		DiscIO::IVolume* volume = DiscIO::CreateVolumeFromFilename(fileName.toStdString());
+		std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(fileName.toStdString()));
 
 		if (volume != nullptr)
 		{
@@ -91,7 +90,9 @@ GameFile::GameFile(const QString& fileName)
 			else
 				m_platform = WII_WAD;
 
-			m_volume_names = ConvertLocalizedStrings(volume->GetNames());
+			m_names = ConvertLocalizedStrings(volume->GetNames());
+			m_descriptions = ConvertLocalizedStrings(volume->GetDescriptions());
+			m_company = QString::fromStdString(volume->GetCompany());
 
 			m_country = volume->GetCountry();
 			m_file_size = volume->GetRawSize();
@@ -105,43 +106,22 @@ GameFile::GameFile(const QString& fileName)
 			QFileInfo info(m_file_name);
 			m_folder_name = info.absoluteDir().dirName();
 
-			// check if we can get some info from the banner file too
-			DiscIO::IFileSystem* fileSystem = DiscIO::CreateFileSystem(volume);
-
-			if (fileSystem != nullptr || m_platform == WII_WAD)
+			int width, height;
+			std::vector<u32> buffer = volume->GetBanner(&width, &height);
+			QImage banner(width, height, QImage::Format_RGB888);
+			for (int i = 0; i < width * height; i++)
 			{
-				std::unique_ptr<DiscIO::IBannerLoader> bannerLoader(DiscIO::CreateBannerLoader(*fileSystem, volume));
-
-				if (bannerLoader != nullptr)
-				{
-					if (bannerLoader->IsValid())
-					{
-						if (m_platform != WII_WAD)
-							m_names = ConvertLocalizedStrings(bannerLoader->GetNames());
-						m_company = QString::fromStdString(bannerLoader->GetCompany());
-						m_descriptions = ConvertLocalizedStrings(bannerLoader->GetDescriptions());
-
-						int width, height;
-						std::vector<u32> buffer = bannerLoader->GetBanner(&width, &height);
-						QImage banner(width, height, QImage::Format_RGB888);
-						for (int i = 0; i < width * height; i++)
-						{
-							int x = i % width, y = i / width;
-							banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16,
-						                    (buffer[i] & 0x00FF00) >>  8,
-						                    (buffer[i] & 0x0000FF) >>  0));
-						}
-
-						if (!banner.isNull())
-						{
-							hasBanner = true;
-							m_banner = QPixmap::fromImage(banner);
-						}
-					}
-				}
-				delete fileSystem;
+				int x = i % width, y = i / width;
+				banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16,
+						        (buffer[i] & 0x00FF00) >>  8,
+						        (buffer[i] & 0x0000FF) >>  0));
 			}
-			delete volume;
+
+			if (!banner.isNull())
+			{
+				hasBanner = true;
+				m_banner = QPixmap::fromImage(banner);
+			}
 
 			m_valid = true;
 			if (hasBanner)
@@ -184,14 +164,12 @@ bool GameFile::LoadFromCache()
 		return false;
 
 	u32 country;
-	QMap<u8, QString> volume_names;
 	QMap<u8, QString> names;
 	QMap<u8, QString> descriptions;
 	stream >> m_folder_name
-		   >> volume_names
 	       >> names
-	       >> m_company
 	       >> descriptions
+	       >> m_company
 	       >> m_unique_id
 	       >> m_file_size
 	       >> m_volume_size
@@ -202,7 +180,6 @@ bool GameFile::LoadFromCache()
 	       >> m_is_disc_two
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
-	m_volume_names = CastLocalizedStrings<IVolume::ELanguage>(volume_names);
 	m_names = CastLocalizedStrings<IVolume::ELanguage>(names);
 	m_descriptions = CastLocalizedStrings<IVolume::ELanguage>(descriptions);
 	file.close();
@@ -230,10 +207,9 @@ void GameFile::SaveToCache()
 	stream << CACHE_REVISION;
 
 	stream << m_folder_name
-	       << CastLocalizedStrings<u8>(m_volume_names)
 	       << CastLocalizedStrings<u8>(m_names)
-	       << m_company
 	       << CastLocalizedStrings<u8>(m_descriptions)
+	       << m_company
 	       << m_unique_id
 	       << m_file_size
 	       << m_volume_size
@@ -279,24 +255,14 @@ QString GameFile::GetDescription() const
 	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 }
 
-QString GameFile::GetVolumeName(IVolume::ELanguage language) const
-{
-	return GetLanguageString(language, m_volume_names);
-}
-
-QString GameFile::GetBannerName(IVolume::ELanguage language) const
+QString GameFile::GetName(IVolume::ELanguage language) const
 {
 	return GetLanguageString(language, m_names);
 }
 
-QString GameFile::GetName(IVolume::ELanguage language) const
+QString GameFile::GetName() const
 {
-	// Prefer name from banner, fallback to name from volume, fallback to filename
-	QString name = GetBannerName(language);
-
-	if (name.isEmpty())
-		name = GetVolumeName(language);
-
+	QString name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 	if (name.isEmpty())
 	{
 		// No usable name, return filename (better than nothing)
@@ -304,13 +270,7 @@ QString GameFile::GetName(IVolume::ELanguage language) const
 		SplitPath(m_file_name.toStdString(), nullptr, &nametemp, nullptr);
 		name = QString::fromStdString(nametemp);
 	}
-
 	return name;
-}
-
-QString GameFile::GetName() const
-{
-	return GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 }
 
 const QString GameFile::GetWiiFSPath() const

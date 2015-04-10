@@ -182,10 +182,21 @@ std::string CVolumeDirectory::GetMakerID() const
 	return "VOID";
 }
 
+std::string CVolumeDirectory::GetName() const
+{
+	char name[0x60];
+	if (Read(0x20, 0x60, (u8*)name, false))
+		return DecodeString(name);
+	else
+		return "";
+}
+
 std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetNames() const
 {
 	std::map<IVolume::ELanguage, std::string> names;
-	names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = (char*)(&m_diskHeader[0x20]);
+	std::string name = GetName();
+	if (!name.empty())
+		names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = name;
 	return names;
 }
 

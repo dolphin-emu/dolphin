@@ -8,10 +8,13 @@
 #include <string>
 #include <vector>
 
+#include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/FileMonitor.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeGC.h"
 
@@ -93,17 +96,131 @@ int CVolumeGC::GetRevision() const
 	return revision;
 }
 
+std::string CVolumeGC::GetName() const
+{
+	char name[0x60];
+	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
+		return DecodeString(name);
+	else
+		return "";
+}
+
 std::map<IVolume::ELanguage, std::string> CVolumeGC::GetNames() const
 {
 	std::map<IVolume::ELanguage, std::string> names;
 
-	auto const string_decoder = GetStringDecoder(GetCountry());
+	if (!LoadBannerFile())
+		return names;
 
-	char name[0x60 + 1] = {};
-	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
-		names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = string_decoder(name);
+	u32 name_count = 0;
+	IVolume::ELanguage language;
+	bool is_japanese = GetCountry() == IVolume::ECountry::COUNTRY_JAPAN;
+
+	switch (m_banner_file_type)
+	{
+	case BANNER_BNR1:
+		name_count = 1;
+		language = is_japanese ? IVolume::ELanguage::LANGUAGE_JAPANESE : IVolume::ELanguage::LANGUAGE_ENGLISH;
+		break;
+
+	case BANNER_BNR2:
+		name_count = 6;
+		language = IVolume::ELanguage::LANGUAGE_ENGLISH;
+		break;
+
+	case BANNER_INVALID:
+	case BANNER_NOT_LOADED:
+		break;
+	}
+
+	auto const banner = reinterpret_cast<const GCBanner*>(m_banner_file.data());
+
+	for (u32 i = 0; i < name_count; ++i)
+	{
+		auto& comment = banner->comment[i];
+		std::string name = DecodeString(comment.longTitle);
+
+		if (name.empty())
+			name = DecodeString(comment.shortTitle);
+
+		if (!name.empty())
+			names[(IVolume::ELanguage)(language + i)] = name;
+	}
 
 	return names;
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetDescriptions() const
+{
+	std::map<IVolume::ELanguage, std::string> descriptions;
+
+	if (!LoadBannerFile())
+		return descriptions;
+
+	u32 desc_count = 0;
+	IVolume::ELanguage language;
+	bool is_japanese = GetCountry() == IVolume::ECountry::COUNTRY_JAPAN;
+
+	switch (m_banner_file_type)
+	{
+	case BANNER_BNR1:
+		desc_count = 1;
+		language = is_japanese ? IVolume::ELanguage::LANGUAGE_JAPANESE : IVolume::ELanguage::LANGUAGE_ENGLISH;
+		break;
+
+	case BANNER_BNR2:
+		language = IVolume::ELanguage::LANGUAGE_ENGLISH;
+		desc_count = 6;
+		break;
+
+	case BANNER_INVALID:
+	case BANNER_NOT_LOADED:
+		break;
+	}
+
+	auto banner = reinterpret_cast<const GCBanner*>(m_banner_file.data());
+
+	for (u32 i = 0; i < desc_count; ++i)
+	{
+		auto& data = banner->comment[i].comment;
+		std::string description = DecodeString(data);
+
+		if (!description.empty())
+			descriptions[(IVolume::ELanguage)(language + i)] = description;
+	}
+
+	return descriptions;
+}
+
+std::string CVolumeGC::GetCompany() const
+{
+	if (!LoadBannerFile())
+		return "";
+
+	auto const pBanner = (GCBanner*)m_banner_file.data();
+	std::string company = DecodeString(pBanner->comment[0].longMaker);
+
+	if (company.empty())
+		company = DecodeString(pBanner->comment[0].shortMaker);
+
+	return company;
+}
+
+std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
+{
+	if (!LoadBannerFile())
+	{
+		*width = 0;
+		*height = 0;
+		return std::vector<u32>();
+	}
+
+	std::vector<u32> image_buffer(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
+	auto const pBanner = (GCBanner*)m_banner_file.data();
+	ColorUtil::decode5A3image(image_buffer.data(), pBanner->image, GC_BANNER_WIDTH, GC_BANNER_HEIGHT);
+	*width = GC_BANNER_WIDTH;
+	*height = GC_BANNER_HEIGHT;
+	return image_buffer;
 }
 
 u32 CVolumeGC::GetFSTSize() const
@@ -155,10 +272,46 @@ bool CVolumeGC::IsDiscTwo() const
 	return (disc_two_check == 1);
 }
 
-CVolumeGC::StringDecoder CVolumeGC::GetStringDecoder(ECountry country)
+bool CVolumeGC::LoadBannerFile() const
 {
-	return (COUNTRY_JAPAN == country || COUNTRY_TAIWAN == country) ?
-		SHIFTJISToUTF8 : CP1252ToUTF8;
+	// The methods GetNames, GetDescriptions, GetCompany and GetBanner
+	// all need to access the opening.bnr file. These four methods are
+	// typically called after each other, so we store the file in RAM
+	// to avoid reading it from the disc several times. However,
+	// if none of these methods are called, the file is never loaded.
+
+	if (m_banner_file_type != BANNER_NOT_LOADED)
+		return m_banner_file_type != BANNER_INVALID;
+
+	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+	size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
+	if (file_size == BNR1_SIZE || file_size == BNR2_SIZE)
+	{
+		m_banner_file.resize(file_size);
+		file_system->ReadFile("opening.bnr", m_banner_file.data(), m_banner_file.size());
+
+		u32 bannerSignature = *(u32*)m_banner_file.data();
+		switch (bannerSignature)
+		{
+		case 0x31524e42:	// "BNR1"
+			m_banner_file_type = BANNER_BNR1;
+			break;
+		case 0x32524e42:	// "BNR2"
+			m_banner_file_type = BANNER_BNR2;
+			break;
+		default:
+			m_banner_file_type = BANNER_INVALID;
+			WARN_LOG(DISCIO, "Invalid opening.bnr type");
+			break;
+		}
+	}
+	else
+	{
+		m_banner_file_type = BANNER_INVALID;
+		WARN_LOG(DISCIO, "Invalid opening.bnr size: %0lx", (unsigned long)file_size);
+	}
+
+	return m_banner_file_type != BANNER_INVALID;
 }
 
 } // namespace

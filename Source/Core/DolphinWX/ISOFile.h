@@ -25,14 +25,12 @@ public:
 
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}
-	std::string GetBannerName(IVolume::ELanguage language) const;
-	std::string GetVolumeName(IVolume::ELanguage language) const;
 	std::string GetName(IVolume::ELanguage language) const;
 	std::string GetName() const;
-	std::string GetCompany() const;
 	std::string GetDescription(IVolume::ELanguage language) const;
 	std::string GetDescription() const;
 	std::vector<IVolume::ELanguage> GetLanguages() const;
+	std::string GetCompany() const;
 	int GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
@@ -61,13 +59,9 @@ public:
 private:
 	std::string m_FileName;
 
-	// TODO: eliminate this and overwrite with names from banner when available?
-	std::map<IVolume::ELanguage, std::string> m_volume_names;
-
-	// Stuff from banner
-	std::string m_company;
-	std::map<IVolume::ELanguage, std::string> m_banner_names;
+	std::map<IVolume::ELanguage, std::string> m_names;
 	std::map<IVolume::ELanguage, std::string> m_descriptions;
+	std::string m_company;
 
 	std::string m_UniqueID;
 

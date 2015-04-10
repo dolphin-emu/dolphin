@@ -29,7 +29,6 @@
 #include "Core/CoreParameter.h"
 #include "Core/Boot/Boot.h"
 
-#include "DiscIO/BannerLoader.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -90,7 +89,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			else
 				m_Platform = WII_WAD;
 
-			m_volume_names = pVolume->GetNames();
+			m_names = pVolume->GetNames();
+			m_descriptions = pVolume->GetDescriptions();
+			m_company = pVolume->GetCompany();
 
 			m_Country = pVolume->GetCountry();
 			m_FileSize = pVolume->GetRawSize();
@@ -101,34 +102,15 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_IsDiscTwo = pVolume->IsDiscTwo();
 			m_Revision = pVolume->GetRevision();
 
-			// check if we can get some info from the banner file too
-			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+			std::vector<u32> Buffer = pVolume->GetBanner(&m_ImageWidth, &m_ImageHeight);
+			u32* pData = Buffer.data();
+			m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
 
-			if (pFileSystem != nullptr || m_Platform == WII_WAD)
+			for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
 			{
-				std::unique_ptr<DiscIO::IBannerLoader> pBannerLoader(DiscIO::CreateBannerLoader(*pFileSystem, pVolume));
-
-				if (pBannerLoader != nullptr && pBannerLoader->IsValid())
-				{
-					if (m_Platform != WII_WAD)
-						m_banner_names = pBannerLoader->GetNames();
-					m_company = pBannerLoader->GetCompany();
-					m_descriptions = pBannerLoader->GetDescriptions();
-
-					std::vector<u32> Buffer = pBannerLoader->GetBanner(&m_ImageWidth, &m_ImageHeight);
-					u32* pData = &Buffer[0];
-					// resize vector to image size
-					m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
-
-					for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
-					{
-						m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
-						m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >>  8;
-						m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >>  0;
-					}
-				}
-
-				delete pFileSystem;
+				m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
+				m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >> 8;
+				m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >> 0;
 			}
 
 			delete pVolume;
@@ -154,7 +136,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		wxImage Image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
 		double Scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
 		// Note: This uses nearest neighbor, which subjectively looks a lot
-		// better for GC banners than smooths caling.
+		// better for GC banners than smooth scaling.
 		Image.Rescale(DVD_BANNER_WIDTH * Scale, DVD_BANNER_HEIGHT * Scale);
 #ifdef __APPLE__
 		m_Bitmap = wxBitmap(Image, -1, Scale);
@@ -188,10 +170,9 @@ void GameListItem::SaveToCache()
 
 void GameListItem::DoState(PointerWrap &p)
 {
-	p.Do(m_volume_names);
-	p.Do(m_company);
-	p.Do(m_banner_names);
+	p.Do(m_names);
 	p.Do(m_descriptions);
+	p.Do(m_company);
 	p.Do(m_UniqueID);
 	p.Do(m_FileSize);
 	p.Do(m_VolumeSize);
@@ -238,48 +219,27 @@ std::string GameListItem::GetDescription() const
 	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
 }
 
-std::string GameListItem::GetVolumeName(IVolume::ELanguage language) const
-{
-	return GetLanguageString(language, m_volume_names);
-}
-
-std::string GameListItem::GetBannerName(IVolume::ELanguage language) const
-{
-	return GetLanguageString(language, m_banner_names);
-}
-
 std::string GameListItem::GetName(IVolume::ELanguage language) const
 {
-	// Prefer name from banner, fallback to name from volume, fallback to filename
+	return GetLanguageString(language, m_names);
+}
 
-	std::string name = GetBannerName(language);
-
-	if (name.empty())
-		name = GetVolumeName(language);
-
+std::string GameListItem::GetName() const
+{
+	std::string name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
 	if (name.empty())
 	{
 		// No usable name, return filename (better than nothing)
 		SplitPath(GetFileName(), nullptr, &name, nullptr);
 	}
-
 	return name;
-}
-
-std::string GameListItem::GetName() const
-{
-	return GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
 }
 
 std::vector<IVolume::ELanguage> GameListItem::GetLanguages() const
 {
-	std::map<IVolume::ELanguage, std::string> language_strings = m_banner_names;
-	if (m_volume_names.size() > m_banner_names.size())
-		language_strings = m_volume_names;
-
 	std::vector<IVolume::ELanguage> languages;
-	for (std::pair<IVolume::ELanguage, std::string> language_string : language_strings)
-		languages.emplace_back(language_string.first);
+	for (std::pair<IVolume::ELanguage, std::string> name : m_names)
+		languages.push_back(name.first);
 	return languages;
 }
 

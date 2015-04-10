@@ -22,13 +22,11 @@ public:
 	bool IsValid() const { return m_valid; }
 	QString GetFileName() { return m_file_name; }
 	QString GetFolderName() { return m_folder_name; }
-	QString GetBannerName(DiscIO::IVolume::ELanguage language) const;
-	QString GetVolumeName(DiscIO::IVolume::ELanguage language) const;
 	QString GetName(DiscIO::IVolume::ELanguage language) const;
 	QString GetName() const;
-	QString GetCompany() const;
 	QString GetDescription(DiscIO::IVolume::ELanguage language) const;
 	QString GetDescription() const;
+	QString GetCompany() const;
 	int GetRevision() const { return m_revision; }
 	const QString GetUniqueID() const { return m_unique_id; }
 	const QString GetWiiFSPath() const;
@@ -54,12 +52,9 @@ private:
 	QString m_file_name;
 	QString m_folder_name;
 
-	// TODO: eliminate this and overwrite with names from banner when available?
-	QMap<DiscIO::IVolume::ELanguage, QString> m_volume_names;
-
-	QString m_company;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_names;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_descriptions;
+	QString m_company;
 
 	QString m_unique_id;
 
