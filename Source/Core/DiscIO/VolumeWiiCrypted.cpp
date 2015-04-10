@@ -16,6 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/FileMonitor.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeGC.h"
@@ -203,10 +204,10 @@ std::string CVolumeWiiCrypted::GetName() const
 
 std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames() const
 {
-	// TODO: Read opening.bnr
-	std::map<IVolume::ELanguage, std::string> names;
-	names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = GetName();
-	return names;
+	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+	std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
+	opening_bnr.resize(file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C));
+	return ReadWiiNames(opening_bnr);
 }
 
 u32 CVolumeWiiCrypted::GetFSTSize() const

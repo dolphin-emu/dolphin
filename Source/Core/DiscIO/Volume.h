@@ -113,6 +113,13 @@ protected:
 		else
 			return CP1252ToUTF8(string);
 	}
+
+	static std::map<IVolume::ELanguage, std::string> ReadWiiNames(std::vector<u8>& data);
+
+	static const size_t NUMBER_OF_LANGUAGES = 10;
+	static const size_t NAME_STRING_LENGTH = 42;
+	static const size_t NAME_BYTES_LENGTH = NAME_STRING_LENGTH * sizeof(u16);
+	static const size_t NAMES_TOTAL_BYTES = NAME_BYTES_LENGTH * NUMBER_OF_LANGUAGES;
 };
 
 // Generic Switch function for all volumes

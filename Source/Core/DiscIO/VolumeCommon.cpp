@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <map>
 #include <string>
 #include <utility>
@@ -54,6 +55,27 @@ std::vector<u32> IVolume::GetBanner(int* width, int* height) const
 	*width = WII_BANNER_WIDTH;
 	*height = WII_BANNER_HEIGHT;
 	return image_buffer;
+}
+
+std::map<IVolume::ELanguage, std::string> IVolume::ReadWiiNames(std::vector<u8>& data)
+{
+	std::map<IVolume::ELanguage, std::string> names;
+	for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i)
+	{
+		size_t name_start = NAME_BYTES_LENGTH * i;
+		size_t name_end = name_start + NAME_BYTES_LENGTH;
+		if (data.size() >= name_end)
+		{
+			u16* temp = (u16*)(data.data() + name_start);
+			std::wstring out_temp(NAME_STRING_LENGTH, '\0');
+			std::transform(temp, temp + out_temp.size(), out_temp.begin(), (u16(&)(u16))Common::swap16);
+			out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
+			std::string name = UTF16ToUTF8(out_temp);
+			if (!name.empty())
+				names[(IVolume::ELanguage)i] = name;
+		}
+	}
+	return names;
 }
 
 // Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
