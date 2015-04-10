@@ -1827,7 +1827,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			{
 				g_synchronous_timewarp_enabled = true;
 
-				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION || !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
 					SConfig::GetInstance().m_AudioSlowDown = 1.25;
@@ -1858,7 +1858,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			else if (g_opcode_replay_enabled)
 			{
 				g_synchronous_timewarp_enabled = false;
-				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION)
+				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION || !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
 					SConfig::GetInstance().m_AudioSlowDown = 1.25;
