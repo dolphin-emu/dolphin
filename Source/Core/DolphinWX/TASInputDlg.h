@@ -58,11 +58,14 @@ class TASInputDlg : public wxDialog
 		wxBitmap CreateStickBitmap(int x, int y);
 		void SetWiiButtons(u16* butt);
 		void GetIRData(u8* const data, u8 mode, bool use_accel);
+		void HandleExtensionChange();
 
 	private:
 		const int ID_C_STICK = 1001;
 		const int ID_MAIN_STICK = 1002;
-		int m_eleID = 1003;
+		const int ID_CC_L_STICK = 1003;
+		const int ID_CC_R_STICK = 1004;
+		int m_eleID = 1005;
 
 		struct Control
 		{
@@ -92,32 +95,54 @@ class TASInputDlg : public wxDialog
 			Control y_cont;
 		};
 
+		wxBoxSizer* CreateCCLayout();
 		void SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center = 128);
 		void SetButtonValue(Button* button, bool CurrentState);
-		void SetSliderValue(Control* control, int CurrentValue, int default_value = 128);
+		void SetSliderValue(Control* control, int CurrentValue);
 		void CreateBaseLayout();
+		void UpdateStickBitmap(Stick stick);
+		Stick* FindStickByID(int id);
 		Stick CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX, bool reverseY);
 		wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, const wxString& title);
 		wxStaticBoxSizer* CreateAccelLayout(Control* x, Control* y, Control* z, const wxString& title);
 		Button CreateButton(const std::string& name);
 		Control CreateControl(long style, int width, int height, bool reverse = false, u32 range = 255, u32 default_value = 128);
 
-		Control m_l_cont, m_r_cont, m_x_cont, m_y_cont, m_z_cont, m_nx_cont, m_ny_cont, m_nz_cont;
+		enum
+		{
+			CC_L_STICK_X,
+			CC_L_STICK_Y,
+			CC_R_STICK_X,
+			CC_R_STICK_Y,
+			CC_L_TRIGGER,
+			CC_R_TRIGGER,
+		};
+
+		Control m_l_cont, m_r_cont, m_x_cont, m_y_cont, m_z_cont, m_nx_cont, m_ny_cont, m_nz_cont, m_cc_l, m_cc_r;
 		Button m_a, m_b, m_x, m_y, m_z, m_l, m_r, m_c;
 		Button m_start, m_plus, m_minus, m_one, m_two, m_home;
 		Button m_dpad_up, m_dpad_down, m_dpad_left, m_dpad_right;
 		Stick m_main_stick, m_c_stick;
 
-		Button* m_buttons[14];
+		Stick m_cc_l_stick, m_cc_r_stick;
+
+		Button* m_buttons[13];
+		Button m_cc_buttons[15];
 		Control* m_controls[10];
+		Control* m_cc_controls[6];
 		static const int m_gc_pad_buttons_bitmask[12];
-		static const int m_wii_buttons_bitmask[13];
+		static const int m_wii_buttons_bitmask[11];
+		static const int m_cc_buttons_bitmask[15];
+		static const std::string m_cc_button_names[15];
 		u8 m_ext = 0;
 		wxBoxSizer* m_main_szr;
 		wxBoxSizer* m_wiimote_szr;
 		wxBoxSizer* m_ext_szr;
+		wxBoxSizer* m_cc_szr;
 		wxStaticBoxSizer* m_main_stick_szr;
 		wxStaticBoxSizer* m_c_stick_szr;
+		wxStaticBoxSizer* m_cc_l_stick_szr;
+		wxStaticBoxSizer* m_cc_r_stick_szr;
 
 		bool m_has_layout = false;
 
