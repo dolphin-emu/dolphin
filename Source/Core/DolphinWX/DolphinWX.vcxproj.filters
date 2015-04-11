@@ -97,14 +97,14 @@
     <ClCompile Include="Debugger\WatchWindow.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="NetPlay\NetWindow.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
     <ClCompile Include="InputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
     <ClCompile Include="InputConfigDiagBitmaps.cpp">
       <Filter>GUI\InputConfig</Filter>
-    </ClCompile>
-    <ClCompile Include="NetWindow.cpp">
-      <Filter>GUI\NetPlay</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
@@ -190,6 +190,15 @@
     <ClCompile Include="Config\AdvancedConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
+    <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlay\ChangeGameDialog.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlay\PadMapDialog.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -255,11 +264,11 @@
     <ClInclude Include="Debugger\WatchWindow.h">
       <Filter>GUI\Debugger</Filter>
     </ClInclude>
+    <ClInclude Include="NetPlay\NetWindow.h">
+      <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
     <ClInclude Include="InputConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
-    </ClInclude>
-    <ClInclude Include="NetWindow.h">
-      <Filter>GUI\NetPlay</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">
       <Filter>GUI\Video</Filter>
@@ -344,6 +353,15 @@
     </ClInclude>
     <ClInclude Include="Config\AdvancedConfigPane.h">
       <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlay\NetPlaySetupFrame.h">
+      <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlay\ChangeGameDialog.h">
+      <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlay\PadMapDialog.h">
+      <Filter>GUI\NetPlay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
