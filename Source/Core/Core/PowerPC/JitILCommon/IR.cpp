@@ -125,6 +125,7 @@ TODO (in no particular order):
 #include <memory>
 #include <set>
 #include <string>
+#include <utility>
 
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
@@ -191,11 +192,10 @@ InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 	return curIndex;
 }
 
-#if 0
 InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc Op3)
 {
 	InstLoc curIndex = InstList.data() + InstList.size();
-	unsigned backOp1 = curIndex - 1 - Op1;
+	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 254)
 	{
 		InstList.push_back(Tramp | backOp1 << 8);
@@ -204,7 +204,7 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc 
 		curIndex++;
 	}
 
-	unsigned backOp2 = curIndex - 1 - Op2;
+	unsigned backOp2 = (s32)(curIndex - 1 - Op2);
 	if (backOp2 >= 255)
 	{
 		InstList.push_back((Tramp | backOp2 << 8));
@@ -214,7 +214,7 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc 
 		curIndex++;
 	}
 
-	unsigned backOp3 = curIndex - 1 - Op3;
+	unsigned backOp3 = (s32)(curIndex - 1 - Op3);
 	if (backOp3 >= 256)
 	{
 		InstList.push_back(Tramp | (backOp3 << 8));
@@ -229,7 +229,6 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc 
 	MarkUsed.push_back(false);
 	return curIndex;
 }
-#endif
 
 unsigned IRBuilder::ComputeKnownZeroBits(InstLoc I) const
 {
@@ -421,6 +420,11 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra)
 			return EmitICmpEq(getOp1(Op1), getOp2(Op1));
 		if (isImm(*Op1))
 			return EmitIntConst((GetImmValue64(Op1) & 0xFFFFFFFFU) == 0);
+	}
+	else if (Opcode >= Load8 && Opcode <= LoadDouble)
+	{
+		auto mem = FoldMemoryAddress(Op1);
+		return EmitBiOp(Opcode, mem.first, mem.second);
 	}
 
 	return EmitUOp(Opcode, Op1, extra);
@@ -1199,6 +1203,21 @@ InstLoc IRBuilder::FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2)
 	return EmitBiOp(FallBackToInterpreter, Op1, Op2);
 }
 
+std::pair<InstLoc, InstLoc> IRBuilder::FoldMemoryAddress(InstLoc addr)
+{
+	if (getOpcode(*addr) == Add && isImm(*getOp2(addr)))
+	{
+		// We have Base + Offset which can be used directly as a memory address.
+		// Forget about the add and use the operands directly
+		return std::make_pair(getOp1(addr), getOp2(addr));
+	}
+	else
+	{
+		// Otherwise we just use the result of the add with a zero offset
+		return std::make_pair(addr, EmitIntConst(0));
+	}
+}
+
 InstLoc IRBuilder::FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2)
 {
 	if (getOpcode(*Op1) == InsertDoubleInMReg)
@@ -1254,9 +1273,23 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 		case FDAdd:
 		case FDSub:
 			return FoldDoubleBiOp(Opcode, Op1, Op2);
+		case Store8:
+		case Store16:
+		case Store32:
+		case StoreSingle:
+		case StoreDouble:
+		{
+			auto mem = FoldMemoryAddress(Op2);
+			return EmitTriOp(Opcode, Op1, mem.first, mem.second);
+		}
 		default:
 			return EmitBiOp(Opcode, Op1, Op2, extra);
 	}
+}
+
+InstLoc IRBuilder::FoldTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc Op3)
+{
+	return EmitTriOp(Opcode, Op1, Op2, Op3);
 }
 
 InstLoc IRBuilder::EmitIntConst64(u64 value)
@@ -1345,8 +1378,9 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
 		numberOfOperands[CInt32] = 0;
 
 		static unsigned ZeroOp[] = { LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
-		static unsigned UOp[] = { StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, ConvertFromFastCR, ConvertToFastCR, FastCRSOSet, FastCREQSet, FastCRGTSet, FastCRLTSet, };
-		static unsigned BiOp[] = { BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, FallBackToInterpreter, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
+		static unsigned UOp[] = { StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, ConvertFromFastCR, ConvertToFastCR, FastCRSOSet, FastCREQSet, FastCRGTSet, FastCRLTSet, };
+		static unsigned BiOp[] = { BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, ICmpCRSigned, ICmpCRUnsigned, FallBackToInterpreter, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, Load8, Load16, Load32, LoadSingle, LoadDouble, };
+		static unsigned TriOp[] = { Store8, Store16, Store32, StoreSingle, StoreDouble, };
 		for (auto& op : ZeroOp)
 			numberOfOperands[op] = 0;
 
@@ -1355,6 +1389,9 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
 
 		for (auto& op : BiOp)
 			numberOfOperands[op] = 2;
+
+		for (auto& op : TriOp)
+			numberOfOperands[op] = 3;
 	}
 
 	return numberOfOperands[getOpcode(*I)];
@@ -1551,6 +1588,17 @@ void IRBuilder::WriteToFile(u64 codeHash)
 		if (numberOfOperands >= 2)
 		{
 			const IREmitter::InstLoc inst = getOp2(I);
+
+			if (isImm(*inst))
+				fprintf(file, " 0x%08x", GetImmValue(inst));
+			else
+				fprintf(file, " %10u", i - (unsigned int)(I - inst));
+		}
+
+		// Op3
+		if (numberOfOperands >= 3)
+		{
+			const IREmitter::InstLoc inst = getOp3(I);
 
 			if (isImm(*inst))
 				fprintf(file, " 0x%08x", GetImmValue(inst));

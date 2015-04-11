@@ -33,9 +33,6 @@ enum Opcode
 	BSwap16,
 	Cntlzw, // Count leading zeros
 	Not,
-	Load8,  // These loads zext
-	Load16,
-	Load32,
 	// CR conversions
 	ConvertFromFastCR,
 	ConvertToFastCR,
@@ -86,10 +83,6 @@ enum Opcode
 	ICmpSge,
 	ICmpSle, // Opposite of sgt
 
-	// Memory store operators
-	Store8,
-	Store16,
-	Store32,
 	BranchCond,
 	// Floating-point
 	// There are three floating-point formats: single, double,
@@ -110,8 +103,6 @@ enum Opcode
 	//    the implementation of fmuls is very slightly off;
 	//    likely nothing cares, though.
 	FResult_Start,
-	LoadSingle,
-	LoadDouble,
 	LoadPaired, // This handles quantizers itself
 	DoubleToSingle,
 	DupSingleToMReg,
@@ -141,14 +132,25 @@ enum Opcode
 	FPDup1,
 	FResult_End,
 	StorePaired,
-	StoreSingle,
-	StoreDouble,
 	StoreFReg,
 	FDCmpCR,
+
+	// Memory loads
+	Load8,  // These loads zext
+	Load16,
+	Load32,
+	LoadSingle,
+	LoadDouble,
 
 	// "Trinary" operators
 	// FIXME: Need to change representation!
 	//Select,       // Equivalent to C "Op1 ? Op2 : Op3"
+	// Memory Stores
+	Store8,
+	Store16,
+	Store32,
+	StoreSingle,
+	StoreDouble,
 
 	// Integer constants
 	CInt16,
@@ -225,12 +227,25 @@ InstLoc inline getOp2(InstLoc i)
 	return i;
 }
 
+InstLoc inline getOp3(InstLoc i)
+{
+	i = i - 1 - ((*i >> 24) & 255);
+
+	if (getOpcode(*i) == Tramp)
+	{
+		i = i - 1 - (*i >> 8);
+	}
+
+	return i;
+}
+
 class IRBuilder
 {
 private:
 	InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
 	InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
 	InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+	InstLoc EmitTriOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, InstLoc Op3);
 
 	InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
@@ -254,6 +269,9 @@ private:
 	InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
 	InstLoc FoldUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
 	InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+	InstLoc FoldTriOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, InstLoc Op3);
+
+	std::pair<InstLoc, InstLoc> FoldMemoryAddress(InstLoc addr);
 
 	unsigned ComputeKnownZeroBits(InstLoc I) const;
 
@@ -431,34 +449,34 @@ public:
 		return FoldBiOp(ICmpSle, op1, op2);
 	}
 
-	InstLoc EmitLoad8(InstLoc op1)
+	InstLoc EmitLoad8(InstLoc addr)
 	{
-		return FoldUOp(Load8, op1);
+		return FoldUOp(Load8, addr);
 	}
 
-	InstLoc EmitLoad16(InstLoc op1)
+	InstLoc EmitLoad16(InstLoc addr)
 	{
-		return FoldUOp(Load16, op1);
+		return FoldUOp(Load16, addr);
 	}
 
-	InstLoc EmitLoad32(InstLoc op1)
+	InstLoc EmitLoad32(InstLoc addr)
 	{
-		return FoldUOp(Load32, op1);
+		return FoldUOp(Load32, addr);
 	}
 
-	InstLoc EmitStore8(InstLoc op1, InstLoc op2)
+	InstLoc EmitStore8(InstLoc value, InstLoc addr)
 	{
-		return FoldBiOp(Store8, op1, op2);
+		return FoldBiOp(Store8, value, addr);
 	}
 
-	InstLoc EmitStore16(InstLoc op1, InstLoc op2)
+	InstLoc EmitStore16(InstLoc value, InstLoc addr)
 	{
-		return FoldBiOp(Store16, op1, op2);
+		return FoldBiOp(Store16, value, addr);
 	}
 
-	InstLoc EmitStore32(InstLoc op1, InstLoc op2)
+	InstLoc EmitStore32(InstLoc value, InstLoc addr)
 	{
-		return FoldBiOp(Store32, op1, op2);
+		return FoldBiOp(Store32, value, addr);
 	}
 
 	InstLoc EmitSExt16(InstLoc op1)
