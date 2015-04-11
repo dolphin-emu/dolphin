@@ -187,18 +187,18 @@ void CConfigVR::CreateGUIControls()
 			spin_replay_buffer->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 		}
 		{
-			spin_replay_buffer_divider = new U32Setting(page_vr, _("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
-			RegisterControl(spin_replay_buffer_divider, replaybuffer_desc);
-			spin_replay_buffer_divider->SetToolTip(replaybuffer_desc);
-			spin_replay_buffer_divider->SetValue(vconfig.iExtraVideoLoopsDivider);
-			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frame Divider:"));
+			//spin_replay_buffer_divider = new U32Setting(page_vr, _("Extra Opcode Replay Frame Divider:"), vconfig.iExtraVideoLoopsDivider, 0, 100000);
+			//RegisterControl(spin_replay_buffer_divider, replaybuffer_desc);
+			//spin_replay_buffer_divider->SetToolTip(replaybuffer_desc);
+			//spin_replay_buffer_divider->SetValue(vconfig.iExtraVideoLoopsDivider);
+			//wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frame Divider:"));
 
-			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
-			szr_opcode->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_opcode->Add(spin_replay_buffer_divider);
-			spin_replay_buffer_divider->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+			//label->SetToolTip(wxGetTranslation(replaybuffer_desc));
+			//szr_opcode->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			//szr_opcode->Add(spin_replay_buffer_divider);
+			//spin_replay_buffer_divider->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
-			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings (ALPHA TEST):")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, _("Quick Opcode Replay Settings:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			// Used for spacing for now.
 			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, _("")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20 = CreateCheckBox(page_vr, _("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
@@ -284,7 +284,7 @@ void CConfigVR::CreateGUIControls()
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		group_vr->Add(szr_options, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
-		wxStaticBoxSizer* const group_opcode = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Opcode Replay (ALPHA TEST)"));
+		wxStaticBoxSizer* const group_opcode = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Opcode Replay (BETA) - Note: Enable 'Idle Skipping' in Config Tab"));
 		group_opcode->Add(szr_opcode, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_opcode, 0, wxEXPAND | wxALL, 5);
 		wxStaticBoxSizer* const group_timewarp = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Synchronous Timewarp"));
@@ -909,7 +909,7 @@ void CConfigVR::OnYawCheckbox(wxCommandEvent& event)
 void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 {
 	spin_replay_buffer->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
-	spin_replay_buffer_divider->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
+	//spin_replay_buffer_divider->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
 	spin_extra_frames->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
 	spin_timewarp_tweak->Enable(!checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
 
