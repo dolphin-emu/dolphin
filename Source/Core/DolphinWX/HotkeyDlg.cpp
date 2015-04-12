@@ -232,6 +232,8 @@ const wxString hkText[] =
 	_("Freelook Move Right"),
 	_("Freelook Zoom In"),
 	_("Freelook Zoom Out"),
+	_("Freelook Clockwise"),
+	_("Freelook CClockwise"),
 	_("Freelook Reset"),
 
 	_("Decrease Depth"),

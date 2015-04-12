@@ -216,6 +216,8 @@ public:
 	static void RotateX(Matrix33 &mtx, float rad);
 	// set mtx to be a rotation matrix around the y axis
 	static void RotateY(Matrix33 &mtx, float rad);
+	// set mtx to be a rotation matrix around the z axis
+	static void RotateZ(Matrix33 &mtx, float rad);
 
 	// set result = a x b
 	static void Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result);
