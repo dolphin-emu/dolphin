@@ -53,6 +53,8 @@ const std::string hotkey_labels[] =
 	_trans("Freelook Move Right"),
 	_trans("Freelook Zoom In"),
 	_trans("Freelook Zoom Out"),
+	_trans("Freelook Clockwise"),
+	_trans("Freelook CClockwise"),
 	_trans("Freelook Reset"),
 
 	_trans("Decrease Depth"),

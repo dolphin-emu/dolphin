@@ -31,7 +31,7 @@ public:
 	static void SetMaterialColorChanged(int index, u32 color);
 
 	static void TranslateView(float x, float y, float z = 0.0f);
-	static void RotateView(float x, float y);
+	static void RotateView(float x, float y, float z = 0.0f);
 	static void ResetView();
 
 	// data: 3 floats representing the X, Y and Z vertex model coordinates and the posmatrix index.

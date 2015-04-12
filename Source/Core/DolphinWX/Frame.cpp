@@ -1041,6 +1041,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_FREELOOK_DOWN: return IDM_FREELOOK_DOWN;
 	case HK_FREELOOK_ZOOM_IN: return IDM_FREELOOK_ZOOM_IN;
 	case HK_FREELOOK_ZOOM_OUT: return IDM_FREELOOK_ZOOM_OUT;
+	case HK_FREELOOK_CLOCKWISE: return IDM_FREELOOK_CLOCKWISE;
+	case HK_FREELOOK_CCLOCKWISE: return IDM_FREELOOK_CCLOCKWISE;
 	case HK_FREELOOK_RESET: return IDM_FREELOOK_RESET;
 	}
 
@@ -1505,6 +1507,10 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			VertexShaderManager::TranslateView(0.0f, debugSpeed);
 		else if (IsHotkey(event, HK_FREELOOK_ZOOM_OUT, true))
 			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+		else if (IsHotkey(event, HK_FREELOOK_CLOCKWISE, true))
+			VertexShaderManager::RotateView(0.0f, 0.0f, debugSpeed / 200.0f);
+		else if (IsHotkey(event, HK_FREELOOK_CCLOCKWISE, true))
+			VertexShaderManager::RotateView(0.0f, 0.0f, -debugSpeed / 200.0f);
 		else if (IsHotkey(event, HK_FREELOOK_RESET, true))
 			VertexShaderManager::ResetView();
 	}

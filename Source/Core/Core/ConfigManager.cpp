@@ -85,6 +85,8 @@ static const struct
 	{ "FreelookRight",         68  /* 'D' */,        4 /* wxMOD_SHIFT */   },
 	{ "FreelookZoomIn",        87  /* 'W' */,        4 /* wxMOD_SHIFT */   },
 	{ "FreelookZoomOut",       83  /* 'S' */,        4 /* wxMOD_SHIFT */   },
+	{ "FreelookClockwise",     67  /* 'C' */,        4 /* wxMOD_SHIFT */   },
+	{ "FreelookCClockwise",    88  /* 'X' */,        4 /* wxMOD_SHIFT */   },
 	{ "FreelookReset",         82  /* 'R' */,        4 /* wxMOD_SHIFT */   },
 
 	{ "DecreaseDepth",         0,                    0 /* wxMOD_NONE */    },
