@@ -40,5 +40,4 @@ private:
 	wxCheckBox* m_connect_keyboard_checkbox;
 	wxChoice* m_system_language_choice;
 	wxChoice* m_aspect_ratio_choice;
-	wxChoice* m_sensor_bar_position_choice;
 };
