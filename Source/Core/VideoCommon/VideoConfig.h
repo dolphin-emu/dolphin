@@ -153,6 +153,9 @@ struct VideoConfig final
 	bool bStabilizeRoll;
 	bool bStabilizePitch;
 	bool bStabilizeYaw;
+	bool bStabilizeX;
+	bool bStabilizeY;
+	bool bStabilizeZ;
 	bool bKeyhole;
 	float fKeyholeWidth;
 	bool bKeyholeSnap;

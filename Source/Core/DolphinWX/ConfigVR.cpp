@@ -133,6 +133,10 @@ void CConfigVR::CreateGUIControls()
 			checkbox_roll = CreateCheckBox(page_vr, _("Roll"), wxGetTranslation(stabilizeroll_desc), vconfig.bStabilizeRoll);
 			checkbox_pitch = CreateCheckBox(page_vr, _("Pitch"), wxGetTranslation(stabilizepitch_desc), vconfig.bStabilizePitch);
 			checkbox_yaw = CreateCheckBox(page_vr, _("Yaw"), wxGetTranslation(stabilizeyaw_desc), vconfig.bStabilizeYaw);
+			checkbox_x = CreateCheckBox(page_vr, _("X"), wxGetTranslation(stabilizex_desc), vconfig.bStabilizeX);
+			checkbox_y = CreateCheckBox(page_vr, _("Y"), wxGetTranslation(stabilizey_desc), vconfig.bStabilizeY);
+			checkbox_z = CreateCheckBox(page_vr, _("Z"), wxGetTranslation(stabilizez_desc), vconfig.bStabilizeZ);
+
 			checkbox_keyhole = CreateCheckBox(page_vr, _("Keyhole"), wxGetTranslation(keyhole_desc), vconfig.bKeyhole);
 			checkbox_yaw->Bind(wxEVT_CHECKBOX, &CConfigVR::OnYawCheckbox, this);
 			checkbox_keyhole->Bind(wxEVT_CHECKBOX, &CConfigVR::OnKeyholeCheckbox, this);
@@ -153,6 +157,10 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(checkbox_roll, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_pitch, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_yaw, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Stabilize: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_x, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_y, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(checkbox_z, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Keyhole: ")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(checkbox_keyhole, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(label_keyhole_width, 1, wxALIGN_CENTER_VERTICAL, 0);
