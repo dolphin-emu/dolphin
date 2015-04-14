@@ -262,6 +262,8 @@ struct SCoreStartupParameter
 	u32 skip_objects_end_two = 0;
 	u32 skip_objects_start_two = 0;
 #endif
+	volatile bool hide_objects_updating = true;
+	volatile bool hide_objects_done = true;
 
 	// Display settings
 	std::string strFullscreenResolution;
