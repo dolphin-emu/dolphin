@@ -37,7 +37,6 @@ TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	CreateBaseLayout();
 }
 
 void TASInputDlg::CreateBaseLayout()
@@ -63,6 +62,7 @@ void TASInputDlg::CreateBaseLayout()
 	m_dpad_down = CreateButton("Down");
 	m_dpad_left = CreateButton("Left");
 
+	m_buttons_dpad = new wxGridSizer(3);
 	m_buttons_dpad->AddSpacer(20);
 	m_buttons_dpad->Add(m_dpad_up.checkbox);
 	m_buttons_dpad->AddSpacer(20);
@@ -92,6 +92,8 @@ void TASInputDlg::CreateWiiLayout(int num)
 {
 	if (m_has_layout)
 		return;
+
+	CreateBaseLayout();
 
 	m_buttons[6] = &m_one;
 	m_buttons[7] = &m_two;
@@ -195,6 +197,8 @@ void TASInputDlg::CreateGCLayout()
 {
 	if (m_has_layout)
 		return;
+
+	CreateBaseLayout();
 
 	m_buttons[6] = &m_x;
 	m_buttons[7] = &m_y;
