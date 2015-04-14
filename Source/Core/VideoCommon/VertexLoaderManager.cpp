@@ -153,6 +153,28 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if ((int)src.size() < size)
 		return -1;
 
+#ifdef DEBUG_OBJECTS
+	if (skip_objects_count < m_LocalCoreStartupParameter.skip_objects_end_two)
+	{
+		if (skip_objects_count >= m_LocalCoreStartupParameter.skip_objects_start_two)
+		{
+			//Skip Object
+			skip_objects_count++;
+			return size;
+		}
+	}
+
+	if (skip_objects_count < m_LocalCoreStartupParameter.skip_objects_end)
+	{
+		if (skip_objects_count >= m_LocalCoreStartupParameter.skip_objects_start)
+		{
+			//Skip Object
+			skip_objects_count++;
+			return size;
+		}
+	}
+	skip_objects_count++;
+#else
 	if (skip_objects_count < m_LocalCoreStartupParameter.skip_objects_end)
 	{
 		if (++skip_objects_count >= m_LocalCoreStartupParameter.skip_objects_start)
@@ -161,6 +183,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 			return size;
 		}
 	}
+#endif
 
 	if (skip_drawing || is_preprocess)
 		return size;

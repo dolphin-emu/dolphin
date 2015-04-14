@@ -4,6 +4,10 @@
 
 #pragma once
 
+// When enabled you can isolate a single object using the object removal GUI.
+// Great for debugging corruption or using the D3D debugger.
+//#define DEBUG_OBJECTS
+
 #include <string>
 #include <vector>
 
@@ -254,6 +258,10 @@ struct SCoreStartupParameter
 	std::vector<SkipEntry> object_removal_codes;
 	u32 skip_objects_end = 0;
 	u32 skip_objects_start = 0;
+#ifdef DEBUG_OBJECTS
+	u32 skip_objects_end_two = 0;
+	u32 skip_objects_start_two = 0;
+#endif
 
 	// Display settings
 	std::string strFullscreenResolution;
