@@ -40,8 +40,6 @@ class wxWindow;
 namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 
-extern std::vector<ActionReplay::ARCode> arCodes;
-
 struct WiiPartition
 {
 	DiscIO::IVolume *Partition;
@@ -56,7 +54,6 @@ struct PHackData
 	std::string PHZNear;
 	std::string PHZFar;
 };
-extern PHackData PHack_Data;
 
 class CISOProperties : public wxDialog
 {
@@ -74,8 +71,6 @@ public:
 
 	void ActionReplayList_Load();
 	bool SaveGameConfig();
-
-	PHackData PHack_Data;
 
 private:
 	DECLARE_EVENT_TABLE();
@@ -106,19 +101,14 @@ private:
 	wxArrayString arrayStringFor_EmuState;
 	wxChoice* EmuState;
 	wxTextCtrl* EmuIssues;
-	wxArrayString arrayStringFor_Patches;
+
 	wxCheckListBox* Patches;
 	wxButton* EditPatch;
 	wxButton* RemovePatch;
-	wxArrayString arrayStringFor_Cheats;
+
 	wxCheckListBox* Cheats;
 	wxButton* EditCheat;
 	wxButton* RemoveCheat;
-	wxArrayString arrayStringFor_Speedhacks;
-	wxCheckListBox* Speedhacks;
-	wxButton* EditSpeedhack;
-	wxButton* AddSpeedhack;
-	wxButton* RemoveSpeedhack;
 
 	wxTextCtrl* m_Name;
 	wxTextCtrl* m_GameID;
