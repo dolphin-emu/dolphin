@@ -201,9 +201,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(_("France"));
 		break;
-	case DiscIO::IVolume::COUNTRY_WORLD:
-		m_Country->SetValue(_("World"));
-		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(_("Italy"));
 		break;
@@ -248,6 +245,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			m_Lang->SetSelection(0);
 			m_Lang->Disable();
 		}
+		break;
+	case DiscIO::IVolume::COUNTRY_WORLD:
+		m_Country->SetValue(_("World"));
 		break;
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:

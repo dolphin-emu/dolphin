@@ -23,6 +23,7 @@
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>$(IntDir)bin\</OutDir>
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->

@@ -342,8 +342,6 @@ wxMenuBar* CFrame::CreateMenu()
 	regionMenu->Check(IDM_LIST_FRANCE, SConfig::GetInstance().m_ListFrance);
 	regionMenu->AppendCheckItem(IDM_LIST_GERMANY, _("Show Germany"));
 	regionMenu->Check(IDM_LIST_GERMANY, SConfig::GetInstance().m_ListGermany);
-	regionMenu->AppendCheckItem(IDM_LIST_WORLD, _("Show World"));
-	regionMenu->Check(IDM_LIST_WORLD, SConfig::GetInstance().m_ListWorld);
 	regionMenu->AppendCheckItem(IDM_LIST_ITALY, _("Show Italy"));
 	regionMenu->Check(IDM_LIST_ITALY, SConfig::GetInstance().m_ListItaly);
 	regionMenu->AppendCheckItem(IDM_LIST_KOREA, _("Show Korea"));
@@ -356,6 +354,8 @@ wxMenuBar* CFrame::CreateMenu()
 	regionMenu->Check(IDM_LIST_SPAIN, SConfig::GetInstance().m_ListSpain);
 	regionMenu->AppendCheckItem(IDM_LIST_TAIWAN, _("Show Taiwan"));
 	regionMenu->Check(IDM_LIST_TAIWAN, SConfig::GetInstance().m_ListTaiwan);
+	regionMenu->AppendCheckItem(IDM_LIST_WORLD, _("Show World"));
+	regionMenu->Check(IDM_LIST_WORLD, SConfig::GetInstance().m_ListWorld);
 	regionMenu->AppendCheckItem(IDM_LIST_UNKNOWN, _("Show Unknown"));
 	regionMenu->Check(IDM_LIST_UNKNOWN, SConfig::GetInstance().m_ListUnknown);
 
@@ -2118,9 +2118,6 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 	case IDM_LIST_GERMANY:
 		SConfig::GetInstance().m_ListGermany = event.IsChecked();
 		break;
-	case IDM_LIST_WORLD:
-		SConfig::GetInstance().m_ListWorld = event.IsChecked();
-		break;
 	case IDM_LIST_ITALY:
 		SConfig::GetInstance().m_ListItaly = event.IsChecked();
 		break;
@@ -2138,6 +2135,9 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_LIST_TAIWAN:
 		SConfig::GetInstance().m_ListTaiwan = event.IsChecked();
+		break;
+	case IDM_LIST_WORLD:
+		SConfig::GetInstance().m_ListWorld = event.IsChecked();
 		break;
 	case IDM_LIST_UNKNOWN:
 		SConfig::GetInstance().m_ListUnknown = event.IsChecked();

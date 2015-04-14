@@ -70,7 +70,6 @@ wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
 	if (col == 1)
 		attr->SetTextColour(m_CachedRegHasChanged[row] ? *wxRED : *wxBLACK);
 
-	attr->IncRef();
 	return attr;
 }
 

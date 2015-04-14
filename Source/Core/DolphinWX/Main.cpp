@@ -64,7 +64,6 @@
 #endif
 
 #ifdef _WIN32
-#include <shellapi.h>
 
 #ifndef SM_XVIRTUALSCREEN
 #define SM_XVIRTUALSCREEN 76

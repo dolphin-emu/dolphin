@@ -64,13 +64,13 @@ void TASInputDlg::CreateBaseLayout()
 	m_dpad_left = CreateButton("Left");
 
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_up.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_up.checkbox);
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_left.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_left.checkbox);
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_right.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_right.checkbox);
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_down.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_down.checkbox);
 	m_buttons_dpad->AddSpacer(20);
 
 	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
@@ -170,7 +170,7 @@ void TASInputDlg::CreateWiiLayout(int num)
 
 	for (unsigned int i = 4; i < 14; ++i)
 		if (m_buttons[i] != nullptr)
-			m_buttons_grid->Add(m_buttons[i]->checkbox, false);
+			m_buttons_grid->Add(m_buttons[i]->checkbox);
 	m_buttons_grid->AddSpacer(5);
 
 	m_buttons_box->Add(m_buttons_grid);

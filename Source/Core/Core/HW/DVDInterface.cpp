@@ -669,7 +669,8 @@ DVDReadCommand ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_le
 	}
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
-		*ticks_until_completion = 0;	// An optional hack to speed up loading times
+		// An optional hack to speed up loading times
+		*ticks_until_completion = output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
 	else
 		*ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 

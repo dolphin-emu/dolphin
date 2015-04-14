@@ -181,6 +181,15 @@ public:
 			flag.Set(s);
 	}
 
+	template<typename T>
+	void Do(std::atomic<T>& atomic)
+	{
+		T temp = atomic.load();
+		Do(temp);
+		if (mode == MODE_READ)
+			atomic.store(temp);
+	}
+
 	template <typename T>
 	void Do(T& x)
 	{

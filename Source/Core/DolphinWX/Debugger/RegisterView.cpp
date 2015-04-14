@@ -241,7 +241,6 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	}
 
 	attr->SetTextColour(red ? *wxRED : *wxBLACK);
-	attr->IncRef();
 	return attr;
 }
 
