@@ -95,7 +95,7 @@ public:
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
-		bool IsEfbCopy() { return is_efb_copy; }
+		bool IsEfbCopy() const { return is_efb_copy; }
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor

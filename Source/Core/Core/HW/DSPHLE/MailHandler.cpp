@@ -49,7 +49,7 @@ void CMailHandler::Clear()
 		m_Mails.pop();
 }
 
-bool CMailHandler::IsEmpty()
+bool CMailHandler::IsEmpty() const
 {
 	return m_Mails.empty();
 }

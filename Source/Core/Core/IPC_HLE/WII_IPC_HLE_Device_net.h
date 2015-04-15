@@ -275,14 +275,14 @@ public:
 		return 0;
 	}
 
-	u32 Magic() {return Common::swap32(config.magic);}
-	void SetMagic(u32 magic) {config.magic = Common::swap32(magic);}
+	u32 Magic() const { return Common::swap32(config.magic); }
+	void SetMagic(u32 magic) { config.magic = Common::swap32(magic); }
 
-	u32 Unk() {return Common::swap32(config._unk_04);}
-	void SetUnk(u32 _unk_04) {config._unk_04 = Common::swap32(_unk_04);}
+	u32 Unk() const { return Common::swap32(config._unk_04); }
+	void SetUnk(u32 _unk_04) { config._unk_04 = Common::swap32(_unk_04); }
 
-	u32 IdGen() {return Common::swap32(config.id_generation);}
-	void SetIdGen(u32 id_generation) {config.id_generation = Common::swap32(id_generation);}
+	u32 IdGen() const { return Common::swap32(config.id_generation); }
+	void SetIdGen(u32 id_generation) { config.id_generation = Common::swap32(id_generation); }
 
 	void IncrementIdGen()
 	{
@@ -292,19 +292,19 @@ public:
 		SetIdGen(id_ctr);
 	}
 
-	u32 Checksum() {return Common::swap32(config.checksum);}
-	void SetChecksum(u32 checksum) {config.checksum = Common::swap32(checksum);}
+	u32 Checksum() const { return Common::swap32(config.checksum); }
+	void SetChecksum(u32 checksum) { config.checksum = Common::swap32(checksum); }
 
-	u32 CreationStage() {return Common::swap32(config.creation_stage);}
-	void SetCreationStage(u32 creation_stage) {config.creation_stage = Common::swap32(creation_stage);}
+	u32 CreationStage() const { return Common::swap32(config.creation_stage); }
+	void SetCreationStage(u32 creation_stage) { config.creation_stage = Common::swap32(creation_stage); }
 
-	u32 EnableBooting() {return Common::swap32(config.enable_booting);}
-	void SetEnableBooting(u32 enable_booting) {config.enable_booting = Common::swap32(enable_booting);}
+	u32 EnableBooting() const { return Common::swap32(config.enable_booting); }
+	void SetEnableBooting(u32 enable_booting) { config.enable_booting = Common::swap32(enable_booting); }
 
-	u64 Id() {return Common::swap64(config.nwc24_id);}
-	void SetId(u64 nwc24_id) {config.nwc24_id = Common::swap64(nwc24_id);}
+	u64 Id() const { return Common::swap64(config.nwc24_id); }
+	void SetId(u64 nwc24_id) { config.nwc24_id = Common::swap64(nwc24_id); }
 
-	const char* Email() {return config.email;}
+	const char* Email() const { return config.email; }
 	void SetEmail(const char* email)
 	{
 		strncpy(config.email, email, nwc24_config_t::MAX_EMAIL_LENGTH);
@@ -431,8 +431,8 @@ private:
 		MODEL_ELSE = 7
 	};
 
-	u8 GetAreaCode(const std::string& area);
-	u8 GetHardwareModel(const std::string& model);
+	u8 GetAreaCode(const std::string& area) const;
+	u8 GetHardwareModel(const std::string& model) const;
 
 	s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code);
 

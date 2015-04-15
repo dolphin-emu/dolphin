@@ -208,7 +208,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 }
 
 
-u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area)
+u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area) const
 {
 	static std::map<const std::string, u8> regions = {
 		{ "JPN", 0 }, { "USA", 1 }, { "EUR", 2 },
@@ -225,7 +225,7 @@ u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area)
 		return 7; // Unknown
 }
 
-u8 CWII_IPC_HLE_Device_net_kd_request::GetHardwareModel(const std::string& model)
+u8 CWII_IPC_HLE_Device_net_kd_request::GetHardwareModel(const std::string& model) const
 {
 	static std::map<const std::string, u8> models = {
 		{ "RVL", MODEL_RVL },

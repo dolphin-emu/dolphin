@@ -189,7 +189,7 @@ private:
 	void DoSock(u32 _CommandAddress, NET_IOCTL type);
 	void DoSock(u32 _CommandAddress, SSL_IOCTL type);
 	void Update(bool read, bool write, bool except);
-	bool IsValid() { return fd >= 0; }
+	bool IsValid() const { return fd >= 0; }
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
@@ -216,7 +216,7 @@ public:
 	s32 NewSocket(s32 af, s32 type, s32 protocol);
 	void AddSocket(s32 fd);
 	s32 DeleteSocket(s32 s);
-	s32 GetLastNetError() { return errno_last; }
+	s32 GetLastNetError() const { return errno_last; }
 	void SetLastNetError(s32 error) { errno_last = error; }
 
 	void Clean()

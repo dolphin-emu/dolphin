@@ -85,7 +85,7 @@ public:
 	u32  ImmRead (u32 size) override           {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
 	void DMAWrite(u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
 	void DMARead (u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
-	bool IsPresent() override { return true; }
+	bool IsPresent() const override { return true; }
 };
 
 

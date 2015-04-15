@@ -40,7 +40,7 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
 	}
 }
 
-int CWII_IPC_HLE_Device_net_ssl::getSSLFreeID()
+int CWII_IPC_HLE_Device_net_ssl::GetSSLFreeID() const
 {
 	for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
 	{
@@ -134,7 +134,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 		int verifyOption = Memory::Read_U32(BufferOut);
 		std::string hostname = Memory::GetString(BufferOut2, BufferOutSize2);
 
-		int freeSSL = this->getSSLFreeID();
+		int freeSSL = GetSSLFreeID();
 		if (freeSSL)
 		{
 			int sslID = freeSSL - 1;

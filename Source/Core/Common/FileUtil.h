@@ -203,10 +203,10 @@ public:
 		return WriteArray(reinterpret_cast<const char*>(data), length);
 	}
 
-	bool IsOpen() { return nullptr != m_file; }
+	bool IsOpen() const { return nullptr != m_file; }
 
 	// m_good is set to false when a read, write or other function fails
-	bool IsGood() { return m_good; }
+	bool IsGood() const { return m_good; }
 	operator void*() { return m_good ? m_file : nullptr; }
 
 	std::FILE* ReleaseHandle();
@@ -216,7 +216,7 @@ public:
 	void SetHandle(std::FILE* file);
 
 	bool Seek(s64 off, int origin);
-	u64 Tell();
+	u64 Tell() const;
 	u64 GetSize();
 	bool Resize(u64 size);
 	bool Flush();
