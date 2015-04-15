@@ -932,18 +932,28 @@ void CConfigVR::OnYawCheckbox(wxCommandEvent& event)
 // On Pullup Checkbox Click
 void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 {
-	spin_replay_buffer->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
-	//spin_replay_buffer_divider->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
-	spin_extra_frames->Enable(!checkbox_pullup20_timewarp->IsChecked() && !checkbox_pullup30_timewarp->IsChecked() && !checkbox_pullup60_timewarp->IsChecked() && !checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
-	spin_timewarp_tweak->Enable(!checkbox_pullup20->IsChecked() && !checkbox_pullup30->IsChecked() && !checkbox_pullup60->IsChecked());
+	if ((checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()))
+		vconfig.bSynchronousTimewarp = true;
+	else
+		vconfig.bSynchronousTimewarp = false;
 
-	checkbox_pullup20->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
-	checkbox_pullup30->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
-	checkbox_pullup60->Enable(!(checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()));
+	if ((checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()))
+		vconfig.bOpcodeReplay = true;
+	else
+		vconfig.bOpcodeReplay = false;
 
-	checkbox_pullup20_timewarp->Enable(!(checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()));
-	checkbox_pullup30_timewarp->Enable(!(checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()));
-	checkbox_pullup60_timewarp->Enable(!(checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()));
+	checkbox_pullup20->Enable(!vconfig.bSynchronousTimewarp);
+	checkbox_pullup30->Enable(!vconfig.bSynchronousTimewarp);
+	checkbox_pullup60->Enable(!vconfig.bSynchronousTimewarp);
+
+	checkbox_pullup20_timewarp->Enable(!vconfig.bOpcodeReplay);
+	checkbox_pullup30_timewarp->Enable(!vconfig.bOpcodeReplay);
+	checkbox_pullup60_timewarp->Enable(!vconfig.bOpcodeReplay);
+
+	spin_replay_buffer->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
+	//spin_replay_buffer_divider->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
+	spin_extra_frames->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
+	spin_timewarp_tweak->Enable(!vconfig.bOpcodeReplay);
 
 	event.Skip();
 }

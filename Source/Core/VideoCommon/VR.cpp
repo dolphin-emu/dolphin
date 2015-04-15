@@ -614,7 +614,7 @@ void OpcodeReplayBuffer()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bOpcodeReplay) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
@@ -752,19 +752,15 @@ void OpcodeReplayBufferInline()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int real_frame_count = 0;
 	int extra_video_loops;
-	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bOpcodeReplay) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
-		if (g_ActiveConfig.bPullUp20fps)
+		if (g_ActiveConfig.bPullUp60fps)
 		{
-			if (real_frame_count % 4 == 1)
-			{
-				extra_video_loops = 2;
-			}
+			if (real_frame_count % 4 == 0)
+				extra_video_loops = 1;
 			else
-			{
-				extra_video_loops = 3;
-			}
+				extra_video_loops = 0;
 		}
 		else if (g_ActiveConfig.bPullUp30fps)
 		{
@@ -777,19 +773,23 @@ void OpcodeReplayBufferInline()
 				extra_video_loops = 2;
 			}
 		}
-		else if (g_ActiveConfig.bPullUp60fps)
+		else if (g_ActiveConfig.bPullUp20fps)
 		{
-			if (real_frame_count % 4 == 0)
-				extra_video_loops = 1;
+			if (real_frame_count % 4 == 1)
+			{
+				extra_video_loops = 2;
+			}
 			else
-				extra_video_loops = 0;
+			{
+				extra_video_loops = 3;
+			}
 		}
 
 		++real_frame_count;
 		g_opcodereplay_frame = true;
 		skipped_opcode_replay_count = 0;
 
-		if (!(g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps))
+		if (!g_ActiveConfig.bOpcodeReplay)
 		{
 			extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
 		}
