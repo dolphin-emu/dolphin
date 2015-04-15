@@ -40,8 +40,9 @@ class wxWindow;
 namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 
-struct WiiPartition
+class WiiPartition final : public wxTreeItemData
 {
+public:
 	DiscIO::IVolume *Partition;
 	DiscIO::IFileSystem *FileSystem;
 	std::vector<const DiscIO::SFileInfo *> Files;
@@ -74,8 +75,6 @@ public:
 
 private:
 	DECLARE_EVENT_TABLE();
-
-	std::vector<WiiPartition> WiiDisc;
 
 	DiscIO::IVolume *OpenISO;
 	DiscIO::IFileSystem *pFileSystem;
@@ -227,7 +226,7 @@ private:
 			const size_t _FirstIndex,
 			const size_t _LastIndex);
 	void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
-			const int partitionNum = 0);
+			const WiiPartition* partition = nullptr);
 
 	IniFile GameIniDefault;
 	IniFile GameIniLocal;
