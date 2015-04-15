@@ -37,10 +37,6 @@ protected:
 	std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer;
 	u32 m_query_read_pos;
 
-	// TODO: sloppy
-	volatile u32 m_query_count;
-	volatile u32 m_results[PQG_NUM_MEMBERS];
-
 private:
 	// Implementation
 	std::unique_ptr<PerfQuery> m_query;

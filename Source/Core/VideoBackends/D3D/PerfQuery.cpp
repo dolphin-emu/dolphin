@@ -6,7 +6,6 @@ namespace DX11 {
 
 PerfQuery::PerfQuery()
 	: m_query_read_pos()
-	, m_query_count()
 {
 	for (ActiveQuery& entry : m_query_buffer)
 	{
