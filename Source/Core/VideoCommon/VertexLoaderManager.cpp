@@ -153,6 +153,28 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 	if ((int)src.size() < size)
 		return -1;
 
+#ifdef DEBUG_OBJECTS
+	if (skip_objects_count < m_LocalCoreStartupParameter.skip_objects_end_two)
+	{
+		if (skip_objects_count >= m_LocalCoreStartupParameter.skip_objects_start_two)
+		{
+			//Skip Object
+			skip_objects_count++;
+			return size;
+		}
+	}
+
+	if (skip_objects_count < m_LocalCoreStartupParameter.skip_objects_end)
+	{
+		if (skip_objects_count >= m_LocalCoreStartupParameter.skip_objects_start)
+		{
+			//Skip Object
+			skip_objects_count++;
+			return size;
+		}
+	}
+	skip_objects_count++;
+#else
 	if (skip_objects_count < m_LocalCoreStartupParameter.skip_objects_end)
 	{
 		if (++skip_objects_count >= m_LocalCoreStartupParameter.skip_objects_start)
@@ -161,19 +183,26 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
 			return size;
 		}
 	}
+#endif
 
 	if (skip_drawing || is_preprocess)
 		return size;
 
 	// Hide Objects Code code
-	for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
+	if (!m_LocalCoreStartupParameter.hide_objects_updating)
 	{
-		if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
+		m_LocalCoreStartupParameter.hide_objects_done = false;
+		for (const SkipEntry& entry : m_LocalCoreStartupParameter.object_removal_codes)
 		{
-			//Data didn't match, try next object_removal_code
-			return size;
+			// Set lock so codes can be enabled/disabled in game without crashes.
+			if (!memcmp(src.GetPointer(), entry.data(), entry.size()))
+			{
+				//Data didn't match, try next object_removal_code
+				return size;
+			}
 		}
 	}
+	m_LocalCoreStartupParameter.hide_objects_done = true;
 
 	// If the native vertex format changed, force a flush.
 	if (loader->m_native_vertex_format != s_current_vtx_fmt)

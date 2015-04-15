@@ -163,10 +163,12 @@ struct VideoConfig final
 	bool bPullUp20fps;
 	bool bPullUp30fps;
 	bool bPullUp60fps;
+	bool bSynchronousTimewarp;
 	bool bOpcodeWarningDisable;
 	bool bPullUp20fpsTimewarp;
 	bool bPullUp30fpsTimewarp;
 	bool bPullUp60fpsTimewarp;
+	bool bOpcodeReplay;
 	bool bAsynchronousTimewarp;
 	bool bEnableVR;
 	bool bLowPersistence;

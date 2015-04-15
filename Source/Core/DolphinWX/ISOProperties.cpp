@@ -201,9 +201,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(_("France"));
 		break;
-	case DiscIO::IVolume::COUNTRY_WORLD:
-		m_Country->SetValue(_("World"));
-		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(_("Italy"));
 		break;
@@ -248,6 +245,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			m_Lang->SetSelection(0);
 			m_Lang->Disable();
 		}
+		break;
+	case DiscIO::IVolume::COUNTRY_WORLD:
+		m_Country->SetValue(_("World"));
 		break;
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:
@@ -624,8 +624,19 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbHideObjectRangeGrid->Add(HideObjectsStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
 	sbHideObjectRangeGrid->Add(HideObjectsEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
 
+#ifdef DEBUG_OBJECTS
+
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("From:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("To:")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	U32Setting* HideObjectsStartTwo = new U32Setting(m_HideObjectPage, _("Hide Start Two"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start_two, 0, 100000);
+	U32Setting* HideObjectsEndTwo = new U32Setting(m_HideObjectPage, _("Hide End Two"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end_two, 0, 100000);
+	sbHideObjectRangeGrid->Add(HideObjectsStartTwo, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sbHideObjectRangeGrid->Add(HideObjectsEndTwo, wxGBPosition(1, 3), wxDefaultSpan, wxALL, 5);
+
+#endif
 	// Hide Object Code
-	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_HideObjects, wxLB_HSCROLL);
+	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_HSCROLL);
 	wxBoxSizer* const sHideObjectsButtons = new wxBoxSizer(wxHORIZONTAL);
 	EditHideObject = new wxButton(m_HideObjectPage, ID_EDITHIDEOBJECT, _("Edit..."));
 	wxButton* const AddHideObject = new wxButton(m_HideObjectPage, ID_ADDHideObject, _("Add..."));
@@ -645,7 +656,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	// Patches
 	wxBoxSizer* const sPatches = new wxBoxSizer(wxVERTICAL);
-	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Patches, wxLB_HSCROLL);
+	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_HSCROLL);
 	wxBoxSizer* const sPatchButtons = new wxBoxSizer(wxHORIZONTAL);
 	EditPatch = new wxButton(m_PatchPage, ID_EDITPATCH, _("Edit..."));
 	wxButton* const AddPatch = new wxButton(m_PatchPage, ID_ADDPATCH, _("Add..."));
@@ -666,7 +677,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	// Action Replay Cheats
 	wxBoxSizer * const sCheats = new wxBoxSizer(wxVERTICAL);
-	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Cheats, wxLB_HSCROLL);
+	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_HSCROLL);
 	wxBoxSizer * const sCheatButtons = new wxBoxSizer(wxHORIZONTAL);
 	EditCheat = new wxButton(m_CheatPage, ID_EDITCHEAT, _("Edit..."));
 	wxButton * const AddCheat = new wxButton(m_CheatPage, ID_ADDCHEAT, _("Add..."));

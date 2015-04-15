@@ -72,8 +72,8 @@ void CHideObjectAddEdit::CreateGUIControls(int _selection)
 
 	wxButton* BruteForceUp = new wxButton(this, ID_BUTTON_UP, _("Up"));
 	wxButton* BruteForceDown = new wxButton(this, ID_BUTTON_DOWN, _("Down"));
-	wxString* BruteForceToolTip = new wxString(_("The up or down button can be used to find new codes.  While the game is playing, find an object you want to hide and select '8bits'.  Keep clicking the up button until the object disappears.  Now choose '16bits' and add two zeros to the right side of the 8bit code. "
-		"Continue clicking up until the object is hidden again.  Repeat this process until the code is long enough to be unique.  Warning: Too short of a code may result in other objects being hidden."));
+	wxString* BruteForceToolTip = new wxString(_("The up or down button can be used to find new codes.  While the game is playing, find an object you want to hide and select '8bits'.  Keep clicking the up button until the object disappears.  Now choose '16bits' and "
+		"continue clicking up until the object is hidden again.  Repeat this process until the code is long enough to be unique.  Warning: Too short of a code may result in other objects being hidden."));
 	BruteForceUp->SetToolTip(*BruteForceToolTip);
 	BruteForceDown->SetToolTip(*BruteForceToolTip);
 	BruteForceUp->Bind(wxEVT_BUTTON, &CHideObjectAddEdit::ButtonUporDown, this);

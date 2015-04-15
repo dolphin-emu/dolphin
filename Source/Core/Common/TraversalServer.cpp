@@ -201,7 +201,8 @@ static const char* SenderName(sockaddr_in6* addr)
 static void TrySend(const void* buffer, size_t size, sockaddr_in6* addr)
 {
 #if DEBUG
-	printf("-> %d %lu %s\n", ((TraversalPacket*) buffer)->type, ((TraversalPacket*) buffer)->requestId, SenderName(addr));
+	printf("-> %d %llu %s\n", ((TraversalPacket*) buffer)->type,
+		   (long long)((TraversalPacket*) buffer)->requestId, SenderName(addr));
 #endif
 	if ((size_t) sendto(sock, buffer, size, 0, (sockaddr*) addr, sizeof(*addr)) != size)
 	{
@@ -270,7 +271,7 @@ static void ResendPackets()
 static void HandlePacket(TraversalPacket* packet, sockaddr_in6* addr)
 {
 #if DEBUG
-	printf("<- %d %lu %s\n", packet->type, packet->requestId, SenderName(addr));
+	printf("<- %d %llu %s\n", packet->type, (long long)packet->requestId, SenderName(addr));
 #endif
 	bool packetOk = true;
 	switch (packet->type)

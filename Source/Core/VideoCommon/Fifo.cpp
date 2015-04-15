@@ -457,6 +457,15 @@ void RunGpu()
 				}
 				ReadDataFromFifo(fifo.CPReadPointer);
 				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
+
+#ifdef INLINE_OPCODE
+				//Render Extra Headtracking Frames for VR.
+				if (g_new_frame_just_rendered && g_has_hmd)
+				{
+					OpcodeReplayBufferInline();
+				}
+				g_new_frame_just_rendered = false;
+#endif
 			}
 
 			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
@@ -472,16 +481,6 @@ void RunGpu()
 
 		if (reset_simd_state)
 		{
-
-#ifdef INLINE_OPCODE
-			//Render Extra Headtracking Frames for VR.
-			if (g_new_frame_just_rendered && g_has_hmd)
-			{
-				OpcodeReplayBufferInline();
-			}
-			g_new_frame_just_rendered = false;
-#endif
-
 			FPURoundMode::LoadSIMDState();
 		}
 	}

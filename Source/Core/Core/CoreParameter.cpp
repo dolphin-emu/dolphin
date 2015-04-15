@@ -126,11 +126,11 @@ static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
 	case DiscIO::IVolume::COUNTRY_EUROPE:
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 	case DiscIO::IVolume::COUNTRY_GERMANY:
-	case DiscIO::IVolume::COUNTRY_WORLD:
 	case DiscIO::IVolume::COUNTRY_ITALY:
 	case DiscIO::IVolume::COUNTRY_NETHERLANDS:
 	case DiscIO::IVolume::COUNTRY_RUSSIA:
 	case DiscIO::IVolume::COUNTRY_SPAIN:
+	case DiscIO::IVolume::COUNTRY_WORLD:
 		return EUR_DIR;
 
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:

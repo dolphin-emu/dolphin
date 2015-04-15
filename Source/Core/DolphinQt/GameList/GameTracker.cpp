@@ -163,10 +163,6 @@ void DGameTracker::ScanForGames()
 						if (!SConfig::GetInstance().m_ListGermany)
 							list = false;
 						break;
-					case DiscIO::IVolume::COUNTRY_WORLD:
-						if (!SConfig::GetInstance().m_ListWorld)
-							list = false;
-						break;
 					case DiscIO::IVolume::COUNTRY_ITALY:
 						if (!SConfig::GetInstance().m_ListItaly)
 							list = false;
@@ -197,6 +193,10 @@ void DGameTracker::ScanForGames()
 						break;
 					case DiscIO::IVolume::COUNTRY_USA:
 						if (!SConfig::GetInstance().m_ListUsa)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_WORLD:
+						if (!SConfig::GetInstance().m_ListWorld)
 							list = false;
 						break;
 					case DiscIO::IVolume::COUNTRY_UNKNOWN:

@@ -60,15 +60,15 @@ void GeneralConfigPane::InitializeGUI()
 
 	m_dual_core_checkbox   = new wxCheckBox(this, wxID_ANY, _("Enable Dual Core (speedup)"));
 	m_gpu_determinism      = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_gpu_determinism_string);
-	m_idle_skip_checkbox   = new wxCheckBox(this, wxID_ANY, _("Enable Idle Skipping (speedup)"));
+	m_idle_skip_checkbox   = new wxCheckBox(this, wxID_ANY, _("Enable Idle Skipping (speedup)                                                         ")); // The spaces are a lazy way to fix the panel size. They can be removed once it's fixed in master.
 	m_cheats_checkbox      = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
 	m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
 	m_frame_limit_choice   = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_frame_limit_array_string);
 	m_cpu_engine_radiobox  = new wxRadioBox(this, wxID_ANY, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, m_cpu_engine_array_string, 0, wxRA_SPECIFY_ROWS);
 
 	m_dual_core_checkbox->SetToolTip(_("Splits the CPU and GPU threads so they can be run on separate cores.\nProvides major speed improvements on most modern PCs, but can cause occasional crashes/glitches."));
-	m_gpu_determinism->SetToolTip(_("")); // Add me
-	m_idle_skip_checkbox->SetToolTip(_("Attempt to detect and skip wait-loops.\nIf unsure, leave this checked."));
+	m_gpu_determinism->SetToolTip(_("Exectues the threads in a deterministic manner. Slower, but useful for netplay and can fix judder in VR."));
+	m_idle_skip_checkbox->SetToolTip(_("Attempt to detect and skip wait-loops.\nAlso synchronizes the CPU and GPU thread, which is required by some games when using the Opcode Replay Buffer.\nIf unsure, leave this checked."));
 	m_cheats_checkbox->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
 	m_force_ntscj_checkbox->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
 	m_frame_limit_choice->SetToolTip(_("Limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
