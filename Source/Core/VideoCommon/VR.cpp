@@ -613,7 +613,7 @@ void OpcodeReplayBuffer()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bOpcodeReplay) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
@@ -751,7 +751,7 @@ void OpcodeReplayBufferInline()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int real_frame_count = 0;
 	int extra_video_loops;
-	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bOpcodeReplay) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp60fps)
@@ -783,15 +783,14 @@ void OpcodeReplayBufferInline()
 				extra_video_loops = 3;
 			}
 		}
+		else
+		{
+			extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
+		}
 
 		++real_frame_count;
 		g_opcodereplay_frame = true;
 		skipped_opcode_replay_count = 0;
-
-		if (!g_ActiveConfig.bOpcodeReplay)
-		{
-			extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
-		}
 
 		for (int num_extra_frames = 0; num_extra_frames < extra_video_loops; ++num_extra_frames)
 		{
