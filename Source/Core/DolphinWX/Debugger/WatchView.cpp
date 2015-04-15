@@ -230,8 +230,8 @@ void CWatchView::Update()
 {
 	if (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 	{
-		ForceRefresh();
 		m_watch_table->UpdateWatch();
+		ForceRefresh();
 	}
 }
 
