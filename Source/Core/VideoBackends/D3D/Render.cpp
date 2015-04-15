@@ -927,7 +927,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
 
-			if (g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp)
+			if (g_ActiveConfig.bSynchronousTimewarp)
 			{
 				g_synchronous_timewarp_enabled = true;
 
