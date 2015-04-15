@@ -55,7 +55,6 @@ ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYD
 
 std::vector<TimewarpLogEntry> timewarp_logentries;
 
-bool g_synchronous_timewarp_enabled = false;
 bool g_opcode_replay_enabled = false;
 bool g_new_frame_just_rendered = false;
 bool g_opcodereplay_frame = false;
