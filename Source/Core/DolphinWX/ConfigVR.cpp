@@ -214,12 +214,13 @@ void CConfigVR::CreateGUIControls()
 			RegisterControl(spin_replay_buffer, replaybuffer_desc);
 			spin_replay_buffer->SetToolTip(replaybuffer_desc);
 			spin_replay_buffer->SetValue(vconfig.iExtraVideoLoops);
+			spin_replay_buffer->Bind(wxEVT_SPINCTRL, &CConfigVR::OnOpcodeSpinCtrl, this);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Opcode Replay Frames:"));
 
 			label->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			szr_opcode->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(spin_replay_buffer);
-			spin_replay_buffer->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+			spin_replay_buffer->Enable(!vconfig.bSynchronousTimewarp && !vconfig.bOpcodeReplay || vconfig.iExtraVideoLoops);
 
 			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, _(""));
 			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, _(""));
@@ -251,24 +252,25 @@ void CConfigVR::CreateGUIControls()
 			checkbox_pullup20->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup30->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup60->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
-			checkbox_pullup20->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp);
-			checkbox_pullup30->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp);
-			checkbox_pullup60->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp);
+			checkbox_pullup20->Enable(!vconfig.bSynchronousTimewarp && !vconfig.iExtraVideoLoops);
+			checkbox_pullup30->Enable(!vconfig.bSynchronousTimewarp && !vconfig.iExtraVideoLoops);
+			checkbox_pullup60->Enable(!vconfig.bSynchronousTimewarp && !vconfig.iExtraVideoLoops);
 		}
 
 		// Synchronous Timewarp GUI Options
 		wxFlexGridSizer* const szr_timewarp = new wxFlexGridSizer(4, 10, 10);
 		{
-			spin_extra_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraFrames, 0, 4);
-			RegisterControl(spin_extra_frames, extraframes_desc);
-			spin_extra_frames->SetToolTip(extraframes_desc);
-			spin_extra_frames->SetValue(vconfig.iExtraFrames);
+			spin_timewarped_frames = new U32Setting(page_vr, _("Extra Timewarped Frames:"), vconfig.iExtraTimewarpedFrames, 0, 4);
+			RegisterControl(spin_timewarped_frames, extraframes_desc);
+			spin_timewarped_frames->SetToolTip(extraframes_desc);
+			spin_timewarped_frames->SetValue(vconfig.iExtraTimewarpedFrames);
+			spin_timewarped_frames->Bind(wxEVT_SPINCTRL, &CConfigVR::OnTimewarpSpinCtrl, this);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Extra Timewarped Frames:"));
 
 			label->SetToolTip(wxGetTranslation(extraframes_desc));
 			szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_timewarp->Add(spin_extra_frames);
-			spin_extra_frames->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+			szr_timewarp->Add(spin_timewarped_frames);
+			spin_timewarped_frames->Enable(!vconfig.bSynchronousTimewarp && !vconfig.bOpcodeReplay || vconfig.iExtraTimewarpedFrames);
 			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, _(""));
 			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, _(""));
 			szr_timewarp->Add(spacer1, 1, 0, 0);
@@ -280,7 +282,7 @@ void CConfigVR::CreateGUIControls()
 			spin_timewarp_tweak->SetToolTip(timewarptweak_desc);
 			spin_timewarp_tweak->SetValue(vconfig.fTimeWarpTweak);
 			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Timewarp VSync Tweak:"));
-			spin_timewarp_tweak->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+			spin_timewarp_tweak->Enable(!vconfig.bOpcodeReplay);
 
 			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
 			szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -300,9 +302,9 @@ void CConfigVR::CreateGUIControls()
 			checkbox_pullup20_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup30_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup60_timewarp->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
-			checkbox_pullup20_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
-			checkbox_pullup30_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
-			checkbox_pullup60_timewarp->Enable(!vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
+			checkbox_pullup20_timewarp->Enable(!vconfig.bOpcodeReplay);
+			checkbox_pullup30_timewarp->Enable(!vconfig.bOpcodeReplay);
+			checkbox_pullup60_timewarp->Enable(!vconfig.bOpcodeReplay);
 		}
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All Games"));
@@ -929,15 +931,55 @@ void CConfigVR::OnYawCheckbox(wxCommandEvent& event)
 	}
 }
 
-// On Pullup Checkbox Click
-void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
+void CConfigVR::OnTimewarpSpinCtrl(wxCommandEvent& event)
 {
-	if ((checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked()))
+	vconfig.iExtraTimewarpedFrames = event.GetInt();
+
+	if (checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked() || vconfig.iExtraTimewarpedFrames)
 		vconfig.bSynchronousTimewarp = true;
 	else
 		vconfig.bSynchronousTimewarp = false;
 
-	if ((checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked()))
+	checkbox_pullup20->Enable(!vconfig.bSynchronousTimewarp);
+	checkbox_pullup30->Enable(!vconfig.bSynchronousTimewarp);
+	checkbox_pullup60->Enable(!vconfig.bSynchronousTimewarp);
+
+	spin_replay_buffer->Enable(!vconfig.bSynchronousTimewarp);
+
+	checkbox_pullup20_timewarp->Enable(!vconfig.iExtraTimewarpedFrames);
+	checkbox_pullup30_timewarp->Enable(!vconfig.iExtraTimewarpedFrames);
+	checkbox_pullup60_timewarp->Enable(!vconfig.iExtraTimewarpedFrames);
+}
+
+void CConfigVR::OnOpcodeSpinCtrl(wxCommandEvent& event)
+{
+	vconfig.iExtraVideoLoops = event.GetInt();
+
+	if (checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked() || vconfig.iExtraVideoLoops)
+		vconfig.bOpcodeReplay = true;
+	else
+		vconfig.bOpcodeReplay = false;
+
+	checkbox_pullup20_timewarp->Enable(!vconfig.bOpcodeReplay);
+	checkbox_pullup30_timewarp->Enable(!vconfig.bOpcodeReplay);
+	checkbox_pullup60_timewarp->Enable(!vconfig.bOpcodeReplay);
+	spin_timewarped_frames->Enable(!vconfig.bOpcodeReplay);
+	spin_timewarp_tweak->Enable(!vconfig.bOpcodeReplay);
+
+	checkbox_pullup20->Enable(!vconfig.iExtraVideoLoops);
+	checkbox_pullup30->Enable(!vconfig.iExtraVideoLoops);
+	checkbox_pullup60->Enable(!vconfig.iExtraVideoLoops);
+}
+
+// On Pullup Checkbox Click
+void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
+{
+	if (checkbox_pullup20_timewarp->IsChecked() || checkbox_pullup30_timewarp->IsChecked() || checkbox_pullup60_timewarp->IsChecked())
+		vconfig.bSynchronousTimewarp = true;
+	else
+		vconfig.bSynchronousTimewarp = false;
+
+	if (checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked())
 		vconfig.bOpcodeReplay = true;
 	else
 		vconfig.bOpcodeReplay = false;
@@ -952,7 +994,7 @@ void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 
 	spin_replay_buffer->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
 	//spin_replay_buffer_divider->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
-	spin_extra_frames->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
+	spin_timewarped_frames->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
 	spin_timewarp_tweak->Enable(!vconfig.bOpcodeReplay);
 
 	event.Skip();

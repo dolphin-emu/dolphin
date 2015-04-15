@@ -154,7 +154,6 @@ struct TimewarpLogEntry {
 	bool is_preprocess_log;
 };
 extern std::vector<TimewarpLogEntry> timewarp_logentries;
-extern bool g_synchronous_timewarp_enabled;
 extern bool g_opcode_replay_enabled;
 extern bool g_new_frame_just_rendered;
 extern bool g_opcodereplay_frame;

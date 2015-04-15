@@ -53,9 +53,10 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		// VR requires a head-tracking rate greater than 60fps per second. This is solved by
 		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio
 		// back to 100% speed, it must be slowed down by 25%
-		if ((g_synchronous_timewarp_enabled && (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack)) ||
-			(SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION && framelimit == 16 && (g_opcode_replay_enabled || g_synchronous_timewarp_enabled)) ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread && (g_opcode_replay_enabled || g_synchronous_timewarp_enabled))
+		if ((g_ActiveConfig.bOpcodeReplay || g_ActiveConfig.bSynchronousTimewarp) &&
+			((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) ||
+			(SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION && framelimit == 16) ||
+			!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread))
 			aid_sample_rate = aid_sample_rate * 60 / VideoInterface::TargetRefreshRate;
 		else
 			aid_sample_rate = aid_sample_rate * (framelimit - 1) * (5 / SConfig::GetInstance().m_AudioSlowDown) / VideoInterface::TargetRefreshRate;

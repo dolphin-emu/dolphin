@@ -929,8 +929,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			if (g_ActiveConfig.bSynchronousTimewarp)
 			{
-				g_synchronous_timewarp_enabled = true;
-
 				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION || !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
@@ -939,43 +937,41 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				if (g_ActiveConfig.bPullUp20fpsTimewarp)
 				{
 					if (real_frame_count_for_timewarp % 4 == 1)
-						g_ActiveConfig.iExtraFrames = 2;
+						g_ActiveConfig.iExtraTimewarpedFrames = 2;
 					else
-						g_ActiveConfig.iExtraFrames = 3;
+						g_ActiveConfig.iExtraTimewarpedFrames = 3;
 				}
 				else if (g_ActiveConfig.bPullUp30fpsTimewarp)
 				{
 					if (real_frame_count_for_timewarp % 2 == 1)
-						g_ActiveConfig.iExtraFrames = 1;
+						g_ActiveConfig.iExtraTimewarpedFrames = 1;
 					else
-						g_ActiveConfig.iExtraFrames = 2;
+						g_ActiveConfig.iExtraTimewarpedFrames = 2;
 				}
 				else if (g_ActiveConfig.bPullUp60fpsTimewarp)
 				{
 					if (real_frame_count_for_timewarp % 4 == 0)
-						g_ActiveConfig.iExtraFrames = 1;
+						g_ActiveConfig.iExtraTimewarpedFrames = 1;
 					else
-						g_ActiveConfig.iExtraFrames = 0;
+						g_ActiveConfig.iExtraTimewarpedFrames = 0;
 				}
 				++real_frame_count_for_timewarp;
 			}
 			else if (g_opcode_replay_enabled)
 			{
-				g_synchronous_timewarp_enabled = false;
 				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION || !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
 					SConfig::GetInstance().m_AudioSlowDown = 1.25;
-				g_ActiveConfig.iExtraFrames = 0;
+				g_ActiveConfig.iExtraTimewarpedFrames = 0;
 			}
 			else
 			{
-				g_synchronous_timewarp_enabled = false;
 				SConfig::GetInstance().m_AudioSlowDown = SConfig::GetInstance().m_LocalCoreStartupParameter.fAudioSlowDown;
 			}
 
 			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.
-			for (int i = 0; i < (int)g_ActiveConfig.iExtraFrames; ++i)
+			for (int i = 0; i < (int)g_ActiveConfig.iExtraTimewarpedFrames; ++i)
 			{
 				VR_DrawTimewarpFrame();
 				Common::AtomicIncrement(g_drawn_vr);

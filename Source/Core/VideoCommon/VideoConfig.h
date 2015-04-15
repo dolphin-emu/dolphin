@@ -209,7 +209,7 @@ struct VideoConfig final
 
 	int iVRPlayer;
 	float fTimeWarpTweak;
-	u32 iExtraFrames;
+	u32 iExtraTimewarpedFrames;
 	u32 iExtraVideoLoops;
 	u32 iExtraVideoLoopsDivider;
 
