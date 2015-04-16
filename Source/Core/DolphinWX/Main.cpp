@@ -454,7 +454,6 @@ void DolphinApp::OnEndSession(wxCloseEvent& event)
 
 int DolphinApp::OnExit()
 {
-	Core::Shutdown();
 	UICommon::Shutdown();
 
 	delete m_locale;

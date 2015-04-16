@@ -119,6 +119,11 @@ class PlatformX11 : public Platform
 	{
 		XInitThreads();
 		dpy = XOpenDisplay(nullptr);
+		if (!dpy)
+		{
+			PanicAlert("No X11 display found");
+			exit(1);
+		}
 
 		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
 					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
@@ -344,7 +349,6 @@ int main(int argc, char* argv[])
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		updateMainFrameEvent.Wait();
 
-	Core::Shutdown();
 	platform->Shutdown();
 	UICommon::Shutdown();
 

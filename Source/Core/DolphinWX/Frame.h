@@ -38,7 +38,7 @@ class CCodeWindow;
 class CLogWindow;
 class FifoPlayerDlg;
 class LogConfigWindow;
-class NetPlaySetupDiag;
+class NetPlaySetupFrame;
 class TASInputDlg;
 class wxCheatsWindow;
 
@@ -98,7 +98,7 @@ public:
 
 	// These have to be public
 	CCodeWindow* g_pCodeWindow;
-	NetPlaySetupDiag* g_NetPlaySetupDiag;
+	NetPlaySetupFrame* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
 	TASInputDlg* g_TASInputDlg[8];
 
