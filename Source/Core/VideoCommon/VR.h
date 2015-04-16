@@ -156,6 +156,7 @@ struct TimewarpLogEntry {
 extern std::vector<TimewarpLogEntry> timewarp_logentries;
 extern bool g_opcode_replay_enabled;
 extern bool g_new_frame_just_rendered;
+extern bool g_first_pass;
 extern bool g_opcodereplay_frame;
 extern int skipped_opcode_replay_count;
 

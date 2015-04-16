@@ -140,11 +140,8 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 
 void OpcodeDecoder_Init()
 {
-	if (g_has_hmd)
-	{
-		g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION;
-		g_opcodereplay_frame = !g_opcode_replay_enabled; // Don't log frames if not enabled
-	}
+	g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && g_has_hmd;
+	g_opcodereplay_frame = !g_opcode_replay_enabled; // Don't log frames if not enabled
 	s_bFifoErrorSeen = false;
 }
 
@@ -179,7 +176,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 	//		);
 	//}
 
-	if (g_opcode_replay_enabled && !g_opcodereplay_frame && g_has_hmd && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
+	if (g_opcode_replay_enabled && !g_opcodereplay_frame && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
 	{
 		timewarp_logentries.push_back(TimewarpLogEntry{src, is_preprocess});
 
