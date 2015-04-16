@@ -243,11 +243,13 @@ void CConfigVR::CreateGUIControls()
 			checkbox_pullup30 = CreateCheckBox(page_vr, _("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
 			checkbox_pullup60 = CreateCheckBox(page_vr, _("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
 			SettingCheckBox* checkbox_disable_warnings = CreateCheckBox(page_vr, _("Disable Opcode Warnings"), wxGetTranslation(opcodewarning_desc), vconfig.bOpcodeWarningDisable);
+			checkbox_replay_vertex_data = CreateCheckBox(page_vr, _("Replay Vertex Data"), wxGetTranslation(replayvertex_desc), vconfig.bReplayVertexData);
 			szr_opcode->Add(checkbox_pullup20, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(checkbox_pullup30, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(checkbox_pullup60, 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxStaticText* spacer3 = new wxStaticText(page_vr, wxID_ANY, _(""));
 			szr_opcode->Add(spacer3, 1, 0, 0);
+			szr_opcode->Add(checkbox_replay_vertex_data, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_opcode->Add(checkbox_disable_warnings, 1, wxALIGN_CENTER_VERTICAL, 0);
 			checkbox_pullup20->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
 			checkbox_pullup30->Bind(wxEVT_CHECKBOX, &CConfigVR::OnPullupCheckbox, this);
@@ -255,6 +257,7 @@ void CConfigVR::CreateGUIControls()
 			checkbox_pullup20->Enable(!vconfig.bSynchronousTimewarp && !vconfig.iExtraVideoLoops);
 			checkbox_pullup30->Enable(!vconfig.bSynchronousTimewarp && !vconfig.iExtraVideoLoops);
 			checkbox_pullup60->Enable(!vconfig.bSynchronousTimewarp && !vconfig.iExtraVideoLoops);
+			checkbox_replay_vertex_data->Enable(vconfig.bOpcodeReplay);
 		}
 
 		// Synchronous Timewarp GUI Options
@@ -313,7 +316,7 @@ void CConfigVR::CreateGUIControls()
 		wxStaticBoxSizer* const group_opcode = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Opcode Replay (BETA) - Note: Enable 'Idle Skipping' in Config Tab"));
 		group_opcode->Add(szr_opcode, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_opcode, 0, wxEXPAND | wxALL, 5);
-		wxStaticBoxSizer* const group_timewarp = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Synchronous Timewarp"));
+		wxStaticBoxSizer* const group_timewarp = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("Synchronous Timewarp - Note: Enable 'Idle Skipping' in Config Tab"));
 		group_timewarp->Add(szr_timewarp, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		szr_vr_main->Add(group_timewarp, 0, wxEXPAND | wxALL, 5);
 
@@ -944,6 +947,7 @@ void CConfigVR::OnTimewarpSpinCtrl(wxCommandEvent& event)
 	checkbox_pullup20->Enable(!vconfig.bSynchronousTimewarp);
 	checkbox_pullup30->Enable(!vconfig.bSynchronousTimewarp);
 	checkbox_pullup60->Enable(!vconfig.bSynchronousTimewarp);
+	checkbox_replay_vertex_data->Enable(!vconfig.bSynchronousTimewarp);
 
 	spin_replay_buffer->Enable(!vconfig.bSynchronousTimewarp);
 
@@ -957,9 +961,18 @@ void CConfigVR::OnOpcodeSpinCtrl(wxCommandEvent& event)
 	vconfig.iExtraVideoLoops = event.GetInt();
 
 	if (checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked() || vconfig.iExtraVideoLoops)
+	{
 		vconfig.bOpcodeReplay = true;
+		if (checkbox_replay_vertex_data->IsChecked())
+		{
+			vconfig.bReplayVertexData = true;
+		}
+	}
 	else
+	{
 		vconfig.bOpcodeReplay = false;
+		vconfig.bReplayVertexData = false;
+	}
 
 	checkbox_pullup20_timewarp->Enable(!vconfig.bOpcodeReplay);
 	checkbox_pullup30_timewarp->Enable(!vconfig.bOpcodeReplay);
@@ -970,6 +983,7 @@ void CConfigVR::OnOpcodeSpinCtrl(wxCommandEvent& event)
 	checkbox_pullup20->Enable(!vconfig.iExtraVideoLoops);
 	checkbox_pullup30->Enable(!vconfig.iExtraVideoLoops);
 	checkbox_pullup60->Enable(!vconfig.iExtraVideoLoops);
+	checkbox_replay_vertex_data->Enable(vconfig.bOpcodeReplay);
 }
 
 // On Pullup Checkbox Click
@@ -981,9 +995,18 @@ void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 		vconfig.bSynchronousTimewarp = false;
 
 	if (checkbox_pullup20->IsChecked() || checkbox_pullup30->IsChecked() || checkbox_pullup60->IsChecked())
+	{
 		vconfig.bOpcodeReplay = true;
+		if (checkbox_replay_vertex_data->IsChecked())
+		{
+			vconfig.bReplayVertexData = true;
+		}
+	}
 	else
+	{
 		vconfig.bOpcodeReplay = false;
+		vconfig.bReplayVertexData = false;
+	}
 
 	checkbox_pullup20->Enable(!vconfig.bSynchronousTimewarp);
 	checkbox_pullup30->Enable(!vconfig.bSynchronousTimewarp);
@@ -992,6 +1015,8 @@ void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 	checkbox_pullup20_timewarp->Enable(!vconfig.bOpcodeReplay);
 	checkbox_pullup30_timewarp->Enable(!vconfig.bOpcodeReplay);
 	checkbox_pullup60_timewarp->Enable(!vconfig.bOpcodeReplay);
+
+	checkbox_replay_vertex_data->Enable(!vconfig.bSynchronousTimewarp && vconfig.bOpcodeReplay);
 
 	spin_replay_buffer->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);
 	//spin_replay_buffer_divider->Enable(!vconfig.bOpcodeReplay && !vconfig.bSynchronousTimewarp);

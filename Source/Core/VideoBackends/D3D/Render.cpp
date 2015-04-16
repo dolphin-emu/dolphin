@@ -926,10 +926,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			// VR Synchronous Timewarp
 			static int real_frame_count_for_timewarp = 0;
+			SCoreStartupParameter& startup_parameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 			if (g_ActiveConfig.bSynchronousTimewarp)
 			{
-				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION || !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+				if ((startup_parameter.bSkipIdle && startup_parameter.bSyncGPUOnSkipIdleHack) ||
+					startup_parameter.bSyncGPU || startup_parameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION ||
+					!startup_parameter.bCPUThread || SConfig::GetInstance().m_Framelimit == 13)
 					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
 					SConfig::GetInstance().m_AudioSlowDown = 1.25;
@@ -959,7 +962,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			}
 			else if (g_opcode_replay_enabled)
 			{
-				if ((SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPUOnSkipIdleHack) || SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU || SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION || !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+				if ((startup_parameter.bSkipIdle && startup_parameter.bSyncGPUOnSkipIdleHack) ||
+					startup_parameter.bSyncGPU || startup_parameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION ||
+					!startup_parameter.bCPUThread || SConfig::GetInstance().m_Framelimit == 13)
 					SConfig::GetInstance().m_AudioSlowDown = 1.00;
 				else
 					SConfig::GetInstance().m_AudioSlowDown = 1.25;
@@ -967,7 +972,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			}
 			else
 			{
-				SConfig::GetInstance().m_AudioSlowDown = SConfig::GetInstance().m_LocalCoreStartupParameter.fAudioSlowDown;
+				SConfig::GetInstance().m_AudioSlowDown = startup_parameter.fAudioSlowDown;
 			}
 
 			// If 30fps loop once, if 20fps (Zelda: OoT for instance) loop twice.

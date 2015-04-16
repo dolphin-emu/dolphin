@@ -134,7 +134,7 @@ void ClearScreen(const EFBRectangle &rc, bool frame_just_rendered)
 
 	// To Do: Optimize this better.  Do some games use more than 2 clear calls that might need to also be unwound?
 	// Is the second unwind just a workaround for a bigger bug somewhere else in the replay buffer?
-	if (g_has_hmd && g_opcode_replay_enabled)
+	if (g_opcode_replay_enabled)
 	{
 		if (g_opcodereplay_frame && frame_just_rendered)
 		{
@@ -180,7 +180,7 @@ void ClearScreen(const EFBRectangle &rc, bool frame_just_rendered)
 		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		u32 z = bpmem.clearZValue;
 
-		if (g_has_hmd && g_opcode_replay_enabled)
+		if (g_opcode_replay_enabled)
 		{
 			if (g_opcodereplay_frame && frame_just_rendered)
 			{

@@ -86,6 +86,7 @@ private:
 	SettingCheckBox* checkbox_pullup20;
 	SettingCheckBox* checkbox_pullup30;
 	SettingCheckBox* checkbox_pullup60;
+	SettingCheckBox* checkbox_replay_vertex_data;
 	SettingCheckBox* checkbox_roll;
 	SettingCheckBox* checkbox_pitch;
 	SettingCheckBox* checkbox_yaw;

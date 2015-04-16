@@ -27,6 +27,9 @@ u8 *VertexManager::s_pCurBufferPointer;
 u8 *VertexManager::s_pBaseBufferPointer;
 u8 *VertexManager::s_pEndBufferPointer;
 
+u8 *VertexManager::s_pCurReplayBufferPointer;
+u8 *VertexManager::s_pBaseReplayBufferPointer;
+
 PrimitiveType VertexManager::current_primitive_type;
 
 Slope VertexManager::s_zslope;
