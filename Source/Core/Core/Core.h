@@ -40,7 +40,6 @@ enum EState
 
 bool Init();
 void Stop();
-void Shutdown();
 
 std::string StopMessage(bool, std::string);
 

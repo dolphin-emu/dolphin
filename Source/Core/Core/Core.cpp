@@ -267,6 +267,8 @@ void Stop()  // - Hammertime!
 
 		g_video_backend->Video_ExitLoop();
 	}
+	if (s_emu_thread.joinable())
+		s_emu_thread.join();
 }
 
 static void DeclareAsCPUThread()
@@ -791,12 +793,6 @@ void UpdateTitle()
 	}
 
 	Host_UpdateTitle(SMessage);
-}
-
-void Shutdown()
-{
-	if (s_emu_thread.joinable())
-		s_emu_thread.join();
 }
 
 void SetOnStoppedCallback(StoppedCallbackFunc callback)
