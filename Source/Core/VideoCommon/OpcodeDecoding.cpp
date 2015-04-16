@@ -142,7 +142,7 @@ void OpcodeDecoder_Init()
 {
 	if (g_has_hmd)
 	{
-		g_opcode_replay_enabled = (g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bOpcodeReplay) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION;
+		g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION;
 		g_opcodereplay_frame = !g_opcode_replay_enabled; // Don't log frames if not enabled
 	}
 	s_bFifoErrorSeen = false;
