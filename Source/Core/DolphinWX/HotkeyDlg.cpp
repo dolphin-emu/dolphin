@@ -57,7 +57,7 @@ void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 
 void HotkeyConfigDialog::EndGetButtons()
 {
-	wxTheApp->Unbind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
+	Unbind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 	m_ButtonMappingTimer.Stop();
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
@@ -171,7 +171,7 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 	if (m_ButtonMappingTimer.IsRunning())
 		return;
 
-	wxTheApp->Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
+	Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 
 	// Get the button
 	ClickedButton = (wxButton *)event.GetEventObject();
