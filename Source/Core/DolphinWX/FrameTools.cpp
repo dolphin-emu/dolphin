@@ -75,7 +75,6 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MemcardManager.h"
-#include "DolphinWX/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
@@ -84,6 +83,8 @@
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
+#include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
+#include "DolphinWX/NetPlay/NetWindow.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -1213,7 +1214,9 @@ void CFrame::DoStop()
 			DoRecordingSave();
 		if (Movie::IsMovieActive())
 			Movie::EndPlayInput(false);
-		NetPlay::StopGame();
+
+		if (NetPlayDialog::GetNetPlayClient())
+			NetPlayDialog::GetNetPlayClient()->Stop();
 
 		BootManager::Stop();
 		UpdateGUI();
@@ -1450,10 +1453,10 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
 	if (!g_NetPlaySetupDiag)
 	{
-		if (NetPlayDiag::GetInstance() != nullptr)
-			NetPlayDiag::GetInstance()->Raise();
+		if (NetPlayDialog::GetInstance() != nullptr)
+			NetPlayDialog::GetInstance()->Raise();
 		else
-			g_NetPlaySetupDiag = new NetPlaySetupDiag(this, m_GameListCtrl);
+			g_NetPlaySetupDiag = new NetPlaySetupFrame(this, m_GameListCtrl);
 	}
 	else
 	{

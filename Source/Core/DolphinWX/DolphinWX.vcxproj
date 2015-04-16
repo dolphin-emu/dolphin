@@ -80,6 +80,9 @@
     <ClCompile Include="Debugger\RegisterWindow.cpp" />
     <ClCompile Include="Debugger\WatchView.cpp" />
     <ClCompile Include="Debugger\WatchWindow.cpp" />
+    <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp" />
+    <ClCompile Include="NetPlay\NetWindow.cpp" />
     <ClCompile Include="FifoPlayerDlg.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="FrameAui.cpp" />
@@ -97,7 +100,7 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="MemcardManager.cpp" />
-    <ClCompile Include="NetWindow.cpp" />
+    <ClCompile Include="NetPlay\PadMapDialog.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
     <ClCompile Include="TASInputDlg.cpp" />
@@ -115,6 +118,9 @@
     <ClInclude Include="Config\InterfaceConfigPane.h" />
     <ClInclude Include="Config\PathConfigPane.h" />
     <ClInclude Include="Config\WiiConfigPane.h" />
+    <ClInclude Include="NetPlay\ChangeGameDialog.h" />
+    <ClInclude Include="NetPlay\NetPlaySetupFrame.h" />
+    <ClInclude Include="NetPlay\PadMapDialog.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="AboutDolphin.h" />
     <ClInclude Include="ARCodeAddEdit.h" />
@@ -140,6 +146,7 @@
     <ClInclude Include="Debugger\RegisterWindow.h" />
     <ClInclude Include="Debugger\WatchView.h" />
     <ClInclude Include="Debugger\WatchWindow.h" />
+    <ClInclude Include="NetPlay\NetWindow.h" />
     <ClInclude Include="FifoPlayerDlg.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
@@ -152,7 +159,6 @@
     <ClInclude Include="LogWindow.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MemcardManager.h" />
-    <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
     <ClInclude Include="SoftwareVideoConfigDialog.h" />
     <ClInclude Include="TASInputDlg.h" />
