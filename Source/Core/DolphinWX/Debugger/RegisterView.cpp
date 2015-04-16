@@ -262,8 +262,8 @@ CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 
 void CRegisterView::Update()
 {
-	ForceRefresh();
 	m_register_table->UpdateCachedRegs();
+	ForceRefresh();
 }
 
 void CRegisterView::OnMouseDownR(wxGridEvent& event)
