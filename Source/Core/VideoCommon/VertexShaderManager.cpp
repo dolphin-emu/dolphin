@@ -28,6 +28,8 @@
 #define HACK_LOG INFO_LOG
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
+static float s_locked_skybox[3 * 4];
+static bool s_had_skybox = false;
 
 // TODO: remove
 //VR Global variable shared from core. True if the Wii is set to Widescreen (so the game thinks it is rendering to 16:9)
@@ -706,6 +708,7 @@ void VertexShaderManager::Init()
 	{
 		g_game_camera_pos[i] = totalpos[i] = oldpos[i] = 0;
 	}
+	s_had_skybox = false;
 
 	dirty = true;
 }
@@ -728,6 +731,8 @@ void VertexShaderManager::Dirty()
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
+	static bool temp_skybox = false;
+	bool position_changed = false, skybox_changed = false;
 	if (nTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
@@ -735,6 +740,7 @@ void VertexShaderManager::SetConstants()
 		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
+		position_changed = true;
 	}
 
 	if (nNormalMatricesChanged[0] >= 0)
@@ -835,6 +841,7 @@ void VertexShaderManager::SetConstants()
 		memcpy(constants.posnormalmatrix[4], norm+3, 12);
 		memcpy(constants.posnormalmatrix[5], norm+6, 12);
 		dirty = true;
+		position_changed = true;
 	}
 
 	if (bTexMatricesChanged[0])
@@ -872,6 +879,13 @@ void VertexShaderManager::SetConstants()
 		dirty = true;
 	}
 
+	if (position_changed && temp_skybox)
+	{
+		g_is_skybox = false;
+		temp_skybox = false;
+		skybox_changed = true;
+	}
+
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
@@ -885,13 +899,22 @@ void VertexShaderManager::SetConstants()
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			if (!bProjectionChanged && !bFrameChanged)
-				SetProjectionConstants();
-		} 
+			skybox_changed = true;
+		}
 		// VR adjust the projection matrix for the new kind of viewport
-		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged && !bFrameChanged)
+		else if (g_viewport_type != g_old_viewport_type)
 		{
-			SetProjectionConstants();
+			skybox_changed = true;
+		}
+	}
+
+	if (position_changed && g_ActiveConfig.bDetectSkybox && !g_is_skybox)
+	{
+		CheckSkybox();
+		if (g_is_skybox)
+		{
+			temp_skybox = true;
+			skybox_changed = true;
 		}
 	}
 
@@ -903,6 +926,13 @@ void VertexShaderManager::SetConstants()
 		bFrameChanged = false;
 		SetProjectionConstants();
 	}
+	else if (skybox_changed)
+	{
+		SetProjectionConstants();
+	}
+
+	if (g_ActiveConfig.iMotionSicknessSkybox == 2 && g_is_skybox)
+		LockSkybox();
 }
 
 //#pragma optimize("", off)
@@ -1390,7 +1420,7 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
 
 			// camera pitch
-			if ((g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw) && g_ActiveConfig.bCanReadCameraAngles)
+			if ((g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw) && g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.iMotionSicknessSkybox!=2 || !g_is_skybox))
 			{
 				if (!g_ActiveConfig.bStabilizePitch)
 				{
@@ -1991,6 +2021,46 @@ void VertexShaderManager::CheckOrientationConstants()
 	{
 		Matrix44::LoadIdentity(g_game_camera_rotmat);
 		memset(g_game_camera_pos, 0, 3 * sizeof(float));
+	}
+}
+
+void VertexShaderManager::CheckSkybox()
+{
+	if (xfmem.projection.type == GX_PERSPECTIVE)
+	{
+		float *p = constants.posnormalmatrix[0];
+		float pos[3];
+		pos[0] = p[0 * 4 + 3];
+		pos[1] = p[1 * 4 + 3];
+		pos[2] = p[2 * 4 + 3];
+		// If we are drawing at precisely the origin (camera position) it's probably a skybox
+		if (pos[0] == 0 && pos[1] == 0 && pos[2] == 0)
+		{
+			ERROR_LOG(VR, "SKYBOX!!!!");
+			g_is_skybox = true;
+		}
+
+	}
+}
+
+void VertexShaderManager::LockSkybox()
+{
+	if (xfmem.projection.type == GX_PERSPECTIVE)
+	{
+		float *p = constants.posnormalmatrix[0];
+		if (s_had_skybox)
+		{
+			memcpy(p, s_locked_skybox, 4 * 3 * sizeof(float));
+		}
+		else
+		{
+			memcpy(s_locked_skybox, p, 4 * 3 * sizeof(float));
+			s_had_skybox = true;
+		}
+
+		//for (int r = 0; r < 3; ++r)
+		//	for (int c = 0; c < 3; ++c)
+		//		p[r * 4 + c] = (r == c) ? 1.0f : 0.0f;
 	}
 }
 

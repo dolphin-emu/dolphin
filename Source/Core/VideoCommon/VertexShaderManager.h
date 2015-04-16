@@ -39,6 +39,8 @@ public:
 	static void SetProjectionConstants();
 	static void SetViewportConstants();
 	static void CheckOrientationConstants();
+	static void CheckSkybox();
+	static void LockSkybox();
 
 	static void InvalidateXFRange(int start, int end);
 	static void SetTexMatrixChangedA(u32 value);

@@ -461,6 +461,7 @@ void CConfigVR::CreateGUIControls()
 		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Read Camera Angles"), wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Detect Skybox"), wxGetTranslation(detectskybox_desc), vconfig.bDetectSkybox));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For This Game Only"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -521,7 +522,7 @@ void CConfigVR::CreateGUIControls()
 
 		// Sky / Background
 		{
-			const wxString vr_choices[] = { _("Normal"), _("Hide") };
+			const wxString vr_choices[] = { _("Normal"), _("Hide"), _("Lock") };
 			szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, _("Sky / Background:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 			wxChoice* const choice_vr = CreateChoice(page_vr, vconfig.iMotionSicknessSkybox, wxGetTranslation(hideskybox_desc),
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);

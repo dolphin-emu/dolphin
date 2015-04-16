@@ -236,6 +236,7 @@ struct VideoConfig final
 	bool bHudOnTop;
 	bool bDontClearScreen;
 	bool bCanReadCameraAngles;
+	bool bDetectSkybox;
 	int iTelescopeEye;
 	int iMetroidPrime;
 	// VR layer debugging

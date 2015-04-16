@@ -446,6 +446,7 @@ void VideoConfig::GameIniLoad()
 	bHudOnTop = false;
 	bDontClearScreen = false;
 	bCanReadCameraAngles = false;
+	bDetectSkybox = false;
 	iSelectedLayer = -2;
 	iFlashState = 0;
 
@@ -455,6 +456,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
 	CHECK_SETTING("VR", "DontClearScreen", bDontClearScreen);
 	CHECK_SETTING("VR", "CanReadCameraAngles", bCanReadCameraAngles);
+	CHECK_SETTING("VR", "DetectSkybox", bDetectSkybox);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
@@ -508,6 +510,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
+	SAVE_IF_NOT_DEFAULT("VR", "DetectSkybox", bDetectSkybox, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -546,6 +549,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	LOAD_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
 	LOAD_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
+	LOAD_DEFAULT("VR", "DetectSkybox", bDetectSkybox, false);
 	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	LOAD_DEFAULT("VR", "HudThickness", fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	LOAD_DEFAULT("VR", "Hud3DCloser", fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -754,6 +758,7 @@ bool VideoConfig::VRSettingsModified()
 		|| bHudOnTop != g_SavedConfig.bHudOnTop
 		|| bDontClearScreen != g_SavedConfig.bDontClearScreen
 		|| bCanReadCameraAngles != g_SavedConfig.bCanReadCameraAngles
+		|| bDetectSkybox != g_SavedConfig.bDetectSkybox
 		|| iTelescopeEye != g_SavedConfig.iTelescopeEye
 		|| iMetroidPrime != g_SavedConfig.iMetroidPrime;
 }
