@@ -16,7 +16,7 @@ public:
 	virtual ~CEXIIPL();
 
 	virtual void SetCS(int _iCS) override;
-	bool IsPresent() override;
+	bool IsPresent() const override;
 	void DoState(PointerWrap &p) override;
 
 	static u32 GetGCTime();

@@ -38,7 +38,7 @@ namespace Gecko
 		bool user_defined;
 
 		bool Compare(GeckoCode compare) const;
-		bool Exist(u32 address, u32 data);
+		bool Exist(u32 address, u32 data) const;
 	};
 
 	void SetActiveCodes(const std::vector<GeckoCode>& gcodes);

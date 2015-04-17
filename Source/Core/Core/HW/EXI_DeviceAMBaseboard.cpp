@@ -21,7 +21,7 @@ void CEXIAMBaseboard::SetCS(int cs)
 		m_position = 0;
 }
 
-bool CEXIAMBaseboard::IsPresent()
+bool CEXIAMBaseboard::IsPresent() const
 {
 	return true;
 }

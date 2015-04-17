@@ -19,7 +19,7 @@ static const u32 INSTALLER_BASE_ADDRESS = 0x80001800;
 static const u32 INSTALLER_END_ADDRESS = 0x80003000;
 
 // return true if a code exists
-bool GeckoCode::Exist(u32 address, u32 data)
+bool GeckoCode::Exist(u32 address, u32 data) const
 {
 	for (const GeckoCode::Code& code : codes)
 	{
