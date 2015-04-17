@@ -24,7 +24,11 @@ enum PerfQueryGroup
 class PerfQueryBase
 {
 public:
-	PerfQueryBase() {}
+	PerfQueryBase()
+		: m_query_count(0)
+	{
+	}
+
 	virtual ~PerfQueryBase() {}
 
 	// Checks if performance queries are enabled in the gameini configuration.
@@ -50,6 +54,11 @@ public:
 	// True if there are no further pending query results
 	// NOTE: Called from CPU thread
 	virtual bool IsFlushed() const { return true; }
+
+protected:
+	// TODO: sloppy
+	volatile u32 m_query_count;
+	volatile u32 m_results[PQG_NUM_MEMBERS];
 };
 
 extern PerfQueryBase* g_perf_query;

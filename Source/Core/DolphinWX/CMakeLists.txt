@@ -33,6 +33,10 @@ set(GUI_SRCS
 	Debugger/RegisterWindow.cpp
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
+	NetPlay/ChangeGameDialog.cpp
+	NetPlay/NetPlaySetupFrame.cpp
+	NetPlay/NetWindow.cpp
+	NetPlay/PadMapDialog.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
 	FrameAui.cpp
@@ -47,7 +51,6 @@ set(GUI_SRCS
 	LogWindow.cpp
 	Main.cpp
 	MemcardManager.cpp
-	NetWindow.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp
 	HideObjectAddEdit.cpp

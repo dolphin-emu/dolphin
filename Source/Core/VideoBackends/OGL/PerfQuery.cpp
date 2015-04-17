@@ -22,7 +22,6 @@ PerfQueryBase* GetPerfQuery()
 
 PerfQuery::PerfQuery()
 	: m_query_read_pos()
-	, m_query_count()
 {
 	ResetQuery();
 }

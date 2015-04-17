@@ -76,7 +76,6 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MemcardManager.h"
-#include "DolphinWX/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
@@ -85,6 +84,8 @@
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
+#include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
+#include "DolphinWX/NetPlay/NetWindow.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -1306,7 +1307,9 @@ void CFrame::DoStop()
 			DoRecordingSave();
 		if (Movie::IsMovieActive())
 			Movie::EndPlayInput(false);
-		NetPlay::StopGame();
+
+		if (NetPlayDialog::GetNetPlayClient())
+			NetPlayDialog::GetNetPlayClient()->Stop();
 
 		BootManager::Stop();
 		UpdateGUI();
@@ -1569,10 +1572,10 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
 	if (!g_NetPlaySetupDiag)
 	{
-		if (NetPlayDiag::GetInstance() != nullptr)
-			NetPlayDiag::GetInstance()->Raise();
+		if (NetPlayDialog::GetInstance() != nullptr)
+			NetPlayDialog::GetInstance()->Raise();
 		else
-			g_NetPlaySetupDiag = new NetPlaySetupDiag(this, m_GameListCtrl);
+			g_NetPlaySetupDiag = new NetPlaySetupFrame(this, m_GameListCtrl);
 	}
 	else
 	{
@@ -1758,17 +1761,21 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 {
 	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
+		bool was_unpaused = Core::PauseAndLock(true);
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
 		wxString msg(wxString::Format(_("Wiimote %i %s"), wm_idx + 1,
 					connect ? _("Connected") : _("Disconnected")));
 		Core::DisplayMessage(WxStrToStr(msg), 3000);
 		Host_UpdateMainFrame();
+		Core::PauseAndLock(false, was_unpaused);
 	}
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
+	bool was_unpaused = Core::PauseAndLock(true);
 	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
+	Core::PauseAndLock(false, was_unpaused);
 }
 
 // Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
@@ -1966,6 +1973,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(RunningWii);
 	if (RunningWii)
 	{
+		bool was_unpaused = Core::PauseAndLock(true);
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->
 				AccessWiiMote(0x0100)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(GetUsbPointer()->
@@ -1976,6 +1984,7 @@ void CFrame::UpdateGUI()
 				AccessWiiMote(0x0103)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Check(GetUsbPointer()->
 				AccessWiiMote(0x0104)->IsConnected());
+		Core::PauseAndLock(false, was_unpaused);
 	}
 
 	if (m_ToolBar)
