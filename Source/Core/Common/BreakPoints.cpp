@@ -12,19 +12,19 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
-bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
+bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
 	for (const TBreakPoint& bp : m_BreakPoints)
-		if (bp.iAddress == _iAddress)
+		if (bp.iAddress == address)
 			return true;
 
 	return false;
 }
 
-bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
+bool BreakPoints::IsTempBreakPoint(u32 address) const
 {
 	for (const TBreakPoint& bp : m_BreakPoints)
-		if (bp.iAddress == _iAddress && bp.bTemporary)
+		if (bp.iAddress == address && bp.bTemporary)
 			return true;
 
 	return false;

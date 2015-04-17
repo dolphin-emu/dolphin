@@ -949,7 +949,7 @@ bool IOFile::Seek(s64 off, int origin)
 	return m_good;
 }
 
-u64 IOFile::Tell()
+u64 IOFile::Tell() const
 {
 	if (IsOpen())
 		return ftello(m_file);

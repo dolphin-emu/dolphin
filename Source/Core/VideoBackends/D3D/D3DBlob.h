@@ -24,7 +24,7 @@ public:
 	void AddRef();
 	unsigned int Release();
 
-	unsigned int Size();
+	unsigned int Size() const;
 	u8* Data();
 
 private:

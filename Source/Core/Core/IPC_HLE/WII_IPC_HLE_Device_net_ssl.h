@@ -81,7 +81,7 @@ public:
 	virtual IPCCommandResult IOCtl(u32 _CommandAddress) override;
 	virtual IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-	int getSSLFreeID();
+	int GetSSLFreeID() const;
 
 	static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
 };

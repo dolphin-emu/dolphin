@@ -246,12 +246,12 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	CoreTiming::RemoveEvent(et_transfer_complete);
 }
 
-bool CEXIMemoryCard::UseDelayedTransferCompletion()
+bool CEXIMemoryCard::UseDelayedTransferCompletion() const
 {
 	return true;
 }
 
-bool CEXIMemoryCard::IsPresent()
+bool CEXIMemoryCard::IsPresent() const
 {
 	return true;
 }

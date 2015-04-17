@@ -162,7 +162,7 @@ CEXIMic::~CEXIMic()
 	StreamTerminate();
 }
 
-bool CEXIMic::IsPresent()
+bool CEXIMic::IsPresent() const
 {
 	return true;
 }

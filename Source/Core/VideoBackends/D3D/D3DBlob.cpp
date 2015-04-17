@@ -44,7 +44,7 @@ unsigned int D3DBlob::Release()
 	return ref;
 }
 
-unsigned int D3DBlob::Size()
+unsigned int D3DBlob::Size() const
 {
 	return size;
 }

@@ -68,7 +68,7 @@ void CEXIETHERNET::SetCS(int cs)
 	}
 }
 
-bool CEXIETHERNET::IsPresent()
+bool CEXIETHERNET::IsPresent() const
 {
 	return true;
 }

@@ -64,8 +64,8 @@ public:
 	void AddFromStrings(const TBreakPointsStr& bps);
 
 	// is address breakpoint
-	bool IsAddressBreakPoint(u32 _iAddress);
-	bool IsTempBreakPoint(u32 _iAddress);
+	bool IsAddressBreakPoint(u32 address) const;
+	bool IsTempBreakPoint(u32 address) const;
 
 	// Add BreakPoint
 	void Add(u32 em_address, bool temp = false);

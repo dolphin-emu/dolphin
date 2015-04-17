@@ -36,7 +36,7 @@ public:
 	void SetVideoMemory(u32 *bpMem, u32 *cpMem, u32 *xfMem, u32 *xfRegs, u32 xfRegsSize);
 
 	// Checked once per frame prior to callng EndFrame()
-	bool IsRecording() { return m_IsRecording; }
+	bool IsRecording() const { return m_IsRecording; }
 
 	static FifoRecorder &GetInstance();
 
