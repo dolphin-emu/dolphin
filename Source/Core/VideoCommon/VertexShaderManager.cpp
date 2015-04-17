@@ -2036,8 +2036,15 @@ void VertexShaderManager::CheckSkybox()
 		// If we are drawing at precisely the origin (camera position) it's probably a skybox
 		if (pos[0] == 0 && pos[1] == 0 && pos[2] == 0)
 		{
-			ERROR_LOG(VR, "SKYBOX!!!!");
-			g_is_skybox = true;
+			if (p[0 * 4 + 0] != 1.0f)
+			{
+				//ERROR_LOG(VR, "SKYBOX!!!!");
+				g_is_skybox = true;
+			}
+			else
+			{
+				//ERROR_LOG(VR, "NOT a skybox! Identity matrix.");
+			}
 		}
 
 	}
