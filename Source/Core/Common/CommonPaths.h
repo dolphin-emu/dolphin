@@ -54,7 +54,7 @@
 #define GAMESETTINGS_DIR    "GameSettings"
 #define MAPS_DIR            "Maps"
 #define CACHE_DIR           "Cache"
-#define SHADERCACHE_DIR     "ShaderCache"
+#define SHADERCACHE_DIR     "Shaders"
 #define STATESAVES_DIR      "StateSaves"
 #define SCREENSHOTS_DIR     "ScreenShots"
 #define LOAD_DIR            "Load"
@@ -72,6 +72,9 @@
 #define THEMES_DIR          "Themes"
 #define ANAGLYPH_DIR        "Anaglyph"
 #define PIPES_DIR           "Pipes"
+
+// This one is only used to remove it if it was present
+#define SHADERCACHE_LEGACY_DIR "ShaderCache"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
