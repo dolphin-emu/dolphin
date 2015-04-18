@@ -58,6 +58,7 @@ std::vector<TimewarpLogEntry> timewarp_logentries;
 bool g_opcode_replay_enabled = false;
 bool g_new_frame_just_rendered = false;
 bool g_first_pass = true;
+bool g_first_pass_vs_constants = true;
 bool g_opcode_replay_frame = false;
 bool g_opcode_replay_log_frame = false;
 int skipped_opcode_replay_count = 0;

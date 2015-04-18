@@ -282,7 +282,7 @@ static void BPWritten(const BPCmd& bp)
 
 				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
 				g_new_frame_just_rendered = true;
-				g_first_pass = true;
+				g_first_pass = g_first_pass_vs_constants = true;
 				new_frame_just_rendered = true;
 			}
 
