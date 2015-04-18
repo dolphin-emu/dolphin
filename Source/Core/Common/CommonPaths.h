@@ -24,11 +24,7 @@
 	#define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
 #else
 	#define USERDATA_DIR "user"
-	#ifdef USER_DIR
-		#define DOLPHIN_DATA_DIR USER_DIR
-	#else
-		#define DOLPHIN_DATA_DIR ".dolphin"
-	#endif
+	#define DOLPHIN_DATA_DIR "dolphin-emu"
 #endif
 
 // Shared data dirs (Sys and shared User for Linux)

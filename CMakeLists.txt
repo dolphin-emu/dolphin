@@ -76,8 +76,6 @@ else()
 	set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
 	add_definitions(-DDATA_DIR="${datadir}/")
 endif()
-set(userdir ".dolphin-emu" CACHE STRING "User directory")
-add_definitions(-DUSER_DIR="${userdir}")
 
 # Set where the binary files will be built.  The program will not execute from
 # here.  You must run "make install" to install these to the proper location
