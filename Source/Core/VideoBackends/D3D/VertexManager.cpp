@@ -67,6 +67,9 @@ VertexManager::VertexManager()
 	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
 	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
 
+	LocalVReplayBuffer.resize(3 * MAXVBUFFERSIZE);
+	s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
+
 	LocalIBuffer.resize(MAXIBUFFERSIZE);
 
 	CreateDeviceObjects();
@@ -138,15 +141,18 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 			memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
 			memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
 		}
-		else if (!g_opcodereplay_frame) // && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
+		else if (!g_opcode_replay_frame)
 		{
 			memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
-			memcpy(s_pCurReplayBufferPointer, s_pBaseBufferPointer, vertexBufferSize);
-			s_pCurReplayBufferPointer += vertexBufferSize;
+			if (g_opcode_replay_log_frame)
+			{
+				memcpy(s_pCurReplayBufferPointer, s_pBaseBufferPointer, vertexBufferSize);
+				s_pCurReplayBufferPointer += vertexBufferSize;
+			}
 
 			memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
 		}
-		else //if (g_opcodereplay_frame)
+		else
 		{
 			memcpy(mappedData + m_vertexDrawOffset, s_pCurReplayBufferPointer, vertexBufferSize);
 			s_pCurReplayBufferPointer += vertexBufferSize;

@@ -58,7 +58,9 @@ std::vector<TimewarpLogEntry> timewarp_logentries;
 bool g_opcode_replay_enabled = false;
 bool g_new_frame_just_rendered = false;
 bool g_first_pass = true;
-bool g_opcodereplay_frame = false;
+bool g_first_pass_vs_constants = true;
+bool g_opcode_replay_frame = false;
+bool g_opcode_replay_log_frame = false;
 int skipped_opcode_replay_count = 0;
 
 //std::vector<u8*> s_pCurBufferPointer_log;
@@ -659,9 +661,9 @@ void OpcodeReplayBuffer()
 			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
 		}
 
-		if ((g_opcodereplay_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
+		if ((g_opcode_replay_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
 		{
-			g_opcodereplay_frame = false;
+			g_opcode_replay_frame = false;
 			++real_frame_count;
 			extra_video_loops_count = 0;
 		}
@@ -669,7 +671,7 @@ void OpcodeReplayBuffer()
 		{
 			if (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider)
 			{
-				g_opcodereplay_frame = true;
+				g_opcode_replay_frame = true;
 				++extra_video_loops_count;
 				skipped_opcode_replay_count = 0;
 
@@ -741,7 +743,7 @@ void OpcodeReplayBuffer()
 			timewarp_logentries.resize(0);
 		}
 		g_opcode_replay_enabled = false;
-		g_opcodereplay_frame = true; //Don't log frames
+		g_opcode_replay_log_frame = false;
 	}
 }
 
@@ -755,12 +757,19 @@ void OpcodeReplayBufferInline()
 	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
+		g_opcode_replay_log_frame = true;
 		if (g_ActiveConfig.bPullUp60fps)
 		{
 			if (real_frame_count % 4 == 0)
+			{
 				extra_video_loops = 1;
+			}
 			else
+			{
 				extra_video_loops = 0;
+				if ((real_frame_count + 1) % 4 != 0)
+					g_opcode_replay_log_frame = false;
+			}
 		}
 		else if (g_ActiveConfig.bPullUp30fps)
 		{
@@ -790,7 +799,7 @@ void OpcodeReplayBufferInline()
 		}
 
 		++real_frame_count;
-		g_opcodereplay_frame = true;
+		g_opcode_replay_frame = true;
 		skipped_opcode_replay_count = 0;
 
 		for (int num_extra_frames = 0; num_extra_frames < extra_video_loops; ++num_extra_frames)
@@ -809,7 +818,7 @@ void OpcodeReplayBufferInline()
 		}
 		timewarp_logentries.clear();
 		timewarp_logentries.resize(0);
-		g_opcodereplay_frame = false;
+		g_opcode_replay_frame = false;
 	}
 	else
 	{
@@ -819,6 +828,6 @@ void OpcodeReplayBufferInline()
 			timewarp_logentries.resize(0);
 		}
 		g_opcode_replay_enabled = false;
-		g_opcodereplay_frame = true; //Don't log frames
+		g_opcode_replay_log_frame = false;
 	}
 }

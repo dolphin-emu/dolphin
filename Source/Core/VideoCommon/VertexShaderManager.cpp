@@ -51,6 +51,7 @@ static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
 VertexShaderConstants VertexShaderManager::constants;
+std::vector<VertexShaderConstants> VertexShaderManager::constants_replay;
 float4 VertexShaderManager::constants_eye_projection[2][4];
 bool VertexShaderManager::m_layer_on_top;
 

@@ -77,7 +77,7 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 	}
 }
 
-static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opcodereplay_frame, bool in_display_list, bool recursive_call)
+static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opcode_replay_frame, bool in_display_list, bool recursive_call)
 {
 	if (ARBruteForcer::ch_bruteforce)
 	{
@@ -100,7 +100,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 			cmd_byte,
 			buffer,
 			preprocess ? "yes" : "no",
-			g_opcodereplay_frame ? "yes" : "no",
+			g_opcode_replay_frame ? "yes" : "no",
 			in_display_list ? "yes" : "no",
 			recursive_call ? "yes" : "no");
 
@@ -141,7 +141,8 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 void OpcodeDecoder_Init()
 {
 	g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && g_has_hmd;
-	g_opcodereplay_frame = !g_opcode_replay_enabled; // Don't log frames if not enabled
+	g_opcode_replay_frame = false;
+	g_opcode_replay_log_frame = false;
 	s_bFifoErrorSeen = false;
 }
 
@@ -150,7 +151,8 @@ void OpcodeDecoder_Shutdown()
 {
 	if (g_has_hmd)
 	{
-		g_opcodereplay_frame = true;
+		g_opcode_replay_frame = false;
+		g_opcode_replay_log_frame = false;
 		timewarp_logentries.clear();
 		timewarp_logentries.resize(0);
 	}
@@ -170,13 +172,13 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 	//		"Loop: (0x%x, 0x%x, timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
 	//		src.buffer,
 	//		src.end,
-	//		g_opcodereplay_frame ? "yes" : "no",
+	//		g_opcode_replay_frame ? "yes" : "no",
 	//		in_display_list ? "yes" : "no",
 	//		recursive_call ? "yes" : "no"
 	//		);
 	//}
 
-	if (g_opcode_replay_enabled && !g_opcodereplay_frame && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
+	if (g_opcode_replay_log_frame && !g_opcode_replay_frame && !recursive_call && (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider))
 	{
 		timewarp_logentries.push_back(TimewarpLogEntry{src, is_preprocess});
 
@@ -361,7 +363,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 			{
 				if (!g_ActiveConfig.bOpcodeWarningDisable)
 				{
-					UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcodereplay_frame, in_display_list, recursive_call);
+					UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcode_replay_frame, in_display_list, recursive_call);
 				}
 				ERROR_LOG(VIDEO, "FIFO: Unknown Opcode(0x%02x @ %p, preprocessing = %s)", cmd_byte, opcodeStart, is_preprocess ? "yes" : "no");
 				s_bFifoErrorSeen = true;

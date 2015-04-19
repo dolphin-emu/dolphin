@@ -594,7 +594,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	// TODO: merge more generic parts into VideoCommon
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
 
-	if (XFBWrited && !g_opcodereplay_frame)
+	if (XFBWrited && !g_opcode_replay_frame)
 		g_renderer->m_fps_counter.Update();
 
 	frameCount++;
@@ -605,6 +605,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 	// New frame
 	stats.ResetFrame();
 
-	Core::Callback_VideoCopiedToXFB((XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) && (!g_opcodereplay_frame || !g_opcode_replay_enabled));
+	Core::Callback_VideoCopiedToXFB((XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)) && !g_opcode_replay_frame);
 	XFBWrited = false;
 }
