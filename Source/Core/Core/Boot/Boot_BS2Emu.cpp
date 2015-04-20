@@ -12,7 +12,6 @@
 #include "Core/Core.h"
 #include "Core/MemTools.h"
 #include "Core/PatchEngine.h"
-#include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
@@ -84,9 +83,10 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 
 	// Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
 	// but the size can differ between discs. Compare with YAGCD chap 13.
+	const DiscIO::IVolume& volume = DVDInterface::GetVolume();
 	u32 iAppLoaderOffset = 0x2440;
-	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10, false);
-	u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14, false) + VolumeHandler::Read32(iAppLoaderOffset + 0x18, false);
+	u32 iAppLoaderEntry = volume.Read32(iAppLoaderOffset + 0x10, false);
+	u32 iAppLoaderSize = volume.Read32(iAppLoaderOffset + 0x14, false) + volume.Read32(iAppLoaderOffset + 0x18, false);
 	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1) || skipAppLoader)
 	{
 		INFO_LOG(BOOT, "GC BS2: Not running apploader!");
@@ -308,8 +308,8 @@ bool CBoot::EmulatedBS2_Wii()
 
 	// setup Wii memory
 	DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
-	if (VolumeHandler::IsValid())
-		country_code = VolumeHandler::GetVolume()->GetCountry();
+	if (DVDInterface::VolumeIsValid())
+		country_code = DVDInterface::GetVolume().GetCountry();
 	if (SetupWiiMemory(country_code) == false)
 		return false;
 
@@ -321,7 +321,7 @@ bool CBoot::EmulatedBS2_Wii()
 
 	// Execute the apploader
 	bool apploaderRan = false;
-	if (VolumeHandler::IsValid() && VolumeHandler::IsWiiDisc())
+	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().IsWiiDisc())
 	{
 		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -353,8 +353,9 @@ bool CBoot::EmulatedBS2_Wii()
 		u32 iAppLoaderOffset = 0x2440; // 0x1c40;
 
 		// Load Apploader to Memory
-		u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10, true);
-		u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14, true);
+		const DiscIO::IVolume& volume = DVDInterface::GetVolume();
+		u32 iAppLoaderEntry = volume.Read32(iAppLoaderOffset + 0x10, true);
+		u32 iAppLoaderSize = volume.Read32(iAppLoaderOffset + 0x14, true);
 		if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
 		{
 			ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");

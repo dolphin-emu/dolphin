@@ -31,7 +31,6 @@
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
 #include "Core/State.h"
-#include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 
@@ -547,7 +546,6 @@ void EmuThread()
 	if (core_parameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
-	VolumeHandler::EjectVolume();
 	FileMon::Close();
 
 	// Stop audio thread - Actually this does nothing when using HLE

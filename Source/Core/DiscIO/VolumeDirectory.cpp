@@ -15,7 +15,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
-#include "Core/VolumeHandler.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
