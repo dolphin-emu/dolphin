@@ -14,8 +14,8 @@ namespace MMIO { class Mapping; }
 
 // We offset by 0x80 because the range of one byte memory offsets is
 // -0x80..0x7f.
-#define PPCSTATE(x) MDisp(RPPCSTATE, \
-	(int) ((char *) &PowerPC::ppcState.x - (char *) &PowerPC::ppcState) - 0x80)
+#define PPCSTATE_OFS(x) ((u8*)(x) - (u8*)&PowerPC::ppcState - 0x80)
+#define PPCSTATE(x) MDisp(RPPCSTATE, PPCSTATE_OFS(&PowerPC::ppcState.x))
 // In case you want to disable the ppcstate register:
 // #define PPCSTATE(x) M(&PowerPC::ppcState.x)
 #define PPCSTATE_LR PPCSTATE(spr[SPR_LR])
