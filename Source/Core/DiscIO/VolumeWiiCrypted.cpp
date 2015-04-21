@@ -31,7 +31,7 @@ namespace DiscIO
 CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
                                      const unsigned char* _pVolumeKey)
     : m_pReader(std::move(reader)), m_AES_ctx(std::make_unique<mbedtls_aes_context>()),
-      m_VolumeOffset(_VolumeOffset), m_dataOffset(0x20000), m_LastDecryptedBlockOffset(-1)
+      m_VolumeOffset(_VolumeOffset), m_dataOffset(0x20000), m_last_decrypted_block(-1)
 {
   _assert_(m_pReader);
 
@@ -41,7 +41,6 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _V
 bool CVolumeWiiCrypted::ChangePartition(u64 offset)
 {
   m_VolumeOffset = offset;
-  m_LastDecryptedBlockOffset = -1;
 
   u8 volume_key[16];
   DiscIO::VolumeKeyForPartition(*m_pReader, offset, volume_key);
@@ -61,25 +60,25 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
   std::vector<u8> read_buffer(BLOCK_TOTAL_SIZE);
   while (_Length > 0)
   {
-    // Calculate block offset
-    u64 Block = _ReadOffset / BLOCK_DATA_SIZE;
-    u64 Offset = _ReadOffset % BLOCK_DATA_SIZE;
+    // Calculate offsets
+    u64 block_offset_on_disc =
+        m_VolumeOffset + m_dataOffset + _ReadOffset / BLOCK_DATA_SIZE * BLOCK_TOTAL_SIZE;
+    u64 data_offset_in_block = _ReadOffset % BLOCK_DATA_SIZE;
 
-    if (m_LastDecryptedBlockOffset != Block)
+    if (m_last_decrypted_block != block_offset_on_disc)
     {
       // Read the current block
-      if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * BLOCK_TOTAL_SIZE,
-                           BLOCK_TOTAL_SIZE, read_buffer.data()))
+      if (!m_pReader->Read(block_offset_on_disc, BLOCK_TOTAL_SIZE, read_buffer.data()))
         return false;
 
       // Decrypt the block's data.
-      // 0x3D0 - 0x3DF in m_pBuffer will be overwritten,
+      // 0x3D0 - 0x3DF in read_buffer will be overwritten,
       // but that won't affect anything, because we won't
-      // use the content of m_pBuffer anymore after this
+      // use the content of read_buffer anymore after this
       mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE,
                             &read_buffer[0x3D0], &read_buffer[BLOCK_HEADER_SIZE],
-                            m_LastDecryptedBlock);
-      m_LastDecryptedBlockOffset = Block;
+                            m_last_decrypted_block_data);
+      m_last_decrypted_block = block_offset_on_disc;
 
       // The only thing we currently use from the 0x000 - 0x3FF part
       // of the block is the IV (at 0x3D0), but it also contains SHA-1
@@ -88,9 +87,9 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
     }
 
     // Copy the decrypted data
-    u64 MaxSizeToCopy = BLOCK_DATA_SIZE - Offset;
+    u64 MaxSizeToCopy = BLOCK_DATA_SIZE - data_offset_in_block;
     u64 CopySize = (_Length > MaxSizeToCopy) ? MaxSizeToCopy : _Length;
-    memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
+    memcpy(_pBuffer, &m_last_decrypted_block_data[data_offset_in_block], (size_t)CopySize);
 
     // Update offsets
     _Length -= CopySize;

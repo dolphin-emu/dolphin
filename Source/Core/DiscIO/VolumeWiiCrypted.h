@@ -68,8 +68,8 @@ private:
   u64 m_VolumeOffset;
   u64 m_dataOffset;
 
-  mutable u64 m_LastDecryptedBlockOffset;
-  mutable unsigned char m_LastDecryptedBlock[BLOCK_DATA_SIZE];
+  mutable u64 m_last_decrypted_block;
+  mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE];
 };
 
 }  // namespace
