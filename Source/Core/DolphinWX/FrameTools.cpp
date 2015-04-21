@@ -196,16 +196,16 @@ wxMenuBar* CFrame::CreateMenu()
 	loadMenu->Append(IDM_UNDO_LOAD_STATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
 
-	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
+	for (unsigned int i = 0; i < State::NUM_STATES; i++)
 	{
-		loadMenu->Append(IDM_LOAD_SLOT_1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
-		saveMenu->Append(IDM_SAVE_SLOT_1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
-		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i - 1, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i - 1));
+		loadMenu->Append(IDM_LOAD_SLOT_1 + i, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i));
+		saveMenu->Append(IDM_SAVE_SLOT_1 + i, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i));
+		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i));
 	}
 
 	loadMenu->AppendSeparator();
-	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
-		loadMenu->Append(IDM_LOAD_LAST_1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
+	for (unsigned int i = 0; i < State::NUM_STATES; i++)
+		loadMenu->Append(IDM_LOAD_LAST_1 + i, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i));
 
 	menubar->Append(emulationMenu, _("&Emulation"));
 
