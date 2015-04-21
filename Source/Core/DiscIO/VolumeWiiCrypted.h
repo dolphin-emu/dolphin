@@ -62,11 +62,12 @@ public:
   static constexpr unsigned int BLOCK_TOTAL_SIZE = BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
 
 private:
+  static constexpr unsigned int PARTITION_DATA_OFFSET = 0x20000;
+
   std::unique_ptr<IBlobReader> m_pReader;
   std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
 
   u64 m_VolumeOffset;
-  u64 m_dataOffset;
 
   mutable u64 m_last_decrypted_block;
   mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE];
