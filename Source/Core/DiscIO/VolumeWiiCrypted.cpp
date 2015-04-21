@@ -4,6 +4,7 @@
 
 #include "DiscIO/VolumeWiiCrypted.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -87,14 +88,14 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
     }
 
     // Copy the decrypted data
-    u64 MaxSizeToCopy = BLOCK_DATA_SIZE - data_offset_in_block;
-    u64 CopySize = (_Length > MaxSizeToCopy) ? MaxSizeToCopy : _Length;
-    memcpy(_pBuffer, &m_last_decrypted_block_data[data_offset_in_block], (size_t)CopySize);
+    u64 copy_size = std::min(_Length, BLOCK_DATA_SIZE - data_offset_in_block);
+    memcpy(_pBuffer, &m_last_decrypted_block_data[data_offset_in_block],
+           static_cast<size_t>(copy_size));
 
     // Update offsets
-    _Length -= CopySize;
-    _pBuffer += CopySize;
-    _ReadOffset += CopySize;
+    _Length -= copy_size;
+    _pBuffer += copy_size;
+    _ReadOffset += copy_size;
   }
 
   return true;
