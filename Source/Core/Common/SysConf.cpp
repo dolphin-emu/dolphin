@@ -38,6 +38,10 @@ void SysConf::Clear()
 
 bool SysConf::LoadFromFile(const std::string& filename)
 {
+	if (m_IsValid)
+		Clear();
+	m_IsValid = false;
+
 	// Basic check
 	if (!File::Exists(filename))
 	{
@@ -67,6 +71,7 @@ bool SysConf::LoadFromFile(const std::string& filename)
 		if (LoadFromFileInternal(f.ReleaseHandle()))
 		{
 			m_Filename = filename;
+			m_IsValid = true;
 			return true;
 		}
 	}
@@ -107,6 +112,7 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 		f.ReadArray(curEntry.name, curEntry.nameLength);
 		curEntry.name[curEntry.nameLength] = '\0';
 		// Get length of data
+		curEntry.data = nullptr;
 		curEntry.dataLength = 0;
 		switch (curEntry.type)
 		{
@@ -362,6 +368,7 @@ void SysConf::GenerateSysConf()
 	g.WriteBytes("SCed", 4);
 
 	m_Filename = m_FilenameDefault;
+	m_IsValid = true;
 }
 
 bool SysConf::SaveToFile(const std::string& filename)
@@ -418,11 +425,8 @@ void SysConf::UpdateLocation()
 
 bool SysConf::Reload()
 {
-	if (m_IsValid)
-		Clear();
-
 	std::string& filename = m_Filename.empty() ? m_FilenameDefault : m_Filename;
 
-	m_IsValid = LoadFromFile(filename);
+	LoadFromFile(filename);
 	return m_IsValid;
 }

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonPaths.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -35,11 +36,25 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_ACLEndpoint(0)
 	, m_last_ticks(0)
 {
+	SysConf* sysconf;
+	std::unique_ptr<SysConf> owned_sysconf;
+	if (Core::g_want_determinism)
+	{
+		// See SysConf::UpdateLocation for comment about the Future.
+		owned_sysconf.reset(new SysConf());
+		sysconf = owned_sysconf.get();
+		sysconf->LoadFromFile(File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF);
+	}
+	else
+	{
+		sysconf = SConfig::GetInstance().m_SYSCONF;
+	}
+
 	// Activate only first Wiimote by default
 
 	_conf_pads BT_DINF;
 	SetUsbPointer(this);
-	if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
+	if (!sysconf->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
 	{
 		PanicAlertT("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
 	}
@@ -83,7 +98,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 
 		// save now so that when games load sysconf file it includes the new Wiimotes
 		// and the correct order for connected Wiimotes
-		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
+		if (!sysconf->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !sysconf->Save())
 			PanicAlertT("Failed to write BT.DINF to SYSCONF");
 	}
 
