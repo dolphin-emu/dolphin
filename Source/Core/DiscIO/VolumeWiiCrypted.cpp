@@ -31,7 +31,7 @@ namespace DiscIO
 CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
                                      const unsigned char* _pVolumeKey)
     : m_pReader(std::move(reader)), m_AES_ctx(std::make_unique<mbedtls_aes_context>()),
-      m_VolumeOffset(_VolumeOffset), m_dataOffset(0x20000), m_last_decrypted_block(-1)
+      m_VolumeOffset(_VolumeOffset), m_last_decrypted_block(-1)
 {
   mbedtls_aes_setkey_dec(m_AES_ctx.get(), _pVolumeKey, 128);
 }
@@ -65,7 +65,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
   {
     // Calculate offsets
     u64 block_offset_on_disc =
-        _ReadOffset / s_block_data_size * s_block_total_size + m_VolumeOffset + m_dataOffset;
+        _ReadOffset / s_block_data_size * s_block_total_size + m_VolumeOffset + s_partition_data_offset;
     u64 data_offset_in_block = _ReadOffset % s_block_data_size;
 
     if (m_last_decrypted_block != block_offset_on_disc)
@@ -324,7 +324,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
   u32 nClusters = (u32)(partDataSize / 0x8000);
   for (u32 clusterID = 0; clusterID < nClusters; ++clusterID)
   {
-    u64 clusterOff = m_VolumeOffset + m_dataOffset + (u64)clusterID * 0x8000;
+    u64 clusterOff = m_VolumeOffset + s_partition_data_offset + (u64)clusterID * 0x8000;
 
     // Read and decrypt the cluster metadata
     u8 clusterMDCrypted[0x400];

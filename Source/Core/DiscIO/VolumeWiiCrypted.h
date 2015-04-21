@@ -56,11 +56,12 @@ private:
   static const unsigned int s_block_data_size = 0x7C00;
   static const unsigned int s_block_total_size = s_block_header_size + s_block_data_size;
 
+  static const u64 s_partition_data_offset = 0x20000;
+
   std::unique_ptr<IBlobReader> m_pReader;
   std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
 
   u64 m_VolumeOffset;
-  u64 m_dataOffset;
 
   mutable u64 m_last_decrypted_block;
   mutable u8 m_last_decrypted_block_data[s_block_data_size];
