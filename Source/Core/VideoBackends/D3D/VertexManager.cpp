@@ -71,6 +71,8 @@ VertexManager::VertexManager()
 	s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
 
 	LocalIBuffer.resize(MAXIBUFFERSIZE);
+	LocalIReplayBuffer.resize(3 * MAXIBUFFERSIZE);
+	s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
 
 	CreateDeviceObjects();
 }
@@ -122,16 +124,20 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 				{
 					LocalVReplayBuffer.clear();
 					LocalVReplayBuffer.resize(0);
+					LocalIReplayBuffer.clear();
+					LocalIReplayBuffer.resize(0);
 				}
 				else
 				{
-					// To Do: This was arbitrarily chosen as a very large buffer size unlikely to be fully maxed out.
-					// What's the ideal value to use?
+					// To Do: Change this to vectors like used in the ShaderCache code
 					LocalVReplayBuffer.resize(3 * MAXVBUFFERSIZE);
 					s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
+					LocalIReplayBuffer.resize(3 * MAXVBUFFERSIZE);
+					s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
 				}
 			}
 			s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer;
+			s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer;
 			previous_replay_vertex_data = g_ActiveConfig.bReplayVertexData;
 			g_first_pass = false;
 		}
@@ -148,6 +154,9 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 			{
 				memcpy(s_pCurReplayBufferPointer, s_pBaseBufferPointer, vertexBufferSize);
 				s_pCurReplayBufferPointer += vertexBufferSize;
+
+				memcpy(s_pCurIReplayBufferPointer, GetIndexBuffer(), indexBufferSize);
+				s_pCurIReplayBufferPointer += indexBufferSize;
 			}
 
 			memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
@@ -157,7 +166,8 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 			memcpy(mappedData + m_vertexDrawOffset, s_pCurReplayBufferPointer, vertexBufferSize);
 			s_pCurReplayBufferPointer += vertexBufferSize;
 
-			memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
+			memcpy(mappedData + m_indexDrawOffset, s_pCurIReplayBufferPointer, indexBufferSize);
+			s_pCurIReplayBufferPointer += indexBufferSize;
 		}
 	}
 	else

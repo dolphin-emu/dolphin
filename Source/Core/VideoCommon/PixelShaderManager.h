@@ -48,6 +48,7 @@ public:
 	static void SetFogRangeAdjustChanged();
 
 	static PixelShaderConstants constants;
+	static std::vector<PixelShaderConstants> PixelShaderManager::constants_replay;
 	static bool dirty;
 
 	static bool s_bFogRangeAdjustChanged;

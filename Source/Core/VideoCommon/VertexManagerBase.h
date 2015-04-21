@@ -64,6 +64,9 @@ protected:
 	static u8* s_pCurReplayBufferPointer;
 	static u8* s_pBaseReplayBufferPointer;
 
+	static u16* s_pCurIReplayBufferPointer;
+	static u16* s_pBaseIReplayBufferPointer;
+
 	static u32 GetRemainingSize();
 	static u32 GetRemainingIndices(int primitive);
 

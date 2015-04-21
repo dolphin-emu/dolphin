@@ -61,7 +61,6 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 					VertexShaderManager::constants_replay.clear();
 					VertexShaderManager::constants_replay.resize(0);
 				}
-				g_first_pass_vs_constants = false;
 			}
 
 			if (!g_ActiveConfig.bReplayVertexData)

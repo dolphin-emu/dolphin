@@ -286,6 +286,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("OpcodeReplay", &bOpcodeReplay, false);
 	vr->Get("OpcodeWarningDisable", &bOpcodeWarningDisable, false);
 	vr->Get("ReplayVertexData", &bReplayVertexData, false);
+	vr->Get("ReplayOtherData", &bReplayOtherData, false);
 	vr->Get("PullUp20fpsTimewarp", &bPullUp20fpsTimewarp, false);
 	vr->Get("PullUp30fpsTimewarp", &bPullUp30fpsTimewarp, false);
 	vr->Get("PullUp60fpsTimewarp", &bPullUp60fpsTimewarp, false);
@@ -725,6 +726,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("OpcodeReplay", bOpcodeReplay);
 	vr->Set("OpcodeWarningDisable", bOpcodeWarningDisable);
 	vr->Set("ReplayVertexData", bReplayVertexData);
+	vr->Set("ReplayOtherData", bReplayOtherData);
 	vr->Set("PullUp20fpsTimewarp", bPullUp20fpsTimewarp);
 	vr->Set("PullUp30fpsTimewarp", bPullUp30fpsTimewarp);
 	vr->Set("PullUp60fpsTimewarp", bPullUp60fpsTimewarp);

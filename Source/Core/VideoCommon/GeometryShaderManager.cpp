@@ -17,6 +17,7 @@ static const int LINE_PT_TEX_OFFSETS[8] = {
 };
 
 GeometryShaderConstants GeometryShaderManager::constants;
+std::vector<GeometryShaderConstants> GeometryShaderManager::constants_replay;
 bool GeometryShaderManager::dirty;
 
 static bool s_projection_changed;

@@ -30,6 +30,9 @@ u8 *VertexManager::s_pEndBufferPointer;
 u8 *VertexManager::s_pCurReplayBufferPointer;
 u8 *VertexManager::s_pBaseReplayBufferPointer;
 
+u16 *VertexManager::s_pCurIReplayBufferPointer;
+u16 *VertexManager::s_pBaseIReplayBufferPointer;
+
 PrimitiveType VertexManager::current_primitive_type;
 
 Slope VertexManager::s_zslope;
