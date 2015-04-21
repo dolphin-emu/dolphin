@@ -66,7 +66,6 @@ private:
   std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
 
   u64 m_VolumeOffset;
-  u64 m_dataOffset;
 
   mutable u64 m_last_decrypted_block;
   mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE];
