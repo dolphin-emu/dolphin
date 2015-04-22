@@ -242,7 +242,10 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 	0x80000060  Copyright code
 	*/
 
-	DVDInterface::DVDRead(0x00000000, 0x00000000, 0x20, false);        // Game Code
+	// When booting a WAD or the system menu, there will probably not be a disc inserted
+	if (DVDInterface::VolumeIsValid())
+		DVDInterface::DVDRead(0x00000000, 0x00000000, 0x20, false); // Game Code
+
 	Memory::Write_U32(0x0D15EA5E, 0x00000020);                  // Another magic word
 	Memory::Write_U32(0x00000001, 0x00000024);                  // Unknown
 	Memory::Write_U32(Memory::REALRAM_SIZE, 0x00000028);        // MEM1 size 24MB
