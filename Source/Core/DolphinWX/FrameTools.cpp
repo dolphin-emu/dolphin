@@ -170,7 +170,7 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
 	for (int i = 0; i < 10; i++)
-		skippingMenu->Append(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
+		skippingMenu->AppendRadioItem(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i));
 	skippingMenu->Check(IDM_FRAME_SKIP_0 + SConfig::GetInstance().m_FrameSkip, true);
 	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
 
