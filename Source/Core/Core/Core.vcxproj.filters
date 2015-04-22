@@ -154,7 +154,6 @@
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
-    <ClCompile Include="VolumeHandler.cpp" />
     <ClCompile Include="ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
@@ -758,7 +757,6 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
-    <ClInclude Include="VolumeHandler.h" />
     <ClInclude Include="ActionReplay.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>
