@@ -32,6 +32,11 @@
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/VolumeCreator.h"
 
+bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
+{
+	return DVDInterface::GetVolume().Read(dvd_offset, length, Memory::GetPointer(output_address), decrypt);
+}
+
 void CBoot::Load_FST(bool _bIsWii)
 {
 	if (!DVDInterface::VolumeIsValid())
@@ -40,7 +45,7 @@ void CBoot::Load_FST(bool _bIsWii)
 	const DiscIO::IVolume& volume = DVDInterface::GetVolume();
 
 	// copy first 20 bytes of disc to start of Mem 1
-	DVDInterface::DVDRead(/*offset*/0, /*address*/0, /*length*/0x20, false);
+	DVDRead(/*offset*/0, /*address*/0, /*length*/0x20, false);
 
 	// copy of game id
 	Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
@@ -57,7 +62,7 @@ void CBoot::Load_FST(bool _bIsWii)
 	Memory::Write_U32(arenaHigh, 0x00000034);
 
 	// load FST
-	DVDInterface::DVDRead(fstOffset, arenaHigh, fstSize, _bIsWii);
+	DVDRead(fstOffset, arenaHigh, fstSize, _bIsWii);
 	Memory::Write_U32(arenaHigh, 0x00000038);
 	Memory::Write_U32(maxFstSize, 0x0000003c);
 }

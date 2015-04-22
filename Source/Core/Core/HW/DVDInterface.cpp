@@ -514,11 +514,6 @@ void SetLidOpen(bool _bOpen)
 	GenerateDIInterrupt(INT_CVRINT);
 }
 
-bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool decrypt)
-{
-	return s_inserted_volume->Read(_iDVDOffset, _iLength, Memory::GetPointer(_iRamAddress), decrypt);
-}
-
 bool ChangePartition(u64 offset)
 {
 	DVDThread::WaitUntilIdle();

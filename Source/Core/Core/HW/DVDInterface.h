@@ -105,7 +105,6 @@ bool IsDiscInside();
 void ChangeDisc(const std::string& fileName);
 
 // DVD Access Functions
-bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool decrypt);
 extern bool g_bStream;
 bool ChangePartition(u64 offset);
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address, u32 output_length,
