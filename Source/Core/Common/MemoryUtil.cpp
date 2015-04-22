@@ -21,11 +21,7 @@
 #include <sys/mman.h>
 #endif
 
-// Valgrind doesn't support MAP_32BIT.
-// Uncomment the following line to be able to run Dolphin in Valgrind.
-//#undef MAP_32BIT
-
-#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
+#if !defined(_WIN32) && defined(_M_X86_64)
 #include <unistd.h>
 #define PAGE_MASK     (getpagesize() - 1)
 #define round_page(x) ((((unsigned long)(x)) + PAGE_MASK) & ~(PAGE_MASK))
@@ -40,7 +36,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
 	static char *map_hint = nullptr;
-#if defined(_M_X86_64) && !defined(MAP_32BIT)
+#if defined(_M_X86_64)
 	// This OS has no flag to enforce allocation below the 4 GB boundary,
 	// but if we hint that we want a low address it is very likely we will
 	// get one.
@@ -51,11 +47,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 		map_hint = (char*)round_page(512*1024*1024); /* 0.5 GB rounded up to the next page */
 #endif
 	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-		MAP_ANON | MAP_PRIVATE
-#if defined(_M_X86_64) && defined(MAP_32BIT)
-		| (low ? MAP_32BIT : 0)
-#endif
-		, -1, 0);
+		MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif /* defined(_WIN32) */
 
 	// printf("Mapped executable memory at %p (size %ld)\n", ptr,
@@ -69,9 +61,9 @@ void* AllocateExecutableMemory(size_t size, bool low)
 	{
 		ptr = nullptr;
 #endif
-		PanicAlert("Failed to allocate executable memory. If you are running Dolphin in Valgrind, try '#undef MAP_32BIT'.");
+		PanicAlert("Failed to allocate executable memory.");
 	}
-#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
+#if !defined(_WIN32) && defined(_M_X86_64)
 	else
 	{
 		if (low)
