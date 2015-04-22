@@ -90,7 +90,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 
 	// pretty hacky - add the code to the gameini
 	{
-	CISOProperties isoprops(SConfig::GetInstance().m_LastFilename, this);
+	CISOProperties isoprops(SConfig::GetInstance().m_RecentFile[0], this);
 	// add the code to the isoproperties arcode list
 	arCodes->push_back(new_cheat);
 	// save the gameini

@@ -277,6 +277,7 @@ private:
 	void OnOpen(wxCommandEvent& event); // File menu
 	void DoOpen(bool Boot);
 	void OnRefresh(wxCommandEvent& event);
+	void OnOpenRecentFile(wxCommandEvent& event);
 	void OnBrowse(wxCommandEvent& event);
 	void OnBootDrive(wxCommandEvent& event);
 
