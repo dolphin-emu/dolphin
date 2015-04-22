@@ -244,10 +244,10 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 		{
 			switch (sizeof(T))
 			{
-			case 1: GPFifo::Write8((u8)data, em_address); return;
-			case 2: GPFifo::Write16((u16)data, em_address); return;
-			case 4: GPFifo::Write32((u32)data, em_address); return;
-			case 8: GPFifo::Write64((u64)data, em_address); return;
+			case 1: GPFifo::Write8((u8)data); return;
+			case 2: GPFifo::Write16((u16)data); return;
+			case 4: GPFifo::Write32((u32)data); return;
+			case 8: GPFifo::Write64((u64)data); return;
 			}
 		}
 		if (flag == FLAG_WRITE && (em_address & 0xF8000000) == 0xC8000000)
@@ -299,10 +299,10 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 		{
 			switch (sizeof(T))
 			{
-			case 1: GPFifo::Write8((u8)data, em_address); return;
-			case 2: GPFifo::Write16((u16)data, em_address); return;
-			case 4: GPFifo::Write32((u32)data, em_address); return;
-			case 8: GPFifo::Write64((u64)data, em_address); return;
+			case 1: GPFifo::Write8((u8)data); return;
+			case 2: GPFifo::Write16((u16)data); return;
+			case 4: GPFifo::Write32((u32)data); return;
+			case 8: GPFifo::Write64((u64)data); return;
 			}
 		}
 		if (flag == FLAG_WRITE && (em_address & 0xF8000000) == 0x08000000)
