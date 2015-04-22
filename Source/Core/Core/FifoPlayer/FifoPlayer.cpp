@@ -294,7 +294,7 @@ void FifoPlayer::WriteFifo(u8 *data, u32 start, u32 end)
 		while (written < burstEnd)
 			GPFifo::FastWrite8(data[written++]);
 
-		GPFifo::Write8(data[written++], 0);
+		GPFifo::Write8(data[written++]);
 
 		// Advance core timing
 		u32 elapsedCycles = u32(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
@@ -414,43 +414,43 @@ void FifoPlayer::FlushWGP()
 {
 	// Send 31 0s through the WGP
 	for (int i = 0; i < 7; ++i)
-		GPFifo::Write32(0, 0);
-	GPFifo::Write16(0, 0);
-	GPFifo::Write8(0, 0);
+		GPFifo::Write32(0);
+	GPFifo::Write16(0);
+	GPFifo::Write8(0);
 
 	GPFifo::ResetGatherPipe();
 }
 
 void FifoPlayer::LoadBPReg(u8 reg, u32 value)
 {
-	GPFifo::Write8(0x61, 0); // load BP reg
+	GPFifo::Write8(0x61); // load BP reg
 
 	u32 cmd = (reg << 24) & 0xff000000;
 	cmd |= (value & 0x00ffffff);
-	GPFifo::Write32(cmd, 0);
+	GPFifo::Write32(cmd);
 }
 
 void FifoPlayer::LoadCPReg(u8 reg, u32 value)
 {
-	GPFifo::Write8(0x08, 0); // load CP reg
-	GPFifo::Write8(reg, 0);
-	GPFifo::Write32(value, 0);
+	GPFifo::Write8(0x08); // load CP reg
+	GPFifo::Write8(reg);
+	GPFifo::Write32(value);
 }
 
 void FifoPlayer::LoadXFReg(u16 reg, u32 value)
 {
-	GPFifo::Write8(0x10, 0); // load XF reg
-	GPFifo::Write32((reg & 0x0fff) | 0x1000, 0); // load 4 bytes into reg
-	GPFifo::Write32(value, 0);
+	GPFifo::Write8(0x10); // load XF reg
+	GPFifo::Write32((reg & 0x0fff) | 0x1000); // load 4 bytes into reg
+	GPFifo::Write32(value);
 }
 
 void FifoPlayer::LoadXFMem16(u16 address, u32 *data)
 {
 	// Loads 16 * 4 bytes in xf memory starting at address
-	GPFifo::Write8(0x10, 0); // load XF reg
-	GPFifo::Write32(0x000f0000 | (address & 0xffff), 0); // load 16 * 4 bytes into address
+	GPFifo::Write8(0x10); // load XF reg
+	GPFifo::Write32(0x000f0000 | (address & 0xffff)); // load 16 * 4 bytes into address
 	for (int i = 0; i < 16; ++i)
-		GPFifo::Write32(data[i], 0);
+		GPFifo::Write32(data[i]);
 }
 
 bool FifoPlayer::ShouldLoadBP(u8 address)

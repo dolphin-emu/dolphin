@@ -32,10 +32,10 @@ void FastCheckGatherPipe();
 bool IsEmpty();
 
 // Write
-void Write8(const u8 _iValue, const u32 _iAddress);
-void Write16(const u16 _iValue, const u32 _iAddress);
-void Write32(const u32 _iValue, const u32 _iAddress);
-void Write64(const u64 _iValue, const u32 _iAddress);
+void Write8(const u8 _iValue);
+void Write16(const u16 _iValue);
+void Write32(const u32 _iValue);
+void Write64(const u64 _iValue);
 
 // These expect pre-byteswapped values
 // Also there's an upper limit of about 512 per batch
