@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <vector>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -34,7 +35,11 @@
 
 bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
 {
-	return DVDInterface::GetVolume().Read(dvd_offset, length, Memory::GetPointer(output_address), decrypt);
+	std::vector<u8> buffer(length);
+	if (!DVDInterface::GetVolume().Read(dvd_offset, length, buffer.data(), decrypt))
+		return false;
+	Memory::CopyToEmu(output_address, buffer.data(), length);
+	return true;
 }
 
 void CBoot::Load_FST(bool _bIsWii)
