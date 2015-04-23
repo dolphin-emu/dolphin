@@ -56,10 +56,17 @@ VideoConfig::VideoConfig()
 	// VR
 	fScale = 1.0f;
 	fLeanBackAngle = 0;
+	bStabilizePitch = true;
+	bStabilizeRoll = true;
+	bStabilizeYaw = false;
+	bStabilizeX = false;
+	bStabilizeY = false;
+	bStabilizeZ = false;
 	bPullUp20fps = false;
 	bPullUp30fps = false;
 	bPullUp60fps = false;
 	bOpcodeWarningDisable = false;
+	bReplayVertexData = false;
 	bPullUp20fpsTimewarp = false;
 	bPullUp30fpsTimewarp = false;
 	bPullUp60fpsTimewarp = false;
@@ -101,9 +108,8 @@ VideoConfig::VideoConfig()
 	fMotionSicknessFOV = 45.0f;
 
 	iVRPlayer = 0;
-	iGameCameraControl = CAMERA_YAW;
 	fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
-	iExtraFrames = DEFAULT_VR_EXTRA_FRAMES;
+	iExtraTimewarpedFrames = DEFAULT_VR_EXTRA_FRAMES;
 	iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
 	iExtraVideoLoopsDivider = DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER;
 
@@ -259,19 +265,32 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("MotionSicknessMethod", &iMotionSicknessMethod, 0);
 	vr->Get("MotionSicknessSkybox", &iMotionSicknessSkybox, 0);
 	vr->Get("MotionSicknessFOV", &fMotionSicknessFOV, DEFAULT_VR_MOTION_SICKNESS_FOV);
-	vr->Get("GameCameraControl", &iGameCameraControl, CAMERA_YAW);
 	vr->Get("Player", &iVRPlayer, 0);
 	vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
-	vr->Get("NumExtraFrames", &iExtraFrames, DEFAULT_VR_EXTRA_FRAMES);
+	vr->Get("NumExtraFrames", &iExtraTimewarpedFrames, DEFAULT_VR_EXTRA_FRAMES);
 	vr->Get("NumExtraVideoLoops", &iExtraVideoLoops, DEFAULT_VR_EXTRA_VIDEO_LOOPS);
 	vr->Get("NumExtraVideoLoopsDivider", &iExtraVideoLoopsDivider, DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER);
+	vr->Get("StabilizeRoll", &bStabilizeRoll, true);
+	vr->Get("StabilizePitch", &bStabilizePitch, true);
+	vr->Get("StabilizeYaw", &bStabilizeYaw, false);
+	vr->Get("StabilizeX", &bStabilizeX, false);
+	vr->Get("StabilizeY", &bStabilizeY, false);
+	vr->Get("StabilizeZ", &bStabilizeZ, false);
+	vr->Get("Keyhole", &bKeyhole, false);
+	vr->Get("KeyholeWidth", &fKeyholeWidth, 45.0f);
+	vr->Get("KeyholeSnap", &bKeyholeSnap, false);
+	vr->Get("KeyholeSnapSize", &fKeyholeSnapSize, 30.0f);
 	vr->Get("PullUp20fps", &bPullUp20fps, false);
 	vr->Get("PullUp30fps", &bPullUp30fps, false);
 	vr->Get("PullUp60fps", &bPullUp60fps, false);
+	vr->Get("OpcodeReplay", &bOpcodeReplay, false);
 	vr->Get("OpcodeWarningDisable", &bOpcodeWarningDisable, false);
+	vr->Get("ReplayVertexData", &bReplayVertexData, false);
+	vr->Get("ReplayOtherData", &bReplayOtherData, false);
 	vr->Get("PullUp20fpsTimewarp", &bPullUp20fpsTimewarp, false);
 	vr->Get("PullUp30fpsTimewarp", &bPullUp30fpsTimewarp, false);
 	vr->Get("PullUp60fpsTimewarp", &bPullUp60fpsTimewarp, false);
+	vr->Get("SynchronousTimewarp", &bSynchronousTimewarp, false);
 }
 
 
@@ -430,6 +449,7 @@ void VideoConfig::GameIniLoad()
 	bHudOnTop = false;
 	bDontClearScreen = false;
 	bCanReadCameraAngles = false;
+	bDetectSkybox = false;
 	iSelectedLayer = -2;
 	iFlashState = 0;
 
@@ -439,6 +459,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
 	CHECK_SETTING("VR", "DontClearScreen", bDontClearScreen);
 	CHECK_SETTING("VR", "CanReadCameraAngles", bCanReadCameraAngles);
+	CHECK_SETTING("VR", "DetectSkybox", bDetectSkybox);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
@@ -492,6 +513,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
+	SAVE_IF_NOT_DEFAULT("VR", "DetectSkybox", bDetectSkybox, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -530,6 +552,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	LOAD_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
 	LOAD_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
+	LOAD_DEFAULT("VR", "DetectSkybox", bDetectSkybox, false);
 	LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	LOAD_DEFAULT("VR", "HudThickness", fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	LOAD_DEFAULT("VR", "Hud3DCloser", fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
@@ -683,18 +706,31 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("MotionSicknessSkybox", iMotionSicknessSkybox);
 	vr->Set("MotionSicknessFOV", fMotionSicknessFOV);
 	vr->Set("Player", iVRPlayer);
-	vr->Set("GameCameraControl", iGameCameraControl);
 	vr->Set("TimewarpTweak", fTimeWarpTweak);
-	vr->Set("NumExtraFrames", iExtraFrames);
+	vr->Set("NumExtraFrames", iExtraTimewarpedFrames);
 	vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
 	vr->Set("NumExtraVideoLoopsDivider", iExtraVideoLoopsDivider);
+	vr->Set("StabilizeRoll", bStabilizeRoll);
+	vr->Set("StabilizePitch", bStabilizePitch);
+	vr->Set("StabilizeYaw", bStabilizeYaw);
+	vr->Set("StabilizeX", bStabilizeX);
+	vr->Set("StabilizeY", bStabilizeY);
+	vr->Set("StabilizeZ", bStabilizeZ);
+	vr->Set("Keyhole", bKeyhole);
+	vr->Set("KeyholeWidth", fKeyholeWidth);
+	vr->Set("KeyholeSnap", bKeyholeSnap);
+	vr->Set("KeyholeSnapSize", fKeyholeSnapSize);
 	vr->Set("PullUp20fps", bPullUp20fps);
 	vr->Set("PullUp30fps", bPullUp30fps);
 	vr->Set("PullUp60fps", bPullUp60fps);
+	vr->Set("OpcodeReplay", bOpcodeReplay);
 	vr->Set("OpcodeWarningDisable", bOpcodeWarningDisable);
+	vr->Set("ReplayVertexData", bReplayVertexData);
+	vr->Set("ReplayOtherData", bReplayOtherData);
 	vr->Set("PullUp20fpsTimewarp", bPullUp20fpsTimewarp);
 	vr->Set("PullUp30fpsTimewarp", bPullUp30fpsTimewarp);
 	vr->Set("PullUp60fpsTimewarp", bPullUp60fpsTimewarp);
+	vr->Set("SynchronousTimewarp", bSynchronousTimewarp);
 
 	iniFile.Save(ini_file);
 }
@@ -727,6 +763,7 @@ bool VideoConfig::VRSettingsModified()
 		|| bHudOnTop != g_SavedConfig.bHudOnTop
 		|| bDontClearScreen != g_SavedConfig.bDontClearScreen
 		|| bCanReadCameraAngles != g_SavedConfig.bCanReadCameraAngles
+		|| bDetectSkybox != g_SavedConfig.bDetectSkybox
 		|| iTelescopeEye != g_SavedConfig.iTelescopeEye
 		|| iMetroidPrime != g_SavedConfig.iMetroidPrime;
 }

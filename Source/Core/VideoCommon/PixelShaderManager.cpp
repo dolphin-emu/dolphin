@@ -15,6 +15,7 @@
 bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
 PixelShaderConstants PixelShaderManager::constants;
+std::vector<PixelShaderConstants> PixelShaderManager::constants_replay;
 bool PixelShaderManager::dirty;
 
 void PixelShaderManager::Init()

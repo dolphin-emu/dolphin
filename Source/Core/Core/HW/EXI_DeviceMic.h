@@ -17,7 +17,7 @@ public:
 	virtual ~CEXIMic();
 	void SetCS(int cs) override;
 	bool IsInterruptSet() override;
-	bool IsPresent() override;
+	bool IsPresent() const override;
 
 private:
 	static u8 const exi_id[];

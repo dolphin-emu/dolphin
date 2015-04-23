@@ -208,14 +208,16 @@ wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 			attr->SetBackgroundColour(*wxLIGHT_GREY);
 		}
 	}
-	attr->IncRef();
+
 	return attr;
 }
 
 CWatchView::CWatchView(wxWindow* parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
-	SetTable(new CWatchTable(), false);
+	m_watch_table = new CWatchTable();
+
+	SetTable(m_watch_table, true);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
@@ -228,8 +230,8 @@ void CWatchView::Update()
 {
 	if (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 	{
+		m_watch_table->UpdateWatch();
 		ForceRefresh();
-		((CWatchTable *)GetTable())->UpdateWatch();
 	}
 }
 

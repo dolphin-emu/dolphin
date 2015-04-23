@@ -1236,7 +1236,7 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 	}
 }
 
-void XEmitter::WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2)
+void XEmitter::WriteNormalOp(int bits, NormalOp op, const OpArg &a1, const OpArg &a2)
 {
 	if (a1.IsImm())
 	{
@@ -1246,38 +1246,38 @@ void XEmitter::WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg 
 	}
 	if (a2.IsImm())
 	{
-		a1.WriteNormalOp(emit, true, op, a2, bits);
+		a1.WriteNormalOp(this, true, op, a2, bits);
 	}
 	else
 	{
 		if (a1.IsSimpleReg())
 		{
-			a2.WriteNormalOp(emit, false, op, a1, bits);
+			a2.WriteNormalOp(this, false, op, a1, bits);
 		}
 		else
 		{
 			_assert_msg_(DYNA_REC, a2.IsSimpleReg() || a2.IsImm(), "WriteNormalOp - a1 and a2 cannot both be memory");
-			a1.WriteNormalOp(emit, true, op, a2, bits);
+			a1.WriteNormalOp(this, true, op, a2, bits);
 		}
 	}
 }
 
-void XEmitter::ADD (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmADD, a1, a2);}
-void XEmitter::ADC (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmADC, a1, a2);}
-void XEmitter::SUB (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmSUB, a1, a2);}
-void XEmitter::SBB (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmSBB, a1, a2);}
-void XEmitter::AND (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmAND, a1, a2);}
-void XEmitter::OR  (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmOR , a1, a2);}
-void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmXOR, a1, a2);}
+void XEmitter::ADD (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmADD, a1, a2);}
+void XEmitter::ADC (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmADC, a1, a2);}
+void XEmitter::SUB (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmSUB, a1, a2);}
+void XEmitter::SBB (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmSBB, a1, a2);}
+void XEmitter::AND (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmAND, a1, a2);}
+void XEmitter::OR  (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmOR , a1, a2);}
+void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmXOR, a1, a2);}
 void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2)
 {
 	if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
 		ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
-	WriteNormalOp(this, bits, nrmMOV, a1, a2);
+	WriteNormalOp(bits, nrmMOV, a1, a2);
 }
-void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmTEST, a1, a2);}
-void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmCMP, a1, a2);}
-void XEmitter::XCHG(int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmXCHG, a1, a2);}
+void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmTEST, a1, a2);}
+void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmCMP, a1, a2);}
+void XEmitter::XCHG(int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmXCHG, a1, a2);}
 
 void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 {
@@ -1638,6 +1638,7 @@ void XEmitter::PACKUSWB(X64Reg dest, OpArg arg) {WriteSSEOp(0x66, 0x67, dest, ar
 void XEmitter::PUNPCKLBW(X64Reg dest, const OpArg &arg) {WriteSSEOp(0x66, 0x60, dest, arg);}
 void XEmitter::PUNPCKLWD(X64Reg dest, const OpArg &arg) {WriteSSEOp(0x66, 0x61, dest, arg);}
 void XEmitter::PUNPCKLDQ(X64Reg dest, const OpArg &arg) {WriteSSEOp(0x66, 0x62, dest, arg);}
+void XEmitter::PUNPCKLQDQ(X64Reg dest, const OpArg &arg) {WriteSSEOp(0x66, 0x6C, dest, arg);}
 
 void XEmitter::PSRLW(X64Reg reg, int shift)
 {

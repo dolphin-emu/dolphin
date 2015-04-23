@@ -193,7 +193,7 @@ public:
 	CEXIETHERNET();
 	virtual ~CEXIETHERNET();
 	void SetCS(int cs) override;
-	bool IsPresent() override;
+	bool IsPresent() const override;
 	bool IsInterruptSet() override;
 	void ImmWrite(u32 data,  u32 size) override;
 	u32  ImmRead(u32 size) override;

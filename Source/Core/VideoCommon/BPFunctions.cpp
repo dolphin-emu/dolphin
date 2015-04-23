@@ -134,30 +134,30 @@ void ClearScreen(const EFBRectangle &rc, bool frame_just_rendered)
 
 	// To Do: Optimize this better.  Do some games use more than 2 clear calls that might need to also be unwound?
 	// Is the second unwind just a workaround for a bigger bug somewhere else in the replay buffer?
-	if (g_has_hmd && g_opcode_replay_enabled)
+	if (g_opcode_replay_enabled)
 	{
-		if (g_opcodereplay_frame && frame_just_rendered)
+		if (g_opcode_replay_frame && frame_just_rendered)
 		{
 			colorEnable_replay[0] = colorEnable;
 			alphaEnable_replay[0] = alphaEnable;
 			zEnable_replay[0] = zEnable;
 			pixel_format_replay[0] = pixel_format;
 		}
-		else if (!g_opcodereplay_frame && !frame_just_rendered)
+		else if (!g_opcode_replay_frame && !frame_just_rendered)
 		{
 			colorEnable_replay[1] = colorEnable;
 			alphaEnable_replay[1] = alphaEnable;
 			zEnable_replay[1] = zEnable;
 			pixel_format_replay[1] = pixel_format;
 		}
-		else if (!g_opcodereplay_frame && frame_just_rendered)
+		else if (!g_opcode_replay_frame && frame_just_rendered)
 		{
 			colorEnable = colorEnable_replay[0];
 			alphaEnable = alphaEnable_replay[0];
 			zEnable = zEnable_replay[0];
 			pixel_format = pixel_format_replay[0];
 		}
-		else //g_opcodereplay_frame && !frame_just_rendered
+		else //g_opcode_replay_frame && !frame_just_rendered
 		{
 			colorEnable = colorEnable_replay[1];
 			alphaEnable = alphaEnable_replay[1];
@@ -180,24 +180,24 @@ void ClearScreen(const EFBRectangle &rc, bool frame_just_rendered)
 		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		u32 z = bpmem.clearZValue;
 
-		if (g_has_hmd && g_opcode_replay_enabled)
+		if (g_opcode_replay_enabled)
 		{
-			if (g_opcodereplay_frame && frame_just_rendered)
+			if (g_opcode_replay_frame && frame_just_rendered)
 			{
 				color_replay[0] = color;
 				z_replay[0] = z;
 			}
-			else if (!g_opcodereplay_frame && !frame_just_rendered)
+			else if (!g_opcode_replay_frame && !frame_just_rendered)
 			{
 				color_replay[1] = color;
 				z_replay[1] = z;
 			}
-			else if (!g_opcodereplay_frame && frame_just_rendered)
+			else if (!g_opcode_replay_frame && frame_just_rendered)
 			{
 				color = color_replay[0];
 				z = z_replay[0];
 			}
-			else //g_opcodereplay_frame && !frame_just_rendered
+			else //g_opcode_replay_frame && !frame_just_rendered
 			{
 				color = color_replay[1];
 				z = z_replay[1];

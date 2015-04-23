@@ -18,6 +18,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VR.h"
 
 namespace DX11 {
 
@@ -47,7 +48,42 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+
+		if (g_has_hmd)
+		{
+			static int i = 0;
+
+			if (g_first_pass_vs_constants)
+			{
+				i = 0;
+				if (!g_ActiveConfig.bReplayVertexData || !g_opcode_replay_frame)
+				{
+					VertexShaderManager::constants_replay.clear();
+					VertexShaderManager::constants_replay.resize(0);
+				}
+			}
+
+			if (!g_ActiveConfig.bReplayVertexData)
+			{
+				memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+			}
+			else if (!g_opcode_replay_frame)
+			{
+				memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+				if (g_opcode_replay_log_frame)
+					VertexShaderManager::constants_replay.push_back(VertexShaderManager::constants);
+			}
+			else
+			{
+				memcpy(&VertexShaderManager::constants_replay[i].projection, &VertexShaderManager::constants.projection, sizeof(VertexShaderManager::constants.projection));
+				memcpy(map.pData, &VertexShaderManager::constants_replay[i++], sizeof(VertexShaderConstants));
+			}
+		}
+		else
+		{
+			memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+		}
+
 		D3D::context->Unmap(vscbuf, 0);
 		VertexShaderManager::dirty = false;
 
@@ -180,6 +216,8 @@ void VertexShaderCache::Shutdown()
 	SAFE_RELEASE(ClearLayout);
 
 	Clear();
+	VertexShaderManager::constants_replay.clear();
+	VertexShaderManager::constants_replay.resize(0);
 	g_vs_disk_cache.Sync();
 	g_vs_disk_cache.Close();
 }

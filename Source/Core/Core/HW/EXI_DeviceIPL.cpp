@@ -160,7 +160,7 @@ void CEXIIPL::SetCS(int _iCS)
 	}
 }
 
-bool CEXIIPL::IsPresent()
+bool CEXIIPL::IsPresent() const
 {
 	return true;
 }

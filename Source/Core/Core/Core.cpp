@@ -33,7 +33,6 @@
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
 #include "Core/State.h"
-#include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 
@@ -166,6 +165,9 @@ std::string StopMessage(bool bMainThread, std::string Message)
 
 void DisplayMessage(const std::string& message, int time_in_ms)
 {
+	if (!IsRunning())
+		return;
+
 	// Actually displaying non-ASCII could cause things to go pear-shaped
 	for (const char& c : message)
 	{
@@ -308,6 +310,8 @@ void Stop()  // - Hammertime!
 
 		g_video_backend->Video_ExitLoop();
 	}
+	if (s_emu_thread.joinable())
+		s_emu_thread.join();
 }
 
 static void DeclareAsCPUThread()
@@ -692,7 +696,6 @@ void EmuThread()
 		g_video_backend->Video_Cleanup();
 	}
 
-	VolumeHandler::EjectVolume();
 	FileMon::Close();
 
 	// Stop audio thread - Actually this does nothing when using HLE
@@ -990,12 +993,6 @@ void UpdateTitle()
 	}
 
 	Host_UpdateTitle(SMessage);
-}
-
-void Shutdown()
-{
-	if (s_emu_thread.joinable())
-		s_emu_thread.join();
 }
 
 void KillDolphinAndRestart()

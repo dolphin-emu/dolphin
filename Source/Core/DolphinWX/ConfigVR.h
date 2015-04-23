@@ -76,7 +76,7 @@ private:
 	wxString OldLabel;
 	VRDialog* m_vr_dialog;
 
-	U32Setting* spin_extra_frames;
+	U32Setting* spin_timewarped_frames;
 	U32Setting* spin_replay_buffer_divider;
 	U32Setting* spin_replay_buffer;
 	SettingNumber* spin_timewarp_tweak;
@@ -86,7 +86,24 @@ private:
 	SettingCheckBox* checkbox_pullup20;
 	SettingCheckBox* checkbox_pullup30;
 	SettingCheckBox* checkbox_pullup60;
+	SettingCheckBox* checkbox_replay_vertex_data;
+	SettingCheckBox* checkbox_replay_other_data;
+	SettingCheckBox* checkbox_roll;
+	SettingCheckBox* checkbox_pitch;
+	SettingCheckBox* checkbox_yaw;
+	SettingCheckBox* checkbox_x;
+	SettingCheckBox* checkbox_y;
+	SettingCheckBox* checkbox_z;
+	SettingCheckBox* checkbox_keyhole;
+	SettingNumber* keyhole_width;
+	SettingCheckBox* checkbox_keyhole_snap;
+	SettingNumber* keyhole_snap_size;
 
+	void OnKeyholeCheckbox(wxCommandEvent& event);
+	void OnKeyholeSnapCheckbox(wxCommandEvent& event);
+	void OnYawCheckbox(wxCommandEvent& event);
+	void OnTimewarpSpinCtrl(wxCommandEvent& event);
+	void OnOpcodeSpinCtrl(wxCommandEvent& event);
 	void OnPullupCheckbox(wxCommandEvent& event);
 
 	void OnOk(wxCommandEvent& event);

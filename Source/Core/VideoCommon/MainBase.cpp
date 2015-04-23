@@ -238,9 +238,9 @@ void VideoBackendHardware::Video_GatherPipeBursted()
 	CommandProcessor::GatherPipeBursted();
 }
 
-bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
+void VideoBackendHardware::Video_Sync()
 {
-	return CommandProcessor::isPossibleWaitingSetDrawDone;
+	FlushGpu();
 }
 
 void VideoBackendHardware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)

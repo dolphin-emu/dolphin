@@ -37,7 +37,6 @@ TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	CreateBaseLayout();
 }
 
 void TASInputDlg::CreateBaseLayout()
@@ -63,14 +62,15 @@ void TASInputDlg::CreateBaseLayout()
 	m_dpad_down = CreateButton("Down");
 	m_dpad_left = CreateButton("Left");
 
+	m_buttons_dpad = new wxGridSizer(3);
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_up.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_up.checkbox);
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_left.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_left.checkbox);
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_right.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_right.checkbox);
 	m_buttons_dpad->AddSpacer(20);
-	m_buttons_dpad->Add(m_dpad_down.checkbox, false);
+	m_buttons_dpad->Add(m_dpad_down.checkbox);
 	m_buttons_dpad->AddSpacer(20);
 
 	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
@@ -92,6 +92,8 @@ void TASInputDlg::CreateWiiLayout(int num)
 {
 	if (m_has_layout)
 		return;
+
+	CreateBaseLayout();
 
 	m_buttons[6] = &m_one;
 	m_buttons[7] = &m_two;
@@ -170,7 +172,7 @@ void TASInputDlg::CreateWiiLayout(int num)
 
 	for (unsigned int i = 4; i < 14; ++i)
 		if (m_buttons[i] != nullptr)
-			m_buttons_grid->Add(m_buttons[i]->checkbox, false);
+			m_buttons_grid->Add(m_buttons[i]->checkbox);
 	m_buttons_grid->AddSpacer(5);
 
 	m_buttons_box->Add(m_buttons_grid);
@@ -195,6 +197,8 @@ void TASInputDlg::CreateGCLayout()
 {
 	if (m_has_layout)
 		return;
+
+	CreateBaseLayout();
 
 	m_buttons[6] = &m_x;
 	m_buttons[7] = &m_y;
@@ -407,7 +411,7 @@ void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 
 void TASInputDlg::SetWiiButtons(u16* butt)
 {
-	for (unsigned int i = 0; i < 10; ++i)
+	for (unsigned int i = 0; i < 11; ++i)
 	{
 		if (m_buttons[i] != nullptr)
 			*butt |= (m_buttons[i]->checkbox->IsChecked()) ? m_wii_buttons_bitmask[i] : 0;
@@ -443,7 +447,7 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
 
 	if (coreData)
 	{
-		for (unsigned int i = 0; i < 10; ++i)
+		for (unsigned int i = 0; i < 11; ++i)
 		{
 			if (m_buttons[i] != nullptr)
 				SetButtonValue(m_buttons[i], (((wm_buttons*)coreData)->hex & m_wii_buttons_bitmask[i]) != 0);

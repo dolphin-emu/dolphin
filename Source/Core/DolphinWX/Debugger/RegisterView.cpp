@@ -241,14 +241,15 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	}
 
 	attr->SetTextColour(red ? *wxRED : *wxBLACK);
-	attr->IncRef();
 	return attr;
 }
 
 CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
-	SetTable(new CRegTable(), true);
+	m_register_table = new CRegTable();
+
+	SetTable(m_register_table, true);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
@@ -261,8 +262,8 @@ CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
 
 void CRegisterView::Update()
 {
+	m_register_table->UpdateCachedRegs();
 	ForceRefresh();
-	((CRegTable *)GetTable())->UpdateCachedRegs();
 }
 
 void CRegisterView::OnMouseDownR(wxGridEvent& event)

@@ -21,6 +21,7 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 namespace DX11
 {
@@ -48,7 +49,42 @@ ID3D11Buffer* &GeometryShaderCache::GetConstantBuffer()
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(gscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+
+		if (g_has_hmd)
+		{
+			static int i = 0;
+
+			if (g_first_pass_vs_constants)
+			{
+				i = 0;
+				if (!g_ActiveConfig.bReplayOtherData || !g_opcode_replay_frame)
+				{
+					GeometryShaderManager::constants_replay.clear();
+					GeometryShaderManager::constants_replay.resize(0);
+				}
+				g_first_pass_vs_constants = false;
+			}
+
+			if (!g_ActiveConfig.bReplayOtherData)
+			{
+				memcpy(map.pData, &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+			}
+			else if (!g_opcode_replay_frame)
+			{
+				memcpy(map.pData, &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+				if (g_opcode_replay_log_frame)
+					GeometryShaderManager::constants_replay.push_back(GeometryShaderManager::constants);
+			}
+			else
+			{
+				memcpy(map.pData, &GeometryShaderManager::constants_replay[i++], sizeof(GeometryShaderConstants));
+			}
+		}
+		else
+		{
+			memcpy(map.pData, &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+		}
+
 		D3D::context->Unmap(gscbuf, 0);
 		GeometryShaderManager::dirty = false;
 

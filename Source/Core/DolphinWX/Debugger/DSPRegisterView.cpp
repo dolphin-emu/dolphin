@@ -70,14 +70,15 @@ wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
 	if (col == 1)
 		attr->SetTextColour(m_CachedRegHasChanged[row] ? *wxRED : *wxBLACK);
 
-	attr->IncRef();
 	return attr;
 }
 
 DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
 	: wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120))
 {
-	SetTable(new CDSPRegTable(), true);
+	m_register_table = new CDSPRegTable();
+
+	SetTable(m_register_table, true);
 	SetRowLabelSize(0);
 	SetColLabelSize(0);
 	DisableDragRowSize();
@@ -87,6 +88,6 @@ DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
 
 void DSPRegisterView::Update()
 {
-	((CDSPRegTable *)GetTable())->UpdateCachedRegs();
+	m_register_table->UpdateCachedRegs();
 	ForceRefresh();
 }

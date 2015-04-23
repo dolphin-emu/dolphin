@@ -28,6 +28,8 @@
 #define HACK_LOG INFO_LOG
 
 static float GC_ALIGNED16(g_fProjectionMatrix[16]);
+static float s_locked_skybox[3 * 4];
+static bool s_had_skybox = false;
 
 // TODO: remove
 //VR Global variable shared from core. True if the Wii is set to Widescreen (so the game thinks it is rendering to 16:9)
@@ -49,6 +51,7 @@ static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
 VertexShaderConstants VertexShaderManager::constants;
+std::vector<VertexShaderConstants> VertexShaderManager::constants_replay;
 float4 VertexShaderManager::constants_eye_projection[2][4];
 bool VertexShaderManager::m_layer_on_top;
 
@@ -79,6 +82,8 @@ enum SplitScreenType {
 };
 enum SplitScreenType g_splitscreen_type = SS_FULLSCREEN, g_old_splitscreen_type = SS_FULLSCREEN;
 bool g_is_skybox = false;
+
+static float oldpos[3] = { 0, 0, 0 }, totalpos[3] = { 0, 0, 0 };
 
 void ScaleRequestedToRendered(EFBRectangle *src)
 {
@@ -700,6 +705,12 @@ void VertexShaderManager::Init()
 	g_old_splitscreen_type = SS_FULLSCREEN;
 	Matrix44::LoadIdentity(g_game_camera_rotmat);
 
+	for (int i = 0; i < 3; ++i)
+	{
+		g_game_camera_pos[i] = totalpos[i] = oldpos[i] = 0;
+	}
+	s_had_skybox = false;
+
 	dirty = true;
 }
 
@@ -721,6 +732,8 @@ void VertexShaderManager::Dirty()
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
+	static bool temp_skybox = false;
+	bool position_changed = false, skybox_changed = false;
 	if (nTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
@@ -728,6 +741,7 @@ void VertexShaderManager::SetConstants()
 		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
+		position_changed = true;
 	}
 
 	if (nNormalMatricesChanged[0] >= 0)
@@ -828,6 +842,7 @@ void VertexShaderManager::SetConstants()
 		memcpy(constants.posnormalmatrix[4], norm+3, 12);
 		memcpy(constants.posnormalmatrix[5], norm+6, 12);
 		dirty = true;
+		position_changed = true;
 	}
 
 	if (bTexMatricesChanged[0])
@@ -865,6 +880,13 @@ void VertexShaderManager::SetConstants()
 		dirty = true;
 	}
 
+	if (position_changed && temp_skybox)
+	{
+		g_is_skybox = false;
+		temp_skybox = false;
+		skybox_changed = true;
+	}
+
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
@@ -878,13 +900,22 @@ void VertexShaderManager::SetConstants()
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			if (!bProjectionChanged && !bFrameChanged)
-				SetProjectionConstants();
-		} 
+			skybox_changed = true;
+		}
 		// VR adjust the projection matrix for the new kind of viewport
-		else if (g_viewport_type != g_old_viewport_type && !bProjectionChanged && !bFrameChanged)
+		else if (g_viewport_type != g_old_viewport_type)
 		{
-			SetProjectionConstants();
+			skybox_changed = true;
+		}
+	}
+
+	if (position_changed && g_ActiveConfig.bDetectSkybox && !g_is_skybox)
+	{
+		CheckSkybox();
+		if (g_is_skybox)
+		{
+			temp_skybox = true;
+			skybox_changed = true;
 		}
 	}
 
@@ -896,6 +927,13 @@ void VertexShaderManager::SetConstants()
 		bFrameChanged = false;
 		SetProjectionConstants();
 	}
+	else if (skybox_changed)
+	{
+		SetProjectionConstants();
+	}
+
+	if (g_ActiveConfig.iMotionSicknessSkybox == 2 && g_is_skybox)
+		LockSkybox();
 }
 
 //#pragma optimize("", off)
@@ -921,8 +959,9 @@ void VertexShaderManager::SetProjectionConstants()
 {
 	// Transformations must be applied in the following order for VR:
 	// HUD
+	// camera position stabilisation
 	// camera forward
-	// camera pitch
+	// camera pitch or rotation stabilisation
 	// free look
 	// leaning back
 	// head position tracking
@@ -1382,9 +1421,26 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
 
 			// camera pitch
-			if (g_ActiveConfig.iGameCameraControl > CAMERA_YAWPITCHROLL && g_ActiveConfig.bCanReadCameraAngles)
+			if ((g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw) && g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.iMotionSicknessSkybox!=2 || !g_is_skybox))
 			{
-				Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
+				if (!g_ActiveConfig.bStabilizePitch)
+				{
+					Matrix44 user_pitch44;
+					Matrix44 roll_and_yaw_matrix;
+
+					if (xfmem.projection.type == GX_PERSPECTIVE || vr_widest_3d_HFOV > 0)
+						extra_pitch = g_ActiveConfig.fCameraPitch;
+					else
+						extra_pitch = g_ActiveConfig.fScreenPitch;
+					Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
+					Matrix44::LoadMatrix33(user_pitch44, pitch_matrix33);
+					Matrix44::Set(roll_and_yaw_matrix, g_game_camera_rotmat.data);
+					Matrix44::Multiply(roll_and_yaw_matrix, user_pitch44, camera_pitch_matrix);
+				}
+				else
+				{
+					Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
+				}
 			}
 			else
 			{
@@ -1432,11 +1488,12 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 
 		// Position matrices
-		Matrix44 head_position_matrix, free_look_matrix, camera_forward_matrix;
+		Matrix44 head_position_matrix, free_look_matrix, camera_forward_matrix, camera_position_matrix;
 		if (bStuckToHead || g_is_skybox)
 		{
 			Matrix44::LoadIdentity(head_position_matrix);
 			Matrix44::LoadIdentity(free_look_matrix);
+			Matrix44::LoadIdentity(camera_position_matrix);
 		}
 		else
 		{
@@ -1457,12 +1514,25 @@ void VertexShaderManager::SetProjectionConstants()
 			for (int i = 0; i < 3; ++i)
 				pos[i] = s_fViewTranslationVector[i] * UnitsPerMetre;
 			Matrix44::Translate(free_look_matrix, pos);
+
+			// camera position stabilisation
+			if (g_ActiveConfig.bStabilizeX || g_ActiveConfig.bStabilizeY || g_ActiveConfig.bStabilizeZ)
+			{
+				for (int i = 0; i < 3; ++i)
+					pos[i] = -g_game_camera_pos[i] * UnitsPerMetre;
+				Matrix44::Translate(camera_position_matrix, pos);
+			}
+			else
+			{
+				Matrix44::LoadIdentity(camera_position_matrix);
+			}
 		}
 
 		Matrix44 look_matrix;
 		if (xfmem.projection.type == GX_PERSPECTIVE && g_viewport_type != VIEW_HUD_ELEMENT && g_viewport_type != VIEW_OFFSCREEN)
 		{
 			// Transformations must be applied in the following order for VR:
+			// camera position stabilisation
 			// camera forward
 			// camera pitch
 			// free look
@@ -1483,7 +1553,8 @@ void VertexShaderManager::SetProjectionConstants()
 			}
 
 			Matrix44 A, B;
-			Matrix44::Multiply(camera_pitch_matrix, camera_forward_matrix, A);
+			Matrix44::Multiply(camera_position_matrix, camera_forward_matrix, B);
+			Matrix44::Multiply(camera_pitch_matrix, B, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
 			Matrix44::Multiply(lean_back_matrix, B, A);
 			Matrix44::Multiply(head_position_matrix, A, B);
@@ -1663,7 +1734,8 @@ void VertexShaderManager::SetProjectionConstants()
 			// order: scale, position
 			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
 
-			Matrix44::Multiply(camera_pitch_matrix, box_matrix, A);
+			Matrix44::Multiply(camera_position_matrix, box_matrix, B);
+			Matrix44::Multiply(camera_pitch_matrix, B, A);
 			Matrix44::Multiply(free_look_matrix, A, B);
 			Matrix44::Multiply(lean_back_matrix, B, A);
 			Matrix44::Multiply(head_position_matrix, A, B);
@@ -1682,7 +1754,7 @@ void VertexShaderManager::SetProjectionConstants()
 				posRight[i] *= UnitsPerMetre;
 			}
 		}
-		
+
 		Matrix44 view_matrix_left, view_matrix_right;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
@@ -1771,10 +1843,10 @@ void VertexShaderManager::SetProjectionConstants()
 void VertexShaderManager::CheckOrientationConstants()
 {
 #define sqr(a) ((a)*(a))
-	if (g_ActiveConfig.bCanReadCameraAngles)
+	if (g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw || g_ActiveConfig.bStabilizeX || g_ActiveConfig.bStabilizeY || g_ActiveConfig.bStabilizeZ))
 	{
 		float *p = constants.posnormalmatrix[0];
-		float pos[3];
+		float pos[3], worldspacepos[3], movement[3];
 		pos[0] = p[0 * 4 + 3];
 		pos[1] = p[1 * 4 + 3];
 		pos[2] = p[2 * 4 + 3];
@@ -1787,6 +1859,39 @@ void VertexShaderManager::CheckOrientationConstants()
 		for (int r = 0; r < 3; ++r)
 			for (int c = 0; c < 3; ++c)
 				rot.data[r * 3 + c] /= scale;
+		// Position is already in current camera space (has had rot matrix and scale applied to it).
+		// Convert camera-space position into world space position, by applying inverse rot matrix.
+		// Note that we are not undoing the scale, because game units are measured in camera space after the scale.
+		Matrix33 inverse;
+		for (int r = 0; r < 3; ++r)
+			for (int c = 0; c < 3; ++c)
+				inverse.data[r * 3 + c] = rot.data[c * 3 + r];
+		Matrix33::Multiply(inverse, pos, worldspacepos);
+		// Work out how far (in unscaled game units) and in which dimensions it has moved in world space since the previous frame
+		for (int i = 0; i < 3; ++i)
+			movement[i] = worldspacepos[i] - oldpos[i];
+		float distance = sqrt(sqr(movement[0]) + sqr(movement[1]) + sqr(movement[2]));
+
+		NOTICE_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: %5.2fm; Scale: x%5.2f",
+			pos[0] / g_ActiveConfig.fUnitsPerMetre, pos[1] / g_ActiveConfig.fUnitsPerMetre, pos[2] / g_ActiveConfig.fUnitsPerMetre, 
+			movement[0] / g_ActiveConfig.fUnitsPerMetre, movement[1] / g_ActiveConfig.fUnitsPerMetre, movement[2] / g_ActiveConfig.fUnitsPerMetre, distance / g_ActiveConfig.fUnitsPerMetre, scale);
+		// moving more than 2 metres per frame (before VR scaling down to toy size) means we probably jumped to a new object
+		// That is 216 kilometres per hour (135 miles per hour) at 30 FPS, or 432 kph (270 mph) at 60 FPS
+		// so only add actual camera motion, not jumps, to totalpos
+		if (distance / g_ActiveConfig.fUnitsPerMetre <= 2.0f && (oldpos[0] != 0 || oldpos[1] != 0 || oldpos[2] != 0))
+		{
+			for (int i = 0; i < 3; ++i)
+				totalpos[i] += movement[i];
+			ERROR_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
+		}
+		for (int i = 0; i < 3; ++i)
+			oldpos[i] = worldspacepos[i];
+		// rotate total position back into current game-camera space, and save it globally in metres
+		Matrix33::Multiply(rot, totalpos, g_game_camera_pos);
+		for (int i = 0; i < 3; ++i)
+			g_game_camera_pos[i] = g_game_camera_pos[i] / g_ActiveConfig.fUnitsPerMetre;
+		ERROR_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0], g_game_camera_pos[1], g_game_camera_pos[2]);
+
 		// add pitch to rotation matrix
 		if (g_ActiveConfig.fReadPitch != 0)
 		{
@@ -1799,6 +1904,64 @@ void VertexShaderManager::CheckOrientationConstants()
 		float yaw, pitch, roll;
 		Matrix33::GetPieYawPitchRollR(rot, yaw, pitch, roll);
 
+		if (abs(roll) == 3.1415926535f)
+		{
+			roll = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
+		}
+
+		//if (abs(yaw) == 3.1415926535f)
+		//{
+		//	yaw = 0; // Unlikely the camera should actually be flipped exactly 180 degrees. We most likely chose the wrong object.
+		//}
+
+		if (g_ActiveConfig.bKeyhole)
+		{
+			static float keyhole_center = 0;
+			float keyhole_snap = 0;
+
+			if (g_ActiveConfig.bKeyholeSnap)
+				keyhole_snap = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeSnapSize);
+
+			float keyhole_width = DEGREES_TO_RADIANS(g_ActiveConfig.fKeyholeWidth / 2);
+			float keyhole_left_bound = keyhole_center + keyhole_width;
+			float keyhole_right_bound = keyhole_center - keyhole_width;
+
+			// Correct left and right bounds if they calculated incorrectly and are out of the range of -PI to PI.
+			if (keyhole_left_bound > (float)(M_PI))
+				keyhole_left_bound -= (2 * (float)(M_PI));
+			else if (keyhole_right_bound < -(float)(M_PI))
+				keyhole_right_bound += (2 * (float)(M_PI));
+
+			// Crossing from positive to negative half, counter-clockwise
+			if (yaw < 0 && keyhole_left_bound > 0 && keyhole_right_bound > 0 && yaw < keyhole_width - (float)(M_PI))
+			{
+				keyhole_center = yaw - keyhole_width + keyhole_snap;
+			}
+			// Crossing from negative to positive half, clockwise
+			else if (yaw > 0 && keyhole_left_bound < 0 && keyhole_right_bound < 0 && yaw > (float)(M_PI) - keyhole_width)
+			{
+				keyhole_center = yaw + keyhole_width - keyhole_snap;
+			}
+			// Already within the negative and positive range
+			else if (keyhole_left_bound < 0 && keyhole_right_bound > 0)
+			{
+				if (yaw < keyhole_right_bound && yaw > 0)
+					keyhole_center = yaw + keyhole_width - keyhole_snap;
+				else if (yaw > keyhole_left_bound && yaw < 0)
+					keyhole_center = yaw - keyhole_width + keyhole_snap;
+			}
+			// Anywhere within the normal range
+			else
+			{
+				if (yaw < keyhole_right_bound)
+					keyhole_center = yaw + keyhole_width - keyhole_snap;
+				else if (yaw > keyhole_left_bound)
+					keyhole_center = yaw - keyhole_width + keyhole_snap;
+			}
+
+			yaw -= keyhole_center;
+		}
+
 		//NOTICE_LOG(VR, "Pos(%d): %5.2f, %5.2f, %5.2f; scale: x%5.2f", g_main_cp_state.matrix_index_a.PosNormalMtxIdx, pos[0], pos[1], pos[2], scale);
 		//debug - show which object is being used
 		//static float first_x = 0;
@@ -1807,43 +1970,48 @@ void VertexShaderManager::CheckOrientationConstants()
 		//else if (g_ActiveConfig.iFlashState > 5)
 		//	constants.posnormalmatrix[0][0 * 4 + 3] = first_x;
 
-		switch (g_ActiveConfig.iGameCameraControl)
+		Matrix33 matrix_pitch, matrix_yaw, matrix_roll, temp;
+
+		if (g_ActiveConfig.bStabilizeRoll && g_ActiveConfig.bStabilizeYaw)
 		{
-		case CAMERA_NONE:
-			// invert rotation matrix to counteract all rotation
-			{
-				float temp = rot.data[0 * 3 + 1];
-				rot.data[0 * 3 + 1] = rot.data[1 * 3 + 0];
-				rot.data[1 * 3 + 0] = temp;
-				temp = rot.data[0 * 3 + 2];
-				rot.data[0 * 3 + 2] = rot.data[2 * 3 + 0];
-				rot.data[2 * 3 + 0] = temp;
-				temp = rot.data[1 * 3 + 2];
-				rot.data[1 * 3 + 2] = rot.data[2 * 3 + 1];
-				rot.data[2 * 3 + 1] = temp;
-			}
-			break;
-		case CAMERA_YAW:
-			// counteract roll and pitch
-			{
-				Matrix33 p, r;
-				Matrix33::RotateX(p, -pitch);
-				Matrix33::RotateZ(r, -roll);
-				Matrix33::Multiply(r, p, rot);
-			}
-			break;
-		case CAMERA_YAWPITCH:
-			// only counteract roll
-			Matrix33::RotateZ(rot, -roll);
-			break;
-		case CAMERA_YAWPITCHROLL:
-		default:
-			// don't counteract anything
-			Matrix33::LoadIdentity(rot);
-			break;
+			Matrix33::RotateZ(matrix_roll, -roll);
+			Matrix33::RotateY(matrix_yaw, yaw);
+			Matrix33::Multiply(matrix_roll, matrix_yaw, temp);
 		}
-		Matrix44::LoadMatrix33(g_game_camera_rotmat, rot);
-		memcpy(g_game_camera_pos, pos, 3 * sizeof(float));
+		else if (g_ActiveConfig.bStabilizeRoll)
+		{
+			Matrix33::RotateZ(matrix_roll, -roll);
+			memcpy(&temp, &matrix_roll, sizeof(matrix_roll));
+		}
+		else if (g_ActiveConfig.bStabilizeYaw)
+		{
+			Matrix33::RotateY(matrix_yaw, yaw);
+			memcpy(&temp, &matrix_yaw, sizeof(matrix_yaw));
+		}
+		else
+		{
+			Matrix33::LoadIdentity(temp);
+		}
+
+		if (g_ActiveConfig.bStabilizePitch)
+		{
+			Matrix33::RotateX(matrix_pitch, -pitch);
+			Matrix33::Multiply(temp, matrix_pitch, rot);
+			Matrix44::LoadMatrix33(g_game_camera_rotmat, rot);
+		}
+		else
+		{
+			Matrix44::LoadMatrix33(g_game_camera_rotmat, temp);
+		}
+
+		// A more elegant solution to all of the if statements above, but probably a lot slower.
+		// A lot of excess multiplication if everything is not checked.
+//#define GET_MATRIX_MULTIPLIER(a, b, aset) aset ? a : b
+
+		//Matrix33 identity_matrix = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+		//Matrix33::Multiply(GET_MATRIX_MULTIPLIER(matrix_roll, identity_matrix, g_ActiveConfig.bStabilizeRoll), GET_MATRIX_MULTIPLIER(matrix_yaw, identity_matrix, g_ActiveConfig.bStabilizeYaw), temp);
+		//Matrix33::Multiply(temp, GET_MATRIX_MULTIPLIER(matrix_pitch, identity_matrix, g_ActiveConfig.bStabilizePitch), rot);
+
 		//yaw = RADIANS_TO_DEGREES(yaw);
 		//pitch = RADIANS_TO_DEGREES(pitch);
 		//roll = RADIANS_TO_DEGREES(roll);
@@ -1854,6 +2022,53 @@ void VertexShaderManager::CheckOrientationConstants()
 	{
 		Matrix44::LoadIdentity(g_game_camera_rotmat);
 		memset(g_game_camera_pos, 0, 3 * sizeof(float));
+	}
+}
+
+void VertexShaderManager::CheckSkybox()
+{
+	if (xfmem.projection.type == GX_PERSPECTIVE)
+	{
+		float *p = constants.posnormalmatrix[0];
+		float pos[3];
+		pos[0] = p[0 * 4 + 3];
+		pos[1] = p[1 * 4 + 3];
+		pos[2] = p[2 * 4 + 3];
+		// If we are drawing at precisely the origin (camera position) it's probably a skybox
+		if (pos[0] == 0 && pos[1] == 0 && pos[2] == 0)
+		{
+			if (p[0 * 4 + 0] != 1.0f)
+			{
+				//ERROR_LOG(VR, "SKYBOX!!!!");
+				g_is_skybox = true;
+			}
+			else
+			{
+				//ERROR_LOG(VR, "NOT a skybox! Identity matrix.");
+			}
+		}
+
+	}
+}
+
+void VertexShaderManager::LockSkybox()
+{
+	if (xfmem.projection.type == GX_PERSPECTIVE)
+	{
+		float *p = constants.posnormalmatrix[0];
+		if (s_had_skybox)
+		{
+			memcpy(p, s_locked_skybox, 4 * 3 * sizeof(float));
+		}
+		else
+		{
+			memcpy(s_locked_skybox, p, 4 * 3 * sizeof(float));
+			s_had_skybox = true;
+		}
+
+		//for (int r = 0; r < 3; ++r)
+		//	for (int c = 0; c < 3; ++c)
+		//		p[r * 4 + c] = (r == c) ? 1.0f : 0.0f;
 	}
 }
 

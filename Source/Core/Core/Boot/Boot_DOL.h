@@ -15,8 +15,8 @@ public:
 	CDolLoader(u8* _pBuffer, u32 _Size);
 	~CDolLoader();
 
-	bool IsWii()        { return m_isWii; }
-	u32 GetEntryPoint() { return m_dolheader.entryPoint; }
+	bool IsWii()        const { return m_isWii; }
+	u32 GetEntryPoint() const { return m_dolheader.entryPoint; }
 
 	// Load into emulated memory
 	void Load();

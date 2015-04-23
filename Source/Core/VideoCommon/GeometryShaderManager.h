@@ -25,5 +25,6 @@ public:
 	static void SetTexCoordChanged(u8 texmapid);
 
 	static GeometryShaderConstants constants;
+	static std::vector<GeometryShaderConstants> constants_replay;
 	static bool dirty;
 };

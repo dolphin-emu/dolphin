@@ -46,7 +46,7 @@ set(SRCS	AsyncRequests.cpp
 			VR.cpp
 			MetroidVR.cpp)
 
-set(LIBS core png ovr)
+set(LIBS core png OVR.a)
 
 if(_M_X86)
 	set(SRCS ${SRCS} TextureDecoder_x64.cpp VertexLoaderX64.cpp)

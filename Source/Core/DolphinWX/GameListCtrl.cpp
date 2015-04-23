@@ -232,13 +232,13 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_AUSTRALIA]     = m_imageListSmall->Add(wxBitmap(Flag_Australia_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]        = m_imageListSmall->Add(wxBitmap(Flag_France_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY]       = m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]         = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm)); // Uses European flag as a placeholder
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]         = m_imageListSmall->Add(wxBitmap(Flag_Italy_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]         = m_imageListSmall->Add(wxBitmap(Flag_Korea_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_NETHERLANDS]   = m_imageListSmall->Add(wxBitmap(Flag_Netherlands_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_RUSSIA]        = m_imageListSmall->Add(wxBitmap(Flag_Russia_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SPAIN]         = m_imageListSmall->Add(wxBitmap(Flag_Spain_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]        = m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]         = m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm)); // Uses European flag as a placeholder
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]       = m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm));
 
 	m_PlatformImageIndex.resize(3);
@@ -632,10 +632,6 @@ void CGameListCtrl::ScanForISOs()
 						if (!SConfig::GetInstance().m_ListGermany)
 							list = false;
 						break;
-					case DiscIO::IVolume::COUNTRY_WORLD:
-						if (!SConfig::GetInstance().m_ListWorld)
-							list = false;
-						break;
 					case DiscIO::IVolume::COUNTRY_ITALY:
 						if (!SConfig::GetInstance().m_ListItaly)
 							list = false;
@@ -666,6 +662,10 @@ void CGameListCtrl::ScanForISOs()
 						break;
 					case DiscIO::IVolume::COUNTRY_USA:
 						if (!SConfig::GetInstance().m_ListUsa)
+							list = false;
+						break;
+					case DiscIO::IVolume::COUNTRY_WORLD:
+						if (!SConfig::GetInstance().m_ListWorld)
 							list = false;
 						break;
 					case DiscIO::IVolume::COUNTRY_UNKNOWN:

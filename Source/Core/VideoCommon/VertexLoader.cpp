@@ -131,12 +131,13 @@ void VertexLoader::CompileVertexTranslator()
 	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
 
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
-	m_native_vtx_decl.position.components = 3;
+	int pos_elements = m_VtxAttr.PosElements + 2;
+	m_native_vtx_decl.position.components = pos_elements;
 	m_native_vtx_decl.position.enable = true;
 	m_native_vtx_decl.position.offset = nat_offset;
 	m_native_vtx_decl.position.type = VAR_FLOAT;
 	m_native_vtx_decl.position.integer = false;
-	nat_offset += 12;
+	nat_offset += pos_elements * sizeof(float);
 
 	// Normals
 	if (m_VtxDesc.Normal != NOT_PRESENT)

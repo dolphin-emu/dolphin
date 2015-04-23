@@ -20,6 +20,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 namespace DX11
 {
@@ -427,7 +428,41 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+
+		if (g_has_hmd)
+		{
+			static int i = 0;
+
+			if (g_first_pass_vs_constants)
+			{
+				i = 0;
+				if (!g_ActiveConfig.bReplayOtherData || !g_opcode_replay_frame)
+				{
+					PixelShaderManager::constants_replay.clear();
+					PixelShaderManager::constants_replay.resize(0);
+				}
+			}
+
+			if (!g_ActiveConfig.bReplayOtherData)
+			{
+				memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+			}
+			else if (!g_opcode_replay_frame)
+			{
+				memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+				if (g_opcode_replay_log_frame)
+					PixelShaderManager::constants_replay.push_back(PixelShaderManager::constants);
+			}
+			else
+			{
+				memcpy(map.pData, &PixelShaderManager::constants_replay[i++], sizeof(PixelShaderConstants));
+			}
+		}
+		else
+		{
+			memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+		}
+
 		D3D::context->Unmap(pscbuf, 0);
 		PixelShaderManager::dirty = false;
 
@@ -535,6 +570,8 @@ void PixelShaderCache::Shutdown()
 	}
 
 	Clear();
+	PixelShaderManager::constants_replay.clear();
+	PixelShaderManager::constants_replay.resize(0);
 	g_ps_disk_cache.Sync();
 	g_ps_disk_cache.Close();
 }

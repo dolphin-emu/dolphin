@@ -40,6 +40,9 @@ private:
 
 	std::vector<u8> LocalVBuffer;
 	std::vector<u16> LocalIBuffer;
+
+	std::vector<u8> LocalVReplayBuffer;
+	std::vector<u16> LocalIReplayBuffer;
 };
 
 }  // namespace

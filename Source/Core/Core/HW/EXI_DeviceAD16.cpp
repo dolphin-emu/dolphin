@@ -20,7 +20,7 @@ void CEXIAD16::SetCS(int cs)
 		m_uPosition = 0;
 }
 
-bool CEXIAD16::IsPresent()
+bool CEXIAD16::IsPresent() const
 {
 	return true;
 }

@@ -1,4 +1,5 @@
 #include "VideoCommon/AsyncRequests.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/RenderBase.h"
 
 AsyncRequests AsyncRequests::s_singleton;
@@ -49,6 +50,7 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
 
 	m_queue.push(event);
 
+	RunGpu();
 	if (blocking)
 	{
 		m_cond.wait(lock, [this]{return m_queue.empty();});

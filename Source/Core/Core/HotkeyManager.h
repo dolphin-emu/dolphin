@@ -39,6 +39,4 @@ namespace HotkeyManagerEmu
 	bool IsEnabled();
 	void Enable(bool enable_toggle);
 	bool IsPressed(int Id, bool held);
-
-	static bool enabled;
 }

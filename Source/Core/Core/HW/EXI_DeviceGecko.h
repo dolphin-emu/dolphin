@@ -49,7 +49,7 @@ class CEXIGecko
 {
 public:
 	CEXIGecko() {}
-	bool IsPresent() override { return true; }
+	bool IsPresent() const override { return true; }
 	void ImmReadWrite(u32 &_uData, u32 _uSize) override;
 
 private:

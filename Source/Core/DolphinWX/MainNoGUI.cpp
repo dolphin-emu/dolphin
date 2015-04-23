@@ -119,6 +119,11 @@ class PlatformX11 : public Platform
 	{
 		XInitThreads();
 		dpy = XOpenDisplay(nullptr);
+		if (!dpy)
+		{
+			PanicAlert("No X11 display found");
+			exit(1);
+		}
 
 		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
 					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
@@ -312,9 +317,9 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "%s%s\n\n", scm_rev_str, SCM_OCULUS_STR);
 		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
-		fprintf(stderr, "  -e, --exec   Load the specified file\n");
-		fprintf(stderr, "  -h, --help   Show this help message\n");
-		fprintf(stderr, "  -v, --help   Print version and exit\n");
+		fprintf(stderr, "  -e, --exec     Load the specified file\n");
+		fprintf(stderr, "  -h, --help     Show this help message\n");
+		fprintf(stderr, "  -v, --version  Print version and exit\n");
 		return 1;
 	}
 
@@ -344,7 +349,6 @@ int main(int argc, char* argv[])
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		updateMainFrameEvent.Wait();
 
-	Core::Shutdown();
 	platform->Shutdown();
 	UICommon::Shutdown();
 

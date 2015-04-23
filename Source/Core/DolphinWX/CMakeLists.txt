@@ -1,13 +1,20 @@
 set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
-	ConfigMain.cpp
 	ConfigVR.cpp
 	ControllerConfigDiag.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
 	Cheats/GeckoCodeDiag.cpp
+	Config/AdvancedConfigPane.cpp
+	Config/AudioConfigPane.cpp
+	Config/ConfigMain.cpp
+	Config/GameCubeConfigPane.cpp
+	Config/GeneralConfigPane.cpp
+	Config/InterfaceConfigPane.cpp
+	Config/PathConfigPane.cpp
+	Config/WiiConfigPane.cpp
 	Debugger/BreakpointDlg.cpp
 	Debugger/BreakpointView.cpp
 	Debugger/BreakpointWindow.cpp
@@ -26,6 +33,10 @@ set(GUI_SRCS
 	Debugger/RegisterWindow.cpp
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
+	NetPlay/ChangeGameDialog.cpp
+	NetPlay/NetPlaySetupFrame.cpp
+	NetPlay/NetWindow.cpp
+	NetPlay/PadMapDialog.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
 	FrameAui.cpp
@@ -40,7 +51,6 @@ set(GUI_SRCS
 	LogWindow.cpp
 	Main.cpp
 	MemcardManager.cpp
-	NetWindow.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp
 	HideObjectAddEdit.cpp
@@ -60,7 +70,7 @@ endif()
 
 set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 
-list(APPEND LIBS core uicommon ovr)
+list(APPEND LIBS core uicommon OVR.a)
 
 if(ANDROID)
 	list(APPEND LIBS png)

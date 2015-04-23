@@ -16,6 +16,7 @@
 #endif
 
 #include <cstddef>
+#include <string>
 #include <type_traits>
 #include "Common/CommonTypes.h"
 
@@ -115,7 +116,7 @@ extern "C"
 // Call directly after the command or use the error num.
 // This function might change the error code.
 // Defined in Misc.cpp.
-const char* GetLastErrorMsg();
+std::string GetLastErrorMsg();
 
 namespace Common
 {

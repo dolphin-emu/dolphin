@@ -6,20 +6,6 @@
 #include <windows.h>
 #include "VideoCommon/VR920.h"
 #endif
-#ifdef HAVE_OCULUSSDK
-#include "OVR_Version.h"
-#if OVR_MAJOR_VERSION <= 4
-#include "Kernel/OVR_Types.h"
-#else
-#define OVR_DLL_IMPORT
-#endif
-#include "OVR_CAPI.h"
-#if OVR_MAJOR_VERSION >= 5
-#include "Extras/OVR_Math.h"
-#else
-#include "Kernel/OVR_Math.h"
-#endif
-#endif
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
@@ -31,7 +17,7 @@
 
 void ClearDebugProj();
 
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 ovrHmd hmd = nullptr;
 ovrHmdDesc hmdDesc;
 ovrFovPort g_best_eye_fov[2], g_eye_fov[2], g_last_eye_fov[2];
@@ -69,10 +55,12 @@ ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYD
 
 std::vector<TimewarpLogEntry> timewarp_logentries;
 
-bool g_synchronous_timewarp_enabled = false;
 bool g_opcode_replay_enabled = false;
 bool g_new_frame_just_rendered = false;
-bool g_opcodereplay_frame = false;
+bool g_first_pass = true;
+bool g_first_pass_vs_constants = true;
+bool g_opcode_replay_frame = false;
+bool g_opcode_replay_log_frame = false;
 int skipped_opcode_replay_count = 0;
 
 //std::vector<u8*> s_pCurBufferPointer_log;
@@ -131,7 +119,7 @@ void NewVRFrame()
 		// black the screen if we are moving fast
 		g_vr_black_screen = (g_vr_speed > 0.15f);
 	}
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	else if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1)
 	{
 		g_vr_black_screen = false;
@@ -167,7 +155,7 @@ void InitVR()
 	g_has_hmd = false;
 	g_is_direct_mode = false;
 	g_hmd_device_name = nullptr;
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
 	ovr_Initialize();
 	hmd = ovrHmd_Create(0);
@@ -190,7 +178,7 @@ void InitVR()
 #endif
 		{
 			g_has_hmd = g_force_vr;
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 			if (g_force_vr)
 			{
 				WARN_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
@@ -198,7 +186,7 @@ void InitVR()
 			}
 #endif
 		}
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	}
 	if (hmd)
 	{
@@ -263,7 +251,7 @@ void VR_StopRendering()
 		VR920_StopStereo3D();
 	}
 #endif
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	// Shut down rendering and release resources (by passing NULL)
 	if (g_has_rift)
 	{
@@ -274,7 +262,7 @@ void VR_StopRendering()
 
 void ShutdownVR()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
 		// on my computer, on runtime 0.4.2, the Rift won't switch itself off without this:
@@ -292,7 +280,7 @@ void ShutdownVR()
 
 void VR_RecenterHMD()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		ovrHmd_RecenterPose(hmd);
@@ -302,7 +290,7 @@ void VR_RecenterHMD()
 
 void VR_ConfigureHMDTracking()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		int cap = 0;
@@ -319,7 +307,7 @@ void VR_ConfigureHMDTracking()
 
 void VR_ConfigureHMDPrediction()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence | ovrHmdCap_NoMirrorToWindow);
@@ -337,7 +325,7 @@ void VR_ConfigureHMDPrediction()
 
 void VR_BeginFrame()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
@@ -347,7 +335,7 @@ void VR_BeginFrame()
 
 void VR_GetEyePoses()
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 #ifdef OCULUSSDK042
@@ -363,7 +351,7 @@ void VR_GetEyePoses()
 
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift && hmd)
 	{
 		// we can only call GetEyePose between BeginFrame and EndFrame
@@ -434,7 +422,7 @@ void UpdateHeadTrackingIfNeeded()
 
 void VR_GetProjectionHalfTan(float &hmd_halftan)
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		hmd_halftan = fabs(g_eye_fov[0].LeftTan);
@@ -454,7 +442,7 @@ void VR_GetProjectionHalfTan(float &hmd_halftan)
 
 void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar)
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 		ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, true);
@@ -479,7 +467,7 @@ void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float zne
 
 void VR_GetEyePos(float *posLeft, float *posRight)
 {
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
 #ifdef OCULUSSDK042
@@ -628,7 +616,7 @@ void OpcodeReplayBuffer()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int extra_video_loops_count = 0;
 	static int real_frame_count = 0;
-	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
 		if (g_ActiveConfig.bPullUp20fps)
@@ -673,9 +661,9 @@ void OpcodeReplayBuffer()
 			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
 		}
 
-		if ((g_opcodereplay_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
+		if ((g_opcode_replay_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
 		{
-			g_opcodereplay_frame = false;
+			g_opcode_replay_frame = false;
 			++real_frame_count;
 			extra_video_loops_count = 0;
 		}
@@ -683,7 +671,7 @@ void OpcodeReplayBuffer()
 		{
 			if (skipped_opcode_replay_count >= (int)g_ActiveConfig.iExtraVideoLoopsDivider)
 			{
-				g_opcodereplay_frame = true;
+				g_opcode_replay_frame = true;
 				++extra_video_loops_count;
 				skipped_opcode_replay_count = 0;
 
@@ -755,7 +743,7 @@ void OpcodeReplayBuffer()
 			timewarp_logentries.resize(0);
 		}
 		g_opcode_replay_enabled = false;
-		g_opcodereplay_frame = true; //Don't log frames
+		g_opcode_replay_log_frame = false;
 	}
 }
 
@@ -766,18 +754,21 @@ void OpcodeReplayBufferInline()
 	// for various games.  In Alpha right now, will crash many games/cause corruption.
 	static int real_frame_count = 0;
 	int extra_video_loops;
-	if ((g_ActiveConfig.iExtraVideoLoops || g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps) && !(g_ActiveConfig.bPullUp20fpsTimewarp || g_ActiveConfig.bPullUp30fpsTimewarp || g_ActiveConfig.bPullUp60fpsTimewarp) && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
+	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_LocalCoreStartupParameter.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
-		if (g_ActiveConfig.bPullUp20fps)
+		g_opcode_replay_log_frame = true;
+		if (g_ActiveConfig.bPullUp60fps)
 		{
-			if (real_frame_count % 4 == 1)
+			if (real_frame_count % 4 == 0)
 			{
-				extra_video_loops = 2;
+				extra_video_loops = 1;
 			}
 			else
 			{
-				extra_video_loops = 3;
+				extra_video_loops = 0;
+				if ((real_frame_count + 1) % 4 != 0)
+					g_opcode_replay_log_frame = false;
 			}
 		}
 		else if (g_ActiveConfig.bPullUp30fps)
@@ -791,22 +782,25 @@ void OpcodeReplayBufferInline()
 				extra_video_loops = 2;
 			}
 		}
-		else if (g_ActiveConfig.bPullUp60fps)
+		else if (g_ActiveConfig.bPullUp20fps)
 		{
-			if (real_frame_count % 4 == 0)
-				extra_video_loops = 1;
+			if (real_frame_count % 4 == 1)
+			{
+				extra_video_loops = 2;
+			}
 			else
-				extra_video_loops = 0;
+			{
+				extra_video_loops = 3;
+			}
 		}
-
-		++real_frame_count;
-		g_opcodereplay_frame = true;
-		skipped_opcode_replay_count = 0;
-
-		if (!(g_ActiveConfig.bPullUp20fps || g_ActiveConfig.bPullUp30fps || g_ActiveConfig.bPullUp60fps))
+		else
 		{
 			extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
 		}
+
+		++real_frame_count;
+		g_opcode_replay_frame = true;
+		skipped_opcode_replay_count = 0;
 
 		for (int num_extra_frames = 0; num_extra_frames < extra_video_loops; ++num_extra_frames)
 		{
@@ -824,7 +818,7 @@ void OpcodeReplayBufferInline()
 		}
 		timewarp_logentries.clear();
 		timewarp_logentries.resize(0);
-		g_opcodereplay_frame = false;
+		g_opcode_replay_frame = false;
 	}
 	else
 	{
@@ -834,6 +828,6 @@ void OpcodeReplayBufferInline()
 			timewarp_logentries.resize(0);
 		}
 		g_opcode_replay_enabled = false;
-		g_opcodereplay_frame = true; //Don't log frames
+		g_opcode_replay_log_frame = false;
 	}
 }

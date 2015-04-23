@@ -73,6 +73,7 @@
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="MainBase.cpp" />
     <ClCompile Include="MetroidVR.cpp" />
+    <ClCompile Include="OculusSystemLibraryHeader.cpp" />
     <ClCompile Include="OnScreenDisplay.cpp" />
     <ClCompile Include="OpcodeDecoding.cpp" />
     <ClCompile Include="PerfQueryBase.cpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="LookUpTables.h" />
     <ClInclude Include="MainBase.h" />
     <ClInclude Include="NativeVertexFormat.h" />
+    <ClInclude Include="OculusSystemLibraryHeader.h" />
     <ClInclude Include="OnScreenDisplay.h" />
     <ClInclude Include="OpcodeDecoding.h" />
     <ClInclude Include="PerfQueryBase.h" />

@@ -65,7 +65,6 @@
 #include "DiscIO/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
-#include "DolphinWX/ConfigMain.h"
 #include "DolphinWX/ConfigVR.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/FifoPlayerDlg.h"
@@ -77,14 +76,16 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MemcardManager.h"
-#include "DolphinWX/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
+#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
+#include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
+#include "DolphinWX/NetPlay/NetWindow.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -171,7 +172,7 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
 	for (int i = 0; i < 10; i++)
-		skippingMenu->Append(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
+		skippingMenu->AppendRadioItem(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i));
 	skippingMenu->Check(IDM_FRAME_SKIP_0 + SConfig::GetInstance().m_FrameSkip, true);
 	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
 
@@ -189,7 +190,7 @@ wxMenuBar* CFrame::CreateMenu()
 	saveMenu->Append(IDM_SAVE_STATE_FILE, GetMenuLabel(HK_SAVE_STATE_FILE));
 	saveMenu->Append(IDM_SAVE_SELECTED_SLOT, GetMenuLabel(HK_SAVE_STATE_SLOT_SELECTED));
 	saveMenu->Append(IDM_SAVE_FIRST_STATE, GetMenuLabel(HK_SAVE_FIRST_STATE));
-	loadMenu->Append(IDM_UNDO_SAVE_STATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
+	saveMenu->Append(IDM_UNDO_SAVE_STATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
 	saveMenu->AppendSeparator();
 
 	loadMenu->Append(IDM_LOAD_STATE_FILE, GetMenuLabel(HK_LOAD_STATE_FILE));
@@ -197,16 +198,16 @@ wxMenuBar* CFrame::CreateMenu()
 	loadMenu->Append(IDM_UNDO_LOAD_STATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
 
-	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
+	for (unsigned int i = 0; i < State::NUM_STATES; i++)
 	{
-		loadMenu->Append(IDM_LOAD_SLOT_1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
-		saveMenu->Append(IDM_SAVE_SLOT_1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
-		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i - 1, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i - 1));
+		loadMenu->Append(IDM_LOAD_SLOT_1 + i, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i));
+		saveMenu->Append(IDM_SAVE_SLOT_1 + i, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i));
+		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i));
 	}
 
 	loadMenu->AppendSeparator();
-	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
-		loadMenu->Append(IDM_LOAD_LAST_1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
+	for (unsigned int i = 0; i < State::NUM_STATES; i++)
+		loadMenu->Append(IDM_LOAD_LAST_1 + i, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i));
 
 	menubar->Append(emulationMenu, _("&Emulation"));
 
@@ -342,8 +343,6 @@ wxMenuBar* CFrame::CreateMenu()
 	regionMenu->Check(IDM_LIST_FRANCE, SConfig::GetInstance().m_ListFrance);
 	regionMenu->AppendCheckItem(IDM_LIST_GERMANY, _("Show Germany"));
 	regionMenu->Check(IDM_LIST_GERMANY, SConfig::GetInstance().m_ListGermany);
-	regionMenu->AppendCheckItem(IDM_LIST_WORLD, _("Show World"));
-	regionMenu->Check(IDM_LIST_WORLD, SConfig::GetInstance().m_ListWorld);
 	regionMenu->AppendCheckItem(IDM_LIST_ITALY, _("Show Italy"));
 	regionMenu->Check(IDM_LIST_ITALY, SConfig::GetInstance().m_ListItaly);
 	regionMenu->AppendCheckItem(IDM_LIST_KOREA, _("Show Korea"));
@@ -356,6 +355,8 @@ wxMenuBar* CFrame::CreateMenu()
 	regionMenu->Check(IDM_LIST_SPAIN, SConfig::GetInstance().m_ListSpain);
 	regionMenu->AppendCheckItem(IDM_LIST_TAIWAN, _("Show Taiwan"));
 	regionMenu->Check(IDM_LIST_TAIWAN, SConfig::GetInstance().m_ListTaiwan);
+	regionMenu->AppendCheckItem(IDM_LIST_WORLD, _("Show World"));
+	regionMenu->Check(IDM_LIST_WORLD, SConfig::GetInstance().m_ListWorld);
 	regionMenu->AppendCheckItem(IDM_LIST_UNKNOWN, _("Show Unknown"));
 	regionMenu->Check(IDM_LIST_UNKNOWN, SConfig::GetInstance().m_ListUnknown);
 
@@ -393,9 +394,9 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu* helpMenu = new wxMenu;
 	// Re-enable when there's something useful to display */
 	// helpMenu->Append(wxID_HELP, _("&Help"));
-	helpMenu->Append(IDM_HELP_WEBSITE, _("Dolphin &Website"));
+	helpMenu->Append(IDM_HELP_WEBSITE, _("&Website"));
 	helpMenu->Append(IDM_HELP_ONLINE_DOCS, _("Online &Documentation"));
-	helpMenu->Append(IDM_HELP_GITHUB, _("Dolphin at &GitHub"));
+	helpMenu->Append(IDM_HELP_GITHUB, _("&GitHub Repository"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(wxID_ABOUT, _("&About..."));
 	menubar->Append(helpMenu, _("&Help"));
@@ -1306,7 +1307,9 @@ void CFrame::DoStop()
 			DoRecordingSave();
 		if (Movie::IsMovieActive())
 			Movie::EndPlayInput(false);
-		NetPlay::StopGame();
+
+		if (NetPlayDialog::GetNetPlayClient())
+			NetPlayDialog::GetNetPlayClient()->Stop();
 
 		BootManager::Stop();
 		UpdateGUI();
@@ -1462,7 +1465,7 @@ void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
 		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 	}
-	
+
 	CConfigVR ConfigVR(this);
 	ConfigVR.ShowModal();
 	ConfigVR.Destroy();
@@ -1472,7 +1475,6 @@ void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-#ifdef NEW_HOTKEYS
 void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED (event))
 {
 	HotkeyConfigDialog m_HotkeyDialog(this);
@@ -1481,7 +1483,6 @@ void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED (event))
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
 }
-
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 {
@@ -1517,16 +1518,6 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 	// Update the GUI in case menu accelerators were changed
 	UpdateGUI();
 }
-#else
-void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED(event))
-{
-	HotkeyConfigDialog *m_HotkeyDialog = new HotkeyConfigDialog(this);
-	m_HotkeyDialog->ShowModal();
-	m_HotkeyDialog->Destroy();
-	// Update the GUI in case menu accelerators were changed
-	UpdateGUI();
-}
-#endif
 
 void CFrame::OnHelp(wxCommandEvent& event)
 {
@@ -1539,13 +1530,13 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		}
 		break;
 	case IDM_HELP_WEBSITE:
-		WxUtils::Launch("https://dolphin-emu.org/");
+		WxUtils::Launch("https://dolphinvr.wordpress.com/");
 		break;
 	case IDM_HELP_ONLINE_DOCS:
 		WxUtils::Launch("https://dolphin-emu.org/docs/guides/");
 		break;
 	case IDM_HELP_GITHUB:
-		WxUtils::Launch("https://github.com/dolphin-emu/dolphin");
+		WxUtils::Launch("https://github.com/CarlKenner/dolphin");
 		break;
 	}
 }
@@ -1581,10 +1572,10 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
 	if (!g_NetPlaySetupDiag)
 	{
-		if (NetPlayDiag::GetInstance() != nullptr)
-			NetPlayDiag::GetInstance()->Raise();
+		if (NetPlayDialog::GetInstance() != nullptr)
+			NetPlayDialog::GetInstance()->Raise();
 		else
-			g_NetPlaySetupDiag = new NetPlaySetupDiag(this, m_GameListCtrl);
+			g_NetPlaySetupDiag = new NetPlaySetupFrame(this, m_GameListCtrl);
 	}
 	else
 	{
@@ -1770,17 +1761,21 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 {
 	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
+		bool was_unpaused = Core::PauseAndLock(true);
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
 		wxString msg(wxString::Format(_("Wiimote %i %s"), wm_idx + 1,
 					connect ? _("Connected") : _("Disconnected")));
 		Core::DisplayMessage(WxStrToStr(msg), 3000);
 		Host_UpdateMainFrame();
+		Core::PauseAndLock(false, was_unpaused);
 	}
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
+	bool was_unpaused = Core::PauseAndLock(true);
 	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
+	Core::PauseAndLock(false, was_unpaused);
 }
 
 // Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
@@ -1978,6 +1973,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(RunningWii);
 	if (RunningWii)
 	{
+		bool was_unpaused = Core::PauseAndLock(true);
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->
 				AccessWiiMote(0x0100)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(GetUsbPointer()->
@@ -1988,6 +1984,7 @@ void CFrame::UpdateGUI()
 				AccessWiiMote(0x0103)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Check(GetUsbPointer()->
 				AccessWiiMote(0x0104)->IsConnected());
+		Core::PauseAndLock(false, was_unpaused);
 	}
 
 	if (m_ToolBar)
@@ -2130,9 +2127,6 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 	case IDM_LIST_GERMANY:
 		SConfig::GetInstance().m_ListGermany = event.IsChecked();
 		break;
-	case IDM_LIST_WORLD:
-		SConfig::GetInstance().m_ListWorld = event.IsChecked();
-		break;
 	case IDM_LIST_ITALY:
 		SConfig::GetInstance().m_ListItaly = event.IsChecked();
 		break;
@@ -2150,6 +2144,9 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_LIST_TAIWAN:
 		SConfig::GetInstance().m_ListTaiwan = event.IsChecked();
+		break;
+	case IDM_LIST_WORLD:
+		SConfig::GetInstance().m_ListWorld = event.IsChecked();
 		break;
 	case IDM_LIST_UNKNOWN:
 		SConfig::GetInstance().m_ListUnknown = event.IsChecked();

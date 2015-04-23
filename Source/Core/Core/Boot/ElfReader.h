@@ -69,7 +69,7 @@ public:
 	int GetSectionSize(SectionID section) const { return sections[section].sh_size; }
 	SectionID GetSectionByName(const char* name, int firstSection = 0) const; //-1 for not found
 
-	bool DidRelocate()
+	bool DidRelocate() const
 	{
 		return bRelocate;
 	}

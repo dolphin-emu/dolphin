@@ -150,13 +150,27 @@ struct VideoConfig final
 	// VR global
 	float fScale;
 	float fLeanBackAngle;
+	bool bStabilizeRoll;
+	bool bStabilizePitch;
+	bool bStabilizeYaw;
+	bool bStabilizeX;
+	bool bStabilizeY;
+	bool bStabilizeZ;
+	bool bKeyhole;
+	float fKeyholeWidth;
+	bool bKeyholeSnap;
+	float fKeyholeSnapSize;
 	bool bPullUp20fps;
 	bool bPullUp30fps;
 	bool bPullUp60fps;
+	bool bSynchronousTimewarp;
 	bool bOpcodeWarningDisable;
+	bool bReplayVertexData;
+	bool bReplayOtherData;
 	bool bPullUp20fpsTimewarp;
 	bool bPullUp30fpsTimewarp;
 	bool bPullUp60fpsTimewarp;
+	bool bOpcodeReplay;
 	bool bAsynchronousTimewarp;
 	bool bEnableVR;
 	bool bLowPersistence;
@@ -196,9 +210,8 @@ struct VideoConfig final
 	float fMotionSicknessFOV;
 
 	int iVRPlayer;
-	int iGameCameraControl;
 	float fTimeWarpTweak;
-	u32 iExtraFrames;
+	u32 iExtraTimewarpedFrames;
 	u32 iExtraVideoLoops;
 	u32 iExtraVideoLoopsDivider;
 
@@ -225,6 +238,7 @@ struct VideoConfig final
 	bool bHudOnTop;
 	bool bDontClearScreen;
 	bool bCanReadCameraAngles;
+	bool bDetectSkybox;
 	int iTelescopeEye;
 	int iMetroidPrime;
 	// VR layer debugging

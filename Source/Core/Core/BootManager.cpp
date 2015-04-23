@@ -48,7 +48,7 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
+	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
@@ -91,6 +91,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.valid = true;
 		config_cache.bCPUThread = StartUp.bCPUThread;
 		config_cache.bSkipIdle = StartUp.bSkipIdle;
+		config_cache.bSyncGPUOnSkipIdleHack = StartUp.bSyncGPUOnSkipIdleHack;
 		config_cache.iCPUCore = StartUp.iCPUCore;
 		config_cache.bFPRF = StartUp.bFPRF;
 		config_cache.bMMU = StartUp.bMMU;
@@ -126,11 +127,18 @@ bool BootCore(const std::string& _rFilename)
 
 		// General settings
 		IniFile::Section* core_section     = game_ini.GetOrCreateSection("Core");
+		IniFile::Section* core_section_vr  = game_ini.GetOrCreateSection("Core_VR");
 		IniFile::Section* dsp_section      = game_ini.GetOrCreateSection("DSP");
 		IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
 		core_section->Get("CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
-		core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		if (!g_has_hmd)
+			core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		else
+			core_section_vr->Get("SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		// Needed for Opcode Replay.  Some games need it true, some need it false.
+		if (g_has_hmd)
+			core_section_vr->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
 		core_section->Get("FPRF",             &StartUp.bFPRF, StartUp.bFPRF);
 		core_section->Get("MMU",              &StartUp.bMMU, StartUp.bMMU);
 		core_section->Get("DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
@@ -204,10 +212,10 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
-	if (g_is_direct_mode && !g_force_vr && StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && !StartUp.bSyncGPU)
-		PanicAlert("Detected that the Rift is running in direct mode without 'deterministic dual core' set to 'fake-completion' or 'synchronize GPU thread' enabled."
-				    " This has been known to cause judder.  Try enabling one of these two settings if you experience issues.  They can be found in the"
-					" 'config' tab or by right clicking on the game then clicking properties.");
+	if (g_is_direct_mode && !g_force_vr && StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && !StartUp.bSyncGPU && StartUp.bCPUThread)
+		PanicAlert("Detected that the Rift is running in direct mode without 'deterministic dual core' set to 'fake-completion', 'synchronize GPU thread' enabled"
+				    ", or dual core disabled. This has been found to cause judder in some games.  Try enabling one of these settings if you experience issues. "
+					"They can be found in the 'config' tab or by right clicking on the game then clicking properties.");
 
 	StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
@@ -271,6 +279,7 @@ void Stop()
 		config_cache.valid = false;
 		StartUp.bCPUThread = config_cache.bCPUThread;
 		StartUp.bSkipIdle = config_cache.bSkipIdle;
+		StartUp.bSyncGPUOnSkipIdleHack = config_cache.bSyncGPUOnSkipIdleHack;
 		StartUp.iCPUCore = config_cache.iCPUCore;
 		StartUp.bFPRF = config_cache.bFPRF;
 		StartUp.bMMU = config_cache.bMMU;

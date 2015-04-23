@@ -121,5 +121,5 @@ class TASInputDlg : public wxDialog
 
 		bool m_has_layout = false;
 
-		wxGridSizer* const m_buttons_dpad = new wxGridSizer(3);
+		wxGridSizer* m_buttons_dpad;
 };

@@ -67,7 +67,12 @@ VertexManager::VertexManager()
 	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
 	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
 
+	LocalVReplayBuffer.resize(3 * MAXVBUFFERSIZE);
+	s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
+
 	LocalIBuffer.resize(MAXIBUFFERSIZE);
+	LocalIReplayBuffer.resize(3 * MAXIBUFFERSIZE);
+	s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
 
 	CreateDeviceObjects();
 }
@@ -106,8 +111,71 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 	D3D::context->Map(m_buffers[m_currentBuffer], 0, MapType, 0, &map);
 	u8* mappedData = reinterpret_cast<u8*>(map.pData);
-	memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
-	memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
+
+	if (g_has_hmd)
+	{
+		static bool previous_replay_vertex_data = !g_ActiveConfig.bReplayVertexData;
+
+		if (g_first_pass)
+		{
+			if (previous_replay_vertex_data != g_ActiveConfig.bReplayVertexData)
+			{
+				if (!g_ActiveConfig.bReplayVertexData)
+				{
+					LocalVReplayBuffer.clear();
+					LocalVReplayBuffer.resize(0);
+					LocalIReplayBuffer.clear();
+					LocalIReplayBuffer.resize(0);
+				}
+				else
+				{
+					// To Do: Change this to vectors like used in the ShaderCache code
+					LocalVReplayBuffer.resize(3 * MAXVBUFFERSIZE);
+					s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
+					LocalIReplayBuffer.resize(3 * MAXVBUFFERSIZE);
+					s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
+				}
+			}
+			s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer;
+			s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer;
+			previous_replay_vertex_data = g_ActiveConfig.bReplayVertexData;
+			g_first_pass = false;
+		}
+
+		if (!g_ActiveConfig.bReplayVertexData)
+		{
+			memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
+			memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
+		}
+		else if (!g_opcode_replay_frame)
+		{
+			memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
+			if (g_opcode_replay_log_frame)
+			{
+				memcpy(s_pCurReplayBufferPointer, s_pBaseBufferPointer, vertexBufferSize);
+				s_pCurReplayBufferPointer += vertexBufferSize;
+
+				memcpy(s_pCurIReplayBufferPointer, GetIndexBuffer(), indexBufferSize);
+				s_pCurIReplayBufferPointer += indexBufferSize;
+			}
+
+			memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
+		}
+		else
+		{
+			memcpy(mappedData + m_vertexDrawOffset, s_pCurReplayBufferPointer, vertexBufferSize);
+			s_pCurReplayBufferPointer += vertexBufferSize;
+
+			memcpy(mappedData + m_indexDrawOffset, s_pCurIReplayBufferPointer, indexBufferSize);
+			s_pCurIReplayBufferPointer += indexBufferSize;
+		}
+	}
+	else
+	{
+		memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
+		memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
+	}
+
 	D3D::context->Unmap(m_buffers[m_currentBuffer], 0);
 
 	m_bufferCursor = cursor + totalBufferSize;

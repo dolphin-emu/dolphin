@@ -128,6 +128,13 @@ namespace HideObjectEngine
 
 	void ApplyHideObjects(const std::vector<HideObject> &HideObjectects)
 	{
+		// Make the rendering code skip over checking skip entries
+		SConfig::GetInstance().m_LocalCoreStartupParameter.hide_objects_updating = true;
+
+		// Wait until the next time the next time the rendering thread finishes checking the skip entries.
+		if (Core::IsRunning())
+			while (SConfig::GetInstance().m_LocalCoreStartupParameter.hide_objects_done == false) {}
+
 		SConfig::GetInstance().m_LocalCoreStartupParameter.object_removal_codes.clear();
 
 		for (const HideObject& HideObjectect : HideObjectects)
@@ -160,6 +167,7 @@ namespace HideObjectEngine
 				}
 			}
 		}
+		SConfig::GetInstance().m_LocalCoreStartupParameter.hide_objects_updating = false;
 	}
 
 	void ApplyFrameHideObjects()

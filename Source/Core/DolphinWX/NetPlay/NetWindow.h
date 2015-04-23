@@ -6,13 +6,12 @@
 
 #include <string>
 #include <vector>
-#include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/frame.h>
 
 #include "Common/FifoQueue.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
+#include "Core/NetPlayServer.h"
 
 class CGameListCtrl;
 class wxButton;
@@ -20,8 +19,8 @@ class wxCheckBox;
 class wxChoice;
 class wxListBox;
 class wxString;
+class wxStaticText;
 class wxTextCtrl;
-class wxWindow;
 
 enum
 {
@@ -30,47 +29,17 @@ enum
 	NP_GUI_EVT_STOP_GAME,
 };
 
-class NetPlaySetupDiag : public wxFrame
+enum
 {
-public:
-	NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list);
-	~NetPlaySetupDiag();
-private:
-	void OnJoin(wxCommandEvent& event);
-	void OnHost(wxCommandEvent& event);
-	void OnQuit(wxCommandEvent& event);
-
-	void MakeNetPlayDiag(int port, const std::string &game, bool is_hosting);
-
-	void OnChoice(wxCommandEvent& event);
-
-	wxStaticText* m_ip_lbl;
-	wxStaticText* m_client_port_lbl;
-	wxTextCtrl*   m_nickname_text;
-	wxStaticText* m_host_port_lbl;
-	wxTextCtrl*   m_host_port_text;
-	wxTextCtrl*   m_connect_port_text;
-	wxTextCtrl*   m_connect_ip_text;
-	wxChoice*     m_direct_traversal;
-	wxStaticText* m_traversal_server_lbl;
-	wxTextCtrl*   m_traversal_server;
-	wxStaticText* m_traversal_port_lbl;
-	wxTextCtrl*   m_traversal_port;
-
-	wxListBox*  m_game_lbox;
-#ifdef USE_UPNP
-	wxCheckBox* m_upnp_chk;
-#endif
-
-	const CGameListCtrl* const m_game_list;
+	INITIAL_PAD_BUFFER_SIZE = 5
 };
 
-class NetPlayDiag : public wxFrame, public NetPlayUI
+class NetPlayDialog : public wxFrame, public NetPlayUI
 {
 public:
-	NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list
+	NetPlayDialog(wxWindow* parent, const CGameListCtrl* const game_list
 		, const std::string& game, const bool is_hosting = false);
-	~NetPlayDiag();
+	~NetPlayDialog();
 
 	Common::FifoQueue<std::string> chat_msgs;
 
@@ -87,7 +56,10 @@ public:
 	void OnMsgStartGame() override;
 	void OnMsgStopGame() override;
 
-	static NetPlayDiag *&GetInstance() { return npd; };
+	static NetPlayDialog*& GetInstance() { return npd; }
+	static NetPlayClient*& GetNetPlayClient() { return netplay_client; }
+	static NetPlayServer*& GetNetPlayServer() { return netplay_server; }
+	static void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list);
 
 	bool IsRecording() override;
 
@@ -100,7 +72,7 @@ private:
 	void OnConfigPads(wxCommandEvent& event);
 	void OnKick(wxCommandEvent& event);
 	void OnPlayerSelect(wxCommandEvent& event);
-	void GetNetSettings(NetSettings &settings);
+	void GetNetSettings(NetSettings& settings);
 	std::string FindGame();
 
 	void OnCopyIP(wxCommandEvent&);
@@ -114,6 +86,7 @@ private:
 	wxCheckBox*   m_record_chkbox;
 
 	std::string   m_selected_game;
+	wxButton*     m_player_config_btn;
 	wxButton*     m_game_btn;
 	wxButton*     m_start_btn;
 	wxButton*     m_kick_btn;
@@ -127,36 +100,7 @@ private:
 
 	const CGameListCtrl* const m_game_list;
 
-	static NetPlayDiag* npd;
+	static NetPlayDialog* npd;
+	static NetPlayServer* netplay_server;
+	static NetPlayClient* netplay_client;
 };
-
-class ChangeGameDiag : public wxDialog
-{
-public:
-	ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name);
-
-private:
-	void OnPick(wxCommandEvent& event);
-
-	wxListBox* m_game_lbox;
-	wxString&  m_game_name;
-};
-
-class PadMapDiag : public wxDialog
-{
-public:
-	PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiimotemap[], std::vector<const Player *>& player_list);
-
-private:
-	void OnAdjust(wxCommandEvent& event);
-
-	wxChoice* m_map_cbox[8];
-	PadMapping* const m_mapping;
-	PadMapping* const m_wiimapping;
-	std::vector<const Player *>& m_player_list;
-};
-
-namespace NetPlay
-{
-	void StopGame();
-}

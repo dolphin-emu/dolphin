@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "Common/Thread.h"
 
 #include "Core/DSPEmulator.h"
@@ -36,9 +38,8 @@ private:
 
 	std::thread m_hDSPThread;
 	std::mutex m_csDSPThreadActive;
-	std::mutex m_csDSPCycleCountActive;
 	bool m_bWii;
 	bool m_bDSPThread;
 	Common::Flag m_bIsRunning;
-	u32 m_cycle_count;
+	std::atomic<u32> m_cycle_count;
 };

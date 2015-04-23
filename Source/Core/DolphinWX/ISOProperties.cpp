@@ -127,39 +127,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	// Load ISO data
 	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
 	bool IsWad = OpenISO->IsWadFile();
-	if (OpenISO->IsWiiDisc())
-	{
-		for (int group = 0; group < 4; group++)
-		{
-			for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
-			{
-				WiiPartition temp;
-				if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
-				{
-					if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
-					{
-						temp.FileSystem->GetFileList(temp.Files);
-						WiiDisc.push_back(temp);
-					}
-				}
-				else
-				{
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		// TODO : Should we add a way to browse the wad file ?
-		if (!IsWad)
-		{
-			GCFiles.clear();
-			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
-			if (pFileSystem)
-				pFileSystem->GetFileList(GCFiles);
-		}
-	}
 
 	// TODO: Is it really necessary to use GetTitleID in case GetUniqueID fails?
 	game_id = OpenISO->GetUniqueID();
@@ -200,9 +167,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		break;
 	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(_("France"));
-		break;
-	case DiscIO::IVolume::COUNTRY_WORLD:
-		m_Country->SetValue(_("World"));
 		break;
 	case DiscIO::IVolume::COUNTRY_ITALY:
 		m_Country->SetValue(_("Italy"));
@@ -249,6 +213,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			m_Lang->Disable();
 		}
 		break;
+	case DiscIO::IVolume::COUNTRY_WORLD:
+		m_Country->SetValue(_("World"));
+		break;
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	default:
 		m_Country->SetValue(_("Unknown"));
@@ -286,19 +253,41 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	{
 		if (OpenISO->IsWiiDisc())
 		{
-			for (u32 i = 0; i < WiiDisc.size(); i++)
+			int partition_count = 0;
+			for (int group = 0; group < 4; group++)
 			{
-				WiiPartition partition = WiiDisc.at(i);
-				wxTreeItemId PartitionRoot =
-					m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i), 0, 0);
-				CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);
-				if (i == 1)
-					m_Treectrl->Expand(PartitionRoot);
+				for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
+				{
+					WiiPartition partition;
+					if ((partition.Partition = DiscIO::CreateVolumeFromFilename(fileName, group, i)) != nullptr)
+					{
+						if ((partition.FileSystem = DiscIO::CreateFileSystem(partition.Partition)) != nullptr)
+						{
+							partition.FileSystem->GetFileList(partition.Files);
+							wxTreeItemId PartitionRoot =
+								m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), partition_count), 0, 0);
+							m_Treectrl->SetItemData(PartitionRoot, new WiiPartition(partition));
+							CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);
+							if (partition_count == 1)
+								m_Treectrl->Expand(PartitionRoot);
+							partition_count++;
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
 			}
 		}
-		else if (!GCFiles.empty())
+		else
 		{
-			CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);
+			GCFiles.clear();
+			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
+			if (pFileSystem)
+				pFileSystem->GetFileList(GCFiles);
+			if (!GCFiles.empty())
+				CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);
 		}
 
 		m_Treectrl->Expand(RootId);
@@ -309,8 +298,7 @@ CISOProperties::~CISOProperties()
 {
 	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile() && pFileSystem)
 		delete pFileSystem;
-	// two vector's items are no longer valid after deleting filesystem
-	WiiDisc.clear();
+	// vector's items are no longer valid after deleting filesystem
 	GCFiles.clear();
 	delete OpenGameListItem;
 	delete OpenISO;
@@ -624,8 +612,19 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbHideObjectRangeGrid->Add(HideObjectsStart, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
 	sbHideObjectRangeGrid->Add(HideObjectsEnd, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
 
+#ifdef DEBUG_OBJECTS
+
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("From:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sbHideObjectRangeGrid->Add(new wxStaticText(m_HideObjectPage, wxID_ANY, _("To:")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	U32Setting* HideObjectsStartTwo = new U32Setting(m_HideObjectPage, _("Hide Start Two"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_start_two, 0, 100000);
+	U32Setting* HideObjectsEndTwo = new U32Setting(m_HideObjectPage, _("Hide End Two"), SConfig::GetInstance().m_LocalCoreStartupParameter.skip_objects_end_two, 0, 100000);
+	sbHideObjectRangeGrid->Add(HideObjectsStartTwo, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sbHideObjectRangeGrid->Add(HideObjectsEndTwo, wxGBPosition(1, 3), wxDefaultSpan, wxALL, 5);
+
+#endif
 	// Hide Object Code
-	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_HideObjects, wxLB_HSCROLL);
+	HideObjects = new wxCheckListBox(m_HideObjectPage, ID_HIDEOBJECTS_LIST, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_HSCROLL);
 	wxBoxSizer* const sHideObjectsButtons = new wxBoxSizer(wxHORIZONTAL);
 	EditHideObject = new wxButton(m_HideObjectPage, ID_EDITHIDEOBJECT, _("Edit..."));
 	wxButton* const AddHideObject = new wxButton(m_HideObjectPage, ID_ADDHideObject, _("Add..."));
@@ -645,7 +644,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	// Patches
 	wxBoxSizer* const sPatches = new wxBoxSizer(wxVERTICAL);
-	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Patches, wxLB_HSCROLL);
+	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_HSCROLL);
 	wxBoxSizer* const sPatchButtons = new wxBoxSizer(wxHORIZONTAL);
 	EditPatch = new wxButton(m_PatchPage, ID_EDITPATCH, _("Edit..."));
 	wxButton* const AddPatch = new wxButton(m_PatchPage, ID_ADDPATCH, _("Add..."));
@@ -666,7 +665,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	// Action Replay Cheats
 	wxBoxSizer * const sCheats = new wxBoxSizer(wxVERTICAL);
-	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Cheats, wxLB_HSCROLL);
+	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_HSCROLL);
 	wxBoxSizer * const sCheatButtons = new wxBoxSizer(wxHORIZONTAL);
 	EditCheat = new wxButton(m_CheatPage, ID_EDITCHEAT, _("Edit..."));
 	wxButton * const AddCheat = new wxButton(m_CheatPage, ID_ADDCHEAT, _("Add..."));
@@ -933,9 +932,8 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 	if (OpenISO->IsWiiDisc())
 	{
-		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/") - 1, 1));
-		File.erase(0, File.find_first_of("/") + 1); // Remove "Partition x/"
-		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
+		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
+		partition->FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
 	}
 	else
 	{
@@ -943,9 +941,9 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const int partitionNum)
+void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const WiiPartition* partition)
 {
-	DiscIO::IFileSystem* const fs = OpenISO->IsWiiDisc() ? WiiDisc[partitionNum].FileSystem : pFileSystem;
+	DiscIO::IFileSystem* const fs = OpenISO->IsWiiDisc() ? partition->FileSystem : pFileSystem;
 
 	std::vector<const DiscIO::SFileInfo*> fst;
 	fs->GetFileList(fst);
@@ -1046,10 +1044,20 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	if (event.GetId() == IDM_EXTRACTALL)
 	{
 		if (OpenISO->IsWiiDisc())
-			for (u32 i = 0; i < WiiDisc.size(); i++)
-				ExportDir("", WxStrToStr(Path), i);
+		{
+			wxTreeItemIdValue cookie;
+			wxTreeItemId root = m_Treectrl->GetRootItem();
+			wxTreeItemId item = m_Treectrl->GetFirstChild(root, cookie);
+			while (item.IsOk())
+			{
+				ExportDir("", WxStrToStr(Path), reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(item)));
+				item = m_Treectrl->GetNextChild(root, cookie);
+			}
+		}
 		else
+		{
 			ExportDir("", WxStrToStr(Path));
+		}
 
 		return;
 	}
@@ -1066,9 +1074,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	if (OpenISO->IsWiiDisc())
 	{
-		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/") - 1, 1));
-		Directory.erase(0, Directory.find_first_of("/") + 1); // Remove "Partition x/"
-		ExportDir(WxStrToStr(Directory), WxStrToStr(Path), partitionNum);
+		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
+		Directory.erase(0, m_Treectrl->GetItemText(m_Treectrl->GetSelection()).length() + 1); // Remove "Partition x/"
+		ExportDir(WxStrToStr(Directory), WxStrToStr(Path), partition);
 	}
 	else
 	{
@@ -1086,19 +1094,8 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 
 	if (OpenISO->IsWiiDisc())
 	{
-		wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-		unsigned int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("0123456789"), 2));
-
-		if (WiiDisc.size() > partitionNum)
-		{
-			// Get the filesystem of the LAST partition
-			FS = WiiDisc.at(partitionNum).FileSystem;
-		}
-		else
-		{
-			WxUtils::ShowErrorDialog(wxString::Format(_("Partition doesn't exist: %d"), partitionNum));
-			return;
-		}
+		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
+		FS = partition->FileSystem;
 	}
 	else
 	{
@@ -1144,19 +1141,12 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 	if (!OpenISO->IsWiiDisc())
 		return;
 
-	wxString PartitionName = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-	if (!PartitionName)
-		return;
-
-	// Get the partition number from the item text ("Partition N")
-	int PartitionNum = wxAtoi(PartitionName.Mid(PartitionName.find_first_of("0123456789"), 1));
-	const WiiPartition& Partition = WiiDisc[PartitionNum];
-
 	wxProgressDialog dialog(_("Checking integrity..."), _("Working..."), 1000, this,
 		wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH
 	);
 
-	IntegrityCheckThread thread(Partition);
+	WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
+	IntegrityCheckThread thread(*partition);
 	thread.Run();
 
 	while (thread.IsAlive())
@@ -1170,9 +1160,9 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 	if (!thread.Wait())
 	{
 		wxMessageBox(
-			wxString::Format(_("Integrity check for partition %d failed. "
-							   "Your dump is most likely corrupted or has been "
-							   "patched incorrectly."), PartitionNum),
+			wxString::Format(_("Integrity check for %s failed. The disc image is most "
+			                   "likely corrupted or has been patched incorrectly."),
+			                 m_Treectrl->GetItemText(m_Treectrl->GetSelection())),
 			_("Integrity Check Error"), wxOK | wxICON_ERROR, this
 		);
 	}

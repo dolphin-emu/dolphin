@@ -39,6 +39,8 @@ public:
 	static void SetProjectionConstants();
 	static void SetViewportConstants();
 	static void CheckOrientationConstants();
+	static void CheckSkybox();
+	static void LockSkybox();
 
 	static void InvalidateXFRange(int start, int end);
 	static void SetTexMatrixChangedA(u32 value);
@@ -59,6 +61,7 @@ public:
 	static void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
 
 	static VertexShaderConstants constants;
+	static std::vector<VertexShaderConstants> constants_replay;
 	static float4 constants_eye_projection[2][4];
 	static bool m_layer_on_top;
 	static bool dirty;

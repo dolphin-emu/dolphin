@@ -41,10 +41,9 @@ class wxWindow;
 namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 
-extern std::vector<ActionReplay::ARCode> arCodes;
-
-struct WiiPartition
+class WiiPartition final : public wxTreeItemData
 {
+public:
 	DiscIO::IVolume *Partition;
 	DiscIO::IFileSystem *FileSystem;
 	std::vector<const DiscIO::SFileInfo *> Files;
@@ -57,7 +56,6 @@ struct PHackData
 	std::string PHZNear;
 	std::string PHZFar;
 };
-extern PHackData PHack_Data;
 
 class CISOProperties : public wxDialog
 {
@@ -76,12 +74,8 @@ public:
 	void ActionReplayList_Load();
 	bool SaveGameConfig();
 
-	PHackData PHack_Data;
-
 private:
 	DECLARE_EVENT_TABLE();
-
-	std::vector<WiiPartition> WiiDisc;
 
 	DiscIO::IVolume *OpenISO;
 	DiscIO::IFileSystem *pFileSystem;
@@ -110,23 +104,17 @@ private:
 	wxArrayString arrayStringFor_VRState;
 	wxChoice* EmuState;
 	wxTextCtrl* EmuIssues;
-	wxArrayString arrayStringFor_HideObjects;
 	wxCheckListBox* HideObjects;
 	wxButton* EditHideObject;
 	wxButton* RemoveHideObject;
-	wxArrayString arrayStringFor_Patches;
+
 	wxCheckListBox* Patches;
 	wxButton* EditPatch;
 	wxButton* RemovePatch;
-	wxArrayString arrayStringFor_Cheats;
+
 	wxCheckListBox* Cheats;
 	wxButton* EditCheat;
 	wxButton* RemoveCheat;
-	wxArrayString arrayStringFor_Speedhacks;
-	wxCheckListBox* Speedhacks;
-	wxButton* EditSpeedhack;
-	wxButton* AddSpeedhack;
-	wxButton* RemoveSpeedhack;
 
 
 	// VR
@@ -295,7 +283,7 @@ private:
 			const size_t _FirstIndex,
 			const size_t _LastIndex);
 	void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
-			const int partitionNum = 0);
+			const WiiPartition* partition = nullptr);
 
 	IniFile GameIniDefault;
 	IniFile GameIniLocal;

@@ -21,7 +21,7 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #include "Kernel/OVR_Types.h"
 #else
 #define OCULUSSDK044ORABOVE
-#define OVR_DLL_IMPORT
+#define OVR_DLL_BUILD
 #endif
 #include "OVR_CAPI.h"
 #if OVR_MAJOR_VERSION >= 5
@@ -41,11 +41,22 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #else
 Error, Oculus SDK 0.3.x is no longer supported
 #endif
+
+extern "C"
+{
+	void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
+}
 #endif
 
 #define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
 #else
+#ifdef _WIN32
+#include "OculusSystemLibraryHeader.h"
+#define OCULUSSDK044ORABOVE
+#define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING
+#else
 #define SCM_OCULUS_STR ", no Oculus SDK"
+#endif
 #endif
 
 #include <mutex>
@@ -143,10 +154,12 @@ struct TimewarpLogEntry {
 	bool is_preprocess_log;
 };
 extern std::vector<TimewarpLogEntry> timewarp_logentries;
-extern bool g_synchronous_timewarp_enabled;
 extern bool g_opcode_replay_enabled;
 extern bool g_new_frame_just_rendered;
-extern bool g_opcodereplay_frame;
+extern bool g_first_pass;
+extern bool g_first_pass_vs_constants;
+extern bool g_opcode_replay_frame;
+extern bool g_opcode_replay_log_frame;
 extern int skipped_opcode_replay_count;
 
 //extern std::vector<u8*> s_pCurBufferPointer_log;
@@ -167,7 +180,7 @@ extern volatile u32 g_drawn_vr;
 
 extern bool debug_nextScene;
 
-#ifdef HAVE_OCULUSSDK
+#ifdef OVR_MAJOR_VERSION
 extern ovrHmd hmd;
 extern ovrHmdDesc hmdDesc;
 extern ovrFovPort g_eye_fov[2];

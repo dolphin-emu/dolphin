@@ -4,8 +4,6 @@
 
 #pragma once
 
-//#define NEW_HOTKEYS
-
 #include <cstddef>
 #include <mutex>
 #include <string>
@@ -40,7 +38,7 @@ class CCodeWindow;
 class CLogWindow;
 class FifoPlayerDlg;
 class LogConfigWindow;
-class NetPlaySetupDiag;
+class NetPlaySetupFrame;
 class TASInputDlg;
 class wxCheatsWindow;
 
@@ -100,7 +98,7 @@ public:
 
 	// These have to be public
 	CCodeWindow* g_pCodeWindow;
-	NetPlaySetupDiag* g_NetPlaySetupDiag;
+	NetPlaySetupFrame* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
 	TASInputDlg* g_TASInputDlg[8];
 
@@ -319,9 +317,7 @@ private:
 	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigVR(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
-#ifdef NEW_HOTKEYS
 	void OnConfigMenuCommands(wxCommandEvent& event);
-#endif
 
 	void OnToggleFullscreen(wxCommandEvent& event);
 	void OnToggleDualCore(wxCommandEvent& event);

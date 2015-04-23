@@ -369,9 +369,6 @@ void VideoSoftware::Video_ExitLoop()
 
 void VideoSoftware::Video_AsyncTimewarpDraw()
 {
-#ifdef HAVE_OCULUSSDK
-
-#endif
 }
 
 // TODO : could use the OSD class in video common, we would need to implement the Renderer class
@@ -391,11 +388,6 @@ void VideoSoftware::Video_SetRendering(bool bEnabled)
 void VideoSoftware::Video_GatherPipeBursted()
 {
 	SWCommandProcessor::GatherPipeBursted();
-}
-
-bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone()
-{
-	return false;
 }
 
 void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)

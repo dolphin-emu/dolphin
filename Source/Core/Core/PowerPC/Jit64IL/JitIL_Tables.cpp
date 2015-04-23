@@ -170,6 +170,37 @@ static GekkoOPTemplate table19[] =
 
 static GekkoOPTemplate table31[] =
 {
+	{266,  &JitIL::addx},                  //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{778,  &JitIL::addx},                  //"addox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{10,   &JitIL::FallBackToInterpreter}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
+	{522,  &JitIL::FallBackToInterpreter}, //"addcox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
+	{138,  &JitIL::addex},                 //"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+	{650,  &JitIL::addex},                 //"addeox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+	{234,  &JitIL::FallBackToInterpreter}, //"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+	{746,  &JitIL::FallBackToInterpreter}, //"addmeox"
+	{202,  &JitIL::addzex},                //"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+	{714,  &JitIL::addzex},                //"addzeox"
+	{491,  &JitIL::FallBackToInterpreter}, //"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
+	{1003, &JitIL::FallBackToInterpreter}, //"divwox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
+	{459,  &JitIL::divwux},                //"divwux",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
+	{971,  &JitIL::divwux},                //"divwuox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
+	{75,   &JitIL::FallBackToInterpreter}, //"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
+	{11,   &JitIL::mulhwux},               //"mulhwux", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
+	{235,  &JitIL::mullwx},                //"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
+	{747,  &JitIL::mullwx},                //"mullwox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
+	{104,  &JitIL::negx},                  //"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{616,  &JitIL::negx},                  //"negox"
+	{40,   &JitIL::subfx},                 //"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{552,  &JitIL::subfx},                 //"subfox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{8,    &JitIL::subfcx},                //"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
+	{520,  &JitIL::subfcx},                //"subfcox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
+	{136,  &JitIL::subfex},                //"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+	{648,  &JitIL::subfex},                //"subfeox"
+	{232,  &JitIL::FallBackToInterpreter}, //"subfmex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+	{744,  &JitIL::FallBackToInterpreter}, //"subfmeox"
+	{200,  &JitIL::FallBackToInterpreter}, //"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+	{712,  &JitIL::FallBackToInterpreter}, //"subfzeox"
+
 	{28,  &JitIL::boolX},                  //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{60,  &JitIL::boolX},                  //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{444, &JitIL::boolX},                  //"orx",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
@@ -279,34 +310,6 @@ static GekkoOPTemplate table31[] =
 	{306, &JitIL::FallBackToInterpreter},  //"tlbie",   OPTYPE_SYSTEM, 0}},
 	{370, &JitIL::FallBackToInterpreter},  //"tlbia",   OPTYPE_SYSTEM, 0}},
 	{566, &JitIL::DoNothing},              //"tlbsync", OPTYPE_SYSTEM, 0}},
-};
-
-static GekkoOPTemplate table31_2[] =
-{
-	{266,  &JitIL::addx},                  //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{778,  &JitIL::addx},                  //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{10,   &JitIL::FallBackToInterpreter}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
-	{522,  &JitIL::FallBackToInterpreter}, //"addcox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
-	{138,  &JitIL::addex},                 //"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-	{650,  &JitIL::addex},                 //"addeox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-	{234,  &JitIL::FallBackToInterpreter}, //"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-	{202,  &JitIL::addzex},                //"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-	{491,  &JitIL::FallBackToInterpreter}, //"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
-	{1003, &JitIL::FallBackToInterpreter}, //"divwox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
-	{459,  &JitIL::divwux},                //"divwux",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
-	{971,  &JitIL::divwux},                //"divwuox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
-	{75,   &JitIL::FallBackToInterpreter}, //"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
-	{11,   &JitIL::mulhwux},               //"mulhwux", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
-	{235,  &JitIL::mullwx},                //"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
-	{747,  &JitIL::mullwx},                //"mullwox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
-	{104,  &JitIL::negx},                  //"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{40,   &JitIL::subfx},                 //"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{552,  &JitIL::subfx},                 //"subox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{8,    &JitIL::subfcx},                //"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
-	{520,  &JitIL::subfcx},                //"subfcox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
-	{136,  &JitIL::subfex},                //"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-	{232,  &JitIL::FallBackToInterpreter}, //"subfmex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-	{200,  &JitIL::FallBackToInterpreter}, //"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 };
 
 static GekkoOPTemplate table59[] =
@@ -444,16 +447,6 @@ void InitTables()
 	{
 		int op = tpl.opcode;
 		dynaOpTable31[op] = tpl.Inst;
-	}
-
-	for (int i = 0; i < 1; i++)
-	{
-		int fill = i << 9;
-		for (auto& tpl : table31_2)
-		{
-			int op = fill + tpl.opcode;
-			dynaOpTable31[op] = tpl.Inst;
-		}
 	}
 
 	for (auto& tpl : table19)
