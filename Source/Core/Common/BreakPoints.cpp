@@ -207,7 +207,7 @@ TMemCheck *MemChecks::GetMemCheck(u32 address)
 	return nullptr;
 }
 
-void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
+bool TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
 	if ((write && OnWrite) || (!write && OnRead))
 	{
@@ -220,9 +220,9 @@ void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bo
 				);
 		}
 
-		if (Break)
-			debug_interface->BreakNow();
+		return true;
 	}
+	return false;
 }
 
 

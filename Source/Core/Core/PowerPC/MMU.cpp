@@ -21,6 +21,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
@@ -455,8 +456,25 @@ static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(address);
 	if (mc)
 	{
+		if (CCPU::IsStepping())
+		{
+			// Disable when stepping so that resume works.
+			return;
+		}
 		mc->numHits++;
-		mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
+		bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
+		if (pause)
+		{
+			CCPU::Break();
+			// Fake a DSI so that all the code that tests for it in order to skip
+			// the rest of the instruction will apply.  (This means that
+			// watchpoints will stop the emulator before the offending load/store,
+			// not after like GDB does, but that's better anyway.  Just need to
+			// make sure resuming after that works.)
+			// It doesn't matter if ReadFromHardware triggers its own DSI because
+			// we'll take it after resuming.
+			PowerPC::ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+		}
 	}
 #endif
 }

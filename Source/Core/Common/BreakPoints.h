@@ -40,7 +40,8 @@ struct TMemCheck
 
 	u32 numHits;
 
-	void Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr,
+	// returns whether to break
+	bool Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr,
 	            bool write, int size, u32 pc);
 };
 

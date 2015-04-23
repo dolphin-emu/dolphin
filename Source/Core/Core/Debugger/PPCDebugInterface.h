@@ -39,7 +39,6 @@ public:
 	virtual unsigned int GetPC() override;
 	virtual void SetPC(unsigned int address) override;
 	virtual void Step() override {}
-	virtual void BreakNow() override;
 	virtual void RunToBreakpoint() override;
 	virtual void InsertBLR(unsigned int address, unsigned int value) override;
 	virtual int GetColor(unsigned int address) override;
