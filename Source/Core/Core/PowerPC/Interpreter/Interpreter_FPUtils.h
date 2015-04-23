@@ -50,7 +50,11 @@ inline void SetFI(int FI)
 inline void UpdateFPSCR()
 {
 	FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
-	FPSCR.FEX = 0; // we assume that "?E" bits are always 0
+	FPSCR.FEX = (FPSCR.VX & FPSCR.VE) ^
+	            (FPSCR.OX & FPSCR.OE) ^
+	            (FPSCR.UX & FPSCR.UE) ^
+	            (FPSCR.ZX & FPSCR.ZE) ^
+	            (FPSCR.XX & FPSCR.XE);
 }
 
 inline double ForceSingle(double _x)

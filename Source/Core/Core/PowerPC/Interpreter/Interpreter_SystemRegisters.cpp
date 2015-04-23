@@ -41,6 +41,12 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 
 void Interpreter::mtfsb0x(UGeckoInstruction _inst)
 {
+	// mtfsb0 can't clear bits 1, 2, and 20
+	if (_inst.CRBD == 1 ||
+	    _inst.CRBD == 2 ||
+	    _inst.CRBD == 20)
+		return;
+
 	u32 b = 0x80000000 >> _inst.CRBD;
 
 	/*if (b & 0x9ff80700)
@@ -55,12 +61,19 @@ void Interpreter::mtfsb0x(UGeckoInstruction _inst)
 
 void Interpreter::mtfsb1x(UGeckoInstruction _inst)
 {
+	// mtfsb1 can't set bits 1, 2, and 20
+	if (_inst.CRBD == 1 ||
+	    _inst.CRBD == 2 ||
+	    _inst.CRBD == 20)
+		return;
+
 	// this instruction can affect FX
 	u32 b = 0x80000000 >> _inst.CRBD;
 	if (b & FPSCR_ANY_X)
 		SetFPException(b);
 	else
 		FPSCR.Hex |= b;
+
 	FPSCRtoFPUSettings(FPSCR);
 
 	if (_inst.Rc)
@@ -72,11 +85,10 @@ void Interpreter::mtfsfix(UGeckoInstruction _inst)
 	u32 mask = (0xF0000000 >> (4 * _inst.CRFD));
 	u32 imm = (_inst.hex << 16) & 0xF0000000;
 
-	/*u32 cleared = ~(imm >> (4 * _inst.CRFD)) & FPSCR.Hex & mask;
-	if (cleared & 0x9ff80700)
-		PanicAlert("mtfsfi clears %08x, PC=%x", cleared, PC);*/
-
 	FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * _inst.CRFD));
+
+	// FPSCR bit 20 is reserved and is /always/ zero
+	FPSCR.Hex &= ~0x00000800;
 
 	FPSCRtoFPUSettings(FPSCR);
 
