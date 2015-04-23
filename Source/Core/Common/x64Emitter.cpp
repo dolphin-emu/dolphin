@@ -223,7 +223,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		// Oh, no memory, Just a reg.
 		mod = 3; //11
 	}
-	else if (scale >= 1)
+	else
 	{
 		//Ah good, no scaling.
 		if (scale == SCALE_ATREG && !((_offsetOrBaseReg & 7) == 4 || (_offsetOrBaseReg & 7) == 5))
@@ -249,7 +249,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 			mod = 0;
 			_offsetOrBaseReg = 5;
 		}
-		else //if (scale != SCALE_ATREG)
+		else
 		{
 			if ((_offsetOrBaseReg & 7) == 4) //this would occupy the SIB encoding :(
 			{
@@ -287,10 +287,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	int oreg = _offsetOrBaseReg;
 	if (SIB)
 		oreg = 4;
-
-	// TODO(ector): WTF is this if about? I don't remember writing it :-)
-	//if (RIP)
-	//    oreg = 5;
 
 	emit->WriteModRM(mod, _operandReg&7, oreg&7);
 

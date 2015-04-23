@@ -133,7 +133,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
 	if (!indexed && (!a || gpr.R(a).IsImm()))
 	{
-		u32 addr = (a ? (u32)gpr.R(a).offset : 0) + imm;
+		u32 addr = (a ? gpr.R(a).Imm32() : 0) + imm;
 		bool exception = WriteToConstAddress(accessSize, R(RSCRATCH), addr, CallerSavedRegistersInUse());
 
 		if (update)
