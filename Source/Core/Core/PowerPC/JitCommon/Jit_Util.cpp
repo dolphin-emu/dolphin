@@ -278,11 +278,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	registersInUse[reg_value] = false;
 	if (jit->jo.fastmem &&
 	    !opAddress.IsImm() &&
-	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
-#ifdef ENABLE_MEM_CHECK
-	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
-#endif
-	    )
+	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM)))
 	{
 		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 
@@ -529,11 +525,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	// TODO: support byte-swapped non-immediate fastmem stores
 	if (jit->jo.fastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
-		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
-#ifdef ENABLE_MEM_CHECK
-	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
-#endif
-	    )
+		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP)))
 	{
 		const u8* backpatchStart = GetCodePtr();
 		u8* mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_LOADSTORE_NO_SWAP));
