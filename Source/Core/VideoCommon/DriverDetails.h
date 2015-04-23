@@ -200,7 +200,39 @@ namespace DriverDetails
 		// Broken on Windows Intel
 		// if (cond == false)
 		BUG_BROKENNEGATEDBOOLEAN,
-
+		
+		// Bug: Qualcomm has broken ivec to scalar and ivec to ivec bitshifts
+		// Affected devices: Adreno
+		// Started Version: -1
+		// Ended Version: 46 (TODO: Test more devices, the real end is currently unknown)
+		// Qualcomm has broken integer vector to integer bitshifts, and integer vector to integer vector bitshifts
+		// A compilation error is generated when trying to compile the shaders.
+		// 
+		// For example:
+		//	Broken on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ab <<= 2;
+		// 
+		//	Working on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ab.x <<= 2;
+		//		ab.y <<= 2;
+		//		ab.z <<= 2;
+		//		ab.w <<= 2;
+		// 
+		//	Broken on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ivec4 cd = ivec4(1,2,3,4);
+		//		ab <<= cd;
+		// 
+		//	Working on Qualcomm:
+		//		ivec4 ab = ivec4(1,1,1,1);
+		//		ivec4 cd = ivec4(1,2,3,4);
+		//		ab.x <<= cd.x;
+		//		ab.y <<= cd.y;
+		//		ab.z <<= cd.z;
+		//		ab.w <<= cd.w;
+		BUG_BROKENIVECSHIFTS,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
