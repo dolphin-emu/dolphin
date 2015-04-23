@@ -94,27 +94,27 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, ""));
 	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, ""));
-	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set &Value")));
+	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set Value")));
 
 	sizerRight->AddSpacer(5);
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("&Dump MRAM")));
-	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("&Dump EXRAM")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("Dump MRAM")));
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("Dump EXRAM")));
 
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
-		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("&Dump FakeVMEM")));
+		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("Dump FakeVMEM")));
 
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
 
 	sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _("Search")));
-	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, "&Ascii "));
-	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _("&Hex")));
+	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, "Ascii "));
+	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _("Hex")));
 	sizerRight->Add(sizerSearchType);
 	wxStaticBoxSizer* sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Data Type"));
 
 	sizerDataTypes->SetMinSize(74, 40);
-	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, "&U8"));
-	sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, "&U16"));
-	sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, "&U32"));
+	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, "U8"));
+	sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, "U16"));
+	sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, "U32"));
 	sizerRight->Add(sizerDataTypes);
 	SetSizer(sizerBig);
 	chkHex->SetValue(1); //Set defaults
