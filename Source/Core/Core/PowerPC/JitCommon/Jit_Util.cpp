@@ -14,7 +14,7 @@ using namespace Gen;
 
 void EmuCodeBlock::MemoryExceptionCheck()
 {
-	if (jit->js.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
+	if (jit->jo.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
 	{
 		TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
 		jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
@@ -254,7 +254,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, B
 	// assuming they'll never do an invalid memory access.
 	// The slightly more complex check needed for Wii games using the space just above MEM1 isn't
 	// implemented here yet, since there are no known working Wii MMU games to test it with.
-	if (jit->js.memcheck && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (jit->jo.memcheck && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		if (scratch == reg_addr)
 			PUSH(scratch);
@@ -276,7 +276,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, B
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
 	registersInUse[reg_value] = false;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	if (jit->jo.fastmem &&
 	    !opAddress.IsImm() &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
 #ifdef ENABLE_MEM_CHECK
@@ -521,7 +521,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	reg_value = FixImmediate(accessSize, reg_value);
 
 	// TODO: support byte-swapped non-immediate fastmem stores
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	if (jit->jo.fastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
 		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
 #ifdef ENABLE_MEM_CHECK

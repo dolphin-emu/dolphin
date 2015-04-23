@@ -105,6 +105,8 @@ public:
 	void Remove(u32 _Address);
 
 	void Clear() { m_MemChecks.clear(); }
+
+	bool HasAny() const { return !m_MemChecks.empty(); }
 };
 
 class Watches

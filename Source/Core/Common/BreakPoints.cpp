@@ -165,8 +165,13 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 
 void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 {
+	bool had_any = HasAny();
 	if (GetMemCheck(_rMemoryCheck.StartAddress) == nullptr)
 		m_MemChecks.push_back(_rMemoryCheck);
+	// If this is the first one, clear the JIT cache so it can switch to
+	// watchpoint-compatible code.
+	if (!had_any)
+		jit->ClearCache();
 }
 
 void MemChecks::Remove(u32 _Address)
@@ -179,6 +184,8 @@ void MemChecks::Remove(u32 _Address)
 			return;
 		}
 	}
+	if (!HasAny())
+		jit->ClearCache();
 }
 
 TMemCheck *MemChecks::GetMemCheck(u32 address)

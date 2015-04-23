@@ -61,6 +61,8 @@ protected:
 		bool enableBlocklink;
 		bool optimizeGatherPipe;
 		bool accurateSinglePrecision;
+		bool fastmem;
+		bool memcheck;
 	};
 	struct JitState
 	{
@@ -85,7 +87,6 @@ protected:
 		bool assumeNoPairedQuantize;
 		bool firstFPInstructionFound;
 		bool isLastInstruction;
-		bool memcheck;
 		int skipInstructions;
 		bool carryFlagSet;
 		bool carryFlagInverted;
@@ -108,6 +109,8 @@ protected:
 	PPCAnalyst::PPCAnalyzer analyzer;
 
 	bool MergeAllowedNextInstructions(int count);
+
+	void UpdateMemoryOptions();
 
 public:
 	// This should probably be removed from public:
