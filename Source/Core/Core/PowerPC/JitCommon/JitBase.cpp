@@ -90,4 +90,6 @@ void JitBase::UpdateMemoryOptions()
 	             !any_watchpoints;
 	jo.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU ||
 	              any_watchpoints;
+	jo.alwaysUseMemFuncs = any_watchpoints;
+
 }

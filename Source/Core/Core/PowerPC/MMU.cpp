@@ -629,6 +629,10 @@ std::string HostGetString(u32 address, size_t size)
 
 bool IsOptimizableRAMAddress(const u32 address)
 {
+#ifdef ENABLE_MEM_CHECK
+	return false;
+#endif
+
 	if (!UReg_MSR(MSR).DR)
 		return false;
 
@@ -752,6 +756,10 @@ void ClearCacheLine(const u32 address)
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 {
+#ifdef ENABLE_MEM_CHECK
+	return 0;
+#endif
+
 	if (!UReg_MSR(MSR).DR)
 		return 0;
 
@@ -767,6 +775,10 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 
 bool IsOptimizableGatherPipeWrite(u32 address)
 {
+#ifdef ENABLE_MEM_CHECK
+	return false;
+#endif
+
 	if (!UReg_MSR(MSR).DR)
 		return false;
 

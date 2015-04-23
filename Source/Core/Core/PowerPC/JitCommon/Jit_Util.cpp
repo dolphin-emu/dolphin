@@ -349,14 +349,17 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
 	}
 
-	FixupBranch slow, exit;
-	slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
-	UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
-	if (farcode.Enabled())
-		SwitchToFarCode();
-	else
-		exit = J(true);
-	SetJumpTarget(slow);
+	FixupBranch exit;
+	if (!jit->jo.alwaysUseMemFuncs)
+	{
+		FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
+		UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
+		if (farcode.Enabled())
+			SwitchToFarCode();
+		else
+			exit = J(true);
+		SetJumpTarget(slow);
+	}
 	size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
 	ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 	switch (accessSize)
@@ -387,12 +390,15 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 	}
 
-	if (farcode.Enabled())
+	if (!jit->jo.alwaysUseMemFuncs)
 	{
-		exit = J(true);
-		SwitchToNearCode();
+		if (farcode.Enabled())
+		{
+			exit = J(true);
+			SwitchToNearCode();
+		}
+		SetJumpTarget(exit);
 	}
-	SetJumpTarget(exit);
 }
 
 static OpArg SwapImmediate(int accessSize, OpArg reg_value)
