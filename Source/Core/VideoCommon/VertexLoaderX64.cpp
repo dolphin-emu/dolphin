@@ -116,8 +116,8 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 		{
 			LoadAndSwap(32, scratch3, data);
 			MOV(32, dest, R(scratch3));
-			data.offset += sizeof(float);
-			dest.offset += sizeof(float);
+			data.AddMemOffset(sizeof(float));
+			dest.AddMemOffset(sizeof(float));
 		}
 		return load_bytes;
 	}
