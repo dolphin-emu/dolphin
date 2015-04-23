@@ -39,11 +39,6 @@ static Slope WSlope;
 static Slope ColorSlopes[2][4];
 static Slope TexSlopes[8][3];
 
-static s32 vertex0X;
-static s32 vertex0Y;
-static float vertexOffsetX;
-static float vertexOffsetY;
-
 static s32 scissorLeft = 0;
 static s32 scissorTop = 0;
 static s32 scissorRight = 0;
@@ -62,10 +57,6 @@ void DoState(PointerWrap &p)
 	for (auto& tex_slopes_1d : TexSlopes)
 		for (Slope& tex_slope : tex_slopes_1d)
 			tex_slope.DoState(p);
-	p.Do(vertex0X);
-	p.Do(vertex0Y);
-	p.Do(vertexOffsetX);
-	p.Do(vertexOffsetY);
 	p.Do(scissorLeft);
 	p.Do(scissorTop);
 	p.Do(scissorRight);
@@ -124,8 +115,8 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
 	INCSTAT(swstats.thisFrame.rasterizedPixels);
 
-	float dx = vertexOffsetX + (float)(x - vertex0X);
-	float dy = vertexOffsetY + (float)(y - vertex0Y);
+	float dx = float(x) + 0.495f;
+	float dy = float(y) + 0.495f;
 
 	s32 z = (s32)ZSlope.GetValue(dx, dy);
 	if (z < 0 || z > 0x00ffffff)
@@ -187,19 +178,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	tev.Draw();
 }
 
-static void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
-{
-	vertex0X = xi;
-	vertex0Y = yi;
-
-	// adjust a little less than 0.5
-	const float adjust = 0.495f;
-
-	vertexOffsetX = ((float)xi - X1) + adjust;
-	vertexOffsetY = ((float)yi - Y1) + adjust;
-}
-
-static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, float DX12, float DY12, float DY31)
+static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, float DX12, float DY12, float DY31, float fltx1, float flty1)
 {
 	float DF31 = f3 - f1;
 	float DF21 = f2 - f1;
@@ -208,7 +187,7 @@ static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, fl
 	float c = -DX12 * DY31 - DX31 * -DY12;
 	slope->dfdx = -a / c;
 	slope->dfdy = -b / c;
-	slope->f0 = f1;
+	slope->f0 = f1 - (slope->dfdx * fltx1) - (slope->dfdy * flty1);
 }
 
 static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
@@ -266,8 +245,8 @@ static void BuildBlock(s32 blockX, s32 blockY)
 		{
 			RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
 
-			float dx = vertexOffsetX + (float)(xi + blockX - vertex0X);
-			float dy = vertexOffsetY + (float)(yi + blockY - vertex0Y);
+			float dx = float(xi + blockX) + 0.495f;
+			float dy = float(yi + blockY) + 0.495f;
 
 			float invW = 1.0f / WSlope.GetValue(dx, dy);
 			pixel.InvW = invW;
@@ -393,28 +372,26 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	float fltdy12 = flty1 - v1->screenPosition.y;
 	float fltdy31 = v2->screenPosition.y - flty1;
 
-	InitTriangle(fltx1, flty1, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4);
-
 	float w[3] = { 1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w, 1.0f / v2->projectedPosition.w };
-	InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31);
+	InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
 
 	// TODO: The zfreeze emulation is not quite correct, yet!
 	// Many things might prevent us from reaching this line (culling, clipping, scissoring).
 	// However, the zslope is always guaranteed to be calculated unless all vertices are trivially rejected during clipping!
 	// We're currently sloppy at this since we abort early if any of the culling/clipping/scissoring tests fail.
 	if (!bpmem.genMode.zfreeze || !g_SWVideoConfig.bZFreeze)
-		InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
+		InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
 
 	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
 	{
 		for (int comp = 0; comp < 4; comp++)
-			InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], fltdx31, fltdx12, fltdy12, fltdy31);
+			InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
 	}
 
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
 	{
 		for (int comp = 0; comp < 3; comp++)
-			InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31);
+			InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
 	}
 
 	// Half-edge constants
