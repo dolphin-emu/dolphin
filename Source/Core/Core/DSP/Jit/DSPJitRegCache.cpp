@@ -756,7 +756,7 @@ void DSPJitRegCache::getReg(int reg, OpArg &oparg, bool load)
 	{
 		emitter.INT3();
 	}
-	// no nead to actually emit code for load or rotate if caller doesn't
+	// no need to actually emit code for load or rotate if caller doesn't
 	// use the contents, but see above for a reason to force the load
 	movToHostReg(real_reg, load);
 

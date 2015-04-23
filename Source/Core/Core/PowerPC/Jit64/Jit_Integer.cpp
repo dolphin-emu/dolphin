@@ -1154,7 +1154,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 		MOV(32, R(EAX), gpr.R(a));
 		XOR(32, R(EDX), R(EDX));
 		gpr.KillImmediate(b, true, false);
-		CMP(32, gpr.R(b), Imm32(0));
+		CMP_or_TEST(32, gpr.R(b), Imm32(0));
 		FixupBranch not_div_by_zero = J_CC(CC_NZ);
 		MOV(32, gpr.R(d), R(EDX));
 		if (inst.OE)

@@ -484,6 +484,8 @@ public:
 	void MOV (int bits, const OpArg &a1, const OpArg &a2);
 	void TEST(int bits, const OpArg &a1, const OpArg &a2);
 
+	void CMP_or_TEST(int bits, const OpArg &a1, const OpArg &a2);
+
 	// Are these useful at all? Consider removing.
 	void XCHG(int bits, const OpArg &a1, const OpArg &a2);
 	void XCHG_AHAL();

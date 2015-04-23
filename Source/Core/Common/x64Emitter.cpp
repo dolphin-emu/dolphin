@@ -1274,6 +1274,18 @@ void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2)
 void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmTEST, a1, a2);}
 void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmCMP, a1, a2);}
 void XEmitter::XCHG(int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmXCHG, a1, a2);}
+void XEmitter::CMP_or_TEST(int bits, const OpArg &a1, const OpArg &a2)
+{
+	CheckFlags();
+	if (a1.IsSimpleReg() && a2.IsImm() && a2.offset == 0) // turn 'CMP reg, 0' into shorter 'TEST reg, reg'
+	{
+		WriteNormalOp(bits, nrmTEST, a1, a1);
+	}
+	else
+	{
+		WriteNormalOp(bits, nrmCMP, a1, a2);
+	}
+}
 
 void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 {

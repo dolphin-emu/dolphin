@@ -282,7 +282,7 @@ void DSPEmitter::HandleLoop()
 	MOVZX(32, 16, EAX, M(&g_dsp.r.st[2]));
 	MOVZX(32, 16, ECX, M(&g_dsp.r.st[3]));
 
-	CMP(32, R(RCX), Imm32(0));
+	TEST(32, R(RCX), R(RCX));
 	FixupBranch rLoopCntG = J_CC(CC_LE, true);
 	CMP(16, R(RAX), Imm16(compilePC - 1));
 	FixupBranch rLoopAddrG = J_CC(CC_NE, true);
@@ -323,7 +323,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 	dsp_op_read_reg_dont_saturate(reg, RDX, ZERO);
 	u16 loop_pc = compilePC + 1;
 
-	CMP(16, R(EDX), Imm16(0));
+	TEST(16, R(EDX), R(EDX));
 	DSPJitRegCache c(gpr);
 	FixupBranch cnt = J_CC(CC_Z, true);
 	dsp_reg_store_stack(3);
@@ -393,7 +393,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 	dsp_op_read_reg_dont_saturate(reg, RDX, ZERO);
 	u16 loop_pc = dsp_imem_read(compilePC + 1);
 
-	CMP(16, R(EDX), Imm16(0));
+	TEST(16, R(EDX), R(EDX));
 	DSPJitRegCache c(gpr);
 	FixupBranch cnt = J_CC(CC_Z, true);
 	dsp_reg_store_stack(3);
