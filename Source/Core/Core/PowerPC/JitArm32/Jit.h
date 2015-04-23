@@ -206,9 +206,11 @@ public:
 	void fmrx(UGeckoInstruction _inst);
 	void fmaddsx(UGeckoInstruction _inst);
 	void fmaddx(UGeckoInstruction _inst);
+	void fmsubx(UGeckoInstruction _inst);
 	void fctiwx(UGeckoInstruction _inst);
 	void fctiwzx(UGeckoInstruction _inst);
 	void fnmaddx(UGeckoInstruction _inst);
+	void fnmsubx(UGeckoInstruction _inst);
 	void fnmaddsx(UGeckoInstruction _inst);
 	void fresx(UGeckoInstruction _inst);
 	void fselx(UGeckoInstruction _inst);

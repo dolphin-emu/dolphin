@@ -886,6 +886,10 @@ void JitArm::cmpli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
+	
+	//Cause crash on SSBM, THPS3, etc
+	FALLBACK_IF(true);
+	
 	u32 a = inst.RA;
 	int crf = inst.CRFD;
 

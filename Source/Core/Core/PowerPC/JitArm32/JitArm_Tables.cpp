@@ -230,7 +230,7 @@ static GekkoOPTemplate table31[] =
 
 	//load word
 	{23,  &JitArm::lXX},                    //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &JitArm::FallBackToInterpreter},  //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{55,  &JitArm::lXX},                    //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
 	{279, &JitArm::lXX},                    //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
@@ -356,9 +356,9 @@ static GekkoOPTemplate table63_2[] =
 	{23, &JitArm::fselx},                 //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitArm::fmulx},                 //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{26, &JitArm::frsqrtex},              //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
-	{28, &JitArm::FallBackToInterpreter}, //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &JitArm::fmsubx},                //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{29, &JitArm::fmaddx},                //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{30, &JitArm::FallBackToInterpreter}, //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &JitArm::fnmsubx},               //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{31, &JitArm::fnmaddx},               //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
