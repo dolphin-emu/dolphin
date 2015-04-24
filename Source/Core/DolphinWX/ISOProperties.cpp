@@ -755,7 +755,10 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 	if (OpenISO->IsWiiDisc())
 	{
-		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
+		const wxTreeItemId tree_selection = m_Treectrl->GetSelection();
+		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(tree_selection));
+		File.erase(0, m_Treectrl->GetItemText(tree_selection).length() + 1); // Remove "Partition x/"
+
 		partition->FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
 	}
 	else
@@ -897,8 +900,10 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	if (OpenISO->IsWiiDisc())
 	{
-		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
-		Directory.erase(0, m_Treectrl->GetItemText(m_Treectrl->GetSelection()).length() + 1); // Remove "Partition x/"
+		const wxTreeItemId tree_selection = m_Treectrl->GetSelection();
+		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(tree_selection));
+		Directory.erase(0, m_Treectrl->GetItemText(tree_selection).length() + 1); // Remove "Partition x/"
+
 		ExportDir(WxStrToStr(Directory), WxStrToStr(Path), partition);
 	}
 	else
