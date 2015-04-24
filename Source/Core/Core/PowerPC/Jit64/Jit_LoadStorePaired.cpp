@@ -301,7 +301,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 
 	// Get the high part of the GQR register
 	OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
-	gqr.offset += 2;
+	gqr.AddMemOffset(2);
 
 	AND(32, R(RSCRATCH2), gqr);
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));

@@ -766,14 +766,14 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 		if (SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_NONE && SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_GC_GBA)
 		{
 			g_TASInputDlg[i]->CreateGCLayout();
-			g_TASInputDlg[i]->Show(true);
+			g_TASInputDlg[i]->Show();
 			g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - Controller %d"), i + 1));
 		}
 
 		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
 		{
 			g_TASInputDlg[i+4]->CreateWiiLayout(i);
-			g_TASInputDlg[i+4]->Show(true);
+			g_TASInputDlg[i+4]->Show();
 			g_TASInputDlg[i+4]->SetTitle(wxString::Format(_("TAS Input - Wiimote %d"), i + 1));
 		}
 	}
@@ -874,7 +874,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 	{
 		// let's make the read-only flag consistent at the start of a movie.
 		Movie::SetReadOnly(true);
-		GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check(true);
+		GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check();
 	}
 
 	if (Movie::PlayInput(WxStrToStr(path)))
@@ -2020,9 +2020,9 @@ void CFrame::UpdateGUI()
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable();
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable();
+				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
@@ -2030,9 +2030,9 @@ void CFrame::UpdateGUI()
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable();
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable();
+				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 			}
 			else
 			{
@@ -2056,9 +2056,9 @@ void CFrame::UpdateGUI()
 		{
 			if (m_ToolBar)
 				m_ToolBar->EnableTool(IDM_PLAY, true);
-			GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-			GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-			GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
+			GetMenuBar()->FindItem(IDM_PLAY)->Enable();
+			GetMenuBar()->FindItem(IDM_RECORD)->Enable();
+			GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 		}
 	}
 	else if (Initialized)
@@ -2193,12 +2193,10 @@ void CFrame::DoToggleToolbar(bool _show)
 void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked();
-	if (SConfig::GetInstance().m_InterfaceStatusbar == true)
-		GetStatusBar()->Show();
-	else
-		GetStatusBar()->Hide();
 
-	this->SendSizeEvent();
+	GetStatusBar()->Show(event.IsChecked());
+
+	SendSizeEvent();
 }
 
 void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
