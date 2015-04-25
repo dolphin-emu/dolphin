@@ -26,10 +26,24 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	wxMemoryInputStream istream(dolphin_logo_png, sizeof dolphin_logo_png);
+	const unsigned char* dolphin_logo_bin;
+	size_t dolphin_logo_size;
+	double scaleFactor = 1.0;
+	if (GetContentScaleFactor() >= 2)
+	{
+		dolphin_logo_bin = dolphin_logo_2x_png;
+		dolphin_logo_size = sizeof dolphin_logo_2x_png;
+		scaleFactor = 2.0;
+	}
+	else
+	{
+		dolphin_logo_bin = dolphin_logo_png;
+		dolphin_logo_size = sizeof dolphin_logo_png;
+	}
+	wxMemoryInputStream istream(dolphin_logo_bin, dolphin_logo_size);
 	wxImage iDolphinLogo(istream, wxBITMAP_TYPE_PNG);
 	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
-			wxBitmap(iDolphinLogo));
+			wxBitmap(iDolphinLogo, -1, scaleFactor));
 
 	const wxString DolphinText = _("Dolphin");
 	const wxString RevisionText = scm_desc_str;
@@ -47,7 +61,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString SupportText = _("Support");
 
 	wxStaticText* const Dolphin = new wxStaticText(this, wxID_ANY, DolphinText);
-	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize);
+	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
 	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxTE_MULTILINE | wxNO_BORDER | wxTE_NO_VSCROLL);
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
@@ -106,8 +120,15 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	sInfo->Add(Message);
 	sInfo->Add(sLinks);
 
+	wxBoxSizer* const sLogo = new wxBoxSizer(wxVERTICAL);
+	sLogo->AddSpacer(75);
+	sLogo->Add(sbDolphinLogo);
+	sLogo->AddSpacer(40);
+
 	wxBoxSizer* const sMainHor = new wxBoxSizer(wxHORIZONTAL);
-	sMainHor->Add(sbDolphinLogo);
+	sMainHor->AddSpacer(30);
+	sMainHor->Add(sLogo);
+	sMainHor->AddSpacer(30);
 	sMainHor->Add(sInfo);
 	sMainHor->AddSpacer(30);
 
