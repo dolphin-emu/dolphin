@@ -17,9 +17,21 @@
 #include <wx/windowid.h>
 #include <wx/generic/statbmpg.h>
 
+#ifdef __APPLE__
+#import <AppKit/AppKit.h>
+#endif
+
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/resources/dolphin_logo.cpp"
+
+static void BanishBackground(wxTextCtrl* ctrl)
+{
+#ifdef __APPLE__
+       NSTextField* tf = (NSTextField*)ctrl->GetHandle();
+       tf.drawsBackground = NO;
+#endif
+}
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
@@ -61,9 +73,11 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString SupportText = _("Support");
 
 	wxStaticText* const Dolphin = new wxStaticText(this, wxID_ANY, DolphinText);
-	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTE_NO_VSCROLL);
+	BanishBackground(Revision);
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
-	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxTE_MULTILINE | wxNO_BORDER | wxTE_NO_VSCROLL);
+	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_NO_VSCROLL);
+	BanishBackground(Branch);
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
 	wxStaticText* const Update = new wxStaticText(this, wxID_ANY, CheckUpdateText);
 	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
