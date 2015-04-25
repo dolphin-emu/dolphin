@@ -38,8 +38,9 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	const unsigned char* dolphin_logo_bin;
-	size_t dolphin_logo_size;
+	const unsigned char* dolphin_logo_bin = dolphin_logo_png;
+	size_t dolphin_logo_size = sizeof dolphin_logo_png;
+#ifdef __APPLE__
 	double scaleFactor = 1.0;
 	if (GetContentScaleFactor() >= 2)
 	{
@@ -47,15 +48,16 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		dolphin_logo_size = sizeof dolphin_logo_2x_png;
 		scaleFactor = 2.0;
 	}
-	else
-	{
-		dolphin_logo_bin = dolphin_logo_png;
-		dolphin_logo_size = sizeof dolphin_logo_png;
-	}
+#endif
 	wxMemoryInputStream istream(dolphin_logo_bin, dolphin_logo_size);
 	wxImage iDolphinLogo(istream, wxBITMAP_TYPE_PNG);
+#ifdef __APPLE__
 	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
 			wxBitmap(iDolphinLogo, -1, scaleFactor));
+#else
+	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
+			wxBitmap(iDolphinLogo));
+#endif
 
 	const wxString DolphinText = _("Dolphin");
 	const wxString RevisionText = scm_desc_str;
