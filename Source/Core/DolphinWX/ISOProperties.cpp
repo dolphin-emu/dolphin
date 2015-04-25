@@ -255,7 +255,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 							wxTreeItemId PartitionRoot =
 								m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), partition_count), 0, 0);
 							m_Treectrl->SetItemData(PartitionRoot, new WiiPartition(partition));
-							CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);
+							CreateDirectoryTree(PartitionRoot, partition.Files);
 							if (partition_count == 1)
 								m_Treectrl->Expand(PartitionRoot);
 							partition_count++;
@@ -275,7 +275,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			if (pFileSystem)
 				pFileSystem->GetFileList(GCFiles);
 			if (!GCFiles.empty())
-				CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);
+				CreateDirectoryTree(RootId, GCFiles);
 		}
 
 		m_Treectrl->Expand(RootId);
@@ -290,6 +290,14 @@ CISOProperties::~CISOProperties()
 	GCFiles.clear();
 	delete OpenGameListItem;
 	delete OpenISO;
+}
+
+size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, std::vector<const DiscIO::SFileInfo*> fileInfos)
+{
+	if (fileInfos.empty())
+		return 0;
+	else
+		return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0)->m_FileSize);
 }
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
