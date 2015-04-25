@@ -59,6 +59,7 @@ enum
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
 	EVT_TEXT(IDM_MEM_ADDRBOX,       CMemoryWindow::OnAddrBoxChange)
+	EVT_TEXT_ENTER(IDM_VALBOX,      CMemoryWindow::SetMemoryValueFromValBox)
 	EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
 	EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
@@ -93,7 +94,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, ""));
-	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, ""));
+	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set Value")));
 
 	sizerRight->AddSpacer(5);
@@ -154,6 +155,13 @@ void CMemoryWindow::Load(IniFile& ini)
 void CMemoryWindow::JumpToAddress(u32 _Address)
 {
 	memview->Center(_Address);
+}
+
+void CMemoryWindow::SetMemoryValueFromValBox(wxCommandEvent& event)
+{
+	SetMemoryValue(event);
+	valbox->SetFocus();
+
 }
 
 void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)

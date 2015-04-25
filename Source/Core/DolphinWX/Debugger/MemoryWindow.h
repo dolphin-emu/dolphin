@@ -66,6 +66,7 @@ private:
 	void OnCallstackListChange(wxCommandEvent& event);
 	void OnAddrBoxChange(wxCommandEvent& event);
 	void OnHostMessage(wxCommandEvent& event);
+	void SetMemoryValueFromValBox(wxCommandEvent& event);
 	void SetMemoryValue(wxCommandEvent& event);
 	void OnDumpMemory(wxCommandEvent& event);
 	void OnDumpMem2(wxCommandEvent& event);
