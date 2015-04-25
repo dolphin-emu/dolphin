@@ -314,6 +314,9 @@ static void FinishExecuteCommand(u64 userdata, int cyclesLate)
 
 static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 {
+	// TODO: Read audio data using the DVD thread instead of blocking on it?
+	DVDThread::WaitUntilIdle();
+
 	u32 samples_processed = 0;
 	do
 	{
@@ -425,12 +428,14 @@ const DiscIO::IVolume& GetVolume()
 
 bool SetVolumeName(const std::string& disc_path)
 {
+	DVDThread::WaitUntilIdle();
 	s_inserted_volume = std::unique_ptr<DiscIO::IVolume>(DiscIO::CreateVolumeFromFilename(disc_path));
 	return VolumeIsValid();
 }
 
 bool SetVolumeDirectory(const std::string& full_path, bool is_wii, const std::string& apploader_path, const std::string& DOL_path)
 {
+	DVDThread::WaitUntilIdle();
 	s_inserted_volume = std::unique_ptr<DiscIO::IVolume>(DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path));
 	return VolumeIsValid();
 }
@@ -459,9 +464,9 @@ bool IsDiscInside()
 // that the userdata string exists when called
 void EjectDiscCallback(u64 userdata, int cyclesLate)
 {
-	// Empty the drive
-	SetDiscInside(false);
+	DVDThread::WaitUntilIdle();
 	s_inserted_volume.reset();
+	SetDiscInside(false);
 }
 
 void InsertDiscCallback(u64 userdata, int cyclesLate)
@@ -516,6 +521,7 @@ bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool decrypt)
 
 bool ChangePartition(u64 offset)
 {
+	DVDThread::WaitUntilIdle();
 	return s_inserted_volume->ChangePartition(offset);
 }
 
