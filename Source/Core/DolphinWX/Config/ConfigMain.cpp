@@ -9,6 +9,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Config/AdvancedConfigPane.h"
 #include "DolphinWX/Config/AudioConfigPane.h"
@@ -72,6 +74,8 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(wii_pane, _("Wii"));
 	Notebook->AddPage(path_pane, _("Paths"));
 	Notebook->AddPage(advanced_pane, _("Advanced"));
+	if (Movie::IsMovieActive() || NetPlay::IsNetPlayRunning())
+		advanced_pane->Disable();
 
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(Notebook, 1, wxEXPAND | wxALL, 5);
