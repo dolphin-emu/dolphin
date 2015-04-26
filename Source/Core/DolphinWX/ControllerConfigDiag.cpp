@@ -155,10 +155,16 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 
 	wxCheckBox* const gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
 	gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
+
+	wxCheckBox* const gamecube_rumble = new wxCheckBox(this, wxID_ANY, _("Rumble"));
+	gamecube_rumble->SetValue(SConfig::GetInstance().m_AdapterRumble);
+	gamecube_rumble->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnAdapterRumble, this);
+
 	m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
 
-	gamecube_adapter_sizer->Add(m_adapter_status, 0, wxEXPAND);
+	gamecube_adapter_group->Add(m_adapter_status, 0, wxEXPAND);
 	gamecube_adapter_sizer->Add(gamecube_adapter, 0, wxEXPAND);
+	gamecube_adapter_sizer->Add(gamecube_rumble, 0, wxEXPAND);
 	gamecube_adapter_group->Add(gamecube_adapter_sizer, 0, wxEXPAND);
 	gamecube_static_sizer->Add(gamecube_adapter_group, 0, wxEXPAND);
 

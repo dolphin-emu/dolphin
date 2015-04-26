@@ -74,6 +74,11 @@ private:
 		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
 		event.Skip();
 	}
+	void OnAdapterRumble(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_AdapterRumble = event.IsChecked();
+	}
+
 
 	wxStaticBoxSizer* CreateGamecubeSizer();
 	wxStaticBoxSizer* CreateWiimoteConfigSizer();

@@ -392,7 +392,7 @@ void Input(int chan, GCPadStatus* pad)
 
 void Output(int chan, u8 rumble_command)
 {
-	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter)
+	if (s_handle == nullptr || !SConfig::GetInstance().m_GameCubeAdapter || !SConfig::GetInstance().m_AdapterRumble)
 		return;
 
 	// Skip over rumble commands if it has not changed or the controller is wireless

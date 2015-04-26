@@ -354,6 +354,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
 	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 	core->Set("GameCubeAdapter", m_GameCubeAdapter);
+	core->Set("AdapterRumble", m_AdapterRumble);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -621,6 +622,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
 	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
+	core->Get("AdapterRumble",             &m_AdapterRumble,                               true);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
