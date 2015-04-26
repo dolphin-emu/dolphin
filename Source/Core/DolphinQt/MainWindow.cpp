@@ -160,7 +160,9 @@ void DMainWindow::DoStartPause()
 
 void DMainWindow::OnOpen()
 {
-	StartGame(ShowFileDialog());
+	QString filename = ShowFileDialog();
+	if (!filename.isNull())
+		StartGame(filename);
 }
 
 void DMainWindow::OnPlay()
