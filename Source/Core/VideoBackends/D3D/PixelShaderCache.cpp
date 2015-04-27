@@ -36,6 +36,7 @@ ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
 ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ClearProgram = nullptr;
 ID3D11PixelShader* s_AnaglyphProgram = nullptr;
+ID3D11PixelShader* s_VRProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
@@ -82,6 +83,47 @@ const char anaglyph_program_code[] = {
 	"                       0.377, 0.761, 0.009,\n"
 	"                      -0.026,-0.093, 1.234);\n"
 	"ocol0 = float4(mul(l, c0.rgb) + mul(r, c1.rgb), c0.a);\n"
+	"}\n"
+};
+
+const char vr_program_code[] = {
+	"sampler samp0 : register(s0);\n"
+	"Texture2DArray Tex0 : register(t0);\n"
+
+	"float2 Distort(float2 p, float k1){\n"
+	"	float r2 = p.x * p.x + p.y * p.y;\n"
+	"	float r = sqrt(r2);\n"
+	"	float newRadius = (1 + k1*r*r);\n"
+	"	p.x = p.x * newRadius;\n"
+	"	p.y = p.y * newRadius;\n"
+	"	return p;\n"
+	"}\n"
+
+	"void main(\n"
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
+	"in float3 uv0 : TEXCOORD0){\n"
+	"	float2 uv_red, uv_green, uv_blue;\n"
+	"	float4 color_red, color_green, color_blue;\n"
+	"	float2 sectorOrigin;\n"
+
+	"	if (uv0.z > 0.0)\n"
+	"		sectorOrigin = float2(1.0 - 0.47, 0.55);\n"
+	"	else\n"
+	"		sectorOrigin = float2(0.47, 0.55);\n"
+
+	"	uv_red		= Distort(uv0.xy - sectorOrigin, 0.45) + sectorOrigin;\n"
+	"	uv_green	= Distort(uv0.xy - sectorOrigin, 0.53) + sectorOrigin;\n"
+	"	uv_blue		= Distort(uv0.xy - sectorOrigin, 0.66) + sectorOrigin;\n"
+
+	"	color_red = Tex0.Sample(samp0, float3(uv_red, uv0.z));\n"
+	"	color_green = Tex0.Sample(samp0, float3(uv_green, uv0.z));\n"
+	"	color_blue = Tex0.Sample(samp0, float3(uv_blue, uv0.z));\n"
+
+	"	if (((uv_red.x>0) && (uv_red.x<1) && (uv_red.y>0) && (uv_red.y<1)))\n"
+	"		ocol0 = float4(color_red.x, color_green.y, color_blue.z, 1.0);\n"
+	"	else\n"
+	"		ocol0 = float4(0, 0, 0, 0); //black\n"
 	"}\n"
 };
 
@@ -406,6 +448,11 @@ ID3D11PixelShader* PixelShaderCache::GetAnaglyphProgram()
 	return s_AnaglyphProgram;
 }
 
+ID3D11PixelShader* PixelShaderCache::GetVRProgram()
+{
+	return s_VRProgram;
+}
+
 ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 {
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
@@ -449,6 +496,11 @@ void PixelShaderCache::Init()
 	s_AnaglyphProgram = D3D::CompileAndCreatePixelShader(anaglyph_program_code);
 	CHECK(s_AnaglyphProgram != nullptr, "Create anaglyph pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_AnaglyphProgram, "anaglyph pixel shader");
+
+	// used for virtual reality
+	s_VRProgram = D3D::CompileAndCreatePixelShader(vr_program_code);
+	CHECK(s_VRProgram != nullptr, "Create vr pixel shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_VRProgram, "vr pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram[0] = D3D::CompileAndCreatePixelShader(color_copy_program_code);
@@ -511,6 +563,7 @@ void PixelShaderCache::Shutdown()
 
 	SAFE_RELEASE(s_ClearProgram);
 	SAFE_RELEASE(s_AnaglyphProgram);
+	SAFE_RELEASE(s_VRProgram);
 	for (int i = 0; i < 2; ++i)
 	{
 		SAFE_RELEASE(s_ColorCopyProgram[i]);

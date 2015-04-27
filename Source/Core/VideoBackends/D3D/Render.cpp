@@ -1247,10 +1247,10 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)rightRc.left, (float)rightRc.top, (float)rightRc.GetWidth(), (float)rightRc.GetHeight());
 
 		D3D::context->RSSetViewports(1, &leftVp);
-		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, (g_Config.iStereoMode == STEREO_VR) ? PixelShaderCache::GetVRProgram() : PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
 
 		D3D::context->RSSetViewports(1, &rightVp);
-		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, (g_Config.iStereoMode == STEREO_VR) ? PixelShaderCache::GetVRProgram() : PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
 	}
 	else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
 	{
