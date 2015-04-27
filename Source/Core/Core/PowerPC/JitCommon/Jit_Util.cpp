@@ -14,7 +14,7 @@ using namespace Gen;
 
 void EmuCodeBlock::MemoryExceptionCheck()
 {
-	if (jit->js.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
+	if (jit->jo.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
 	{
 		TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
 		jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
@@ -254,7 +254,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, B
 	// assuming they'll never do an invalid memory access.
 	// The slightly more complex check needed for Wii games using the space just above MEM1 isn't
 	// implemented here yet, since there are no known working Wii MMU games to test it with.
-	if (jit->js.memcheck && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (jit->jo.memcheck && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		if (scratch == reg_addr)
 			PUSH(scratch);
@@ -276,13 +276,9 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, B
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
 	registersInUse[reg_value] = false;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	if (jit->jo.fastmem &&
 	    !opAddress.IsImm() &&
-	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
-#ifdef ENABLE_MEM_CHECK
-	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
-#endif
-	    )
+	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM)))
 	{
 		u8 *mov = UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 
@@ -349,14 +345,17 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
 	}
 
-	FixupBranch slow, exit;
-	slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
-	UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
-	if (farcode.Enabled())
-		SwitchToFarCode();
-	else
-		exit = J(true);
-	SetJumpTarget(slow);
+	FixupBranch exit;
+	if (!jit->jo.alwaysUseMemFuncs)
+	{
+		FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
+		UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
+		if (farcode.Enabled())
+			SwitchToFarCode();
+		else
+			exit = J(true);
+		SetJumpTarget(slow);
+	}
 	size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
 	ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 	switch (accessSize)
@@ -387,12 +386,15 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 	}
 
-	if (farcode.Enabled())
+	if (!jit->jo.alwaysUseMemFuncs)
 	{
-		exit = J(true);
-		SwitchToNearCode();
+		if (farcode.Enabled())
+		{
+			exit = J(true);
+			SwitchToNearCode();
+		}
+		SetJumpTarget(exit);
 	}
-	SetJumpTarget(exit);
 }
 
 static OpArg SwapImmediate(int accessSize, OpArg reg_value)
@@ -521,13 +523,9 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	reg_value = FixImmediate(accessSize, reg_value);
 
 	// TODO: support byte-swapped non-immediate fastmem stores
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	if (jit->jo.fastmem &&
 	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
-		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
-#ifdef ENABLE_MEM_CHECK
-	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
-#endif
-	    )
+		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP)))
 	{
 		const u8* backpatchStart = GetCodePtr();
 		u8* mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_LOADSTORE_NO_SWAP));

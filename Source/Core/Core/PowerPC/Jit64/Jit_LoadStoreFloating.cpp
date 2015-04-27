@@ -33,7 +33,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 
 	s32 offset = 0;
 	OpArg addr = gpr.R(a);
-	if (update && js.memcheck)
+	if (update && jo.memcheck)
 	{
 		addr = R(RSCRATCH2);
 		MOV(32, addr, gpr.R(a));
@@ -66,14 +66,14 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 	}
 
 	fpr.Lock(d);
-	if (js.memcheck && single)
+	if (jo.memcheck && single)
 	{
 		fpr.StoreFromRegister(d);
 		js.revertFprLoad = d;
 	}
 	fpr.BindToRegister(d, !single);
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
-	if (update && js.memcheck)
+	if (update && jo.memcheck)
 		registersInUse[RSCRATCH2] = true;
 	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
 
@@ -87,7 +87,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		MOVQ_xmm(XMM0, R(RSCRATCH));
 		MOVSD(fpr.RX(d), R(XMM0));
 	}
-	if (update && js.memcheck)
+	if (update && jo.memcheck)
 		MOV(32, gpr.R(a), addr);
 	fpr.UnlockAll();
 	gpr.UnlockAll();
@@ -108,7 +108,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	s32 imm = (s16)inst.SIMM_16;
 	int accessSize = single ? 32 : 64;
 
-	FALLBACK_IF(update && js.memcheck && a == b);
+	FALLBACK_IF(update && jo.memcheck && a == b);
 
 	if (single)
 	{
@@ -138,7 +138,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
 		if (update)
 		{
-			if (!js.memcheck || !exception)
+			if (!jo.memcheck || !exception)
 			{
 				gpr.SetImmediate32(a, addr);
 			}

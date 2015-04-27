@@ -182,14 +182,14 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 	else
 	{
-		if ((inst.OPCD != 31) && gpr.R(a).IsImm() && !js.memcheck)
+		if ((inst.OPCD != 31) && gpr.R(a).IsImm() && !jo.memcheck)
 		{
 			u32 val = gpr.R(a).Imm32() + inst.SIMM_16;
 			opAddress = Imm32(val);
 			if (update)
 				gpr.SetImmediate32(a, val);
 		}
-		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !js.memcheck)
+		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !jo.memcheck)
 		{
 			u32 val = gpr.R(a).Imm32() + gpr.R(b).Imm32();
 			opAddress = Imm32(val);
@@ -206,7 +206,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 				offset = inst.OPCD == 31 ? gpr.R(b).SImm32() : (s32)inst.SIMM_16;
 			// Depending on whether we have an immediate and/or update, find the optimum way to calculate
 			// the load address.
-			if ((update || use_constant_offset) && !js.memcheck)
+			if ((update || use_constant_offset) && !jo.memcheck)
 			{
 				gpr.BindToRegister(a, true, update);
 				opAddress = gpr.R(a);
@@ -259,7 +259,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// clobber it, then restore the value in the exception path.
 	// TODO: no other load has to do this at the moment, since no other loads go directly to the
 	// target registers, but if that ever changes, we need to do it there too.
-	if (js.memcheck)
+	if (jo.memcheck)
 	{
 		gpr.StoreFromRegister(d);
 		js.revertGprLoad = d;
@@ -392,7 +392,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		bool exception = WriteToConstAddress(accessSize, gpr.R(s), addr, CallerSavedRegistersInUse());
 		if (update)
 		{
-			if (!js.memcheck || !exception)
+			if (!jo.memcheck || !exception)
 			{
 				gpr.SetImmediate32(a, addr);
 			}
@@ -445,7 +445,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	bool update = !!(inst.SUBOP10 & 32);
 	bool byte_reverse = !!(inst.SUBOP10 & 512);
-	FALLBACK_IF(!a || (update && a == s) || (update && js.memcheck && a == b));
+	FALLBACK_IF(!a || (update && a == s) || (update && jo.memcheck && a == b));
 
 	gpr.Lock(a, b, s);
 

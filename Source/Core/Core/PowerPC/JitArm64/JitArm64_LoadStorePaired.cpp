@@ -20,7 +20,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(js.memcheck || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
+	FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
 	// X30 is LR
 	// X0 contains the scale
@@ -83,7 +83,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(js.memcheck || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
+	FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
 	// X30 is LR
 	// X0 contains the scale

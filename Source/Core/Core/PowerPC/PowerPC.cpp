@@ -375,6 +375,12 @@ void CheckExceptions()
 		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
 		ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
 	}
+#ifdef ENABLE_MEM_CHECK
+	else if (exceptions & EXCEPTION_FAKE_MEMCHECK_HIT)
+	{
+		ppcState.Exceptions &= ~EXCEPTION_DSI & ~EXCEPTION_FAKE_MEMCHECK_HIT;
+	}
+#endif
 	else if (exceptions & EXCEPTION_DSI)
 	{
 		SRR0 = PC;
