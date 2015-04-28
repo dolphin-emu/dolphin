@@ -215,18 +215,12 @@ std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
 	return SHIFTJISToUTF8(data);
 }
 
-size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames)
+const std::vector<SFileInfo>& CFileSystemGCWii::GetFileList()
 {
 	if (!m_Initialized)
 		InitFileSystem();
 
-	if (_rFilenames.size())
-		PanicAlert("GetFileList : input list has contents?");
-	_rFilenames.clear();
-	_rFilenames.reserve(m_FileInfoVector.size());
-	for (auto& fileInfo : m_FileInfoVector)
-		_rFilenames.push_back(&fileInfo);
-	return m_FileInfoVector.size();
+	return m_FileInfoVector;
 }
 
 const SFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& _rFullPath)

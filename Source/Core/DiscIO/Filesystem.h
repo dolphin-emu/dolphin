@@ -43,7 +43,7 @@ public:
 
 	virtual ~IFileSystem();
 	virtual bool IsValid() const = 0;
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) = 0;
+	virtual const std::vector<SFileInfo>& GetFileList() = 0;
 	virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
 	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
 	virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;

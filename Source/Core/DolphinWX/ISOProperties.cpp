@@ -251,11 +251,10 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 					{
 						if ((partition.FileSystem = DiscIO::CreateFileSystem(partition.Partition)) != nullptr)
 						{
-							partition.FileSystem->GetFileList(partition.Files);
 							wxTreeItemId PartitionRoot =
 								m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), partition_count), 0, 0);
 							m_Treectrl->SetItemData(PartitionRoot, new WiiPartition(partition));
-							CreateDirectoryTree(PartitionRoot, partition.Files);
+							CreateDirectoryTree(PartitionRoot, partition.FileSystem->GetFileList());
 							if (partition_count == 1)
 								m_Treectrl->Expand(PartitionRoot);
 							partition_count++;
@@ -270,12 +269,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 		else
 		{
-			GCFiles.clear();
 			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 			if (pFileSystem)
-				pFileSystem->GetFileList(GCFiles);
-			if (!GCFiles.empty())
-				CreateDirectoryTree(RootId, GCFiles);
+				CreateDirectoryTree(RootId, pFileSystem->GetFileList());
 		}
 
 		m_Treectrl->Expand(RootId);
@@ -286,22 +282,20 @@ CISOProperties::~CISOProperties()
 {
 	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile() && pFileSystem)
 		delete pFileSystem;
-	// vector's items are no longer valid after deleting filesystem
-	GCFiles.clear();
 	delete OpenGameListItem;
 	delete OpenISO;
 }
 
-size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, std::vector<const DiscIO::SFileInfo*> fileInfos)
+size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos)
 {
 	if (fileInfos.empty())
 		return 0;
 	else
-		return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0)->m_FileSize);
+		return CreateDirectoryTree(parent, fileInfos, 1, fileInfos.at(0).m_FileSize);
 }
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
-		std::vector<const DiscIO::SFileInfo*> fileInfos,
+		const std::vector<DiscIO::SFileInfo>& fileInfos,
 		const size_t _FirstIndex,
 		const size_t _LastIndex)
 {
@@ -309,8 +303,8 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 
 	while (CurrentIndex < _LastIndex)
 	{
-		const DiscIO::SFileInfo* rFileInfo = fileInfos[CurrentIndex];
-		std::string filePath = rFileInfo->m_FullPath;
+		const DiscIO::SFileInfo rFileInfo = fileInfos[CurrentIndex];
+		std::string filePath = rFileInfo.m_FullPath;
 
 		// Trim the trailing '/' if it exists.
 		if (filePath[filePath.length() - 1] == DIR_SEP_CHR)
@@ -327,10 +321,10 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		}
 
 		// check next index
-		if (rFileInfo->IsDirectory())
+		if (rFileInfo.IsDirectory())
 		{
 			wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(filePath), 1, 1);
-			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo->m_FileSize);
+			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo.m_FileSize);
 		}
 		else
 		{
@@ -779,8 +773,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 {
 	DiscIO::IFileSystem* const fs = OpenISO->IsWiiDisc() ? partition->FileSystem : pFileSystem;
 
-	std::vector<const DiscIO::SFileInfo*> fst;
-	fs->GetFileList(fst);
+	const std::vector<DiscIO::SFileInfo>& fst = fs->GetFileList();
 
 	u32 index = 0;
 	u32 size = 0;
@@ -800,10 +793,10 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		// Look for the dir we are going to extract
 		for (index = 0; index != fst.size(); ++index)
 		{
-			if (fst[index]->m_FullPath == _rFullPath)
+			if (fst[index].m_FullPath == _rFullPath)
 			{
 				DEBUG_LOG(DISCIO, "Found the directory at %u", index);
-				size = (u32)fst[index]->m_FileSize;
+				size = (u32)fst[index].m_FileSize;
 				break;
 			}
 		}
@@ -828,14 +821,14 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		dialog.SetTitle(wxString::Format("%s : %d%%", dialogTitle.c_str(),
 			(u32)(((float)(i - index) / (float)(size - index)) * 100)));
 
-		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i]->m_FullPath)));
+		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i].m_FullPath)));
 
 		if (dialog.WasCancelled())
 			break;
 
-		if (fst[i]->IsDirectory())
+		if (fst[i].IsDirectory())
 		{
-			const std::string exportName = StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
@@ -852,10 +845,10 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		}
 		else
 		{
-			const std::string exportName = StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
-			if (!File::Exists(exportName) && !fs->ExportFile(fst[i]->m_FullPath, exportName))
+			if (!File::Exists(exportName) && !fs->ExportFile(fst[i].m_FullPath, exportName))
 			{
 				ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
 			}

@@ -274,9 +274,6 @@ bool ParsePartitionData(SPartition& _rPartition)
 	}
 	else
 	{
-		std::vector<const SFileInfo *> Files;
-		size_t numFiles = filesystem->GetFileList(Files);
-
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
 		ReadFromVolume(0x2440 + 0x14, 4, _rPartition.Header.ApploaderSize, true);
@@ -305,18 +302,14 @@ bool ParsePartitionData(SPartition& _rPartition)
 			, _rPartition.Header.FSTSize);
 
 		// Go through the filesystem and mark entries as used
-		for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
+		for (SFileInfo file : filesystem->GetFileList())
 		{
-			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath.c_str() : "/");
+			DEBUG_LOG(DISCIO, file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
 			// Just 1byte for directory? - it will end up reserving a cluster this way
-			if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
-				MarkAsUsedE(_rPartition.Offset
-				+ _rPartition.Header.DataOffset
-				, (*Files.at(currentFile)).m_Offset, 1);
+			if (file.m_NameOffset & 0x1000000)
+				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, 1);
 			else
-				MarkAsUsedE(_rPartition.Offset
-				+ _rPartition.Header.DataOffset
-				, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
+				MarkAsUsedE(_rPartition.Offset + _rPartition.Header.DataOffset, file.m_Offset, file.m_FileSize);
 		}
 	}
 

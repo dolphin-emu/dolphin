@@ -45,7 +45,6 @@ class WiiPartition final : public wxTreeItemData
 public:
 	DiscIO::IVolume *Partition;
 	DiscIO::IFileSystem *FileSystem;
-	std::vector<const DiscIO::SFileInfo *> Files;
 };
 
 struct PHackData
@@ -218,13 +217,12 @@ private:
 
 	GameListItem* OpenGameListItem;
 
-	std::vector<const DiscIO::SFileInfo*> GCFiles;
 	typedef std::vector<const DiscIO::SFileInfo*>::iterator fileIter;
 
 	size_t CreateDirectoryTree(wxTreeItemId& parent,
-			std::vector<const DiscIO::SFileInfo*> fileInfos);
+			const std::vector<DiscIO::SFileInfo>& fileInfos);
 	size_t CreateDirectoryTree(wxTreeItemId& parent,
-			std::vector<const DiscIO::SFileInfo*> fileInfos,
+			const std::vector<DiscIO::SFileInfo>& fileInfos,
 			const size_t _FirstIndex,
 			const size_t _LastIndex);
 	void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,

@@ -27,7 +27,6 @@ namespace FileMon
 
 static DiscIO::IVolume *OpenISO = nullptr;
 static DiscIO::IFileSystem *pFileSystem = nullptr;
-static std::vector<const DiscIO::SFileInfo *> DiscFiles;
 static std::string ISOFile = "", CurrentFile = "";
 static bool FileAccess = true;
 
@@ -73,8 +72,6 @@ void ReadFileSystem(const std::string& filename)
 		pFileSystem = nullptr;
 	}
 
-	// DiscFiles' pointers are no longer valid after pFileSystem is cleared
-	DiscFiles.clear();
 	OpenISO = DiscIO::CreateVolumeFromFilename(filename);
 	if (!OpenISO)
 		return;
@@ -85,8 +82,6 @@ void ReadFileSystem(const std::string& filename)
 
 		if (!pFileSystem)
 			return;
-
-		pFileSystem->GetFileList(DiscFiles);
 	}
 
 	FileAccess = true;
@@ -165,9 +160,6 @@ void Close()
 		delete pFileSystem;
 		pFileSystem = nullptr;
 	}
-
-	// DiscFiles' pointers are no longer valid after pFileSystem is cleared
-	DiscFiles.clear();
 
 	ISOFile = "";
 	CurrentFile = "";
