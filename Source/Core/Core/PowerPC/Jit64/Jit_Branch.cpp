@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <initializer_list>
 #include "Common/CommonTypes.h"
 
 #include "Core/PowerPC/Jit64/Jit.h"
@@ -104,58 +103,44 @@ void Jit64::bcx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff);
 
+	// USES_CR
+
+	FixupBranch pCTRDontBranch;
+	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+	{
+		SUB(32, PPCSTATE_CTR, Imm8(1));
+		if (inst.BO & BO_BRANCH_IF_CTR_0)
+			pCTRDontBranch = J_CC(CC_NZ, true);
+		else
+			pCTRDontBranch = J_CC(CC_Z, true);
+	}
+
+	FixupBranch pConditionDontBranch;
+	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+	{
+		pConditionDontBranch = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
+		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+	}
+
+	if (inst.LK)
+		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
+
 	u32 destination;
 	if (inst.AA)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-	bool cc = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
-	bool forwardJumps = analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
-	bool jumpInBlock = cc && forwardJumps && destination > js.compilerPC && destination < js.blockEnd;
-	int branchCount = 0;
-	FixupBranch branch[2];
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
+	WriteExit(destination, inst.LK, js.compilerPC + 4);
 
-	// TODO: support ctr + condition branches. A bit of a catch because *both* branches have to be true
-	// for the branch to be taken. Maybe invert the condition?
-	if (!(inst.BO & BO_DONT_DECREMENT_FLAG) && !(inst.BO & BO_DONT_CHECK_CONDITION))
-		jumpInBlock = false;
+	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
+		SetJumpTarget(pConditionDontBranch);
+	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+		SetJumpTarget(pCTRDontBranch);
 
-	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
-	{
-		bool dir = jumpInBlock ^ !!(inst.BO & BO_BRANCH_IF_CTR_0);
-		SUB(32, PPCSTATE_CTR, Imm8(1));
-		branch[branchCount++] = J_CC(dir ? CC_NZ : CC_Z, true);
-	}
-
-	FixupBranch pConditionBranch = { NULL, 0 };
-	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
-	{
-		bool dir = jumpInBlock ^ !(inst.BO_2 & BO_BRANCH_IF_TRUE);
-		branch[branchCount++] = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), dir);
-	}
-
-	if (jumpInBlock)
-	{
-		BranchTarget branchData = { {}, branchCount, js.downcountAmount, js.fifoBytesThisBlock, js.firstFPInstructionFound, gpr, fpr, js.op };
-		for (int i = 0; i < branchCount; i++)
-			branchData.sourceBranch[i] = branch[i];
-		branch_targets.insert(std::make_pair(destination, branchData));
-	}
-	else
-	{
-		if (inst.LK)
-			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
-
-		gpr.Flush(FLUSH_MAINTAIN_STATE);
-		fpr.Flush(FLUSH_MAINTAIN_STATE);
-		WriteExit(destination, inst.LK, js.compilerPC + 4);
-
-		while (branchCount > 0)
-			SetJumpTarget(branch[--branchCount]);
-	}
-
-	if (!cc)
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
 		gpr.Flush();
 		fpr.Flush();

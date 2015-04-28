@@ -488,45 +488,6 @@ void Jit64::Trace()
 		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
-void Jit64::DoForwardBranches(u32 address)
-{
-	auto src = branch_targets.equal_range(address);
-	auto begin = src.first;
-	auto end = src.second;
-	if (begin == end)
-		return;
-	// First, do everything that needs to go in the main path
-	for (auto it = begin; it != end; ++it)
-	{
-		gpr.PrepareRegCache(it->second.gpr);
-		fpr.PrepareRegCache(it->second.fpr);
-	}
-	std::vector<FixupBranch> jumpsToMainCode;
-	jumpsToMainCode.push_back(J(true));
-	for (auto it = begin; it != end;)
-	{
-		BranchTarget branchData = it->second;
-		for (int i = 0; i < branchData.branchCount; i++)
-			SetJumpTarget(branchData.sourceBranch[i]);
-		if (branchData.sourceOp->inst.LK)
-			MOV(32, PPCSTATE_LR, Imm32(branchData.sourceOp->address + 4)); // LR = PC + 4;
-		// revert the downcount amount difference
-		ADD(32, PPCSTATE(downcount), Imm32(js.downcountAmount - branchData.downcountAmount));
-		// we have to assume the worst
-		js.fifoBytesThisBlock = std::max(branchData.fifoBytesThisBlock, js.fifoBytesThisBlock);
-		if (!branchData.firstFPInstructionFound)
-			js.firstFPInstructionFound = false;
-		branchData.gpr.ConvertRegCache(gpr);
-		branchData.fpr.ConvertRegCache(fpr);
-		++it;
-		if (it != end)
-			jumpsToMainCode.push_back(J(true));
-	}
-	for (FixupBranch jump : jumpsToMainCode)
-		SetJumpTarget(jump);
-	branch_targets.erase(begin, end);
-}
-
 void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
@@ -560,7 +521,6 @@ void Jit64::Jit(u32 em_address)
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
-				analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 			}
 			Trace();
 		}
@@ -596,7 +556,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	jit->js.numFloatingPointInst = 0;
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
-	js.blockEnd = nextPC;
 
 	const u8 *start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
@@ -675,7 +634,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
-	branch_targets.clear();
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -684,6 +642,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.instructionNumber = i;
 		js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
+		js.downcountAmount += opinfo->numCycles;
 		js.fastmemLoadStore = nullptr;
 		js.fixupExceptionHandler = false;
 		js.revertGprLoad = -1;
@@ -703,12 +662,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			}
 			js.isLastInstruction = true;
 		}
-
-		if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
-			DoForwardBranches(js.compilerPC);
-
-		// We have to do this after DoForwardBranches, so the correct cycle count delta gets used.
-		js.downcountAmount += opinfo->numCycles;
 
 		// Gather pipe writes using a non-immediate address are discovered by profiling.
 		bool gatherPipeIntCheck = jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
@@ -942,5 +895,4 @@ void Jit64::EnableOptimization()
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
-	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 }
