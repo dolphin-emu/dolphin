@@ -960,11 +960,6 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
 		m_XRRConfig->ToggleDisplayMode(bFullscreen);
-#elif defined __APPLE__
-	if (bFullscreen)
-		CGDisplayHideCursor(CGMainDisplayID());
-	else
-		CGDisplayShowCursor(CGMainDisplayID());
 #endif
 }
 
