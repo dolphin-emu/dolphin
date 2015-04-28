@@ -60,10 +60,11 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 			wxBitmap(iDolphinLogo));
 #endif
 
-	const wxString DolphinText = _("Dolphin");
+	const wxString DolphinText = _("Dolphin VR");
 	const wxString RevisionText = scm_desc_str;
+	const wxString OculusVerText = wxString::Format("%s", SCM_OCULUS_STR);
 	const wxString CopyrightText = _("(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.");
-	const wxString BranchText = wxString::Format(_("Branch: %s"), scm_branch_str);
+	const wxString BranchText = wxString::Format(_("Branch: %s "), scm_branch_str);
 	const wxString BranchRevText = wxString::Format(_("Revision: %s"), scm_rev_git_str);
 	const wxString CompiledText = wxString::Format(_("Compiled: %s @ %s"), __DATE__, __TIME__);
 	const wxString CheckUpdateText = _("Check for updates: ");
@@ -76,7 +77,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString SupportText = _("Support");
 
 	wxStaticText* const Dolphin = new wxStaticText(this, wxID_ANY, DolphinText);
-	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTE_NO_VSCROLL);
+	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxSize(300, 15), wxNO_BORDER | wxTE_NO_VSCROLL);
 	BanishBackground(Revision);
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
 	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_NO_VSCROLL);
@@ -85,10 +86,10 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	wxStaticText* const Update = new wxStaticText(this, wxID_ANY, CheckUpdateText);
 	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
 	wxStaticText* const SecondSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
-	wxHyperlinkCtrl* const Download = new wxHyperlinkCtrl(this, wxID_ANY, "dolphin-emu.org/download", "https://dolphin-emu.org/download/");
+	wxHyperlinkCtrl* const Download = new wxHyperlinkCtrl(this, wxID_ANY, "dolphinvr.wordpress.com/downloads", "https://dolphinvr.wordpress.com/downloads/");
 	wxHyperlinkCtrl* const License = new wxHyperlinkCtrl(this, wxID_ANY, LicenseText, "https://github.com/dolphin-emu/dolphin/blob/master/license.txt");
-	wxHyperlinkCtrl* const Authors = new wxHyperlinkCtrl(this, wxID_ANY, AuthorsText, "https://github.com/dolphin-emu/dolphin/graphs/contributors");
-	wxHyperlinkCtrl* const Support = new wxHyperlinkCtrl(this, wxID_ANY, SupportText, "https://forums.dolphin-emu.org/");
+	wxHyperlinkCtrl* const Authors = new wxHyperlinkCtrl(this, wxID_ANY, AuthorsText, "https://github.com/CarlKenner/dolphin/graphs/contributors");
+	wxHyperlinkCtrl* const Support = new wxHyperlinkCtrl(this, wxID_ANY, SupportText, "https://forums.oculus.com/viewtopic.php?f=42&t=11241&start=1180");
 
 	wxFont DolphinFont = Dolphin->GetFont();
 	wxFont RevisionFont = Revision->GetFont();
@@ -102,6 +103,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	Revision->SetFont(RevisionFont);
 
 	Revision->SetEditable(false);
+	Revision->AppendText(OculusVerText);
 	Revision->SetWindowStyle(wxNO_BORDER);
 
 	BranchFont.SetPointSize(7);
