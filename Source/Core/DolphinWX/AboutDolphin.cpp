@@ -17,19 +17,47 @@
 #include <wx/windowid.h>
 #include <wx/generic/statbmpg.h>
 
+#ifdef __APPLE__
+#import <AppKit/AppKit.h>
+#endif
+
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/resources/dolphin_logo.cpp"
+
+static void BanishBackground(wxTextCtrl* ctrl)
+{
+#ifdef __APPLE__
+       NSTextField* tf = (NSTextField*)ctrl->GetHandle();
+       tf.drawsBackground = NO;
+#endif
+}
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
 		const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	wxMemoryInputStream istream(dolphin_logo_png, sizeof dolphin_logo_png);
+	const unsigned char* dolphin_logo_bin = dolphin_logo_png;
+	size_t dolphin_logo_size = sizeof dolphin_logo_png;
+#ifdef __APPLE__
+	double scaleFactor = 1.0;
+	if (GetContentScaleFactor() >= 2)
+	{
+		dolphin_logo_bin = dolphin_logo_2x_png;
+		dolphin_logo_size = sizeof dolphin_logo_2x_png;
+		scaleFactor = 2.0;
+	}
+#endif
+	wxMemoryInputStream istream(dolphin_logo_bin, dolphin_logo_size);
 	wxImage iDolphinLogo(istream, wxBITMAP_TYPE_PNG);
+#ifdef __APPLE__
+	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
+			wxBitmap(iDolphinLogo, -1, scaleFactor));
+#else
 	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
 			wxBitmap(iDolphinLogo));
+#endif
 
 	const wxString DolphinText = _("Dolphin");
 	const wxString RevisionText = scm_desc_str;
@@ -47,9 +75,11 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString SupportText = _("Support");
 
 	wxStaticText* const Dolphin = new wxStaticText(this, wxID_ANY, DolphinText);
-	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize);
+	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTE_NO_VSCROLL);
+	BanishBackground(Revision);
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
-	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxTE_MULTILINE | wxNO_BORDER | wxTE_NO_VSCROLL);
+	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_NO_VSCROLL);
+	BanishBackground(Branch);
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
 	wxStaticText* const Update = new wxStaticText(this, wxID_ANY, CheckUpdateText);
 	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
@@ -106,8 +136,15 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	sInfo->Add(Message);
 	sInfo->Add(sLinks);
 
+	wxBoxSizer* const sLogo = new wxBoxSizer(wxVERTICAL);
+	sLogo->AddSpacer(75);
+	sLogo->Add(sbDolphinLogo);
+	sLogo->AddSpacer(40);
+
 	wxBoxSizer* const sMainHor = new wxBoxSizer(wxHORIZONTAL);
-	sMainHor->Add(sbDolphinLogo);
+	sMainHor->AddSpacer(30);
+	sMainHor->Add(sLogo);
+	sMainHor->AddSpacer(30);
 	sMainHor->Add(sInfo);
 	sMainHor->AddSpacer(30);
 
