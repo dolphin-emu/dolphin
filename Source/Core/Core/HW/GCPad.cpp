@@ -57,26 +57,17 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
 
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
-
 	// get input
 	((GCPad*)s_config.controllers[_numPAD])->GetInput(_pPADStatus);
 }
 
 void Rumble(u8 _numPAD, const ControlState strength)
 {
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
 	((GCPad*)s_config.controllers[ _numPAD ])->SetOutput(strength);
 }
 
 bool GetMicButton(u8 pad)
 {
-
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
-
 	return ((GCPad*)s_config.controllers[pad])->GetMicButton();
 }
 

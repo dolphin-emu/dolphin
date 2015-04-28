@@ -103,21 +103,21 @@ void CheckGatherPipe()
 	}
 }
 
-void Write8(const u8 _iValue, const u32 _iAddress)
+void Write8(const u8 _iValue)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%02x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
 	FastWrite8(_iValue);
 	CheckGatherPipe();
 }
 
-void Write16(const u16 _iValue, const u32 _iAddress)
+void Write16(const u16 _iValue)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%04x",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
 	FastWrite16(_iValue);
 	CheckGatherPipe();
 }
 
-void Write32(const u32 _iValue, const u32 _iAddress)
+void Write32(const u32 _iValue)
 {
 //#ifdef _DEBUG
 //	float floatvalue = *(float*)&_iValue;
@@ -127,7 +127,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	CheckGatherPipe();
 }
 
-void Write64(const u64 _iValue, const u32 _iAddress)
+void Write64(const u64 _iValue)
 {
 	FastWrite64(_iValue);
 	CheckGatherPipe();

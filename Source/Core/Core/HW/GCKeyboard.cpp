@@ -55,8 +55,6 @@ void GetStatus(u8 _port, KeyboardStatus* _pKeyboardStatus)
 	memset(_pKeyboardStatus, 0, sizeof(*_pKeyboardStatus));
 	_pKeyboardStatus->err = PAD_ERR_NONE;
 
-	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
-
 	// get input
 	((GCKeyboard*)s_config.controllers[_port])->GetInput(_pKeyboardStatus);
 }
