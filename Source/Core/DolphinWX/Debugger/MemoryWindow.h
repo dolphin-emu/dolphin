@@ -32,12 +32,6 @@ public:
 	              long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
 	              const wxString& name = _("Memory"));
 
-	wxCheckBox* chk8;
-	wxCheckBox* chk16;
-	wxCheckBox* chk32;
-	wxButton*   btnSearch;
-	wxCheckBox* chkAscii;
-	wxCheckBox* chkHex;
 	void Save(IniFile& _IniFile) const;
 	void Load(IniFile& _IniFile);
 
@@ -48,13 +42,6 @@ public:
 
 private:
 	DECLARE_EVENT_TABLE()
-
-	CMemoryView* memview;
-	wxListBox* symbols;
-
-	wxButton* buttonGo;
-	wxTextCtrl* addrbox;
-	wxTextCtrl* valbox;
 
 	void U8(wxCommandEvent& event);
 	void U16(wxCommandEvent& event);
@@ -71,4 +58,18 @@ private:
 	void OnDumpMemory(wxCommandEvent& event);
 	void OnDumpMem2(wxCommandEvent& event);
 	void OnDumpFakeVMEM(wxCommandEvent& event);
+
+	wxCheckBox* chk8;
+	wxCheckBox* chk16;
+	wxCheckBox* chk32;
+	wxButton*   btnSearch;
+	wxCheckBox* chkAscii;
+	wxCheckBox* chkHex;
+
+	CMemoryView* memview;
+	wxListBox* symbols;
+
+	wxButton* buttonGo;
+	wxTextCtrl* addrbox;
+	wxTextCtrl* valbox;
 };
