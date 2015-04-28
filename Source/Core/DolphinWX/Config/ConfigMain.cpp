@@ -81,6 +81,8 @@ void CConfigMain::CreateGUIControls()
 	main_sizer->Add(Notebook, 1, wxEXPAND | wxALL, 5);
 	main_sizer->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
+	main_sizer->SetMinSize(400, 0);
+
 	SetSizerAndFit(main_sizer);
 	Center();
 	SetFocus();
