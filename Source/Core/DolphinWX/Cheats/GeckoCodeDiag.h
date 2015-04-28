@@ -13,11 +13,9 @@
 class IniFile;
 class wxButton;
 class wxCheckListBox;
-class wxCommandEvent;
 class wxListBox;
 class wxStaticText;
 class wxTextCtrl;
-class wxWindow;
 
 namespace Gecko
 {

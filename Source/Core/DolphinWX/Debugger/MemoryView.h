@@ -10,7 +10,6 @@
 #include "Common/CommonTypes.h"
 
 class DebugInterface;
-class wxWindow;
 
 class CMemoryView : public wxControl
 {

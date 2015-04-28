@@ -13,8 +13,6 @@
 
 #include "Common/CommonTypes.h"
 
-class wxWindow;
-
 class CWatchTable : public wxGridTableBase
 {
 	enum

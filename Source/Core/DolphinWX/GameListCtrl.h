@@ -17,9 +17,6 @@
 
 #include "DolphinWX/ISOFile.h"
 
-class wxListEvent;
-class wxWindow;
-
 class wxEmuStateTip : public wxTipWindow
 {
 public:

@@ -13,7 +13,6 @@
 class InputConfig;
 class wxButton;
 class wxStaticBoxSizer;
-class wxWindow;
 
 class ControllerConfigDiag : public wxDialog
 {

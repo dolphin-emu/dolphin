@@ -23,7 +23,6 @@ class wxCheckBox;
 class wxSlider;
 class wxStaticBitmap;
 class wxTextCtrl;
-class wxWindow;
 
 class TASInputDlg : public wxDialog
 {

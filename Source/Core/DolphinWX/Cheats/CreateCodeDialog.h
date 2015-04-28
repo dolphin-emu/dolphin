@@ -12,7 +12,6 @@
 
 class wxCheckBox;
 class wxTextCtrl;
-class wxWindow;
 
 wxDECLARE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
 

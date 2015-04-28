@@ -20,7 +20,6 @@ class wxSpinButton;
 class wxSpinEvent;
 class wxStaticBoxSizer;
 class wxTextCtrl;
-class wxWindow;
 
 class CPatchAddEdit : public wxDialog
 {

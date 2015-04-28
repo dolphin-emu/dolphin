@@ -32,16 +32,12 @@
 
 class InputConfig;
 class wxComboBox;
-class wxCommandEvent;
-class wxEvent;
 class wxListBox;
 class wxNotebook;
 class wxSlider;
 class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
-class wxTimerEvent;
-class wxWindow;
 
 class PadSetting
 {

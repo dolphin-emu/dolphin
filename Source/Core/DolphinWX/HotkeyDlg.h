@@ -21,8 +21,6 @@
 #endif
 
 class wxButton;
-class wxTimerEvent;
-class wxWindow;
 
 class HotkeyConfigDialog : public wxDialog
 {

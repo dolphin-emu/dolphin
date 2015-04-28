@@ -36,7 +36,7 @@ class wxSpinCtrl;
 class wxStaticBitmap;
 class wxTextCtrl;
 class wxTreeCtrl;
-class wxWindow;
+
 namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 

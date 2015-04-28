@@ -19,7 +19,6 @@ class CMemoryView;
 class wxAuiNotebook;
 class wxAuiToolBar;
 class wxListBox;
-class wxWindow;
 
 class DSPDebuggerLLE : public wxPanel
 {

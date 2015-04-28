@@ -12,9 +12,7 @@ class LogManager;
 class CLogWindow;
 class wxCheckBox;
 class wxCheckListBox;
-class wxCommandEvent;
 class wxRadioBox;
-class wxWindow;
 
 class LogConfigWindow : public wxPanel
 {

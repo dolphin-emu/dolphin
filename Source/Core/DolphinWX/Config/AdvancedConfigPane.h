@@ -7,7 +7,6 @@
 #include <wx/panel.h>
 
 class wxCheckBox;
-class wxCommandEvent;
 class wxSlider;
 class wxStaticText;
 
