@@ -63,7 +63,7 @@ const std::string CFileSystemGCWii::GetFileName(u64 _Address)
 	return "";
 }
 
-u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize)
+u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize, u64 _OffsetInFile)
 {
 	if (!m_Initialized)
 		InitFileSystem();
@@ -72,14 +72,16 @@ u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size
 	if (pFileInfo == nullptr)
 		return 0;
 
-	if (pFileInfo->m_FileSize > _MaxBufferSize)
+	if (_OffsetInFile >= pFileInfo->m_FileSize)
 		return 0;
 
-	DEBUG_LOG(DISCIO, "Filename: %s. Offset: %" PRIx64 ". Size: %" PRIx64, _rFullPath.c_str(),
-		pFileInfo->m_Offset, pFileInfo->m_FileSize);
+	u64 read_length = std::min(_MaxBufferSize, pFileInfo->m_FileSize - _OffsetInFile);
 
-	m_rVolume->Read(pFileInfo->m_Offset, pFileInfo->m_FileSize, _pBuffer, m_Wii);
-	return pFileInfo->m_FileSize;
+	DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64 " Size: %" PRIx64,
+	          read_length, _OffsetInFile, _rFullPath.c_str(), pFileInfo->m_Offset, pFileInfo->m_FileSize);
+
+	m_rVolume->Read(pFileInfo->m_Offset + _OffsetInFile, read_length, _pBuffer, m_Wii);
+	return read_length;
 }
 
 bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename)
