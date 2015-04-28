@@ -71,10 +71,11 @@ class CRegisterView : public wxGrid
 public:
 	CRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
 	void Update() override;
+
+private:
 	void OnMouseDownR(wxGridEvent& event);
 	void OnPopupMenu(wxCommandEvent& event);
 
-private:
 	u32 m_selectedAddress = 0;
 
 	// Owned by wx. Deleted implicitly upon destruction.

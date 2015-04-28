@@ -98,35 +98,37 @@ class ControlDialog : public wxDialog
 public:
 	ControlDialog(GamepadPage* const parent, InputConfig& config, ControllerInterface::ControlReference* const ref);
 
+	bool Validate() override;
+
+	int GetRangeSliderValue() const;
+
+	ControllerInterface::ControlReference* const control_reference;
+	InputConfig& m_config;
+
+private:
 	wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
-
-	virtual bool Validate() override;
-
-	void DetectControl(wxCommandEvent& event);
-	void ClearControl(wxCommandEvent& event);
-	void SetDevice(wxCommandEvent& event);
 
 	void UpdateGUI();
 	void UpdateListContents();
 	void SelectControl(const std::string& name);
 
+	void DetectControl(wxCommandEvent& event);
+	void ClearControl(wxCommandEvent& event);
+	void SetDevice(wxCommandEvent& event);
+
 	void SetSelectedControl(wxCommandEvent& event);
 	void AppendControl(wxCommandEvent& event);
 
-	ControllerInterface::ControlReference* const control_reference;
-	InputConfig& m_config;
-	wxComboBox*  device_cbox;
+	bool GetExpressionForSelectedControl(wxString &expr);
 
-	wxTextCtrl* textctrl;
-	wxListBox*  control_lbox;
-	wxSlider*   range_slider;
-
-private:
 	GamepadPage* const m_parent;
+	wxComboBox*        device_cbox;
+	wxTextCtrl*        textctrl;
+	wxListBox*         control_lbox;
+	wxSlider*          range_slider;
 	wxStaticText*      m_bound_label;
 	wxStaticText*      m_error_label;
-	ciface::Core::DeviceQualifier    m_devq;
-	bool GetExpressionForSelectedControl(wxString &expr);
+	ciface::Core::DeviceQualifier m_devq;
 };
 
 class ExtensionButton : public wxButton
