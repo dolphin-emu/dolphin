@@ -289,19 +289,19 @@ wxMenuBar* CFrame::CreateMenu()
 	{
 		viewMenu->Check(IDM_LOG_WINDOW, g_pCodeWindow->bShowOnStart[0]);
 
-		const wxString MenuText[] = {
-			wxTRANSLATE("&Registers"),
-			wxTRANSLATE("&Watch"),
-			wxTRANSLATE("&Breakpoints"),
-			wxTRANSLATE("&Memory"),
-			wxTRANSLATE("&JIT"),
-			wxTRANSLATE("&Sound"),
-			wxTRANSLATE("&Video")
+		static const wxString menu_text[] = {
+			_("&Registers"),
+			_("&Watch"),
+			_("&Breakpoints"),
+			_("&Memory"),
+			_("&JIT"),
+			_("&Sound"),
+			_("&Video")
 		};
 
 		for (int i = IDM_REGISTER_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
 		{
-			viewMenu->AppendCheckItem(i, wxGetTranslation(MenuText[i - IDM_REGISTER_WINDOW]));
+			viewMenu->AppendCheckItem(i, menu_text[i - IDM_REGISTER_WINDOW]);
 			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOG_WINDOW]);
 		}
 
