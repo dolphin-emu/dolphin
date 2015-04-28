@@ -20,12 +20,14 @@ class ControllerConfigDiag : public wxDialog
 public:
 	ControllerConfigDiag(wxWindow* const parent);
 
+private:
 	void RefreshRealWiimotes(wxCommandEvent& event);
+
+	void ConfigEmulatedWiimote(wxCommandEvent& event);
 
 	void SelectSource(wxCommandEvent& event);
 	void RevertSource();
 
-	void ConfigEmulatedWiimote(wxCommandEvent& event);
 	void Save(wxCommandEvent& event);
 
 	void OnSensorBarPos(wxCommandEvent& event)
@@ -33,39 +35,44 @@ public:
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.BAR", event.GetInt());
 		event.Skip();
 	}
+
 	void OnSensorBarSensitivity(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.SENS", event.GetInt());
 		event.Skip();
 	}
+
 	void OnSpeakerVolume(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.SPKV", event.GetInt());
 		event.Skip();
 	}
+
 	void OnMotor(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", event.GetInt());
 		event.Skip();
 	}
+
 	void OnContinuousScanning(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_WiimoteContinuousScanning = event.IsChecked();
 		WiimoteReal::Initialize();
 		event.Skip();
 	}
+
 	void OnEnableSpeaker(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
 		event.Skip();
 	}
+
 	void OnGameCubeAdapter(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_GameCubeAdapter = event.IsChecked();
 		event.Skip();
 	}
 
-private:
 	wxStaticBoxSizer* CreateGamecubeSizer();
 	wxStaticBoxSizer* CreateWiimoteConfigSizer();
 	wxStaticBoxSizer* CreateBalanceBoardSizer();

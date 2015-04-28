@@ -116,8 +116,8 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 		{
 			LoadAndSwap(32, scratch3, data);
 			MOV(32, dest, R(scratch3));
-			data.offset += sizeof(float);
-			dest.offset += sizeof(float);
+			data.AddMemOffset(sizeof(float));
+			dest.AddMemOffset(sizeof(float));
 		}
 		return load_bytes;
 	}
@@ -302,7 +302,7 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format)
 		case FORMAT_24B_6666:
 			//          RRRRRRGG GGGGBBBB BBAAAAAA
 			// AAAAAAAA BBBBBBBB GGGGGGGG RRRRRRRR
-			data.offset -= 1;
+			data.AddMemOffset(-1); // subtract one from address so we can use a 32bit load and bswap
 			LoadAndSwap(32, scratch1, data);
 			if (cpu_info.bBMI2)
 			{
@@ -408,10 +408,10 @@ void VertexLoaderX64::GenerateVertexLoader()
 			{
 				data = GetVertexAddr(ARRAY_NORMAL, m_VtxDesc.Normal);
 				int elem_size = 1 << (m_VtxAttr.NormalFormat / 2);
-				data.offset += i * elem_size * 3;
+				data.AddMemOffset(i * elem_size * 3);
 			}
-			data.offset += ReadVertex(data, m_VtxDesc.Normal, m_VtxAttr.NormalFormat, 3, 3,
-			                          true, scaling_exponent, &m_native_vtx_decl.normals[i]);
+			data.AddMemOffset(ReadVertex(data, m_VtxDesc.Normal, m_VtxAttr.NormalFormat, 3, 3,
+			                             true, scaling_exponent, &m_native_vtx_decl.normals[i]));
 		}
 
 		m_native_components |= VB_HAS_NRM0;

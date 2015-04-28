@@ -169,11 +169,6 @@ void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
 	PowerPC::HostWrite_U32(value, address);
 }
 
-void PPCDebugInterface::BreakNow()
-{
-	CCPU::Break();
-}
-
 
 // =======================================================
 // Separate the blocks with colors.

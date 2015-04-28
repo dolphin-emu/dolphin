@@ -75,10 +75,6 @@ public:
 	void UpdateManager();
 
 	// Menu bar
-	// -------------------
-	void OnCPUMode(wxCommandEvent& event); // CPU Mode menu
-	void OnJITOff(wxCommandEvent& event);
-
 	void ToggleCodeWindow(bool bShow);
 	void ToggleRegisterWindow(bool bShow);
 	void ToggleWatchWindow(bool bShow);
@@ -87,14 +83,6 @@ public:
 	void ToggleJitWindow(bool bShow);
 	void ToggleSoundWindow(bool bShow);
 	void ToggleVideoWindow(bool bShow);
-
-	void OnChangeFont(wxCommandEvent& event);
-
-	void OnCodeStep(wxCommandEvent& event);
-	void OnAddrBoxChange(wxCommandEvent& event);
-	void OnSymbolsMenu(wxCommandEvent& event);
-	void OnJitMenu(wxCommandEvent& event);
-	void OnProfilerMenu(wxCommandEvent& event);
 
 	// Sub dialogs
 	CRegisterWindow* m_RegisterWindow;
@@ -111,6 +99,16 @@ public:
 	int iNbAffiliation[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
 
 private:
+	void OnCPUMode(wxCommandEvent& event);
+
+	void OnChangeFont(wxCommandEvent& event);
+
+	void OnCodeStep(wxCommandEvent& event);
+	void OnAddrBoxChange(wxCommandEvent& event);
+	void OnSymbolsMenu(wxCommandEvent& event);
+	void OnJitMenu(wxCommandEvent& event);
+	void OnProfilerMenu(wxCommandEvent& event);
+
 	void OnSymbolListChange(wxCommandEvent& event);
 	void OnSymbolListContextMenu(wxContextMenuEvent& event);
 	void OnCallstackListChange(wxCommandEvent& event);

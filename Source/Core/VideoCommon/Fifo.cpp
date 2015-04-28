@@ -149,7 +149,7 @@ void EmulatorState(bool running)
 
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
 {
-	if (g_use_deterministic_gpu_thread && GpuRunningState)
+	if (g_use_deterministic_gpu_thread)
 	{
 		std::unique_lock<std::mutex> lk(s_video_buffer_lock);
 		u8* write_ptr = s_video_buffer_write_ptr;
@@ -189,6 +189,11 @@ void PushFifoAuxBuffer(void* ptr, size_t size)
 	if (size > (size_t) (s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
 	{
 		SyncGPU(SYNC_GPU_AUX_SPACE, /* may_move_read_ptr */ false);
+		if (!GpuRunningState)
+		{
+			// GPU is shutting down
+			return;
+		}
 		if (size > (size_t) (s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
 		{
 			// That will sync us up to the last 32 bytes, so this short region
@@ -239,6 +244,12 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 		// We can't wrap around while the GPU is working on the data.
 		// This should be very rare due to the reset in SyncGPU.
 		SyncGPU(SYNC_GPU_WRAPAROUND);
+		if (!GpuRunningState)
+		{
+			// GPU is shutting down
+			return;
+		}
+
 		if (s_video_buffer_pp_read_ptr != s_video_buffer_read_ptr)
 		{
 			PanicAlert("desynced read pointers");
