@@ -223,7 +223,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		// Oh, no memory, Just a reg.
 		mod = 3; //11
 	}
-	else if (scale >= 1)
+	else
 	{
 		//Ah good, no scaling.
 		if (scale == SCALE_ATREG && !((_offsetOrBaseReg & 7) == 4 || (_offsetOrBaseReg & 7) == 5))
@@ -249,7 +249,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 			mod = 0;
 			_offsetOrBaseReg = 5;
 		}
-		else //if (scale != SCALE_ATREG)
+		else
 		{
 			if ((_offsetOrBaseReg & 7) == 4) //this would occupy the SIB encoding :(
 			{
@@ -287,10 +287,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	int oreg = _offsetOrBaseReg;
 	if (SIB)
 		oreg = 4;
-
-	// TODO(ector): WTF is this if about? I don't remember writing it :-)
-	//if (RIP)
-	//    oreg = 5;
 
 	emit->WriteModRM(mod, _operandReg&7, oreg&7);
 
@@ -1278,6 +1274,18 @@ void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2)
 void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmTEST, a1, a2);}
 void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(bits, nrmCMP, a1, a2);}
 void XEmitter::XCHG(int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmXCHG, a1, a2);}
+void XEmitter::CMP_or_TEST(int bits, const OpArg &a1, const OpArg &a2)
+{
+	CheckFlags();
+	if (a1.IsSimpleReg() && a2.IsImm() && a2.offset == 0) // turn 'CMP reg, 0' into shorter 'TEST reg, reg'
+	{
+		WriteNormalOp(bits, nrmTEST, a1, a1);
+	}
+	else
+	{
+		WriteNormalOp(bits, nrmCMP, a1, a2);
+	}
+}
 
 void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 {

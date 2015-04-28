@@ -154,7 +154,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// Determine whether this instruction updates inst.RA
 	bool update;
 	if (inst.OPCD == 31)
-		update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.R(b).IsImm() || gpr.R(b).offset != 0);
+		update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.R(b).IsImm() || gpr.R(b).Imm32() != 0);
 	else
 		update = ((inst.OPCD & 1) != 0) && inst.SIMM_16 != 0;
 
@@ -182,16 +182,16 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 	else
 	{
-		if ((inst.OPCD != 31) && gpr.R(a).IsImm() && !js.memcheck)
+		if ((inst.OPCD != 31) && gpr.R(a).IsImm() && !jo.memcheck)
 		{
-			u32 val = (u32)gpr.R(a).offset + (s32)inst.SIMM_16;
+			u32 val = gpr.R(a).Imm32() + inst.SIMM_16;
 			opAddress = Imm32(val);
 			if (update)
 				gpr.SetImmediate32(a, val);
 		}
-		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !js.memcheck)
+		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !jo.memcheck)
 		{
-			u32 val = (u32)gpr.R(a).offset + (u32)gpr.R(b).offset;
+			u32 val = gpr.R(a).Imm32() + gpr.R(b).Imm32();
 			opAddress = Imm32(val);
 			if (update)
 				gpr.SetImmediate32(a, val);
@@ -200,10 +200,13 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		{
 			// If we're using reg+reg mode and b is an immediate, pretend we're using constant offset mode
 			bool use_constant_offset = inst.OPCD != 31 || gpr.R(b).IsImm();
-			s32 offset = inst.OPCD == 31 ? (s32)gpr.R(b).offset : (s32)inst.SIMM_16;
+
+			s32 offset;
+			if (use_constant_offset)
+				offset = inst.OPCD == 31 ? gpr.R(b).SImm32() : (s32)inst.SIMM_16;
 			// Depending on whether we have an immediate and/or update, find the optimum way to calculate
 			// the load address.
-			if ((update || use_constant_offset) && !js.memcheck)
+			if ((update || use_constant_offset) && !jo.memcheck)
 			{
 				gpr.BindToRegister(a, true, update);
 				opAddress = gpr.R(a);
@@ -256,7 +259,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// clobber it, then restore the value in the exception path.
 	// TODO: no other load has to do this at the moment, since no other loads go directly to the
 	// target registers, but if that ever changes, we need to do it there too.
-	if (js.memcheck)
+	if (jo.memcheck)
 	{
 		gpr.StoreFromRegister(d);
 		js.revertGprLoad = d;
@@ -385,11 +388,11 @@ void Jit64::stX(UGeckoInstruction inst)
 	// If we already know the address of the write
 	if (!a || gpr.R(a).IsImm())
 	{
-		u32 addr = (a ? (u32)gpr.R(a).offset : 0) + offset;
+		u32 addr = (a ? gpr.R(a).Imm32() : 0) + offset;
 		bool exception = WriteToConstAddress(accessSize, gpr.R(s), addr, CallerSavedRegistersInUse());
 		if (update)
 		{
-			if (!js.memcheck || !exception)
+			if (!jo.memcheck || !exception)
 			{
 				gpr.SetImmediate32(a, addr);
 			}
@@ -442,7 +445,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	bool update = !!(inst.SUBOP10 & 32);
 	bool byte_reverse = !!(inst.SUBOP10 & 512);
-	FALLBACK_IF(!a || (update && a == s) || (update && js.memcheck && a == b));
+	FALLBACK_IF(!a || (update && a == s) || (update && jo.memcheck && a == b));
 
 	gpr.Lock(a, b, s);
 

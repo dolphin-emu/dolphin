@@ -128,6 +128,10 @@ public:
 	{
 	}
 
+	virtual ~JitBaseBlockCache()
+	{
+	}
+
 	int AllocateBlock(u32 em_address);
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 

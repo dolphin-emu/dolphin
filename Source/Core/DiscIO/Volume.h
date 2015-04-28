@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
 namespace DiscIO
@@ -20,6 +21,12 @@ public:
 
 	// decrypt parameter must be false if not reading a Wii disc
 	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const = 0;
+	virtual u32 Read32(u64 _Offset, bool decrypt) const
+	{
+		u32 temp;
+		Read(_Offset, sizeof(u32), (u8*)&temp, decrypt);
+		return Common::swap32(temp);
+	}
 
 	virtual bool GetTitleID(u8*) const { return false; }
 	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const

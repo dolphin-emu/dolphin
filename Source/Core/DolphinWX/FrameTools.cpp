@@ -172,7 +172,7 @@ wxMenuBar* CFrame::CreateMenu()
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
 	for (int i = 0; i < 10; i++)
-		skippingMenu->Append(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
+		skippingMenu->AppendRadioItem(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i));
 	skippingMenu->Check(IDM_FRAME_SKIP_0 + SConfig::GetInstance().m_FrameSkip, true);
 	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
 
@@ -190,7 +190,7 @@ wxMenuBar* CFrame::CreateMenu()
 	saveMenu->Append(IDM_SAVE_STATE_FILE, GetMenuLabel(HK_SAVE_STATE_FILE));
 	saveMenu->Append(IDM_SAVE_SELECTED_SLOT, GetMenuLabel(HK_SAVE_STATE_SLOT_SELECTED));
 	saveMenu->Append(IDM_SAVE_FIRST_STATE, GetMenuLabel(HK_SAVE_FIRST_STATE));
-	loadMenu->Append(IDM_UNDO_SAVE_STATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
+	saveMenu->Append(IDM_UNDO_SAVE_STATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
 	saveMenu->AppendSeparator();
 
 	loadMenu->Append(IDM_LOAD_STATE_FILE, GetMenuLabel(HK_LOAD_STATE_FILE));
@@ -198,16 +198,16 @@ wxMenuBar* CFrame::CreateMenu()
 	loadMenu->Append(IDM_UNDO_LOAD_STATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
 
-	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
+	for (unsigned int i = 0; i < State::NUM_STATES; i++)
 	{
-		loadMenu->Append(IDM_LOAD_SLOT_1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
-		saveMenu->Append(IDM_SAVE_SLOT_1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
-		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i - 1, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i - 1));
+		loadMenu->Append(IDM_LOAD_SLOT_1 + i, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i));
+		saveMenu->Append(IDM_SAVE_SLOT_1 + i, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i));
+		slotSelectMenu->Append(IDM_SELECT_SLOT_1 + i, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i));
 	}
 
 	loadMenu->AppendSeparator();
-	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
-		loadMenu->Append(IDM_LOAD_LAST_1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
+	for (unsigned int i = 0; i < State::NUM_STATES; i++)
+		loadMenu->Append(IDM_LOAD_LAST_1 + i, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i));
 
 	menubar->Append(emulationMenu, _("&Emulation"));
 
@@ -766,14 +766,14 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 		if (SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_NONE && SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_GC_GBA)
 		{
 			g_TASInputDlg[i]->CreateGCLayout();
-			g_TASInputDlg[i]->Show(true);
+			g_TASInputDlg[i]->Show();
 			g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - Controller %d"), i + 1));
 		}
 
 		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
 		{
 			g_TASInputDlg[i+4]->CreateWiiLayout(i);
-			g_TASInputDlg[i+4]->Show(true);
+			g_TASInputDlg[i+4]->Show();
 			g_TASInputDlg[i+4]->SetTitle(wxString::Format(_("TAS Input - Wiimote %d"), i + 1));
 		}
 	}
@@ -874,7 +874,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 	{
 		// let's make the read-only flag consistent at the start of a movie.
 		Movie::SetReadOnly(true);
-		GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check(true);
+		GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check();
 	}
 
 	if (Movie::PlayInput(WxStrToStr(path)))
@@ -2020,9 +2020,9 @@ void CFrame::UpdateGUI()
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable();
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable();
+				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
@@ -2030,9 +2030,9 @@ void CFrame::UpdateGUI()
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable();
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable();
+				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 			}
 			else
 			{
@@ -2056,9 +2056,9 @@ void CFrame::UpdateGUI()
 		{
 			if (m_ToolBar)
 				m_ToolBar->EnableTool(IDM_PLAY, true);
-			GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
-			GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
-			GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(true);
+			GetMenuBar()->FindItem(IDM_PLAY)->Enable();
+			GetMenuBar()->FindItem(IDM_RECORD)->Enable();
+			GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 		}
 	}
 	else if (Initialized)
@@ -2193,12 +2193,10 @@ void CFrame::DoToggleToolbar(bool _show)
 void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_InterfaceStatusbar = event.IsChecked();
-	if (SConfig::GetInstance().m_InterfaceStatusbar == true)
-		GetStatusBar()->Show();
-	else
-		GetStatusBar()->Hide();
 
-	this->SendSizeEvent();
+	GetStatusBar()->Show(event.IsChecked());
+
+	SendSizeEvent();
 }
 
 void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)

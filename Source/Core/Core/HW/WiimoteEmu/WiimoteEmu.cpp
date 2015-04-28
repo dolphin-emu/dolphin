@@ -247,7 +247,7 @@ void Wiimote::Reset()
 	//   0x33 - 0x43: level 2
 	//   0x33 - 0x54: level 3
 	//   0x55 - 0xff: level 4
-	m_status.battery = 0x5f;
+	m_status.battery = (u8)(m_options->settings[5]->GetValue() * 100);
 
 	memset(m_shake_step, 0, sizeof(m_shake_step));
 
@@ -318,6 +318,7 @@ Wiimote::Wiimote( const unsigned int index )
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 	m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Speaker Pan"), 0, -127, 127));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Battery"), 95.0 / 100, 0, 255));
 
 	// TODO: This value should probably be re-read if SYSCONF gets changed
 	m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
@@ -705,6 +706,8 @@ void Wiimote::Update()
 	memset(data, 0, sizeof(data));
 
 	Movie::SetPolledDevice();
+
+	m_status.battery = (u8)(m_options->settings[5]->GetValue() * 100);
 
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 	s8 rptf_size = rptf.size;

@@ -301,7 +301,7 @@ int GBASockServer::Receive(u8* si_buffer)
 #ifdef _DEBUG
 		if ((u8)send_data[0] == 0x00 || (u8)send_data[0] == 0xff)
 		{
-			WARN_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%d)",
+			WARN_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%lu)",
 				device_number,
 				(u8)recv_data[0], (u8)recv_data[1], (u8)recv_data[2],
 				(u8)recv_data[3], (u8)recv_data[4],
@@ -309,7 +309,7 @@ int GBASockServer::Receive(u8* si_buffer)
 		}
 		else
 		{
-			ERROR_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%d)",
+			ERROR_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%lu)",
 				device_number,
 				(u8)recv_data[0], (u8)recv_data[1], (u8)recv_data[2],
 				(u8)recv_data[3], (u8)recv_data[4],

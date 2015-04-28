@@ -148,7 +148,7 @@ void JitArm::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, int accessSize
 		else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
 		{
 			MOVI2R(rA, imm_addr);
-			EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, true, RS);
+			EmitBackpatchRoutine(this, flags, jo.fastmem, true, RS);
 		}
 		else
 		{
@@ -158,7 +158,7 @@ void JitArm::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, int accessSize
 	}
 	else
 	{
-		EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, true, RS);
+		EmitBackpatchRoutine(this, flags, jo.fastmem, true, RS);
 	}
 
 }
@@ -351,7 +351,7 @@ void JitArm::SafeLoadToReg(ARMReg dest, s32 addr, s32 offsetReg, int accessSize,
 		flags |= BackPatchInfo::FLAG_EXTEND;
 
 	EmitBackpatchRoutine(this, flags,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
+			jo.fastmem,
 			true, dest);
 
 	if (update)
@@ -482,7 +482,7 @@ void JitArm::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
+	FALLBACK_IF(!jo.fastmem);
 
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
@@ -506,7 +506,7 @@ void JitArm::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
+	FALLBACK_IF(!jo.fastmem);
 
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();

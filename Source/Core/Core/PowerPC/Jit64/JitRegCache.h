@@ -166,8 +166,6 @@ public:
 	void SetImmediate32(size_t preg, u32 immValue);
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
-	void ConvertRegCache(GPRRegCache target);
-	void PrepareRegCache(GPRRegCache other);
 };
 
 
@@ -180,6 +178,4 @@ public:
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
-	void ConvertRegCache(FPURegCache target);
-	void PrepareRegCache(FPURegCache other);
 };
