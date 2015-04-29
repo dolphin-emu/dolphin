@@ -216,6 +216,11 @@ void InputConfigDialog::ClickSave(wxCommandEvent& event)
 	event.Skip();
 }
 
+int ControlDialog::GetRangeSliderValue() const
+{
+	return range_slider->GetValue();
+}
+
 void ControlDialog::UpdateListContents()
 {
 	control_lbox->Clear();
@@ -467,7 +472,7 @@ void GamepadPage::AdjustSettingUI(wxCommandEvent& event)
 
 void GamepadPage::AdjustControlOption(wxCommandEvent&)
 {
-	m_control_dialog->control_reference->range = (ControlState)(m_control_dialog->range_slider->GetValue()) / SLIDER_TICK_COUNT;
+	m_control_dialog->control_reference->range = (ControlState)(m_control_dialog->GetRangeSliderValue()) / SLIDER_TICK_COUNT;
 }
 
 void GamepadPage::ConfigControl(wxEvent& event)

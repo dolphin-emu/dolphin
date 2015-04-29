@@ -236,10 +236,10 @@ void Clear()
 
 bool AreMemoryBreakpointsActivated()
 {
-#ifndef ENABLE_MEM_CHECK
-	return false;
-#else
+#ifdef ENABLE_MEM_CHECK
 	return true;
+#else
+	return false;
 #endif
 }
 

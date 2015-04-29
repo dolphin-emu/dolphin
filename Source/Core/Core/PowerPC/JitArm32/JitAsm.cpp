@@ -559,7 +559,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		PUSH(5, R0, R1, R2, R3, _LR);
 		VMOV(R0, S0);
 		MOV(R1, R10);
-		MOVI2R(R10, (u32)&Memory::Write_U8);
+		MOVI2R(R10, (u32)&PowerPC::Write_U8);
 		BL(R10);
 		POP(5, R0, R1, R2, R3, _PC);
 	}
@@ -614,7 +614,7 @@ void JitArmAsmRoutineManager::GenerateCommon()
 		PUSH(5, R0, R1, R2, R3, _LR);
 		VMOV(R0, S0);
 		MOV(R1, R10);
-		MOVI2R(R10, (u32)&Memory::Write_U16);
+		MOVI2R(R10, (u32)&PowerPC::Write_U16);
 		BL(R10);
 
 		POP(5, R0, R1, R2, R3, _PC);

@@ -246,14 +246,14 @@ void JitIL::Init()
 
 	jo.optimizeGatherPipe = true;
 	jo.accurateSinglePrecision = false;
-	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	UpdateMemoryOptions();
 
-	trampolines.Init(js.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
+	trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 	blocks.Init();
 	asm_routines.Init(nullptr);
 
-	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+	farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -624,7 +624,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (!ops[i].skip)
 		{
-			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
+			if (jo.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
 				ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
@@ -644,7 +644,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			JitILTables::CompileInstruction(ops[i]);
 
-			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
+			if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
 				ibuild.EmitDSIExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}

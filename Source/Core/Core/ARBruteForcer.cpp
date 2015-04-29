@@ -78,7 +78,7 @@ void ARBruteForceDriver()
 	// if we should move on to the next code then do so, and save where we are up to
 	// if we have received 30 windows messages without saving a screenshot, then this code is probably bad
 	// so skip to the next one
-	else if (ch_next_code || (ch_current_position && ch_cycles_without_snapshot > 30 && ch_last_search))
+	else if (ch_next_code || (ch_current_position && ch_cycles_without_snapshot > 30 && ch_last_search) || ch_cycles_without_snapshot > 100)
 	{
 		ch_next_code = false;
 		ch_first_search = false;

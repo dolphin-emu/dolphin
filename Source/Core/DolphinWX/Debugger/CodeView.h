@@ -30,19 +30,10 @@ class CCodeView : public wxControl
 public:
 	CCodeView(DebugInterface* debuginterface, SymbolDB *symbol_db,
 			wxWindow* parent, wxWindowID Id = wxID_ANY);
-	void OnPaint(wxPaintEvent& event);
-	void OnErase(wxEraseEvent& event);
-	void OnScrollWheel(wxMouseEvent& event);
-	void OnMouseDown(wxMouseEvent& event);
-	void OnMouseMove(wxMouseEvent& event);
-	void OnMouseUpL(wxMouseEvent& event);
-	void OnMouseUpR(wxMouseEvent& event);
-	void OnPopupMenu(wxCommandEvent& event);
-	void InsertBlrNop(int);
 
 	void ToggleBreakpoint(u32 address);
 
-	u32 GetSelection()
+	u32 GetSelection() const
 	{
 		return m_selection;
 	}
@@ -60,6 +51,16 @@ public:
 	}
 
 private:
+	void OnPaint(wxPaintEvent& event);
+	void OnErase(wxEraseEvent& event);
+	void OnScrollWheel(wxMouseEvent& event);
+	void OnMouseDown(wxMouseEvent& event);
+	void OnMouseMove(wxMouseEvent& event);
+	void OnMouseUpL(wxMouseEvent& event);
+	void OnMouseUpR(wxMouseEvent& event);
+	void OnPopupMenu(wxCommandEvent& event);
+	void InsertBlrNop(int);
+
 	void RaiseEvent();
 	int YToAddress(int y);
 

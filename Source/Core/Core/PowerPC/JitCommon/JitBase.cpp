@@ -82,3 +82,14 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 	}
 	return true;
 }
+
+void JitBase::UpdateMemoryOptions()
+{
+	bool any_watchpoints = PowerPC::memchecks.HasAny();
+	jo.fastmem = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
+	             !any_watchpoints;
+	jo.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU ||
+	              any_watchpoints;
+	jo.alwaysUseMemFuncs = any_watchpoints;
+
+}

@@ -182,7 +182,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 		MOV(RA, addr);
 
 	EmitBackpatchRoutine(this, flags,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem,
+			jo.fastmem,
 			!(is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr)), v0, v1);
 
 	SetJumpTarget(DoNotLoad);
@@ -387,7 +387,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
 		{
 			MOVI2R(addr, imm_addr);
-			EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, false, v0);
+			EmitBackpatchRoutine(this, flags, jo.fastmem, false, v0);
 		}
 		else
 		{
@@ -397,7 +397,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 	}
 	else
 	{
-		EmitBackpatchRoutine(this, flags, SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem, true, v0);
+		EmitBackpatchRoutine(this, flags, jo.fastmem, true, v0);
 	}
 }
 

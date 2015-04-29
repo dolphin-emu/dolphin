@@ -219,7 +219,9 @@ void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
 	EQuantizeType ldType = gqr.ld_type;
 	unsigned int ldScale = gqr.ld_scale;
 
-	float ps0, ps1;
+	float ps0 = 0.0f;
+	float ps1 = 0.0f;
+
 	switch (ldType)
 	{
 	case QUANTIZE_FLOAT:
