@@ -29,14 +29,15 @@ void AdvancedConfigPane::InitializeGUI()
 	m_clock_override_slider->Bind(wxEVT_SLIDER, &AdvancedConfigPane::OnClockOverrideSliderChanged, this);
 
 	wxStaticText* const clock_override_description = new wxStaticText(this, wxID_ANY,
-	  _("Higher values can make variable-framerate games\n"
-	    "run at a higher framerate, at the expense of CPU.\n"
-	    "Lower values can make variable-framerate games\n"
+	  _("Higher values can make variable-framerate games "
+	    "run at a higher framerate, at the expense of CPU. "
+	    "Lower values can make variable-framerate games "
 	    "run at a lower framerate, saving CPU.\n\n"
-	    "WARNING: Changing this from the default (100%)\n"
-	    "can and will break games and cause glitches.\n"
-	    "Do so at your own risk. Please do not report\n"
-	    "bugs that occur with a non-default clock.\n"));
+	    "WARNING: Changing this from the default (100%) "
+	    "can and will break games and cause glitches. "
+	    "Do so at your own risk. Please do not report "
+	    "bugs that occur with a non-default clock. "));
+	clock_override_description->Wrap(400);
 
 	wxBoxSizer* const clock_override_checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
 	clock_override_checkbox_sizer->Add(m_clock_override_checkbox);
