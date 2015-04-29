@@ -698,7 +698,9 @@
     <ClCompile Include="..\..\src\common\bmpcboxcmn.cpp" />
     <ClCompile Include="..\..\src\common\bookctrl.cpp" />
     <ClCompile Include="..\..\src\common\btncmn.cpp" />
-    <ClCompile Include="..\..\src\common\cairo.cpp" />
+    <ClCompile Include="..\..\src\common\cairo.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\calctrlcmn.cpp" />
     <ClCompile Include="..\..\src\common\checkboxcmn.cpp" />
     <ClCompile Include="..\..\src\common\checklstcmn.cpp" />
@@ -726,7 +728,9 @@
     <ClCompile Include="..\..\src\common\dcbufcmn.cpp" />
     <ClCompile Include="..\..\src\common\dcgraph.cpp" />
     <ClCompile Include="..\..\src\common\dcsvg.cpp" />
-    <ClCompile Include="..\..\src\common\debugrpt.cpp" />
+    <ClCompile Include="..\..\src\common\debugrpt.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\dircmn.cpp" />
     <ClCompile Include="..\..\src\common\dirctrlcmn.cpp" />
     <ClCompile Include="..\..\src\common\dlgcmn.cpp" />
@@ -778,7 +782,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\common\fontpickercmn.cpp" />
-    <ClCompile Include="..\..\src\common\fontutilcmn.cpp" />
+    <ClCompile Include="..\..\src\common\fontutilcmn.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\framecmn.cpp" />
     <ClCompile Include="..\..\src\common\fswatchercmn.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -807,7 +813,9 @@
     <ClCompile Include="..\..\src\common\imagall.cpp" />
     <ClCompile Include="..\..\src\common\imagbmp.cpp" />
     <ClCompile Include="..\..\src\common\image.cpp" />
-    <ClCompile Include="..\..\src\common\imagfill.cpp" />
+    <ClCompile Include="..\..\src\common\imagfill.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\imaggif.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -892,7 +900,9 @@
     <ClCompile Include="..\..\src\common\sckipc.cpp" />
     <ClCompile Include="..\..\src\common\sckstrm.cpp" />
     <ClCompile Include="..\..\src\common\scrolbarcmn.cpp" />
-    <ClCompile Include="..\..\src\common\selectdispatcher.cpp" />
+    <ClCompile Include="..\..\src\common\selectdispatcher.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\settcmn.cpp" />
     <ClCompile Include="..\..\src\common\sizer.cpp" />
     <ClCompile Include="..\..\src\common\slidercmn.cpp" />
@@ -917,7 +927,9 @@
     <ClCompile Include="..\..\src\common\stream.cpp" />
     <ClCompile Include="..\..\src\common\string.cpp" />
     <ClCompile Include="..\..\src\common\stringimpl.cpp" />
-    <ClCompile Include="..\..\src\common\stringops.cpp" />
+    <ClCompile Include="..\..\src\common\stringops.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\strvararg.cpp" />
     <ClCompile Include="..\..\src\common\sysopt.cpp" />
     <ClCompile Include="..\..\src\common\tarstrm.cpp" />
@@ -951,14 +963,20 @@
     <ClCompile Include="..\..\src\common\webview.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\common\webviewarchivehandler.cpp" />
-    <ClCompile Include="..\..\src\common\webviewfshandler.cpp" />
+    <ClCompile Include="..\..\src\common\webviewarchivehandler.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\webviewfshandler.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\wfstream.cpp" />
     <ClCompile Include="..\..\src\common\wincmn.cpp" />
     <ClCompile Include="..\..\src\common\windowid.cpp" />
     <ClCompile Include="..\..\src\common\wrapsizer.cpp" />
     <ClCompile Include="..\..\src\common\wxcrt.cpp" />
-    <ClCompile Include="..\..\src\common\wxprintf.cpp" />
+    <ClCompile Include="..\..\src\common\wxprintf.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\xlocale.cpp" />
     <ClCompile Include="..\..\src\common\xpmdecod.cpp" />
     <ClCompile Include="..\..\src\common\xti.cpp">
@@ -975,23 +993,31 @@
     <ClCompile Include="..\..\src\generic\aboutdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\animateg.cpp" />
     <ClCompile Include="..\..\src\generic\bannerwindow.cpp" />
-    <ClCompile Include="..\..\src\generic\bmpcboxg.cpp" />
+    <ClCompile Include="..\..\src\generic\bmpcboxg.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\busyinfo.cpp" />
-    <ClCompile Include="..\..\src\generic\buttonbar.cpp" />
+    <ClCompile Include="..\..\src\generic\buttonbar.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\calctrlg.cpp" />
     <ClCompile Include="..\..\src\generic\choicbkg.cpp" />
     <ClCompile Include="..\..\src\generic\choicdgg.cpp" />
     <ClCompile Include="..\..\src\generic\clrpickerg.cpp" />
     <ClCompile Include="..\..\src\generic\collpaneg.cpp" />
     <ClCompile Include="..\..\src\generic\colrdlgg.cpp" />
-    <ClCompile Include="..\..\src\generic\combog.cpp" />
+    <ClCompile Include="..\..\src\generic\combog.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\commandlinkbuttong.cpp" />
     <ClCompile Include="..\..\src\generic\datavgen.cpp" />
     <ClCompile Include="..\..\src\generic\datectlg.cpp" />
     <ClCompile Include="..\..\src\generic\dbgrptg.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\dcpsg.cpp" />
+    <ClCompile Include="..\..\src\generic\dcpsg.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\dirctrlg.cpp" />
     <ClCompile Include="..\..\src\generic\dirdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\dragimgg.cpp" />
@@ -1035,7 +1061,9 @@
     <ClCompile Include="..\..\src\generic\paletteg.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\printps.cpp" />
+    <ClCompile Include="..\..\src\generic\printps.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\prntdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\progdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\propdlg.cpp" />
@@ -1057,7 +1085,9 @@
     <ClCompile Include="..\..\src\generic\statusbr.cpp" />
     <ClCompile Include="..\..\src\generic\tabg.cpp" />
     <ClCompile Include="..\..\src\generic\textdlgg.cpp" />
-    <ClCompile Include="..\..\src\generic\timectrlg.cpp" />
+    <ClCompile Include="..\..\src\generic\timectrlg.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\tipdlg.cpp" />
     <ClCompile Include="..\..\src\generic\tipwin.cpp" />
     <ClCompile Include="..\..\src\generic\toolbkg.cpp" />
@@ -1090,9 +1120,13 @@
     <ClCompile Include="..\..\src\msw\combobox.cpp" />
     <ClCompile Include="..\..\src\msw\commandlinkbutton.cpp" />
     <ClCompile Include="..\..\src\msw\control.cpp" />
-    <ClCompile Include="..\..\src\msw\crashrpt.cpp" />
+    <ClCompile Include="..\..\src\msw\crashrpt.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\cursor.cpp" />
-    <ClCompile Include="..\..\src\msw\data.cpp" />
+    <ClCompile Include="..\..\src\msw\data.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\datecontrols.cpp" />
     <ClCompile Include="..\..\src\msw\datectrl.cpp" />
     <ClCompile Include="..\..\src\msw\datetimectrl.cpp" />
@@ -1104,14 +1138,18 @@
     <ClCompile Include="..\..\src\msw\dde.cpp" />
     <ClCompile Include="..\..\src\msw\debughlp.cpp" />
     <ClCompile Include="..\..\src\msw\dialog.cpp" />
-    <ClCompile Include="..\..\src\msw\dialup.cpp" />
+    <ClCompile Include="..\..\src\msw\dialup.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\dib.cpp" />
     <ClCompile Include="..\..\src\msw\dir.cpp" />
     <ClCompile Include="..\..\src\msw\dirdlg.cpp" />
     <ClCompile Include="..\..\src\msw\display.cpp" />
     <ClCompile Include="..\..\src\msw\dlmsw.cpp" />
     <ClCompile Include="..\..\src\msw\dragimag.cpp" />
-    <ClCompile Include="..\..\src\msw\enhmeta.cpp" />
+    <ClCompile Include="..\..\src\msw\enhmeta.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\evtloop.cpp" />
     <ClCompile Include="..\..\src\msw\evtloopconsole.cpp" />
     <ClCompile Include="..\..\src\msw\fdrepdlg.cpp" />
@@ -1126,18 +1164,24 @@
     </ClCompile>
     <ClCompile Include="..\..\src\msw\gauge.cpp" />
     <ClCompile Include="..\..\src\msw\gdiimage.cpp" />
-    <ClCompile Include="..\..\src\msw\gdiobj.cpp" />
+    <ClCompile Include="..\..\src\msw\gdiobj.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\gdiplus.cpp" />
     <ClCompile Include="..\..\src\msw\glcanvas.cpp" />
     <ClCompile Include="..\..\src\msw\graphics.cpp" />
     <ClCompile Include="..\..\src\msw\headerctrl.cpp" />
-    <ClCompile Include="..\..\src\msw\helpbest.cpp" />
+    <ClCompile Include="..\..\src\msw\helpbest.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\helpchm.cpp" />
     <ClCompile Include="..\..\src\msw\helpwin.cpp" />
     <ClCompile Include="..\..\src\msw\hyperlink.cpp" />
     <ClCompile Include="..\..\src\msw\icon.cpp" />
     <ClCompile Include="..\..\src\msw\imaglist.cpp" />
-    <ClCompile Include="..\..\src\msw\iniconf.cpp" />
+    <ClCompile Include="..\..\src\msw\iniconf.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\joystick.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -1156,7 +1200,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\msw\menu.cpp" />
     <ClCompile Include="..\..\src\msw\menuitem.cpp" />
-    <ClCompile Include="..\..\src\msw\metafile.cpp" />
+    <ClCompile Include="..\..\src\msw\metafile.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\microwin.c">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -1169,7 +1215,9 @@
     <ClCompile Include="..\..\src\msw\nonownedwnd.cpp" />
     <ClCompile Include="..\..\src\msw\notebook.cpp" />
     <ClCompile Include="..\..\src\msw\notifmsg.cpp" />
-    <ClCompile Include="..\..\src\msw\ole\access.cpp" />
+    <ClCompile Include="..\..\src\msw\ole\access.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\ole\activex.cpp" />
     <ClCompile Include="..\..\src\msw\ole\automtn.cpp" />
     <ClCompile Include="..\..\src\msw\ole\dataobj.cpp" />
@@ -1224,7 +1272,9 @@
     <ClCompile Include="..\..\src\msw\toplevel.cpp" />
     <ClCompile Include="..\..\src\msw\treectrl.cpp" />
     <ClCompile Include="..\..\src\msw\uiaction.cpp" />
-    <ClCompile Include="..\..\src\msw\urlmsw.cpp" />
+    <ClCompile Include="..\..\src\msw\urlmsw.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\utils.cpp" />
     <ClCompile Include="..\..\src\msw\utilsexc.cpp" />
     <ClCompile Include="..\..\src\msw\utilsgui.cpp" />
