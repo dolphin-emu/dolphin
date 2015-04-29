@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/BitSet.h"
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
@@ -87,11 +88,8 @@ void StateManager::Apply()
 		return;
 	}
 
-	unsigned long textureMaskShift;
-	_BitScanForward(&textureMaskShift, DirtyFlag_Texture0);
-
-	unsigned long samplerMaskShift;
-	_BitScanForward(&samplerMaskShift, DirtyFlag_Sampler0);
+	int textureMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Texture0);
+	int samplerMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
 
 	u32 dirtyTextures = (m_dirtyFlags & (DirtyFlag_Texture0 | DirtyFlag_Texture1 | DirtyFlag_Texture2 | DirtyFlag_Texture3
 		| DirtyFlag_Texture4 | DirtyFlag_Texture5 | DirtyFlag_Texture6 | DirtyFlag_Texture7)) >> textureMaskShift;
@@ -157,9 +155,7 @@ void StateManager::Apply()
 
 	while (dirtyTextures)
 	{
-		unsigned long index;
-		_BitScanForward(&index, dirtyTextures);
-
+		int index = LeastSignificantSetBit(dirtyTextures);
 		if (m_current.textures[index] != m_pending.textures[index])
 		{
 			D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
@@ -171,9 +167,7 @@ void StateManager::Apply()
 
 	while (dirtySamplers)
 	{
-		unsigned long index;
-		_BitScanForward(&index, dirtySamplers);
-
+		int index = LeastSignificantSetBit(dirtySamplers);
 		if (m_current.samplers[index] != m_pending.samplers[index])
 		{
 			D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
@@ -227,8 +221,7 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
 {
 	while (textureSlotMask)
 	{
-		unsigned long index;
-		_BitScanForward(&index, textureSlotMask);
+		int index = LeastSignificantSetBit(textureSlotMask);
 		SetTexture(index, srv);
 		textureSlotMask &= ~(1 << index);
 	}
