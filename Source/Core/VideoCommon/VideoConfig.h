@@ -124,6 +124,7 @@ struct VideoConfig final
 	bool bFastDepthCalc;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
+	bool bThinLines;
 
 	// Stereoscopy
 	bool bStereoEFBMonoDepth;
