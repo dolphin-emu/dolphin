@@ -22,7 +22,7 @@ AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id)
 void AdvancedConfigPane::InitializeGUI()
 {
 	m_clock_override_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable CPU Clock Override"));
-	m_clock_override_slider = new wxSlider(this, wxID_ANY, 100, 0, 150);
+	m_clock_override_slider = new wxSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, wxSize(200,-1));
 	m_clock_override_text = new wxStaticText(this, wxID_ANY, "");
 
 	m_clock_override_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
