@@ -133,6 +133,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 
 	if (primitive_type == PRIMITIVE_LINES)
 	{
+		if (g_ActiveConfig.bThinLines)
+			uid_data->wide_lines = bpmem.lineptwidth.linesize > 12;
+		else
+			uid_data->wide_lines = true;
+
 		if (ApiType == API_OPENGL)
 		{
 			out.Write("\tVS_OUTPUT start, end;\n");
@@ -165,6 +170,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
+		if (g_ActiveConfig.bThinLines)
+			uid_data->wide_points = bpmem.lineptwidth.pointsize > 12;
+		else
+			uid_data->wide_points = true;
+
 		if (ApiType == API_OPENGL)
 		{
 			out.Write("\tVS_OUTPUT center;\n");
@@ -178,6 +188,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 		// Offset from center to upper right vertex
 		// Lerp PointSize/2 from [0,0..VpWidth,VpHeight] to [-1,1..1,-1]
 		out.Write("\tfloat2 offset = float2(" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".x, -" I_LINEPTPARAMS".w / " I_LINEPTPARAMS".y) * center.pos.w;\n");
+	}
+	else
+	{
+		uid_data->wide_lines = false;
+		uid_data->wide_points = false;
 	}
 
 	if (g_ActiveConfig.iStereoMode > 0)

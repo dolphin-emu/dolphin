@@ -150,6 +150,7 @@ static wxString stereo_3d_desc = wxTRANSLATE("Selects the stereoscopic 3D mode. 
 static wxString stereo_depth_desc = wxTRANSLATE("Controls the separation distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.");
 static wxString stereo_convergence_desc = wxTRANSLATE("Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.");
 static wxString stereo_swap_desc = wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to view side-by-side cross-eyed.\n\nIf unsure, leave this unchecked.");
+static wxString thin_lines_desc = wxTRANSLATE("Renders thin lines at the minimum width.\nCauses graphical inaccuracies in some games, but can give a speed boost when many lines are on the screen.\n\nIf unsure, leave this unchecked.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
@@ -525,6 +526,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Destination Alpha"), wxGetTranslation(disable_dstalpha_desc), vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Depth Calculation"), wxGetTranslation(fast_depth_calc_desc), vconfig.bFastDepthCalc));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Minimum Width Thin Lines"), wxGetTranslation(thin_lines_desc), vconfig.bThinLines));
 
 	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
 	group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
