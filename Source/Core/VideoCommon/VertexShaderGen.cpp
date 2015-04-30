@@ -32,6 +32,29 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
 
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENIVECSHIFTS))
+	{
+		// Add functions to do shifts on scalars and ivecs.
+		// This is included in the vertex shader for lighting shader generation.
+		out.Write("int ilshift(int a, int b) { return a << b; }\n"
+		          "int irshift(int a, int b) { return a >> b; }\n"
+
+		          "int2 ilshift(int2 a, int2 b) { return int2(a.x << b.x, a.y << b.y); }\n"
+		          "int2 ilshift(int2 a, int b) { return int2(a.x << b, a.y << b); }\n"
+		          "int2 irshift(int2 a, int2 b) { return int2(a.x >> b.x, a.y >> b.y); }\n"
+		          "int2 irshift(int2 a, int b) { return int2(a.x >> b, a.y >> b); }\n"
+
+		          "int3 ilshift(int3 a, int3 b) { return int3(a.x << b.x, a.y << b.y, a.z << b.z); }\n"
+		          "int3 ilshift(int3 a, int b) { return int3(a.x << b, a.y << b, a.z << b); }\n"
+		          "int3 irshift(int3 a, int3 b) { return int3(a.x >> b.x, a.y >> b.y, a.z >> b.z); }\n"
+		          "int3 irshift(int3 a, int b) { return int3(a.x >> b, a.y >> b, a.z >> b); }\n"
+
+		          "int4 ilshift(int4 a, int4 b) { return int4(a.x << b.x, a.y << b.y, a.z << b.z, a.w << b.w); }\n"
+		          "int4 ilshift(int4 a, int b) { return int4(a.x << b, a.y << b, a.z << b, a.w << b); }\n"
+		          "int4 irshift(int4 a, int4 b) { return int4(a.x >> b.x, a.y >> b.y, a.z >> b.z, a.w >> b.w); }\n"
+		          "int4 irshift(int4 a, int b) { return int4(a.x >> b, a.y >> b, a.z >> b, a.w >> b); }\n\n");
+	}
+
 	out.Write("%s", s_lighting_struct);
 
 	// uniforms
