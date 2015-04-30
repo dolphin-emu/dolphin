@@ -62,20 +62,6 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 	nick_szr->Add(nick_lbl, 0, wxCENTER);
 	nick_szr->Add(m_nickname_text, 0, wxALL, 5);
 
-	std::string centralServer;
-	netplay_section.Get("TraversalServer", &centralServer, "");
-	m_traversal_server_lbl = new wxStaticText(panel, wxID_ANY, _("Traversal:"));
-	m_traversal_server = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(centralServer));
-	nick_szr->Add(m_traversal_server_lbl, 0, wxCENTER);
-	nick_szr->Add(m_traversal_server, 0, wxALL, 5);
-
-	std::string centralPort;
-	netplay_section.Get("TraversalPort", &centralPort, "");
-	m_traversal_port_lbl = new wxStaticText(panel, wxID_ANY, _("Port:"));
-	m_traversal_port = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(centralPort));
-	nick_szr->Add(m_traversal_port_lbl, 0, wxCENTER);
-	nick_szr->Add(m_traversal_port, 0, wxALL, 5);
-
 	// tabs
 	wxNotebook* const notebook = new wxNotebook(panel, wxID_ANY);
 	wxPanel* const connect_tab = new wxPanel(notebook, wxID_ANY);
@@ -210,8 +196,6 @@ NetPlaySetupFrame::~NetPlaySetupFrame()
 	}
 
 	netplay_section.Set("Nickname", WxStrToStr(m_nickname_text->GetValue()));
-	netplay_section.Set("TraversalServer", WxStrToStr(m_traversal_server->GetValue()));
-	netplay_section.Set("TraversalPort", WxStrToStr(m_traversal_port->GetValue()));
 
 	if (m_direct_traversal->GetCurrentSelection() == 0)
 	{
@@ -246,9 +230,19 @@ void NetPlaySetupFrame::MakeNetPlayDiag(int port, const std::string &game, bool 
 	else
 		trav = false;
 
-	unsigned long centralPort = 0;
-	m_traversal_port->GetValue().ToULong(&centralPort);
-	netplay_client = new NetPlayClient(ip, (u16)port, npd, WxStrToStr(m_nickname_text->GetValue()), trav, WxStrToStr(m_traversal_server->GetValue()), (u16)centralPort);
+	IniFile inifile;
+	inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+
+	std::string centralPortString;
+	netplay_section.Get("TraversalPort", &centralPortString, "6262");
+	unsigned long int centralPort;
+	StrToWxStr(centralPortString).ToULong(&centralPort);
+
+	std::string centralServer;
+	netplay_section.Get("TraversalServer", &centralServer, "stun.dolphin-emu.org");
+
+	netplay_client = new NetPlayClient(ip, (u16)port, npd, WxStrToStr(m_nickname_text->GetValue()), trav, centralServer, (u16) centralPort);
 	if (netplay_client->is_connected)
 	{
 		npd->Show();
@@ -288,9 +282,19 @@ void NetPlaySetupFrame::OnHost(wxCommandEvent&)
 	unsigned long port = 0;
 	m_host_port_text->GetValue().ToULong(&port);
 
-	unsigned long centralPort = 0;
-	m_traversal_port->GetValue().ToULong(&centralPort);
-	netplay_server = new NetPlayServer((u16)port, trav, WxStrToStr(m_traversal_server->GetValue()), (u16)centralPort);
+	IniFile inifile;
+	inifile.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+
+	std::string centralPortString;
+	netplay_section.Get("TraversalPort", &centralPortString, "6262");
+	unsigned long int centralPort;
+	StrToWxStr(centralPortString).ToULong(&centralPort);
+
+	std::string centralServer;
+	netplay_section.Get("TraversalServer", &centralServer, "stun.dolphin-emu.org");
+
+	netplay_server = new NetPlayServer((u16)port, trav, centralServer, (u16) centralPort);
 	if (netplay_server->is_connected)
 	{
 		netplay_server->ChangeGame(game);
@@ -331,12 +335,6 @@ void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 
 	if (sel == 1)
 	{
-		m_traversal_server_lbl->Show();
-		m_traversal_server->Show();
-
-		m_traversal_port_lbl->Show();
-		m_traversal_port->Show();
-
 		//Traversal
 		//client tab
 		{
@@ -359,11 +357,6 @@ void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 	}
 	else
 	{
-		m_traversal_server_lbl->Hide();
-		m_traversal_server->Hide();
-
-		m_traversal_port_lbl->Hide();
-		m_traversal_port->Hide();
 		// Direct
 		// Client tab
 		{
