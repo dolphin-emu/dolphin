@@ -81,7 +81,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_NO_VSCROLL);
 	BanishBackground(Branch);
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
-	wxStaticText* const Update = new wxStaticText(this, wxID_ANY, CheckUpdateText);
+	wxStaticText* const UpdateText = new wxStaticText(this, wxID_ANY, CheckUpdateText);
 	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
 	wxStaticText* const SecondSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
 	wxHyperlinkCtrl* const Download = new wxHyperlinkCtrl(this, wxID_ANY, "dolphin-emu.org/download", "https://dolphin-emu.org/download/");
@@ -116,7 +116,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	Copyright->SetFocus();
 
 	wxBoxSizer* const sCheckUpdates = new wxBoxSizer(wxHORIZONTAL);
-	sCheckUpdates->Add(Update);
+	sCheckUpdates->Add(UpdateText);
 	sCheckUpdates->Add(Download);
 
 	wxBoxSizer* const sLinks = new wxBoxSizer(wxHORIZONTAL);
