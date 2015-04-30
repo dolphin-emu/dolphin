@@ -75,15 +75,15 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString SupportText = _("Support");
 
 	wxStaticText* const Dolphin = new wxStaticText(this, wxID_ANY, DolphinText);
-	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTE_NO_VSCROLL);
+	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTE_READONLY | wxTE_NO_VSCROLL);
 	BanishBackground(Revision);
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
-	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_NO_VSCROLL);
+	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_READONLY | wxTE_NO_VSCROLL);
 	BanishBackground(Branch);
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
 	wxStaticText* const UpdateText = new wxStaticText(this, wxID_ANY, CheckUpdateText);
-	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
-	wxStaticText* const SecondSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
+	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, "  |  ");
+	wxStaticText* const SecondSpacer = new wxStaticText(this, wxID_ANY, "  |  ");
 	wxHyperlinkCtrl* const Download = new wxHyperlinkCtrl(this, wxID_ANY, "dolphin-emu.org/download", "https://dolphin-emu.org/download/");
 	wxHyperlinkCtrl* const License = new wxHyperlinkCtrl(this, wxID_ANY, LicenseText, "https://github.com/dolphin-emu/dolphin/blob/master/license.txt");
 	wxHyperlinkCtrl* const Authors = new wxHyperlinkCtrl(this, wxID_ANY, AuthorsText, "https://github.com/dolphin-emu/dolphin/graphs/contributors");
@@ -100,13 +100,8 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	RevisionFont.SetWeight(wxFONTWEIGHT_BOLD);
 	Revision->SetFont(RevisionFont);
 
-	Revision->SetEditable(false);
-	Revision->SetWindowStyle(wxNO_BORDER);
-
 	BranchFont.SetPointSize(7);
 	Branch->SetFont(BranchFont);
-
-	Branch->SetEditable(false);
 	Branch->AppendText(BranchText + "\n");
 	Branch->AppendText(BranchRevText + "\n");
 	Branch->AppendText(CompiledText);
