@@ -11,6 +11,8 @@
 
 #include "Common/CommonTypes.h"
 
+struct EfbPokeData;
+
 class AsyncRequests
 {
 public:
@@ -91,4 +93,6 @@ private:
 	bool m_wake_me_up_again;
 	bool m_enable;
 	bool m_passthrough;
+
+	std::vector<EfbPokeData> m_merged_efb_pokes;
 };
