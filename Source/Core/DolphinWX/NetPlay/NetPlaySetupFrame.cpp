@@ -22,6 +22,22 @@
 #include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 
+static void GetTraversalPort(IniFile::Section& section, std::string* port)
+{
+	section.Get("TraversalPort", port, "6262");
+	port->erase(std::remove(port->begin(), port->end(), ' '), port->end());
+	if (port->empty())
+		*port = "6262";
+}
+
+static void GetTraversalServer(IniFile::Section& section, std::string* server)
+{
+	section.Get("TraversalServer", server, "stun.dolphin-emu.org");
+	server->erase(std::remove(server->begin(), server->end(), ' '), server->end());
+	if (server->empty())
+		*server = "stun.dolphin-emu.org";
+}
+
 NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list)
 	: wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup"))
 	, m_game_list(game_list)
@@ -235,12 +251,12 @@ void NetPlaySetupFrame::MakeNetPlayDiag(int port, const std::string &game, bool 
 	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
 	std::string centralPortString;
-	netplay_section.Get("TraversalPort", &centralPortString, "6262");
+	GetTraversalPort(netplay_section, &centralPortString);
 	unsigned long int centralPort;
 	StrToWxStr(centralPortString).ToULong(&centralPort);
 
 	std::string centralServer;
-	netplay_section.Get("TraversalServer", &centralServer, "stun.dolphin-emu.org");
+	GetTraversalServer(netplay_section, &centralServer);
 
 	netplay_client = new NetPlayClient(ip, (u16)port, npd, WxStrToStr(m_nickname_text->GetValue()), trav, centralServer, (u16) centralPort);
 	if (netplay_client->is_connected)
@@ -287,12 +303,12 @@ void NetPlaySetupFrame::OnHost(wxCommandEvent&)
 	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
 	std::string centralPortString;
-	netplay_section.Get("TraversalPort", &centralPortString, "6262");
+	GetTraversalPort(netplay_section, &centralPortString);
 	unsigned long int centralPort;
 	StrToWxStr(centralPortString).ToULong(&centralPort);
 
 	std::string centralServer;
-	netplay_section.Get("TraversalServer", &centralServer, "stun.dolphin-emu.org");
+	GetTraversalServer(netplay_section, &centralServer);
 
 	netplay_server = new NetPlayServer((u16)port, trav, centralServer, (u16) centralPort);
 	if (netplay_server->is_connected)

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <string>
 #include <wx/frame.h>
 
