@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 
-// http://developer.nvidia.com/object/General_FAQ.html#t6 !!!!!
+// http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
 
 #include "Common/Atomic.h"
