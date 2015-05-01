@@ -26,14 +26,6 @@
 #include "DolphinWX/resources/dolphin_logo.cpp"
 #include "VideoCommon/VR.h"
 
-static void BanishBackground(wxTextCtrl* ctrl)
-{
-#ifdef __APPLE__
-       NSTextField* tf = (NSTextField*)ctrl->GetHandle();
-       tf.drawsBackground = NO;
-#endif
-}
-
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
 		const wxSize& size, long style)
@@ -61,8 +53,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 #endif
 
 	const wxString DolphinText = _("Dolphin VR");
-	const wxString RevisionText = scm_desc_str;
-	const wxString OculusVerText = wxString::Format("%s", SCM_OCULUS_STR);
+	const wxString RevisionText = scm_desc_str + wxString::Format("%s", SCM_OCULUS_STR);
 	const wxString CopyrightText = _("(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.");
 	const wxString BranchText = wxString::Format(_("Branch: %s "), scm_branch_str);
 	const wxString BranchRevText = wxString::Format(_("Revision: %s"), scm_rev_git_str);
@@ -77,15 +68,14 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString SupportText = _("Support");
 
 	wxStaticText* const Dolphin = new wxStaticText(this, wxID_ANY, DolphinText);
-	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxSize(300, 15), wxNO_BORDER | wxTE_NO_VSCROLL);
-	BanishBackground(Revision);
+	wxStaticText* const Revision = new wxStaticText(this, wxID_ANY, RevisionText);
+
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
-	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_NO_VSCROLL);
-	BanishBackground(Branch);
+	wxStaticText* const Branch = new wxStaticText(this, wxID_ANY, BranchText + "\n" + BranchRevText + "\n" + CompiledText+"\n");
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
-	wxStaticText* const Update = new wxStaticText(this, wxID_ANY, CheckUpdateText);
-	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
-	wxStaticText* const SecondSpacer = new wxStaticText(this, wxID_ANY, wxString("  |  "));
+	wxStaticText* const UpdateText = new wxStaticText(this, wxID_ANY, CheckUpdateText);
+	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, "  |  ");
+	wxStaticText* const SecondSpacer = new wxStaticText(this, wxID_ANY, "  |  ");
 	wxHyperlinkCtrl* const Download = new wxHyperlinkCtrl(this, wxID_ANY, "dolphinvr.wordpress.com/downloads", "https://dolphinvr.wordpress.com/downloads/");
 	wxHyperlinkCtrl* const License = new wxHyperlinkCtrl(this, wxID_ANY, LicenseText, "https://github.com/dolphin-emu/dolphin/blob/master/license.txt");
 	wxHyperlinkCtrl* const Authors = new wxHyperlinkCtrl(this, wxID_ANY, AuthorsText, "https://github.com/CarlKenner/dolphin/graphs/contributors");
@@ -102,24 +92,15 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	RevisionFont.SetWeight(wxFONTWEIGHT_BOLD);
 	Revision->SetFont(RevisionFont);
 
-	Revision->SetEditable(false);
-	Revision->AppendText(OculusVerText);
-	Revision->SetWindowStyle(wxNO_BORDER);
-
 	BranchFont.SetPointSize(7);
 	Branch->SetFont(BranchFont);
-
-	Branch->SetEditable(false);
-	Branch->AppendText(BranchText + "\n");
-	Branch->AppendText(BranchRevText + "\n");
-	Branch->AppendText(CompiledText);
 
 	CopyrightFont.SetPointSize(7);
 	Copyright->SetFont(CopyrightFont);
 	Copyright->SetFocus();
 
 	wxBoxSizer* const sCheckUpdates = new wxBoxSizer(wxHORIZONTAL);
-	sCheckUpdates->Add(Update);
+	sCheckUpdates->Add(UpdateText);
 	sCheckUpdates->Add(Download);
 
 	wxBoxSizer* const sLinks = new wxBoxSizer(wxHORIZONTAL);

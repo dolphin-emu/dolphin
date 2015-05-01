@@ -63,8 +63,10 @@ void AdvancedConfigPane::InitializeGUI()
 void AdvancedConfigPane::LoadGUIValues()
 {
 	int ocFactor = (int)(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f + 0.5f);
-	m_clock_override_checkbox->SetValue(SConfig::GetInstance().m_OCEnable);
+	bool oc_enabled = SConfig::GetInstance().m_OCEnable;
+	m_clock_override_checkbox->SetValue(oc_enabled);
 	m_clock_override_slider ->SetValue(ocFactor);
+	m_clock_override_slider->Enable(oc_enabled);
 	UpdateCPUClock();
 }
 
