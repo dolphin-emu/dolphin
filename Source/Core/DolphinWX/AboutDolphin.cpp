@@ -78,8 +78,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTE_READONLY | wxTE_NO_VSCROLL);
 	BanishBackground(Revision);
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
-	wxTextCtrl* const Branch = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(300, 50), wxNO_BORDER | wxTE_READONLY | wxTE_MULTILINE | wxTE_NO_VSCROLL);
-	BanishBackground(Branch);
+	wxStaticText* const Branch = new wxStaticText(this, wxID_ANY, BranchText + "\n" + BranchRevText + "\n" + CompiledText+"\n");
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
 	wxStaticText* const UpdateText = new wxStaticText(this, wxID_ANY, CheckUpdateText);
 	wxStaticText* const FirstSpacer = new wxStaticText(this, wxID_ANY, "  |  ");
@@ -102,9 +101,6 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 
 	BranchFont.SetPointSize(7);
 	Branch->SetFont(BranchFont);
-	Branch->AppendText(BranchText + "\n");
-	Branch->AppendText(BranchRevText + "\n");
-	Branch->AppendText(CompiledText);
 
 	CopyrightFont.SetPointSize(7);
 	Copyright->SetFont(CopyrightFont);
