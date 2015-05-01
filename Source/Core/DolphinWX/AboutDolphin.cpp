@@ -25,14 +25,6 @@
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/resources/dolphin_logo.cpp"
 
-static void BanishBackground(wxTextCtrl* ctrl)
-{
-#ifdef __APPLE__
-       NSTextField* tf = (NSTextField*)ctrl->GetHandle();
-       tf.drawsBackground = NO;
-#endif
-}
-
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
 		const wxSize& size, long style)
