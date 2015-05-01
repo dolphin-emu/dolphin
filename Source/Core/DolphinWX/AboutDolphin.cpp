@@ -75,8 +75,8 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString SupportText = _("Support");
 
 	wxStaticText* const Dolphin = new wxStaticText(this, wxID_ANY, DolphinText);
-	wxTextCtrl* const Revision = new wxTextCtrl(this, wxID_ANY, RevisionText, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxTE_READONLY | wxTE_NO_VSCROLL);
-	BanishBackground(Revision);
+	wxStaticText* const Revision = new wxStaticText(this, wxID_ANY, RevisionText);
+
 	wxStaticText* const Copyright = new wxStaticText(this, wxID_ANY, CopyrightText);
 	wxStaticText* const Branch = new wxStaticText(this, wxID_ANY, BranchText + "\n" + BranchRevText + "\n" + CompiledText+"\n");
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY, Text);
