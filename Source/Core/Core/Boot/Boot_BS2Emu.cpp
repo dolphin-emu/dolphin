@@ -319,16 +319,16 @@ bool CBoot::EmulatedBS2_Wii()
 	if (SetupWiiMemory(country_code) == false)
 		return false;
 
-	// This is some kind of consistency check that is compared to the 0x00
-	// values as the game boots. This location keep the 4 byte ID for as long
-	// as the game is running. The 6 byte ID at 0x00 is overwritten sometime
-	// after this check during booting.
-	DVDInterface::DVDRead(0, 0x3180, 4, true);
-
 	// Execute the apploader
 	bool apploaderRan = false;
 	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().IsWiiDisc())
 	{
+		// This is some kind of consistency check that is compared to the 0x00
+		// values as the game boots. This location keep the 4 byte ID for as long
+		// as the game is running. The 6 byte ID at 0x00 is overwritten sometime
+		// after this check during booting.
+		DVDInterface::DVDRead(0, 0x3180, 4, true);
+
 		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;

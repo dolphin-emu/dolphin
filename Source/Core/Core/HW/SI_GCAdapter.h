@@ -4,7 +4,7 @@
 
 #pragma once
 
-struct libusb_device;
+#include <functional>
 
 #include "Common/Thread.h"
 #include "Core/HW/SI.h"
@@ -17,7 +17,9 @@ void Init();
 void Reset();
 void Setup();
 void Shutdown();
-void AddGCAdapter(libusb_device* device);
+void SetAdapterCallback(std::function<void(void)> func);
+void StartScanThread();
+void StopScanThread();
 void Input(int chan, GCPadStatus* pad);
 void Output(int chan, u8 rumble_command);
 bool IsDetected();
