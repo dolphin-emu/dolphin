@@ -57,6 +57,7 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(this, SIGNAL(CoreStateChanged(Core::EState)), this, SLOT(OnCoreStateChanged(Core::EState)));
 
 	connect(m_ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnOpen()));
+	connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(OnExit()));
 
 	connect(m_ui->actionListView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
 	connect(m_ui->actionTreeView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
@@ -165,6 +166,14 @@ void DMainWindow::OnOpen()
 		StartGame(filename);
 }
 
+void DMainWindow::OnExit()
+{
+	close();
+	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
+		return;
+	Stop();
+}
+
 void DMainWindow::OnPlay()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -183,7 +192,7 @@ void DMainWindow::OnPlay()
 bool DMainWindow::OnStop()
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
-		return true; // We're already stopped/stopping
+		return true;
 
 	// Ask for confirmation in case the user accidentally clicked Stop / Escape
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
@@ -203,6 +212,11 @@ bool DMainWindow::OnStop()
 		}
 	}
 
+	return Stop();
+}
+
+bool DMainWindow::Stop()
+{
 	m_isStopping = true;
 
 	// TODO: Movie stuff

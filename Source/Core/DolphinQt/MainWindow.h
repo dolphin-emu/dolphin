@@ -44,6 +44,7 @@ private slots:
 
 	// Main toolbar
 	void OnOpen();
+	void OnExit();
 	void OnPlay();
 
 	// View menu
@@ -67,6 +68,7 @@ private:
 	QString RequestBootFilename();
 	QString ShowFileDialog();
 	void DoStartPause();
+	bool Stop();
 
 	std::unique_ptr<DRenderWidget> m_render_widget;
 	bool m_isStopping = false;
