@@ -40,7 +40,7 @@ void Jit64AsmRoutineManager::Generate()
 
 	// Two statically allocated registers.
 	//MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
-	MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
+	MOV(64, R(RPPCSTATE), ImmPtr(PPCSTATE_BASE));
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_PushRegistersAndAdjustStack({}, 0);
