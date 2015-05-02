@@ -28,10 +28,10 @@ public:
 	virtual ~CodeBlock() { if (region) FreeCodeSpace(); }
 
 	// Call this before you generate any code.
-	void AllocCodeSpace(int size)
+	void AllocCodeSpace(int size, void* hint = nullptr)
 	{
 		region_size = size;
-		region = (u8*)AllocateExecutableMemory(region_size);
+		region = (u8*)AllocateExecutableMemory(region_size, hint);
 		T::SetCodePtr(region);
 	}
 
