@@ -44,6 +44,7 @@ private slots:
 
 	// Main toolbar
 	void OnOpen();
+	void OnBrowse();
 	void OnExit();
 	void OnPlay();
 
@@ -67,6 +68,7 @@ private:
 	// Emulation
 	QString RequestBootFilename();
 	QString ShowFileDialog();
+	QString ShowFolderDialog();
 	void DoStartPause();
 	bool Stop();
 

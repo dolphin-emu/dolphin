@@ -40,6 +40,10 @@
      <string>Fi&amp;le</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionBrowse"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="mnuEmulation">
     <property name="title">
@@ -197,6 +201,16 @@
    </property>
    <property name="text">
     <string>&amp;Icon view</string>
+   </property>
+  </action>
+  <action name="actionBrowse">
+   <property name="text">
+    <string>&amp;Browse for ISOs...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>
