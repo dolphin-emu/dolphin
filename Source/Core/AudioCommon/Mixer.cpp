@@ -56,7 +56,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		SCoreStartupParameter& startup_parameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 		if ((g_ActiveConfig.bOpcodeReplay || g_ActiveConfig.bSynchronousTimewarp) &&
 			((startup_parameter.bSkipIdle && startup_parameter.bSyncGPUOnSkipIdleHack) ||
-			(startup_parameter.bSyncGPU || startup_parameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION && framelimit == 16) ||
+			(startup_parameter.bSyncGPU || ((startup_parameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION) && (framelimit == 16))) ||
 			!startup_parameter.bCPUThread))
 			aid_sample_rate = aid_sample_rate * 60 / VideoInterface::TargetRefreshRate;
 		else

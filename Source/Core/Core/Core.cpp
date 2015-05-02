@@ -406,6 +406,7 @@ static void FifoPlayerThread()
 	}
 
 	s_is_started = true;
+	DeclareAsCPUThread();
 
 	// Enter CPU run loop. When we leave it - we are done.
 	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
@@ -414,6 +415,7 @@ static void FifoPlayerThread()
 		FifoPlayer::GetInstance().Close();
 	}
 
+	UndeclareAsCPUThread();
 	s_is_started = false;
 
 	if (!_CoreParameter.bCPUThread)

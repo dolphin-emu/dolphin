@@ -52,6 +52,8 @@ const std::array<wxString, 8> ControllerConfigDiag::m_gc_pad_type_strs = {{
 	_("AM-Baseboard")
 }};
 
+wxDEFINE_EVENT(wxEVT_ADAPTER_UPDATE, wxCommandEvent);
+
 ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	: wxDialog(parent, wxID_ANY, _("Dolphin Controller Configuration"))
 {
@@ -71,6 +73,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
 	SetSizerAndFit(main_sizer);
 	Center();
+	Bind(wxEVT_ADAPTER_UPDATE, &ControllerConfigDiag::UpdateAdapter, this);
 }
 
 wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
@@ -147,37 +150,62 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5);
 	gamecube_static_sizer->AddSpacer(5);
 
-	wxStaticBoxSizer* const gamecube_adapter_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("GameCube Adapter"));
+	wxStaticBoxSizer* const gamecube_adapter_group = new wxStaticBoxSizer(wxVERTICAL, this, _("GameCube Adapter"));
 	wxBoxSizer* const gamecube_adapter_sizer = new wxBoxSizer(wxHORIZONTAL);
 
 	wxCheckBox* const gamecube_adapter = new wxCheckBox(this, wxID_ANY, _("Direct Connect"));
 	gamecube_adapter->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnGameCubeAdapter, this);
 
+	wxCheckBox* const gamecube_rumble = new wxCheckBox(this, wxID_ANY, _("Rumble"));
+	gamecube_rumble->SetValue(SConfig::GetInstance().m_AdapterRumble);
+	gamecube_rumble->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnAdapterRumble, this);
+
+	m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
+
+	gamecube_adapter_group->Add(m_adapter_status, 0, wxEXPAND);
 	gamecube_adapter_sizer->Add(gamecube_adapter, 0, wxEXPAND);
+	gamecube_adapter_sizer->Add(gamecube_rumble, 0, wxEXPAND);
 	gamecube_adapter_group->Add(gamecube_adapter_sizer, 0, wxEXPAND);
 	gamecube_static_sizer->Add(gamecube_adapter_group, 0, wxEXPAND);
 
 #if defined(__LIBUSB__) || defined (_WIN32)
+	gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
 	if (!SI_GCAdapter::IsDetected())
 	{
 		if (!SI_GCAdapter::IsDriverDetected())
-			gamecube_adapter->SetLabelText(_("Driver Not Detected"));
-		else
-			gamecube_adapter->SetLabelText(_("Adapter Not Detected"));
-		gamecube_adapter->SetValue(false);
-		gamecube_adapter->Disable();
+		{
+			m_adapter_status->SetLabelText(_("Driver Not Detected"));
+			gamecube_adapter->Disable();
+			gamecube_adapter->SetValue(false);
+		}
 	}
 	else
 	{
-		gamecube_adapter->SetValue(SConfig::GetInstance().m_GameCubeAdapter);
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
-		{
-			gamecube_adapter->Disable();
-		}
+		m_adapter_status->SetLabelText(_("Adapter Detected"));
 	}
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		gamecube_adapter->Disable();
+	}
+	SI_GCAdapter::SetAdapterCallback(std::bind(&ControllerConfigDiag::ScheduleAdapterUpdate, this));
 #endif
 
 	return gamecube_static_sizer;
+}
+
+void ControllerConfigDiag::ScheduleAdapterUpdate()
+{
+	wxQueueEvent(this, new wxCommandEvent(wxEVT_ADAPTER_UPDATE));
+}
+
+void ControllerConfigDiag::UpdateAdapter(wxCommandEvent& ev)
+{
+	bool unpause = Core::PauseAndLock(true);
+	if (SI_GCAdapter::IsDetected())
+		m_adapter_status->SetLabelText(_("Adapter Detected"));
+	else
+		m_adapter_status->SetLabelText(_("Adapter Not Detected"));
+	Core::PauseAndLock(false, unpause);
 }
 
 wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
@@ -536,4 +564,9 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 	}
 
 	HotkeyManagerEmu::Enable(true);
+}
+
+ControllerConfigDiag::~ControllerConfigDiag()
+{
+	SI_GCAdapter::SetAdapterCallback(nullptr);
 }

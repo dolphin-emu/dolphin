@@ -403,7 +403,7 @@ void CEXIETHERNET::SendComplete()
 		mBbaMem[BBA_IR] |= INT_T;
 
 		exi_status.interrupt |= exi_status.TRANSFER;
-		ExpansionInterface::ScheduleUpdateInterrupts_Threadsafe(0);
+		ExpansionInterface::ScheduleUpdateInterrupts(0);
 	}
 
 	mBbaMem[BBA_LTPS] = 0;

@@ -493,7 +493,7 @@ void TASInputDlg::SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, w
 
 void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
 {
-	if (CurrentValue != control->default_value)
+	if (CurrentValue != (int)control->default_value)
 	{
 		control->value = CurrentValue;
 		control->set_by_keyboard = true;
