@@ -36,7 +36,7 @@ using namespace Gen;
 			return;
 		}
 
-		JitRegister::Init();
+		JitRegister::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_perfDir);
 
 		iCache.fill(JIT_ICACHE_INVALID_BYTE);
 		iCacheEx.fill(JIT_ICACHE_INVALID_BYTE);
