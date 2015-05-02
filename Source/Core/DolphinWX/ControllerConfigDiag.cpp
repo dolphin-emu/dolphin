@@ -200,12 +200,14 @@ void ControllerConfigDiag::ScheduleAdapterUpdate()
 
 void ControllerConfigDiag::UpdateAdapter(wxCommandEvent& ev)
 {
+#if defined(__LIBUSB__) || defined (_WIN32)
 	bool unpause = Core::PauseAndLock(true);
 	if (SI_GCAdapter::IsDetected())
 		m_adapter_status->SetLabelText(_("Adapter Detected"));
 	else
 		m_adapter_status->SetLabelText(_("Adapter Not Detected"));
 	Core::PauseAndLock(false, unpause);
+#endif
 }
 
 wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
@@ -568,5 +570,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 
 ControllerConfigDiag::~ControllerConfigDiag()
 {
+#if defined(__LIBUSB__) || defined (_WIN32)
 	SI_GCAdapter::SetAdapterCallback(nullptr);
+#endif
 }
