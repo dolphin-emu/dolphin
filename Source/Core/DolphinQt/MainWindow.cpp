@@ -14,6 +14,7 @@
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/ProcessorInterface.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/MainWindow.h"
@@ -70,6 +71,7 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_game_tracker, SIGNAL(StartGame()), this, SLOT(OnPlay()));
 	connect(m_ui->actionStop, SIGNAL(triggered()), this, SLOT(OnStop()));
 	connect(m_ui->actionStop_mnu, SIGNAL(triggered()), this, SLOT(OnStop()));
+	connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(OnReset()));
 
 	connect(m_ui->actionWebsite, SIGNAL(triggered()), this, SLOT(OnOpenWebsite()));
 	connect(m_ui->actionOnlineDocs, SIGNAL(triggered()), this, SLOT(OnOpenDocs()));
@@ -268,6 +270,12 @@ bool DMainWindow::Stop()
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
 	m_isStopping = false;
 	return true;
+}
+
+void DMainWindow::OnReset()
+{
+	// TODO: Movie needs to be reset here
+	ProcessorInterface::ResetButton_Tap();
 }
 
 void DMainWindow::OnGameListStyleChanged()

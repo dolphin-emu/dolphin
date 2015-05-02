@@ -47,6 +47,7 @@ private slots:
 	void OnBrowse();
 	void OnExit();
 	void OnPlay();
+	void OnReset();
 
 	// View menu
 	void OnGameListStyleChanged();
