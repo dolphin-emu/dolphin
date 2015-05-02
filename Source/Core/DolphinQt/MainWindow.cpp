@@ -66,8 +66,10 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_ui->actionIconView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
 
 	connect(m_ui->actionPlay, SIGNAL(triggered()), this, SLOT(OnPlay()));
+	connect(m_ui->actionPlay_mnu, SIGNAL(triggered()), this, SLOT(OnPlay()));
 	connect(m_game_tracker, SIGNAL(StartGame()), this, SLOT(OnPlay()));
 	connect(m_ui->actionStop, SIGNAL(triggered()), this, SLOT(OnStop()));
+	connect(m_ui->actionStop_mnu, SIGNAL(triggered()), this, SLOT(OnStop()));
 
 	connect(m_ui->actionWebsite, SIGNAL(triggered()), this, SLOT(OnOpenWebsite()));
 	connect(m_ui->actionOnlineDocs, SIGNAL(triggered()), this, SLOT(OnOpenDocs()));
@@ -292,11 +294,13 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	{
 		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PAUSE));
 		m_ui->actionPlay->setText(tr("Pause"));
+		m_ui->actionPlay_mnu->setText(tr("Pause"));
 	}
 	else if (is_paused || is_not_initialized)
 	{
 		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLAY));
 		m_ui->actionPlay->setText(tr("Play"));
+		m_ui->actionPlay_mnu->setText(tr("Play"));
 	}
 
 	m_ui->actionStop->setEnabled(!is_not_initialized);

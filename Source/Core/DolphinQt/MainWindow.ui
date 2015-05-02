@@ -49,6 +49,8 @@
     <property name="title">
      <string>E&amp;mulation</string>
     </property>
+    <addaction name="actionPlay_mnu"/>
+    <addaction name="actionStop_mnu"/>
    </widget>
    <widget class="QMenu" name="mnuOptions">
     <property name="title">
@@ -211,6 +213,16 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionPlay_mnu">
+   <property name="text">
+    <string>Play</string>
+   </property>
+  </action>
+  <action name="actionStop_mnu">
+   <property name="text">
+    <string>Stop</string>
    </property>
   </action>
  </widget>
