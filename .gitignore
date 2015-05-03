@@ -22,6 +22,8 @@ Source/Core/Common/scmrev.h
 CMakeLists.txt.user
 # Ignore files created by posix people
 *~
+# Ignore vim swapfiles
+*.swp
 # Ignore transifex configuration directory
 .tx
 # Ignore kdevelop files/dirs
