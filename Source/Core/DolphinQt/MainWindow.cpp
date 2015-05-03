@@ -116,9 +116,15 @@ void DMainWindow::StartGame(const QString filename)
 		m_ui->centralWidget->addWidget(m_render_widget.get());
 		m_ui->centralWidget->setCurrentWidget(m_render_widget.get());
 
-		// TODO: When rendering to main, this won't resize the parent window...
-		m_render_widget->resize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
+		{
+			// Resize main window to fit render
+			m_render_widget->setMinimumSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+			qApp->processEvents(); // Force a redraw so the window has time to resize
+			m_render_widget->setMinimumSize(0, 0); // Allow the widget to scale down
+		}
+		m_render_widget->adjustSize();
 	}
 
 	if (!BootManager::BootCore(filename.toStdString()))
