@@ -124,9 +124,9 @@ bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::stri
 
 bool CFileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 {
-	u32 AppSize = Read32(0x2440 + 0x14);// apploader size
-	AppSize += Read32(0x2440 + 0x18);   // + trailer size
-	AppSize += 0x20;                    // + header size
+	u32 AppSize = m_rVolume->Read32(0x2440 + 0x14, m_Wii); // apploader size
+	AppSize    += m_rVolume->Read32(0x2440 + 0x18, m_Wii); // + trailer size
+	AppSize    += 0x20;                                    // + header size
 	DEBUG_LOG(DISCIO,"AppSize -> %x", AppSize);
 
 	std::vector<u8> buffer(AppSize);
@@ -147,14 +147,14 @@ bool CFileSystemGCWii::ExportApploader(const std::string& _rExportFolder) const
 
 u32 CFileSystemGCWii::GetBootDOLSize() const
 {
-	u32 DolOffset = Read32(0x420) << GetOffsetShift();
+	u32 DolOffset = m_rVolume->Read32(0x420, m_Wii) << GetOffsetShift();
 	u32 DolSize = 0, offset = 0, size = 0;
 
 	// Iterate through the 7 code segments
 	for (u8 i = 0; i < 7; i++)
 	{
-		offset = Read32(DolOffset + 0x00 + i * 4);
-		size   = Read32(DolOffset + 0x90 + i * 4);
+		offset = m_rVolume->Read32(DolOffset + 0x00 + i * 4, m_Wii);
+		size   = m_rVolume->Read32(DolOffset + 0x90 + i * 4, m_Wii);
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
@@ -162,8 +162,8 @@ u32 CFileSystemGCWii::GetBootDOLSize() const
 	// Iterate through the 11 data segments
 	for (u8 i = 0; i < 11; i++)
 	{
-		offset = Read32(DolOffset + 0x1c + i * 4);
-		size   = Read32(DolOffset + 0xac + i * 4);
+		offset = m_rVolume->Read32(DolOffset + 0x1c + i * 4, m_Wii);
+		size   = m_rVolume->Read32(DolOffset + 0xac + i * 4, m_Wii);
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
@@ -172,13 +172,13 @@ u32 CFileSystemGCWii::GetBootDOLSize() const
 
 bool CFileSystemGCWii::GetBootDOL(u8* &buffer, u32 DolSize) const
 {
-	u32 DolOffset = Read32(0x420) << GetOffsetShift();
+	u32 DolOffset = m_rVolume->Read32(0x420, m_Wii) << GetOffsetShift();
 	return m_rVolume->Read(DolOffset, DolSize, buffer, m_Wii);
 }
 
 bool CFileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
 {
-	u32 DolOffset = Read32(0x420) << GetOffsetShift();
+	u32 DolOffset = m_rVolume->Read32(0x420, m_Wii) << GetOffsetShift();
 	u32 DolSize = GetBootDOLSize();
 
 	std::vector<u8> buffer(DolSize);
@@ -195,13 +195,6 @@ bool CFileSystemGCWii::ExportDOL(const std::string& _rExportFolder) const
 	}
 
 	return false;
-}
-
-u32 CFileSystemGCWii::Read32(u64 _Offset) const
-{
-	u32 Temp = 0;
-	m_rVolume->Read(_Offset, 4, (u8*)&Temp, m_Wii);
-	return Common::swap32(Temp);
 }
 
 std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
@@ -245,12 +238,12 @@ const SFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
 
 bool CFileSystemGCWii::DetectFileSystem()
 {
-	if (Read32(0x18) == 0x5D1C9EA3)
+	if (m_rVolume->Read32(0x18, false) == 0x5D1C9EA3)
 	{
 		m_Wii = true;
 		return true;
 	}
-	else if (Read32(0x1c) == 0xC2339F3D)
+	else if (m_rVolume->Read32(0x1c, false) == 0xC2339F3D)
 	{
 		m_Wii = false;
 		return true;
@@ -265,7 +258,7 @@ void CFileSystemGCWii::InitFileSystem()
 	u32 const shift = GetOffsetShift();
 
 	// read the whole FST
-	u64 FSTOffset = static_cast<u64>(Read32(0x424)) << shift;
+	u64 FSTOffset = static_cast<u64>(m_rVolume->Read32(0x424, m_Wii)) << shift;
 	// u32 FSTSize     = Read32(0x428);
 	// u32 FSTMaxSize  = Read32(0x42C);
 
@@ -273,9 +266,9 @@ void CFileSystemGCWii::InitFileSystem()
 	// read all fileinfos
 	SFileInfo Root
 	{
-		Read32(FSTOffset + 0x0),
+		m_rVolume->Read32(FSTOffset + 0x0, m_Wii),
 		static_cast<u64>(FSTOffset + 0x4) << shift,
-		Read32(FSTOffset + 0x8)
+		m_rVolume->Read32(FSTOffset + 0x8, m_Wii)
 	};
 
 	if (!Root.IsDirectory())
@@ -289,9 +282,9 @@ void CFileSystemGCWii::InitFileSystem()
 	for (u32 i = 0; i < Root.m_FileSize; i++)
 	{
 		u64 const read_offset = FSTOffset + (i * 0xC);
-		u64 const name_offset = Read32(read_offset + 0x0);
-		u64 const offset = static_cast<u64>(Read32(read_offset + 0x4)) << shift;
-		u64 const size = Read32(read_offset + 0x8);
+		u64 const name_offset = m_rVolume->Read32(read_offset + 0x0, m_Wii);
+		u64 const offset = static_cast<u64>(m_rVolume->Read32(read_offset + 0x4, m_Wii)) << shift;
+		u64 const size = m_rVolume->Read32(read_offset + 0x8, m_Wii);
 		m_FileInfoVector.emplace_back(name_offset, offset, size);
 		NameTableOffset += 0xC;
 	}
