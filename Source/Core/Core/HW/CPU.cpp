@@ -150,9 +150,9 @@ bool CCPU::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	if (doLock)
 	{
 		// we can't use EnableStepping, that would causes deadlocks with both audio and video
-		PowerPC::Pause();
 		if (!Core::IsCPUThread())
 			m_csCpuOccupied.lock();
+		PowerPC::Pause();
 	}
 	else
 	{
