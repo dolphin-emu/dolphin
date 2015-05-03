@@ -58,6 +58,7 @@ private slots:
 	void OnOpenGitHub();
 	void OnOpenSystemInfo();
 	void OnOpenAbout();
+	void OnOpenAboutQt();
 
 	// Misc.
 	void UpdateIcons();

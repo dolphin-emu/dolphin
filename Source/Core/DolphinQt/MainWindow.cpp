@@ -78,6 +78,7 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_ui->actionGitHub, SIGNAL(triggered()), this, SLOT(OnOpenGitHub()));
 	connect(m_ui->actionSystemInfo, SIGNAL(triggered()), this, SLOT(OnOpenSystemInfo()));
 	connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(OnOpenAbout()));
+	connect(m_ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(OnOpenAboutQt()));
 
 	// Update GUI items
 	emit CoreStateChanged(Core::CORE_UNINITIALIZED);
@@ -361,4 +362,9 @@ void DMainWindow::OnOpenAbout()
 {
 	DAboutDialog* dlg = new DAboutDialog(this);
 	dlg->open();
+}
+
+void DMainWindow::OnOpenAboutQt()
+{
+	QApplication::aboutQt();
 }
