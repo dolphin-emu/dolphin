@@ -92,6 +92,11 @@ DMainWindow::~DMainWindow()
 {
 }
 
+void DMainWindow::closeEvent(QCloseEvent* ce)
+{
+	Stop();
+}
+
 // Emulation
 
 void DMainWindow::StartGame(const QString filename)
