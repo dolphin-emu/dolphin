@@ -325,6 +325,14 @@ static void CpuThread()
 
 
 	#ifdef USE_GDBSTUB
+	#ifndef _WIN32
+	if (!_CoreParameter.gdb_socket.empty())
+	{
+		gdb_init_local(_CoreParameter.gdb_socket.data());
+		gdb_break();
+	}
+	else
+	#endif
 	if (_CoreParameter.iGDBPort > 0)
 	{
 		gdb_init(_CoreParameter.iGDBPort);
