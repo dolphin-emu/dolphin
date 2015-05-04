@@ -1,87 +1,19 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'com.android.tools.build:gradle:1.0.0+'
-	}
-}
-apply plugin: 'android'
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.2.0'
 
-dependencies {
-	compile fileTree(dir: 'libs', include: '*.jar')
-	compile fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
 }
 
-android {
-	compileSdkVersion 19
-	buildToolsVersion "20.0.0"
-
-	task nativeLibsToJar(type: Zip, description: 'create a jar archive of the native libs') {
-		destinationDir file("$buildDir/native-libs")
-		baseName 'native-libs'
-		extension 'jar'
-		from fileTree(dir: 'libs', include: '**/*.so')
-		into 'lib/'
-	}
-
-	tasks.withType(JavaCompile) {
-		compileTask -> compileTask.dependsOn(nativeLibsToJar)
-	}
-
-	lintOptions {
-		// This is important as it will run lint but not abort on error
-		// Lint has some overly obnoxious "errors" that should really be warnings
-		abortOnError false
-	}
-
-	sourceSets {
-		main {
-			manifest.srcFile 'AndroidManifest.xml'
-			java.srcDirs = ['src']
-			resources.srcDirs = ['src']
-			aidl.srcDirs = ['src']
-			renderscript.srcDirs = ['src']
-			res.srcDirs = ['res']
-			assets.srcDirs = ['assets']
-		}
-
-		// Move the tests to tests/java, tests/res, etc...
-		instrumentTest.setRoot('tests')
-
-		// Move the build types to build-types/<type>
-		// For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
-		// This moves them out of them default location under src/<type>/... which would
-		// conflict with src/ being used by the main source set.
-		// Adding new build types or product flavors should be accompanied
-		// by a similar customization.
-		debug.setRoot('build-types/debug')
-		release.setRoot('build-types/release')
-	}
-
-	signingConfigs {
-		release {
-			if (project.hasProperty('keystore')) {
-				storeFile file(project.property('keystore'))
-				storePassword project.property('storepass')
-				keyAlias project.property('keyalias')
-				keyPassword project.property('keypass')
-			}
-		}
-	}
-
-	buildTypes {
-		// Signed by release key, allowing for upload to Play Store.
-		release {
-			signingConfig signingConfigs.release
-		}
-
-		// Signed by debug key disallowing distribution on Play Store.
-		// Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
-		debug {
-			applicationIdSuffix ".debug"
-			versionNameSuffix '-debug'
-			jniDebuggable true
-		}
-	}
+allprojects {
+    repositories {
+        jcenter()
+    }
 }

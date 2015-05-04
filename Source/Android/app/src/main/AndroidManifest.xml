@@ -1,17 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.dolphinemu.dolphinemu"
-    android:versionCode="13"
-    android:versionName="0.13"
-    android:installLocation="auto">
-
-    <uses-sdk
-        android:minSdkVersion="18"
-        android:targetSdkVersion="21" />
+          package="org.dolphinemu.dolphinemu">
 
     <uses-feature android:glEsVersion="0x00030000" />
-
-    <uses-feature android:name="android.hardware.screen.landscape" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -27,7 +17,7 @@
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Holo.Light" >
 
-            <!-- This intentfilter marks this Activity as the one that gets launched from Home screen.-->
+            <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -57,3 +47,4 @@
     </application>
 
 </manifest>
+
