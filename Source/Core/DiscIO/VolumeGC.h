@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -27,7 +28,11 @@ public:
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
 	int GetRevision() const override;
-	std::vector<std::string> GetNames() const override;
+	virtual std::string GetName() const override;
+	std::map<ELanguage, std::string> GetNames() const override;
+	std::map<ELanguage, std::string> GetDescriptions() const override;
+	std::string GetCompany() const override;
+	std::vector<u32> GetBanner(int* width, int* height) const override;
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
 
@@ -37,11 +42,44 @@ public:
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;
 
-	typedef std::string(*StringDecoder)(const std::string&);
-
-	static StringDecoder GetStringDecoder(ECountry country);
-
 private:
+	bool LoadBannerFile() const;
+
+	static const int GC_BANNER_WIDTH = 96;
+	static const int GC_BANNER_HEIGHT = 32;
+
+	// Banner Comment
+	struct GCBannerComment
+	{
+		char shortTitle[32]; // Short game title shown in IPL menu
+		char shortMaker[32]; // Short developer, publisher names shown in IPL menu
+		char longTitle[64];  // Long game title shown in IPL game start screen
+		char longMaker[64];  // Long developer, publisher names shown in IPL game start screen
+		char comment[128];   // Game description shown in IPL game start screen in two lines.
+	};
+
+	struct GCBanner
+	{
+		u32 id; // "BNR1" for NTSC, "BNR2" for PAL
+		u32 padding[7];
+		u16 image[GC_BANNER_WIDTH * GC_BANNER_HEIGHT]; // RGB5A3 96x32 image
+		GCBannerComment comment[6]; // Comments in six languages (only one for BNR1 type)
+	};
+
+	static const size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerComment) * 5;
+	static const size_t BNR2_SIZE = sizeof(GCBanner);
+
+	enum BannerFileType
+	{
+		BANNER_NOT_LOADED,
+		BANNER_INVALID,
+		BANNER_BNR1,
+		BANNER_BNR2
+	};
+
+	mutable BannerFileType m_banner_file_type = BANNER_NOT_LOADED;
+	mutable std::vector<u8> m_banner_file;
+
 	std::unique_ptr<IBlobReader> m_pReader;
 };
 

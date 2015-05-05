@@ -37,9 +37,6 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// Banner loading
-#include "DiscIO/BannerLoader.h"
-#include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeCreator.h"
 
 #include "UICommon/UICommon.h"
@@ -114,8 +111,8 @@ static bool MsgAlert(const char* caption, const char* text, bool /*yes_no*/, int
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
-std::vector<std::string> m_volume_names;
-std::vector<std::string> m_names;
+std::map<DiscIO::IVolume::ELanguage, std::string> m_names;
+bool m_is_wii_title;
 
 static inline u32 Average32(u32 a, u32 b) {
 	return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);
@@ -130,54 +127,39 @@ static inline u32 GetPixel(u32 *buffer, unsigned int x, unsigned int y) {
 
 static bool LoadBanner(std::string filename, u32 *Banner)
 {
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
+	std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
 
 	if (pVolume != nullptr)
 	{
-		bool bIsWad = false;
-		if (DiscIO::IsVolumeWadFile(pVolume))
-			bIsWad = true;
+		m_names = pVolume->GetNames();
+		m_is_wii_title = pVolume->IsWiiDisc() || pVolume->IsWadFile();
 
-		m_volume_names = pVolume->GetNames();
-
-		// check if we can get some info from the banner file too
-		DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
-
-		if (pFileSystem != nullptr || bIsWad)
+		int Width, Height;
+		std::vector<u32> BannerVec = pVolume->GetBanner(&Width, &Height);
+		// This code (along with above inlines) is moved from
+		// elsewhere.  Someone who knows anything about Android
+		// please get rid of it and use proper high-resolution
+		// images.
+		if (Height == 64 && Width == 192)
 		{
-			DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
-
-			if (pBannerLoader != nullptr)
-				if (pBannerLoader->IsValid())
+			u32* Buffer = &BannerVec[0];
+			for (int y = 0; y < 32; y++)
+			{
+				for (int x = 0; x < 96; x++)
 				{
-					m_names = pBannerLoader->GetNames();
-					int Width, Height;
-					std::vector<u32> BannerVec = pBannerLoader->GetBanner(&Width, &Height);
-					// This code (along with above inlines) is moved from
-					// elsewhere.  Someone who knows anything about Android
-					// please get rid of it and use proper high-resolution
-					// images.
-					if (Height == 64)
-					{
-						u32* Buffer = &BannerVec[0];
-						for (int y = 0; y < 32; y++)
-						{
-							for (int x = 0; x < 96; x++)
-							{
-								// simplified plus-shaped "gaussian"
-								u32 surround = Average32(
-										Average32(GetPixel(Buffer, x*2 - 1, y*2), GetPixel(Buffer, x*2 + 1, y*2)),
-										Average32(GetPixel(Buffer, x*2, y*2 - 1), GetPixel(Buffer, x*2, y*2 + 1)));
-								Banner[y * 96 + x] = Average32(GetPixel(Buffer, x*2, y*2), surround);
-							}
-						}
-					}
-					else
-					{
-						memcpy(Banner, &BannerVec[0], 96 * 32 * 4);
-					}
-					return true;
+					// simplified plus-shaped "gaussian"
+					u32 surround = Average32(
+							Average32(GetPixel(Buffer, x*2 - 1, y*2), GetPixel(Buffer, x*2 + 1, y*2)),
+							Average32(GetPixel(Buffer, x*2, y*2 - 1), GetPixel(Buffer, x*2, y*2 + 1)));
+					Banner[y * 96 + x] = Average32(GetPixel(Buffer, x*2, y*2), surround);
 				}
+			}
+			return true;
+		}
+		else if (Height == 32 && Width == 96)
+		{
+			memcpy(Banner, &BannerVec[0], 96 * 32 * 4);
+			return true;
 		}
 	}
 
@@ -186,15 +168,28 @@ static bool LoadBanner(std::string filename, u32 *Banner)
 
 static std::string GetName(std::string filename)
 {
-	if (!m_names.empty())
-		return m_names[0];
+	DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_is_wii_title);
 
-	if (!m_volume_names.empty())
-		return m_volume_names[0];
+	auto end = m_names.end();
+	auto it = m_names.find(language);
+	if (it != end)
+		return it->second;
+
+	// English tends to be a good fallback when the requested language isn't available
+	if (language != IVolume::ELanguage::LANGUAGE_ENGLISH)
+	{
+		it = m_names.find(IVolume::ELanguage::LANGUAGE_ENGLISH);
+		if (it != end)
+			return it->second;
+	}
+
+	// If English isn't available either, just pick something
+	if (!m_names.empty())
+		return m_names.cbegin()->second;
+
 	// No usable name, return filename (better than nothing)
 	std::string name;
 	SplitPath(filename, nullptr, &name, nullptr);
-
 	return name;
 }
 
@@ -276,7 +271,6 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(
 	std::string file = GetJString(env, jFile);
 	std::string name = GetName(file);
 	m_names.clear();
-	m_volume_names.clear();
 
 	return env->NewStringUTF(name.c_str());
 }

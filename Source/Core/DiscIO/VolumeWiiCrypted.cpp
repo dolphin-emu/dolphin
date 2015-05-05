@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <map>
 #include <string>
 #include <vector>
 #include <polarssl/aes.h>
@@ -15,6 +16,7 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/FileMonitor.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeGC.h"
@@ -191,17 +193,21 @@ int CVolumeWiiCrypted::GetRevision() const
 	return revision;
 }
 
-std::vector<std::string> CVolumeWiiCrypted::GetNames() const
+std::string CVolumeWiiCrypted::GetName() const
 {
-	std::vector<std::string> names;
+	char name_buffer[0x60];
+	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, false))
+		return DecodeString(name_buffer);
 
-	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
+	return "";
+}
 
-	char name[0xFF] = {};
-	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name, true))
-		names.push_back(string_decoder(name));
-
-	return names;
+std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames() const
+{
+	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+	std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
+	opening_bnr.resize(file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C));
+	return ReadWiiNames(opening_bnr);
 }
 
 u32 CVolumeWiiCrypted::GetFSTSize() const

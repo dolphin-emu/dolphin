@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/IniFile.h"
+#include "DiscIO/Volume.h"
 
 enum Hotkey
 {
@@ -248,6 +249,7 @@ struct SCoreStartupParameter
 	bool AutoSetup(EBootBS2 _BootBS2);
 	const std::string &GetUniqueID() const { return m_strUniqueID; }
 	void CheckMemcardPath(std::string& memcardPath, std::string gameRegion, bool isSlotA);
+	DiscIO::IVolume::ELanguage GetCurrentLanguage(bool wii) const;
 
 	IniFile LoadDefaultGameIni() const;
 	IniFile LoadLocalGameIni() const;

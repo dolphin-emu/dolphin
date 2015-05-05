@@ -114,9 +114,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 {
 	// Load ISO data
 	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
-	bool IsWad = OpenISO->IsWadFile();
 
-	// TODO: Is it really necessary to use GetTitleID in case GetUniqueID fails?
+	// Is it really necessary to use GetTitleID if GetUniqueID fails?
 	game_id = OpenISO->GetUniqueID();
 	if (game_id.empty())
 	{
@@ -137,7 +136,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	bRefreshList = false;
 
-	CreateGUIControls(IsWad);
+	CreateGUIControls();
 
 	LoadGameConfig();
 
@@ -173,33 +172,15 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(_("USA"));
-		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
-		{
-			m_Lang->SetSelection(0);
-			m_Lang->Disable();
-		}
-
 		break;
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		m_Country->SetValue(_("Japan"));
-		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
-		{
-			m_Lang->Insert(_("Japanese"), 0);
-			m_Lang->SetSelection(0);
-			m_Lang->Disable();
-		}
 		break;
 	case DiscIO::IVolume::COUNTRY_KOREA:
 		m_Country->SetValue(_("Korea"));
 		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 		m_Country->SetValue(_("Taiwan"));
-		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
-		{
-			m_Lang->Insert(_("Taiwan"), 0);
-			m_Lang->SetSelection(0);
-			m_Lang->Disable();
-		}
 		break;
 	case DiscIO::IVolume::COUNTRY_WORLD:
 		m_Country->SetValue(_("World"));
@@ -210,27 +191,14 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		break;
 	}
 
-	if (OpenISO->IsWiiDisc()) // Only one language with Wii banners
-	{
-		m_Lang->SetSelection(0);
-		m_Lang->Disable();
-	}
-
 	wxString temp = "0x" + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
 	m_Revision->SetValue(wxString::Format("%u", OpenISO->GetRevision()));
 	m_Date->SetValue(StrToWxStr(OpenISO->GetApploaderDate()));
 	m_FST->SetValue(wxString::Format("%u", OpenISO->GetFSTSize()));
 
-	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
-	if (!IsWad)
-	{
-		ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
-	}
-	else
-	{
-		ChangeBannerDetails(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
-	}
+	// Here we set all the info to be shown + we set the window title
+	ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(OpenISO->IsWadFile() || OpenISO->IsWiiDisc()));
 
 	m_Banner->SetBitmap(OpenGameListItem->GetBitmap());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
@@ -351,7 +319,7 @@ long CISOProperties::GetElementStyle(const char* section, const char* key)
 	return wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER;
 }
 
-void CISOProperties::CreateGUIControls(bool IsWad)
+void CISOProperties::CreateGUIControls()
 {
 	wxButton* const EditConfig = new wxButton(this, ID_EDITCONFIG, _("Edit Config"));
 	EditConfig->SetToolTip(_("This will let you manually edit the INI config file."));
@@ -534,24 +502,58 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_MD5SumCompute = new wxButton(m_Information, ID_MD5SUMCOMPUTE, _("Compute"));
 
 	wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
-	arrayStringFor_Lang.Add(_("English"));
-	arrayStringFor_Lang.Add(_("German"));
-	arrayStringFor_Lang.Add(_("French"));
-	arrayStringFor_Lang.Add(_("Spanish"));
-	arrayStringFor_Lang.Add(_("Italian"));
-	arrayStringFor_Lang.Add(_("Dutch"));
-	int language = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	if (IsWad)
-	{
-		arrayStringFor_Lang.Insert(_("Japanese"), 0);
-		arrayStringFor_Lang.Add(_("Simplified Chinese"));
-		arrayStringFor_Lang.Add(_("Traditional Chinese"));
-		arrayStringFor_Lang.Add(_("Korean"));
 
-		language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+	IVolume::ELanguage preferred_language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(OpenISO->IsWadFile() || OpenISO->IsWiiDisc());
+
+	std::vector<IVolume::ELanguage> languages = OpenGameListItem->GetLanguages();
+	int preferred_language_index = 0;
+	for (size_t i = 0; i < languages.size(); ++i)
+	{
+		if (languages[i] == preferred_language)
+			preferred_language_index = i;
+
+		switch (languages[i])
+		{
+		case IVolume::LANGUAGE_JAPANESE:
+			arrayStringFor_Lang.Add(_("Japanese"));
+			break;
+		case IVolume::LANGUAGE_ENGLISH:
+			arrayStringFor_Lang.Add(_("English"));
+			break;
+		case IVolume::LANGUAGE_GERMAN:
+			arrayStringFor_Lang.Add(_("German"));
+			break;
+		case IVolume::LANGUAGE_FRENCH:
+			arrayStringFor_Lang.Add(_("French"));
+			break;
+		case IVolume::LANGUAGE_SPANISH:
+			arrayStringFor_Lang.Add(_("Spanish"));
+			break;
+		case IVolume::LANGUAGE_ITALIAN:
+			arrayStringFor_Lang.Add(_("Italian"));
+			break;
+		case IVolume::LANGUAGE_DUTCH:
+			arrayStringFor_Lang.Add(_("Dutch"));
+			break;
+		case IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
+			arrayStringFor_Lang.Add(_("Simplified Chinese"));
+			break;
+		case IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+			arrayStringFor_Lang.Add(_("Traditional Chinese"));
+			break;
+		case IVolume::LANGUAGE_KOREAN:
+			arrayStringFor_Lang.Add(_("Korean"));
+			break;
+		case IVolume::LANGUAGE_UNKNOWN:
+		default:
+			arrayStringFor_Lang.Add(_("Unknown"));
+			break;
+		}
 	}
 	m_Lang = new wxChoice(m_Information, ID_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_Lang);
-	m_Lang->SetSelection(language);
+	m_Lang->SetSelection(preferred_language_index);
+	if (arrayStringFor_Lang.size() <= 1)
+		m_Lang->Disable();
 
 	wxStaticText* const m_ShortText = new wxStaticText(m_Information, wxID_ANY, _("Short Name:"));
 	m_ShortName = new wxTextCtrl(m_Information, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
@@ -611,7 +613,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sInfoPage->Add(sbBannerDetails, 0, wxEXPAND|wxALL, 5);
 	m_Information->SetSizer(sInfoPage);
 
-	if (!IsWad)
+	if (!OpenISO->IsWadFile())
 	{
 		wxPanel* const m_Filesystem = new wxPanel(m_Notebook, ID_FILESYSTEM);
 		m_Notebook->AddPage(m_Filesystem, _("Filesystem"));
@@ -1490,13 +1492,13 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 {
-	ChangeBannerDetails(event.GetSelection());
+	ChangeBannerDetails(OpenGameListItem->GetLanguages()[event.GetSelection()]);
 }
 
-void CISOProperties::ChangeBannerDetails(int lang)
+void CISOProperties::ChangeBannerDetails(IVolume::ELanguage language)
 {
-	wxString const shortName = StrToWxStr(OpenGameListItem->GetName(lang));
-	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
+	wxString const shortName = StrToWxStr(OpenGameListItem->GetName(language));
+	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(language));
 	wxString const maker = StrToWxStr(OpenGameListItem->GetCompany());
 
 	// Updates the information shown in the window
