@@ -67,7 +67,7 @@ Replace `<git-path>` with the absolute path to your machine's Git executable, <n
 path to where you installed your NDK, and the rest depending on which platform the Android device you are
 targeting uses:
 
-|Platform                 | <abi>       | <toolchain>               |
+|Platform                 | abi         | toolchain                 |
 |-------------------------|-------------|---------------------------|
 |ARM 32-bit (most devices)| armeabi-v7a | arm-linux-androideabi-4.9 |
 |ARM 64-bit (i.e. Nexus 9)| arm64-v8a   | aarch64-linux-android-4.9 |
