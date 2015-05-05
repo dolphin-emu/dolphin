@@ -419,11 +419,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
 			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = ((u32)(val * 0xffff));
+			ret = ((u32)(val * 65536.0f));
 		}
 		else
 		{
-			ret = ((u32)(val * 0xffffff));
+			ret = ((u32)(val * 16777216.0f));
 		}
 		D3D::context->Unmap(read_tex, 0);
 

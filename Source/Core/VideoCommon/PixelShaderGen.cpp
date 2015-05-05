@@ -1224,11 +1224,11 @@ static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, A
 		if (ApiType == API_OPENGL)
 			out.Write("\tscreenpos.y = %i - screenpos.y;\n", EFB_HEIGHT);
 
-		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / float(0xFFFFFF);\n");
+		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / 16777216.0;\n");
 	}
 	else
 	{
-		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 }
 
