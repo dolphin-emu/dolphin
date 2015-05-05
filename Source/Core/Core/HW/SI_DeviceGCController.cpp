@@ -78,7 +78,8 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
 
-			Calibrate();
+			if (!m_Calibrated)
+				Calibrate();
 
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
