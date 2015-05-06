@@ -20,9 +20,7 @@ CREATEDXGIFACTORY PCreateDXGIFactory = nullptr;
 HINSTANCE hDXGIDll = nullptr;
 int dxgi_dll_ref = 0;
 
-typedef HRESULT (WINAPI* D3D11CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, CONST DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 static D3D11CREATEDEVICE PD3D11CreateDevice = nullptr;
-D3D11CREATEDEVICEANDSWAPCHAIN PD3D11CreateDeviceAndSwapChain = nullptr;
 HINSTANCE hD3DDll = nullptr;
 int d3d_dll_ref = 0;
 
@@ -31,7 +29,7 @@ namespace D3D
 
 ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
-static IDXGISwapChain* swapchain = nullptr;
+static IDXGISwapChain1* swapchain = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
 HWND hWnd;
@@ -83,9 +81,6 @@ HRESULT LoadD3D()
 	}
 	PD3D11CreateDevice = (D3D11CREATEDEVICE)GetProcAddress(hD3DDll, "D3D11CreateDevice");
 	if (PD3D11CreateDevice == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for D3D11CreateDevice!", "Critical error", MB_OK | MB_ICONERROR);
-
-	PD3D11CreateDeviceAndSwapChain = (D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(hD3DDll, "D3D11CreateDeviceAndSwapChain");
-	if (PD3D11CreateDeviceAndSwapChain == nullptr) MessageBoxA(nullptr, "GetProcAddress failed for D3D11CreateDeviceAndSwapChain!", "Critical error", MB_OK | MB_ICONERROR);
 
 	return S_OK;
 }
@@ -139,7 +134,6 @@ void UnloadD3D()
 	if (hD3DDll) FreeLibrary(hD3DDll);
 	hD3DDll = nullptr;
 	PD3D11CreateDevice = nullptr;
-	PD3D11CreateDeviceAndSwapChain = nullptr;
 }
 
 void UnloadD3DCompiler()
@@ -224,10 +218,10 @@ HRESULT Create(HWND wnd)
 		return hr;
 	}
 
-	IDXGIFactory* factory;
+	IDXGIFactory2* factory;
 	IDXGIAdapter* adapter;
 	IDXGIOutput* output;
-	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory2), (void**)&factory);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
 	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
@@ -263,55 +257,42 @@ HRESULT Create(HWND wnd)
 		UpdateActiveConfig();
 	}
 
-	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
+	const bool stereo_enabled = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER && factory->IsWindowedStereoEnabled();
+
+	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc;
 	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
 	swap_chain_desc.BufferCount = 1;
 	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swap_chain_desc.OutputWindow = wnd;
 	swap_chain_desc.SampleDesc.Count = 1;
 	swap_chain_desc.SampleDesc.Quality = 0;
-	swap_chain_desc.Windowed = !g_Config.bFullscreen;
-
-	DXGI_OUTPUT_DESC out_desc;
-	memset(&out_desc, 0, sizeof(out_desc));
-	output->GetDesc(&out_desc);
-
-	DXGI_MODE_DESC mode_desc;
-	memset(&mode_desc, 0, sizeof(mode_desc));
-	mode_desc.Width = out_desc.DesktopCoordinates.right - out_desc.DesktopCoordinates.left;
-	mode_desc.Height = out_desc.DesktopCoordinates.bottom - out_desc.DesktopCoordinates.top;
-	mode_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	mode_desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	hr = output->FindClosestMatchingMode(&mode_desc, &swap_chain_desc.BufferDesc, nullptr);
-	if (FAILED(hr)) MessageBox(wnd, _T("Failed to find a supported video mode"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
-
-	if (swap_chain_desc.Windowed)
-	{
-		// forcing buffer resolution to xres and yres..
-		// this is not a problem as long as we're in windowed mode
-		swap_chain_desc.BufferDesc.Width = xres;
-		swap_chain_desc.BufferDesc.Height = yres;
-	}
+	swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	swap_chain_desc.Width = xres;
+	swap_chain_desc.Height = yres;
+	swap_chain_desc.Stereo = stereo_enabled;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	// Creating debug devices can sometimes fail if the user doesn't have the correct
 	// version of the DirectX SDK. If it does, simply fallback to a non-debug device.
 	{
-		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-											D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
-											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-											&featlevel, &context);
+		hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+								D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
+								supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+								D3D11_SDK_VERSION, &device, &featlevel, &context);
+		if (SUCCEEDED(hr))
+			hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr, &swapchain);
 	}
 
 	if (FAILED(hr))
 #endif
 	{
-		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-											D3D11_CREATE_DEVICE_SINGLETHREADED,
-											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-											&featlevel, &context);
+		hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+										D3D11_CREATE_DEVICE_SINGLETHREADED,
+										supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+										D3D11_SDK_VERSION, &device, &featlevel, &context);
+		if (SUCCEEDED(hr))
+			hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr, &swapchain);
 	}
 
 	if (FAILED(hr))

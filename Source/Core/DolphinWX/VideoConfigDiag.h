@@ -214,6 +214,10 @@ protected:
 			choice_backend->Disable();
 			label_backend->Disable();
 
+			// Toggling Quad-Buffering requires the swapchain to be rebuilt
+			if (choice_stereo && vconfig.iStereoMode == STEREO_QUADBUFFER)
+				choice_stereo->Disable();
+
 			// D3D only
 			if (vconfig.backend_info.Adapters.size())
 			{
@@ -270,6 +274,8 @@ protected:
 	wxCheckBox* progressive_scan_checkbox;
 
 	wxChoice* choice_ppshader;
+
+	SettingChoice* choice_stereo;
 
 	std::map<wxWindow*, wxString> ctrl_descs; // maps setting controls to their descriptions
 	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects
