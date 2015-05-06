@@ -180,8 +180,6 @@ const char depth_matrix_program_msaa[] = {
 	"	for(int i = 0; i < SAMPLES; ++i)\n"
 	"		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
 	"	texcol /= SAMPLES;\n"
-
-	"	float4 texcol = Tex0.Sample(samp0,uv0);\n"
 	"	int depth = int(round(texcol.x * float(0xFFFFFF)));\n"
 
 	// Convert to Z24 format
