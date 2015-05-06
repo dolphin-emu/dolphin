@@ -12,6 +12,7 @@
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -940,7 +941,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 			if (type == PEEK_Z)
 			{
 				float* ptr = (float*)data;
-				value = (u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f);
+				value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f), 0, 0xFFFFFF);
 			}
 			else
 			{
