@@ -487,7 +487,7 @@ static void WriteZ16Encoder(char*& p,API_TYPE ApiType)
 
 	WriteSampleColor(p, "r", "depth", 0, ApiType);
 
-	WRITE(p, "  depth *= 16777216.0;\n");
+	WRITE(p, "  depth = clamp(depth * 16777216.0, 0, 0xFFFFFF);\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
 	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
 	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
@@ -497,7 +497,7 @@ static void WriteZ16Encoder(char*& p,API_TYPE ApiType)
 
 	WriteSampleColor(p, "r", "depth", 1, ApiType);
 
-	WRITE(p, "  depth *= 16777216.0;\n");
+	WRITE(p, "  depth = clamp(depth * 16777216.0, 0, 0xFFFFFF);\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
 	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
 	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
@@ -519,7 +519,7 @@ static void WriteZ16LEncoder(char*& p,API_TYPE ApiType)
 
 	WriteSampleColor(p, "r", "depth", 0, ApiType);
 
-	WRITE(p, "  depth *= 16777216.0;\n");
+	WRITE(p, "  depth = clamp(depth * 16777216.0, 0, 0xFFFFFF);\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
 	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
 	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
@@ -531,7 +531,7 @@ static void WriteZ16LEncoder(char*& p,API_TYPE ApiType)
 
 	WriteSampleColor(p, "r", "depth", 1, ApiType);
 
-	WRITE(p, "  depth *= 16777216.0;\n");
+	WRITE(p, "  depth = clamp(depth * 16777216.0, 0, 0xFFFFFF);\n");
 	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
 	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
 	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
@@ -558,7 +558,7 @@ static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 
 	for (int i = 0; i < 2; i++)
 	{
-		WRITE(p, "  depth%i *= 16777216.0;\n", i);
+		WRITE(p, "  depth%i = clamp(depth%i * 16777216.0, 0, 0xFFFFFF);\n", i, i);
 
 		WRITE(p, "  expanded%i.r = floor(depth%i / (256.0 * 256.0));\n", i, i);
 		WRITE(p, "  depth%i -= expanded%i.r * 256.0 * 256.0;\n", i, i);
