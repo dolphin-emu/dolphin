@@ -4,18 +4,6 @@ android {
     compileSdkVersion 21
 	buildToolsVersion "20.0.0"
 
-    task nativeLibsToJar(type: Zip, description: 'create a jar archive of the native libs') {
-        destinationDir file("$buildDir/native-libs")
-        baseName 'native-libs'
-        extension 'jar'
-        from fileTree(dir: 'libs', include: '**/*.so')
-        into 'lib/'
-    }
-
-    tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn(nativeLibsToJar)
-    }
-
     lintOptions {
         // This is important as it will run lint but not abort on error
         // Lint has some overly obnoxious "errors" that should really be warnings
@@ -29,7 +17,6 @@ android {
         versionCode 13
         versionName "0.13"
     }
-
 
     signingConfigs {
         release {
@@ -59,8 +46,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-	compile fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
 
 	compile 'com.android.support:support-v4:22.0.0'
 	compile 'com.android.support:support-v13:22.0.0'
