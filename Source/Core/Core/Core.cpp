@@ -466,7 +466,13 @@ void EmuThread()
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
-	CBoot::BootUp();
+	if (!CBoot::BootUp())
+	{
+		HW::Shutdown();
+		g_video_backend->Shutdown();
+		Host_Message(WM_USER_STOP);
+		return;
+	}
 
 	// Thread is no longer acting as CPU Thread
 	UndeclareAsCPUThread();

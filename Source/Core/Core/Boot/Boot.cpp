@@ -258,12 +258,14 @@ bool CBoot::BootUp()
 		// HLE BS2 or not
 		if (_StartupPara.bHLE_BS2)
 		{
-			EmulatedBS2(_StartupPara.bWii);
+			if (!EmulatedBS2(_StartupPara.bWii))
+				return false;
 		}
 		else if (!Load_BS2(_StartupPara.m_strBootROM))
 		{
 			// If we can't load the bootrom file we HLE it instead
-			EmulatedBS2(_StartupPara.bWii);
+			if (!EmulatedBS2(_StartupPara.bWii))
+				return false;
 		}
 		else
 		{
