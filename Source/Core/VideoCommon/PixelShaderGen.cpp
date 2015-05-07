@@ -563,12 +563,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("\tint zCoord = iround(rawpos.z * float(0xFFFFFF));\n");
+		out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
 	else
 	{
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
 		// the screen space depth value = far z + (clip z / clip w) * z range
-		out.Write("\tint zCoord = " I_ZBIAS"[1].x + iround((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n");
+		out.Write("\tint zCoord = " I_ZBIAS"[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n");
 	}
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
@@ -1169,13 +1169,13 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 		// TODO: Verify that we want to drop lower bits here! (currently taken over from software renderer)
 		//       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
 		//       That's equivalent, but keeps the lower bits of Zs.
-		out.Write("\tfloat ze = (" I_FOGF"[1].x * 16777215.0) / float(" I_FOGI".y - (zCoord >> " I_FOGI".w));\n");
+		out.Write("\tfloat ze = (" I_FOGF"[1].x * 16777216.0) / float(" I_FOGI".y - (zCoord >> " I_FOGI".w));\n");
 	}
 	else
 	{
 		// orthographic
 		// ze = a*Zs    (here, no B_SHF)
-		out.Write("\tfloat ze = " I_FOGF"[1].x * float(zCoord) / 16777215.0;\n");
+		out.Write("\tfloat ze = " I_FOGF"[1].x * float(zCoord) / 16777216.0;\n");
 	}
 
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
