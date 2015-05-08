@@ -361,8 +361,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	D3D::context->Unmap(m_outStage, 0);
 
 	// Restore API
-
 	g_renderer->RestoreAPIState();
+	D3D::stateman->Apply(); // force unbind efb texture as shader resource
 	D3D::context->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
