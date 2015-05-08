@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- inherit from the material theme -->
+    <style name="DolphinWii" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Main theme colors -->
+        <!--   your app branding color for the app bar -->
+        <item name="android:colorPrimary">@color/dolphin_wii</item>
+        <!--   darker variant for the status bar and contextual app bars -->
+        <item name="android:colorPrimaryDark">@color/dolphin_wii_dark</item>
+        <!--   theme UI controls like checkboxes and text fields -->
+        <item name="android:colorAccent">@color/dolphin_gamecube</item>
+    </style>
+
+    <style name="DolphinGamecube" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/dolphin_gamecube</item>
+        <item name="android:colorPrimaryDark">@color/dolphin_gamecube_dark</item>
+        <item name="android:colorAccent">@color/dolphin_wii</item>
+
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
+
+    <style name="DolphinWiiTransparent" parent="android:Theme.Material.Light.NoActionBar.TranslucentDecor">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+</resources>
