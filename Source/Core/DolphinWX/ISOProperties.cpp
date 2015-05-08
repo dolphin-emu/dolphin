@@ -494,9 +494,9 @@ void CISOProperties::CreateGUIControls()
 
 	wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
 
-	IVolume::ELanguage preferred_language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(OpenISO->IsWadFile() || OpenISO->IsWiiDisc());
+	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(OpenISO->IsWadFile() || OpenISO->IsWiiDisc());
 
-	std::vector<IVolume::ELanguage> languages = OpenGameListItem->GetLanguages();
+	std::vector<DiscIO::IVolume::ELanguage> languages = OpenGameListItem->GetLanguages();
 	int preferred_language_index = 0;
 	for (size_t i = 0; i < languages.size(); ++i)
 	{
@@ -505,37 +505,37 @@ void CISOProperties::CreateGUIControls()
 
 		switch (languages[i])
 		{
-		case IVolume::LANGUAGE_JAPANESE:
+		case DiscIO::IVolume::LANGUAGE_JAPANESE:
 			arrayStringFor_Lang.Add(_("Japanese"));
 			break;
-		case IVolume::LANGUAGE_ENGLISH:
+		case DiscIO::IVolume::LANGUAGE_ENGLISH:
 			arrayStringFor_Lang.Add(_("English"));
 			break;
-		case IVolume::LANGUAGE_GERMAN:
+		case DiscIO::IVolume::LANGUAGE_GERMAN:
 			arrayStringFor_Lang.Add(_("German"));
 			break;
-		case IVolume::LANGUAGE_FRENCH:
+		case DiscIO::IVolume::LANGUAGE_FRENCH:
 			arrayStringFor_Lang.Add(_("French"));
 			break;
-		case IVolume::LANGUAGE_SPANISH:
+		case DiscIO::IVolume::LANGUAGE_SPANISH:
 			arrayStringFor_Lang.Add(_("Spanish"));
 			break;
-		case IVolume::LANGUAGE_ITALIAN:
+		case DiscIO::IVolume::LANGUAGE_ITALIAN:
 			arrayStringFor_Lang.Add(_("Italian"));
 			break;
-		case IVolume::LANGUAGE_DUTCH:
+		case DiscIO::IVolume::LANGUAGE_DUTCH:
 			arrayStringFor_Lang.Add(_("Dutch"));
 			break;
-		case IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
+		case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
 			arrayStringFor_Lang.Add(_("Simplified Chinese"));
 			break;
-		case IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+		case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
 			arrayStringFor_Lang.Add(_("Traditional Chinese"));
 			break;
-		case IVolume::LANGUAGE_KOREAN:
+		case DiscIO::IVolume::LANGUAGE_KOREAN:
 			arrayStringFor_Lang.Add(_("Korean"));
 			break;
-		case IVolume::LANGUAGE_UNKNOWN:
+		case DiscIO::IVolume::LANGUAGE_UNKNOWN:
 		default:
 			arrayStringFor_Lang.Add(_("Unknown"));
 			break;
@@ -1486,7 +1486,7 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 	ChangeBannerDetails(OpenGameListItem->GetLanguages()[event.GetSelection()]);
 }
 
-void CISOProperties::ChangeBannerDetails(IVolume::ELanguage language)
+void CISOProperties::ChangeBannerDetails(DiscIO::IVolume::ELanguage language)
 {
 	wxString const shortName = StrToWxStr(OpenGameListItem->GetName(language));
 	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(language));

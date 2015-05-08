@@ -25,11 +25,11 @@ public:
 
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}
-	std::string GetName(IVolume::ELanguage language) const;
+	std::string GetName(DiscIO::IVolume::ELanguage language) const;
 	std::string GetName() const;
-	std::string GetDescription(IVolume::ELanguage language) const;
+	std::string GetDescription(DiscIO::IVolume::ELanguage language) const;
 	std::string GetDescription() const;
-	std::vector<IVolume::ELanguage> GetLanguages() const;
+	std::vector<DiscIO::IVolume::ELanguage> GetLanguages() const;
 	std::string GetCompany() const;
 	int GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
@@ -59,8 +59,8 @@ public:
 private:
 	std::string m_FileName;
 
-	std::map<IVolume::ELanguage, std::string> m_names;
-	std::map<IVolume::ELanguage, std::string> m_descriptions;
+	std::map<DiscIO::IVolume::ELanguage, std::string> m_names;
+	std::map<DiscIO::IVolume::ELanguage, std::string> m_descriptions;
 	std::string m_company;
 
 	std::string m_UniqueID;

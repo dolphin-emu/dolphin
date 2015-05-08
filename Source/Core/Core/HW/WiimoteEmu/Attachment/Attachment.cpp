@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
 namespace WiimoteEmu

@@ -69,7 +69,7 @@ static wxString FailureReasonStringForHostLabel(int reason)
 static std::string BuildGameName(const GameListItem& game)
 {
 	// Lang needs to be consistent
-	IVolume::ELanguage const lang = IVolume::LANGUAGE_ENGLISH;
+	DiscIO::IVolume::ELanguage const lang = DiscIO::IVolume::LANGUAGE_ENGLISH;
 
 	std::string name(game.GetName(lang));
 

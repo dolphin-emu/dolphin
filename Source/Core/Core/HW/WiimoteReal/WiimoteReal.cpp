@@ -6,11 +6,12 @@
 #include <cstdlib>
 #include <queue>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"

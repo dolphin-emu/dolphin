@@ -2,8 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 #include <cinttypes>
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"

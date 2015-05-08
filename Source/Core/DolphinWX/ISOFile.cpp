@@ -40,7 +40,7 @@ static const u32 CACHE_REVISION = 0x123;
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 
-static std::string GetLanguageString(IVolume::ELanguage language, std::map<IVolume::ELanguage, std::string> strings)
+static std::string GetLanguageString(DiscIO::IVolume::ELanguage language, std::map<DiscIO::IVolume::ELanguage, std::string> strings)
 {
 	auto end = strings.end();
 	auto it = strings.find(language);
@@ -48,9 +48,9 @@ static std::string GetLanguageString(IVolume::ELanguage language, std::map<IVolu
 		return it->second;
 
 	// English tends to be a good fallback when the requested language isn't available
-	if (language != IVolume::ELanguage::LANGUAGE_ENGLISH)
+	if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH)
 	{
-		it = strings.find(IVolume::ELanguage::LANGUAGE_ENGLISH);
+		it = strings.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
 		if (it != end)
 			return it->second;
 	}
@@ -207,7 +207,7 @@ std::string GameListItem::GetCompany() const
 	return m_company;
 }
 
-std::string GameListItem::GetDescription(IVolume::ELanguage language) const
+std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const
 {
 	return GetLanguageString(language, m_descriptions);
 }
@@ -217,7 +217,7 @@ std::string GameListItem::GetDescription() const
 	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
 }
 
-std::string GameListItem::GetName(IVolume::ELanguage language) const
+std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
 {
 	return GetLanguageString(language, m_names);
 }
@@ -233,10 +233,10 @@ std::string GameListItem::GetName() const
 	return name;
 }
 
-std::vector<IVolume::ELanguage> GameListItem::GetLanguages() const
+std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const
 {
-	std::vector<IVolume::ELanguage> languages;
-	for (std::pair<IVolume::ELanguage, std::string> name : m_names)
+	std::vector<DiscIO::IVolume::ELanguage> languages;
+	for (std::pair<DiscIO::IVolume::ELanguage, std::string> name : m_names)
 		languages.push_back(name.first);
 	return languages;
 }

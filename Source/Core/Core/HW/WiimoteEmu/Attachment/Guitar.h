@@ -9,6 +9,8 @@
 namespace WiimoteEmu
 {
 
+struct ExtensionReg;
+
 class Guitar : public Attachment
 {
 public:

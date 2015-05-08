@@ -6,6 +6,8 @@
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+class PointerWrap;
+
 struct NANDStat
 {
 	u32 BlockSize;

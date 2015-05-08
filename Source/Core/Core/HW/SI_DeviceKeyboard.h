@@ -4,7 +4,10 @@
 
 #pragma once
 
-#include "InputCommon/KeyboardStatus.h"
+#include "Core/HW/SI_Device.h"
+
+class PointerWrap;
+struct KeyboardStatus;
 
 class CSIDevice_Keyboard : public ISIDevice
 {

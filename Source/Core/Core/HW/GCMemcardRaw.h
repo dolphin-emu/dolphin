@@ -5,9 +5,11 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
 #include "Common/Event.h"
 #include "Common/Flag.h"
-#include "Common/Thread.h"
 #include "Core/HW/GCMemcard.h"
 
 class PointerWrap;

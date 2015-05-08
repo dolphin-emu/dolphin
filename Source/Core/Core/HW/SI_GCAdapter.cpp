@@ -4,11 +4,15 @@
 
 #include <libusb.h>
 
+#include "Common/Flag.h"
+#include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/SI.h"
 #include "Core/HW/SI_GCAdapter.h"
 #include "Core/HW/SystemTimers.h"
+#include "InputCommon/GCPadStatus.h"
 
 namespace SI_GCAdapter
 {

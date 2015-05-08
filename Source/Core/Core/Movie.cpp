@@ -29,6 +29,7 @@
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCPadStatus.h"
 #include "VideoCommon/VideoConfig.h"

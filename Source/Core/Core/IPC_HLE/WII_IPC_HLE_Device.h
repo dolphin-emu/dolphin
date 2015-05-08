@@ -6,10 +6,10 @@
 
 #include <queue>
 #include <string>
+#include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/StringUtil.h"
-
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 

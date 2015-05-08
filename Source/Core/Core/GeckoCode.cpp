@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"

@@ -4,7 +4,11 @@
 
 #pragma once
 
-#include "Common/IniFile.h"
+#include <string>
+#include <vector>
+#include "Common/CommonTypes.h"
+
+class IniFile;
 
 namespace ActionReplay
 {

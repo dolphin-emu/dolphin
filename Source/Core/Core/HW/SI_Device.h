@@ -38,7 +38,7 @@ enum TSIDevices
 };
 
 // For configuration use, since some devices can have the same SI Device ID
-enum SIDevices
+enum SIDevices : int
 {
 	SIDEVICE_NONE,
 	SIDEVICE_N64_MIC,

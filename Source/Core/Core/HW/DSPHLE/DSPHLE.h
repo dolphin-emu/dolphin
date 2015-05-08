@@ -8,6 +8,7 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 
+class PointerWrap;
 class UCodeInterface;
 
 class DSPHLE : public DSPEmulator {

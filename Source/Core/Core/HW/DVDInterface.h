@@ -7,9 +7,9 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Volume.h"
 
 class PointerWrap;
+namespace DiscIO { class IVolume; }
 namespace MMIO { class Mapping; }
 
 namespace DVDInterface
@@ -79,7 +79,7 @@ enum DICommand
 	DVDLowAudioBufferConfig = 0xe4
 };
 
-enum DIInterruptType
+enum DIInterruptType : int
 {
 	INT_DEINT = 0,
 	INT_TCINT = 1,

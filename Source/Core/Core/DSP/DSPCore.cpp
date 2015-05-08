@@ -34,6 +34,7 @@
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntUtil.h"
 
 SDSP g_dsp;

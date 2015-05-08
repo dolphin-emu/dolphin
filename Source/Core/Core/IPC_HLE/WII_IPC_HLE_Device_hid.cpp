@@ -2,9 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <errno.h>
+#include <cerrno>
 #include <libusb.h>
 
+#include "Common/Thread.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/WII_IPC.h"

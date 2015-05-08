@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/SI_DeviceDanceMat.h"
+#include "InputCommon/GCPadStatus.h"
 
 CSIDevice_DanceMat::CSIDevice_DanceMat(SIDevices device, int _iDeviceNumber)
 	: CSIDevice_GCController(device, _iDeviceNumber) {}

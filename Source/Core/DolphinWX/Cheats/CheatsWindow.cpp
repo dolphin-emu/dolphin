@@ -22,6 +22,7 @@
 #include <wx/textctrl.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/ActionReplay.h"

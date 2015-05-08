@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
+class PointerWrap;
 
 class DSPEmulator
 {

@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include "Common/ENetUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"

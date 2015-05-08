@@ -5,10 +5,11 @@
 #pragma once
 
 #include <memory>
-
 #include "Common/CommonTypes.h"
-#include "Core/HW/EXI_Device.h"
 
+class IEXIDevice;
+class PointerWrap;
+enum TEXIDevices : int;
 namespace MMIO { class Mapping; }
 
 class CEXIChannel

@@ -6,9 +6,17 @@
 
 #include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-#include "DiscIO/NANDContentLoader.h"
+
+class PointerWrap;
+namespace DiscIO
+{
+	class INANDContentLoader;
+	struct SNANDContent;
+}
 
 class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {

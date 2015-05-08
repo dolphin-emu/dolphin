@@ -6,9 +6,7 @@
 
 #include <functional>
 
-#include "Common/Thread.h"
-#include "Core/HW/SI.h"
-#include "InputCommon/GCPadStatus.h"
+struct GCPadStatus;
 
 namespace SI_GCAdapter
 {

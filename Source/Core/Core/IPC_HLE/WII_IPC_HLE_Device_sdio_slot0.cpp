@@ -2,7 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/SDCardUtil.h"
 
 #include "Core/ConfigManager.h"

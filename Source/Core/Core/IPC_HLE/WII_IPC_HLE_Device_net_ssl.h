@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <polarssl/ctr_drbg.h>
 #include <polarssl/entropy.h>
 #include <polarssl/net.h>

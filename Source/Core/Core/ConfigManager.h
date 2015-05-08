@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Common/SysConf.h"
-#include "Core/Boot/Boot.h"
+#include "Core/CoreParameter.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/SI_Device.h"
 

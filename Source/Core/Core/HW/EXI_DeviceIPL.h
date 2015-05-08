@@ -7,7 +7,8 @@
 #include <string>
 
 #include "Core/HW/EXI_Device.h"
-#include "Core/HW/Sram.h"
+
+class PointerWrap;
 
 class CEXIIPL : public IEXIDevice
 {
