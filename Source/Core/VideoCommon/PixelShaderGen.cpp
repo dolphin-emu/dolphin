@@ -570,6 +570,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// the screen space depth value = far z + (clip z / clip w) * z range
 		out.Write("\tint zCoord = " I_ZBIAS"[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n");
 	}
+	out.Write("\tzCoord = clamp(zCoord, " I_ZBIAS"[1].x - " I_ZBIAS"[1].y, " I_ZBIAS"[1].x);\n");
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
 	const bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
