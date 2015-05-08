@@ -242,13 +242,13 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 	}
 	bool b_frame_dumped = false;
 	// try really hard to place one copy of frame in stream (otherwise it's dropped)
-	if (delta > (s64)one_cfr * 3 / 10) // place if 3/10th of a frame space
+	if (delta > (s64)one_cfr * 1 / 10) // place if 1/10th of a frame space
 	{
 		delta -= one_cfr;
 		nplay++;
 	}
 	// try not nearly so hard to place additional copies of the frame
-	while (delta > (s64)one_cfr * 8 / 10) // place if 8/10th of a frame space
+	while (delta > (s64)one_cfr * 9 / 10) // place if 9/10th of a frame space
 	{
 		delta -= one_cfr;
 		nplay++;
