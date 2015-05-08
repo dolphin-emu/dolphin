@@ -3,14 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <string>
-#include <wx/chartype.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/msgdlg.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
 
 #include "Common/BreakPoints.h"

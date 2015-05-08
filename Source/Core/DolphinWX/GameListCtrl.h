@@ -8,12 +8,8 @@
 #include <string>
 #include <vector>
 
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/listctrl.h>
-#include <wx/string.h>
 #include <wx/tipwin.h>
-#include <wx/windowid.h>
 
 #include "DolphinWX/ISOFile.h"
 

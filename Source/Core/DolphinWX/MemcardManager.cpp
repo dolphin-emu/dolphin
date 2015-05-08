@@ -6,26 +6,17 @@
 #include <string>
 #include <wx/bitmap.h>
 #include <wx/button.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/filedlg.h>
 #include <wx/filepicker.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/imaglist.h>
 #include <wx/listbase.h>
 #include <wx/menu.h>
-#include <wx/menuitem.h>
 #include <wx/msgdlg.h>
 #include <wx/mstream.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/window.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

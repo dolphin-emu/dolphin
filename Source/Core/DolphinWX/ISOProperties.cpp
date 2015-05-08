@@ -16,21 +16,15 @@
 #include <type_traits>
 #include <vector>
 #include <polarssl/md5.h>
-#include <wx/arrstr.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/checklst.h>
 #include <wx/choice.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
 #include <wx/dirdlg.h>
-#include <wx/dynarray.h>
-#include <wx/event.h>
 #include <wx/filedlg.h>
 #include <wx/gbsizer.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/imaglist.h>
 #include <wx/itemid.h>
@@ -45,15 +39,12 @@
 #include <wx/spinctrl.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/thread.h>
-#include <wx/translation.h>
 #include <wx/treebase.h>
 #include <wx/treectrl.h>
 #include <wx/utils.h>
 #include <wx/validate.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"

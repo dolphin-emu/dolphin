@@ -5,12 +5,7 @@
 #include <cstddef>
 
 #include <wx/bitmap.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 #include <wx/aui/auibar.h>
 
 #include "Common/FileUtil.h"

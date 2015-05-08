@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <wx/defs.h>
 #include <wx/panel.h>
-#include <wx/windowid.h>
 
 class LogManager;
 class CLogWindow;

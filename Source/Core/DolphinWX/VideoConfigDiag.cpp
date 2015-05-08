@@ -6,25 +6,17 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <wx/arrstr.h>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/control.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/window.h>
 
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"

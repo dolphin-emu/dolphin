@@ -8,15 +8,8 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <wx/arrstr.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
-#include <wx/string.h>
-#include <wx/toplevel.h>
-#include <wx/translation.h>
 #include <wx/treebase.h>
-#include <wx/windowid.h>
 
 #include "Common/IniFile.h"
 #include "Core/ActionReplay.h"

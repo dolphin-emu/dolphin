@@ -6,11 +6,6 @@
 
 #include <vector>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 #include "Core/PatchEngine.h"
 

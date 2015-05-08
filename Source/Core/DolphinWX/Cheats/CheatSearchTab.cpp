@@ -5,16 +5,13 @@
 #include <array>
 #include <wx/button.h>
 #include <wx/choice.h>
-#include <wx/event.h>
 #include <wx/listbox.h>
 #include <wx/panel.h>
 #include <wx/radiobox.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/window.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
