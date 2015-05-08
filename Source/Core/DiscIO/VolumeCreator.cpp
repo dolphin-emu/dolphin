@@ -27,7 +27,6 @@ enum EDiscType
 {
 	DISC_TYPE_UNK,
 	DISC_TYPE_WII,
-	DISC_TYPE_WII_CONTAINER,
 	DISC_TYPE_GC,
 	DISC_TYPE_WAD
 };
@@ -80,14 +79,13 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 
 	switch (GetDiscType(*pReader))
 	{
-		case DISC_TYPE_WII:
 		case DISC_TYPE_GC:
 			return new CVolumeGC(pReader);
 
 		case DISC_TYPE_WAD:
 			return new CVolumeWAD(pReader);
 
-		case DISC_TYPE_WII_CONTAINER:
+		case DISC_TYPE_WII:
 		{
 			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, _PartitionGroup, 0, _VolumeNum);
 
@@ -211,16 +209,13 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 EDiscType GetDiscType(IBlobReader& _rReader)
 {
 	CBlobBigEndianReader Reader(_rReader);
-	u32 WiiMagic = Reader.Read32(0x18);
-	u32 WiiContainerMagic = Reader.Read32(0x60);
+	u32 WiiMagic = Reader.Read32(0x18); // Disc layout magic (Wii)
 	u32 WADMagic = Reader.Read32(0x02);
-	u32 GCMagic = Reader.Read32(0x1C);
+	u32 GCMagic = Reader.Read32(0x1C); // Disc layout magic (GC)
 
 	// check for Wii
-	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic != 0)
+	if (WiiMagic == 0x5D1C9EA3)
 		return DISC_TYPE_WII;
-	if (WiiMagic == 0x5D1C9EA3 && WiiContainerMagic == 0)
-		return DISC_TYPE_WII_CONTAINER;
 
 	// check for WAD
 	// 0x206962 for boot2 wads
@@ -233,7 +228,6 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 
 	WARN_LOG(DISCIO, "No known magic words found");
 	WARN_LOG(DISCIO, "Wii  offset: 0x18 value: 0x%08x", WiiMagic);
-	WARN_LOG(DISCIO, "WiiC offset: 0x60 value: 0x%08x", WiiContainerMagic);
 	WARN_LOG(DISCIO, "WAD  offset: 0x02 value: 0x%08x", WADMagic);
 	WARN_LOG(DISCIO, "GC   offset: 0x1C value: 0x%08x", GCMagic);
 
