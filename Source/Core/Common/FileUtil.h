@@ -152,7 +152,7 @@ bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
 
 // simple wrapper for cstdlib file functions to
-// hopefully will make error checking easier
+// hopefully make error checking easier
 // and make forgetting an fclose() harder
 class IOFile : public NonCopyable
 {

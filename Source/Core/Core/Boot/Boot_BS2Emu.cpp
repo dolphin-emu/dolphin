@@ -194,6 +194,7 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 			serno = gen.GetValue("SERNO");
 			gen.Reset();
 		}
+		settingsFileHandle.Close();
 		File::Delete(settings_Filename);
 	}
 
