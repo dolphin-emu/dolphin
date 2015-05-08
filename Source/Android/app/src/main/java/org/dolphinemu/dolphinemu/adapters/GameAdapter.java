@@ -64,6 +64,8 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
 		// Fill in the view contents.
 		Picasso.with(holder.imageScreenshot.getContext())
 				.load(game.getScreenPath())
+				.fit()
+				.centerCrop()
 				.error(R.drawable.no_banner)
 				.into(holder.imageScreenshot);
 

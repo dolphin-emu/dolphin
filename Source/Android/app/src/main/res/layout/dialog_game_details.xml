@@ -31,7 +31,6 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:scaleType="centerCrop"
             android:transitionName="image_game_screen"
             tools:src="@drawable/placeholder_screenshot"/>
 
