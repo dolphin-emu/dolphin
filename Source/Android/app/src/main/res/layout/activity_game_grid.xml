@@ -13,12 +13,31 @@
         android:minHeight="?android:attr/actionBarSize"
         android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar"/>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/grid_games"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:listitem="@layout/grid_card_game"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"/>
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/grid_games"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/grid_card_game"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"/>
+
+        <ImageButton
+            android:id="@+id/button_add_directory"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_alignBottom="@+id/image_game_screen"
+            android:layout_alignEnd="@+id/text_game_title"
+            android:layout_marginBottom="28dp"
+            android:background="@drawable/oval_ripple_wii"
+            android:src="@drawable/ic_play"
+            android:stateListAnimator="@anim/button_elevation"
+            android:elevation="4dp"
+            android:layout_gravity="bottom|right"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"/>
+    </FrameLayout>
 
 </LinearLayout>

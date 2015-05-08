@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="dolphin_wii">#5bc0de</color>
-    <color name="dolphin_wii_dark">#428bca</color>
+    <color name="dolphin_wii">#2196f3</color>
+    <color name="dolphin_wii_dark">#1976d2</color>
+    <color name="dolphin_wii_accent">#651fff</color>
 
-    <color name="dolphin_gamecube">#663399</color>
-    <color name="dolphin_gamecube_dark">#311b92</color>
+    <color name="dolphin_gamecube">#673ab7</color>
+    <color name="dolphin_gamecube_dark">#512da8</color>
+    <color name="dolphin_gamecube_accent">#2979ff</color>
 </resources>
