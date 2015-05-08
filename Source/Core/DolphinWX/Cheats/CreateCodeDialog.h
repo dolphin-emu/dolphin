@@ -5,7 +5,6 @@
 #pragma once
 
 #include <wx/dialog.h>
-#include <wx/event.h>
 
 #include "Common/CommonTypes.h"
 #include "Core/ActionReplay.h"

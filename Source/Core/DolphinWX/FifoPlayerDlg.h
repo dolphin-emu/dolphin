@@ -6,9 +6,7 @@
 
 #include <cstddef>
 #include <vector>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/string.h>
 
 #include "Common/CommonTypes.h"
 

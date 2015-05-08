@@ -11,10 +11,7 @@
 #include <vector>
 
 #include <wx/control.h>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/graphics.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 

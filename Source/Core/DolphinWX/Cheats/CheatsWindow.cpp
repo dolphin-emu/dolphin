@@ -9,11 +9,9 @@
 #include <string>
 #include <vector>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/checklst.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/notebook.h>
@@ -21,11 +19,7 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/validate.h>
-#include <wx/window.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"

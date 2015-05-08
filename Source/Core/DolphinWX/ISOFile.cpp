@@ -12,10 +12,8 @@
 #include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/filefn.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
-#include <wx/string.h>
-#include <wx/window.h>
+#include <wx/toplevel.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"

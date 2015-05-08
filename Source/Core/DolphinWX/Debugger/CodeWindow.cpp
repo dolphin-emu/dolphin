@@ -6,24 +6,15 @@
 #include <string>
 #include <vector>
 #include <wx/bitmap.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
-#include <wx/menuitem.h>
 #include <wx/panel.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
 #include <wx/thread.h>
 #include <wx/toolbar.h>
-#include <wx/translation.h>
-#include <wx/window.h>
-#include <wx/windowid.h>
 #include <wx/aui/auibar.h>
 
 #include "Common/BreakPoints.h"

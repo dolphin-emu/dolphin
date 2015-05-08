@@ -5,10 +5,7 @@
 #pragma once
 
 #include <cstring>
-#include <wx/defs.h>
 #include <wx/grid.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 

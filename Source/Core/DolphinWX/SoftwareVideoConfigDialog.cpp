@@ -9,10 +9,10 @@
 #include <wx/combobox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/wx.h>
 
 #include "Common/FileUtil.h"
 #include "Core/Core.h"

@@ -9,26 +9,16 @@
 #include <vector>
 #include <wx/app.h>
 #include <wx/bitmap.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/filedlg.h>
 #include <wx/filefn.h>
-#include <wx/gdicmn.h>
 #include <wx/menu.h>
-#include <wx/menuitem.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/progdlg.h>
 #include <wx/statusbr.h>
-#include <wx/strconv.h>
-#include <wx/string.h>
 #include <wx/thread.h>
 #include <wx/toolbar.h>
 #include <wx/toplevel.h>
-#include <wx/translation.h>
-#include <wx/utils.h>
-#include <wx/window.h>
 #include <wx/aui/framemanager.h>
 
 #ifdef __APPLE__

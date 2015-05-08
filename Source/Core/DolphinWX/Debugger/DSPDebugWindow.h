@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/panel.h>
-#include <wx/windowid.h>
 #include <wx/aui/framemanager.h>
 
 #include "Common/CommonTypes.h"

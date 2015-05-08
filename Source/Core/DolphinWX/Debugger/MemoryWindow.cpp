@@ -8,21 +8,12 @@
 #include <string>
 #include <vector>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/window.h>
-#include <wx/windowid.h>
-#include <wx/wxcrtvararg.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

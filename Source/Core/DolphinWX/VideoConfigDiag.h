@@ -11,16 +11,11 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/msgdlg.h>
 #include <wx/radiobut.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/window.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/SysConf.h"

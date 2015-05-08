@@ -4,12 +4,7 @@
 
 #pragma once
 
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/gdicmn.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 class AboutDolphin : public wxDialog
 {

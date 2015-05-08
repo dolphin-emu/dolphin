@@ -4,12 +4,9 @@
 
 #include <string>
 #include <wx/bitmap.h>
-#include <wx/chartype.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/msgdlg.h>
 #include <wx/mstream.h>
-#include <wx/string.h>
 #include <wx/toolbar.h>
 #include <wx/utils.h>
 

@@ -4,12 +4,9 @@
 
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/window.h>
 
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"

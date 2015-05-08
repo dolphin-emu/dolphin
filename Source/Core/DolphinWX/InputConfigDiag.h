@@ -16,15 +16,11 @@
 #include <string>
 #include <vector>
 #include <wx/button.h>
-#include <wx/control.h>
 #include <wx/dialog.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
-#include <wx/string.h>
 #include <wx/timer.h>
-#include <wx/translation.h>
 
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"

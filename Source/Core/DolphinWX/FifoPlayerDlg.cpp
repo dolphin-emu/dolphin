@@ -8,17 +8,12 @@
 #include <string>
 #include <vector>
 
-#include <wx/accel.h>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/clipbrd.h>
 #include <wx/dataobj.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/filedlg.h>
-#include <wx/gdicmn.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/notebook.h>
@@ -28,10 +23,7 @@
 #include <wx/spinctrl.h>
 #include <wx/statbox.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/utils.h>
 
 #include "Common/CommonTypes.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
