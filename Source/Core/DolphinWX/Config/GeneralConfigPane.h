@@ -8,7 +8,6 @@
 #include <wx/panel.h>
 
 class wxCheckBox;
-class wxCommandEvent;
 class wxChoice;
 class wxRadioBox;
 

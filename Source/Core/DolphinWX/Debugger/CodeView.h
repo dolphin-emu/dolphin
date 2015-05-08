@@ -23,7 +23,6 @@ wxDECLARE_EVENT(wxEVT_CODEVIEW_CHANGE, wxCommandEvent);
 class DebugInterface;
 class SymbolDB;
 class wxPaintDC;
-class wxWindow;
 
 class CCodeView : public wxControl
 {

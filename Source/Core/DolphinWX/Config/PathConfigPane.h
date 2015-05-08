@@ -8,7 +8,6 @@
 
 class wxButton;
 class wxCheckBox;
-class wxCommandEvent;
 class wxListBox;
 class wxDirPickerCtrl;
 class wxFilePickerCtrl;

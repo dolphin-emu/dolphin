@@ -22,7 +22,6 @@
 class wxButton;
 class wxListBox;
 class wxTextCtrl;
-class wxWindow;
 
 class JitBlockList : public wxListCtrl
 {

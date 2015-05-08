@@ -14,7 +14,6 @@
 #include <wx/aui/framemanager.h>
 
 class CWatchView;
-class wxWindow;
 
 class CWatchWindow : public wxPanel
 {

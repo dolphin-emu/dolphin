@@ -17,7 +17,6 @@
 class wxButton;
 class wxChoice;
 class wxTextCtrl;
-class wxWindow;
 
 class GFXDebuggerPanel : public wxPanel, public GFXDebuggerBase
 {

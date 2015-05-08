@@ -12,8 +12,6 @@
 
 #include "Common/CommonTypes.h"
 
-class wxWindow;
-
 class CDSPRegTable : public wxGridTableBase
 {
 private:

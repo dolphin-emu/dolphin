@@ -16,7 +16,6 @@
 class CBreakPointView;
 class CCodeWindow;
 class wxListEvent;
-class wxWindow;
 
 class CBreakPointWindow : public wxPanel
 {

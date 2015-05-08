@@ -20,7 +20,6 @@ class wxButton;
 class wxCheckBox;
 class wxListBox;
 class wxTextCtrl;
-class wxWindow;
 
 class CMemoryWindow : public wxPanel
 {

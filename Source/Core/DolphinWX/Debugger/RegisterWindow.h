@@ -13,7 +13,6 @@
 #include <wx/windowid.h>
 
 class CRegisterView;
-class wxWindow;
 
 class CRegisterWindow : public wxPanel
 {

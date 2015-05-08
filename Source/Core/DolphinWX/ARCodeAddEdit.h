@@ -14,7 +14,6 @@
 class wxSpinButton;
 class wxSpinEvent;
 class wxTextCtrl;
-class wxWindow;
 
 namespace ActionReplay { struct ARCode; }
 

@@ -12,8 +12,6 @@
 
 #include "Common/CommonTypes.h"
 
-class wxWindow;
-
 // New register view:
 // R0  0x8000000    F0   0.0000       F0_PS1 0.0000
 // R1  0x8000000    F1   0.0000       F1_PS1 0.0000

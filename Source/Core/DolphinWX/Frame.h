@@ -48,7 +48,6 @@ class wxAuiNotebook;
 class wxAuiNotebookEvent;
 class wxListEvent;
 class wxMenuItem;
-class wxWindow;
 
 class CRenderFrame : public wxFrame
 {

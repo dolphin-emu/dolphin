@@ -11,7 +11,6 @@
 
 class wxCheckBox;
 class wxChoice;
-class wxCommandEvent;
 
 class WiiConfigPane final : public wxPanel
 {

@@ -24,7 +24,6 @@ class wxButton;
 class wxFileDirPickerEvent;
 class wxFilePickerCtrl;
 class wxStaticText;
-class wxWindow;
 
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
