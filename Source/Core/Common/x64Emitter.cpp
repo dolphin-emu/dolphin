@@ -1377,9 +1377,17 @@ void XEmitter::WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extr
 	arg.WriteRest(this, extrabytes);
 }
 
+// 2 operand version
 void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int W, int extrabytes)
 {
 	WriteAVXOp(opPrefix, op, regOp, INVALID_REG, arg, W, extrabytes);
+}
+
+// 4 operand version
+void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, X64Reg regOp3, int W)
+{
+	WriteAVXOp(opPrefix, op, regOp1, regOp2, arg, W, 1);
+	Write8((u8)regOp3 << 4);
 }
 
 static int GetVEXmmmmm(u16 op)
@@ -1823,9 +1831,11 @@ void XEmitter::VSUBPD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(0x6
 void XEmitter::VMULPD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(0x66, sseMUL, regOp1, regOp2, arg);}
 void XEmitter::VDIVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(0x66, sseDIV, regOp1, regOp2, arg);}
 void XEmitter::VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)  {WriteAVXOp(0xF2, sseSQRT, regOp1, regOp2, arg);}
+void XEmitter::VCMPPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 compare)  {WriteAVXOp(0x66, sseCMP, regOp1, regOp2, arg, 0, 1); Write8(compare);}
 void XEmitter::VSHUFPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 shuffle) {WriteAVXOp(0x66, sseSHUF, regOp1, regOp2, arg, 0, 1); Write8(shuffle);}
 void XEmitter::VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, OpArg arg){WriteAVXOp(0x66, 0x14, regOp1, regOp2, arg);}
 void XEmitter::VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, OpArg arg){WriteAVXOp(0x66, 0x15, regOp1, regOp2, arg);}
+void XEmitter::VBLENDVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, X64Reg regOp3) {WriteAVXOp(0x66, 0x3A4B, regOp1, regOp2, arg, regOp3);}
 
 void XEmitter::VANDPS(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(0x00, sseAND, regOp1, regOp2, arg);}
 void XEmitter::VANDPD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(0x66, sseAND, regOp1, regOp2, arg);}
