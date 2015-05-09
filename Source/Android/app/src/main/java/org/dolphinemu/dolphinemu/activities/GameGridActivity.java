@@ -2,13 +2,21 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
+import android.provider.DocumentsContract;
+import android.provider.OpenableColumns;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toolbar;
 
 import org.dolphinemu.dolphinemu.AssetCopyService;
@@ -24,11 +32,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GameGridActivity extends Activity
+public final class GameGridActivity extends Activity
 {
-	private RecyclerView mRecyclerView;
-	private RecyclerView.Adapter mAdapter;
-	private RecyclerView.LayoutManager mLayoutManager;
+	private static final int REQUEST_ADD_DIRECTORY = 1;
+
+	private GameAdapter mAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -39,21 +47,32 @@ public class GameGridActivity extends Activity
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_game_list);
 		setActionBar(toolbar);
 
-		mRecyclerView = (RecyclerView) findViewById(R.id.grid_games);
+		ImageButton buttonAddDirectory = (ImageButton) findViewById(R.id.button_add_directory);
+		RecyclerView recyclerView = (RecyclerView) findViewById(R.id.grid_games);
 
 		// use this setting to improve performance if you know that changes
 		// in content do not change the layout size of the RecyclerView
 		//mRecyclerView.setHasFixedSize(true);
 
 		// Specifying the LayoutManager determines how the RecyclerView arranges views.
-		mLayoutManager = new GridLayoutManager(this, 4);
-		mRecyclerView.setLayoutManager(mLayoutManager);
+		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 4);
+		recyclerView.setLayoutManager(layoutManager);
 
-		mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
+		recyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
 
 		// Create an adapter that will relate the dataset to the views on-screen.
 		mAdapter = new GameAdapter(getGameList());
-		mRecyclerView.setAdapter(mAdapter);
+		recyclerView.setAdapter(mAdapter);
+
+		buttonAddDirectory.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				Intent fileChooser = new Intent(GameGridActivity.this, AddDirectoryActivity.class);
+				startActivityForResult(fileChooser, REQUEST_ADD_DIRECTORY);
+			}
+		});
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
@@ -65,10 +84,32 @@ public class GameGridActivity extends Activity
 	}
 
 	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent result)
+	{
+		if (resultCode == RESULT_OK)
+		{
+			if (requestCode == REQUEST_ADD_DIRECTORY)
+			{
+				String path = result.getStringExtra(AddDirectoryActivity.KEY_CURRENT_PATH);
+
+				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+				SharedPreferences.Editor editor = prefs.edit();
+
+				editor.putString(AddDirectoryActivity.KEY_CURRENT_PATH, path);
+
+				// Using commit in order to block so the next method has the correct data to load.
+				editor.commit();
+
+				mAdapter.setGameList(getGameList());
+			}
+		}
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.gamelist_menu, menu);
+		inflater.inflate(R.menu.menu_game_grid, menu);
 		return true;
 
 	}
@@ -82,48 +123,43 @@ public class GameGridActivity extends Activity
 
 		NativeLibrary.SetUserDirectory(DefaultDir);
 
-		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "ISOPaths", "0");
-		Log.v("DolphinEmu", "Directories: " + Directories);
-		int intDirectories = Integer.parseInt(Directories);
-
 		// Extensions to filter by.
 		Set<String> exts = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
 
-		for (int a = 0; a < intDirectories; ++a)
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+		String path = prefs.getString(AddDirectoryActivity.KEY_CURRENT_PATH, "/");
+
+		File currentDir = new File(path);
+		File[] dirs = currentDir.listFiles();
+		try
 		{
-			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "ISOPath" + a, "");
-			Log.v("DolphinEmu", "Directory " + a + ": " + BrowseDir);
-
-			File currentDir = new File(BrowseDir);
-			File[] dirs = currentDir.listFiles();
-			try
+			for (File entry : dirs)
 			{
-				for (File entry : dirs)
+				if (!entry.isHidden() && !entry.isDirectory())
 				{
-					if (!entry.isHidden() && !entry.isDirectory())
+					String entryName = entry.getName();
+
+					// Check that the file has an appropriate extension before trying to read out of it.
+					if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 					{
-						String entryName = entry.getName();
+						GcGame game = new GcGame(NativeLibrary.GetTitle(entry.getAbsolutePath()),
+								NativeLibrary.GetDescription(entry.getAbsolutePath()).replace("\n", " "),
+								// TODO Some games might actually not be from this region, believe it or not.
+								"United States",
+								entry.getAbsolutePath(),
+								NativeLibrary.GetGameId(entry.getAbsolutePath()),
+								NativeLibrary.GetDate(entry.getAbsolutePath()));
 
-						// Check that the file has an appropriate extension before trying to read out of it.
-						if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-						{
-							GcGame game = new GcGame(NativeLibrary.GetTitle(entry.getAbsolutePath()),
-									NativeLibrary.GetDescription(entry.getAbsolutePath()).replace("\n", " "),
-									// TODO Some games might actually not be from this region, believe it or not.
-									"United States",
-									entry.getAbsolutePath(),
-									NativeLibrary.GetGameId(entry.getAbsolutePath()),
-									NativeLibrary.GetDate(entry.getAbsolutePath()));
-
-							gameList.add(game);
-						}
-
+						gameList.add(game);
 					}
 
 				}
-			} catch (Exception ignored)
-			{
+
 			}
+		} catch (Exception ignored)
+		{
+
 		}
 
 		return gameList;

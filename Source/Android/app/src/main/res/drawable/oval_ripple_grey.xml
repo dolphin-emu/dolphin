@@ -2,7 +2,7 @@
         android:color="?android:colorControlHighlight">
     <item>
         <shape android:shape="oval">
-            <solid android:color="@color/dolphin_accent_gamecube"/>
+            <solid android:color="@color/circle_grey"/>
         </shape>
     </item>
 </ripple>

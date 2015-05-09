@@ -2,7 +2,7 @@
         android:color="?android:colorControlHighlight">
     <item>
         <shape android:shape="oval">
-            <solid android:color="@color/dolphin_wii_accent"/>
+            <solid android:color="@color/dolphin_accent_wii"/>
         </shape>
     </item>
 </ripple>

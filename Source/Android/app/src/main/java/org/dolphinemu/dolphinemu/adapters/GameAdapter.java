@@ -79,7 +79,6 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
 		holder.path = game.getPath();
 		holder.screenshotPath = game.getScreenPath();
 		holder.game = game;
-
 	}
 
 	/**
@@ -111,5 +110,11 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder>
 			outRect.top = space;
 
 		}
+	}
+
+	public void setGameList(ArrayList<Game> gameList)
+	{
+		mGameList = gameList;
+		notifyDataSetChanged();
 	}
 }

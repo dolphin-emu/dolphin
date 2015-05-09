@@ -9,9 +9,10 @@
         android:id="@+id/toolbar_game_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/dolphin_wii"
+        android:background="@color/dolphin_blue"
         android:minHeight="?android:attr/actionBarSize"
-        android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar"/>
+        android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar"
+        android:elevation="6dp"/>
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -32,8 +33,8 @@
             android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="28dp"
-            android:background="@drawable/oval_ripple_wii"
-            android:src="@drawable/ic_play"
+            android:background="@drawable/oval_ripple_gc"
+            android:src="@drawable/ic_add"
             android:stateListAnimator="@anim/button_elevation"
             android:elevation="4dp"
             android:layout_gravity="bottom|right"
