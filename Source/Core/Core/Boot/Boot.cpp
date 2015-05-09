@@ -233,7 +233,7 @@ bool CBoot::BootUp()
 		DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
 		DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
 		if (!DVDInterface::VolumeIsValid())
-			break;
+			return false;
 
 		const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
 
@@ -296,6 +296,9 @@ bool CBoot::BootUp()
 	case SCoreStartupParameter::BOOT_DOL:
 	{
 		CDolLoader dolLoader(_StartupPara.m_strFilename);
+		if (!dolLoader.IsValid())
+			return false;
+
 		// Check if we have gotten a Wii file or not
 		bool dolWii = dolLoader.IsWii();
 		if (dolWii != _StartupPara.bWii)
