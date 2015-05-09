@@ -84,7 +84,7 @@ inline double Force25Bit(double d)
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
-inline double NI_mul(const double a, const double b)
+inline double NI_mul(double a, double b)
 {
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
@@ -101,7 +101,7 @@ inline double NI_mul(const double a, const double b)
 #endif
 }
 
-inline double NI_add(const double a, const double b)
+inline double NI_add(double a, double b)
 {
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
@@ -118,7 +118,7 @@ inline double NI_add(const double a, const double b)
 #endif
 }
 
-inline double NI_sub(const double a, const double b)
+inline double NI_sub(double a, double b)
 {
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
@@ -135,57 +135,53 @@ inline double NI_sub(const double a, const double b)
 #endif
 }
 
-inline double NI_madd(const double a, const double b, const double c)
+inline double NI_madd(double a, double c, double b, bool negate = false)
 {
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
-	if (c != c) return c;
 	if (b != b) return b;
-	double t = a * b;
+	if (c != c) return c;
+	double t = a * c;
 	if (t != t)
 	{
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
-	t = t + c;
+	t = t + b;
 	if (t != t)
 	{
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
-	return t;
 #else
-	return NI_add(NI_mul(a, b), c);
+	double t = NI_add(NI_mul(a, c), b);
 #endif
+	return negate ? -t : t;
 }
 
-inline double NI_msub(const double a, const double b, const double c)
+inline double NI_msub(double a, double c, double b, bool negate = false)
 {
-//#ifdef VERY_ACCURATE_FP
-//  This code does not produce accurate fp!  NAN's are not calculated correctly, nor negative zero.
-//	The code is kept here for reference.
-//
-//	if (a != a) return a;
-//	if (c != c) return c;
-//	if (b != b) return b;
-//	double t = a * b;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXIMZ);
-//		return PPC_NAN;
-//	}
-//
-//	t = t - c;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXISI);
-//		return PPC_NAN;
-//	}
-//	return t;
-//#else
-//	This code does not calculate QNAN's correctly but calculates negative zero correctly.
-	return NI_sub(NI_mul(a, b), c);
-// #endif
+#ifdef VERY_ACCURATE_FP
+	if (a != a) return a;
+	if (b != b) return b;
+	if (c != c) return c;
+	double t = a * c;
+	if (t != t)
+	{
+		SetFPException(FPSCR_VXIMZ);
+		return PPC_NAN;
+	}
+
+	t = t - b;
+	if (t != t)
+	{
+		SetFPException(FPSCR_VXISI);
+		return PPC_NAN;
+	}
+#else
+	double t = NI_sub(NI_mul(a, c), b);
+#endif
+	return negate ? -t : t;
 }
 
 // used by stfsXX instructions and ps_rsqrte
