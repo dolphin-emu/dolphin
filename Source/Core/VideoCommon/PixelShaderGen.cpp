@@ -124,8 +124,8 @@ static const char *tevAInputTable[] =
 
 static const char *tevRasTable[] =
 {
-	"iround(col0 * 255.0)",
-	"iround(col1 * 255.0)",
+	"int4(round(col0 * 255.0))",
+	"int4(round(col1 * 255.0))",
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
@@ -184,12 +184,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "\tint4 tmp = x * y;\n"
 	          "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
 	          "}\n\n");
-
-	// rounding + casting to integer at once in a single function
-	out.Write("int  iround(float  x) { return int (round(x)); }\n"
-	          "int2 iround(float2 x) { return int2(round(x)); }\n"
-	          "int3 iround(float3 x) { return int3(round(x)); }\n"
-	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
 	out.Write("int  itrunc(float  x) { return int (trunc(x)); }\n"
 	          "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
@@ -1064,9 +1058,9 @@ static inline void SampleTexture(T& out, const char *texcoords, int texmap, API_
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
 	if (ApiType == API_D3D)
-		out.Write("iround(255.0 * Tex%d.Sample(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s)))", texmap, texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0");
+		out.Write("int4(round(255.0 * Tex%d.Sample(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))))", texmap, texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0");
 	else
-		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s)))", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0");
+		out.Write("int4(round(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, %s))))", texmap, texcoords, texmap, g_ActiveConfig.iStereoMode > 0 ? "layer" : "0.0");
 }
 
 static const char *tevAlphaFuncsTable[] =
@@ -1217,7 +1211,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
-	out.Write("\tint ifog = iround(fog * 256.0);\n");
+	out.Write("\tint ifog = int(round(fog * 256.0));\n");
 	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENIVECSHIFTS))
 		out.Write("\tprev.rgb = irshift((prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog), 8);\n");
 	else
