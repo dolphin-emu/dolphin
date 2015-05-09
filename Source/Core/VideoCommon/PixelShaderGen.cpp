@@ -923,8 +923,8 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 			"((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_GR16_EQ
 			"((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_BGR24_GT
 			"((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_BGR24_EQ
-			"(max(sign(tevin_a.rgb - tevin_b.rgb), int3(0,0,0)) * tevin_c.rgb)", // TEVCMP_RGB8_GT
-			"((int3(1,1,1) - sign(abs(tevin_a.rgb - tevin_b.rgb))) * tevin_c.rgb)" // TEVCMP_RGB8_EQ
+			"(int3(greaterThan(tevin_a.rgb, tevin_b.rgb)) * tevin_c.rgb)", // TEVCMP_RGB8_GT
+			"(int3(equal(tevin_a.rgb, tevin_b.rgb)) * tevin_c.rgb)" // TEVCMP_RGB8_EQ
 		};
 
 		int mode = (cc.shift<<1)|cc.op;
