@@ -6,8 +6,9 @@
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPInterpreter.h"
-
 #include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPTables.h"
 
 namespace DSPInterpreter {
 

@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/ColorUtil.h"
+#include "Common/FileUtil.h"
 #include "Core/HW/GCMemcard.h"
 
 static void ByteSwap(u8 *valueA, u8 *valueB)

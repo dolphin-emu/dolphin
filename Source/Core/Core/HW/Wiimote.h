@@ -5,7 +5,8 @@
 #pragma once
 
 #include "Common/ChunkFile.h"
-#include "InputCommon/InputConfig.h"
+
+class InputConfig;
 
 enum
 {

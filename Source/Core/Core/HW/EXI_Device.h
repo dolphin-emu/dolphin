@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
-enum TEXIDevices
+class PointerWrap;
+
+enum TEXIDevices : int
 {
 	EXIDEVICE_DUMMY,
 	EXIDEVICE_MEMORYCARD,

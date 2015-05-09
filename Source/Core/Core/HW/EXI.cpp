@@ -9,6 +9,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Channel.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Sram.h"

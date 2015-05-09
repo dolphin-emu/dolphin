@@ -28,9 +28,9 @@
 static const u32 CACHE_REVISION = 0x007;
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
-static QMap<IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<IVolume::ELanguage, std::string> strings)
+static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
 {
-	QMap<IVolume::ELanguage, QString> result;
+	QMap<DiscIO::IVolume::ELanguage, QString> result;
 
 	for (auto entry : strings)
 		result.insert(entry.first, QString::fromStdString(entry.second).trimmed());
@@ -50,16 +50,16 @@ static QMap<to, QString> CastLocalizedStrings(QMap<from, QString> strings)
 	return result;
 }
 
-static QString GetLanguageString(IVolume::ELanguage language, QMap<IVolume::ELanguage, QString> strings)
+static QString GetLanguageString(DiscIO::IVolume::ELanguage language, QMap<DiscIO::IVolume::ELanguage, QString> strings)
 {
 	if (strings.contains(language))
 		return strings.value(language);
 
 	// English tends to be a good fallback when the requested language isn't available
-	if (language != IVolume::ELanguage::LANGUAGE_ENGLISH)
+	if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH)
 	{
-		if (strings.contains(IVolume::ELanguage::LANGUAGE_ENGLISH))
-			return strings.value(IVolume::ELanguage::LANGUAGE_ENGLISH);
+		if (strings.contains(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH))
+			return strings.value(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
 	}
 
 	// If English isn't available either, just pick something
@@ -180,8 +180,8 @@ bool GameFile::LoadFromCache()
 	       >> m_is_disc_two
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
-	m_names = CastLocalizedStrings<IVolume::ELanguage>(names);
-	m_descriptions = CastLocalizedStrings<IVolume::ELanguage>(descriptions);
+	m_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(names);
+	m_descriptions = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(descriptions);
 	file.close();
 	return true;
 }
@@ -245,7 +245,7 @@ QString GameFile::GetCompany() const
 	return m_company;
 }
 
-QString GameFile::GetDescription(IVolume::ELanguage language) const
+QString GameFile::GetDescription(DiscIO::IVolume::ELanguage language) const
 {
 	return GetLanguageString(language, m_descriptions);
 }
@@ -255,7 +255,7 @@ QString GameFile::GetDescription() const
 	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 }
 
-QString GameFile::GetName(IVolume::ELanguage language) const
+QString GameFile::GetName(DiscIO::IVolume::ELanguage language) const
 {
 	return GetLanguageString(language, m_names);
 }

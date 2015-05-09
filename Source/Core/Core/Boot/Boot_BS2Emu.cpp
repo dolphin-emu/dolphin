@@ -163,18 +163,18 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	return true;
 }
 
-bool CBoot::SetupWiiMemory(IVolume::ECountry country)
+bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 {
 	static const CountrySetting SETTING_EUROPE = {"EUR", "PAL",  "EU", "LE"};
-	static const std::map<IVolume::ECountry, const CountrySetting> country_settings = {
-		{IVolume::COUNTRY_EUROPE, SETTING_EUROPE},
-		{IVolume::COUNTRY_USA,    {"USA", "NTSC", "US", "LU"}},
-		{IVolume::COUNTRY_JAPAN,  {"JPN", "NTSC", "JP", "LJ"}},
-		{IVolume::COUNTRY_KOREA,  {"KOR", "NTSC", "KR", "LKH"}},
+	static const std::map<DiscIO::IVolume::ECountry, const CountrySetting> country_settings = {
+		{DiscIO::IVolume::COUNTRY_EUROPE, SETTING_EUROPE},
+		{DiscIO::IVolume::COUNTRY_USA,    {"USA", "NTSC", "US", "LU"}},
+		{DiscIO::IVolume::COUNTRY_JAPAN,  {"JPN", "NTSC", "JP", "LJ"}},
+		{DiscIO::IVolume::COUNTRY_KOREA,  {"KOR", "NTSC", "KR", "LKH"}},
 		//TODO: Determine if Taiwan have their own specific settings.
 		//      Also determine if there are other specific settings
 		//      for other countries.
-		{IVolume::COUNTRY_TAIWAN, {"JPN", "NTSC", "JP", "LJ"}}
+		{DiscIO::IVolume::COUNTRY_TAIWAN, {"JPN", "NTSC", "JP", "LJ"}}
 	};
 	auto entryPos = country_settings.find(country);
 	const CountrySetting& country_setting =

@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/FileUtil.h"
 #include "Common/Intrinsics.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"

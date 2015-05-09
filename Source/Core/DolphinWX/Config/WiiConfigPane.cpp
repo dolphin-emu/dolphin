@@ -126,7 +126,7 @@ void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 {
-	IVolume::ELanguage wii_system_lang = (IVolume::ELanguage)m_system_language_choice->GetSelection();
+	DiscIO::IVolume::ELanguage wii_system_lang = (DiscIO::IVolume::ELanguage)m_system_language_choice->GetSelection();
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
 	u8 country_code = GetSADRCountryCode(wii_system_lang);
 
@@ -141,28 +141,28 @@ void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 
 // Change from IPL.LNG value to IPL.SADR country code.
 // http://wiibrew.org/wiki/Country_Codes
-u8 WiiConfigPane::GetSADRCountryCode(IVolume::ELanguage language)
+u8 WiiConfigPane::GetSADRCountryCode(DiscIO::IVolume::ELanguage language)
 {
 	switch (language)
 	{
-	case IVolume::LANGUAGE_JAPANESE:
+	case DiscIO::IVolume::LANGUAGE_JAPANESE:
 		return 1;   // Japan
-	case IVolume::LANGUAGE_ENGLISH:
+	case DiscIO::IVolume::LANGUAGE_ENGLISH:
 		return 49;  // USA
-	case IVolume::LANGUAGE_GERMAN:
+	case DiscIO::IVolume::LANGUAGE_GERMAN:
 		return 78;  // Germany
-	case IVolume::LANGUAGE_FRENCH:
+	case DiscIO::IVolume::LANGUAGE_FRENCH:
 		return 77;  // France
-	case IVolume::LANGUAGE_SPANISH:
+	case DiscIO::IVolume::LANGUAGE_SPANISH:
 		return 105; // Spain
-	case IVolume::LANGUAGE_ITALIAN:
+	case DiscIO::IVolume::LANGUAGE_ITALIAN:
 		return 83;  // Italy
-	case IVolume::LANGUAGE_DUTCH:
+	case DiscIO::IVolume::LANGUAGE_DUTCH:
 		return 94;  // Netherlands
-	case IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
-	case IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+	case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
+	case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
 		return 157; // China
-	case IVolume::LANGUAGE_KOREAN:
+	case DiscIO::IVolume::LANGUAGE_KOREAN:
 		return 136; // Korea
 	}
 

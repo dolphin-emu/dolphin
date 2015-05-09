@@ -4,18 +4,19 @@
 
 #pragma once
 
+#include <mutex>
+#include <string>
+#include <thread>
 #include <vector>
 
-#include "Common/ChunkFile.h"
 #include "Common/FifoQueue.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteRealBase.h"
-
 #include "InputCommon/InputConfig.h"
+
+class PointerWrap;
 
 typedef std::vector<u8> Report;
 

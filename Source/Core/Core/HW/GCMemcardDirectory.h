@@ -4,6 +4,13 @@
 
 #pragma once
 
+#include <atomic>
+#include <chrono>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
+
 #include "Common/Event.h"
 #include "Core/HW/GCMemcard.h"
 #include "DiscIO/Volume.h"

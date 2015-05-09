@@ -29,7 +29,7 @@ private:
 	void OnSystemLanguageChoiceChanged(wxCommandEvent&);
 	void OnAspectRatioChoiceChanged(wxCommandEvent&);
 
-	static u8 GetSADRCountryCode(IVolume::ELanguage language);
+	static u8 GetSADRCountryCode(DiscIO::IVolume::ELanguage language);
 
 	wxArrayString m_system_language_strings;
 	wxArrayString m_aspect_ratio_strings;

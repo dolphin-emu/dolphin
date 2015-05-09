@@ -235,7 +235,7 @@ private:
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();
-	void ChangeBannerDetails(IVolume::ELanguage language);
+	void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
 
 	long GetElementStyle(const char* section, const char* key);
 	void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);

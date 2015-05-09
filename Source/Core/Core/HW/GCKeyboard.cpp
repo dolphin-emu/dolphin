@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCKeyboardEmu.h"

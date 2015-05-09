@@ -23,6 +23,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
@@ -33,7 +34,6 @@
 #include "Core/State.h"
 #include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
-
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -48,6 +48,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/WII_Socket.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -57,7 +58,7 @@
 #endif
 
 #include "DiscIO/FileMonitor.h"
-
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 

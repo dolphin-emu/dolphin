@@ -202,8 +202,8 @@ static std::string GetTitle(std::string filename)
 		auto end = titles.end();
 
 		// English tends to be a good fallback when the requested language isn't available
-		//if (language != IVolume::ELanguage::LANGUAGE_ENGLISH) {
-			auto it = titles.find(IVolume::ELanguage::LANGUAGE_ENGLISH);
+		//if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
+			auto it = titles.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
 			if (it != end)
 				return it->second;
 		//}
@@ -245,8 +245,8 @@ static std::string GetDescription(std::string filename)
 		auto end = descriptions.end();
 
 		// English tends to be a good fallback when the requested language isn't available
-		//if (language != IVolume::ELanguage::LANGUAGE_ENGLISH) {
-			auto it = descriptions.find(IVolume::ELanguage::LANGUAGE_ENGLISH);
+		//if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
+			auto it = descriptions.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
 			if (it != end)
 				return it->second;
 		//}

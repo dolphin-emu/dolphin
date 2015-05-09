@@ -5,12 +5,13 @@
 #pragma once
 
 #include <deque>
+#include <memory>
+#include <mutex>
 #include <queue>
-
+#include <thread>
 #include <SFML/Network.hpp>
 
-#include "Common/Thread.h"
-
+#include "Common/CommonTypes.h"
 #include "Core/HW/EXI_Device.h"
 
 class GeckoSockServer

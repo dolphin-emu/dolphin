@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ENetUtil.h"
+#include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"

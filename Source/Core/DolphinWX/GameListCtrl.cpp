@@ -85,8 +85,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		sortData = -sortData;
 	}
 
-	IVolume::ELanguage languageOne = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso1->GetPlatform() != GameListItem::GAMECUBE_DISC);
-	IVolume::ELanguage languageOther = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso2->GetPlatform() != GameListItem::GAMECUBE_DISC);
+	DiscIO::IVolume::ELanguage languageOne = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso1->GetPlatform() != GameListItem::GAMECUBE_DISC);
+	DiscIO::IVolume::ELanguage languageOther = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso2->GetPlatform() != GameListItem::GAMECUBE_DISC);
 
 	switch (sortData)
 	{

@@ -4,7 +4,9 @@
 
 #include <chrono>
 #include "Common/ChunkFile.h"
+#include "Common/FileUtil.h"
 #include "Common/StdMakeUnique.h"
+#include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcard.h"

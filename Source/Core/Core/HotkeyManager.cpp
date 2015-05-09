@@ -2,8 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+#include <vector>
+
 #include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/HotkeyManager.h"
 
 const std::string hotkey_labels[] =

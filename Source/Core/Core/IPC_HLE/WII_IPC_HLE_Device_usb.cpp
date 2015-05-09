@@ -13,7 +13,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
