@@ -81,11 +81,6 @@ public:
 
 	void ClearCache() override;
 
-	const u8 *GetDispatcher()
-	{
-		return asm_routines.dispatcher;
-	}
-
 	const CommonAsmRoutines *GetAsmRoutines() override
 	{
 		return &asm_routines;
