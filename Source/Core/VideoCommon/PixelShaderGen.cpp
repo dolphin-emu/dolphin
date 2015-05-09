@@ -140,7 +140,7 @@ static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 static char text[16384];
 
 template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5]);
-template<class T> static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift);
+template<class T> static inline void WriteTevRegular(T& out, int bias, int op, int clamp, int shift);
 template<class T> static inline void SampleTexture(T& out, const char *texcoords, int texmap, API_TYPE ApiType);
 template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data);
@@ -911,7 +911,8 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
 	if (cc.bias != TevBias_COMPARE)
 	{
-		WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift);
+		WriteTevRegular(out, cc.bias, cc.op, cc.clamp, cc.shift);
+		out.Write(".rgb");
 	}
 	else
 	{
@@ -941,7 +942,8 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 	out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
 	if (ac.bias != TevBias_COMPARE)
 	{
-		WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift);
+		WriteTevRegular(out, ac.bias, ac.op, ac.clamp, ac.shift);
+		out.Write(".a");
 	}
 	else
 	{
@@ -970,7 +972,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, AP
 }
 
 template<class T>
-static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift)
+static inline void WriteTevRegular(T& out, int bias, int op, int clamp, int shift)
 {
 	const char *tevScaleTableLeft[] =
 	{
@@ -1015,6 +1017,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 	// - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
 	// - a rounding bias is added before dividing by 256
 
+	out.Write("(");
 	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENIVECSHIFTS))
 	{
 		// Haxx - cleaner code by not having irshift and ilshift in the emitted code by omitting them if not used.
@@ -1022,29 +1025,28 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 		const char* rightShift = tevScaleTableRight[shift];
 
 		if (rightShift[0])
-			out.Write("irshift(((tevin_d.%s%s)%s)", components, tevBiasTable[bias], tevScaleTableLeft[shift]);
+			out.Write("irshift(((tevin_d%s)%s)", tevBiasTable[bias], tevScaleTableLeft[shift]);
 		else
-			out.Write("((tevin_d.%s%s)%s)", components, tevBiasTable[bias], tevScaleTableLeft[shift]);
+			out.Write("((tevin_d%s)%s)", tevBiasTable[bias], tevScaleTableLeft[shift]);
 		out.Write(" %s ", tevOpTable[op]);
 		if (leftShift[0])
-			out.Write("irshift((ilshift((ilshift(tevin_a.%s, 8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+irshift(tevin_c.%s, 7))), %s)%s), 8)",
-					  components, components, components, components, components,
+			out.Write("irshift((ilshift((ilshift(tevin_a, 8) + (tevin_b-tevin_a)*(tevin_c+irshift(tevin_c, 7))), %s)%s), 8)",
 					  leftShift+4, tevLerpBias[2*op+(shift!=3)]);
 		else
-			out.Write("irshift(((ilshift(tevin_a.%s, 8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+irshift(tevin_c.%s, 7)))%s), 8)",
-					  components, components, components, components, components, tevLerpBias[2*op+(shift!=3)]);
+			out.Write("irshift(((ilshift(tevin_a, 8) + (tevin_b-tevin_a)*(tevin_c+irshift(tevin_c, 7)))%s), 8)",
+					  tevLerpBias[2*op+(shift!=3)]);
 		if (rightShift[0])
 			out.Write(", %s)", rightShift+4);
 	}
 	else
 	{
-		out.Write("(((tevin_d.%s%s)%s)", components, tevBiasTable[bias], tevScaleTableLeft[shift]);
+		out.Write("(((tevin_d%s)%s)", tevBiasTable[bias], tevScaleTableLeft[shift]);
 		out.Write(" %s ", tevOpTable[op]);
-		out.Write("(((((tevin_a.%s<<8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
-				  components, components, components, components, components,
+		out.Write("(((((tevin_a<<8) + (tevin_b-tevin_a)*(tevin_c+(tevin_c>>7)))%s)%s)>>8)",
 				  tevScaleTableLeft[shift], tevLerpBias[2*op+(shift!=3)]);
 		out.Write(")%s", tevScaleTableRight[shift]);
 	}
+	out.Write(")");
 }
 
 template<class T>
