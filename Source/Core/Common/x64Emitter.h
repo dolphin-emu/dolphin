@@ -315,6 +315,7 @@ private:
 	void WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int W = 0, int extrabytes = 0);
 	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int W = 0, int extrabytes = 0);
+	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, X64Reg regOp3, int W = 0);
 	void WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
@@ -801,9 +802,11 @@ public:
 	void VMULPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VDIVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VCMPPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 compare);
 	void VSHUFPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 shuffle);
 	void VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VBLENDVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, X64Reg mask);
 
 	void VANDPS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VANDPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
