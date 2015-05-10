@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.FileListItem;
@@ -102,8 +103,14 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 		return mFileList.size();
 	}
 
+	/**
+	 * When a file is clicked, determine if it is a directory; if it is, show that new directory's
+	 * contents. If it is not, end the activity successfully.
+	 *
+	 * @param view
+	 */
 	@Override
-	public void onClick(View view)
+	public void onClick(final View view)
 	{
 		String path = (String) view.getTag();
 
@@ -111,8 +118,26 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 
 		if (clickedFile.isDirectory())
 		{
-			mFileList = generateFileList(clickedFile);
-			notifyDataSetChanged();
+			final ArrayList<FileListItem> fileList = generateFileList(clickedFile);
+
+			if (fileList.isEmpty())
+			{
+				Toast.makeText(view.getContext(), R.string.add_directory_empty_folder, Toast.LENGTH_SHORT).show();
+			} else
+			{
+				// Delay the loading of the new directory to give a little bit of time for UI feedback
+				// to happen. Hacky, but good enough for now; this is necessary because we're modifying
+				// the RecyclerView's contents, rather than constructing a new one.
+				view.getHandler().postDelayed(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						mFileList = fileList;
+						notifyDataSetChanged();
+					}
+				}, 200);
+			}
 		} else
 		{
 			// Pass the activity the path of the parent directory of the clicked file.
@@ -120,6 +145,12 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 		}
 	}
 
+	/**
+	 * For a given directory, return a list of Files it contains.
+	 *
+	 * @param directory
+	 * @return
+	 */
 	private ArrayList<FileListItem> generateFileList(File directory)
 	{
 		File[] children = directory.listFiles();
@@ -145,6 +176,12 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 		return mPath;
 	}
 
+	/**
+	 * Mostly just allows the activity's menu option to kick us up a level in the directory
+	 * structure.
+	 *
+	 * @param path
+	 */
 	public void setPath(String path)
 	{
 		mPath = path;
@@ -154,8 +191,11 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 		notifyDataSetChanged();
 	}
 
-	public static interface FileClickListener
+	/**
+	 * Callback for when the user wants to add the visible directory to the library.
+	 */
+	public interface FileClickListener
 	{
-		public void finishSuccessfully();
+		void finishSuccessfully();
 	}
 }
