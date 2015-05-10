@@ -33,15 +33,19 @@ public:
 	virtual void Update() override;
 
 private:
+	enum class ALSAThreadStatus
+	{
+		RUNNING,
+		STOPPING,
+		STOPPED,
+	};
+
 	bool AlsaInit();
 	void AlsaShutdown();
 
 	u8 *mix_buffer;
 	std::thread thread;
-	// 0 = continue
-	// 1 = shutdown
-	// 2 = done shutting down.
-	std::atomic<int> thread_data;
+	std::atomic<ALSAThreadStatus> m_thread_status;
 
 	snd_pcm_t *handle;
 	int frames_to_deliver;
