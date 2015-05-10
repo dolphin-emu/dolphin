@@ -26,12 +26,14 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 	 * Initializes the dataset to be displayed, and associates the Adapter with the
 	 * Activity as an event listener.
 	 *
-	 * @param gameList
+	 * @param path A String containing the path to the directory to be shown by this Adapter.
+	 * @param listener An Activity that can respond to callbacks from this Adapter.
 	 */
 	public FileAdapter(String path, FileClickListener listener)
 	{
 		mFileList = generateFileList(new File(path));
 		mListener = listener;
+		mListener.updateSubtitle(path);
 	}
 
 	/**
@@ -107,12 +109,12 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 	 * When a file is clicked, determine if it is a directory; if it is, show that new directory's
 	 * contents. If it is not, end the activity successfully.
 	 *
-	 * @param view
+	 * @param view The View representing the file the user clicked on.
 	 */
 	@Override
 	public void onClick(final View view)
 	{
-		String path = (String) view.getTag();
+		final String path = (String) view.getTag();
 
 		File clickedFile = new File(path);
 
@@ -135,6 +137,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 					{
 						mFileList = fileList;
 						notifyDataSetChanged();
+						mListener.updateSubtitle(path);
 					}
 				}, 200);
 			}
@@ -148,7 +151,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 	/**
 	 * For a given directory, return a list of Files it contains.
 	 *
-	 * @param directory
+	 * @param directory A File representing the directory that should have its contents displayed.
 	 * @return
 	 */
 	private ArrayList<FileListItem> generateFileList(File directory)
@@ -176,26 +179,32 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 		return mPath;
 	}
 
-	/**
-	 * Mostly just allows the activity's menu option to kick us up a level in the directory
-	 * structure.
-	 *
-	 * @param path
-	 */
 	public void setPath(String path)
 	{
-		mPath = path;
-		File parentDirectory = new File(path);
+		File directory = new File(path);
+
+		mFileList = generateFileList(directory);
+		notifyDataSetChanged();
+		mListener.updateSubtitle(path);
+	}
+
+	public void upOneLevel()
+	{
+		File currentDirectory = new File(mPath);
+		File parentDirectory = currentDirectory.getParentFile();
 
 		mFileList = generateFileList(parentDirectory);
 		notifyDataSetChanged();
+		mListener.updateSubtitle(mPath);
 	}
 
 	/**
-	 * Callback for when the user wants to add the visible directory to the library.
+	 * Callback to the containing Activity.
 	 */
 	public interface FileClickListener
 	{
 		void finishSuccessfully();
+
+		void updateSubtitle(String path);
 	}
 }

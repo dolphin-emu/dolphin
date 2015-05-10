@@ -69,6 +69,8 @@ public final class GameGridActivity extends Activity
 			public void onClick(View view)
 			{
 				Intent fileChooser = new Intent(GameGridActivity.this, AddDirectoryActivity.class);
+
+				// The second argument to this method is read below in onActivityResult().
 				startActivityForResult(fileChooser, REQUEST_ADD_DIRECTORY);
 			}
 		});
@@ -85,9 +87,9 @@ public final class GameGridActivity extends Activity
 	/**
 	 * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
 	 *
-	 * @param requestCode
-	 * @param resultCode
-	 * @param result
+	 * @param requestCode An int describing whether the Activity that is returning did so successfully.
+	 * @param resultCode An int describing what Activity is giving us this callback.
+	 * @param result The information the returning Activity is providing us.
 	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
@@ -99,6 +101,7 @@ public final class GameGridActivity extends Activity
 			// other activities might use this callback in the future (don't forget to change Javadoc!)
 			if (requestCode == REQUEST_ADD_DIRECTORY)
 			{
+				// Get the path the user selected in AddDirectoryActivity.
 				String path = result.getStringExtra(AddDirectoryActivity.KEY_CURRENT_PATH);
 
 				// Store this path as a preference.

@@ -24,6 +24,7 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 	public static final String KEY_CURRENT_PATH = BuildConfig.APPLICATION_ID + ".path";
 
 	private FileAdapter mAdapter;
+	private Toolbar mToolbar;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -32,8 +33,8 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 
 		setContentView(R.layout.activity_add_directory);
 
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_folder_list);
-		setActionBar(toolbar);
+		mToolbar = (Toolbar) findViewById(R.id.toolbar_folder_list);
+		setActionBar(mToolbar);
 
 		RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list_files);
 
@@ -46,7 +47,8 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 		if (savedInstanceState == null)
 		{
 			path = Environment.getExternalStorageDirectory().getPath();
-		} else
+		}
+		else
 		{
 			// Get the path we were looking at before we rotated.
 			path = savedInstanceState.getString(KEY_CURRENT_PATH);
@@ -71,7 +73,7 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 		switch (item.getItemId())
 		{
 			case R.id.menu_up_one_level:
-				mAdapter.setPath(mAdapter.getPath() + "/..");
+				mAdapter.upOneLevel();
 				break;
 		}
 
@@ -100,5 +102,11 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 		setResult(RESULT_OK, resultData);
 
 		finish();
+	}
+
+	@Override
+	public void updateSubtitle(String path)
+	{
+		mToolbar.setSubtitle(path);
 	}
 }
