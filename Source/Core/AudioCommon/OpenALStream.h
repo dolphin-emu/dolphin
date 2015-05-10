@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <thread>
 
 #include "AudioCommon/SoundStream.h"
@@ -72,6 +73,8 @@ public:
 
 private:
 	std::thread thread;
+	std::atomic<bool> m_run_thread;
+
 	Common::Event soundSyncEvent;
 
 	short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];

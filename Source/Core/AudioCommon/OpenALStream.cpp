@@ -23,6 +23,7 @@ static soundtouch::SoundTouch soundTouch;
 //
 bool OpenALStream::Start()
 {
+	m_run_thread.store(true);
 	bool bReturn = false;
 
 	ALDeviceList pDeviceList;
@@ -72,7 +73,7 @@ bool OpenALStream::Start()
 
 void OpenALStream::Stop()
 {
-	threadData = 1;
+	m_run_thread.store(false);
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
 
@@ -183,7 +184,7 @@ void OpenALStream::SoundLoop()
 	soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
 	soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
 
-	while (!threadData)
+	while (m_run_thread.load())
 	{
 		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
 		const u32 stereo_16_bit_size = 4;

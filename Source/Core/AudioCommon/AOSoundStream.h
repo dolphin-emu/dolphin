@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <mutex>
 #include <thread>
 
@@ -19,6 +20,7 @@ class AOSound final : public SoundStream
 {
 #if defined(HAVE_AO) && HAVE_AO
 	std::thread thread;
+	std::atomic<bool> m_run_thread;
 	std::mutex soundCriticalSection;
 	Common::Event soundSyncEvent;
 
