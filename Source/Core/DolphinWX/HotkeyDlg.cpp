@@ -48,7 +48,6 @@ void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 
 void HotkeyConfigDialog::EndGetButtons()
 {
-	Unbind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 	m_ButtonMappingTimer.Stop();
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
@@ -161,8 +160,6 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 
 	if (m_ButtonMappingTimer.IsRunning())
 		return;
-
-	Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 
 	// Get the button
 	ClickedButton = (wxButton *)event.GetEventObject();
@@ -328,6 +325,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 			m_Button_Hotkeys[i] = new wxButton(Page, i, wxEmptyString, wxDefaultPosition, size);
 			m_Button_Hotkeys[i]->SetFont(m_SmallFont);
 			m_Button_Hotkeys[i]->SetToolTip(_("Left click to detect hotkeys.\nEnter space to clear."));
+			m_Button_Hotkeys[i]->Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 			SetButtonText(i,
 					WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[i]),
 					WxUtils::WXKeymodToString(
