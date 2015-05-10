@@ -84,7 +84,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		{
 			m_Platform = pVolume->GetVolumeType();
 
-			m_names = pVolume->GetNames();
+			m_names = pVolume->GetNames(true);
 			m_descriptions = pVolume->GetDescriptions();
 			m_company = pVolume->GetCompany();
 

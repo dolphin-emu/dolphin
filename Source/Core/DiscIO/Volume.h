@@ -85,7 +85,7 @@ public:
 	virtual std::string GetMakerID() const = 0;
 	virtual u16 GetRevision() const = 0;
 	virtual std::string GetInternalName() const = 0;
-	virtual std::map<ELanguage, std::string> GetNames() const = 0;
+	virtual std::map<ELanguage, std::string> GetNames(bool prefer_long) const = 0;
 	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
 	virtual std::string GetCompany() const { return std::string(); }
 	virtual std::vector<u32> GetBanner(int* width, int* height) const;

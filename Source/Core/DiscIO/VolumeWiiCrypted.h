@@ -32,7 +32,7 @@ public:
 	std::string GetMakerID() const override;
 	u16 GetRevision() const override;
 	std::string GetInternalName() const override;
-	std::map<IVolume::ELanguage, std::string> GetNames() const override;
+	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
 	u8 GetDiscNumber() const override;

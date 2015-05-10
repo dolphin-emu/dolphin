@@ -87,7 +87,7 @@ GameFile::GameFile(const QString& fileName)
 		{
 			m_platform = volume->GetVolumeType();
 
-			m_names = ConvertLocalizedStrings(volume->GetNames());
+			m_names = ConvertLocalizedStrings(volume->GetNames(true));
 			m_descriptions = ConvertLocalizedStrings(volume->GetDescriptions());
 			m_company = QString::fromStdString(volume->GetCompany());
 
