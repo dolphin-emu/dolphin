@@ -30,7 +30,6 @@
             android:theme="@style/DolphinWii"
             android:label="@string/add_directory_title"/>
 
-
         <activity
             android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"
             android:label="@string/app_name"

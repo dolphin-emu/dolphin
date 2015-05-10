@@ -26,7 +26,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 	 * Initializes the dataset to be displayed, and associates the Adapter with the
 	 * Activity as an event listener.
 	 *
-	 * @param path A String containing the path to the directory to be shown by this Adapter.
+	 * @param path     A String containing the path to the directory to be shown by this Adapter.
 	 * @param listener An Activity that can respond to callbacks from this Adapter.
 	 */
 	public FileAdapter(String path, FileClickListener listener)
@@ -125,7 +125,8 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 			if (fileList.isEmpty())
 			{
 				Toast.makeText(view.getContext(), R.string.add_directory_empty_folder, Toast.LENGTH_SHORT).show();
-			} else
+			}
+			else
 			{
 				// Delay the loading of the new directory to give a little bit of time for UI feedback
 				// to happen. Hacky, but good enough for now; this is necessary because we're modifying
@@ -141,7 +142,8 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 					}
 				}, 200);
 			}
-		} else
+		}
+		else
 		{
 			// Pass the activity the path of the parent directory of the clicked file.
 			mListener.finishSuccessfully();

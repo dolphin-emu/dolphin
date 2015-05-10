@@ -26,7 +26,8 @@ public class FileListItem implements Comparable<FileListItem>
 		if (file.isDirectory())
 		{
 			mType = TYPE_FOLDER;
-		} else
+		}
+		else
 		{
 			String fileExtension = mPath.substring(mPath.lastIndexOf('.'));
 
@@ -37,7 +38,8 @@ public class FileListItem implements Comparable<FileListItem>
 			if (allowedExtensions.contains(fileExtension))
 			{
 				mType = NativeLibrary.IsWiiTitle(mPath) ? TYPE_WII : TYPE_GC;
-			} else
+			}
+			else
 			{
 				mType = TYPE_OTHER;
 			}
@@ -67,12 +69,14 @@ public class FileListItem implements Comparable<FileListItem>
 		if (theOther.getType() == getType())
 		{
 			return getFilename().toLowerCase().compareTo(theOther.getFilename().toLowerCase());
-		} else
+		}
+		else
 		{
 			if (getType() > theOther.getType())
 			{
 				return 1;
-			} else
+			}
+			else
 			{
 				return -1;
 			}
