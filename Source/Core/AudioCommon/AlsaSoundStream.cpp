@@ -23,13 +23,13 @@ AlsaSound::~AlsaSound()
 bool AlsaSound::Start()
 {
 	thread = std::thread(&AlsaSound::SoundLoop, this);
-	thread_data = 0;
+	thread_data.store(0);
 	return true;
 }
 
 void AlsaSound::Stop()
 {
-	thread_data = 1;
+	thread_data.store(1);
 	thread.join();
 }
 
@@ -42,11 +42,11 @@ void AlsaSound::Update()
 void AlsaSound::SoundLoop()
 {
 	if (!AlsaInit()) {
-		thread_data = 2;
+		thread_data.store(2);
 		return;
 	}
 	Common::SetCurrentThreadName("Audio thread - alsa");
-	while (!thread_data)
+	while (thread_data.load() == 0)
 	{
 		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
 		int rc = m_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
@@ -61,7 +61,7 @@ void AlsaSound::SoundLoop()
 		}
 	}
 	AlsaShutdown();
-	thread_data = 2;
+	thread_data.store(2);
 }
 
 bool AlsaSound::AlsaInit()

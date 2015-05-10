@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include <atomic>
+#include <thread>
+
 #if defined(HAVE_ALSA) && HAVE_ALSA
 #include <alsa/asoundlib.h>
 #endif
 
 #include "AudioCommon/SoundStream.h"
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
 
 class AlsaSound final : public SoundStream
 {
@@ -39,7 +41,7 @@ private:
 	// 0 = continue
 	// 1 = shutdown
 	// 2 = done shutting down.
-	volatile int thread_data;
+	std::atomic<int> thread_data;
 
 	snd_pcm_t *handle;
 	int frames_to_deliver;
