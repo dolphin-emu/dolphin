@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <mutex>
 #include <string>
 
@@ -109,8 +110,8 @@ public:
 
 	std::mutex& MixerCritical() { return m_csMixing; }
 
-	float GetCurrentSpeed() const { return m_speed; }
-	void UpdateSpeed(volatile float val) { m_speed = val; }
+	float GetCurrentSpeed() const { return m_speed.load(); }
+	void UpdateSpeed(float val) { m_speed.store(val); }
 
 protected:
 	class MixerFifo {
@@ -135,11 +136,11 @@ protected:
 		CMixer *m_mixer;
 		unsigned m_input_sample_rate;
 		short m_buffer[MAX_SAMPLES * 2];
-		volatile u32 m_indexW;
-		volatile u32 m_indexR;
+		std::atomic<u32> m_indexW;
+		std::atomic<u32> m_indexR;
 		// Volume ranges from 0-256
-		volatile s32 m_LVolume;
-		volatile s32 m_RVolume;
+		std::atomic<s32> m_LVolume;
+		std::atomic<s32> m_RVolume;
 		float m_numLeftI;
 		u32 m_frac;
 	};
@@ -156,5 +157,5 @@ protected:
 
 	std::mutex m_csMixing;
 
-	volatile float m_speed; // Current rate of the emulation (1.0 = 100% speed)
+	std::atomic<float> m_speed; // Current rate of the emulation (1.0 = 100% speed)
 };
