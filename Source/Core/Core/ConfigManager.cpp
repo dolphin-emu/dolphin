@@ -68,6 +68,9 @@ static const struct
 	{ "VolumeUp",              0,                    0 /* wxMOD_NONE */    },
 	{ "VolumeToggleMute",      0,                    0 /* wxMOD_NONE */    },
 
+	{ "IncreaseIR",            0,                    0 /* wxMOD_NONE */    },
+	{ "DecreaseIR",            0,                    0 /* wxMOD_NONE */    },
+
 	{ "ToggleIR",              0,                    0 /* wxMOD_NONE */    },
 	{ "ToggleAspectRatio",     0,                    0 /* wxMOD_NONE */    },
 	{ "ToggleEFBCopies",       0,                    0 /* wxMOD_NONE */    },
