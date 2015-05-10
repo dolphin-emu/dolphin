@@ -70,6 +70,10 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
 	trav_szr->Add(m_direct_traversal, 0, wxRIGHT);
 
+	m_trav_reset_btn = new wxButton(panel, wxID_ANY, _("Reset Traversal Settings"));
+	m_trav_reset_btn->Bind(wxEVT_BUTTON, &NetPlaySetupFrame::OnResetTraversal, this);
+	trav_szr->Add(m_trav_reset_btn, 0, wxCENTER | wxRIGHT);
+
 	wxBoxSizer* const nick_szr = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"));
 	std::string nickname;
@@ -77,6 +81,13 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 	m_nickname_text = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(nickname));
 	nick_szr->Add(nick_lbl, 0, wxCENTER);
 	nick_szr->Add(m_nickname_text, 0, wxALL, 5);
+
+	std::string centralPort;
+	GetTraversalPort(netplay_section, &centralPort);
+	std::string centralServer;
+	GetTraversalServer(netplay_section, &centralServer);
+
+	m_traversal_lbl = new wxStaticText(panel, wxID_ANY, _("Traversal: ") + centralServer + ":" + centralPort);
 
 	// tabs
 	wxNotebook* const notebook = new wxNotebook(panel, wxID_ANY);
@@ -174,6 +185,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
 	main_szr->Add(trav_szr, 0, wxALL | wxALIGN_LEFT);
 	main_szr->Add(nick_szr, 0, wxALL | wxALIGN_LEFT, 5);
+	main_szr->Add(m_traversal_lbl, 0, wxALL | wxALIGN_LEFT, 5);
 	main_szr->Add(notebook, 1, wxLEFT | wxRIGHT | wxEXPAND, 5);
 	main_szr->Add(quit_btn, 0, wxALL | wxALIGN_RIGHT, 5);
 
@@ -342,6 +354,19 @@ void NetPlaySetupFrame::OnJoin(wxCommandEvent&)
 	MakeNetPlayDiag(port, "", false);
 }
 
+void NetPlaySetupFrame::OnResetTraversal(wxCommandEvent& event)
+{
+	IniFile inifile;
+	const std::string dolphin_ini = File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini";
+	inifile.Load(dolphin_ini);
+	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+	netplay_section.Set("TraversalServer", (std::string) "stun.dolphin-emu.org");
+	netplay_section.Set("TraversalPort", (std::string) "6262");
+	inifile.Save(dolphin_ini);
+
+	m_traversal_lbl->SetLabelText(_("Traversal: ") + "stun.dolphin-emu.org:6262");
+}
+
 void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 {
 	int sel = m_direct_traversal->GetSelection();
@@ -351,6 +376,8 @@ void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 
 	if (sel == 1)
 	{
+		m_traversal_lbl->Show();
+		m_trav_reset_btn->Show();
 		//Traversal
 		//client tab
 		{
@@ -373,6 +400,8 @@ void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 	}
 	else
 	{
+		m_traversal_lbl->Hide();
+		m_trav_reset_btn->Hide();
 		// Direct
 		// Client tab
 		{
