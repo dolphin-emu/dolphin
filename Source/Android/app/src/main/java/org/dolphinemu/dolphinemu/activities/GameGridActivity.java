@@ -3,16 +3,11 @@ package org.dolphinemu.dolphinemu.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.provider.DocumentsContract;
-import android.provider.OpenableColumns;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -32,6 +27,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * The main Activity of the Lollipop style UI. Shows a grid of games on tablets & landscape phones,
+ * shows a list of games on portrait phones.
+ */
 public final class GameGridActivity extends Activity
 {
 	private static final int REQUEST_ADD_DIRECTORY = 1;
@@ -83,21 +82,33 @@ public final class GameGridActivity extends Activity
 		}
 	}
 
+	/**
+	 * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
+	 *
+	 * @param requestCode
+	 * @param resultCode
+	 * @param result
+	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
 	{
+		// If the user picked a file, as opposed to just backing out.
 		if (resultCode == RESULT_OK)
 		{
+			// Sanity check to make sure the Activity that just returned was the AddDirectoryActivity;
+			// other activities might use this callback in the future (don't forget to change Javadoc!)
 			if (requestCode == REQUEST_ADD_DIRECTORY)
 			{
 				String path = result.getStringExtra(AddDirectoryActivity.KEY_CURRENT_PATH);
 
+				// Store this path as a preference.
+				// TODO Use SQLite instead.
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 				SharedPreferences.Editor editor = prefs.edit();
 
 				editor.putString(AddDirectoryActivity.KEY_CURRENT_PATH, path);
 
-				// Using commit in order to block so the next method has the correct data to load.
+				// Using commit, not apply, in order to block so the next method has the correct data to load.
 				editor.commit();
 
 				mAdapter.setGameList(getGameList());

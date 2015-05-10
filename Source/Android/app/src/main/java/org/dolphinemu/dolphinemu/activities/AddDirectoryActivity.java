@@ -15,6 +15,10 @@ import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.FileAdapter;
 
+/**
+ * An Activity that shows a list of files and folders, allowing the user to tell the app which folder(s)
+ * contains the user's games.
+ */
 public class AddDirectoryActivity extends Activity implements FileAdapter.FileClickListener
 {
 	public static final String KEY_CURRENT_PATH = BuildConfig.APPLICATION_ID + ".path";
@@ -74,6 +78,7 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 		return super.onOptionsItemSelected(item);
 	}
 
+
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
@@ -83,6 +88,9 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 		outState.putString(KEY_CURRENT_PATH, mAdapter.getPath());
 	}
 
+	/**
+	 * Tell the GameGridActivity that launched this Activity that the user picked a folder.
+	 */
 	@Override
 	public void finishSuccessfully()
 	{

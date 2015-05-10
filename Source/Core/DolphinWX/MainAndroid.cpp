@@ -219,7 +219,7 @@ static std::string GetTitle(std::string filename)
 		return name;
 	}
 
-	return std::string ("Error");
+	return std::string ("");
 }
 
 static std::string GetDescription(std::string filename)
@@ -256,7 +256,7 @@ static std::string GetDescription(std::string filename)
 			return descriptions.cbegin()->second;
 	}
 
-	return std::string ("Error");
+	return std::string ("");
 }
 
 static std::string GetGameId(std::string filename)
@@ -271,7 +271,7 @@ static std::string GetGameId(std::string filename)
 
 		return id;
 	}
-	return std::string ("Error");
+	return std::string ("");
 }
 
 static std::string GetApploaderDate(std::string filename)
@@ -286,7 +286,7 @@ static std::string GetApploaderDate(std::string filename)
 
 		return date;
 	}
-	return std::string ("Error");
+	return std::string ("");
 }
 
 static u64 GetFileSize(std::string filename)
@@ -349,17 +349,17 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv *env, jobject obj)
 {
-PowerPC::Start();
+	PowerPC::Start();
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv *env, jobject obj)
 {
-PowerPC::Pause();
+	PowerPC::Pause();
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj)
 {
-Core::Stop();
-updateMainFrameEvent.Set(); // Kick the waiting event
+	Core::Stop();
+	updateMainFrameEvent.Set(); // Kick the waiting event
 }
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
@@ -367,7 +367,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePa
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Axis, jfloat Value)
 {
-ButtonManager::GamepadAxisEvent(GetJString(env, jDevice), Axis, Value);
+	ButtonManager::GamepadAxisEvent(GetJString(env, jDevice), Axis, Value);
 }
 
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBanner(JNIEnv *env, jobject obj, jstring jFile)
@@ -437,12 +437,12 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Supports
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv *env, jobject obj)
 {
-Core::SaveScreenShot();
+	Core::SaveScreenShot();
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(JNIEnv *env, jobject obj, jint api)
 {
-eglBindAPI(api);
+	eglBindAPI(api);
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jSection, jstring jKey, jstring jDefault)
@@ -460,59 +460,58 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 
 	return env->NewStringUTF(value.c_str());
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jSection, jstring jKey,
-jstring jValue)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jSection, jstring jKey, jstring jValue)
 {
-IniFile ini;
-std::string file         = GetJString(env, jFile);
-std::string section      = GetJString(env, jSection);
-std::string key          = GetJString(env, jKey);
-std::string value        = GetJString(env, jValue);
+	IniFile ini;
+	std::string file         = GetJString(env, jFile);
+	std::string section      = GetJString(env, jSection);
+	std::string key          = GetJString(env, jKey);
+	std::string value        = GetJString(env, jValue);
 
-ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 
-ini.GetOrCreateSection(section)->Set(key, value);
-ini.Save(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
+	ini.GetOrCreateSection(section)->Set(key, value);
+	ini.Save(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv *env, jobject obj, jstring jFile)
 {
-g_filename = GetJString(env, jFile);
+	g_filename = GetJString(env, jFile);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv *env, jobject obj, jint slot)
 {
-State::Save(slot);
+	State::Save(slot);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv *env, jobject obj, jint slot)
 {
-State::Load(slot);
+	State::Load(slot);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFolders(JNIEnv *env, jobject obj)
 {
-File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-File::CreateFullPath(File::GetUserPath(D_WIIUSER_IDX));
-File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
-File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
-File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
-File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	File::CreateFullPath(File::GetUserPath(D_WIIUSER_IDX));
+	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(JNIEnv *env, jobject obj, jstring jDirectory)
 {
-std::string directory = GetJString(env, jDirectory);
-g_set_userpath = directory;
-UICommon::SetUserDirectory(directory);
+	std::string directory = GetJString(env, jDirectory);
+	g_set_userpath = directory;
+	UICommon::SetUserDirectory(directory);
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv *env, jobject obj)
@@ -522,24 +521,24 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDi
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
 {
-surf = ANativeWindow_fromSurface(env, _surf);
+	surf = ANativeWindow_fromSurface(env, _surf);
 
-// Install our callbacks
-OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
-OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
+	// Install our callbacks
+	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
+	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
 
-RegisterMsgAlertHandler(&MsgAlert);
+	RegisterMsgAlertHandler(&MsgAlert);
 
-UICommon::SetUserDirectory(g_set_userpath);
-UICommon::Init();
+	UICommon::SetUserDirectory(g_set_userpath);
+	UICommon::Init();
 
-// No use running the loop when booting fails
-if ( BootManager::BootCore( g_filename.c_str() ) )
-while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
-updateMainFrameEvent.Wait();
+	// No use running the loop when booting fails
+	if ( BootManager::BootCore( g_filename.c_str() ) )
+		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+			updateMainFrameEvent.Wait();
 
-UICommon::Shutdown();
-ANativeWindow_release(surf);
+	UICommon::Shutdown();
+	ANativeWindow_release(surf);
 }
 
 
