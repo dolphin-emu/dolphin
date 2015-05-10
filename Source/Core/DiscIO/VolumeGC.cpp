@@ -105,91 +105,14 @@ std::string CVolumeGC::GetInternalName() const
 		return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetNames() const
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetNames(bool prefer_long) const
 {
-	std::map<IVolume::ELanguage, std::string> names;
-
-	if (!LoadBannerFile())
-		return names;
-
-	u32 name_count = 0;
-	IVolume::ELanguage language;
-	bool is_japanese = GetCountry() == IVolume::ECountry::COUNTRY_JAPAN;
-
-	switch (m_banner_file_type)
-	{
-	case BANNER_BNR1:
-		name_count = 1;
-		language = is_japanese ? IVolume::ELanguage::LANGUAGE_JAPANESE : IVolume::ELanguage::LANGUAGE_ENGLISH;
-		break;
-
-	case BANNER_BNR2:
-		name_count = 6;
-		language = IVolume::ELanguage::LANGUAGE_ENGLISH;
-		break;
-
-	case BANNER_INVALID:
-	case BANNER_NOT_LOADED:
-		break;
-	}
-
-	auto const banner = reinterpret_cast<const GCBanner*>(m_banner_file.data());
-
-	for (u32 i = 0; i < name_count; ++i)
-	{
-		auto& comment = banner->comment[i];
-		std::string name = DecodeString(comment.longTitle);
-
-		if (name.empty())
-			name = DecodeString(comment.shortTitle);
-
-		if (!name.empty())
-			names[(IVolume::ELanguage)(language + i)] = name;
-	}
-
-	return names;
+	return ReadMultiLanguageStrings(false, prefer_long);
 }
 
 std::map<IVolume::ELanguage, std::string> CVolumeGC::GetDescriptions() const
 {
-	std::map<IVolume::ELanguage, std::string> descriptions;
-
-	if (!LoadBannerFile())
-		return descriptions;
-
-	u32 desc_count = 0;
-	IVolume::ELanguage language;
-	bool is_japanese = GetCountry() == IVolume::ECountry::COUNTRY_JAPAN;
-
-	switch (m_banner_file_type)
-	{
-	case BANNER_BNR1:
-		desc_count = 1;
-		language = is_japanese ? IVolume::ELanguage::LANGUAGE_JAPANESE : IVolume::ELanguage::LANGUAGE_ENGLISH;
-		break;
-
-	case BANNER_BNR2:
-		language = IVolume::ELanguage::LANGUAGE_ENGLISH;
-		desc_count = 6;
-		break;
-
-	case BANNER_INVALID:
-	case BANNER_NOT_LOADED:
-		break;
-	}
-
-	auto banner = reinterpret_cast<const GCBanner*>(m_banner_file.data());
-
-	for (u32 i = 0; i < desc_count; ++i)
-	{
-		auto& data = banner->comment[i].comment;
-		std::string description = DecodeString(data);
-
-		if (!description.empty())
-			descriptions[(IVolume::ELanguage)(language + i)] = description;
-	}
-
-	return descriptions;
+	return ReadMultiLanguageStrings(true);
 }
 
 std::string CVolumeGC::GetCompany() const
@@ -277,14 +200,17 @@ IVolume::EPlatform CVolumeGC::GetVolumeType() const
 	return GAMECUBE_DISC;
 }
 
+// Returns true if the loaded banner file is valid,
+// regardless of whether it was loaded by the current call
 bool CVolumeGC::LoadBannerFile() const
 {
-	// The methods GetNames, GetDescriptions, GetCompany and GetBanner
-	// all need to access the opening.bnr file. These four methods are
-	// typically called after each other, so we store the file in RAM
-	// to avoid reading it from the disc several times. However,
+	// The methods ReadMultiLanguageStrings, GetCompany and GetBanner
+	// need to access the opening.bnr file. These methods are
+	// usually called one after another. The file is cached in
+	// RAM to avoid reading it from the disc several times, but
 	// if none of these methods are called, the file is never loaded.
 
+	// If opening.bnr has been loaded already, return immediately
 	if (m_banner_file_type != BANNER_NOT_LOADED)
 		return m_banner_file_type != BANNER_INVALID;
 
@@ -317,6 +243,62 @@ bool CVolumeGC::LoadBannerFile() const
 	}
 
 	return m_banner_file_type != BANNER_INVALID;
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::ReadMultiLanguageStrings(bool description, bool prefer_long) const
+{
+	std::map<ELanguage, std::string> strings;
+
+	if (!LoadBannerFile())
+		return strings;
+
+	u32 number_of_languages = 0;
+	ELanguage start_language;
+	bool is_japanese = GetCountry() == ECountry::COUNTRY_JAPAN;
+
+	switch (m_banner_file_type)
+	{
+	case BANNER_BNR1:	// NTSC
+		number_of_languages = 1;
+		start_language = is_japanese ? ELanguage::LANGUAGE_JAPANESE : ELanguage::LANGUAGE_ENGLISH;
+		break;
+
+	case BANNER_BNR2:	// PAL
+		number_of_languages = 6;
+		start_language = ELanguage::LANGUAGE_ENGLISH;
+		break;
+
+	// Shouldn't happen
+	case BANNER_INVALID:
+	case BANNER_NOT_LOADED:
+		break;
+	}
+
+	auto const banner = reinterpret_cast<const GCBanner*>(m_banner_file.data());
+
+	for (u32 i = 0; i < number_of_languages; ++i)
+	{
+		GCBannerComment comment = banner->comment[i];
+		std::string string;
+
+		if (description)
+		{
+			string = DecodeString(comment.comment);
+		}
+		else // Title
+		{
+			if (prefer_long)
+				string = DecodeString(comment.longTitle);
+
+			if (string.empty())
+				string = DecodeString(comment.shortTitle);
+		}
+
+		if (!string.empty())
+			strings[(ELanguage)(start_language + i)] = string;
+	}
+
+	return strings;
 }
 
 } // namespace

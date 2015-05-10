@@ -29,7 +29,7 @@ public:
 	std::string GetMakerID() const override;
 	u16 GetRevision() const override;
 	virtual std::string GetInternalName() const override;
-	std::map<ELanguage, std::string> GetNames() const override;
+	std::map<ELanguage, std::string> GetNames(bool prefer_long) const override;
 	std::map<ELanguage, std::string> GetDescriptions() const override;
 	std::string GetCompany() const override;
 	std::vector<u32> GetBanner(int* width, int* height) const override;
@@ -44,6 +44,7 @@ public:
 
 private:
 	bool LoadBannerFile() const;
+	std::map<ELanguage, std::string> ReadMultiLanguageStrings(bool description, bool prefer_long = true) const;
 
 	static const int GC_BANNER_WIDTH = 96;
 	static const int GC_BANNER_HEIGHT = 32;
