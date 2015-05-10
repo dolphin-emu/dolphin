@@ -1271,7 +1271,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	// depth
 	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
+	glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
 
 	// Update rect for clearing the picture
 	glEnable(GL_SCISSOR_TEST);
