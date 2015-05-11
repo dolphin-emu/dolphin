@@ -56,5 +56,5 @@ dependencies {
     compile 'de.hdodenhof:circleimageview:1.2.2'
 
     // For loading huge screenshots from the disk.
-    compile "com.squareup.picasso:picasso:2.4.0"
+    compile 'com.squareup.picasso:picasso:2.5.2'
 }
