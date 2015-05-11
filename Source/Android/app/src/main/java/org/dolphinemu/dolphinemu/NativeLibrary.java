@@ -202,6 +202,17 @@ public final class NativeLibrary
 	/** Stops emulation. */
 	public static native void StopEmulation();
 
+	/**
+	 * Enables or disables CPU block profiling
+	 * @param enable
+	 */
+	public static native void SetProfiling(boolean enable);
+
+	/**
+	 * Writes out the block profile results
+	 */
+	public static native void WriteProfileResults();
+
 	/** Native EGL functions not exposed by Java bindings **/
 	public static native void eglBindAPI(int api);
 
