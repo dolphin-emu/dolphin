@@ -36,15 +36,14 @@
 // need to include this before polarssl/aes.h,
 // otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
-
 #include <polarssl/aes.h>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/ec_wii.h"
 #include "Core/Movie.h"
@@ -52,7 +51,9 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DiscIO/NANDContentLoader.h"
 
 #ifdef _WIN32
 #include <Windows.h>

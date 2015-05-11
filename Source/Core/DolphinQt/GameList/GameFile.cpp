@@ -18,7 +18,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "DiscIO/BannerLoader.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/Filesystem.h"
 
@@ -26,23 +25,48 @@
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x006;
+static const u32 CACHE_REVISION = 0x007;
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
-static QStringList VectorToStringList(std::vector<std::string> vec, bool trim = false)
+static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
 {
-	QStringList result;
-	if (trim)
-	{
-		for (const std::string& member : vec)
-			result.append(QString::fromStdString(member).trimmed());
-	}
-	else
-	{
-		for (const std::string& member : vec)
-			result.append(QString::fromStdString(member));
-	}
+	QMap<DiscIO::IVolume::ELanguage, QString> result;
+
+	for (auto entry : strings)
+		result.insert(entry.first, QString::fromStdString(entry.second).trimmed());
+
 	return result;
+}
+
+template<class to, class from>
+static QMap<to, QString> CastLocalizedStrings(QMap<from, QString> strings)
+{
+	QMap<to, QString> result;
+
+	auto end = strings.cend();
+	for (auto it = strings.cbegin(); it != end; ++it)
+		result.insert((to)it.key(), it.value());
+
+	return result;
+}
+
+static QString GetLanguageString(DiscIO::IVolume::ELanguage language, QMap<DiscIO::IVolume::ELanguage, QString> strings)
+{
+	if (strings.contains(language))
+		return strings.value(language);
+
+	// English tends to be a good fallback when the requested language isn't available
+	if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH)
+	{
+		if (strings.contains(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH))
+			return strings.value(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
+	}
+
+	// If English isn't available either, just pick something
+	if (!strings.empty())
+		return strings.cbegin().value();
+
+	return SL("");
 }
 
 GameFile::GameFile(const QString& fileName)
@@ -57,7 +81,7 @@ GameFile::GameFile(const QString& fileName)
 	}
 	else
 	{
-		DiscIO::IVolume* volume = DiscIO::CreateVolumeFromFilename(fileName.toStdString());
+		std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(fileName.toStdString()));
 
 		if (volume != nullptr)
 		{
@@ -66,7 +90,9 @@ GameFile::GameFile(const QString& fileName)
 			else
 				m_platform = WII_WAD;
 
-			m_volume_names = VectorToStringList(volume->GetNames());
+			m_names = ConvertLocalizedStrings(volume->GetNames());
+			m_descriptions = ConvertLocalizedStrings(volume->GetDescriptions());
+			m_company = QString::fromStdString(volume->GetCompany());
 
 			m_country = volume->GetCountry();
 			m_file_size = volume->GetRawSize();
@@ -80,43 +106,22 @@ GameFile::GameFile(const QString& fileName)
 			QFileInfo info(m_file_name);
 			m_folder_name = info.absoluteDir().dirName();
 
-			// check if we can get some info from the banner file too
-			DiscIO::IFileSystem* fileSystem = DiscIO::CreateFileSystem(volume);
-
-			if (fileSystem != nullptr || m_platform == WII_WAD)
+			int width, height;
+			std::vector<u32> buffer = volume->GetBanner(&width, &height);
+			QImage banner(width, height, QImage::Format_RGB888);
+			for (int i = 0; i < width * height; i++)
 			{
-				std::unique_ptr<DiscIO::IBannerLoader> bannerLoader(DiscIO::CreateBannerLoader(*fileSystem, volume));
-
-				if (bannerLoader != nullptr)
-				{
-					if (bannerLoader->IsValid())
-					{
-						if (m_platform != WII_WAD)
-							m_names = VectorToStringList(bannerLoader->GetNames());
-						m_company = QString::fromStdString(bannerLoader->GetCompany());
-						m_descriptions = VectorToStringList(bannerLoader->GetDescriptions(), true);
-
-						int width, height;
-						std::vector<u32> buffer = bannerLoader->GetBanner(&width, &height);
-						QImage banner(width, height, QImage::Format_RGB888);
-						for (int i = 0; i < width * height; i++)
-						{
-							int x = i % width, y = i / width;
-							banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16,
-						                    (buffer[i] & 0x00FF00) >>  8,
-						                    (buffer[i] & 0x0000FF) >>  0));
-						}
-
-						if (!banner.isNull())
-						{
-							hasBanner = true;
-							m_banner = QPixmap::fromImage(banner);
-						}
-					}
-				}
-				delete fileSystem;
+				int x = i % width, y = i / width;
+				banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16,
+						        (buffer[i] & 0x00FF00) >>  8,
+						        (buffer[i] & 0x0000FF) >>  0));
 			}
-			delete volume;
+
+			if (!banner.isNull())
+			{
+				hasBanner = true;
+				m_banner = QPixmap::fromImage(banner);
+			}
 
 			m_valid = true;
 			if (hasBanner)
@@ -158,11 +163,13 @@ bool GameFile::LoadFromCache()
 	if (cache_rev != CACHE_REVISION)
 		return false;
 
-	int country;
+	u32 country;
+	QMap<u8, QString> names;
+	QMap<u8, QString> descriptions;
 	stream >> m_folder_name
-	       >> m_volume_names
+	       >> names
+	       >> descriptions
 	       >> m_company
-	       >> m_descriptions
 	       >> m_unique_id
 	       >> m_file_size
 	       >> m_volume_size
@@ -173,6 +180,8 @@ bool GameFile::LoadFromCache()
 	       >> m_is_disc_two
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
+	m_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(names);
+	m_descriptions = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(descriptions);
 	file.close();
 	return true;
 }
@@ -198,13 +207,13 @@ void GameFile::SaveToCache()
 	stream << CACHE_REVISION;
 
 	stream << m_folder_name
-	       << m_volume_names
+	       << CastLocalizedStrings<u8>(m_names)
+	       << CastLocalizedStrings<u8>(m_descriptions)
 	       << m_company
-	       << m_descriptions
 	       << m_unique_id
 	       << m_file_size
 	       << m_volume_size
-	       << (int)m_country
+	       << (u32)m_country
 	       << m_banner
 	       << m_compressed
 	       << m_platform
@@ -233,56 +242,27 @@ QString GameFile::CreateCacheFilename()
 
 QString GameFile::GetCompany() const
 {
-	if (m_company.isEmpty())
-		return QObject::tr("N/A");
-	else
-		return m_company;
+	return m_company;
 }
 
-// For all of the following functions that accept an "index" parameter,
-// (-1 = Japanese, 0 = English, etc)?
-
-QString GameFile::GetDescription(int index) const
+QString GameFile::GetDescription(DiscIO::IVolume::ELanguage language) const
 {
-	if (index < m_descriptions.size())
-		return m_descriptions[index];
-
-	if (!m_descriptions.empty())
-		return m_descriptions[0];
-
-	return SL("");
+	return GetLanguageString(language, m_descriptions);
 }
 
-QString GameFile::GetVolumeName(int index) const
+QString GameFile::GetDescription() const
 {
-	if (index < m_volume_names.size() && !m_volume_names[index].isEmpty())
-		return m_volume_names[index];
-
-	if (!m_volume_names.isEmpty())
-		return m_volume_names[0];
-
-	return SL("");
+	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 }
 
-QString GameFile::GetBannerName(int index) const
+QString GameFile::GetName(DiscIO::IVolume::ELanguage language) const
 {
-	if (index < m_names.size() && !m_names[index].isEmpty())
-		return m_names[index];
-
-	if (!m_names.isEmpty())
-		return m_names[0];
-
-	return SL("");
+	return GetLanguageString(language, m_names);
 }
 
-QString GameFile::GetName(int index) const
+QString GameFile::GetName() const
 {
-	// Prefer name from banner, fallback to name from volume, fallback to filename
-	QString name = GetBannerName(index);
-
-	if (name.isEmpty())
-		name = GetVolumeName(index);
-
+	QString name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
 	if (name.isEmpty())
 	{
 		// No usable name, return filename (better than nothing)
@@ -290,7 +270,6 @@ QString GameFile::GetName(int index) const
 		SplitPath(m_file_name.toStdString(), nullptr, &nametemp, nullptr);
 		name = QString::fromStdString(nametemp);
 	}
-
 	return name;
 }
 

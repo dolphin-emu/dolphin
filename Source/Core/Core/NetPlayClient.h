@@ -9,10 +9,8 @@
 #include <sstream>
 #include <SFML/Network/Packet.hpp>
 #include "Common/CommonTypes.h"
-#include "Common/ENetUtil.h"
 #include "Common/FifoQueue.h"
 #include "Common/Thread.h"
-#include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <deque>
 #include <queue>
 #include <vector>
 
@@ -12,7 +13,8 @@
 #include "Core/IPC_HLE/hci.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+
+class CWII_IPC_HLE_WiiMote;
 
 struct SQueuedEvent
 {

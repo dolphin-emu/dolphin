@@ -5,11 +5,13 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
+#include <thread>
 
-#include "Common/Thread.h"
-
+#include "Common/Flag.h"
 #include "Core/DSPEmulator.h"
-#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
+
+class PointerWrap;
 
 class DSPLLE : public DSPEmulator
 {

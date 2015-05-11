@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>

@@ -10,7 +10,6 @@
 class wxButton;
 class wxCheckBox;
 class wxChoice;
-class wxCommandEvent;
 
 class InterfaceConfigPane final : public wxPanel
 {

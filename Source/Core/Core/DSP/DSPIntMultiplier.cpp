@@ -10,6 +10,7 @@
 #include "Core/DSP/DSPIntCCUtil.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPTables.h"
 
 namespace DSPInterpreter {
 

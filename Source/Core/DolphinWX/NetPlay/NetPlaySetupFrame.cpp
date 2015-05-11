@@ -354,7 +354,9 @@ void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 		{
 			m_host_port_lbl->Hide();
 			m_host_port_text->Hide();
+#ifdef USE_UPNP
 			m_upnp_chk->Hide();
+#endif
 		}
 	}
 	else
@@ -380,7 +382,9 @@ void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 		// Server tab
 		m_host_port_lbl->Show();
 		m_host_port_text->Show();
+#ifdef USE_UPNP
 		m_upnp_chk->Show();
+#endif
 	}
 }
 

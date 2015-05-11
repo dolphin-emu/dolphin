@@ -6,11 +6,12 @@
 #include <cstdlib>
 #include <queue>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
@@ -829,7 +830,10 @@ void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 
 // Read the Wiimote once
 void Update(int _WiimoteNumber)
 {
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	// Try to get a lock and return without doing anything if we fail
+	// This avoids deadlocks when adding a Wiimote during continuous scan
+	if(!g_refresh_lock.try_lock())
+		return;
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->Update();
@@ -839,6 +843,7 @@ void Update(int _WiimoteNumber)
 	{
 		Host_ConnectWiimote(_WiimoteNumber, false);
 	}
+	g_refresh_lock.unlock();
 }
 
 void StateChange(EMUSTATE_CHANGE newState)

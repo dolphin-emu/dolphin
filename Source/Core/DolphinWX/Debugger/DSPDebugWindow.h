@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/panel.h>
-#include <wx/windowid.h>
 #include <wx/aui/framemanager.h>
 
 #include "Common/CommonTypes.h"
@@ -19,7 +16,6 @@ class CMemoryView;
 class wxAuiNotebook;
 class wxAuiToolBar;
 class wxListBox;
-class wxWindow;
 
 class DSPDebuggerLLE : public wxPanel
 {

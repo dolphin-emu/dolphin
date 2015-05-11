@@ -94,11 +94,6 @@ public:
 
 	void ClearCache();
 
-	const u8 *GetDispatcher()
-	{
-		return asm_routines.dispatcher;
-	}
-
 	CommonAsmRoutinesBase *GetAsmRoutines()
 	{
 		return &asm_routines;

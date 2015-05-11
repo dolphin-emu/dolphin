@@ -2,9 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 #include <cinttypes>
-
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/StdMakeUnique.h"
+#include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcardDirectory.h"
@@ -132,13 +135,14 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
 }
 
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb, bool ascii, DiscIO::IVolume::ECountry card_region, int gameId)
-: MemoryCardBase(slot, sizeMb)
-, m_GameId(gameId)
-, m_LastBlock(-1)
-, m_hdr(slot, sizeMb, ascii)
-, m_bat1(sizeMb)
-, m_saves(0)
-, m_SaveDirectory(directory)
+	: MemoryCardBase(slot, sizeMb)
+	, m_GameId(gameId)
+	, m_LastBlock(-1)
+	, m_hdr(slot, sizeMb, ascii)
+	, m_bat1(sizeMb)
+	, m_saves(0)
+	, m_SaveDirectory(directory)
+	, m_exiting(false)
 {
 	// Use existing header data if available
 	if (File::Exists(m_SaveDirectory + MC_HDR))
@@ -186,10 +190,51 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
 	m_dir1.fixChecksums();
 	m_dir2 = m_dir1;
 	m_bat2 = m_bat1;
+
+	m_flush_thread = std::thread(&GCMemcardDirectory::FlushThread, this);
+}
+
+void GCMemcardDirectory::FlushThread()
+{
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableMemcardSaving)
+	{
+		return;
+	}
+
+
+	Common::SetCurrentThreadName(
+		StringFromFormat("Memcard%x-Flush", card_index).c_str());
+
+	while (true)
+	{
+		// no-op until signalled
+		m_flush_trigger.Wait();
+
+		if (m_exiting)
+		{
+			m_exiting = false;
+			return;
+		}
+		// no-op as long as signalled within flush_interval
+		while (m_flush_trigger.WaitFor(flush_interval))
+		{
+			if (m_exiting)
+			{
+				m_exiting = false;
+				return;
+			}
+		}
+
+		FlushToFile();
+	}
 }
 
 GCMemcardDirectory::~GCMemcardDirectory()
 {
+	m_exiting = true;
+	m_flush_trigger.Set();
+	m_flush_thread.join();
+
 	FlushToFile();
 }
 
@@ -253,6 +298,7 @@ s32 GCMemcardDirectory::Read(u32 address, s32 length, u8 *destaddress)
 
 s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8 *srcaddress)
 {
+	std::unique_lock<std::mutex> l(m_write_mutex);
 	if (length != 0x80)
 		INFO_LOG(EXPANSIONINTERFACE, "WRITING TO %x, len %x", destaddress, length);
 	s32 block = destaddress / BLOCK_SIZE;
@@ -266,9 +312,8 @@ s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8 *srcaddress)
 
 		// verify that we haven't calculated a length beyond BLOCK_SIZE
 		_dbg_assert_msg_(EXPANSIONINTERFACE, (destaddress + length) % BLOCK_SIZE == 0,
-						 "Memcard directory Write Logic Error");
+		                "Memcard directory Write Logic Error");
 	}
-
 	if (m_LastBlock != block)
 	{
 		switch (block)
@@ -310,8 +355,11 @@ s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8 *srcaddress)
 
 	memcpy(m_LastBlockAddress + offset, srcaddress, length);
 
+	l.unlock();
 	if (extra)
 		extra = Write(destaddress + length, extra, srcaddress + length);
+	if (offset + length == BLOCK_SIZE)
+		m_flush_trigger.Set();
 	return length + extra;
 }
 
@@ -506,6 +554,7 @@ bool GCMemcardDirectory::SetUsedBlocks(int saveIndex)
 
 void GCMemcardDirectory::FlushToFile()
 {
+	std::unique_lock<std::mutex> l(m_write_mutex);
 	int errors = 0;
 	DEntry invalid;
 	for (u16 i = 0; i < m_saves.size(); ++i)
@@ -585,6 +634,7 @@ void GCMemcardDirectory::FlushToFile()
 
 void GCMemcardDirectory::DoState(PointerWrap &p)
 {
+	std::unique_lock<std::mutex> l(m_write_mutex);
 	m_LastBlock = -1;
 	m_LastBlockAddress = nullptr;
 	p.Do(m_SaveDirectory);

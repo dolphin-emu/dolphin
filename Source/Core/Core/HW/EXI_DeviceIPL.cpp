@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -14,6 +15,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 
 // We should provide an option to choose from the above, or figure out the checksum (the algo in yagcd seems wrong)

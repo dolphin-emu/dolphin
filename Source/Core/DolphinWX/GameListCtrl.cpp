@@ -10,34 +10,20 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/buffer.h>
-#include <wx/chartype.h>
 #include <wx/colour.h>
-#include <wx/defs.h>
 #include <wx/dirdlg.h>
-#include <wx/event.h>
 #include <wx/filedlg.h>
 #include <wx/filefn.h>
 #include <wx/filename.h>
-#include <wx/gdicmn.h>
 #include <wx/imaglist.h>
-#include <wx/listbase.h>
 #include <wx/listctrl.h>
 #include <wx/menu.h>
-#include <wx/menuitem.h>
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
 #include <wx/settings.h>
-#include <wx/string.h>
 #include <wx/tipwin.h>
-#include <wx/translation.h>
-#include <wx/unichar.h>
-#include <wx/utils.h>
-#include <wx/version.h>
-#include <wx/window.h>
-#include <wx/windowid.h>
 
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
@@ -99,56 +85,27 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		sortData = -sortData;
 	}
 
-	int indexOne = 0;
-	int indexOther = 0;
-
-
-	// index only matters for WADS and PAL GC games, but invalid indicies for the others
-	// will return the (only) language in the list
-	if (iso1->GetPlatform() == GameListItem::WII_WAD)
-	{
-		indexOne = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
-	}
-	else // GC
-	{
-		indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	}
-
-	if (iso2->GetPlatform() == GameListItem::WII_WAD)
-	{
-		indexOther = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
-	}
-	else // GC
-	{
-		indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	}
+	DiscIO::IVolume::ELanguage languageOne = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso1->GetPlatform() != GameListItem::GAMECUBE_DISC);
+	DiscIO::IVolume::ELanguage languageOther = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(iso2->GetPlatform() != GameListItem::GAMECUBE_DISC);
 
 	switch (sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
-			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
+			if (!strcasecmp(iso1->GetName(languageOne).c_str(), iso2->GetName(languageOther).c_str()))
 			{
 				if (iso1->GetUniqueID() != iso2->GetUniqueID())
 					return t * (iso1->GetUniqueID() > iso2->GetUniqueID() ? 1 : -1);
 				if (iso1->GetRevision() != iso2->GetRevision())
-					return  t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
+					return t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
 				if (iso1->IsDiscTwo() != iso2->IsDiscTwo())
 					return t * (iso1->IsDiscTwo() ? 1 : -1);
 			}
-			return strcasecmp(iso1->GetName(indexOne).c_str(),
-					iso2->GetName(indexOther).c_str()) * t;
-		case CGameListCtrl::COLUMN_NOTES:
-			{
-				std::string cmp1 =
-					(iso1->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					iso1->GetCompany() : iso1->GetDescription(indexOne);
-				std::string cmp2 =
-					(iso2->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					iso2->GetCompany() : iso2->GetDescription(indexOther);
-				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
-			}
+			return strcasecmp(iso1->GetName(languageOne).c_str(),
+			                  iso2->GetName(languageOther).c_str()) * t;
+		case CGameListCtrl::COLUMN_MAKER:
+			return strcasecmp(iso1->GetCompany().c_str(), iso2->GetCompany().c_str()) * t;
 		case CGameListCtrl::COLUMN_ID:
-			 return strcasecmp(iso1->GetUniqueID().c_str(), iso2->GetUniqueID().c_str()) * t;
+			return strcasecmp(iso1->GetUniqueID().c_str(), iso2->GetUniqueID().c_str()) * t;
 		case CGameListCtrl::COLUMN_COUNTRY:
 			if (iso1->GetCountry() > iso2->GetCountry())
 				return  1 * t;
@@ -311,10 +268,7 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
 
-		// Instead of showing the notes + the company, which is unknown with
-		// Wii titles We show in the same column : company for GC games and
-		// description for Wii/wad games
-		InsertColumn(COLUMN_NOTES, _("Notes"));
+		InsertColumn(COLUMN_MAKER, _("Maker"));
 		InsertColumn(COLUMN_ID, _("ID"));
 		InsertColumn(COLUMN_COUNTRY, "");
 		InsertColumn(COLUMN_SIZE, _("Size"));
@@ -331,7 +285,7 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_PLATFORM, SConfig::GetInstance().m_showSystemColumn ? 35 + platform_padding : 0);
 		SetColumnWidth(COLUMN_BANNER, SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
 		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
-		SetColumnWidth(COLUMN_NOTES, SConfig::GetInstance().m_showNotesColumn ? 150 + platform_padding : 0);
+		SetColumnWidth(COLUMN_MAKER, SConfig::GetInstance().m_showMakerColumn ? 150 + platform_padding : 0);
 		SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
 		SetColumnWidth(COLUMN_COUNTRY, SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
 		SetColumnWidth(COLUMN_EMULATION_STATE, SConfig::GetInstance().m_showStateColumn ? 50 + platform_padding : 0);
@@ -433,15 +387,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
-	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-
-	// Is this sane?
-	if  (rISOFile.GetPlatform() == GameListItem::WII_WAD)
-	{
-		SelectedLanguage = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
-	}
-
-	std::string name = rISOFile.GetName(SelectedLanguage);
+	std::string name = rISOFile.GetName();
 
 	std::ifstream titlestxt;
 	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
@@ -470,12 +416,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		name = title;
 
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
-
-	// We show the company string on GameCube only
-	// On Wii we show the description instead as the company string is empty
-	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
-	SetItem(_Index, COLUMN_NOTES, StrToWxStr(notes), -1);
+	SetItem(_Index, COLUMN_MAKER, StrToWxStr(rISOFile.GetCompany()), -1);
 
 	// Emulation state
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);
@@ -699,7 +640,7 @@ void CGameListCtrl::ScanForISOs()
 
 void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 {
-	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_NOTES)
+	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_MAKER)
 		event.Veto();
 }
 
@@ -1348,13 +1289,13 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_SIZE)
 			+ GetColumnWidth(COLUMN_EMULATION_STATE));
 
-		// We hide the Notes column if the window is too small
+		// We hide the Maker column if the window is too small
 		if (resizable > 400)
 		{
-			if (SConfig::GetInstance().m_showNotesColumn)
+			if (SConfig::GetInstance().m_showMakerColumn)
 			{
 				SetColumnWidth(COLUMN_TITLE, resizable / 2);
-				SetColumnWidth(COLUMN_NOTES, resizable / 2);
+				SetColumnWidth(COLUMN_MAKER, resizable / 2);
 			}
 			else
 			{
@@ -1364,7 +1305,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 		else
 		{
 			SetColumnWidth(COLUMN_TITLE, resizable);
-			SetColumnWidth(COLUMN_NOTES, 0);
+			SetColumnWidth(COLUMN_MAKER, 0);
 		}
 	}
 }

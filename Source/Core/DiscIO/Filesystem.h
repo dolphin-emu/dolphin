@@ -45,7 +45,7 @@ public:
 	virtual bool IsValid() const = 0;
 	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) = 0;
 	virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
-	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
+	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize, u64 _OffsetInFile = 0) = 0;
 	virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;
 	virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
 	virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;

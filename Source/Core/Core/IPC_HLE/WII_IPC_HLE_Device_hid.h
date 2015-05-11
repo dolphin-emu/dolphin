@@ -5,8 +5,10 @@
 #pragma once
 
 #include <list>
+#include <map>
+#include <mutex>
+#include <thread>
 
-#include "Common/Thread.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 

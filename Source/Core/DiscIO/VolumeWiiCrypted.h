@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -30,7 +31,8 @@ public:
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
 	int GetRevision() const override;
-	std::vector<std::string> GetNames() const override;
+	std::string GetName() const override;
+	std::map<IVolume::ELanguage, std::string> GetNames() const override;
 	u32 GetFSTSize() const override;
 	std::string GetApploaderDate() const override;
 

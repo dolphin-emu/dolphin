@@ -5,7 +5,6 @@
 #pragma once
 
 #include <enet/enet.h>
-#include "Common.h"
 
 namespace ENetUtil
 {

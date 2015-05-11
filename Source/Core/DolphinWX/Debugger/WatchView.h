@@ -6,14 +6,9 @@
 
 #include <array>
 #include <string>
-#include <wx/defs.h>
 #include <wx/grid.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
-
-class wxWindow;
 
 class CWatchTable : public wxGridTableBase
 {

@@ -12,6 +12,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/IniFile.h"
+#include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"

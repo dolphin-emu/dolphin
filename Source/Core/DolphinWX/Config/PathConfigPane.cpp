@@ -13,6 +13,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DiscIO/NANDContentLoader.h"

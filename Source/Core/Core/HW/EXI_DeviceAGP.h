@@ -6,8 +6,12 @@
 
 #include <deque>
 #include <queue>
+#include <string>
+#include <vector>
 
 #include "Core/HW/EXI_Device.h"
+
+class PointerWrap;
 
 class CEXIAgp
 	: public IEXIDevice

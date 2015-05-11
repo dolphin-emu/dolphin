@@ -3,8 +3,6 @@
 #include <array>
 #include <map>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/windowid.h>
 
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
@@ -14,7 +12,6 @@
 class InputConfig;
 class wxButton;
 class wxStaticBoxSizer;
-class wxWindow;
 
 class ControllerConfigDiag : public wxDialog
 {

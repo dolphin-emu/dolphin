@@ -4,6 +4,7 @@
 
 #include "Common/CDUtils.h"
 #include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/GameList/GameGrid.h"

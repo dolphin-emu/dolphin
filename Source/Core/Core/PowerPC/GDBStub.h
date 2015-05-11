@@ -30,6 +30,7 @@ typedef enum {
 } gdb_bp_type;
 
 void gdb_init(u32 port);
+void gdb_init_local(const char *socket);
 void gdb_deinit();
 bool gdb_active();
 void gdb_break();

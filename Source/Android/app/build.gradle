@@ -1,0 +1,60 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "20.0.0"
+
+    lintOptions {
+        // This is important as it will run lint but not abort on error
+        // Lint has some overly obnoxious "errors" that should really be warnings
+        abortOnError false
+    }
+
+    defaultConfig {
+        applicationId "org.dolphinemu.dolphinemu"
+        minSdkVersion 18
+        targetSdkVersion 21
+        versionCode 13
+        versionName "0.13"
+    }
+
+    signingConfigs {
+        release {
+            if (project.hasProperty('keystore')) {
+                storeFile file(project.property('keystore'))
+                storePassword project.property('storepass')
+                keyAlias project.property('keyalias')
+                keyPassword project.property('keypass')
+            }
+        }
+    }
+
+    buildTypes {
+        // Signed by release key, allowing for upload to Play Store.
+        release {
+            signingConfig signingConfigs.release
+        }
+
+        // Signed by debug key disallowing distribution on Play Store.
+        // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix '-debug'
+            jniDebuggable true
+        }
+    }
+}
+
+dependencies {
+
+    compile 'com.android.support:support-v4:22.1.1'
+    compile 'com.android.support:support-v13:22.0.0'
+    compile 'com.android.support:cardview-v7:21.0.3'
+    compile 'com.android.support:recyclerview-v7:21.0.3'
+
+    // For showing the banner as a circle a-la Material Design Guidelines
+    compile 'de.hdodenhof:circleimageview:1.2.2'
+
+    // For loading huge screenshots from the disk.
+    compile "com.squareup.picasso:picasso:2.4.0"
+}

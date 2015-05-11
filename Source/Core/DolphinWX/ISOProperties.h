@@ -8,15 +8,8 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <wx/arrstr.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
-#include <wx/string.h>
-#include <wx/toplevel.h>
-#include <wx/translation.h>
 #include <wx/treebase.h>
-#include <wx/windowid.h>
 
 #include "Common/IniFile.h"
 #include "Core/ActionReplay.h"
@@ -37,7 +30,7 @@ class wxSpinCtrlDouble;
 class wxStaticBitmap;
 class wxTextCtrl;
 class wxTreeCtrl;
-class wxWindow;
+
 namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 
@@ -252,7 +245,7 @@ private:
 
 	void LaunchExternalEditor(const std::string& filename);
 
-	void CreateGUIControls(bool);
+	void CreateGUIControls();
 	void OnClose(wxCloseEvent& event);
 	void OnCloseClick(wxCommandEvent& event);
 	void OnEditConfig(wxCommandEvent& event);
@@ -302,7 +295,7 @@ private:
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();
-	void ChangeBannerDetails(int lang);
+	void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
 
 	long GetElementStyle(const char* section, const char* key);
 	void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);

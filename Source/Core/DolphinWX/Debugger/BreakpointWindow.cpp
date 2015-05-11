@@ -3,15 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <wx/bitmap.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/listbase.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 #include <wx/aui/auibar.h>
 #include <wx/aui/framemanager.h>
 

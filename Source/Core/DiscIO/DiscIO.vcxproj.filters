@@ -24,15 +24,6 @@
     <ClCompile Include="DiscScrubber.cpp">
       <Filter>DiscScrubber</Filter>
     </ClCompile>
-    <ClCompile Include="BannerLoader.cpp">
-      <Filter>FileHandler</Filter>
-    </ClCompile>
-    <ClCompile Include="BannerLoaderGC.cpp">
-      <Filter>FileHandler</Filter>
-    </ClCompile>
-    <ClCompile Include="BannerLoaderWii.cpp">
-      <Filter>FileHandler</Filter>
-    </ClCompile>
     <ClCompile Include="Filesystem.cpp">
       <Filter>FileSystem</Filter>
     </ClCompile>
@@ -88,15 +79,6 @@
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
       <Filter>DiscScrubber</Filter>
-    </ClInclude>
-    <ClInclude Include="BannerLoaderWii.h">
-      <Filter>FileHandler</Filter>
-    </ClInclude>
-    <ClInclude Include="BannerLoader.h">
-      <Filter>FileHandler</Filter>
-    </ClInclude>
-    <ClInclude Include="BannerLoaderGC.h">
-      <Filter>FileHandler</Filter>
     </ClInclude>
     <ClInclude Include="Filesystem.h">
       <Filter>FileSystem</Filter>

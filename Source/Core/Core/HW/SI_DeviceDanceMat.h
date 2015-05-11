@@ -6,6 +6,8 @@
 
 #include "Core/HW/SI_DeviceGCController.h"
 
+struct GCPadStatus;
+
 class CSIDevice_DanceMat : public CSIDevice_GCController
 {
 public:

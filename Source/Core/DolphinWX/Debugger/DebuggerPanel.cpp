@@ -5,19 +5,11 @@
 #include <cstddef>
 #include <string>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/choice.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/validate.h>
-#include <wx/windowid.h>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

@@ -9,6 +9,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"

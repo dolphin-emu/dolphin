@@ -8,15 +8,9 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/string.h>
 #include <wx/timer.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/LogManager.h"

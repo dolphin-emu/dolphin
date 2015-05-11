@@ -3,20 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <vector>
-#include <wx/anybutton.h>
-#include <wx/arrstr.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/checklst.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
 #include <wx/radiobox.h>
 #include <wx/sizer.h>
-#include <wx/translation.h>
 #include <wx/validate.h>
-#include <wx/windowid.h>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

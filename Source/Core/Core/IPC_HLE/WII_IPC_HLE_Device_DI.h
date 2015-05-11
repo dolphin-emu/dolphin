@@ -5,8 +5,10 @@
 #pragma once
 
 #include <deque>
-#include "Core/HW/DVDInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+
+class PointerWrap;
+namespace DVDInterface { enum DIInterruptType : int; }
 
 class CWII_IPC_HLE_Device_di : public IWII_IPC_HLE_Device
 {

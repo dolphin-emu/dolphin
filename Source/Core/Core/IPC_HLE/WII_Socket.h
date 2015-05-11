@@ -47,7 +47,6 @@ typedef struct pollfd pollfd_t;
 #include <string>
 #include <unordered_map>
 
-#include "Common/FileUtil.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"

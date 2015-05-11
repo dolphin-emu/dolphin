@@ -5,7 +5,6 @@
 #pragma once
 
 #include <wx/dialog.h>
-#include <wx/event.h>
 
 class CBreakPointWindow;
 class wxTextCtrl;

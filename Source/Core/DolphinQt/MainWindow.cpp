@@ -14,6 +14,7 @@
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/ProcessorInterface.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/MainWindow.h"
@@ -57,6 +58,8 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(this, SIGNAL(CoreStateChanged(Core::EState)), this, SLOT(OnCoreStateChanged(Core::EState)));
 
 	connect(m_ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnOpen()));
+	connect(m_ui->actionBrowse, SIGNAL(triggered()), this, SLOT(OnBrowse()));
+	connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(OnExit()));
 
 	connect(m_ui->actionListView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
 	connect(m_ui->actionTreeView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
@@ -64,8 +67,11 @@ DMainWindow::DMainWindow(QWidget* parent_widget)
 	connect(m_ui->actionIconView, SIGNAL(triggered()), this, SLOT(OnGameListStyleChanged()));
 
 	connect(m_ui->actionPlay, SIGNAL(triggered()), this, SLOT(OnPlay()));
+	connect(m_ui->actionPlay_mnu, SIGNAL(triggered()), this, SLOT(OnPlay()));
 	connect(m_game_tracker, SIGNAL(StartGame()), this, SLOT(OnPlay()));
 	connect(m_ui->actionStop, SIGNAL(triggered()), this, SLOT(OnStop()));
+	connect(m_ui->actionStop_mnu, SIGNAL(triggered()), this, SLOT(OnStop()));
+	connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(OnReset()));
 
 	connect(m_ui->actionWebsite, SIGNAL(triggered()), this, SLOT(OnOpenWebsite()));
 	connect(m_ui->actionOnlineDocs, SIGNAL(triggered()), this, SLOT(OnOpenDocs()));
@@ -142,6 +148,13 @@ QString DMainWindow::ShowFileDialog()
 		.arg(SL("*.gcm *.iso *.ciso *.gcz *.wbfs *.elf *.dol *.dff *.tmd *.wad")));
 }
 
+QString DMainWindow::ShowFolderDialog()
+{
+	return QFileDialog::getExistingDirectory(this, tr("Browse for a directory to add"),
+	                                         QDir::homePath(),
+	                                         QFileDialog::ShowDirsOnly);
+}
+
 void DMainWindow::DoStartPause()
 {
 	if (Core::GetState() == Core::CORE_RUN)
@@ -165,6 +178,31 @@ void DMainWindow::OnOpen()
 		StartGame(filename);
 }
 
+void DMainWindow::OnBrowse()
+{
+	std::string path = ShowFolderDialog().toStdString();
+	std::vector<std::string>& iso_folder = SConfig::GetInstance().m_ISOFolder;
+	if (!path.empty())
+	{
+		auto itResult = std::find(iso_folder.begin(), iso_folder.end(), path);
+
+		if (itResult == iso_folder.end())
+		{
+			iso_folder.push_back(path);
+			SConfig::GetInstance().SaveSettings();
+		}
+	}
+	m_game_tracker->ScanForGames();
+}
+
+void DMainWindow::OnExit()
+{
+	close();
+	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
+		return;
+	Stop();
+}
+
 void DMainWindow::OnPlay()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -183,7 +221,7 @@ void DMainWindow::OnPlay()
 bool DMainWindow::OnStop()
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || m_isStopping)
-		return true; // We're already stopped/stopping
+		return true;
 
 	// Ask for confirmation in case the user accidentally clicked Stop / Escape
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
@@ -203,6 +241,11 @@ bool DMainWindow::OnStop()
 		}
 	}
 
+	return Stop();
+}
+
+bool DMainWindow::Stop()
+{
 	m_isStopping = true;
 
 	// TODO: Movie stuff
@@ -229,6 +272,12 @@ bool DMainWindow::OnStop()
 	return true;
 }
 
+void DMainWindow::OnReset()
+{
+	// TODO: Movie needs to be reset here
+	ProcessorInterface::ResetButton_Tap();
+}
+
 void DMainWindow::OnGameListStyleChanged()
 {
 	if (m_ui->actionListView->isChecked())
@@ -253,11 +302,13 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 	{
 		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PAUSE));
 		m_ui->actionPlay->setText(tr("Pause"));
+		m_ui->actionPlay_mnu->setText(tr("Pause"));
 	}
 	else if (is_paused || is_not_initialized)
 	{
 		m_ui->actionPlay->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLAY));
 		m_ui->actionPlay->setText(tr("Play"));
+		m_ui->actionPlay_mnu->setText(tr("Play"));
 	}
 
 	m_ui->actionStop->setEnabled(!is_not_initialized);
