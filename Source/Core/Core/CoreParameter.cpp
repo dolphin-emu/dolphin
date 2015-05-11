@@ -65,6 +65,9 @@ void SCoreStartupParameter::LoadDefaults()
 
 	#ifdef USE_GDBSTUB
 	iGDBPort = -1;
+	#ifndef _WIN32
+	gdb_socket = "";
+	#endif
 	#endif
 
 	iCPUCore = PowerPC::CORE_JIT64;

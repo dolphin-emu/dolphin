@@ -218,6 +218,9 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	general->Set("WirelessMac", m_WirelessMac);
 
 #ifdef USE_GDBSTUB
+#ifndef _WIN32
+	general->Set("GDBSocket", m_LocalCoreStartupParameter.gdb_socket);
+#endif
 	general->Set("GDBPort", m_LocalCoreStartupParameter.iGDBPort);
 #endif
 }
@@ -421,6 +424,9 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 	general->Get("ShowLag", &m_ShowLag, false);
 	general->Get("ShowFrameCount", &m_ShowFrameCount, false);
 #ifdef USE_GDBSTUB
+#ifndef _WIN32
+	general->Get("GDBSocket", &m_LocalCoreStartupParameter.gdb_socket, "");
+#endif
 	general->Get("GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
 #endif
 
