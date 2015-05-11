@@ -87,6 +87,10 @@ void JitArm64AsmRoutineManager::Generate()
 
 	SetJumpTarget(Exit);
 
+	// Let the waiting thread know we are done leaving
+	MOVI2R(X0, (u64)&PowerPC::FinishStateMove);
+	BLR(X0);
+
 	ABI_PopRegisters(regs_to_save);
 	RET(X30);
 
