@@ -164,8 +164,10 @@ u8 WiiConfigPane::GetSADRCountryCode(DiscIO::IVolume::ELanguage language)
 		return 157; // China
 	case DiscIO::IVolume::LANGUAGE_KOREAN:
 		return 136; // Korea
-	default:
-		PanicAlert("Invalid language");
-		return 1;
+	case DiscIO::IVolume::LANGUAGE_UNKNOWN:
+		break;
 	}
+
+	PanicAlert("Invalid language. Defaulting to Japanese.");
+	return 1;
 }
