@@ -25,7 +25,7 @@
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x009;
+static const u32 CACHE_REVISION = 0x00A;
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
@@ -87,7 +87,8 @@ GameFile::GameFile(const QString& fileName)
 		{
 			m_platform = volume->GetVolumeType();
 
-			m_names = ConvertLocalizedStrings(volume->GetNames(true));
+			m_short_names = ConvertLocalizedStrings(volume->GetNames(false));
+			m_long_names = ConvertLocalizedStrings(volume->GetNames(true));
 			m_descriptions = ConvertLocalizedStrings(volume->GetDescriptions());
 			m_company = QString::fromStdString(volume->GetCompany());
 
@@ -165,10 +166,12 @@ bool GameFile::LoadFromCache()
 
 	u32 country;
 	u32 platform;
-	QMap<u8, QString> names;
+	QMap<u8, QString> short_names;
+	QMap<u8, QString> long_names;
 	QMap<u8, QString> descriptions;
 	stream >> m_folder_name
-	       >> names
+	       >> short_names
+	       >> long_names
 	       >> descriptions
 	       >> m_company
 	       >> m_unique_id
@@ -182,7 +185,8 @@ bool GameFile::LoadFromCache()
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
 	m_platform = (DiscIO::IVolume::EPlatform)platform;
-	m_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(names);
+	m_short_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(short_names);
+	m_long_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(long_names);
 	m_descriptions = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(descriptions);
 	file.close();
 	return true;
@@ -209,7 +213,8 @@ void GameFile::SaveToCache()
 	stream << CACHE_REVISION;
 
 	stream << m_folder_name
-	       << CastLocalizedStrings<u8>(m_names)
+	       << CastLocalizedStrings<u8>(m_short_names)
+	       << CastLocalizedStrings<u8>(m_long_names)
 	       << CastLocalizedStrings<u8>(m_descriptions)
 	       << m_company
 	       << m_unique_id
@@ -258,15 +263,15 @@ QString GameFile::GetDescription() const
 	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
 }
 
-QString GameFile::GetName(DiscIO::IVolume::ELanguage language) const
+QString GameFile::GetName(bool prefer_long, DiscIO::IVolume::ELanguage language) const
 {
-	return GetLanguageString(language, m_names);
+	return GetLanguageString(language, prefer_long ? m_long_names : m_short_names);
 }
 
-QString GameFile::GetName() const
+QString GameFile::GetName(bool prefer_long) const
 {
 	bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
-	QString name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
+	QString name = GetName(prefer_long, SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
 	if (name.isEmpty())
 	{
 		// No usable name, return filename (better than nothing)
