@@ -22,8 +22,8 @@ public:
 	bool IsValid() const { return m_valid; }
 	QString GetFileName() { return m_file_name; }
 	QString GetFolderName() { return m_folder_name; }
-	QString GetName(DiscIO::IVolume::ELanguage language) const;
-	QString GetName() const;
+	QString GetName(bool prefer_long, DiscIO::IVolume::ELanguage language) const;
+	QString GetName(bool prefer_long) const;
 	QString GetDescription(DiscIO::IVolume::ELanguage language) const;
 	QString GetDescription() const;
 	QString GetCompany() const;
@@ -45,7 +45,8 @@ private:
 	QString m_file_name;
 	QString m_folder_name;
 
-	QMap<DiscIO::IVolume::ELanguage, QString> m_names;
+	QMap<DiscIO::IVolume::ELanguage, QString> m_short_names;
+	QMap<DiscIO::IVolume::ELanguage, QString> m_long_names;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_descriptions;
 	QString m_company;
 
