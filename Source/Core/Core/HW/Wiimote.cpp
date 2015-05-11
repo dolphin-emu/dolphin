@@ -118,6 +118,14 @@ void Update(int _number)
 {
 	//PanicAlert( "Wiimote_Update" );
 
+	// if we are on the next input cycle, update output and input
+	static int _last_number = 4;
+	if (_number <= _last_number)
+	{
+		g_controller_interface.UpdateInput();
+	}
+	_last_number = _number;
+
 	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)s_config.controllers[_number])->Update();
 	else
