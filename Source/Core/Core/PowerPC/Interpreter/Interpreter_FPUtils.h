@@ -76,9 +76,9 @@ inline double ForceDouble(double d)
 
 inline double Force25Bit(double d)
 {
-	u64 di = *(u64*)&d;
-	di = (di & 0xFFFFFFFFF8000000ULL) + (di & 0x8000000);
-	return *(double*)&di;
+	MathUtil::IntDouble x(d);
+	x.i = (x.i & 0xFFFFFFFFF8000000ULL) + (x.i & 0x8000000);
+	return x.d;
 }
 
 // these functions allow globally modify operations behaviour
