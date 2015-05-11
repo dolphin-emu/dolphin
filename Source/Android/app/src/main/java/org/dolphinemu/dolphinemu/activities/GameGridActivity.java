@@ -54,7 +54,8 @@ public final class GameGridActivity extends Activity
 		//mRecyclerView.setHasFixedSize(true);
 
 		// Specifying the LayoutManager determines how the RecyclerView arranges views.
-		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 4);
+		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this,
+				getResources().getInteger(R.integer.game_grid_columns));
 		recyclerView.setLayoutManager(layoutManager);
 
 		recyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
