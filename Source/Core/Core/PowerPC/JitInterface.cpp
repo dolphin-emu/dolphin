@@ -120,6 +120,10 @@ namespace JitInterface
 		if (!jit)
 			return;
 
+		PowerPC::CPUState old_state = PowerPC::GetState();
+		if (old_state == PowerPC::CPUState::CPU_RUNNING)
+			PowerPC::Pause();
+
 		std::vector<BlockStat> stats;
 		stats.reserve(jit->GetBlockCache()->GetNumBlocks());
 		u64 cost_sum = 0;
@@ -161,6 +165,9 @@ namespace JitInterface
 						(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
 			}
 		}
+
+		if (old_state == PowerPC::CPUState::CPU_RUNNING)
+			PowerPC::Start();
 	}
 	bool HandleFault(uintptr_t access_address, SContext* ctx)
 	{
