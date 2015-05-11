@@ -133,7 +133,7 @@ public:
 	// Generates a branch that will check if a given bit of a CR register part
 	// is set or not.
 	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
-	void SetFPRFIfNeeded(UGeckoInstruction inst, Gen::X64Reg xmm);
+	void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
 	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
