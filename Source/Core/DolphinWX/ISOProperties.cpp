@@ -133,7 +133,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Disk header and apploader
 
-	m_Name->SetValue(StrToWxStr(OpenISO->GetName()));
+	m_InternalName->SetValue(StrToWxStr(OpenISO->GetInternalName()));
 	m_GameID->SetValue(StrToWxStr(OpenISO->GetUniqueID()));
 	switch (OpenISO->GetCountry())
 	{
@@ -474,8 +474,8 @@ void CISOProperties::CreateGUIControls()
 	m_CheatPage->SetSizer(sCheatPage);
 
 
-	wxStaticText* const m_NameText = new wxStaticText(m_Information, wxID_ANY, _("Name:"));
-	m_Name = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	wxStaticText* const m_InternalNameText = new wxStaticText(m_Information, wxID_ANY, _("Internal Name:"));
+	m_InternalName = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_GameIDText = new wxStaticText(m_Information, wxID_ANY, _("Game ID:"));
 	m_GameID = new wxTextCtrl(m_Information, ID_GAMEID, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_CountryText = new wxStaticText(m_Information, wxID_ANY, _("Country:"));
@@ -546,19 +546,19 @@ void CISOProperties::CreateGUIControls()
 	if (arrayStringFor_Lang.size() <= 1)
 		m_Lang->Disable();
 
-	wxStaticText* const m_ShortText = new wxStaticText(m_Information, wxID_ANY, _("Short Name:"));
-	m_ShortName = new wxTextCtrl(m_Information, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	wxStaticText* const m_NameText = new wxStaticText(m_Information, wxID_ANY, _("Name:"));
+	m_Name = new wxTextCtrl(m_Information, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_MakerText = new wxStaticText(m_Information, wxID_ANY, _("Maker:"));
 	m_Maker = new wxTextCtrl(m_Information, ID_MAKER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-	wxStaticText* const m_CommentText = new wxStaticText(m_Information, wxID_ANY, _("Comment:"));
+	wxStaticText* const m_CommentText = new wxStaticText(m_Information, wxID_ANY, _("Description:"));
 	m_Comment = new wxTextCtrl(m_Information, ID_COMMENT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY);
 	wxStaticText* const m_BannerText = new wxStaticText(m_Information, wxID_ANY, _("Banner:"));
 	m_Banner = new wxStaticBitmap(m_Information, ID_BANNER, wxNullBitmap, wxDefaultPosition, wxSize(96, 32));
 
 	// ISO Details
 	wxGridBagSizer* const sISODetails = new wxGridBagSizer(0, 0);
-	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_InternalNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_InternalName, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_GameIDText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_GameID, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -586,8 +586,8 @@ void CISOProperties::CreateGUIControls()
 	wxGridBagSizer* const sBannerDetails = new wxGridBagSizer(0, 0);
 	sBannerDetails->Add(m_LangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Lang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_ShortText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBannerDetails->Add(m_ShortName, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sBannerDetails->Add(m_NameText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBannerDetails->Add(m_Name, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sBannerDetails->Add(m_MakerText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Maker, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sBannerDetails->Add(m_CommentText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
@@ -1488,12 +1488,12 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(DiscIO::IVolume::ELanguage language)
 {
-	wxString const shortName = StrToWxStr(OpenGameListItem->GetName(language));
+	wxString const name = StrToWxStr(OpenGameListItem->GetName(language));
 	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(language));
 	wxString const maker = StrToWxStr(OpenGameListItem->GetCompany());
 
 	// Updates the information shown in the window
-	m_ShortName->SetValue(shortName);
+	m_Name->SetValue(name);
 	m_Comment->SetValue(comment);
 	m_Maker->SetValue(maker);//dev too
 
@@ -1501,5 +1501,5 @@ void CISOProperties::ChangeBannerDetails(DiscIO::IVolume::ELanguage language)
 	SplitPath(OpenGameListItem->GetFileName(), nullptr, &filename, &extension);
 	// Also sets the window's title
 	SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(),
-		extension.c_str(), OpenGameListItem->GetUniqueID().c_str())) + shortName);
+		extension.c_str(), OpenGameListItem->GetUniqueID().c_str())) + name);
 }

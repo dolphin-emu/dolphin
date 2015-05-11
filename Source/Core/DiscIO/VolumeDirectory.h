@@ -40,7 +40,7 @@ public:
 	std::string GetMakerID() const override;
 
 	int GetRevision() const override { return 0; }
-	std::string GetName() const override;
+	std::string GetInternalName() const override;
 	std::map<IVolume::ELanguage, std::string> GetNames() const override;
 	void SetName(const std::string&);
 

@@ -176,7 +176,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 								m_strFilename.c_str());
 					return false;
 				}
-				m_strName = pVolume->GetName();
+				m_strName = pVolume->GetInternalName();
 				m_strUniqueID = pVolume->GetUniqueID();
 				m_revision = pVolume->GetRevision();
 
@@ -247,7 +247,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 
 				if (pVolume)
 				{
-					m_strName = pVolume->GetName();
+					m_strName = pVolume->GetInternalName();
 					m_strUniqueID = pVolume->GetUniqueID();
 				}
 				else

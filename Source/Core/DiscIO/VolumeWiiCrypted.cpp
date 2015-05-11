@@ -193,7 +193,7 @@ int CVolumeWiiCrypted::GetRevision() const
 	return revision;
 }
 
-std::string CVolumeWiiCrypted::GetName() const
+std::string CVolumeWiiCrypted::GetInternalName() const
 {
 	char name_buffer[0x60];
 	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, false))
