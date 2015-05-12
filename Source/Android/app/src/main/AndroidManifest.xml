@@ -60,7 +60,7 @@
             android:label="@string/settings"
             android:theme="@android:style/Theme.Holo.Light" />
 
-        <service android:name=".AssetCopyService"/>
+        <service android:name=".services.AssetCopyService"/>
 
     </application>
 

@@ -14,12 +14,12 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toolbar;
 
-import org.dolphinemu.dolphinemu.AssetCopyService;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.GcGame;
+import org.dolphinemu.dolphinemu.services.AssetCopyService;
 
 import java.io.File;
 import java.util.ArrayList;
