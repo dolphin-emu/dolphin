@@ -103,7 +103,7 @@ static void ScanThreadFunc()
 	{
 		if (s_libusb_hotplug_enabled)
 		{
-			static timeval tv = {0, 500000};
+			static timeval tv = {0, 3000000};
 			libusb_handle_events_timeout(s_libusb_context, &tv);
 		}
 		else
@@ -114,7 +114,7 @@ static void ScanThreadFunc()
 				if (s_detected && s_detect_callback != nullptr)
 					s_detect_callback();
 			}
-			Common::SleepCurrentThread(500);
+			Common::SleepCurrentThread(3000);
 		}
 	}
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
