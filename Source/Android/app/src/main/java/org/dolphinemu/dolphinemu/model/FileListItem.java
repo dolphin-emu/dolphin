@@ -22,6 +22,7 @@ public class FileListItem implements Comparable<FileListItem>
 	public FileListItem(File file)
 	{
 		mPath = file.getAbsolutePath();
+		mFilename = file.getName();
 
 		if (file.isDirectory())
 		{
@@ -29,23 +30,32 @@ public class FileListItem implements Comparable<FileListItem>
 		}
 		else
 		{
-			String fileExtension = mPath.substring(mPath.lastIndexOf('.'));
+			String fileExtension = null;
 
-			// Extensions to filter by.
-			Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
-
-			// Check that the file has an appropriate extension before trying to read out of it.
-			if (allowedExtensions.contains(fileExtension))
+			int extensionStart = mPath.lastIndexOf('.');
+			if (extensionStart < 1)
 			{
-				mType = NativeLibrary.IsWiiTitle(mPath) ? TYPE_WII : TYPE_GC;
+				// Ignore hidden files & files without extensions.
+				mType = TYPE_OTHER;
 			}
 			else
 			{
-				mType = TYPE_OTHER;
+				fileExtension = mPath.substring(extensionStart);
+
+				// The extensions we care about.
+				Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
+
+				// Check that the file has an extension we care about before trying to read out of it.
+				if (allowedExtensions.contains(fileExtension))
+				{
+					mType = NativeLibrary.IsWiiTitle(mPath) ? TYPE_WII : TYPE_GC;
+				}
+				else
+				{
+					mType = TYPE_OTHER;
+				}
 			}
 		}
-
-		mFilename = file.getName();
 	}
 
 	public int getType()
