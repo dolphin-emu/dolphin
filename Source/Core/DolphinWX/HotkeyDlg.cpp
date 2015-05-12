@@ -203,6 +203,9 @@ const wxString hkText[] =
 	_("Volume Up"),
 	_("Volume Toggle Mute"),
 
+	_("Increase IR"),
+	_("Decrease IR"),
+
 	_("Toggle IR"),
 	_("Toggle Aspect Ratio"),
 	_("Toggle EFB Copies"),

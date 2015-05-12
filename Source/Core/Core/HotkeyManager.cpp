@@ -38,6 +38,9 @@ const std::string hotkey_labels[] =
 	_trans("Volume Up"),
 	_trans("Volume Toggle Mute"),
 
+	_trans("Increase IR"),
+	_trans("Decrease IR"),
+
 	_trans("Toggle IR"),
 	_trans("Toggle Aspect Ratio"),
 	_trans("Toggle EFB Copies"),
