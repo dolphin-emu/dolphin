@@ -33,6 +33,9 @@ void VR_ConfigureHMD()
 #ifdef OCULUSSDK044ORABOVE
 		cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
 		cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
+#ifdef __linux__
+		std::swap(cfg.OGL.Header.BackBufferSize.w, cfg.OGL.Header.BackBufferSize.h);
+#endif
 #else
 		cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
 		cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
@@ -57,6 +60,9 @@ void VR_ConfigureHMD()
 #if OVR_MAJOR_VERSION <= 4
 		if (g_Config.bChromatic)
 			caps |= ovrDistortionCap_Chromatic;
+#endif
+#ifdef __linux__
+		caps |= ovrDistortionCap_LinuxDevFullscreen;
 #endif
 		if (g_Config.bTimewarp)
 			caps |= ovrDistortionCap_TimeWarp;
