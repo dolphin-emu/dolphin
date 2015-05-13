@@ -102,7 +102,7 @@ private:
 	wxButton* EditCheat;
 	wxButton* RemoveCheat;
 
-	wxTextCtrl* m_Name;
+	wxTextCtrl* m_InternalName;
 	wxTextCtrl* m_GameID;
 	wxTextCtrl* m_Country;
 	wxTextCtrl* m_MakerID;
@@ -113,7 +113,7 @@ private:
 	wxButton*   m_MD5SumCompute;
 	wxArrayString arrayStringFor_Lang;
 	wxChoice*   m_Lang;
-	wxTextCtrl* m_ShortName;
+	wxTextCtrl* m_Name;
 	wxTextCtrl* m_Maker;
 	wxTextCtrl* m_Comment;
 	wxStaticBitmap* m_Banner;

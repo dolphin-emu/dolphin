@@ -96,7 +96,7 @@ int CVolumeGC::GetRevision() const
 	return revision;
 }
 
-std::string CVolumeGC::GetName() const
+std::string CVolumeGC::GetInternalName() const
 {
 	char name[0x60];
 	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
