@@ -31,17 +31,12 @@ void VR_ConfigureHMD()
 		ovrGLConfig cfg;
 		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
 #ifdef OCULUSSDK044ORABOVE
-		cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
-		cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
-#ifdef __linux__
-		Display* dpy = cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->getDisplay();
-		int screen = DefaultScreen(dpy);
-		if( DisplayWidth(dpy, screen) < DisplayHeight(dpy, screen) )
-			std::swap(cfg.OGL.Header.BackBufferSize.w, cfg.OGL.Header.BackBufferSize.h);
-#endif
+		// Set based on window size, not statically based on rift internals.
+		cfg.OGL.Header.BackBufferSize.w = Renderer::GetBackbufferWidth();
+		cfg.OGL.Header.BackBufferSize.h = Renderer::GetBackbufferHeight();
 #else
-		cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
-		cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
+		cfg.OGL.Header.RTSize.w = Renderer::GetBackbufferWidth();
+		cfg.OGL.Header.RTSize.h = Renderer::GetBackbufferHeight();
 #endif
 		cfg.OGL.Header.Multisample = 0;
 #ifdef _WIN32
