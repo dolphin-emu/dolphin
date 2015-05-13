@@ -34,7 +34,10 @@ void VR_ConfigureHMD()
 		cfg.OGL.Header.BackBufferSize.w = hmdDesc.Resolution.w;
 		cfg.OGL.Header.BackBufferSize.h = hmdDesc.Resolution.h;
 #ifdef __linux__
-		std::swap(cfg.OGL.Header.BackBufferSize.w, cfg.OGL.Header.BackBufferSize.h);
+		Display* dpy = cfg.OGL.Disp = (Display*)((cInterfaceGLX*)GLInterface)->getDisplay();
+		int screen = DefaultScreen(dpy);
+		if( DisplayWidth(dpy, screen) < DisplayHeight(dpy, screen) )
+			std::swap(cfg.OGL.Header.BackBufferSize.w, cfg.OGL.Header.BackBufferSize.h);
 #endif
 #else
 		cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
