@@ -349,6 +349,15 @@ void VR_GetEyePoses()
 #endif
 }
 
+void GetFovTextureSize(int* sizeX, int* sizeY) {
+		// g_eye_fov? Seriously? Why can't we leave it in the well-abstracted HMD description structure?
+		ovrSizei recommendedTexSize[2];
+		for(int eye = 0; eye < 2; eye++)
+			recommendedTexSize[eye] = ovrHmd_GetFovTextureSize(hmd, hmdDesc.EyeRenderOrder[eye],  g_eye_fov[0], 1.0);
+		*sizeX = (std::max) ( recommendedTexSize[0].w, recommendedTexSize[1].w );
+		*sizeY = (std::max) ( recommendedTexSize[0].h, recommendedTexSize[1].h );
+}
+
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
 {
 #ifdef OVR_MAJOR_VERSION

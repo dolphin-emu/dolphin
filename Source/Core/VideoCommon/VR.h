@@ -128,6 +128,8 @@ ControllerStyle VR_GetHydraStyle(int hand);
 void OpcodeReplayBuffer();
 void OpcodeReplayBufferInline();
 
+void GetFovTextureSize(int* sizeX, int* sizeY);
+
 extern bool g_force_vr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920, g_is_direct_mode, g_is_nes;
 extern bool g_new_tracking_frame;
