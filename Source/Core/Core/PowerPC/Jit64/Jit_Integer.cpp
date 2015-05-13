@@ -1849,7 +1849,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 	gpr.UnlockAll();
 }
 
-void Jit64::twx(UGeckoInstruction inst)
+void Jit64::twX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
