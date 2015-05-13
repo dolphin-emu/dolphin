@@ -7,6 +7,7 @@
 // Copyright (C) 2003-2004 Parasyte
 
 #include <algorithm>
+#include <cstring>
 
 #ifdef _WIN32
 #include <windows.h>
