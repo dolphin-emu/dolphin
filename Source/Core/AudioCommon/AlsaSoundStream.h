@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include <atomic>
+#include <thread>
+
 #if defined(HAVE_ALSA) && HAVE_ALSA
 #include <alsa/asoundlib.h>
 #endif
 
 #include "AudioCommon/SoundStream.h"
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
 
 class AlsaSound final : public SoundStream
 {
@@ -31,15 +33,19 @@ public:
 	virtual void Update() override;
 
 private:
+	enum class ALSAThreadStatus
+	{
+		RUNNING,
+		STOPPING,
+		STOPPED,
+	};
+
 	bool AlsaInit();
 	void AlsaShutdown();
 
 	u8 *mix_buffer;
 	std::thread thread;
-	// 0 = continue
-	// 1 = shutdown
-	// 2 = done shutting down.
-	volatile int thread_data;
+	std::atomic<ALSAThreadStatus> m_thread_status;
 
 	snd_pcm_t *handle;
 	int frames_to_deliver;
