@@ -14,7 +14,7 @@
 
         <activity
             android:name=".activities.GameGridActivity"
-            android:label="Dolphin New UI"
+            android:label="@string/title_new_ui"
             android:theme="@style/DolphinGamecube">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->

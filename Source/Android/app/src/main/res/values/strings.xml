@@ -220,6 +220,8 @@
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
 
+    <!-- New UI Strings -->
+    <string name="title_new_ui">Dolphin New UI</string>
 
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="add_directory_up_one_level">Up one level</string>

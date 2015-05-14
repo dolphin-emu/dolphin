@@ -29,6 +29,7 @@ android {
         }
     }
 
+    // Define build types, which are orthogonal to product flavors.
     buildTypes {
         // Signed by release key, allowing for upload to Play Store.
         release {
@@ -42,6 +43,35 @@ android {
             versionNameSuffix '-debug'
             jniDebuggable true
         }
+    }
+
+    // Define product flavors, which can be split into categories. Common examples
+    // of product flavors are paid vs. free, ARM vs. x86, etc.
+    productFlavors {
+        arm {
+            // This flavor is mutually exclusive against any flavor in the same dimension.
+            flavorDimension "abi"
+
+            // When building this flavor, only include native libs from the specified folder.
+            ndk {
+                abiFilter "armeabi-v7a"
+            }
+        }
+
+        arm_64 {
+            flavorDimension "abi"
+            ndk {
+                abiFilter "arm64-v8a"
+            }
+        }
+
+        // TODO Uncomment this when we successfully build for x86_64.
+        /*x86_64 {
+            flavorDimension "abi"
+            ndk {
+                abiFilter "x86_64"
+            }
+        }*/
     }
 }
 
