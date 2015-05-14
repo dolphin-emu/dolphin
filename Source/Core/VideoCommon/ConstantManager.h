@@ -13,15 +13,15 @@ typedef s32 int4[4];
 
 struct PixelShaderConstants
 {
-	int4 colors[4];
-	int4 kcolors[4];
-	int4 alpha;
+	uint4 colors[4];
+	uint4 kcolors[4];
+	uint4 alpha;
 	float4 texdims[8];
-	int4 zbias[2];
+	uint4 zbias[2];
 	int4 indtexscale[2];
 	int4 indtexmtx[6];
-	int4 fogcolor;
-	int4 fogi;
+	uint4 fogcolor;
+	uint4 fogi;
 	float4 fogf[2];
 	float4 zslope;
 	float4 efbscale;
