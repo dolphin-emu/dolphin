@@ -895,22 +895,22 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 	CVTSD2SS(dst, R(src));
 
 	SwitchToFarCode();
-	SetJumpTarget(nanConversion);
-	MOVQ_xmm(R(RSCRATCH), src);
-	// Put the quiet bit into CF.
-	BT(64, R(RSCRATCH), Imm8(51));
-	CVTSD2SS(dst, R(src));
-	FixupBranch continue1 = J_CC(CC_C, true);
-	// Clear the quiet bit of the SNaN, which was 0 (signalling) but got set to 1 (quiet) by conversion.
-	ANDPS(dst, M(&single_qnan_bit));
-	FixupBranch continue2 = J(true);
+		SetJumpTarget(nanConversion);
+		MOVQ_xmm(R(RSCRATCH), src);
+		// Put the quiet bit into CF.
+		BT(64, R(RSCRATCH), Imm8(51));
+		CVTSD2SS(dst, R(src));
+		FixupBranch continue1 = J_CC(CC_C, true);
+		// Clear the quiet bit of the SNaN, which was 0 (signalling) but got set to 1 (quiet) by conversion.
+		ANDPS(dst, M(&single_qnan_bit));
+		FixupBranch continue2 = J(true);
 
-	SetJumpTarget(denormalConversion);
-	MOVSD(M(&temp64), src);
-	FLD(64, M(&temp64));
-	FSTP(32, M(&temp32));
-	MOVSS(dst, M(&temp32));
-	FixupBranch continue3 = J(true);
+		SetJumpTarget(denormalConversion);
+		MOVSD(M(&temp64), src);
+		FLD(64, M(&temp64));
+		FSTP(32, M(&temp32));
+		MOVSS(dst, M(&temp32));
+		FixupBranch continue3 = J(true);
 	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
@@ -941,11 +941,11 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	FixupBranch nanConversion = J_CC(CC_P, true);
 
 	SwitchToFarCode();
-	SetJumpTarget(nanConversion);
-	TEST(32, R(gprsrc), Imm32(0x00400000));
-	FixupBranch continue1 = J_CC(CC_NZ, true);
-	ANDPD(dst, M(&double_qnan_bit));
-	FixupBranch continue2 = J(true);
+		SetJumpTarget(nanConversion);
+		TEST(32, R(gprsrc), Imm32(0x00400000));
+		FixupBranch continue1 = J_CC(CC_NZ, true);
+		ANDPD(dst, M(&double_qnan_bit));
+		FixupBranch continue2 = J(true);
 	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
