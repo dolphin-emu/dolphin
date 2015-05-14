@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <atomic>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -26,7 +27,7 @@ static GLuint program;
 static u8 *s_xfbColorTexture[2];
 static int s_currentColorTexture = 0;
 
-static volatile bool s_bScreenshot;
+static std::atomic<bool> s_bScreenshot;
 static std::mutex s_criticalScreenshot;
 static std::string s_sScreenshotName;
 
@@ -37,7 +38,7 @@ static RasterFont* s_pfont = nullptr;
 
 void SWRenderer::Init()
 {
-	s_bScreenshot = false;
+	s_bScreenshot.store(false);
 }
 
 void SWRenderer::Shutdown()
@@ -109,7 +110,7 @@ void SWRenderer::SetScreenshot(const char *_szFilename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 	s_sScreenshotName = _szFilename;
-	s_bScreenshot = true;
+	s_bScreenshot.store(true);
 }
 
 void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
@@ -222,13 +223,13 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	// FIXME: This should add black bars when the game has set the VI to render less than the full xfb.
 
 	// Save screenshot
-	if (s_bScreenshot)
+	if (s_bScreenshot.load())
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		TextureToPng(texture, width * 4, s_sScreenshotName, width, height, false);
 		// Reset settings
 		s_sScreenshotName.clear();
-		s_bScreenshot = false;
+		s_bScreenshot.store(false);
 	}
 
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
