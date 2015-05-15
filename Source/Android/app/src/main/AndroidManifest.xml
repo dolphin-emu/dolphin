@@ -27,8 +27,13 @@
 
         <activity
             android:name=".activities.AddDirectoryActivity"
-            android:theme="@style/DolphinWii"
+            android:theme="@style/DolphinGamecube"
             android:label="@string/add_directory_title"/>
+
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:theme="@style/DolphinSettingsGamecube"
+            android:label="@string/grid_menu_settings"/>
 
         <activity
             android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"
@@ -61,6 +66,8 @@
             android:theme="@android:style/Theme.Holo.Light" />
 
         <service android:name=".services.AssetCopyService"/>
+
+        <service android:name=".services.SettingsSaveService"/>
 
     </application>
 

@@ -223,7 +223,17 @@
     <!-- New UI Strings -->
     <string name="title_new_ui">Dolphin New UI</string>
 
+
+    <!-- Game Grid Screen-->
+    <string name="grid_menu_settings">Settings</string>
+
+    <!-- Add Directory Screen-->
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="add_directory_up_one_level">Up one level</string>
     <string name="add_directory_empty_folder">That folder is empty.</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_cpu">CPU Settings</string>
+    <string name="preferences_input">Input Settings</string>
+    <string name="preferences_video">Video Settings</string>
 </resources>
