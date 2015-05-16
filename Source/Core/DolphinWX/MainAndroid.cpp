@@ -43,6 +43,7 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "../DiscIO/Volume.h"
 
 ANativeWindow* surf;
 std::string g_filename;
@@ -176,6 +177,23 @@ static bool IsWiiTitle(std::string filename)
 
 	// Technically correct.
 	return false;
+}
+
+static int GetCountry(std::string filename)
+{
+	std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
+
+	if (pVolume != nullptr)
+	{
+		DiscIO::IVolume::ECountry country = pVolume->GetCountry();
+
+		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Country Code: %i", country);
+
+		return country;
+	}
+
+	// Technically correct.
+	return 13;
 }
 
 static std::string GetTitle(std::string filename)
@@ -330,6 +348,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBanner(JNIEnv *env, jobject obj, jstring jFile);JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDescription(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameId(JNIEnv *env, jobject obj, jstring jFilename);
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCountry(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDate(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetFilesize(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsWiiTitle(JNIEnv *env, jobject obj, jstring jFilename);
@@ -409,6 +428,13 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDate(J
 	std::string filename = GetJString(env, jFilename);
 	std::string date = GetApploaderDate(filename);
 	return env->NewStringUTF(date.c_str());
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCountry(JNIEnv *env, jobject obj, jstring jFilename)
+{
+	std::string filename = GetJString(env, jFilename);
+	int country = GetCountry(filename);
+	return country;
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetFilesize(JNIEnv *env, jobject obj, jstring jFilename)

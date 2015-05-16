@@ -190,4 +190,20 @@
         <item>2</item>
         <item>3</item>
     </string-array>
+
+    <string-array name="country_names">
+        <item>Europe</item>
+        <item>Japan</item>
+        <item>USA</item>
+        <item>Australia</item>
+        <item>France</item>
+        <item>Germany</item>
+        <item>Italy</item>
+        <item>Korea</item>
+        <item>Netherlands</item>
+        <item>Russia</item>
+        <item>Spain</item>
+        <item>Taiwan</item>
+        <item>Unknown</item>
+    </string-array>
 </resources>

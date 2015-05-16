@@ -7,18 +7,18 @@ public final class GcGame implements Game
 {
 	private String mTitle;
 	private String mDescription;
-	private String mCountry;
 	private String mPath;
 	private String mGameId;
-
 	private String mScreenshotFolderPath;
 
 	private String mDate;
+
+	private int mCountry;
 	private int mPlatform = PLATFORM_GC;
 
 	private static final String PATH_SCREENSHOT_FOLDER = "file:///sdcard/dolphin-emu/ScreenShots/";
 
-	public GcGame(String title, String description, String country, String path, String gameId, String date)
+	public GcGame(String title, String description, int country, String path, String gameId, String date)
 	{
 		mTitle = title;
 		mDescription = description;
@@ -54,7 +54,7 @@ public final class GcGame implements Game
 	}
 
 	@Override
-	public String getCountry()
+	public int getCountry()
 	{
 		return mCountry;
 	}

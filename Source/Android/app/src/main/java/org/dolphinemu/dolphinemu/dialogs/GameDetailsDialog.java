@@ -38,7 +38,7 @@ public class GameDetailsDialog extends DialogFragment
 		Bundle arguments = new Bundle();
 		arguments.putString(ARGUMENT_GAME_TITLE, game.getTitle());
 		arguments.putString(ARGUMENT_GAME_DESCRIPTION, game.getDescription());
-		arguments.putString(ARGUMENT_GAME_COUNTRY, game.getCountry());
+		arguments.putInt(ARGUMENT_GAME_COUNTRY, game.getCountry());
 		arguments.putString(ARGUMENT_GAME_DATE, game.getDate());
 		arguments.putString(ARGUMENT_GAME_PATH, game.getPath());
 		arguments.putString(ARGUMENT_GAME_SCREENSHOT_PATH, game.getScreenPath());
@@ -64,9 +64,12 @@ public class GameDetailsDialog extends DialogFragment
 
 		ImageButton buttonLaunch = (ImageButton) contents.findViewById(R.id.button_launch);
 
+		int countryIndex = getArguments().getInt(ARGUMENT_GAME_COUNTRY);
+		String country = getResources().getStringArray(R.array.country_names)[countryIndex];
+
 		textTitle.setText(getArguments().getString(ARGUMENT_GAME_TITLE));
 		textDescription.setText(getArguments().getString(ARGUMENT_GAME_DESCRIPTION));
-		textCountry.setText(getArguments().getString(ARGUMENT_GAME_COUNTRY));
+		textCountry.setText(country);
 		textDate.setText(getArguments().getString(ARGUMENT_GAME_DATE));
 		buttonLaunch.setOnClickListener(new View.OnClickListener()
 		{

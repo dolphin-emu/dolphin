@@ -28,9 +28,9 @@ public final class WiiGame implements Game
 	}
 
 	@Override
-	public String getCountry()
+	public int getCountry()
 	{
-		return null;
+		return 13;
 	}
 
 	@Override

@@ -181,8 +181,7 @@ public final class GameGridActivity extends Activity
 					{
 						GcGame game = new GcGame(NativeLibrary.GetTitle(entry.getAbsolutePath()),
 								NativeLibrary.GetDescription(entry.getAbsolutePath()).replace("\n", " "),
-								// TODO Some games might actually not be from this region, believe it or not.
-								"United States",
+								NativeLibrary.GetCountry(entry.getAbsolutePath()),
 								entry.getAbsolutePath(),
 								NativeLibrary.GetGameId(entry.getAbsolutePath()),
 								NativeLibrary.GetDate(entry.getAbsolutePath()));
