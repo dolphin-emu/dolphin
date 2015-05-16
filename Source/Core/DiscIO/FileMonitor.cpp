@@ -135,11 +135,11 @@ void FindFilename(u64 offset)
 	if (!FileAccess)
 		return;
 
-	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_LastFilename)
+	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_RecentFile[0])
 	{
 		FileAccess = false;
-		ReadFileSystem(SConfig::GetInstance().m_LastFilename);
-		ISOFile = SConfig::GetInstance().m_LastFilename;
+		ReadFileSystem(SConfig::GetInstance().m_RecentFile[0]);
+		ISOFile = SConfig::GetInstance().m_RecentFile[0];
 		INFO_LOG(FILEMON, "Opening '%s'", ISOFile.c_str());
 		return;
 	}

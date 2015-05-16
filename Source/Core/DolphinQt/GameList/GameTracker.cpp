@@ -242,9 +242,9 @@ void DGameTracker::ScanForGames()
 
 void DGameTracker::SelectLastBootedGame()
 {
-	if (!SConfig::GetInstance().m_LastFilename.empty() && File::Exists(SConfig::GetInstance().m_LastFilename))
+	if (!SConfig::GetInstance().m_RecentFile[0].empty() && File::Exists(SConfig::GetInstance().m_RecentFile[0]))
 	{
-		QString lastfilename = QString::fromStdString(SConfig::GetInstance().m_LastFilename);
+		QString lastfilename = QString::fromStdString(SConfig::GetInstance().m_RecentFile[0]);
 		for (GameFile* game : m_games.values())
 		{
 			if (game->GetFileName() == lastfilename)

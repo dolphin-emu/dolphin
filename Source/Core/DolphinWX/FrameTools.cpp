@@ -143,6 +143,16 @@ wxMenuBar* CFrame::CreateMenu()
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_REFRESH, GetMenuLabel(HK_REFRESH_LIST));
 	fileMenu->AppendSeparator();
+
+	wxMenu *recentMenu = new wxMenu;
+	fileMenu->Append(IDM_RECENT_FILES, _("Recent Files"), recentMenu);
+
+	// TODO: Find proper way to parse amount of recent files
+	int numRecentFiles = 5;
+	for (int i = 0; i < numRecentFiles; i++)
+		recentMenu->Append(IDM_RECENT_FILE_1 + i, SConfig::GetInstance().m_RecentFile[i]);
+
+	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _("&Browse for ISOs..."));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _("E&xit") + wxString("\tAlt+F4"));
@@ -650,10 +660,10 @@ void CFrame::BootGame(const std::string& filename)
 		}
 		else
 		{
-			if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			    File::Exists(SConfig::GetInstance().m_LastFilename))
+			if (!SConfig::GetInstance().m_RecentFile[0].empty() &&
+			    File::Exists(SConfig::GetInstance().m_RecentFile[0]))
 			{
-				bootfile = SConfig::GetInstance().m_LastFilename;
+				bootfile = SConfig::GetInstance().m_RecentFile[0];
 			}
 			else
 			{
@@ -1088,6 +1098,12 @@ void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
+void CFrame::OnOpenRecentFile(wxCommandEvent& event)
+{
+	int selectedFile = event.GetId() - IDM_RECENT_FILE_1;
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		BootGame(SConfig::GetInstance().m_RecentFile[selectedFile]);
+}
 
 void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
@@ -1836,8 +1852,8 @@ void CFrame::UpdateGUI()
 				GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
 			}
 			// Prepare to load last selected file, enable play button
-			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			         File::Exists(SConfig::GetInstance().m_LastFilename))
+			else if (!SConfig::GetInstance().m_RecentFile[0].empty() &&
+			         File::Exists(SConfig::GetInstance().m_RecentFile[0]))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);

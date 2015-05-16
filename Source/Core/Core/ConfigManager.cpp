@@ -196,7 +196,12 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	IniFile::Section* general = ini.GetOrCreateSection("General");
 
 	// General
-	general->Set("LastFilename", m_LastFilename);
+	// TODO: Properly update list of recently used files
+	for (int i = 4; i > 0; i--)
+	{
+		general->Set(StringFromFormat("RecentFile%i", i), StringFromFormat("RecentFile%i", i - 1));
+	}
+	general->Set("RecentFile0", m_RecentFile[0]);
 	general->Set("ShowLag", m_ShowLag);
 	general->Set("ShowFrameCount", m_ShowFrameCount);
 
@@ -423,7 +428,18 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 {
 	IniFile::Section* general = ini.GetOrCreateSection("General");
 
-	general->Get("LastFilename", &m_LastFilename);
+	int numRecentFiles;
+
+	if (general->Get("RecentFiles", &numRecentFiles, 0))
+	{
+		for (int i = 0; i < numRecentFiles; i++)
+		{
+			std::string tmpPath;
+			general->Get(StringFromFormat("RecentFile%i", i), &tmpPath, "");
+			m_RecentFile.push_back(std::move(tmpPath));
+		}
+	}
+
 	general->Get("ShowLag", &m_ShowLag, false);
 	general->Get("ShowFrameCount", &m_ShowFrameCount, false);
 #ifdef USE_GDBSTUB

@@ -83,7 +83,7 @@ bool BootCore(const std::string& _rFilename)
 
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
-	SConfig::GetInstance().m_LastFilename = _rFilename;
+	SConfig::GetInstance().m_RecentFile[0] = _rFilename;
 	SConfig::GetInstance().SaveSettings();
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
