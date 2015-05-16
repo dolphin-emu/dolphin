@@ -4,7 +4,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
-#include "Common/Atomic.h"
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
@@ -33,8 +32,8 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	// so we will just ignore new written data while interpolating.
 	// Without this cache, the compiler wouldn't be allowed to optimize the
 	// interpolation loop.
-	u32 indexR = Common::AtomicLoad(m_indexR);
-	u32 indexW = Common::AtomicLoad(m_indexW);
+	u32 indexR = m_indexR.load();
+	u32 indexW = m_indexW.load();
 
 	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
 	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
@@ -65,8 +64,8 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 
 	const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
 
-	s32 lvolume = m_LVolume;
-	s32 rvolume = m_RVolume;
+	s32 lvolume = m_LVolume.load();
+	s32 rvolume = m_RVolume.load();
 
 	// TODO: consider a higher-quality resampling algorithm.
 	for (; currentSample < numSamples * 2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample += 2)
@@ -111,7 +110,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	}
 
 	// Flush cached variable
-	Common::AtomicStore(m_indexR, indexR);
+	m_indexR.store(indexR);
 
 	return numSamples;
 }
@@ -142,11 +141,11 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	// Cache access in non-volatile variable
 	// indexR isn't allowed to cache in the audio throttling loop as it
 	// needs to get updates to not deadlock.
-	u32 indexW = Common::AtomicLoad(m_indexW);
+	u32 indexW = m_indexW.load();
 
 	// Check if we have enough free space
 	// indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
-	if (num_samples * 2 + ((indexW - Common::AtomicLoad(m_indexR)) & INDEX_MASK) >= MAX_SAMPLES * 2)
+	if (num_samples * 2 + ((indexW - m_indexR.load()) & INDEX_MASK) >= MAX_SAMPLES * 2)
 		return;
 
 	// AyuanX: Actual re-sampling work has been moved to sound thread
@@ -163,9 +162,7 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 		memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 4);
 	}
 
-	Common::AtomicAdd(m_indexW, num_samples * 2);
-
-	return;
+	m_indexW.fetch_add(num_samples * 2);
 }
 
 void CMixer::PushSamples(const short *samples, unsigned int num_samples)
@@ -227,7 +224,7 @@ void CMixer::MixerFifo::SetInputSampleRate(unsigned int rate)
 
 void CMixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
 {
-	m_LVolume = lvolume + (lvolume >> 7);
-	m_RVolume = rvolume + (rvolume >> 7);
+	m_LVolume.store(lvolume + (lvolume >> 7));
+	m_RVolume.store(rvolume + (rvolume >> 7));
 }
 

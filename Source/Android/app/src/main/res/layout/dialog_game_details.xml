@@ -31,7 +31,6 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:scaleType="centerCrop"
             android:transitionName="image_game_screen"
             tools:src="@drawable/placeholder_screenshot"/>
 
@@ -125,7 +124,7 @@
             android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="-28dp"
-            android:background="@drawable/oval_ripple"
+            android:background="@drawable/oval_ripple_wii"
             android:src="@drawable/ic_play"
             android:stateListAnimator="@anim/button_elevation"
             android:elevation="4dp"/>

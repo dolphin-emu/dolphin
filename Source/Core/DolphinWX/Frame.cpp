@@ -1400,6 +1400,18 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		if (++g_Config.iEFBScale > SCALE_4X)
 			g_Config.iEFBScale = SCALE_AUTO;
 	}
+	else if (IsHotkey(event, HK_INCREASE_IR))
+	{
+		OSDChoice = 1;
+		if (++g_Config.iEFBScale > SCALE_4X)
+			g_Config.iEFBScale = SCALE_4X;
+	}
+	else if (IsHotkey(event, HK_DECREASE_IR))
+	{
+		OSDChoice = 1;
+		if (--g_Config.iEFBScale < SCALE_1X)
+			g_Config.iEFBScale = SCALE_1X;
+	}
 	else if (IsHotkey(event, HK_TOGGLE_AR))
 	{
 		OSDChoice = 2;

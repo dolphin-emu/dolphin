@@ -144,7 +144,6 @@ template<class T> static inline void WriteTevRegular(T& out, const char* compone
 template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data);
-template<class T> static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType);
 
 template<class T>
 static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
@@ -557,18 +556,33 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (Pretest == AlphaTest::UNDETERMINED || (Pretest == AlphaTest::FAIL && bpmem.UseLateDepthTest()))
 		WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);
 
-	// FastDepth means to trust the depth generated in perspective division.
-	// It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
-	// For disabled FastDepth we just calculate the depth value again.
-	// The performance impact of this additional calculation doesn't matter, but it prevents
-	// the host GPU driver from performing any early depth test optimizations.
-	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
-	else
+	if (bpmem.genMode.zfreeze)
 	{
+		out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
+		out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
+
+		out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE".xy;\n");
+
+		// Opengl has reversed vertical screenspace coordiantes
+		if (ApiType == API_OPENGL)
+			out.Write("\tscreenpos.y = %i - screenpos.y;\n", EFB_HEIGHT);
+
+		out.Write("\tint zCoord = int(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y);\n");
+	}
+	else if (!g_ActiveConfig.bFastDepthCalc)
+	{
+		// FastDepth means to trust the depth generated in perspective division.
+		// It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
+		// For disabled FastDepth we just calculate the depth value again.
+		// The performance impact of this additional calculation doesn't matter, but it prevents
+		// the host GPU driver from performing any early depth test optimizations.
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
 		// the screen space depth value = far z + (clip z / clip w) * z range
 		out.Write("\tint zCoord = " I_ZBIAS"[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n");
+	}
+	else
+	{
+		out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
 	}
 	out.Write("\tzCoord = clamp(zCoord, " I_ZBIAS"[1].x - " I_ZBIAS"[1].y, " I_ZBIAS"[1].x);\n");
 
@@ -586,7 +600,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
 	{
-		WritePerPixelDepth<T>(out, uid_data, ApiType);
+		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
@@ -602,7 +616,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
 	{
-		WritePerPixelDepth<T>(out, uid_data, ApiType);
+		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
@@ -1210,29 +1224,6 @@ static inline void WriteFog(T& out, pixel_shader_uid_data* uid_data)
 	else
 		out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
-
-template<class T>
-static inline void WritePerPixelDepth(T& out, pixel_shader_uid_data* uid_data, API_TYPE ApiType)
-{
-	if (bpmem.genMode.zfreeze)
-	{
-		out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
-		out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
-
-		out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE".xy;\n");
-
-		// Opengl has reversed vertical screenspace coordiantes
-		if (ApiType == API_OPENGL)
-			out.Write("\tscreenpos.y = %i - screenpos.y;\n", EFB_HEIGHT);
-
-		out.Write("\tdepth = float(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y) / 16777216.0;\n");
-	}
-	else
-	{
-		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
-	}
-}
-
 
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {

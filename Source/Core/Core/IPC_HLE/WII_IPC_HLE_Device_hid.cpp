@@ -456,7 +456,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		{
 			Memory::Write_U32(OffsetBuffer-OffsetStart, OffsetStart); // fill in length
 
-			int devNum = GetAvaiableDevNum(desc.idVendor,
+			int devNum = GetAvailableDevNum(desc.idVendor,
 											desc.idProduct,
 											libusb_get_bus_number (device),
 											libusb_get_device_address (device),
@@ -617,7 +617,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 }
 
 
-int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check)
+int CWII_IPC_HLE_Device_hid::GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check)
 {
 	int pos = -1;
 	u64 unique_id = ((u64)idVendor << 32) | ((u64)idProduct << 16) | ((u64)bus << 8) | (u64)port;

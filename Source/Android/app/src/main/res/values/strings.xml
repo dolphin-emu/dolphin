@@ -220,4 +220,8 @@
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
 
+
+    <string name="add_directory_title">Add Folder to Library</string>
+    <string name="add_directory_up_one_level">Up one level</string>
+    <string name="add_directory_empty_folder">That folder is empty.</string>
 </resources>

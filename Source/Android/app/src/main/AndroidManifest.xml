@@ -15,7 +15,7 @@
         <activity
             android:name=".activities.GameGridActivity"
             android:label="Dolphin New UI"
-            android:theme="@style/DolphinWii">
+            android:theme="@style/DolphinGamecube">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
@@ -24,6 +24,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".activities.AddDirectoryActivity"
+            android:theme="@style/DolphinWii"
+            android:label="@string/add_directory_title"/>
 
         <activity
             android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"

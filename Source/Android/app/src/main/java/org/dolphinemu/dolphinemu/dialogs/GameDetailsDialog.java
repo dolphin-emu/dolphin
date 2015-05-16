@@ -84,6 +84,8 @@ public class GameDetailsDialog extends DialogFragment
 		// Fill in the view contents.
 		Picasso.with(imageGameScreen.getContext())
 				.load(getArguments().getString(ARGUMENT_GAME_SCREENSHOT_PATH))
+				.fit()
+				.centerCrop()
 				.noFade()
 				.noPlaceholder()
 				.into(imageGameScreen);

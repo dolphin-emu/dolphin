@@ -11,17 +11,13 @@
 class SoundStream
 {
 protected:
-
 	CMixer* m_mixer;
-	// We set this to shut down the sound thread.
-	// 0=keep playing, 1=stop playing NOW.
-	volatile int threadData;
 	bool m_logAudio;
 	WaveFileWriter g_wave_writer;
 	bool m_muted;
 
 public:
-	SoundStream(CMixer* mixer) : m_mixer(mixer), threadData(0), m_logAudio(false), m_muted(false) {}
+	SoundStream(CMixer* mixer) : m_mixer(mixer), m_logAudio(false), m_muted(false) {}
 	virtual ~SoundStream() { delete m_mixer; }
 
 	static  bool isValid() { return false; }

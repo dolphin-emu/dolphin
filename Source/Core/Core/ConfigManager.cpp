@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -73,6 +73,8 @@ static const struct
 	{ "VolumeUp",            true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
 	{ "VolumeToggleMute",    true, false, 0,                    0 /* wxMOD_NONE */,    0, 0 },
 
+	{ "IncreaseIR",           true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
+	{ "DecreaseIR",           true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleIR",             true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleAspectRatio",    true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
 	{ "ToggleEFBCopies",      true, false, 0,                   0 /* wxMOD_NONE */,    0, 0 },
