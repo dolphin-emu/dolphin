@@ -16,6 +16,7 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -167,6 +168,7 @@ void HiresTexture::Prefetch()
 	Common::SetCurrentThreadName("Prefetcher");
 
 	size_t size_sum = 0;
+	size_t max_mem = MemPhysical() / 2;
 	u32 starttime = Common::Timer::GetTimeMs();
 	for (const auto& entry : s_textureMap)
 	{
@@ -201,6 +203,14 @@ void HiresTexture::Prefetch()
 
 		if (s_textureCacheAbortLoading.IsSet())
 		{
+			return;
+		}
+
+		if (size_sum > max_mem)
+		{
+			g_Config.bCacheHiresTextures = false;
+
+			OSD::AddMessage(StringFromFormat("Custom Textures prefetching after %.1f MB aborted, not enough RAM available", size_sum / (1024.0 * 1024.0)), 10000);
 			return;
 		}
 	}
