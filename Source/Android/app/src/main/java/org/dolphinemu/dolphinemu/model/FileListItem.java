@@ -31,8 +31,6 @@ public class FileListItem implements Comparable<FileListItem>
 		}
 		else
 		{
-			String fileExtension = null;
-
 			int extensionStart = mPath.lastIndexOf('.');
 			if (extensionStart < 1)
 			{
@@ -41,7 +39,7 @@ public class FileListItem implements Comparable<FileListItem>
 			}
 			else
 			{
-				fileExtension = mPath.substring(extensionStart);
+				String fileExtension = mPath.substring(extensionStart);
 
 				// The extensions we care about.
 				Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));

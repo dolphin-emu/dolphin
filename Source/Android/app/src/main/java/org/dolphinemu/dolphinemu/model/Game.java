@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.model;
 
+import android.content.ContentValues;
+
 import java.io.File;
 
 public class Game
@@ -104,5 +106,20 @@ public class Game
 				+ screenCount + ".png";
 
 		return screenPath;
+	}
+
+	public static ContentValues asContentValues(int platform, String title, String description, int country, String path, String gameId, String company)
+	{
+		ContentValues values = new ContentValues();
+
+		values.put(GameDatabase.KEY_GAME_PLATFORM, platform);
+		values.put(GameDatabase.KEY_GAME_TITLE, title);
+		values.put(GameDatabase.KEY_GAME_DESCRIPTION, description);
+		values.put(GameDatabase.KEY_GAME_COUNTRY, company);
+		values.put(GameDatabase.KEY_GAME_PATH, path);
+		values.put(GameDatabase.KEY_GAME_ID, gameId);
+		values.put(GameDatabase.KEY_GAME_COMPANY, company);
+
+		return values;
 	}
 }
