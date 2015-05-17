@@ -18,7 +18,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginTop="24dp"
             tools:src="@drawable/placeholder_banner"
-            app:border_color="#ffcccccc"
+            app:border_color="?android:colorAccent"
             app:border_width="2dp"
             />
 
@@ -120,7 +120,7 @@
             android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="-28dp"
-            android:background="@drawable/oval_ripple_wii"
+            android:background="@drawable/oval_ripple_accent"
             android:src="@drawable/ic_play"
             android:stateListAnimator="@anim/button_elevation"
             android:elevation="4dp"/>
