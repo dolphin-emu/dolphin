@@ -40,7 +40,7 @@
             tools:text="The Legend of Zelda: The Wind Waker"/>
 
         <TextView
-            android:id="@+id/text_game_description"
+            android:id="@+id/text_company"
             style="@android:style/TextAppearance.Material.Caption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -51,7 +51,7 @@
             android:ellipsize="end"
             android:lines="1"
             android:maxLines="1"
-            tools:text="Zany rhythm action!"/>
+            tools:text="Nintendo"/>
 
     </LinearLayout>
 

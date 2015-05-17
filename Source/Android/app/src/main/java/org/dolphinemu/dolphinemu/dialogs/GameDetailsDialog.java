@@ -39,7 +39,7 @@ public class GameDetailsDialog extends DialogFragment
 		arguments.putString(ARGUMENT_GAME_TITLE, game.getTitle());
 		arguments.putString(ARGUMENT_GAME_DESCRIPTION, game.getDescription());
 		arguments.putInt(ARGUMENT_GAME_COUNTRY, game.getCountry());
-		arguments.putString(ARGUMENT_GAME_DATE, game.getDate());
+		arguments.putString(ARGUMENT_GAME_DATE, game.getCompany());
 		arguments.putString(ARGUMENT_GAME_PATH, game.getPath());
 		arguments.putString(ARGUMENT_GAME_SCREENSHOT_PATH, game.getScreenPath());
 		fragment.setArguments(arguments);
@@ -57,7 +57,7 @@ public class GameDetailsDialog extends DialogFragment
 		CircleImageView circleBanner = (CircleImageView) contents.findViewById(R.id.circle_banner);
 
 		TextView textTitle = (TextView) contents.findViewById(R.id.text_game_title);
-		TextView textDescription = (TextView) contents.findViewById(R.id.text_game_description);
+		TextView textDescription = (TextView) contents.findViewById(R.id.text_company);
 
 		TextView textCountry = (TextView) contents.findViewById(R.id.text_country);
 		TextView textDate = (TextView) contents.findViewById(R.id.text_date);

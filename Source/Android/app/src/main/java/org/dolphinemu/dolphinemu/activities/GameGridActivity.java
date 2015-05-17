@@ -179,12 +179,14 @@ public final class GameGridActivity extends Activity
 					// Check that the file has an appropriate extension before trying to read out of it.
 					if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 					{
-						GcGame game = new GcGame(NativeLibrary.GetTitle(entry.getAbsolutePath()),
-								NativeLibrary.GetDescription(entry.getAbsolutePath()).replace("\n", " "),
-								NativeLibrary.GetCountry(entry.getAbsolutePath()),
-								entry.getAbsolutePath(),
-								NativeLibrary.GetGameId(entry.getAbsolutePath()),
-								NativeLibrary.GetDate(entry.getAbsolutePath()));
+						String absolutePath = entry.getAbsolutePath();
+						Game game = new Game(NativeLibrary.GetPlatform(absolutePath),
+								NativeLibrary.GetTitle(absolutePath),
+								NativeLibrary.GetDescription(absolutePath).replace("\n", " "),
+								NativeLibrary.GetCountry(absolutePath),
+								absolutePath,
+								NativeLibrary.GetGameId(absolutePath),
+								NativeLibrary.GetCompany(absolutePath));
 
 						gameList.add(game);
 					}

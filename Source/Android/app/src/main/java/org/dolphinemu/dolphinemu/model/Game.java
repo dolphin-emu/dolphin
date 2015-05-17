@@ -1,6 +1,8 @@
 package org.dolphinemu.dolphinemu.model;
 
-public interface Game
+import java.io.File;
+
+public class Game
 {
 	public static final int PLATFORM_GC = 0;
 	public static final int PLATFORM_WII = 1;
@@ -22,19 +24,85 @@ public interface Game
 	public static final int COUNTRY_WORLD = 12;
 	public static final int COUNTRY_UNKNOWN = 13;
 
-	public int getPlatform();
+	private static final String PATH_SCREENSHOT_FOLDER = "file:///sdcard/dolphin-emu/ScreenShots/";
 
-	public String getDate();
+	private String mTitle;
+	private String mDescription;
+	private String mPath;
+	private String mGameId;
+	private String mScreenshotFolderPath;
+	private String mCompany;
 
-	public String getTitle();
+	private int mPlatform;
+	private int mCountry;
 
-	public String getDescription();
+	public Game(int platform, String title, String description, int country, String path, String gameId, String company)
+	{
+		mPlatform = platform;
+		mTitle = title;
+		mDescription = description;
+		mCountry = country;
+		mPath = path;
+		mGameId = gameId;
+		mCompany = company;
+		mScreenshotFolderPath = PATH_SCREENSHOT_FOLDER + getGameId() + "/";
+	}
 
-	public int getCountry();
+	public int getPlatform()
+	{
+		return mPlatform;
+	}
 
-	public String getPath();
+	public String getTitle()
+	{
+		return mTitle;
+	}
 
-	public String getGameId();
+	public String getDescription()
+	{
+		return mDescription;
+	}
 
-	public String getScreenPath();
+	public String getCompany()
+	{
+		return mCompany;
+	}
+
+	public int getCountry()
+	{
+		return mCountry;
+	}
+
+	public String getPath()
+	{
+		return mPath;
+	}
+
+	public String getGameId()
+	{
+		return mGameId;
+	}
+
+	public String getScreenshotFolderPath()
+	{
+		return mScreenshotFolderPath;
+	}
+
+	public String getScreenPath()
+	{
+		// Count how many screenshots are available, so we can use the most recent one.
+		File screenshotFolder = new File(mScreenshotFolderPath.substring(mScreenshotFolderPath.indexOf('s') - 1));
+		int screenCount = 0;
+
+		if (screenshotFolder.isDirectory())
+		{
+			screenCount = screenshotFolder.list().length;
+		}
+
+		String screenPath = mScreenshotFolderPath
+				+ getGameId() + "-"
+				+ screenCount + ".png";
+
+		return screenPath;
+	}
 }

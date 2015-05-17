@@ -79,9 +79,9 @@ public class GameAdapter extends RecyclerView.Adapter<GameViewHolder> implements
 				.into(holder.imageScreenshot);
 
 		holder.textGameTitle.setText(game.getTitle());
-		if (game.getDescription() != null)
+		if (game.getCompany() != null)
 		{
-			holder.textDescription.setText(game.getDescription());
+			holder.textCompany.setText(game.getCompany());
 		}
 
 		holder.path = game.getPath();
