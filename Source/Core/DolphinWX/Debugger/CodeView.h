@@ -11,10 +11,7 @@
 #include <vector>
 
 #include <wx/control.h>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/graphics.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 
@@ -23,7 +20,6 @@ wxDECLARE_EVENT(wxEVT_CODEVIEW_CHANGE, wxCommandEvent);
 class DebugInterface;
 class SymbolDB;
 class wxPaintDC;
-class wxWindow;
 
 class CCodeView : public wxControl
 {

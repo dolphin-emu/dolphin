@@ -228,13 +228,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	FramebufferManager::SetFramebuffer(0);
 
-	if (g_ActiveConfig.bDumpEFBTarget)
-	{
-		static int count = 0;
-		SaveTexture(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-			count++), GL_TEXTURE_2D_ARRAY, texture, config.width, config.height, 0);
-	}
-
 	g_renderer->RestoreAPIState();
 }
 
@@ -301,27 +294,19 @@ void TextureCache::CompileShaders()
 		"\n"
 		"void main(){\n"
 		"	vec4 texcol = texture(samp9, vec3(f_uv0.xy, %s));\n"
+		"	int depth = clamp(int(texcol.x * 16777216.0), 0, 0xFFFFFF);\n"
 
-		// 255.99998474121 = 16777215/16777216*256
-		"	float workspace = texcol.x * 255.99998474121;\n"
+		// Convert to Z24 format
+		"	ivec4 workspace;\n"
+		"	workspace.r = (depth >> 16) & 255;\n"
+		"	workspace.g = (depth >> 8) & 255;\n"
+		"	workspace.b = depth & 255;\n"
 
-		"	texcol.x = floor(workspace);\n"         // x component
+		// Convert to Z4 format
+		"	workspace.a = (depth >> 16) & 0xF0;\n"
 
-		"	workspace = workspace - texcol.x;\n"    // subtract x component out
-		"	workspace = workspace * 256.0;\n"       // shift left 8 bits
-		"	texcol.y = floor(workspace);\n"         // y component
-
-		"	workspace = workspace - texcol.y;\n"    // subtract y component out
-		"	workspace = workspace * 256.0;\n"       // shift left 8 bits
-		"	texcol.z = floor(workspace);\n"         // z component
-
-		"	texcol.w = texcol.x;\n"                 // duplicate x into w
-
-		"	texcol = texcol / 255.0;\n"             // normalize components to [0.0..1.0]
-
-		"	texcol.w = texcol.w * 15.0;\n"
-		"	texcol.w = floor(texcol.w);\n"
-		"	texcol.w = texcol.w / 15.0;\n"          // w component
+		// Normalize components to [0.0..1.0]
+		"	texcol = vec4(workspace) / 255.0;\n"
 
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";

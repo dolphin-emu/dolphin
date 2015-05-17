@@ -4,17 +4,13 @@
 
 #pragma once
 
-#include <wx/defs.h>
 #include <wx/panel.h>
-#include <wx/windowid.h>
 
 class LogManager;
 class CLogWindow;
 class wxCheckBox;
 class wxCheckListBox;
-class wxCommandEvent;
 class wxRadioBox;
-class wxWindow;
 
 class LogConfigWindow : public wxPanel
 {

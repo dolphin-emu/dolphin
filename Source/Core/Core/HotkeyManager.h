@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Core/CoreParameter.h"
+#include <string>
 #include "InputCommon/InputConfig.h"
 
 struct HotkeyStatus

@@ -2,6 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
 

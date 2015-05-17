@@ -4,16 +4,9 @@
 
 #pragma once
 
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 class CRegisterView;
-class wxWindow;
 
 class CRegisterWindow : public wxPanel
 {

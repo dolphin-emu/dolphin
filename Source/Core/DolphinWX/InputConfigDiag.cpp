@@ -10,20 +10,15 @@
 #include <string>
 #include <vector>
 #include <wx/app.h>
-#include <wx/arrstr.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/combobox.h>
 #include <wx/control.h>
 #include <wx/dcmemory.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/notebook.h>
@@ -33,12 +28,8 @@
 #include <wx/spinctrl.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/timer.h>
-#include <wx/toplevel.h>
-#include <wx/translation.h>
-#include <wx/unichar.h>
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"

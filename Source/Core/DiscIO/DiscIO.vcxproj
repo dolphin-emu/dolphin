@@ -35,9 +35,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="BannerLoader.cpp" />
-    <ClCompile Include="BannerLoaderGC.cpp" />
-    <ClCompile Include="BannerLoaderWii.cpp" />
     <ClCompile Include="Blob.cpp" />
     <ClCompile Include="CISOBlob.cpp" />
     <ClCompile Include="CompressedBlob.cpp" />
@@ -58,9 +55,6 @@
     <ClCompile Include="WiiWad.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BannerLoader.h" />
-    <ClInclude Include="BannerLoaderGC.h" />
-    <ClInclude Include="BannerLoaderWii.h" />
     <ClInclude Include="Blob.h" />
     <ClInclude Include="CISOBlob.h" />
     <ClInclude Include="CompressedBlob.h" />

@@ -9,7 +9,6 @@
 
 class wxNotebook;
 class wxPanel;
-class wxWindow;
 
 wxDECLARE_EVENT(wxDOLPHIN_CFG_REFRESH_LIST, wxCommandEvent);
 

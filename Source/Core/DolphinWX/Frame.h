@@ -9,18 +9,10 @@
 #include <string>
 #include <vector>
 #include <wx/bitmap.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/frame.h>
-#include <wx/gdicmn.h>
 #include <wx/image.h>
-#include <wx/mstream.h>
 #include <wx/panel.h>
-#include <wx/string.h>
 #include <wx/timer.h>
-#include <wx/toplevel.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -48,7 +40,6 @@ class wxAuiNotebook;
 class wxAuiNotebookEvent;
 class wxListEvent;
 class wxMenuItem;
-class wxWindow;
 
 class CRenderFrame : public wxFrame
 {

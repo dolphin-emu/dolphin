@@ -11,6 +11,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "DiscIO/Volume.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 
@@ -125,7 +126,7 @@ void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 {
-	int wii_system_lang = m_system_language_choice->GetSelection();
+	DiscIO::IVolume::ELanguage wii_system_lang = (DiscIO::IVolume::ELanguage)m_system_language_choice->GetSelection();
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
 	u8 country_code = GetSADRCountryCode(wii_system_lang);
 
@@ -138,41 +139,35 @@ void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.AR", m_aspect_ratio_choice->GetSelection());
 }
 
-// Change from IPL.LNG value to IPL.SADR country code
-u8 WiiConfigPane::GetSADRCountryCode(int language)
+// Change from IPL.LNG value to IPL.SADR country code.
+// http://wiibrew.org/wiki/Country_Codes
+u8 WiiConfigPane::GetSADRCountryCode(DiscIO::IVolume::ELanguage language)
 {
-	//http://wiibrew.org/wiki/Country_Codes
-	u8 country_code = language;
-	switch (country_code)
+	switch (language)
 	{
-	case 0: //Japanese
-		country_code = 1; //Japan
-		break;
-	case 1: //English
-		country_code = 49; //USA
-		break;
-	case 2: //German
-		country_code = 78; //Germany
-		break;
-	case 3: //French
-		country_code = 77; //France
-		break;
-	case 4: //Spanish
-		country_code = 105; //Spain
-		break;
-	case 5: //Italian
-		country_code = 83; //Italy
-		break;
-	case 6: //Dutch
-		country_code = 94; //Netherlands
-		break;
-	case 7: //Simplified Chinese
-	case 8: //Traditional Chinese
-		country_code = 157; //China
-		break;
-	case 9: //Korean
-		country_code = 136; //Korea
+	case DiscIO::IVolume::LANGUAGE_JAPANESE:
+		return 1;   // Japan
+	case DiscIO::IVolume::LANGUAGE_ENGLISH:
+		return 49;  // USA
+	case DiscIO::IVolume::LANGUAGE_GERMAN:
+		return 78;  // Germany
+	case DiscIO::IVolume::LANGUAGE_FRENCH:
+		return 77;  // France
+	case DiscIO::IVolume::LANGUAGE_SPANISH:
+		return 105; // Spain
+	case DiscIO::IVolume::LANGUAGE_ITALIAN:
+		return 83;  // Italy
+	case DiscIO::IVolume::LANGUAGE_DUTCH:
+		return 94;  // Netherlands
+	case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
+	case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+		return 157; // China
+	case DiscIO::IVolume::LANGUAGE_KOREAN:
+		return 136; // Korea
+	case DiscIO::IVolume::LANGUAGE_UNKNOWN:
 		break;
 	}
-	return country_code;
+
+	PanicAlert("Invalid language. Defaulting to Japanese.");
+	return 1;
 }

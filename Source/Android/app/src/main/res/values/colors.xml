@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dolphin_wii">#5bc0de</color>
+    <color name="dolphin_wii_dark">#428bca</color>
+
+    <color name="dolphin_gamecube">#663399</color>
+    <color name="dolphin_gamecube_dark">#311b92</color>
+</resources>

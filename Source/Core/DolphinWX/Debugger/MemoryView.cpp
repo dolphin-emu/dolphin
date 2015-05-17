@@ -5,21 +5,14 @@
 #include <cmath>
 #include <string>
 #include <wx/brush.h>
-#include <wx/chartype.h>
 #include <wx/clipbrd.h>
 #include <wx/colour.h>
 #include <wx/control.h>
 #include <wx/dataobj.h>
 #include <wx/dcclient.h>
-#include <wx/defs.h>
-#include <wx/event.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/menu.h>
 #include <wx/pen.h>
-#include <wx/setup.h>
-#include <wx/string.h>
-#include <wx/window.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"

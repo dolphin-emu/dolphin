@@ -9,7 +9,6 @@
 #include <sstream>
 #include <unordered_set>
 #include <SFML/Network/Packet.hpp>
-#include "Common/ENetUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"

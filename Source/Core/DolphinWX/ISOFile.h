@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/Common.h"
@@ -24,11 +25,12 @@ public:
 
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}
-	std::string GetBannerName(int index) const;
-	std::string GetVolumeName(int index) const;
-	std::string GetName(int index) const;
+	std::string GetName(DiscIO::IVolume::ELanguage language) const;
+	std::string GetName() const;
+	std::string GetDescription(DiscIO::IVolume::ELanguage language) const;
+	std::string GetDescription() const;
+	std::vector<DiscIO::IVolume::ELanguage> GetLanguages() const;
 	std::string GetCompany() const;
-	std::string GetDescription(int index = 0) const;
 	int GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
@@ -57,13 +59,9 @@ public:
 private:
 	std::string m_FileName;
 
-	// TODO: eliminate this and overwrite with names from banner when available?
-	std::vector<std::string> m_volume_names;
-
-	// Stuff from banner
+	std::map<DiscIO::IVolume::ELanguage, std::string> m_names;
+	std::map<DiscIO::IVolume::ELanguage, std::string> m_descriptions;
 	std::string m_company;
-	std::vector<std::string> m_banner_names;
-	std::vector<std::string> m_descriptions;
 
 	std::string m_UniqueID;
 

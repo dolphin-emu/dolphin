@@ -57,6 +57,33 @@ On OS X, an application bundle will be created in `./Binaries`.
 
 On Linux, it's strongly recommended to perform a global installation via `sudo make install`.
 
+## Installation on Android
+Dolphin requires [Android Studio](http://developer.android.com/tools/studio/index.html) to build
+the Android UI. Import the Gradle project located in `./Source/Android`, and then execute the
+Gradle task `assembleDebug` to build, or `installDebug` to install the UI onto a connected device.
+
+In order to launch the app, you must build and include the native Dolphin libraries into the UI project.
+Building native code requires the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html).
+
+### Build Steps:
+1. `mkdir Build-Android-<abi>`
+2. `cd Build-Android-<abi>`
+3. `cmake -DANDROID=True -DANDROID_NDK=<ndk-path> -DANDROID_NATIVE_API_LEVEL=android-18 -DANDROID_TOOLCHAIN_NAME=<toolchain> -DANDROID_ABI=<abi> -DCMAKE_TOOLCHAIN_FILE=../Source/Android/android.toolchain.cmake -DGIT_EXECUTABLE=<git-path> ..`
+4. `make`
+
+Replace `<git-path>` with the absolute path to your machine's Git executable, <ndk-path> with the absolute
+path to where you installed your NDK, and the rest depending on which platform the Android device you are
+targeting uses:
+
+|Platform                 | abi         | toolchain                 |
+|-------------------------|-------------|---------------------------|
+|ARM 32-bit (most devices)| armeabi-v7a | arm-linux-androideabi-4.9 |
+|ARM 64-bit (i.e. Nexus 9)| arm64-v8a   | aarch64-linux-android-4.9 |
+|Intel 64-bit             | x86_64      | x86_64-4.9                |
+
+The native libraries will be compiled, and copied into `./Source/Android/app/libs`. Android Studio
+and Gradle will include any libraries in that folder into the APK at build time.
+
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall
 Dolphin like any other Windows application.

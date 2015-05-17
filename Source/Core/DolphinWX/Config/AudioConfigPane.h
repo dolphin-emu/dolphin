@@ -10,7 +10,6 @@
 
 class wxCheckBox;
 class wxChoice;
-class wxCommandEvent;
 class wxRadioBox;
 class wxSlider;
 class wxSpinCtrl;

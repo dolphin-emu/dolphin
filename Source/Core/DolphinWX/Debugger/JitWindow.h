@@ -8,21 +8,14 @@
 #include <memory>
 #include <vector>
 
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/listctrl.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
 
 class wxButton;
 class wxListBox;
 class wxTextCtrl;
-class wxWindow;
 
 class JitBlockList : public wxListCtrl
 {

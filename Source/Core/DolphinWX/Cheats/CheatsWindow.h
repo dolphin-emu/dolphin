@@ -18,13 +18,11 @@ class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
 class wxCloseEvent;
-class wxCommandEvent;
 class wxListBox;
 class wxNotebook;
 class wxStaticBox;
 class wxStaticText;
 class wxTextCtrl;
-class wxWindow;
 
 namespace Gecko
 {

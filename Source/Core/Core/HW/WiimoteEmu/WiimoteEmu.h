@@ -5,9 +5,9 @@
 #pragma once
 
 #include <queue>
+#include <string>
 #include <vector>
 
-#include "Common/ChunkFile.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
@@ -19,6 +19,8 @@
 #define WIIMOTE_REG_SPEAKER_SIZE  10
 #define WIIMOTE_REG_EXT_SIZE      0x100
 #define WIIMOTE_REG_IR_SIZE       0x34
+
+class PointerWrap;
 
 // Default calibration for the motion plus, 0xA60020
 static const u8 motion_plus_calibration[] =

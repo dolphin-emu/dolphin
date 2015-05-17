@@ -7,7 +7,8 @@
 #include <string>
 
 #include "InputCommon/ControllerEmu.h"
-#include "InputCommon/KeyboardStatus.h"
+
+struct KeyboardStatus;
 
 class GCKeyboard : public ControllerEmu
 {

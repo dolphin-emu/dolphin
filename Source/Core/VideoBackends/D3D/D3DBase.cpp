@@ -33,6 +33,7 @@ namespace D3D
 ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
 IDXGISwapChain* swapchain = nullptr;
+static ID3D11Debug* debug = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
 HWND hWnd;
@@ -321,8 +322,7 @@ HRESULT Create(HWND wnd)
 		UpdateActiveConfig();
 	}
 
-	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
-	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
+	DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
 	swap_chain_desc.BufferCount = 1;
 	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swap_chain_desc.OutputWindow = wnd;
@@ -330,11 +330,10 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.SampleDesc.Quality = 0;
 	swap_chain_desc.Windowed = !(g_Config.bFullscreen && g_Config.ExclusiveFullscreenEnabled());
 
-	memset(&out_desc, 0, sizeof(out_desc));
+	out_desc = {};
 	output->GetDesc(&out_desc);
 
-	DXGI_MODE_DESC mode_desc;
-	memset(&mode_desc, 0, sizeof(mode_desc));
+	DXGI_MODE_DESC mode_desc = {};
 	mode_desc.Width = out_desc.DesktopCoordinates.right - out_desc.DesktopCoordinates.left;
 	mode_desc.Height = out_desc.DesktopCoordinates.bottom - out_desc.DesktopCoordinates.top;
 	if (g_has_hmd)
@@ -372,6 +371,27 @@ HRESULT Create(HWND wnd)
 											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
 											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
 											&featlevel, &context);
+		// Debugbreak on D3D error
+		if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
+		{
+			ID3D11InfoQueue* infoQueue = nullptr;
+			if (SUCCEEDED(debug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&infoQueue)))
+			{
+				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+
+				D3D11_MESSAGE_ID hide[] =
+				{
+					D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS
+				};
+
+				D3D11_INFO_QUEUE_FILTER filter = {};
+				filter.DenyList.NumIDs = sizeof(hide) / sizeof(D3D11_MESSAGE_ID);
+				filter.DenyList.pIDList = hide;
+				infoQueue->AddStorageFilterEntries(&filter);
+				infoQueue->Release();
+			}
+		}
 	}
 
 	if (FAILED(hr))
@@ -446,6 +466,21 @@ void Close()
 
 	SAFE_RELEASE(context);
 	ULONG references = device->Release();
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (debug)
+	{
+		--references; // the debug interface increases the refcount of the device, subtract that.
+		if (references)
+		{
+			// print out alive objects, but only if we actually have pending references
+			// note this will also print out internal live objects to the debug console
+			debug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
+		}
+		SAFE_RELEASE(debug)
+	}
+#endif
+
 	if (references)
 	{
 		ERROR_LOG(VIDEO, "Unreleased references: %i.", references);

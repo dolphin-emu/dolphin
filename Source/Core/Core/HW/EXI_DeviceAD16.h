@@ -6,6 +6,8 @@
 
 #include "Core/HW/EXI_Device.h"
 
+class PointerWrap;
+
 class CEXIAD16 : public IEXIDevice
 {
 public:

@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
+#include "Common/ChunkFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI_Device.h"
@@ -15,7 +15,6 @@
 #include "Core/HW/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI_DeviceMic.h"
 #include "Core/HW/Memmap.h"
-
 
 // --- interface IEXIDevice ---
 void IEXIDevice::ImmWrite(u32 _uData, u32 _uSize)

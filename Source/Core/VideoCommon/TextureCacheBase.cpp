@@ -880,6 +880,13 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
+	if (g_ActiveConfig.bDumpEFBTarget)
+	{
+		static int count = 0;
+		entry->Save(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+			count++), 0);
+	}
+
 	textures.insert(TexCache::value_type(dstAddr, entry));
 }
 

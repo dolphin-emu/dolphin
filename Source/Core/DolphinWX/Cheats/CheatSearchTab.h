@@ -9,14 +9,12 @@
 
 class wxButton;
 class wxChoice;
-class wxCommandEvent;
 class wxFocusEvent;
 class wxListBox;
 class wxRadioBox;
 class wxRadioButton;
 class wxStaticText;
 class wxTextCtrl;
-class wxWindow;
 
 class CheatSearchTab final : public wxPanel
 {

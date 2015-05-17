@@ -5,6 +5,8 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
+
 class PointerWrap;
 
 namespace GPFifo

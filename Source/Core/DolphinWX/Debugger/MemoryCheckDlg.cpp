@@ -3,17 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <string>
-#include <wx/chartype.h>
 #include <wx/checkbox.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
 
 #include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"

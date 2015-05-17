@@ -44,7 +44,10 @@ private slots:
 
 	// Main toolbar
 	void OnOpen();
+	void OnBrowse();
+	void OnExit();
 	void OnPlay();
+	void OnReset();
 
 	// View menu
 	void OnGameListStyleChanged();
@@ -66,7 +69,9 @@ private:
 	// Emulation
 	QString RequestBootFilename();
 	QString ShowFileDialog();
+	QString ShowFolderDialog();
 	void DoStartPause();
+	bool Stop();
 
 	std::unique_ptr<DRenderWidget> m_render_widget;
 	bool m_isStopping = false;

@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -968,7 +970,7 @@ void ClearEFBCache()
 	}
 }
 
-void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data)
+void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const void* data)
 {
 	u32 cacheType = (type == PEEK_Z ? 0 : 1);
 
@@ -990,7 +992,18 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 			u32 xEFB = efbPixelRc.left + xCache;
 			u32 xPixel = (EFBToScaledX(xEFB) + EFBToScaledX(xEFB + 1)) / 2;
 			u32 xData = xPixel - targetPixelRc.left;
-			s_efbCache[cacheType][cacheRectIdx][yCache * EFB_CACHE_RECT_SIZE + xCache] = data[yData * targetPixelRcWidth + xData];
+			u32 value;
+			if (type == PEEK_Z)
+			{
+				float* ptr = (float*)data;
+				value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f), 0, 0xFFFFFF);
+			}
+			else
+			{
+				u32* ptr = (u32*)data;
+				value = ptr[yData * targetPixelRcWidth + xData];
+			}
+			s_efbCache[cacheType][cacheRectIdx][yCache * EFB_CACHE_RECT_SIZE + xCache] = value;
 		}
 	}
 
@@ -1044,8 +1057,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	{
 	case PEEK_Z:
 		{
-			u32 z;
-
 			if (!s_efbCacheValid[0][cacheRectIdx])
 			{
 				if (s_MSAASamples > 1)
@@ -1059,32 +1070,22 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					g_renderer->RestoreAPIState();
 				}
 
-				u32* depthMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
+				std::unique_ptr<float> depthMap(new float[targetPixelRcWidth * targetPixelRcHeight]);
 
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depthMap);
+				             GL_DEPTH_COMPONENT, GL_FLOAT, depthMap.get());
 
-				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap);
-
-				delete[] depthMap;
+				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap.get());
 			}
 
 			u32 xRect = x % EFB_CACHE_RECT_SIZE;
 			u32 yRect = y % EFB_CACHE_RECT_SIZE;
-			z = s_efbCache[0][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
+			u32 z = s_efbCache[0][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
 
-			// Scale the 32-bit value returned by glReadPixels to a 24-bit
-			// value (GC uses a 24-bit Z-buffer).
-			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
+			// if Z is in 16 bit format you must return a 16 bit integer
 			if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
-			{
-				// if Z is in 16 bit format you must return a 16 bit integer
-				z = z >> 16;
-			}
-			else
-			{
 				z = z >> 8;
-			}
+
 			return z;
 		}
 
@@ -1095,9 +1096,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// Tested in Killer 7, the first 8bits represent the alpha value which is used to
 			// determine if we're aiming at an enemy (0x80 / 0x88) or not (0x70)
 			// Wind Waker is also using it for the pictograph to determine the color of each pixel
-
-			u32 color;
-
 			if (!s_efbCacheValid[1][cacheRectIdx])
 			{
 				if (s_MSAASamples > 1)
@@ -1111,24 +1109,22 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					g_renderer->RestoreAPIState();
 				}
 
-				u32* colorMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
+				std::unique_ptr<u32> colorMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
 
 				if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 				// XXX: Swap colours
 					glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-						     GL_RGBA, GL_UNSIGNED_BYTE, colorMap);
+						     GL_RGBA, GL_UNSIGNED_BYTE, colorMap.get());
 				else
 					glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-						     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
+						     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap.get());
 
-				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap);
-
-				delete[] colorMap;
+				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap.get());
 			}
 
 			u32 xRect = x % EFB_CACHE_RECT_SIZE;
 			u32 yRect = y % EFB_CACHE_RECT_SIZE;
-			color = s_efbCache[1][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
+			u32 color = s_efbCache[1][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
 
 			// check what to do with the alpha channel (GX_PokeAlphaRead)
 			PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
@@ -1189,7 +1185,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		ResetAPIState();
 
 		glDepthMask(GL_TRUE);
-		glClearDepthf(float(poke_data & 0xFFFFFF) / float(0xFFFFFF));
+		glClearDepthf(float(poke_data & 0xFFFFFF) / 16777216.0f);
 
 		glEnable(GL_SCISSOR_TEST);
 		glScissor(targetPixelRc.left, targetPixelRc.bottom, targetPixelRc.GetWidth(), targetPixelRc.GetHeight());
@@ -1341,7 +1337,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	// depth
 	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
+	glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
 
 	// Update rect for clearing the picture
 	// TODO fix this properly by setting the scissor rectangle

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "Common/FileUtil.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"

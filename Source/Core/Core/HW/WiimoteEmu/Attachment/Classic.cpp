@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 
 namespace WiimoteEmu

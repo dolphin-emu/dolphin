@@ -4,17 +4,10 @@
 
 #pragma once
 
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
-#include <wx/string.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 #include <wx/aui/framemanager.h>
 
 class CWatchView;
-class wxWindow;
 
 class CWatchWindow : public wxPanel
 {

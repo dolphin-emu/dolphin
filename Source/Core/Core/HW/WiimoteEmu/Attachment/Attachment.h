@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu.h"
 
 namespace WiimoteEmu
 {
+
+struct ExtensionReg;
 
 class Attachment : public ControllerEmu
 {

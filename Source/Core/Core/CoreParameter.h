@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "DiscIO/Volume.h"
 
 typedef std::vector<u8> SkipEntry;
 
@@ -181,6 +182,9 @@ struct SCoreStartupParameter
 	bool bEnableDebugging;
 	#ifdef USE_GDBSTUB
 	int  iGDBPort;
+	#ifndef _WIN32
+	std::string gdb_socket;
+	#endif
 	#endif
 	bool bAutomaticStart;
 	bool bBootToPause;
@@ -324,6 +328,7 @@ struct SCoreStartupParameter
 	bool AutoSetup(EBootBS2 _BootBS2);
 	const std::string &GetUniqueID() const { return m_strUniqueID; }
 	void CheckMemcardPath(std::string& memcardPath, std::string gameRegion, bool isSlotA);
+	DiscIO::IVolume::ELanguage GetCurrentLanguage(bool wii) const;
 
 	IniFile LoadDefaultGameIni() const;
 	IniFile LoadLocalGameIni() const;

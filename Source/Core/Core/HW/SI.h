@@ -5,10 +5,10 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/SI_Device.h"
 
 class PointerWrap;
 class ISIDevice;
+enum SIDevices : int;
 namespace MMIO { class Mapping; }
 
 // SI number of channels

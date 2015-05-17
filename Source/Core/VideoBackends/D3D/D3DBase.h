@@ -71,8 +71,27 @@ void SetDebugObjectName(T resource, const char* name)
 	static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
 		"resource must be convertible to ID3D11DeviceChild*");
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen(name), name);
+	if (resource)
+		resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
 #endif
+}
+
+template <typename T>
+std::string GetDebugObjectName(T resource)
+{
+	static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
+		"resource must be convertible to ID3D11DeviceChild*");
+	std::string name;
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (resource)
+	{
+		UINT size = 0;
+		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr); //get required size
+		name.resize(size);
+		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
+	}
+#endif
+	return name;
 }
 
 }  // namespace D3D

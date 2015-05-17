@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include "Common/Atomic.h"
+#include "Common/MathUtil.h"
 #include "Common/Timer.h"
 
 #include "Core/ARBruteForcer.h"
@@ -462,11 +463,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
 			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = ((u32)(val * 0xffff));
+			ret = MathUtil::Clamp<u32>((u32)(val * 65536.0f), 0, 0xFFFF);
 		}
 		else
 		{
-			ret = ((u32)(val * 0xffffff));
+			ret = MathUtil::Clamp<u32>((u32)(val * 16777216.0f), 0, 0xFFFFFF);
 		}
 		D3D::context->Unmap(read_tex, 0);
 
@@ -605,7 +606,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF));
+	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / 16777216.0f);
 
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopBlendState();

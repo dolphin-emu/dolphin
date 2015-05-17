@@ -3,13 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/string.h>
-#include <wx/windowid.h>
 
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/RegisterView.h"

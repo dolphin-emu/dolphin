@@ -3,10 +3,15 @@
 // Refer to the license.txt file included.
 
 #pragma once
-#include "Common/StdMakeUnique.h"
+
+#include <functional>
+#include <memory>
+
 #include "Core/HW/EXI_Device.h"
 
 class MemoryCardBase;
+class PointerWrap;
+
 class CEXIMemoryCard : public IEXIDevice
 {
 public:

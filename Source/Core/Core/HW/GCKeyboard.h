@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/CommonTypes.h"
-#include "InputCommon/InputConfig.h"
-#include "InputCommon/KeyboardStatus.h"
-
 #pragma once
+
+#include "Common/CommonTypes.h"
+
+class InputConfig;
+struct KeyboardStatus;
 
 namespace Keyboard
 {

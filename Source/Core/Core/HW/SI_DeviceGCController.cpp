@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
@@ -16,6 +17,7 @@
 #include "Core/HW/SI_GCAdapter.h"
 #endif
 #include "Core/HW/SystemTimers.h"
+#include "InputCommon/GCPadStatus.h"
 
 // --- standard GameCube controller ---
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNumber)
@@ -78,7 +80,8 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
 
-			Calibrate();
+			if (!m_Calibrated)
+				Calibrate();
 
 			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)

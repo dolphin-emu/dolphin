@@ -9,16 +9,12 @@
 #include <vector>
 #include <wx/bitmap.h>
 #include <wx/brush.h>
-#include <wx/chartype.h>
 #include <wx/colour.h>
 #include <wx/dcmemory.h>
-#include <wx/defs.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/notebook.h>
 #include <wx/pen.h>
 #include <wx/statbmp.h>
-#include <wx/string.h>
 
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"

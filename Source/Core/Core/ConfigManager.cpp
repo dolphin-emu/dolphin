@@ -304,6 +304,9 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	general->Set("WirelessMac", m_WirelessMac);
 
 #ifdef USE_GDBSTUB
+#ifndef _WIN32
+	general->Set("GDBSocket", m_LocalCoreStartupParameter.gdb_socket);
+#endif
 	general->Set("GDBPort", m_LocalCoreStartupParameter.iGDBPort);
 #endif
 }
@@ -429,7 +432,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 
 	gamelist->Set("ColumnPlatform", m_showSystemColumn);
 	gamelist->Set("ColumnBanner", m_showBannerColumn);
-	gamelist->Set("ColumnNotes", m_showNotesColumn);
+	gamelist->Set("ColumnNotes", m_showMakerColumn);
 	gamelist->Set("ColumnID", m_showIDColumn);
 	gamelist->Set("ColumnRegion", m_showRegionColumn);
 	gamelist->Set("ColumnSize", m_showSizeColumn);
@@ -549,6 +552,9 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 	general->Get("ShowLag", &m_ShowLag, false);
 	general->Get("ShowFrameCount", &m_ShowFrameCount, false);
 #ifdef USE_GDBSTUB
+#ifndef _WIN32
+	general->Get("GDBSocket", &m_LocalCoreStartupParameter.gdb_socket, "");
+#endif
 	general->Get("GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
 #endif
 
@@ -742,7 +748,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 	// Gamelist columns toggles
 	gamelist->Get("ColumnPlatform",   &m_showSystemColumn,  true);
 	gamelist->Get("ColumnBanner",     &m_showBannerColumn,  true);
-	gamelist->Get("ColumnNotes",      &m_showNotesColumn,   true);
+	gamelist->Get("ColumnNotes",      &m_showMakerColumn,   true);
 	gamelist->Get("ColumnID",         &m_showIDColumn,      false);
 	gamelist->Get("ColumnRegion",     &m_showRegionColumn,  true);
 	gamelist->Get("ColumnSize",       &m_showSizeColumn,    true);

@@ -2,16 +2,83 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "Common/ColorUtil.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "DiscIO/Volume.h"
 
-// Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
 namespace DiscIO
 {
+
+static const unsigned int WII_BANNER_WIDTH = 192;
+static const unsigned int WII_BANNER_HEIGHT = 64;
+static const unsigned int WII_BANNER_SIZE = WII_BANNER_WIDTH * WII_BANNER_HEIGHT * 2;
+static const unsigned int WII_BANNER_OFFSET = 0xA0;
+
+std::vector<u32> IVolume::GetBanner(int* width, int* height) const
+{
+	*width = 0;
+	*height = 0;
+
+	u64 TitleID = 0;
+	GetTitleID((u8*)&TitleID);
+	TitleID = Common::swap64(TitleID);
+
+	std::string file_name = StringFromFormat("%stitle/%08x/%08x/data/banner.bin",
+		File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID >> 32), (u32)TitleID);
+	if (!File::Exists(file_name))
+		return std::vector<u32>();
+
+	if (File::GetSize(file_name) < WII_BANNER_OFFSET + WII_BANNER_SIZE)
+		return std::vector<u32>();
+
+	File::IOFile file(file_name, "rb");
+	if (!file.Seek(WII_BANNER_OFFSET, SEEK_SET))
+		return std::vector<u32>();
+
+	std::vector<u8> banner_file(WII_BANNER_SIZE);
+	if (!file.ReadBytes(banner_file.data(), banner_file.size()))
+		return std::vector<u32>();
+
+	std::vector<u32> image_buffer(WII_BANNER_WIDTH * WII_BANNER_HEIGHT);
+	ColorUtil::decode5A3image(image_buffer.data(), (u16*)banner_file.data(), WII_BANNER_WIDTH, WII_BANNER_HEIGHT);
+
+	*width = WII_BANNER_WIDTH;
+	*height = WII_BANNER_HEIGHT;
+	return image_buffer;
+}
+
+std::map<IVolume::ELanguage, std::string> IVolume::ReadWiiNames(std::vector<u8>& data)
+{
+	std::map<IVolume::ELanguage, std::string> names;
+	for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i)
+	{
+		size_t name_start = NAME_BYTES_LENGTH * i;
+		size_t name_end = name_start + NAME_BYTES_LENGTH;
+		if (data.size() >= name_end)
+		{
+			u16* temp = (u16*)(data.data() + name_start);
+			std::wstring out_temp(NAME_STRING_LENGTH, '\0');
+			std::transform(temp, temp + out_temp.size(), out_temp.begin(), (u16(&)(u16))Common::swap16);
+			out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
+			std::string name = UTF16ToUTF8(out_temp);
+			if (!name.empty())
+				names[(IVolume::ELanguage)i] = name;
+		}
+	}
+	return names;
+}
+
+// Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
 IVolume::ECountry CountrySwitch(u8 country_code)
 {
 	switch (country_code)
@@ -96,15 +163,6 @@ u8 GetSysMenuRegion(u16 _TitleVersion)
 	default:
 		return 'A';
 	}
-}
-
-std::string IVolume::GetName() const
-{
-	auto names = GetNames();
-	if (names.empty())
-		return "";
-	else
-		return names[0];
 }
 
 }

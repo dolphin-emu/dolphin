@@ -8,15 +8,15 @@
 #include <string>
 #include <vector>
 
-#include <wx/button.h>
-#include <wx/checkbox.h>
 #include <wx/dialog.h>
-#include <wx/sizer.h>
 #include <wx/slider.h>
-#include <wx/stattext.h>
 #include <wx/textctrl.h>
 
 #include "VideoCommon/PostProcessing.h"
+
+class wxButton;
+class wxCheckBox;
+class wxFlexGridSizer;
 
 class PostProcessingConfigDiag : public wxDialog
 {

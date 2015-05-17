@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StdMakeUnique.h"

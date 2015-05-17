@@ -60,7 +60,7 @@ Following this guide and formatting your code as detailed will likely get your p
   - `class SomeClassName`
   - `enum IPCCommandType`
 - All compile time constants should be fully uppercased. With constants that have more than one word in them, use an underscore to separate them.
-  - `const int PI = 3.14159;`
+  - `const double PI = 3.14159;`
   - `const int MAX_PATH = 260;`
 - All variables should be lowercase with underscores separating the individual words in the name.
   - `int this_variable_name;`

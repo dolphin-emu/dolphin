@@ -1,7 +1,4 @@
-set(SRCS	BannerLoader.cpp
-			BannerLoaderGC.cpp
-			BannerLoaderWii.cpp
-			Blob.cpp
+set(SRCS	Blob.cpp
 			CISOBlob.cpp
 			WbfsBlob.cpp
 			CompressedBlob.cpp

@@ -29,8 +29,6 @@
 #include <memory>
 #include <string>
 
-#include "Common/Thread.h"
-
 #include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPEmitter.h"

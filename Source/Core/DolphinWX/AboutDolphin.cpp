@@ -3,18 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <wx/bitmap.h>
-#include <wx/defs.h>
 #include <wx/dialog.h>
-#include <wx/gdicmn.h>
 #include <wx/hyperlink.h>
 #include <wx/image.h>
 #include <wx/mstream.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/windowid.h>
 #include <wx/generic/statbmpg.h>
 
 #ifdef __APPLE__

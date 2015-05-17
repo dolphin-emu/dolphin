@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "Core/DSP/DSPTables.h"
+#include "Core/DSP/DSPCommon.h"
 
 // Extended opcode support.
 // Many opcode have the lower 0xFF (some only 0x7f) free - there, an opcode extension

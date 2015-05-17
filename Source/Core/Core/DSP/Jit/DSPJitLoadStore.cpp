@@ -6,7 +6,9 @@
 
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPIntCCUtil.h"
+#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPMemoryMap.h"
 
 using namespace Gen;
 

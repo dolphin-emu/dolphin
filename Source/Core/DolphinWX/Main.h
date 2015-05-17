@@ -5,10 +5,6 @@
 #pragma once
 
 #include <wx/app.h>
-#include <wx/chartype.h>
-#include <wx/defs.h>
-#include <wx/event.h>
-#include <wx/string.h>
 
 class CFrame;
 class wxLocale;

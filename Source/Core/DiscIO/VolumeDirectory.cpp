@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonPaths.h"
@@ -183,9 +182,22 @@ std::string CVolumeDirectory::GetMakerID() const
 	return "VOID";
 }
 
-std::vector<std::string> CVolumeDirectory::GetNames() const
+std::string CVolumeDirectory::GetName() const
 {
-	return std::vector<std::string>(1, (char*)(&m_diskHeader[0x20]));
+	char name[0x60];
+	if (Read(0x20, 0x60, (u8*)name, false))
+		return DecodeString(name);
+	else
+		return "";
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetNames() const
+{
+	std::map<IVolume::ELanguage, std::string> names;
+	std::string name = GetName();
+	if (!name.empty())
+		names[IVolume::ELanguage::LANGUAGE_UNKNOWN] = name;
+	return names;
 }
 
 void CVolumeDirectory::SetName(const std::string& name)

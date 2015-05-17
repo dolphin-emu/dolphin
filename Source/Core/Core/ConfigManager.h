@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Common/SysConf.h"
-#include "Core/Boot/Boot.h"
+#include "Core/CoreParameter.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/SI_Device.h"
 
@@ -85,7 +85,7 @@ struct SConfig : NonCopyable
 	// Game list column toggles
 	bool m_showSystemColumn;
 	bool m_showBannerColumn;
-	bool m_showNotesColumn;
+	bool m_showMakerColumn;
 	bool m_showIDColumn;
 	bool m_showRegionColumn;
 	bool m_showSizeColumn;
