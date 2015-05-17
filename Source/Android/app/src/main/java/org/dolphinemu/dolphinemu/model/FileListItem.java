@@ -10,11 +10,11 @@ import java.util.Set;
 
 public class FileListItem implements Comparable<FileListItem>
 {
-	public static final int TYPE_GC = 0;
-	public static final int TYPE_WII = 1;
-	public static final int TYPE_WII_WARE = 2;
+	public static final int TYPE_FOLDER = 0;
+	public static final int TYPE_GC = 1;
+	public static final int TYPE_WII = 2;
+	public static final int TYPE_WII_WARE = 3;
 	public static final int TYPE_OTHER = 4;
-	public static final int TYPE_FOLDER = 5;
 
 	private int mType;
 	private String mFilename;
@@ -47,7 +47,8 @@ public class FileListItem implements Comparable<FileListItem>
 				// Check that the file has an extension we care about before trying to read out of it.
 				if (allowedExtensions.contains(fileExtension))
 				{
-					mType = NativeLibrary.GetPlatform(mPath);
+					// Add 1 because 0 = TYPE_FOLDER
+					mType = NativeLibrary.GetPlatform(mPath) + 1;
 				}
 				else
 				{

@@ -14,13 +14,16 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GameDatabase extends SQLiteOpenHelper
+/**
+ * A helper class that provides several utilities simplifying interaction with
+ * the SQLite database.
+ */
+public final class GameDatabase extends SQLiteOpenHelper
 {
+	private static final int DB_VERSION = 1;
 
-	public static final int FOLDER_COLUMN_ID = 0;
-	public static final int FOLDER_COLUMN_PATH = 1;
+	public static final int COLUMN_DB_ID = 0;
 
-	public static final int GAME_COLUMN_ID = 0;
 	public static final int GAME_COLUMN_PATH = 1;
 	public static final int GAME_COLUMN_PLATFORM = 2;
 	public static final int GAME_COLUMN_TITLE = 3;
@@ -30,9 +33,9 @@ public class GameDatabase extends SQLiteOpenHelper
 	public static final int GAME_COLUMN_COMPANY = 7;
 	public static final int GAME_COLUMN_SCREENSHOT_PATH = 8;
 
-	public static final String KEY_DB_ID = "_id";
+	public static final int FOLDER_COLUMN_PATH = 1;
 
-	public static final String KEY_FOLDER_PATH = "path";
+	public static final String KEY_DB_ID = "_id";
 
 	public static final String KEY_GAME_PATH = "path";
 	public static final String KEY_GAME_PLATFORM = "platform";
@@ -43,30 +46,35 @@ public class GameDatabase extends SQLiteOpenHelper
 	public static final String KEY_GAME_COMPANY = "company";
 	public static final String KEY_GAME_SCREENSHOT_PATH = "screenshot_path";
 
-	private static final int DB_VERSION = 1;
+	public static final String KEY_FOLDER_PATH = "path";
 
-	private static final String TABLE_NAME_FOLDERS = "folders";
-	private static final String TABLE_NAME_GAMES = "games";
+	public static final String TABLE_NAME_FOLDERS = "folders";
+	public static final String TABLE_NAME_GAMES = "games";
 
-	private static final String TYPE_INTEGER = " INTEGER, ";
-	private static final String TYPE_STRING = " TEXT, ";
+	private static final String TYPE_PRIMARY = " INTEGER PRIMARY KEY";
+	private static final String TYPE_INTEGER = " INTEGER";
+	private static final String TYPE_STRING = " TEXT";
+
+	private static final String CONSTRAINT_UNIQUE = " UNIQUE";
+
+	private static final String SEPARATOR = ", ";
 
 	private static final String SQL_CREATE_GAMES = "CREATE TABLE " + TABLE_NAME_GAMES + "("
-			+ KEY_DB_ID + " INTEGER PRIMARY KEY, "
-			+ KEY_GAME_PATH + TYPE_STRING
-			+ KEY_GAME_PLATFORM + TYPE_STRING
-			+ KEY_GAME_TITLE + TYPE_STRING
-			+ KEY_GAME_DESCRIPTION + TYPE_STRING
-			+ KEY_GAME_COUNTRY + TYPE_INTEGER
-			+ KEY_GAME_ID + TYPE_STRING
-			+ KEY_GAME_COMPANY + TYPE_STRING
+			+ KEY_DB_ID + TYPE_PRIMARY + SEPARATOR
+			+ KEY_GAME_PATH + TYPE_STRING + SEPARATOR
+			+ KEY_GAME_PLATFORM + TYPE_STRING + SEPARATOR
+			+ KEY_GAME_TITLE + TYPE_STRING + SEPARATOR
+			+ KEY_GAME_DESCRIPTION + TYPE_STRING + SEPARATOR
+			+ KEY_GAME_COUNTRY + TYPE_INTEGER + SEPARATOR
+			+ KEY_GAME_ID + TYPE_STRING + SEPARATOR
+			+ KEY_GAME_COMPANY + TYPE_STRING + SEPARATOR
 			+ KEY_GAME_SCREENSHOT_PATH + TYPE_STRING + ")";
 
 	private static final String SQL_CREATE_FOLDERS = "CREATE TABLE " + TABLE_NAME_FOLDERS + "("
-			+ KEY_DB_ID + " INTEGER PRIMARY KEY, "
-			+ KEY_FOLDER_PATH + TYPE_STRING + ")";
+			+ KEY_DB_ID + TYPE_PRIMARY + SEPARATOR
+			+ KEY_FOLDER_PATH + TYPE_STRING + CONSTRAINT_UNIQUE + ")";
 
-	private static final String SQL_DELETE_GAMES = "DROP TABLE IF EXISTS" + TABLE_NAME_GAMES;
+	private static final String SQL_DELETE_GAMES = "DROP TABLE IF EXISTS " + TABLE_NAME_GAMES;
 
 	public GameDatabase(Context context)
 	{
@@ -89,18 +97,21 @@ public class GameDatabase extends SQLiteOpenHelper
 	@Override
 	public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion)
 	{
-		Log.i("DolphinEmu", "Upgrading database.");
+		Log.i("DolphinEmu", "Upgrading database from schema version " + oldVersion + " to " + newVersion);
 
 		Log.v("DolphinEmu", "Executing SQL: " + SQL_DELETE_GAMES);
 		database.execSQL(SQL_DELETE_GAMES);
 
 		Log.v("DolphinEmu", "Executing SQL: " + SQL_CREATE_GAMES);
 		database.execSQL(SQL_CREATE_GAMES);
+
+		Log.v("DolphinEmu", "Re-scanning library with new schema.");
+		scanLibrary(database);
 	}
 
-	public void scanLibrary()
+	public void scanLibrary(SQLiteDatabase database)
 	{
-		SQLiteDatabase database = getWritableDatabase();
+		// TODO Before scanning known folders, go through the game table and remove any entries for which the file itself is missing.
 
 		// Get a cursor listing all the folders the user has added to the library.
 		Cursor cursor = database.query(TABLE_NAME_FOLDERS,
@@ -119,8 +130,11 @@ public class GameDatabase extends SQLiteOpenHelper
 		// Iterate through all results of the DB query (i.e. all folders in the library.)
 		while (cursor.moveToNext())
 		{
+
 			String folderPath = cursor.getString(FOLDER_COLUMN_PATH);
 			File folder = new File(folderPath);
+
+			Log.i("DolphinEmu", "Reading files from library folder: " + folderPath);
 
 			// Iterate through every file in the folder.
 			File[] children = folder.listFiles();
@@ -146,7 +160,24 @@ public class GameDatabase extends SQLiteOpenHelper
 									NativeLibrary.GetGameId(filePath),
 									NativeLibrary.GetCompany(filePath));
 
-							database.insert(TABLE_NAME_GAMES, null, game);
+							// Try to update an existing game first.
+							int rowsMatched = database.update(TABLE_NAME_GAMES,    // Which table to update.
+									game,                                            // The values to fill the row with.
+									KEY_GAME_ID + " = ?",                            // The WHERE clause used to find the right row.
+									new String[]{game.getAsString(KEY_GAME_ID)});    // The ? in WHERE clause is replaced with this,
+							// which is provided as an array because there
+							// could potentially be more than one argument.
+
+							// If update fails, insert a new game instead.
+							if (rowsMatched == 0)
+							{
+								Log.v("DolphinEmu", "Adding game: " + game.getAsString(KEY_GAME_TITLE));
+								database.insert(TABLE_NAME_GAMES, null, game);
+							}
+							else
+							{
+								Log.v("DolphinEmu", "Updated game: " + game.getAsString(KEY_GAME_TITLE));
+							}
 						}
 					}
 				}

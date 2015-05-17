@@ -14,7 +14,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements View.OnClickListener
+public final class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements View.OnClickListener
 {
 	private ArrayList<FileListItem> mFileList;
 
@@ -146,7 +146,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 		else
 		{
 			// Pass the activity the path of the parent directory of the clicked file.
-			mListener.finishSuccessfully();
+			mListener.addDirectory();
 		}
 	}
 
@@ -154,7 +154,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 	 * For a given directory, return a list of Files it contains.
 	 *
 	 * @param directory A File representing the directory that should have its contents displayed.
-	 * @return
+	 * @return The list of files contained in the directory.
 	 */
 	private ArrayList<FileListItem> generateFileList(File directory)
 	{
@@ -205,7 +205,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> implements
 	 */
 	public interface FileClickListener
 	{
-		void finishSuccessfully();
+		void addDirectory();
 
 		void updateSubtitle(String path);
 	}

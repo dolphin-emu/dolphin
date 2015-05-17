@@ -21,7 +21,7 @@
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
-
+#include "../DiscIO/Volume.h"
 #include "Android/ButtonManager.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -43,7 +43,6 @@
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
-#include "../DiscIO/Volume.h"
 
 ANativeWindow* surf;
 std::string g_filename;
@@ -329,7 +328,8 @@ static u64 GetFileSize(std::string filename)
 	if (pVolume != nullptr)
 	{
 		u64 size = pVolume->GetSize();
-		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %lu", size);
+		// Causes a warning because size is u64, not 'long unsigned'
+		//__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %lu", size);
 
 		return  size;
 	}

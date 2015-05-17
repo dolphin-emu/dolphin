@@ -6,19 +6,26 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.model.Game;
 
-
+/**
+ * A simple class that stores references to views so that the GameAdapter doesn't need to
+ * keep calling findViewById(), which is expensive.
+ */
 public class GameViewHolder extends RecyclerView.ViewHolder
 {
 	public ImageView imageScreenshot;
 	public TextView textGameTitle;
 	public TextView textCompany;
 
-	// Used to handle onClick(). Set this in onBindViewHolder().
+	public String gameId;
+
+	// TODO Not need any of this stuff. Currently only the properties dialog needs it.
 	public String path;
+	public String title;
+	public String description;
+	public int country;
+	public String company;
 	public String screenshotPath;
-	public Game game;
 
 	public GameViewHolder(View itemView)
 	{

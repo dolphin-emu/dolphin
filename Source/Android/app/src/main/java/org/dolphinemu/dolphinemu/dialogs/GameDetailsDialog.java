@@ -17,11 +17,10 @@ import com.squareup.picasso.Picasso;
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
-import org.dolphinemu.dolphinemu.model.Game;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class GameDetailsDialog extends DialogFragment
+public final class GameDetailsDialog extends DialogFragment
 {
 	public static final String ARGUMENT_GAME_TITLE = BuildConfig.APPLICATION_ID + ".game_title";
 	public static final String ARGUMENT_GAME_DESCRIPTION = BuildConfig.APPLICATION_ID + ".game_description";
@@ -30,18 +29,18 @@ public class GameDetailsDialog extends DialogFragment
 	public static final String ARGUMENT_GAME_PATH = BuildConfig.APPLICATION_ID + ".game_path";
 	public static final String ARGUMENT_GAME_SCREENSHOT_PATH = BuildConfig.APPLICATION_ID + ".game_screenshot_path";
 
-
-	public static GameDetailsDialog newInstance(Game game)
+	// TODO Add all of this to the Loader in GameActivity.java
+	public static GameDetailsDialog newInstance(String title, String description, int country, String company, String path, String screenshotPath)
 	{
 		GameDetailsDialog fragment = new GameDetailsDialog();
 
 		Bundle arguments = new Bundle();
-		arguments.putString(ARGUMENT_GAME_TITLE, game.getTitle());
-		arguments.putString(ARGUMENT_GAME_DESCRIPTION, game.getDescription());
-		arguments.putInt(ARGUMENT_GAME_COUNTRY, game.getCountry());
-		arguments.putString(ARGUMENT_GAME_DATE, game.getCompany());
-		arguments.putString(ARGUMENT_GAME_PATH, game.getPath());
-		arguments.putString(ARGUMENT_GAME_SCREENSHOT_PATH, game.getScreenPath());
+		arguments.putString(ARGUMENT_GAME_TITLE, title);
+		arguments.putString(ARGUMENT_GAME_DESCRIPTION, description);
+		arguments.putInt(ARGUMENT_GAME_COUNTRY, country);
+		arguments.putString(ARGUMENT_GAME_DATE, company);
+		arguments.putString(ARGUMENT_GAME_PATH, path);
+		arguments.putString(ARGUMENT_GAME_SCREENSHOT_PATH, screenshotPath);
 		fragment.setArguments(arguments);
 
 		return fragment;

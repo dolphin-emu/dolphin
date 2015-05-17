@@ -1,10 +1,11 @@
 package org.dolphinemu.dolphinemu.model;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
 import java.io.File;
 
-public class Game
+public final class Game
 {
 	public static final int PLATFORM_GC = 0;
 	public static final int PLATFORM_WII = 1;
@@ -112,6 +113,22 @@ public class Game
 	{
 		ContentValues values = new ContentValues();
 
+		// TODO Come up with a way of finding the most recent screenshot that doesn't involve counting files
+		String screenshotFolderPath = PATH_SCREENSHOT_FOLDER + gameId + "/";
+
+		// Count how many screenshots are available, so we can use the most recent one.
+		File screenshotFolder = new File(screenshotFolderPath.substring(screenshotFolderPath.indexOf('s') - 1));
+		int screenCount = 0;
+
+		if (screenshotFolder.isDirectory())
+		{
+			screenCount = screenshotFolder.list().length;
+		}
+
+		String screenPath = screenshotFolderPath
+				+ gameId + "-"
+				+ screenCount + ".png";
+
 		values.put(GameDatabase.KEY_GAME_PLATFORM, platform);
 		values.put(GameDatabase.KEY_GAME_TITLE, title);
 		values.put(GameDatabase.KEY_GAME_DESCRIPTION, description);
@@ -119,7 +136,19 @@ public class Game
 		values.put(GameDatabase.KEY_GAME_PATH, path);
 		values.put(GameDatabase.KEY_GAME_ID, gameId);
 		values.put(GameDatabase.KEY_GAME_COMPANY, company);
+		values.put(GameDatabase.KEY_GAME_SCREENSHOT_PATH, screenPath);
 
 		return values;
+	}
+
+	public static Game fromCursor(Cursor cursor)
+	{
+		return new Game(cursor.getInt(GameDatabase.GAME_COLUMN_PLATFORM),
+				cursor.getString(GameDatabase.GAME_COLUMN_TITLE),
+				cursor.getString(GameDatabase.GAME_COLUMN_DESCRIPTION),
+				cursor.getInt(GameDatabase.GAME_COLUMN_COUNTRY),
+				cursor.getString(GameDatabase.GAME_COLUMN_PATH),
+				cursor.getString(GameDatabase.GAME_COLUMN_GAME_ID),
+				cursor.getString(GameDatabase.GAME_COLUMN_COMPANY));
 	}
 }
