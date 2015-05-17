@@ -184,6 +184,39 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 			break;
 		}
 	}
+	else if (cpu_info.bFMA4 && !Core::g_want_determinism)
+	{
+		fpr.BindToRegister(b, true, false);
+		switch (inst.SUBOP5)
+		{
+		case 28: //msub
+			if (packed)
+				VFMSUBPD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			else
+				VFMSUBSD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			break;
+		case 14: //madds0
+		case 15: //madds1
+		case 29: //madd
+			if (packed)
+				VFMADDPD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			else
+				VFMADDSD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			break;
+		case 30: //nmsub
+			if (packed)
+				VFNMADDPD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			else
+				VFNMADDSD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			break;
+		case 31: //nmadd
+			if (packed)
+				VFNMSUBPD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			else
+				VFNMSUBSD(XMM1, XMM1, fpr.R(a), fpr.RX(b));
+			break;
+		}
+	}
 	else if (inst.SUBOP5 == 30) //nmsub
 	{
 		// We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately.
