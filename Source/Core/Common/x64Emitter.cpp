@@ -164,7 +164,7 @@ void OpArg::WriteREX(XEmitter *emit, int opBits, int bits, int customOp) const
 	}
 }
 
-void OpArg::WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W) const
+void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W) const
 {
 	int R = !(regOp1 & 8);
 	int X = !(indexReg & 8);
@@ -1412,7 +1412,7 @@ void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpA
 	int mmmmm = GetVEXmmmmm(op);
 	int pp = GetVEXpp(opPrefix);
 	// FIXME: we currently don't support 256-bit instructions, and "size" is not the vector size here
-	arg.WriteVex(this, regOp1, regOp2, 0, pp, mmmmm, W);
+	arg.WriteVEX(this, regOp1, regOp2, 0, pp, mmmmm, W);
 	Write8(op & 0xFF);
 	arg.WriteRest(this, extrabytes, regOp1);
 }
@@ -1424,7 +1424,7 @@ void XEmitter::WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg r
 		PanicAlert("VEX GPR instructions only support 32-bit and 64-bit modes!");
 	int mmmmm = GetVEXmmmmm(op);
 	int pp = GetVEXpp(opPrefix);
-	arg.WriteVex(this, regOp1, regOp2, 0, pp, mmmmm, size == 64);
+	arg.WriteVEX(this, regOp1, regOp2, 0, pp, mmmmm, size == 64);
 	Write8(op & 0xFF);
 	arg.WriteRest(this, extrabytes, regOp1);
 }
