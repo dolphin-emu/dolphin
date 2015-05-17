@@ -1,5 +1,5 @@
 // Copyright 2014 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // This is a test program for running code on the Wii DSP, with full control over input

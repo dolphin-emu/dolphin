@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // This function is contained in a separate file because WbemIdl.h pulls in files which break on

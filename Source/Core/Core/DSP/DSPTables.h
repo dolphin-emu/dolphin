@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)

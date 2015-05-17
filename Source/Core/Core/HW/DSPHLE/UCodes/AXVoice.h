@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // This file is UGLY (full of #ifdef) so that it can be used with both GC and

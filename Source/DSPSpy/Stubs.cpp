@@ -1,5 +1,5 @@
 // Copyright 2003 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // Stubs to make DSPCore compile as part of DSPSpy.

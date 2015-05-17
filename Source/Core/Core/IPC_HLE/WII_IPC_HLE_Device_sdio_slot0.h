@@ -1,5 +1,5 @@
 // Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2
+// Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 // PRELIMINARY - seems to fully work with libogc, writing has yet to be tested
