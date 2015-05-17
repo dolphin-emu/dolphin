@@ -1045,4 +1045,43 @@ FMA3_TEST(VFNMSUB, S, false)
 FMA3_TEST(VFMADDSUB, P, true)
 FMA3_TEST(VFMSUBADD, P, true)
 
+// for VEX instructions that take the form op reg, reg, r/m, reg OR reg, reg, reg, r/m
+#define VEX_RRMR_RRRM_TEST(Name, sizename) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string out_name; \
+			std::string size; \
+		} regsets[] = { \
+			{ 64, xmmnames, "xmm0", sizename }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+			{ \
+				emitter->Name(r.reg, XMM0, R(XMM0), r.reg); \
+				emitter->Name(XMM0, XMM0, r.reg, MatR(R12)); \
+				emitter->Name(XMM0, r.reg, MatR(R12), XMM0); \
+				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name + ", " + regset.out_name  + ", " + r.name + " " \
+				                  #Name " " + regset.out_name + ", " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12] " \
+				                  #Name " " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12], " + regset.out_name); \
+			} \
+	}
+
+#define FMA4_TEST(Name, P, packed) \
+	VEX_RRMR_RRRM_TEST(Name ## P ## S, packed ? "dqword" : "dword") \
+	VEX_RRMR_RRRM_TEST(Name ## P ## D, packed ? "dqword" : "qword")
+
+FMA4_TEST(VFMADD, P, true)
+FMA4_TEST(VFMADD, S, false)
+FMA4_TEST(VFMSUB, P, true)
+FMA4_TEST(VFMSUB, S, false)
+FMA4_TEST(VFNMADD, P, true)
+FMA4_TEST(VFNMADD, S, false)
+FMA4_TEST(VFNMSUB, P, true)
+FMA4_TEST(VFNMSUB, S, false)
+FMA4_TEST(VFMADDSUB, P, true)
+FMA4_TEST(VFMSUBADD, P, true)
+
 }  // namespace Gen
