@@ -145,8 +145,8 @@ struct OpArg
 		return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
 		       indexReg == b.indexReg && offset == b.offset;
 	}
-	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
-	void WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
+	void WriteREX(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
+	void WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
 	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
@@ -313,9 +313,12 @@ private:
 	void WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSSE3Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
-	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int W = 0, int extrabytes = 0);
+	void WriteVEXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int W = 0, int extrabytes = 0);
+	void WriteVEXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, X64Reg regOp3, int W = 0);
 	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int W = 0, int extrabytes = 0);
-	void WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteAVXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, X64Reg regOp3, int W = 0);
+	void WriteFMA3Op(u8 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int W = 0);
+	void WriteBMIOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteMOVBE(int bits, u8 op, X64Reg regOp, OpArg arg);
@@ -801,9 +804,11 @@ public:
 	void VMULPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VDIVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VCMPPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 compare);
 	void VSHUFPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 shuffle);
 	void VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VBLENDVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, X64Reg mask);
 
 	void VANDPS(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VANDPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);

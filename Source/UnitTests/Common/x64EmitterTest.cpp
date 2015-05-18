@@ -1026,7 +1026,7 @@ AVX_RRM_TEST(VPANDN,  "dqword")
 AVX_RRM_TEST(VPOR,    "dqword")
 AVX_RRM_TEST(VPXOR,   "dqword")
 
-#define FMA_TEST(Name, P, packed) \
+#define FMA3_TEST(Name, P, packed) \
 	AVX_RRM_TEST(Name ## 132 ## P ## S, packed ? "dqword" : "dword") \
 	AVX_RRM_TEST(Name ## 213 ## P ## S, packed ? "dqword" : "dword") \
 	AVX_RRM_TEST(Name ## 231 ## P ## S, packed ? "dqword" : "dword") \
@@ -1034,15 +1034,15 @@ AVX_RRM_TEST(VPXOR,   "dqword")
 	AVX_RRM_TEST(Name ## 213 ## P ## D, packed ? "dqword" : "qword") \
 	AVX_RRM_TEST(Name ## 231 ## P ## D, packed ? "dqword" : "qword")
 
-FMA_TEST(VFMADD, P, true)
-FMA_TEST(VFMADD, S, false)
-FMA_TEST(VFMSUB, P, true)
-FMA_TEST(VFMSUB, S, false)
-FMA_TEST(VFNMADD, P, true)
-FMA_TEST(VFNMADD, S, false)
-FMA_TEST(VFNMSUB, P, true)
-FMA_TEST(VFNMSUB, S, false)
-FMA_TEST(VFMADDSUB, P, true)
-FMA_TEST(VFMSUBADD, P, true)
+FMA3_TEST(VFMADD, P, true)
+FMA3_TEST(VFMADD, S, false)
+FMA3_TEST(VFMSUB, P, true)
+FMA3_TEST(VFMSUB, S, false)
+FMA3_TEST(VFNMADD, P, true)
+FMA3_TEST(VFNMADD, S, false)
+FMA3_TEST(VFNMSUB, P, true)
+FMA3_TEST(VFNMSUB, S, false)
+FMA3_TEST(VFMADDSUB, P, true)
+FMA3_TEST(VFMSUBADD, P, true)
 
 }  // namespace Gen
