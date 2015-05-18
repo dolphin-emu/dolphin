@@ -468,6 +468,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
 	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object");
+	g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -486,7 +487,6 @@ Renderer::Renderer()
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
-	g_ogl_config.bSupportsGLClipControl = GLExtensions::Supports("GL_ARB_clip_control");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
@@ -598,7 +598,7 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
 			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
-			g_ogl_config.bSupportsGLClipControl ? "" : "ClipControl "
+			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl "
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
@@ -635,6 +635,8 @@ Renderer::Renderer()
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
+	if (g_ActiveConfig.backend_info.bSupportsClipControl)
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepthf(1.0f);
@@ -646,8 +648,6 @@ Renderer::Renderer()
 	glDisable(GL_STENCIL_TEST);
 	glEnable(GL_SCISSOR_TEST);
 
-	if (g_ogl_config.bSupportsGLClipControl)
-		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepthf(1.0f);

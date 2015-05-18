@@ -25,7 +25,6 @@ struct VideoConfig
 	bool bSupportsGLSync;
 	bool bSupportsGLBaseVertex;
 	bool bSupportsGLBufferStorage;
-	bool bSupportsGLClipControl;
 	bool bSupportsMSAA;
 	bool bSupportSampleShading;
 	GLSL_VERSION eSupportedGLSLVersion;
