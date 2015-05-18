@@ -20,11 +20,8 @@ void Jit(u32 em_address)
 
 u32 Helper_Mask(u8 mb, u8 me)
 {
-	return (((mb > me) ?
-		~(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1)))
-		:
-		(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1))))
-		);
+	u32 mask = ((u32)-1 >> mb) ^ (me >= 31 ? 0 : (u32)-1 >> (me + 1));
+	return mb > me ? ~mask : mask;
 }
 
 void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b)
@@ -45,11 +42,7 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 	while ((u8*)disasmPtr < end)
 	{
 		char sptr[1000] = "";
-#if _ARCH_64
 		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-#else
-		disasmPtr += x64disasm.disasm32(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-#endif
 		DEBUG_LOG(DYNA_REC,"IR_X86 x86: %s", sptr);
 	}
 
