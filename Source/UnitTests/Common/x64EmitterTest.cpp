@@ -101,6 +101,11 @@ protected:
 		disasm->set_syntax_intel();
 	}
 
+	void TearDown() override
+	{
+		cpu_info = CPUInfo();
+	}
+
 	void ExpectDisassembly(const std::string& expected)
 	{
 		std::string disasmed;
