@@ -480,12 +480,13 @@ Renderer::Renderer()
 	                                     GLExtensions::Supports("GL_EXT_draw_elements_base_vertex") ||
 	                                     GLExtensions::Supports("GL_OES_draw_elements_base_vertex");
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage") ||
-	                                        GLExtensions::Supports("GL_EXT_buffer_storage");;
+	                                        GLExtensions::Supports("GL_EXT_buffer_storage");
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 	g_ogl_config.bSupportsDebug = GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
+	g_ogl_config.bSupportsGLClipControl = GLExtensions::Supports("GL_ARB_clip_control");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
@@ -585,7 +586,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -596,7 +597,8 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
-			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing "
+			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
+			g_ogl_config.bSupportsGLClipControl ? "" : "ClipControl "
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
@@ -644,6 +646,8 @@ Renderer::Renderer()
 	glDisable(GL_STENCIL_TEST);
 	glEnable(GL_SCISSOR_TEST);
 
+	if (g_ogl_config.bSupportsGLClipControl)
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepthf(1.0f);

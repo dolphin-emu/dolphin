@@ -199,6 +199,9 @@
     <ClInclude Include="GLInterface\WGL.h">
       <Filter>GLInterface</Filter>
     </ClInclude>
+    <ClInclude Include="GLExtensions\ARB_clip_control.h">
+      <Filter>GLExtensions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -8,6 +8,7 @@
 
 #include "VideoBackends/OGL/GLExtensions/ARB_blend_func_extended.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_buffer_storage.h"
+#include "VideoBackends/OGL/GLExtensions/ARB_clip_control.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_debug_output.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_draw_elements_base_vertex.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_ES2_compatibility.h"
