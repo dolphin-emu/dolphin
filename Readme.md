@@ -56,18 +56,22 @@ Gradle task `assembleDebug` to build, or `installDebug` to install the UI onto a
 
 In order to launch the app, you must build and include the native Dolphin libraries into the UI project.
 Building native code requires the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html).
+Android Studio will do this for you if you create `Source/Android/build.properties`, and place the
+following inside:
 
-### Build Steps:
-1. `mkdir Build-Android-<abi>`
-2. `cd Build-Android-<abi>`
-3. `cmake -DANDROID=True -DANDROID_NDK=<ndk-path> -DANDROID_NATIVE_API_LEVEL=android-18 -DANDROID_TOOLCHAIN_NAME=<toolchain> -DANDROID_ABI=<abi> -DCMAKE_TOOLCHAIN_FILE=../Source/Android/android.toolchain.cmake -DGIT_EXECUTABLE=<git-path> ..`
-4. `make`
+```
+gitPath=<git-path>
+ndkPath=<ndk-path>
+toolchain=<toolchain>
+abi=<abi>
+makeArgs=<make-args>
+```
 
-Replace `<git-path>` with the absolute path to your machine's Git executable, <ndk-path> with the absolute
-path to where you installed your NDK, and the rest depending on which platform the Android device you are
-targeting uses:
+Replace `<git-path>` with the absolute path to your machine's Git executable, `<ndk-path>` with the absolute
+path to where you installed your NDK, `<make-args>` with any arguments you want to pass to `make`, and the 
+rest depending on which platform the Android device you are targeting uses:
 
-|Platform                 | abi         | toolchain                 |
+|Platform                 | `<abi>`     | `<toolchain>`             |
 |-------------------------|-------------|---------------------------|
 |ARM 32-bit (most devices)| armeabi-v7a | arm-linux-androideabi-4.9 |
 |ARM 64-bit (i.e. Nexus 9)| arm64-v8a   | aarch64-linux-android-4.9 |

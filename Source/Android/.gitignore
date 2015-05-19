@@ -40,3 +40,4 @@ gradle/
 build/
 *.so
 *.iml
+build.properties
