@@ -55,21 +55,18 @@ the Android UI. Import the Gradle project located in `./Source/Android`, and the
 Gradle task `assembleDebug` to build, or `installDebug` to install the UI onto a connected device.
 
 In order to launch the app, you must build and include the native Dolphin libraries into the UI project.
-Building native code requires the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html).
+(Building native code requires the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html).)
 Android Studio will do this for you if you create `Source/Android/build.properties`, and place the
 following inside:
 
 ```
-gitPath=<git-path>
-ndkPath=<ndk-path>
 toolchain=<toolchain>
 abi=<abi>
 makeArgs=<make-args>
 ```
 
-Replace `<git-path>` with the absolute path to your machine's Git executable, `<ndk-path>` with the absolute
-path to where you installed your NDK, `<make-args>` with any arguments you want to pass to `make`, and the 
-rest depending on which platform the Android device you are targeting uses:
+Replace `<make-args>` with any arguments you want to pass to `make`, and the rest depending on which
+platform the Android device you are targeting uses:
 
 |Platform                 | `<abi>`     | `<toolchain>`             |
 |-------------------------|-------------|---------------------------|
