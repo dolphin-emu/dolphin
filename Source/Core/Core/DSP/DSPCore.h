@@ -6,6 +6,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <memory>
 #include <string>
 
@@ -238,7 +239,7 @@ struct SDSP
 	u64 step_counter;
 
 	// Mailbox.
-	volatile u32 mbox[2];
+	std::atomic<u32> mbox[2];
 
 	// Accelerator / DMA / other hardware registers. Not GPRs.
 	u16 ifx_regs[256];
