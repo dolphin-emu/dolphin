@@ -170,7 +170,7 @@ void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp
 	int X = !(indexReg & 8);
 	int B = !(offsetOrBaseReg & 8);
 
-	int vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
+	int vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : ((regOp2 & 0xf) ^ 0xf);
 
 	// do we need any VEX fields that only appear in the three-byte form?
 	if (X == 1 && B == 1 && W == 0 && mmmmm == 1)
@@ -1404,8 +1404,8 @@ void XEmitter::WriteVEXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, con
 {
 	int mmmmm = GetVEXmmmmm(op);
 	int pp = GetVEXpp(opPrefix);
-	// FIXME: we currently don't support 256-bit instructions, and "size" is not the vector size here
-	arg.WriteVEX(this, regOp1, regOp2, 0, pp, mmmmm, W);
+	int L = !!((regOp1 | regOp2 | (arg.IsSimpleReg() ? arg.GetSimpleReg() : 0)) & 0x80);
+	arg.WriteVEX(this, regOp1, regOp2, L, pp, mmmmm, W);
 	Write8(op & 0xFF);
 	arg.WriteRest(this, extrabytes, regOp1);
 }
@@ -1413,7 +1413,10 @@ void XEmitter::WriteVEXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, con
 void XEmitter::WriteVEXOp4(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg, X64Reg regOp3, int W)
 {
 	WriteVEXOp(opPrefix, op, regOp1, regOp2, arg, W, 1);
-	Write8((u8)regOp3 << 4);
+	// NOTE: We ignore the YMM flag in this register.
+	// This doesn't matter for any instruction yet,
+	// but we shouldn't rely on it.
+	Write8((regOp3 & 0xF) << 4);
 }
 
 void XEmitter::WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg, int W, int extrabytes)
