@@ -105,6 +105,7 @@ struct hid_device_ {
 	int blocking;
 	int uses_numbered_reports;
 	int disconnected;
+	int ext_wakeup;
 	CFStringRef run_loop_mode;
 	CFRunLoopRef run_loop;
 	CFRunLoopSourceRef source;
@@ -127,6 +128,7 @@ static hid_device *new_hid_device(void)
 	dev->blocking = 1;
 	dev->uses_numbered_reports = 0;
 	dev->disconnected = 0;
+	dev->ext_wakeup = 0;
 	dev->run_loop_mode = NULL;
 	dev->run_loop = NULL;
 	dev->source = NULL;
@@ -826,7 +828,7 @@ static int cond_wait(const hid_device *dev, pthread_cond_t *cond, pthread_mutex_
 		   to sleep. See the pthread_cond_timedwait() man page for
 		   details. */
 
-		if (dev->shutdown_thread || dev->disconnected)
+		if (dev->shutdown_thread || dev->disconnected || dev->ext_wakeup)
 			return -1;
 	}
 
@@ -888,9 +890,13 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 		/* Blocking */
 		int res;
 		res = cond_wait(dev, &dev->condition, &dev->mutex);
-		if (res == 0)
-			bytes_read = return_data(dev, data, length);
-		else {
+		if (res == 0) {
+			if (dev->ext_wakeup) {
+				dev->ext_wakeup = 0;
+				bytes_read = 0;
+			} else
+				bytes_read = return_data(dev, data, length);
+		} else {
 			/* There was an error, or a device disconnection. */
 			bytes_read = -1;
 		}
@@ -1042,8 +1048,13 @@ HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 	return NULL;
 }
 
-
-
+void HID_API_EXPORT HID_API_CALL hid_wakeup(hid_device *dev)
+{
+	pthread_mutex_lock(&dev->mutex);
+	dev->ext_wakeup = 1;
+	pthread_cond_signal(&dev->condition);
+	pthread_mutex_unlock(&dev->mutex);
+}
 
 
 

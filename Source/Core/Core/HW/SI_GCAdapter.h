@@ -12,8 +12,6 @@ namespace SI_GCAdapter
 {
 
 void Init();
-void Reset();
-void Setup();
 void Shutdown();
 void SetAdapterCallback(std::function<void(void)> func);
 void Input(int chan, GCPadStatus* pad);

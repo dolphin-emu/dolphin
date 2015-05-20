@@ -51,7 +51,7 @@
 
 #include "hidapi.h"
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__APPLE__)
 
 /* Barrier implementation because Android/Bionic don't have pthread_barrier.
    This implementation came from Brent Priddy and was posted on
@@ -167,6 +167,7 @@ struct hid_device_ {
 	pthread_mutex_t mutex; /* Protects input_reports */
 	pthread_cond_t condition;
 	pthread_barrier_t barrier; /* Ensures correct startup sequence */
+	int ext_wakeup;
 	int shutdown_thread;
 	int cancelled;
 	struct libusb_transfer *transfer;
@@ -1103,8 +1104,12 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 
 	if (milliseconds == -1) {
 		/* Blocking */
-		while (!dev->input_reports && !dev->shutdown_thread) {
+		while (!dev->input_reports && !dev->shutdown_thread && !dev->ext_wakeup) {
 			pthread_cond_wait(&dev->condition, &dev->mutex);
+		}
+		if (dev->ext_wakeup) {
+			bytes_read = 0;
+			dev->ext_wakeup = 0;
 		}
 		if (dev->input_reports) {
 			bytes_read = return_data(dev, data, length);
@@ -1114,7 +1119,14 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 		/* Non-blocking, but called with timeout. */
 		int res;
 		struct timespec ts;
+#ifdef __APPLE__
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		ts.tv_sec = tv.tv_sec;
+		ts.tv_nsec = tv.tv_usec * 1000;
+#else
 		clock_gettime(CLOCK_REALTIME, &ts);
+#endif
 		ts.tv_sec += milliseconds / 1000;
 		ts.tv_nsec += (milliseconds % 1000) * 1000000;
 		if (ts.tv_nsec >= 1000000000L) {
@@ -1301,6 +1313,13 @@ HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 	return NULL;
 }
 
+void HID_API_EXPORT HID_API_CALL hid_wakeup(hid_device *dev)
+{
+	pthread_mutex_lock(&dev->mutex);
+	dev->ext_wakeup = 1;
+	pthread_cond_signal(&dev->condition);
+	pthread_mutex_unlock(&dev->mutex);
+}
 
 struct lang_map_entry {
 	const char *name;

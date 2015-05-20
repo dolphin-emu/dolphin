@@ -686,21 +686,24 @@ int HID_API_EXPORT HID_API_CALL hid_read_timeout(hid_device *dev, unsigned char 
 		}
 	}
 
-	if (milliseconds >= 0) {
-		/* See if there is any data yet. */
-		res = WaitForSingleObject(ev, milliseconds);
-		if (res != WAIT_OBJECT_0) {
-			/* There was no data this time. Return zero bytes available,
-			   but leave the Overlapped I/O running. */
-			return 0;
-		}
+	/* See if there is any data yet. */
+	res = WaitForSingleObject(ev, milliseconds);
+	if (res != WAIT_OBJECT_0) {
+		/* There was no data this time. Return zero bytes available,
+		   but leave the Overlapped I/O running. */
+		return 0;
 	}
 
-	/* Either WaitForSingleObject() told us that ReadFile has completed, or
-	   we are in non-blocking mode. Get the number of bytes read. The actual
-	   data has been copied to the data[] array which was passed to ReadFile(). */
-	res = GetOverlappedResult(dev->device_handle, &dev->ol, &bytes_read, TRUE/*wait*/);
-	
+	/* ReadFile might have completed - or it might not, if hid_wakeup was
+	   called (both can be true).  Check the former and get the number of bytes
+	   read. The actual data has been copied to the data[] array which was
+	   passed to ReadFile().
+	   */
+	res = GetOverlappedResult(dev->device_handle, &dev->ol, &bytes_read, FALSE/*wait*/);
+
+	if (res == ERROR_IO_PENDING)
+		return 0;
+
 	/* Set pending back to false, even if GetOverlappedResult() returned error. */
 	dev->read_pending = FALSE;
 
@@ -865,6 +868,11 @@ int HID_API_EXPORT_CALL HID_API_CALL hid_get_indexed_string(hid_device *dev, int
 HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 {
 	return (wchar_t*)dev->last_error_str;
+}
+
+void HID_API_EXPORT HID_API_CALL hid_wakeup(hid_device *dev)
+{
+	SetEvent(dev->ol.hEvent);
 }
 
 

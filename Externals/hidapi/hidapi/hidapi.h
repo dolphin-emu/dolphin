@@ -383,6 +383,17 @@ extern "C" {
 		*/
 		HID_API_EXPORT const wchar_t* HID_API_CALL hid_error(hid_device *device);
 
+		/** @brief Wake up a thread blocking in hid_read.
+
+			@ingroup API
+			@param device A device handle returned from hid_open().
+
+			@returns
+				This function returns a string containing the last error
+				which occurred or NULL if none has occurred.
+		*/
+		void HID_API_EXPORT HID_API_CALL hid_wakeup(hid_device *device);
+
 #ifdef __cplusplus
 }
 #endif

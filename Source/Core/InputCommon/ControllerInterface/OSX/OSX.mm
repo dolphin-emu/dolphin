@@ -173,6 +173,7 @@ static void DeviceMatching_callback(void* inContext,
 
 void Init(std::vector<Core::Device*>& devices, void *window)
 {
+	return;
 	HIDManager = IOHIDManagerCreate(kCFAllocatorDefault,
 		kIOHIDOptionsTypeNone);
 	if (!HIDManager)

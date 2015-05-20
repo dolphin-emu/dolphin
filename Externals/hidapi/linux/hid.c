@@ -73,6 +73,7 @@ enum device_string_id {
 
 struct hid_device_ {
 	int device_handle;
+	int ext_wakeup_handle;
 	int blocking;
 	int uses_numbered_reports;
 };
@@ -677,43 +678,50 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 {
 	int bytes_read;
 
-	if (milliseconds >= 0) {
-		/* Milliseconds is either 0 (non-blocking) or > 0 (contains
-		   a valid timeout). In both cases we want to call poll()
-		   and wait for data to arrive.  Don't rely on non-blocking
-		   operation (O_NONBLOCK) since some kernels don't seem to
-		   properly report device disconnection through read() when
-		   in non-blocking mode.  */
-		int ret;
-		struct pollfd fds;
+	/* Always call poll() so that hid_wakeup works.
+	   Don't rely on non-blocking operation (O_NONBLOCK) since some kernels
+	   don't seem to properly report device disconnection through read() when
+	   in non-blocking mode.  */
+	int ret;
+	struct pollfd fds[2];
 
-		fds.fd = dev->device_handle;
-		fds.events = POLLIN;
-		fds.revents = 0;
-		ret = poll(&fds, 1, milliseconds);
-		if (ret == -1 || ret == 0) {
-			/* Error or timeout */
-			return ret;
-		}
-		else {
-			/* Check for errors on the file descriptor. This will
-			   indicate a device disconnection. */
-			if (fds.revents & (POLLERR | POLLHUP | POLLNVAL))
-				return -1;
-		}
+	fds[0].fd = dev->device_handle;
+	fds[0].events = POLLIN;
+	fds[0].revents = 0;
+	fds[1].fd = dev->ext_wakeup_handle;
+	fds[1].events = POLLIN;
+	fds[1].revents = 0;
+	ret = poll(&fds, 1, milliseconds);
+	if (ret == -1 || ret == 0) {
+		/* Error or timeout */
+		return ret;
 	}
 
-	bytes_read = read(dev->device_handle, data, length);
-	if (bytes_read < 0 && (errno == EAGAIN || errno == EINPROGRESS))
-		bytes_read = 0;
+	/* Check for errors on the file descriptor. This will
+	   indicate a device disconnection. */
+	if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
+		return -1;
 
-	if (bytes_read >= 0 &&
-	    kernel_version != 0 &&
-	    kernel_version < KERNEL_VERSION(2,6,34) &&
-	    dev->uses_numbered_reports) {
-		/* Work around a kernel bug. Chop off the first byte. */
-		memmove(data, data+1, bytes_read);
-		bytes_read--;
+	if (fds[1].revents & POLLIN) {
+		/* External wakeup */
+		char c;
+		read(dev->ext_wakeup_handle, &c, 1);
+		bytes_read = 0;
+	}
+
+	if (fds[0].revents & POLLIN) {
+		bytes_read = read(dev->device_handle, data, length);
+		if (bytes_read < 0 && (errno == EAGAIN || errno == EINPROGRESS))
+			bytes_read = 0;
+
+		if (bytes_read >= 0 &&
+			kernel_version != 0 &&
+			kernel_version < KERNEL_VERSION(2,6,34) &&
+			dev->uses_numbered_reports) {
+			/* Work around a kernel bug. Chop off the first byte. */
+			memmove(data, data+1, bytes_read);
+			bytes_read--;
+		}
 	}
 
 	return bytes_read;
@@ -792,4 +800,10 @@ int HID_API_EXPORT_CALL hid_get_indexed_string(hid_device *dev, int string_index
 HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 {
 	return NULL;
+}
+
+void HID_API_EXPORT HID_API_CALL hid_wakeup(hid_device *dev)
+{
+	char c = '!';
+	write(dev->ext_wakeup_handle, &c, 1);
 }
