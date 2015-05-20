@@ -175,14 +175,14 @@ void OpArg::WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp
 	// do we need any VEX fields that only appear in the three-byte form?
 	if (X == 1 && B == 1 && W == 0 && mmmmm == 1)
 	{
-		u8 RvvvvLpp = (R << 7) | (vvvv << 3) | (L << 1) | pp;
+		u8 RvvvvLpp = (R << 7) | (vvvv << 3) | (L << 2) | pp;
 		emit->Write8(0xC5);
 		emit->Write8(RvvvvLpp);
 	}
 	else
 	{
 		u8 RXBmmmmm = (R << 7) | (X << 6) | (B << 5) | mmmmm;
-		u8 WvvvvLpp = (W << 7) | (vvvv << 3) | (L << 1) | pp;
+		u8 WvvvvLpp = (W << 7) | (vvvv << 3) | (L << 2) | pp;
 		emit->Write8(0xC4);
 		emit->Write8(RXBmmmmm);
 		emit->Write8(WvvvvLpp);
