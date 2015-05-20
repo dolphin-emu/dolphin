@@ -16,8 +16,6 @@ void Reset();
 void Setup();
 void Shutdown();
 void SetAdapterCallback(std::function<void(void)> func);
-void StartScanThread();
-void StopScanThread();
 void Input(int chan, GCPadStatus* pad);
 void Output(int chan, u8 rumble_command);
 bool IsDetected();

@@ -41,7 +41,6 @@ static std::thread s_adapter_thread;
 static Common::Flag s_adapter_thread_running;
 
 static std::thread s_adapter_detect_thread;
-static Common::Flag s_adapter_detect_thread_running;
 
 static std::function<void(void)> s_detect_callback;
 
@@ -99,11 +98,11 @@ static void ScanThreadFunc()
 			NOTICE_LOG(SERIALINTERFACE, "Using libUSB hotplug detection");
 	}
 
-	while (s_adapter_detect_thread_running.IsSet())
+	while (1)
 	{
 		if (s_libusb_hotplug_enabled)
 		{
-			static timeval tv = {0, 500000};
+			static timeval tv = {10000, 0};
 			libusb_handle_events_timeout(s_libusb_context, &tv);
 		}
 		else
@@ -149,21 +148,7 @@ void Init()
 	}
 	else
 	{
-		StartScanThread();
-	}
-}
-
-void StartScanThread()
-{
-	s_adapter_detect_thread_running.Set(true);
-	s_adapter_detect_thread = std::thread(ScanThreadFunc);
-}
-
-void StopScanThread()
-{
-	if (s_adapter_detect_thread_running.TestAndClear())
-	{
-		s_adapter_detect_thread.join();
+		s_adapter_detect_thread = std::thread(ScanThreadFunc);
 	}
 }
 
@@ -295,18 +280,7 @@ static void AddGCAdapter(libusb_device* device)
 
 void Shutdown()
 {
-	StopScanThread();
-	if (s_libusb_hotplug_enabled)
-		libusb_hotplug_deregister_callback(s_libusb_context, s_hotplug_handle);
 	Reset();
-
-	if (s_libusb_context)
-	{
-		libusb_exit(s_libusb_context);
-		s_libusb_context = nullptr;
-	}
-
-	s_libusb_driver_not_supported = false;
 }
 
 void Reset()
