@@ -1019,17 +1019,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 			// Scale the 32-bit value returned by glReadPixels to a 24-bit
 			// value (GC uses a 24-bit Z-buffer).
-			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
+			float val = z / float(0xFFFFFFFF);
+			u32 ret = 0;
 			if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 			{
 				// if Z is in 16 bit format you must return a 16 bit integer
-				z = z >> 16;
+				ret = MathUtil::Clamp<u32>((u32)(val * 65536.0f), 0, 0xFFFF);
 			}
 			else
 			{
-				z = z >> 8;
+				ret = MathUtil::Clamp<u32>((u32)(val * 16777216.0f), 0, 0xFFFFFF);
 			}
-			return z;
+			return ret;
 		}
 
 	case PEEK_COLOR: // GXPeekARGB
