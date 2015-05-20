@@ -916,7 +916,7 @@ void ClearEFBCache()
 	}
 }
 
-void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const void* data)
+void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data)
 {
 	u32 cacheType = (type == PEEK_Z ? 0 : 1);
 
@@ -938,18 +938,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 			u32 xEFB = efbPixelRc.left + xCache;
 			u32 xPixel = (EFBToScaledX(xEFB) + EFBToScaledX(xEFB + 1)) / 2;
 			u32 xData = xPixel - targetPixelRc.left;
-			u32 value;
-			if (type == PEEK_Z)
-			{
-				float* ptr = (float*)data;
-				value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f), 0, 0xFFFFFF);
-			}
-			else
-			{
-				u32* ptr = (u32*)data;
-				value = ptr[yData * targetPixelRcWidth + xData];
-			}
-			s_efbCache[cacheType][cacheRectIdx][yCache * EFB_CACHE_RECT_SIZE + xCache] = value;
+			s_efbCache[cacheType][cacheRectIdx][yCache * EFB_CACHE_RECT_SIZE + xCache] = data[yData * targetPixelRcWidth + xData];
 		}
 	}
 
@@ -1016,10 +1005,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					g_renderer->RestoreAPIState();
 				}
 
-				std::unique_ptr<float> depthMap(new float[targetPixelRcWidth * targetPixelRcHeight]);
+				std::unique_ptr<u32> depthMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
 
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_DEPTH_COMPONENT, GL_FLOAT, depthMap.get());
+				             GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depthMap.get());
 
 				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap.get());
 			}
@@ -1028,10 +1017,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			u32 yRect = y % EFB_CACHE_RECT_SIZE;
 			u32 z = s_efbCache[0][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
 
-			// if Z is in 16 bit format you must return a 16 bit integer
+			// Scale the 32-bit value returned by glReadPixels to a 24-bit
+			// value (GC uses a 24-bit Z-buffer).
+			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
 			if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+			{
+				// if Z is in 16 bit format you must return a 16 bit integer
+				z = z >> 16;
+			}
+			else
+			{
 				z = z >> 8;
-
+			}
 			return z;
 		}
 
