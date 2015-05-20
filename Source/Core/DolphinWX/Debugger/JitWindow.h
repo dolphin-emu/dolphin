@@ -29,6 +29,7 @@ public:
 class HostDisassembler
 {
 public:
+	virtual ~HostDisassembler() {}
 	std::string DisassembleBlock(u32* address, u32* host_instructions_count, u32* code_size);
 
 private:
