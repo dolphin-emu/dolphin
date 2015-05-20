@@ -14,7 +14,7 @@
 
         <activity
             android:name=".activities.GameGridActivity"
-            android:label="Dolphin New UI"
+            android:label="@string/title_new_ui"
             android:theme="@style/DolphinGamecube">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
@@ -27,8 +27,13 @@
 
         <activity
             android:name=".activities.AddDirectoryActivity"
-            android:theme="@style/DolphinWii"
+            android:theme="@style/DolphinGamecube"
             android:label="@string/add_directory_title"/>
+
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:theme="@style/DolphinSettingsGamecube"
+            android:label="@string/grid_menu_settings"/>
 
         <activity
             android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"
@@ -60,7 +65,9 @@
             android:label="@string/settings"
             android:theme="@android:style/Theme.Holo.Light" />
 
-        <service android:name=".AssetCopyService"/>
+        <service android:name=".services.AssetCopyService"/>
+
+        <service android:name=".services.SettingsSaveService"/>
 
     </application>
 

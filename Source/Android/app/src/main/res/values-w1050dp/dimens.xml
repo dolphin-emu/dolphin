@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Example customization of dimensions originally defined in res/values/dimens.xml
+         (such as screen margins) for screens with more than 1024dp of available width.  -->
+    <dimen name="activity_horizontal_margin">96dp</dimen>
+</resources>
