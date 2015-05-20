@@ -14,8 +14,8 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
-import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
@@ -215,6 +215,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		Intent intent = new Intent(view.getContext(), EmulationActivity.class);
 
 		intent.putExtra("SelectedGame", holder.path);
+		intent.putExtra("SelectedTitle", holder.title);
 
 		view.getContext().startActivity(intent);
 	}

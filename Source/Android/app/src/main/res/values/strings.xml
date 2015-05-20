@@ -236,4 +236,7 @@
     <string name="preferences_cpu">CPU Settings</string>
     <string name="preferences_input">Input Settings</string>
     <string name="preferences_video">Video Settings</string>
+    <string name="emulation_title">Emulation Activity</string>
+
+    <string name="emulation_toggle_input">Toggle Input Overlay</string>
 </resources>

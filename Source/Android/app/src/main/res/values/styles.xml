@@ -22,23 +22,19 @@
     </style>
 
     <style name="DolphinGamecube" parent="DolphinBase">
-        <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
     </style>
 
     <style name="DolphinWiiware" parent="DolphinBase">
-        <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
     <!-- Inherit from the Base Dolphin Settings Theme-->
     <style name="DolphinSettingsWii" parent="DolphinSettingsBase">
-        <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/dolphin_accent_wii</item>
     </style>
 
     <style name="DolphinSettingsGamecube" parent="DolphinSettingsBase">
-        <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
     </style>
 
@@ -49,26 +45,39 @@
 
     <!-- Themes for Dialogs -->
     <style name="DolphinDialogBase" parent="android:Theme.Material.Light.Dialog">
-        <!-- Main theme colors -->
-        <!--   your app branding color for the app bar -->
         <item name="android:colorPrimary">@color/dolphin_blue</item>
-        <!--   darker variant for the status bar and contextual app bars -->
         <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
 
     <!-- Inherit from the Base Dolphin Dialog Theme-->
     <style name="DolphinDialogWii" parent="DolphinDialogBase">
-        <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/dolphin_accent_wii</item>
     </style>
 
     <style name="DolphinDialogGamecube" parent="DolphinDialogBase">
-        <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
     </style>
 
     <style name="DolphinDialogWiiware" parent="DolphinDialogBase">
-        <!--   theme UI controls like checkboxes and text fields -->
+        <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
+    </style>
+
+    <style name="DolphinEmulationBase" parent="android:Theme.Material.Light.DarkActionBar">
+        <item name="android:colorPrimary">@color/dolphin_blue</item>
+        <item name="android:colorPrimaryDark">@color/dolphin_blue_dark</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+    <!-- Inherit from the Base Dolphin Emulation Theme-->
+    <style name="DolphinEmulationWii" parent="DolphinEmulationBase">
+        <item name="android:colorAccent">@color/dolphin_accent_wii</item>
+    </style>
+
+    <style name="DolphinEmulationGamecube" parent="DolphinEmulationBase">
+        <item name="android:colorAccent">@color/dolphin_accent_gamecube</item>
+    </style>
+
+    <style name="DolphinEmulationWiiware" parent="DolphinEmulationBase">
         <item name="android:colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 </resources>

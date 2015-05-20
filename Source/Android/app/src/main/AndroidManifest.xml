@@ -48,6 +48,10 @@
         </activity>
 
         <activity
+            android:name=".activities.EmulationActivity"
+            android:theme="@style/DolphinEmulationGamecube"/>
+
+        <activity
             android:name=".about.AboutActivity"
             android:theme="@android:style/Theme.Holo.Light" />
 

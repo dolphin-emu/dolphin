@@ -16,7 +16,7 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -79,6 +79,8 @@ public final class GameDetailsDialog extends DialogFragment
 				Intent intent = new Intent(view.getContext(), EmulationActivity.class);
 
 				intent.putExtra("SelectedGame", getArguments().getString(ARGUMENT_GAME_PATH));
+				intent.putExtra("SelectedTitle", getArguments().getString(ARGUMENT_GAME_TITLE));
+
 				startActivity(intent);
 			}
 		});
