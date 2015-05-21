@@ -789,10 +789,12 @@ public:
 	void PMOVZXWQ(X64Reg dest, OpArg arg);
 	void PMOVZXDQ(X64Reg dest, OpArg arg);
 
-	// SSE4: variable blend instructions (xmm0 implicit argument)
+	// SSE4: blend instructions
 	void PBLENDVB(X64Reg dest, OpArg arg);
 	void BLENDVPS(X64Reg dest, OpArg arg);
 	void BLENDVPD(X64Reg dest, OpArg arg);
+	void BLENDPS(X64Reg dest, OpArg arg, u8 blend);
+	void BLENDPD(X64Reg dest, OpArg arg, u8 blend);
 
 	// AVX
 	void VADDSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
