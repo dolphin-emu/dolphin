@@ -468,11 +468,12 @@ void Jit64::frspx(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff);
 	int b = inst.FB;
 	int d = inst.FD;
+	bool packed = jit->js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
 	fpr.Lock(b, d);
 	OpArg src = fpr.R(b);
 	fpr.BindToRegister(d, false);
-	ForceSinglePrecision(fpr.RX(d), src, false, true);
+	ForceSinglePrecision(fpr.RX(d), src, packed, true);
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
