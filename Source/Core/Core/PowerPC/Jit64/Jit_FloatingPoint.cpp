@@ -13,6 +13,7 @@ using namespace Gen;
 static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x0000000000000000ULL};
 static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+static const u64 GC_ALIGNED16(psAbsMask2[2]) = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg),
@@ -238,23 +239,22 @@ void Jit64::fsign(UGeckoInstruction inst)
 
 	int d = inst.FD;
 	int b = inst.FB;
-	fpr.Lock(b, d);
-	fpr.BindToRegister(d);
+	bool packed = inst.OPCD == 4;
 
-	if (d != b)
-		MOVSD(fpr.RX(d), fpr.R(b));
+	fpr.Lock(b, d);
+	OpArg src = fpr.R(b);
+	fpr.BindToRegister(d, false);
+
 	switch (inst.SUBOP10)
 	{
-	case 40:  // fnegx
-		// We can cheat and not worry about clobbering the top half by using masks
-		// that don't modify the top half.
-		PXOR(fpr.RX(d), M(psSignBits));
+	case 40: // neg
+		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
 		break;
-	case 264: // fabsx
-		PAND(fpr.RX(d), M(psAbsMask));
+	case 136: // nabs
+		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
 		break;
-	case 136: // fnabs
-		POR(fpr.RX(d), M(psSignBits));
+	case 264: // abs
+		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), src, M(packed ? psAbsMask2 : psAbsMask), packed);
 		break;
 	default:
 		PanicAlert("fsign bleh");

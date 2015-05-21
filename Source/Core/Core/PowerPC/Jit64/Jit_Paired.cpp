@@ -10,9 +10,6 @@
 
 using namespace Gen;
 
-static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-
 void Jit64::ps_mr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -26,34 +23,6 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 
 	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), fpr.R(b));
-}
-
-void Jit64::ps_sign(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	int d = inst.FD;
-	int b = inst.FB;
-
-	fpr.Lock(d, b);
-	fpr.BindToRegister(d, d == b);
-
-	switch (inst.SUBOP10)
-	{
-	case 40: //neg
-		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), fpr.R(b), M(psSignBits));
-		break;
-	case 136: //nabs
-		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), fpr.R(b), M(psSignBits));
-		break;
-	case 264: //abs
-		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), fpr.R(b), M(psAbsMask));
-		break;
-	}
-
-	fpr.UnlockAll();
 }
 
 void Jit64::ps_sum(UGeckoInstruction inst)
