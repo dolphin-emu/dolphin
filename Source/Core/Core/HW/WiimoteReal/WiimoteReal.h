@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <string>
@@ -96,11 +97,11 @@ private:
 
 	std::thread               m_wiimote_thread;
 	// Whether to keep running the thread.
-	volatile bool             m_run_thread;
+	std::atomic<bool>         m_run_thread;
 	// Whether to call PrepareOnThread.
-	volatile bool             m_need_prepare;
+	std::atomic<bool>         m_need_prepare;
 	// Whether the thread has finished ConnectInternal.
-	volatile bool             m_thread_ready;
+	std::atomic<bool>         m_thread_ready;
 	std::mutex                m_thread_ready_mutex;
 	std::condition_variable   m_thread_ready_cond;
 
@@ -134,9 +135,9 @@ private:
 
 	std::thread m_scan_thread;
 
-	volatile bool m_run_thread;
-	volatile bool m_want_wiimotes;
-	volatile bool m_want_bb;
+	std::atomic<bool> m_run_thread;
+	std::atomic<bool> m_want_wiimotes;
+	std::atomic<bool> m_want_bb;
 
 #if defined(_WIN32)
 	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);

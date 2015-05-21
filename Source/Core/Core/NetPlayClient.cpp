@@ -26,12 +26,12 @@ NetSettings g_NetPlaySettings;
 NetPlayClient::~NetPlayClient()
 {
 	// not perfect
-	if (m_is_running)
+	if (m_is_running.load())
 		StopGame();
 
 	if (is_connected)
 	{
-		m_do_loop = false;
+		m_do_loop.store(false);
 		m_thread.join();
 	}
 
@@ -409,8 +409,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	case NP_MSG_DISABLE_GAME:
 	{
 		PanicAlertT("Other client disconnected while game is running!! NetPlay is disabled. You must manually stop the game.");
-		std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-		m_is_running = false;
+		m_is_running.store(false);
 		NetPlay_Disable();
 	}
 	break;
@@ -499,7 +498,7 @@ void NetPlayClient::SendAsync(sf::Packet* packet)
 // called from ---NETPLAY--- thread
 void NetPlayClient::ThreadFunc()
 {
-	while (m_do_loop)
+	while (m_do_loop.load())
 	{
 		ENetEvent netEvent;
 		int net;
@@ -523,11 +522,11 @@ void NetPlayClient::ThreadFunc()
 				enet_packet_destroy(netEvent.packet);
 				break;
 			case ENET_EVENT_TYPE_DISCONNECT:
-				m_is_running = false;
+				m_is_running.store(false);
 				NetPlay_Disable();
 				m_dialog->AppendChat("< LOST CONNECTION TO SERVER >");
 				PanicAlertT("Lost connection to server!");
-				m_do_loop = false;
+				m_do_loop.store(false);
 
 				netEvent.peer->data = nullptr;
 				break;
@@ -636,7 +635,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 	*spac << (char *)&g_NetPlaySettings;
 	SendAsync(spac);
 
-	if (m_is_running)
+	if (m_is_running.load())
 	{
 		PanicAlertT("Game is already running!");
 		return false;
@@ -644,7 +643,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	m_dialog->AppendChat(" -- STARTING GAME -- ");
 
-	m_is_running = true;
+	m_is_running.store(true);
 	NetPlay_Enable(this);
 
 	ClearBuffers();
@@ -823,7 +822,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 	// to retrieve data for slot 1.
 	while (!m_pad_buffer[pad_nb].Pop(*pad_status))
 	{
-		if (!m_is_running)
+		if (!m_is_running.load())
 			return false;
 
 		// TODO: use a condition instead of sleeping
@@ -893,7 +892,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 	{
 		// wait for receiving thread to push some data
 		Common::SleepCurrentThread(1);
-		if (false == m_is_running)
+		if (!m_is_running.load())
 			return false;
 	}
 
@@ -918,7 +917,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 			while (!m_wiimote_buffer[_number].Pop(nw))
 			{
 				Common::SleepCurrentThread(1);
-				if (false == m_is_running)
+				if (!m_is_running.load())
 					return false;
 			}
 			++tries;
@@ -942,9 +941,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 // called from ---GUI--- thread and ---NETPLAY--- thread (client side)
 bool NetPlayClient::StopGame()
 {
-	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-
-	if (false == m_is_running)
+	if (!m_is_running.load())
 	{
 		PanicAlertT("Game isn't running!");
 		return false;
@@ -952,7 +949,7 @@ bool NetPlayClient::StopGame()
 
 	m_dialog->AppendChat(" -- STOPPING GAME -- ");
 
-	m_is_running = false;
+	m_is_running.store(false);
 	NetPlay_Disable();
 
 	// stop game
@@ -964,8 +961,9 @@ bool NetPlayClient::StopGame()
 // called from ---GUI--- thread
 void NetPlayClient::Stop()
 {
-	if (m_is_running == false)
+	if (!m_is_running.load())
 		return;
+
 	bool isPadMapped = false;
 	for (PadMapping mapping : m_pad_map)
 	{
