@@ -56,33 +56,6 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-void Jit64::ps_arith(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	bool round_input = !jit->js.op->fprIsSingle[inst.FC];
-	switch (inst.SUBOP5)
-	{
-	case 18: // div
-		fp_tri_op(inst.FD, inst.FA, inst.FB, false, true, &XEmitter::VDIVPD, &XEmitter::DIVPD, true);
-		break;
-	case 20: // sub
-		fp_tri_op(inst.FD, inst.FA, inst.FB, false, true, &XEmitter::VSUBPD, &XEmitter::SUBPD, true);
-		break;
-	case 21: // add
-		fp_tri_op(inst.FD, inst.FA, inst.FB, true, true, &XEmitter::VADDPD, &XEmitter::ADDPD, true);
-		break;
-	case 25: // mul
-		fp_tri_op(inst.FD, inst.FA, inst.FC, true, true, &XEmitter::VMULPD, &XEmitter::MULPD, true, round_input);
-		break;
-	default:
-		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
-		break;
-	}
-}
-
 void Jit64::ps_sum(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

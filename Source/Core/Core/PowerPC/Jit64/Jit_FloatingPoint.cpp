@@ -67,15 +67,18 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 	int d = inst.FD;
 	int arg2 = inst.SUBOP5 == 25 ? c : b;
 
-	bool single = inst.OPCD == 59;
-	bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
+	bool single = inst.OPCD == 4 || inst.OPCD == 59;
 	// If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP at the end by
 	// using packed arithmetic instead.
-	bool packed = single && jit->js.op->fprIsDuplicated[a] && jit->js.op->fprIsDuplicated[arg2];
+	bool packed = inst.OPCD == 4 || (inst.OPCD == 59 &&
+	                                 jit->js.op->fprIsDuplicated[a] &&
+	                                 jit->js.op->fprIsDuplicated[arg2]);
 	// Packed divides are slower than scalar divides on basically all x86, so this optimization isn't worth it in that case.
 	// Atoms (and a few really old CPUs) are also slower on packed operations than scalar ones.
-	if (inst.SUBOP5 == 18 || cpu_info.bAtom)
+	if (inst.OPCD == 59 && (inst.SUBOP5 == 18 || cpu_info.bAtom))
 		packed = false;
+
+	bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
 
 	switch (inst.SUBOP5)
 	{
