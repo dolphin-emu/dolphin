@@ -645,8 +645,8 @@ void EmuCodeBlock::ForceSinglePrecisionS(X64Reg output, X64Reg input)
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
 	{
-		CVTSD2SS(input, R(input));
-		CVTSS2SD(output, R(input));
+		CVTSD2SS(output, R(input));
+		CVTSS2SD(output, R(output));
 	}
 	else if (output != input)
 	{
@@ -659,8 +659,8 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg output, X64Reg input)
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
 	{
-		CVTPD2PS(input, R(input));
-		CVTPS2PD(output, R(input));
+		CVTPD2PS(output, R(input));
+		CVTPS2PD(output, R(output));
 	}
 	else if (output != input)
 	{
