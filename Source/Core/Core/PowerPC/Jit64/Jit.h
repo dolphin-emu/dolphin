@@ -193,7 +193,6 @@ public:
 
 	void reg_imm(UGeckoInstruction inst);
 
-	void ps_sel(UGeckoInstruction inst);
 	void ps_mr(UGeckoInstruction inst);
 	void ps_sign(UGeckoInstruction inst); //aggregate
 	void ps_arith(UGeckoInstruction inst); //aggregate

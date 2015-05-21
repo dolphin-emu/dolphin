@@ -28,40 +28,6 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 	MOVAPD(fpr.RX(d), fpr.R(b));
 }
 
-void Jit64::ps_sel(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	int d = inst.FD;
-	int a = inst.FA;
-	int b = inst.FB;
-	int c = inst.FC;
-
-	fpr.Lock(a, b, c, d);
-
-	if (cpu_info.bSSE4_1)
-	{
-		PXOR(XMM0, R(XMM0));
-		CMPPD(XMM0, fpr.R(a), NLE);
-		MOVAPD(XMM1, fpr.R(c));
-		BLENDVPD(XMM1, fpr.R(b));
-	}
-	else
-	{
-		PXOR(XMM1, R(XMM1));
-		CMPPD(XMM1, fpr.R(a), NLE);
-		MOVAPD(XMM0, R(XMM1));
-		PAND(XMM1, fpr.R(b));
-		PANDN(XMM0, fpr.R(c));
-		POR(XMM1, R(XMM0));
-	}
-	fpr.BindToRegister(d, false);
-	MOVAPD(fpr.RX(d), R(XMM1));
-	fpr.UnlockAll();
-}
-
 void Jit64::ps_sign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

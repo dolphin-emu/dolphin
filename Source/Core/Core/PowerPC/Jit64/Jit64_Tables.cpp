@@ -127,7 +127,7 @@ static GekkoOPTemplate table4_2[] =
 	{18, &Jit64::ps_arith},  // ps_div
 	{20, &Jit64::ps_arith},  // ps_sub
 	{21, &Jit64::ps_arith},  // ps_add
-	{23, &Jit64::ps_sel},    // ps_sel
+	{23, &Jit64::fselx},     // ps_sel
 	{24, &Jit64::ps_res},    // ps_res
 	{25, &Jit64::ps_arith},  // ps_mul
 	{26, &Jit64::ps_rsqrte}, // ps_rsqrte

@@ -256,13 +256,18 @@ void Jit64::fselx(UGeckoInstruction inst)
 	int b = inst.FB;
 	int c = inst.FC;
 
+	bool packed = inst.OPCD == 4; // ps_sel
+
 	fpr.Lock(a, b, c, d);
-	MOVAPD(XMM1, fpr.R(a));
 	PXOR(XMM0, R(XMM0));
 	// This condition is very tricky; there's only one right way to handle both the case of
 	// negative/positive zero and NaN properly.
 	// (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
-	CMPSD(XMM0, R(XMM1), NLE);
+	if (packed)
+		CMPPD(XMM0, fpr.R(a), NLE);
+	else
+		CMPSD(XMM0, fpr.R(a), NLE);
+
 	if (cpu_info.bSSE4_1)
 	{
 		MOVAPD(XMM1, fpr.R(c));
@@ -275,8 +280,12 @@ void Jit64::fselx(UGeckoInstruction inst)
 		PANDN(XMM1, fpr.R(c));
 		POR(XMM1, R(XMM0));
 	}
-	fpr.BindToRegister(d);
-	MOVSD(fpr.RX(d), R(XMM1));
+
+	fpr.BindToRegister(d, !packed);
+	if (packed)
+		MOVAPD(fpr.RX(d), R(XMM1));
+	else
+		MOVSD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
 }
 
