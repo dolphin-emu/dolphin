@@ -38,17 +38,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 		avx_op(avxOp, sseOp, fpr.RX(d), fpr.R(a), fpr.R(b), packed, reversible);
 	}
 	if (single)
-	{
-		if (packed)
-		{
-			ForceSinglePrecisionP(fpr.RX(d), fpr.RX(d));
-		}
-		else
-		{
-			ForceSinglePrecisionS(fpr.RX(d), fpr.RX(d));
-			MOVDDUP(fpr.RX(d), fpr.R(d));
-		}
-	}
+		ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
@@ -215,21 +205,9 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	fpr.BindToRegister(d, !single);
 
 	if (single)
-	{
-		if (packed)
-		{
-			ForceSinglePrecisionP(fpr.RX(d), XMM0);
-		}
-		else
-		{
-			ForceSinglePrecisionS(fpr.RX(d), XMM0);
-			MOVDDUP(fpr.RX(d), fpr.R(d));
-		}
-	}
+		ForceSinglePrecision(fpr.RX(d), R(XMM0), packed, true);
 	else
-	{
 		MOVSD(fpr.RX(d), R(XMM0));
-	}
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
@@ -492,11 +470,9 @@ void Jit64::frspx(UGeckoInstruction inst)
 	int d = inst.FD;
 
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, d == b);
-	if (b != d)
-		MOVAPD(fpr.RX(d), fpr.R(b));
-	ForceSinglePrecisionS(fpr.RX(d), fpr.RX(d));
-	MOVDDUP(fpr.RX(d), fpr.R(d));
+	OpArg src = fpr.R(b);
+	fpr.BindToRegister(d, false);
+	ForceSinglePrecision(fpr.RX(d), src, false, true);
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
