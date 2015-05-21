@@ -122,8 +122,8 @@ static GekkoOPTemplate table4_2[] =
 	{11, &Jit64::ps_sum},    // ps_sum1
 	{12, &Jit64::ps_muls},   // ps_muls0
 	{13, &Jit64::ps_muls},   // ps_muls1
-	{14, &Jit64::ps_maddXX}, // ps_madds0
-	{15, &Jit64::ps_maddXX}, // ps_madds1
+	{14, &Jit64::fmaddXX},   // ps_madds0
+	{15, &Jit64::fmaddXX},   // ps_madds1
 	{18, &Jit64::fp_arith},  // ps_div
 	{20, &Jit64::fp_arith},  // ps_sub
 	{21, &Jit64::fp_arith},  // ps_add
@@ -131,10 +131,10 @@ static GekkoOPTemplate table4_2[] =
 	{24, &Jit64::ps_res},    // ps_res
 	{25, &Jit64::fp_arith},  // ps_mul
 	{26, &Jit64::ps_rsqrte}, // ps_rsqrte
-	{28, &Jit64::ps_maddXX}, // ps_msub
-	{29, &Jit64::ps_maddXX}, // ps_madd
-	{30, &Jit64::ps_maddXX}, // ps_nmsub
-	{31, &Jit64::ps_maddXX}, // ps_nmadd
+	{28, &Jit64::fmaddXX}, // ps_msub
+	{29, &Jit64::fmaddXX}, // ps_madd
+	{30, &Jit64::fmaddXX}, // ps_nmsub
+	{31, &Jit64::fmaddXX}, // ps_nmadd
 };
 
 

@@ -105,13 +105,38 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	int b = inst.FB;
 	int c = inst.FC;
 	int d = inst.FD;
-	bool single = inst.OPCD == 59;
+	bool single = inst.OPCD == 4 || inst.OPCD == 59;
 	bool round_input = single && !jit->js.op->fprIsSingle[c];
-	bool packed = single && jit->js.op->fprIsDuplicated[a] && jit->js.op->fprIsDuplicated[b] && jit->js.op->fprIsDuplicated[c];
-	if (cpu_info.bAtom)
-		packed = false;
+	bool packed = inst.OPCD == 4 ||
+	              (!cpu_info.bAtom && single &&
+	               jit->js.op->fprIsDuplicated[a] &&
+	               jit->js.op->fprIsDuplicated[b] &&
+	               jit->js.op->fprIsDuplicated[c]);
 
 	fpr.Lock(a, b, c, d);
+
+	switch(inst.SUBOP5)
+	{
+	case 14:
+		MOVDDUP(XMM0, fpr.R(c));
+		if (round_input)
+			Force25BitPrecision(XMM0, R(XMM0), XMM1);
+		break;
+	case 15:
+		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, fpr.R(c), fpr.R(c), 3);
+		if (round_input)
+			Force25BitPrecision(XMM0, R(XMM0), XMM1);
+		break;
+	default:
+		bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::g_want_determinism);
+		X64Reg tmp1 = special ? XMM1 : XMM0;
+		X64Reg tmp2 = special ? XMM0 : XMM1;
+		if (single && round_input)
+			Force25BitPrecision(tmp1, fpr.R(c), tmp2);
+		else
+			MOVAPD(tmp1, fpr.R(c));
+		break;
+	}
 
 	// While we don't know if any games are actually affected (replays seem to work with all the usual
 	// suspects for desyncing), netplay and other applications need absolute perfect determinism, so
@@ -121,10 +146,6 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	// instances on different computers giving identical results.
 	if (cpu_info.bFMA && !Core::g_want_determinism)
 	{
-		if (single && round_input)
-			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
-		else
-			MOVAPD(XMM0, fpr.R(c));
 		// Statistics suggests b is a lot less likely to be unbound in practice, so
 		// if we have to pick one of a or b to bind, let's make it b.
 		fpr.BindToRegister(b, true, false);
@@ -136,6 +157,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 			else
 				VFMSUB132SD(XMM0, fpr.RX(b), fpr.R(a));
 			break;
+		case 14: //madds0
+		case 15: //madds1
 		case 29: //madd
 			if (packed)
 				VFMADD132PD(XMM0, fpr.RX(b), fpr.R(a));
@@ -162,11 +185,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	}
 	else if (inst.SUBOP5 == 30) //nmsub
 	{
-		// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
-		if (single && round_input)
-			Force25BitPrecision(XMM1, fpr.R(c), XMM0);
-		else
-			MOVAPD(XMM1, fpr.R(c));
+		// We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately.
 		MOVAPD(XMM0, fpr.R(b));
 		if (packed)
 		{
@@ -181,16 +200,12 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	}
 	else
 	{
-		if (single && round_input)
-			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
-		else
-			MOVAPD(XMM0, fpr.R(c));
 		if (packed)
 		{
 			MULPD(XMM0, fpr.R(a));
 			if (inst.SUBOP5 == 28) //msub
 				SUBPD(XMM0, fpr.R(b));
-			else                   //(n)madd
+			else                   //(n)madd(s[01])
 				ADDPD(XMM0, fpr.R(b));
 		}
 		else
