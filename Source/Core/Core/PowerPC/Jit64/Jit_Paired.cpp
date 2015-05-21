@@ -156,24 +156,40 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	int b = inst.FB;
 	int c = inst.FC;
 	fpr.Lock(a, b, c, d);
+	OpArg op_a = fpr.R(a);
+	fpr.BindToRegister(d, false);
+	X64Reg tmp = d == b || d == c ? XMM0 : fpr.RX(d);
+	MOVDDUP(tmp, op_a);   // {a.ps0, a.ps0}
+	ADDPD(tmp, fpr.R(b)); // {a.ps0 + b.ps0, a.ps0 + b.ps1}
 	switch (inst.SUBOP5)
 	{
-	case 10:
-		MOVDDUP(XMM0, fpr.R(a));  // {a.ps0, a.ps0}
-		ADDPD(XMM0, fpr.R(b));    // {a.ps0 + b.ps0, a.ps0 + b.ps1}
-		UNPCKHPD(XMM0, fpr.R(c)); // {a.ps0 + b.ps1, c.ps1}
+	case 10: // ps_sum0
+		UNPCKHPD(tmp, fpr.R(c)); // {a.ps0 + b.ps1, c.ps1}
 		break;
-	case 11:
-		MOVDDUP(XMM1, fpr.R(a));  // {a.ps0, a.ps0}
-		ADDPD(XMM1, fpr.R(b));    // {a.ps0 + b.ps0, a.ps0 + b.ps1}
-		MOVAPD(XMM0, fpr.R(c));
-		SHUFPD(XMM0, R(XMM1), 2); // {c.ps0, a.ps0 + b.ps1}
+	case 11: // ps_sum1
+		// {c.ps0, a.ps0 + b.ps1}
+		if (fpr.R(c).IsSimpleReg())
+		{
+			if (cpu_info.bSSE4_1)
+			{
+				BLENDPD(tmp, fpr.R(c), 1);
+			}
+			else
+			{
+				MOVAPD(XMM1, fpr.R(c));
+				SHUFPD(XMM1, R(tmp), 2);
+				tmp = XMM1;
+			}
+		}
+		else
+		{
+			MOVLPD(tmp, fpr.R(c));
+		}
 		break;
 	default:
 		PanicAlert("ps_sum WTF!!!");
 	}
-	fpr.BindToRegister(d, false);
-	ForceSinglePrecision(fpr.RX(d), R(XMM0));
+	ForceSinglePrecision(fpr.RX(d), R(tmp));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
@@ -192,10 +208,10 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	fpr.Lock(a, c, d);
 	switch (inst.SUBOP5)
 	{
-	case 12:
+	case 12: // ps_muls0
 		MOVDDUP(XMM0, fpr.R(c));
 		break;
-	case 13:
+	case 13: // ps_muls1
 		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, fpr.R(c), fpr.R(c), 3);
 		break;
 	default:
