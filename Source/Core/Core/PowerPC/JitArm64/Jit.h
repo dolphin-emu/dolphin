@@ -200,6 +200,10 @@ private:
 
 	void DoDownCount();
 
+	// Profiling
+	void BeginTimeProfile(JitBlock* b);
+	void EndTimeProfile(JitBlock* b);
+
 	// Exits
 	void WriteExit(u32 destination);
 	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
