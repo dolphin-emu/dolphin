@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <queue>
@@ -108,9 +109,9 @@ protected:
 	ENetPeer*    m_server;
 	std::thread  m_thread;
 
-	std::string   m_selected_game;
-	volatile bool m_is_running;
-	volatile bool m_do_loop;
+	std::string       m_selected_game;
+	std::atomic<bool> m_is_running;
+	std::atomic<bool> m_do_loop;
 
 	unsigned int  m_target_buffer_size;
 
