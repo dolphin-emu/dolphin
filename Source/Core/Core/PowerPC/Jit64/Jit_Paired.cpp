@@ -56,34 +56,6 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-//There's still a little bit more optimization that can be squeezed out of this
-void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg), void (XEmitter::*sseOp)(X64Reg, OpArg), UGeckoInstruction inst, bool roundRHS)
-{
-	fpr.Lock(d, a, b);
-	fpr.BindToRegister(d, d == a || d == b);
-
-	if (roundRHS)
-	{
-		if (d == a)
-		{
-			Force25BitPrecision(XMM0, fpr.R(b), XMM1);
-			(this->*sseOp)(fpr.RX(d), R(XMM0));
-		}
-		else
-		{
-			Force25BitPrecision(fpr.RX(d), fpr.R(b), XMM0);
-			(this->*sseOp)(fpr.RX(d), fpr.R(a));
-		}
-	}
-	else
-	{
-		avx_op(avxOp, sseOp, fpr.RX(d), fpr.R(a), fpr.R(b), true, reversible);
-	}
-	ForceSinglePrecision(fpr.RX(d), fpr.R(d));
-	SetFPRFIfNeeded(fpr.RX(d));
-	fpr.UnlockAll();
-}
-
 void Jit64::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -94,16 +66,16 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 	switch (inst.SUBOP5)
 	{
 	case 18: // div
-		tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::VDIVPD, &XEmitter::DIVPD, inst);
+		fp_tri_op(inst.FD, inst.FA, inst.FB, false, true, &XEmitter::VDIVPD, &XEmitter::DIVPD, true);
 		break;
 	case 20: // sub
-		tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::VSUBPD, &XEmitter::SUBPD, inst);
+		fp_tri_op(inst.FD, inst.FA, inst.FB, false, true, &XEmitter::VSUBPD, &XEmitter::SUBPD, true);
 		break;
 	case 21: // add
-		tri_op(inst.FD, inst.FA, inst.FB, true, &XEmitter::VADDPD, &XEmitter::ADDPD, inst);
+		fp_tri_op(inst.FD, inst.FA, inst.FB, true, true, &XEmitter::VADDPD, &XEmitter::ADDPD, true);
 		break;
 	case 25: // mul
-		tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::VMULPD, &XEmitter::MULPD, inst, round_input);
+		fp_tri_op(inst.FD, inst.FA, inst.FC, true, true, &XEmitter::VMULPD, &XEmitter::MULPD, true, round_input);
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");

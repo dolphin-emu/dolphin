@@ -16,7 +16,7 @@ static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFF
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg),
-                      void (XEmitter::*sseOp)(X64Reg, OpArg), UGeckoInstruction inst, bool packed, bool roundRHS)
+                      void (XEmitter::*sseOp)(X64Reg, OpArg), bool packed, bool roundRHS)
 {
 	fpr.Lock(d, a, b);
 	fpr.BindToRegister(d, d == a || d == b || !single);
@@ -80,13 +80,13 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 	switch (inst.SUBOP5)
 	{
 	case 18: fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
-	                   packed ? &XEmitter::DIVPD : &XEmitter::DIVSD, inst, packed); break;
+	                   packed ? &XEmitter::DIVPD : &XEmitter::DIVSD, packed); break;
 	case 20: fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
-	                   packed ? &XEmitter::SUBPD : &XEmitter::SUBSD, inst, packed); break;
+	                   packed ? &XEmitter::SUBPD : &XEmitter::SUBSD, packed); break;
 	case 21: fp_tri_op(d, a, b, true, single, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
-	                   packed ? &XEmitter::ADDPD : &XEmitter::ADDSD, inst, packed); break;
+	                   packed ? &XEmitter::ADDPD : &XEmitter::ADDSD, packed); break;
 	case 25: fp_tri_op(d, a, c, true, single, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
-	                   packed ? &XEmitter::MULPD : &XEmitter::MULSD, inst, packed, round_input); break;
+	                   packed ? &XEmitter::MULPD : &XEmitter::MULSD, packed, round_input); break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
 	}
