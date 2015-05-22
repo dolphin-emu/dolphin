@@ -1,7 +1,10 @@
 package org.dolphinemu.dolphinemu.activities;
 
 import android.app.Activity;
+import android.content.AsyncQueryHandler;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +17,8 @@ import android.widget.Toolbar;
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.FileAdapter;
+import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.model.GameProvider;
 
 /**
  * An Activity that shows a list of files and folders, allowing the user to tell the app which folder(s)
@@ -91,17 +96,36 @@ public class AddDirectoryActivity extends Activity implements FileAdapter.FileCl
 	}
 
 	/**
-	 * Tell the GameGridActivity that launched this Activity that the user picked a folder.
+	 * Add a directory to the library, and if successful, end the activity.
+	 *
+	 * @param path The target directory's path.
 	 */
 	@Override
-	public void finishSuccessfully()
+	public void addDirectory()
 	{
-		Intent resultData = new Intent();
+		// Set up a callback for when the addition is complete
+		// TODO This has a nasty warning on it; find a cleaner way to do this Insert asynchronously
+		AsyncQueryHandler handler = new AsyncQueryHandler(getContentResolver())
+		{
+			@Override
+			protected void onInsertComplete(int token, Object cookie, Uri uri)
+			{
+				Intent resultData = new Intent();
 
-		resultData.putExtra(KEY_CURRENT_PATH, mAdapter.getPath());
-		setResult(RESULT_OK, resultData);
+				resultData.putExtra(KEY_CURRENT_PATH, mAdapter.getPath());
+				setResult(RESULT_OK, resultData);
 
-		finish();
+				finish();
+			}
+		};
+
+		ContentValues file = new ContentValues();
+		file.put(GameDatabase.KEY_FOLDER_PATH, mAdapter.getPath());
+
+		handler.startInsert(0,                // We don't need to identify this call to the handler
+				null,                        // We don't need to pass additional data to the handler
+				GameProvider.URI_FOLDER,    // Tell the GameProvider we are adding a folder
+				file);                        // Tell the GameProvider what folder we are adding
 	}
 
 	@Override

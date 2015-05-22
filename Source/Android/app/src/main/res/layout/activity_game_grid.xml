@@ -9,7 +9,7 @@
         android:id="@+id/toolbar_game_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/dolphin_blue"
+        android:background="?android:colorPrimary"
         android:minHeight="?android:attr/actionBarSize"
         android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar"
         android:elevation="6dp"/>
@@ -33,7 +33,7 @@
             android:layout_alignBottom="@+id/image_game_screen"
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="28dp"
-            android:background="@drawable/oval_ripple_gc"
+            android:background="@drawable/oval_ripple_accent"
             android:src="@drawable/ic_add"
             android:stateListAnimator="@anim/button_elevation"
             android:elevation="4dp"

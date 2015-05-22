@@ -21,7 +21,7 @@
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
-
+#include "../DiscIO/Volume.h"
 #include "Android/ButtonManager.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -161,21 +161,52 @@ static bool LoadBanner(std::string filename, u32 *Banner)
 	return false;
 }
 
-static bool IsWiiTitle(std::string filename)
+static int GetCountry(std::string filename)
 {
 	std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
 
 	if (pVolume != nullptr)
 	{
-		bool is_wii_title = pVolume->IsWiiDisc() || pVolume->IsWadFile();
+		DiscIO::IVolume::ECountry country = pVolume->GetCountry();
 
-		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Is %s a Wii Disc: %s", filename.c_str(), is_wii_title ? "Yes" : "No" );
+		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Country Code: %i", country);
 
-		return is_wii_title;
+		return country;
 	}
 
-	// Technically correct.
-	return false;
+	// Return UNKNOWN
+	return 13;
+}
+
+static int GetPlatform(std::string filename)
+{
+	std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
+
+	if (pVolume != nullptr)
+	{
+		bool is_wii_disc = pVolume->IsWiiDisc();
+		bool is_wii_wad = pVolume->IsWadFile();
+
+		if (is_wii_disc)
+		{
+			__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii disc.");
+
+			// See Source/Android/app/src/main/java/org/dolphinemu/dolphinemu/model/Game.java
+			return 1;
+		}
+		else if (is_wii_wad)
+		{
+			__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii WAD.");
+			return 2;
+		}
+		else
+		{
+			__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Gamecube disc.");
+			return 0;
+		}
+	}
+
+	return -1;
 }
 
 static std::string GetTitle(std::string filename)
@@ -274,15 +305,15 @@ static std::string GetGameId(std::string filename)
 	return std::string ("");
 }
 
-static std::string GetApploaderDate(std::string filename)
+static std::string GetCompany(std::string filename)
 {
-	__android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Date for file: %s", filename.c_str());
+	__android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Company for file: %s", filename.c_str());
 
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
 	if (pVolume != nullptr)
 	{
-		std::string date = pVolume->GetApploaderDate();
-		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Date: %s", date.c_str());
+		std::string date = pVolume->GetCompany();
+		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Company: %s", date.c_str());
 
 		return date;
 	}
@@ -297,7 +328,8 @@ static u64 GetFileSize(std::string filename)
 	if (pVolume != nullptr)
 	{
 		u64 size = pVolume->GetSize();
-		__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %lu", size);
+		// Causes a warning because size is u64, not 'long unsigned'
+		//__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %lu", size);
 
 		return  size;
 	}
@@ -330,9 +362,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBanner(JNIEnv *env, jobject obj, jstring jFile);JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDescription(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameId(JNIEnv *env, jobject obj, jstring jFilename);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDate(JNIEnv *env, jobject obj, jstring jFilename);
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCountry(JNIEnv *env, jobject obj, jstring jFilename);
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCompany(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetFilesize(JNIEnv *env, jobject obj, jstring jFilename);
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsWiiTitle(JNIEnv *env, jobject obj, jstring jFilename);
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetPlatform(JNIEnv *env, jobject obj, jstring jFilename);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv *env, jobject obj);
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SupportsNEON(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv *env, jobject obj);
@@ -404,11 +437,18 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameId
 	return env->NewStringUTF(id.c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDate(JNIEnv *env, jobject obj, jstring jFilename)
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCompany(JNIEnv *env, jobject obj, jstring jFilename)
 {
 	std::string filename = GetJString(env, jFilename);
-	std::string date = GetApploaderDate(filename);
-	return env->NewStringUTF(date.c_str());
+	std::string company = GetCompany(filename);
+	return env->NewStringUTF(company.c_str());
+}
+
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCountry(JNIEnv *env, jobject obj, jstring jFilename)
+{
+	std::string filename = GetJString(env, jFilename);
+	int country = GetCountry(filename);
+	return country;
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetFilesize(JNIEnv *env, jobject obj, jstring jFilename)
@@ -418,11 +458,11 @@ JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetFilesize
 	return size;
 }
 
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsWiiTitle(JNIEnv *env, jobject obj, jstring jFilename)
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetPlatform(JNIEnv *env, jobject obj, jstring jFilename)
 {
 	std::string filename = GetJString(env, jFilename);
-	bool wiiDisc = IsWiiTitle(filename);
-	return wiiDisc;
+	int platform = GetPlatform(filename);
+	return platform;
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv *env, jobject obj)
