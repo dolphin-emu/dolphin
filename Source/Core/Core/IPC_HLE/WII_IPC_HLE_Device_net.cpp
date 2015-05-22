@@ -1334,8 +1334,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	}
 	case IOCTLV_SO_GETADDRINFO:
 	{
-		struct addrinfo hints;
-		struct addrinfo* result = nullptr;
+		addrinfo hints;
 
 		if (BufferInSize3)
 		{
@@ -1367,26 +1366,27 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			pServiceName = serviceNameStr.c_str();
 		}
 
+		addrinfo* result = nullptr;
 		int ret = getaddrinfo(pNodeName, pServiceName, BufferInSize3 ? &hints : nullptr, &result);
 		u32 addr = _BufferOut;
 		u32 sockoffset = addr + 0x460;
 		if (ret == 0)
 		{
-			while (result != nullptr)
+			for (addrinfo* result_iter = result; result_iter != nullptr; result_iter = result_iter->ai_next)
 			{
-				Memory::Write_U32(result->ai_flags, addr);
-				Memory::Write_U32(result->ai_family, addr + 0x04);
-				Memory::Write_U32(result->ai_socktype, addr + 0x08);
-				Memory::Write_U32(result->ai_protocol, addr + 0x0C);
-				Memory::Write_U32((u32)result->ai_addrlen, addr + 0x10);
+				Memory::Write_U32(result_iter->ai_flags, addr);
+				Memory::Write_U32(result_iter->ai_family, addr + 0x04);
+				Memory::Write_U32(result_iter->ai_socktype, addr + 0x08);
+				Memory::Write_U32(result_iter->ai_protocol, addr + 0x0C);
+				Memory::Write_U32((u32)result_iter->ai_addrlen, addr + 0x10);
 				// what to do? where to put? the buffer of 0x834 doesn't allow space for this
 				Memory::Write_U32(/*result->ai_cannonname*/ 0, addr + 0x14);
 
-				if (result->ai_addr)
+				if (result_iter->ai_addr)
 				{
 					Memory::Write_U32(sockoffset, addr + 0x18);
-					Memory::Write_U16(((result->ai_addr->sa_family & 0xFF) << 8) | (result->ai_addrlen & 0xFF), sockoffset);
-					Memory::CopyToEmu(sockoffset + 0x2, result->ai_addr->sa_data, sizeof(result->ai_addr->sa_data));
+					Memory::Write_U16(((result_iter->ai_addr->sa_family & 0xFF) << 8) | (result_iter->ai_addrlen & 0xFF), sockoffset);
+					Memory::CopyToEmu(sockoffset + 0x2, result_iter->ai_addr->sa_data, sizeof(result_iter->ai_addr->sa_data));
 					sockoffset += 0x1C;
 				}
 				else
@@ -1394,7 +1394,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 					Memory::Write_U32(0, addr + 0x18);
 				}
 
-				if (result->ai_next)
+				if (result_iter->ai_next)
 				{
 					Memory::Write_U32(addr + sizeof(addrinfo), addr + 0x1C);
 				}
@@ -1404,8 +1404,9 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 				}
 
 				addr += sizeof(addrinfo);
-				result = result->ai_next;
 			}
+
+			freeaddrinfo(result);
 		}
 		else
 		{
