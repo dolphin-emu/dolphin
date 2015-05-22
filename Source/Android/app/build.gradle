@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "20.0.0"
+    buildToolsVersion "22.0.1"
 
     lintOptions {
         // This is important as it will run lint but not abort on error
