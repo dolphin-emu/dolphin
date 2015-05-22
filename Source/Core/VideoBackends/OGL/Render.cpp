@@ -1245,7 +1245,7 @@ void Renderer::SetViewport()
 		};
 		glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
 	}
-	glDepthRangef(GLNear, GLFar);
+	glDepthRangef(GLFar, GLNear);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)

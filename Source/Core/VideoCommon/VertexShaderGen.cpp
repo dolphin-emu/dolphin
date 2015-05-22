@@ -381,13 +381,17 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	//if not early z culling will improve speed
 	if (g_ActiveConfig.backend_info.bSupportsClipControl)
 	{
+		out.Write("o.pos.z = -o.pos.z;\n");
+	}
+	else if (api_type == API_D3D)
+	{
 		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
 	}
 	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
 		// divide
-		out.Write("o.pos.z = o.pos.w + o.pos.z * 2.0;\n");
+		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
 
 		// the next steps of the OGL pipeline are:
 		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
