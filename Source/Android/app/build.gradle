@@ -69,13 +69,12 @@ android {
             }
         }
 
-        // TODO Uncomment this when we successfully build for x86_64.
-        /*x86_64 {
+        x86_64 {
             flavorDimension "abi"
             ndk {
                 abiFilter "x86_64"
             }
-        }*/
+        }
     }
 }
 
@@ -103,8 +102,10 @@ task setupCMake(type: Exec) {
         def buildProperties = new Properties()
         buildProperties.load(new FileInputStream(propsFile))
 
-        mkdir('build/' + buildProperties.abi)
-        workingDir 'build/' + buildProperties.abi
+        String abi = getAbi()
+
+        mkdir('build/' + abi)
+        workingDir 'build/' + abi
 
         executable 'cmake'
 
@@ -114,8 +115,8 @@ task setupCMake(type: Exec) {
                 "../../../../..",
                 "-DGIT_EXECUTABLE=" + getGitPath(),
                 "-DANDROID_NDK=" + getNdkPath(),
-                "-DANDROID_TOOLCHAIN_NAME=" + buildProperties.toolchain,
-                "-DANDROID_ABI=" + buildProperties.abi
+                "-DANDROID_TOOLCHAIN_NAME=" + getToolchainName(),
+                "-DANDROID_ABI=" + abi
     } else {
         executable 'echo'
         args 'No build.properties found; skipping CMake.'
@@ -132,7 +133,9 @@ task compileNative(type: Exec, dependsOn: 'setupCMake') {
         def buildProperties = new Properties()
         buildProperties.load(new FileInputStream(propsFile))
 
-        workingDir 'build/' + buildProperties.abi
+        String abi = getAbi()
+
+        workingDir 'build/' + abi
 
         executable 'make'
 
@@ -183,4 +186,46 @@ String getNdkPath() {
         project.logger.error("Gradle error: Couldn't find NDK.")
         return null;
     }
+}
+
+String getAbi() {
+    String taskName = getGradle().startParameter.taskNames[0]
+    String abi;
+
+    if (taskName == null) {
+        return ""
+    }
+
+    project.logger.quiet("Gradle: Build = " + taskName)
+
+    if (taskName.contains("Arm_64")) {
+        abi = "arm64-v8a"
+    } else if (taskName.contains("Arm")) {
+        abi = "armeabi-v7a"
+    } else if (taskName.contains("X86_64")) {
+        abi = "x86_64"
+    }
+
+    project.logger.quiet("Gradle: ABI name: " + abi)
+    return abi;
+}
+
+String getToolchainName() {
+    String taskName = getGradle().startParameter.taskNames[0]
+    String toolchain;
+
+    if (taskName == null) {
+        return ""
+    }
+
+    if (taskName.contains("Arm_64")) {
+        toolchain = "aarch64-linux-android-4.9"
+    } else if (taskName.contains("Arm")) {
+        toolchain = "arm-linux-androideabi-4.9"
+    } else if (taskName.contains("X86_64")) {
+        toolchain = "x86_64-4.9"
+    }
+
+    project.logger.quiet("Gradle: ABI name: " + toolchain)
+    return toolchain;
 }
