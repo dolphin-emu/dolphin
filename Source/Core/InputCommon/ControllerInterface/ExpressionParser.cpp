@@ -357,6 +357,8 @@ public:
 		{
 		case TOK_NOT:
 			inner->SetValue(1.0 - value);
+			break;
+
 		default:
 			assert(false);
 		}
