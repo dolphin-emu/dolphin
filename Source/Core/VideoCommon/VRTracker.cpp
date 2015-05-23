@@ -47,7 +47,7 @@ namespace VRTracker
 		g_controller_interface.Initialize(hwnd);
 
 		// find the OSVR head tracker inputs
-		ciface::Core::DeviceQualifier devq("OSVR", 1, "me/head");
+		ciface::Core::DeviceQualifier devq("OSVR", 0, "me/head");
 
 		s_device = g_controller_interface.FindDevice(devq);
 
