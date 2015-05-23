@@ -49,11 +49,11 @@ WiiWAD::~WiiWAD()
 {
 	if (m_Valid)
 	{
-		delete m_pCertificateChain;
-		delete m_pTicket;
-		delete m_pTMD;
-		delete m_pDataApp;
-		delete m_pFooter;
+		delete[] m_pCertificateChain;
+		delete[] m_pTicket;
+		delete[] m_pTMD;
+		delete[] m_pDataApp;
+		delete[] m_pFooter;
 	}
 }
 
