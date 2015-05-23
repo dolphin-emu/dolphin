@@ -152,8 +152,17 @@ u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 
 u16 VideoBackendHardware::Video_GetBoundingBox(int index)
 {
-	if (!g_ActiveConfig.backend_info.bSupportsBBox || !g_ActiveConfig.bBBoxEnable)
+	if (!g_ActiveConfig.backend_info.bSupportsBBox)
 		return 0;
+
+	if (!g_ActiveConfig.bBBoxEnable)
+	{
+		static bool warn_once = true;
+		if (warn_once)
+			ERROR_LOG(VIDEO, "BBox shall be used but it is disabled. Please use a gameini to enable it for this game.");
+		warn_once = false;
+		return 0;
+	}
 
 	SyncGPU(SYNC_GPU_BBOX);
 
