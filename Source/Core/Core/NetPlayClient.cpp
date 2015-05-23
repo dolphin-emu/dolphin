@@ -376,6 +376,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	case NP_MSG_START_GAME:
 	{
 		{
+			SConfig::GetInstance().m_NetplayDesyncCheck = true;
 			std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 			packet >> m_current_game;
 			packet >> g_NetPlaySettings.m_CPUthread;
@@ -442,6 +443,24 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		}
 
 		m_dialog->Update();
+	}
+	break;
+
+	case NP_MSG_DESYNC_DETECTED:
+	{
+		if (!SConfig::GetInstance().m_NetplayDesyncCheck)
+			break;
+
+		int id;
+		u32 frame;
+		packet >> id;
+		packet >> frame;
+		std::string sID = "";
+		if (id != -1)
+			sID = StringFromFormat(" from player ID %d", id);
+
+		m_dialog->AppendChat("Possible desync detected" + sID + StringFromFormat(" on frame: %u", frame));
+		SConfig::GetInstance().m_NetplayDesyncCheck = false;
 	}
 	break;
 
@@ -1046,6 +1065,20 @@ u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)
 	}
 
 	return ingame_pad;
+}
+
+void NetPlayClient::SendTimeBase()
+{
+	std::lock_guard<std::mutex> lk(crit_netplay_client);
+
+	u64 timebase = SystemTimers::GetFakeTimeBase();
+
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_TIMEBASE;
+	*spac << (u32)timebase;
+	*spac << (u32)(timebase << 32);
+	*spac << (u32)Movie::g_currentFrame;
+	netplay_client->SendAsync(spac);
 }
 
 // stuff hacked into dolphin

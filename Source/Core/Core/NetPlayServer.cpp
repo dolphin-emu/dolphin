@@ -23,6 +23,8 @@
 
 u64 g_netplay_initial_gctime = 1272737767;
 
+static std::map<u32, std::vector<std::pair<u64, u8>>> s_timebase;
+
 NetPlayServer::~NetPlayServer()
 {
 	if (is_connected)
@@ -110,8 +112,7 @@ void NetPlayServer::ThreadFunc()
 	while (m_do_loop)
 	{
 		// update pings every so many seconds
-
-		if ((m_ping_timer.GetTimeElapsed() > 1000) || m_update_pings)
+		if (m_update_pings || (m_ping_timer.GetTimeElapsed() > 1000))
 		{
 			m_ping_key = Common::Timer::GetTimeMs();
 
@@ -208,6 +209,7 @@ void NetPlayServer::ThreadFunc()
 			break;
 			}
 		}
+		Common::SleepCurrentThread(1);
 	}
 
 	// close listening socket and client sockets
@@ -581,6 +583,50 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 	}
 	break;
 
+	case NP_MSG_TIMEBASE:
+	{
+		u32 x, y, frame;
+		packet >> x;
+		packet >> y;
+		packet >> frame;
+		s_timebase[frame].emplace_back(x | ((u64)y >> 32), player.pid);
+
+		if (!std::all_of(s_timebase[frame].begin(), s_timebase[frame].end(), [&frame](std::pair<u64, u8> i){ return i.first == s_timebase[frame][0].first; }))
+		{
+			sf::Packet spac;
+			spac << (MessageId) NP_MSG_DESYNC_DETECTED;
+
+			int pid = -1;
+			if (s_timebase[frame].size() > 2)
+			{
+				for (auto time : s_timebase[frame])
+				{
+					int count = 0;
+					for (auto _time : s_timebase[frame])
+					{
+						if (_time.first == time.first)
+							count++;
+					}
+					if (count != s_timebase[frame].size() - 1)
+					{
+						if (pid == -1)
+						{
+							pid = time.second;
+						}
+						else
+						{
+							pid = -1;
+							break;
+						}
+					}
+				}
+			}
+			spac << pid;
+			spac << frame;
+			SendToClients(spac);
+		}
+	}
+	break;
 	default:
 		PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
 		// unknown message, kick the client
@@ -635,6 +681,7 @@ void NetPlayServer::SetNetSettings(const NetSettings &settings)
 // called from ---GUI--- thread
 bool NetPlayServer::StartGame()
 {
+	s_timebase.clear();
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 	m_current_game = Common::Timer::GetTimeMs();
 
@@ -657,7 +704,7 @@ bool NetPlayServer::StartGame()
 	*spac << m_settings.m_EXIDevice[0];
 	*spac << m_settings.m_EXIDevice[1];
 	*spac << (u32)g_netplay_initial_gctime;
-	*spac << (u32)g_netplay_initial_gctime << 32;
+	*spac << (u32)(g_netplay_initial_gctime << 32);
 
 	SendAsyncToClients(spac);
 
