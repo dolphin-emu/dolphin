@@ -153,7 +153,7 @@ u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 u16 VideoBackendHardware::Video_GetBoundingBox(int index)
 {
 	if (!g_ActiveConfig.backend_info.bSupportsBBox || !g_ActiveConfig.bBBoxEnable)
-		return BoundingBox::coords[index];
+		return 0;
 
 	SyncGPU(SYNC_GPU_BBOX);
 
