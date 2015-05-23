@@ -170,13 +170,13 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				if (pVolume == nullptr)
 				{
 					if (bootDrive)
-						PanicAlertT("Could not read \"%s\".  "
-								"There is no disc in the drive, or it is not a GC/Wii backup.  "
-								"Please note that original GameCube and Wii discs cannot be read "
-								"by most PC DVD drives.", m_strFilename.c_str());
+						PanicAlertT("Could not read \"%s\". "
+						            "There is no disc in the drive, or it is not a GC/Wii backup. "
+						            "Please note that original GameCube and Wii discs "
+						            "cannot be read by Dolphin.", m_strFilename.c_str());
 					else
 						PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.",
-								m_strFilename.c_str());
+						            m_strFilename.c_str());
 					return false;
 				}
 				m_strName = pVolume->GetInternalName();
