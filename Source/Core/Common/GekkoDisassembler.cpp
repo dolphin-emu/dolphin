@@ -1,3 +1,7 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 /* $VER: ppc_disasm.c V1.5 (27.05.2009)
  *
  * Disassembler module for the PowerPC microprocessor family
