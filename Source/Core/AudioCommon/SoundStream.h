@@ -23,7 +23,7 @@ public:
 	virtual ~SoundStream() { }
 
 	static  bool isValid() { return false; }
-	virtual CMixer* GetMixer() const { return m_mixer.get(); }
+	CMixer* GetMixer() const { return m_mixer.get(); }
 	virtual bool Start() { return false; }
 	virtual void SetVolume(int) {}
 	virtual void SoundLoop() {}
