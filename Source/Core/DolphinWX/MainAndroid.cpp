@@ -561,7 +561,15 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDi
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
 {
+	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", g_filename.c_str());
+
 	surf = ANativeWindow_fromSurface(env, _surf);
+
+	if (surf == nullptr)
+	{
+		__android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
+		return;
+	}
 
 	// Install our callbacks
 	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
@@ -574,8 +582,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )
+	{
+		PowerPC::Start();
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 			updateMainFrameEvent.Wait();
+	}
 
 	UICommon::Shutdown();
 	ANativeWindow_release(surf);
