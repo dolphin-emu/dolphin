@@ -19,6 +19,8 @@ class PCAP;
 class DSPCaptureLogger
 {
 public:
+	virtual ~DSPCaptureLogger() {}
+
 	// Accesses (reads or writes) to memory mapped registers (external
 	// interface, also known as IFX). These are always 16 bits accesses.
 	virtual void LogIFXRead(u16 address, u16 read_value) = 0;
