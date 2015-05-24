@@ -13,8 +13,8 @@ class OpenSLESStream final : public SoundStream
 {
 #ifdef ANDROID
 public:
-	virtual bool Start();
-	virtual void Stop();
+	bool Start() override;
+	void Stop() override;
 	static bool isValid() { return true; }
 
 private:
