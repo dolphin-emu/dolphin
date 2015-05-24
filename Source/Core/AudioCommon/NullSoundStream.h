@@ -15,12 +15,6 @@ class NullSound final : public SoundStream
 	short realtimeBuffer[BUF_SIZE / sizeof(short)];
 
 public:
-	NullSound(CMixer *mixer)
-		: SoundStream(mixer)
-	{}
-
-	virtual ~NullSound() {}
-
 	virtual bool Start() override;
 	virtual void SoundLoop() override;
 	virtual void SetVolume(int volume) override;

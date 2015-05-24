@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
@@ -11,17 +13,17 @@
 class SoundStream
 {
 protected:
-	CMixer* m_mixer;
+	std::unique_ptr<CMixer> m_mixer;
 	bool m_logAudio;
 	WaveFileWriter g_wave_writer;
 	bool m_muted;
 
 public:
-	SoundStream(CMixer* mixer) : m_mixer(mixer), m_logAudio(false), m_muted(false) {}
-	virtual ~SoundStream() { delete m_mixer; }
+	SoundStream() : m_mixer(new CMixer(48000)), m_logAudio(false), m_muted(false) {}
+	virtual ~SoundStream() { }
 
 	static  bool isValid() { return false; }
-	virtual CMixer* GetMixer() const { return m_mixer; }
+	CMixer* GetMixer() const { return m_mixer.get(); }
 	virtual bool Start() { return false; }
 	virtual void SetVolume(int) {}
 	virtual void SoundLoop() {}

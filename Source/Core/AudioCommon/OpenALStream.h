@@ -56,12 +56,9 @@ class OpenALStream final : public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-	OpenALStream(CMixer *mixer)
-		: SoundStream(mixer)
-		, uiSource(0)
-	{}
-
-	virtual ~OpenALStream() {}
+	OpenALStream() : uiSource(0)
+	{
+	}
 
 	virtual bool Start() override;
 	virtual void SoundLoop() override;
@@ -84,10 +81,5 @@ private:
 	ALfloat fVolume;
 
 	u8 numBuffers;
-#else
-public:
-	OpenALStream(CMixer *mixer)
-		: SoundStream(mixer)
-	{}
 #endif // HAVE_OPENAL
 };
