@@ -19,14 +19,6 @@ OSStatus CoreAudioSound::callback(void *inRefCon,
 	return noErr;
 }
 
-CoreAudioSound::CoreAudioSound(CMixer *mixer) : SoundStream(mixer)
-{
-}
-
-CoreAudioSound::~CoreAudioSound()
-{
-}
-
 bool CoreAudioSound::Start()
 {
 	OSStatus err;

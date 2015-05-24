@@ -14,9 +14,6 @@ class CoreAudioSound final : public SoundStream
 {
 #ifdef __APPLE__
 public:
-	CoreAudioSound(CMixer *mixer);
-	virtual ~CoreAudioSound();
-
 	virtual bool Start();
 	virtual void SetVolume(int volume);
 	virtual void SoundLoop();
@@ -38,8 +35,5 @@ private:
 		const AudioTimeStamp *inTimeStamp,
 		UInt32 inBusNumber, UInt32 inNumberFrames,
 		AudioBufferList *ioData);
-#else
-public:
-	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };

@@ -10,9 +10,8 @@
 #define BUFFER_SIZE_MAX 8192
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE_MAX*2*2)
 
-AlsaSound::AlsaSound(CMixer *mixer)
-	: SoundStream(mixer)
-	, m_thread_status(ALSAThreadStatus::STOPPED)
+AlsaSound::AlsaSound()
+	: m_thread_status(ALSAThreadStatus::STOPPED)
 	, handle(nullptr)
 	, frames_to_deliver(FRAME_COUNT_MIN)
 {

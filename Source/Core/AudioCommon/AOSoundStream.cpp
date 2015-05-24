@@ -77,8 +77,4 @@ void AOSound::Stop()
 	}
 }
 
-AOSound::~AOSound()
-{
-}
-
 #endif

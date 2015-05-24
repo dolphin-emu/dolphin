@@ -13,9 +13,8 @@ namespace
 const size_t BUFFER_SAMPLES = 512; // ~10 ms - needs to be at least 240 for surround
 }
 
-PulseAudio::PulseAudio(CMixer *mixer)
-	: SoundStream(mixer)
-	, m_thread()
+PulseAudio::PulseAudio()
+	: m_thread()
 	, m_run_thread()
 {
 }

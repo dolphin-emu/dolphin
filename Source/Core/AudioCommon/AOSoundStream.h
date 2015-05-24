@@ -33,10 +33,6 @@ class AOSound final : public SoundStream
 	short realtimeBuffer[1024 * 1024];
 
 public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
-
-	virtual ~AOSound();
-
 	virtual bool Start() override;
 
 	virtual void SoundLoop() override;
@@ -49,9 +45,5 @@ public:
 	}
 
 	virtual void Update() override;
-
-#else
-public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };
