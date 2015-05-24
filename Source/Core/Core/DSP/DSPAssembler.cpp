@@ -1,4 +1,4 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2009 Dolphin Emulator Project
 // Copyright 2005 Duddie, wntrmute, Hermes
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
