@@ -584,7 +584,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
 	}
-	out.Write("\tzCoord = clamp(zCoord, " I_ZBIAS"[1].x - " I_ZBIAS"[1].y, " I_ZBIAS"[1].x);\n");
+	out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
 	const bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
