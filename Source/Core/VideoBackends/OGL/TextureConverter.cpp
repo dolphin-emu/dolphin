@@ -117,17 +117,30 @@ static void CreatePrograms()
 		"void main()\n"
 		"{\n"
 		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
-			// We switch top/bottom here. TODO: move this to screen blit.
+		// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x>>1, ts.y-uv.y-1), 0);\n"
-		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
-		"	float yComp = 1.164 * (y - 0.0625);\n"
-		"	float uComp = c0.g - 0.5;\n"
-		"	float vComp = c0.a - 0.5;\n"
-		"	ocol0 = vec4(yComp + (1.596 * vComp),\n"
-		"		yComp - (0.813 * vComp) - (0.391 * uComp),\n"
-		"		yComp + (2.018 * uComp),\n"
-		"		1.0);\n"
+		"   ivec4 icol = ivec4(round(c0 * vec4(255.0)));\n"
+		// Only Y values between 16 and 236 (and UV values between 16 and 240) are used in the  BT.601 color space
+		// Idealy We could treat any color out of this range as transparent, but some games have encoded their
+		// cutscene videos out of spec. VI and/or the TV will clamp these out of range values.
+		// So we are using one really ugly color of Y=1,U=254,V=254 as a key, it's Fuchsia so hopefully no
+		// videos will use that exact 'out of range' color.
+		"   if (icol.rg != ivec2(1, 254) && icol.ba != ivec2(1, 254))\n"
+		"   {\n"
+		"		float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
+		"		float yComp = 1.164 * (y - 0.0625);\n"
+		"		float uComp = c0.g - 0.5;\n"
+		"		float vComp = c0.a - 0.5;\n"
+		"		ocol0 = vec4(yComp + (1.596 * vComp),\n"
+		"			yComp - (0.813 * vComp) - (0.391 * uComp),\n"
+		"			yComp + (2.018 * uComp),\n"
+		"			1.0);\n"
+		"	}\n"
+		"	else\n"
+		"	{\n"
+		"		ocol0 = vec4(0.0, 0.0, 0.0, 0.0);\n"
+		"	}\n"
 		"}\n";
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }

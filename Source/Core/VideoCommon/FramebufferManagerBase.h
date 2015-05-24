@@ -20,6 +20,7 @@ struct XFBSourceBase
 	u32 srcAddr;
 	u32 srcWidth;
 	u32 srcHeight;
+	bool real;
 
 	unsigned int texWidth;
 	unsigned int texHeight;

@@ -1434,7 +1434,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	static int w = 0, h = 0;
-	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseXFB) || !fbWidth || !fbHeight)
 	{
 		DumpFrame(frame_data, w, h);
 		Core::Callback_VideoCopiedToXFB(false);
@@ -1470,9 +1470,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			TargetRectangle drawRc;
 
-			if (g_ActiveConfig.bUseRealXFB)
+			if (xfbSource->real)
 			{
 				drawRc = flipped_trc;
+				// Hybrid XFB requires alpha blending.
+				glEnable(GL_BLEND);
+				glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 			}
 			else
 			{
@@ -1507,6 +1511,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
 			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+
+			if (xfbSource->real)
+				glDisable(GL_BLEND);
 		}
 	}
 	else

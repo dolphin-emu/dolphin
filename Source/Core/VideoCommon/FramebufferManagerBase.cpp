@@ -1,4 +1,4 @@
-
+#include "Core/HW/Memmap.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -65,6 +65,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 
 	m_realXFBSource->texWidth = fbWidth;
 	m_realXFBSource->texHeight = fbHeight;
+	m_realXFBSource->real = true;
 
 	// OpenGL texture coordinates originate at the lower left, which is why
 	// sourceRc.top = fbHeight and sourceRc.bottom = 0.
@@ -84,28 +85,64 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 {
 	u32 xfbCount = 0;
 
-	if (m_virtualXFBList.empty())  // no Virtual XFBs available
-		return nullptr;
-
-	u32 srcLower = xfbAddr;
-	u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
-
-	VirtualXFBListType::reverse_iterator
-		it = m_virtualXFBList.rbegin(),
-		vlend = m_virtualXFBList.rend();
-	for (; it != vlend; ++it)
+	if (!m_virtualXFBList.empty())
 	{
-		VirtualXFB* vxfb = &*it;
+		u32 srcLower = xfbAddr;
+		u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
 
-		u32 dstLower = vxfb->xfbAddr;
-		u32 dstUpper = vxfb->xfbAddr + 2 * vxfb->xfbWidth * vxfb->xfbHeight;
-
-		if (AddressRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
+		VirtualXFBListType::reverse_iterator
+			it = m_virtualXFBList.rbegin(),
+			vlend = m_virtualXFBList.rend();
+		for (; it != vlend; ++it)
 		{
-			m_overlappingXFBArray[xfbCount] = vxfb->xfbSource;
-			++xfbCount;
+			VirtualXFB* vxfb = &*it;
+
+			u32 dstLower = vxfb->xfbAddr;
+			u32 dstUpper = vxfb->xfbAddr + 2 * vxfb->xfbWidth * vxfb->xfbHeight;
+
+			if (AddressRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
+			{
+				m_overlappingXFBArray[xfbCount] = vxfb->xfbSource;
+				++xfbCount;
+			}
 		}
 	}
+
+	// Hybrid XFB
+
+	// recreate if needed
+	if (m_realXFBSource && (m_realXFBSource->texWidth != fbWidth || m_realXFBSource->texHeight != fbHeight))
+	{
+		delete m_realXFBSource;
+		m_realXFBSource = nullptr;
+	}
+
+	if (!m_realXFBSource)
+		m_realXFBSource = g_framebuffer_manager->CreateXFBSource(fbWidth, fbHeight, 1);
+
+	m_realXFBSource->srcAddr = xfbAddr;
+
+	m_realXFBSource->srcWidth = MAX_XFB_WIDTH;
+	m_realXFBSource->srcHeight = MAX_XFB_HEIGHT;
+
+	m_realXFBSource->texWidth = fbWidth;
+	m_realXFBSource->texHeight = fbHeight;
+	m_realXFBSource->real = true;
+
+	// OpenGL texture coordinates originate at the lower left, which is why
+	// sourceRc.top = fbHeight and sourceRc.bottom = 0.
+	m_realXFBSource->sourceRc.left = 0;
+	m_realXFBSource->sourceRc.top = fbHeight;
+	m_realXFBSource->sourceRc.right = fbWidth;
+	m_realXFBSource->sourceRc.bottom = 0;
+
+	// Decode YUYV data from GameCube RAM
+	m_realXFBSource->DecodeToTexture(xfbAddr, fbWidth, fbHeight);
+
+	m_overlappingXFBArray[xfbCount] = m_realXFBSource;
+	xfbCount++;
+
+
 
 	*xfbCountP = xfbCount;
 	return &m_overlappingXFBArray[0];
@@ -163,6 +200,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	vxfb->xfbSource->srcAddr = vxfb->xfbAddr = xfbAddr;
 	vxfb->xfbSource->srcWidth = vxfb->xfbWidth = fbWidth;
 	vxfb->xfbSource->srcHeight = vxfb->xfbHeight = fbHeight;
+	vxfb->xfbSource->real = false;
 
 	vxfb->xfbSource->sourceRc = g_renderer->ConvertEFBRectangle(sourceRc);
 
@@ -171,6 +209,18 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 
 	// Copy EFB data to XFB and restore render target again
 	vxfb->xfbSource->CopyEFB(Gamma);
+
+	// Fill the real xfb with blank data.
+
+	u16* xfb_in_ram = reinterpret_cast<u16*>(Memory::GetPointer(xfbAddr));
+	if (!xfb_in_ram)
+	{
+		WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
+		return;
+	}
+
+	for (u32 i = 0; i < fbWidth*fbHeight; i++)
+		xfb_in_ram[i] = 0xfe01; // YU/YV = (1, 254)
 }
 
 FramebufferManagerBase::VirtualXFBListType::iterator FramebufferManagerBase::FindVirtualXFB(u32 xfbAddr, u32 width, u32 height)
