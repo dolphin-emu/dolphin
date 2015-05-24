@@ -61,12 +61,12 @@ public:
 	XAudio2_7();
 	virtual ~XAudio2_7();
 
-	virtual bool Start();
-	virtual void Stop();
+	bool Start() override;
+	void Stop() override;
 
-	virtual void Update();
-	virtual void Clear(bool mute);
-	virtual void SetVolume(int volume);
+	void Update() override;
+	void Clear(bool mute) override;
+	void SetVolume(int volume) override;
 
 	static bool isValid() { return InitLibrary(); }
 #endif

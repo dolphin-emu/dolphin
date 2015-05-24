@@ -20,12 +20,11 @@ class PulseAudio final : public SoundStream
 public:
 	PulseAudio();
 
-	virtual bool Start() override;
-	virtual void Stop() override;
+	bool Start() override;
+	void Stop() override;
+	void Update() override;
 
 	static bool isValid() { return true; }
-
-	virtual void Update() override;
 
 	void StateCallback(pa_context *c);
 	void WriteCallback(pa_stream *s, size_t length);
