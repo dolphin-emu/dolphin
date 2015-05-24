@@ -395,7 +395,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			u32 x, y;
 			packet >> x;
 			packet >> y;
-			g_netplay_initial_gctime = x | ((u64)y >> 32);
+			g_netplay_initial_gctime = x | ((u64)y << 32);
 		}
 
 		m_dialog->OnMsgStartGame();
