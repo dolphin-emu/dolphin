@@ -582,7 +582,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 	else
 	{
-		out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+		if (ApiType == API_D3D)
+			out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+		else
+			out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
 	}
 	out.Write("\tzCoord = clamp(zCoord, " I_ZBIAS"[1].x - " I_ZBIAS"[1].y, " I_ZBIAS"[1].x);\n");
 
@@ -600,7 +603,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
 	{
-		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+		if (ApiType == API_D3D)
+			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
+		else
+			out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
@@ -616,7 +622,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
 	{
-		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+		if (ApiType == API_D3D)
+			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
+		else
+			out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
@@ -1129,7 +1138,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data* uid_data, API_T
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (per_pixel_depth)
-		out.Write("\t\tdepth = 1.0;\n");
+		out.Write("\t\tdepth = %s;\n", (ApiType == API_D3D) ? "0.0" : "1.0");
 
 	// ZCOMPLOC HACK:
 	// The only way to emulate alpha test + early-z is to force early-z in the shader.
