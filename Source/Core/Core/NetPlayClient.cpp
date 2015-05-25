@@ -339,11 +339,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		packet >> map >> size;
 
 		nw.resize(size);
-		u8* data = new u8[size];
+
 		for (unsigned int i = 0; i < size; ++i)
-			packet >> data[i];
-		nw.assign(data, data + size);
-		delete[] data;
+			packet >> nw[i];
 
 		// trusting server for good map value (>=0 && <4)
 		// add to Wiimote buffer
