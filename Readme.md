@@ -60,19 +60,14 @@ Android Studio will do this for you if you create `Source/Android/build.properti
 following inside:
 
 ```
-toolchain=<toolchain>
-abi=<abi>
 makeArgs=<make-args>
 ```
 
-Replace `<make-args>` with any arguments you want to pass to `make`, and the rest depending on which
-platform the Android device you are targeting uses:
-
-|Platform                 | `<abi>`     | `<toolchain>`             |
-|-------------------------|-------------|---------------------------|
-|ARM 32-bit (most devices)| armeabi-v7a | arm-linux-androideabi-4.9 |
-|ARM 64-bit (i.e. Nexus 9)| arm64-v8a   | aarch64-linux-android-4.9 |
-|Intel 64-bit             | x86_64      | x86_64-4.9                |
+Replace `<make-args>` with any arguments you want to pass to `make`, and then execute the
+`assembleDebug` or `installDebug` task corresponding to the hardware platform you are targeting.
+For example, to deploy to a Nexus 9, which runs the AArch64 architecture, execute `installArm_64Debug`.
+A list of available tasks can be found in Android Studio in the Gradle tray, located at the top-right
+corner of the IDE by default.
 
 The native libraries will be compiled, and copied into `./Source/Android/app/libs`. Android Studio
 and Gradle will include any libraries in that folder into the APK at build time.
