@@ -7,7 +7,6 @@
 
 #include "Core/Host.h"
 
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoader.h"
@@ -24,14 +23,14 @@ u8* g_vertex_manager_write_ptr;
 
 static void LOADERDECL PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
-	u8 posmtx = BoundingBox::posMtxIdx = DataReadU8() & 0x3f;
+	u32 posmtx = DataReadU8() & 0x3f;
 	DataWrite<u32>(posmtx);
 	PRIM_LOG("posmtx: %d, ", posmtx);
 }
 
 static void LOADERDECL TexMtx_ReadDirect_UByte(VertexLoader* loader)
 {
-	BoundingBox::texMtxIdx[loader->m_texmtxread] = loader->m_curtexmtx[loader->m_texmtxread] = DataReadU8() & 0x3f;
+	loader->m_curtexmtx[loader->m_texmtxread] = DataReadU8() & 0x3f;
 
 	PRIM_LOG("texmtx%d: %d, ", loader->m_texmtxread, loader->m_curtexmtx[loader->m_texmtxread]);
 	loader->m_texmtxread++;
@@ -86,10 +85,6 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Reset pipeline
 	m_numPipelineStages = 0;
-
-	// Get the pointer to this vertex's buffer data for the bounding box
-	if (!g_ActiveConfig.backend_info.bSupportsBBox)
-		WriteCall(BoundingBox::SetVertexBufferPosition);
 
 	// Colors
 	const u64 col[2] = { m_VtxDesc.Color0, m_VtxDesc.Color1 };
@@ -298,10 +293,6 @@ void VertexLoader::CompileVertexTranslator()
 		}
 	}
 
-	// Update the bounding box
-	if (!g_ActiveConfig.backend_info.bSupportsBBox)
-		WriteCall(BoundingBox::Update);
-
 	// indexed position formats may skip a the vertex
 	if (m_VtxDesc.Position & 2)
 	{
@@ -317,17 +308,13 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 	m_PipelineStages[m_numPipelineStages++] = func;
 }
 
-int VertexLoader::RunVertices(DataReader src, DataReader dst, int count, int primitive)
+int VertexLoader::RunVertices(DataReader src, DataReader dst, int count)
 {
 	g_vertex_manager_write_ptr = dst.GetPointer();
 	g_video_buffer_read_ptr = src.GetPointer();
 
 	m_numLoadedVertices += count;
 	m_skippedVertices = 0;
-
-	// Prepare bounding box
-	if (!g_ActiveConfig.backend_info.bSupportsBBox)
-		BoundingBox::Prepare(m_vat, primitive, m_VtxDesc, m_native_vtx_decl);
 
 	for (int s = 0; s < count; s++)
 	{
