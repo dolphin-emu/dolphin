@@ -1,3 +1,7 @@
+// Copyright 2012 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include "ICMP.h"
 
 // Currently stubbed. AFAIK (delroth) there is no way to send ICMP echo

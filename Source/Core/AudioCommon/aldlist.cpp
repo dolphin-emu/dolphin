@@ -1,3 +1,7 @@
+// Copyright 2009 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 /*
  * Copyright (c) 2006, Creative Labs Inc.
  * All rights reserved.
