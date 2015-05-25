@@ -59,6 +59,7 @@
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="GLExtensions\ARB_blend_func_extended.h" />
     <ClInclude Include="GLExtensions\ARB_buffer_storage.h" />
+    <ClInclude Include="GLExtensions\ARB_clip_control.h" />
     <ClInclude Include="GLExtensions\ARB_debug_output.h" />
     <ClInclude Include="GLExtensions\ARB_draw_elements_base_vertex.h" />
     <ClInclude Include="GLExtensions\ARB_ES2_compatibility.h" />

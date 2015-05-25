@@ -468,6 +468,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
 	g_Config.backend_info.bSupportsGeometryShaders = GLExtensions::Version() >= 320;
 	g_Config.backend_info.bSupportsPaletteConversion = GLExtensions::Supports("GL_ARB_texture_buffer_object");
+	g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
@@ -480,7 +481,7 @@ Renderer::Renderer()
 	                                     GLExtensions::Supports("GL_EXT_draw_elements_base_vertex") ||
 	                                     GLExtensions::Supports("GL_OES_draw_elements_base_vertex");
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage") ||
-	                                        GLExtensions::Supports("GL_EXT_buffer_storage");;
+	                                        GLExtensions::Supports("GL_EXT_buffer_storage");
 	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
@@ -585,7 +586,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -596,7 +597,8 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA ",
-			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing "
+			g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
+			g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl "
 			);
 
 	s_last_multisample_mode = g_ActiveConfig.iMultisampleMode;
@@ -633,6 +635,8 @@ Renderer::Renderer()
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
+	if (g_ActiveConfig.backend_info.bSupportsClipControl)
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepthf(1.0f);
@@ -1241,7 +1245,7 @@ void Renderer::SetViewport()
 		};
 		glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
 	}
-	glDepthRangef(GLNear, GLFar);
+	glDepthRangef(GLFar, GLNear);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
