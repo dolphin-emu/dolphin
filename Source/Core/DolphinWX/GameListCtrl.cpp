@@ -387,7 +387,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
-	std::string name = rISOFile.GetName();
+	wxString name = rISOFile.GetName();
 
 	std::ifstream titlestxt;
 	OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
@@ -415,7 +415,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	if (gameini.GetIfExists("EmuState", "Title", &title))
 		name = title;
 
-	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
+	if (rISOFile.IsDiscTwo() && name.find("Disc 2") == std::string::npos)
+		name = wxString::Format(_("%s (Disc 2)"), name.c_str());
+
+	SetItem(_Index, COLUMN_TITLE, name, -1);
 	SetItem(_Index, COLUMN_MAKER, StrToWxStr(rISOFile.GetCompany()), -1);
 
 	// Emulation state
