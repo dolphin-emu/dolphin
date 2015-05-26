@@ -220,7 +220,7 @@ u32 CVolumeWiiCrypted::GetFSTSize() const
 	if (!Read(0x428, 0x4, (u8*)&size, true))
 		return 0;
 
-	return size;
+	return Common::swap32(size);
 }
 
 std::string CVolumeWiiCrypted::GetApploaderDate() const
