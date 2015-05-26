@@ -188,7 +188,7 @@ private:
 		IDM_BNRSAVEAS
 	};
 
-	void LaunchExternalEditor(const std::string& filename);
+	void LaunchExternalEditor(const std::string& filename, bool wait_until_closed);
 
 	void CreateGUIControls();
 	void OnClose(wxCloseEvent& event);
