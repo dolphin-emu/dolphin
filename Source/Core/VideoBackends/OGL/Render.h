@@ -75,6 +75,7 @@ public:
 	void FlipImageData(u8 *data, int w, int h, int pixel_width = 3);
 
 	u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
+	void PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data) override;
 
 	u16 BBoxRead(int index) override;
 	void BBoxWrite(int index, u16 value) override;
