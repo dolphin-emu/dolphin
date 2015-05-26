@@ -193,10 +193,6 @@ struct SCoreStartupParameter
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
 	std::string theme_name;
 
-	// Hotkeys
-	int iHotkey[NUM_HOTKEYS];
-	int iHotkeyModifier[NUM_HOTKEYS];
-
 	// Display settings
 	std::string strFullscreenResolution;
 	int iRenderWindowXPos, iRenderWindowYPos;

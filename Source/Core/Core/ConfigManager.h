@@ -139,7 +139,6 @@ private:
 	void SaveGeneralSettings(IniFile& ini);
 	void SaveInterfaceSettings(IniFile& ini);
 	void SaveDisplaySettings(IniFile& ini);
-	void SaveHotkeySettings(IniFile& ini);
 	void SaveGameListSettings(IniFile& ini);
 	void SaveCoreSettings(IniFile& ini);
 	void SaveDSPSettings(IniFile& ini);
@@ -150,7 +149,6 @@ private:
 	void LoadGeneralSettings(IniFile& ini);
 	void LoadInterfaceSettings(IniFile& ini);
 	void LoadDisplaySettings(IniFile& ini);
-	void LoadHotkeySettings(IniFile& ini);
 	void LoadGameListSettings(IniFile& ini);
 	void LoadCoreSettings(IniFile& ini);
 	void LoadDSPSettings(IniFile& ini);

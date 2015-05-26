@@ -41,7 +41,6 @@ set(GUI_SRCS
 	FrameAui.cpp
 	FrameTools.cpp
 	GameListCtrl.cpp
-	HotkeyDlg.cpp
 	ISOFile.cpp
 	ISOProperties.cpp
 	InputConfigDiag.cpp

@@ -13,139 +13,6 @@
 
 SConfig* SConfig::m_Instance;
 
-static const struct
-{
-	const char* IniText;
-	const int   DefaultKey;
-	const int   DefaultModifier;
-} g_HKData[] = {
-	{ "Open",                  79  /* 'O' */,        2 /* wxMOD_CONTROL */ },
-	{ "ChangeDisc",            0,                    0 /* wxMOD_NONE */    },
-	{ "RefreshList",           0,                    0 /* wxMOD_NONE */    },
-#ifdef __APPLE__
-	{ "PlayPause",             80  /* 'P' */,        2 /* wxMOD_CMD */     },
-	{ "Stop",                  87  /* 'W' */,        2 /* wxMOD_CMD */     },
-	{ "Reset",                 0,                    0 /* wxMOD_NONE */    },
-	{ "FrameAdvance",          0,                    0 /* wxMOD_NONE */    },
-
-	{ "StartRecording",        0,                    0 /* wxMOD_NONE */    },
-	{ "PlayRecording",         0,                    0 /* wxMOD_NONE */    },
-	{ "ExportRecording",       0,                    0 /* wxMOD_NONE */    },
-	{ "Readonlymode",          0,                    0 /* wxMOD_NONE */    },
-
-	{ "ToggleFullscreen",      70  /* 'F' */,        2 /* wxMOD_CMD */     },
-	{ "Screenshot",            83  /* 'S' */,        2 /* wxMOD_CMD */     },
-	{ "Exit",                  0,                    0 /* wxMOD_NONE */    },
-
-	{ "Wiimote1Connect",       49  /* '1' */,        2 /* wxMOD_CMD */     },
-	{ "Wiimote2Connect",       50  /* '2' */,        2 /* wxMOD_CMD */     },
-	{ "Wiimote3Connect",       51  /* '3' */,        2 /* wxMOD_CMD */     },
-	{ "Wiimote4Connect",       52  /* '4' */,        2 /* wxMOD_CMD */     },
-	{ "BalanceBoardConnect",   53  /* '4' */,        2 /* wxMOD_CMD */     },
-#else
-	{ "PlayPause",             349 /* WXK_F10 */,    0 /* wxMOD_NONE */    },
-	{ "Stop",                  27  /* WXK_ESCAPE */, 0 /* wxMOD_NONE */    },
-	{ "Reset",                 0,                    0 /* wxMOD_NONE */    },
-	{ "FrameAdvance",          0,                    0 /* wxMOD_NONE */    },
-
-	{ "StartRecording",        0,                    0 /* wxMOD_NONE */    },
-	{ "PlayRecording",         0,                    0 /* wxMOD_NONE */    },
-	{ "ExportRecording",       0,                    0 /* wxMOD_NONE */    },
-	{ "Readonlymode",          0,                    0 /* wxMOD_NONE */    },
-
-	{ "ToggleFullscreen",      13  /* WXK_RETURN */, 1 /* wxMOD_ALT */     },
-	{ "Screenshot",            348 /* WXK_F9 */,     0 /* wxMOD_NONE */    },
-	{ "Exit",                  0,                    0 /* wxMOD_NONE */    },
-
-	{ "Wiimote1Connect",       344 /* WXK_F5 */,     1 /* wxMOD_ALT */     },
-	{ "Wiimote2Connect",       345 /* WXK_F6 */,     1 /* wxMOD_ALT */     },
-	{ "Wiimote3Connect",       346 /* WXK_F7 */,     1 /* wxMOD_ALT */     },
-	{ "Wiimote4Connect",       347 /* WXK_F8 */,     1 /* wxMOD_ALT */     },
-	{ "BalanceBoardConnect",   348 /* WXK_F9 */,     1 /* wxMOD_ALT */     },
-#endif
-
-	{ "VolumeDown",            0,                    0 /* wxMOD_NONE */    },
-	{ "VolumeUp",              0,                    0 /* wxMOD_NONE */    },
-	{ "VolumeToggleMute",      0,                    0 /* wxMOD_NONE */    },
-
-	{ "IncreaseIR",            0,                    0 /* wxMOD_NONE */    },
-	{ "DecreaseIR",            0,                    0 /* wxMOD_NONE */    },
-
-	{ "ToggleIR",              0,                    0 /* wxMOD_NONE */    },
-	{ "ToggleAspectRatio",     0,                    0 /* wxMOD_NONE */    },
-	{ "ToggleEFBCopies",       0,                    0 /* wxMOD_NONE */    },
-	{ "ToggleFog",             0,                    0 /* wxMOD_NONE */    },
-	{ "ToggleThrottle",        9   /* '\t' */,       0 /* wxMOD_NONE */    },
-	{ "DecreaseFrameLimit",    0,                    0 /* wxMOD_NONE */    },
-	{ "IncreaseFrameLimit",    0,                    0 /* wxMOD_NONE */    },
-
-	{ "FreelookDecreaseSpeed", 49  /* '1' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookIncreaseSpeed", 50  /* '2' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookResetSpeed",    70  /* 'F' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookUp",            69  /* 'E' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookDown",          81  /* 'Q' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookLeft",          65  /* 'A' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookRight",         68  /* 'D' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookZoomIn",        87  /* 'W' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookZoomOut",       83  /* 'S' */,        4 /* wxMOD_SHIFT */   },
-	{ "FreelookReset",         82  /* 'R' */,        4 /* wxMOD_SHIFT */   },
-
-	{ "DecreaseDepth",         0,                    0 /* wxMOD_NONE */    },
-	{ "IncreaseDepth",         0,                    0 /* wxMOD_NONE */    },
-	{ "DecreaseConvergence",   0,                    0 /* wxMOD_NONE */    },
-	{ "IncreaseConvergence",   0,                    0 /* wxMOD_NONE */    },
-
-	{ "LoadStateSlot1",        340 /* WXK_F1 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot2",        341 /* WXK_F2 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot3",        342 /* WXK_F3 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot4",        343 /* WXK_F4 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot5",        344 /* WXK_F5 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot6",        345 /* WXK_F6 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot7",        346 /* WXK_F7 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot8",        347 /* WXK_F8 */,     0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot9",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadStateSlot10",       0,                    0 /* wxMOD_NONE */    },
-
-	{ "SaveStateSlot1",        340 /* WXK_F1 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot2",        341 /* WXK_F2 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot3",        342 /* WXK_F3 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot4",        343 /* WXK_F4 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot5",        344 /* WXK_F5 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot6",        345 /* WXK_F6 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot7",        346 /* WXK_F7 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot8",        347 /* WXK_F8 */,     4 /* wxMOD_SHIFT */   },
-	{ "SaveStateSlot9",        0,                    0 /* wxMOD_NONE */    },
-	{ "SaveStateSlot10",       0,                    0 /* wxMOD_NONE */    },
-
-	{ "SelectStateSlot1",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot2",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot3",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot4",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot5",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot6",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot7",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot8",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot9",      0,                    0 /* wxMOD_NONE */    },
-	{ "SelectStateSlot10",     0,                    0 /* wxMOD_NONE */    },
-	{ "SaveSelectedSlot",      0,                    0 /* wxMOD_NONE */    },
-	{ "LoadSelectedSlot",      0,                    0 /* wxMOD_NONE */    },
-
-	{ "LoadLastState1",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadLastState2",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadLastState3",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadLastState4",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadLastState5",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadLastState6",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadLastState7",        0,                    0 /* wxMOD_NONE */    },
-	{ "LoadLastState8",        0,                    0 /* wxMOD_NONE */    },
-
-	{ "SaveFirstState",        0,                    0 /* wxMOD_NONE */    },
-	{ "UndoLoadState",         351 /* WXK_F12 */,    0 /* wxMOD_NONE */    },
-	{ "UndoSaveState",         351 /* WXK_F12 */,    4 /* wxMOD_SHIFT */   },
-	{ "SaveStateFile",         0,                    0 /* wxMOD_NONE */    },
-	{ "LoadStateFile",         0,                    0 /* wxMOD_NONE */    },
-};
-
 SConfig::SConfig()
 {
 	// Make sure we have log manager
@@ -178,7 +45,6 @@ void SConfig::SaveSettings()
 
 	SaveGeneralSettings(ini);
 	SaveInterfaceSettings(ini);
-	SaveHotkeySettings(ini);
 	SaveDisplaySettings(ini);
 	SaveGameListSettings(ini);
 	SaveCoreSettings(ini);
@@ -249,18 +115,6 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 	interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
 	interface->Set("ThemeName40", m_LocalCoreStartupParameter.theme_name);
 	interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
-}
-
-void SConfig::SaveHotkeySettings(IniFile& ini)
-{
-	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
-
-	for (int i = 0; i < NUM_HOTKEYS; i++)
-	{
-		hotkeys->Set(g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
-		hotkeys->Set(std::string(g_HKData[i].IniText) + "Modifier",
-			m_LocalCoreStartupParameter.iHotkeyModifier[i]);
-	}
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -407,7 +261,6 @@ void SConfig::LoadSettings()
 
 	LoadGeneralSettings(ini);
 	LoadInterfaceSettings(ini);
-	LoadHotkeySettings(ini);
 	LoadDisplaySettings(ini);
 	LoadGameListSettings(ini);
 	LoadCoreSettings(ini);
@@ -499,19 +352,6 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 	interface->Get("ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
 	interface->Get("ThemeName40",             &m_LocalCoreStartupParameter.theme_name,        "Clean");
 	interface->Get("PauseOnFocusLost",        &m_PauseOnFocusLost,                            false);
-}
-
-void SConfig::LoadHotkeySettings(IniFile& ini)
-{
-	IniFile::Section* hotkeys = ini.GetOrCreateSection("Hotkeys");
-
-	for (int i = 0; i < NUM_HOTKEYS; i++)
-	{
-		hotkeys->Get(g_HKData[i].IniText,
-		    &m_LocalCoreStartupParameter.iHotkey[i], 0);
-		hotkeys->Get(std::string(g_HKData[i].IniText) + "Modifier",
-		    &m_LocalCoreStartupParameter.iHotkeyModifier[i], 0);
-	}
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)
