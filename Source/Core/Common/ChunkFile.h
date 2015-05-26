@@ -29,10 +29,8 @@
 #include "Common/Flag.h"
 
 // ewww
-#if _LIBCPP_VERSION
+#if _LIBCPP_VERSION || __GNUC__
 #define IsTriviallyCopyable(T) std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
-#elif __GNUC__
-#define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
 #elif _MSC_VER >= 1800
 // work around bug
 #define IsTriviallyCopyable(T) (std::is_trivially_copyable<T>::value || std::is_pod<T>::value)
