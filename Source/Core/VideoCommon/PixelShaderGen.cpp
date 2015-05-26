@@ -300,12 +300,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
-	                            && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
+	                            && (g_ActiveConfig.backend_info.bSupportsClipControl || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
 	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
 	                            // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
 	                            && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest())
-	                             || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z)
+	                             || (!g_ActiveConfig.backend_info.bSupportsClipControl && bpmem.zmode.testenable && !forced_early_z)
 	                             || (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
 	if (forced_early_z)
@@ -329,13 +329,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("[earlydepthstencil]\n");
 		}
-	}
-	else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
-	{
-		static bool warn_once = true;
-		if (warn_once)
-			WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
-		warn_once = false;
 	}
 
 	if (ApiType == API_OPENGL)
@@ -569,11 +562,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		out.Write("\tint zCoord = int(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y);\n");
 	}
-	else if (!g_ActiveConfig.bFastDepthCalc)
+	else if (!g_ActiveConfig.backend_info.bSupportsClipControl)
 	{
-		// FastDepth means to trust the depth generated in perspective division.
-		// It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
-		// For disabled FastDepth we just calculate the depth value again.
+		// If accurate FastDepth is not supported we just calculate the depth value again.
 		// The performance impact of this additional calculation doesn't matter, but it prevents
 		// the host GPU driver from performing any early depth test optimizations.
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
@@ -595,7 +586,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	uid_data->ztex_op = bpmem.ztex2.op;
 	uid_data->per_pixel_depth = per_pixel_depth;
 	uid_data->forced_early_z = forced_early_z;
-	uid_data->fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
+	uid_data->fast_depth_calc = g_ActiveConfig.backend_info.bSupportsClipControl;
 	uid_data->early_ztest = bpmem.UseEarlyDepthTest();
 	uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 	uid_data->zfreeze = bpmem.genMode.zfreeze;

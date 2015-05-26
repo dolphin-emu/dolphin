@@ -1,0 +1,114 @@
+\documentclass[10pt]{article}
+
+\title{\vspace{-2cm}Depth Equations in Dolphin}
+\author{}
+\date{\vspace{-1cm}}
+
+\begin{document}
+
+\maketitle
+
+\section{Gamecube (SlowDepth)}
+\begin{equation}
+(far - near) * \frac{z}{w} + far
+\end{equation}
+
+\section{Direct3D FastDepth}
+
+Depth equation:
+\begin{equation}
+(far - near) * \frac{z}{w} + near
+\end{equation}
+Solution:
+\begin{equation}
+(far - near) * ( \frac{z + w}{w} ) + near
+\end{equation}
+\begin{equation}
+(far - near) * ( \frac{z}{w} + \frac{w}{w} ) + near
+\end{equation}
+\begin{equation}
+(far - near) * ( \frac{z}{w} + 1 ) + near
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + (far - near) + near
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + far
+\end{equation}
+($z + w$ introduces rounding errors)
+
+\section{OpenGL FastDepth}
+
+Depth equation:
+\begin{equation}
+\frac{far - near}{2} * \frac{z}{w} + \frac{near + far}{2}
+\end{equation}
+Solution:
+\begin{equation}
+\frac{far - near}{2} * ( \frac{2 * z + w}{w} ) + \frac{near + far}{2}
+\end{equation}
+\begin{equation}
+\frac{far - near}{2} * ( 2 * \frac{z}{w} + \frac{w}{w} ) + \frac{near + far}{2}
+\end{equation}
+\begin{equation}
+\frac{far - near}{2} * ( 2 * \frac{z}{w} + 1 ) + \frac{near + far}{2}
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + \frac{far - near}{2} + \frac{near + far}{2}
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + \frac{far - near + near + far}{2}
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + \frac{far + far}{2}
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + far
+\end{equation}
+($2 * z + w$ introduces rounding errors)
+
+\section{OpenGL FastDepth (Clip Control)}
+
+Depth equation:
+\begin{equation}
+(far - near) * \frac{z}{w} + near
+\end{equation}
+Solution:
+\begin{equation}
+(near - far) * \frac{-z}{w} + far
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + far
+\end{equation}
+(OpenGL allows $far < near$, no rounding errors)
+
+\section{Direct3D FastDepth (Depth Inversion)}
+\subsubsection*{Designed by Galop1n}
+
+Depth equation:
+\begin{equation}
+(far - near) * \frac{z}{w} + near
+\end{equation}
+Solution:
+\begin{equation}
+((1 - near) - (1 - far)) * \frac{-z}{w} + (1 - far)
+\end{equation}
+\begin{equation}
+((1 - 1) + (far - near)) * \frac{-z}{w} + (1 - far)
+\end{equation}
+\begin{equation}
+(far - near) * \frac{-z}{w} + (1 - far)
+\end{equation}
+Depth inversion:
+\begin{equation}
+1 - ((far - near) * \frac{-z}{w} + (1 - far))
+\end{equation}
+\begin{equation}
+1 + (far - near) * \frac{z}{w} - 1 + far
+\end{equation}
+\begin{equation}
+(far - near) * \frac{z}{w} + far
+\end{equation}
+(Direct3D doesn't allow $far < near$, no rounding errors)
+
+\end{document}

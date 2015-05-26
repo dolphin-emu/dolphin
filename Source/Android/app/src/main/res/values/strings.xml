@@ -208,8 +208,6 @@
     <string name="external_frame_buffer_real">Real</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
     <string name="disable_destination_alpha_descrip">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
-    <string name="fast_depth_calculation">Fast Depth Calculation</string>
-    <string name="fast_depth_calculation_descrip">Uses a less accurate algorithm to calculate depth values.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_descrip">Select what aspect ratio to use when rendering</string>
 
