@@ -37,17 +37,16 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	int c = inst.FC;
 	fpr.Lock(a, b, c, d);
 	OpArg op_a = fpr.R(a);
-	fpr.BindToRegister(d, false);
-	X64Reg tmp = d == b || d == c ? XMM0 : fpr.RX(d);
+	fpr.BindToRegister(d, d == b || d == c);
+	X64Reg tmp = XMM0;
 	MOVDDUP(tmp, op_a);   // {a.ps0, a.ps0}
 	ADDPD(tmp, fpr.R(b)); // {a.ps0 + b.ps0, a.ps0 + b.ps1}
 	switch (inst.SUBOP5)
 	{
-	case 10: // ps_sum0
-		UNPCKHPD(tmp, fpr.R(c)); // {a.ps0 + b.ps1, c.ps1}
+	case 10: // ps_sum0: {a.ps0 + b.ps1, c.ps1}
+		UNPCKHPD(tmp, fpr.R(c));
 		break;
-	case 11: // ps_sum1
-		// {c.ps0, a.ps0 + b.ps1}
+	case 11: // ps_sum1: {c.ps0, a.ps0 + b.ps1}
 		if (fpr.R(c).IsSimpleReg())
 		{
 			if (cpu_info.bSSE4_1)
