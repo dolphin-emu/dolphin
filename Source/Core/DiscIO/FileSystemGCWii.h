@@ -36,9 +36,8 @@ private:
 	bool m_Initialized;
 	bool m_Valid;
 	bool m_Wii;
+	std::vector<SFileInfo> m_FileInfoVector;
 
-	std::vector <SFileInfo> m_FileInfoVector;
-	u32 Read32(u64 _Offset) const;
 	std::string GetStringFromOffset(u64 _Offset) const;
 	const SFileInfo* FindFileInfo(const std::string& _rFullPath);
 	bool DetectFileSystem();
