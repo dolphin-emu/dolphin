@@ -104,6 +104,7 @@ struct VideoConfig final
 	bool bDumpTextures;
 	bool bHiresTextures;
 	bool bConvertHiresTextures;
+	bool bCacheHiresTextures;
 	bool bDumpEFBTarget;
 	bool bUseFFV1;
 	bool bFreeLook;

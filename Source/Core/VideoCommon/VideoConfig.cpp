@@ -71,6 +71,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DumpTextures", &bDumpTextures, 0);
 	settings->Get("HiresTextures", &bHiresTextures, 0);
 	settings->Get("ConvertHiresTextures", &bConvertHiresTextures, 0);
+	settings->Get("CacheHiresTextures", &bCacheHiresTextures, 0);
 	settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
 	settings->Get("FreeLook", &bFreeLook, 0);
 	settings->Get("UseFFV1", &bUseFFV1, 0);
@@ -151,6 +152,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
 	CHECK_SETTING("Video_Settings", "ConvertHiresTextures", bConvertHiresTextures);
+	CHECK_SETTING("Video_Settings", "CacheHiresTextures", bCacheHiresTextures);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
@@ -258,6 +260,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DumpTextures", bDumpTextures);
 	settings->Set("HiresTextures", bHiresTextures);
 	settings->Set("ConvertHiresTextures", bConvertHiresTextures);
+	settings->Set("CacheHiresTextures", bCacheHiresTextures);
 	settings->Set("DumpEFBTarget", bDumpEFBTarget);
 	settings->Set("FreeLook", bFreeLook);
 	settings->Set("UseFFV1", bUseFFV1);
