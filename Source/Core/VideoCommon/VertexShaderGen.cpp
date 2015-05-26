@@ -385,7 +385,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	}
 	else if (api_type == API_D3D)
 	{
-		out.Write("o.pos.z = o.pos.w + o.pos.z;\n");
+		out.Write("o.pos.z = -o.pos.z;\n");
 	}
 	else // OGL
 	{
