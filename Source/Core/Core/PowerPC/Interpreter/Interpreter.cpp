@@ -277,6 +277,9 @@ void Interpreter::Run()
 			PC = NPC;
 		}
 	}
+
+	// Let the waiting thread know we are done leaving
+	PowerPC::FinishStateMove();
 }
 
 void Interpreter::unknown_instruction(UGeckoInstruction _inst)
