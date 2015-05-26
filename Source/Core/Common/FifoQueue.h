@@ -8,9 +8,9 @@
 // single reader, single writer queue
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 
-#include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -34,17 +34,16 @@ public:
 	u32 Size() const
 	{
 		static_assert(NeedSize, "using Size() on FifoQueue without NeedSize");
-		return m_size;
+		return m_size.load();
 	}
 
 	bool Empty() const
 	{
-		return !AtomicLoad(m_read_ptr->next);
+		return !m_read_ptr->next.load();
 	}
 
 	T& Front() const
 	{
-		AtomicLoadAcquire(m_read_ptr->next);
 		return m_read_ptr->current;
 	}
 
@@ -56,21 +55,21 @@ public:
 		// set the next pointer to a new element ptr
 		// then advance the write pointer
 		ElementPtr* new_ptr = new ElementPtr();
-		AtomicStoreRelease(m_write_ptr->next, new_ptr);
+		m_write_ptr->next.store(new_ptr, std::memory_order_release);
 		m_write_ptr = new_ptr;
 		if (NeedSize)
-			Common::AtomicIncrement(m_size);
+			m_size++;
 	}
 
 	void Pop()
 	{
 		if (NeedSize)
-			Common::AtomicDecrement(m_size);
+			m_size--;
 		ElementPtr *tmpptr = m_read_ptr;
 		// advance the read pointer
-		m_read_ptr = AtomicLoad(tmpptr->next);
+		m_read_ptr = tmpptr->next.load();
 		// set the next element to nullptr to stop the recursive deletion
-		tmpptr->next = nullptr;
+		tmpptr->next.store(nullptr);
 		delete tmpptr; // this also deletes the element
 	}
 
@@ -80,12 +79,12 @@ public:
 			return false;
 
 		if (NeedSize)
-			Common::AtomicDecrement(m_size);
+			m_size--;
 
 		ElementPtr *tmpptr = m_read_ptr;
-		m_read_ptr = AtomicLoadAcquire(tmpptr->next);
+		m_read_ptr = tmpptr->next.load(std::memory_order_acquire);
 		t = std::move(tmpptr->current);
-		tmpptr->next = nullptr;
+		tmpptr->next.store(nullptr);
 		delete tmpptr;
 		return true;
 	}
@@ -93,7 +92,7 @@ public:
 	// not thread-safe
 	void Clear()
 	{
-		m_size = 0;
+		m_size.store(0);
 		delete m_read_ptr;
 		m_write_ptr = m_read_ptr = new ElementPtr();
 	}
@@ -108,17 +107,19 @@ private:
 
 		~ElementPtr()
 		{
-			if (next)
-				delete next;
+			ElementPtr* next_ptr = next.load();
+
+			if (next_ptr)
+				delete next_ptr;
 		}
 
 		T current;
-		ElementPtr *volatile next;
+		std::atomic<ElementPtr*> next;
 	};
 
 	ElementPtr *m_write_ptr;
 	ElementPtr *m_read_ptr;
-	volatile u32 m_size;
+	std::atomic<u32> m_size;
 };
 
 }
