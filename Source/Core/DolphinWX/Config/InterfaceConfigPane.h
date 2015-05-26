@@ -21,7 +21,6 @@ private:
 	void LoadGUIValues();
 	void LoadThemes();
 
-	void OnHotkeyConfigButtonClicked(wxCommandEvent&);
 	void OnConfirmStopCheckBoxChanged(wxCommandEvent&);
 	void OnPanicHandlersCheckBoxChanged(wxCommandEvent&);
 	void OnOSDMessagesCheckBoxChanged(wxCommandEvent&);
@@ -31,7 +30,6 @@ private:
 
 	wxArrayString m_interface_lang_strings;
 
-	wxButton* m_hotkey_config_button;
 	wxCheckBox* m_confirm_stop_checkbox;
 	wxCheckBox* m_panic_handlers_checkbox;
 	wxCheckBox* m_osd_messages_checkbox;
