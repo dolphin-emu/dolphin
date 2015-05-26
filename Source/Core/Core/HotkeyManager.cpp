@@ -10,9 +10,9 @@
 
 const std::string hotkey_labels[] =
 {
-	(""), // Open
-	(""), // Change Disc
-	(""), // Refresh List
+	_trans("Open"),
+	_trans("Change Disc"),
+	_trans("Refresh List"),
 
 	_trans("Toggle Pause"),
 	_trans("Stop"),
@@ -26,7 +26,7 @@ const std::string hotkey_labels[] =
 
 	_trans("Toggle Fullscreen"),
 	_trans("Take Screenshot"),
-	(""), // Exit
+	_trans("Exit"),
 
 	_trans("Connect Wiimote 1"),
 	_trans("Connect Wiimote 2"),
