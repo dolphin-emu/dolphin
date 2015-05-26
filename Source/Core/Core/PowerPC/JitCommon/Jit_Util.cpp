@@ -640,31 +640,30 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address
 		MOV(accessSize, MRegSum(RMEM, RSCRATCH2), R(reg));
 }
 
-void EmuCodeBlock::ForceSinglePrecisionS(X64Reg output, X64Reg input)
+void EmuCodeBlock::ForceSinglePrecision(X64Reg output, OpArg input, bool packed, bool duplicate)
 {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
 	{
-		CVTSD2SS(input, R(input));
-		CVTSS2SD(output, R(input));
+		if (packed)
+		{
+			CVTPD2PS(output, input);
+			CVTPS2PD(output, R(output));
+		}
+		else
+		{
+			CVTSD2SS(output, input);
+			CVTSS2SD(output, R(output));
+			if (duplicate)
+				MOVDDUP(output, R(output));
+		}
 	}
-	else if (output != input)
+	else if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
 	{
-		MOVAPD(output, R(input));
-	}
-}
-
-void EmuCodeBlock::ForceSinglePrecisionP(X64Reg output, X64Reg input)
-{
-	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-	if (jit->jo.accurateSinglePrecision)
-	{
-		CVTPD2PS(input, R(input));
-		CVTPS2PD(output, R(input));
-	}
-	else if (output != input)
-	{
-		MOVAPD(output, R(input));
+		if (duplicate)
+			MOVDDUP(output, input);
+		else
+			MOVAPD(output, input);
 	}
 }
 
