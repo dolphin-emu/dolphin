@@ -17,7 +17,6 @@ namespace CommandProcessor
 {
 
 extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread.
-extern Common::Flag s_gpuMaySleep;
 
 // internal hardware addresses
 enum

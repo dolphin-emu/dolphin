@@ -62,6 +62,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 
@@ -189,7 +190,7 @@ static void PatchEngineCallback(u64 userdata, int cyclesLate)
 static void ThrottleCallback(u64 last_time, int cyclesLate)
 {
 	// Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
-	CommandProcessor::s_gpuMaySleep.Set();
+	GpuMaySleep();
 
 	u32 time = Common::Timer::GetTimeMs();
 

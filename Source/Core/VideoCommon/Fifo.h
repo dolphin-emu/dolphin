@@ -43,6 +43,7 @@ void* PopFifoAuxBuffer(size_t size);
 
 void FlushGpu();
 void RunGpu();
+void GpuMaySleep();
 void RunGpuLoop();
 void ExitGpuLoop();
 void EmulatorState(bool running);
