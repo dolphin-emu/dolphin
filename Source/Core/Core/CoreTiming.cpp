@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <mutex>
 #include <string>
 #include <vector>
 
