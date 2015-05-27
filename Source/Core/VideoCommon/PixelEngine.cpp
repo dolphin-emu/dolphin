@@ -274,14 +274,14 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		s_signal_token_interrupt.store(1);
 		UpdateInterrupts();
 	}
-	CommandProcessor::interruptTokenWaiting = false;
+	CommandProcessor::SetInterruptTokenWaiting(false);
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
 	s_signal_finish_interrupt.store(1);
 	UpdateInterrupts();
-	CommandProcessor::interruptFinishWaiting = false;
+	CommandProcessor::SetInterruptFinishWaiting(false);
 }
 
 // SetToken
@@ -293,7 +293,8 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 		s_signal_token_interrupt.store(1);
 	}
 
-	CommandProcessor::interruptTokenWaiting = true;
+	CommandProcessor::SetInterruptTokenWaiting(true);
+
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
 		CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	else
@@ -304,11 +305,13 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
 void SetFinish()
 {
-	CommandProcessor::interruptFinishWaiting = true;
+	CommandProcessor::SetInterruptFinishWaiting(true);
+
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || g_use_deterministic_gpu_thread)
 		CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
 	else
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
+
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 

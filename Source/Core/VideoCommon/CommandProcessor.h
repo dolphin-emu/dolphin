@@ -17,11 +17,6 @@ namespace CommandProcessor
 {
 
 extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread.
-
-extern volatile bool interruptSet;
-extern volatile bool interruptWaiting;
-extern volatile bool interruptTokenWaiting;
-extern volatile bool interruptFinishWaiting;
 extern Common::Flag s_gpuMaySleep;
 
 // internal hardware addresses
@@ -143,12 +138,19 @@ void GatherPipeBursted();
 void UpdateInterrupts(u64 userdata);
 void UpdateInterruptsFromVideoBackend(u64 userdata);
 
+bool IsInterruptWaiting();
+void SetInterruptTokenWaiting(bool waiting);
+void SetInterruptFinishWaiting(bool waiting);
+
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
 void ProcessFifoEvents();
 
 void Update();
-extern volatile u32 VITicks;
+
+u32 GetVITicks();
+void SetVITicks(u32 ticks);
+void DecrementVITicks(u32 ticks);
 
 } // namespace CommandProcessor
