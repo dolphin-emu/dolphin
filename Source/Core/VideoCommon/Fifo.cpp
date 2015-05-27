@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <atomic>
+
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CPUDetect.h"
@@ -28,8 +30,8 @@
 
 bool g_bSkipCurrentFrame = false;
 
-static volatile bool GpuRunningState = false;
-static volatile bool EmuRunningState = false;
+static std::atomic<bool> s_gpu_running_state;
+static std::atomic<bool> s_emu_running_state;
 
 // Most of this array is unlikely to be faulted in...
 static u8 s_fifo_aux_data[FIFO_SIZE];
@@ -100,14 +102,15 @@ void Fifo_Init()
 	// Padded so that SIMD overreads in the vertex loader are safe
 	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE + 4);
 	ResetVideoBuffer();
-	GpuRunningState = false;
+	s_gpu_running_state.store(false);
 	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
 }
 
 void Fifo_Shutdown()
 {
-	if (GpuRunningState)
+	if (s_gpu_running_state.load())
 		PanicAlert("Fifo shutting down while active");
+
 	FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
 	s_video_buffer = nullptr;
 	s_video_buffer_write_ptr = nullptr;
@@ -132,14 +135,14 @@ void ExitGpuLoop()
 	FlushGpu();
 
 	// Terminate GPU thread loop
-	GpuRunningState = false;
-	EmuRunningState = true;
+	s_gpu_running_state.store(false);
+	s_emu_running_state.store(true);
 	s_gpu_new_work_event.Set();
 }
 
 void EmulatorState(bool running)
 {
-	EmuRunningState = running;
+	s_emu_running_state.store(running);
 	s_gpu_new_work_event.Set();
 }
 
@@ -150,9 +153,9 @@ void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
 		std::unique_lock<std::mutex> lk(s_video_buffer_lock);
 		u8* write_ptr = s_video_buffer_write_ptr;
 		s_video_buffer_cond.wait(lk, [&]() {
-			return !GpuRunningState || s_video_buffer_seen_ptr == write_ptr;
+			return !s_gpu_running_state.load() || s_video_buffer_seen_ptr == write_ptr;
 		});
-		if (!GpuRunningState)
+		if (!s_gpu_running_state.load())
 			return;
 
 		// Opportunistically reset FIFOs so we don't wrap around.
@@ -185,7 +188,7 @@ void PushFifoAuxBuffer(void* ptr, size_t size)
 	if (size > (size_t) (s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
 	{
 		SyncGPU(SYNC_GPU_AUX_SPACE, /* may_move_read_ptr */ false);
-		if (!GpuRunningState)
+		if (!s_gpu_running_state.load())
 		{
 			// GPU is shutting down
 			return;
@@ -240,7 +243,7 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 		// We can't wrap around while the GPU is working on the data.
 		// This should be very rare due to the reset in SyncGPU.
 		SyncGPU(SYNC_GPU_WRAPAROUND);
-		if (!GpuRunningState)
+		if (!s_gpu_running_state.load())
 		{
 			// GPU is shutting down
 			return;
@@ -280,18 +283,18 @@ void ResetVideoBuffer()
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
 void RunGpuLoop()
 {
-	GpuRunningState = true;
+	s_gpu_running_state.store(true);
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	u32 cyclesExecuted = 0;
 
 	AsyncRequests::GetInstance()->SetEnable(true);
 	AsyncRequests::GetInstance()->SetPassthrough(false);
 
-	while (GpuRunningState)
+	while (s_gpu_running_state.load())
 	{
 		g_video_backend->PeekMessages();
 
-		if (g_use_deterministic_gpu_thread && EmuRunningState)
+		if (g_use_deterministic_gpu_thread && s_emu_running_state.load())
 		{
 			AsyncRequests::GetInstance()->PullEvents();
 
@@ -310,7 +313,7 @@ void RunGpuLoop()
 				}
 			}
 		}
-		else if (EmuRunningState)
+		else if (s_emu_running_state.load())
 		{
 			AsyncRequests::GetInstance()->PullEvents();
 
