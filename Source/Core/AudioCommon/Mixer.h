@@ -108,8 +108,6 @@ public:
 		}
 	}
 
-	std::mutex& MixerCritical() { return m_csMixing; }
-
 	float GetCurrentSpeed() const { return m_speed.load(); }
 	void UpdateSpeed(float val) { m_speed.store(val); }
 
@@ -154,8 +152,6 @@ protected:
 
 	bool m_log_dtk_audio;
 	bool m_log_dsp_audio;
-
-	std::mutex m_csMixing;
 
 	std::atomic<float> m_speed; // Current rate of the emulation (1.0 = 100% speed)
 };
