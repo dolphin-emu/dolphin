@@ -20,6 +20,8 @@ public:
 
 	void SetSamplerState(int stage, const TexMode0& tm0, const TexMode1& tm1, bool custom_tex);
 	void Clear();
+	void BindNearestSampler(int stage);
+	void BindLinearSampler(int stage);
 
 private:
 	struct Params
@@ -73,6 +75,7 @@ private:
 	std::pair<Params, Value> m_active_samplers[8];
 
 	int m_last_max_anisotropy;
+	u32 m_sampler_id[2];
 };
 
 extern SamplerCache *g_sampler_cache;

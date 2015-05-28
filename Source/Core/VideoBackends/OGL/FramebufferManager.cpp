@@ -7,6 +7,7 @@
 
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureConverter.h"
 
 #include "VideoCommon/DriverDetails.h"
@@ -85,20 +86,14 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(m_textureType, m_efbColor);
 		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
 		glBindTexture(m_textureType, m_efbDepth);
 		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexImage3D(m_textureType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
 		glBindTexture(m_textureType, m_efbColorSwap);
 		glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	}
 	else
@@ -146,14 +141,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(resolvedType, m_resolvedColorTexture);
 		glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexImage3D(resolvedType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
 		glBindTexture(resolvedType, m_resolvedDepthTexture);
 		glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(resolvedType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexImage3D(resolvedType, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
 		// Bind resolved textures to resolved framebuffer.
@@ -542,6 +533,7 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 	glViewport(0,0, m_targetWidth, m_targetHeight);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(m_textureType, src_texture);
+	g_sampler_cache->BindNearestSampler(9);
 
 	m_pixel_format_shaders[convtype ? 1 : 0].Bind();
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
