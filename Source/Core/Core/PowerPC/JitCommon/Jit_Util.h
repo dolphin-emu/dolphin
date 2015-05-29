@@ -116,10 +116,10 @@ public:
 	void JitSetCAIf(Gen::CCFlags conditionCode);
 	void JitClearCA();
 
-	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg),
-                Gen::X64Reg regOp, Gen::OpArg arg1, Gen::OpArg arg2, bool packed = true, bool reversible = false);
-	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg, u8), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg, u8),
-	            Gen::X64Reg regOp, Gen::OpArg arg1, Gen::OpArg arg2, u8 imm);
+	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
+	            Gen::X64Reg regOp, const Gen::OpArg& arg1, const Gen::OpArg& arg2, bool packed = true, bool reversible = false);
+	void avx_op(void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&, u8), void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&, u8),
+	            Gen::X64Reg regOp, const Gen::OpArg& arg1, const Gen::OpArg& arg2, u8 imm);
 
 	void ForceSinglePrecision(Gen::X64Reg output, Gen::OpArg input, bool packed = true, bool duplicate = false);
 	void Force25BitPrecision(Gen::X64Reg output, Gen::OpArg input, Gen::X64Reg tmp);

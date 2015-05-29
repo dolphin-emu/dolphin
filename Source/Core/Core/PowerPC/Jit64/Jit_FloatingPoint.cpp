@@ -16,8 +16,8 @@ static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFF
 static const u64 GC_ALIGNED16(psAbsMask2[2]) = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
-void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg),
-                      void (XEmitter::*sseOp)(X64Reg, OpArg), bool packed, bool roundRHS)
+void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
+                      void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool packed, bool roundRHS)
 {
 	fpr.Lock(d, a, b);
 	fpr.BindToRegister(d, d == a || d == b || !single);

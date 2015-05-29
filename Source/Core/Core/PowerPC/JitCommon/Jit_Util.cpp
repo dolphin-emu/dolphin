@@ -668,8 +668,8 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, OpArg input, bool packed,
 }
 
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
-void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg), void (XEmitter::*sseOp)(X64Reg, OpArg),
-                          X64Reg regOp, OpArg arg1, OpArg arg2, bool packed, bool reversible)
+void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&), void (XEmitter::*sseOp)(X64Reg, const OpArg&),
+                          X64Reg regOp, const OpArg& arg1, const OpArg& arg2, bool packed, bool reversible)
 {
 	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
 	{
@@ -715,8 +715,8 @@ void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg), void (
 }
 
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
-void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg, u8), void (XEmitter::*sseOp)(X64Reg, OpArg, u8),
-                          X64Reg regOp, OpArg arg1, OpArg arg2, u8 imm)
+void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&, u8), void (XEmitter::*sseOp)(X64Reg, const OpArg&, u8),
+                          X64Reg regOp, const OpArg& arg1, const OpArg& arg2, u8 imm)
 {
 	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
 	{
