@@ -56,6 +56,10 @@ void Shutdown()
 
 void UpdateVertexArrayPointers()
 {
+	// Anything to update?
+	if (!g_main_cp_state.bases_dirty)
+		return;
+
 	// Some games such as Burnout 2 can put invalid addresses into
 	// the array base registers. (see issue 8591)
 	// But the vertex arrays with invalid addresses aren't actually enabled.
@@ -67,6 +71,8 @@ void UpdateVertexArrayPointers()
 		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) >= 0x2)
 			cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
 	}
+
+	g_main_cp_state.bases_dirty = false;
 }
 
 namespace
@@ -224,12 +230,14 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 		state->vtx_desc.Hex &= ~0x1FFFF;  // keep the Upper bits
 		state->vtx_desc.Hex |= value;
 		state->attr_dirty = BitSet32::AllTrue(8);
+		state->bases_dirty = true;
 		break;
 
 	case 0x60:
 		state->vtx_desc.Hex &= 0x1FFFF;  // keep the lower 17Bits
 		state->vtx_desc.Hex |= (u64)value << 17;
 		state->attr_dirty = BitSet32::AllTrue(8);
+		state->bases_dirty = true;
 		break;
 
 	case 0x70:
@@ -253,6 +261,7 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		state->array_bases[sub_cmd & 0xF] = value;
+		state->bases_dirty = true;
 		break;
 
 	case 0xB0:

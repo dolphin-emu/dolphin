@@ -255,6 +255,7 @@ struct CPState final
 
 	// Attributes that actually belong to VertexLoaderManager:
 	BitSet32 attr_dirty;
+	bool bases_dirty;
 	VertexLoaderBase* vertex_loaders[8];
 };
 
