@@ -1411,6 +1411,7 @@ enet_protocol_check_timeouts (ENetHost * host, ENetPeer * peer, ENetEvent * even
 {
     ENetOutgoingCommand * outgoingCommand;
     ENetListIterator currentCommand, insertPosition;
+    enet_uint32 quickResendCount;
 
     currentCommand = enet_list_begin (& peer -> sentReliableCommands);
     insertPosition = enet_list_begin (& peer -> outgoingReliableCommands);
@@ -1439,11 +1440,22 @@ enet_protocol_check_timeouts (ENetHost * host, ENetPeer * peer, ENetEvent * even
        }
 
        if (outgoingCommand -> packet != NULL)
-         peer -> reliableDataInTransit -= outgoingCommand -> fragmentLength;
-          
-       ++ peer -> packetsLost;
+       {
+          peer -> reliableDataInTransit -= outgoingCommand -> fragmentLength;
+          quickResendCount = outgoingCommand -> packet -> quickResendCount;
+       }
+       else
+         quickResendCount = 0;
 
-       outgoingCommand -> roundTripTimeout *= 2;
+       if (outgoingCommand -> sendAttempts > quickResendCount)
+       {
+          ++ peer -> packetsLost;
+
+          outgoingCommand -> roundTripTimeout *= 2;
+       }
+       else
+       if (outgoingCommand -> sendAttempts == quickResendCount)
+         outgoingCommand -> roundTripTimeout = peer -> roundTripTime + 4 * peer -> roundTripTimeVariance;
 
        enet_list_insert (insertPosition, enet_list_remove (& outgoingCommand -> outgoingCommandList));
 
@@ -1539,9 +1551,15 @@ enet_protocol_send_reliable_outgoing_commands (ENetHost * host, ENetPeer * peer)
  
        if (outgoingCommand -> roundTripTimeout == 0)
        {
-          outgoingCommand -> roundTripTimeout = peer -> roundTripTime + 4 * peer -> roundTripTimeVariance;
-          outgoingCommand -> roundTripTimeoutLimit = peer -> timeoutLimit * outgoingCommand -> roundTripTimeout;
+          if (outgoingCommand -> packet != NULL &&
+              outgoingCommand -> packet -> quickResendCount > 0)
+             outgoingCommand -> roundTripTimeout = outgoingCommand -> packet -> quickResendSpacing;
+          else
+             outgoingCommand -> roundTripTimeout = peer -> roundTripTime + 4 * peer -> roundTripTimeVariance;
        }
+
+       if (outgoingCommand -> roundTripTimeoutLimit == 0)
+         outgoingCommand -> roundTripTimeoutLimit = peer -> timeoutLimit * outgoingCommand -> roundTripTimeout;
 
        if (enet_list_empty (& peer -> sentReliableCommands))
          peer -> nextTimeout = host -> serviceTime + outgoingCommand -> roundTripTimeout;

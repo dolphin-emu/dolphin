@@ -681,6 +681,8 @@ void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 void NetPlayServer::Send(ENetPeer* socket, sf::Packet& packet)
 {
 	ENetPacket* epac = enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
+	epac->quickResendCount = 5;
+	epac->quickResendSpacing = 14;
 	enet_peer_send(socket, 0, epac);
 }
 
