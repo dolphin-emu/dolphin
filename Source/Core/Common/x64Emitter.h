@@ -503,8 +503,8 @@ public:
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int bits, X64Reg dest, const OpArg& src);
 	void MOVBE(int bits, const OpArg& dest, X64Reg src);
-	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
-	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
+	void LoadAndSwap(int size, X64Reg dst, const OpArg& src);
+	void SwapAndStore(int size, const OpArg& dst, X64Reg src);
 
 	// Available only on AMD >= Phenom or Intel >= Haswell
 	void LZCNT(int bits, X64Reg dest, OpArg src);
@@ -931,7 +931,7 @@ public:
 	void ABI_CallFunctionRR(const void* func, X64Reg reg1, X64Reg reg2);
 
 	// Helper method for the above, or can be used separately.
-	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset, Gen::X64Reg dst2, Gen::X64Reg src2);
+	void MOVTwo(int bits, X64Reg dst1, X64Reg src1, s32 offset, X64Reg dst2,X64Reg src2);
 
 	// Saves/restores the registers and adjusts the stack to be aligned as
 	// required by the ABI, where the previous alignment was as specified.

@@ -886,7 +886,7 @@ void XEmitter::WriteMOVBE(int bits, u8 op, X64Reg reg, OpArg arg)
 void XEmitter::MOVBE(int bits, X64Reg dest, const OpArg& src) {WriteMOVBE(bits, 0xF0, dest, src);}
 void XEmitter::MOVBE(int bits, const OpArg& dest, X64Reg src) {WriteMOVBE(bits, 0xF1, src, dest);}
 
-void XEmitter::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
+void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src)
 {
 	if (cpu_info.bMOVBE)
 	{
@@ -899,7 +899,7 @@ void XEmitter::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
 	}
 }
 
-void XEmitter::SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src)
+void XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src)
 {
 	if (cpu_info.bMOVBE)
 	{
