@@ -25,7 +25,7 @@
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x007;
+static const u32 CACHE_REVISION = 0x008;
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
@@ -100,7 +100,7 @@ GameFile::GameFile(const QString& fileName)
 
 			m_unique_id = QString::fromStdString(volume->GetUniqueID());
 			m_compressed = DiscIO::IsCompressedBlob(fileName.toStdString());
-			m_is_disc_two = volume->IsDiscTwo();
+			m_disc_number = volume->GetDiscNumber();
 			m_revision = volume->GetRevision();
 
 			QFileInfo info(m_file_name);
@@ -180,7 +180,7 @@ bool GameFile::LoadFromCache()
 	       >> m_banner
 	       >> m_compressed
 	       >> m_platform
-	       >> m_is_disc_two
+	       >> m_disc_number
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
 	m_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(names);
@@ -220,7 +220,7 @@ void GameFile::SaveToCache()
 	       << m_banner
 	       << m_compressed
 	       << m_platform
-	       << m_is_disc_two
+	       << m_disc_number
 	       << m_revision;
 }
 

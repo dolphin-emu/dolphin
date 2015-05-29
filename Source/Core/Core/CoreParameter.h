@@ -320,7 +320,7 @@ struct SCoreStartupParameter
 	std::string m_strApploader;
 	std::string m_strUniqueID;
 	std::string m_strName;
-	int m_revision;
+	u16 m_revision;
 
 	std::string m_perfDir;
 
@@ -337,9 +337,9 @@ struct SCoreStartupParameter
 	IniFile LoadLocalGameIni() const;
 	IniFile LoadGameIni() const;
 
-	static IniFile LoadDefaultGameIni(const std::string& id, int revision);
-	static IniFile LoadLocalGameIni(const std::string& id, int revision);
-	static IniFile LoadGameIni(const std::string& id, int revision);
+	static IniFile LoadDefaultGameIni(const std::string& id, u16 revision);
+	static IniFile LoadLocalGameIni(const std::string& id, u16 revision);
+	static IniFile LoadGameIni(const std::string& id, u16 revision);
 
-	static std::vector<std::string> GetGameIniFilenames(const std::string& id, int revision);
+	static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision);
 };

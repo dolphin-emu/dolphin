@@ -27,7 +27,7 @@ public:
 	QString GetDescription(DiscIO::IVolume::ELanguage language) const;
 	QString GetDescription() const;
 	QString GetCompany() const;
-	int GetRevision() const { return m_revision; }
+	u16 GetRevision() const { return m_revision; }
 	const QString GetUniqueID() const { return m_unique_id; }
 	const QString GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const { return m_country; }
@@ -37,7 +37,8 @@ public:
 	bool IsCompressed() const { return m_compressed; }
 	u64 GetFileSize() const { return m_file_size; }
 	u64 GetVolumeSize() const { return m_volume_size; }
-	bool IsDiscTwo() const { return m_is_disc_two; }
+	// 0 is the first disc, 1 is the second disc
+	u8 GetDiscNumber() const { return m_disc_number; }
 	const QPixmap GetBitmap() const { return m_banner; }
 
 	enum
@@ -66,12 +67,12 @@ private:
 
 	DiscIO::IVolume::ECountry m_country;
 	int m_platform;
-	int m_revision = 0;
+	u16 m_revision = 0;
 
 	QPixmap m_banner;
 	bool m_valid = false;
 	bool m_compressed = false;
-	bool m_is_disc_two = false;
+	u8 m_disc_number = 0;
 
 	bool LoadFromCache();
 	void SaveToCache();

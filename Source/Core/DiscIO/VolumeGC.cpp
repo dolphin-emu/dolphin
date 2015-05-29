@@ -84,7 +84,7 @@ std::string CVolumeGC::GetMakerID() const
 	return makerID;
 }
 
-int CVolumeGC::GetRevision() const
+u16 CVolumeGC::GetRevision() const
 {
 	if (!m_pReader)
 		return 0;
@@ -265,11 +265,11 @@ u64 CVolumeGC::GetRawSize() const
 		return 0;
 }
 
-bool CVolumeGC::IsDiscTwo() const
+u8 CVolumeGC::GetDiscNumber() const
 {
-	u8 disc_two_check;
-	Read(6, 1, &disc_two_check);
-	return (disc_two_check == 1);
+	u8 disc_number;
+	Read(6, 1, &disc_number);
+	return disc_number;
 }
 
 bool CVolumeGC::LoadBannerFile() const

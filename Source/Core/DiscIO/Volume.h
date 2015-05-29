@@ -75,7 +75,7 @@ public:
 	}
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
-	virtual int GetRevision() const = 0;
+	virtual u16 GetRevision() const = 0;
 	virtual std::string GetInternalName() const = 0;
 	virtual std::map<ELanguage, std::string> GetNames() const = 0;
 	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
@@ -83,8 +83,9 @@ public:
 	virtual std::vector<u32> GetBanner(int* width, int* height) const;
 	virtual u32 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
+	// 0 is the first disc, 1 is the second disc
+	virtual u8 GetDiscNumber() const { return 0; }
 
-	virtual bool IsDiscTwo() const { return false; }
 	virtual bool IsWiiDisc() const { return false; }
 	virtual bool IsWadFile() const { return false; }
 	virtual bool SupportsIntegrityCheck() const { return false; }

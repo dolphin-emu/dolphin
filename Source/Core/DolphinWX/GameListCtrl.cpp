@@ -97,8 +97,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 					return t * (iso1->GetUniqueID() > iso2->GetUniqueID() ? 1 : -1);
 				if (iso1->GetRevision() != iso2->GetRevision())
 					return t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
-				if (iso1->IsDiscTwo() != iso2->IsDiscTwo())
-					return t * (iso1->IsDiscTwo() ? 1 : -1);
+				if (iso1->GetDiscNumber() != iso2->GetDiscNumber())
+					return t * (iso1->GetDiscNumber() > iso2->GetDiscNumber() ? 1 : -1);
 			}
 			return strcasecmp(iso1->GetName(languageOne).c_str(),
 			                  iso2->GetName(languageOther).c_str()) * t;
@@ -415,8 +415,12 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	if (gameini.GetIfExists("EmuState", "Title", &title))
 		name = title;
 
-	if (rISOFile.IsDiscTwo() && name.Lower().find("disc 2") == std::string::npos && name.Lower().find("disc2") == std::string::npos)
-		name = wxString::Format(_("%s (Disc 2)"), name.c_str());
+	int disc_number = rISOFile.GetDiscNumber() + 1;
+	if (disc_number > 1 && name.Lower().find(wxString::Format("disc %i", disc_number)) == std::string::npos
+	                    && name.Lower().find(wxString::Format("disc%i", disc_number)) == std::string::npos)
+	{
+		name = wxString::Format(_("%s (Disc %i)"), name.c_str(), disc_number);
+	}
 
 	SetItem(_Index, COLUMN_TITLE, name, -1);
 	SetItem(_Index, COLUMN_MAKER, StrToWxStr(rISOFile.GetCompany()), -1);
