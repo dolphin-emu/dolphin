@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/VertexLoaderARM64.h"
+#include "VideoCommon/VertexLoaderManager.h"
 
 using namespace Arm64Gen;
 
@@ -331,7 +332,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
 	MOV(saved_count, count_reg);
 
 	MOVI2R(stride_reg, (u64)&g_main_cp_state.array_strides);
-	MOVI2R(arraybase_reg, (u64)&cached_arraybases);
+	MOVI2R(arraybase_reg, (u64)&VertexLoaderManager::cached_arraybases);
 	MOVI2R(scale_reg, (u64)&scale_factors);
 
 	const u8* loop_start = GetCodePtr();

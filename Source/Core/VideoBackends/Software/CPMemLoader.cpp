@@ -48,7 +48,6 @@ void SWLoadCPReg(u32 sub_cmd, u32 value)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		g_main_cp_state.array_bases[sub_cmd & 0xF] = value;
-		cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
 		break;
 
 	case 0xB0:

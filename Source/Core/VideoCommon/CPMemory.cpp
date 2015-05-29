@@ -7,8 +7,6 @@
 #include "VideoCommon/CPMemory.h"
 
 // CP state
-u8 *cached_arraybases[16];
-
 CPState g_main_cp_state;
 CPState g_preprocess_cp_state;
 

@@ -35,6 +35,8 @@ static std::mutex s_vertex_loader_map_lock;
 static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
+u8 *cached_arraybases[12];
+
 void Init()
 {
 	MarkAllDirty();
@@ -50,6 +52,21 @@ void Shutdown()
 	std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
 	s_vertex_loader_map.clear();
 	s_native_vertex_map.clear();
+}
+
+void UpdateVertexArrayPointers()
+{
+	// Some games such as Burnout 2 can put invalid addresses into
+	// the array base registers. (see issue 8591)
+	// But the vertex arrays with invalid addresses aren't actually enabled.
+	// Note: Only array bases 0 through 11 are used by the Vertex loaders.
+	//       12 through 15 are used for loading data into xfmem.
+	for (int i = 0; i < 12; i++)
+	{
+		// Only update the array base if the vertex description states we are going to use it.
+		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) >= 0x2)
+			cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
+	}
 }
 
 namespace
@@ -138,7 +155,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 
 	// Lookup pointers for any vertex arrays.
 	if (!preprocess)
-		ComputeCachedArrayBases();
+		UpdateVertexArrayPointers();
 
 	return loader;
 }
@@ -262,18 +279,5 @@ void FillCPMemoryArray(u32 *memory)
 	{
 		memory[0xA0 + i] = g_main_cp_state.array_bases[i];
 		memory[0xB0 + i] = g_main_cp_state.array_strides[i];
-	}
-}
-
-void ComputeCachedArrayBases()
-{
-	// Some games such as Burnout 2 can put invalid addresses into
-	// the array base registers. (see issue 8591)
-	// But the vertex arrays with invalid addresses aren't actually enabled.
-	for (int i = 0; i < 12; i++)
-	{
-		// Only update the array base if the vertex description states we are going to use it.
-		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) >= 0x2)
-			cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
 	}
 }

@@ -245,7 +245,6 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
-	// Only 12 of these arrays are used.
 	u32 array_bases[16];
 	u32 array_strides[16];
 	TMatrixIndexA matrix_index_a;
@@ -268,7 +267,6 @@ extern void CopyPreprocessCPStateFromMain();
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
 
-extern u8 *cached_arraybases[16];
 
 // Might move this into its own file later.
 void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);

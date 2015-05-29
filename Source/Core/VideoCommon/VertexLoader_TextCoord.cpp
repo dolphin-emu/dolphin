@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -67,7 +68,7 @@ void LOADERDECL TexCoord_ReadIndex(VertexLoader* loader)
 	static_assert(std::is_unsigned<I>::value, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
-	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + loader->m_tcIndex]
+	auto const data = reinterpret_cast<const T*>(VertexLoaderManager::cached_arraybases[ARRAY_TEXCOORD0 + loader->m_tcIndex]
 	                + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + loader->m_tcIndex]));
 	auto const scale = loader->m_tcScale[loader->m_tcIndex];
 	DataReader dst(g_vertex_manager_write_ptr, nullptr);
