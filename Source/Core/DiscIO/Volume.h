@@ -114,7 +114,7 @@ protected:
 			return CP1252ToUTF8(string);
 	}
 
-	static std::map<IVolume::ELanguage, std::string> ReadWiiNames(std::vector<u8>& data);
+	static std::map<IVolume::ELanguage, std::string> ReadWiiNames(const std::vector<u8>& data);
 
 	static const size_t NUMBER_OF_LANGUAGES = 10;
 	static const size_t NAME_STRING_LENGTH = 42;
