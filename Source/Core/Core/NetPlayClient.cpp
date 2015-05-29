@@ -57,7 +57,7 @@ NetPlayClient::~NetPlayClient()
 }
 
 // called from ---GUI--- thread
-NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, std::string centralServer, u16 centralPort)
+NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, const std::string& centralServer, u16 centralPort)
 	: m_state(Failure)
 	, m_dialog(dialog)
 	, m_client(nullptr)

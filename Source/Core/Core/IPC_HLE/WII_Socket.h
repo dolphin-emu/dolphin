@@ -199,7 +199,7 @@ public:
 class WiiSockMan : public ::NonCopyable
 {
 public:
-	static s32 GetNetErrorCode(s32 ret, std::string caller, bool isRW);
+	static s32 GetNetErrorCode(s32 ret, const std::string& caller, bool isRW);
 	static char* DecodeError(s32 ErrorCode);
 
 	static WiiSockMan& GetInstance()

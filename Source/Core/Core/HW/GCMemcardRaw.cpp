@@ -15,7 +15,7 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
+MemoryCard::MemoryCard(const std::string& filename, int _card_index, u16 sizeMb)
 	: MemoryCardBase(_card_index, sizeMb)
 	, m_filename(filename)
 {

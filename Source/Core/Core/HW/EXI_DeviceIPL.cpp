@@ -140,7 +140,7 @@ void CEXIIPL::DoState(PointerWrap &p)
 	p.Do(m_FontsLoaded);
 }
 
-void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)
+void CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
 {
 	File::IOFile pStream(filename, "rb");
 	if (pStream)

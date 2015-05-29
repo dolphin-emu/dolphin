@@ -293,7 +293,7 @@ void PostProcessingShaderConfiguration::ReloadShader()
 	m_current_shader = "";
 }
 
-void PostProcessingShaderConfiguration::SetOptionf(std::string option, int index, float value)
+void PostProcessingShaderConfiguration::SetOptionf(const std::string& option, int index, float value)
 {
 	auto it = m_options.find(option);
 
@@ -302,7 +302,7 @@ void PostProcessingShaderConfiguration::SetOptionf(std::string option, int index
 	m_any_options_dirty = true;
 }
 
-void PostProcessingShaderConfiguration::SetOptioni(std::string option, int index, s32 value)
+void PostProcessingShaderConfiguration::SetOptioni(const std::string& option, int index, s32 value)
 {
 	auto it = m_options.find(option);
 
@@ -311,7 +311,7 @@ void PostProcessingShaderConfiguration::SetOptioni(std::string option, int index
 	m_any_options_dirty = true;
 }
 
-void PostProcessingShaderConfiguration::SetOptionb(std::string option, bool value)
+void PostProcessingShaderConfiguration::SetOptionb(const std::string& option, bool value)
 {
 	auto it = m_options.find(option);
 
