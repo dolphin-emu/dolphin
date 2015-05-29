@@ -35,7 +35,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x123;
+static const u32 CACHE_REVISION = 0x124;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -97,7 +97,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName);
-			m_IsDiscTwo = pVolume->IsDiscTwo();
+			m_disc_number = pVolume->GetDiscNumber();
 			m_Revision = pVolume->GetRevision();
 
 			std::vector<u32> Buffer = pVolume->GetBanner(&m_ImageWidth, &m_ImageHeight);
@@ -183,7 +183,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_ImageWidth);
 	p.Do(m_ImageHeight);
 	p.Do(m_Platform);
-	p.Do(m_IsDiscTwo);
+	p.Do(m_disc_number);
 	p.Do(m_Revision);
 }
 
