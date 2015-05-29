@@ -52,7 +52,7 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, bool traversal, std::string centralServer, u16 centralPort)
+NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort)
 	: is_connected(false)
 	, m_is_running(false)
 	, m_do_loop(false)
@@ -717,7 +717,7 @@ std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
 }
 
 // called from ---GUI--- thread
-std::string NetPlayServer::GetInterfaceHost(const std::string inter)
+std::string NetPlayServer::GetInterfaceHost(const std::string& inter)
 {
 	char buf[16];
 	sprintf(buf, ":%d", GetPort());

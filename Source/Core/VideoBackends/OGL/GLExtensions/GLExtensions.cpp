@@ -1908,7 +1908,7 @@ namespace GLExtensions
 			_GLVersion = 330; // Get all the fun things
 	}
 
-	static void* GetFuncAddress(std::string name, void **func)
+	static void* GetFuncAddress(const std::string& name, void **func)
 	{
 		*func = GLInterface->GetFuncAddress(name);
 		if (*func == nullptr)

@@ -77,7 +77,7 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
 	}
 }
 
-s32 WiiSockMan::GetNetErrorCode(s32 ret, std::string caller, bool isRW)
+s32 WiiSockMan::GetNetErrorCode(s32 ret, const std::string& caller, bool isRW)
 {
 #ifdef _WIN32
 	s32 errorCode = WSAGetLastError();

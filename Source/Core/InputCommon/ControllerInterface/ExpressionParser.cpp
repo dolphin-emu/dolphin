@@ -92,7 +92,7 @@ public:
 	std::string expr;
 	std::string::iterator it;
 
-	Lexer(std::string expr_) : expr(expr_)
+	Lexer(const std::string& expr_) : expr(expr_)
 	{
 		it = expr.begin();
 	}
@@ -568,7 +568,7 @@ Expression::~Expression()
 	delete node;
 }
 
-static ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finder, Expression **expr_out)
+static ExpressionParseStatus ParseExpressionInner(const std::string& str, ControlFinder &finder, Expression **expr_out)
 {
 	ExpressionParseStatus status;
 	Expression *expr;
@@ -592,7 +592,7 @@ static ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder
 	return EXPRESSION_PARSE_SUCCESS;
 }
 
-ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Expression **expr_out)
+ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder &finder, Expression **expr_out)
 {
 	// Add compatibility with old simple expressions, which are simple
 	// barewords control names.

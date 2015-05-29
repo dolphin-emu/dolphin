@@ -40,7 +40,7 @@ enum EState
 bool Init();
 void Stop();
 
-std::string StopMessage(bool, std::string);
+std::string StopMessage(bool, const std::string&);
 
 bool IsRunning();
 bool IsRunningAndStarted(); // is running and the CPU loop has been entered
@@ -59,7 +59,7 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
 void DisplayMessage(const std::string& message, int time_in_ms);
 
 std::string GetStateFileName();
-void SetStateFileName(std::string val);
+void SetStateFileName(const std::string& val);
 
 void SetBlockStart(u32 addr);
 
