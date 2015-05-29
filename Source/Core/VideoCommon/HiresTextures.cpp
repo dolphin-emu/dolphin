@@ -190,14 +190,20 @@ void HiresTexture::Prefetch()
 				// But bad luck, SOIL isn't, so TODO: remove SOIL usage here and use libpng directly
 				// Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be needed as the main mutex will be locked rarely
 				//lk.unlock();
-				std::shared_ptr<HiresTexture> ptr(Load(base_filename, 0, 0));
+				HiresTexture* t = Load(base_filename, 0, 0);
 				//lk.lock();
-
-				iter = s_textureCache.insert(iter, std::make_pair(base_filename, ptr));
+				if (t)
+				{
+					std::shared_ptr<HiresTexture> ptr(t);
+					iter = s_textureCache.insert(iter, std::make_pair(base_filename, ptr));
+				}
 			}
-			for (const Level& l : iter->second->m_levels)
+			if (iter != s_textureCache.end())
 			{
-				size_sum += l.data_size;
+				for (const Level& l : iter->second->m_levels)
+				{
+					size_sum += l.data_size;
+				}
 			}
 		}
 
