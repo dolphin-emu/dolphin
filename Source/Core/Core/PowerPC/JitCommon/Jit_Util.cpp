@@ -156,7 +156,7 @@ private:
 
 	// Generate the proper MOV instruction depending on whether the read should
 	// be sign extended or zero extended.
-	void MoveOpArgToReg(int sbits, Gen::OpArg arg)
+	void MoveOpArgToReg(int sbits, const Gen::OpArg& arg)
 	{
 		if (m_sign_extend)
 			m_code->MOVSX(32, sbits, m_dst_reg, arg);
@@ -233,7 +233,7 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 	}
 }
 
-FixupBranch EmuCodeBlock::CheckIfSafeAddress(OpArg reg_value, X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask)
+FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask)
 {
 	registers_in_use[reg_addr] = true;
 	if (reg_value.IsSimpleReg())
@@ -397,7 +397,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	}
 }
 
-static OpArg SwapImmediate(int accessSize, OpArg reg_value)
+static OpArg SwapImmediate(int accessSize, const OpArg& reg_value)
 {
 	if (accessSize == 32)
 		return Imm32(Common::swap32(reg_value.Imm32()));
@@ -640,7 +640,7 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address
 		MOV(accessSize, MRegSum(RMEM, RSCRATCH2), R(reg));
 }
 
-void EmuCodeBlock::ForceSinglePrecision(X64Reg output, OpArg input, bool packed, bool duplicate)
+void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool packed, bool duplicate)
 {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
@@ -755,7 +755,7 @@ static const u64 GC_ALIGNED16(psRoundBit[2]) = {0x8000000, 0x8000000};
 // a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
 // rounding to nearest as it does.
 // It needs a temp, so let the caller pass that in.
-void EmuCodeBlock::Force25BitPrecision(X64Reg output, OpArg input, X64Reg tmp)
+void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg tmp)
 {
 	if (jit->jo.accurateSinglePrecision)
 	{
