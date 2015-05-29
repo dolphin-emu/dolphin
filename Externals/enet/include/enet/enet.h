@@ -5,6 +5,8 @@
 #ifndef __ENET_ENET_H__
 #define __ENET_ENET_H__
 
+#define QUICK_RESEND_DEBUG
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -115,6 +117,10 @@ typedef enum _ENetPacketFlag
    /** packet will be fragmented using unreliable (instead of reliable) sends
      * if it exceeds the MTU */
    ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT = (1 << 3),
+
+#ifdef QUICK_RESEND_DEBUG
+   ENET_PACKET_FLAG_INCOMING_QUICK_RESENT = (1 << 4),
+#endif
 
    /** whether the packet has been sent from all queues it has been entered into */
    ENET_PACKET_FLAG_SENT = (1<<8)

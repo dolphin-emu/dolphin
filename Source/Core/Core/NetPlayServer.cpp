@@ -167,6 +167,10 @@ void NetPlayServer::ThreadFunc()
 			break;
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
+#ifdef QUICK_RESEND_DEBUG
+				if (netEvent.packet->flags & ENET_PACKET_FLAG_INCOMING_QUICK_RESENT)
+					ERROR_LOG(NETPLAY, "Saved by quick resend!");
+#endif
 				sf::Packet rpac;
 				rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
 

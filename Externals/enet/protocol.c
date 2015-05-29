@@ -1579,6 +1579,12 @@ enet_protocol_send_reliable_outgoing_commands (ENetHost * host, ENetPeer * peer)
 
        if (outgoingCommand -> packet != NULL)
        {
+#ifdef QUICK_RESEND_DEBUG
+         if (outgoingCommand -> sendAttempts > 1 &&
+             outgoingCommand -> sendAttempts <= outgoingCommand -> packet -> quickResendCount + 1 )
+           command -> header.command |= ENET_PROTOCOL_COMMAND_FLAG_QUICK_RESENT;
+#endif
+
           ++ buffer;
           
           buffer -> data = outgoingCommand -> packet -> data + outgoingCommand -> fragmentOffset;
