@@ -42,7 +42,6 @@ void Init()
 		map_entry = nullptr;
 	for (auto& map_entry : g_preprocess_cp_state.vertex_loaders)
 		map_entry = nullptr;
-	RecomputeCachedArraybases();
 	SETSTAT(stats.numVertexLoaders, 0);
 }
 
@@ -136,6 +135,11 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 	} else {
 		loader = state->vertex_loaders[vtx_attr_group];
 	}
+
+	// Lookup pointers for any vertex arrays.
+	if (!preprocess)
+		ComputeCachedArrayBases();
+
 	return loader;
 }
 
@@ -232,8 +236,6 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		state->array_bases[sub_cmd & 0xF] = value;
-		if (update_global_state)
-			cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
 		break;
 
 	case 0xB0:
@@ -263,10 +265,15 @@ void FillCPMemoryArray(u32 *memory)
 	}
 }
 
-void RecomputeCachedArraybases()
+void ComputeCachedArrayBases()
 {
-	for (int i = 0; i < 16; i++)
+	// Some games such as Burnout 2 can put invalid addresses into
+	// the array base registers. (see issue 8591)
+	// But the vertex arrays with invalid addresses aren't actually enabled.
+	for (int i = 0; i < 12; i++)
 	{
-		cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
+		// Only update the array base if the vertex description states we are going to use it.
+		if (g_main_cp_state.vtx_desc.GetVertexArrayStatus(i) >= 0x2)
+			cached_arraybases[i] = Memory::GetPointer(g_main_cp_state.array_bases[i]);
 	}
 }

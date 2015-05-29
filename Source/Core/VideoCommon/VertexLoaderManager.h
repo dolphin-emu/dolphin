@@ -26,4 +26,4 @@ namespace VertexLoaderManager
 	NativeVertexFormat* GetCurrentVertexFormat();
 }
 
-void RecomputeCachedArraybases();
+void ComputeCachedArrayBases();

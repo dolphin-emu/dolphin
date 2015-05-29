@@ -88,6 +88,12 @@ union TVtxDesc
 	{
 		u32 Hex0, Hex1;
 	};
+
+	// Easily index into the Position..Tex7Coord fields.
+	u32 GetVertexArrayStatus(int idx)
+	{
+		return (Hex >> (9 + idx * 2)) & 0x3;
+	}
 };
 
 union UVAT_group0
@@ -239,6 +245,7 @@ class VertexLoaderBase;
 // STATE_TO_SAVE
 struct CPState final
 {
+	// Only 12 of these arrays are used.
 	u32 array_bases[16];
 	u32 array_strides[16];
 	TMatrixIndexA matrix_index_a;
