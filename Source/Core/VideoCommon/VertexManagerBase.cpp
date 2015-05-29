@@ -284,13 +284,16 @@ void VertexManager::CalculateZSlope(NativeVertexFormat* format)
 	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
 	                        xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
+	if (current_primitive_type != PRIMITIVE_TRIANGLES)
+		return;
+
 	// Global matrix ID.
 	u32 mtxIdx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
 	const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 	size_t posOff = vert_decl.position.offset;
 	size_t mtxOff = vert_decl.posmtx.offset;
 
-	// Make sure the buffer contains at lest 3 vertices.
+	// Make sure the buffer contains at least 3 vertices.
 	if ((s_pCurBufferPointer - s_pBaseBufferPointer) < (vert_decl.stride * 3))
 		return;
 
@@ -302,10 +305,13 @@ void VertexManager::CalculateZSlope(NativeVertexFormat* format)
 		u8* vtx_ptr = s_pCurBufferPointer - vert_decl.stride * (3 - i);
 		vtx[0 + i * 3] = ((float*)(vtx_ptr + posOff))[0];
 		vtx[1 + i * 3] = ((float*)(vtx_ptr + posOff))[1];
-		vtx[2 + i * 3] = ((float*)(vtx_ptr + posOff))[2];
+		if (vert_decl.position.components == 3)
+			vtx[2 + i * 3] = ((float*)(vtx_ptr + posOff))[2];
+		else
+			vtx[2 + i * 3] = 0;
 
 		// If this vertex format has per-vertex position matrix IDs, look it up.
-		if(vert_decl.posmtx.enable)
+		if (vert_decl.posmtx.enable)
 			mtxIdx = *((u32*)(vtx_ptr + mtxOff));
 
 		VertexShaderManager::TransformToClipSpace(&vtx[i * 3], &out[i * 4], mtxIdx);
