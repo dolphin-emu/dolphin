@@ -415,7 +415,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	if (gameini.GetIfExists("EmuState", "Title", &title))
 		name = title;
 
-	if (rISOFile.IsDiscTwo() && name.find("Disc 2") == std::string::npos)
+	if (rISOFile.IsDiscTwo() && name.Lower().find("disc 2") == std::string::npos && name.Lower().find("disc2") == std::string::npos)
 		name = wxString::Format(_("%s (Disc 2)"), name.c_str());
 
 	SetItem(_Index, COLUMN_TITLE, name, -1);
