@@ -121,25 +121,6 @@ namespace AudioCommon
 		return backends;
 	}
 
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
-	{
-		if (g_sound_stream)
-		{
-			// audio typically doesn't maintain its own "paused" state
-			// (that's already handled by the CPU and whatever else being paused)
-			// so it should be good enough to only lock/unlock here.
-			CMixer* pMixer = g_sound_stream->GetMixer();
-			if (pMixer)
-			{
-				std::mutex& csMixing = pMixer->MixerCritical();
-				if (doLock)
-					csMixing.lock();
-				else
-					csMixing.unlock();
-			}
-		}
-	}
-
 	void UpdateSoundStream()
 	{
 		if (g_sound_stream)
