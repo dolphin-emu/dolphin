@@ -1307,6 +1307,51 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 
 void CFrame::ParseHotkeys(wxKeyEvent &event)
 {
+	if (IsHotkey(event, HK_TOGGLE_THROTTLE, false))
+	{
+		Core::SetIsFramelimiterTempDisabled(false);
+	}
+	else if (IsHotkey(event, HK_TOGGLE_THROTTLE, true))
+	{
+		Core::SetIsFramelimiterTempDisabled(true);
+	}
+
+	unsigned int i = 0;
+	for (i = 0; i < NUM_HOTKEYS; i++)
+	{
+		bool held = false;
+		if (i == HK_FRAME_ADVANCE)
+			held = true;
+
+		if (IsHotkey(event, i, held))
+		{
+			int cmd = GetCmdForHotkey(i);
+			if (cmd >= 0)
+			{
+				wxCommandEvent evt(wxEVT_MENU, cmd);
+				wxMenuItem* item = GetMenuBar()->FindItem(cmd);
+				if (item && item->IsCheckable())
+				{
+					item->wxMenuItemBase::Toggle();
+					evt.SetInt(item->IsChecked());
+				}
+				GetEventHandler()->AddPendingEvent(evt);
+				break;
+			}
+		}
+	}
+	// On OS X, we claim all keyboard events while
+	// emulation is running to avoid wxWidgets sounding
+	// the system beep for unhandled key events when
+	// receiving pad/Wiimote keypresses which take an
+	// entirely different path through the HID subsystem.
+#ifndef __APPLE__
+	// On other platforms, we leave the key event alone
+	// so it can be passed on to the windowing system.
+	if (i == NUM_HOTKEYS)
+		event.Skip();
+#endif
+
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
 		event.Skip();
@@ -1380,14 +1425,6 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
 	}
-	if (IsHotkey(event, HK_TOGGLE_THROTTLE, false))
-	{
-		Core::SetIsFramelimiterTempDisabled(false);
-	}
-	else if (IsHotkey(event, HK_TOGGLE_THROTTLE, true))
-	{
-		Core::SetIsFramelimiterTempDisabled(true);
-	}
 	if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
 	{
 		if (--SConfig::GetInstance().m_Framelimit > 0x19)
@@ -1438,42 +1475,6 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			CFrame::OnSelectSlot(slot_event);
 		}
 	}
-
-	unsigned int i = NUM_HOTKEYS;
-	for (i = 0; i < NUM_HOTKEYS; i++)
-	{
-		bool held = false;
-		if (i == HK_FRAME_ADVANCE)
-			held = true;
-
-		if (IsHotkey(event, i, held))
-		{
-			int cmd = GetCmdForHotkey(i);
-			if (cmd >= 0)
-			{
-				wxCommandEvent evt(wxEVT_MENU, cmd);
-				wxMenuItem* item = GetMenuBar()->FindItem(cmd);
-				if (item && item->IsCheckable())
-				{
-					item->wxMenuItemBase::Toggle();
-					evt.SetInt(item->IsChecked());
-				}
-				GetEventHandler()->AddPendingEvent(evt);
-				break;
-			}
-		}
-	}
-	// On OS X, we claim all keyboard events while
-	// emulation is running to avoid wxWidgets sounding
-	// the system beep for unhandled key events when
-	// receiving pad/Wiimote keypresses which take an
-	// entirely different path through the HID subsystem.
-#ifndef __APPLE__
-	// On other platforms, we leave the key event alone
-	// so it can be passed on to the windowing system.
-	if (i == NUM_HOTKEYS)
-		event.Skip();
-#endif
 
 	// Actually perform the Wiimote connection or disconnection
 	if (WiimoteId >= 0 && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
