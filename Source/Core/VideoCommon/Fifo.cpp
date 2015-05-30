@@ -368,7 +368,7 @@ void RunGpuLoop()
 			// don't release the GPU running state on sync GPU waits
 			fifo.isGpuReadingData = !run_loop;
 		}
-	});
+	}, 100);
 
 	AsyncRequests::GetInstance()->SetEnable(false);
 	AsyncRequests::GetInstance()->SetPassthrough(true);
