@@ -166,11 +166,7 @@ private:
 
 	void LoadAddrMaskToReg(int sbits, const void* ptr, u32 mask)
 	{
-#ifdef _ARCH_64
 		m_code->MOV(64, R(RSCRATCH), ImmPtr(ptr));
-#else
-		m_code->MOV(32, R(RSCRATCH), ImmPtr(ptr));
-#endif
 		// If we do not need to mask, we can do the sign extend while loading
 		// from memory. If masking is required, we have to first zero extend,
 		// then mask, then sign extend if needed (1 instr vs. 2/3).

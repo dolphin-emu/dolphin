@@ -245,15 +245,10 @@ inline OpArg Imm8 (u8 imm)  {return OpArg(imm, SCALE_IMM8);}
 inline OpArg Imm16(u16 imm) {return OpArg(imm, SCALE_IMM16);} //rarely used
 inline OpArg Imm32(u32 imm) {return OpArg(imm, SCALE_IMM32);}
 inline OpArg Imm64(u64 imm) {return OpArg(imm, SCALE_IMM64);}
-#ifdef _ARCH_64
 inline OpArg ImmPtr(const void* imm) {return Imm64((u64)imm);}
-#else
-inline OpArg ImmPtr(const void* imm) {return Imm32((u32)imm);}
-#endif
 
 inline u32 PtrOffset(const void* ptr, const void* base)
 {
-#ifdef _ARCH_64
 	s64 distance = (s64)ptr-(s64)base;
 	if (distance >= 0x80000000LL ||
 	    distance < -0x80000000LL)
@@ -263,9 +258,6 @@ inline u32 PtrOffset(const void* ptr, const void* base)
 	}
 
 	return (u32)distance;
-#else
-	return (u32)ptr-(u32)base;
-#endif
 }
 
 //usage: int a[]; ARRAY_OFFSET(a,10)
