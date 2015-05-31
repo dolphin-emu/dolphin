@@ -661,7 +661,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	// Perform actual code generation
 	WriteCode(nextPC);
 
-	b->codeSize = (u32)(GetCodePtr() - normalEntry);
+	b->codeSize = (u32)(GetCodePtr() - start);
 	b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_X86
