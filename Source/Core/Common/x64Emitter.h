@@ -102,7 +102,7 @@ enum NormalOp {
 	nrmXCHG,
 };
 
-enum {
+enum SSECompare {
 	CMP_EQ = 0,
 	CMP_LT = 1,
 	CMP_LE = 2,
@@ -277,18 +277,6 @@ struct FixupBranch
 {
 	u8* ptr;
 	int type; //0 = 8bit 1 = 32bit
-};
-
-enum SSECompare
-{
-	EQ = 0,
-	LT,
-	LE,
-	UNORD,
-	NEQ,
-	NLT,
-	NLE,
-	ORD,
 };
 
 typedef const u8* JumpTarget;
@@ -566,14 +554,6 @@ public:
 	// SSE/SSE2: Floating point bitwise (yes)
 	void CMPSS(X64Reg regOp, const OpArg& arg, u8 compare);
 	void CMPSD(X64Reg regOp, const OpArg& arg, u8 compare);
-
-	inline void CMPEQSS(X64Reg regOp, const OpArg& arg) { CMPSS(regOp, arg, CMP_EQ); }
-	inline void CMPLTSS(X64Reg regOp, const OpArg& arg) { CMPSS(regOp, arg, CMP_LT); }
-	inline void CMPLESS(X64Reg regOp, const OpArg& arg) { CMPSS(regOp, arg, CMP_LE); }
-	inline void CMPUNORDSS(X64Reg regOp, const OpArg& arg) { CMPSS(regOp, arg, CMP_UNORD); }
-	inline void CMPNEQSS(X64Reg regOp, const OpArg& arg) { CMPSS(regOp, arg, CMP_NEQ); }
-	inline void CMPNLTSS(X64Reg regOp, const OpArg& arg) { CMPSS(regOp, arg, CMP_NLT); }
-	inline void CMPORDSS(X64Reg regOp, const OpArg& arg) { CMPSS(regOp, arg, CMP_ORD); }
 
 	// SSE/SSE2: Floating point packed arithmetic (x4 for float, x2 for double)
 	void ADDPS(X64Reg regOp, const OpArg& arg);
