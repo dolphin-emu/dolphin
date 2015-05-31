@@ -863,11 +863,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		WriteExit(nextPC);
 	}
 
-	b->codeSize = (u32)(GetCodePtr() - normalEntry);
+	b->codeSize = (u32)(GetCodePtr() - start);
 	b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_X86
-	LogGeneratedX86(code_block.m_num_instructions, code_buf, normalEntry, b);
+	LogGeneratedX86(code_block.m_num_instructions, code_buf, start, b);
 #endif
 
 	return normalEntry;
