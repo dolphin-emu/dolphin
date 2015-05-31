@@ -282,9 +282,9 @@ void Jit64::fselx(UGeckoInstruction inst)
 	// negative/positive zero and NaN properly.
 	// (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
 	if (packed)
-		CMPPD(XMM0, fpr.R(a), NLE);
+		CMPPD(XMM0, fpr.R(a), CMP_NLE);
 	else
-		CMPSD(XMM0, fpr.R(a), NLE);
+		CMPSD(XMM0, fpr.R(a), CMP_NLE);
 
 	if (cpu_info.bSSE4_1)
 	{
