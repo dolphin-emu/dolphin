@@ -54,9 +54,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UICommon.cpp" />
+    <ClCompile Include="Disassembler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UICommon.h" />
+    <ClInclude Include="Disassembler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
