@@ -7,8 +7,6 @@
 #include "VideoCommon/CPMemory.h"
 
 // CP state
-u8 *cached_arraybases[16];
-
 CPState g_main_cp_state;
 CPState g_preprocess_cp_state;
 
@@ -24,7 +22,10 @@ void DoCPState(PointerWrap& p)
 	p.DoArray(g_main_cp_state.vtx_attr, 8);
 	p.DoMarker("CP Memory");
 	if (p.mode == PointerWrap::MODE_READ)
+	{
 		CopyPreprocessCPStateFromMain();
+		g_main_cp_state.bases_dirty = true;
+	}
 }
 
 void CopyPreprocessCPStateFromMain()
