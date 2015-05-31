@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <disasm.h>        // Bochs
 #include <memory>
 #include <vector>
 
@@ -12,6 +11,7 @@
 #include <wx/panel.h>
 
 #include "Common/CommonTypes.h"
+#include "UICommon/Disassembler.h"
 
 class wxButton;
 class wxListBox;
@@ -26,26 +26,6 @@ public:
 	void Update() override;
 };
 
-class HostDisassembler
-{
-public:
-	virtual ~HostDisassembler() {}
-	std::string DisassembleBlock(u32* address, u32* host_instructions_count, u32* code_size);
-
-private:
-	virtual std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) { return "(No disassembler)"; }
-};
-
-class HostDisassemblerX86 : public HostDisassembler
-{
-public:
-	HostDisassemblerX86();
-
-private:
-	disassembler m_disasm;
-
-	std::string DisassembleHostBlock(const u8* code_start, const u32 code_size, u32* host_instructions_count) override;
-};
 
 class CJitWindow : public wxPanel
 {
