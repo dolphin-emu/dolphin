@@ -67,6 +67,7 @@ void TASInputDlg::CreateBaseLayout()
 	m_buttons_dpad->AddSpacer(20);
 
 	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
+	Bind(wxEVT_TEXT, &TASInputDlg::UpdateFromText, this);
 }
 
 const int TASInputDlg::m_gc_pad_buttons_bitmask[12] = {
@@ -471,14 +472,21 @@ void TASInputDlg::SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, w
 	{
 		*AmountPressed = CurrentValue;
 		*ActivatedByKeyboard = true;
-		Textbox->SetValue(std::to_string(*AmountPressed));
 	}
 	else if (*ActivatedByKeyboard)
 	{
 		*AmountPressed = center;
 		*ActivatedByKeyboard = false;
-		Textbox->SetValue(std::to_string(*AmountPressed));
 	}
+	else
+	{
+		return;
+	}
+
+	Textbox->ChangeValue(std::to_string(*AmountPressed));
+	wxCommandEvent* evt = new wxCommandEvent(wxEVT_TEXT, Textbox->GetId());
+	evt->SetEventObject(Textbox);
+	wxQueueEvent(this, evt);
 }
 
 void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
@@ -487,14 +495,22 @@ void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
 	{
 		control->value = CurrentValue;
 		control->set_by_keyboard = true;
-		control->text->SetValue(std::to_string(CurrentValue));
+		control->text->ChangeValue(std::to_string(CurrentValue));
 	}
 	else if (control->set_by_keyboard)
 	{
 		control->value = control->default_value;
 		control->set_by_keyboard = false;
-		control->text->SetValue(std::to_string(control->default_value));
+		control->text->ChangeValue(std::to_string(control->default_value));
 	}
+	else
+	{
+		return;
+	}
+
+	wxCommandEvent* evt = new wxCommandEvent(wxEVT_TEXT, control->text_id);
+	evt->SetEventObject(control->text);
+	wxQueueEvent(this, evt);
 }
 
 void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
