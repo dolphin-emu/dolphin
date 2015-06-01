@@ -162,9 +162,9 @@ u32 JitArm64::EmitBackpatchRoutine(ARM64XEmitter* emit, u32 flags, bool fastmem,
 			trouble_offset = (emit->GetCodePtr() - code_base) / 4;
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
-				float_emit.LD1R(32, RS, addr);
-				float_emit.REV64(8, RS, RS);
-				float_emit.FCVTL(64, RS, RS);
+				float_emit.LD1R(32, EncodeRegToDouble(RS), addr);
+				float_emit.REV32(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
+				float_emit.FCVTL(64, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
 			}
 			else
 			{
