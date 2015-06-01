@@ -15,7 +15,7 @@ import android.view.ViewGroup;
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.emulation.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback

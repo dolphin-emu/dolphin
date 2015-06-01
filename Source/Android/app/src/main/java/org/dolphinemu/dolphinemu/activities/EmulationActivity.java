@@ -18,7 +18,7 @@ import android.view.View;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
-import org.dolphinemu.dolphinemu.settings.input.InputConfigFragment;
+import org.dolphinemu.dolphinemu.utils.InputConfigFragment;
 
 import java.util.List;
 
