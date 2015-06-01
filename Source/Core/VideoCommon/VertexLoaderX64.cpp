@@ -77,7 +77,7 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 
 int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count_in, int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format)
 {
-	static const __m128i shuffle_lut[4][3] = {
+	static const __m128i shuffle_lut[5][3] = {
 		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF00L),  // 1x u8
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF01L, 0xFFFFFF00L),  // 2x u8
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFF02L, 0xFFFFFF01L, 0xFFFFFF00L)}, // 3x u8
@@ -90,6 +90,9 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x0001FFFFL),  // 1x s16
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x0203FFFFL, 0x0001FFFFL),  // 2x s16
 		 _mm_set_epi32(0xFFFFFFFFL, 0x0405FFFFL, 0x0203FFFFL, 0x0001FFFFL)}, // 3x s16
+		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x00010203L),  // 1x float
+		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L),  // 2x float
+		 _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L)}, // 3x float
 	};
 	static const __m128 scale_factors[32] = {
 		_mm_set_ps1(1./(1u<< 0)), _mm_set_ps1(1./(1u<< 1)), _mm_set_ps1(1./(1u<< 2)), _mm_set_ps1(1./(1u<< 3)),
@@ -118,21 +121,6 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 
 	if (attribute == DIRECT)
 		m_src_ofs += load_bytes;
-
-	if (format == FORMAT_FLOAT)
-	{
-		// Floats don't need to be scaled or converted,
-		// so we can just load/swap/store them directly
-		// and return early.
-		for (int i = 0; i < count_in; i++)
-		{
-			LoadAndSwap(32, scratch3, data);
-			MOV(32, dest, R(scratch3));
-			data.AddMemOffset(sizeof(float));
-			dest.AddMemOffset(sizeof(float));
-		}
-		return load_bytes;
-	}
 
 	if (cpu_info.bSSSE3)
 	{
@@ -194,13 +182,29 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 			else
 				PSRLD(coords, 16);
 			break;
+		case FORMAT_FLOAT:
+			// Floats don't need to be scaled or converted,
+			// so we can just load/swap/store them directly
+			// and return early.
+			// (In SSSE3 we still need to store them.)
+			for (int i = 0; i < count_in; i++)
+			{
+				LoadAndSwap(32, scratch3, data);
+				MOV(32, dest, R(scratch3));
+				data.AddMemOffset(sizeof(float));
+				dest.AddMemOffset(sizeof(float));
+			}
+			return load_bytes;
 		}
 	}
 
-	CVTDQ2PS(coords, R(coords));
+	if (format != FORMAT_FLOAT)
+	{
+		CVTDQ2PS(coords, R(coords));
 
-	if (dequantize && scaling_exponent)
-		MULPS(coords, MPIC(&scale_factors[scaling_exponent]));
+		if (dequantize && scaling_exponent)
+			MULPS(coords, MPIC(&scale_factors[scaling_exponent]));
+	}
 
 	switch (count_out)
 	{
