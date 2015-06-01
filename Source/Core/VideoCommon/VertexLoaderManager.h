@@ -28,5 +28,10 @@ namespace VertexLoaderManager
 	// Resolved pointers to array bases. Used by vertex loaders.
 	extern u8 *cached_arraybases[12];
 	void UpdateVertexArrayPointers();
+
+	// Position cache for zfreeze (3 vertices, 4 floats each to allow SIMD overwrite).
+	// These arrays are in reverse order.
+	extern float position_cache[3][4];
+	extern u32 position_matrix_index[3];
 }
 
