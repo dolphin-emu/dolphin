@@ -6,6 +6,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureConverter.h"
@@ -357,7 +358,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
 	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 4, GL_UNSIGNED_BYTE, 1, sizeof(EfbPokeData), (void*)offsetof(EfbPokeData, data));
 
-	glEnable(GL_PROGRAM_POINT_SIZE);
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		glEnable(GL_PROGRAM_POINT_SIZE);
 }
 
 FramebufferManager::~FramebufferManager()
