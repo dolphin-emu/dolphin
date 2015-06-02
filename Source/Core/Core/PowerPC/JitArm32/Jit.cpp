@@ -40,6 +40,13 @@ void JitArm::Init()
 	code_block.m_fpa = &js.fpa;
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 	InitBackpatch();
+
+	// Disable all loadstores
+	// Ever since the MMU has been optimized for x86, loadstores on ARMv7 have been knackered
+	// XXX: Investigate exactly why these are broken
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreOff = true;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreFloatingOff = true;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorePairedOff= true;
 }
 
 void JitArm::ClearCache()
