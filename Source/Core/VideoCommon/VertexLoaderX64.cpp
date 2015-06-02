@@ -19,6 +19,14 @@ static const X64Reg scratch2 = ABI_PARAM3;
 static const X64Reg scratch3 = ABI_PARAM4;
 static const X64Reg count_reg = R10;
 static const X64Reg skipped_reg = R11;
+static const X64Reg base_reg = RBX;
+
+static const u8* memory_base_ptr = (u8*)&g_main_cp_state.array_strides;
+
+static OpArg MPIC(const void* ptr)
+{
+	return MDisp(base_reg, (s32)((u8*)ptr - memory_base_ptr));
+}
 
 VertexLoaderX64::VertexLoaderX64(const TVtxDesc& vtx_desc, const VAT& vtx_att) : VertexLoaderBase(vtx_desc, vtx_att)
 {
@@ -57,9 +65,8 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 			CMP(attribute == INDEX8 ? 8 : 16, R(scratch1), Imm8(-1));
 			m_skip_vertex = J_CC(CC_E, true);
 		}
-		// TODO: Move cached_arraybases into CPState and use MDisp() relative to a constant register loaded with &g_main_cp_state.
-		IMUL(32, scratch1, M(&g_main_cp_state.array_strides[array]));
-		MOV(64, R(scratch2), M(&VertexLoaderManager::cached_arraybases[array]));
+		IMUL(32, scratch1, MPIC(&g_main_cp_state.array_strides[array]));
+		MOV(64, R(scratch2), MPIC(&VertexLoaderManager::cached_arraybases[array]));
 		return MRegSum(scratch1, scratch2);
 	}
 	else
@@ -136,7 +143,7 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 		else
 			MOVD_xmm(coords, data);
 
-		PSHUFB(coords, M(&shuffle_lut[format][count_in - 1]));
+		PSHUFB(coords, MPIC(&shuffle_lut[format][count_in - 1]));
 
 		// Sign-extend.
 		if (format == FORMAT_BYTE)
@@ -193,13 +200,13 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 	CVTDQ2PS(coords, R(coords));
 
 	if (dequantize && scaling_exponent)
-		MULPS(coords, M(&scale_factors[scaling_exponent]));
+		MULPS(coords, MPIC(&scale_factors[scaling_exponent]));
 
 	switch (count_out)
 	{
-		case 1: MOVSS(dest, coords); break;
-		case 2: MOVLPS(dest, coords); break;
-		case 3: MOVUPS(dest, coords); break;
+	case 1: MOVSS(dest, coords); break;
+	case 2: MOVLPS(dest, coords); break;
+	case 3: MOVUPS(dest, coords); break;
 	}
 
 	return load_bytes;
@@ -353,16 +360,17 @@ void VertexLoaderX64::ReadColor(OpArg data, u64 attribute, int format)
 
 void VertexLoaderX64::GenerateVertexLoader()
 {
-	BitSet32 xmm_regs;
-	xmm_regs[XMM0+16] = true;
-	xmm_regs[XMM1+16] = !cpu_info.bSSSE3;
-	ABI_PushRegistersAndAdjustStack(xmm_regs, 8);
+	BitSet32 regs = {src_reg, dst_reg, scratch1, scratch2, scratch3, count_reg, skipped_reg, base_reg};
+	regs &= ABI_ALL_CALLEE_SAVED;
+	ABI_PushRegistersAndAdjustStack(regs, 0);
 
 	// Backup count since we're going to count it down.
 	PUSH(32, R(ABI_PARAM3));
 
 	// ABI_PARAM3 is one of the lower registers, so free it for scratch2.
 	MOV(32, R(count_reg), R(ABI_PARAM3));
+
+	MOV(64, R(base_reg), R(ABI_PARAM4));
 
 	if (m_VtxDesc.Position & MASK_INDEXED)
 		XOR(32, R(skipped_reg), R(skipped_reg));
@@ -493,7 +501,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 	// Get the original count.
 	POP(32, R(ABI_RETURN));
 
-	ABI_PopRegistersAndAdjustStack(xmm_regs, 8);
+	ABI_PopRegistersAndAdjustStack(regs, 0);
 
 	if (m_VtxDesc.Position & MASK_INDEXED)
 	{
@@ -516,5 +524,9 @@ void VertexLoaderX64::GenerateVertexLoader()
 int VertexLoaderX64::RunVertices(DataReader src, DataReader dst, int count)
 {
 	m_numLoadedVertices += count;
-	return ((int (*)(u8* src, u8* dst, int count))region)(src.GetPointer(), dst.GetPointer(), count);
+	return ((int (*)(u8*, u8*, int, const void*))region)(
+		src.GetPointer(),
+		dst.GetPointer(),
+		count,
+		memory_base_ptr);
 }
