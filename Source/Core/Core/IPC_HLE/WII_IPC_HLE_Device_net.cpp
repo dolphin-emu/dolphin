@@ -933,11 +933,21 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		std::string hostname = Memory::GetString(BufferIn);
 		struct hostent* remoteHost = gethostbyname(hostname.c_str());
 
-		Memory::Write_U32(Common::swap32(*(u32*)remoteHost->h_addr_list[0]), BufferOut);
-		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETATON = %d "
-			"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X",remoteHost->h_addr_list[0] == nullptr ? -1 : 0,
-			hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize, Common::swap32(*(u32*)remoteHost->h_addr_list[0]));
-		ReturnValue = remoteHost->h_addr_list[0] == nullptr ? 0 : 1;
+		if (remoteHost == nullptr)
+		{
+			INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETATON = %d "
+				"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: NULL", -1,
+				hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
+			ReturnValue = 0;
+		}
+		else
+		{
+			Memory::Write_U32(Common::swap32(*(u32*)remoteHost->h_addr_list[0]), BufferOut);
+			INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETATON = %d "
+				"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X", remoteHost->h_addr_list[0] == nullptr ? -1 : 0,
+				hostname.c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize, Common::swap32(*(u32*)remoteHost->h_addr_list[0]));
+			ReturnValue = remoteHost->h_addr_list[0] == nullptr ? 0 : 1;
+		}
 		break;
 	}
 
