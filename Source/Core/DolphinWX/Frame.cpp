@@ -1262,8 +1262,7 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 
 void CFrame::ParseHotkeys()
 {
-	unsigned int i = 0;
-	for (i = 0; i < NUM_HOTKEYS; i++)
+	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		switch  (i)
 		{
@@ -1277,43 +1276,8 @@ void CFrame::ParseHotkeys()
 			case HK_EXPORT_RECORDING:
 			case HK_READ_ONLY_MODE:
 
-			case HK_LOAD_STATE_SLOT_1:
-			case HK_LOAD_STATE_SLOT_2:
-			case HK_LOAD_STATE_SLOT_3:
-			case HK_LOAD_STATE_SLOT_4:
-			case HK_LOAD_STATE_SLOT_5:
-			case HK_LOAD_STATE_SLOT_6:
-			case HK_LOAD_STATE_SLOT_7:
-			case HK_LOAD_STATE_SLOT_8:
-			case HK_LOAD_STATE_SLOT_9:
-			case HK_LOAD_STATE_SLOT_10:
-
-			case HK_SAVE_STATE_SLOT_1:
-			case HK_SAVE_STATE_SLOT_2:
-			case HK_SAVE_STATE_SLOT_3:
-			case HK_SAVE_STATE_SLOT_4:
-			case HK_SAVE_STATE_SLOT_5:
-			case HK_SAVE_STATE_SLOT_6:
-			case HK_SAVE_STATE_SLOT_7:
-			case HK_SAVE_STATE_SLOT_8:
-			case HK_SAVE_STATE_SLOT_9:
-			case HK_SAVE_STATE_SLOT_10:
-
-			case HK_LOAD_LAST_STATE_1:
-			case HK_LOAD_LAST_STATE_2:
-			case HK_LOAD_LAST_STATE_3:
-			case HK_LOAD_LAST_STATE_4:
-			case HK_LOAD_LAST_STATE_5:
-			case HK_LOAD_LAST_STATE_6:
-			case HK_LOAD_LAST_STATE_7:
-			case HK_LOAD_LAST_STATE_8:
-
-			case HK_SAVE_FIRST_STATE:
-			case HK_UNDO_LOAD_STATE:
-			case HK_UNDO_SAVE_STATE:
 			case HK_LOAD_STATE_FILE:
 			case HK_SAVE_STATE_FILE:
-
 			case HK_LOAD_STATE_SLOT_SELECTED:
 
 				if (IsHotkey(i))
@@ -1337,7 +1301,7 @@ void CFrame::ParseHotkeys()
 		}
 	}
 
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	if (!Core::IsRunningAndStarted())
 	{
 		return;
 	}
@@ -1461,16 +1425,6 @@ void CFrame::ParseHotkeys()
 			g_Config.iStereoConvergence = 500;
 	}
 
-	for (i = HK_SELECT_STATE_SLOT_1; i < HK_SELECT_STATE_SLOT_10; ++i)
-	{
-		if (IsHotkey(i))
-		{
-			wxCommandEvent slot_event;
-			slot_event.SetId(i + IDM_SELECT_SLOT_1 - HK_SELECT_STATE_SLOT_1);
-			CFrame::OnSelectSlot(slot_event);
-		}
-	}
-
 	static float debugSpeed = 1.0f;
 	if (IsHotkey(HK_FREELOOK_DECREASE_SPEED, true))
 		debugSpeed /= 1.1f;
@@ -1492,4 +1446,30 @@ void CFrame::ParseHotkeys()
 		VertexShaderManager::TranslateView(0.0f, -debugSpeed);
 	if (IsHotkey(HK_FREELOOK_RESET, true))
 		VertexShaderManager::ResetView();
+
+	// Savestates
+	for (int i = 0; i < 10; i++)
+	{
+		if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
+			State::Load(1 + i);
+
+		if (IsHotkey(HK_SAVE_STATE_SLOT_1 + i))
+			State::Save(1 + i);
+
+		if (IsHotkey(HK_LOAD_LAST_STATE_1 + i))
+			State::LoadLastSaved(1 + i);
+
+		if (IsHotkey(HK_SELECT_STATE_SLOT_1 + i))
+		{
+			wxCommandEvent slot_event;
+			slot_event.SetId(i + IDM_SELECT_SLOT_1 - HK_SELECT_STATE_SLOT_1);
+			CFrame::OnSelectSlot(slot_event);
+		}
+	}
+	if (IsHotkey(HK_SAVE_FIRST_STATE))
+		State::SaveFirstSaved();
+	if (IsHotkey(HK_UNDO_LOAD_STATE))
+		State::UndoLoadState();
+	if (IsHotkey(HK_UNDO_SAVE_STATE))
+		State::UndoSaveState();
 }
