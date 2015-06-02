@@ -637,9 +637,9 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		hotkeys->Get(g_HKData[i].IniText,
-		    &m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
+		    &m_LocalCoreStartupParameter.iHotkey[i], 0);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "Modifier",
-		    &m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
+		    &m_LocalCoreStartupParameter.iHotkeyModifier[i], 0);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "KBM",
 			&m_LocalCoreStartupParameter.bHotkeyKBM[i], g_HKData[i].KBM);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "DInput",
