@@ -36,7 +36,7 @@ portable, and easily embeddable.
 You can retrieve the source to ENet by downloading it in either .tar.gz form
 or accessing the github distribution directly.
 
-The most recent stable release (1.3.12) can be downloaded <a class="el" href="download/enet-1.3.12.tar.gz">here</a>. 
+The most recent stable release (1.3.13) can be downloaded <a class="el" href="download/enet-1.3.13.tar.gz">here</a>. 
 The last release that is protocol compatible with the 1.2 series or earlier (1.2.5) can be downloaded <a class="el" href="download/enet-1.2.5.tar.gz">here</a>. 
 
 You can find the most recent ENet source at <a class="el" href="https://github.com/lsalzman/enet">the github repository</a>.
