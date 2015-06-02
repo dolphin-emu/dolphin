@@ -322,11 +322,12 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (WiimoteReal::g_wiimotes[i] == nullptr)
-			continue;
 		wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
-		if ([device isEqual: wm->m_btd] != TRUE)
-			wm = nullptr;
+		if (!wm)
+			continue;
+		if ([device isEqual: wm->m_btd])
+			break;
+		wm = nullptr;
 	}
 
 	if (wm == nullptr) {
@@ -361,11 +362,12 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (WiimoteReal::g_wiimotes[i] == nullptr)
-			continue;
 		wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
-		if ([device isEqual: wm->m_btd] != TRUE)
-			wm = nullptr;
+		if (!wm)
+			continue;
+		if ([device isEqual: wm->m_btd])
+			break;
+		wm = nullptr;
 	}
 
 	if (wm == nullptr) {
