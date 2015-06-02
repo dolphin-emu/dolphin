@@ -531,6 +531,22 @@ include_directories(Externals/Bochs_disasm)
 
 if(NOT ANDROID)
 	check_lib(ENET libenet enet enet/enet.h QUIET)
+	include(CheckSymbolExists)
+	if (ENET_FOUND)
+		set(CMAKE_REQUIRED_INCLUDES ${ENET_INCLUDE_DIRS})
+		# hack: LDFLAGS already contains -lenet but all flags but the first are
+		# dropped; ugh, cmake
+		set(CMAKE_REQUIRED_FLAGS ${ENET_LDFLAGS})
+		set(CMAKE_REQUIRED_LIBRARIES ${ENET_LIBRARIES})
+		CHECK_SYMBOL_EXISTS(enet_socket_get_address enet/enet.h ENET_HAVE_SGA)
+		set(CMAKE_REQUIRED_INCLUDES)
+		set(CMAKE_REQUIRED_FLAGS)
+		set(CMAKE_REQUIRED_LIBRARIES)
+		if (NOT ENET_HAVE_SGA)
+			# enet is too old
+			set(ENET_FOUND FALSE)
+		endif()
+	endif()
 endif()
 if (ENET_FOUND)
 	message("Using shared enet")
