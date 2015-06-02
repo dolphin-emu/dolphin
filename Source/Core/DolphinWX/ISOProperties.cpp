@@ -866,6 +866,7 @@ void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 	{
 		m_Banner->GetBitmap().ConvertToImage().SaveFile(dialog.GetPath());
 	}
+	Raise();
 }
 
 void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
@@ -1794,12 +1795,15 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		{
 		CPatchAddEdit dlg(selection, &onFrame, this);
 		dlg.ShowModal();
+		Raise();
 		}
 		break;
 	case ID_ADDPATCH:
 		{
 		CPatchAddEdit dlg(-1, &onFrame, this, 1, _("Add Patch"));
-		if (dlg.ShowModal() == wxID_OK)
+		int res = dlg.ShowModal();
+		Raise();
+		if (res == wxID_OK)
 		{
 			Patches->Append(StrToWxStr(onFrame.back().name));
 			Patches->Check((unsigned int)(onFrame.size() - 1), onFrame.back().active);
@@ -1874,12 +1878,15 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 		{
 		CARCodeAddEdit dlg(selection, &arCodes, this);
 		dlg.ShowModal();
+		Raise();
 		}
 		break;
 	case ID_ADDCHEAT:
 		{
 			CARCodeAddEdit dlg(-1, &arCodes, this, 1, _("Add ActionReplay Code"));
-			if (dlg.ShowModal() == wxID_OK)
+			int res = dlg.ShowModal();
+			Raise();
+			if (res == wxID_OK)
 			{
 				Cheats->Append(StrToWxStr(arCodes.back().name));
 				Cheats->Check((unsigned int)(arCodes.size() - 1), arCodes.back().active);
