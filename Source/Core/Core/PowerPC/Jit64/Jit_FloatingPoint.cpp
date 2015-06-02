@@ -119,19 +119,19 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	switch(inst.SUBOP5)
 	{
 	case 14:
-		MOVDDUP(XMM0, fpr.R(c));
+		MOVDDUP(XMM1, fpr.R(c));
 		if (round_input)
-			Force25BitPrecision(XMM0, R(XMM0), XMM1);
+			Force25BitPrecision(XMM1, R(XMM1), XMM0);
 		break;
 	case 15:
-		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, fpr.R(c), fpr.R(c), 3);
+		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, fpr.R(c), fpr.R(c), 3);
 		if (round_input)
-			Force25BitPrecision(XMM0, R(XMM0), XMM1);
+			Force25BitPrecision(XMM1, R(XMM1), XMM0);
 		break;
 	default:
 		bool special = inst.SUBOP5 == 30 && (!cpu_info.bFMA || Core::g_want_determinism);
-		X64Reg tmp1 = special ? XMM1 : XMM0;
-		X64Reg tmp2 = special ? XMM0 : XMM1;
+		X64Reg tmp1 = special ? XMM0 : XMM1;
+		X64Reg tmp2 = special ? XMM1 : XMM0;
 		if (single && round_input)
 			Force25BitPrecision(tmp1, fpr.R(c), tmp2);
 		else
@@ -154,17 +154,17 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 		{
 		case 28: //msub
 			if (packed)
-				VFMSUB132PD(XMM0, fpr.RX(b), fpr.R(a));
+				VFMSUB132PD(XMM1, fpr.RX(b), fpr.R(a));
 			else
-				VFMSUB132SD(XMM0, fpr.RX(b), fpr.R(a));
+				VFMSUB132SD(XMM1, fpr.RX(b), fpr.R(a));
 			break;
 		case 14: //madds0
 		case 15: //madds1
 		case 29: //madd
 			if (packed)
-				VFMADD132PD(XMM0, fpr.RX(b), fpr.R(a));
+				VFMADD132PD(XMM1, fpr.RX(b), fpr.R(a));
 			else
-				VFMADD132SD(XMM0, fpr.RX(b), fpr.R(a));
+				VFMADD132SD(XMM1, fpr.RX(b), fpr.R(a));
 			break;
 			// PowerPC and x86 define NMADD/NMSUB differently
 			// x86: D = -A*C (+/-) B
@@ -172,61 +172,61 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 			// so we have to swap them; the ADD/SUB here isn't a typo.
 		case 30: //nmsub
 			if (packed)
-				VFNMADD132PD(XMM0, fpr.RX(b), fpr.R(a));
+				VFNMADD132PD(XMM1, fpr.RX(b), fpr.R(a));
 			else
-				VFNMADD132SD(XMM0, fpr.RX(b), fpr.R(a));
+				VFNMADD132SD(XMM1, fpr.RX(b), fpr.R(a));
 			break;
 		case 31: //nmadd
 			if (packed)
-				VFNMSUB132PD(XMM0, fpr.RX(b), fpr.R(a));
+				VFNMSUB132PD(XMM1, fpr.RX(b), fpr.R(a));
 			else
-				VFNMSUB132SD(XMM0, fpr.RX(b), fpr.R(a));
+				VFNMSUB132SD(XMM1, fpr.RX(b), fpr.R(a));
 			break;
 		}
 	}
 	else if (inst.SUBOP5 == 30) //nmsub
 	{
 		// We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately.
-		MOVAPD(XMM0, fpr.R(b));
+		MOVAPD(XMM1, fpr.R(b));
 		if (packed)
 		{
-			MULPD(XMM1, fpr.R(a));
-			SUBPD(XMM0, R(XMM1));
+			MULPD(XMM0, fpr.R(a));
+			SUBPD(XMM1, R(XMM0));
 		}
 		else
 		{
-			MULSD(XMM1, fpr.R(a));
-			SUBSD(XMM0, R(XMM1));
+			MULSD(XMM0, fpr.R(a));
+			SUBSD(XMM1, R(XMM0));
 		}
 	}
 	else
 	{
 		if (packed)
 		{
-			MULPD(XMM0, fpr.R(a));
+			MULPD(XMM1, fpr.R(a));
 			if (inst.SUBOP5 == 28) //msub
-				SUBPD(XMM0, fpr.R(b));
+				SUBPD(XMM1, fpr.R(b));
 			else                   //(n)madd(s[01])
-				ADDPD(XMM0, fpr.R(b));
+				ADDPD(XMM1, fpr.R(b));
 		}
 		else
 		{
-			MULSD(XMM0, fpr.R(a));
+			MULSD(XMM1, fpr.R(a));
 			if (inst.SUBOP5 == 28)
-				SUBSD(XMM0, fpr.R(b));
+				SUBSD(XMM1, fpr.R(b));
 			else
-				ADDSD(XMM0, fpr.R(b));
+				ADDSD(XMM1, fpr.R(b));
 		}
 		if (inst.SUBOP5 == 31) //nmadd
-			PXOR(XMM0, M(packed ? psSignBits2 : psSignBits));
+			PXOR(XMM1, M(packed ? psSignBits2 : psSignBits));
 	}
 
 	fpr.BindToRegister(d, !single);
 
 	if (single)
-		ForceSinglePrecision(fpr.RX(d), R(XMM0), packed, true);
+		ForceSinglePrecision(fpr.RX(d), R(XMM1), packed, true);
 	else
-		MOVSD(fpr.RX(d), R(XMM0));
+		MOVSD(fpr.RX(d), R(XMM1));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
