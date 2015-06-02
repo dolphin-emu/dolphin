@@ -6,7 +6,7 @@ macro(_internal_message msg)
 	endif()
 endmacro()
 
-macro(check_lib var lib)
+macro(check_lib var pc lib)
 	set(_is_required 0)
 	set(_is_quiet 0)
 	set(_arg_list ${ARGN})
@@ -22,8 +22,7 @@ macro(check_lib var lib)
 	endforeach()
 
 	if(PKG_CONFIG_FOUND AND NOT ${var}_FOUND)
-		string(TOLOWER ${lib} lower_lib)
-		pkg_search_module(${var} QUIET ${lower_lib})
+		pkg_search_module(${var} QUIET ${pc})
 	endif()
 
 	if(${var}_FOUND)
