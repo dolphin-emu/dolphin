@@ -13,19 +13,19 @@ extern "C"
 #include <stdlib.h>
 
 #ifdef _WIN32
-#include "win32.h"
+#include "enet/win32.h"
 #else
-#include "unix.h"
+#include "enet/unix.h"
 #endif
 
-#include "types.h"
-#include "protocol.h"
-#include "list.h"
-#include "callbacks.h"
+#include "enet/types.h"
+#include "enet/protocol.h"
+#include "enet/list.h"
+#include "enet/callbacks.h"
 
 #define ENET_VERSION_MAJOR 1
 #define ENET_VERSION_MINOR 3
-#define ENET_VERSION_PATCH 12
+#define ENET_VERSION_PATCH 13
 #define ENET_VERSION_CREATE(major, minor, patch) (((major)<<16) | ((minor)<<8) | (patch))
 #define ENET_VERSION_GET_MAJOR(version) (((version)>>16)&0xFF)
 #define ENET_VERSION_GET_MINOR(version) (((version)>>8)&0xFF)
