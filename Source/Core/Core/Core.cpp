@@ -831,6 +831,7 @@ void UpdateWantDeterminism(bool initial)
 		g_video_backend->UpdateWantDeterminism(new_want_determinism);
 		// We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use of FMA.
 		JitInterface::ClearCache();
+		Common::InitializeWiiRoot(g_want_determinism);
 
 		Core::PauseAndLock(false, was_unpaused);
 	}

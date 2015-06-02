@@ -79,38 +79,12 @@ void HiresTexture::Update()
 		s_textureCache.clear();
 	}
 
-	CFileSearch::XStringVector Directories;
+	std::vector<std::string> Directories;
 	const std::string& gameCode = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
 	std::string szDir = StringFromFormat("%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode.c_str());
-	Directories.push_back(szDir);
 
-	for (u32 i = 0; i < Directories.size(); i++)
-	{
-		File::FSTEntry FST_Temp;
-		File::ScanDirectoryTree(Directories[i], FST_Temp);
-		for (auto& entry : FST_Temp.children)
-		{
-			if (entry.isDirectory)
-			{
-				bool duplicate = false;
-
-				for (auto& Directory : Directories)
-				{
-					if (Directory == entry.physicalName)
-					{
-						duplicate = true;
-						break;
-					}
-				}
-
-				if (!duplicate)
-					Directories.push_back(entry.physicalName);
-			}
-		}
-	}
-
-	CFileSearch::XStringVector Extensions = {
+	std::vector<std::string> Extensions {
 		"*.png",
 		"*.bmp",
 		"*.tga",
@@ -118,8 +92,7 @@ void HiresTexture::Update()
 		"*.jpg" // Why not? Could be useful for large photo-like textures
 	};
 
-	CFileSearch FileSearch(Extensions, Directories);
-	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+	auto rFilenames = DoFileSearch(Extensions, {szDir}, /*recursive*/ true);
 
 	const std::string code = StringFromFormat("%s_", gameCode.c_str());
 	const std::string code2 = "";
@@ -129,13 +102,8 @@ void HiresTexture::Update()
 		std::string FileName;
 		SplitPath(rFilename, nullptr, &FileName, nullptr);
 
-		if (FileName.substr(0, code.length()) == code)
-		{
-			s_textureMap[FileName] = rFilename;
-			s_check_native_format = true;
-		}
-
-		if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
+		if (FileName.substr(0, code.length()) == code ||
+		    FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
 		{
 			s_textureMap[FileName] = rFilename;
 			s_check_new_format = true;

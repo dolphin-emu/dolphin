@@ -20,8 +20,8 @@
 enum {
 	D_USER_IDX,
 	D_GCUSER_IDX,
-	D_WIIROOT_IDX,
-	D_WIIUSER_IDX,
+	D_WIIROOT_IDX, // always points to User/Wii or global user-configured directory
+	D_SESSION_WIIROOT_IDX, // may point to minimal temporary directory for determinism
 	D_CONFIG_IDX, // global settings
 	D_GAMESETTINGS_IDX, // user-specified settings which override both the global and the default settings (per game)
 	D_MAPS_IDX,
@@ -39,14 +39,11 @@ enum {
 	D_LOAD_IDX,
 	D_LOGS_IDX,
 	D_MAILLOGS_IDX,
-	D_WIISYSCONF_IDX,
-	D_WIIWC24_IDX,
 	D_THEMES_IDX,
 	F_DOLPHINCONFIG_IDX,
 	F_DEBUGGERCONFIG_IDX,
 	F_LOGGERCONFIG_IDX,
 	F_MAINLOG_IDX,
-	F_WIISYSCONF_IDX,
 	F_RAMDUMP_IDX,
 	F_ARAMDUMP_IDX,
 	F_FAKEVMEMDUMP_IDX,
@@ -107,9 +104,8 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename);
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string &filename);
 
-// Scans the directory tree gets, starting from _Directory and adds the
-// results into parentEntry. Returns the number of files+directories found
-u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry);
+// Recursive or non-recursive list of files under directory.
+FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string &directory);
@@ -122,6 +118,9 @@ void CopyDir(const std::string &source_path, const std::string &dest_path);
 
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string &directory);
+
+// Creates and returns the path to a new temporary directory.
+std::string CreateTempDir();
 
 // Get a filename that can hopefully be atomically renamed to the given path.
 std::string GetTempFilenameForAtomicWrite(const std::string &path);

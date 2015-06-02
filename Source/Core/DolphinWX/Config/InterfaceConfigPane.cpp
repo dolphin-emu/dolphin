@@ -162,12 +162,10 @@ void InterfaceConfigPane::LoadGUIValues()
 
 void InterfaceConfigPane::LoadThemes()
 {
-	CFileSearch::XStringVector theme_dirs;
-	theme_dirs.push_back(File::GetUserPath(D_THEMES_IDX));
-	theme_dirs.push_back(File::GetSysDirectory() + THEMES_DIR);
-
-	CFileSearch cfs(CFileSearch::XStringVector(1, "*"), theme_dirs);
-	auto const& sv = cfs.GetFileNames();
+	auto sv = DoFileSearch({"*"}, {
+		File::GetUserPath(D_THEMES_IDX),
+		File::GetSysDirectory() + THEMES_DIR
+	}, /*recursive*/ false);
 	for (const std::string& filename : sv)
 	{
 		std::string name, ext;

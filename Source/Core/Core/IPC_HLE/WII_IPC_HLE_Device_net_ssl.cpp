@@ -5,6 +5,8 @@
 #include <algorithm>
 
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_Socket.h"
 
@@ -125,6 +127,14 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 	{
 		BufferOut3 = CommandBuffer.PayloadBuffer.at(2).m_Address;
 		BufferOutSize3 = CommandBuffer.PayloadBuffer.at(2).m_Size;
+	}
+
+	// I don't trust SSL to be deterministic, and this is never going to sync
+	// as such (as opposed to forwarding IPC results or whatever), so -
+	if (Core::g_want_determinism)
+	{
+		Memory::Write_U32(-1, _CommandAddress + 0x4);
+		return IPC_DEFAULT_REPLY;
 	}
 
 	switch (CommandBuffer.Parameter)
@@ -277,7 +287,7 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			WII_SSL* ssl = &_SSL[sslID];
-			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
+			std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
 			int ret = x509_crt_parse_file(&ssl->clicert, (cert_base_path + "clientca.pem").c_str());
 			int pk_ret = pk_parse_keyfile(&ssl->pk, (cert_base_path + "clientcakey.pem").c_str(), nullptr);
 			if (ret || pk_ret)
@@ -334,9 +344,8 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			WII_SSL* ssl = &_SSL[sslID];
-			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
 
-			int ret = x509_crt_parse_file(&ssl->cacert, (cert_base_path + "rootca.pem").c_str());
+			int ret = x509_crt_parse_file(&ssl->cacert, (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/rootca.pem").c_str());
 			if (ret)
 			{
 				x509_crt_free(&ssl->clicert);

@@ -151,16 +151,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
 		hdrfile.ReadBytes(&m_hdr, BLOCK_SIZE);
 	}
 
-	File::FSTEntry FST_Temp;
-	File::ScanDirectoryTree(m_SaveDirectory, FST_Temp);
-
-	CFileSearch::XStringVector Directory;
-	Directory.push_back(m_SaveDirectory);
-	CFileSearch::XStringVector Extensions;
-	Extensions.push_back("*.gci");
-
-	CFileSearch FileSearch(Extensions, Directory);
-	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+	std::vector<std::string> rFilenames = DoFileSearch({"*.gci"}, {m_SaveDirectory});
 
 	if (rFilenames.size() > 112)
 	{
@@ -170,7 +161,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
 		4000);
 	}
 
-	for (auto gciFile : rFilenames)
+	for (const std::string& gciFile : rFilenames)
 	{
 		if (m_saves.size() == DIRLEN)
 		{
