@@ -259,11 +259,62 @@ void HotkeyManager::GetInput(HotkeyStatus* const kb)
 
 void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 {
-	for (int set = 0; set < 3; set++)
+	ControllerEmu::LoadDefaults(ciface);
+
+#ifdef _WIN32
+	const std::string NON = "(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))";
+	const std::string ALT = "((LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))";
+	const std::string SHIFT = "(!(LMENU | RMENU) & (LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))";
+	const std::string CTRL = "(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & (LCONTROL | RCONTROL))";
+#else
+	const std::string NON = "(!`Alt_L` & !(`Shift_L` | `Shift_R`) & !(`Control_L` | `Control_R` ))";
+	const std::string ALT = "(`Alt_L` & !(`Shift_L` | `Shift_R`) & !(`Control_L` | `Control_R` ))";
+	const std::string SHIFT = "(!`Alt_L` & (`Shift_L` | `Shift_R`) & !(`Control_L` | `Control_R` ))";
+	const std::string CTRL = "(!`Alt_L` & !(`Shift_L` | `Shift_R`) & (`Control_L` | `Control_R` ))";
+#endif
+
+	#define set_control(num, str)  (m_keys[(num) / 32])->controls[(num) % 32]->control_ref->expression = (str)
+
+	// General hotkeys
+	set_control(HK_OPEN, CTRL + " & O");
+	set_control(HK_PLAY_PAUSE, "`F10`");
+#ifdef _WIN32
+	set_control(HK_STOP, "ESCAPE");
+	set_control(HK_FULLSCREEN, ALT + " & RETURN");
+#else
+	set_control(HK_STOP, "Escape");
+	set_control(HK_FULLSCREEN, ALT + " & Return");
+#endif
+	set_control(HK_SCREENSHOT, NON + " & `F9`");
+	set_control(HK_WIIMOTE1_CONNECT, ALT + " & `F5`");
+	set_control(HK_WIIMOTE2_CONNECT, ALT + " & `F6`");
+	set_control(HK_WIIMOTE3_CONNECT, ALT + " & `F7`");
+	set_control(HK_WIIMOTE4_CONNECT, ALT + " & `F8`");
+	set_control(HK_BALANCEBOARD_CONNECT, ALT + " & `F9`");
+#ifdef _WIN32
+	set_control(HK_TOGGLE_THROTTLE, "TAB");
+#else
+	set_control(HK_TOGGLE_THROTTLE, "Tab");
+#endif
+
+	// Freelook
+	set_control(HK_FREELOOK_DECREASE_SPEED, SHIFT + " & `1`");
+	set_control(HK_FREELOOK_INCREASE_SPEED, SHIFT + " & `2`");
+	set_control(HK_FREELOOK_RESET_SPEED, SHIFT + " & F");
+	set_control(HK_FREELOOK_UP, SHIFT + " & E");
+	set_control(HK_FREELOOK_DOWN, SHIFT + " & Q");
+	set_control(HK_FREELOOK_LEFT, SHIFT + " & A");
+	set_control(HK_FREELOOK_RIGHT, SHIFT + " & D");
+	set_control(HK_FREELOOK_ZOOM_IN, SHIFT + " & W");
+	set_control(HK_FREELOOK_ZOOM_OUT, SHIFT + " & S");
+	set_control(HK_FREELOOK_RESET, SHIFT + " & R");
+
+	// Savestates
+	for (int i = 0; i < 8; i++)
 	{
-		for (unsigned int key = 0; key < (m_keys[set])->controls.size(); key++)
-		{
-			(m_keys[set])->controls[key]->control_ref->expression = "";
-		}
+		set_control(HK_LOAD_STATE_SLOT_1 + i, StringFromFormat((NON + " & `F%d`").c_str(), i + 1));
+		set_control(HK_SAVE_STATE_SLOT_1 + i, StringFromFormat((SHIFT + " & `F%d`").c_str(), i + 1));
 	}
+	set_control(HK_UNDO_LOAD_STATE, NON + " & `F12`");
+	set_control(HK_UNDO_SAVE_STATE, SHIFT + " & `F12`");
 }
