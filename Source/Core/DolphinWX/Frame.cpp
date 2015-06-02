@@ -1354,37 +1354,78 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 
 void CFrame::ParseHotkeys(wxKeyEvent &event)
 {
-	if (IsHotkey(event, HK_TOGGLE_THROTTLE, false))
-	{
-		Core::SetIsFramelimiterTempDisabled(false);
-	}
-	else if (IsHotkey(event, HK_TOGGLE_THROTTLE, true))
-	{
-		Core::SetIsFramelimiterTempDisabled(true);
-	}
-
 	unsigned int i = 0;
 	for (i = 0; i < NUM_HOTKEYS; i++)
 	{
-		bool held = false;
-		if (i == HK_FRAME_ADVANCE)
-			held = true;
-
-		if (IsHotkey(event, i, held))
+		switch  (i)
 		{
-			int cmd = GetCmdForHotkey(i);
-			if (cmd >= 0)
-			{
-				wxCommandEvent evt(wxEVT_MENU, cmd);
-				wxMenuItem* item = GetMenuBar()->FindItem(cmd);
-				if (item && item->IsCheckable())
+			case HK_OPEN:
+			case HK_CHANGE_DISC:
+			case HK_REFRESH_LIST:
+			case HK_RESET:
+			case HK_FRAME_ADVANCE:
+			case HK_START_RECORDING:
+			case HK_PLAY_RECORDING:
+			case HK_EXPORT_RECORDING:
+			case HK_READ_ONLY_MODE:
+
+			case HK_LOAD_STATE_SLOT_1:
+			case HK_LOAD_STATE_SLOT_2:
+			case HK_LOAD_STATE_SLOT_3:
+			case HK_LOAD_STATE_SLOT_4:
+			case HK_LOAD_STATE_SLOT_5:
+			case HK_LOAD_STATE_SLOT_6:
+			case HK_LOAD_STATE_SLOT_7:
+			case HK_LOAD_STATE_SLOT_8:
+			case HK_LOAD_STATE_SLOT_9:
+			case HK_LOAD_STATE_SLOT_10:
+
+			case HK_SAVE_STATE_SLOT_1:
+			case HK_SAVE_STATE_SLOT_2:
+			case HK_SAVE_STATE_SLOT_3:
+			case HK_SAVE_STATE_SLOT_4:
+			case HK_SAVE_STATE_SLOT_5:
+			case HK_SAVE_STATE_SLOT_6:
+			case HK_SAVE_STATE_SLOT_7:
+			case HK_SAVE_STATE_SLOT_8:
+			case HK_SAVE_STATE_SLOT_9:
+			case HK_SAVE_STATE_SLOT_10:
+
+			case HK_LOAD_LAST_STATE_1:
+			case HK_LOAD_LAST_STATE_2:
+			case HK_LOAD_LAST_STATE_3:
+			case HK_LOAD_LAST_STATE_4:
+			case HK_LOAD_LAST_STATE_5:
+			case HK_LOAD_LAST_STATE_6:
+			case HK_LOAD_LAST_STATE_7:
+			case HK_LOAD_LAST_STATE_8:
+
+			case HK_SAVE_FIRST_STATE:
+			case HK_UNDO_LOAD_STATE:
+			case HK_UNDO_SAVE_STATE:
+			case HK_LOAD_STATE_FILE:
+			case HK_SAVE_STATE_FILE:
+
+			case HK_LOAD_STATE_SLOT_SELECTED:
+
+				if (IsHotkey(event, i))
 				{
-					item->wxMenuItemBase::Toggle();
-					evt.SetInt(item->IsChecked());
+					int cmd = GetCmdForHotkey(i);
+					if (cmd >= 0)
+					{
+						wxCommandEvent evt(wxEVT_MENU, cmd);
+						wxMenuItem* item = GetMenuBar()->FindItem(cmd);
+						if (item && item->IsCheckable())
+						{
+							item->wxMenuItemBase::Toggle();
+							evt.SetInt(item->IsChecked());
+						}
+						GetEventHandler()->AddPendingEvent(evt);
+					}
 				}
-				GetEventHandler()->AddPendingEvent(evt);
+			default:
 				break;
-			}
+				// do nothing
 		}
 	}
 	// On OS X, we claim all keyboard events while
@@ -1405,7 +1446,6 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		return;
 	}
 
-	int WiimoteId = -1;
 	// Toggle fullscreen
 	if (IsHotkey(event, HK_FULLSCREEN))
 		DoFullscreen(!RendererIsFullscreen());
@@ -1426,7 +1466,9 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		AudioCommon::IncreaseVolume(3);
 	if (IsHotkey(event, HK_VOLUME_TOGGLE_MUTE))
 		AudioCommon::ToggleMuteVolume();
+
 	// Wiimote connect and disconnect hotkeys
+	int WiimoteId = -1;
 	if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
 		WiimoteId = 0;
 	if (IsHotkey(event, HK_WIIMOTE2_CONNECT))
@@ -1437,6 +1479,15 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 		WiimoteId = 3;
 	if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
 		WiimoteId = 4;
+
+	// Actually perform the Wiimote connection or disconnection
+	if (WiimoteId >= 0 && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
+		wxCommandEvent evt;
+		evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
+		OnConnectWiimote(evt);
+	}
+
 	if (IsHotkey(event, HK_TOGGLE_IR))
 	{
 		OSDChoice = 1;
@@ -1478,6 +1529,14 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 	{
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
+	}
+	if (IsHotkey(event, HK_TOGGLE_THROTTLE, false))
+	{
+		Core::SetIsFramelimiterTempDisabled(false);
+	}
+	else if (IsHotkey(event, HK_TOGGLE_THROTTLE, true))
+	{
+		Core::SetIsFramelimiterTempDisabled(true);
 	}
 	if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
 	{
@@ -1528,14 +1587,6 @@ void CFrame::ParseHotkeys(wxKeyEvent &event)
 			slot_event.SetId(i + IDM_SELECT_SLOT_1 - HK_SELECT_STATE_SLOT_1);
 			CFrame::OnSelectSlot(slot_event);
 		}
-	}
-
-	// Actually perform the Wiimote connection or disconnection
-	if (WiimoteId >= 0 && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-	{
-		wxCommandEvent evt;
-		evt.SetId(IDM_CONNECT_WIIMOTE1 + WiimoteId);
-		OnConnectWiimote(evt);
 	}
 
 	// Maths is probably cheaper than if statements, so always recalculate
