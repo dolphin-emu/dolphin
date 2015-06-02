@@ -262,11 +262,12 @@ bool IniFile::GetKeys(const std::string& sectionName, std::vector<std::string>* 
 // Return a list of all lines in a section
 bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>* lines, const bool remove_comments) const
 {
+	lines->clear();
+
 	const Section* section = GetSection(sectionName);
 	if (!section)
 		return false;
 
-	lines->clear();
 	for (std::string line : section->lines)
 	{
 		line = StripSpaces(line);
