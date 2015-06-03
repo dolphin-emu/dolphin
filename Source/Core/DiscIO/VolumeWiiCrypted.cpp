@@ -205,6 +205,9 @@ std::string CVolumeWiiCrypted::GetInternalName() const
 std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames() const
 {
 	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+	if (!file_system)
+		return std::map<IVolume::ELanguage, std::string>();
+
 	std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
 	opening_bnr.resize(file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C));
 	return ReadWiiNames(opening_bnr);

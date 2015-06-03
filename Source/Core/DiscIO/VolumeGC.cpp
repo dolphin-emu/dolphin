@@ -284,6 +284,12 @@ bool CVolumeGC::LoadBannerFile() const
 		return m_banner_file_type != BANNER_INVALID;
 
 	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
+	if (!file_system)
+	{
+		m_banner_file_type = BANNER_INVALID;
+		return false;
+	}
+
 	size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
 	if (file_size == BNR1_SIZE || file_size == BNR2_SIZE)
 	{
