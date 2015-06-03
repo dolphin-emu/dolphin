@@ -299,6 +299,9 @@ std::string CVolumeWiiCrypted::GetInternalName() const
 std::map<Language, std::string> CVolumeWiiCrypted::GetLongNames() const
 {
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this, GetGamePartition()));
+  if (!file_system)
+    return {{}};
+
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
   size_t size = file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C);
   opening_bnr.resize(size);

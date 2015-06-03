@@ -208,8 +208,10 @@ void CVolumeGC::LoadBannerFile() const
 
   GCBanner banner_file;
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this, PARTITION_NONE));
-  size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
+  if (!file_system)
+    return;
 
+  size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
   constexpr int BNR1_MAGIC = 0x31524e42;
   constexpr int BNR2_MAGIC = 0x32524e42;
   if (file_size != BNR1_SIZE && file_size != BNR2_SIZE)
