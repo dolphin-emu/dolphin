@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="org.dolphinemu.dolphinemu">
 
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false"/>
+
     <uses-feature android:glEsVersion="0x00030000" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -10,7 +17,8 @@
     <application
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:banner="@drawable/banner_tv">
 
         <activity
             android:name=".activities.GameGridActivity"
