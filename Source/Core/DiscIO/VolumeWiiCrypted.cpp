@@ -181,7 +181,7 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 	return makerID;
 }
 
-int CVolumeWiiCrypted::GetRevision() const
+u16 CVolumeWiiCrypted::GetRevision() const
 {
 	if (!m_pReader)
 		return 0;
@@ -243,13 +243,12 @@ bool CVolumeWiiCrypted::IsWiiDisc() const
 	return true;
 }
 
-bool CVolumeWiiCrypted::IsDiscTwo() const
+u8 CVolumeWiiCrypted::GetDiscNumber() const
 {
-	u8 disc_two_check;
-	m_pReader->Read(6, 1, &disc_two_check);
-	return (disc_two_check == 1);
+	u8 disc_number;
+	m_pReader->Read(6, 1, &disc_number);
+	return disc_number;
 }
-
 
 u64 CVolumeWiiCrypted::GetSize() const
 {
