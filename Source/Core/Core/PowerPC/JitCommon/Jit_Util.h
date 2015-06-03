@@ -9,15 +9,15 @@
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace MMIO { class Mapping; }
 
 // We offset by 0x80 because the range of one byte memory offsets is
 // -0x80..0x7f.
-#define PPCSTATE(x) MDisp(RPPCSTATE, \
-	(int) ((char *) &PowerPC::ppcState.x - (char *) &PowerPC::ppcState) - 0x80)
-// In case you want to disable the ppcstate register:
-// #define PPCSTATE(x) M(&PowerPC::ppcState.x)
+#define PPCSTATE_BASE ((u8*)&PowerPC::ppcState + 0x80)
+#define PPCSTATE_OFS(x) ((u8*)(x) - PPCSTATE_BASE)
+#define PPCSTATE(x) MDisp(RPPCSTATE, PPCSTATE_OFS(&PowerPC::ppcState.x))
 #define PPCSTATE_LR PPCSTATE(spr[SPR_LR])
 #define PPCSTATE_CTR PPCSTATE(spr[SPR_CTR])
 #define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])
@@ -31,7 +31,7 @@ private:
 	bool m_enabled = false;
 public:
 	bool Enabled() { return m_enabled; }
-	void Init(int size) { AllocCodeSpace(size); m_enabled = true; }
+	void Init(int size) { AllocCodeSpace(size, PPCSTATE_BASE); m_enabled = true; }
 	void Shutdown() { FreeCodeSpace(); m_enabled = false; }
 };
 
