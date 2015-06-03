@@ -1511,111 +1511,71 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	// Frame dumps are handled a little differently in Windows
-	// Frame dumping disabled entirely on GLES3
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-	{
 #if defined _WIN32 || defined HAVE_LIBAV
-		if (SConfig::GetInstance().m_DumpFrames)
+	if (SConfig::GetInstance().m_DumpFrames)
+	{
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+
+		if (frame_data.empty() ||
+		    w != flipped_trc.GetWidth() ||
+		    h != flipped_trc.GetHeight())
 		{
-			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
-				     h != flipped_trc.GetHeight())
-			{
-				w = flipped_trc.GetWidth();
-				h = flipped_trc.GetHeight();
-				frame_data.resize(3 * w * h);
-			}
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-			if (w > 0 && h > 0)
-			{
-				if (!bLastFrameDumped)
-				{
-					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start(nullptr, w, h);
-					#else
-						bAVIDumping = AVIDump::Start(w, h);
-					#endif
-					if (!bAVIDumping)
-					{
-						OSD::AddMessage("AVIDump Start failed", 2000);
-					}
-					else
-					{
-						OSD::AddMessage(StringFromFormat(
-									"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
-					}
-				}
-				if (bAVIDumping)
-				{
-					#ifndef _WIN32
-						FlipImageData(&frame_data[0], w, h);
-					#endif
-
-						AVIDump::AddFrame(&frame_data[0], w, h);
-				}
-
-				bLastFrameDumped = true;
-			}
-			else
-			{
-				NOTICE_LOG(VIDEO, "Error reading framebuffer");
-			}
+			w = flipped_trc.GetWidth();
+			h = flipped_trc.GetHeight();
+			frame_data.resize(4 * w * h);
 		}
-		else
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &frame_data[0]);
+		if (w > 0 && h > 0)
 		{
-			if (bLastFrameDumped && bAVIDumping)
-			{
-				std::vector<u8>().swap(frame_data);
-				w = h = 0;
-				AVIDump::Stop();
-				bAVIDumping = false;
-				OSD::AddMessage("Stop dumping frames", 2000);
-			}
-			bLastFrameDumped = false;
-		}
-#else
-		if (SConfig::GetInstance().m_DumpFrames)
-		{
-			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			std::string movie_file_name;
-			w = GetTargetRectangle().GetWidth();
-			h = GetTargetRectangle().GetHeight();
-			frame_data.resize(3 * w * h);
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-
 			if (!bLastFrameDumped)
 			{
-				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
-				File::CreateFullPath(movie_file_name);
-				pFrameDump.Open(movie_file_name, "wb");
-				if (!pFrameDump)
+				#ifdef _WIN32
+					bAVIDumping = AVIDump::Start(nullptr, w, h);
+				#else
+					bAVIDumping = AVIDump::Start(w, h);
+				#endif
+
+				if (!bAVIDumping)
 				{
-					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
+					OSD::AddMessage("AVIDump Start failed", 2000);
 				}
 				else
 				{
-					OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
+					OSD::AddMessage(StringFromFormat(
+								"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+								File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
 				}
 			}
-			if (pFrameDump)
+			if (bAVIDumping)
 			{
-				FlipImageData(&frame_data[0], w, h);
-				pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
-				pFrameDump.Flush();
+				#ifndef _WIN32
+					FlipImageData(&frame_data[0], w, h, 4);
+				#endif
+
+				AVIDump::AddFrame(&frame_data[0], w, h);
 			}
+
 			bLastFrameDumped = true;
 		}
 		else
 		{
-			if (bLastFrameDumped)
-				pFrameDump.Close();
-			bLastFrameDumped = false;
+			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 		}
-#endif
 	}
+	else
+	{
+		if (bLastFrameDumped && bAVIDumping)
+		{
+			std::vector<u8>().swap(frame_data);
+			w = h = 0;
+			AVIDump::Stop();
+			bAVIDumping = false;
+			OSD::AddMessage("Stop dumping frames", 2000);
+		}
+		bLastFrameDumped = false;
+	}
+#endif
 	// Finish up the current frame, print some stats
 
 	SetWindowSize(fbStride, fbHeight);
