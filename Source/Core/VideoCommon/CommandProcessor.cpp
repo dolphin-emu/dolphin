@@ -49,8 +49,6 @@ static std::atomic<bool> s_interrupt_finish_waiting;
 
 static std::atomic<u32> s_vi_ticks(CommandProcessor::m_cpClockOrigin);
 
-Common::Flag s_gpuMaySleep;
-
 static bool IsOnThread()
 {
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
