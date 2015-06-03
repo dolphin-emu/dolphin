@@ -1107,6 +1107,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		}
 
 	case POKE_COLOR:
+	case POKE_Z:
 	{
 		std::vector<EfbPokeData> vector;
 		EfbPokeData d;
@@ -1115,26 +1116,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		d.data = poke_data;
 		vector.push_back(d);
 		PokeEFB(type, vector);
-		break;
-	}
-
-	case POKE_Z:
-	{
-		ResetAPIState();
-
-		glDepthMask(GL_TRUE);
-		glClearDepthf(float(poke_data & 0xFFFFFF) / 16777216.0f);
-
-		glEnable(GL_SCISSOR_TEST);
-		glScissor(targetPixelRc.left, targetPixelRc.bottom, targetPixelRc.GetWidth(), targetPixelRc.GetHeight());
-
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		RestoreAPIState();
-
-		// TODO: Could just update the EFB cache with the new value
-		ClearEFBCache();
-
 		break;
 	}
 
@@ -1147,18 +1128,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 void Renderer::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
 {
-	switch(type)
-	{
-	case POKE_COLOR:
-	{
-		FramebufferManager::PokeEFB(type, data);
-		break;
-	}
-
-	default:
-		::Renderer::PokeEFB(type, data);
-		break;
-	}
+	FramebufferManager::PokeEFB(type, data);
 }
 
 u16 Renderer::BBoxRead(int index)

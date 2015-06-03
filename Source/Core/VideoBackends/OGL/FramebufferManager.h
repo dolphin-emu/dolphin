@@ -119,9 +119,9 @@ private:
 	static SHADER m_pixel_format_shaders[2];
 
 	// For EFB pokes
-	static GLuint m_EfbColorPokes_VBO;
-	static GLuint m_EfbColorPokes_VAO;
-	static SHADER m_EfbColorPokes;
+	static GLuint m_EfbPokes_VBO;
+	static GLuint m_EfbPokes_VAO;
+	static SHADER m_EfbPokes;
 };
 
 }  // namespace OGL
