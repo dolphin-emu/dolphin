@@ -856,6 +856,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps)
 	install(FILES Installer/dolphin-emu.desktop
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+	# Install udev rule
+	install(FILES Installer/51-gcadapter.rules
+		DESTINATION /lib/udev/rules.d
+		OPTIONAL)
 endif()
 
 # packaging information
