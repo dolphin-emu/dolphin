@@ -11,9 +11,6 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-// warning! very slow! This setting fixes NAN
-//#define VERY_ACCURATE_FP
-
 #define MIN_SINGLE 0xc7efffffe0000000ull
 #define MAX_SINGLE 0x47efffffe0000000ull
 
@@ -86,7 +83,6 @@ inline double Force25Bit(double d)
 
 inline double NI_mul(double a, double b)
 {
-#ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
 	double t = a * b;
@@ -96,14 +92,10 @@ inline double NI_mul(double a, double b)
 		return PPC_NAN;
 	}
 	return t;
-#else
-	return a * b;
-#endif
 }
 
 inline double NI_add(double a, double b)
 {
-#ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
 	double t = a + b;
@@ -113,14 +105,10 @@ inline double NI_add(double a, double b)
 		return PPC_NAN;
 	}
 	return t;
-#else
-	return a + b;
-#endif
 }
 
 inline double NI_sub(double a, double b)
 {
-#ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
 	double t = a - b;
@@ -130,14 +118,10 @@ inline double NI_sub(double a, double b)
 		return PPC_NAN;
 	}
 	return t;
-#else
-	return a - b;
-#endif
 }
 
 inline double NI_madd(double a, double c, double b, bool negate = false)
 {
-#ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
 	if (c != c) return c;
@@ -153,15 +137,11 @@ inline double NI_madd(double a, double c, double b, bool negate = false)
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
-#else
-	double t = NI_add(NI_mul(a, c), b);
-#endif
 	return negate ? -t : t;
 }
 
 inline double NI_msub(double a, double c, double b, bool negate = false)
 {
-#ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
 	if (c != c) return c;
@@ -178,9 +158,6 @@ inline double NI_msub(double a, double c, double b, bool negate = false)
 		SetFPException(FPSCR_VXISI);
 		return PPC_NAN;
 	}
-#else
-	double t = NI_sub(NI_mul(a, c), b);
-#endif
 	return negate ? -t : t;
 }
 
