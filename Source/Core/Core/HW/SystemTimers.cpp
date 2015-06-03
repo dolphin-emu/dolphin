@@ -61,10 +61,8 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
-
 
 namespace SystemTimers
 {
@@ -81,14 +79,13 @@ static int et_IPC_HLE;
 static int et_PatchEngine; // PatchEngine updates every 1/60th of a second by default
 static int et_Throttle;
 
+static u64 s_last_sync_gpu_tick;
+
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
 static int
 	// This is a fixed value, don't change it
 	AUDIO_DMA_PERIOD,
-
-	// Regulates the speed of the Command Processor
-	CP_PERIOD,
 
 	// This is completely arbitrary. If we find that we need lower latency, we can just
 	// increase this number.
@@ -140,8 +137,12 @@ static void SICallback(u64 userdata, int cyclesLate)
 
 static void CPCallback(u64 userdata, int cyclesLate)
 {
-	CommandProcessor::Update();
-	CoreTiming::ScheduleEvent(CP_PERIOD - cyclesLate, et_CP);
+	u64 now = CoreTiming::GetTicks();
+	int next = g_video_backend->Video_Sync((int)(now - s_last_sync_gpu_tick));
+	s_last_sync_gpu_tick = now;
+
+	if (next > 0)
+		CoreTiming::ScheduleEvent(next, et_CP);
 }
 
 static void DecrementerCallback(u64 userdata, int cyclesLate)
@@ -239,9 +240,6 @@ void Init()
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
 	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
 
-	// Emulated gekko <-> flipper bus speed ratio (CPU clock / flipper clock)
-	CP_PERIOD = GetTicksPerSecond() / 10000;
-
 	Common::Timer::IncreaseResolution();
 	// store and convert localtime at boot to timebase ticks
 	CoreTiming::SetFakeTBStartValue((u64)(CPU_CORE_CLOCK / TIMER_RATIO) * (u64)CEXIIPL::GetGCTime());
@@ -253,7 +251,7 @@ void Init()
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
 		et_CP = CoreTiming::RegisterEvent("CPCallback", CPCallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
 	et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
@@ -266,8 +264,9 @@ void Init()
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
-		CoreTiming::ScheduleEvent(CP_PERIOD, et_CP);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread && SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
+		CoreTiming::ScheduleEvent(0, et_CP);
+	s_last_sync_gpu_tick = CoreTiming::GetTicks();
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_PatchEngine);
 

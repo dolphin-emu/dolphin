@@ -245,9 +245,9 @@ void VideoBackendHardware::Video_GatherPipeBursted()
 	CommandProcessor::GatherPipeBursted();
 }
 
-void VideoBackendHardware::Video_Sync()
+int VideoBackendHardware::Video_Sync(int ticks)
 {
-	FlushGpu();
+	return Fifo_Update(ticks);
 }
 
 void VideoBackendHardware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)

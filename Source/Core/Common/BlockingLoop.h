@@ -54,7 +54,7 @@ public:
 	void Wait()
 	{
 		// already done
-		if (m_stopped.IsSet() || m_running_state.load() <= STATE_DONE)
+		if (IsDone())
 			return;
 
 		// notifying this event will only wake up one thread, so use a mutex here to
@@ -63,7 +63,7 @@ public:
 		std::lock_guard<std::mutex> lk(m_wait_lock);
 
 		// Wait for the worker thread to finish.
-		while (!m_stopped.IsSet() && m_running_state.load() > STATE_DONE)
+		while (!IsDone())
 		{
 			m_done_event.Wait();
 		}
@@ -181,6 +181,11 @@ public:
 	bool IsRunning() const
 	{
 		return !m_stopped.IsSet() && !m_shutdown.IsSet();
+	}
+
+	bool IsDone() const
+	{
+		return m_stopped.IsSet() || m_running_state.load() <= STATE_DONE;
 	}
 
 	// This function should be triggered regularly over time so

@@ -16,7 +16,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SystemTimers.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PixelEngine.h"
@@ -46,8 +45,6 @@ static std::atomic<bool> s_interrupt_set;
 static std::atomic<bool> s_interrupt_waiting;
 static std::atomic<bool> s_interrupt_token_waiting;
 static std::atomic<bool> s_interrupt_finish_waiting;
-
-static std::atomic<u32> s_vi_ticks(CommandProcessor::m_cpClockOrigin);
 
 static bool IsOnThread()
 {
@@ -544,32 +541,6 @@ void SetCpControlRegister()
 // We don't emulate proper GP timing anyway at the moment, so it would just slow down emulation.
 void SetCpClearRegister()
 {
-}
-
-void Update()
-{
-	while (s_vi_ticks.load() > m_cpClockOrigin && fifo.isGpuReadingData && IsOnThread())
-		Common::YieldCPU();
-
-	if (fifo.isGpuReadingData)
-		s_vi_ticks.fetch_add(SystemTimers::GetTicksPerSecond() / 10000);
-
-	RunGpu();
-}
-
-u32 GetVITicks()
-{
-	return s_vi_ticks.load();
-}
-
-void SetVITicks(u32 ticks)
-{
-	s_vi_ticks.store(ticks);
-}
-
-void DecrementVITicks(u32 ticks)
-{
-	s_vi_ticks.fetch_sub(ticks);
 }
 
 } // end of namespace CommandProcessor
