@@ -243,6 +243,7 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 // Executes an event immediately, then returns.
 void ScheduleEvent_Immediate(int event_type, u64 userdata)
 {
+	_assert_msg_(POWERPC, Core::IsCPUThread(), "ScheduleEvent_Immediate from wrong thread");
 	event_types[event_type].callback(userdata, 0);
 }
 
