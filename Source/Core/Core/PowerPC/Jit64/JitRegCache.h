@@ -90,7 +90,7 @@ public:
 	//read only will not set dirty flag
 	void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
 	void StoreFromRegister(size_t preg, FlushMode mode = FLUSH_ALL);
-	virtual void StoreRegister(size_t preg, Gen::OpArg newLoc) = 0;
+	virtual void StoreRegister(size_t preg, const Gen::OpArg& newLoc) = 0;
 	virtual void LoadRegister(size_t preg, Gen::X64Reg newLoc) = 0;
 
 	const Gen::OpArg &R(size_t preg) const
@@ -159,7 +159,7 @@ public:
 class GPRRegCache : public RegCache
 {
 public:
-	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
+	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	const int* GetAllocationOrder(size_t& count) override;
@@ -172,7 +172,7 @@ public:
 class FPURegCache : public RegCache
 {
 public:
-	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
+	void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	const int* GetAllocationOrder(size_t& count) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;

@@ -414,7 +414,7 @@ static int GetVal(const char *flt, char chr)
 	return ret;
 }
 
-static int alphatobin(u32 *dst, std::vector<std::string> alpha, int size)
+static int alphatobin(u32 *dst, const std::vector<std::string>& alpha, int size)
 {
 	int j = 0;
 	int ret = 0;
