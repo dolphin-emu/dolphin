@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/hu/)\n"
@@ -6307,24 +6307,3 @@ msgstr "wxExecute visszatért -1 alkalmazás fut!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| VAGY"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "Nem lehet esemény bejegyzéseket törölni függőben lévő eseményekkel"
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO: Ismeretlen megnyitási mód : 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - rossz cél"
-
-#~ msgid "Invalid state"
-#~ msgstr "Nem megfelelő mentés"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2 CreateSourceVoice hiba: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "XAudio2 iniciálási hiba: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "XAudio2 fő hang létrehozási hiba: %#X"

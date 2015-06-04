@@ -13,7 +13,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Greek (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/el/)\n"
@@ -2546,9 +2546,8 @@ msgstr "Το αρχείο δεν είναι συμπιεσμένο"
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "Αποτυχία εξαγωγής"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -6351,44 +6350,3 @@ msgstr "Το wxExecute επέστρεψε -1 κατά την εκκίνηση τ
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%s failed: kr=%x"
-#~ msgstr "%s απέτυχε: kr=%x"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr ""
-#~ "Δεν μπορεί να γίνει κατάργηση καταχώρησης συμβάντων όταν ορισμένα "
-#~ "εκκρεμούν."
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO: Άγνωστη λειτουργία ανοίγματος : 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - μη έγκυρος προορισμός"
-
-#~ msgid "Invalid state"
-#~ msgstr "Μη έγκυρο κατάσταση"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "Αποτυχία CreateSourceVoice XAudio2: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "Αποτυχία αρχικοποίησης XAudio2: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "Αποτυχία δημιουργίας κεντρικής φωνής XAudio2: %#X"
-
-#~ msgid "XAudio2_7 CreateSourceVoice failed: %#X"
-#~ msgstr "Αποτυχία CreateSourceVoice XAudio2_7: %#X"
-
-#~ msgid "XAudio2_7 init failed: %#X"
-#~ msgstr "Αποτυχία αρχικοποίησης XAudio2_7: %#X"
-
-#~ msgid "XAudio2_7 master voice creation failed: %#X"
-#~ msgstr "Αποτυχία δημιουργίας κεντρικής φωνής XAudio2_7: %#X"
-
-#~ msgid "unknown flavor %d (expected %d)"
-#~ msgstr "άγνωστο flavor %d (αναμενόταν %d)"
-
-#~ msgid "unknown message received"
-#~ msgstr "ελήφθη άγνωστο μήνυμα"

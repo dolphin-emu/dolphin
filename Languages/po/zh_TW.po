@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/zh_TW/)\n"
@@ -6135,24 +6135,3 @@ msgstr "wxExecute 返回 -1 在應用程式執行時！"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "事件未決定時無法註銷事件"
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO：未知開啟模式： 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - 損毀的目標"
-
-#~ msgid "Invalid state"
-#~ msgstr "無效的狀態"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2 建立原始聲音失敗： %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "XAudio2 初始化失敗： %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "XAudio2 主聲音建立失敗： %#X"

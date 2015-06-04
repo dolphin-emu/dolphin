@@ -13,7 +13,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/pl/)\n"
@@ -2537,9 +2537,8 @@ msgstr "Plik nie skompresowany"
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "Eksportowanie nieudane"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -6318,42 +6317,3 @@ msgstr "wxExecute zwrócił -1 przy uruchamianiu programu!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%s failed: kr=%x"
-#~ msgstr "%s nie powiodło się: kr=%x"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "Nie można wyrejestrować zdarzeń podczas ich wykonywania"
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO: Nieznany tryb otwarcia: 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - zła ścieżka"
-
-#~ msgid "Invalid state"
-#~ msgstr "Niewłaściwy stan"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2 CreateSourceVoice nie powiodło się: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "Inicjalizacja XAudio2 nie powiodła się: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "Utworzenie XAudio2 master voice nie powiodło się: %#X"
-
-#~ msgid "XAudio2_7 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2_7 CreateSourceVoice nie powiodło się: %#X"
-
-#~ msgid "XAudio2_7 init failed: %#X"
-#~ msgstr "Inicjalizacja XAudio2_7 nie powiodła się: %#X"
-
-#~ msgid "XAudio2_7 master voice creation failed: %#X"
-#~ msgstr "Utworzenie XAudio2_7 master voice nie powiodło się: %#X"
-
-#~ msgid "unknown flavor %d (expected %d)"
-#~ msgstr "nieznana funkcja %d (oczekiwano %d)"
-
-#~ msgid "unknown message received"
-#~ msgstr "otrzymano nieznaną wiadomość"

@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Korean (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ko/)\n"
@@ -2523,9 +2523,8 @@ msgstr "파일이 압축되지 않었습니다"
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "내보내기 실패"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -6300,42 +6299,3 @@ msgstr "애플리케이션 구동상에서 wxExecute가 -1을 반환했습니다
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%s failed: kr=%x"
-#~ msgstr "%s 실패: kr=%x"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "이벤트들 미해결을 지닌 이벤트들을 등록하지 않을 수 없음"
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO: 알려지지 않은 열기 모드: 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - 잘못된 대상"
-
-#~ msgid "Invalid state"
-#~ msgstr "부적합 상태"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2 CreateSourceVoice 실패: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "XAudio2 초기화 실패: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "XAudio2 매스터 보이스 생성 실패: %#X"
-
-#~ msgid "XAudio2_7 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2_7 CreateSourceVoice 실패: %#X"
-
-#~ msgid "XAudio2_7 init failed: %#X"
-#~ msgstr "XAudio2_7 초기화 실패: %#X"
-
-#~ msgid "XAudio2_7 master voice creation failed: %#X"
-#~ msgstr "XAudio2_7 마스터 보이스 생성 실패: %#X"
-
-#~ msgid "unknown flavor %d (expected %d)"
-#~ msgstr "알려지지 않은 특색 %d (%d 예상됨)"
-
-#~ msgid "unknown message received"
-#~ msgstr "알려지지 않은 메지지를 받었습니다"

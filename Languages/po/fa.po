@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fa/)\n"
@@ -6277,24 +6277,3 @@ msgstr "خطای 1- wxExecute در اجرای برنامه!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| یا"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "رویدادهایی را که معوق اند نمی تواند از ثبت درآورد."
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "ورودی/خروجی فایل: حالت گشودن ناشناس : 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - مقصد ناصحیح"
-
-#~ msgid "Invalid state"
-#~ msgstr "وضعیت نامعتبر"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "صدای اکس ۲ (XAdudio2) - ساخت آوای منبع با شکست مواجه شد: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "صدای اکس ۲ (XAdudio2) - اينيت با شکست مواجه شد: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "صدای اکس ۲ (XAdudio2) - ساخت آوای مستر منبع با شکست مواجه شد: %#X"

@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
@@ -2541,9 +2541,8 @@ msgstr "Filen är inte komprimerad"
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "Exportering misslyckades"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -6331,42 +6330,3 @@ msgstr "wxExecute returnerade -1 i applikationkörningen!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "%s failed: kr=%x"
-#~ msgstr "%s misslyckades: kr=%x"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "Kan inte avregistrera händelser när händelser väntar"
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO: Okänt öppet läge: 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - dålig destination"
-
-#~ msgid "Invalid state"
-#~ msgstr "Ogiltig snabbsparning"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2 CreateSourceVoice misslyckades: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "Initiering av XAudio2 misslyckades: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "Misslyckades att skapa mästarröst för XAudio2: %#X"
-
-#~ msgid "XAudio2_7 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2_7 CreateSourceVoice misslyckades: %#X"
-
-#~ msgid "XAudio2_7 init failed: %#X"
-#~ msgstr "XAudio2_7 init misslyckades: %#X"
-
-#~ msgid "XAudio2_7 master voice creation failed: %#X"
-#~ msgstr "XAudio2_7 misslyckades att skapa master voice: %#X"
-
-#~ msgid "unknown flavor %d (expected %d)"
-#~ msgstr "okänd funktion %d (%d förväntades)"
-
-#~ msgid "unknown message received"
-#~ msgstr "fick ett okänt meddelande"

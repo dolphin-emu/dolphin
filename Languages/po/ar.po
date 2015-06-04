@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ar/)\n"
@@ -2473,9 +2473,8 @@ msgstr "ملف غير مضغوط "
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "فشل تصدير"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -6181,9 +6180,3 @@ msgstr "wxExecute returned -1 on application run!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "أو"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "لا يمكن إلغاء تسجيل الأحداث مع الأحداث المعلقة"
-
-#~ msgid "Invalid state"
-#~ msgstr "غير صالح حالة"
