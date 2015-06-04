@@ -102,8 +102,13 @@ void HiresTexture::Update()
 		std::string FileName;
 		SplitPath(rFilename, nullptr, &FileName, nullptr);
 
-		if (FileName.substr(0, code.length()) == code ||
-		    FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
+		if (FileName.substr(0, code.length()) == code)
+		{
+			s_textureMap[FileName] = rFilename;
+			s_check_native_format = true;
+		}
+
+		if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
 		{
 			s_textureMap[FileName] = rFilename;
 			s_check_new_format = true;
