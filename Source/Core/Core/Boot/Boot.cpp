@@ -239,7 +239,7 @@ bool CBoot::BootUp()
 
 		const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
 
-		if (pVolume.IsWiiDisc() != _StartupPara.bWii)
+		if ((pVolume.GetVolumeType() == DiscIO::IVolume::WII_DISC) != _StartupPara.bWii)
 		{
 			PanicAlertT("Warning - starting ISO in wrong console mode!");
 		}
@@ -255,7 +255,7 @@ bool CBoot::BootUp()
 			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buf.get(), tmd_size);
 		}
 
-		_StartupPara.bWii = pVolume.IsWiiDisc();
+		_StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::IVolume::WII_DISC;
 
 		// HLE BS2 or not
 		if (_StartupPara.bHLE_BS2)
@@ -314,7 +314,8 @@ bool CBoot::BootUp()
 		{
 			BS2Success = EmulatedBS2(dolWii);
 		}
-		else if ((!DVDInterface::VolumeIsValid() || !DVDInterface::GetVolume().IsWiiDisc()) && !_StartupPara.m_strDefaultISO.empty())
+		else if ((!DVDInterface::VolumeIsValid() || DVDInterface::GetVolume().GetVolumeType() != DiscIO::IVolume::WII_DISC) &&
+		         !_StartupPara.m_strDefaultISO.empty())
 		{
 			DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
 			BS2Success = EmulatedBS2(dolWii);

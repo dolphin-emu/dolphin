@@ -76,7 +76,7 @@ void ReadFileSystem(const std::string& filename)
 	if (!OpenISO)
 		return;
 
-	if (!OpenISO->IsWadFile())
+	if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_WAD)
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 

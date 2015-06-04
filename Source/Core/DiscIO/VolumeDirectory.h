@@ -47,7 +47,7 @@ public:
 	u32 GetFSTSize() const override;
 
 	std::string GetApploaderDate() const override;
-	bool IsWiiDisc() const override;
+	EPlatform GetVolumeType() const override;
 
 	ECountry GetCountry() const override;
 

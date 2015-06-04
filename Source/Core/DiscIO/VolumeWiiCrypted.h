@@ -37,7 +37,7 @@ public:
 	std::string GetApploaderDate() const override;
 	u8 GetDiscNumber() const override;
 
-	bool IsWiiDisc() const override;
+	EPlatform GetVolumeType() const override;
 	bool SupportsIntegrityCheck() const override { return true; }
 	bool CheckIntegrity() const override;
 	bool ChangePartition(u64 offset) override;

@@ -220,9 +220,9 @@ std::string CVolumeDirectory::GetApploaderDate() const
 	return "VOID";
 }
 
-bool CVolumeDirectory::IsWiiDisc() const
+IVolume::EPlatform CVolumeDirectory::GetVolumeType() const
 {
-	return m_is_wii;
+	return m_is_wii ? WII_DISC : GAMECUBE_DISC;
 }
 
 u64 CVolumeDirectory::GetSize() const

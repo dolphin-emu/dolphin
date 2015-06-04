@@ -238,9 +238,9 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
 	return date;
 }
 
-bool CVolumeWiiCrypted::IsWiiDisc() const
+IVolume::EPlatform CVolumeWiiCrypted::GetVolumeType() const
 {
-	return true;
+	return WII_DISC;
 }
 
 u8 CVolumeWiiCrypted::GetDiscNumber() const

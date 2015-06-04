@@ -184,7 +184,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				m_revision = pVolume->GetRevision();
 
 				// Check if we have a Wii disc
-				bWii = pVolume.get()->IsWiiDisc();
+				bWii = pVolume.get()->GetVolumeType() == DiscIO::IVolume::WII_DISC;
 
 				const char* retrieved_region_dir = GetRegionOfCountry(pVolume->GetCountry());
 				if (!retrieved_region_dir)

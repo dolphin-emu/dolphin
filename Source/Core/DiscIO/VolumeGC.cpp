@@ -272,6 +272,11 @@ u8 CVolumeGC::GetDiscNumber() const
 	return disc_number;
 }
 
+IVolume::EPlatform CVolumeGC::GetVolumeType() const
+{
+	return GAMECUBE_DISC;
+}
+
 bool CVolumeGC::LoadBannerFile() const
 {
 	// The methods GetNames, GetDescriptions, GetCompany and GetBanner
