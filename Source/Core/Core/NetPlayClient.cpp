@@ -929,7 +929,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 		// If it still mismatches, it surely desynced
 		if (size != nw.size())
 		{
-			PanicAlert("Netplay has desynced. There is no way to recover from this.");
+			PanicAlertT("Netplay has desynced. There is no way to recover from this.");
 			return false;
 		}
 	}

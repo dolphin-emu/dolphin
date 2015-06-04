@@ -179,13 +179,14 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 		ipl_region = EUR_DIR;
 		break;
 	default:
-		PanicAlert("IPL with unknown hash %x", ipl_hash);
+		PanicAlertT("IPL with unknown hash %x", ipl_hash);
 		break;
 	}
 
 	std::string BootRegion = _rBootROMFilename.substr(_rBootROMFilename.find_last_of(DIR_SEP) - 3, 3);
 	if (BootRegion != ipl_region)
-		PanicAlert("%s IPL found in %s directory. The disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
+		PanicAlertT("%s IPL found in %s directory. The disc might not be recognized",
+		            ipl_region.c_str(), BootRegion.c_str());
 
 	// Run the descrambler over the encrypted section containing BS1/BS2
 	CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);

@@ -143,7 +143,7 @@ File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 		break;
 
 	default:
-		PanicAlertT("FileIO: Unknown open mode : 0x%02x", m_Mode);
+		PanicAlert("FileIO: Unknown open mode : 0x%02x", m_Mode);
 		break;
 	}
 

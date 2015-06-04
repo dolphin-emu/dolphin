@@ -21,8 +21,6 @@ class wxStaticText;
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
 #define MEMCARDMAN_TITLE _trans("Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!")
 
-#define E_SAVEFAILED "File write failed"
-#define E_UNK "Unknown error"
 #define FIRSTPAGE 0
 
 class CMemcardManager : public wxDialog

@@ -421,7 +421,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		if (slot != -1)
 		{
 			memoryCard[slot]->FixChecksums();
-			if (!memoryCard[slot]->Save()) PanicAlertT(E_SAVEFAILED);
+			if (!memoryCard[slot]->Save()) PanicAlertT("File write failed");
 			page[slot] = FIRSTPAGE;
 			ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()), slot);
 		}
@@ -435,7 +435,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 	case OUTOFBLOCKS:
 		if (slot == -1)
 		{
-			WxUtils::ShowErrorDialog(_(E_UNK));
+			WxUtils::ShowErrorDialog(_("Unknown memory card error"));
 			break;
 		}
 		wxMessageBox(wxString::Format(_("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks()));
@@ -467,14 +467,14 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		WxUtils::ShowErrorDialog(_("Invalid bat.map or dir entry."));
 		break;
 	case WRITEFAIL:
-		WxUtils::ShowErrorDialog(_(E_SAVEFAILED));
+		WxUtils::ShowErrorDialog(_("File write failed"));
 		break;
 	case DELETE_FAIL:
 		WxUtils::ShowErrorDialog(_("Order of files in the File Directory do not match the block order\n"
 		                           "Right click and export all of the saves,\nand import the saves to a new memcard\n"));
 		break;
 	default:
-		WxUtils::ShowErrorDialog(_(E_UNK));
+		WxUtils::ShowErrorDialog(_("Unknown memory card error"));
 		break;
 	}
 	SetFocus();
@@ -515,7 +515,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		}
 		else
 		{
-			WxUtils::ShowErrorDialog(_(E_SAVEFAILED));
+			WxUtils::ShowErrorDialog(_("File write failed"));
 		}
 		break;
 	case ID_CONVERTTOGCI:

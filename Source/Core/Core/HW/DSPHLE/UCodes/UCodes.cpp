@@ -87,12 +87,14 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 	default:
 		if (wii)
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AXWii.\n\nTry LLE emulator if this is homebrew.", crc);
+			PanicAlertT("This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.\n\n"
+			            "Unknown ucode (CRC = %08x) - forcing AXWii.", crc);
 			return new AXWiiUCode(dsphle, crc);
 		}
 		else
 		{
-			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE emulator if this is homebrew.", crc);
+			PanicAlertT("This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.\n\n"
+			            "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.", crc);
 			return new AXUCode(dsphle, crc);
 		}
 

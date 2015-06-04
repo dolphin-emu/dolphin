@@ -683,12 +683,12 @@ void UndoLoadState()
 		}
 		else
 		{
-			PanicAlert("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+			PanicAlertT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
 		}
 	}
 	else
 	{
-		PanicAlert("There is nothing to undo!");
+		PanicAlertT("There is nothing to undo!");
 	}
 }
 

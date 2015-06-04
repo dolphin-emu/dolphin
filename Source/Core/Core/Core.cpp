@@ -430,7 +430,7 @@ void EmuThread()
 	{
 		HW::Shutdown();
 		g_video_backend->Shutdown();
-		PanicAlert("Failed to initialize DSP emulator!");
+		PanicAlert("Failed to initialize DSP emulation!");
 		Host_Message(WM_USER_STOP);
 		return;
 	}
@@ -614,7 +614,7 @@ void SetState(EState _State)
 		Wiimote::Resume();
 		break;
 	default:
-		PanicAlertT("Invalid state");
+		PanicAlert("Invalid state");
 		break;
 	}
 }
