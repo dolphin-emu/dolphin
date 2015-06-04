@@ -332,7 +332,7 @@ static void FinishExecuteReadCommand(u64 userdata, int cyclesLate)
 {
 	if (!current_read_command.is_valid)
 	{
-		PanicAlertT("DVDInterface tried to execute non-existing command");
+		PanicAlert("DVDInterface: There is no command to execute!");
 	}
 	else
 	{

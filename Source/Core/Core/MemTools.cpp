@@ -100,7 +100,7 @@ static void CheckKR(const char* name, kern_return_t kr)
 {
 	if (kr)
 	{
-		PanicAlertT("%s failed: kr=%x", name, kr);
+		PanicAlert("%s failed: kr=%x", name, kr);
 	}
 }
 
@@ -153,13 +153,13 @@ static void ExceptionThread(mach_port_t port)
 
 		if (msg_in.Head.msgh_id != 2406)
 		{
-			PanicAlertT("unknown message received");
+			PanicAlert("unknown message received");
 			return;
 		}
 
 		if (msg_in.flavor != x86_THREAD_STATE64)
 		{
-			PanicAlertT("unknown flavor %d (expected %d)", msg_in.flavor, x86_THREAD_STATE64);
+			PanicAlert("unknown flavor %d (expected %d)", msg_in.flavor, x86_THREAD_STATE64);
 			return;
 		}
 

@@ -115,7 +115,7 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
 {
 	if (m_commands_to_execute.empty())
 	{
-		PanicAlertT("WII_IPC_HLE_Device_DI tried to reply to non-existing command");
+		PanicAlert("WII_IPC_HLE_Device_DI: There is no command to execute!");
 		return;
 	}
 
