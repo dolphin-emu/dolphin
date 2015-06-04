@@ -33,7 +33,7 @@ bool GeckoCode::Exist(u32 address, u32 data) const
 }
 
 // return true if the code is identical
-bool GeckoCode::Compare(GeckoCode compare) const
+bool GeckoCode::Compare(const GeckoCode& compare) const
 {
 	if (codes.size() != compare.codes.size())
 		return false;
