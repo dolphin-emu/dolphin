@@ -126,7 +126,6 @@ struct BlockRegStats
 
 class CodeBuffer
 {
-	int size_;
 public:
 	CodeBuffer(int size);
 	~CodeBuffer();
@@ -135,7 +134,8 @@ public:
 
 	PPCAnalyst::CodeOp *codebuffer;
 
-
+private:
+	int size_;
 };
 
 struct CodeBlock
