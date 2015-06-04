@@ -10,7 +10,7 @@ xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAl
 	$CPP_FILE_LIST --package-name="Dolphin Emulator"
 
 sed -i "s/SOME DESCRIPTIVE TITLE\./Translation of dolphin-emu.pot to LANGUAGE/" Languages/po/dolphin-emu.pot
-sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2003-2013/" Languages/po/dolphin-emu.pot
+sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2003-2015/" Languages/po/dolphin-emu.pot
 sed -i "s/license as the PACKAGE package/license as the dolphin-emu package/" Languages/po/dolphin-emu.pot
 
 # XXX: Disabled now that we use Transifex (the tool will handle this automatically).
