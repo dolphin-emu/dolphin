@@ -128,7 +128,7 @@ int RegisterEvent(const std::string& name, TimedCallback callback)
 void UnregisterAllEvents()
 {
 	if (first)
-		PanicAlertT("Cannot unregister events with events pending");
+		PanicAlert("Cannot unregister events with events pending");
 	event_types.clear();
 }
 

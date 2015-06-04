@@ -902,7 +902,7 @@ static void GenerateDSIException(u32 effectiveAddress, bool write)
 	// DSI exceptions are only supported in MMU mode.
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
-		PanicAlertT("Invalid %s to 0x%08x, PC = 0x%08x ", write ? "Write to" : "Read from", effectiveAddress, PC);
+		PanicAlert("Invalid %s to 0x%08x, PC = 0x%08x ", write ? "Write to" : "Read from", effectiveAddress, PC);
 		return;
 	}
 

@@ -427,7 +427,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					}
 					rContent.m_Position += Size;
 				} else {
-					PanicAlertT("IOCTL_ES_READCONTENT - bad destination");
+					PanicAlert("IOCTL_ES_READCONTENT - bad destination");
 				}
 			}
 

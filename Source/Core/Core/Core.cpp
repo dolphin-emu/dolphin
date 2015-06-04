@@ -774,7 +774,7 @@ void SetState(EState _State)
 		Wiimote::Resume();
 		break;
 	default:
-		PanicAlertT("Invalid state");
+		PanicAlert("Invalid state");
 		break;
 	}
 }

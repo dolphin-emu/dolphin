@@ -78,7 +78,7 @@ StreamingVoiceContext::StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer,
 	HRESULT hr;
 	if (FAILED(hr = pXAudio2->CreateSourceVoice(&m_source_voice, &wfx.Format, XAUDIO2_VOICE_NOSRC, 1.0f, this)))
 	{
-		PanicAlertT("XAudio2 CreateSourceVoice failed: %#X", hr);
+		PanicAlert("XAudio2 CreateSourceVoice failed: %#X", hr);
 		return;
 	}
 
@@ -177,7 +177,7 @@ bool XAudio2::Start()
 	IXAudio2* xaudptr;
 	if (FAILED(hr = ((XAudio2Create_t)PXAudio2Create)(&xaudptr, 0, XAUDIO2_DEFAULT_PROCESSOR)))
 	{
-		PanicAlertT("XAudio2 init failed: %#X", hr);
+		PanicAlert("XAudio2 init failed: %#X", hr);
 		Stop();
 		return false;
 	}
@@ -187,7 +187,7 @@ bool XAudio2::Start()
 	// XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
 	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
 	{
-		PanicAlertT("XAudio2 master voice creation failed: %#X", hr);
+		PanicAlert("XAudio2 master voice creation failed: %#X", hr);
 		Stop();
 		return false;
 	}
