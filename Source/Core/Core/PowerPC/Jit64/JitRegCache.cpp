@@ -347,7 +347,7 @@ void GPRRegCache::LoadRegister(size_t preg, X64Reg newLoc)
 	emit->MOV(32, ::Gen::R(newLoc), regs[preg].location);
 }
 
-void GPRRegCache::StoreRegister(size_t preg, OpArg newLoc)
+void GPRRegCache::StoreRegister(size_t preg, const OpArg& newLoc)
 {
 	emit->MOV(32, newLoc, regs[preg].location);
 }
@@ -357,7 +357,7 @@ void FPURegCache::LoadRegister(size_t preg, X64Reg newLoc)
 	emit->MOVAPD(newLoc, regs[preg].location);
 }
 
-void FPURegCache::StoreRegister(size_t preg, OpArg newLoc)
+void FPURegCache::StoreRegister(size_t preg, const OpArg& newLoc)
 {
 	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
 }

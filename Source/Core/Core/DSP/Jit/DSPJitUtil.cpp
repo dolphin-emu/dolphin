@@ -763,7 +763,7 @@ void DSPEmitter::get_acc_l(int _reg, X64Reg acl, bool sign)
 	gpr.readReg(_reg+DSP_REG_ACL0, acl, sign?SIGN:ZERO);
 }
 
-void DSPEmitter::set_acc_l(int _reg, OpArg arg)
+void DSPEmitter::set_acc_l(int _reg, const OpArg& arg)
 {
 	//	return g_dsp.r[DSP_REG_ACM0 + _reg];
 	gpr.writeReg(_reg+DSP_REG_ACL0,arg);
@@ -777,7 +777,7 @@ void DSPEmitter::get_acc_m(int _reg, X64Reg acm, bool sign)
 }
 
 // In: s16 in AX
-void DSPEmitter::set_acc_m(int _reg, OpArg arg)
+void DSPEmitter::set_acc_m(int _reg, const OpArg& arg)
 {
 	//	return g_dsp.r.ac[_reg].m;
 	gpr.writeReg(_reg+DSP_REG_ACM0,arg);
@@ -791,7 +791,7 @@ void DSPEmitter::get_acc_h(int _reg, X64Reg ach, bool sign)
 }
 
 // In: s16 in AX
-void DSPEmitter::set_acc_h(int _reg, OpArg arg)
+void DSPEmitter::set_acc_h(int _reg, const OpArg& arg)
 {
 	//	return g_dsp.r[DSP_REG_ACM0 + _reg];
 	gpr.writeReg(_reg+DSP_REG_ACH0,arg);

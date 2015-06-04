@@ -347,7 +347,7 @@ u16 GCMemcard::GetFreeBlocks() const
 	return BE16(CurrentBat->FreeBlocks);
 }
 
-u8 GCMemcard::TitlePresent(DEntry d) const
+u8 GCMemcard::TitlePresent(const DEntry& d) const
 {
 	if (!m_valid)
 		return DIRLEN;

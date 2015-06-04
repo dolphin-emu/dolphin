@@ -36,7 +36,7 @@ namespace Gecko
 		bool enabled;
 		bool user_defined;
 
-		bool Compare(GeckoCode compare) const;
+		bool Compare(const GeckoCode& compare) const;
 		bool Exist(u32 address, u32 data) const;
 	};
 
