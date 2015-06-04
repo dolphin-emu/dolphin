@@ -226,7 +226,11 @@ bool CBoot::BootUp()
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
 	g_symbolDB.Clear();
-	VideoInterface::Preset(_StartupPara.bNTSC);
+
+	// PAL Wii uses NTSC framerate and linecount in 60Hz modes
+	const bool bPAL60 = _StartupPara.bWii && SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60");
+	VideoInterface::Preset(_StartupPara.bNTSC || bPAL60);
+
 	switch (_StartupPara.m_BootType)
 	{
 	// GCM and Wii
