@@ -37,6 +37,7 @@ public:
 	std::string GetApploaderDate() const override;
 	u8 GetDiscNumber() const override;
 
+	EPlatform GetVolumeType() const override;
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;
 	u64 GetRawSize() const override;

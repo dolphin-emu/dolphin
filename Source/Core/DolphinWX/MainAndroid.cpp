@@ -182,25 +182,17 @@ static int GetPlatform(std::string filename)
 
 	if (pVolume != nullptr)
 	{
-		bool is_wii_disc = pVolume->IsWiiDisc();
-		bool is_wii_wad = pVolume->IsWadFile();
-
-		if (is_wii_disc)
+		switch (pVolume->GetVolumeType())
 		{
-			__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii disc.");
-
-			// See Source/Android/app/src/main/java/org/dolphinemu/dolphinemu/model/Game.java
-			return 1;
-		}
-		else if (is_wii_wad)
-		{
-			__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii WAD.");
-			return 2;
-		}
-		else
-		{
-			__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Gamecube disc.");
-			return 0;
+			case DiscIO::IVolume::GAMECUBE_DISC:
+				__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a GameCube disc.");
+				return 0;
+			case DiscIO::IVolume::WII_DISC:
+				__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii disc.");
+				return 1;
+			case DiscIO::IVolume::WII_WAD:
+				__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii WAD.");
+				return 2;
 		}
 	}
 
@@ -216,13 +208,9 @@ static std::string GetTitle(std::string filename)
 	if (pVolume != nullptr) {
 		std::map <DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetNames();
 
-
-		/*bool is_wii_title = IsWiiTitle(filename);
-
-		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(
-				is_wii_title);
-
-
+		/*
+		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
+		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(is_wii_title);
 
 		auto it = titles.find(language);
 		if (it != end)
@@ -262,10 +250,8 @@ static std::string GetDescription(std::string filename)
 		std::map <DiscIO::IVolume::ELanguage, std::string> descriptions = pVolume->GetDescriptions();
 
 		/*
-		bool is_wii_title = IsWiiTitle(filename);
-
-		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(
-				is_wii_title);
+		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
+		DiscIO::IVolume::ELanguage language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(is_wii_title);
 
 		auto it = descriptions.find(language);
 		if (it != end)

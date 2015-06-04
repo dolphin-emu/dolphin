@@ -201,16 +201,17 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	m_FST->SetValue(wxString::Format("%u", OpenISO->GetFSTSize()));
 
 	// Here we set all the info to be shown + we set the window title
-	ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(OpenISO->IsWadFile() || OpenISO->IsWiiDisc()));
+	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
+	ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
 
 	m_Banner->SetBitmap(OpenGameListItem->GetBitmap());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
 	// Filesystem browser/dumper
 	// TODO : Should we add a way to browse the wad file ?
-	if (!OpenISO->IsWadFile())
+	if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_WAD)
 	{
-		if (OpenISO->IsWiiDisc())
+		if (OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 		{
 			int partition_count = 0;
 			for (int group = 0; group < 4; group++)
@@ -255,7 +256,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 CISOProperties::~CISOProperties()
 {
-	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile() && pFileSystem)
+	if (OpenISO->GetVolumeType() == DiscIO::IVolume::GAMECUBE_DISC && pFileSystem)
 		delete pFileSystem;
 	// vector's items are no longer valid after deleting filesystem
 	GCFiles.clear();
@@ -538,7 +539,7 @@ void CISOProperties::CreateGUIControls()
 	sbCoreOverrides->Add(sAudioSlowDown, 0, wxEXPAND | wxALL, 5);
 
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
-	if (!OpenISO->IsWiiDisc() && !OpenISO->IsWadFile())
+	if (OpenISO->GetVolumeType() == DiscIO::IVolume::GAMECUBE_DISC)
 	{
 		sbWiiOverrides->ShowItems(false);
 		EnableWideScreen->Hide();
@@ -671,7 +672,8 @@ void CISOProperties::CreateGUIControls()
 
 	wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
 
-	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(OpenISO->IsWadFile() || OpenISO->IsWiiDisc());
+	bool wii = OpenISO->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
+	DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii);
 
 	std::vector<DiscIO::IVolume::ELanguage> languages = OpenGameListItem->GetLanguages();
 	int preferred_language_index = 0;
@@ -781,7 +783,7 @@ void CISOProperties::CreateGUIControls()
 	sInfoPage->Add(sbBannerDetails, 0, wxEXPAND|wxALL, 5);
 	m_Information->SetSizer(sInfoPage);
 
-	if (!OpenISO->IsWadFile())
+	if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_WAD)
 	{
 		wxPanel* const m_Filesystem = new wxPanel(m_Notebook, ID_FILESYSTEM);
 		m_Notebook->AddPage(m_Filesystem, _("Filesystem"));
@@ -888,7 +890,7 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
 	popupMenu.Append(IDM_EXTRACTALL, _("Extract All Files..."));
 
-	if (!OpenISO->IsWiiDisc() ||
+	if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_DISC ||
 		(m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
 		m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection()))
 	{
@@ -931,7 +933,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}
 
-	if (OpenISO->IsWiiDisc())
+	if (OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		const wxTreeItemId tree_selection = m_Treectrl->GetSelection();
 		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(tree_selection));
@@ -947,7 +949,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const WiiPartition* partition)
 {
-	DiscIO::IFileSystem* const fs = OpenISO->IsWiiDisc() ? partition->FileSystem : pFileSystem;
+	DiscIO::IFileSystem* const fs = OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC ? partition->FileSystem : pFileSystem;
 
 	std::vector<const DiscIO::SFileInfo*> fst;
 	fs->GetFileList(fst);
@@ -962,7 +964,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
 		size = (u32)fst.size();
 
 		fs->ExportApploader(_rExportFolder);
-		if (!OpenISO->IsWiiDisc())
+		if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_DISC)
 			fs->ExportDOL(_rExportFolder);
 	}
 	else
@@ -1047,7 +1049,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	if (event.GetId() == IDM_EXTRACTALL)
 	{
-		if (OpenISO->IsWiiDisc())
+		if (OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 		{
 			wxTreeItemIdValue cookie;
 			wxTreeItemId root = m_Treectrl->GetRootItem();
@@ -1076,7 +1078,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	Directory += DIR_SEP_CHR;
 
-	if (OpenISO->IsWiiDisc())
+	if (OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		const wxTreeItemId tree_selection = m_Treectrl->GetSelection();
 		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(tree_selection));
@@ -1098,7 +1100,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	if (Path.empty())
 		return;
 
-	if (OpenISO->IsWiiDisc())
+	if (OpenISO->GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		WiiPartition* partition = reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
 		FS = partition->FileSystem;
@@ -1144,7 +1146,7 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 {
 	// Normally we can't enter this function if we aren't analyzing a Wii disc
 	// anyway, but let's still check to be sure.
-	if (!OpenISO->IsWiiDisc())
+	if (OpenISO->GetVolumeType() != DiscIO::IVolume::WII_DISC)
 		return;
 
 	wxProgressDialog dialog(_("Checking integrity..."), _("Working..."), 1000, this,

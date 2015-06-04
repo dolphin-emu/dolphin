@@ -324,7 +324,7 @@ bool CBoot::EmulatedBS2_Wii()
 
 	// Execute the apploader
 	bool apploaderRan = false;
-	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().IsWiiDisc())
+	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		// This is some kind of consistency check that is compared to the 0x00
 		// values as the game boots. This location keep the 4 byte ID for as long
