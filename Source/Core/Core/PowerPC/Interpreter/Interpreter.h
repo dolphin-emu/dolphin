@@ -28,10 +28,6 @@ public:
 	void ClearCache() override;
 	const char *GetName() override;
 
-	typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
-
-	_interpreterInstruction GetInstruction(UGeckoInstruction instCode);
-
 	void Log();
 
 	static bool m_EndBlock;
@@ -280,6 +276,7 @@ public:
 	static void sync(UGeckoInstruction _inst);
 	static void isync(UGeckoInstruction _inst);
 
+	typedef void(*_interpreterInstruction)(UGeckoInstruction instCode);
 	static _interpreterInstruction m_opTable[64];
 	static _interpreterInstruction m_opTable4[1024];
 	static _interpreterInstruction m_opTable19[1024];
