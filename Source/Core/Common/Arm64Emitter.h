@@ -276,7 +276,7 @@ public:
 	{
 		return m_type;
 	}
-	ARM64Reg GetReg()
+	ARM64Reg GetReg() const
 	{
 		return m_destReg;
 	}
