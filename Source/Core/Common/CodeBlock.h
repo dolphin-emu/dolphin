@@ -51,7 +51,7 @@ public:
 		region_size = 0;
 	}
 
-	bool IsInSpace(u8 *ptr)
+	bool IsInSpace(u8 *ptr) const
 	{
 		return (ptr >= region) && (ptr < (region + region_size));
 	}
