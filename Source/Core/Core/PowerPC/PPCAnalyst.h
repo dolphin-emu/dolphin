@@ -79,19 +79,23 @@ struct BlockRegStats
 	bool any;
 	bool anyTimer;
 
-	int GetTotalNumAccesses(int reg) {return numReads[reg] + numWrites[reg];}
-	int GetUseRange(int reg)
+	int GetTotalNumAccesses(int reg) const
 	{
-		return std::max(lastRead[reg], lastWrite[reg]) -
-			   std::min(firstRead[reg], firstWrite[reg]);
+		return numReads[reg] + numWrites[reg];
 	}
 
-	bool IsUsed(int reg)
+	int GetUseRange(int reg) const
+	{
+		return std::max(lastRead[reg], lastWrite[reg]) -
+		       std::min(firstRead[reg], firstWrite[reg]);
+	}
+
+	bool IsUsed(int reg) const
 	{
 		return (numReads[reg] + numWrites[reg]) > 0;
 	}
 
-	inline void SetInputRegister(int reg, short opindex)
+	void SetInputRegister(int reg, short opindex)
 	{
 		if (firstRead[reg] == -1)
 			firstRead[reg] = opindex;
@@ -99,7 +103,7 @@ struct BlockRegStats
 		numReads[reg]++;
 	}
 
-	inline void SetOutputRegister(int reg, short opindex)
+	void SetOutputRegister(int reg, short opindex)
 	{
 		if (firstWrite[reg] == -1)
 			firstWrite[reg] = opindex;
@@ -107,7 +111,7 @@ struct BlockRegStats
 		numWrites[reg]++;
 	}
 
-	inline void Clear()
+	void Clear()
 	{
 		for (int i = 0; i < 32; ++i)
 		{
@@ -122,7 +126,6 @@ struct BlockRegStats
 
 class CodeBuffer
 {
-	int size_;
 public:
 	CodeBuffer(int size);
 	~CodeBuffer();
@@ -131,7 +134,8 @@ public:
 
 	PPCAnalyst::CodeOp *codebuffer;
 
-
+private:
+	int size_;
 };
 
 struct CodeBlock
@@ -225,7 +229,7 @@ public:
 	// Option setting/getting
 	void SetOption(AnalystOption option) { m_options |= option; }
 	void ClearOption(AnalystOption option) { m_options &= ~(option); }
-	bool HasOption(AnalystOption option) { return !!(m_options & option); }
+	bool HasOption(AnalystOption option) const { return !!(m_options & option); }
 
 	u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
 };
