@@ -257,6 +257,12 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bSetEXIDevice[1] = true;
 	}
 
+	// Some NTSC Wii games such as Doc Louis's Punch-Out!! and 1942 (Virtual Console) crash if the PAL60 option is enabled
+	if (StartUp.bWii && StartUp.bNTSC)
+	{
+		StartUp.bPAL60 = false;
+	}
+
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
 
