@@ -22,8 +22,8 @@ private:
 	void LoadGUIValues();
 	void RefreshGUI();
 
+	void OnVideoModeChanged(wxCommandEvent&);
 	void OnScreenSaverCheckBoxChanged(wxCommandEvent&);
-	void OnPAL60CheckBoxChanged(wxCommandEvent&);
 	void OnSDCardCheckBoxChanged(wxCommandEvent&);
 	void OnConnectKeyboardCheckBoxChanged(wxCommandEvent&);
 	void OnSystemLanguageChoiceChanged(wxCommandEvent&);
@@ -31,11 +31,12 @@ private:
 
 	static u8 GetSADRCountryCode(DiscIO::IVolume::ELanguage language);
 
+	wxArrayString m_video_mode_strings;
 	wxArrayString m_system_language_strings;
 	wxArrayString m_aspect_ratio_strings;
 
+	wxRadioBox* m_video_mode_radiobox;
 	wxCheckBox* m_screensaver_checkbox;
-	wxCheckBox* m_pal60_mode_checkbox;
 	wxCheckBox* m_sd_card_checkbox;
 	wxCheckBox* m_connect_keyboard_checkbox;
 	wxChoice* m_system_language_choice;
