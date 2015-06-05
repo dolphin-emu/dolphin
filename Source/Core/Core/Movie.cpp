@@ -63,7 +63,9 @@ static u64 s_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0; // just stats
 static u64 s_recordingStartTime; // seconds since 1970 that recording started
-static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false, s_bProgressive = false, s_bDSPHLE = false, s_bFastDiscSpeed = false;
+static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
+static bool s_bProgressive = false, s_bPAL60 = false;
+static bool s_bDSPHLE = false, s_bFastDiscSpeed = false;
 static bool s_bSyncGPU = false, s_bNetPlay = false;
 static std::string s_videoBackend = "unknown";
 static int s_iCPUCore = 1;
@@ -359,6 +361,11 @@ bool IsDualCore()
 bool IsProgressive()
 {
 	return s_bProgressive;
+}
+
+bool IsPAL60()
+{
+	return s_bPAL60;
 }
 
 bool IsSkipIdle()
@@ -789,6 +796,7 @@ void ReadHeader()
 		s_bSkipIdle = tmpHeader.bSkipIdle;
 		s_bDualCore = tmpHeader.bDualCore;
 		s_bProgressive = tmpHeader.bProgressive;
+		s_bPAL60 = tmpHeader.bPAL60;
 		s_bDSPHLE = tmpHeader.bDSPHLE;
 		s_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		s_iCPUCore = tmpHeader.CPUCore;
@@ -1211,6 +1219,7 @@ void SaveRecording(const std::string& filename)
 	header.bSkipIdle = s_bSkipIdle;
 	header.bDualCore = s_bDualCore;
 	header.bProgressive = s_bProgressive;
+	header.bPAL60 = s_bPAL60;
 	header.bDSPHLE = s_bDSPHLE;
 	header.bFastDiscSpeed = s_bFastDiscSpeed;
 	strncpy((char *)header.videoBackend, s_videoBackend.c_str(),ArraySize(header.videoBackend));
@@ -1290,6 +1299,7 @@ void GetSettings()
 	s_bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
 	s_bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
 	s_bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	s_bPAL60 = SConfig::GetInstance().m_LocalCoreStartupParameter.bPAL60;
 	s_bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 	s_bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
 	s_videoBackend = g_video_backend->GetName();
