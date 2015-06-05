@@ -165,7 +165,7 @@ void FrameUpdate()
 
 	s_bPolled = false;
 
-	if (NetPlay::IsNetPlayRunning() && SConfig::GetInstance().m_NetplayDesyncCheck)
+	if (NetPlay::IsNetPlayRunning())
 		NetPlayClient::SendTimeBase();
 }
 

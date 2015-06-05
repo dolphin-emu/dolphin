@@ -23,8 +23,6 @@
 
 u64 g_netplay_initial_gctime = 1272737767;
 
-static std::map<u32, std::vector<std::pair<u64, u8>>> s_timebase;
-
 NetPlayServer::~NetPlayServer()
 {
 	if (is_connected)
@@ -112,7 +110,7 @@ void NetPlayServer::ThreadFunc()
 	while (m_do_loop)
 	{
 		// update pings every so many seconds
-		if (m_update_pings || (m_ping_timer.GetTimeElapsed() > 1000))
+		if ((m_ping_timer.GetTimeElapsed() > 1000) || m_update_pings)
 		{
 			m_ping_key = Common::Timer::GetTimeMs();
 
@@ -209,7 +207,6 @@ void NetPlayServer::ThreadFunc()
 			break;
 			}
 		}
-		Common::SleepCurrentThread(1);
 	}
 
 	// close listening socket and client sockets
@@ -589,41 +586,44 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 		packet >> x;
 		packet >> y;
 		packet >> frame;
-		s_timebase[frame].emplace_back(x | ((u64)y >> 32), player.pid);
 
-		if (!std::all_of(s_timebase[frame].begin(), s_timebase[frame].end(), [&frame](std::pair<u64, u8> i){ return i.first == s_timebase[frame][0].first; }))
+		if (m_desync_detected)
+			break;
+
+		u64 timebase = x | ((u64)y << 32);
+		std::vector<std::pair<PlayerId, u64>>& timebases = m_timebase_by_frame[frame];
+		timebases.emplace_back(player.pid, timebase);
+		if (timebases.size() >= m_players.size())
 		{
-			sf::Packet spac;
-			spac << (MessageId) NP_MSG_DESYNC_DETECTED;
+			// we have all records for this frame
 
-			int pid = -1;
-			if (s_timebase[frame].size() > 2)
+			if (!std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> pair){ return pair.second == timebases[0].second; }))
 			{
-				for (auto time : s_timebase[frame])
+				int pid_to_blame = -1;
+				if (timebases.size() > 2)
 				{
-					int count = 0;
-					for (auto _time : s_timebase[frame])
+					for (auto pair : timebases)
 					{
-						if (_time.first == time.first)
-							count++;
-					}
-					if ((size_t)count != s_timebase[frame].size() - 1)
-					{
-						if (pid == -1)
+						if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
+							return other.first == pair.first || other.second != pair.second;
+						}))
 						{
-							pid = time.second;
-						}
-						else
-						{
-							pid = -1;
+							// we are the only outlier
+							pid_to_blame = pair.first;
 							break;
 						}
 					}
 				}
+
+				sf::Packet spac;
+				spac << (MessageId) NP_MSG_DESYNC_DETECTED;
+				spac << pid_to_blame;
+				spac << frame;
+				SendToClients(spac);
+
+				m_desync_detected = true;
 			}
-			spac << pid;
-			spac << frame;
-			SendToClients(spac);
+			m_timebase_by_frame.erase(frame);
 		}
 	}
 	break;
@@ -681,7 +681,8 @@ void NetPlayServer::SetNetSettings(const NetSettings &settings)
 // called from ---GUI--- thread
 bool NetPlayServer::StartGame()
 {
-	s_timebase.clear();
+	m_timebase_by_frame.clear();
+	m_desync_detected = false;
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 	m_current_game = Common::Timer::GetTimeMs();
 
