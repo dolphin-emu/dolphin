@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Common/StringUtil.h"
+#include "Core/Host.h"
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
 #ifdef _WIN32
@@ -65,6 +66,19 @@ void Init( std::vector<Core::Device*>& devices )
 				delete js;
 		}
 	}
+}
+
+void UpdateInput()
+{
+	// Using SDL_INIT_JOYSTICK implies SDL_INIT_EVENT which installs a signal handler for SIGINT and SIGTERM.
+	// In the future, we will be able to prevent this from happening:
+	//     SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
+	// but this was added after SDL 2.0.3 and is scheduled to be included in 2.0.4.
+	// Until then, handle SDL_QUIT events here and tell Dolphin to exit.
+	if (SDL_QuitRequested())
+		Host_Message(WM_USER_QUIT);
+
+	SDL_JoystickUpdate();
 }
 
 Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index)
@@ -282,12 +296,6 @@ void Joystick::LeftRightEffect::SetSDLHapticEffect(ControlState state)
 	m_effect.leftright.small_magnitude = (Uint16)(state * 0xFFFF);
 }
 #endif
-
-void Joystick::UpdateInput()
-{
-	// each joystick is doin this, o well
-	SDL_JoystickUpdate();
-}
 
 std::string Joystick::GetName() const
 {
