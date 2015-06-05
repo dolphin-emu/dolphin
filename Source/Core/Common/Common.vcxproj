@@ -40,7 +40,7 @@
     <ClInclude Include="Atomic_Win32.h" />
     <ClInclude Include="BitField.h" />
     <ClInclude Include="BitSet.h" />
-    <ClInclude Include="BlockLoop.h" />
+    <ClInclude Include="BlockingLoop.h" />
     <ClInclude Include="BreakPoints.h" />
     <ClInclude Include="CDUtils.h" />
     <ClInclude Include="ChunkFile.h" />
