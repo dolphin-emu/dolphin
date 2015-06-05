@@ -35,7 +35,7 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+	bool IsInCodeSpace(u8 *ptr) const { return IsInSpace(ptr); }
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
