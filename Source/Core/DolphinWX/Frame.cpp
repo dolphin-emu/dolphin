@@ -778,6 +778,10 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_STOPPED:
 		OnStopped();
 		break;
+
+	case WM_USER_QUIT:
+		Close(true);
+		break;
 	}
 }
 
