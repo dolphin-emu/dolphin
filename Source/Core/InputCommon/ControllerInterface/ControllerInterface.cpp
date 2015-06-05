@@ -134,6 +134,11 @@ void ControllerInterface::Shutdown()
 //
 void ControllerInterface::UpdateInput()
 {
+#ifdef CIFACE_USE_SDL
+	// SDL currently also handles SIGINT and SIGTERM,
+	// so make sure to update it even if there is no SDL device.
+	ciface::SDL::UpdateInput();
+#endif
 	for (ciface::Core::Device* d : m_devices)
 		d->UpdateInput();
 }
