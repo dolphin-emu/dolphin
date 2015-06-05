@@ -302,7 +302,7 @@ void Wiimote::Update()
 void Wiimote::Prepare(int _index)
 {
 	m_index = _index;
-	m_need_prepare = true;
+	m_need_prepare.store(true);
 }
 
 bool Wiimote::PrepareOnThread()
@@ -406,27 +406,27 @@ static unsigned int CalculateWantedBB()
 
 void WiimoteScanner::WantWiimotes(bool do_want)
 {
-	m_want_wiimotes = do_want;
+	m_want_wiimotes.store(do_want);
 }
 
 
 void WiimoteScanner::WantBB(bool do_want)
 {
-	m_want_bb = do_want;
+	m_want_bb.store(do_want);
 }
 
 void WiimoteScanner::StartScanning()
 {
-	if (!m_run_thread)
+	if (!m_run_thread.load())
 	{
-		m_run_thread = true;
+		m_run_thread.store(true);
 		m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
 	}
 }
 
 void WiimoteScanner::StopScanning()
 {
-	m_run_thread = false;
+	m_run_thread.store(false);
 	if (m_scan_thread.joinable())
 	{
 		m_scan_thread.join();
@@ -448,14 +448,14 @@ void WiimoteScanner::ThreadFunc()
 
 	NOTICE_LOG(WIIMOTE, "Wiimote scanning has started.");
 
-	while (m_run_thread)
+	while (m_run_thread.load())
 	{
 		std::vector<Wiimote*> found_wiimotes;
 		Wiimote* found_board = nullptr;
 
 		//NOTICE_LOG(WIIMOTE, "In loop");
 
-		if (m_want_wiimotes || m_want_bb)
+		if (m_want_wiimotes.load() || m_want_bb.load())
 		{
 			FindWiimotes(found_wiimotes, found_board);
 		}
@@ -470,9 +470,10 @@ void WiimoteScanner::ThreadFunc()
 		// TODO: this is a fairly lame place for this
 		CheckForDisconnectedWiimotes();
 
-		if (m_want_wiimotes)
+		if (m_want_wiimotes.load())
 			HandleFoundWiimotes(found_wiimotes);
-		if (m_want_bb && found_board)
+
+		if (m_want_bb.load() && found_board)
 			TryToConnectBalanceBoard(found_board);
 
 		//std::this_thread::yield();
@@ -484,7 +485,7 @@ void WiimoteScanner::ThreadFunc()
 
 bool Wiimote::Connect()
 {
-	m_thread_ready = false;
+	m_thread_ready.store(false);
 	StartThread();
 	WaitReady();
 	return IsConnected();
@@ -492,13 +493,13 @@ bool Wiimote::Connect()
 
 void Wiimote::StartThread()
 {
-	m_run_thread = true;
+	m_run_thread.store(true);
 	m_wiimote_thread = std::thread(&Wiimote::ThreadFunc, this);
 }
 
 void Wiimote::StopThread()
 {
-	m_run_thread = false;
+	m_run_thread.store(false);
 	IOWakeup();
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
@@ -506,12 +507,9 @@ void Wiimote::StopThread()
 
 void Wiimote::SetReady()
 {
-	if (!m_thread_ready)
+	if (!m_thread_ready.load())
 	{
-		{
-			std::lock_guard<std::mutex> Guard(m_thread_ready_mutex);
-			m_thread_ready = true;
-		}
+		m_thread_ready.store(true);
 		m_thread_ready_cond.notify_all();
 	}
 }
@@ -519,7 +517,7 @@ void Wiimote::SetReady()
 void Wiimote::WaitReady()
 {
 	std::unique_lock<std::mutex> lock(m_thread_ready_mutex);
-	while (!m_thread_ready)
+	while (!m_thread_ready.load())
 	{
 		m_thread_ready_cond.wait(lock);
 	}
@@ -546,11 +544,11 @@ void Wiimote::ThreadFunc()
 	}
 
 	// main loop
-	while (IsConnected() && m_run_thread)
+	while (IsConnected() && m_run_thread.load())
 	{
-		if (m_need_prepare)
+		if (m_need_prepare.load())
 		{
-			m_need_prepare = false;
+			m_need_prepare.store(false);
 			if (!PrepareOnThread())
 			{
 				ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.", m_index + 1);
