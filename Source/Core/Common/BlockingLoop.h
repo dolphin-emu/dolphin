@@ -17,7 +17,7 @@ namespace Common
 // This class provides a synchronized loop.
 // It's a thread-safe way to trigger a new iteration without busy loops.
 // It's optimized for high-usage iterations which usually are already running while it's triggered often.
-// Be careful on using Wait() and Wakeup() at the same time. Wait() may block forever while Wakeup() is called regulary.
+// Be careful when using Wait() and Wakeup() at the same time. Wait() may block forever while Wakeup() is called regularly.
 class BlockingLoop
 {
 public:
@@ -75,7 +75,7 @@ public:
 
 	// Half start the worker.
 	// So this object is in a running state and Wait() will block until the worker calls Run().
-	// This may be called from any thread and is supposed to call at least once before Wait() is used.
+	// This may be called from any thread and is supposed to be called at least once before Wait() is used.
 	void Prepare()
 	{
 		// There is a race condition if the other threads call this function while
@@ -89,9 +89,9 @@ public:
 		m_may_sleep.Set();
 	}
 
-	// Mainloop of this object.
+	// Main loop of this object.
 	// The payload callback is called at least as often as it's needed to match the Wakeup() requirements.
-	// The optional timeout parameters is a timeout how periodicly the payload should be called.
+	// The optional timeout parameter is a timeout for how periodically the payload should be called.
 	// Use timeout = 0 to run without a timeout at all.
 	template<class F> void Run(F payload, int64_t timeout = 0)
 	{
@@ -113,10 +113,10 @@ public:
 					break;
 
 				case STATE_LAST_EXECUTION:
-					// If we're still in the STATE_LAST_EXECUTION state, than Wakeup wasn't called within the last
-					// execution of payload. This means we should be ready now.
-					// But bad luck, Wakeup might have be called right now. So break and rerun the payload
-					// if the state was touched right now.
+					// If we're still in the STATE_LAST_EXECUTION state, then Wakeup wasn't called within the last
+					// execution of the payload. This means we should be ready now.
+					// But bad luck, Wakeup may have been called right now. So break and rerun the payload
+					// if the state was touched.
 					if (m_running_state-- != STATE_LAST_EXECUTION)
 						break;
 
@@ -161,8 +161,8 @@ public:
 		m_done_event.Set();
 	}
 
-	// Quits the mainloop.
-	// By default, it will wait until the Mainloop quits.
+	// Quits the main loop.
+	// By default, it will wait until the main loop quits.
 	// Be careful to not use the blocking way within the payload of the Run() method.
 	void Stop(bool block = true)
 	{
@@ -183,8 +183,8 @@ public:
 		return !m_stopped.IsSet() && !m_shutdown.IsSet();
 	}
 
-	// This functions should be triggered by regulary by time. So we will fall back from
-	// the busy loop to the sleeping way.
+	// This function should be triggered regularly over time so
+	// that we will fall back from the busy loop to sleeping.
 	void AllowSleep()
 	{
 		m_may_sleep.Set();
@@ -194,8 +194,8 @@ private:
 	std::mutex m_wait_lock;
 	std::mutex m_prepare_lock;
 
-	Flag m_stopped;  // This one is set, Wait() shall not block.
-	Flag m_shutdown; // If this one is set, the loop shall be quit.
+	Flag m_stopped;  // If this is set, Wait() shall not block.
+	Flag m_shutdown; // If this is set, the loop shall end.
 
 	Event m_new_work_event;
 	Event m_done_event;
@@ -208,7 +208,7 @@ private:
 	};
 	std::atomic<int> m_running_state; // must be of type RUNNING_TYPE
 
-	Flag m_may_sleep; // If this one is set, we fall back from the busy loop to an event based synchronization.
+	Flag m_may_sleep; // If this is set, we fall back from the busy loop to an event based synchronization.
 };
 
 }
