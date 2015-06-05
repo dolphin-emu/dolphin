@@ -229,6 +229,7 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bSkipIdle = Movie::IsSkipIdle();
 		StartUp.bDSPHLE = Movie::IsDSPHLE();
 		StartUp.bProgressive = Movie::IsProgressive();
+		StartUp.bPAL60 = Movie::IsPAL60();
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
 		StartUp.bSyncGPU = Movie::IsSyncGPU();
