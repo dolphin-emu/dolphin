@@ -196,6 +196,12 @@ bool BootCore(const std::string& _rFilename)
 		// Wii settings
 		if (StartUp.bWii)
 		{
+			// Some NTSC Wii games such as Doc Louis's Punch-Out!! and 1942 (Virtual Console) crash if the PAL60 option is enabled
+			if (StartUp.bNTSC)
+			{
+				StartUp.bPAL60 = false;
+			}
+			
 			// Flush possible changes to SYSCONF to file
 			SConfig::GetInstance().m_SYSCONF->Save();
 
