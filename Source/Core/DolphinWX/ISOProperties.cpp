@@ -343,6 +343,8 @@ void CISOProperties::CreateGUIControls()
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "FastDiscSpeed"));
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access. This can cause crashes and other problems in some games. (ON = Fast, OFF = Compatible)"));
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
+	ProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Progressive Scan"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "ProgressiveScan"));
+	PAL60 = new wxCheckBox(m_GameConfig, ID_ENABLEPAL60, _("PAL60"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "PAL60"));
 
 	wxBoxSizer* const sGPUDeterminism = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const GPUDeterminismText = new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core: "));
@@ -398,6 +400,8 @@ void CISOProperties::CreateGUIControls()
 	sbCoreOverrides->Add(SyncGPU, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(ProgressiveScan, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(PAL60, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND|wxALL, 5);
 
 	wxStaticBoxSizer * const sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
@@ -1028,6 +1032,8 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "SyncGPU", SyncGPU);
 	SetCheckboxValueFromGameini("Core", "FastDiscSpeed", FastDiscSpeed);
 	SetCheckboxValueFromGameini("Core", "DSPHLE", DSPHLE);
+	SetCheckboxValueFromGameini("Core", "ProgressiveScan", ProgressiveScan);
+	SetCheckboxValueFromGameini("Core", "PAL60", PAL60);
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
 	SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
@@ -1122,6 +1128,8 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "SyncGPU", SyncGPU);
 	SaveGameIniValueFrom3StateCheckbox("Core", "FastDiscSpeed", FastDiscSpeed);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
+	SaveGameIniValueFrom3StateCheckbox("Core", "ProgressiveScan", ProgressiveScan);
+	SaveGameIniValueFrom3StateCheckbox("Core", "PAL60", PAL60);
 	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
 	SaveGameIniValueFrom3StateCheckbox("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
