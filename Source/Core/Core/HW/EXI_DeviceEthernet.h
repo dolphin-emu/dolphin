@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -328,7 +330,7 @@ public:
 #elif defined(__linux__) || defined(__APPLE__)
 	int fd;
 	std::thread readThread;
-	volatile bool readEnabled;
+	std::atomic<bool> readEnabled;
 #endif
 
 };
