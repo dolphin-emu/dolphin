@@ -9,6 +9,7 @@
 #include <queue>
 #include <sstream>
 #include <thread>
+#include <unordered_map>
 #include <unordered_set>
 #include <SFML/Network/Packet.hpp>
 #include "Common/Timer.h"
@@ -98,6 +99,9 @@ private:
 	PadMapping      m_wiimote_map[4];
 
 	std::map<PlayerId, Client> m_players;
+
+	std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
+	bool m_desync_detected;
 
 	struct
 	{

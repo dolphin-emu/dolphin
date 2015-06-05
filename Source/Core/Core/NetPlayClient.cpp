@@ -374,7 +374,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	case NP_MSG_START_GAME:
 	{
 		{
-			SConfig::GetInstance().m_NetplayDesyncCheck = true;
 			std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 			packet >> m_current_game;
 			packet >> g_NetPlaySettings.m_CPUthread;
@@ -445,19 +444,21 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_DESYNC_DETECTED:
 	{
-		if (!SConfig::GetInstance().m_NetplayDesyncCheck)
-			break;
-
-		int id;
+		int pid_to_blame;
 		u32 frame;
-		packet >> id;
+		packet >> pid_to_blame;
 		packet >> frame;
-		std::string sID = "";
-		if (id != -1)
-			sID = StringFromFormat(" from player ID %d", id);
+		const char* blame_str = "";
+		const char* blame_name = "";
+		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+		if (pid_to_blame != -1)
+		{
+			auto it = m_players.find(pid_to_blame);
+			blame_str = " from player ";
+			blame_name = it != m_players.end() ? it->second.name.c_str() : "??";
+		}
 
-		m_dialog->AppendChat("Possible desync detected" + sID + StringFromFormat(" on frame: %u", frame));
-		SConfig::GetInstance().m_NetplayDesyncCheck = false;
+		m_dialog->AppendChat(StringFromFormat("/!\\ Possible desync detected%s%s on frame %u", blame_str, blame_name, frame));
 	}
 	break;
 
