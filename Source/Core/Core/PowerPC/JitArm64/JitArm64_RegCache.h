@@ -46,16 +46,16 @@ public:
 	{
 	}
 
-	RegType GetType()
+	RegType GetType() const
 	{
 		return m_type;
 	}
 
-	ARM64Reg GetReg()
+	ARM64Reg GetReg() const
 	{
 		return m_reg;
 	}
-	u32 GetImm()
+	u32 GetImm() const
 	{
 		return m_value;
 	}
@@ -81,12 +81,12 @@ public:
 		m_last_used = 0xFFFF;
 	}
 
-	u32 GetLastUsed() { return m_last_used; }
+	u32 GetLastUsed() const { return m_last_used; }
 	void ResetLastUsed() { m_last_used = 0; }
 	void IncrementLastUsed() { ++m_last_used; }
 
 	void SetDirty(bool dirty) { m_dirty = dirty; }
-	bool IsDirty() { return m_dirty; }
+	bool IsDirty() const { return m_dirty; }
 
 private:
 	// For REG_REG
@@ -106,10 +106,10 @@ class HostReg
 public:
 	HostReg() : m_reg(INVALID_REG), m_locked(false) {}
 	HostReg(ARM64Reg reg) : m_reg(reg), m_locked(false) {}
-	bool IsLocked() { return m_locked; }
+	bool IsLocked() const { return m_locked; }
 	void Lock() { m_locked = true; }
 	void Unlock() { m_locked = false; }
-	ARM64Reg GetReg() { return m_reg; }
+	ARM64Reg GetReg() const { return m_reg; }
 
 	bool operator==(const ARM64Reg& reg)
 	{
@@ -233,10 +233,10 @@ public:
 	void SetImmediate(u32 preg, u32 imm);
 
 	// Returns if a register is set as an immediate
-	bool IsImm(u32 reg) { return m_guest_registers[reg].GetType() == REG_IMM; }
+	bool IsImm(u32 reg) const { return m_guest_registers[reg].GetType() == REG_IMM; }
 
 	// Gets the immediate that a register is set to
-	u32 GetImm(u32 reg) { return m_guest_registers[reg].GetImm(); }
+	u32 GetImm(u32 reg) const { return m_guest_registers[reg].GetImm(); }
 
 	void BindToRegister(u32 preg, bool do_load);
 
