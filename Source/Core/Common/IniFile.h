@@ -53,8 +53,8 @@ public:
       Set(key, StringFromFormat("%#.17g", newValue));
     }
 
-    void Set(const std::string& key, int newValue) { Set(key, StringFromInt(newValue)); }
-    void Set(const std::string& key, bool newValue) { Set(key, StringFromBool(newValue)); }
+    void Set(const std::string& key, int newValue) { Set(key, ToString(newValue)); }
+    void Set(const std::string& key, bool newValue) { Set(key, ToString(newValue)); }
     template <typename T>
     void Set(const std::string& key, T newValue, const T defaultValue)
     {
