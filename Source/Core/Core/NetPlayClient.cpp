@@ -663,6 +663,8 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	m_dialog->AppendChat(" -- STARTING GAME -- ");
 
+	m_timebase_frame = 0;
+
 	m_is_running.store(true);
 	NetPlay_Enable(this);
 
@@ -1074,7 +1076,7 @@ void NetPlayClient::SendTimeBase()
 	*spac << (MessageId)NP_MSG_TIMEBASE;
 	*spac << (u32)timebase;
 	*spac << (u32)(timebase << 32);
-	*spac << (u32)Movie::g_currentFrame;
+	*spac << netplay_client->m_timebase_frame++;
 	netplay_client->SendAsync(spac);
 }
 

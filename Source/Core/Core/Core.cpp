@@ -31,6 +31,7 @@
 #include "Core/Host.h"
 #include "Core/MemTools.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PatchEngine.h"
 #include "Core/State.h"
@@ -154,6 +155,12 @@ void SetIsFramelimiterTempDisabled(bool disable)
 
 std::string GetStateFileName() { return s_state_filename; }
 void SetStateFileName(const std::string& val) { s_state_filename = val; }
+
+void FrameUpdateOnCPUThread()
+{
+	if (NetPlay::IsNetPlayRunning())
+		NetPlayClient::SendTimeBase();
+}
 
 // Display messages and return values
 
