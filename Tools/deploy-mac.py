@@ -108,16 +108,19 @@ def updateMachO(bin, execPath, root):
 			qtPath = findQtPath(oldPath)
 			if verbose:
 				print('Found Qt path at {}.'.format(qtPath))
+	args = [installNameTool]
 	for path, oldExecPath, newExecPath in toUpdate:
 		if path != bin:
 			updateMachO(path, execPath, root)
 			if verbose:
 				print('Updating Mach-O load from {} to {}...'.format(oldExecPath, newExecPath))
-			subprocess.check_call([installNameTool, '-change', oldExecPath, newExecPath, bin])
+			args.extend(['-change', oldExecPath, newExecPath])
 		else:
 			if verbose:
 				print('Updating Mach-O id from {} to {}...'.format(oldExecPath, newExecPath))
-			subprocess.check_call([installNameTool, '-id', newExecPath, bin])
+			args.extend(['-id', newExecPath])
+	args.append(bin)
+	subprocess.check_call(args)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
