@@ -274,7 +274,7 @@ void Stop()  // - Hammertime!
 		s_emu_thread.join();
 }
 
-static void DeclareAsCPUThread()
+void DeclareAsCPUThread()
 {
 #ifdef ThreadLocalStorage
 	tls_is_cpu_thread = true;
@@ -286,7 +286,7 @@ static void DeclareAsCPUThread()
 #endif
 }
 
-static void UndeclareAsCPUThread()
+void UndeclareAsCPUThread()
 {
 #ifdef ThreadLocalStorage
 	tls_is_cpu_thread = false;
@@ -694,6 +694,7 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 
 	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
 	g_video_backend->PauseAndLock(doLock, unpauseOnUnlock);
+
 	return wasUnpaused;
 }
 
