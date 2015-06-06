@@ -312,7 +312,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
           {
           case IOCTLV_NET_SSL_DOHANDSHAKE:
           {
-            int ret = mbedtls_ssl_handshake(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx);
+            mbedtls_ssl_context* ctx = &CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx;
+            int ret = mbedtls_ssl_handshake(ctx);
             switch (ret)
             {
             case 0:
@@ -328,6 +329,25 @@ void WiiSocket::Update(bool read, bool write, bool except)
               if (!nonBlock)
                 ReturnValue = SSL_ERR_WAGAIN;
               break;
+            case MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:
+            {
+              int flags = ctx->session_negotiate->verify_result;
+              if (flags & MBEDTLS_X509_BADCERT_CN_MISMATCH)
+                ret = SSL_ERR_VCOMMONNAME;
+              else if (flags & MBEDTLS_X509_BADCERT_NOT_TRUSTED)
+                ret = SSL_ERR_VROOTCA;
+              else if (flags & MBEDTLS_X509_BADCERT_REVOKED)
+                ret = SSL_ERR_VCHAIN;
+              else if (flags & MBEDTLS_X509_BADCERT_EXPIRED ||
+                       flags & MBEDTLS_X509_BADCERT_FUTURE)
+                ret = SSL_ERR_VDATE;
+              else
+                ret = SSL_ERR_FAILED;
+              Memory::Write_U32(ret, BufferIn);
+              if (!nonBlock)
+                ReturnValue = ret;
+              break;
+            }
             default:
               Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
               break;
