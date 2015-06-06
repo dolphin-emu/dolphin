@@ -39,6 +39,7 @@ enum EState
 
 bool Init();
 void Stop();
+void Shutdown();
 void KillDolphinAndRestart();
 
 std::string StopMessage(bool, const std::string&);
