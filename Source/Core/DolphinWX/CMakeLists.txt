@@ -158,7 +158,7 @@ elseif(wxWidgets_FOUND)
 				message(\"(Note: This is only necessary to produce a redistributable binary.\")
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
-				fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
+				execute_process(COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py \"${BUNDLE_PATH}\")
 				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
 					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
 					)
