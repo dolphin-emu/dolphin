@@ -15,8 +15,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-06 01:32+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2015-06-05 11:43+0000\n"
+"Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ca/)\n"
 "Language: ca\n"
@@ -364,7 +364,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:381
 msgid "&Website"
-msgstr ""
+msgstr "&Pàgina web"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:842
 msgid "&Wiki"
@@ -462,7 +462,7 @@ msgstr "<Prem alguna tecla>"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:72
 msgid "<System Language>"
-msgstr "<System Language>"
+msgstr "<Idioma del sistema>"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:292
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:348
@@ -611,12 +611,12 @@ msgstr "Action Replay: Codi Normal 0: Subtipus no vàlid %08x (%s)"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:181
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:203
 msgid "Adapter Detected"
-msgstr ""
+msgstr "Adaptador detectat"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:205
 msgid "Adapter Not Detected"
-msgstr ""
+msgstr "Adaptador no detectat"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:263
 msgid "Adapter:"
@@ -661,7 +661,7 @@ msgstr "Tots els arxius GC/Wii  (elf, dol, gcm, iso, ciso, GCZ, wad)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 msgid "All GameCube GCM files (gcm)"
-msgstr ""
+msgstr "Tots els fitxers GameCube GCM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1616
 #: Source/Core/DolphinWX/FrameTools.cpp:1630
@@ -694,7 +694,7 @@ msgstr "Anti-Aliasing:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:481
 msgid "Apploader Date:"
-msgstr ""
+msgstr "Data Apploader:"
 
 #: Source/Core/DiscIO/VolumeDirectory.cpp:300
 msgid "Apploader is the wrong size...is it really an apploader?"
@@ -6143,7 +6143,7 @@ msgstr "Wiimote %i"
 #: Source/Core/DolphinWX/FrameTools.cpp:1577
 #, c-format
 msgid "Wiimote %i %s"
-msgstr ""
+msgstr "Wiimote %i %s"
 
 #: Source/Core/DolphinWX/Main.cpp:510
 msgid "Wiimote Connected"

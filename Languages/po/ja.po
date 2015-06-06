@@ -14,8 +14,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-06 01:32+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2015-06-05 05:21+0000\n"
+"Last-Translator: DanbSky <smariojp@gmail.com>\n"
 "Language-Team: Japanese (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -624,12 +624,12 @@ msgstr "Action Replay: 通常コード 0: 不正なサブタイプ %08x (%s)"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:181
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:203
 msgid "Adapter Detected"
-msgstr ""
+msgstr "タップが接続されています"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:205
 msgid "Adapter Not Detected"
-msgstr ""
+msgstr "タップは未接続です"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:263
 msgid "Adapter:"
@@ -707,7 +707,7 @@ msgstr "アンチエイリアス："
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:481
 msgid "Apploader Date:"
-msgstr ""
+msgstr "Apploaderの日付"
 
 #: Source/Core/DiscIO/VolumeDirectory.cpp:300
 msgid "Apploader is the wrong size...is it really an apploader?"
@@ -1613,12 +1613,12 @@ msgstr ""
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:214
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Decrease Frame limit"
-msgstr "フレームリミットを下げる"
+msgstr "フレームリミット "
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:207
 #: Source/Core/Core/HotkeyManager.cpp:42
 msgid "Decrease IR"
-msgstr ""
+msgstr "内部解像度 縮小"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1004
 msgid "Default"
@@ -2770,52 +2770,52 @@ msgstr "フリールック"
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:217
 #: Source/Core/Core/HotkeyManager.cpp:52
 msgid "Freelook Decrease Speed"
-msgstr ""
+msgstr "フリールック 速度増加"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:218
 #: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Freelook Increase Speed"
-msgstr ""
+msgstr "フリールック 速度減少"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:221
 #: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Freelook Move Down"
-msgstr ""
+msgstr "フリールック 下へ"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:222
 #: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Freelook Move Left"
-msgstr ""
+msgstr "フリールック 左へ"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:223
 #: Source/Core/Core/HotkeyManager.cpp:58
 msgid "Freelook Move Right"
-msgstr ""
+msgstr "フリールック 右へ"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:220
 #: Source/Core/Core/HotkeyManager.cpp:55
 msgid "Freelook Move Up"
-msgstr ""
+msgstr "フリールック 上へ"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:226
 #: Source/Core/Core/HotkeyManager.cpp:61
 msgid "Freelook Reset"
-msgstr ""
+msgstr "フリールック リセット"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:219
 #: Source/Core/Core/HotkeyManager.cpp:54
 msgid "Freelook Reset Speed"
-msgstr ""
+msgstr "フリールック 速度リセット"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:224
 #: Source/Core/Core/HotkeyManager.cpp:59
 msgid "Freelook Zoom In"
-msgstr ""
+msgstr "フリールック  ズームイン"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:225
 #: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Freelook Zoom Out"
-msgstr ""
+msgstr "フリールック ズームアウト"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:49
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:34
@@ -3237,7 +3237,7 @@ msgstr "フレームリミットを上げる"
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:206
 #: Source/Core/Core/HotkeyManager.cpp:41
 msgid "Increase IR"
-msgstr ""
+msgstr "内部解像度 拡大"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:326
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:45
@@ -4474,7 +4474,7 @@ msgstr "範囲／強さ"
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:190
 #: Source/Core/Core/HotkeyManager.cpp:25
 msgid "Read-only mode"
-msgstr "読み込み専用 有効／無効"
+msgstr "読み込み専用 切替"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:508
 msgid "Real"
@@ -4509,7 +4509,7 @@ msgstr "録画情報"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:183
 msgid "Recording Options"
-msgstr "録画オプション"
+msgstr "録画設定"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:25
 msgid "Red"
@@ -5437,7 +5437,7 @@ msgstr "入力の記録を開始(&C)"
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:187
 #: Source/Core/Core/HotkeyManager.cpp:22
 msgid "Start Recording"
-msgstr "録画を開始"
+msgstr "入力の記録を開始"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:275
 #: Source/Core/DolphinWX/FrameTools.cpp:365
@@ -5856,7 +5856,7 @@ msgstr "フォグ処理 設定切替"
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:213
 #: Source/Core/Core/HotkeyManager.cpp:48
 msgid "Toggle Frame limit"
-msgstr ""
+msgstr "フレームリミット 切替"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:192
 #: Source/Core/DolphinWX/FrameTools.cpp:562
@@ -5871,7 +5871,7 @@ msgstr "内部解像度 設定切替"
 
 #: Source/Core/Core/HotkeyManager.cpp:17
 msgid "Toggle Pause"
-msgstr ""
+msgstr "一時停止 切替"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
 msgid "Top"
@@ -6113,7 +6113,7 @@ msgstr "音量を下げる"
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:204
 #: Source/Core/Core/HotkeyManager.cpp:39
 msgid "Volume Toggle Mute"
-msgstr "無音 切り替え"
+msgstr "無音 切替"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:203
 #: Source/Core/Core/HotkeyManager.cpp:38
