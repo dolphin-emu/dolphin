@@ -391,19 +391,19 @@ bool IniFile::Save(const std::string& filename)
 	for (const Section& section : sections)
 	{
 		if (section.keys_order.size() != 0 || section.lines.size() != 0)
-			out << "[" << section.name << "]" << std::endl;
+			out << "[" << section.name << "]" << "\n";
 
 		if (section.keys_order.size() == 0)
 		{
 			for (const std::string& s : section.lines)
-				out << s << std::endl;
+				out << s << "\n";
 		}
 		else
 		{
 			for (const std::string& kvit : section.keys_order)
 			{
 				auto pair = section.values.find(kvit);
-				out << pair->first << " = " << pair->second << std::endl;
+				out << pair->first << " = " << pair->second << "\n";
 			}
 		}
 	}
