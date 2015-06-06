@@ -532,8 +532,8 @@ void ChangeDisc(const std::string& newFileName)
 		auto sizeofpath = fileName.find_last_of("/\\") + 1;
 		if (fileName.substr(sizeofpath).length() > 40)
 		{
-			PanicAlertT("The disc change to \"newFileName\" could not be saved in the .dtm.\n"
-			            "The filename of the disc image must not be longer than 40 characters.");
+			PanicAlertT("The disc change to \"%s\" could not be saved in the .dtm file.\n"
+			            "The filename of the disc image must not be longer than 40 characters.", newFileName.c_str());
 		}
 		Movie::g_discChange = fileName.substr(sizeofpath);
 	}
