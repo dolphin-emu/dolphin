@@ -137,7 +137,9 @@ bool BootCore(const std::string& _rFilename)
 		else
 			core_section_vr->Get("SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		// Needed for Opcode Replay.  Some games need it true, some need it false.
-		if (g_has_hmd)
+		if (!g_has_hmd)
+			core_section->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
+		else
 			core_section_vr->Get("SyncOnSkipIdle",   &StartUp.bSyncGPUOnSkipIdleHack, StartUp.bSyncGPUOnSkipIdleHack);
 		core_section->Get("FPRF",             &StartUp.bFPRF, StartUp.bFPRF);
 		core_section->Get("MMU",              &StartUp.bMMU, StartUp.bMMU);
