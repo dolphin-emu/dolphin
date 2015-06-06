@@ -176,7 +176,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			ssl_set_session(&ssl->ctx, &ssl->session);
 
 			ssl_set_endpoint(&ssl->ctx, SSL_IS_CLIENT);
-			ssl_set_authmode(&ssl->ctx, SSL_VERIFY_NONE);
+			ssl_set_authmode(&ssl->ctx, SSL_VERIFY_REQUIRED);
 			ssl_set_renegotiation(&ssl->ctx, SSL_RENEGOTIATION_ENABLED);
 
 			ssl->hostname = hostname;
