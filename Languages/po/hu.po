@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-04 21:33+0000\n"
+"POT-Creation-Date: 2015-06-06 01:32+0000\n"
 "PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/dolphin-emu/"
@@ -2786,11 +2786,11 @@ msgstr ""
 msgid "Game ID:"
 msgstr "Játék azonosító:"
 
-#: Source/Core/Core/NetPlayClient.cpp:641
+#: Source/Core/Core/NetPlayClient.cpp:640
 msgid "Game is already running!"
 msgstr "A játék már fut!"
 
-#: Source/Core/Core/NetPlayClient.cpp:949
+#: Source/Core/Core/NetPlayClient.cpp:946
 msgid "Game isn't running!"
 msgstr "A játék nem fut!"
 
@@ -3240,7 +3240,7 @@ msgstr "Érvénytelen esemény fajta %i"
 msgid "Invalid file"
 msgstr "Érvénytelen fájl"
 
-#: Source/Core/Core/NetPlayClient.cpp:766
+#: Source/Core/Core/NetPlayClient.cpp:765
 msgid "Invalid host"
 msgstr ""
 
@@ -3610,7 +3610,7 @@ msgstr "Napló kimenetek"
 msgid "Logging"
 msgstr "Naplózás"
 
-#: Source/Core/Core/NetPlayClient.cpp:529
+#: Source/Core/Core/NetPlayClient.cpp:528
 msgid "Lost connection to server!"
 msgstr "Kapcsolat elveszett a szerverrel!"
 
@@ -3918,7 +3918,7 @@ msgstr "Natív GCI fájlok (*.gci)"
 msgid "Netherlands"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:932
+#: Source/Core/Core/NetPlayClient.cpp:931
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 
@@ -4867,7 +4867,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:763
+#: Source/Core/Core/NetPlayClient.cpp:762
 msgid "Server rejected traversal attempt"
 msgstr ""
 
@@ -5703,7 +5703,7 @@ msgstr "Hagyományos kínai"
 msgid "Traversal"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:760
+#: Source/Core/Core/NetPlayClient.cpp:759
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
@@ -5718,7 +5718,7 @@ msgstr ""
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:438
+#: Source/Core/Core/Boot/Boot.cpp:442
 msgid "Tried to load an unknown file type."
 msgstr "Próbálkozás egy ismeretlen fájltípus betöltésével. "
 
@@ -5812,7 +5812,7 @@ msgstr "Ismeretlen DVD parancs: %08x - végzetes hiba"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Ismeretlen bejegyzés típus %i a SYSCONF fájlban (%s@%x)!"
 
-#: Source/Core/Core/NetPlayClient.cpp:769
+#: Source/Core/Core/NetPlayClient.cpp:768
 #, c-format
 msgid "Unknown error %x"
 msgstr ""
@@ -5822,7 +5822,7 @@ msgstr ""
 msgid "Unknown memory card error"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:447
+#: Source/Core/Core/NetPlayClient.cpp:446
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Ismeretlen üzenet érkezett ezzel az azonosítóval : %d"
@@ -5961,11 +5961,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Figyelem"
 
-#: Source/Core/Core/Boot/Boot.cpp:308
+#: Source/Core/Core/Boot/Boot.cpp:312
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Figyelem - DOL indítása nem megfelelő konzol módban!"
 
-#: Source/Core/Core/Boot/Boot.cpp:244
+#: Source/Core/Core/Boot/Boot.cpp:248
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Figyelem - ISO indítása nem megfelelő konzol módban!"
 
