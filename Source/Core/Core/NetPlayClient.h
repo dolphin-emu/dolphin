@@ -143,6 +143,8 @@ private:
 	std::string m_player_name;
 	bool m_connecting;
 	TraversalClient* m_traversal_client;
+
+	u32 m_timebase_frame;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

@@ -140,6 +140,8 @@ std::string GetInputDisplay()
 
 void FrameUpdate()
 {
+	// TODO[comex]: This runs on the GPU thread, yet it messes with the CPU
+	// state directly.  That's super sketchy.
 	g_currentFrame++;
 	if (!s_bPolled)
 		g_currentLagCount++;
@@ -164,9 +166,6 @@ void FrameUpdate()
 		FrameSkipping();
 
 	s_bPolled = false;
-
-	if (NetPlay::IsNetPlayRunning())
-		NetPlayClient::SendTimeBase();
 }
 
 // called when game is booting up, even if no movie is active,
