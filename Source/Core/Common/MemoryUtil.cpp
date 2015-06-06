@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <unistd.h>
 #ifdef __APPLE__
 #include <sys/sysctl.h>
 #else
@@ -32,6 +33,8 @@ void* AllocateExecutableMemory(size_t size, void* map_hint)
 #if defined(_WIN32)
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
+	static uintptr_t page_mask = ~(sysconf(_SC_PAGE_SIZE) - 1);
+	map_hint = (void*)((uintptr_t)map_hint & page_mask);
 	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 	                 MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif /* defined(_WIN32) */
@@ -45,12 +48,6 @@ void* AllocateExecutableMemory(size_t size, void* map_hint)
 		ptr = nullptr;
 		PanicAlert("Failed to allocate executable memory.");
 	}
-
-#ifdef _X86_64
-	ptrdiff_t ofs = (u8*)ptr - (u8*)map_hint;
-	if (ofs < -0x80000000ll || ofs + size > 0x80000000ll)
-		PanicAlert("Executable range can't be used for RIP-relative addressing.");
-#endif
 
 	return ptr;
 }
