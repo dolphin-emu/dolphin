@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"POT-Creation-Date: 2015-06-06 01:32+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ar/)\n"
@@ -2473,9 +2473,8 @@ msgstr "ملف غير مضغوط "
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "فشل تصدير"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -2728,11 +2727,11 @@ msgstr ""
 msgid "Game ID:"
 msgstr "معرف اللعبة:"
 
-#: Source/Core/Core/NetPlayClient.cpp:641
+#: Source/Core/Core/NetPlayClient.cpp:640
 msgid "Game is already running!"
 msgstr "لعبة تستخدم بالفعل!"
 
-#: Source/Core/Core/NetPlayClient.cpp:949
+#: Source/Core/Core/NetPlayClient.cpp:946
 msgid "Game isn't running!"
 msgstr "اللعبة ليست على التوالي!"
 
@@ -3180,7 +3179,7 @@ msgstr "غير صالح نوع الحدث %i"
 msgid "Invalid file"
 msgstr "ملف غير صالح"
 
-#: Source/Core/Core/NetPlayClient.cpp:766
+#: Source/Core/Core/NetPlayClient.cpp:765
 msgid "Invalid host"
 msgstr ""
 
@@ -3542,7 +3541,7 @@ msgstr "مختلفان النواتج"
 msgid "Logging"
 msgstr "تسجيل"
 
-#: Source/Core/Core/NetPlayClient.cpp:529
+#: Source/Core/Core/NetPlayClient.cpp:528
 msgid "Lost connection to server!"
 msgstr "إنقطع الإتصال الملقم!"
 
@@ -3841,7 +3840,7 @@ msgstr "Native GCI files(*.gci)"
 msgid "Netherlands"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:932
+#: Source/Core/Core/NetPlayClient.cpp:931
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 
@@ -4790,7 +4789,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:763
+#: Source/Core/Core/NetPlayClient.cpp:762
 msgid "Server rejected traversal attempt"
 msgstr ""
 
@@ -5611,7 +5610,7 @@ msgstr "الصينية التقليدية"
 msgid "Traversal"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:760
+#: Source/Core/Core/NetPlayClient.cpp:759
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
@@ -5626,7 +5625,7 @@ msgstr ""
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:438
+#: Source/Core/Core/Boot/Boot.cpp:442
 msgid "Tried to load an unknown file type."
 msgstr "حاول تحميل نوع ملف غير معروف."
 
@@ -5718,7 +5717,7 @@ msgstr ""
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:769
+#: Source/Core/Core/NetPlayClient.cpp:768
 #, c-format
 msgid "Unknown error %x"
 msgstr ""
@@ -5728,7 +5727,7 @@ msgstr ""
 msgid "Unknown memory card error"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:447
+#: Source/Core/Core/NetPlayClient.cpp:446
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "تلقى رسالة مجهولة مع معرف : %d"
@@ -5865,11 +5864,11 @@ msgstr ""
 msgid "Warning"
 msgstr "التنبيه"
 
-#: Source/Core/Core/Boot/Boot.cpp:308
+#: Source/Core/Core/Boot/Boot.cpp:312
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:244
+#: Source/Core/Core/Boot/Boot.cpp:248
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "تحذير -- ايزو ابتداء من الخطأ وضع وحدة التحكم!"
 
@@ -6181,9 +6180,3 @@ msgstr "wxExecute returned -1 on application run!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "أو"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "لا يمكن إلغاء تسجيل الأحداث مع الأحداث المعلقة"
-
-#~ msgid "Invalid state"
-#~ msgstr "غير صالح حالة"

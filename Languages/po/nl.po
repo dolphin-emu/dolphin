@@ -8,13 +8,14 @@
 # Marinus Schot <marinus@live.com>, 2013
 # Mourits Pvllen <mauritspullen@gmail.com>, 2014
 # Pierre Bourdon <delroth@gmail.com>, 2014
+# Tijmen <tijmen.wildervanck@gmail.com>, 2015
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:151
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"POT-Creation-Date: 2015-06-06 01:32+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/nl/)\n"
@@ -31,6 +32,11 @@ msgid ""
 "\n"
 "This software should not be used to play games you do not legally own.\n"
 msgstr ""
+"\n"
+"Dolphin is en vrij beschikbare en open-source GameCube en Wii emulator.\n"
+"\n"
+"Gebruik deze software niet om games te spelen die je niet legaal hebt "
+"gekregen.\n"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:527
 msgid " (internal IP)"
@@ -63,11 +69,12 @@ msgstr ""
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgstr ""
+"Het lukte niet om \"%s\" te comprimeren. Waarschijnlijk is de image corrupt."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:153
 #, c-format
 msgid "\"%s\" is already compressed! Cannot compress it further."
-msgstr ""
+msgstr "\"%s\" is al gecomprimeerd! Kan niet nog meer comprimeren."
 
 #: Source/Core/Core/CoreParameter.cpp:178
 #, c-format
@@ -215,11 +222,11 @@ msgstr "&Over..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:231
 msgid "&Audio Settings"
-msgstr ""
+msgstr "&Geluids Instellingen"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:134
 msgid "&Boot from DVD Backup..."
-msgstr ""
+msgstr "&Start van DVD Backup..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:285
 msgid "&Breakpoints"
@@ -323,7 +330,7 @@ msgstr "&Eigenschappen "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:437
 msgid "&Read-Only Mode"
-msgstr ""
+msgstr "&Alleen-Lezen Modus"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:408
 msgid "&Refresh List"
@@ -2542,9 +2549,8 @@ msgstr "Bestand niet gecompressed"
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "Exporteren mislukt"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -2799,11 +2805,11 @@ msgstr ""
 msgid "Game ID:"
 msgstr "Spel ID:"
 
-#: Source/Core/Core/NetPlayClient.cpp:641
+#: Source/Core/Core/NetPlayClient.cpp:640
 msgid "Game is already running!"
 msgstr "Het spel draait al!"
 
-#: Source/Core/Core/NetPlayClient.cpp:949
+#: Source/Core/Core/NetPlayClient.cpp:946
 msgid "Game isn't running!"
 msgstr "Het spel draait niet!"
 
@@ -3257,7 +3263,7 @@ msgstr "Onjuist event type %i"
 msgid "Invalid file"
 msgstr "Onjuist bestand"
 
-#: Source/Core/Core/NetPlayClient.cpp:766
+#: Source/Core/Core/NetPlayClient.cpp:765
 msgid "Invalid host"
 msgstr ""
 
@@ -3624,7 +3630,7 @@ msgstr "Logger Uitvoer"
 msgid "Logging"
 msgstr "Logboek Bijhouden"
 
-#: Source/Core/Core/NetPlayClient.cpp:529
+#: Source/Core/Core/NetPlayClient.cpp:528
 msgid "Lost connection to server!"
 msgstr "Verbinding met de server verloren!"
 
@@ -3933,7 +3939,7 @@ msgstr "Native GCI-bestanden (*. GCI)"
 msgid "Netherlands"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:932
+#: Source/Core/Core/NetPlayClient.cpp:931
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 
@@ -4887,7 +4893,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:763
+#: Source/Core/Core/NetPlayClient.cpp:762
 msgid "Server rejected traversal attempt"
 msgstr ""
 
@@ -5722,7 +5728,7 @@ msgstr "Chinees (Traditioneel)"
 msgid "Traversal"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:760
+#: Source/Core/Core/NetPlayClient.cpp:759
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
@@ -5737,7 +5743,7 @@ msgstr ""
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:438
+#: Source/Core/Core/Boot/Boot.cpp:442
 msgid "Tried to load an unknown file type."
 msgstr "Poging tot het laden van een onbekend bestands type."
 
@@ -5835,7 +5841,7 @@ msgstr "Onbekend DVD commando %08x - fatale fout"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Onbekende vermeldingstype %i in SYSCONF (%s@%x)!"
 
-#: Source/Core/Core/NetPlayClient.cpp:769
+#: Source/Core/Core/NetPlayClient.cpp:768
 #, c-format
 msgid "Unknown error %x"
 msgstr ""
@@ -5845,7 +5851,7 @@ msgstr ""
 msgid "Unknown memory card error"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:447
+#: Source/Core/Core/NetPlayClient.cpp:446
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Onbekend bericht ontvangen met id : %d"
@@ -5898,6 +5904,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Gebruikt een minder accurate algoritme om de diepte waardes te calculeren.\n"
+"Kan problemen in een paar spellen geven, maar kan een redelijke speedup "
+"geven, afhankelijk van je GPU en/of de game.\n"
+"\n"
+"In geval van twijfel leeg laten."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:376
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -5984,11 +5995,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Waarschuwing"
 
-#: Source/Core/Core/Boot/Boot.cpp:308
+#: Source/Core/Core/Boot/Boot.cpp:312
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Waarschuwing - DOL wordt in de verkeerde console mode gestart!"
 
-#: Source/Core/Core/Boot/Boot.cpp:244
+#: Source/Core/Core/Boot/Boot.cpp:248
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Waarschuwing - ISO wordt in de verkeerde console mode gestart!"
 
@@ -6228,11 +6239,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:298
 msgid "You must choose a game!"
-msgstr ""
+msgstr "Je moet een spel kiezen!"
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:65
 msgid "You must enter a name."
-msgstr ""
+msgstr "Je moet een naam invoeren."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:208
 msgid "You must enter a valid decimal, hexadecimal or octal value."
@@ -6319,7 +6330,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:350
 msgid "none"
-msgstr ""
+msgstr "geen"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:952
 msgid "s"
@@ -6332,42 +6343,3 @@ msgstr "wxExecute retourneerde -1 bij het draaien van de applicatie!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OF"
-
-#~ msgid "%s failed: kr=%x"
-#~ msgstr "%s gefaald: kr=%x"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "Kan geen events afmelden als er events in afwachting zijn"
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO: Onbekende open mode: 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - onjuiste bestemming"
-
-#~ msgid "Invalid state"
-#~ msgstr "Onjuiste staat"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2 CreateSourceVoice is mislukt: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "XAudio2 initialisatie mislukt: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "XAudio2 master voice creatie mislukt: %#X"
-
-#~ msgid "XAudio2_7 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2_7 CreateSourceVoice is mislukt: %#X"
-
-#~ msgid "XAudio2_7 init failed: %#X"
-#~ msgstr "XAudio2_7 initialisatie mislukt: %#X"
-
-#~ msgid "XAudio2_7 master voice creation failed: %#X"
-#~ msgstr "XAudio2_7 master voice creatie mislukt: %#X"
-
-#~ msgid "unknown flavor %d (expected %d)"
-#~ msgstr "onbekende flavor %d (verwacht %d)"
-
-#~ msgid "unknown message received"
-#~ msgstr "onbekende bericht ontvangen"

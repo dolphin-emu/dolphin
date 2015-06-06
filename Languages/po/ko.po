@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-04 21:33+0000\n"
-"PO-Revision-Date: 2015-06-04 09:49+0000\n"
+"POT-Creation-Date: 2015-06-06 01:32+0000\n"
+"PO-Revision-Date: 2015-06-04 21:33+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Korean (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ko/)\n"
@@ -2523,9 +2523,8 @@ msgstr "파일이 압축되지 않었습니다"
 #: Source/Core/DolphinWX/MemcardManager.cpp:424
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
-#, fuzzy
 msgid "File write failed"
-msgstr "내보내기 실패"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:604
 msgid "Filesystem"
@@ -2780,11 +2779,11 @@ msgstr ""
 msgid "Game ID:"
 msgstr "게임 ID:"
 
-#: Source/Core/Core/NetPlayClient.cpp:641
+#: Source/Core/Core/NetPlayClient.cpp:640
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:949
+#: Source/Core/Core/NetPlayClient.cpp:946
 msgid "Game isn't running!"
 msgstr "게임이 구동중이지 않습니다!"
 
@@ -3238,7 +3237,7 @@ msgstr "부적합한 이벤트 타입 %i"
 msgid "Invalid file"
 msgstr "부적합 파일"
 
-#: Source/Core/Core/NetPlayClient.cpp:766
+#: Source/Core/Core/NetPlayClient.cpp:765
 msgid "Invalid host"
 msgstr ""
 
@@ -3605,7 +3604,7 @@ msgstr "로거 출력"
 msgid "Logging"
 msgstr "로깅"
 
-#: Source/Core/Core/NetPlayClient.cpp:529
+#: Source/Core/Core/NetPlayClient.cpp:528
 msgid "Lost connection to server!"
 msgstr "서버에 연결을 잃어버림!"
 
@@ -3912,7 +3911,7 @@ msgstr "원본 GCI 파일들(*.gci)"
 msgid "Netherlands"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:932
+#: Source/Core/Core/NetPlayClient.cpp:931
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 
@@ -4865,7 +4864,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:763
+#: Source/Core/Core/NetPlayClient.cpp:762
 msgid "Server rejected traversal attempt"
 msgstr ""
 
@@ -5696,7 +5695,7 @@ msgstr "전통 중국어"
 msgid "Traversal"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:760
+#: Source/Core/Core/NetPlayClient.cpp:759
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
@@ -5711,7 +5710,7 @@ msgstr ""
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:438
+#: Source/Core/Core/Boot/Boot.cpp:442
 msgid "Tried to load an unknown file type."
 msgstr "알려지지 않은 파일 타입을 로드시도했다."
 
@@ -5808,7 +5807,7 @@ msgstr "알려지지 않은 DVD 명령 %08x - 치명적 에러"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "알려지지 않은 엔트리 타입 %i SYSCONF (%s@%x)안에!"
 
-#: Source/Core/Core/NetPlayClient.cpp:769
+#: Source/Core/Core/NetPlayClient.cpp:768
 #, c-format
 msgid "Unknown error %x"
 msgstr ""
@@ -5818,7 +5817,7 @@ msgstr ""
 msgid "Unknown memory card error"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:447
+#: Source/Core/Core/NetPlayClient.cpp:446
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "id : %d의 알려지지 않은 메시지를 받었다"
@@ -5956,11 +5955,11 @@ msgstr ""
 msgid "Warning"
 msgstr "경고"
 
-#: Source/Core/Core/Boot/Boot.cpp:308
+#: Source/Core/Core/Boot/Boot.cpp:312
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 DOL을 시작!"
 
-#: Source/Core/Core/Boot/Boot.cpp:244
+#: Source/Core/Core/Boot/Boot.cpp:248
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 ISO 시작!"
 
@@ -6300,42 +6299,3 @@ msgstr "애플리케이션 구동상에서 wxExecute가 -1을 반환했습니다
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%s failed: kr=%x"
-#~ msgstr "%s 실패: kr=%x"
-
-#~ msgid "Cannot unregister events with events pending"
-#~ msgstr "이벤트들 미해결을 지닌 이벤트들을 등록하지 않을 수 없음"
-
-#~ msgid "FileIO: Unknown open mode : 0x%02x"
-#~ msgstr "FileIO: 알려지지 않은 열기 모드: 0x%02x"
-
-#~ msgid "IOCTL_ES_READCONTENT - bad destination"
-#~ msgstr "IOCTL_ES_READCONTENT - 잘못된 대상"
-
-#~ msgid "Invalid state"
-#~ msgstr "부적합 상태"
-
-#~ msgid "XAudio2 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2 CreateSourceVoice 실패: %#X"
-
-#~ msgid "XAudio2 init failed: %#X"
-#~ msgstr "XAudio2 초기화 실패: %#X"
-
-#~ msgid "XAudio2 master voice creation failed: %#X"
-#~ msgstr "XAudio2 매스터 보이스 생성 실패: %#X"
-
-#~ msgid "XAudio2_7 CreateSourceVoice failed: %#X"
-#~ msgstr "XAudio2_7 CreateSourceVoice 실패: %#X"
-
-#~ msgid "XAudio2_7 init failed: %#X"
-#~ msgstr "XAudio2_7 초기화 실패: %#X"
-
-#~ msgid "XAudio2_7 master voice creation failed: %#X"
-#~ msgstr "XAudio2_7 마스터 보이스 생성 실패: %#X"
-
-#~ msgid "unknown flavor %d (expected %d)"
-#~ msgstr "알려지지 않은 특색 %d (%d 예상됨)"
-
-#~ msgid "unknown message received"
-#~ msgstr "알려지지 않은 메지지를 받었습니다"
