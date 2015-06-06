@@ -14,6 +14,7 @@
 #include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/HW/AudioInterface.h"
@@ -522,10 +523,11 @@ void InsertDiscCallback(u64 userdata, int cyclesLate)
 
 void ChangeDisc(const std::string& newFileName)
 {
+	bool is_cpu = Core::IsCPUThread();
+	bool was_unpaused = is_cpu ? false : Core::PauseAndLock(true);
 	std::string* _FileName = new std::string(newFileName);
-	CoreTiming::ScheduleEvent_Threadsafe(0, ejectDisc);
-	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)_FileName);
-	// TODO: We shouldn't be modifying movie state from the GUI thread.
+	CoreTiming::ScheduleEvent(0, ejectDisc);
+	CoreTiming::ScheduleEvent(500000000, insertDisc, (u64)_FileName);
 	if (Movie::IsRecordingInput())
 	{
 		Movie::g_bDiscChange = true;
@@ -538,6 +540,8 @@ void ChangeDisc(const std::string& newFileName)
 		}
 		Movie::g_discChange = fileName.substr(sizeofpath);
 	}
+	if (!is_cpu)
+		Core::PauseAndLock(false, was_unpaused);
 }
 
 void SetLidOpen(bool _bOpen)

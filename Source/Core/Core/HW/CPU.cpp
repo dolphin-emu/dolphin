@@ -149,13 +149,22 @@ void Break()
 
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
+	static bool s_have_fake_cpu_thread;
 	bool wasUnpaused = !IsStepping();
 	if (do_lock)
 	{
 		// we can't use EnableStepping, that would causes deadlocks with both audio and video
 		PowerPC::Pause();
 		if (!Core::IsCPUThread())
+		{
 			m_csCpuOccupied.lock();
+			s_have_fake_cpu_thread = true;
+			Core::DeclareAsCPUThread();
+		}
+		else
+		{
+			s_have_fake_cpu_thread = false;
+		}
 	}
 	else
 	{
@@ -165,8 +174,12 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 			m_StepEvent.Set();
 		}
 
-		if (!Core::IsCPUThread())
+		if (s_have_fake_cpu_thread)
+		{
+			Core::UndeclareAsCPUThread();
 			m_csCpuOccupied.unlock();
+			s_have_fake_cpu_thread = false;
+		}
 	}
 	return wasUnpaused;
 }
