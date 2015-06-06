@@ -56,12 +56,6 @@
 #include "VideoCommon/AVIDump.h"
 #endif
 
-
-void VideoConfig::UpdateProjectionHack()
-{
-	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
-}
-
 static int OSDInternalW, OSDInternalH;
 
 namespace OGL
@@ -627,10 +621,6 @@ Renderer::Renderer()
 
 	PixelShaderManager::SetEfbScaleChanged();
 
-	// Because of the fixed framebuffer size we need to disable the resolution
-	// options while running
-	g_Config.bRunning = true;
-
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
 
@@ -684,7 +674,6 @@ void Renderer::Shutdown()
 {
 	delete g_framebuffer_manager;
 
-	g_Config.bRunning = false;
 	UpdateActiveConfig();
 
 	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);

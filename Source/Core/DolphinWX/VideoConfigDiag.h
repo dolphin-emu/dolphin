@@ -141,7 +141,7 @@ protected:
 		if (sel)
 			vconfig.sPostProcessingShader = WxStrToStr(ev.GetString());
 		else
-			vconfig.sPostProcessingShader.clear();
+			vconfig.sPostProcessingShader = "";
 
 		// Should we enable the configuration button?
 		PostProcessingShaderConfiguration postprocessing_shader;

@@ -9,7 +9,7 @@
 
 class PointerWrap;
 
-void UpdateProjectionHack(int iParams[], std::string sParams[]);
+void UpdateProjectionHack();
 
 // The non-API dependent parts.
 class VertexShaderManager

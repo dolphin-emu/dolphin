@@ -739,7 +739,7 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
 		}
 		else
-			vconfig.sPostProcessingShader.clear();
+			vconfig.sPostProcessingShader = "";
 	}
 
 	// Should the configuration button be loaded by default?

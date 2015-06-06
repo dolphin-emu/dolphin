@@ -162,7 +162,7 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 void OpenGLPostProcessing::ApplyShader()
 {
 	// shader didn't changed
-	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader)
+	if (m_initialized && m_config.GetShader() == g_ActiveConfig.sPostProcessingShader.Get())
 		return;
 
 	m_shader.Destroy();
@@ -181,7 +181,7 @@ void OpenGLPostProcessing::ApplyShader()
 	if (!ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str()))
 	{
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
-		g_ActiveConfig.sPostProcessingShader.clear();
+		g_ActiveConfig.sPostProcessingShader = "";
 		code = m_config.LoadShader();
 		ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str());
 	}
