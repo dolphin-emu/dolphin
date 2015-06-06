@@ -627,6 +627,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 			updateMainFrameEvent.Wait();
 	}
 
+	Core::Shutdown();
 	UICommon::Shutdown();
 	ANativeWindow_release(surf);
 

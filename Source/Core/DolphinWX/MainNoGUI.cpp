@@ -358,6 +358,7 @@ int main(int argc, char* argv[])
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		updateMainFrameEvent.Wait();
 
+	Core::Shutdown();
 	platform->Shutdown();
 	UICommon::Shutdown();
 
