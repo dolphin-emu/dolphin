@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
+#include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/x64ABI.h"
 #include "Core/HW/Memmap.h"
@@ -23,6 +24,7 @@ using namespace Gen;
 void TrampolineCache::Init(int size)
 {
 	AllocCodeSpace(size, PPCSTATE_BASE);
+	CheckRIPRelative(region, size);
 }
 
 void TrampolineCache::ClearCodeSpace()

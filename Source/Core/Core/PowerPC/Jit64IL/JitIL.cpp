@@ -11,6 +11,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Intrinsics.h"
+#include "Common/MemoryUtil.h"
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Core/PatchEngine.h"
@@ -251,6 +252,7 @@ void JitIL::Init()
 
 	trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE, PPCSTATE_BASE);
+	CheckRIPRelative(region, CODE_SIZE);
 	blocks.Init();
 	asm_routines.Init(nullptr);
 

@@ -97,6 +97,7 @@ protected:
 		emitter.reset(new X64CodeBlock());
 		emitter->AllocCodeSpace(4096, PPCSTATE_BASE);
 		code_buffer = emitter->GetWritableCodePtr();
+		CheckRIPRelative(code_buffer, 4096);
 
 		disasm.reset(new disassembler);
 		disasm->set_syntax_intel();
