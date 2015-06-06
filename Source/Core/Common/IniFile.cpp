@@ -311,6 +311,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 		return false;
 
 	Section* current_section = nullptr;
+	bool first_line = true;
 	while (!in.eof())
 	{
 		std::string line;
@@ -322,6 +323,11 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 			else
 				return false;
 		}
+
+		// Skips the UTF-8 BOM at the start of files. Notepad likes to add this.
+		if (first_line && line.substr(0, 3) == "\xEF\xBB\xBF")
+			line = line.substr(3);
+		first_line = false;
 
 #ifndef _WIN32
 		// Check for CRLF eol and convert it to LF
@@ -385,19 +391,19 @@ bool IniFile::Save(const std::string& filename)
 	for (const Section& section : sections)
 	{
 		if (section.keys_order.size() != 0 || section.lines.size() != 0)
-			out << "[" << section.name << "]" << std::endl;
+			out << "[" << section.name << "]" << "\n";
 
 		if (section.keys_order.size() == 0)
 		{
 			for (const std::string& s : section.lines)
-				out << s << std::endl;
+				out << s << "\n";
 		}
 		else
 		{
 			for (const std::string& kvit : section.keys_order)
 			{
 				auto pair = section.values.find(kvit);
-				out << pair->first << " = " << pair->second << std::endl;
+				out << pair->first << " = " << pair->second << "\n";
 			}
 		}
 	}
