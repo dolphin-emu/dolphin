@@ -19,6 +19,14 @@ class IVolume
 {
 public:
 	// Increment CACHE_REVISION if the enums below are modified (ISOFile.cpp & GameFile.cpp)
+	enum EPlatform
+	{
+		GAMECUBE_DISC = 0,
+		WII_DISC,
+		WII_WAD,
+		NUMBER_OF_PLATFORMS
+	};
+
 	enum ECountry
 	{
 		COUNTRY_EUROPE = 0,
@@ -86,8 +94,7 @@ public:
 	// 0 is the first disc, 1 is the second disc
 	virtual u8 GetDiscNumber() const { return 0; }
 
-	virtual bool IsWiiDisc() const { return false; }
-	virtual bool IsWadFile() const { return false; }
+	virtual EPlatform GetVolumeType() const = 0;
 	virtual bool SupportsIntegrityCheck() const { return false; }
 	virtual bool CheckIntegrity() const { return false; }
 	virtual bool ChangePartition(u64 offset) { return false; }

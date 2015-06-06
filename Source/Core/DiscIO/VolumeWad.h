@@ -36,7 +36,7 @@ public:
 	u32 GetFSTSize() const override { return 0; }
 	std::string GetApploaderDate() const override { return ""; }
 
-	bool IsWadFile() const override;
+	EPlatform GetVolumeType() const override;
 
 	ECountry GetCountry() const override;
 	u64 GetSize() const override;

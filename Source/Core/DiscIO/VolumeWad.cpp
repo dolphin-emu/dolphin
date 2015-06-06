@@ -112,9 +112,9 @@ u16 CVolumeWAD::GetRevision() const
 	return Common::swap16(revision);
 }
 
-bool CVolumeWAD::IsWadFile() const
+IVolume::EPlatform CVolumeWAD::GetVolumeType() const
 {
-	return true;
+	return WII_WAD;
 }
 
 std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames() const

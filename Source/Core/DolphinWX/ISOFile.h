@@ -35,7 +35,7 @@ public:
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
-	int GetPlatform() const {return m_Platform;}
+	DiscIO::IVolume::EPlatform GetPlatform() const { return m_Platform; }
 	const std::string& GetIssues() const { return m_issues; }
 	int GetEmuState() const { return m_emu_state; }
 	bool IsCompressed() const {return m_BlobCompressed;}
@@ -48,14 +48,6 @@ public:
 #endif
 
 	void DoState(PointerWrap &p);
-
-	enum
-	{
-		GAMECUBE_DISC = 0,
-		WII_DISC,
-		WII_WAD,
-		NUMBER_OF_PLATFORMS
-	};
 
 private:
 	std::string m_FileName;
@@ -73,7 +65,7 @@ private:
 	u64 m_VolumeSize;
 
 	DiscIO::IVolume::ECountry m_Country;
-	int m_Platform;
+	DiscIO::IVolume::EPlatform m_Platform;
 	u16 m_Revision;
 
 #if defined(HAVE_WX) && HAVE_WX

@@ -25,7 +25,7 @@
 #include "DolphinQt/Utils/Resources.h"
 #include "DolphinQt/Utils/Utils.h"
 
-static const u32 CACHE_REVISION = 0x008;
+static const u32 CACHE_REVISION = 0x009;
 static const u32 DATASTREAM_REVISION = 15; // Introduced in Qt 5.2
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLocalizedStrings(std::map<DiscIO::IVolume::ELanguage, std::string> strings)
@@ -85,10 +85,7 @@ GameFile::GameFile(const QString& fileName)
 
 		if (volume != nullptr)
 		{
-			if (!volume->IsWadFile())
-				m_platform = volume->IsWiiDisc() ? WII_DISC : GAMECUBE_DISC;
-			else
-				m_platform = WII_WAD;
+			m_platform = volume->GetVolumeType();
 
 			m_names = ConvertLocalizedStrings(volume->GetNames());
 			m_descriptions = ConvertLocalizedStrings(volume->GetDescriptions());
@@ -167,6 +164,7 @@ bool GameFile::LoadFromCache()
 		return false;
 
 	u32 country;
+	u32 platform;
 	QMap<u8, QString> names;
 	QMap<u8, QString> descriptions;
 	stream >> m_folder_name
@@ -179,10 +177,11 @@ bool GameFile::LoadFromCache()
 	       >> country
 	       >> m_banner
 	       >> m_compressed
-	       >> m_platform
+	       >> platform
 	       >> m_disc_number
 	       >> m_revision;
 	m_country = (DiscIO::IVolume::ECountry)country;
+	m_platform = (DiscIO::IVolume::EPlatform)platform;
 	m_names = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(names);
 	m_descriptions = CastLocalizedStrings<DiscIO::IVolume::ELanguage>(descriptions);
 	file.close();
@@ -219,7 +218,7 @@ void GameFile::SaveToCache()
 	       << (u32)m_country
 	       << m_banner
 	       << m_compressed
-	       << m_platform
+	       << (u32)m_platform
 	       << m_disc_number
 	       << m_revision;
 }
@@ -255,7 +254,8 @@ QString GameFile::GetDescription(DiscIO::IVolume::ELanguage language) const
 
 QString GameFile::GetDescription() const
 {
-	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
+	bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
+	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
 }
 
 QString GameFile::GetName(DiscIO::IVolume::ELanguage language) const
@@ -265,7 +265,8 @@ QString GameFile::GetName(DiscIO::IVolume::ELanguage language) const
 
 QString GameFile::GetName() const
 {
-	QString name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_platform != GAMECUBE_DISC));
+	bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
+	QString name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
 	if (name.isEmpty())
 	{
 		// No usable name, return filename (better than nothing)
@@ -284,7 +285,7 @@ const QString GameFile::GetWiiFSPath() const
 	if (volume == nullptr)
 		return ret;
 
-	if (volume->IsWiiDisc() || volume->IsWadFile())
+	if (volume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC)
 	{
 		std::string path;
 		u64 title;

@@ -82,10 +82,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 		if (pVolume != nullptr)
 		{
-			if (!pVolume->IsWadFile())
-				m_Platform = pVolume->IsWiiDisc() ? WII_DISC : GAMECUBE_DISC;
-			else
-				m_Platform = WII_WAD;
+			m_Platform = pVolume->GetVolumeType();
 
 			m_names = pVolume->GetNames();
 			m_descriptions = pVolume->GetDescriptions();
@@ -217,7 +214,8 @@ std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) co
 
 std::string GameListItem::GetDescription() const
 {
-	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
+	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
+	return GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
 }
 
 std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
@@ -227,7 +225,8 @@ std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
 
 std::string GameListItem::GetName() const
 {
-	std::string name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(m_Platform != GAMECUBE_DISC));
+	bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
+	std::string name = GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.GetCurrentLanguage(wii));
 	if (name.empty())
 	{
 		// No usable name, return filename (better than nothing)
@@ -252,7 +251,7 @@ const std::string GameListItem::GetWiiFSPath() const
 	if (iso == nullptr)
 		return ret;
 
-	if (iso->IsWiiDisc() || iso->IsWadFile())
+	if (iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC)
 	{
 		u64 title = 0;
 
