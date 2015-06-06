@@ -221,7 +221,8 @@ std::string StripQuotes(const std::string& s)
     return s;
 }
 
-bool TryParse(const std::string& str, u32* const output)
+template <>
+bool TryParse<u32>(const std::string& str, u32* output)
 {
   char* endptr = nullptr;
 
@@ -245,7 +246,8 @@ bool TryParse(const std::string& str, u32* const output)
   return true;
 }
 
-bool TryParse(const std::string& str, bool* const output)
+template <>
+bool TryParse<bool>(const std::string& str, bool* output)
 {
   float value;
   const bool is_valid_float = TryParse(str, &value);
@@ -259,16 +261,70 @@ bool TryParse(const std::string& str, bool* const output)
   return true;
 }
 
-std::string StringFromInt(int value)
+template <>
+bool TryParse<std::string>(const std::string& str, std::string* output)
+{
+  *output = str;
+  return true;
+}
+
+template <typename N>
+bool TryParse(const std::string& str, N* output)
+{
+  std::istringstream iss(str);
+  // is this right? not doing this breaks reading floats on locales that use different decimal
+  // separators
+  iss.imbue(std::locale("C"));
+
+  N tmp = 0;
+  if (iss >> tmp)
+  {
+    *output = tmp;
+    return true;
+  }
+  else
+    return false;
+}
+template bool TryParse<int>(const std::string& str, int* output);
+template bool TryParse<float>(const std::string& str, float* output);
+template bool TryParse<double>(const std::string& str, double* output);
+
+template <>
+std::string ToString<bool>(const bool& value)
+{
+  return value ? "True" : "False";
+}
+
+template <>
+std::string ToString<int>(const int& value)
 {
   char temp[16];
   sprintf(temp, "%i", value);
   return temp;
 }
 
-std::string StringFromBool(bool value)
+template <>
+std::string ToString<u32>(const u32& value)
 {
-  return value ? "True" : "False";
+  return StringFromFormat("0x%08x", value);
+}
+
+template <>
+std::string ToString<float>(const float& value)
+{
+  return StringFromFormat("%f", value);
+}
+
+template <>
+std::string ToString<double>(const double& value)
+{
+  return StringFromFormat("%f", value);
+}
+
+template <>
+std::string ToString<std::string>(const std::string& value)
+{
+  return value;
 }
 
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
