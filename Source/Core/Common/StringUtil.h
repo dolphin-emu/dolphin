@@ -56,29 +56,19 @@ std::string ThousandSeparate(I value, int spaces = 0)
   return oss.str();
 }
 
-std::string StringFromInt(int value);
-std::string StringFromBool(bool value);
+std::string ToString(bool value);
+std::string ToString(int value);
+std::string ToString(unsigned int value);
+std::string ToString(float value);
+std::string ToString(double value);
+inline std::string ToString(std::string value) { return value; };
 
 bool TryParse(const std::string& str, bool* output);
-bool TryParse(const std::string& str, u32* output);
-
-template <typename N>
-static bool TryParse(const std::string& str, N* const output)
-{
-  std::istringstream iss(str);
-  // is this right? not doing this breaks reading floats on locales that use different decimal
-  // separators
-  iss.imbue(std::locale("C"));
-
-  N tmp = 0;
-  if (iss >> tmp)
-  {
-    *output = tmp;
-    return true;
-  }
-  else
-    return false;
-}
+bool TryParse(const std::string& str, int* output);
+bool TryParse(const std::string& str, unsigned int* output);
+bool TryParse(const std::string& str, float* output);
+bool TryParse(const std::string& str, double* output);
+inline bool TryParse(const std::string& str, std::string* output) { *output = str; return true; }
 
 template <typename N>
 bool TryParseVector(const std::string& str, std::vector<N>* output, const char delimiter = ',')

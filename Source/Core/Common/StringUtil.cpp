@@ -221,7 +221,27 @@ std::string StripQuotes(const std::string& s)
     return s;
 }
 
-bool TryParse(const std::string& str, u32* const output)
+bool TryParse(const std::string& str, bool* output)
+{
+  float value;
+  const bool is_valid_float = TryParse(str, &value);
+  if ((is_valid_float && value == 1) || !strcasecmp("true", str.c_str()))
+    *output = true;
+  else if ((is_valid_float && value == 0) || !strcasecmp("false", str.c_str()))
+    *output = false;
+  else
+    return false;
+
+  return true;
+}
+
+bool TryParse(const std::string& str, int* output)
+{
+  std::istringstream iss(str);
+  return bool(iss >> *output);
+}
+
+bool TryParse(const std::string& str, u32* output)
 {
   char* endptr = nullptr;
 
@@ -245,30 +265,49 @@ bool TryParse(const std::string& str, u32* const output)
   return true;
 }
 
-bool TryParse(const std::string& str, bool* const output)
+bool TryParse(const std::string& str, float* output)
 {
-  float value;
-  const bool is_valid_float = TryParse(str, &value);
-  if ((is_valid_float && value == 1) || !strcasecmp("true", str.c_str()))
-    *output = true;
-  else if ((is_valid_float && value == 0) || !strcasecmp("false", str.c_str()))
-    *output = false;
-  else
-    return false;
+  std::istringstream iss(str);
+  // is this right? not doing this breaks reading floats on locales that use different decimal
+  // separators
+  iss.imbue(std::locale("C"));
 
-  return true;
+  return bool(iss >> *output);
 }
 
-std::string StringFromInt(int value)
+bool TryParse(const std::string& str, double* output)
 {
-  char temp[16];
-  sprintf(temp, "%i", value);
-  return temp;
+  std::istringstream iss(str);
+  // is this right? not doing this breaks reading floats on locales that use different decimal
+  // separators
+  iss.imbue(std::locale("C"));
+
+  return bool(iss >> *output);
 }
 
-std::string StringFromBool(bool value)
+std::string ToString(bool value)
 {
   return value ? "True" : "False";
+}
+
+std::string ToString( int value)
+{
+  return StringFromFormat("%i", value);
+}
+
+std::string ToString(u32 value)
+{
+  return StringFromFormat("0x%08x", value);
+}
+
+std::string ToString(float value)
+{
+  return StringFromFormat("%f", value);
+}
+
+std::string ToString(double value)
+{
+  return StringFromFormat("%f", value);
 }
 
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
