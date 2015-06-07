@@ -192,8 +192,10 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
 		while ((std::getline(ss, line).good()))
 		{
-			// empty line
-			if (0 == line.size() || line == "\r" || line == "\n") // \r\n checks might not be needed
+			// Remove \r at the end of the line for files using windows line endings, std::getline only removes \n
+			line = StripSpaces(line);
+
+			if (line.empty())
 			{
 				// add the code
 				if (gcode.codes.size())
