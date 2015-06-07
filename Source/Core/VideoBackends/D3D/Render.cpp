@@ -393,19 +393,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	D3D11_MAPPED_SUBRESOURCE map;
 	ID3D11Texture2D* read_tex;
 
-	if (type == POKE_Z)
-	{
-		if (ARBruteForcer::ch_bruteforce)
-		{
-			Core::KillDolphinAndRestart();
-		}
-		static bool alert_only_once = true;
-		if (!alert_only_once) return 0;
-		PanicAlert("EFB: Poke Z not implemented (tried to poke z value %#x at (%d,%d))", poke_data, x, y);
-		alert_only_once = false;
-		return 0;
-	}
-
 	// Convert EFB dimensions to the ones of our render target
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
@@ -510,7 +497,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
-	else //if(type == POKE_COLOR)
+	else if (type == POKE_COLOR)
 	{
 		u32 rgbaColor = (poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000);
 
@@ -521,14 +508,42 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::context->RSSetViewports(1, &vp);
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
-		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-		                            - (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
-		                              (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-		                            - (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
+		D3D::drawColorQuad(rgbaColor, 0.f,
+		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
+		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
 
 		RestoreAPIState();
-		return 0;
 	}
+	else // if (type == POKE_Z)
+	{
+		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
+		ResetAPIState();
+
+		D3D::stateman->PushBlendState(clearblendstates[3]);
+		D3D::stateman->PushDepthState(cleardepthstates[1]);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight(),
+			1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
+			1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
+		D3D::context->RSSetViewports(1, &vp);
+
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
+			FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::drawColorQuad(0, 1.0f - float(poke_data & 0xFFFFFF) / 16777216.0f,
+		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
+		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
+		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
+
+		D3D::stateman->PopDepthState();
+		D3D::stateman->PopBlendState();
+
+		RestoreAPIState();
+	}
+
+	return 0;
 }
 
 
