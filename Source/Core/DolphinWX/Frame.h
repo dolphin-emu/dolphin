@@ -306,7 +306,6 @@ private:
 	void OnConfigAudio(wxCommandEvent& event);
 	void OnConfigControllers(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
-	void OnConfigMenuCommands(wxCommandEvent& event);
 
 	void OnToggleFullscreen(wxCommandEvent& event);
 	void OnToggleDualCore(wxCommandEvent& event);
@@ -352,7 +351,7 @@ private:
 	void OnLoadCurrentSlot(wxCommandEvent& event);
 
 	void PollHotkeys(wxTimerEvent&);
-	void ParseHotkeys(wxKeyEvent &event);
+	void ParseHotkeys();
 
 	bool InitControllers();
 

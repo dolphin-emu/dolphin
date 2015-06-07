@@ -60,7 +60,6 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
-#include "DolphinWX/HotkeyDlg.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/LogWindow.h"
@@ -230,7 +229,6 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_MENU_COMMANDS, _("&Key Shortcuts"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
 	if (g_pCodeWindow)
 	{
@@ -390,11 +388,7 @@ wxMenuBar* CFrame::CreateMenu()
 
 wxString CFrame::GetMenuLabel(int Id)
 {
-	int hotkey = SConfig::GetInstance().\
-		m_LocalCoreStartupParameter.iHotkey[Id];
-	int hotkeymodifier = SConfig::GetInstance().\
-		m_LocalCoreStartupParameter.iHotkeyModifier[Id];
-	wxString Hotkey, Label, Modifier;
+	wxString Label;
 
 	switch (Id)
 	{
@@ -533,14 +527,7 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = wxString::Format(_("Undefined %i"), Id);
 	}
 
-	hotkeymodifier &= wxMOD_CONTROL | wxMOD_ALT | wxMOD_SHIFT;
-
-	Modifier = WxUtils::WXKeymodToString(hotkeymodifier);
-	Hotkey = WxUtils::WXKeyToString(hotkey);
-	if (Modifier.Len() + Hotkey.Len() > 0)
-		Label += '\t';
-
-	return Label + Modifier + Hotkey;
+	return Label;
 }
 
 
@@ -1059,8 +1046,6 @@ void CFrame::StartGame(const std::string& filename)
 
 		m_RenderParent->SetFocus();
 
-		wxTheApp->Bind(wxEVT_KEY_DOWN,     &CFrame::OnKeyDown,     this);
-		wxTheApp->Bind(wxEVT_KEY_UP,       &CFrame::OnKeyUp,       this);
 		wxTheApp->Bind(wxEVT_RIGHT_DOWN,   &CFrame::OnMouse,       this);
 		wxTheApp->Bind(wxEVT_RIGHT_UP,     &CFrame::OnMouse,       this);
 		wxTheApp->Bind(wxEVT_MIDDLE_DOWN,  &CFrame::OnMouse,       this);
@@ -1222,10 +1207,6 @@ void CFrame::OnStopped()
 	// Destroy the renderer frame when not rendering to main
 	m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 
-	// Keyboard
-	wxTheApp->Unbind(wxEVT_KEY_DOWN,    &CFrame::OnKeyDown, this);
-	wxTheApp->Unbind(wxEVT_KEY_UP,      &CFrame::OnKeyUp,   this);
-
 	// Mouse
 	wxTheApp->Unbind(wxEVT_RIGHT_DOWN,  &CFrame::OnMouse, this);
 	wxTheApp->Unbind(wxEVT_RIGHT_UP,    &CFrame::OnMouse, this);
@@ -1339,16 +1320,6 @@ void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED (event))
 	ControllerConfigDiag config_dlg(this);
 	config_dlg.ShowModal();
 }
-
-void CFrame::OnConfigMenuCommands(wxCommandEvent& WXUNUSED(event))
-{
-	HotkeyConfigDialog m_HotkeyDialog(this);
-	m_HotkeyDialog.ShowModal();
-
-	// Update the GUI in case menu accelerators were changed
-	UpdateGUI();
-}
-
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))
 {
