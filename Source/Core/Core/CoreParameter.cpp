@@ -33,7 +33,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false),
   bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bFPRF(false),
+  bFPRF(false), bAccurateNaNs(false),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   m_GPUDeterminismMode(GPU_DETERMINISM_AUTO),
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
@@ -80,6 +80,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPHLE = true;
 	bFastmem = true;
 	bFPRF = false;
+	bAccurateNaNs = false;
 	bMMU = false;
 	bDCBZOFF = false;
 	iBBDumpPort = -1;

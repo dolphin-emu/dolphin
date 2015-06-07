@@ -138,6 +138,20 @@ public:
 		LockX(args...);
 	}
 
+	template<typename T>
+	void UnlockX(T x)
+	{
+		if (!xregs[x].locked)
+			PanicAlert("RegCache: x %i already unlocked!", x);
+		xregs[x].locked = false;
+	}
+	template<typename T, typename... Args>
+	void UnlockX(T first, Args... args)
+	{
+		UnlockX(first);
+		UnlockX(args...);
+	}
+
 	void UnlockAll();
 	void UnlockAllX();
 

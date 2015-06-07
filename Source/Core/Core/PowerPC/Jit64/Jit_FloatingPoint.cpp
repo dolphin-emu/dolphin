@@ -10,38 +10,37 @@
 
 using namespace Gen;
 
-static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x0000000000000000ULL};
-static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
-static const u64 GC_ALIGNED16(psAbsMask2[2]) = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+static const u64 GC_ALIGNED16(psSignBits[2])      = {0x8000000000000000ULL, 0x0000000000000000ULL};
+static const u64 GC_ALIGNED16(psSignBits2[2])     = {0x8000000000000000ULL, 0x8000000000000000ULL};
+static const u64 GC_ALIGNED16(psAbsMask[2])       = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+static const u64 GC_ALIGNED16(psAbsMask2[2])      = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+static const u64 GC_ALIGNED16(psGeneratedQNaN[2]) = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
-void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
-                      void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool packed, bool roundRHS)
+X64Reg Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
+                        void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool packed, bool preserve_inputs, bool roundRHS)
 {
 	fpr.Lock(d, a, b);
 	fpr.BindToRegister(d, d == a || d == b || !single);
+	X64Reg dest = preserve_inputs ? XMM1 : fpr.RX(d);
 	if (roundRHS)
 	{
-		if (d == a)
+		if (d == a && !preserve_inputs)
 		{
 			Force25BitPrecision(XMM0, fpr.R(b), XMM1);
 			(this->*sseOp)(fpr.RX(d), R(XMM0));
 		}
 		else
 		{
-			Force25BitPrecision(fpr.RX(d), fpr.R(b), XMM0);
-			(this->*sseOp)(fpr.RX(d), fpr.R(a));
+			Force25BitPrecision(dest, fpr.R(b), XMM0);
+			(this->*sseOp)(dest, fpr.R(a));
 		}
 	}
 	else
 	{
-		avx_op(avxOp, sseOp, fpr.RX(d), fpr.R(a), fpr.R(b), packed, reversible);
+		avx_op(avxOp, sseOp, dest, fpr.R(a), fpr.R(b), packed, reversible);
 	}
-	if (single)
-		ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
-	SetFPRFIfNeeded(fpr.RX(d));
-	fpr.UnlockAll();
+	return dest;
 }
 
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
@@ -54,6 +53,112 @@ void Jit64::SetFPRFIfNeeded(X64Reg xmm)
 	// if the FPRF flag is set.
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFPRF && js.op->wantsFPRF)
 		SetFPRF(xmm);
+}
+
+void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm)
+{
+	//                      | PowerPC  | x86
+	// ---------------------+----------+---------
+	// input NaN precedence | 1*3 + 2  | 1*2 + 3
+	// generated QNaN       | positive | negative
+	//
+	// Dragon Ball: Revenge of King Piccolo requires generated NaNs
+	// to be positive, so we'll have to handle them manually.
+
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bAccurateNaNs)
+	{
+		if (xmm_out != xmm)
+			MOVAPD(xmm_out, R(xmm));
+		return;
+	}
+
+	_assert_(xmm != XMM0);
+
+	std::vector<u32> inputs;
+	u32 a = inst.FA, b = inst.FB, c = inst.FC;
+	for (u32 i : {a, b, c})
+	{
+		if (!js.op->fregsIn[i])
+			continue;
+		if (std::find(inputs.begin(), inputs.end(), i) == inputs.end())
+			inputs.push_back(i);
+	}
+	if (inst.OPCD != 4)
+	{
+		// not paired-single
+		UCOMISD(xmm, R(xmm));
+		FixupBranch handle_nan = J_CC(CC_P, true);
+		SwitchToFarCode();
+			SetJumpTarget(handle_nan);
+			std::vector<FixupBranch> fixups;
+			for (u32 x : inputs)
+			{
+				MOVDDUP(xmm, fpr.R(x));
+				UCOMISD(xmm, R(xmm));
+				fixups.push_back(J_CC(CC_P));
+			}
+			MOVDDUP(xmm, M(psGeneratedQNaN));
+			for (FixupBranch fixup : fixups)
+				SetJumpTarget(fixup);
+			FixupBranch done = J(true);
+		SwitchToNearCode();
+		SetJumpTarget(done);
+	}
+	else
+	{
+		// paired-single
+		std::reverse(inputs.begin(), inputs.end());
+		if (cpu_info.bSSE4_1)
+		{
+			avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, XMM0, R(xmm), R(xmm), CMP_UNORD);
+			PTEST(XMM0, R(XMM0));
+			FixupBranch handle_nan = J_CC(CC_NZ, true);
+			SwitchToFarCode();
+				SetJumpTarget(handle_nan);
+				BLENDVPD(xmm, M(psGeneratedQNaN));
+				for (u32 x : inputs)
+				{
+					avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, XMM0, fpr.R(x), fpr.R(x), CMP_UNORD);
+					BLENDVPD(xmm, fpr.R(x));
+				}
+				FixupBranch done = J(true);
+			SwitchToNearCode();
+			SetJumpTarget(done);
+		}
+		else
+		{
+			// SSE2 fallback
+			X64Reg tmp = fpr.GetFreeXReg();
+			fpr.FlushLockX(tmp);
+			MOVAPD(XMM0, R(xmm));
+			CMPPD(XMM0, R(XMM0), CMP_UNORD);
+			MOVMSKPD(RSCRATCH, R(XMM0));
+			TEST(32, R(RSCRATCH), R(RSCRATCH));
+			FixupBranch handle_nan = J_CC(CC_NZ, true);
+			SwitchToFarCode();
+				SetJumpTarget(handle_nan);
+				MOVAPD(tmp, R(XMM0));
+				PANDN(XMM0, R(xmm));
+				PAND(tmp, M(psGeneratedQNaN));
+				POR(tmp, R(XMM0));
+				MOVAPD(xmm, R(tmp));
+				for (u32 x : inputs)
+				{
+					MOVAPD(XMM0, fpr.R(x));
+					CMPPD(XMM0, R(XMM0), CMP_ORD);
+					MOVAPD(tmp, R(XMM0));
+					PANDN(XMM0, fpr.R(x));
+					PAND(xmm, R(tmp));
+					POR(xmm, R(XMM0));
+				}
+				FixupBranch done = J(true);
+			SwitchToNearCode();
+			SetJumpTarget(done);
+			fpr.UnlockX(tmp);
+		}
+	}
+	if (xmm_out != xmm)
+		MOVAPD(xmm_out, R(xmm));
 }
 
 void Jit64::fp_arith(UGeckoInstruction inst)
@@ -80,20 +185,27 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 		packed = false;
 
 	bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
+	bool preserve_inputs = SConfig::GetInstance().m_LocalCoreStartupParameter.bAccurateNaNs;
 
+	X64Reg dest = INVALID_REG;
 	switch (inst.SUBOP5)
 	{
-	case 18: fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
-	                   packed ? &XEmitter::DIVPD : &XEmitter::DIVSD, packed); break;
-	case 20: fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
-	                   packed ? &XEmitter::SUBPD : &XEmitter::SUBSD, packed); break;
-	case 21: fp_tri_op(d, a, b, true, single, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
-	                   packed ? &XEmitter::ADDPD : &XEmitter::ADDSD, packed); break;
-	case 25: fp_tri_op(d, a, c, true, single, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
-	                   packed ? &XEmitter::MULPD : &XEmitter::MULSD, packed, round_input); break;
+	case 18: dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
+	                          packed ? &XEmitter::DIVPD : &XEmitter::DIVSD, packed, preserve_inputs); break;
+	case 20: dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
+	                          packed ? &XEmitter::SUBPD : &XEmitter::SUBSD, packed, preserve_inputs); break;
+	case 21: dest = fp_tri_op(d, a, b, true, single, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
+	                          packed ? &XEmitter::ADDPD : &XEmitter::ADDSD, packed, preserve_inputs); break;
+	case 25: dest = fp_tri_op(d, a, c, true, single, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
+	                          packed ? &XEmitter::MULPD : &XEmitter::MULSD, packed, preserve_inputs, round_input); break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
 	}
+	HandleNaNs(inst, fpr.RX(d), dest);
+	if (single)
+		ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
+	SetFPRFIfNeeded(fpr.RX(d));
+	fpr.UnlockAll();
 }
 
 void Jit64::fmaddXX(UGeckoInstruction inst)
@@ -220,13 +332,17 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 		if (inst.SUBOP5 == 31) //nmadd
 			PXOR(XMM1, M(packed ? psSignBits2 : psSignBits));
 	}
-
 	fpr.BindToRegister(d, !single);
-
 	if (single)
-		ForceSinglePrecision(fpr.RX(d), R(XMM1), packed, true);
+	{
+		HandleNaNs(inst, fpr.RX(d), XMM1);
+		ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
+	}
 	else
+	{
+		HandleNaNs(inst, XMM1, XMM1);
 		MOVSD(fpr.RX(d), R(XMM1));
+	}
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
@@ -379,7 +495,6 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 	}
 	else
 	{
-		// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
 		UCOMISD(fpr.RX(b), fpr.R(a));
 	}
 
