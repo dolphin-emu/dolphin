@@ -112,7 +112,7 @@ void GeneralConfigPane::LoadGUIValues()
 	m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
 	m_frame_limit_choice->SetSelection(SConfig::GetInstance().m_Framelimit);
 
-	for (size_t i = 0; i < (sizeof(cpu_cores) / sizeof(CPUCore)); ++i)
+	for (size_t i = 0; i < cpu_cores.size(); ++i)
 	{
 		if (cpu_cores[i].CPUid == startup_params.iCPUCore)
 			m_cpu_engine_radiobox->SetSelection(i);
