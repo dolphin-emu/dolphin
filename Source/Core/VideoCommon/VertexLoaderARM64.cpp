@@ -165,6 +165,18 @@ int VertexLoaderARM64::ReadVertex(u64 attribute, int format, int count_in, int c
 		m_float_emit.ST1(32, 1, coords, EncodeRegTo64(scratch2_reg));
 	}
 
+	// Z-Freeze
+	if (native_format == &m_native_vtx_decl.position)
+	{
+		CMP(count_reg, 3);
+		FixupBranch dont_store = B(CC_GT);
+		MOVI2R(EncodeRegTo64(scratch2_reg), (u64)VertexLoaderManager::position_cache);
+		ORR(scratch1_reg, WSP, count_reg, ArithOption(count_reg, ST_LSL, 4));
+		ADD(EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch2_reg));
+		m_float_emit.STUR(write_size, coords, EncodeRegTo64(scratch1_reg), -16);
+		SetJumpTarget(dont_store);
+	}
+
 	native_format->components = count_out;
 	native_format->enable = true;
 	native_format->offset = m_dst_ofs;
@@ -342,6 +354,14 @@ void VertexLoaderARM64::GenerateVertexLoader()
 		LDRB(INDEX_UNSIGNED, scratch1_reg, src_reg, m_src_ofs);
 		AND(scratch1_reg, scratch1_reg, 0, 5);
 		STR(INDEX_UNSIGNED, scratch1_reg, dst_reg, m_dst_ofs);
+
+		// Z-Freeze
+		CMP(count_reg, 3);
+		FixupBranch dont_store = B(CC_GT);
+		MOVI2R(EncodeRegTo64(scratch2_reg), (u64)VertexLoaderManager::position_matrix_index - sizeof(u32));
+		STR(INDEX_UNSIGNED, scratch1_reg, EncodeRegTo64(scratch2_reg), 0);
+		SetJumpTarget(dont_store);
+
 		m_native_components |= VB_HAS_POSMTXIDX;
 		m_native_vtx_decl.posmtx.components = 4;
 		m_native_vtx_decl.posmtx.enable = true;
