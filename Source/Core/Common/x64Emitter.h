@@ -711,6 +711,7 @@ public:
 
 	void PEXTRW(X64Reg dest, const OpArg& arg, u8 subreg);
 	void PINSRW(X64Reg dest, const OpArg& arg, u8 subreg);
+	void PINSRD(X64Reg dest, const OpArg& arg, u8 subreg);
 
 	void PMADDWD(X64Reg dest, const OpArg& arg);
 	void PSADBW(X64Reg dest, const OpArg& arg);

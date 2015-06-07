@@ -23,6 +23,11 @@ static const X64Reg base_reg = RBX;
 
 static const u8* memory_base_ptr = (u8*)&g_main_cp_state.array_strides;
 
+static OpArg MPIC(const void* ptr, X64Reg scale_reg, int scale = SCALE_1)
+{
+	return MComplex(base_reg, scale_reg, scale, (s32)((u8*)ptr - memory_base_ptr));
+}
+
 static OpArg MPIC(const void* ptr)
 {
 	return MDisp(base_reg, (s32)((u8*)ptr - memory_base_ptr));
@@ -77,7 +82,7 @@ OpArg VertexLoaderX64::GetVertexAddr(int array, u64 attribute)
 
 int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count_in, int count_out, bool dequantize, u8 scaling_exponent, AttributeFormat* native_format)
 {
-	static const __m128i shuffle_lut[4][3] = {
+	static const __m128i shuffle_lut[5][3] = {
 		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF00L),  // 1x u8
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFF01L, 0xFFFFFF00L),  // 2x u8
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFF02L, 0xFFFFFF01L, 0xFFFFFF00L)}, // 3x u8
@@ -90,6 +95,9 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x0001FFFFL),  // 1x s16
 		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x0203FFFFL, 0x0001FFFFL),  // 2x s16
 		 _mm_set_epi32(0xFFFFFFFFL, 0x0405FFFFL, 0x0203FFFFL, 0x0001FFFFL)}, // 3x s16
+		{_mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x00010203L),  // 1x float
+		 _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L),  // 2x float
+		 _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L)}, // 3x float
 	};
 	static const __m128 scale_factors[32] = {
 		_mm_set_ps1(1./(1u<< 0)), _mm_set_ps1(1./(1u<< 1)), _mm_set_ps1(1./(1u<< 2)), _mm_set_ps1(1./(1u<< 3)),
@@ -118,21 +126,6 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 
 	if (attribute == DIRECT)
 		m_src_ofs += load_bytes;
-
-	if (format == FORMAT_FLOAT)
-	{
-		// Floats don't need to be scaled or converted,
-		// so we can just load/swap/store them directly
-		// and return early.
-		for (int i = 0; i < count_in; i++)
-		{
-			LoadAndSwap(32, scratch3, data);
-			MOV(32, dest, R(scratch3));
-			data.AddMemOffset(sizeof(float));
-			dest.AddMemOffset(sizeof(float));
-		}
-		return load_bytes;
-	}
 
 	if (cpu_info.bSSSE3)
 	{
@@ -194,19 +187,70 @@ int VertexLoaderX64::ReadVertex(OpArg data, u64 attribute, int format, int count
 			else
 				PSRLD(coords, 16);
 			break;
+		case FORMAT_FLOAT:
+			// Floats don't need to be scaled or converted,
+			// so we can just load/swap/store them directly
+			// and return early.
+			// (In SSSE3 we still need to store them.)
+			for (int i = 0; i < count_in; i++)
+			{
+				LoadAndSwap(32, scratch3, data);
+				MOV(32, dest, R(scratch3));
+				data.AddMemOffset(sizeof(float));
+				dest.AddMemOffset(sizeof(float));
+
+				// zfreeze
+				if (native_format == &m_native_vtx_decl.position)
+				{
+					if (cpu_info.bSSE4_1)
+					{
+						PINSRD(coords, R(scratch3), i);
+					}
+					else
+					{
+						PINSRW(coords, R(scratch3), 2 * i + 0);
+						SHR(32, R(scratch3), Imm8(16));
+						PINSRW(coords, R(scratch3), 2 * i + 1);
+					}
+				}
+			}
+
+			// zfreeze
+			if (native_format == &m_native_vtx_decl.position)
+			{
+				CMP(32, R(count_reg), Imm8(3));
+				FixupBranch dont_store = J_CC(CC_A);
+				LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
+				MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
+				SetJumpTarget(dont_store);
+			}
+			return load_bytes;
 		}
 	}
 
-	CVTDQ2PS(coords, R(coords));
+	if (format != FORMAT_FLOAT)
+	{
+		CVTDQ2PS(coords, R(coords));
 
-	if (dequantize && scaling_exponent)
-		MULPS(coords, MPIC(&scale_factors[scaling_exponent]));
+		if (dequantize && scaling_exponent)
+			MULPS(coords, MPIC(&scale_factors[scaling_exponent]));
+	}
 
 	switch (count_out)
 	{
 	case 1: MOVSS(dest, coords); break;
 	case 2: MOVLPS(dest, coords); break;
 	case 3: MOVUPS(dest, coords); break;
+	}
+
+	// zfreeze
+	if (native_format == &m_native_vtx_decl.position)
+	{
+		CMP(32, R(count_reg), Imm8(3));
+		FixupBranch dont_store = J_CC(CC_A);
+		LEA(32, scratch3, MScaled(count_reg, SCALE_4, -4));
+		MOVUPS(MPIC(VertexLoaderManager::position_cache, scratch3, SCALE_4), coords);
+		SetJumpTarget(dont_store);
 	}
 
 	return load_bytes;
@@ -384,6 +428,13 @@ void VertexLoaderX64::GenerateVertexLoader()
 		MOVZX(32, 8, scratch1, MDisp(src_reg, m_src_ofs));
 		AND(32, R(scratch1), Imm8(0x3F));
 		MOV(32, MDisp(dst_reg, m_dst_ofs), R(scratch1));
+
+		// zfreeze
+		CMP(32, R(count_reg), Imm8(3));
+		FixupBranch dont_store = J_CC(CC_A);
+		MOV(32, MPIC(VertexLoaderManager::position_matrix_index - 1, count_reg, SCALE_4), R(scratch1));
+		SetJumpTarget(dont_store);
+
 		m_native_components |= VB_HAS_POSMTXIDX;
 		m_native_vtx_decl.posmtx.components = 4;
 		m_native_vtx_decl.posmtx.enable = true;

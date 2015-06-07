@@ -14,6 +14,7 @@
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -24,6 +25,8 @@ u8* g_vertex_manager_write_ptr;
 static void LOADERDECL PosMtx_ReadDirect_UByte(VertexLoader* loader)
 {
 	u32 posmtx = DataReadU8() & 0x3f;
+	if (loader->m_counter < 3)
+		VertexLoaderManager::position_matrix_index[loader->m_counter] = posmtx;
 	DataWrite<u32>(posmtx);
 	PRIM_LOG("posmtx: %d, ", posmtx);
 }
@@ -316,7 +319,7 @@ int VertexLoader::RunVertices(DataReader src, DataReader dst, int count)
 	m_numLoadedVertices += count;
 	m_skippedVertices = 0;
 
-	for (int s = 0; s < count; s++)
+	for (m_counter = count - 1; m_counter >= 0; m_counter--)
 	{
 		m_tcIndex = 0;
 		m_colIndex = 0;
