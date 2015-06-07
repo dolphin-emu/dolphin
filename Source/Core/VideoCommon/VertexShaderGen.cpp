@@ -377,18 +377,23 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("o.colors_1 = color1;\n");
 	}
 
-	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
-	//if not early z culling will improve speed
+	// If the backend supports an accurate viewport transformation use the
+	// vertex shader to output depth values. If the game uses depth textures
+	// pixel shaders will override with the correct values. If not, early z culling
+	// will improve speed.
 	if (g_ActiveConfig.backend_info.bSupportsClipControl)
 	{
+		// The depth range is inverted for backends that support accurate fast depth,
+		// compensate for that by inverting the depth value. For the full derivation
+		// of the viewport transformation of the depth value refer to the docs.
 		out.Write("o.pos.z = -o.pos.z;\n");
 	}
-	else if (api_type == API_D3D)
+	else
 	{
-		out.Write("o.pos.z = -o.pos.z;\n");
-	}
-	else // OGL
-	{
+		// The backend does not support accurate fast depth, we'll calculate an
+		// inaccurate value here for early z tests. When early z tests are not
+		// needed we output an accurate depth value from the pixel shader.
+
 		// this results in a scale from -1..0 to -1..1 after perspective
 		// divide
 		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");

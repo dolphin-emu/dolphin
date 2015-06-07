@@ -107,7 +107,6 @@ public final class UserPreferences
 		}
 
 		editor.putBoolean("disableDestinationAlpha", getConfig("gfx_opengl.ini", "Settings", "DstAlphaPass", "False").equals("True"));
-		editor.putBoolean("fastDepthCalculation",    getConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", "True").equals("True"));
 		editor.putString("aspectRatio", getConfig("gfx_opengl.ini", "Settings", "AspectRatio", "0"));
 
 		// Apply the changes.
@@ -164,9 +163,6 @@ public final class UserPreferences
 
 		// Whether or not to disable destination alpha.
 		boolean disableDstAlphaPass = prefs.getBoolean("disableDestinationAlpha", false);
-
-		// Whether or not to use fast depth calculation.
-		boolean useFastDepthCalc = prefs.getBoolean("fastDepthCalculation", true);
 
 		// Aspect ratio selection
 		String aspectRatio = prefs.getString("aspectRatio", "0");
@@ -265,7 +261,6 @@ public final class UserPreferences
 		}
 
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "DstAlphaPass", disableDstAlphaPass ? "True" : "False");
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", useFastDepthCalc ? "True" : "False");
 
 		//-- Enhancement Settings --//
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EFBScale", internalResolution);

@@ -657,12 +657,6 @@
                     android:summary="@string/disable_destination_alpha_descrip"
                     android:title="@string/disable_destination_alpha"/>
 
-                <CheckBoxPreference
-                    android:defaultValue="true"
-                    android:key="fastDepthCalculation"
-                    android:summary="@string/fast_depth_calculation_descrip"
-                    android:title="@string/fast_depth_calculation"/>
-
                 <ListPreference
                     android:defaultValue="0"
                     android:entries="@array/aspectRatioEntries"
