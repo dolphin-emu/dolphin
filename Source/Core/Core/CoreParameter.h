@@ -163,6 +163,7 @@ struct SCoreStartupParameter
 
 	bool bFastmem;
 	bool bFPRF;
+	bool bAccurateNaNs;
 
 	bool bCPUThread;
 	bool bDSPThread;
