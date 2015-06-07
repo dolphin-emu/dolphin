@@ -171,7 +171,7 @@ String getNdkPath() {
         def stdout = new ByteArrayOutputStream()
 
         exec {
-            // ndk-build.cmd is a file unique to the root directory of android-ndk-r10d.
+            // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
             commandLine 'locate', 'ndk-build.cmd'
             standardOutput = stdout
         }
