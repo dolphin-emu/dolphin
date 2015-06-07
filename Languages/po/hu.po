@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/hu/)\n"
@@ -5589,9 +5589,8 @@ msgid "Top"
 msgstr "Fent"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Gomb"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6201,25 +6200,3 @@ msgstr "wxExecute visszatért -1 alkalmazás fut!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| VAGY"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Nyomj egy gombot>"
-
-#~ msgid "Action"
-#~ msgstr "Művelet"
-
-#~ msgid "Key"
-#~ msgstr "Bill."
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Bal kattintás a gyorsbillentyű megadásához.\n"
-#~ "Szóköz lenyomásával törlés."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Indítás/Szünet"
-
-#~ msgid "State Saves"
-#~ msgstr "Állás mentések"

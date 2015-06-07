@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/cs/)\n"
@@ -5589,9 +5589,8 @@ msgid "Top"
 msgstr "Nahoře"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Dole"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6204,25 +6203,3 @@ msgstr "wxExecute při běhu aplikace vrátil -1!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| NEBO"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Zmáčkněte klávesu>"
-
-#~ msgid "Action"
-#~ msgstr "Činnost"
-
-#~ msgid "Key"
-#~ msgstr "Klávesa"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Levé kliknutí pro detekci zkratky.\n"
-#~ "Zadejte mezerník pro vyčištění."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Přehrát/Pozastavit"
-
-#~ msgid "State Saves"
-#~ msgstr "Ukládání stavu"

@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fa/)\n"
@@ -5569,9 +5569,8 @@ msgid "Top"
 msgstr "بالا"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "پائین"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6171,25 +6170,3 @@ msgstr "خطای 1- wxExecute در اجرای برنامه!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| یا"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<تکمه فشارى>"
-
-#~ msgid "Action"
-#~ msgstr "اکشن"
-
-#~ msgid "Key"
-#~ msgstr "کلید"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "کلیک چپ برای کشف کلیدهای فوری.\n"
-#~ "کلید فاصله برای پاک کردن."
-
-#~ msgid "Play/Pause"
-#~ msgstr "شروع بازی/مکث"
-
-#~ msgid "State Saves"
-#~ msgstr "ذخیره های وضعیت"

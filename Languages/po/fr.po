@@ -18,8 +18,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-05 08:38+0000\n"
-"Last-Translator: Pascal <pascal2j-language@yahoo.com>\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fr/)\n"
 "Language: fr\n"
@@ -717,7 +717,7 @@ msgstr "Tous les fichiers ISO compressés de GC/Wii (gcz)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Anaglyph"
-msgstr ""
+msgstr "Anaglyphe"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:265
 msgid "Analyze"
@@ -4191,7 +4191,7 @@ msgstr "Nunchuck"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Nvidia 3D Vision"
-msgstr ""
+msgstr "nVidia 3D Vision"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:894
 msgid "Object"
@@ -5309,7 +5309,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Side-by-Side"
-msgstr ""
+msgstr "Côte-à-côte"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Sideways Wiimote"
@@ -5686,13 +5686,13 @@ msgid "The chosen directory is already in the list."
 msgstr "Le dossier sélectionné est déjà dans la liste"
 
 #: Source/Core/Core/HW/DVDInterface.cpp:535
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
 msgstr ""
-"Le changement de disque vers \"nouveauNomDeFichier\" ne peut être sauvegardé "
-"dans le .dtm.\n"
+"Le changement de disque vers \"%s\" ne peut être sauvegardé dans le fichier ."
+"dtm.\n"
 "Le nom de fichier de l'image du disque ne doit pas dépasser 40 caractères."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:110
@@ -5966,9 +5966,8 @@ msgid "Top"
 msgstr "Haut"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Bas"
+msgstr "Dessus-dessous"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6598,31 +6597,3 @@ msgstr "wxExecute a retourné -1 sur l'exécution de l'application !"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid "&Key Shortcuts"
-#~ msgstr "&Raccourcis clavier"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Appuyez sur une touche>"
-
-#~ msgid "Action"
-#~ msgstr "Action"
-
-#~ msgid "Key"
-#~ msgstr "Touche"
-
-#~ msgid "Key Shortcuts"
-#~ msgstr "Raccourcis clavier"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Clic gauche pour détecter le raccourci clavier.\n"
-#~ "Touche Espace pour effacer."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Démarrer/Arrêter"
-
-#~ msgid "State Saves"
-#~ msgstr "États sauvegardés"

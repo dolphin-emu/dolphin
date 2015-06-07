@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/zh_TW/)\n"
@@ -5457,9 +5457,8 @@ msgid "Top"
 msgstr "上方"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "下方"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6029,25 +6028,3 @@ msgstr "wxExecute 返回 -1 在應用程式執行時！"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<按任意鍵>"
-
-#~ msgid "Action"
-#~ msgstr "操作"
-
-#~ msgid "Key"
-#~ msgstr "鍵"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "按左鍵檢測快捷鍵。\n"
-#~ "按鍵盤空白鍵為清除。"
-
-#~ msgid "Play/Pause"
-#~ msgstr "執行/暫停"
-
-#~ msgid "State Saves"
-#~ msgstr "即時存檔"

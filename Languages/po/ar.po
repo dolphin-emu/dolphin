@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ar/)\n"
@@ -5496,9 +5496,8 @@ msgid "Top"
 msgstr "أعلى"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "أسفل"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6074,25 +6073,3 @@ msgstr "wxExecute returned -1 on application run!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "أو"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<اضغط على مفتاح>"
-
-#~ msgid "Action"
-#~ msgstr "العمل"
-
-#~ msgid "Key"
-#~ msgstr "المفتاح"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "انقر الأيسر لاكتشاف مفاتيح الاختصار.\n"
-#~ "أدخل لمسح المساحة."
-
-#~ msgid "Play/Pause"
-#~ msgstr "بدأ/ايقاف"
-
-#~ msgid "State Saves"
-#~ msgstr "حفظ الحالة"

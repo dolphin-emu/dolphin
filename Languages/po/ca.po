@@ -15,8 +15,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-05 11:43+0000\n"
-"Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ca/)\n"
 "Language: ca\n"
@@ -5612,9 +5612,8 @@ msgid "Top"
 msgstr "Dalt"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Fons"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6228,25 +6227,3 @@ msgstr "wxExecute Ha retornat -1 en  l'execució de l'aplicació!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| O"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Prem alguna tecla>"
-
-#~ msgid "Action"
-#~ msgstr "Acció"
-
-#~ msgid "Key"
-#~ msgstr "Clau"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Clic esquerre per detectar tecles d'accés. \n"
-#~ "Entrar a l'espai per esborrar."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Reproduir/Pausa"
-
-#~ msgid "State Saves"
-#~ msgstr "Estats desats"

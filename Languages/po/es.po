@@ -18,7 +18,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/es/)\n"
@@ -5626,9 +5626,8 @@ msgid "Top"
 msgstr "Superior"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Inferior"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6243,25 +6242,3 @@ msgstr "¡wxExecute dio un -1 al iniciar la aplicación!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Pulsa la tecla>"
-
-#~ msgid "Action"
-#~ msgstr "Acción"
-
-#~ msgid "Key"
-#~ msgstr "Clave"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Clic izquierdo para detectar atajos.\n"
-#~ "Introduce espacio para limpiar."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Reproducir/pausa"
-
-#~ msgid "State Saves"
-#~ msgstr "Estados guardados"

@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Turkish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/tr/)\n"
@@ -5594,9 +5594,8 @@ msgid "Top"
 msgstr "Üst"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Alt"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6208,25 +6207,3 @@ msgstr "wxExecute uygulama çalışırken -1 döndürdü!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| VEYA"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Tuşa Basın>"
-
-#~ msgid "Action"
-#~ msgstr "Eylem"
-
-#~ msgid "Key"
-#~ msgstr "Tuş"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Tuş belirlemek için sol tıklatın. \n"
-#~ "Temizlemek için space'ye basın."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Oynat/Duraklat"
-
-#~ msgid "State Saves"
-#~ msgstr "Durum Kayıtları"

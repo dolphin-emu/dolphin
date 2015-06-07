@@ -17,8 +17,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-05 10:05+0000\n"
-"Last-Translator: 天绝星 <c.cejhb@gmail.com>\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/zh_CN/)\n"
 "Language: zh_CN\n"
@@ -695,7 +695,7 @@ msgstr "压缩的 GC/Wii 镜像文件 (gcz)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Anaglyph"
-msgstr ""
+msgstr "视差图像"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:265
 msgid "Analyze"
@@ -4076,7 +4076,7 @@ msgstr "双节棍控制器"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Nvidia 3D Vision"
-msgstr ""
+msgstr "英伟达 3D 立体幻镜"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:894
 msgid "Object"
@@ -5166,7 +5166,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
 msgid "Side-by-Side"
-msgstr ""
+msgstr "左右并排"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
 msgid "Sideways Wiimote"
@@ -5532,12 +5532,12 @@ msgid "The chosen directory is already in the list."
 msgstr "所选目录已经在列表中。"
 
 #: Source/Core/Core/HW/DVDInterface.cpp:535
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
 msgstr ""
-"无法将磁盘切换至“新文件名”保存至 .dtm 文件。\n"
+"磁盘切换为 \"%s\" 无法保存至 .dtm 文件。\n"
 "磁盘镜像的文件名不能超过 40 个字符。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:110
@@ -5792,9 +5792,8 @@ msgid "Top"
 msgstr "顶部"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "底部"
+msgstr "上下并排"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6406,31 +6405,3 @@ msgstr "wxExecute 在应用运行时返回了  -1！ "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid "&Key Shortcuts"
-#~ msgstr "快捷键(&K)"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<请按键>"
-
-#~ msgid "Action"
-#~ msgstr "操作"
-
-#~ msgid "Key"
-#~ msgstr "按键"
-
-#~ msgid "Key Shortcuts"
-#~ msgstr "快捷键"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "左键单击检测热键。\n"
-#~ "按空格清除。"
-
-#~ msgid "Play/Pause"
-#~ msgstr "开始/暂停"
-
-#~ msgid "State Saves"
-#~ msgstr "状态存档"

@@ -15,7 +15,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/nl/)\n"
@@ -5614,9 +5614,8 @@ msgid "Top"
 msgstr "Boven"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Onder"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6237,25 +6236,3 @@ msgstr "wxExecute retourneerde -1 bij het draaien van de applicatie!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OF"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Druk op een knop>"
-
-#~ msgid "Action"
-#~ msgstr "Actie"
-
-#~ msgid "Key"
-#~ msgstr "Toets"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Links-klik om sneltoetsen te detecteren.\n"
-#~ "Druk op spatie om te legen."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Spel/Pauze"
-
-#~ msgid "State Saves"
-#~ msgstr "Opgeslage Staten"

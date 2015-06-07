@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Korean (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ko/)\n"
@@ -5581,9 +5581,8 @@ msgid "Top"
 msgstr "위"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "아래"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6193,25 +6192,3 @@ msgstr "애플리케이션 구동상에서 wxExecute가 -1을 반환했습니다
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<키를 누르세요>"
-
-#~ msgid "Action"
-#~ msgstr "   [ 액션 ]"
-
-#~ msgid "Key"
-#~ msgstr "        [ 키 ]"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "단축키를 감지하려면 좌 클릭하세요.\n"
-#~ "지우려면 스페이스를 입력하세요."
-
-#~ msgid "Play/Pause"
-#~ msgstr "실행/일시정지"
-
-#~ msgid "State Saves"
-#~ msgstr "상태 저장"

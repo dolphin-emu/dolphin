@@ -14,8 +14,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-05 05:21+0000\n"
-"Last-Translator: DanbSky <smariojp@gmail.com>\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Japanese (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -31,6 +31,10 @@ msgid ""
 "\n"
 "This software should not be used to play games you do not legally own.\n"
 msgstr ""
+"\n"
+"Dolphin is a free and open-source GameCube and Wii emulator.\n"
+"\n"
+"This software should not be used to play games you do not legally own.\n"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:527
 msgid " (internal IP)"
@@ -394,6 +398,8 @@ msgid ""
 "(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of "
 "Nintendo. Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
+"(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of "
+"Nintendo. Dolphin is not affiliated with Nintendo in any way."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:724
 msgid "(off)"
@@ -795,7 +801,7 @@ msgstr "オーストラリア"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:61
 msgid "Authors"
-msgstr ""
+msgstr "開発チーム"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:44
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:153
@@ -931,7 +937,7 @@ msgstr "コマンド数: %lu"
 #: Source/Core/DolphinWX/AboutDolphin.cpp:52
 #, c-format
 msgid "Branch: %s"
-msgstr ""
+msgstr "Branch: %s"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:382
 msgid "Broken"
@@ -1117,7 +1123,7 @@ msgstr "パーティションの整合性をチェック"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:55
 msgid "Check for updates: "
-msgstr "最新版の入手先"
+msgstr "最新版の入手先："
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:968
 msgid "Checking integrity..."
@@ -1215,7 +1221,7 @@ msgstr "コメント"
 #: Source/Core/DolphinWX/AboutDolphin.cpp:54
 #, c-format
 msgid "Compiled: %s @ %s"
-msgstr ""
+msgstr "Compiled: %s @ %s"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:867
 msgid "Compress ISO..."
@@ -1523,15 +1529,15 @@ msgstr "DSPエミュレーション方式"
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:32
 #: Source/Core/DolphinWX/ISOProperties.cpp:345
 msgid "DSP HLE emulation (fast)"
-msgstr "DSP-HLE エミュレーション (高速)"
+msgstr "DSP HLE emulation (高速)"
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:34
 msgid "DSP LLE interpreter (slow)"
-msgstr "DSP-LLE インタプリタ (低速)"
+msgstr "DSP LLE interpreter (低速)"
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:33
 msgid "DSP LLE recompiler"
-msgstr "DSP-LLE リコンパイラ"
+msgstr "DSP LLE recompiler"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:74
 msgid "DVD Root:"
@@ -2038,7 +2044,7 @@ msgstr "アクションリプレイコードのログを取得する"
 
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:24
 msgid "Enable CPU Clock Override"
-msgstr "CPU Clock Override 有効化"
+msgstr "CPU Clock Override を使用する"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:53
 msgid "Enable Cheats"
@@ -2285,7 +2291,7 @@ msgstr "ヨーロッパ"
 #: Source/Core/Core/PowerPC/JitArm32/JitArm_BackPatch.cpp:193
 #, c-format
 msgid "Exception handler - access below memory space. 0x%08x"
-msgstr ""
+msgstr "Exception handler - access below memory space. 0x%08x"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:53
 msgid "Execute"
@@ -3022,6 +3028,18 @@ msgid ""
 "cause glitches. Do so at your own risk. Please do not report bugs that occur "
 "with a non-default clock. "
 msgstr ""
+"値を大きくすることでCPU性能を増大させ、\n"
+"不安定な速度で動作するタイトルの\n"
+"フレームレートを安定させることができます。\n"
+"逆に小さくすれば、動作速度は低下しますが\n"
+"CPUの負荷も小さくなります。\n"
+"\n"
+"注意：\n"
+"デフォルト(100%)以外の値では、\n"
+"クラッシュやバグが発生する可能性があります。\n"
+"あくまでも自己責任での使用を前提とし、\n"
+"デフォルト以外の値で発生したバグについては\n"
+"報告しないでください。"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
 msgid "Home"
@@ -3078,7 +3096,7 @@ msgstr ""
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:937
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
-msgstr ""
+msgstr "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:100
 msgid "IPL Settings"
@@ -3087,7 +3105,7 @@ msgstr "IPL設定"
 #: Source/Core/Core/Boot/Boot.cpp:182
 #, c-format
 msgid "IPL with unknown hash %x"
-msgstr ""
+msgstr "IPL with unknown hash %x"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:115
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:263
@@ -3488,7 +3506,7 @@ msgstr "より小さい"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:60
 msgid "License"
-msgstr ""
+msgstr "ライセンス"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid ""
@@ -4541,7 +4559,7 @@ msgstr "リビジョン"
 #: Source/Core/DolphinWX/AboutDolphin.cpp:53
 #, c-format
 msgid "Revision: %s"
-msgstr ""
+msgstr "Revision: %s"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:49
 #: Source/Core/InputCommon/ControllerEmu.cpp:186
@@ -4873,6 +4891,15 @@ msgid ""
 "\n"
 "If unsure, select Off."
 msgstr ""
+"立体視の表示方式を選択できます。立体視が可能なハードウェアが必要ですが、より"
+"良い奥行き感が味わえます。\n"
+"多くの3Dテレビでは、Side-by-Side または Top-and-Bottom 方式を採用していま"
+"す。\n"
+"3Dメガネの場合は Anaglyph を選んでください。\n"
+"このオプションはエミュレーション速度に大きな影響があり、 時に描画バグの原因に"
+"もなります。\n"
+"\n"
+"よく分からなければ、Off にしてください。"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:95
 msgid ""
@@ -5355,12 +5382,12 @@ msgstr "SPEED FORCE"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Stereoscopic 3D Mode:"
-msgstr ""
+msgstr "表示方式"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:412
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:454
 msgid "Stereoscopy"
-msgstr ""
+msgstr "立体視"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:57
 msgid "Stick"
@@ -5404,11 +5431,11 @@ msgstr "%u セーブデータを %s へエクスポートすることに成功�
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:62
 msgid "Support"
-msgstr ""
+msgstr "サポート"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:452
 msgid "Swap Eyes"
-msgstr ""
+msgstr "視点を入れ替える"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:146
 msgid ""
@@ -5417,6 +5444,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"有効にすると左右の視点を入れ替えます。交差法を試したい時に有効です。\n"
+"\n"
+"よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:266
 msgid "Swing"
@@ -5679,6 +5709,10 @@ msgid ""
 "\n"
 "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX."
 msgstr ""
+"このタイトルは DSP HLE に対応していないようです。\n"
+"HomeBrewの場合は DSP LLE を試してください。\n"
+"\n"
+"DSPHLE: Unknown ucode (CRC = %08x) - forcing AX."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:90
 #, c-format
@@ -5688,6 +5722,10 @@ msgid ""
 "\n"
 "Unknown ucode (CRC = %08x) - forcing AXWii."
 msgstr ""
+"このタイトルは DSP HLE に対応していないようです。\n"
+"HomeBrewの場合は DSP LLE を試してください。\n"
+"\n"
+"Unknown ucode (CRC = %08x) - forcing AXWii."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:372
 msgid ""
@@ -5772,9 +5810,8 @@ msgid "Top"
 msgstr "上部"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "下部"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6104,6 +6141,10 @@ msgid ""
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
+"注意：ムービーのバイト%d (0x%X)上にミスマッチするステートをロードしました。作"
+"業を続行する前に、他のステートをロード、または読み取り専用モードをオフにして"
+"このステートをロードする必要があります。無視して続けると、おそらくDesyncしま"
+"す。"
 
 #: Source/Core/Core/Movie.cpp:966
 #, c-format
@@ -6309,7 +6350,7 @@ msgid ""
 msgstr ""
 "SYSCONFファイルのサイズが正しくないようです\n"
 "正しくは 0x%04x (このファイルは 0x%04<PRIx64>)\n"
-"新しく作成しますか？"
+"新しいものを作成しますか？"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:413
 msgid "Z"
@@ -6368,31 +6409,3 @@ msgstr "wxExecute returned -1 on application run!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| (...もしくは)"
-
-#~ msgid "&Key Shortcuts"
-#~ msgstr "ショートカットキーの設定(&K)"
-
-#~ msgid "<Press Key>"
-#~ msgstr "入力を待機..."
-
-#~ msgid "Action"
-#~ msgstr "動作"
-
-#~ msgid "Key"
-#~ msgstr "キー設定"
-
-#~ msgid "Key Shortcuts"
-#~ msgstr "ショートカットキーの設定"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "左クリックでキーの入力待ち\n"
-#~ "スペースキーを入力で消去します"
-
-#~ msgid "Play/Pause"
-#~ msgstr "開始／一時停止"
-
-#~ msgid "State Saves"
-#~ msgstr "ステートセーブ／ロード"

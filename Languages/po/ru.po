@@ -15,7 +15,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ru/)\n"
@@ -5475,9 +5475,8 @@ msgid "Top"
 msgstr "сверху"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "снизу"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6046,18 +6045,3 @@ msgstr "wxExecute вернул -1 при запуске приложения!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| ИЛИ"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Нажмите кнопку>"
-
-#~ msgid "Action"
-#~ msgstr "Действие"
-
-#~ msgid "Key"
-#~ msgstr "Комбинация"
-
-#~ msgid "Play/Pause"
-#~ msgstr "Старт/Пауза"
-
-#~ msgid "State Saves"
-#~ msgstr "Быстрые сохранения"

@@ -14,7 +14,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-04 21:33+0000\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/nb/)\n"
@@ -5604,9 +5604,8 @@ msgid "Top"
 msgstr "Topp"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Bunn"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6219,25 +6218,3 @@ msgstr "wxExecute returnerte -1 på applikasjonskjøring!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Trykk på en knapp>"
-
-#~ msgid "Action"
-#~ msgstr "Handling"
-
-#~ msgid "Key"
-#~ msgstr "Tast"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Venstreklikk for å oppdage hot-taster.\n"
-#~ "Trykk space for å klarere."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Spill/Pause"
-
-#~ msgid "State Saves"
-#~ msgstr "Hurtiglagringsfiler"

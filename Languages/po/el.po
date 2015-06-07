@@ -13,8 +13,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-07 10:44+0000\n"
-"PO-Revision-Date: 2015-06-05 14:00+0000\n"
-"Last-Translator: link_to_the_past <kostamarino@gmail.com>\n"
+"PO-Revision-Date: 2015-06-07 10:44+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Greek (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/el/)\n"
 "Language: el\n"
@@ -321,7 +321,7 @@ msgstr "&Ιδιότητες"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:431
 msgid "&Read-Only Mode"
-msgstr ""
+msgstr "&Μόνο Για Ανάγνωση"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:402
 msgid "&Refresh List"
@@ -373,11 +373,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:59
 msgid "(Error: Disconnected)"
-msgstr ""
+msgstr "(Σφάλμα: Αποσύνδεση)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:57
 msgid "(Error: Dolphin too old)"
-msgstr ""
+msgstr "(Σφάλμα: Το Dolphin είναι πολύ παλιό)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:61
 msgid "(Error: Socket)"
@@ -385,11 +385,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:63
 msgid "(Error: Timeout)"
-msgstr ""
+msgstr "(Σφάλμα: Δεν Αποκρίνεται)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:65
 msgid "(Error: Unknown)"
-msgstr ""
+msgstr "(Σφάλμα: Άγνωστο)"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:51
 msgid ""
@@ -652,7 +652,7 @@ msgstr "Όλα τα αρχεία GC/Wii (elf, dol, gcm, iso, wbfs, ciso, gcz, wa
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1171
 msgid "All GameCube GCM files (gcm)"
-msgstr ""
+msgstr "Όλα τα αρχεία GameCube GCM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1587
 #: Source/Core/DolphinWX/FrameTools.cpp:1601
@@ -1095,7 +1095,7 @@ msgstr "Έλεγχος Ακεραιότητας Κατάτμησης"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:55
 msgid "Check for updates: "
-msgstr ""
+msgstr "Ελέγξτε για ενημερώσεις:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:968
 msgid "Checking integrity..."
@@ -1568,7 +1568,7 @@ msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:63
 msgid "Decrease Depth"
-msgstr ""
+msgstr "Μείωση Βάθους"
 
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Decrease Frame limit"
@@ -1610,7 +1610,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:442
 msgid "Depth:"
-msgstr ""
+msgstr "Βάθος:"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:701
 msgid "Description"
@@ -1618,7 +1618,7 @@ msgstr "Περιγραφή"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:549
 msgid "Description:"
-msgstr ""
+msgstr "Περιγραφή:"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:567
 msgid "Detect"
@@ -1640,7 +1640,7 @@ msgstr "Ρυθμίσεις Συσκευής"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:259
 msgid "Device not found"
-msgstr ""
+msgstr "Η συσκευή δεν βρέθηκε"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:49
 msgid "Dial"
@@ -1672,7 +1672,7 @@ msgstr "Απενεργοποίηση"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:522
 msgid "Disable Bounding Box"
-msgstr ""
+msgstr "Απενεργοποίηση Bounding Box"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Disable Destination Alpha"
@@ -1787,7 +1787,7 @@ msgstr "Πλήκτρα Συντόμευσης Dolphin"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:90
 msgid "Dolphin NetPlay"
-msgstr ""
+msgstr "Dolphin NetPlay"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:42
 msgid "Dolphin NetPlay Setup"
@@ -2342,7 +2342,7 @@ msgstr "Μέγεθος FST:"
 
 #: Source/Core/Core/NetPlayClient.cpp:171
 msgid "Failed To Connect!"
-msgstr ""
+msgstr "Αποτυχία Σύνδεσης!"
 
 #: Source/Core/Core/NetPlayClient.cpp:115
 msgid "Failed to Connect!"
@@ -2736,7 +2736,7 @@ msgstr "Πλήρης Οθόνη"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:280
 msgid "Fullscreen Resolution:"
-msgstr ""
+msgstr "Ανάλυση Πλήρους Οθόνης:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "GBA"
@@ -3622,7 +3622,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:453
 msgid "Memcard already has a save for this title."
-msgstr ""
+msgstr "Η κάρτα μνήμης έχει ήδη αποθηκευμένα δεδομένα για τον τίτλο."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:296
 msgid "Memcard already opened"
@@ -3967,7 +3967,7 @@ msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:167
 msgid "Nunchuk orientation"
-msgstr ""
+msgstr "Nunchuk προσανατολισμός"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:162
 msgid "Nunchuk stick"
@@ -4140,7 +4140,7 @@ msgstr "Παύση"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:209
 msgid "Pause at End of Movie"
-msgstr ""
+msgstr "Παύση στο Τέλος της Ταινίας"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:102
 msgid "Pause on Focus Lost"
@@ -5627,9 +5627,8 @@ msgid "Top"
 msgstr "Κορυφή"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
-#, fuzzy
 msgid "Top-and-Bottom"
-msgstr "Βάση"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
 #: Source/Core/DolphinWX/ISOProperties.cpp:529
@@ -6248,28 +6247,3 @@ msgstr "Το wxExecute επέστρεψε -1 κατά την εκκίνηση τ
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:574
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "<Press Key>"
-#~ msgstr "<Πατήστε Πλήκτρο>"
-
-#~ msgid "Action"
-#~ msgstr "Ενέργεια"
-
-#~ msgid "Key"
-#~ msgstr "Πλήκτρο"
-
-#~ msgid "Key Shortcuts"
-#~ msgstr "Συντομεύσεις Πλήκτρων"
-
-#~ msgid ""
-#~ "Left click to detect hotkeys.\n"
-#~ "Enter space to clear."
-#~ msgstr ""
-#~ "Αριστερό κλίκ για εντοπισμό των πλήκτρων συντόμευσης.\n"
-#~ "Πατήστε το πλήκτρο διαστήματος για καθαρισμό."
-
-#~ msgid "Play/Pause"
-#~ msgstr "Αναπαραγωγή/Παύση"
-
-#~ msgid "State Saves"
-#~ msgstr "Σημεία Αποθήκευσης"
