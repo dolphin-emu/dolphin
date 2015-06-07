@@ -18,13 +18,10 @@
 #include "DolphinWX/Config/GeneralConfigPane.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 
-
-struct CPUCore
+GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
+	: wxPanel(parent, id)
 {
-	int CPUid;
-	wxString name;
-};
-static const CPUCore cpu_cores[] = {
+	cpu_cores = {
 		{ 0, _("Interpreter (VERY slow)") },
 #ifdef _M_X86_64
 		{ 1, _("JIT Recompiler (recommended)") },
@@ -34,11 +31,8 @@ static const CPUCore cpu_cores[] = {
 #elif defined(_M_ARM_64)
 		{ 4, _("Arm64 JIT (experimental)") },
 #endif
-};
+	};
 
-GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
-	: wxPanel(parent, id)
-{
 	InitializeGUI();
 	LoadGUIValues();
 	RefreshGUI();

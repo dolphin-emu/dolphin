@@ -38,22 +38,22 @@
 #include "DolphinWX/X11Utils.h"
 #endif
 
-const std::array<wxString, 8> ControllerConfigDiag::m_gc_pad_type_strs = {{
-	_("None"),
-	_("Standard Controller"),
-	_("Steering Wheel"),
-	_("Dance Mat"),
-	_("TaruKonga (Bongos)"),
-	_("GBA"),
-	_("Keyboard"),
-	_("AM-Baseboard")
-}};
-
 wxDEFINE_EVENT(wxEVT_ADAPTER_UPDATE, wxCommandEvent);
 
 ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 	: wxDialog(parent, wxID_ANY, _("Dolphin Controller Configuration"))
 {
+	m_gc_pad_type_strs = {
+		_("None"),
+		_("Standard Controller"),
+		_("Steering Wheel"),
+		_("Dance Mat"),
+		_("TaruKonga (Bongos)"),
+		_("GBA"),
+		_("Keyboard"),
+		_("AM-Baseboard")
+	};
+
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
 	// Combine all UI controls into their own encompassing sizer.
@@ -287,7 +287,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateBalanceBoardSizer()
 	m_wiimote_index_from_ctrl_id.insert(std::pair<wxWindowID, unsigned int>(source_ctrl_id, WIIMOTE_BALANCE_BOARD));
 
 	static const std::array<wxString, 2> src_choices = {{
-		("None"), _("Real Balance Board")
+		_("None"), _("Real Balance Board")
 	}};
 
 	wxChoice* const bb_source = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize, src_choices.size(), src_choices.data());
