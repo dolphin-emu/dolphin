@@ -89,3 +89,16 @@ void SetCardFlashID(u8* buffer, u8 card_index)
 	g_SRAM.flashID_chksum[card_index] = csum^0xFF;
 }
 
+void FixSRAMChecksums()
+{
+	u16 checksum = 0;
+	u16 checksum_inv = 0;
+	for (int i = 0x0C; i < 0x14; i += 2)
+	{
+		int value = (g_SRAM.p_SRAM[i] << 8) + g_SRAM.p_SRAM[i+1];
+		checksum += value;
+		checksum_inv += value ^ 0xFFFF;
+	}
+	g_SRAM.checksum = Common::swap16(checksum);
+	g_SRAM.checksum_inv = Common::swap16(checksum_inv);
+}

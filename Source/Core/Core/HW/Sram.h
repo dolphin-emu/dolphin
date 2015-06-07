@@ -66,6 +66,7 @@ union SRAM
 #pragma pack(pop)
 void InitSRAM();
 void SetCardFlashID(u8* buffer, u8 card_index);
+void FixSRAMChecksums();
 
 extern SRAM sram_dump;
 extern SRAM g_SRAM;

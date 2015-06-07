@@ -116,6 +116,7 @@ CEXIIPL::CEXIIPL() :
 
 	// We Overwrite language selection here since it's possible on the GC to change the language as you please
 	g_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	FixSRAMChecksums();
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
 	m_uAddress = 0;
