@@ -8,6 +8,9 @@ package org.dolphinemu.dolphinemu;
 
 import android.util.Log;
 import android.view.Surface;
+import android.widget.Toast;
+
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 /**
  * Class which contains methods that interact
@@ -15,6 +18,8 @@ import android.view.Surface;
  */
 public final class NativeLibrary
 {
+	private static EmulationActivity mEmulationActivity;
+
 	/**
 	 * Button type for use in onTouchEvent
 	 */
@@ -235,6 +240,13 @@ public final class NativeLibrary
 	/** Native EGL functions not exposed by Java bindings **/
 	public static native void eglBindAPI(int api);
 
+	/**
+	 * The methods C++ uses to find references to Java classes and methods
+	 * are really expensive. Rather than calling them every time we want to
+	 * run them, do it once when we load the native library.
+	 */
+	private static native void CacheClassesAndMethods();
+
 	static
 	{
 		try
@@ -245,5 +257,26 @@ public final class NativeLibrary
 		{
 			Log.e("NativeLibrary", ex.toString());
 		}
+
+		CacheClassesAndMethods();
+	}
+
+	public static void displayAlertMsg(final String alert)
+	{
+		Log.e("DolphinEmu", "Alert: " + alert);
+		mEmulationActivity.runOnUiThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Toast.makeText(mEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+
+	public static void setEmulationActivity(EmulationActivity emulationActivity)
+	{
+		Log.v("DolphinEmu", "Registering EmulationActivity.");
+		mEmulationActivity = emulationActivity;
 	}
 }

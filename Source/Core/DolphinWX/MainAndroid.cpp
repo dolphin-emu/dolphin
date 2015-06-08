@@ -37,12 +37,26 @@ ANativeWindow* surf;
 std::string g_filename;
 std::string g_set_userpath = "";
 
+JavaVM* g_java_vm;
+jclass g_jni_class;
+jmethodID g_jni_method_alert;
+
 // PanicAlert
 static bool g_alert_available = false;
 static std::string g_alert_message = "";
 static Common::Event g_alert_event;
 
 #define DOLPHIN_TAG "DolphinEmuNative"
+
+/*
+ * Cache the JavaVM so that we can call into it later.
+ */
+jint JNI_OnLoad(JavaVM* vm, void* reserved)
+{
+	g_java_vm = vm;
+
+	return JNI_VERSION_1_6;
+}
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
@@ -99,6 +113,18 @@ void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
+	__android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "%s:%s", caption, text);
+
+	// Associate the current Thread with the Java VM.
+	JNIEnv* env;
+	g_java_vm->AttachCurrentThread(&env, NULL);
+
+	// Execute the Java method.
+	env->CallStaticVoidMethod(g_jni_class, g_jni_method_alert, env->NewStringUTF(text));
+
+	// Must be called before the current thread exits; might as well do it here.
+	g_java_vm->DetachCurrentThread();
+
 	g_alert_message = std::string(text);
 	g_alert_available = true;
 	// XXX: Uncomment next line when the Android UI actually handles messages
@@ -365,10 +391,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf);
 
-// MsgAlert
+// Msg
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_HasAlertMsg(JNIEnv *env, jobject obj);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetAlertMsg(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ClearAlertMsg(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv *env, jobject obj);
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv *env, jobject obj)
 {
@@ -577,6 +604,22 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetAlertM
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ClearAlertMsg(JNIEnv *env, jobject obj)
 {
 	g_alert_event.Set(); // Kick the alert
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv *env, jobject obj)
+{
+	// This class reference is only valid for the lifetime of this method.
+	jclass localClass = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
+
+	// This reference, however, is valid until we delete it.
+	g_jni_class = reinterpret_cast<jclass>(env->NewGlobalRef(localClass));
+
+	// TODO Find a place for this.
+	// So we don't leak a reference to NativeLibrary.class.
+	// env->DeleteGlobalRef(g_jni_class);
+
+	// Method signature taken from javap -s Source/Android/app/build/intermediates/classes/arm/debug/org/dolphinemu/dolphinemu/NativeLibrary.class
+	g_jni_method_alert = env->GetStaticMethodID(g_jni_class, "displayAlertMsg", "(Ljava/lang/String;)V");
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
