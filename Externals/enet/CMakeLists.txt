@@ -8,6 +8,8 @@ include(CheckStructHasMember)
 include(CheckTypeSize)
 check_function_exists("fcntl" HAS_FCNTL)
 check_function_exists("poll" HAS_POLL)
+check_function_exists("getaddrinfo" HAS_GETADDRINFO)
+check_function_exists("getnameinfo" HAS_GETNAMEINFO)
 check_function_exists("gethostbyname_r" HAS_GETHOSTBYNAME_R)
 check_function_exists("gethostbyaddr_r" HAS_GETHOSTBYADDR_R)
 check_function_exists("inet_pton" HAS_INET_PTON)
@@ -16,12 +18,18 @@ check_struct_has_member("struct msghdr" "msg_flags" "sys/types.h;sys/socket.h" H
 set(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h" "sys/socket.h")
 check_type_size("socklen_t" HAS_SOCKLEN_T BUILTIN_TYPES_ONLY)
 unset(CMAKE_EXTRA_INCLUDE_FILES)
-
+ 
 if(HAS_FCNTL)
     add_definitions(-DHAS_FCNTL=1)
 endif()
 if(HAS_POLL)
     add_definitions(-DHAS_POLL=1)
+endif()
+if(HAS_GETNAMEINFO)
+    add_definitions(-DHAS_GETNAMEINFO=1)
+endif()
+if(HAS_GETADDRINFO)
+    add_definitions(-DHAS_GETADDRINFO=1)
 endif()
 if(HAS_GETHOSTBYNAME_R)
     add_definitions(-DHAS_GETHOSTBYNAME_R=1)
@@ -41,9 +49,9 @@ endif()
 if(HAS_SOCKLEN_T)
     add_definitions(-DHAS_SOCKLEN_T=1)
 endif()
-
+ 
 include_directories(${PROJECT_SOURCE_DIR}/include)
-
+ 
 add_library(enet STATIC
         callbacks.c
         compress.c
