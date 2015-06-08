@@ -17,6 +17,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/DSP/DSPCore.h"
@@ -139,6 +140,8 @@ std::string GetInputDisplay()
 
 void FrameUpdate()
 {
+	// TODO[comex]: This runs on the GPU thread, yet it messes with the CPU
+	// state directly.  That's super sketchy.
 	g_currentFrame++;
 	if (!s_bPolled)
 		g_currentLagCount++;

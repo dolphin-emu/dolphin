@@ -442,6 +442,26 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	}
 	break;
 
+	case NP_MSG_DESYNC_DETECTED:
+	{
+		int pid_to_blame;
+		u32 frame;
+		packet >> pid_to_blame;
+		packet >> frame;
+		const char* blame_str = "";
+		const char* blame_name = "";
+		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+		if (pid_to_blame != -1)
+		{
+			auto it = m_players.find(pid_to_blame);
+			blame_str = " from player ";
+			blame_name = it != m_players.end() ? it->second.name.c_str() : "??";
+		}
+
+		m_dialog->AppendChat(StringFromFormat("/!\\ Possible desync detected%s%s on frame %u", blame_str, blame_name, frame));
+	}
+	break;
+
 	default:
 		PanicAlertT("Unknown message received with id : %d", mid);
 		break;
@@ -642,6 +662,8 @@ bool NetPlayClient::StartGame(const std::string &path)
 	}
 
 	m_dialog->AppendChat(" -- STARTING GAME -- ");
+
+	m_timebase_frame = 0;
 
 	m_is_running.store(true);
 	NetPlay_Enable(this);
@@ -1042,6 +1064,20 @@ u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)
 	}
 
 	return ingame_pad;
+}
+
+void NetPlayClient::SendTimeBase()
+{
+	std::lock_guard<std::mutex> lk(crit_netplay_client);
+
+	u64 timebase = SystemTimers::GetFakeTimeBase();
+
+	sf::Packet* spac = new sf::Packet;
+	*spac << (MessageId)NP_MSG_TIMEBASE;
+	*spac << (u32)timebase;
+	*spac << (u32)(timebase << 32);
+	*spac << netplay_client->m_timebase_frame++;
+	netplay_client->SendAsync(spac);
 }
 
 // stuff hacked into dolphin
