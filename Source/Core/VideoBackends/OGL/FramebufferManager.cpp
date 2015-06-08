@@ -326,7 +326,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	gl_Position = vec4(((rawpos + 0.5) / vec2(640.0, 528.0) * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0);\n"
 		"	gl_PointSize = %d.0 / 640.0;\n"
 		"	v_c = color0.bgra;\n"
-		"	v_z = (color1 & 0xFFFFFF) / 16777216.0;\n"
+		"	v_z = float(color1 & 0xFFFFFF) / 16777216.0;\n"
 		"}\n", m_targetWidth).c_str(),
 
 		StringFromFormat(
