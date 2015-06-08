@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toolbar;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
@@ -50,9 +51,10 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 		ImageButton buttonAddDirectory = (ImageButton) findViewById(R.id.button_add_directory);
 		RecyclerView recyclerView = (RecyclerView) findViewById(R.id.grid_games);
 
-		// use this setting to improve performance if you know that changes
-		// in content do not change the layout size of the RecyclerView
-		//mRecyclerView.setHasFixedSize(true);
+		// TODO Rather than calling into native code, this should use the commented line below.
+		// String versionName = BuildConfig.VERSION_NAME;
+		String versionName = NativeLibrary.GetVersionString();
+		toolbar.setSubtitle(versionName);
 
 		// Specifying the LayoutManager determines how the RecyclerView arranges views.
 		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this,
