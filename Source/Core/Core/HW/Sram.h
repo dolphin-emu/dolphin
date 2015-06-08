@@ -38,6 +38,20 @@ distribution.
 #include "Common/CommonTypes.h"
 
 #pragma pack(push,1)
+union SRAMFlags
+{
+	u8 Hex;
+	struct
+	{
+		u8             : 2;
+		u8 sound       : 1; // Audio settings; 0 = Mono, 1 = Stereo
+		u8 initialized : 1; // if 0, displays prompt to set language on boot and asks user to set options and time/date
+		u8             : 2;
+		u8 boot_menu   : 1; // if 1, skips logo animation and boots into the system menu regardless of if there is a disc inserted
+		u8 progressive : 1; // if 1, automatically displays Progressive Scan prompt in games that support it
+	};
+};
+
 union SRAM
 {
 	u8 p_SRAM[64];
@@ -51,7 +65,7 @@ union SRAM
 		s8 display_offsetH;     // Pixel offset for the VI
 		u8 ntd;                 // Unknown attribute
 		u8 lang;                // Language of system
-		u8 flags;               // Device and operations flag
+		SRAMFlags flags;        // Device and operations flag
 
 		                        // Stored configuration value from the extended SRAM area
 		u8 flash_id[2][12];     // flash_id[2][12] 96bit memorycard unlock flash ID
@@ -66,6 +80,7 @@ union SRAM
 #pragma pack(pop)
 void InitSRAM();
 void SetCardFlashID(u8* buffer, u8 card_index);
+void FixSRAMChecksums();
 
 extern SRAM sram_dump;
 extern SRAM g_SRAM;
