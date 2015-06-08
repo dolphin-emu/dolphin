@@ -25,7 +25,6 @@ namespace SDL
 {
 
 void Init( std::vector<Core::Device*>& devices );
-void UpdateInput();
 
 class Joystick : public Core::Device
 {
@@ -131,6 +130,8 @@ private:
 #endif
 
 public:
+	void UpdateInput() override;
+
 	Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index);
 	~Joystick();
 
