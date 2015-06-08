@@ -239,8 +239,14 @@ void CPUInfo::Detect()
 	if (GetCPUImplementer() == 0x51 && GetCPUPart() == 0x6F) // Krait(300) is 0x6F, Scorpion is 0x4D
 		bIDIVa = bIDIVt = true;
 	// These two require ARMv8 or higher
+#ifdef _M_ARM_64
 	bFP = CheckCPUFeature("fp");
 	bASIMD = CheckCPUFeature("asimd");
+	bAES = CheckCPUFeature("aes");
+	bCRC32 = CheckCPUFeature("crc32");
+	bSHA1 = CheckCPUFeature("sha1");
+	bSHA2 = CheckCPUFeature("sha2");
+#endif
 #endif
 	// On android, we build a separate library for ARMv7 so this is fine.
 	// TODO: Check for ARMv7 on other platforms.
