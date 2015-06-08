@@ -152,8 +152,16 @@ public final class GameDatabase extends SQLiteOpenHelper
 						// Check that the file has an extension we care about before trying to read out of it.
 						if (allowedExtensions.contains(fileExtension))
 						{
+							String name = NativeLibrary.GetTitle(filePath);
+
+							// If the game's title field is empty, use the filename.
+							if (name.isEmpty())
+							{
+								name = filePath.substring(filePath.lastIndexOf("/") + 1);
+							}
+
 							ContentValues game = Game.asContentValues(NativeLibrary.GetPlatform(filePath),
-									NativeLibrary.GetTitle(filePath),
+									name,
 									NativeLibrary.GetDescription(filePath).replace("\n", " "),
 									NativeLibrary.GetCountry(filePath),
 									filePath,
