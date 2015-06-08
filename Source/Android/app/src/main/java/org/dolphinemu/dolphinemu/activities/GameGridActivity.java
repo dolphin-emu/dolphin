@@ -140,6 +140,12 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 				Intent settings = new Intent(this, SettingsActivity.class);
 				startActivity(settings);
 				return true;
+
+			case R.id.menu_refresh:
+				getContentResolver().insert(GameProvider.URI_REFRESH, null);
+				getLoaderManager().restartLoader(LOADER_ID_GAMES, null, this);
+
+				return true;
 		}
 
 		return false;

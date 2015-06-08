@@ -226,6 +226,7 @@
 
     <!-- Game Grid Screen-->
     <string name="grid_menu_settings">Settings</string>
+    <string name="grid_menu_refresh">Refresh Library</string>
 
     <!-- Add Directory Screen-->
     <string name="add_directory_title">Add Folder to Library</string>

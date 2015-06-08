@@ -15,12 +15,16 @@ import org.dolphinemu.dolphinemu.BuildConfig;
  */
 public final class GameProvider extends ContentProvider
 {
+	public static final String REFRESH_LIBRARY = "refresh";
+
 	public static final String AUTHORITY = "content://" + BuildConfig.APPLICATION_ID + ".provider";
 	public static final Uri URI_FOLDER = Uri.parse(AUTHORITY + "/" + GameDatabase.TABLE_NAME_FOLDERS + "/");
 	public static final Uri URI_GAME = Uri.parse(AUTHORITY + "/" + GameDatabase.TABLE_NAME_GAMES + "/");
+	public static final Uri URI_REFRESH = Uri.parse(AUTHORITY + "/" + REFRESH_LIBRARY + "/");
 
 	public static final String MIME_TYPE_FOLDER = "vnd.android.cursor.item/vnd.dolphin.folder";
 	public static final String MIME_TYPE_GAME = "vnd.android.cursor.item/vnd.dolphin.game";
+
 
 	private GameDatabase mDbHelper;
 
@@ -92,6 +96,12 @@ public final class GameProvider extends ContentProvider
 
 		if (table != null)
 		{
+			if (table.equals(REFRESH_LIBRARY))
+			{
+				mDbHelper.scanLibrary(database);
+				return uri;
+			}
+
 			id = database.insertWithOnConflict(table, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 
 			// If insertion was successful...
