@@ -26,6 +26,9 @@ public final class EmulationActivity extends Activity
 {
 	private View mDecorView;
 
+	private boolean mDeviceHasTouchScreen;
+	private boolean mSystemUiVisible;
+
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
 	 * on the UI thread. This Handler responds to any message, even blank ones, by
@@ -45,6 +48,8 @@ public final class EmulationActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 
+		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
+
 		// Get a handle to the Window containing the UI.
 		mDecorView = getWindow().getDecorView();
 
@@ -60,9 +65,9 @@ public final class EmulationActivity extends Activity
 					@Override
 					public void onSystemUiVisibilityChange(int flags)
 					{
-						boolean visible = (flags & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
+						mSystemUiVisible = (flags & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
 
-						if (visible)
+						if (mSystemUiVisible)
 						{
 							getActionBar().show();
 							hideSystemUiAfterDelay();
@@ -132,6 +137,20 @@ public final class EmulationActivity extends Activity
 			// If the window loses focus (i.e. a dialog box, or a popup menu is on screen
 			// stop hiding the UI.
 			mSystemUiHider.removeMessages(0);
+		}
+	}
+
+	@Override
+	public void onBackPressed()
+	{
+		if (!mDeviceHasTouchScreen && !mSystemUiVisible)
+		{
+			showSystemUI();
+		}
+		else
+		{
+			// Let the system handle it; i.e. quit the activity TODO or show "are you sure?" dialog.
+			super.onBackPressed();
 		}
 	}
 
@@ -293,6 +312,8 @@ public final class EmulationActivity extends Activity
 
 	private void hideSystemUI()
 	{
+		mSystemUiVisible = false;
+
 		mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
 				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
@@ -303,8 +324,12 @@ public final class EmulationActivity extends Activity
 
 	private void showSystemUI()
 	{
+		mSystemUiVisible = true;
+
 		mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 				View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
 				View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
+		hideSystemUiAfterDelay();
 	}
 }
