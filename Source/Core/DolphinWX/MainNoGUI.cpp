@@ -49,7 +49,7 @@ void Host_RefreshDSPDebuggerWindow() {}
 static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
-	if (Id == WM_USER_STOP || Id == WM_USER_QUIT)
+	if (Id == WM_USER_STOP)
 		running = false;
 }
 
