@@ -2439,6 +2439,51 @@ void ARM64FloatEmitter::EncodeLoadStorePair(u32 size, bool load, IndexType type,
 
 }
 
+void ARM64FloatEmitter::EncodeLoadStoreRegisterOffset(u32 size, bool load, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm)
+{
+	_assert_msg_(DYNA_REC, Rm.GetType() == ArithOption::TYPE_EXTENDEDREG, "%s must contain an extended reg as Rm!", __FUNCTION__);
+
+	u32 encoded_size = 0;
+	u32 encoded_op = 0;
+	bool shift = false;
+
+	if (size == 8)
+	{
+		encoded_size = 0;
+		encoded_op = 0;
+	}
+	else if (size == 16)
+	{
+		encoded_size = 1;
+		encoded_op = 0;
+	}
+	else if (size == 32)
+	{
+		encoded_size = 2;
+		encoded_op = 0;
+	}
+	else if (size == 64)
+	{
+		encoded_size = 3;
+		encoded_op = 0;
+	}
+	else if (size == 128)
+	{
+		encoded_size = 0;
+		encoded_op = 2;
+	}
+
+	if (load)
+		encoded_op |= 1;
+
+	Rt = DecodeReg(Rt);
+	Rn = DecodeReg(Rn);
+	ARM64Reg decoded_Rm = DecodeReg(Rm.GetReg());
+
+	Write32((encoded_size << 30) | (encoded_op << 22) | (0b111100001 << 21) | (decoded_Rm << 16) | \
+	        Rm.GetData() | (1 << 11) | (Rn << 5) | Rt);
+}
+
 void ARM64FloatEmitter::LDR(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rn, s32 imm)
 {
 	EmitLoadStoreImmediate(size, 1, type, Rt, Rn, imm);
@@ -2838,6 +2883,16 @@ void ARM64FloatEmitter::LDP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, 
 void ARM64FloatEmitter::STP(u8 size, IndexType type, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, s32 imm)
 {
 	EncodeLoadStorePair(size, false, type, Rt, Rt2, Rn, imm);
+}
+
+// Loadstore register offset
+void ARM64FloatEmitter::STR(u8 size, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm)
+{
+	EncodeLoadStoreRegisterOffset(size, false, Rt, Rn, Rm);
+}
+void ARM64FloatEmitter::LDR(u8 size, ARM64Reg Rt, ARM64Reg Rn, ArithOption Rm)
+{
+	EncodeLoadStoreRegisterOffset(size, true, Rt, Rn, Rm);
 }
 
 void ARM64FloatEmitter::FABS(ARM64Reg Rd, ARM64Reg Rn)
