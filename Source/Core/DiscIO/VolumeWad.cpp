@@ -117,7 +117,7 @@ IVolume::EPlatform CVolumeWAD::GetVolumeType() const
 	return WII_WAD;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames() const
+std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames(bool prefer_long) const
 {
 	std::vector<u8> name_data(NAMES_TOTAL_BYTES);
 	if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, name_data.data()))

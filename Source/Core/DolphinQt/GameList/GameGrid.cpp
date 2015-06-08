@@ -76,7 +76,7 @@ void DGameGrid::AddGame(GameFile* gameItem)
 	QListWidgetItem* i = new QListWidgetItem;
 	i->setIcon(QIcon(gameItem->GetBitmap()
 		.scaled(GRID_BANNER_WIDTH, GRID_BANNER_HEIGHT, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-	i->setText(gameItem->GetName());
+	i->setText(gameItem->GetName(false));
 	if (gameItem->IsCompressed())
 		i->setTextColor(QColor("#00F"));
 
