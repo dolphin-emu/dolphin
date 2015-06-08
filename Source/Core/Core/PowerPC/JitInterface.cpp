@@ -27,11 +27,6 @@
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #endif
 
-#if _M_ARM_32
-#include "Core/PowerPC/JitArm32/Jit.h"
-#include "Core/PowerPC/JitArm32/JitArm_Tables.h"
-#endif
-
 #if _M_ARM_64
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
@@ -63,11 +58,6 @@ namespace JitInterface
 			ptr = new JitIL();
 			break;
 		#endif
-		#if _M_ARM_32
-		case PowerPC::CORE_JITARM:
-			ptr = new JitArm();
-			break;
-		#endif
 		#if _M_ARM_64
 		case PowerPC::CORE_JITARM64:
 			ptr = new JitArm64();
@@ -92,11 +82,6 @@ namespace JitInterface
 			break;
 		case PowerPC::CORE_JITIL64:
 			JitILTables::InitTables();
-			break;
-		#endif
-		#if _M_ARM_32
-		case PowerPC::CORE_JITARM:
-			JitArmTables::InitTables();
 			break;
 		#endif
 		#if _M_ARM_64

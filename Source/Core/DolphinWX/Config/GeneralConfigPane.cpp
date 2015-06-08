@@ -26,8 +26,6 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
 #ifdef _M_X86_64
 		{ 1, _("JIT Recompiler (recommended)") },
 		{ 2, _("JITIL Recompiler (slower, experimental)") },
-#elif defined(_M_ARM_32)
-		{ 3, _("Arm JIT (experimental)") },
 #elif defined(_M_ARM_64)
 		{ 4, _("Arm64 JIT (experimental)") },
 #endif

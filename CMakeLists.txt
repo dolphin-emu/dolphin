@@ -159,11 +159,7 @@ if(NOT ENABLE_GENERIC)
 			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 		endif()
 	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
-		# This option only applies to 32bit ARM
-		set(_M_ARM 1)
-		set(_M_ARM_32 1)
-		add_definitions(-D_M_ARM=1 -D_M_ARM_32=1)
-		add_definitions(-marm -march=armv7-a)
+		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
 		# This option only applies to 64bit ARM
 		set(_M_ARM 1)
