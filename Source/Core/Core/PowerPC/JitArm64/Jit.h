@@ -115,6 +115,8 @@ public:
 	void icbi(UGeckoInstruction inst);
 	void lXX(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst);
+	void lmw(UGeckoInstruction inst);
+	void stmw(UGeckoInstruction inst);
 
 	// LoadStore floating point
 	void lfXX(UGeckoInstruction inst);
