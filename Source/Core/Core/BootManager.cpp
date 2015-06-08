@@ -186,7 +186,7 @@ bool BootCore(const std::string& _rFilename)
 		}
 
 		// Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would be invalid on an NTSC system
-		if (StartUp.bNTSC)
+		if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
 		{
 			StartUp.SelectedLanguage = 0;
 		}

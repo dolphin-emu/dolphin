@@ -43,7 +43,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bMMU(false), bDCBZOFF(false),
   iBBDumpPort(0),
   bFastDiscSpeed(false), bSyncGPU(false),
-  SelectedLanguage(0), bWii(false),
+  SelectedLanguage(0), bOverrideGCLanguage(false), bWii(false),
   bConfirmStop(false), bHideCursor(false),
   bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
@@ -86,6 +86,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bFastDiscSpeed = false;
 	bEnableMemcardSaving = true;
 	SelectedLanguage = 0;
+	bOverrideGCLanguage = false;
 	bWii = false;
 	bDPL2Decoder = false;
 	iLatency = 14;

@@ -55,6 +55,10 @@ void GameCubeConfigPane::InitializeGUI()
 	m_system_lang_choice->SetToolTip(_("Sets the GameCube system language."));
 	m_system_lang_choice->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSystemLanguageChange, this);
 
+	m_override_lang_checkbox = new wxCheckBox(this, wxID_ANY, _("Override Language on NTSC Games"));
+	m_override_lang_checkbox->SetToolTip(_("Lets the system language be set to values that games were not designed for. This can allow the use of extra translations for a few games, but can also lead to text display issues."));
+	m_override_lang_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged, this);
+
 	m_skip_bios_checkbox = new wxCheckBox(this, wxID_ANY, _("Skip BIOS"));
 	m_skip_bios_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnSkipBiosCheckBoxChanged, this);
 
@@ -96,6 +100,7 @@ void GameCubeConfigPane::InitializeGUI()
 	sGamecubeIPLSettings->Add(new wxStaticText(this, wxID_ANY, _("System Language:")),
 		wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	sGamecubeIPLSettings->Add(m_system_lang_choice, wxGBPosition(1, 1), wxDefaultSpan, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	sGamecubeIPLSettings->Add(m_override_lang_checkbox, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	wxStaticBoxSizer* const sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, this, _("IPL Settings"));
 	sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
@@ -128,6 +133,7 @@ void GameCubeConfigPane::LoadGUIValues()
 
 	m_system_lang_choice->SetSelection(startup_params.SelectedLanguage);
 	m_skip_bios_checkbox->SetValue(startup_params.bHLE_BS2);
+	m_override_lang_checkbox->SetValue(startup_params.bOverrideGCLanguage);
 
 	wxArrayString slot_devices;
 	slot_devices.Add(_(DEV_NONE_STR));
@@ -199,6 +205,7 @@ void GameCubeConfigPane::RefreshGUI()
 	if (Core::IsRunning())
 	{
 		m_system_lang_choice->Disable();
+		m_override_lang_checkbox->Disable();
 		m_skip_bios_checkbox->Disable();
 	}
 }
@@ -206,6 +213,13 @@ void GameCubeConfigPane::RefreshGUI()
 void GameCubeConfigPane::OnSystemLanguageChange(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = m_system_lang_choice->GetSelection();
+
+	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
+}
+
+void GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged(wxCommandEvent& event)
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bOverrideGCLanguage = m_override_lang_checkbox->IsChecked();
 
 	AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
