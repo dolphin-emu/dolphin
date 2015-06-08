@@ -69,7 +69,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 
 	fpr.BindToRegister(inst.RS, false);
 	ARM64Reg VS = fpr.R(inst.RS);
-	m_float_emit.FCVTL(64, EncodeRegToDouble(VS), D0);
+	m_float_emit.FCVTL(64, VS, D0);
 	if (inst.W)
 	{
 		m_float_emit.FMOV(D0, 0x70); // 1.0 as a Double
