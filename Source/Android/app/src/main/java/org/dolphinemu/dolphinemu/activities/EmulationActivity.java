@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -89,6 +90,23 @@ public final class EmulationActivity extends Activity
 		getFragmentManager().beginTransaction()
 				.add(R.id.frame_content, emulationFragment, EmulationFragment.FRAGMENT_TAG)
 				.commit();
+	}
+
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		Log.d("DolphinEmu", "EmulationActivity starting.");
+		NativeLibrary.setEmulationActivity(this);
+	}
+
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+		Log.d("DolphinEmu", "EmulationActivity stopping.");
+
+		NativeLibrary.setEmulationActivity(null);
 	}
 
 	@Override
