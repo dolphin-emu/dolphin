@@ -8,6 +8,8 @@ package org.dolphinemu.dolphinemu.services;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -63,6 +65,13 @@ public final class AssetCopyService extends IntentService
 		// Load the configuration keys set in the Dolphin ini and gfx ini files
 		// into the application's shared preferences.
 		UserPreferences.LoadIniToPrefs(this);
+
+		// Record the fact that we've done this before, so we don't do it on every launch.
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = preferences.edit();
+
+		editor.putBoolean("assetsCopied", true);
+		editor.commit();
 	}
 
 	private void copyAsset(String asset, String output)
