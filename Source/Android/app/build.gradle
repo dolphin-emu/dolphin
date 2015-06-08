@@ -14,7 +14,11 @@ android {
         applicationId "org.dolphinemu.dolphinemu"
         minSdkVersion 18
         targetSdkVersion 21
+
+        // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
         versionCode 13
+
+        // TODO This should be set to the string currently provided by NativeLibrary.GetVersionString().
         versionName "0.13"
     }
 
