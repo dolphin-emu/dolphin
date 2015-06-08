@@ -1377,16 +1377,18 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		{
 		CPatchAddEdit dlg(selection, &onFrame, this);
 		dlg.ShowModal();
+		Raise();
 		}
 		break;
 	case ID_ADDPATCH:
 		{
-		CPatchAddEdit dlg(-1, &onFrame, this, 1, _("Add Patch"));
+		CPatchAddEdit dlg(-1, &onFrame, this, wxID_ANY, _("Add Patch"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			Patches->Append(StrToWxStr(onFrame.back().name));
 			Patches->Check((unsigned int)(onFrame.size() - 1), onFrame.back().active);
 		}
+		Raise();
 		}
 		break;
 	case ID_REMOVEPATCH:
@@ -1457,16 +1459,18 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 		{
 		CARCodeAddEdit dlg(selection, &arCodes, this);
 		dlg.ShowModal();
+		Raise();
 		}
 		break;
 	case ID_ADDCHEAT:
 		{
-			CARCodeAddEdit dlg(-1, &arCodes, this, 1, _("Add ActionReplay Code"));
-			if (dlg.ShowModal() == wxID_OK)
-			{
-				Cheats->Append(StrToWxStr(arCodes.back().name));
-				Cheats->Check((unsigned int)(arCodes.size() - 1), arCodes.back().active);
-			}
+		CARCodeAddEdit dlg(-1, &arCodes, this, wxID_ANY, _("Add ActionReplay Code"));
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			Cheats->Append(StrToWxStr(arCodes.back().name));
+			Cheats->Check((unsigned int)(arCodes.size() - 1), arCodes.back().active);
+		}
+		Raise();
 		}
 		break;
 	case ID_REMOVECHEAT:
