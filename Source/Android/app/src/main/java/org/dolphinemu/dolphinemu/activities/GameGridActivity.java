@@ -5,8 +5,10 @@ import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -79,9 +81,16 @@ public final class GameGridActivity extends Activity implements LoaderManager.Lo
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
 		{
-			// Copy assets into appropriate locations.
-			Intent copyAssets = new Intent(this, AssetCopyService.class);
-			startService(copyAssets);
+			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+			boolean assetsCopied = preferences.getBoolean("assetsCopied", false);
+
+			// Only perform these extensive copy operations once.
+			if (!assetsCopied)
+			{
+				// Copy assets into appropriate locations.
+				Intent copyAssets = new Intent(this, AssetCopyService.class);
+				startService(copyAssets);
+			}
 		}
 	}
 
