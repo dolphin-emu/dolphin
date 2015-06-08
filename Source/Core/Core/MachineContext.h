@@ -113,9 +113,6 @@
 		#define CTX_REG(x) regs[x]
 		#define CTX_SP sp
 		#define CTX_PC pc
-	#elif _M_ARM_32
-		// Add others if required.
-		#define CTX_PC  arm_pc
 	#else
 		#warning No context definition for OS
 	#endif

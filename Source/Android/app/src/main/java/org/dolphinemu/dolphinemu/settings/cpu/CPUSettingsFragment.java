@@ -42,11 +42,6 @@ public final class CPUSettingsFragment extends PreferenceFragment
 			cpuCores.setEntries(R.array.emuCoreEntriesARM64);
 			cpuCores.setEntryValues(R.array.emuCoreValuesARM64);
 		}
-		else if (Build.CPU_ABI.contains("arm"))
-		{
-			cpuCores.setEntries(R.array.emuCoreEntriesARM);
-			cpuCores.setEntryValues(R.array.emuCoreValuesARM);
-		}
 		else
 		{
 			cpuCores.setEntries(R.array.emuCoreEntriesOther);
