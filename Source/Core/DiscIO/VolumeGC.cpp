@@ -296,24 +296,24 @@ bool CVolumeGC::LoadBannerFile() const
 		file_system->ReadFile("opening.bnr", m_banner_file.data(), m_banner_file.size());
 
 		u32 bannerSignature = *(u32*)m_banner_file.data();
-		switch (bannerSignature)
+		if (file_size == BNR1_SIZE && bannerSignature == 0x31524e42)        // "BNR1"
 		{
-		case 0x31524e42:	// "BNR1"
 			m_banner_file_type = BANNER_BNR1;
-			break;
-		case 0x32524e42:	// "BNR2"
+		}
+		else if (file_size == BNR2_SIZE && bannerSignature == 0x32524e42)   // "BNR2"
+		{
 			m_banner_file_type = BANNER_BNR2;
-			break;
-		default:
+		}
+		else
+		{
 			m_banner_file_type = BANNER_INVALID;
-			WARN_LOG(DISCIO, "Invalid opening.bnr type");
-			break;
+			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0lx", bannerSignature, (unsigned long)file_size);
 		}
 	}
 	else
 	{
 		m_banner_file_type = BANNER_INVALID;
-		WARN_LOG(DISCIO, "Invalid opening.bnr size: %0lx", (unsigned long)file_size);
+		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0lx", (unsigned long)file_size);
 	}
 
 	return m_banner_file_type != BANNER_INVALID;
