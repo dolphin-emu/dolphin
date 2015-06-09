@@ -1462,7 +1462,7 @@ void CFrame::ParseHotkeys()
 		if (IsHotkey(HK_SELECT_STATE_SLOT_1 + i))
 		{
 			wxCommandEvent slot_event;
-			slot_event.SetId(i + IDM_SELECT_SLOT_1 - HK_SELECT_STATE_SLOT_1);
+			slot_event.SetId(IDM_SELECT_SLOT_1 + i);
 			CFrame::OnSelectSlot(slot_event);
 		}
 	}
