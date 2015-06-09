@@ -31,34 +31,34 @@ enum EFBAccessType
 struct SCPFifoStruct
 {
 	// fifo registers
-	volatile u32 CPBase;
-	volatile u32 CPEnd;
+	VOLATILE_BUG u32 CPBase;
+	VOLATILE_BUG u32 CPEnd;
 	u32 CPHiWatermark;
 	u32 CPLoWatermark;
-	volatile u32 CPReadWriteDistance;
-	volatile u32 CPWritePointer;
-	volatile u32 CPReadPointer;
-	volatile u32 CPBreakpoint;
-	volatile u32 SafeCPReadPointer;
+	VOLATILE_BUG u32 CPReadWriteDistance;
+	VOLATILE_BUG u32 CPWritePointer;
+	VOLATILE_BUG u32 CPReadPointer;
+	VOLATILE_BUG u32 CPBreakpoint;
+	VOLATILE_BUG u32 SafeCPReadPointer;
 	// Super Monkey Ball Adventure require this.
 	// Because the read&check-PEToken-loop stays in its JITed block I suppose.
 	// So no possiblity to ack the Token irq by the scheduler until some sort of PPC watchdog do its mess.
-	volatile u16 PEToken;
+	VOLATILE_BUG u16 PEToken;
 
-	volatile u32 bFF_GPLinkEnable;
-	volatile u32 bFF_GPReadEnable;
-	volatile u32 bFF_BPEnable;
-	volatile u32 bFF_BPInt;
-	volatile u32 bFF_Breakpoint;
+	VOLATILE_BUG u32 bFF_GPLinkEnable;
+	VOLATILE_BUG u32 bFF_GPReadEnable;
+	VOLATILE_BUG u32 bFF_BPEnable;
+	VOLATILE_BUG u32 bFF_BPInt;
+	VOLATILE_BUG u32 bFF_Breakpoint;
 
-	volatile u32 bFF_LoWatermarkInt;
-	volatile u32 bFF_HiWatermarkInt;
+	VOLATILE_BUG u32 bFF_LoWatermarkInt;
+	VOLATILE_BUG u32 bFF_HiWatermarkInt;
 
-	volatile u32 bFF_LoWatermark;
-	volatile u32 bFF_HiWatermark;
+	VOLATILE_BUG u32 bFF_LoWatermark;
+	VOLATILE_BUG u32 bFF_HiWatermark;
 
 	// for GP watchdog hack
-	volatile u32 isGpuReadingData;
+	VOLATILE_BUG u32 isGpuReadingData;
 };
 
 class VideoBackend
