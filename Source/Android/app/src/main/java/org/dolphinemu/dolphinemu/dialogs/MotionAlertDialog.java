@@ -2,14 +2,15 @@ package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.utils.InputConfigFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,11 +48,10 @@ public final class MotionAlertDialog extends AlertDialog
 		{
 			case KeyEvent.ACTION_DOWN:
 			case KeyEvent.ACTION_UP:
+
 				InputDevice input = event.getDevice();
-				String bindStr = "Device '" + InputConfigFragment.getInputDesc(input) + "'-Button " + event.getKeyCode();
-				NativeLibrary.SetConfig("Dolphin.ini", "Android", inputPref.getKey(), bindStr);
-				inputPref.setSummary(bindStr);
-				dismiss();
+				saveInput(input, event, null, false);
+
 				return true;
 
 			default:
@@ -90,17 +90,11 @@ public final class MotionAlertDialog extends AlertDialog
 
 				if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
 				{
-					String bindStr = "Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "-";
-					NativeLibrary.SetConfig("Dolphin.ini", "Android", inputPref.getKey(), bindStr);
-					inputPref.setSummary(bindStr);
-					dismiss();
+					saveInput(input, null, range, false);
 				}
 				else if (m_values.get(a) < (event.getAxisValue(range.getAxis()) - 0.5f))
 				{
-					String bindStr = "Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "+";
-					NativeLibrary.SetConfig("Dolphin.ini", "Android", inputPref.getKey(), bindStr);
-					inputPref.setSummary(bindStr);
-					dismiss();
+					saveInput(input, null, range, true);
 				}
 			}
 		}
@@ -124,5 +118,67 @@ public final class MotionAlertDialog extends AlertDialog
 			return true;
 
 		return super.dispatchGenericMotionEvent(event);
+	}
+
+	/**
+	 * Saves the provided input setting both to the INI file (so native code can use it) and as an
+	 * Android preference (so it persists correctly, and is human-readable.)
+	 *
+	 * @param device       Required; the InputDevice from which the input event originated.
+	 * @param keyEvent     If the event was a button push, this KeyEvent represents it and is required.
+	 * @param motionRange  If the event was an axis movement, this MotionRange represents it and is required.
+	 * @param axisPositive If the event was an axis movement, this boolean indicates the direction and is required.
+	 */
+	private void saveInput(InputDevice device, KeyEvent keyEvent, InputDevice.MotionRange motionRange, boolean axisPositive)
+	{
+		String bindStr = null;
+		String uiString = null;
+
+		if (keyEvent != null)
+		{
+			bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
+			uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
+		}
+
+		if (motionRange != null)
+		{
+			if (axisPositive)
+			{
+				bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + "+";
+				uiString = device.getName() + ": Axis " + motionRange.getAxis() + "+";
+			}
+			else
+			{
+				bindStr = "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + "-";
+				uiString = device.getName() + ": Axis " + motionRange.getAxis() + "-";
+			}
+		}
+
+		if (bindStr != null)
+		{
+			NativeLibrary.SetConfig("Dolphin.ini", "Android", inputPref.getKey(), bindStr);
+		}
+		else
+		{
+			Log.e("DolphinEmu", "Failed to save input to INI.");
+		}
+
+
+		if (uiString != null)
+		{
+			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+			SharedPreferences.Editor editor = preferences.edit();
+
+			editor.putString(inputPref.getKey(), uiString);
+			editor.apply();
+
+			inputPref.setSummary(uiString);
+		}
+		else
+		{
+			Log.e("DolphinEmu", "Failed to save input to preference.");
+		}
+
+		dismiss();
 	}
 }

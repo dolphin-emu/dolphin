@@ -18,7 +18,6 @@ import android.view.View;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
-import org.dolphinemu.dolphinemu.utils.InputConfigFragment;
 
 import java.util.List;
 
@@ -274,7 +273,7 @@ public final class EmulationActivity extends Activity
 				return false;
 		}
 		InputDevice input = event.getDevice();
-		boolean handled = NativeLibrary.onGamePadEvent(InputConfigFragment.getInputDesc(input), event.getKeyCode(), action);
+		boolean handled = NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
 		return handled;
 	}
 
@@ -295,7 +294,7 @@ public final class EmulationActivity extends Activity
 
 		for (InputDevice.MotionRange range : motions)
 		{
-			NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
+			NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), range.getAxis(), event.getAxisValue(range.getAxis()));
 		}
 
 		return true;

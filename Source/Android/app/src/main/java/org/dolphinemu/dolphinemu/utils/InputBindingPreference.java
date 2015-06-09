@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.utils;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.util.AttributeSet;
 
@@ -13,7 +14,7 @@ import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
  * {@link Preference} subclass that represents a preference
  * used for assigning a key bind.
  */
-public final class InputBindingPreference extends Preference
+public final class InputBindingPreference extends EditTextPreference
 {
 	/**
 	 * Constructor that is called when inflating an InputBindingPreference from XML.
@@ -53,4 +54,13 @@ public final class InputBindingPreference extends Preference
 		// Everything is set, show the dialog.
 		dialog.show();
 	}
+
+	@Override
+	public CharSequence getSummary()
+	{
+		String summary = super.getSummary().toString();
+		return String.format(summary, getText());
+	}
+
+
 }
