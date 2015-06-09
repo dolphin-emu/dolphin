@@ -1455,7 +1455,7 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-	BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU));
+	BootGame(Common::GetTitleContentPath(TITLEID_SYSMENU, D_WIIROOT_IDX));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
@@ -1511,12 +1511,13 @@ void CFrame::UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem)
 		WiiMenuItem = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
 	}
 
-	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+	std::string path = Common::GetTitleContentPath(TITLEID_SYSMENU, D_WIIROOT_IDX);
+	const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(path, true);
 	if (SysMenu_Loader.IsValid())
 	{
 		int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
 		char sysmenuRegion = SysMenu_Loader.GetCountryChar();
-		WiiMenuItem->Enable();
+		WiiMenuItem->Enable(!Core::IsRunning());
 		WiiMenuItem->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
 	}
 	else
@@ -1742,8 +1743,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGE_DISC)->Enable(Initialized);
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
-		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
+	UpdateWiiMenuChoice();
 
 	// Tools
 	GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);

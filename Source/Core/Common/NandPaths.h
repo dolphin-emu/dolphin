@@ -24,7 +24,7 @@ namespace Common
 	std::string GetTicketFileName(u64 _titleID);
 	std::string GetTMDFileName(u64 _titleID);
 	std::string GetTitleDataPath(u64 _titleID);
-	std::string GetTitleContentPath(u64 _titleID);
+	std::string GetTitleContentPath(u64 _titleID, int wiiRootIndex = D_SESSION_WIIROOT_IDX);
 	bool CheckTitleTMD(u64 _titleID);
 	bool CheckTitleTIK(u64 _titleID);
 	void ReadReplacements(replace_v& replacements);

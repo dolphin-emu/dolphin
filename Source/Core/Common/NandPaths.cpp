@@ -72,10 +72,10 @@ std::string GetTMDFileName(u64 _titleID)
 {
 	return GetTitleContentPath(_titleID) + "title.tmd";
 }
-std::string GetTitleContentPath(u64 _titleID)
+std::string GetTitleContentPath(u64 _titleID, int wiiRootIndex)
 {
 	return StringFromFormat("%s/title/%08x/%08x/content/",
-			File::GetUserPath(D_SESSION_WIIROOT_IDX).c_str(),
+			File::GetUserPath(wiiRootIndex).c_str(),
 			(u32)(_titleID >> 32), (u32)_titleID);
 }
 
