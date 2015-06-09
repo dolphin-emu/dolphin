@@ -38,7 +38,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	fpr.Lock(a, b, c, d);
 	OpArg op_a = fpr.R(a);
 	fpr.BindToRegister(d, d == b || d == c);
-	X64Reg tmp = XMM0;
+	X64Reg tmp = XMM1;
 	MOVDDUP(tmp, op_a);   // {a.ps0, a.ps0}
 	ADDPD(tmp, fpr.R(b)); // {a.ps0 + b.ps0, a.ps0 + b.ps1}
 	switch (inst.SUBOP5)
@@ -55,9 +55,9 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 			}
 			else
 			{
-				MOVAPD(XMM1, fpr.R(c));
-				SHUFPD(XMM1, R(tmp), 2);
-				tmp = XMM1;
+				MOVAPD(XMM0, fpr.R(c));
+				SHUFPD(XMM0, R(tmp), 2);
+				tmp = XMM0;
 			}
 		}
 		else
@@ -68,7 +68,8 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	default:
 		PanicAlert("ps_sum WTF!!!");
 	}
-	ForceSinglePrecision(fpr.RX(d), R(tmp));
+	HandleNaNs(inst, fpr.RX(d), tmp);
+	ForceSinglePrecision(fpr.RX(d), fpr.R(d));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
@@ -88,19 +89,20 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	switch (inst.SUBOP5)
 	{
 	case 12: // ps_muls0
-		MOVDDUP(XMM0, fpr.R(c));
+		MOVDDUP(XMM1, fpr.R(c));
 		break;
 	case 13: // ps_muls1
-		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM0, fpr.R(c), fpr.R(c), 3);
+		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, fpr.R(c), fpr.R(c), 3);
 		break;
 	default:
 		PanicAlert("ps_muls WTF!!!");
 	}
 	if (round_input)
-		Force25BitPrecision(XMM0, R(XMM0), XMM1);
-	MULPD(XMM0, fpr.R(a));
+		Force25BitPrecision(XMM1, R(XMM1), XMM0);
+	MULPD(XMM1, fpr.R(a));
 	fpr.BindToRegister(d, false);
-	ForceSinglePrecision(fpr.RX(d), R(XMM0));
+	HandleNaNs(inst, fpr.RX(d), XMM1);
+	ForceSinglePrecision(fpr.RX(d), fpr.R(d));
 	SetFPRFIfNeeded(fpr.RX(d));
 	fpr.UnlockAll();
 }
