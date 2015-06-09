@@ -319,6 +319,7 @@ void SConfig::SaveNetworkSettings(IniFile& ini)
 
   network->Set("SSLDumpRead", m_SSLDumpRead);
   network->Set("SSLDumpWrite", m_SSLDumpWrite);
+  network->Set("SSLVerifyCert", m_SSLVerifyCert);
 }
 
 void SConfig::SaveAnalyticsSettings(IniFile& ini)
@@ -618,6 +619,7 @@ void SConfig::LoadNetworkSettings(IniFile& ini)
 
   network->Get("SSLDumpRead", &m_SSLDumpRead, false);
   network->Get("SSLDumpWrite", &m_SSLDumpWrite, false);
+  network->Get("SSLVerifyCert", &m_SSLVerifyCert, false);
 }
 
 void SConfig::LoadAnalyticsSettings(IniFile& ini)
