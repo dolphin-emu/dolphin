@@ -275,6 +275,7 @@ struct SConfig : NonCopyable
   // Network settings
   bool m_SSLDumpRead;
   bool m_SSLDumpWrite;
+  bool m_SSLVerifyCert;
 
   SysConf* m_SYSCONF;
 
