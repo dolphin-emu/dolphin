@@ -13,7 +13,7 @@
         android:focusableInTouchMode="false"/>
 
     <!-- This is the onscreen input overlay -->
-    <org.dolphinemu.dolphinemu.emulation.overlay.InputOverlay
+    <org.dolphinemu.dolphinemu.overlay.InputOverlay
         android:id="@+id/surface_input_overlay"
         android:layout_height="match_parent"
         android:layout_width="match_parent"

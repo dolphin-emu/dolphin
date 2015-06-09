@@ -4,7 +4,7 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.emulation.overlay;
+package org.dolphinemu.dolphinemu.overlay;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;

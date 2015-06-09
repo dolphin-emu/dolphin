@@ -1,8 +1,0 @@
-<ListView xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          android:id="@+id/gamelist"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:choiceMode="singleChoice"
-    android:dividerHeight="1dp"
-    tools:listitem="@layout/gamelist_list_item"/>

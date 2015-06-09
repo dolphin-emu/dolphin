@@ -1,12 +1,13 @@
-package org.dolphinemu.dolphinemu.settings.input;
-
-import org.dolphinemu.dolphinemu.R;
+package org.dolphinemu.dolphinemu.utils;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.preference.Preference;
 import android.util.AttributeSet;
+
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
 
 /**
  * {@link Preference} subclass that represents a preference
@@ -16,7 +17,7 @@ public final class InputBindingPreference extends Preference
 {
 	/**
 	 * Constructor that is called when inflating an InputBindingPreference from XML.
-	 * 
+	 *
 	 * @param context The current {@link Context}.
 	 * @param attrs   The attributes of the XML tag that is inflating the preference.
 	 */
@@ -34,11 +35,11 @@ public final class InputBindingPreference extends Preference
 		// Set the cancel button.
 		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, getContext().getString(R.string.cancel), new AlertDialog.OnClickListener()
 		{
-				@Override
-				public void onClick(DialogInterface dialog, int which)
-				{
-						// Do nothing. Just makes the cancel button show up.
-				}
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+				// Do nothing. Just makes the cancel button show up.
+			}
 		});
 
 		// Set the title and description message.

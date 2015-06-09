@@ -1,9 +1,4 @@
-package org.dolphinemu.dolphinemu.settings.input;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.dolphinemu.dolphinemu.NativeLibrary;
+package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -13,11 +8,17 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.utils.InputConfigFragment;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * {@link AlertDialog} derivative that listens for
  * motion events from controllers and joysticks.
  */
-final class MotionAlertDialog extends AlertDialog
+public final class MotionAlertDialog extends AlertDialog
 {
 	// The selected input preference
 	private final Preference inputPref;
@@ -27,7 +28,7 @@ final class MotionAlertDialog extends AlertDialog
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param ctx       The current {@link Context}.
 	 * @param inputPref The Preference to show this dialog for.
 	 */
@@ -57,7 +58,7 @@ final class MotionAlertDialog extends AlertDialog
 				return false;
 		}
 	}
-	
+
 
 	// Method that will be called within dispatchGenericMotionEvent
 	// that handles joystick/controller movements.
@@ -115,7 +116,7 @@ final class MotionAlertDialog extends AlertDialog
 
 		return super.dispatchKeyEvent(event);
 	}
-	
+
 	@Override
 	public boolean dispatchGenericMotionEvent(MotionEvent event)
 	{

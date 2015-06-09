@@ -4,7 +4,7 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.settings.input;
+package org.dolphinemu.dolphinemu.utils;
 
 import android.app.Fragment;
 import android.os.Build;
@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.view.InputDevice;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 

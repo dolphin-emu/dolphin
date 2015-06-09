@@ -32,102 +32,102 @@
                 android:key="enableController1"
                 android:title="@string/enable_controller"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputA_0"
                 android:title="@string/button_a" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputB_0"
                 android:title="@string/button_b" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputX_0"
                 android:title="@string/button_x" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputY_0"
                 android:title="@string/button_y" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputZ_0"
                 android:title="@string/button_z" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputStart_0"
                 android:title="@string/button_start" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="DPadUp_0"
                 android:title="@string/dpad_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="DPadDown_0"
                 android:title="@string/dpad_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="DPadLeft_0"
                 android:title="@string/dpad_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="DPadRight_0"
                 android:title="@string/dpad_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="MainUp_0"
                 android:title="@string/main_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="MainDown_0"
                 android:title="@string/main_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="MainLeft_0"
                 android:title="@string/main_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="MainRight_0"
                 android:title="@string/main_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="CStickUp_0"
                 android:title="@string/c_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="CStickDown_0"
                 android:title="@string/c_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="CStickLeft_0"
                 android:title="@string/c_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="CStickRight_0"
                 android:title="@string/c_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputL_0"
                 android:title="@string/trigger_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController1"
                 android:key="InputR_0"
                 android:title="@string/trigger_right" />
@@ -139,102 +139,102 @@
                 android:key="enableController2"
                 android:title="@string/enable_controller"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputA_1"
                 android:title="@string/button_a" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputB_1"
                 android:title="@string/button_b" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputX_1"
                 android:title="@string/button_x" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputY_1"
                 android:title="@string/button_y" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputZ_1"
                 android:title="@string/button_z" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputStart_1"
                 android:title="@string/button_start" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="DPadUp_1"
                 android:title="@string/dpad_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="DPadDown_1"
                 android:title="@string/dpad_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="DPadLeft_1"
                 android:title="@string/dpad_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="DPadRight_1"
                 android:title="@string/dpad_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="MainUp_1"
                 android:title="@string/main_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="MainDown_1"
                 android:title="@string/main_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="MainLeft_1"
                 android:title="@string/main_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="MainRight_1"
                 android:title="@string/main_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="CStickUp_1"
                 android:title="@string/c_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="CStickDown_1"
                 android:title="@string/c_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="CStickLeft_1"
                 android:title="@string/c_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="CStickRight_1"
                 android:title="@string/c_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputL_1"
                 android:title="@string/trigger_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController2"
                 android:key="InputR_1"
                 android:title="@string/trigger_right" />
@@ -246,102 +246,102 @@
                 android:key="enableController3"
                 android:title="@string/enable_controller"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputA_2"
                 android:title="@string/button_a" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputB_2"
                 android:title="@string/button_b" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputX_2"
                 android:title="@string/button_x" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputY_2"
                 android:title="@string/button_y" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputZ_2"
                 android:title="@string/button_z" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputStart_2"
                 android:title="@string/button_start" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="DPadUp_2"
                 android:title="@string/dpad_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="DPadDown_2"
                 android:title="@string/dpad_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="DPadLeft_2"
                 android:title="@string/dpad_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="DPadRight_2"
                 android:title="@string/dpad_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="MainUp_2"
                 android:title="@string/main_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="MainDown_2"
                 android:title="@string/main_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="MainLeft_2"
                 android:title="@string/main_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="MainRight_2"
                 android:title="@string/main_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="CStickUp_2"
                 android:title="@string/c_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="CStickDown_2"
                 android:title="@string/c_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="CStickLeft_2"
                 android:title="@string/c_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="CStickRight_2"
                 android:title="@string/c_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputL_2"
                 android:title="@string/trigger_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController3"
                 android:key="InputR_2"
                 android:title="@string/trigger_right" />
@@ -353,102 +353,102 @@
                 android:key="enableController4"
                 android:title="@string/enable_controller"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputA_3"
                 android:title="@string/button_a" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputB_3"
                 android:title="@string/button_b" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputX_3"
                 android:title="@string/button_x" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputY_3"
                 android:title="@string/button_y" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputZ_3"
                 android:title="@string/button_z" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputStart_3"
                 android:title="@string/button_start" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="DPadUp_3"
                 android:title="@string/dpad_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="DPadDown_3"
                 android:title="@string/dpad_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="DPadLeft_3"
                 android:title="@string/dpad_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="DPadRight_3"
                 android:title="@string/dpad_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="MainUp_3"
                 android:title="@string/main_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="MainDown_3"
                 android:title="@string/main_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="MainLeft_3"
                 android:title="@string/main_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="MainRight_3"
                 android:title="@string/main_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="CStickUp_3"
                 android:title="@string/c_stick_up" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="CStickDown_3"
                 android:title="@string/c_stick_down" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="CStickLeft_3"
                 android:title="@string/c_stick_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="CStickRight_3"
                 android:title="@string/c_stick_right" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputL_3"
                 android:title="@string/trigger_left" />
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableController4"
                 android:key="InputR_3"
                 android:title="@string/trigger_right" />
@@ -469,142 +469,142 @@
                 android:key="enableWiimote1"
                 android:title="@string/enable_wiimote"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteInputA_0"
                 android:title="@string/button_a"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteInputB_0"
                 android:title="@string/button_b"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteInputOne_0"
                 android:title="@string/button_one"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteInputTwo_0"
                 android:title="@string/button_two"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteInputPlus_0"
                 android:title="@string/button_plus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteInputMinus_0"
                 android:title="@string/button_minus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteInputHome_0"
                 android:title="@string/button_home"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteDPadUp_0"
                 android:title="@string/dpad_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteDPadDown_0"
                 android:title="@string/dpad_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteDPadLeft_0"
                 android:title="@string/dpad_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteDPadRight_0"
                 android:title="@string/dpad_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteIRUp_0"
                 android:title="@string/ir_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteIRDown_0"
                 android:title="@string/ir_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteIRLeft_0"
                 android:title="@string/ir_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteIRRight_0"
                 android:title="@string/ir_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteIRForward_0"
                 android:title="@string/ir_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteIRBackward_0"
                 android:title="@string/ir_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteSwingUp_0"
                 android:title="@string/swing_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteSwingDown_0"
                 android:title="@string/swing_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteSwingLeft_0"
                 android:title="@string/swing_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteSwingRight_0"
                 android:title="@string/swing_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteTiltForward_0"
                 android:title="@string/tilt_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteTiltBackward_0"
                 android:title="@string/tilt_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteTiltLeft_0"
                 android:title="@string/tilt_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteTiltRight_0"
                 android:title="@string/tilt_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteShakeX_0"
                 android:title="@string/shake_x"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteShakeY_0"
                 android:title="@string/shake_y"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote1"
                 android:key="WiimoteShakeZ_0"
                 android:title="@string/shake_z"/>
@@ -617,142 +617,142 @@
                 android:key="enableWiimote2"
                 android:title="@string/enable_wiimote"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteInputA_1"
                 android:title="@string/button_a"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteInputB_1"
                 android:title="@string/button_b"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteInputOne_1"
                 android:title="@string/button_one"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteInputTwo_1"
                 android:title="@string/button_two"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteInputPlus_1"
                 android:title="@string/button_plus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteInputMinus_1"
                 android:title="@string/button_minus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteInputHome_1"
                 android:title="@string/button_home"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteDPadUp_1"
                 android:title="@string/dpad_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteDPadDown_1"
                 android:title="@string/dpad_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteDPadLeft_1"
                 android:title="@string/dpad_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteDPadRight_1"
                 android:title="@string/dpad_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteIRUp_1"
                 android:title="@string/ir_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteIRDown_1"
                 android:title="@string/ir_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteIRLeft_1"
                 android:title="@string/ir_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteIRRight_1"
                 android:title="@string/ir_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteIRForward_1"
                 android:title="@string/ir_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteIRBackward_1"
                 android:title="@string/ir_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteSwingUp_1"
                 android:title="@string/swing_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteSwingDown_1"
                 android:title="@string/swing_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteSwingLeft_1"
                 android:title="@string/swing_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteSwingRight_1"
                 android:title="@string/swing_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteTiltForward_1"
                 android:title="@string/tilt_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteTiltBackward_1"
                 android:title="@string/tilt_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteTiltLeft_1"
                 android:title="@string/tilt_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteTiltRight_1"
                 android:title="@string/tilt_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteShakeX_1"
                 android:title="@string/shake_x"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteShakeY_1"
                 android:title="@string/shake_y"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote2"
                 android:key="WiimoteShakeZ_1"
                 android:title="@string/shake_z"/>
@@ -765,142 +765,142 @@
                 android:key="enableWiimote3"
                 android:title="@string/enable_wiimote"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteInputA_2"
                 android:title="@string/button_a"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteInputB_2"
                 android:title="@string/button_b"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteInputOne_2"
                 android:title="@string/button_one"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteInputTwo_2"
                 android:title="@string/button_two"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteInputPlus_2"
                 android:title="@string/button_plus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteInputMinus_2"
                 android:title="@string/button_minus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteInputHome_2"
                 android:title="@string/button_home"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteDPadUp_2"
                 android:title="@string/dpad_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteDPadDown_2"
                 android:title="@string/dpad_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteDPadLeft_2"
                 android:title="@string/dpad_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteDPadRight_2"
                 android:title="@string/dpad_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteIRUp_2"
                 android:title="@string/ir_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteIRDown_2"
                 android:title="@string/ir_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteIRLeft_2"
                 android:title="@string/ir_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteIRRight_2"
                 android:title="@string/ir_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteIRForward_2"
                 android:title="@string/ir_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteIRBackward_2"
                 android:title="@string/ir_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteSwingUp_2"
                 android:title="@string/swing_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteSwingDown_2"
                 android:title="@string/swing_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteSwingLeft_2"
                 android:title="@string/swing_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteSwingRight_2"
                 android:title="@string/swing_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteTiltForward_2"
                 android:title="@string/tilt_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteTiltBackward_2"
                 android:title="@string/tilt_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteTiltLeft_2"
                 android:title="@string/tilt_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteTiltRight_2"
                 android:title="@string/tilt_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteShakeX_2"
                 android:title="@string/shake_x"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteShakeY_2"
                 android:title="@string/shake_y"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote3"
                 android:key="WiimoteShakeZ_2"
                 android:title="@string/shake_z"/>
@@ -913,142 +913,142 @@
                 android:key="enableWiimote4"
                 android:title="@string/enable_wiimote"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteInputA_3"
                 android:title="@string/button_a"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteInputB_3"
                 android:title="@string/button_b"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteInputOne_3"
                 android:title="@string/button_one"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteInputTwo_3"
                 android:title="@string/button_two"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteInputPlus_3"
                 android:title="@string/button_plus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteInputMinus_3"
                 android:title="@string/button_minus"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteInputHome_3"
                 android:title="@string/button_home"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteDPadUp_3"
                 android:title="@string/dpad_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteDPadDown_3"
                 android:title="@string/dpad_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteDPadLeft_3"
                 android:title="@string/dpad_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteDPadRight_3"
                 android:title="@string/dpad_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteIRUp_3"
                 android:title="@string/ir_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteIRDown_3"
                 android:title="@string/ir_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteIRLeft_3"
                 android:title="@string/ir_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteIRRight_3"
                 android:title="@string/ir_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteIRForward_3"
                 android:title="@string/ir_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteIRBackward_3"
                 android:title="@string/ir_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteSwingUp_3"
                 android:title="@string/swing_up"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteSwingDown_3"
                 android:title="@string/swing_down"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteSwingLeft_3"
                 android:title="@string/swing_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteSwingRight_3"
                 android:title="@string/swing_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteTiltForward_3"
                 android:title="@string/tilt_forward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteTiltBackward_3"
                 android:title="@string/tilt_backward"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteTiltLeft_3"
                 android:title="@string/tilt_left"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteTiltRight_3"
                 android:title="@string/tilt_right"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteShakeX_3"
                 android:title="@string/shake_x"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteShakeY_3"
                 android:title="@string/shake_y"/>
 
-            <org.dolphinemu.dolphinemu.settings.input.InputBindingPreference
+            <org.dolphinemu.dolphinemu.utils.InputBindingPreference
                 android:dependency="enableWiimote4"
                 android:key="WiimoteShakeZ_3"
                 android:title="@string/shake_z"/>

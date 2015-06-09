@@ -13,7 +13,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.settings.UserPreferences;
+import org.dolphinemu.dolphinemu.utils.UserPreferences;
 
 import java.io.File;
 import java.io.FileOutputStream;

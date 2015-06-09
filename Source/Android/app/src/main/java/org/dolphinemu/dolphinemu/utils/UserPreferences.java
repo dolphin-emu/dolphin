@@ -4,14 +4,14 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.settings;
-
-import org.dolphinemu.dolphinemu.NativeLibrary;
+package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
 
 /**
  * A class that retrieves all of the set user preferences in Android, in a safe way.
