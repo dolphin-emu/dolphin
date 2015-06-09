@@ -75,6 +75,9 @@ struct CPUInfo
 	// ARMv8 specific
 	bool bFP;
 	bool bASIMD;
+	bool bCRC32;
+	bool bSHA1;
+	bool bSHA2;
 
 	// Call Detect()
 	explicit CPUInfo();
